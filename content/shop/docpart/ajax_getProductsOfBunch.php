@@ -860,6 +860,12 @@ if (empty($epc_anti_crawl['prices_visible']) && empty($epc_anti_crawl['tech_key'
 		}
 		unset($epc_vat_product);
 	}
+	// Hash was computed before synonym + VAT-inclusive price. Refresh so retail
+	// Add to Cart (e.g. S-UAE) matches ajax_add_to_basket.php validation.
+	if (!empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products) && isset($DP_Config->tech_key)) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_product_hash.php';
+		docpart_refresh_products_cart_hashes($ProductsOfBunch->Products, $DP_Config->tech_key);
+	}
 }
 
 exit(json_encode($ProductsOfBunch));

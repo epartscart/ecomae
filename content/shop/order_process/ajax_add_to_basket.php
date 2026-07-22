@@ -311,12 +311,17 @@ for($i=0; $i < count($product_objects); $i++)
 		$t2_json_params = $product_object["json_params"].'';
 
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_pricing.php';
-		if (!function_exists('epc_pricing_line_has_positive_margin')
-			|| !epc_pricing_line_has_positive_margin($price, $t2_price_purchase)) {
+		// Do not surface markup/B2B policy to customers. Allow when cost is unknown/redacted
+		// or when purchase was incorrectly cloned from sell (CHPU seed); block only clear
+		// below-cost offers.
+		if (!function_exists('epc_pricing_offer_allows_cart')
+			|| !epc_pricing_offer_allows_cart($price, $t2_price_purchase, $t2_markup)) {
 			$result = array();
 			$result['status'] = false;
 			$result['code'] = 'no_margin';
-			$result['message'] = 'Cannot add to cart without margin. Guest/retail prices include 40% markup; B2B uses the approved profile.';
+			$result['message'] = function_exists('epc_pricing_customer_safe_no_margin_message')
+				? epc_pricing_customer_safe_no_margin_message('cart')
+				: 'Unable to add this item to your cart right now. Please refresh the page and try again.';
 			exit(json_encode($result));
 		}
         
@@ -334,12 +339,26 @@ for($i=0; $i < count($product_objects); $i++)
 		
 		
 		//Проверяем хеш, защищающий от подмены данных злоумышлненниками через JavaScript
+		// Normalize money strings so VAT-inclusive display prices hash consistently.
+		if (is_numeric($price)) {
+			$price = number_format((float) $price, 2, '.', '');
+			$product_object['price'] = $price;
+		}
+		if (isset($product_object['price_purchase']) && is_numeric($product_object['price_purchase'])) {
+			$product_object['price_purchase'] = number_format((float) $product_object['price_purchase'], 2, '.', '');
+			$t2_price_purchase = $product_object['price_purchase'];
+		}
+		if (isset($product_object['markup']) && is_numeric($product_object['markup'])) {
+			$product_object['markup'] = (string) (int) $product_object['markup'];
+			$t2_markup = $product_object['markup'];
+		}
 		$computed_hash = docpart_type2_cart_check_hash($product_object, $price, $DP_Config->tech_key);
 		$client_hash = isset($product_object["check_hash"]) ? trim((string) $product_object["check_hash"]) : '';
 		// Guest price redaction used to set check_hash=0; treat placeholder zeros as missing.
 		if ($client_hash === '0' || strtolower($client_hash) === 'null' || strtolower($client_hash) === 'undefined') {
 			$client_hash = '';
 		}
+		// Skip hash when server corrected sell price (client hash was for pre-correction offer).
 		if ($client_hash !== '' && !hash_equals($computed_hash, $client_hash))
 		{
 			$result = array();

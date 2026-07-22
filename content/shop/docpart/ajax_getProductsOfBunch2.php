@@ -448,6 +448,20 @@ if (empty($epc_anti_crawl['prices_visible']) && empty($epc_anti_crawl['tech_key'
 	$ProductsOfBunch->prices_visible = false;
 } else {
 	$ProductsOfBunch->prices_visible = true;
+	$epc_vat_file = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_customer_vat.php';
+	if (is_readable($epc_vat_file) && !empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products)) {
+		require_once $epc_vat_file;
+		foreach ($ProductsOfBunch->Products as &$epc_vat_product) {
+			if (is_array($epc_vat_product)) {
+				epc_uae_customer_vat_apply_product_row($db_link, $epc_vat_product, $user_id);
+			}
+		}
+		unset($epc_vat_product);
+	}
+	if (!empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products) && isset($DP_Config->tech_key)) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_product_hash.php';
+		docpart_refresh_products_cart_hashes($ProductsOfBunch->Products, $DP_Config->tech_key);
+	}
 }
 
 exit(json_encode($ProductsOfBunch));

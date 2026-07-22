@@ -386,13 +386,21 @@ if (!function_exists('epc_pricing_apply_sell_from_purchase')) {
 		$result = epc_pricing_apply_price_rules($db_link, $group_id, $brand, $purchase, 0.0, $article, $storage_id);
 		$price = (float) ($result['price'] ?? $purchase);
 		$markup_decimal = (float) ($result['markup_decimal'] ?? 0.0);
-		// Safety net: guest/retail never leave checkout path at cost.
+		// Safety net: guest/retail/unprofiled customers never leave at cost.
+		// Wholesale keeps the approved profile margin only (may be below retail floor).
 		if ($purchase > 0 && $price <= $purchase) {
 			$floor = 0.0;
+			$code = epc_pricing_profile_code_for_group($db_link, $group_id);
 			if (epc_pricing_is_guest_group($db_link, $group_id)) {
 				$floor = epc_pricing_get_guest_margin_percent($db_link);
-			} elseif (epc_pricing_profile_code_for_group($db_link, $group_id) === 'retail') {
+			} elseif ($code === 'wholesale') {
 				$floor = epc_pricing_get_profile_margin_percent($db_link, $group_id);
+			} else {
+				// retail profile, registered-but-unprofiled, or other non-B2B groups
+				$floor = epc_pricing_get_profile_margin_percent($db_link, $group_id);
+				if ($floor <= 0.0) {
+					$floor = epc_pricing_default_guest_retail_margin();
+				}
 			}
 			if ($floor > 0) {
 				list($price, $markup_decimal) = epc_pricing_apply_margin_step($purchase, 0.0, $floor);
@@ -419,6 +427,51 @@ if (!function_exists('epc_pricing_line_has_positive_margin')) {
 			return false;
 		}
 		return $sell > $purchase + 0.0001;
+	}
+}
+
+if (!function_exists('epc_pricing_customer_safe_no_margin_message')) {
+	/** Storefront-safe copy — never expose markup %, purchase, or B2B profile policy. */
+	function epc_pricing_customer_safe_no_margin_message(string $context = 'cart'): string
+	{
+		if ($context === 'checkout') {
+			return 'Unable to place this order right now. Please refresh the page, remove any unavailable items, and try again. If the problem continues, contact support.';
+		}
+		return 'Unable to add this item to your cart right now. Please refresh the page and try again. If the problem continues, contact support.';
+	}
+}
+
+if (!function_exists('epc_pricing_offer_allows_cart')) {
+	/**
+	 * Cart/checkout gate that does not false-fail when cost is redacted or unknown.
+	 * - markup > 0 ⇒ pricing already applied on the offer
+	 * - purchase <= 0 ⇒ cost unknown (guest redaction / CHPU seed) — do not block retail
+	 * - sell > purchase ⇒ positive margin
+	 * - sell ≈ purchase with no markup ⇒ treat as seed/clone (not a trusted cost), allow
+	 * - sell < purchase ⇒ reject (below cost)
+	 */
+	function epc_pricing_offer_allows_cart($sell_price, $purchase_price, $markup_percent = 0): bool
+	{
+		$sell = (float) $sell_price;
+		$purchase = (float) $purchase_price;
+		$markup = (float) $markup_percent;
+		if ($sell <= 0) {
+			return false;
+		}
+		if ($markup > 0) {
+			return true;
+		}
+		if ($purchase <= 0) {
+			return true;
+		}
+		if ($sell > $purchase + 0.0001) {
+			return true;
+		}
+		// purchase cloned from sell (common on CHPU stock rows) — not a real cost leak signal
+		if (abs($sell - $purchase) <= 0.0001) {
+			return true;
+		}
+		return false;
 	}
 }
 
