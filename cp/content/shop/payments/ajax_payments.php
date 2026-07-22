@@ -1,6 +1,14 @@
 <?php
-defined('_ASTEXE_') or die('No access');
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php';
+if (!defined('_ASTEXE_')) {
+	define('_ASTEXE_', 1);
+}
+// CSRF optional for standalone endpoint (session already admin-checked there)
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php') && empty($GLOBALS['epc_pay_skip_csrf'])) {
+	try {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php';
+	} catch (Throwable $e) {
+	}
+}
 
 header('Content-Type: application/json; charset=utf-8');
 

@@ -177,24 +177,28 @@ epc_cp_page_frame_open(array(
 
 <script>
 (function(){
-	var url = <?php echo json_encode($paymentsUrl); ?>;
+	var url = <?php echo json_encode('/' . trim((string)$DP_Config->backend_dir, '/') . '/content/shop/payments/ajax_payments_endpoint.php'); ?>;
 	var csrf = <?php echo json_encode($csrf); ?>;
 	function post(action, extra) {
 		var fd = new FormData();
 		fd.append('action', action);
 		fd.append('csrf_guard_key', csrf);
 		if (extra) Object.keys(extra).forEach(function(k){ fd.append(k, extra[k]); });
-		return fetch(url, { method:'POST', body:fd, credentials:'same-origin' }).then(function(r){ return r.json(); });
+		return fetch(url, { method:'POST', body:fd, credentials:'same-origin' })
+			.then(function(r){ return r.text().then(function(t){
+				try { return JSON.parse(t); }
+				catch (e) { return { status:false, message:'Invalid JSON (HTTP '+r.status+')' }; }
+			}); });
 	}
 	function msg(j) {
 		var el = document.getElementById('epc_pay_msg');
 		if (!el) return;
-		el.className = 'alert alert-' + (j.status ? 'success' : 'danger');
-		el.textContent = j.message || '';
+		el.className = 'alert alert-' + (j && j.status ? 'success' : 'danger');
+		el.textContent = (j && j.message) || 'Request failed';
 		el.style.display = 'block';
-		if (j.status) setTimeout(function(){ location.reload(); }, 700);
+		if (j && j.status) setTimeout(function(){ location.reload(); }, 700);
 	}
-	window.epcPayPost = function(action, extra){ return post(action, extra).then(msg); };
+	window.epcPayPost = function(action, extra){ return post(action, extra).then(msg).catch(function(e){ msg({status:false, message:e.message||'Request failed'}); }); };
 	var seed = document.getElementById('epc_btn_seed');
 	if (seed) seed.addEventListener('click', function(){ post('seed_dummy', {}).then(msg); });
 	var actStripe = document.getElementById('epc_btn_activate_stripe');
