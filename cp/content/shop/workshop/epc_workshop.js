@@ -135,6 +135,20 @@
 		if (!root) return;
 
 		root.addEventListener('click', function (ev) {
+			var convertBtn = ev.target.closest('[data-convert-appt]');
+			if (convertBtn) {
+				ev.preventDefault();
+				var apptId = parseInt(convertBtn.getAttribute('data-convert-appt'), 10) || 0;
+				if (!apptId) return;
+				if (!window.confirm('Convert this appointment into a check-in job card?')) return;
+				post('convert_appointment', { appointment_id: apptId }, function (res) {
+					if (!res) return;
+					var jobNo = (res.job && res.job.header && res.job.header.job_no) ? res.job.header.job_no : '';
+					showMsg('Checked in' + (jobNo ? (': ' + jobNo) : ''), true);
+					setTimeout(function () { location.href = (cfg().boardUrl || location.pathname) + '?tab=board'; }, 700);
+				});
+				return;
+			}
 			var t = ev.target.closest('[data-job-id]');
 			if (t && t.getAttribute('data-open-job') === '1') {
 				ev.preventDefault();

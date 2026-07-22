@@ -99,6 +99,56 @@ if (!function_exists('epc_ws_ensure_schema')) {
 				KEY `x_job` (`job_id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Job parts and labour lines'"
 		);
+
+		$db->exec(
+			"CREATE TABLE IF NOT EXISTS `epc_ws_appointments` (
+				`id` int(11) NOT NULL AUTO_INCREMENT,
+				`ref_no` varchar(40) NOT NULL DEFAULT '',
+				`status` varchar(20) NOT NULL DEFAULT 'scheduled',
+				`customer_name` varchar(160) NOT NULL DEFAULT '',
+				`customer_phone` varchar(40) NOT NULL DEFAULT '',
+				`customer_email` varchar(160) NOT NULL DEFAULT '',
+				`customer_id` int(11) NOT NULL DEFAULT 0,
+				`garage_id` int(11) NOT NULL DEFAULT 0,
+				`plate` varchar(40) NOT NULL DEFAULT '',
+				`make` varchar(80) NOT NULL DEFAULT '',
+				`model` varchar(80) NOT NULL DEFAULT '',
+				`year` varchar(10) NOT NULL DEFAULT '',
+				`service_type` varchar(80) NOT NULL DEFAULT 'General service',
+				`notes` text,
+				`time_slot` int(11) NOT NULL DEFAULT 0,
+				`job_id` int(11) NOT NULL DEFAULT 0,
+				`time_created` int(11) NOT NULL DEFAULT 0,
+				`time_updated` int(11) NOT NULL DEFAULT 0,
+				PRIMARY KEY (`id`),
+				UNIQUE KEY `u_ref` (`ref_no`),
+				KEY `x_slot` (`time_slot`),
+				KEY `x_status` (`status`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Garage appointments'"
+		);
+
+		$db->exec(
+			"CREATE TABLE IF NOT EXISTS `epc_ws_labour_ops` (
+				`id` int(11) NOT NULL AUTO_INCREMENT,
+				`code` varchar(40) NOT NULL DEFAULT '',
+				`name` varchar(160) NOT NULL DEFAULT '',
+				`hours` decimal(8,2) NOT NULL DEFAULT 1.00,
+				`rate` decimal(14,2) NOT NULL DEFAULT 150.00,
+				`active` tinyint(1) NOT NULL DEFAULT 1,
+				PRIMARY KEY (`id`),
+				UNIQUE KEY `u_code` (`code`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Standard labour operations'"
+		);
+
+		$alters = array(
+			"ALTER TABLE `epc_ws_jobs` ADD COLUMN `garage_id` int(11) NOT NULL DEFAULT 0",
+			"ALTER TABLE `epc_ws_jobs` ADD COLUMN `appointment_id` int(11) NOT NULL DEFAULT 0",
+			"ALTER TABLE `epc_ws_jobs` ADD COLUMN `invoice_ref` varchar(64) NOT NULL DEFAULT ''",
+			"ALTER TABLE `epc_ws_jobs` ADD KEY `x_garage` (`garage_id`)",
+		);
+		foreach ($alters as $sql) {
+			try { $db->exec($sql); } catch (Throwable $e) { /* already applied */ }
+		}
 	}
 }
 
@@ -545,10 +595,216 @@ if (!function_exists('epc_ws_seed_demo')) {
 			$jobsCreated++;
 		}
 
+		if (function_exists('epc_ws_seed_labour_ops')) { epc_ws_seed_labour_ops($db); }
 		return array(
 			'bays' => count($bayIds),
 			'techs' => count($techIds),
 			'jobs' => $jobsCreated,
 		);
+	}
+}
+
+
+if (!function_exists('epc_ws_appointment_statuses')) {
+	/** @return array<string,string> */
+	function epc_ws_appointment_statuses(): array
+	{
+		return array(
+			'scheduled' => 'Scheduled',
+			'confirmed' => 'Confirmed',
+			'arrived' => 'Arrived',
+			'converted' => 'Checked in',
+			'no_show' => 'No-show',
+			'cancelled' => 'Cancelled',
+		);
+	}
+}
+
+if (!function_exists('epc_ws_next_appointment_ref')) {
+	function epc_ws_next_appointment_ref(PDO $db): string
+	{
+		$day = date('ymd');
+		$st = $db->prepare("SELECT COUNT(*) FROM `epc_ws_appointments` WHERE `ref_no` LIKE ?");
+		$st->execute(array('AP-' . $day . '-%'));
+		$n = ((int) $st->fetchColumn()) + 1;
+		return sprintf('AP-%s-%03d', $day, $n);
+	}
+}
+
+if (!function_exists('epc_ws_appointment_create')) {
+	/**
+	 * @param array<string,mixed> $data
+	 */
+	function epc_ws_appointment_create(PDO $db, array $data): int
+	{
+		epc_ws_ensure_schema($db);
+		$now = time();
+		$ref = trim((string) ($data['ref_no'] ?? ''));
+		if ($ref === '') {
+			$ref = epc_ws_next_appointment_ref($db);
+		}
+		$status = (string) ($data['status'] ?? 'scheduled');
+		if (!isset(epc_ws_appointment_statuses()[$status])) {
+			$status = 'scheduled';
+		}
+		$slot = (int) ($data['time_slot'] ?? 0);
+		if ($slot <= 0) {
+			$slot = $now + 86400;
+		}
+		$db->prepare(
+			'INSERT INTO `epc_ws_appointments`
+			(`ref_no`,`status`,`customer_name`,`customer_phone`,`customer_email`,`customer_id`,`garage_id`,
+			 `plate`,`make`,`model`,`year`,`service_type`,`notes`,`time_slot`,`job_id`,`time_created`,`time_updated`)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,?)'
+		)->execute(array(
+			$ref,
+			$status,
+			trim((string) ($data['customer_name'] ?? '')),
+			trim((string) ($data['customer_phone'] ?? '')),
+			trim((string) ($data['customer_email'] ?? '')),
+			(int) ($data['customer_id'] ?? 0),
+			(int) ($data['garage_id'] ?? 0),
+			strtoupper(trim((string) ($data['plate'] ?? ''))),
+			trim((string) ($data['make'] ?? '')),
+			trim((string) ($data['model'] ?? '')),
+			trim((string) ($data['year'] ?? '')),
+			trim((string) ($data['service_type'] ?? 'General service')),
+			trim((string) ($data['notes'] ?? '')),
+			$slot,
+			$now,
+			$now,
+		));
+		return (int) $db->lastInsertId();
+	}
+}
+
+if (!function_exists('epc_ws_list_appointments')) {
+	/**
+	 * @return list<array<string,mixed>>
+	 */
+	function epc_ws_list_appointments(PDO $db, int $fromTs = 0, int $toTs = 0, int $limit = 100): array
+	{
+		epc_ws_ensure_schema($db);
+		$limit = max(1, min(300, $limit));
+		$sql = 'SELECT * FROM `epc_ws_appointments` WHERE 1=1';
+		$args = array();
+		if ($fromTs > 0) {
+			$sql .= ' AND `time_slot` >= ?';
+			$args[] = $fromTs;
+		}
+		if ($toTs > 0) {
+			$sql .= ' AND `time_slot` <= ?';
+			$args[] = $toTs;
+		}
+		$sql .= ' ORDER BY `time_slot` ASC LIMIT ' . $limit;
+		$st = $db->prepare($sql);
+		$st->execute($args);
+		return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+	}
+}
+
+if (!function_exists('epc_ws_appointment_to_job')) {
+	function epc_ws_appointment_to_job(PDO $db, int $appointmentId): int
+	{
+		$st = $db->prepare('SELECT * FROM `epc_ws_appointments` WHERE `id` = ? LIMIT 1');
+		$st->execute(array($appointmentId));
+		$row = $st->fetch(PDO::FETCH_ASSOC);
+		if (!$row) {
+			throw new RuntimeException('Appointment not found');
+		}
+		if ((int) $row['job_id'] > 0) {
+			return (int) $row['job_id'];
+		}
+		$jobId = epc_ws_job_create($db, array(
+			'status' => 'checkin',
+			'customer_name' => $row['customer_name'],
+			'customer_phone' => $row['customer_phone'],
+			'customer_email' => $row['customer_email'],
+			'customer_id' => (int) $row['customer_id'],
+			'plate' => $row['plate'],
+			'make' => $row['make'],
+			'model' => $row['model'],
+			'year' => $row['year'],
+			'complaint' => trim($row['service_type'] . ' — ' . (string) $row['notes']),
+			'notes' => 'From appointment ' . $row['ref_no'],
+		));
+		$db->prepare('UPDATE `epc_ws_jobs` SET `garage_id`=?, `appointment_id`=?, `time_updated`=? WHERE `id`=?')
+			->execute(array((int) $row['garage_id'], $appointmentId, time(), $jobId));
+		$db->prepare('UPDATE `epc_ws_appointments` SET `status`=\'converted\', `job_id`=?, `time_updated`=? WHERE `id`=?')
+			->execute(array($jobId, time(), $appointmentId));
+		return $jobId;
+	}
+}
+
+if (!function_exists('epc_ws_list_labour_ops')) {
+	/** @return list<array<string,mixed>> */
+	function epc_ws_list_labour_ops(PDO $db, bool $activeOnly = true): array
+	{
+		epc_ws_ensure_schema($db);
+		$sql = 'SELECT * FROM `epc_ws_labour_ops`';
+		if ($activeOnly) {
+			$sql .= ' WHERE `active` = 1';
+		}
+		$sql .= ' ORDER BY `name` ASC';
+		$st = $db->query($sql);
+		return $st ? ($st->fetchAll(PDO::FETCH_ASSOC) ?: array()) : array();
+	}
+}
+
+if (!function_exists('epc_ws_seed_labour_ops')) {
+	function epc_ws_seed_labour_ops(PDO $db): int
+	{
+		epc_ws_ensure_schema($db);
+		$ops = array(
+			array('OIL-SVC', 'Engine oil & filter service', 0.8, 150),
+			array('BRAKE-F', 'Front brake pads replace', 1.5, 180),
+			array('BRAKE-R', 'Rear brake pads replace', 1.2, 180),
+			array('DIAG', 'Computer diagnosis', 1.0, 200),
+			array('AC-SVC', 'AC diagnose & recharge', 1.5, 200),
+			array('BATTERY', 'Battery test & replace', 0.5, 120),
+			array('TYRE-ROT', 'Tyre rotation & balance', 0.8, 100),
+			array('ANNUAL', 'Annual multi-point service', 2.5, 160),
+		);
+		$n = 0;
+		foreach ($ops as $o) {
+			$st = $db->prepare('SELECT id FROM `epc_ws_labour_ops` WHERE `code` = ? LIMIT 1');
+			$st->execute(array($o[0]));
+			if ((int) $st->fetchColumn() > 0) {
+				continue;
+			}
+			$db->prepare('INSERT INTO `epc_ws_labour_ops` (`code`,`name`,`hours`,`rate`,`active`) VALUES (?,?,?,?,1)')
+				->execute($o);
+			$n++;
+		}
+		return $n;
+	}
+}
+
+if (!function_exists('epc_ws_staff_ok')) {
+	function epc_ws_staff_ok(): bool
+	{
+		if (!class_exists('DP_User')) {
+			return false;
+		}
+		return DP_User::isAdmin() || DP_User::isBackendGroup();
+	}
+}
+
+if (!function_exists('epc_ws_customer_garage_cars')) {
+	/**
+	 * @return list<array<string,mixed>>
+	 */
+	function epc_ws_customer_garage_cars(PDO $db, int $userId): array
+	{
+		if ($userId <= 0) {
+			return array();
+		}
+		try {
+			$st = $db->prepare('SELECT * FROM `shop_docpart_garage` WHERE `user_id` = ? ORDER BY `id` DESC LIMIT 50');
+			$st->execute(array($userId));
+			return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+		} catch (Throwable $e) {
+			return array();
+		}
 	}
 }

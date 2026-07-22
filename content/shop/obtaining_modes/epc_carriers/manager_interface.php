@@ -37,7 +37,7 @@ if ($order_id > 0 && isset($db_link) && $db_link instanceof PDO) {
 </table>
 <?php else: ?>
 <div class="well well-sm">
-	<p>Create a demo shipment label (DHL / FedEx / Aramex / UPS):</p>
+	<p>Create a demo shipment label (worldwide carriers — DHL, FedEx, Aramex, UPS, and more):</p>
 	<form id="epc_cp_create_shipment" class="form-inline">
 		<input type="hidden" name="order_id" value="<?php echo $order_id; ?>">
 		<select name="carrier_code" class="form-control input-sm">

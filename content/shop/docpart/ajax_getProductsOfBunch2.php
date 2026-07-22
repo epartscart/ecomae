@@ -3,6 +3,8 @@
  * Серверный скрипт для получения данных о товарах одной связки (офис-склад)
 */
 header('Content-Type: application/json;charset=utf-8;');
+header('X-Robots-Tag: noindex, nofollow, noarchive');
+header('Cache-Control: no-store');
 //Конфигурация Treelax
 require_once($_SERVER["DOCUMENT_ROOT"]."/config.php");
 
@@ -27,6 +29,15 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/DocpartProduct.php
 
 //Для работы с пользователями
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_storefront_anti_crawl.php");
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_storefront_prices_helpers.php");
+
+$epc_anti_crawl = epc_storefront_anti_crawl_enforce($DP_Config, array(
+	'bucket' => 'getProductsOfBunch2',
+	'guest_max' => 24,
+	'user_max' => 90,
+	'window' => 60,
+));
 
 
 
@@ -414,7 +425,8 @@ class ProductsOfBunch//Класс ответа
 $article 		= $_GET["article"];
 $office_id 		= (int)$_GET["office_id"];
 $storage_id 	= (int)$_GET["storage_id"];
-$user_id		= (int)$_GET["user_id"];
+// Never trust GET user_id — session only (anti-crawl).
+$user_id		= (int) $epc_anti_crawl['session_user_id'];
 $this_article 	= (int)$_GET["this_article"];// Без аналогов (0 или 1)
 
 
@@ -426,11 +438,10 @@ $article = strtoupper($article);
 
 $ProductsOfBunch = new ProductsOfBunch($article, $office_id, $storage_id, $db_link, $DP_Config, $user_id, $this_article);
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
 if (!empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products)) {
 	epc_storefront_fill_warehouse_captions($ProductsOfBunch->Products, $db_link);
 }
-if (!epc_storefront_prices_visible_for_user((int) $user_id)) {
+if (empty($epc_anti_crawl['prices_visible']) && empty($epc_anti_crawl['tech_key'])) {
 	if (!empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products)) {
 		epc_storefront_prices_redact_products($ProductsOfBunch->Products);
 	}

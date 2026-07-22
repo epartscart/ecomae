@@ -9,9 +9,15 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/payments/epc_payment_hel
 $paymentsUrl = '/' . $DP_Config->backend_dir . '/shop/payments/payments';
 $configureUrl = $paymentsUrl . '?tab=configure';
 $domain = rtrim($DP_Config->domain_path, '/');
-$handlers = array_keys(epc_payment_uae_gateway_defs());
+$host = parse_url($domain, PHP_URL_HOST);
+if (!$host && function_exists('epc_portal_host')) {
+	$host = epc_portal_host();
+}
+if (!$host) {
+	$host = 'your domain';
+}
 ?>
-<link rel="stylesheet" href="/content/shop/finance/epc_erp_ui.css?v=20260525">
+<link rel="stylesheet" href="/content/shop/finance/epc_erp_ui.css?v=20260722pay">
 
 <div class="col-lg-12 epc-erp-shell">
 	<div class="hpanel">
@@ -24,70 +30,89 @@ $handlers = array_keys(epc_payment_uae_gateway_defs());
 		<div class="panel-body epc-erp-flow">
 
 			<div class="alert alert-success">
-				All UAE gateways ship with <strong>dummy API keys</strong> and <strong>demo checkout</strong>. Customers see a simulated payment page — no real charge until you disable demo mode and add live credentials.
+				GCC, Pakistan, international, and <strong>crypto (NOWPayments)</strong> gateways ship with demo credentials.
+				Customers pick a method on the order page. Crypto supports live API keys; other acquirers use demo checkout until live redirect is wired.
 			</div>
 
 			<h4>Quick start</h4>
 			<ol>
-				<li>Open <a href="<?php echo epc_payment_h($paymentsUrl); ?>">Payment gateways</a> → click <em>Activate Stripe (demo)</em> or any gateway.</li>
-				<li>Place a test order on the storefront → pay online → complete demo checkout.</li>
-				<li>When your merchant account is ready → <a href="<?php echo epc_payment_h($configureUrl); ?>">Configure</a> → paste live keys → turn off <em>Demo mode</em>.</li>
+				<li>Open <a href="<?php echo epc_payment_h($paymentsUrl); ?>">Payment gateways</a> → <em>Seed / refresh gateways</em>.</li>
+				<li>Set a default (e.g. Stripe or Telr) and keep Crypto / JazzCash / Tabby enabled for the customer picker.</li>
+				<li><strong>Individual accounts:</strong> open <a href="<?php echo epc_payment_h($paymentsUrl . '?tab=accounts'); ?>">Individual accounts</a> and attach merchant keys / connected account ID / payout IBAN to each office or vendor.</li>
+				<li>On the storefront order page, choose <em>Pay with</em> → Card / BNPL / JazzCash / Crypto. Funds are attributed to that order’s office/vendor account.</li>
+				<li>For crypto live: Configure → Crypto (NOWPayments) → paste API key + IPN secret → turn off Demo mode.</li>
 			</ol>
 
-			<h4>Checkout flow on <?php echo htmlspecialchars(parse_url($domain, PHP_URL_HOST) ?: epc_portal_host(), ENT_QUOTES, 'UTF-8'); ?></h4>
+			<h4>Individual accounts (who receives the money)</h4>
+			<ul>
+				<li><strong>Direct</strong> — office/vendor merchant credentials are used for the charge.</li>
+				<li><strong>Connected</strong> — store connected account ID (e.g. Stripe Connect <code>acct_…</code>).</li>
+				<li><strong>Payout</strong> — platform collects; settlement ledger shows net due to IBAN for manual/batch payout.</li>
+				<li>Multi-vendor orders create settlement rows per vendor storage share.</li>
+			</ul>
+
+			<h4>Checkout flow on <?php echo htmlspecialchars($host, ENT_QUOTES, 'UTF-8'); ?></h4>
 			<ol>
-				<li>Customer clicks pay on order or balance page.</li>
-				<li><code>ajax_create_operation.php</code> creates a pending row in <code>shop_users_accounting</code>.</li>
-				<li>Browser redirects to <code>/content/shop/finance/payment_systems/{handler}/go_to_pay.php</code>.</li>
-				<li>Gateway webhook hits <code>notification.php</code> → order marked paid via <code>pay_for_order.php</code>.</li>
+				<li>Customer selects a payment method and clicks pay.</li>
+				<li><code>ajax_create_operation.php</code> creates a pending <code>shop_users_accounting</code> row (optional <code>pay_handler</code>).</li>
+				<li>Browser opens <code>/content/shop/finance/payment_systems/{handler}/go_to_pay.php</code>.</li>
+				<li>Webhook / IPN hits <code>notification.php</code> → <code>pay_for_order.php</code> marks the order paid.</li>
 			</ol>
 
-			<h4>UAE gateways (dummy data pre-filled)</h4>
+			<h4>GCC &amp; MENA</h4>
 			<table class="table table-bordered table-condensed">
-				<thead><tr><th>Gateway</th><th>Handler folder</th><th>Typical use</th></tr></thead>
+				<thead><tr><th>Gateway</th><th>Handler</th><th>Markets</th></tr></thead>
 				<tbody>
-				<tr><td>Stripe</td><td><code>stripe</code></td><td>Cards, Apple Pay, international</td></tr>
-				<tr><td>Telr</td><td><code>telr</code></td><td>UAE aggregator — AED, SADAD</td></tr>
-				<tr><td>PayTabs</td><td><code>paytabs</code></td><td>MENA — invoicing, QR</td></tr>
-				<tr><td>PayPal</td><td><code>paypal</code></td><td>Export / guest checkout</td></tr>
-				<tr><td>Amazon Payment Services</td><td><code>amazon_ps</code></td><td>Amazon ecosystem UAE</td></tr>
-				<tr><td>Others</td><td><code>adyen</code>, <code>razorpay</code>, …</td><td>See dashboard list</td></tr>
+				<tr><td>Telr</td><td><code>telr</code></td><td>UAE + GCC cards / Apple Pay</td></tr>
+				<tr><td>PayTabs</td><td><code>paytabs</code></td><td>MENA cards &amp; wallets</td></tr>
+				<tr><td>Tabby</td><td><code>tabby</code></td><td>BNPL AE/SA/KW/BH</td></tr>
+				<tr><td>Tamara</td><td><code>tamara</code></td><td>BNPL AE/SA/KW</td></tr>
+				<tr><td>MyFatoorah</td><td><code>myfatoorah</code></td><td>KNET, MADA, GCC</td></tr>
+				<tr><td>Tap Payments</td><td><code>tap</code></td><td>GCC cards &amp; wallets</td></tr>
+				<tr><td>HyperPay</td><td><code>hyperpay</code></td><td>KSA MADA / UAE</td></tr>
+				<tr><td>Checkout.com</td><td><code>checkout_com</code></td><td>UAE enterprise</td></tr>
+				<tr><td>Network International</td><td><code>network_intl</code></td><td>N-Genius UAE</td></tr>
+				<tr><td>Amazon Payment Services</td><td><code>amazon_ps</code></td><td>AE/SA</td></tr>
 				</tbody>
 			</table>
 
-			<h4>Legacy CIS gateways</h4>
-			<p>Moved from Shop → Finance → Payment systems. Same handlers (<code>tinkoff</code>, <code>yookassa</code>, <code>robokassa</code>, etc.) — configure on the <a href="<?php echo epc_payment_h($paymentsUrl . '?tab=legacy'); ?>">Legacy tab</a>.</p>
+			<h4>Pakistan</h4>
+			<table class="table table-bordered table-condensed">
+				<thead><tr><th>Gateway</th><th>Handler</th><th>Notes</th></tr></thead>
+				<tbody>
+				<tr><td>JazzCash</td><td><code>jazzcash</code></td><td>Mobile wallet &amp; cards (PKR)</td></tr>
+				<tr><td>Easypaisa</td><td><code>easypaisa</code></td><td>Wallet / OTC (PKR)</td></tr>
+				</tbody>
+			</table>
 
-			<h4>Webhook URLs (replace YOUR_DOMAIN)</h4>
-			<pre><?php echo epc_payment_h($domain); ?>/content/shop/finance/payment_systems/HANDLER/notification.php</pre>
-			<p>Example for Stripe: <code><?php echo epc_payment_h($domain); ?>/content/shop/finance/payment_systems/stripe/notification.php</code></p>
+			<h4>Cryptocurrency</h4>
+			<p><strong>Crypto (NOWPayments)</strong> — handler <code>nowpayments</code>.</p>
+			<ul>
+				<li>Demo: coin picker + simulated invoice + confirm button.</li>
+				<li>Live: set API key + IPN secret, disable Demo mode. IPN URL:
+					<code><?php echo epc_payment_h($domain); ?>/content/shop/finance/payment_systems/nowpayments/notification.php</code>
+				</li>
+				<li>Supported coins (configurable): USDT TRC20/BEP20, BTC, ETH, LTC.</li>
+			</ul>
+
+			<h4>International</h4>
+			<p>Stripe, PayPal, Adyen, 2Checkout, Razorpay, Skrill, Payoneer, Authorize.net, CyberSource, CCAvenue — same hub.</p>
+
+			<h4>Legacy CIS</h4>
+			<p>Tinkoff, YooKassa, Robokassa, etc. — <a href="<?php echo epc_payment_h($paymentsUrl . '?tab=legacy'); ?>">Legacy tab</a>.</p>
 
 			<h4>Going live checklist</h4>
 			<ul>
-				<li>UAE trade license + business bank account</li>
-				<li>Merchant account approved with chosen acquirer</li>
-				<li>SSL (HTTPS) — required on <strong><?php echo htmlspecialchars(parse_url($domain, PHP_URL_HOST) ?: 'your domain', ENT_QUOTES, 'UTF-8'); ?></strong></li>
-				<li>Replace dummy keys in Configure tab</li>
-				<li>Disable <strong>Demo mode</strong> for that gateway</li>
-				<li>Register webhook URL in acquirer dashboard</li>
-				<li>Test small real transaction before full launch</li>
+				<li>Trade license + merchant account with the acquirer</li>
+				<li>HTTPS on <strong><?php echo htmlspecialchars($host, ENT_QUOTES, 'UTF-8'); ?></strong></li>
+				<li>Paste live keys; disable Demo mode</li>
+				<li>Register webhook / IPN URL</li>
+				<li>For crypto: fund NOWPayments payout wallet and verify IPN secret</li>
+				<li>Run a small live test payment</li>
 			</ul>
 
-			<h4>Setup script (after deploy)</h4>
-			<pre>epc-payments-setup.php?token=epartscart-deploy-2026</pre>
-			<p>Re-seed dummy credentials: add <code>&amp;reseed=1</code></p>
-
-			<h4>FAQ</h4>
-			<dl>
-				<dt>Can I enable multiple gateways at checkout?</dt>
-				<dd>Currently one active gateway at a time. Multi-select checkout can be added later.</dd>
-				<dt>Apple Pay?</dt>
-				<dd>Enable via Stripe or Telr — not a separate handler.</dd>
-				<dt>ERP / bank posting?</dt>
-				<dd>Online payments mark orders paid automatically. ERP cash/bank receipt posting is separate (Finance tab).</dd>
-			</dl>
-
-			<p class="text-muted">Guide URL: <a href="<?php echo epc_payment_h('/' . $DP_Config->backend_dir . '/shop/payments/payments/guide'); ?>"><?php echo epc_payment_h('/' . $DP_Config->backend_dir . '/shop/payments/payments/guide'); ?></a></p>
+			<h4>Setup script</h4>
+			<pre>epc-payments-setup.php?token=epartscart-deploy-2026&amp;reseed=1</pre>
 		</div>
 	</div>
 </div>

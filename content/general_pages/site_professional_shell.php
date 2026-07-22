@@ -1695,6 +1695,53 @@ defined('_ASTEXE_') or die('No access');
 		color: #fff !important;
 		outline: none;
 	}
+	.epc-spec-check-btn {
+		align-items: center;
+		background: linear-gradient(135deg, #0f766e, #0d9488) !important;
+		border: 0 !important;
+		border-radius: 12px !important;
+		box-shadow: 0 12px 26px rgba(15, 118, 110, .22);
+		color: #fff !important;
+		display: inline-flex;
+		font-size: 12px;
+		font-weight: 950;
+		gap: 7px;
+		height: auto !important;
+		justify-content: center;
+		margin-top: 10px;
+		padding: 10px 14px !important;
+		text-decoration: none !important;
+		text-transform: uppercase;
+		width: 100%;
+	}
+	.epc-spec-check-btn:hover,
+	.epc-spec-check-btn:focus {
+		background: linear-gradient(135deg, #0d9488, #115e59) !important;
+		color: #fff !important;
+		outline: none;
+	}
+	.epc-spec-check-btn i {
+		font-size: 14px;
+	}
+	.epc-spec-panel .epc-spec-panel__body {
+		min-height: 0;
+		overflow: hidden;
+	}
+	.epc-spec-panel__scroll {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow: auto;
+		-webkit-overflow-scrolling: touch;
+		padding: 2px 2px 8px;
+	}
+	.epc-spec-panel .epc-sku-storefront__specs {
+		gap: 12px;
+	}
+	.epc-spec-panel .epc-sku-storefront__group h3 {
+		font-size: 14px;
+		font-weight: 800;
+		text-transform: none;
+	}
 	.epc-cross-search-btn {
 		align-items: center;
 		background: linear-gradient(135deg, #16a34a, #15803d) !important;
@@ -3113,8 +3160,11 @@ defined('_ASTEXE_') or die('No access');
 		padding: 0 10px;
 	}
 	.epc-chpu-actions-bar .epc-cross-search-btn,
-	.epc-chpu-actions-bar .epc-fitment-check-btn {
+	.epc-chpu-actions-bar .epc-fitment-check-btn,
+	.epc-chpu-actions-bar .epc-spec-check-btn {
 		display: inline-flex !important;
+		width: auto;
+		margin-top: 0;
 	}
 	.epc-chpu-direct-part-search .epc-cross-fallback {
 		margin-top: 18px;

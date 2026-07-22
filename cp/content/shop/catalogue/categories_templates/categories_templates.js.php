@@ -1,5 +1,7 @@
 <?php
 //Имеет расширение php, чтобы работала мультиязычность
+header('Content-Type: application/javascript; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
 
 //Конфигурация Docpart
 require_once($_SERVER["DOCUMENT_ROOT"]."/config.php");

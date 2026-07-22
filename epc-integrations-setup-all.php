@@ -34,6 +34,7 @@ if ($backend === '') {
 
 $pages = array(
 	array('slug' => 'epc_integrations_hub', 'key' => 'epc_integrations_hub_cp', 'en' => 'Integrations hub', 'ru' => 'Хаб интеграций', 'order' => 8),
+	array('slug' => 'epc_integrations_guide', 'key' => 'epc_integrations_guide_cp', 'en' => 'Integrations guide', 'ru' => 'Гид по интеграциям', 'order' => 8),
 	array('slug' => 'epc_mobile_apps', 'key' => 'epc_mobile_apps_cp', 'en' => 'Mobile apps', 'ru' => 'Мобильные приложения', 'order' => 9),
 	array('slug' => 'epc_tenant_features', 'key' => 'epc_tenant_features_cp', 'en' => 'Tenant features', 'ru' => 'Функции клиентов', 'order' => 10),
 	array('slug' => 'epc_tenant_email_settings', 'key' => 'epc_tenant_email_cp', 'en' => 'Email / SMTP', 'ru' => 'Email / SMTP', 'order' => 11),
@@ -137,6 +138,7 @@ if ($apply) {
 	echo "  https://www.ecomae.com/cp/control/portal/epc_tenant_features\n";
 	echo "Verify Tenant CP (epartscart):\n";
 	echo "  https://www.epartscart.com/cp/control/portal/epc_integrations_hub\n";
+	echo "  https://www.epartscart.com/cp/control/portal/epc_integrations_guide\n";
 	echo "  https://www.epartscart.com/cp/control/portal/epc_tenant_email_settings\n";
 	echo "  https://www.epartscart.com/cp/control/portal/epc_mobile_apps\n";
 }

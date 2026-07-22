@@ -45,10 +45,10 @@ function epc_seo_site_key(): string
 	return 'epartscart';
 }
 
-/** GCC + Pakistan ISO2 codes served from UAE warehouse. */
+/** GCC hub countries served from UAE / Oman / KSA warehouses. */
 function epc_seo_regional_country_codes(): array
 {
-	return array('AE', 'SA', 'OM', 'QA', 'BH', 'KW', 'PK');
+	return array('AE', 'SA', 'OM', 'QA', 'BH', 'KW');
 }
 
 function epc_seo_tenant_country_code($db_link): string
@@ -70,12 +70,27 @@ function epc_seo_regional_shipping_phrase($lang = ''): string
 		$lang = epc_seo_current_lang_code();
 	}
 	if ($lang === 'ar') {
-		return 'مستودع الإمارات · شحن إلى دول الخليج وباكستان · تصدير عالمي';
+		return 'مستودعات الإمارات وعُمان والسعودية — شحن سريع إلى دول الخليج والعالم';
 	}
 	if ($lang === 'ru') {
-		return 'Склад ОАЭ · доставка в GCC и Пакистан · экспорт по всему миру';
+		return 'Склады ОАЭ–Оман–КСА — быстрая доставка в GCC и по всему миру';
 	}
-	return 'UAE warehouse · ships GCC & Pakistan · worldwide export';
+	return 'UAE-Oman-KSA warehouse — Fast ship to GCC and worldwide';
+}
+
+/** Courier options shown under warehouse search results. */
+function epc_seo_regional_courier_phrase($lang = ''): string
+{
+	if ($lang === '') {
+		$lang = epc_seo_current_lang_code();
+	}
+	if ($lang === 'ar') {
+		return 'خيارات الشحن: DHL، FedEx، Aramex، UPS وغيرها حسب الوجهة.';
+	}
+	if ($lang === 'ru') {
+		return 'Курьеры: DHL, FedEx, Aramex, UPS и другие — в зависимости от направления.';
+	}
+	return 'Courier options: DHL, FedEx, Aramex, UPS and more — by destination.';
 }
 
 function epc_seo_regional_hub_description($hubKey, $lang = ''): string
@@ -124,7 +139,6 @@ function epc_seo_schema_country_entries(): array
 		'QA' => 'Qatar',
 		'BH' => 'Bahrain',
 		'KW' => 'Kuwait',
-		'PK' => 'Pakistan',
 	);
 	$out = array();
 	foreach (epc_seo_regional_country_codes() as $code) {
@@ -341,10 +355,10 @@ function epc_seo_apply_storefront_content_meta(&$DP_Content, $db_link)
 		$DP_Content->description_tag = $descMap[$url];
 		if ($url === 'accessories' || $url === 'accessories-spare-parts') {
 			$DP_Content->keywords_tag = ($lang === 'ar')
-				? 'إكسسوارات سيارات, قطع غيار, مستودع الإمارات, الخليج, باكستان'
+				? 'إكسسوارات سيارات, قطع غيار, مستودع الإمارات, عُمان, السعودية, الخليج, DHL, FedEx'
 				: (($lang === 'ru')
-					? 'автоаксессуары, запчасти, склад ОАЭ, GCC, Пакистан'
-					: 'car accessories, spare parts UAE, auto parts Dubai, GCC shipping, Pakistan export');
+					? 'автоаксессуары, запчасти, склад ОАЭ, Оман, КСА, GCC, DHL, FedEx'
+					: 'car accessories, spare parts UAE, Oman, KSA, auto parts Dubai, GCC shipping, DHL, FedEx');
 			$DP_Content->service_data['epc_seo_page_title'] = $DP_Content->title_tag . ' | ' . $siteName;
 			epc_seo_apply_accessories_hub_schema($DP_Content, $DP_Config, $url);
 			epc_seo_apply_accessories_listing_meta($DP_Content, $db_link, $DP_Config);
@@ -747,7 +761,7 @@ function epc_seo_build_product_schema_array($row, $DP_Config, $lang_href, $inclu
 }
 
 /**
- * Organization / LocalBusiness JSON-LD for warehouse storefront (Dubai HQ, GCC + PK service).
+ * Organization / LocalBusiness JSON-LD for warehouse storefront (Dubai HQ, GCC service).
  */
 function epc_seo_build_organization_schema_array($DP_Config, $db_link = null): array
 {
@@ -956,11 +970,13 @@ function epc_seo_regional_footer_html($DP_Config): string
 	$langHref = epc_seo_lang_href();
 	$shipUrl = rtrim((string) $DP_Config->domain_path, '/') . $langHref . '/shipping-export';
 	$phrase = epc_seo_regional_shipping_phrase($lang);
+	$couriers = epc_seo_regional_courier_phrase($lang);
 	$linkLabel = ($lang === 'ar') ? 'تفاصيل الشحن والتصدير' : (($lang === 'ru') ? 'Доставка и экспорт' : 'Shipping & export details');
 	$heading = ($lang === 'ar') ? 'التوصيل الإقليمي' : (($lang === 'ru') ? 'Региональная доставка' : 'Regional delivery');
 	return '<aside class="epc-seo-regional-footer" style="margin:24px 0 8px;padding:16px 18px;border:1px solid #e8e8e8;border-radius:8px;background:#fafafa;font-size:14px;line-height:1.5;">'
 		. '<strong>' . htmlspecialchars($heading, ENT_QUOTES, 'UTF-8') . '</strong>'
 		. '<p style="margin:8px 0 0;">' . htmlspecialchars($phrase, ENT_QUOTES, 'UTF-8') . '</p>'
+		. '<p style="margin:6px 0 0;color:#555;">' . htmlspecialchars($couriers, ENT_QUOTES, 'UTF-8') . '</p>'
 		. '<p style="margin:8px 0 0;"><a href="' . htmlspecialchars($shipUrl, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($linkLabel, ENT_QUOTES, 'UTF-8') . '</a></p>'
 		. '</aside>';
 }

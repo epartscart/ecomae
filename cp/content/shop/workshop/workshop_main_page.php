@@ -30,7 +30,7 @@ $user_session = DP_User::getAdminSession();
 $csrf = (string) ($user_session['csrf_guard_key'] ?? '');
 
 $tab = (string) ($_GET['tab'] ?? 'board');
-$allowed = array('board' => 'Board', 'jobs' => 'Jobs', 'checkin' => 'Check-in', 'resources' => 'Bays & techs', 'guide' => 'Guide');
+$allowed = array('board' => 'Board', 'jobs' => 'Jobs', 'checkin' => 'Check-in', 'schedule' => 'Schedule', 'resources' => 'Bays & techs', 'guide' => 'Guide');
 if (!isset($allowed[$tab])) {
 	$tab = 'board';
 }
@@ -57,8 +57,11 @@ try {
 	$jobs = epc_ws_list_jobs($db);
 	$bays = epc_ws_list_bays($db);
 	$techs = epc_ws_list_techs($db);
+	$appointments = epc_ws_list_appointments($db, time() - 86400, time() + 21 * 86400, 60);
+	epc_ws_seed_labour_ops($db);
 } catch (Throwable $e) {
 	$loadError = $e->getMessage();
+	$appointments = array();
 }
 
 $boardCols = array('checkin', 'estimate', 'approved', 'in_progress', 'qc', 'ready');
@@ -257,6 +260,51 @@ epc_cp_page_frame_open(array(
 				</div>
 				<button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Create job card</button>
 			</form>
+		</div>
+	<?php } ?>
+
+	<?php if ($tab === 'schedule') {
+		if (!isset($appointments) || !is_array($appointments)) {
+			$appointments = array();
+		}
+		?>
+		<div class="epc-ws-guide">
+			<h4>Appointments</h4>
+			<ol>
+				<li>Customers book on <code>/en/auto-workshop</code> or staff schedule here.</li>
+				<li>On arrival, convert the appointment into a job card (Check-in).</li>
+				<li>Storefront Garage Manager shares the same appointment queue.</li>
+			</ol>
+		</div>
+		<div class="epc-ws-panel">
+			<h4>Upcoming</h4>
+			<div class="table-responsive">
+				<table class="table table-hover epc-ws-table">
+					<thead><tr><th>When</th><th>Ref</th><th>Customer</th><th>Vehicle</th><th>Service</th><th>Status</th><th></th></tr></thead>
+					<tbody>
+					<?php foreach ($appointments as $a) { ?>
+						<tr>
+							<td><?php echo epc_ws_h(date('D d M H:i', (int)$a['time_slot'])); ?></td>
+							<td><code><?php echo epc_ws_h($a['ref_no']); ?></code></td>
+							<td><?php echo epc_ws_h($a['customer_name']); ?><br><span class="text-muted"><?php echo epc_ws_h($a['customer_phone']); ?></span></td>
+							<td><?php echo epc_ws_h($a['plate']); ?> <?php echo epc_ws_h(trim($a['make'].' '.$a['model'])); ?></td>
+							<td><?php echo epc_ws_h($a['service_type']); ?></td>
+							<td><?php echo epc_ws_h($a['status']); ?></td>
+							<td>
+								<?php if ((int)$a['job_id'] <= 0 && $a['status'] !== 'cancelled') { ?>
+									<button type="button" class="btn btn-xs btn-success" data-convert-appt="<?php echo (int)$a['id']; ?>">Check-in</button>
+								<?php } elseif ((int)$a['job_id'] > 0) { ?>
+									<span class="text-muted">Job #<?php echo (int)$a['job_id']; ?></span>
+								<?php } ?>
+							</td>
+						</tr>
+					<?php } ?>
+					<?php if (!$appointments) { ?>
+						<tr><td colspan="7" class="text-muted">No appointments yet.</td></tr>
+					<?php } ?>
+					</tbody>
+				</table>
+			</div>
 		</div>
 	<?php } ?>
 

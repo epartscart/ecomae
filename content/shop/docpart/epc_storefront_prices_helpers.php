@@ -353,7 +353,7 @@ function epc_storefront_prices_redact_product(array &$product): void
 {
 	$priceKeys = array(
 		'price', 'price_purchase', 'price_crossed_out', 'customer_price',
-		'min_price', 'max_price', 'groups_price', 'groups_markup', 'groups_check_hash', 'check_hash',
+		'min_price', 'max_price', 'markup', 'groups_price', 'groups_markup', 'groups_check_hash', 'check_hash',
 	);
 	foreach ($priceKeys as $key) {
 		if (array_key_exists($key, $product)) {

@@ -154,6 +154,23 @@ try {
 			echo json_encode(array('status' => true, 'id' => $id, 'techs' => epc_ws_list_techs($db_link)));
 			break;
 
+		case 'create_appointment':
+			$id = epc_ws_appointment_create($db_link, $_POST);
+			echo json_encode(array('status' => true, 'message' => 'Appointment scheduled', 'id' => $id));
+			break;
+
+		case 'convert_appointment':
+			$jobId = epc_ws_appointment_to_job($db_link, (int) ($_POST['appointment_id'] ?? 0));
+			echo json_encode(array('status' => true, 'message' => 'Checked in', 'job' => epc_ws_job_get($db_link, $jobId)));
+			break;
+
+		case 'list_appointments':
+			echo json_encode(array(
+				'status' => true,
+				'appointments' => epc_ws_list_appointments($db_link, time() - 86400, time() + 21 * 86400, 80),
+			));
+			break;
+
 		default:
 			throw new RuntimeException('Unknown action');
 	}

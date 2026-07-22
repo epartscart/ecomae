@@ -239,24 +239,117 @@ function epc_portal_cp_item_visible_enhanced($item)
 	return true;
 }
 
+/**
+ * Resolve a control_groups / control_items caption to a human label.
+ * Numeric captions are lang_text_strings.id (not str_key) — never show bare digits.
+ */
+function epc_portal_cp_menu_resolve_label(PDO $pdo, $caption, $url = '')
+{
+	$caption = trim((string) $caption);
+	$url = trim((string) $url);
+	$label = '';
+
+	if ($caption !== '') {
+		// Named lang keys (epc_*, EPC_*, etc.)
+		if (preg_match('/^[A-Za-z][A-Za-z0-9_]*$/', $caption)) {
+			try {
+				$st = $pdo->prepare('SELECT `value` FROM `lang_text_strings_translation` WHERE `str_key` = ? AND `lang_code` = ? LIMIT 1');
+				$st->execute(array($caption, 'en'));
+				$label = trim((string) $st->fetchColumn());
+			} catch (Throwable $e) {
+				$label = '';
+			}
+			if ($label === '' && function_exists('translate_str_by_key')) {
+				$tr = trim((string) translate_str_by_key($caption, 'en'));
+				if ($tr !== '' && $tr !== $caption) {
+					$label = $tr;
+				}
+			}
+		}
+		// Legacy numeric captions = lang_text_strings.id
+		if ($label === '' && ctype_digit($caption)) {
+			try {
+				$st = $pdo->prepare(
+					'SELECT t.`value` FROM `lang_text_strings_translation` t
+					 INNER JOIN `lang_text_strings` s ON s.`str_key` = t.`str_key`
+					 WHERE s.`id` = ? AND t.`lang_code` = ? LIMIT 1'
+				);
+				$st->execute(array((int) $caption, 'en'));
+				$label = trim((string) $st->fetchColumn());
+			} catch (Throwable $e) {
+				$label = '';
+			}
+		}
+		// Already a readable plain-language caption
+		if ($label === '' && preg_match('/[A-Za-z\x{0400}-\x{04FF}]/u', $caption) && !preg_match('/^\d+$/', $caption)
+			&& !preg_match('/^[0-9]+_[0-9]+_/', $caption) && strpos($caption, 'epc_') !== 0) {
+			$label = $caption;
+		}
+	}
+
+	if ($label === '' || preg_match('/^\d+$/', $label) || preg_match('/^[0-9]+_[0-9]+_/', $label)
+		|| (strpos($label, 'epc_') === 0 && strpos($label, ' ') === false)) {
+		$fromUrl = epc_portal_cp_menu_humanize_url($url);
+		if ($fromUrl !== '') {
+			$label = $fromUrl;
+		} elseif ($caption !== '' && !preg_match('/^\d+$/', $caption) && !preg_match('/^[0-9]+_[0-9]+_/', $caption)) {
+			$label = epc_portal_cp_menu_humanize_key($caption);
+		} else {
+			$label = $fromUrl !== '' ? $fromUrl : 'Menu item';
+		}
+	}
+
+	return $label;
+}
+
+/** Turn a CP URL into a short title (shop/orders/orders → Orders). */
+function epc_portal_cp_menu_humanize_url($url)
+{
+	$url = str_replace('\\', '/', (string) $url);
+	$url = preg_replace('#^/<backend>/#', '', $url);
+	$url = preg_replace('#^/?(cp|backend)/#', '', $url);
+	$url = preg_replace('#\?.*$#', '', $url);
+	$url = trim($url, '/');
+	if ($url === '') {
+		return '';
+	}
+	$part = basename($url);
+	$part = preg_replace('/[^a-z0-9_-]+/i', ' ', $part);
+	$part = trim((string) preg_replace('/\s+/', ' ', $part));
+	if ($part === '') {
+		return '';
+	}
+	// Drop noisy prefixes
+	$part = preg_replace('/^(epc|oms|crm)_?/i', '', $part);
+	return ucwords(str_replace(array('-', '_'), ' ', strtolower($part)));
+}
+
+/** Humanize epc_foo_bar_cp style keys. */
+function epc_portal_cp_menu_humanize_key($key)
+{
+	$key = trim((string) $key);
+	$key = preg_replace('/^(epc_|EPC_)/', '', $key);
+	$key = preg_replace('/_(cp|group)$/i', '', $key);
+	$key = str_replace(array('-', '_'), ' ', $key);
+	$key = trim((string) preg_replace('/\s+/', ' ', $key));
+	return $key !== '' ? ucwords(strtolower($key)) : 'Menu item';
+}
+
 function epc_portal_cp_menu_groups_for_settings(PDO $pdo)
 {
 	$groups = array();
 	$st = $pdo->query('SELECT `id`, `caption`, `order` FROM `control_groups` ORDER BY `order` ASC, `id` ASC');
 	while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
 		$captionKey = (string) $row['caption'];
-		$label = $captionKey;
-		if (function_exists('translate_str_by_key') && preg_match('/^[A-Za-z0-9_]+$/', $captionKey)) {
-			$label = translate_str_by_key($captionKey);
-		} elseif (is_numeric($captionKey) && function_exists('translate_str_by_id')) {
-			$label = translate_str_by_id((int) $captionKey);
-		}
+		$label = epc_portal_cp_menu_resolve_label($pdo, $captionKey, '');
+		$subtitle = function_exists('epc_portal_cp_group_subtitle') ? epc_portal_cp_group_subtitle($captionKey) : '';
 		$cnt = $pdo->prepare('SELECT COUNT(*) FROM `control_items` WHERE `items_group` = ?');
 		$cnt->execute(array((int) $row['id']));
 		$groups[] = array(
 			'id' => (int) $row['id'],
 			'caption' => $captionKey,
 			'label' => $label,
+			'subtitle' => $subtitle,
 			'item_count' => (int) $cnt->fetchColumn(),
 			'packs' => isset(epc_portal_cp_group_pack_map()[$captionKey]) ? epc_portal_cp_group_pack_map()[$captionKey] : array(),
 		);
@@ -290,16 +383,11 @@ function epc_portal_cp_menu_items_for_settings(PDO $pdo, $groupId)
 	$st->execute(array((int) $groupId));
 	while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
 		$cap = (string) $row['caption'];
-		$label = $cap;
-		if (function_exists('translate_str_by_key') && preg_match('/^[A-Za-z0-9_]+$/', $cap)) {
-			$label = translate_str_by_key($cap);
-		} elseif (is_numeric($cap) && function_exists('translate_str_by_id')) {
-			$label = translate_str_by_id((int) $cap);
-		}
+		$url = (string) $row['url'];
 		$items[] = array(
 			'id' => (int) $row['id'],
-			'label' => $label,
-			'url' => (string) $row['url'],
+			'label' => epc_portal_cp_menu_resolve_label($pdo, $cap, $url),
+			'url' => $url,
 		);
 	}
 	return $items;

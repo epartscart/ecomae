@@ -610,6 +610,25 @@ if(!empty($DP_Template->data_value->message_header)){
 	</div>
 <?php } else { ?>
     <div class="top-menu-line" style="background: <?=$DP_Template->data_value->top_menu_color;?>;">
+		<style>
+		/* Hide clutter from top menu (Cart / Orders / Balance / Information / Contacts) */
+		.top-menu-line .navbar > ul > li:has(> a[href*="/shop/cart"]),
+		.top-menu-line .navbar > ul > li:has(> a[href*="/shop/orders"]),
+		.top-menu-line .navbar > ul > li:has(> a[href*="/shop/balans"]),
+		.top-menu-line .navbar > ul > li:has(> a[href*="/kontakty"]),
+		.top-menu-line .navbar > ul > li:has(> a[href*="/contacts"]),
+		.top-menu-line ul > li:has(> a[href*="/shop/cart"]),
+		.top-menu-line ul > li:has(> a[href*="/shop/orders"]),
+		.top-menu-line ul > li:has(> a[href*="/shop/balans"]),
+		.top-menu-line ul > li:has(> a[href*="/kontakty"]),
+		.top-menu-line ul > li:has(> a[href*="/contacts"]),
+		.top-menu-line ul > li.have_child:has(a[href*="/payment"]),
+		.top-menu-line ul > li.have_child:has(a[href*="/delivery"]),
+		.top-menu-line ul > li.have_child:has(a[href*="/ob-oplate"]),
+		.top-menu-line ul > li.have_child:has(a[href*="/o-dostavke"]),
+		.top-menu-line ul > li.dropdown:has(a[href*="/ob-oplate"]),
+		.top-menu-line ul > li.dropdown:has(a[href*="/o-dostavke"]){display:none!important}
+		</style>
 		<div class="container">
 			<table>
 				<tr>
@@ -755,6 +774,7 @@ if(!empty($DP_Template->data_value->message_header)){
 						}
 						?>
 						
+						<?php require $_SERVER['DOCUMENT_ROOT'] . '/content/shop/workshop/epc_garage_header_link.php'; ?>
 						<?php require $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_header_link.php'; ?>
 						
 						<?php
@@ -1142,6 +1162,10 @@ if(!empty($DP_Template->data_value->message_header)){
 				<?php } ?>
 				<a class="mobile-box-bulk-upload" href="<?php echo $multilang_params['lang_href']; ?>/shop/bulk-upload"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Excel upload</a>
 				<?php if (!function_exists('epc_portal_storefront_enabled') || epc_portal_storefront_enabled()): ?>
+				<a class="mobile-box-erp-login" href="<?php
+					$epc_gl = isset($multilang_params['lang_href']) ? rtrim((string)$multilang_params['lang_href'], '/') : '/en';
+					echo htmlspecialchars($epc_gl . '/garage/login', ENT_QUOTES, 'UTF-8');
+				?>"><i class="fa fa-wrench" aria-hidden="true"></i> Garage Manager</a>
 				<a class="mobile-box-erp-login" href="<?php echo function_exists('epc_portal_erp_url') ? epc_portal_erp_url((string) $multilang_params['lang_href']) : ($multilang_params['lang_href'] . '/erp'); ?>"><i class="fa fa-line-chart" aria-hidden="true"></i> <?php echo htmlspecialchars(translate_str_by_key('epc_menu_erp_login') ?: 'ERP Login', ENT_QUOTES, 'UTF-8'); ?></a>
 				<?php endif; ?>
 				<select id="epc_currency_select_mobile" class="epc-mobile-currency-select" aria-label="Display currency" <?php if ($epc_currency_locked_for_user) { ?>disabled="disabled"<?php } ?>>
