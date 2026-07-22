@@ -303,6 +303,55 @@ function epc_reg_render_account_tabs(): void
 							<label class="checkbox-inline"><input type="checkbox" name="epc_wholesale_sms_notify" value="1" checked="checked" /> Receive order updates via SMS</label>
 						</div>
 					</div>
+
+					<hr style="margin:18px 0 12px;border-top:1px solid #e5e7eb;" />
+					<p class="help-block" style="margin:0 0 12px;"><strong>KYC / AML &amp; e-invoice documents</strong> — required for wholesale approval under UAE compliance practice. PDF or image, max 8&nbsp;MB each.</p>
+					<div class="form-group">
+						<label for="epc_emirates_id_no" class="col-sm-4 col-lg-3 control-label">Emirates ID no.</label>
+						<div class="col-sm-8 col-lg-9" style="padding:5px;"><input type="text" class="form-control" name="epc_emirates_id_no" id="epc_emirates_id_no" maxlength="20" placeholder="784-XXXX-XXXXXXX-X" /></div>
+					</div>
+					<div class="form-group">
+						<label for="epc_authorized_signatory" class="col-sm-4 col-lg-3 control-label">Authorized signatory</label>
+						<div class="col-sm-8 col-lg-9" style="padding:5px;"><input type="text" class="form-control" name="epc_authorized_signatory" id="epc_authorized_signatory" maxlength="120" placeholder="Full name as on Emirates ID / passport" /></div>
+					</div>
+					<div class="form-group">
+						<label for="epc_authorized_signatory_id" class="col-sm-4 col-lg-3 control-label">Signatory ID no.</label>
+						<div class="col-sm-8 col-lg-9" style="padding:5px;"><input type="text" class="form-control" name="epc_authorized_signatory_id" id="epc_authorized_signatory_id" maxlength="40" /></div>
+					</div>
+					<div class="form-group">
+						<label for="epc_ubo_name" class="col-sm-4 col-lg-3 control-label">Ultimate beneficial owner</label>
+						<div class="col-sm-8 col-lg-9" style="padding:5px;"><input type="text" class="form-control" name="epc_ubo_name" id="epc_ubo_name" maxlength="160" placeholder="UBO full name (25%+ ownership)" /></div>
+					</div>
+					<div class="form-group">
+						<label for="epc_pep_declaration" class="col-sm-4 col-lg-3 control-label">PEP declaration*</label>
+						<div class="col-sm-8 col-lg-9" style="padding:5px;">
+							<select name="epc_pep_declaration" id="epc_pep_declaration" class="form-control epc-reg-wholesale-req">
+								<option value="">— Select —</option>
+								<option value="No">No — not a politically exposed person</option>
+								<option value="Yes">Yes — PEP / related to a PEP</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="epc_source_of_funds" class="col-sm-4 col-lg-3 control-label">Source of funds</label>
+						<div class="col-sm-8 col-lg-9" style="padding:5px;"><input type="text" class="form-control" name="epc_source_of_funds" id="epc_source_of_funds" maxlength="255" placeholder="Business income, investment, etc." /></div>
+					</div>
+					<div class="form-group">
+						<label for="epc_doc_trade_licence" class="col-sm-4 col-lg-3 control-label">Trade licence scan*</label>
+						<div class="col-sm-8 col-lg-9" style="padding:5px;"><input type="file" class="form-control epc-reg-wholesale-file" name="epc_doc_trade_licence" id="epc_doc_trade_licence" accept=".pdf,.jpg,.jpeg,.png,.webp" /></div>
+					</div>
+					<div class="form-group">
+						<label for="epc_doc_emirates_id" class="col-sm-4 col-lg-3 control-label">Emirates ID copy*</label>
+						<div class="col-sm-8 col-lg-9" style="padding:5px;"><input type="file" class="form-control epc-reg-wholesale-file" name="epc_doc_emirates_id" id="epc_doc_emirates_id" accept=".pdf,.jpg,.jpeg,.png,.webp" /></div>
+					</div>
+					<div class="form-group">
+						<label for="epc_doc_vat_certificate" class="col-sm-4 col-lg-3 control-label">VAT / TRN certificate</label>
+						<div class="col-sm-8 col-lg-9" style="padding:5px;"><input type="file" class="form-control" name="epc_doc_vat_certificate" id="epc_doc_vat_certificate" accept=".pdf,.jpg,.jpeg,.png,.webp" /></div>
+					</div>
+					<div class="form-group">
+						<label for="epc_ubo_id_document" class="col-sm-4 col-lg-3 control-label">UBO ID document</label>
+						<div class="col-sm-8 col-lg-9" style="padding:5px;"><input type="file" class="form-control" name="epc_ubo_id_document" id="epc_ubo_id_document" accept=".pdf,.jpg,.jpeg,.png,.webp" /></div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -430,6 +479,12 @@ function epc_reg_render_tab_scripts(): void
 					if(!opt.trim()){alert('Please enter your TRN / VAT number.');return false;}
 				}
 			}
+			var pep=document.getElementById('epc_pep_declaration');
+			if(!pep||!String(pep.value||'').trim()){alert('Please complete the PEP declaration.');if(pep)pep.focus();return false;}
+			var tlFile=document.getElementById('epc_doc_trade_licence');
+			var eidFile=document.getElementById('epc_doc_emirates_id');
+			if(!tlFile||!tlFile.files||!tlFile.files.length){alert('Please upload your trade licence scan.');if(tlFile)tlFile.focus();return false;}
+			if(!eidFile||!eidFile.files||!eidFile.files.length){alert('Please upload your Emirates ID copy.');if(eidFile)eidFile.focus();return false;}
 		}
 		epcRegSyncCountryHidden();
 		return true;
@@ -504,7 +559,44 @@ function epc_reg_validate_enhanced_fields(array $post, string $customer_type): v
 				throw new Exception('Please enter your TRN / VAT number.');
 			}
 		}
+		if (trim((string) ($post['epc_pep_declaration'] ?? '')) === '') {
+			throw new Exception('Please complete the PEP declaration.');
+		}
+		foreach (array('epc_doc_trade_licence' => 'trade licence scan', 'epc_doc_emirates_id' => 'Emirates ID copy') as $fileKey => $label) {
+			if (empty($_FILES[$fileKey]['tmp_name']) || !is_uploaded_file((string) $_FILES[$fileKey]['tmp_name'])) {
+				throw new Exception('Please upload your ' . $label . '.');
+			}
+		}
 	}
+}
+
+/**
+ * Store a KYC/AML registration document into users_profiles as a public path.
+ */
+function epc_reg_store_kyc_upload(int $user_id, string $fieldKey, array $file): string
+{
+	if ($user_id <= 0 || empty($file['tmp_name']) || !is_uploaded_file((string) $file['tmp_name'])) {
+		return '';
+	}
+	$max = 8 * 1024 * 1024;
+	if ((int) ($file['size'] ?? 0) > $max) {
+		throw new Exception('Document too large (max 8 MB): ' . $fieldKey);
+	}
+	$ext = strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
+	$allowed = array('pdf', 'jpg', 'jpeg', 'png', 'webp');
+	if (!in_array($ext, $allowed, true)) {
+		throw new Exception('Allowed document formats: PDF, JPG, PNG, WEBP.');
+	}
+	$dir = $_SERVER['DOCUMENT_ROOT'] . '/content/files/kyc/' . $user_id;
+	if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+		throw new Exception('Could not create KYC upload folder.');
+	}
+	$safe = preg_replace('/[^a-z0-9_]/', '', strtolower($fieldKey)) . '_' . date('Ymd_His') . '.' . $ext;
+	$dest = $dir . '/' . $safe;
+	if (!move_uploaded_file((string) $file['tmp_name'], $dest)) {
+		throw new Exception('Document upload failed: ' . $fieldKey);
+	}
+	return '/content/files/kyc/' . $user_id . '/' . $safe;
 }
 
 function epc_reg_validate_trade_uae(array $post, string $customer_type): void
@@ -604,6 +696,44 @@ function epc_reg_save_enhanced_profile($db_link, int $user_id, array $post, stri
 		}
 		if ($country === 'AE') {
 			epc_reg_profile_set($db_link, $user_id, 'epc_reg_emirate', trim((string)($post['epc_wholesale_emirate'] ?? 'Dubai')));
+		}
+		epc_reg_profile_set($db_link, $user_id, 'epc_legal_reg_type', 'TL');
+
+		// KYC / AML text fields (also mirrored as reg_fields for approval checklist)
+		foreach (array(
+			'epc_emirates_id_no',
+			'epc_authorized_signatory',
+			'epc_authorized_signatory_id',
+			'epc_ubo_name',
+			'epc_pep_declaration',
+			'epc_source_of_funds',
+			'epc_passport_no',
+			'epc_nationality',
+			'epc_sanctions_declaration',
+		) as $kycKey) {
+			$val = trim((string) ($post[$kycKey] ?? ''));
+			if ($val !== '') {
+				epc_reg_profile_set($db_link, $user_id, $kycKey, $val);
+			}
+		}
+
+		foreach (array(
+			'epc_doc_trade_licence',
+			'epc_doc_emirates_id',
+			'epc_doc_vat_certificate',
+			'epc_ubo_id_document',
+			'epc_doc_passport',
+			'epc_doc_power_of_attorney',
+			'epc_doc_moa',
+		) as $docKey) {
+			if (empty($_FILES[$docKey]) || !is_array($_FILES[$docKey])) {
+				continue;
+			}
+			$path = epc_reg_store_kyc_upload($user_id, $docKey, $_FILES[$docKey]);
+			if ($path !== '') {
+				epc_reg_profile_set($db_link, $user_id, $docKey, $path);
+				epc_reg_profile_set($db_link, $user_id, $docKey . '_status', 'pending_review');
+			}
 		}
 	}
 

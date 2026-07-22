@@ -54,7 +54,7 @@ else//Пользователь не авторизован - ВЫВОД СТРА
     ?>
 
     <!-- Start ФОРМА РЕГИСТРАЦИИ -->
-    <form action="<?php echo $multilang_params['lang_href']; ?>/users/register" id="regform" onsubmit="return onSubmitCheck();" method="post">
+    <form action="<?php echo $multilang_params['lang_href']; ?>/users/register" id="regform" onsubmit="return onSubmitCheck();" method="post" enctype="multipart/form-data">
 		<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
         <!--Блок для выбора Регистрационного Варианта-->
         <div id="RegVariantsSelector">
@@ -257,6 +257,15 @@ else//Пользователь не авторизован - ВЫВОД СТРА
                 switch(reg_fields[i].widget_type)
                 {
                     case "text":
+                        additional_html += "<input onKeyUp=\"dynamicApplying('"+reg_fields[i].name+"');\" type=\"text\" name=\""+reg_fields[i].name+"\" id=\""+reg_fields[i].name+"\" value='"+reg_fields[i].value_buffer.replace('/(["\'\])/g', "\\$1")+"' class=\"form-control\" placeholder=\""+example+"\" />";
+                        break;
+                    case "file":
+                        additional_html += "<input type=\"file\" name=\""+reg_fields[i].name+"\" id=\""+reg_fields[i].name+"\" class=\"form-control\" accept=\".pdf,.jpg,.jpeg,.png,.webp\" />";
+                        if (example) {
+                            additional_html += "<p class=\"help-block\" style=\"margin:4px 0 0;\">"+example+"</p>";
+                        }
+                        break;
+                    case "select":
                         additional_html += "<input onKeyUp=\"dynamicApplying('"+reg_fields[i].name+"');\" type=\"text\" name=\""+reg_fields[i].name+"\" id=\""+reg_fields[i].name+"\" value='"+reg_fields[i].value_buffer.replace('/(["\'\])/g', "\\$1")+"' class=\"form-control\" placeholder=\""+example+"\" />";
                         break;
                 };
