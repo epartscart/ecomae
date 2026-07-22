@@ -400,6 +400,10 @@ function epc_cp_page_asset_url_map(): array
 				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia4'),
 			),
 		),
+		'users/polya-registracii' => array(
+			'css' => array('/' . $backend . '/content/users/epc_reg_fields_cp.css?v=' . rawurlencode($ver . 'rf1')),
+			'js' => array('/' . $backend . '/content/users/epc_reg_fields_cp.js?v=' . rawurlencode($ver . 'rf1')),
+		),
 		'shop/catalogue/catalogue_editor' => array(
 			'css' => array('/content/shop/catalogue/epc_catalogue_editor.css?v=' . rawurlencode($ver . 'catEd1')),
 		),

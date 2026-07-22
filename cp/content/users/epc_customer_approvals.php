@@ -154,8 +154,16 @@ if ($review_id > 0) {
 					$status = epc_trade_approval_status($db_link, $uid);
 					require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/usefull/epc_admin_notifications.php';
 					?>
-				<p><a class="btn btn-xs btn-default" target="_blank" href="/<?=epc_ca_h($DP_Config->backend_dir);?>/users/usermanager/user?user_id=<?=$uid;?>">Open full customer card</a></p>
+				<p><a class="btn btn-xs btn-default" target="_blank" href="/<?=epc_ca_h($DP_Config->backend_dir);?>/users/usermanager/user?user_id=<?=$uid;?>">Open full customer card</a>
+				<a class="btn btn-xs btn-default" target="_blank" href="/<?=epc_ca_h($DP_Config->backend_dir);?>/users/polya-registracii">Registration fields</a></p>
 				<?=epc_build_customer_profile_html($uid);?>
+				<?php
+				$rfCompliance = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_reg_fields_compliance.php';
+				if (is_readable($rfCompliance)) {
+					require_once $rfCompliance;
+					echo epc_rf_render_approval_checklist($db_link, $uid, 'customer');
+				}
+				?>
 				<p><strong>Requested type:</strong> <?=epc_ca_h(epc_trade_customer_type_label($ctype));?><br>
 				<strong>Status:</strong> <?=epc_ca_h($status);?></p>
 

@@ -108,6 +108,7 @@ $rows = $st->fetchAll(PDO::FETCH_ASSOC);
 						<td><?php echo htmlspecialchars((string) $r['status'], ENT_QUOTES, 'UTF-8'); ?></td>
 						<td><?php echo !empty($r['created_at']) ? date('Y-m-d H:i', (int) $r['created_at']) : ''; ?></td>
 						<td>
+							<a class="btn btn-xs btn-default" href="<?php echo htmlspecialchars($baseUrl . '?status=' . rawurlencode($status) . '&user_id=' . (int) $r['user_id'], ENT_QUOTES, 'UTF-8'); ?>">KYC</a>
 							<?php if ($r['status'] !== 'approved') { ?>
 							<form method="post" style="display:inline;">
 								<input type="hidden" name="action" value="approve" />
@@ -129,6 +130,20 @@ $rows = $st->fetchAll(PDO::FETCH_ASSOC);
 				<?php } ?>
 				</tbody>
 			</table>
+			<?php
+			$reviewUid = (int) ($_GET['user_id'] ?? 0);
+			if ($reviewUid > 0) {
+				$rfCompliance = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_reg_fields_compliance.php';
+				if (is_readable($rfCompliance)) {
+					require_once $rfCompliance;
+					echo '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #e5e7eb;">';
+					echo '<p><strong>Vendor user #' . $reviewUid . '</strong> — compliance checklist from registration fields</p>';
+					echo '<p><a class="btn btn-xs btn-default" href="/' . htmlspecialchars($backend, ENT_QUOTES, 'UTF-8') . '/users/polya-registracii">Configure registration fields</a></p>';
+					echo epc_rf_render_approval_checklist($db_link, $reviewUid, 'vendor');
+					echo '</div>';
+				}
+			}
+			?>
 		</div>
 	</div>
 </div>
