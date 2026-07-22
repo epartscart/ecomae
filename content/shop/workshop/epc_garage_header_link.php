@@ -15,7 +15,7 @@ $epc_garage_label = 'Garage Manager';
 	</a>
 </div>
 <style>
-.epc-garage-header-link a{color:#a5f3fc!important;font-weight:700}
+.epc-garage-header-link a{color:#fecaca!important;font-weight:700}
 .epc-garage-header-link a:hover{color:#fff!important}
-.epc-garage-header-link .fa{color:#22d3ee;margin-right:4px}
+.epc-garage-header-link .fa{color:#f87171;margin-right:4px}
 </style>

@@ -1,10 +1,10 @@
-/* Garage Manager System — storefront portal */
+/* Garage Manager System — storefront portal (red theme) */
 .epc-gms {
-  --ink: #0b1220;
-  --muted: #5b6578;
-  --line: #d9e2e0;
-  --teal: #0e7490;
-  --sand: #f4f7f5;
+  --ink: #111827;
+  --muted: #6b7280;
+  --line: #fecaca;
+  --red: #dc2626;
+  --sand: #fff5f5;
   font-family: "DM Sans", "Source Sans 3", "Segoe UI", sans-serif;
   color: var(--ink);
   margin: 0 auto 48px;
@@ -16,27 +16,28 @@
 
 .epc-gms-brand {
   display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
-  padding: 22px 24px; margin: 0 0 16px; border-radius: 18px; color: #f8fafc;
+  padding: 22px 24px; margin: 0 0 16px; border-radius: 18px; color: #ffffff !important;
   background:
-    radial-gradient(900px 240px at 90% -20%, rgba(125, 211, 252, .28), transparent 55%),
-    linear-gradient(125deg, #0b1220 0%, #164e63 48%, #0e7490 100%);
-  box-shadow: 0 18px 40px rgba(11, 18, 32, .22);
+    radial-gradient(900px 240px at 90% -20%, rgba(254, 202, 202, .35), transparent 55%),
+    linear-gradient(125deg, #450a0a 0%, #7f1d1d 48%, #dc2626 100%);
+  box-shadow: 0 18px 40px rgba(127, 29, 29, .28);
 }
 .epc-gms-brand__mark {
   width: 52px; height: 52px; border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,.14); font-size: 22px;
 }
-.epc-gms-brand__name { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
-.epc-gms-brand__sub { margin-top: 4px; font-size: 13px; opacity: .92; max-width: 64ch; }
+.epc-gms-brand__name { font-size: 26px; font-weight: 800; letter-spacing: -.02em; color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.epc-gms-brand__sub { margin-top: 4px; font-size: 13px; color: #fee2e2 !important; opacity: 1; max-width: 64ch; }
 .epc-gms-brand__actions { margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px; }
 .epc-gms-chip {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 12px; border-radius: 999px;
-  background: rgba(255,255,255,.14); color: #fff !important;
+  background: rgba(255,255,255,.18); color: #fff !important;
   text-decoration: none !important; font-size: 12px; font-weight: 700;
-  border: 1px solid rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.35);
 }
+.epc-gms-chip:hover { background: rgba(255,255,255,.3); color: #fff !important; }
 
 .epc-gms-kpis {
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -45,7 +46,7 @@
 @media (max-width: 900px) { .epc-gms-kpis { grid-template-columns: repeat(2, 1fr); } }
 .epc-gms-kpi {
   background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
-  box-shadow: 0 8px 20px rgba(15,23,42,.04);
+  box-shadow: 0 8px 20px rgba(127,29,29,.05);
 }
 .epc-gms-kpi span { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--muted); }
 .epc-gms-kpi strong { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
@@ -55,7 +56,7 @@
   border: 1px solid var(--line); background: #fff; border-radius: 999px;
   padding: 8px 14px; font-weight: 800; font-size: 12px; cursor: pointer; color: #334155;
 }
-.epc-gms-tabs button.is-on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.epc-gms-tabs button.is-on { background: var(--red); border-color: var(--red); color: #fff; }
 .epc-gms-panel { display: none; }
 .epc-gms-panel.is-on { display: block; }
 
@@ -69,12 +70,12 @@
 }
 .epc-gms-col__head {
   font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
-  margin: 0 0 10px; color: #334155; display: flex; justify-content: space-between;
+  margin: 0 0 10px; color: #7f1d1d; display: flex; justify-content: space-between;
 }
 .epc-gms-col__head em { font-style: normal; background: #fff; border-radius: 999px; padding: 1px 8px; }
 .epc-gms-card {
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; margin: 0 0 8px;
-  font-size: 12px; line-height: 1.35; box-shadow: 0 6px 14px rgba(15,23,42,.04);
+  background: #fff; border: 1px solid #fecaca; border-radius: 12px; padding: 10px; margin: 0 0 8px;
+  font-size: 12px; line-height: 1.35; box-shadow: 0 6px 14px rgba(127,29,29,.04);
 }
 .epc-gms-card strong { display: block; font-size: 13px; margin-bottom: 4px; }
 .epc-gms-card__foot { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 8px; }
@@ -83,13 +84,13 @@
 
 .epc-gms-section {
   background: #fff; border: 1px solid var(--line); border-radius: 16px; margin: 0 0 14px; overflow: hidden;
-  box-shadow: 0 8px 20px rgba(15,23,42,.04);
+  box-shadow: 0 8px 20px rgba(127,29,29,.05);
 }
 .epc-gms-section__head {
   display: flex; justify-content: space-between; align-items: center; gap: 8px;
-  padding: 12px 14px; border-bottom: 1px solid var(--line); background: linear-gradient(90deg, #ecfeff, #f8fafc);
+  padding: 12px 14px; border-bottom: 1px solid var(--line); background: linear-gradient(90deg, #fef2f2, #fff7ed);
 }
-.epc-gms-section__head h3 { margin: 0; font-size: 15px; font-weight: 800; }
+.epc-gms-section__head h3 { margin: 0; font-size: 15px; font-weight: 800; color: #7f1d1d; }
 .epc-gms-table { width: 100%; border-collapse: collapse; }
 .epc-gms-table th, .epc-gms-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; text-align: left; vertical-align: top; }
 .epc-gms-table th { font-size: 11px; text-transform: uppercase; color: var(--muted); background: #fafafa; }
@@ -99,8 +100,16 @@
 .epc-gms-form input, .epc-gms-form select, .epc-gms-form textarea {
   width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; font: inherit;
 }
+.epc-gms-form input:focus, .epc-gms-form select:focus, .epc-gms-form textarea:focus {
+  outline: 0; border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,.15);
+}
 .epc-gms-form textarea, .epc-gms-form button { grid-column: 1 / -1; }
-.epc-gms-form button { justify-self: start; }
+.epc-gms-form button {
+  justify-self: start;
+  appearance: none; border: 0; border-radius: 10px;
+  background: var(--red); color: #fff; font-weight: 800; padding: 10px 16px; cursor: pointer;
+}
+.epc-gms-form button:hover { background: #b91c1c; }
 @media (max-width: 720px) {
   .epc-gms-form, .epc-gms-form--wide { grid-template-columns: 1fr; }
   .epc-gms-brand__actions { margin-left: 0; width: 100%; }

@@ -45,9 +45,9 @@ epc_cp_page_frame_open(array(
 ));
 ?>
 <style>
-.epc-awg{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--accent:#0e7490}
+.epc-awg{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--accent:#dc2626}
 .epc-awg-flow{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
-.epc-awg-flow li{background:#ecfeff;border:1px solid #a5f3fc;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;color:#155e75}
+.epc-awg-flow li{background:#fef2f2;border:1px solid #fecaca;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;color:#991b1b}
 .epc-awg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:0 0 14px}
 .epc-awg-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 4px 14px rgba(15,23,42,.04)}
 .epc-awg-card h4{margin:0 0 8px;font-size:14px;color:var(--ink)}

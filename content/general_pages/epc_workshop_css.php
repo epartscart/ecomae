@@ -9,7 +9,7 @@ if (!is_file($path)) {
 	exit;
 }
 
-$ver = '20260721ws1';
+$ver = '20260722ws-red';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 

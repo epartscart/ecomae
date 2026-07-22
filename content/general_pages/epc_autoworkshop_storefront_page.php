@@ -19,36 +19,40 @@ $h = static function ($v): string {
 };
 ?>
 <style>
-.epc-awo{--ink:#0b1220;--muted:#5b6578;--accent:#0e7490;--sand:#f4f7f5;font-family:"DM Sans","Segoe UI",sans-serif;color:var(--ink)}
-.epc-awo__hero{position:relative;margin:0 -15px 28px;padding:56px 24px 64px;color:#f8fafc;overflow:hidden;
+.epc-awo{--ink:#111827;--muted:#6b7280;--accent:#dc2626;--accent-dark:#991b1b;--sand:#fff5f5;--line:#fecaca;font-family:"DM Sans","Segoe UI",sans-serif;color:var(--ink)}
+.epc-awo__hero{position:relative;margin:0 -15px 28px;padding:56px 24px 64px;overflow:hidden;
 background:
- radial-gradient(700px 280px at 85% 10%, rgba(125,211,252,.25), transparent 55%),
- linear-gradient(120deg,#0b1220 0%,#164e63 42%,#0e7490 100%);
-background-size:cover}
-.epc-awo__hero::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 60V0h60' fill='none' stroke='%23ffffff' stroke-opacity='.04'/%3E%3C/svg%3E");pointer-events:none}
-.epc-awo__hero-inner{position:relative;z-index:1;max-width:720px}
-.epc-awo__brand{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.85;margin-bottom:10px}
-.epc-awo__hero h1{margin:0 0 12px;font-size:clamp(2rem,4.5vw,2.75rem);font-weight:700;letter-spacing:-.03em;line-height:1.1}
-.epc-awo__hero p{margin:0 0 22px;font-size:1.05rem;line-height:1.55;opacity:.94;max-width:34rem}
-.epc-awo__cta{display:inline-flex;align-items:center;gap:8px;margin:0 10px 8px 0;padding:12px 18px;border-radius:8px;background:#fff;color:#0b1220;font-weight:700;text-decoration:none}
-.epc-awo__cta--ghost{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff}
+ radial-gradient(700px 280px at 88% 8%, rgba(254,202,202,.35), transparent 55%),
+ linear-gradient(125deg,#450a0a 0%,#7f1d1d 38%,#dc2626 100%);
+background-size:cover;color:#ffffff!important}
+.epc-awo__hero::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 60V0h60' fill='none' stroke='%23ffffff' stroke-opacity='.07'/%3E%3C/svg%3E");pointer-events:none}
+.epc-awo__hero-inner{position:relative;z-index:1;max-width:720px;color:#ffffff!important}
+.epc-awo__brand{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fecaca!important;margin-bottom:10px}
+.epc-awo__hero h1,.epc-awo__hero .epc-awo__title{margin:0 0 12px;font-size:clamp(2rem,4.5vw,2.75rem);font-weight:800;letter-spacing:-.03em;line-height:1.1;color:#ffffff!important;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.epc-awo__hero p,.epc-awo__hero .epc-awo__lead{margin:0 0 22px;font-size:1.05rem;line-height:1.55;max-width:34rem;color:#fee2e2!important;opacity:1!important}
+.epc-awo__cta{display:inline-flex;align-items:center;gap:8px;margin:0 10px 8px 0;padding:12px 18px;border-radius:8px;background:#ffffff;color:#991b1b!important;font-weight:700;text-decoration:none!important;border:1px solid #ffffff;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.epc-awo__cta:hover,.epc-awo__cta:focus{background:#fef2f2;color:#7f1d1d!important;text-decoration:none!important}
+.epc-awo__cta--ghost{background:transparent;border:1px solid rgba(255,255,255,.75);color:#ffffff!important;box-shadow:none}
+.epc-awo__cta--ghost:hover,.epc-awo__cta--ghost:focus{background:rgba(255,255,255,.14);color:#ffffff!important}
 .epc-awo__wrap{max-width:1100px;margin:0 auto 40px;padding:0 8px}
 .epc-awo__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:0 0 28px}
-.epc-awo__step{padding:4px 0 8px}
-.epc-awo__step strong{display:block;font-size:1rem;margin-bottom:4px}
+.epc-awo__step{padding:14px 14px 16px;border-radius:12px;background:#fff;border:1px solid var(--line);box-shadow:0 2px 10px rgba(127,29,29,.05)}
+.epc-awo__step strong{display:block;font-size:1rem;margin-bottom:4px;color:#991b1b}
 .epc-awo__step span{color:var(--muted);font-size:.92rem;line-height:1.45}
 .epc-awo__panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
-.epc-awo__panel{background:var(--sand);border:1px solid #d9e2e0;border-radius:14px;padding:20px}
-.epc-awo__panel h2{margin:0 0 12px;font-size:1.15rem}
-.epc-awo__panel label{display:block;font-size:12px;font-weight:700;margin:0 0 4px;color:#334155}
-.epc-awo__panel input,.epc-awo__panel textarea,.epc-awo__panel select{width:100%;margin:0 0 10px;padding:9px 11px;border:1px solid #c9d4d1;border-radius:8px;font:inherit}
-.epc-awo__panel button{appearance:none;border:0;border-radius:8px;background:#0e7490;color:#fff;font-weight:700;padding:11px 16px;cursor:pointer}
-.epc-awo__panel button:hover{background:#155e75}
+.epc-awo__panel{background:var(--sand);border:1px solid var(--line);border-radius:14px;padding:20px}
+.epc-awo__panel h2{margin:0 0 12px;font-size:1.15rem;color:#7f1d1d}
+.epc-awo__panel label{display:block;font-size:12px;font-weight:700;margin:0 0 4px;color:#7f1d1d}
+.epc-awo__panel input,.epc-awo__panel textarea,.epc-awo__panel select{width:100%;margin:0 0 10px;padding:9px 11px;border:1px solid #f1a9a9;border-radius:8px;font:inherit;background:#fff}
+.epc-awo__panel input:focus,.epc-awo__panel textarea:focus,.epc-awo__panel select:focus{outline:0;border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.15)}
+.epc-awo__panel button{appearance:none;border:0;border-radius:8px;background:#dc2626;color:#fff;font-weight:700;padding:11px 16px;cursor:pointer}
+.epc-awo__panel button:hover{background:#b91c1c}
 .epc-awo__msg{display:none;margin:0 0 10px;padding:10px 12px;border-radius:8px;font-size:13px}
 .epc-awo__msg.is-ok{display:block;background:#dcfce7;color:#166534}
 .epc-awo__msg.is-err{display:block;background:#fee2e2;color:#991b1b}
-.epc-awo__track-result{display:none;margin-top:12px;padding:12px;background:#fff;border-radius:10px;border:1px solid #d9e2e0;font-size:14px;line-height:1.5}
+.epc-awo__track-result{display:none;margin-top:12px;padding:12px;background:#fff;border-radius:10px;border:1px solid var(--line);font-size:14px;line-height:1.5}
 .epc-awo__note{margin:24px 0 0;color:var(--muted);font-size:.9rem}
+.epc-awo__note a{color:#b91c1c;font-weight:600}
 @keyframes epcAwoFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .epc-awo__hero-inner,.epc-awo__grid,.epc-awo__panels{animation:epcAwoFade .55s ease both}
 .epc-awo__grid{animation-delay:.08s}
@@ -59,8 +63,8 @@ background-size:cover}
 	<div class="epc-awo__hero">
 		<div class="epc-awo__hero-inner">
 			<span class="epc-awo__brand">eParts Cart · Auto Workshop</span>
-			<h1>Repair workshop</h1>
-			<p>Book service, track your job, and keep parts + labour on one garage job card — from check-in to ready for collection.</p>
+			<h1 class="epc-awo__title">Repair workshop</h1>
+			<p class="epc-awo__lead">Book service, track your job, and keep parts + labour on one garage job card — from check-in to ready for collection.</p>
 			<a class="epc-awo__cta" href="#book">Book service</a>
 			<a class="epc-awo__cta epc-awo__cta--ghost" href="#track">Track job</a>
 		</div>

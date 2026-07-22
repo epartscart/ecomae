@@ -78,11 +78,11 @@ if( $user_id > 0)
 		$epc_g_lang = isset($multilang_params['lang_href']) ? rtrim((string)$multilang_params['lang_href'], '/') : '/en';
 		?>
 		<style>
-		.epc-garazh-gms{margin:0 0 18px;padding:18px 20px;border-radius:16px;color:#f8fafc;background:linear-gradient(125deg,#0b1220,#164e63 55%,#0e7490);box-shadow:0 14px 32px rgba(11,18,32,.18)}
-		.epc-garazh-gms h2{margin:0 0 6px;color:#fff;font-size:22px;font-weight:800}
-		.epc-garazh-gms p{margin:0 0 12px;opacity:.92;max-width:60ch}
-		.epc-garazh-gms a{display:inline-flex;align-items:center;gap:6px;margin:0 8px 6px 0;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff!important;font-weight:700;text-decoration:none!important;border:1px solid rgba(255,255,255,.22);font-size:12px}
-		.epc-garazh-gms a:hover{background:rgba(255,255,255,.28)}
+		.epc-garazh-gms{margin:0 0 18px;padding:18px 20px;border-radius:16px;color:#ffffff!important;background:linear-gradient(125deg,#450a0a,#7f1d1d 52%,#dc2626);box-shadow:0 14px 32px rgba(127,29,29,.28)}
+		.epc-garazh-gms h2{margin:0 0 6px;color:#ffffff!important;font-size:22px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+		.epc-garazh-gms p{margin:0 0 12px;color:#fee2e2!important;opacity:1!important;max-width:60ch}
+		.epc-garazh-gms a{display:inline-flex;align-items:center;gap:6px;margin:0 8px 6px 0;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff!important;font-weight:700;text-decoration:none!important;border:1px solid rgba(255,255,255,.35);font-size:12px}
+		.epc-garazh-gms a:hover{background:rgba(255,255,255,.3);color:#fff!important}
 		</style>
 		<div class="epc-garazh-gms col-md-12">
 			<h2><i class="fa fa-wrench"></i> My Garage · Service ready</h2>
@@ -734,11 +734,11 @@ else
 	$epc_g_lang = isset($multilang_params['lang_href']) ? rtrim((string)$multilang_params['lang_href'], '/') : '/en';
 	?>
 	<style>
-	.epc-garazh-gms{margin:0 0 18px;padding:18px 20px;border-radius:16px;color:#f8fafc;background:linear-gradient(125deg,#0b1220,#164e63 55%,#0e7490);box-shadow:0 14px 32px rgba(11,18,32,.18)}
-	.epc-garazh-gms h2{margin:0 0 6px;color:#fff;font-size:22px;font-weight:800}
-	.epc-garazh-gms p{margin:0 0 12px;opacity:.92;max-width:60ch}
-	.epc-garazh-gms a{display:inline-flex;align-items:center;gap:6px;margin:0 8px 6px 0;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff!important;font-weight:700;text-decoration:none!important;border:1px solid rgba(255,255,255,.22);font-size:12px}
-	.epc-garazh-gms a:hover{background:rgba(255,255,255,.28)}
+	.epc-garazh-gms{margin:0 0 18px;padding:18px 20px;border-radius:16px;color:#ffffff!important;background:linear-gradient(125deg,#450a0a,#7f1d1d 52%,#dc2626);box-shadow:0 14px 32px rgba(127,29,29,.28)}
+	.epc-garazh-gms h2{margin:0 0 6px;color:#ffffff!important;font-size:22px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+	.epc-garazh-gms p{margin:0 0 12px;color:#fee2e2!important;opacity:1!important;max-width:60ch}
+	.epc-garazh-gms a{display:inline-flex;align-items:center;gap:6px;margin:0 8px 6px 0;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff!important;font-weight:700;text-decoration:none!important;border:1px solid rgba(255,255,255,.35);font-size:12px}
+	.epc-garazh-gms a:hover{background:rgba(255,255,255,.3);color:#fff!important}
 	</style>
 	<div class="epc-garazh-gms col-md-12">
 		<h2><i class="fa fa-wrench"></i> Garage &amp; service</h2>
