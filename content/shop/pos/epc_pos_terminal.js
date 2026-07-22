@@ -1,6 +1,7 @@
 (function () {
 	var app = document.getElementById('epc-pos-app');
-	if (!app) return;
+	if (!app || app.getAttribute('data-pos-ready') === '1') return;
+	app.setAttribute('data-pos-ready', '1');
 
 	var ajaxUrl = app.getAttribute('data-ajax-url') || '';
 	var posUrl = app.getAttribute('data-pos-url') || '';
