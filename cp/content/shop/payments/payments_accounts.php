@@ -35,7 +35,7 @@ $editCreds = $edit ? epc_pay_accounts_decode_credentials($edit['credentials'] ??
 		<div class="epc-pay-section">
 			<h4><?php echo $edit ? 'Edit account #' . (int)$edit['id'] : 'Add payment account'; ?></h4>
 			<div class="body" style="padding:14px;">
-				<form id="epc_pay_account_form" class="form-horizontal">
+				<form id="epc_pay_account_form" class="form-horizontal" action="javascript:void(0);" onsubmit="return false;">
 					<input type="hidden" name="id" value="<?php echo $edit ? (int)$edit['id'] : 0; ?>">
 					<div class="form-group">
 						<label class="col-sm-4 control-label">Owner type</label>
@@ -209,54 +209,3 @@ $editCreds = $edit ? epc_pay_accounts_decode_credentials($edit['credentials'] ??
 		</div>
 	</div>
 </div>
-
-<script>
-(function(){
-	function toggleOwner() {
-		var t = document.getElementById('epc_acc_owner_type').value;
-		document.getElementById('epc_acc_office_wrap').style.display = (t === 'office') ? '' : 'none';
-		document.getElementById('epc_acc_vendor_wrap').style.display = (t === 'vendor') ? '' : 'none';
-	}
-	var ot = document.getElementById('epc_acc_owner_type');
-	if (ot) { ot.addEventListener('change', toggleOwner); toggleOwner(); }
-
-	var form = document.getElementById('epc_pay_account_form');
-	if (form) {
-		form.addEventListener('submit', function(ev){
-			ev.preventDefault();
-			var fd = new FormData(form);
-			var ownerType = fd.get('owner_type');
-			var ownerId = 0;
-			if (ownerType === 'office') ownerId = parseInt(fd.get('office_id') || '0', 10) || 0;
-			if (ownerType === 'vendor') ownerId = parseInt(fd.get('vendor_id') || '0', 10) || 0;
-			var credsRaw = String(fd.get('credentials_json') || '{}');
-			try { JSON.parse(credsRaw); } catch (e) { alert('Credentials JSON is invalid'); return; }
-			window.epcPayPost('save_account', {
-				id: fd.get('id') || 0,
-				owner_type: ownerType,
-				owner_id: ownerId,
-				title: fd.get('title') || '',
-				handler: fd.get('handler') || '',
-				mode: fd.get('mode') || 'direct',
-				connected_account_id: fd.get('connected_account_id') || '',
-				payout_iban: fd.get('payout_iban') || '',
-				payout_bank: fd.get('payout_bank') || '',
-				payout_name: fd.get('payout_name') || '',
-				platform_fee_pct: fd.get('platform_fee_pct') || 0,
-				status: fd.get('status') || 'active',
-				demo_mode: form.querySelector('[name=demo_mode]').checked ? 1 : 0,
-				is_default: form.querySelector('[name=is_default]').checked ? 1 : 0,
-				credentials_json: credsRaw
-			});
-		});
-	}
-	var seedBtn = document.getElementById('epc_btn_seed_platform_account');
-	if (seedBtn) seedBtn.addEventListener('click', function(){ window.epcPayPost('seed_platform_account', {}); });
-	document.querySelectorAll('.epc-acc-disable').forEach(function(btn){
-		btn.addEventListener('click', function(){ window.epcPayPost('disable_account', {id: btn.getAttribute('data-id')}); });
-	});
-	document.querySelectorAll('.epc-settle-paid').forEach(function(btn){
-		btn.addEventListener('click', function(){ window.epcPayPost('mark_settlement', {id: btn.getAttribute('data-id'), status: 'paid_out'}); });
-	});
-})();
-</script>

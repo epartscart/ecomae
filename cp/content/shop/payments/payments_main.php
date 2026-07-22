@@ -208,6 +208,70 @@ epc_cp_page_frame_open(array(
 	document.querySelectorAll('.epc-activate-gw').forEach(function(btn){
 		btn.addEventListener('click', function(){ post('activate', {handler: btn.getAttribute('data-handler')}).then(msg); });
 	});
+
+	// Individual accounts tab
+	function toggleOwner() {
+		var ot = document.getElementById('epc_acc_owner_type');
+		if (!ot) return;
+		var t = ot.value;
+		var ow = document.getElementById('epc_acc_office_wrap');
+		var vw = document.getElementById('epc_acc_vendor_wrap');
+		if (ow) ow.style.display = (t === 'office') ? '' : 'none';
+		if (vw) vw.style.display = (t === 'vendor') ? '' : 'none';
+	}
+	var otEl = document.getElementById('epc_acc_owner_type');
+	if (otEl) {
+		otEl.addEventListener('change', toggleOwner);
+		toggleOwner();
+	}
+	var accForm = document.getElementById('epc_pay_account_form');
+	if (accForm) {
+		var saveBtn = accForm.querySelector('button[type="submit"]');
+		function saveAccount(ev) {
+			if (ev) ev.preventDefault();
+			var fd = new FormData(accForm);
+			var ownerType = String(fd.get('owner_type') || 'platform');
+			var ownerId = 0;
+			if (ownerType === 'office') ownerId = parseInt(fd.get('office_id') || '0', 10) || 0;
+			if (ownerType === 'vendor') ownerId = parseInt(fd.get('vendor_id') || '0', 10) || 0;
+			if ((ownerType === 'office' || ownerType === 'vendor') && ownerId <= 0) {
+				msg({ status:false, message:'Select an office or vendor' });
+				return false;
+			}
+			var credsRaw = String(fd.get('credentials_json') || '{}');
+			try { JSON.parse(credsRaw); } catch (e) { msg({ status:false, message:'Credentials JSON is invalid' }); return false; }
+			var demoEl = accForm.querySelector('[name=demo_mode]');
+			var defEl = accForm.querySelector('[name=is_default]');
+			post('save_account', {
+				id: fd.get('id') || 0,
+				owner_type: ownerType,
+				owner_id: ownerId,
+				title: fd.get('title') || '',
+				handler: fd.get('handler') || '',
+				mode: fd.get('mode') || 'direct',
+				connected_account_id: fd.get('connected_account_id') || '',
+				payout_iban: fd.get('payout_iban') || '',
+				payout_bank: fd.get('payout_bank') || '',
+				payout_name: fd.get('payout_name') || '',
+				platform_fee_pct: fd.get('platform_fee_pct') || 0,
+				status: fd.get('status') || 'active',
+				demo_mode: demoEl && demoEl.checked ? 1 : 0,
+				is_default: defEl && defEl.checked ? 1 : 0,
+				credentials_json: credsRaw
+			}).then(msg);
+			return false;
+		}
+		accForm.addEventListener('submit', saveAccount);
+		if (saveBtn) saveBtn.addEventListener('click', saveAccount);
+	}
+	var seedAcc = document.getElementById('epc_btn_seed_platform_account');
+	if (seedAcc) seedAcc.addEventListener('click', function(){ post('seed_platform_account', {}).then(msg); });
+	document.querySelectorAll('.epc-acc-disable').forEach(function(btn){
+		btn.addEventListener('click', function(){ post('disable_account', {id: btn.getAttribute('data-id')}).then(msg); });
+	});
+	document.querySelectorAll('.epc-settle-paid').forEach(function(btn){
+		btn.addEventListener('click', function(){ post('mark_settlement', {id: btn.getAttribute('data-id'), status: 'paid_out'}).then(msg); });
+	});
 })();
 </script>
 <?php
