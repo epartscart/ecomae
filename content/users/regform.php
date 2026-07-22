@@ -54,7 +54,7 @@ else//Пользователь не авторизован - ВЫВОД СТРА
     ?>
 
     <!-- Start ФОРМА РЕГИСТРАЦИИ -->
-    <form action="<?php echo $multilang_params['lang_href']; ?>/users/register" id="regform" onsubmit="return onSubmitCheck();" method="post" enctype="multipart/form-data">
+    <form action="<?php echo $multilang_params['lang_href']; ?>/users/register" id="regform" onsubmit="return onSubmitCheck();" method="post" enctype="multipart/form-data" novalidate="novalidate">
 		<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
         <!--Блок для выбора Регистрационного Варианта-->
         <div id="RegVariantsSelector">
@@ -224,15 +224,6 @@ else//Пользователь не авторизован - ВЫВОД СТРА
             var box=document.getElementById("additional_fields_div");
             return !!(box && box.getAttribute("data-epc-enhanced") === "1");
         }
-        function epcRegIsWholesaleSelected(){
-            if(typeof epcRegActiveType === "function"){
-                return epcRegActiveType() === "wholesale";
-            }
-            var hf=document.getElementById("epc_customer_type_field");
-            if(hf && hf.value){ return hf.value === "wholesale"; }
-            var radio=document.querySelector('input[name="epc_customer_type"]:checked');
-            return !!(radio && radio.value === "wholesale");
-        }
         function regenerateFields()
         {
             var wrap=document.getElementById("additional_fields_div");
@@ -392,6 +383,12 @@ if (is_file($_epcOtpModalFile)) {
     var captcha_correct = false;//Флаг корректности captcha
     function onSubmitCheck()
     {
+		if(typeof epcRegUsesEnhancedTabs !== "function"){
+			window.epcRegUsesEnhancedTabs = function(){ return !!(document.getElementById("additional_fields_div") && document.getElementById("additional_fields_div").getAttribute("data-epc-enhanced")==="1"); };
+		}
+		if(typeof epcRegSyncTabFields === "function"){
+			try{ epcRegSyncTabFields(); }catch(e){}
+		}
 		if( !check_user_agreement() )
 		{
 			return false;

@@ -1,0 +1,163 @@
+/* CP File Manager — elFinder shell */
+.epc-filemanager {
+	--epc-fm-ink: #0f172a;
+	--epc-fm-muted: #64748b;
+	--epc-fm-line: #e2e8f0;
+	--epc-fm-soft: #f8fafc;
+	--epc-fm-blue: #2563eb;
+	margin: 0 0 24px;
+}
+
+.epc-filemanager__toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	padding: 12px 14px;
+	margin-bottom: 14px;
+	border: 1px solid var(--epc-fm-line);
+	border-radius: 12px;
+	background:
+		radial-gradient(900px 160px at 0% 0%, rgba(37, 99, 235, 0.07), transparent 55%),
+		linear-gradient(180deg, #ffffff 0%, var(--epc-fm-soft) 100%);
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.epc-filemanager__toolbar .epc-fm-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 8px 12px;
+	border: 1px solid var(--epc-fm-line);
+	border-radius: 9px;
+	background: #fff;
+	color: var(--epc-fm-ink);
+	font-size: 13px;
+	font-weight: 650;
+	line-height: 1.2;
+	text-decoration: none !important;
+	cursor: pointer;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.epc-filemanager__toolbar .epc-fm-btn:hover {
+	border-color: #93c5fd;
+	box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+	transform: translateY(-1px);
+	color: var(--epc-fm-ink);
+}
+
+.epc-filemanager__hint {
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	border: 1px solid #bae6fd;
+	border-radius: 10px;
+	background: #f0f9ff;
+	color: #0c4a6e;
+	font-size: 13px;
+}
+
+.epc-filemanager__pane {
+	border: 1px solid var(--epc-fm-line);
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	overflow: hidden;
+	min-height: 480px;
+}
+
+.epc-filemanager__pane-h {
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--epc-fm-line);
+	background: linear-gradient(180deg, #ffffff 0%, var(--epc-fm-soft) 100%);
+}
+
+.epc-filemanager__pane-h h3 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--epc-fm-ink);
+}
+
+.epc-filemanager__pane-h span {
+	display: block;
+	margin-top: 2px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--epc-fm-muted);
+}
+
+.epc-filemanager #elfinder {
+	min-height: 520px;
+	height: min(70vh, 640px);
+	width: 100%;
+}
+
+.epc-filemanager #elfinder.epc-fm-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--epc-fm-muted);
+	font-size: 13px;
+	background: var(--epc-fm-soft);
+}
+
+.epc-filemanager .elfinder {
+	border: 0 !important;
+	border-radius: 0;
+}
+
+.epc-filemanager .elfinder-toolbar {
+	border-bottom: 1px solid var(--epc-fm-line);
+}
+
+/* Keep elFinder layout intact under CP nuclear force-visible styles */
+.epc-filemanager #elfinder.elfinder,
+.epc-filemanager .elfinder {
+	display: block !important;
+	height: min(70vh, 640px) !important;
+	min-height: 520px !important;
+	overflow: hidden !important;
+}
+
+.epc-filemanager .elfinder .elfinder-toolbar,
+.epc-filemanager .elfinder .elfinder-statusbar,
+.epc-filemanager .elfinder .elfinder-workzone,
+.epc-filemanager .elfinder .elfinder-navbar,
+.epc-filemanager .elfinder .elfinder-cwd,
+.epc-filemanager .elfinder .elfinder-cwd-wrapper {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	height: auto !important;
+	max-height: none !important;
+}
+
+.epc-filemanager .elfinder .elfinder-button {
+	display: inline-block !important;
+}
+
+/* Icon sprites resolve against CP <base href>; force absolute image path */
+.epc-filemanager .elfinder-cwd-icon,
+.epc-filemanager .elfinder-button-icon,
+.epc-filemanager .elfinder-navbar-icon,
+.epc-filemanager .elfinder-toolbar .elfinder-button-icon {
+	background-image: url('/cp/lib/elfinder/img/toolbar.png') !important;
+}
+.epc-filemanager .elfinder-cwd-icon {
+	background-image: url('/cp/lib/elfinder/img/icons-big.png') !important;
+}
+.epc-filemanager .elfinder-navbar .elfinder-navbar-icon,
+.epc-filemanager .elfinder-tree .elfinder-navbar-icon {
+	background-image: url('/cp/lib/elfinder/img/icons-small.png') !important;
+}
+
+.epc-filemanager__error {
+	margin: 16px;
+	padding: 12px 14px;
+	border: 1px solid #fecaca;
+	border-radius: 10px;
+	background: #fef2f2;
+	color: #991b1b;
+	font-size: 13px;
+}

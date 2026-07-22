@@ -83,6 +83,12 @@ function epc_cp_common_parity_packs(): array
 			'industries' => array('*'),
 			'applies_to_roles' => array('platform_control', 'spare_parts', 'industry_storefront'),
 		),
+		'cp_menu_full' => array(
+			'label' => 'Full CP menu parity (Customers & accounts, Documents, Payments, Marketing, Integrations, …)',
+			'scope' => 'common',
+			'industries' => array('*'),
+			'applies_to_roles' => array('platform_control', 'spare_parts', 'industry_storefront'),
+		),
 		'oms_daily_guide' => array(
 			'label' => 'OMS daily guide route (/cp/shop/orders/oms-guide)',
 			'scope' => 'common',

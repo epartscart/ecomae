@@ -17,6 +17,24 @@ function epc_cp_page_asset_url_map(): array
 	$backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
 
 	return array(
+		'control/communications' => array(
+			'css' => array('/content/general_pages/epc_comms_notify_css.php?v=' . rawurlencode($ver . 'cn1')),
+			'js' => array(
+				'/' . $backend . '/content/control/epc_comms_notify.js?v=' . rawurlencode($ver . 'cn1'),
+			),
+		),
+		'control/notifications_settings' => array(
+			'css' => array('/content/general_pages/epc_comms_notify_css.php?v=' . rawurlencode($ver . 'cn1')),
+			'js' => array(
+				'/' . $backend . '/content/control/epc_comms_notify.js?v=' . rawurlencode($ver . 'cn1'),
+			),
+		),
+		'control/notifications_settings/notification' => array(
+			'css' => array('/content/general_pages/epc_comms_notify_css.php?v=' . rawurlencode($ver . 'cn1')),
+			'js' => array(
+				'/' . $backend . '/content/control/epc_comms_notify.js?v=' . rawurlencode($ver . 'cn1'),
+			),
+		),
 		'control/config' => array(
 			'css' => array('/content/general_pages/epc_config_edit_css.php?v=' . rawurlencode($ver . 'cfg6')),
 			'js' => array(
@@ -312,6 +330,14 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/order_process/order_card_cp.js?v=' . rawurlencode($ver . 'omsForms2'),
 			),
 		),
+		'shop/channels/channels' => array(
+			'css' => array(
+				'/content/general_pages/epc_channels_hub.css?v=' . rawurlencode($ver . 'chHub1'),
+			),
+			'js' => array(
+				'/' . $backend . '/content/shop/channels/channels_hub.js?v=' . rawurlencode($ver . 'chHub1'),
+			),
+		),
 		'shop/logistics/carriers' => array(
 			'css' => array(
 				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver . 'lc3'),
@@ -398,6 +424,19 @@ function epc_cp_page_asset_url_map(): array
 			'js' => array(
 				'/' . $backend . '/content/shop/catalogue/epc_sku_media_cp_config.php?v=' . rawurlencode($ver . 'skuMedia4'),
 				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia4'),
+			),
+		),
+		'filemanager' => array(
+			'css' => array(
+				'/' . $backend . '/lib/elfinder/css/elfinder.min.css',
+				'/' . $backend . '/lib/elfinder/css/theme.css',
+				'/' . $backend . '/content/filemanager/epc_filemanager.css?v=' . rawurlencode($ver . 'fm5'),
+			),
+			'js' => array(
+				'/lib/jquery_browser/jquery.browser.js',
+				'/' . $backend . '/lib/elfinder/js/elfinder.min.js',
+				'/' . $backend . '/content/filemanager/epc_filemanager_config.php?v=' . rawurlencode($ver . 'fm5'),
+				'/' . $backend . '/content/filemanager/epc_filemanager.js?v=' . rawurlencode($ver . 'fm5'),
 			),
 		),
 		'shop/catalogue/catalogue_editor' => array(
