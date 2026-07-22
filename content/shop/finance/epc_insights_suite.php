@@ -625,6 +625,12 @@ function epc_insights_format_value(float $value, string $format, string $currenc
 	return number_format($value, 2) . ' ' . $currency;
 }
 
+/** Stylesheet URL that works on ecomae.com (nginx blocks raw /content/*.css). */
+function epc_insights_suite_css_href(): string
+{
+	return '/epc-static.php?f=content/shop/finance/epc_insights_suite.css&v=20260722insights2';
+}
+
 /**
  * Render HTML panels (CP + ERP share markup; parent supplies wrapper class).
  *
@@ -642,22 +648,46 @@ function epc_insights_suite_render(array $suite, string $variant = 'cp'): string
 		'business' => array('title' => 'Business insights', 'icon' => 'fa-briefcase', 'items' => (array) ($suite['business'] ?? array())),
 		'cp' => array('title' => 'Control panel insights', 'icon' => 'fa-th-large', 'items' => (array) ($suite['cp'] ?? array())),
 	);
+	$cardIcons = array(
+		'revenue' => 'fa-money',
+		'margin' => 'fa-percent',
+		'cash' => 'fa-university',
+		'ar_dso' => 'fa-handshake-o',
+		'ap_dpo' => 'fa-credit-card',
+		'working_capital' => 'fa-balance-scale',
+		'orders_week' => 'fa-shopping-cart',
+		'orders_today' => 'fa-bolt',
+		'open_orders' => 'fa-truck',
+		'returns' => 'fa-undo',
+		'vendors' => 'fa-industry',
+		'catalogue' => 'fa-cube',
+		'customers' => 'fa-users',
+		'price_lists' => 'fa-tags',
+		'products' => 'fa-cubes',
+	);
 	$alerts = (array) ($suite['alerts'] ?? array());
 	$h = static function ($v): string {
 		return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
 	};
 
 	ob_start();
+	if (empty($GLOBALS['epc_insights_css_linked'])) {
+		$GLOBALS['epc_insights_css_linked'] = true;
+		echo '<link rel="stylesheet" href="' . $h(epc_insights_suite_css_href()) . '">';
+	}
 	?>
 	<div class="epc-insights epc-insights--<?php echo $h($variant); ?>" id="epc-insights">
 		<div class="epc-insights__head">
-			<div>
-				<strong><i class="fa fa-lightbulb-o"></i> Insights</strong>
-				<span class="epc-insights__period"><?php echo $h($periodLabel); ?><?php
-					if ($fromLabel !== '' && $toLabel !== '') {
-						echo ' · ' . $h($fromLabel) . ' → ' . $h($toLabel);
-					}
-				?></span>
+			<div class="epc-insights__head-main">
+				<span class="epc-insights__badge"><i class="fa fa-lightbulb-o"></i></span>
+				<div>
+					<strong>Insights</strong>
+					<span class="epc-insights__period"><?php echo $h($periodLabel); ?><?php
+						if ($fromLabel !== '' && $toLabel !== '') {
+							echo ' · ' . $h($fromLabel) . ' → ' . $h($toLabel);
+						}
+					?></span>
+				</div>
 			</div>
 			<a class="epc-insights__erp" href="<?php echo $h((string) (($suite['urls']['erp_home'] ?? '#'))); ?>">Open ERP Command Centre <i class="fa fa-arrow-right"></i></a>
 		</div>
@@ -665,39 +695,71 @@ function epc_insights_suite_render(array $suite, string $variant = 'cp'): string
 		<div class="epc-insights__alerts">
 			<?php foreach ($alerts as $a) { ?>
 			<a class="epc-insights__alert epc-insights__alert--<?php echo $h($a['tone'] ?? 'info'); ?>" href="<?php echo $h($a['url'] ?? '#'); ?>">
-				<strong><?php echo $h($a['title'] ?? ''); ?></strong>
-				<span><?php echo $h($a['body'] ?? ''); ?></span>
+				<span class="epc-insights__alert-ico"><i class="fa fa-exclamation-circle"></i></span>
+				<span class="epc-insights__alert-txt">
+					<strong><?php echo $h($a['title'] ?? ''); ?></strong>
+					<span><?php echo $h($a['body'] ?? ''); ?></span>
+				</span>
 			</a>
 			<?php } ?>
 		</div>
 		<?php } ?>
-		<div class="epc-insights__grid">
-			<?php foreach ($sections as $sec) { ?>
-			<section class="epc-insights__col">
-				<h4><i class="fa <?php echo $h($sec['icon']); ?>"></i> <?php echo $h($sec['title']); ?></h4>
-				<div class="epc-insights__cards">
+		<div class="epc-insights__bands">
+			<?php foreach ($sections as $secKey => $sec) {
+				if (empty($sec['items'])) {
+					continue;
+				}
+				?>
+			<section class="epc-insights__band epc-insights__band--<?php echo $h($secKey); ?>">
+				<header class="epc-insights__band-head">
+					<h4><i class="fa <?php echo $h($sec['icon']); ?>"></i> <?php echo $h($sec['title']); ?></h4>
+					<span class="epc-insights__band-count"><?php echo count($sec['items']); ?></span>
+				</header>
+				<div class="epc-insights__tiles">
 					<?php foreach ($sec['items'] as $card) {
 						$health = (string) ($card['health'] ?? 'info');
+						$key = (string) ($card['key'] ?? '');
+						$format = (string) ($card['format'] ?? 'money');
+						$value = (float) ($card['value'] ?? 0);
 						$delta = (string) ($card['delta_label'] ?? '');
 						$goodUp = !empty($card['good_up']);
 						$deltaPct = $card['delta_pct'];
 						$deltaClass = '';
+						$deltaUp = false;
 						if ($delta !== '') {
-							$up = is_numeric($deltaPct) ? ((float) $deltaPct >= 0) : ($delta === 'new');
-							$deltaClass = ($up === $goodUp) ? 'is-good' : 'is-bad';
+							$deltaUp = is_numeric($deltaPct) ? ((float) $deltaPct >= 0) : ($delta === 'new');
+							$deltaClass = ($deltaUp === $goodUp) ? 'is-good' : 'is-bad';
+						}
+						$icon = $cardIcons[$key] ?? 'fa-bar-chart';
+						$meter = null;
+						if ($format === 'pct') {
+							$meter = max(0, min(100, $value));
+						} elseif (is_numeric($deltaPct)) {
+							$meter = max(0, min(100, abs((float) $deltaPct)));
 						}
 						?>
-					<article class="epc-insights__card is-<?php echo $h($health); ?>">
-						<div class="epc-insights__card-top">
-							<span class="epc-insights__label"><?php echo $h($card['label'] ?? ''); ?></span>
+					<article class="epc-insights__tile is-<?php echo $h($health); ?>">
+						<div class="epc-insights__tile-top">
+							<span class="epc-insights__tile-ico" aria-hidden="true"><i class="fa <?php echo $h($icon); ?>"></i></span>
 							<span class="epc-insights__health"><?php echo $h($health); ?></span>
 						</div>
+						<span class="epc-insights__label"><?php echo $h($card['label'] ?? ''); ?></span>
 						<div class="epc-insights__value">
-							<?php echo $h(epc_insights_format_value((float) ($card['value'] ?? 0), (string) ($card['format'] ?? 'money'), $currency)); ?>
+							<?php echo $h(epc_insights_format_value($value, $format, $currency)); ?>
 							<?php if ($delta !== '') { ?>
-							<span class="epc-insights__delta <?php echo $h($deltaClass); ?>"><?php echo $h($delta); ?></span>
+							<span class="epc-insights__delta <?php echo $h($deltaClass); ?>">
+								<i class="fa fa-caret-<?php echo $deltaUp ? 'up' : 'down'; ?>"></i>
+								<?php echo $h($delta); ?>
+							</span>
 							<?php } ?>
 						</div>
+						<?php if ($meter !== null) { ?>
+						<div class="epc-insights__meter" aria-hidden="true">
+							<span class="epc-insights__meter-fill" style="width:<?php echo (float) $meter; ?>%"></span>
+						</div>
+						<?php } else { ?>
+						<div class="epc-insights__meter epc-insights__meter--ghost" aria-hidden="true"><span class="epc-insights__meter-fill" style="width:28%"></span></div>
+						<?php } ?>
 						<p class="epc-insights__narrative"><?php echo $h($card['narrative'] ?? ''); ?></p>
 						<a class="epc-insights__action" href="<?php echo $h($card['url'] ?? '#'); ?>"><?php echo $h($card['action'] ?? 'Open'); ?> <i class="fa fa-angle-right"></i></a>
 					</article>
