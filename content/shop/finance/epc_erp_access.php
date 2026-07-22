@@ -393,6 +393,84 @@ function epc_erp_resolve_user_session()
 }
 
 /**
+ * Signed-in user label + CSRF for ERP portal logout UI.
+ *
+ * @return array{logged_in:bool,user_id:int,label:string,csrf:string,email:string}
+ */
+function epc_erp_portal_auth_ui_context(): array
+{
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+	$userId = (int) DP_User::getUserId();
+	if ($userId <= 0 && DP_User::isAdmin()) {
+		$userId = (int) DP_User::getAdminId();
+	}
+	$session = epc_erp_resolve_user_session();
+	$email = trim((string) ($session['email'] ?? ''));
+	$label = $email !== '' ? $email : ($userId > 0 ? ('User #' . $userId) : '');
+	$csrf = trim((string) ($session['csrf_guard_key'] ?? ''));
+	if ($csrf === '' && !empty($_COOKIE['session']) && isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+		try {
+			$st = $GLOBALS['db_link']->prepare('SELECT `csrf_guard_key` FROM `sessions` WHERE `session` = ? LIMIT 1');
+			$st->execute(array((string) $_COOKIE['session']));
+			$csrf = trim((string) $st->fetchColumn());
+		} catch (Throwable $e) {
+			$csrf = '';
+		}
+	}
+	return array(
+		'logged_in' => $userId > 0,
+		'user_id' => $userId,
+		'label' => $label,
+		'csrf' => $csrf,
+		'email' => $email,
+	);
+}
+
+/**
+ * Logout control for standalone /erp topbar or toolbar.
+ *
+ * @param array{variant?:string,action?:string,class?:string} $opts
+ */
+function epc_erp_portal_logout_html(array $opts = array()): string
+{
+	$auth = epc_erp_portal_auth_ui_context();
+	if (empty($auth['logged_in'])) {
+		return '';
+	}
+	$variant = (string) ($opts['variant'] ?? 'topbar');
+	$action = (string) ($opts['action'] ?? '');
+	if ($action === '') {
+		$action = function_exists('epc_erp_portal_canonical_base')
+			? epc_erp_portal_canonical_base(function_exists('epc_erp_lang_href') ? epc_erp_lang_href() : '')
+			: '/erp';
+	}
+	$formId = 'epc_erp_logout_' . preg_replace('/[^a-z0-9_]/', '', strtolower($variant));
+	$label = htmlspecialchars((string) $auth['label'], ENT_QUOTES, 'UTF-8');
+	$csrf = htmlspecialchars((string) $auth['csrf'], ENT_QUOTES, 'UTF-8');
+	$actionEsc = htmlspecialchars($action, ENT_QUOTES, 'UTF-8');
+	$formIdEsc = htmlspecialchars($formId, ENT_QUOTES, 'UTF-8');
+
+	$form = '<form id="' . $formIdEsc . '" method="POST" action="' . $actionEsc . '" class="epc-erp-logout-form" style="display:none;">'
+		. '<input type="hidden" name="csrf_guard_key" value="' . $csrf . '" />'
+		. '<input type="hidden" name="logout" value="true" />'
+		. '</form>';
+
+	if ($variant === 'toolbar') {
+		return $form
+			. '<button type="button" class="btn btn-default btn-xs epc-erp-logout-btn" onclick="document.getElementById(\'' . $formIdEsc . '\').submit();">'
+			. '<i class="fa fa-sign-out"></i> Log out</button>';
+	}
+
+	$extraClass = htmlspecialchars((string) ($opts['class'] ?? ''), ENT_QUOTES, 'UTF-8');
+	return '<div class="epc-erp-topbar__user' . ($extraClass !== '' ? ' ' . $extraClass : '') . '">'
+		. ($label !== '' ? '<span class="epc-erp-topbar__user-label"><i class="fa fa-user"></i> ' . $label . '</span>' : '')
+		. $form
+		. '<button type="button" class="epc-erp-topbar__logout" onclick="document.getElementById(\'' . $formIdEsc . '\').submit();">'
+		. '<i class="fa fa-sign-out"></i> Log out</button>'
+		. '</div>';
+}
+
+/**
  * Super CP operators already authenticated via admin_session should not hit the
  * /erp login wall again. Bridge a frontend session for the same user_id when
  * they open the standalone portal on the platform host.

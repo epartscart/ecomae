@@ -77,7 +77,23 @@ function epc_reg_confirm_ensure_notify_template(PDO $db): void
 	$subject = 'Welcome to %site_name% — confirm your email';
 	$body = '%confirm_html%';
 
-	$st = $db->prepare('SELECT `id`, `email_subject`, `email_body`, `vars` FROM `notifications_settings` WHERE `name` = ? LIMIT 1');
+	// Prefer a separate connection so this UPDATE is not held inside the registration transaction.
+	$pdo = $db;
+	global $DP_Config;
+	if (is_object($DP_Config) && !empty($DP_Config->host) && !empty($DP_Config->db)) {
+		try {
+			$pdo = new PDO(
+				'mysql:host=' . $DP_Config->host . ';dbname=' . $DP_Config->db . ';charset=utf8',
+				(string) $DP_Config->user,
+				(string) $DP_Config->password,
+				array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+			);
+		} catch (Throwable $e) {
+			$pdo = $db;
+		}
+	}
+
+	$st = $pdo->prepare('SELECT `id`, `email_subject`, `email_body`, `vars` FROM `notifications_settings` WHERE `name` = ? LIMIT 1');
 	$st->execute(array('reg_email_confirm'));
 	$row = $st->fetch(PDO::FETCH_ASSOC);
 	if (!$row) {
@@ -113,7 +129,7 @@ function epc_reg_confirm_ensure_notify_template(PDO $db): void
 		return;
 	}
 
-	$db->prepare(
+	$pdo->prepare(
 		'UPDATE `notifications_settings`
 		 SET `email_subject` = ?, `email_body` = ?, `vars` = ?, `email_on` = 1, `send_for_not_confirmed` = 1,
 		     `default_email_subject` = ?, `default_email_body` = ?

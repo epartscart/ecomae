@@ -111,6 +111,14 @@ $epcErpLoginBrand = epc_erp_topbar_brand_context();
 		<strong>Access denied.</strong> Your account is signed in but is not in an ERP department or finance team group.
 		Contact your administrator<?php if (!$epc_erp_is_erp_only): ?> or open
 		<a href="/<?php echo htmlspecialchars((string) $DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/shop/finance/erp">CP ERP</a><?php endif; ?>.
+		<?php
+		if (function_exists('epc_erp_portal_logout_html')) {
+			echo '<div style="margin-top:12px;">' . epc_erp_portal_logout_html(array(
+				'variant' => 'toolbar',
+				'action' => $portal_home,
+			)) . '</div>';
+		}
+		?>
 	</div>
 <?php else: ?>
 	<?php
