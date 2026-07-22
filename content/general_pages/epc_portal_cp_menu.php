@@ -41,7 +41,7 @@ function epc_portal_cp_group_subtitle_map()
 {
 	return array(
 		'744' => 'Orders, catalogue & prices',
-		'epc_cp_group_customers' => 'Clients & CRM',
+		'epc_cp_group_customers' => 'Clients, user accounts & CRM',
 		'epc_cp_group_documents' => 'Invoices & PDFs',
 		'epc_cp_group_erp' => 'Finance, VAT & reports',
 		'epc_cp_group_procurement' => 'Purchasing & suppliers',

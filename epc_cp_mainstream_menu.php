@@ -289,12 +289,19 @@ function epc_cp_mainstream_menu_apply(PDO $pdo)
 		$items['shop_' . $k] = (int) $itemId;
 	}
 
+	// Always keep Customers & accounts on every DB that runs mainstream apply.
+	$customersMenu = epc_cp_customer_mgmt_menu_apply($pdo);
+	foreach ((array) ($customersMenu['items'] ?? array()) as $k => $itemId) {
+		$items['customers_' . $k] = (int) $itemId;
+	}
+
 	return array(
 		'shop_group' => (int)$shop['id'],
 		'channels_group' => $channelsGroup,
 		'logistics_group' => $logisticsGroup,
 		'erp_group' => $erpGroup,
 		'ai_group' => $aiGroup,
+		'customers_group' => (int) ($customersMenu['customers_group'] ?? 0),
 		'menu_orders' => array('channels' => $slot, 'logistics' => $slot + 1, 'erp' => $slot + 2, 'ai' => $slot + 3),
 		'items' => $items,
 	);
@@ -529,12 +536,22 @@ function epc_cp_pos_menu_apply(PDO $pdo)
 }
 
 /**
- * Top-level Customers CP group — customer management hub.
+ * Top-level Customers CP group — CRM + user accounts (platform + every tenant).
+ *
+ * Consolidates legacy Users (lang id 741) links into one primary group so Super CP
+ * and tenant CP both expose: customer hub, user accounts, groups, approvals, reg fields.
  */
 function epc_cp_customer_mgmt_menu_apply(PDO $pdo)
 {
-	epc_cp_mm_lang($pdo, 'epc_cp_group_customers', 'Customers', 'Клиенты');
+	epc_cp_mm_lang($pdo, 'epc_cp_group_customers', 'Customers & accounts', 'Клиенты и учётные записи');
 	epc_cp_mm_lang($pdo, 'epc_customer_mgmt_cp', 'Customer management', 'Управление клиентами');
+	epc_cp_mm_lang($pdo, 'epc_user_accounts_cp', 'User accounts', 'Учётные записи');
+	epc_cp_mm_lang($pdo, 'epc_user_groups_cp', 'User groups', 'Группы пользователей');
+	epc_cp_mm_lang($pdo, 'epc_user_create_cp', 'Create user', 'Создать пользователя');
+	epc_cp_mm_lang($pdo, 'epc_customer_approvals_cp', 'Customer approvals', 'Одобрение клиентов');
+	epc_cp_mm_lang($pdo, 'epc_vendor_approvals_cp', 'Vendor approvals', 'Одобрение поставщиков');
+	epc_cp_mm_lang($pdo, 'epc_reg_fields_cp', 'Registration fields', 'Поля регистрации');
+	epc_cp_mm_lang($pdo, 'epc_reg_variants_cp', 'Registration variants', 'Варианты регистрации');
 
 	$oldUrls = array('/<backend>/users/customer_mgmt', '/<backend>/shop/customer_mgmt/customer_mgmt');
 	foreach ($oldUrls as $oldUrl) {
@@ -561,23 +578,99 @@ function epc_cp_customer_mgmt_menu_apply(PDO $pdo)
 			->execute(array($slot));
 	}
 
-	$customersGroup = epc_cp_mm_ensure_group($pdo, 'epc_cp_group_customers', 'Customers', 'Клиенты', $slot);
+	$customersGroup = epc_cp_mm_ensure_group($pdo, 'epc_cp_group_customers', 'Customers & accounts', 'Клиенты и учётные записи', $slot);
 
-	$itemId = epc_cp_mm_ensure_item(
-		$pdo,
-		$customersGroup,
-		'epc_customer_mgmt_cp',
-		'/<backend>/shop/customer_mgmt/customer_mgmt',
-		10,
-		'#2563eb',
-		'fas fa-address-book',
-		1
+	$items = array();
+	$specs = array(
+		array('key' => 'customer_mgmt', 'caption' => 'epc_customer_mgmt_cp', 'url' => '/<backend>/shop/customer_mgmt/customer_mgmt', 'order' => 10, 'color' => '#2563eb', 'icon' => 'fas fa-address-book'),
+		array('key' => 'user_accounts', 'caption' => 'epc_user_accounts_cp', 'url' => '/<backend>/users/usermanager', 'order' => 20, 'color' => '#1d4ed8', 'icon' => 'fas fa-user-alt'),
+		array('key' => 'user_groups', 'caption' => 'epc_user_groups_cp', 'url' => '/<backend>/users/usergroups', 'order' => 30, 'color' => '#1d4ed8', 'icon' => 'fas fa-users'),
+		array('key' => 'user_create', 'caption' => 'epc_user_create_cp', 'url' => '/<backend>/users/usermanager/user', 'order' => 40, 'color' => '#3b82f6', 'icon' => 'fas fa-user-plus'),
+		array('key' => 'customer_approvals', 'caption' => 'epc_customer_approvals_cp', 'url' => '/<backend>/users/customer_approvals', 'order' => 50, 'color' => '#059669', 'icon' => 'fas fa-user-check'),
+		array('key' => 'vendor_approvals', 'caption' => 'epc_vendor_approvals_cp', 'url' => '/<backend>/users/vendor_approvals', 'order' => 55, 'color' => '#0f766e', 'icon' => 'fas fa-store'),
+		array('key' => 'reg_fields', 'caption' => 'epc_reg_fields_cp', 'url' => '/<backend>/users/polya-registracii', 'order' => 60, 'color' => '#64748b', 'icon' => 'far fa-address-card'),
+		array('key' => 'reg_variants', 'caption' => 'epc_reg_variants_cp', 'url' => '/<backend>/users/registracionnye-varianty', 'order' => 70, 'color' => '#64748b', 'icon' => 'fas fa-users-cog'),
 	);
+
+	foreach ($specs as $spec) {
+		$items[$spec['key']] = epc_cp_mm_ensure_item(
+			$pdo,
+			$customersGroup,
+			$spec['caption'],
+			$spec['url'],
+			(int) $spec['order'],
+			$spec['color'],
+			$spec['icon'],
+			1
+		);
+	}
+
+	// Drop empty legacy Users group leftovers that would otherwise reappear as orphan "741".
+	$legacyUsersId = epc_cp_mm_group_id($pdo, '741');
+	if ($legacyUsersId > 0 && $legacyUsersId !== $customersGroup) {
+		$pdo->prepare('UPDATE `control_items` SET `items_group` = ? WHERE `items_group` = ? AND `url` LIKE ?')
+			->execute(array($customersGroup, $legacyUsersId, '%/users/%'));
+	}
 
 	return array(
 		'customers_group' => $customersGroup,
-		'customer_mgmt_item' => $itemId,
+		'items' => $items,
+		'customer_mgmt_item' => (int) ($items['customer_mgmt'] ?? 0),
 	);
+}
+
+/**
+ * Canonical registry of CP menu apply callbacks.
+ * New modules / submenus MUST register here so Super CP + all tenants stay in sync.
+ *
+ * @return array<string,string> pack_key => function name
+ */
+function epc_cp_menu_parity_registry()
+{
+	return array(
+		'mainstream' => 'epc_cp_mainstream_menu_apply',
+		'customers_accounts' => 'epc_cp_customer_mgmt_menu_apply',
+		'documents' => 'epc_cp_document_control_menu_apply',
+		'payments' => 'epc_cp_payments_menu_apply',
+		'marketing' => 'epc_cp_marketing_menu_apply',
+		'procurement' => 'epc_cp_procurement_menu_apply',
+		'pos' => 'epc_cp_pos_menu_apply',
+		'portal' => 'epc_cp_portal_menu_apply',
+		'integrations' => 'epc_cp_integrations_menu_apply',
+	);
+}
+
+/**
+ * Apply every registered CP menu pack on one DB, then bust menu cache.
+ *
+ * @return array<string,mixed>
+ */
+function epc_cp_menu_parity_apply(PDO $pdo)
+{
+	$out = array('packs' => array(), 'ok' => true);
+	foreach (epc_cp_menu_parity_registry() as $packKey => $fn) {
+		$row = array('pack' => $packKey, 'fn' => $fn, 'ok' => false);
+		if (!function_exists($fn)) {
+			$row['error'] = 'missing_function';
+			$out['ok'] = false;
+			$out['packs'][$packKey] = $row;
+			continue;
+		}
+		try {
+			$row['result'] = call_user_func($fn, $pdo);
+			$row['ok'] = true;
+		} catch (Throwable $e) {
+			$row['error'] = $e->getMessage();
+			$out['ok'] = false;
+		}
+		$out['packs'][$packKey] = $row;
+	}
+	if (function_exists('epc_cp_menu_cache_bust')) {
+		$out['cache_bust'] = epc_cp_menu_cache_bust($pdo);
+	} elseif (function_exists('epc_perf_cache_bust_prefix')) {
+		$out['cache_bust'] = epc_perf_cache_bust_prefix('epc_cp_menu_rows');
+	}
+	return $out;
 }
 
 function epc_cp_document_control_menu_apply(PDO $pdo)

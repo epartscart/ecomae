@@ -117,13 +117,13 @@ $__epcAclCalls = 0;
 $__epcVisCalls = 0;
 foreach ($epcCpMenuItems as $item)
 {
-	//Добавляем, если у пользователя есть доступ или пункт помечен show_anyway (Super CP shows operator menu items).
+	//Добавляем, если у пользователя есть доступ или пункт помечен show_anyway (works on Super CP + tenants).
 	$showAnyway = (int) (isset($item['show_anyway']) ? $item['show_anyway'] : 0) === 1;
 	$a0 = microtime(true);
 	$aclOk = $epcCpSuperAdmin ? true : is_anable($item);
 	$__epcAclMs += (microtime(true) - $a0) * 1000;
 	$__epcAclCalls++;
-	$mayShow = $aclOk || ($showAnyway && !$epcCpSuperHost);
+	$mayShow = $aclOk || $showAnyway;
 	if (!$mayShow) {
 		continue;
 	}
