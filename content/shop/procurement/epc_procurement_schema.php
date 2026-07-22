@@ -19,6 +19,8 @@ function epc_procurement_ensure_schema(PDO $db)
 		'payment_terms' => "varchar(255) DEFAULT NULL",
 		'notes' => "text",
 		'is_procurement_master' => "tinyint(1) NOT NULL DEFAULT 1",
+		// Storefront / price-list vendor code (short). Full legal name stays in `name`.
+		'vendor_code' => "varchar(64) DEFAULT NULL",
 	);
 	foreach ($cols as $col => $def) {
 		epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', $col, $def);

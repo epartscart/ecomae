@@ -1,7 +1,8 @@
 (function () {
+	var root = document.getElementById('epc-agent-cp-root');
 	var cfg = window.EPC_AGENT_CP || {};
-	var ajaxUrl = cfg.ajaxUrl || '';
-	var csrfKey = cfg.csrfKey || '';
+	var ajaxUrl = cfg.ajaxUrl || (root ? (root.getAttribute('data-ajax-url') || '') : '') || '/cp/content/shop/parts_agent/ajax_epc_parts_agent_cp.php';
+	var csrfKey = cfg.csrfKey || (root ? (root.getAttribute('data-csrf') || '') : '') || '';
 	var offset = 0;
 	var limit = 50;
 	var total = 0;
@@ -30,7 +31,13 @@
 	var cfgPlaceholder = document.getElementById('epc-agent-cfg-placeholder');
 	var cfgStatus = document.getElementById('epc-agent-cfg-status');
 
+	if (detailWrap) {
+		detailWrap.style.display = 'block';
+		detailWrap.classList.add('is-empty');
+	}
+
 	function showMsg(text, ok) {
+		if (!msgBox) { return; }
 		msgBox.style.display = 'block';
 		msgBox.className = 'alert alert-' + (ok ? 'success' : 'danger');
 		msgBox.textContent = text;
@@ -72,6 +79,10 @@
 			cb({ status: false, message: 'CSRF token missing. Please reload this CP page.' });
 			return;
 		}
+		if (!ajaxUrl) {
+			cb({ status: false, message: 'AJAX URL missing. Reload the page or check parts_agent_chats_config.php.' });
+			return;
+		}
 		params.csrf_guard_key = csrf;
 		var body = [];
 		Object.keys(params).forEach(function (k) {
@@ -84,7 +95,11 @@
 		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
 		xhr.onload = function () {
 			var data;
-			try { data = JSON.parse(xhr.responseText); } catch (e) { cb({ status: false, message: 'Bad response' }); return; }
+			try { data = JSON.parse(xhr.responseText); } catch (e) {
+				var snippet = String(xhr.responseText || '').replace(/\s+/g, ' ').slice(0, 160);
+				cb({ status: false, message: 'Bad response (' + xhr.status + ')' + (snippet ? ': ' + snippet : '') });
+				return;
+			}
 			cb(data);
 		};
 		xhr.onerror = function () { cb({ status: false, message: 'Network error' }); };
@@ -203,8 +218,11 @@
 			}
 			total = data.total || 0;
 			var rows = data.sessions || [];
+			if (data.auto_synced) {
+				showMsg('Auto-synced ' + data.auto_synced + ' session file(s) from server temp into the database.', true);
+			}
 			if (!rows.length) {
-				tbody.innerHTML = '<tr><td colspan="6">No chat sessions found.</td></tr>';
+				tbody.innerHTML = '<tr><td colspan="6">No chat sessions found. Open the storefront chat widget, send a message, then click Sync temp files.</td></tr>';
 			} else {
 				tbody.innerHTML = rows.map(function (row) {
 					var customerHtml = formatCustomerCell(row);
@@ -289,8 +307,11 @@
 				return;
 			}
 			renderDetail(data.detail || {});
-			detailWrap.style.display = 'block';
-			detailWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+			if (detailWrap) {
+				detailWrap.style.display = 'block';
+				detailWrap.classList.remove('is-empty');
+				detailWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+			}
 		});
 	}
 
@@ -360,7 +381,11 @@
 		}
 	});
 	document.getElementById('epc-agent-detail-close').addEventListener('click', function () {
-		detailWrap.style.display = 'none';
+		if (!detailWrap) { return; }
+		detailTitle.textContent = 'Chat detail';
+		detailSub.innerHTML = '';
+		detailBody.innerHTML = '<div class="epc-agent-empty">Select a session to read the transcript.</div>';
+		detailWrap.classList.add('is-empty');
 	});
 	tbody.addEventListener('click', function (e) {
 		var btn = e.target.closest('.epc-agent-view');

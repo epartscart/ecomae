@@ -41,17 +41,19 @@ if (!DP_User::isAdmin()) {
 $pdo = $db_link;
 $action = (string) ($_POST['action'] ?? $_GET['action'] ?? '');
 $siteKey = epc_vpe_normalize_site_key((string) ($_POST['site_key'] ?? $_GET['site_key'] ?? ''));
+$pageKey = epc_vpe_normalize_page_key((string) ($_POST['page_key'] ?? $_GET['page_key'] ?? 'homepage'));
 $allowed = epc_vpe_allowed_site_keys($pdo);
 if ($siteKey === '' || !in_array($siteKey, $allowed, true)) {
 	exit(json_encode(array('status' => false, 'message' => 'Invalid site')));
 }
 
 if ($action === 'load_layout') {
-	$layout = epc_vpe_layout_load($pdo, $siteKey);
+	$layout = epc_vpe_layout_load($pdo, $siteKey, $pageKey);
 	exit(json_encode(array(
 		'status' => true,
 		'layout' => $layout,
-		'preview_url' => epc_vpe_resolve_preview_url($pdo, $siteKey),
+		'preview_url' => epc_vpe_resolve_preview_url($pdo, $siteKey, $pageKey),
+		'levels' => epc_vpe_frontend_levels(),
 	)));
 }
 
@@ -71,16 +73,17 @@ if ($action === 'save_layout') {
 			}
 		}
 	}
+	$lib = epc_vpe_block_library();
 	$sanitized = array();
 	foreach ($blocks as $block) {
 		if (!is_array($block) || empty($block['type'])) {
 			continue;
 		}
 		$type = preg_replace('/[^a-z0-9_]/', '', (string) $block['type']);
-		if (!isset(epc_vpe_block_library()[$type])) {
+		if (!isset($lib[$type])) {
 			continue;
 		}
-		$props = is_array($block['props'] ?? null) ? $block['props'] : epc_vpe_block_library()[$type]['defaults'];
+		$props = is_array($block['props'] ?? null) ? $block['props'] : $lib[$type]['defaults'];
 		$sanitized[] = array(
 			'id' => preg_replace('/[^a-z0-9_]/', '', (string) ($block['id'] ?? ('blk_' . count($sanitized)))),
 			'type' => $type,
@@ -88,11 +91,17 @@ if ($action === 'save_layout') {
 		);
 	}
 	$publish = !empty($_POST['publish']);
-	$res = epc_vpe_layout_save($pdo, $siteKey, $sanitized, $brand, $publish);
+	$res = epc_vpe_layout_save($pdo, $siteKey, $sanitized, $brand, $publish, $pageKey);
+	$level = epc_vpe_level_meta($pageKey);
+	$msg = $publish
+		? ('Published — ' . (string) ($level['label'] ?? $pageKey) . ' updated, cache cleared.')
+		: ('Draft saved for ' . (string) ($level['label'] ?? $pageKey) . '.');
 	exit(json_encode(array(
 		'status' => true,
-		'message' => $publish ? 'Published — storefront updated, cache cleared.' : 'Draft saved.',
+		'message' => $msg,
 		'result' => $res,
+		'layout' => epc_vpe_layout_load($pdo, $siteKey, $pageKey),
+		'preview_url' => epc_vpe_resolve_preview_url($pdo, $siteKey, $pageKey),
 	)));
 }
 

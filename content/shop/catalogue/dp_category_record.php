@@ -92,10 +92,15 @@ class DP_CatalogueCategory
 			{
 				$str_id = 2806;//ID строки "Новая категория"
 				$str = translate_str_by_id($str_id);
+				if ($str === null || $str === false || trim((string) $str) === '' || strcasecmp((string) $str, 'null') === 0) {
+					$str = 'New category';
+				} else {
+					$str = (string) $str;
+				}
 			}
 			
 			
-			$this->{$this->translated_items[$i]} = $str;//Само поле - пустая строка
+			$this->{$this->translated_items[$i]} = ($str === null || $str === false) ? '' : (string) $str;
 			$this->{$this->translated_items[$i]."_lang_str_id"} = $str_id;//ID строки
 		}
 		

@@ -126,34 +126,55 @@ try {
 }
 
 $menuItem = null;
-$ordersGroup = (int)$pdo->query(
-	"SELECT `id` FROM `control_items` WHERE `url` LIKE '%/shop/orders/orders%' OR `url` LIKE '%shop/orders/orders%' LIMIT 1"
-)->fetchColumn();
-if ($ordersGroup > 0) {
-	$row = $pdo->prepare('SELECT `items_group` FROM `control_items` WHERE `id` = ? LIMIT 1');
-	$row->execute(array($ordersGroup));
-	$itemsGroup = (int)$row->fetchColumn();
-	if ($itemsGroup > 0) {
-		$menuUrl = '/<backend>/shop/orders/whatsapp-guide';
-		$existingMenu = $pdo->prepare('SELECT `id` FROM `control_items` WHERE `url` LIKE ? LIMIT 1');
-		$existingMenu->execute(array('%whatsapp-guide%'));
-		$menuId = (int)$existingMenu->fetchColumn();
-		if ($menuId > 0) {
-			$pdo->prepare(
-				'UPDATE `control_items` SET `caption` = ?, `url` = ?, `items_group` = ?, `show_anyway` = 1,
-				 `fontawesome_class` = ?, `background_color` = ? WHERE `id` = ?'
-			)->execute(array('epc_whatsapp_guide', $menuUrl, $itemsGroup, 'fab fa-whatsapp', '#25D366', $menuId));
-		} else {
-			$maxOrder = (int)$pdo->query(
-				'SELECT COALESCE(MAX(`order`), 0) FROM `control_items` WHERE `items_group` = ' . (int)$itemsGroup
-			)->fetchColumn();
-			$pdo->prepare(
-				'INSERT INTO `control_items` (`items_group`, `caption`, `url`, `img`, `order`, `background_color`, `fontawesome_class`, `target`, `show_anyway`)
-				 VALUES (?, ?, ?, \'\', ?, ?, ?, \'\', 1)'
-			)->execute(array($itemsGroup, 'epc_whatsapp_guide', $menuUrl, $maxOrder + 2, '#25D366', 'fab fa-whatsapp'));
-			$menuId = (int)$pdo->lastInsertId();
+// Prefer Logistics top menu (same group as OMS · Orders); fall back to Shop group.
+$menuHelper = __DIR__ . '/epc_cp_mainstream_menu.php';
+if (is_file($menuHelper)) {
+	require_once $menuHelper;
+	if (function_exists('epc_cp_mm_lang')) {
+		epc_cp_mm_lang($pdo, 'epc_whatsapp_guide', 'WhatsApp guide', 'Гид WhatsApp');
+		epc_cp_mm_lang($pdo, 'epc_whatsapp_guide_cp', 'WhatsApp guide', 'Гид WhatsApp');
+	}
+	if (function_exists('epc_cp_mainstream_menu_apply')) {
+		$mm = epc_cp_mainstream_menu_apply($pdo);
+		if (!empty($mm['items']['whatsapp_guide'])) {
+			$menuItem = array(
+				'id' => (int) $mm['items']['whatsapp_guide'],
+				'url' => '/<backend>/shop/orders/whatsapp-guide',
+				'items_group' => (int) ($mm['logistics_group'] ?? 0),
+			);
 		}
-		$menuItem = array('id' => $menuId, 'url' => $menuUrl, 'items_group' => $itemsGroup);
+	}
+}
+if ($menuItem === null) {
+	$ordersGroup = (int)$pdo->query(
+		"SELECT `id` FROM `control_items` WHERE `url` LIKE '%/shop/orders/orders%' OR `url` LIKE '%shop/orders/orders%' LIMIT 1"
+	)->fetchColumn();
+	if ($ordersGroup > 0) {
+		$row = $pdo->prepare('SELECT `items_group` FROM `control_items` WHERE `id` = ? LIMIT 1');
+		$row->execute(array($ordersGroup));
+		$itemsGroup = (int)$row->fetchColumn();
+		if ($itemsGroup > 0) {
+			$menuUrl = '/<backend>/shop/orders/whatsapp-guide';
+			$existingMenu = $pdo->prepare('SELECT `id` FROM `control_items` WHERE `url` LIKE ? LIMIT 1');
+			$existingMenu->execute(array('%whatsapp-guide%'));
+			$menuId = (int)$existingMenu->fetchColumn();
+			if ($menuId > 0) {
+				$pdo->prepare(
+					'UPDATE `control_items` SET `caption` = ?, `url` = ?, `items_group` = ?, `show_anyway` = 1,
+					 `fontawesome_class` = ?, `background_color` = ? WHERE `id` = ?'
+				)->execute(array('epc_whatsapp_guide', $menuUrl, $itemsGroup, 'fab fa-whatsapp', '#25D366', $menuId));
+			} else {
+				$maxOrder = (int)$pdo->query(
+					'SELECT COALESCE(MAX(`order`), 0) FROM `control_items` WHERE `items_group` = ' . (int)$itemsGroup
+				)->fetchColumn();
+				$pdo->prepare(
+					'INSERT INTO `control_items` (`items_group`, `caption`, `url`, `img`, `order`, `background_color`, `fontawesome_class`, `target`, `show_anyway`)
+					 VALUES (?, ?, ?, \'\', ?, ?, ?, \'\', 1)'
+				)->execute(array($itemsGroup, 'epc_whatsapp_guide', $menuUrl, $maxOrder + 2, '#25D366', 'fab fa-whatsapp'));
+				$menuId = (int)$pdo->lastInsertId();
+			}
+			$menuItem = array('id' => $menuId, 'url' => $menuUrl, 'items_group' => $itemsGroup);
+		}
 	}
 }
 

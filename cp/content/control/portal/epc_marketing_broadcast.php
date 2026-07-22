@@ -10,7 +10,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/marketing/epc_marketing_
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_frame.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_assets.php';
 
-$ver = epc_cp_page_asset_version();
+$ver = epc_cp_page_asset_version() . 'mb2';
 epc_cp_register_page_assets(
 	array(
 		'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
