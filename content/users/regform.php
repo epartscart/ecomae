@@ -202,8 +202,9 @@ else//Пользователь не авторизован - ВЫВОД СТРА
 						<input type="radio" name="epc_customer_type" value="retail" checked="checked" /> Retail customer
 					</label>
 					<label class="radio-inline">
-						<input type="radio" name="epc_customer_type" value="wholesale" /> Wholesale customer
+						<input type="radio" name="epc_customer_type" value="wholesale" /> Wholesale customer (subject to approval only)
 					</label>
+					<p class="help-block" style="margin:8px 0 0;">Wholesale accounts are subject to approval only — a manager must approve trade pricing before checkout unlocks.</p>
 				</div>
 			</div>
 		</div>
@@ -343,8 +344,9 @@ else//Пользователь не авторизован - ВЫВОД СТРА
 $_epcOtpModalFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_otp_modal.php';
 if (is_file($_epcOtpModalFile)) {
 	require_once $_epcOtpModalFile;
-	$_epcOtpSendUrl    = '/epc-auth-send-code.php';
-	$_epcOtpVerifyUrl  = '/epc-auth-otp-verify-only.php';
+	// Content-path APIs: survive production .epc-security-lockdown (blocks root /epc-* except /epc-auth-*).
+	$_epcOtpSendUrl    = '/content/general_pages/epc_auth_api_send_code.php';
+	$_epcOtpVerifyUrl  = '/content/general_pages/epc_auth_api_verify_only.php';
 	$_epcOtpTenantKey  = '';
 	if (function_exists('epc_portal_site_profile')) {
 		$_sp = epc_portal_site_profile();

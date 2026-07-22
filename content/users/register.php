@@ -13,6 +13,16 @@
 */
 defined('_ASTEXE_') or die('No access');
 
+// GET /users/register is the POST target only — show the form on direct visits.
+if (empty($_POST) && strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
+	$lang = '/en';
+	if (!empty($multilang_params['lang_href']) && is_string($multilang_params['lang_href'])) {
+		$lang = rtrim((string) $multilang_params['lang_href'], '/');
+	}
+	header('Location: ' . $lang . '/users/registration', true, 302);
+	exit;
+}
+
 //Класс пользователя
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
 
@@ -535,7 +545,7 @@ if (!isset($_POST["simple_register"]))
             if ($epc_reg_customer_type === 'retail' && epc_trade_is_approved($db_link, (int)$user_id)) {
                 echo '<div class="alert alert-success" style="margin:15px 0;">You registered as <strong>Retail</strong>. Your account is approved — confirm your e-mail, then sign in to browse and checkout. Contact us if you need a wholesale upgrade.</div>';
             } else {
-                echo '<div class="alert alert-info" style="margin:15px 0;">You chose <strong>' . htmlspecialchars(epc_trade_customer_type_label($epc_reg_customer_type), ENT_QUOTES, 'UTF-8') . '</strong>. You can sign in and browse after confirming your contact. Checkout is enabled once a manager approves your wholesale account and assigns your dealing currency.</div>';
+                echo '<div class="alert alert-info" style="margin:15px 0;">You chose <strong>' . htmlspecialchars(epc_trade_customer_type_label($epc_reg_customer_type), ENT_QUOTES, 'UTF-8') . '</strong> — subject to approval only. You can sign in and browse after confirming your contact. Checkout unlocks once a manager approves your wholesale account and assigns your dealing currency.</div>';
             }
         }
     }
