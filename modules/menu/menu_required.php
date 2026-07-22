@@ -51,6 +51,8 @@ function epc_menu_filter_storefront_hidden(array $items): array
 		'contacts',
 		'payment',
 		'delivery',
+		'ob-oplate',
+		'o-dostavke',
 	);
 	$captionHide = array(
 		'cart',
@@ -64,6 +66,10 @@ function epc_menu_filter_storefront_hidden(array $items): array
 		'баланс',
 		'информация',
 		'контакты',
+		'about payment',
+		'about delivery',
+		'об оплате',
+		'о доставке',
 	);
 
 	$out = array();
@@ -109,10 +115,10 @@ function epc_menu_filter_storefront_hidden(array $items): array
 			$hasPayment = false;
 			$hasDelivery = false;
 			foreach ($childPaths as $cp) {
-				if ($cp === 'payment' || strpos($cp, 'payment') !== false) {
+				if ($cp === 'payment' || $cp === 'ob-oplate' || strpos($cp, 'payment') !== false || strpos($cp, 'ob-oplate') !== false) {
 					$hasPayment = true;
 				}
-				if ($cp === 'delivery' || strpos($cp, 'delivery') !== false) {
+				if ($cp === 'delivery' || $cp === 'o-dostavke' || strpos($cp, 'delivery') !== false || strpos($cp, 'o-dostavke') !== false) {
 					$hasDelivery = true;
 				}
 			}

@@ -38,10 +38,16 @@ if($menu_record != false)
     // Storefront top menu: hide Cart / My orders / Balance / Information / Contacts
     if (!empty($isFrontMode) && function_exists('epc_menu_filter_storefront_hidden')) {
         $menu_ul_class = (string) ($menu_record["menu_ul_class"] ?? '');
-        $module_name = (string) ($module_record["name"] ?? '');
+        $module_proto = (string) ($module_record["prototype_name"] ?? ($module_record["name"] ?? ''));
         $is_top_menu = (stripos($menu_ul_class, 'top-menu') !== false)
-            || ($module_name === 'top_menu')
-            || ((int) $menu_id === 1);
+            || ($module_proto === 'top_menu')
+            || (stripos($module_proto, 'top_menu') !== false)
+            || ((int) $menu_id === 1)
+            || ((int) $menu_id === 15);
+        // Primary storefront header menu uses Bootstrap nav classes (not "top-menu-*").
+        if (!$is_top_menu && stripos($menu_ul_class, 'navbar-nav') !== false && stripos($menu_ul_class, 'catalog') === false) {
+            $is_top_menu = true;
+        }
         if ($is_top_menu) {
             $menu_structure = epc_menu_filter_storefront_hidden($menu_structure);
         }

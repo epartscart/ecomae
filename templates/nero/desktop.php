@@ -612,13 +612,22 @@ if(!empty($DP_Template->data_value->message_header)){
     <div class="top-menu-line" style="background: <?=$DP_Template->data_value->top_menu_color;?>;">
 		<style>
 		/* Hide clutter from top menu (Cart / Orders / Balance / Information / Contacts) */
-		.top-menu-line .top-menu-ul > li:has(> a[href*="/shop/cart"]),
-		.top-menu-line .top-menu-ul > li:has(> a[href*="/shop/orders"]),
-		.top-menu-line .top-menu-ul > li:has(> a[href*="/shop/balans"]),
-		.top-menu-line .top-menu-ul > li:has(> a[href*="/kontakty"]),
-		.top-menu-line .top-menu-ul > li:has(> a[href*="/contacts"]),
-		.top-menu-line .top-menu-ul > li.have_child:has(a[href*="/payment"]),
-		.top-menu-line .top-menu-ul > li.have_child:has(a[href*="/delivery"]){display:none!important}
+		.top-menu-line .navbar > ul > li:has(> a[href*="/shop/cart"]),
+		.top-menu-line .navbar > ul > li:has(> a[href*="/shop/orders"]),
+		.top-menu-line .navbar > ul > li:has(> a[href*="/shop/balans"]),
+		.top-menu-line .navbar > ul > li:has(> a[href*="/kontakty"]),
+		.top-menu-line .navbar > ul > li:has(> a[href*="/contacts"]),
+		.top-menu-line ul > li:has(> a[href*="/shop/cart"]),
+		.top-menu-line ul > li:has(> a[href*="/shop/orders"]),
+		.top-menu-line ul > li:has(> a[href*="/shop/balans"]),
+		.top-menu-line ul > li:has(> a[href*="/kontakty"]),
+		.top-menu-line ul > li:has(> a[href*="/contacts"]),
+		.top-menu-line ul > li.have_child:has(a[href*="/payment"]),
+		.top-menu-line ul > li.have_child:has(a[href*="/delivery"]),
+		.top-menu-line ul > li.have_child:has(a[href*="/ob-oplate"]),
+		.top-menu-line ul > li.have_child:has(a[href*="/o-dostavke"]),
+		.top-menu-line ul > li.dropdown:has(a[href*="/ob-oplate"]),
+		.top-menu-line ul > li.dropdown:has(a[href*="/o-dostavke"]){display:none!important}
 		</style>
 		<div class="container">
 			<table>
