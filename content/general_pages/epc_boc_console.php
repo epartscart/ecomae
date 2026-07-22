@@ -30,7 +30,7 @@ if (!function_exists('epc_boc_console_css')) {
 if (!function_exists('epc_boc_console_asset_ver')) {
     function epc_boc_console_asset_ver(): string
     {
-        return '20260722boc1';
+        return '20260722tenant1';
     }
 }
 
@@ -97,7 +97,9 @@ if (!function_exists('epc_boc_render_top_nav')) {
                 }
             }
             $first = reset($g['areas']);
-            $firstUrl = $base . '/' . ltrim((string) ($first['path'] ?? 'control'), '/');
+            $firstUrl = function_exists('epc_boc_area_href')
+                ? epc_boc_area_href(is_array($first) ? $first : array(), $base)
+                : ($base . '/' . ltrim((string) ($first['path'] ?? 'control'), '/'));
             echo '<li class="epc-boc__topnav-item' . ($isActive ? ' is-active' : '') . '" data-boc-group="' . $h($gKey) . '" role="none">';
             echo '<button type="button" class="epc-boc__topnav-btn" role="menuitem" aria-haspopup="true" aria-expanded="false" data-boc-topnav-toggle="' . $h($gKey) . '">';
             echo '<i class="fa ' . $h($gIcon) . '" aria-hidden="true"></i>';
@@ -120,9 +122,12 @@ if (!function_exists('epc_boc_render_top_nav')) {
                 echo '<div class="epc-boc__topnav-col-hd"><i class="fa fa-sitemap"></i> ' . $h($colLabel) . '</div>';
                 echo '<ul class="epc-boc__topnav-links">';
                 foreach ($chunk as $id => $area) {
-                    $url = $base . '/' . ltrim((string) ($area['path'] ?? ''), '/');
+                    $url = function_exists('epc_boc_area_href')
+                        ? epc_boc_area_href($area, $base)
+                        : ($base . '/' . ltrim((string) ($area['path'] ?? ''), '/'));
+                    $target = !empty($area['url_override']) ? ' target="_blank" rel="noopener"' : '';
                     $cls = ((string) $id === $active) ? ' class="is-active"' : '';
-                    echo '<li' . $cls . '><a href="' . $h($url) . '" title="' . $h($area['hint'] ?? '') . '">';
+                    echo '<li' . $cls . '><a href="' . $h($url) . '"' . $target . ' title="' . $h($area['hint'] ?? '') . '">';
                     echo '<i class="fa ' . $h($area['icon'] ?? 'fa-circle-o') . '"></i> ' . $h($area['label'] ?? $id);
                     echo '</a></li>';
                 }
@@ -188,8 +193,18 @@ if (!function_exists('epc_boc_console_open')) {
             }
         }
         $actionsHtml = '';
+        if (is_file(__DIR__ . '/epc_boc_tenant_scope.php')) {
+            require_once __DIR__ . '/epc_boc_tenant_scope.php';
+        }
+        global $db_link;
+        if (function_exists('epc_boc_handle_tenant_switch')) {
+            epc_boc_handle_tenant_switch(($db_link instanceof PDO) ? $db_link : null);
+        }
+        if (function_exists('epc_boc_render_tenant_switcher_html')) {
+            $actionsHtml .= epc_boc_render_tenant_switcher_html(($db_link instanceof PDO) ? $db_link : null);
+        }
         $actionsHtml .= '<span class="epc-boc__lang" id="epc-boc-lang-slot" title="Change language">' . $langSwitcher . '</span>';
-        $actionsHtml .= '<span class="epc-boc__scope" title="What this login can see"><i class="fa fa-globe"></i> ' . $h($scope) . '</span>';
+        $actionsHtml .= '<span class="epc-boc__scope" title="Platform fleet vs active tenant CP"><i class="fa fa-globe"></i> ' . $h($scope) . '</span>';
         $actionsHtml .= '<span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> ' . $h($env) . '</span>';
         $actionsHtml .= '<span class="epc-boc__avatar" title="' . $h($operator) . '">' . $h($initials) . '</span>';
 
@@ -203,9 +218,12 @@ if (!function_exists('epc_boc_console_open')) {
                 if (empty($g['areas'])) { continue; }
                 echo '<div class="epc-boc__group"><div class="epc-boc__group-h"><i class="fa ' . $h($g['group']['icon']) . '"></i> ' . $h($g['group']['label']) . '</div><div class="epc-boc__nav">';
                 foreach ($g['areas'] as $id => $area) {
-                    $url = $base . '/' . ltrim((string) $area['path'], '/');
+                    $url = function_exists('epc_boc_area_href')
+                        ? epc_boc_area_href($area, $base)
+                        : ($base . '/' . ltrim((string) $area['path'], '/'));
+                    $target = !empty($area['url_override']) ? ' target="_blank" rel="noopener"' : '';
                     $cls = $id === $active ? ' class="is-active"' : '';
-                    echo '<a href="' . $h($url) . '"' . $cls . ' title="' . $h($area['hint']) . '"><i class="fa ' . $h($area['icon']) . '"></i> ' . $h($area['label']) . '</a>';
+                    echo '<a href="' . $h($url) . '"' . $target . $cls . ' title="' . $h($area['hint']) . '"><i class="fa ' . $h($area['icon']) . '"></i> ' . $h($area['label']) . '</a>';
                 }
                 echo '</div></div>';
             }
@@ -220,8 +238,29 @@ if (!function_exists('epc_boc_console_open')) {
             echo '<div class="epc-boc__search"><i class="fa fa-search"></i><input type="search" id="epc-boc-search" placeholder="Search tenants, orders, settings… (global)"></div>';
             echo '<div class="epc-boc__topbar-actions">' . $actionsHtml . '</div></div>';
         }
-        // Language switcher relocate runs from epc_boc_topnav.js
         echo '<div class="epc-boc__canvas">';
+        if (function_exists('epc_boc_active_tenant')
+            && function_exists('epc_portal_is_super_cp_host')
+            && epc_portal_is_super_cp_host()
+        ) {
+            $epcBocTenant = epc_boc_active_tenant();
+            if ($epcBocTenant) {
+                echo '<div class="epc-boc__tenant-banner" role="status">';
+                echo '<div><strong>Tenant CP mode:</strong> ' . $h($epcBocTenant['label']);
+                echo ' <span>(' . $h($epcBocTenant['hostname']) . ')</span>';
+                echo '<div class="epc-boc__tenant-banner-hint">Commerce / Catalogue / Logistics / ERP open on this tenant’s CP host — not the platform ecomae database.</div></div>';
+                echo '<div class="epc-boc__tenant-banner-actions">';
+                echo '<a class="epc-boc__btn epc-boc__btn--solid" href="' . $h($epcBocTenant['cp_url']) . '" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Open tenant CP</a>';
+                $exit = htmlspecialchars((string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/cp/control'), PHP_URL_PATH) ?: '/cp/control'), ENT_QUOTES, 'UTF-8');
+                echo '<a class="epc-boc__btn" href="' . $exit . '?epc_boc_exit_tenant=1"><i class="fa fa-globe"></i> Back to platform</a>';
+                echo '</div></div>';
+            } else {
+                echo '<div class="epc-boc__platform-banner" role="status">';
+                echo '<div><strong>Platform Super CP</strong> <span>· ecomae.com overall fleet</span>';
+                echo '<div class="epc-boc__platform-banner-hint">Tenants, health, governance, and fleet pricing stay here. Use <em>Select tenant CP</em> for epartscart.com, taxofinca.com, and other shops — their OMS / catalogue / ERP never mix into this platform DB.</div></div>';
+                echo '</div>';
+            }
+        }
         if ($layout === 'top' && $title !== '' && $active !== 'command_center') {
             echo '<div class="epc-boc__page-title"><h1>' . $h($title) . '</h1><small>' . $h($brand['name']) . '</small></div>';
         }
@@ -268,14 +307,24 @@ if (!function_exists('epc_boc_render_command_center')) {
         $demo = (int) $summary['by_type']['demo'];
 
         // Hero
+        $bocTenant = function_exists('epc_boc_active_tenant') ? epc_boc_active_tenant() : null;
         echo '<div class="epc-boc__hero">';
         echo '<div><div class="epc-boc__hero-brand"><span>' . $h($brand['short']) . '</span> Business Operation System</div>';
-        echo '<h2>Operations Command Center</h2>';
-        echo '<p>' . $h($brand['tagline']) . '</p></div>';
-        echo '<div class="epc-boc__hero-actions">';
-        echo '<a class="epc-boc__btn epc-boc__btn--solid" href="' . $h($base . '/shop/tenant_hub/tenant_hub?tab=onboard') . '"><i class="fa fa-rocket"></i> Onboard client</a>';
-        echo '<a class="epc-boc__btn epc-boc__btn--ghost" href="' . $h($base . '/control/portal/epc_platform_health_checkup') . '"><i class="fa fa-heartbeat"></i> Health checkup</a>';
-        echo '<a class="epc-boc__btn epc-boc__btn--ghost" href="' . $h($base . '/control/cp_brochure') . '" target="_blank" rel="noopener"><i class="fa fa-book"></i> CP brochure</a>';
+        if ($bocTenant) {
+            echo '<h2>Tenant CP · ' . $h($bocTenant['label']) . '</h2>';
+            echo '<p>Shop modules open on ' . $h($bocTenant['hostname']) . '. Platform fleet tools stay on ecomae Super CP.</p></div>';
+            echo '<div class="epc-boc__hero-actions">';
+            echo '<a class="epc-boc__btn epc-boc__btn--solid" href="' . $h($bocTenant['cp_url']) . '" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Open full tenant CP</a>';
+            $exitCc = htmlspecialchars((string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/cp/control'), PHP_URL_PATH) ?: '/cp/control'), ENT_QUOTES, 'UTF-8');
+            echo '<a class="epc-boc__btn epc-boc__btn--ghost" href="' . $exitCc . '?epc_boc_exit_tenant=1"><i class="fa fa-globe"></i> Platform fleet</a>';
+        } else {
+            echo '<h2>Platform Super CP</h2>';
+            echo '<p>Overall fleet control for all tenants. Select a tenant CP to operate epartscart, taxofinca, and others without mixing shop data into ecomae.</p></div>';
+            echo '<div class="epc-boc__hero-actions">';
+            echo '<a class="epc-boc__btn epc-boc__btn--solid" href="' . $h($base . '/shop/tenant_hub/tenant_hub?tab=onboard') . '"><i class="fa fa-rocket"></i> Onboard client</a>';
+            echo '<a class="epc-boc__btn epc-boc__btn--ghost" href="' . $h($base . '/control/portal/epc_platform_health_checkup') . '"><i class="fa fa-heartbeat"></i> Health checkup</a>';
+            echo '<a class="epc-boc__btn epc-boc__btn--ghost" href="' . $h($base . '/control/cp_brochure') . '" target="_blank" rel="noopener"><i class="fa fa-book"></i> CP brochure</a>';
+        }
         echo '</div></div>';
 
         // KPI tiles
