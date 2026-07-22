@@ -438,169 +438,134 @@ else//Действий нет - выводим страницу
     //Для дерева групп
     require_once("content/users/dp_group_record.php");//Определение класса записи группы
     require_once("content/users/get_group_records.php");//Получение объекта иерархии существующих групп для вывода в дерево-webix
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_frame.php';
+
+	$user_id = 0;
+	if( isset( $_GET['user_id'] ) )
+	{
+		$user_id = (int) $_GET['user_id'];
+	}
+
+	$backend = trim((string) ($DP_Config->backend_dir ?? 'cp'), '/');
+	if ($backend === '') {
+		$backend = 'cp';
+	}
+	$backendH = htmlspecialchars($backend, ENT_QUOTES, 'UTF-8');
+
+	function epc_uu_t($id, $fallback = '')
+	{
+		$t = translate_str_by_id($id);
+		if ($t === null || $t === false) {
+			$t = '';
+		}
+		$t = trim((string) $t);
+		if ($t === '' || strcasecmp($t, 'null') === 0) {
+			return $fallback;
+		}
+		return $t;
+	}
+
+	$isEdit = $user_id > 0;
+	if (function_exists('epc_cp_page_frame_open')) {
+		epc_cp_page_frame_open(array(
+			'class' => 'epc-users-cp-frame',
+			'hero' => array(
+				'badge' => 'Users',
+				'title' => $isEdit ? ('Edit user #' . $user_id) : 'Create user',
+				'sub' => $isEdit
+					? 'Update login details, confirmation flags, profile fields, and group membership.'
+					: 'Create a customer or staff account, set contacts & password, then assign groups.',
+				'actions' => array(
+					array(
+						'url' => '/' . $backend . '/users/usermanager',
+						'label' => 'Users list',
+						'icon' => 'fa-users',
+						'primary' => true,
+					),
+					array(
+						'url' => '/' . $backend . '/users/usergroups',
+						'label' => 'Groups',
+						'icon' => 'fa-sitemap',
+					),
+				),
+			),
+		));
+	}
     ?>
     
     <?php
         require_once("content/control/actions_alert.php");//Вывод сообщений о результатах действий
     ?>
-    
-	
-	<?php
-	$user_id = 0;
-	if( isset( $_GET['user_id'] ) )
-	{
-		$user_id = $_GET['user_id'];
-	}
-	?>
-	
-	
-	
-	<div class="col-lg-12">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(2113); ?>
+
+	<div class="epc-users-cp">
+		<div class="epc-users-cp__toolbar" role="toolbar" aria-label="User actions">
+			<button type="button" class="epc-u-btn epc-u-btn--primary" onclick="save_action();"><i class="fa fa-save"></i> <?php echo htmlspecialchars(epc_uu_t(2114, 'Save'), ENT_QUOTES, 'UTF-8'); ?></button>
+			<a class="epc-u-btn" href="/<?php echo $backendH; ?>/users/usermanager"><i class="fa fa-users"></i> <?php echo htmlspecialchars(epc_uu_t(748, 'Users list'), ENT_QUOTES, 'UTF-8'); ?></a>
+			<a class="epc-u-btn" href="/<?php echo $backendH; ?>/users/usergroups"><i class="fa fa-sitemap"></i> Groups</a>
+			<?php if ($isEdit) { ?>
+			<span class="epc-users-cp__toolbar-spacer"></span>
+			<div class="epc-users-cp__toolbar-group" aria-label="Related">
+				<span>Related</span>
+				<button type="button" class="epc-u-btn" onclick="locationOrders();"><i class="fa fa-shopping-cart"></i> <?php echo htmlspecialchars(epc_uu_t(3542, 'Orders'), ENT_QUOTES, 'UTF-8'); ?></button>
+				<button type="button" class="epc-u-btn" onclick="locationBalance();"><i class="fa fa-credit-card"></i> <?php echo htmlspecialchars(epc_uu_t(3544, 'Balance'), ENT_QUOTES, 'UTF-8'); ?></button>
+				<button type="button" class="epc-u-btn" onclick="auth_with_user();"><i class="fa fa-key"></i> <?php echo htmlspecialchars(epc_uu_t(3540, 'Login as user'), ENT_QUOTES, 'UTF-8'); ?></button>
+				<button type="button" class="epc-u-btn" onclick="go_to_statistics();"><i class="fa fa-bar-chart"></i> <?php echo htmlspecialchars(epc_uu_t(773, 'Statistics'), ENT_QUOTES, 'UTF-8'); ?></button>
 			</div>
-			<div class="panel-body">
-				<a class="panel_a" onClick="save_action();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/save.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2114); ?></div>
-				</a>
-				
-				
-				<a class="panel_a" href="/<?php echo $DP_Config->backend_dir; ?>/users/usermanager">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/user.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(748); ?></div>
-				</a>
-				
-				
-				<?php
-				//Если страница в режиме редактирования пользователя - выводим кнопки на заказы и счета
-				if( $user_id > 0 )
-				{
-					?>
-					<a class="panel_a" href="javascript:void(0);" onclick="locationOrders();">
-						<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/store.png') 0 0 no-repeat;"></div>
-						<div class="panel_a_caption"><?php echo translate_str_by_id(3542); ?></div>
-					</a>
-					<script>
-					function locationOrders()
-					{
-						var orders_filter = new Object;
-						//1. Время с
-						orders_filter.time_from = "";
-						//2. Время по
-						orders_filter.time_to = "";
-						//3. Номер заказа
-						orders_filter.order_id = "";
-						//4. Статус заказа
-						orders_filter.status = 0;
-						//5. Товар
-						orders_filter.paid = -1;
-						//6. Просмотрен
-						orders_filter.viewed = -1;
-						//7. Покупатель
-						orders_filter.customer = "";
-						orders_filter.customer_id = <?php echo $user_id; ?>;
-						orders_filter.paid_type = -1;
-						//Устанавливаем cookie (на полгода)
-						var date = new Date(new Date().getTime() + 15552000 * 1000);
-						document.cookie = "orders_filter="+JSON.stringify(orders_filter)+"; path=/; expires=" + date.toUTCString();
-
-						//Обновляем страницу
-						location='/<?php echo $DP_Config->backend_dir; ?>/shop/orders/orders';
-					}
-					</script>
-					
-					
-					
-					<a class="panel_a" href="javascript:void(0);" onclick="locationBalance();">
-						<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/credit_card.png') 0 0 no-repeat;"></div>
-						<div class="panel_a_caption"><?php echo translate_str_by_id(3544); ?></div>
-					</a>
-					<script>
-					function locationBalance()
-					{
-						var account_operations_filter = new Object;
-
-						account_operations_filter.time_from = "";
-						account_operations_filter.time_to = "";
-						account_operations_filter.income = -1;
-						account_operations_filter.operation_code = -1;
-						account_operations_filter.user_id = <?php echo $user_id; ?>;
-
-						//Устанавливаем cookie (на полгода)
-						var date = new Date(new Date().getTime() + 15552000 * 1000);
-						document.cookie = "account_operations_filter="+JSON.stringify(account_operations_filter)+"; path=/; expires=" + date.toUTCString();
-
-						//Обновляем страницу
-						location='/<?php echo $DP_Config->backend_dir; ?>/shop/finance/account_operations';
-					}
-					</script>
-					<?php
-				}//~if( $user_id > 0 )
-				?>
-				
-				
-				
-				
-				<?php
-				//Авторизация от имени пользователя
-				if( $user_id > 0 )
-				{
-					?>
-					<a class="panel_a" href="javascript:void(0);" onclick="auth_with_user();">
-						<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/key.png') 0 0 no-repeat;"></div>
-						<div class="panel_a_caption"><?php echo translate_str_by_id(3540); ?></div>
-					</a>
-					<script>
-					//Функция авторизации от имени пользователя
-					function auth_with_user()
-					{
-						jQuery.ajax({
-							type: "POST",
-							async: false, //Запрос синхронный
-							url: "/<?php echo $DP_Config->backend_dir; ?>/content/users/auth_with_user.php",
-							dataType: "json",//Тип возвращаемого значения
-							data: "user_id=<?php echo $user_id; ?>"+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
-							success: function(answer){
-								if(answer.status == true)
-								{
-									window.open(
-									  '<?php echo $DP_Config->domain_path; ?>',
-									  '_blank'
-									);
-								}
-								else
-								{
-									alert("<?php echo translate_str_by_id(3541); ?>");
-								}
-							}
-						});
-					}
-					</script>
-					<?php
-				}
-				?>
-				
-				
-				<a class="panel_a" href="javascript:void(0);" onclick="go_to_statistics();">
-                    <div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/statistics.png') 0 0 no-repeat;"></div>
-                    <div class="panel_a_caption"><?php echo translate_str_by_id(773); ?></div>
-                </a>
-                <script>
-                    function go_to_statistics() {
-                        location = location.href + '&type=statistics';
-                    }
-                </script>
-
-			 
-				<a class="panel_a" href="/<?php echo $DP_Config->backend_dir; ?>">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/power_off.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2116); ?></div>
-				</a>
-			</div>
+			<?php } else { ?>
+			<button type="button" class="epc-u-btn" onclick="go_to_statistics();"><i class="fa fa-bar-chart"></i> <?php echo htmlspecialchars(epc_uu_t(773, 'Statistics'), ENT_QUOTES, 'UTF-8'); ?></button>
+			<?php } ?>
+			<a class="epc-u-btn epc-u-btn--muted" href="/<?php echo $backendH; ?>"><i class="fa fa-home"></i> <?php echo htmlspecialchars(epc_uu_t(2116, 'Control panel'), ENT_QUOTES, 'UTF-8'); ?></a>
 		</div>
-	</div>
+
+		<p class="epc-users-cp__hint">
+			<?php if ($isEdit) { ?>
+			Editing user <strong>#<?php echo (int) $user_id; ?></strong>. Leave password fields empty to keep the current password. Tick groups on the right, then Save.
+			<?php } else { ?>
+			Provide at least an email or phone, set a password, choose groups, then Save.
+			<?php } ?>
+		</p>
+
+		<script>
+		function locationOrders()
+		{
+			var orders_filter = {
+				time_from: "", time_to: "", order_id: "", status: 0, paid: -1, viewed: -1,
+				customer: "", customer_id: <?php echo (int) $user_id; ?>, paid_type: -1
+			};
+			var date = new Date(new Date().getTime() + 15552000 * 1000);
+			document.cookie = "orders_filter="+JSON.stringify(orders_filter)+"; path=/; expires=" + date.toUTCString();
+			location='/<?php echo $backendH; ?>/shop/orders/orders';
+		}
+		function locationBalance()
+		{
+			var account_operations_filter = {
+				time_from: "", time_to: "", income: -1, operation_code: -1, user_id: <?php echo (int) $user_id; ?>
+			};
+			var date = new Date(new Date().getTime() + 15552000 * 1000);
+			document.cookie = "account_operations_filter="+JSON.stringify(account_operations_filter)+"; path=/; expires=" + date.toUTCString();
+			location='/<?php echo $backendH; ?>/shop/finance/account_operations';
+		}
+		function auth_with_user()
+		{
+			jQuery.ajax({
+				type: "POST",
+				async: false,
+				url: "/<?php echo $backendH; ?>/content/users/auth_with_user.php",
+				dataType: "json",
+				data: "user_id=<?php echo (int) $user_id; ?>"+"&csrf_guard_key=<?php echo htmlspecialchars((string) $user_session["csrf_guard_key"], ENT_QUOTES, 'UTF-8'); ?>",
+				success: function(answer){
+					if(answer.status == true) {
+						window.open('<?php echo $DP_Config->domain_path; ?>', '_blank');
+					} else {
+						alert("<?php echo htmlspecialchars(epc_uu_t(3541, 'Login as user failed'), ENT_QUOTES, 'UTF-8'); ?>");
+					}
+				}
+			});
+		}
+		function go_to_statistics() {
+			location = location.href + (location.href.indexOf('?') >= 0 ? '&' : '?') + 'type=statistics';
+		}
+		</script>
 	
 
 
@@ -639,12 +604,13 @@ else//Действий нет - выводим страницу
     
     
     
-    <div class="col-lg-6">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(3923); ?>
+	<div class="epc-users-cp__form-grid">
+		<div class="epc-users-cp__pane">
+			<div class="epc-users-cp__pane-h">
+				<h3><?php echo htmlspecialchars(epc_uu_t(3923, 'Account details'), ENT_QUOTES, 'UTF-8'); ?></h3>
+				<span><?php echo $isEdit ? 'Login, contacts, password, and profile fields' : 'Set contacts, password, and profile fields'; ?></span>
 			</div>
-			<div class="panel-body">
+			<div class="epc-users-cp__detail-body">
 				<?php
 				if( $user_id > 0 )
 				{
@@ -654,7 +620,7 @@ else//Действий нет - выводим страницу
 							<?php echo translate_str_by_id(3007); ?>
 						</label>
 						<div class="col-lg-6">
-							<?php echo $user_id; ?>
+							<strong>#<?php echo (int) $user_id; ?></strong>
 						</div>
 					</div>
 					<?php
@@ -862,18 +828,20 @@ else//Действий нет - выводим страницу
 				</script>
 			</div>
 		</div>
-	</div>
-	
-	
-	
-    
-	<div class="col-lg-6">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(3547); ?>
-			</div>
-			<div class="panel-body">
-				<div id="container_A" style="height:350px;"></div>
+
+		<div class="epc-users-cp__side">
+			<div class="epc-users-cp__pane">
+				<div class="epc-users-cp__pane-h">
+					<h3><?php echo htmlspecialchars(epc_uu_t(3547, 'User groups'), ENT_QUOTES, 'UTF-8'); ?></h3>
+					<span>Tick exactly one group for pricing rules</span>
+				</div>
+				<div class="epc-users-cp__search">
+					<i class="fa fa-search" aria-hidden="true"></i>
+					<input type="search" id="epc_uu_groups_filter" placeholder="Filter groups…" autocomplete="off" />
+				</div>
+				<div class="epc-users-cp__tree-wrap">
+					<div id="container_A"></div>
+				</div>
 				<script>
 					var tree = "";//ПЕРЕМЕННАЯ ДЛЯ ДЕРЕВА
 					
@@ -889,7 +857,8 @@ else//Действий нет - выводим страницу
 								{
 									var folder = common.folder(obj, common);
 									var icon = "";
-									var value_text = "<span>" + obj.value + "</span>";//Вывод текста
+									var label = (obj.value == null || obj.value === 'null') ? ('Group #' + obj.id) : String(obj.value);
+									var value_text = "<span>" + label.replace(/</g,'&lt;') + "</span>";//Вывод текста
 									var checkbox = common.checkbox(obj, common);//Чекбокс
 									
 									if(obj.for_registrated == true)
@@ -908,6 +877,10 @@ else//Действий нет - выводим страницу
 									{
 										icon += "<img src='/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/lock.png' style='width:18px; height:18px; float:right; margin:0px 4px 8px 4px;'>";
 									}
+									if(obj.for_percentage == 1)
+									{
+										icon += "<img src='/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/star.png' style='width:18px; height:18px; float:right; margin:0px 4px 8px 4px;'>";
+									}
 									return common.icon(obj, common)+ checkbox + common.folder(obj, common)  + icon + value_text;
 								},//~template
 						
@@ -916,9 +889,13 @@ else//Действий нет - выводим страницу
 							view:"tree",
 							select:true,//можно выделять элементы
 							drag:false,//можно переносить
+							filterMode:{ showSubItems:true }
 						});
 						/*~ДЕРЕВО*/
 						webix.event(window, "resize", function(){ tree.adjust(); });
+						if (typeof window.epcUsersBindTreeFilter === 'function') {
+							window.epcUsersBindTreeFilter('epc_uu_groups_filter', function () { return tree; });
+						}
 					
 						var saved_groups = <?php echo $group_tree_dump_JSON; ?>;
 						tree.parse(saved_groups);
@@ -933,26 +910,17 @@ else//Действий нет - выводим страницу
 					groups_tree_init();
 				</script>
 			</div>
-		</div>
-	</div>
-    
-    
-    
-    
-    
-    
-    
+
     <?php
 	if(!empty($_GET["user_id"])){
 	?>
-	<div class="col-lg-6">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				Баланс пользователя
-			</div>
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-md-6">
+			<div class="epc-users-cp__pane">
+				<div class="epc-users-cp__pane-h">
+					<h3>Balance</h3>
+					<span>Current account balance</span>
+				</div>
+				<div class="epc-users-cp__detail-body epc-users-cp__balance-row">
+					<div class="epc-users-cp__balance-value">
 						<?php
 							$INCOME_SQL = "IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `user_id` = ".(int)$_GET["user_id"]." AND `income`=1 AND `active` = 1), 0)";
 							$ISSUE_SQL = "IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `user_id` = ".(int)$_GET["user_id"]." AND `income`=0 AND `active` = 1),0)";
@@ -971,26 +939,16 @@ else//Действий нет - выводим страницу
 							
 							$balance = number_format($balance, 2, '.', ' ');
 							
-							echo $balance . '';
+							echo htmlspecialchars((string) $balance, ENT_QUOTES, 'UTF-8');
 						?>
 					</div>
-					
-					<div class="col-md-6 text-right">
-						<a class="btn btn-ar btn-success" href="/<?php echo $DP_Config->backend_dir; ?>/shop/finance/account_operations/create?user_id=<?php echo (int)$_GET["user_id"]; ?>"><?php echo translate_str_by_id(5584); ?></a>
-					</div>
+					<a class="epc-u-btn epc-u-btn--primary" href="/<?php echo $backendH; ?>/shop/finance/account_operations/create?user_id=<?php echo (int)$_GET["user_id"]; ?>"><i class="fa fa-plus"></i> <?php echo htmlspecialchars(epc_uu_t(5584, 'Add operation'), ENT_QUOTES, 'UTF-8'); ?></a>
 				</div>
 			</div>
-		</div>
-	</div>
 	<?php
 	}
 	?>
-    
-    
-    
-    
-    
-    
+
     <?php
 	$user_id = (int) $_GET["user_id"];
 	if($user_id > 0){
@@ -999,17 +957,14 @@ else//Действий нет - выводим страницу
 		$comment_row = $user_query->fetch();
 		$comment = $comment_row['comment'];
 	?>
-	<div class="col-lg-6">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(3571); ?>
-				<span id="user_comment_loader"></span>
-			</div>
-			<div class="panel-body">
-				<div>
-					<textarea onchange="setComment();" id="user_comment" style="width:100%; font-size: 14px; font-weight: bold;" rows="6"><?php echo $comment; ?></textarea>
+			<div class="epc-users-cp__pane">
+				<div class="epc-users-cp__pane-h">
+					<h3><?php echo htmlspecialchars(epc_uu_t(3571, 'Comment'), ENT_QUOTES, 'UTF-8'); ?> <span id="user_comment_loader"></span></h3>
+					<span>Saved automatically when you leave the field</span>
 				</div>
-			</div>
+				<div class="epc-users-cp__detail-body">
+					<textarea onchange="setComment();" id="user_comment" class="epc-users-cp__comment" rows="5"><?php echo htmlspecialchars((string) $comment, ENT_QUOTES, 'UTF-8'); ?></textarea>
+				</div>
 			<script>
 			function setComment()
 			{
@@ -1039,17 +994,13 @@ else//Действий нет - выводим страницу
 				});
 			}
 		</script>
-		</div>
-	</div>
+			</div>
 	<?php
 	}
 	?>
-	
-    
-    
-    
-    
-    
+		</div>
+	</div>
+
 	<!-- Форма сохранения -->
     <form name="save_form" style="display:none" method="POST">
         <input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
@@ -1608,5 +1559,11 @@ else//Действий нет - выводим страницу
 
 		
     }
+	?>
+	</div><?php /* .epc-users-cp */ ?>
+	<?php
+	if (function_exists('epc_cp_page_frame_close')) {
+		epc_cp_page_frame_close();
+	}
 }//else //Действий нет - выводим страницу
 ?>

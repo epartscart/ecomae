@@ -400,6 +400,14 @@ function epc_cp_page_asset_url_map(): array
 				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia4'),
 			),
 		),
+		'users/usergroups' => array(
+			'css' => array('/' . $backend . '/content/users/epc_users_cp.css?v=' . rawurlencode($ver . 'users2')),
+			'js' => array('/' . $backend . '/content/users/epc_users_cp.js?v=' . rawurlencode($ver . 'users2')),
+		),
+		'users/usermanager/user' => array(
+			'css' => array('/' . $backend . '/content/users/epc_users_cp.css?v=' . rawurlencode($ver . 'users2')),
+			'js' => array('/' . $backend . '/content/users/epc_users_cp.js?v=' . rawurlencode($ver . 'users2')),
+		),
 		'shop/catalogue/catalogue_editor' => array(
 			'css' => array('/content/shop/catalogue/epc_catalogue_editor.css?v=' . rawurlencode($ver . 'catEd1')),
 		),
