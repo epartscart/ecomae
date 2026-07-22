@@ -167,6 +167,15 @@ function epc_cp_page_asset_url_map(): array
 				'/content/general_pages/epc_marketing_broadcast_js.php?v=' . rawurlencode($ver),
 			),
 		),
+		'shop/marketing/marketing' => array(
+			'css' => array(
+				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_marketing_hub_css.php?v=' . rawurlencode($ver . 'mktHub1'),
+			),
+			'js' => array(
+				'/content/general_pages/epc_marketing_hub_js.php?v=' . rawurlencode($ver . 'mktHub1'),
+			),
+		),
 		'control/portal/epc_mobile_apps' => array(
 			'css' => array(
 				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
