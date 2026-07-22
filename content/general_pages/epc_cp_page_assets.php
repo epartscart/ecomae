@@ -335,6 +335,14 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/quote_requests/quote_alt_offer.js?v=' . rawurlencode($ver . 'qAlt2'),
 			),
 		),
+		'shop/bulk_upload' => array(
+			'css' => array(
+				'/content/general_pages/epc_bulk_cp.css?v=' . rawurlencode($ver . 'bu1'),
+			),
+			'js' => array(
+				'/' . $backend . '/content/shop/bulk_upload/bulk_upload_hub.js?v=' . rawurlencode($ver . 'bu1'),
+			),
+		),
 		'shop/parts_agent_chats' => array(
 			'css' => array('/content/general_pages/epc_agent_cp_css.php?v=' . rawurlencode($ver . 'pacFix3')),
 			'js' => array(
