@@ -15,11 +15,12 @@ $cpWorkshop = '/' . (isset($DP_Config->backend_dir) ? $DP_Config->backend_dir : 
 $ajaxUrl = '/content/shop/workshop/ajax_garage_manager.php';
 
 if (!epc_ws_staff_ok()) {
-	echo '<div class="col-lg-12"><div class="alert alert-warning" style="margin:24px auto;max-width:640px">'
-		. '<strong>Garage staff access required.</strong> '
-		. '<a href="' . htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') . '">Garage login</a> '
-		. 'or open the <a href="' . htmlspecialchars($cpWorkshop, ENT_QUOTES, 'UTF-8') . '">CP workshop desk</a>.'
-		. '</div></div>';
+	// Never show manager data openly — send guests to Garage login first.
+	if (!headers_sent()) {
+		header('Location: ' . $loginUrl, true, 302);
+		exit;
+	}
+	echo '<script>location=' . json_encode($loginUrl) . ';</script>';
 	return;
 }
 
