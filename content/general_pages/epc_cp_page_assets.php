@@ -17,14 +17,24 @@ function epc_cp_page_asset_url_map(): array
 	$backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
 
 	return array(
+		'control/config' => array(
+			'css' => array('/content/general_pages/epc_config_edit_css.php?v=' . rawurlencode($ver . 'cfg6')),
+			'js' => array(
+				'/' . $backend . '/content/control/epc_config_edit.js?v=' . rawurlencode($ver . 'cfg6'),
+				'/' . $backend . '/content/control/epc_config_edit_status.js?v=' . rawurlencode($ver . 'cfg6'),
+			),
+		),
 		'control/cp-guideline' => array(
 			'css' => array('/content/general_pages/epc_cp_guideline_css.php?v=' . rawurlencode($ver)),
 		),
 		'control/portal/industry_settings' => array(
-			'css' => array('/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver)),
+			'css' => array(
+				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_industry_settings_css.php?v=' . rawurlencode($ver . 'inds3'),
+			),
 			'js' => array(
-				'/' . $backend . '/content/control/portal/industry_settings_config.php?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/industry_settings.js?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/control/portal/industry_settings_config.php?v=' . rawurlencode($ver . 'inds3'),
+				'/' . $backend . '/content/control/portal/industry_settings.js?v=' . rawurlencode($ver . 'inds3'),
 			),
 		),
 		'control/portal/epc_tax_toolkit_manage' => array(
@@ -34,7 +44,7 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'control/portal/epc_visual_page_editor' => array(
-			'css' => array('/content/general_pages/epc_visual_page_editor_css.php?v=' . rawurlencode($ver)),
+			'css' => array('/content/general_pages/epc_visual_page_editor_css.php?v=' . rawurlencode($ver . 'vpe1')),
 		),
 		'control/portal/epc_pos_tenant_manage' => array(
 			'css' => array(
@@ -104,18 +114,18 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'control/portal/epc_auto_price_engine' => array(
-			'css' => array('/content/general_pages/epc_auto_price_engine_css.php?v=' . rawurlencode($ver)),
+			'css' => array('/content/general_pages/epc_auto_price_engine_css.php?v=' . rawurlencode($ver . 'disc1')),
 			'js' => array(
-				'/content/general_pages/epc_auto_price_shell_js.php?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/epc_auto_price_discover.js?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/epc_auto_price_imports.js?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/epc_auto_price_product_lines.js?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/epc_auto_price_sources.js?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/epc_auto_price_compare.js?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_auto_price_shell_js.php?v=' . rawurlencode($ver . 'disc1'),
+				'/' . $backend . '/content/control/portal/epc_auto_price_discover.js?v=' . rawurlencode($ver . 'disc1'),
+				'/' . $backend . '/content/control/portal/epc_auto_price_imports.js?v=' . rawurlencode($ver . 'disc1'),
+				'/' . $backend . '/content/control/portal/epc_auto_price_product_lines.js?v=' . rawurlencode($ver . 'disc1'),
+				'/' . $backend . '/content/control/portal/epc_auto_price_sources.js?v=' . rawurlencode($ver . 'disc1'),
+				'/' . $backend . '/content/control/portal/epc_auto_price_compare.js?v=' . rawurlencode($ver . 'disc1'),
 			),
 		),
 		'control/portal/epc_auto_price_guide' => array(
-			'css' => array('/content/general_pages/epc_auto_price_engine_css.php?v=' . rawurlencode($ver)),
+			'css' => array('/content/general_pages/epc_auto_price_engine_css.php?v=' . rawurlencode($ver . 'disc1')),
 		),
 		'control/portal/epc_erp_only_onboard_guide' => array(
 			'css' => array(
@@ -139,11 +149,21 @@ function epc_cp_page_asset_url_map(): array
 			'css' => array(
 				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
 				'/content/general_pages/epc_portal_module_pages_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_integrations_hub_css.php?v=' . rawurlencode($ver . 'inthub3'),
 			),
 			'js' => array(
 				'/' . $backend . '/content/control/portal/epc_integrations_hub_config.php?v=' . rawurlencode($ver),
 				'/' . $backend . '/content/control/portal/epc_integrations_hub.js?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/control/portal/epc_integrations_hub_ui.js?v=' . rawurlencode($ver . 'inthub3'),
 			),
+		),
+		'control/portal/epc_integrations_guide' => array(
+			'css' => array(
+				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_portal_module_pages_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_integrations_hub_css.php?v=' . rawurlencode($ver . 'inthub3'),
+			),
+			'js' => array(),
 		),
 		'control/portal/epc_social_media_hub' => array(
 			'css' => array(
@@ -160,11 +180,25 @@ function epc_cp_page_asset_url_map(): array
 			'css' => array(
 				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
 				'/content/general_pages/epc_portal_module_pages_css.php?v=' . rawurlencode($ver),
-				'/content/general_pages/epc_marketing_broadcast_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_marketing_broadcast_css.php?v=' . rawurlencode($ver . 'mb2'),
 			),
 			'js' => array(
-				'/content/general_pages/epc_marketing_broadcast_config.php?v=' . rawurlencode($ver),
-				'/content/general_pages/epc_marketing_broadcast_js.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_marketing_broadcast_config.php?v=' . rawurlencode($ver . 'mb2'),
+				'/content/general_pages/epc_marketing_broadcast_js.php?v=' . rawurlencode($ver . 'mb2'),
+			),
+		),
+		'shop/marketing/marketing' => array(
+			'css' => array(
+				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_marketing_hub_css.php?v=' . rawurlencode($ver . 'mktHub2'),
+			),
+			'js' => array(
+				'/content/general_pages/epc_marketing_hub_js.php?v=' . rawurlencode($ver . 'mktHub2'),
+			),
+		),
+		'shop/payments/payments' => array(
+			'js' => array(
+				'/content/general_pages/epc_payments_cp_js.php?v=' . rawurlencode($ver . 'payAcc2'),
 			),
 		),
 		'control/portal/epc_mobile_apps' => array(
@@ -203,9 +237,9 @@ function epc_cp_page_asset_url_map(): array
 		'shop/pos/terminal' => array(
 			'css' => array(
 				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver),
-				'/content/shop/pos/epc_pos_css.php?v=' . rawurlencode($ver),
+				'/content/shop/pos/epc_pos_css.php?v=' . rawurlencode($ver . 'posui1'),
 			),
-			'js' => array('/content/shop/pos/epc_pos_terminal_js.php?v=' . rawurlencode($ver)),
+			'js' => array('/content/shop/pos/epc_pos_terminal_js.php?v=' . rawurlencode($ver . 'posui1')),
 		),
 		'shop/orders/items' => array(
 			'css' => array(
@@ -278,6 +312,15 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/order_process/order_card_cp.js?v=' . rawurlencode($ver . 'omsForms2'),
 			),
 		),
+		'shop/logistics/carriers' => array(
+			'css' => array(
+				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver . 'lc3'),
+				'/content/general_pages/epc_logistics_carriers.css?v=' . rawurlencode($ver . 'lc3'),
+			),
+			'js' => array(
+				'/' . $backend . '/content/shop/logistics/logistics_carriers.js?v=' . rawurlencode($ver . 'lc3'),
+			),
+		),
 		'shop/logistics/storages' => array(
 			'js' => array(
 				'/' . $backend . '/content/shop/epc_cp_table_filter.js?v=' . rawurlencode($ver . 'cpFull2'),
@@ -297,11 +340,19 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/quote_requests/quote_alt_offer.js?v=' . rawurlencode($ver . 'qAlt2'),
 			),
 		),
-		'shop/parts_agent_chats' => array(
-			'css' => array('/content/general_pages/epc_agent_cp_css.php?v=' . rawurlencode($ver . 'cpFull2')),
+		'shop/bulk_upload' => array(
+			'css' => array(
+				'/content/general_pages/epc_bulk_cp.css?v=' . rawurlencode($ver . 'bu1'),
+			),
 			'js' => array(
-				'/content/shop/parts_agent/parts_agent_chats_config.php?v=' . rawurlencode($ver . 'cpFull2'),
-				'/content/general_pages/epc_agent_cp_js.php?v=' . rawurlencode($ver . 'cpFull2'),
+				'/' . $backend . '/content/shop/bulk_upload/bulk_upload_hub.js?v=' . rawurlencode($ver . 'bu1'),
+			),
+		),
+		'shop/parts_agent_chats' => array(
+			'css' => array('/content/general_pages/epc_agent_cp_css.php?v=' . rawurlencode($ver . 'pacFix3')),
+			'js' => array(
+				'/content/shop/parts_agent/parts_agent_chats_config.php?v=' . rawurlencode($ver . 'pacFix3'),
+				'/content/general_pages/epc_agent_cp_js.php?v=' . rawurlencode($ver . 'pacFix3'),
 			),
 		),
 		'shop/accessories' => array(
@@ -361,6 +412,9 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/filemanager/epc_filemanager_config.php?v=' . rawurlencode($ver . 'fm5'),
 				'/' . $backend . '/content/filemanager/epc_filemanager.js?v=' . rawurlencode($ver . 'fm5'),
 			),
+		),
+		'shop/catalogue/catalogue_editor' => array(
+			'css' => array('/content/shop/catalogue/epc_catalogue_editor.css?v=' . rawurlencode($ver . 'catEd1')),
 		),
 		'shop/prices/upload' => array(
 			'js' => array(
@@ -536,11 +590,15 @@ function epc_cp_page_footer_scripts(string $contentUrl): void
 	if ($contentUrl === 'control/portal/epc_visual_page_editor') {
 		global $DP_Config;
 		$backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
-		$ver = epc_cp_page_asset_version();
+		$ver = epc_cp_page_asset_version() . 'vpe1';
 		$siteKey = isset($_GET['site_key']) ? preg_replace('/[^a-z0-9_]/', '', strtolower((string) $_GET['site_key'])) : '';
+		$pageKey = isset($_GET['page_key']) ? preg_replace('/[^a-z0-9_-]/', '', strtolower((string) $_GET['page_key'])) : '';
 		$qs = 'v=' . rawurlencode($ver);
 		if ($siteKey !== '') {
 			$qs .= '&site_key=' . rawurlencode($siteKey);
+		}
+		if ($pageKey !== '') {
+			$qs .= '&page_key=' . rawurlencode($pageKey);
 		}
 		$configSrc = '/' . $backend . '/content/control/portal/epc_visual_page_editor_config.php?' . $qs;
 		$jsSrc = '/' . $backend . '/content/control/portal/epc_visual_page_editor.js?v=' . rawurlencode($ver);

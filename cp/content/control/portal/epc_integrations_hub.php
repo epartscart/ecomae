@@ -16,7 +16,9 @@ global $db_link;
 $pdo = ($db_link instanceof PDO) ? $db_link : null;
 $isSuper = function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host();
 $rows = epc_integrations_hub_rows($pdo, $isSuper);
+$categories = epc_integrations_categories();
 $backend = epc_int_backend();
+$guideUrl = '/' . $backend . '/control/portal/epc_integrations_guide';
 $marketLabel = 'United Arab Emirates';
 if (!$isSuper) {
 	$marketFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/tenant_hub/epc_tenant_country_profile.php';
@@ -26,85 +28,172 @@ if (!$isSuper) {
 	}
 }
 
+$activeCount = 0;
+$guideCount = 0;
+foreach ($rows as $row) {
+	if (!empty($row['active'])) {
+		$activeCount++;
+	}
+	if (!empty($row['guide'])) {
+		$guideCount++;
+	}
+}
+$totalCount = count($rows);
+
+$byCategory = array();
+foreach ($categories as $catKey => $catMeta) {
+	$byCategory[$catKey] = array();
+}
+foreach ($rows as $row) {
+	$cat = (string) ($row['category'] ?? 'platform');
+	if (!isset($byCategory[$cat])) {
+		$byCategory[$cat] = array();
+	}
+	$byCategory[$cat][] = $row;
+}
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_frame.php';
 epc_cp_page_frame_open(array(
-	'class' => 'epc-int-hub',
-	'hero' => array(
-		'badge' => $isSuper ? 'Super CP' : 'Tenant CP',
-		'title' => 'Integrations hub',
-		'sub' => 'Enable → configure → test. Each row links to settings and operator guide.',
-		'actions' => $isSuper ? array(
-			array('label' => 'Tenant features', 'icon' => 'fa-sliders', 'url' => '/' . $backend . '/control/portal/epc_tenant_features', 'primary' => true),
-			array('label' => 'Mobile apps', 'icon' => 'fa-mobile-alt', 'url' => '/' . $backend . '/control/portal/epc_mobile_apps'),
-		) : array(
-			array('label' => 'Email / SMTP', 'icon' => 'fa-envelope', 'url' => '/' . $backend . '/control/portal/epc_tenant_email_settings'),
-			array('label' => 'Mobile apps', 'icon' => 'fa-mobile-alt', 'url' => '/' . $backend . '/control/portal/epc_mobile_apps'),
-		),
-	),
+	'class' => 'epc-inthub',
 ));
 ?>
 
-<?php if (!$isSuper) { ?>
-<div class="alert alert-info" style="margin-bottom:14px">
-	<i class="fa fa-globe"></i> <strong>Your market:</strong> <?php echo epc_int_h($marketLabel); ?>
-	<span class="text-muted small"> — Tax, Auto Price AI discovery sources, and ERP defaults follow your registered country. Contact Super CP to request a change.</span>
-</div>
-<?php } ?>
-
-<div class="panel panel-default">
-	<div class="panel-heading"><strong><i class="fa fa-plug"></i> Platform integrations</strong></div>
-	<div class="panel-body" style="padding:0">
-		<table class="table table-hover" style="margin:0">
-			<thead>
-				<tr>
-					<th>Integration</th>
-					<th>Status</th>
-					<th style="width:220px">Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-			<?php foreach ($rows as $row) { ?>
-				<tr>
-					<td>
-						<i class="fa <?php echo epc_int_h($row['icon']); ?>" style="color:<?php echo epc_int_h($row['color']); ?>"></i>
-						<strong><?php echo epc_int_h($row['label']); ?></strong>
-						<?php if (!empty($row['super_only'])) { ?>
-						<span class="label label-default">Super CP config</span>
-						<?php } ?>
-					</td>
-					<td>
-						<?php if (!empty($row['active'])) { ?>
-						<span class="label label-success">Active</span>
-						<?php } else { ?>
-						<span class="label label-default">Inactive</span>
-						<?php } ?>
-					</td>
-					<td>
-						<?php if (!empty($row['configure_url']) && (!$row['super_only'] || $isSuper)) { ?>
-						<a class="btn btn-xs btn-primary" href="<?php echo epc_int_h($row['configure_url']); ?>"><i class="fa fa-cog"></i> Configure</a>
-						<?php } elseif (!empty($row['super_only']) && !$isSuper) { ?>
-						<span class="text-muted small">Configured on ecomae.com</span>
-						<?php } ?>
-					</td>
-				</tr>
+<div id="epc-inthub-root" class="epc-inthub-shell">
+	<div class="epc-inthub-brand">
+		<div>
+			<div class="epc-inthub-brand__mark"><?php echo $isSuper ? 'Ecomae · Super CP' : 'EPartsCart · Tenant CP'; ?></div>
+			<h2>Integrations Hub</h2>
+			<p>Enable, configure, and test every connected module from one place. Each card links to settings and an operator guide.</p>
+		</div>
+		<div class="epc-inthub-brand__actions">
+			<a class="btn btn-sm btn-primary" href="<?php echo epc_int_h($guideUrl); ?>"><i class="fa fa-book"></i> Full guide</a>
+			<?php if ($isSuper) { ?>
+			<a class="btn btn-sm btn-default" href="/<?php echo epc_int_h($backend); ?>/control/portal/epc_tenant_features"><i class="fa fa-sliders"></i> Tenant features</a>
+			<a class="btn btn-sm btn-default" href="/<?php echo epc_int_h($backend); ?>/control/portal/epc_mobile_apps"><i class="fa fa-mobile-alt"></i> Mobile apps</a>
+			<?php } else { ?>
+			<a class="btn btn-sm btn-default" href="/<?php echo epc_int_h($backend); ?>/control/portal/epc_tenant_email_settings"><i class="fa fa-envelope"></i> Email / SMTP</a>
+			<a class="btn btn-sm btn-default" href="/<?php echo epc_int_h($backend); ?>/control/portal/epc_mobile_apps"><i class="fa fa-mobile-alt"></i> Mobile apps</a>
 			<?php } ?>
-			</tbody>
-		</table>
+		</div>
 	</div>
-</div>
 
-<div class="panel panel-default">
-	<div class="panel-heading">
-		<a class="showhide"><i class="fa fa-chevron-up"></i></a>
-		<strong><i class="fa fa-book"></i> Activate in 3 steps</strong>
+	<div class="epc-inthub-stats">
+		<div class="epc-inthub-stat">
+			<div class="epc-inthub-stat__val"><?php echo (int) $activeCount; ?></div>
+			<div class="epc-inthub-stat__lbl">Active</div>
+		</div>
+		<div class="epc-inthub-stat">
+			<div class="epc-inthub-stat__val"><?php echo (int) $totalCount; ?></div>
+			<div class="epc-inthub-stat__lbl">In catalog</div>
+		</div>
+		<div class="epc-inthub-stat">
+			<div class="epc-inthub-stat__val"><?php echo (int) $guideCount; ?></div>
+			<div class="epc-inthub-stat__lbl">Guides ready</div>
+		</div>
 	</div>
-	<div class="panel-body">
-		<ol>
-			<li><strong>Enable</strong> — Super CP operator toggles the feature per tenant under <a href="/<?php echo epc_int_h($backend); ?>/control/portal/epc_tenant_features">Tenant features</a>.</li>
-			<li><strong>Configure</strong> — Open <em>Configure</em> for each integration (SMTP credentials, store URLs, payment keys, etc.).</li>
-			<li><strong>Test</strong> — Use built-in test buttons (SMTP send, POS sale, OAuth login) before go-live.</li>
-		</ol>
-		<p class="text-muted small">Full guide: <code>docs/guides/INTEGRATIONS.md</code> in the repo.</p>
+
+	<?php if (!$isSuper) { ?>
+	<div class="epc-inthub-market">
+		<i class="fa fa-globe"></i>
+		<div>
+			<strong>Your market:</strong> <?php echo epc_int_h($marketLabel); ?>
+			<span> — Tax, Auto Price discovery sources, and ERP defaults follow your registered country.</span>
+		</div>
+	</div>
+	<?php } ?>
+
+	<div class="epc-inthub-toolbar">
+		<div class="epc-inthub-search">
+			<i class="fa fa-search"></i>
+			<input type="search" data-inthub-search placeholder="Search integrations…" aria-label="Search integrations">
+		</div>
+		<div class="epc-inthub-chips">
+			<button type="button" class="epc-inthub-chip is-active" data-inthub-chip="all">All</button>
+			<?php foreach ($categories as $catKey => $catMeta) {
+				if (empty($byCategory[$catKey])) {
+					continue;
+				}
+				?>
+			<button type="button" class="epc-inthub-chip" data-inthub-chip="<?php echo epc_int_h($catKey); ?>">
+				<?php echo epc_int_h($catMeta['label']); ?>
+			</button>
+			<?php } ?>
+		</div>
+	</div>
+
+	<div class="epc-inthub-empty" data-inthub-empty>
+		No integrations match your filter. Clear search or choose another category.
+	</div>
+
+	<?php foreach ($categories as $catKey => $catMeta) {
+		$items = $byCategory[$catKey] ?? array();
+		if (!$items) {
+			continue;
+		}
+		?>
+	<section class="epc-inthub-section" data-inthub-section data-category="<?php echo epc_int_h($catKey); ?>">
+		<div class="epc-inthub-section__head">
+			<h3><i class="fa <?php echo epc_int_h($catMeta['icon']); ?>"></i><?php echo epc_int_h($catMeta['label']); ?></h3>
+			<span><?php echo epc_int_h($catMeta['blurb']); ?></span>
+		</div>
+		<div class="epc-inthub-grid">
+			<?php foreach ($items as $row) {
+				$searchHay = strtolower($row['label'] . ' ' . $row['blurb'] . ' ' . $row['key'] . ' ' . $catMeta['label']);
+				$canConfigure = !empty($row['configure_url']) && (empty($row['super_only']) || $isSuper);
+				?>
+			<article
+				class="epc-inthub-card<?php echo empty($row['active']) ? ' is-inactive' : ''; ?>"
+				data-inthub-card
+				data-category="<?php echo epc_int_h($row['category']); ?>"
+				data-search="<?php echo epc_int_h($searchHay); ?>"
+			>
+				<div class="epc-inthub-card__top">
+					<div class="epc-inthub-card__icon" style="background:<?php echo epc_int_h($row['color']); ?>">
+						<i class="fa <?php echo epc_int_h($row['icon']); ?>"></i>
+					</div>
+					<div>
+						<span class="epc-inthub-pill <?php echo !empty($row['active']) ? 'epc-inthub-pill--on' : 'epc-inthub-pill--off'; ?>">
+							<?php echo !empty($row['active']) ? 'Active' : 'Inactive'; ?>
+						</span>
+						<?php if (!empty($row['super_only'])) { ?>
+						<span class="epc-inthub-pill epc-inthub-pill--super">Super CP</span>
+						<?php } ?>
+					</div>
+				</div>
+				<h4 class="epc-inthub-card__title"><?php echo epc_int_h($row['label']); ?></h4>
+				<p class="epc-inthub-card__blurb"><?php echo epc_int_h($row['blurb']); ?></p>
+				<div class="epc-inthub-card__actions">
+					<?php if ($canConfigure) { ?>
+					<a class="btn btn-sm btn-primary" href="<?php echo epc_int_h($row['configure_url']); ?>"><i class="fa fa-cog"></i> Configure</a>
+					<?php } elseif (!empty($row['super_only']) && !$isSuper) { ?>
+					<span class="epc-inthub-card__muted">Configured on ecomae.com</span>
+					<?php } ?>
+					<?php if (!empty($row['guide'])) { ?>
+					<a class="btn btn-sm btn-default" href="<?php echo epc_int_h($row['guide']); ?>"><i class="fa fa-book"></i> Guide</a>
+					<?php } ?>
+				</div>
+			</article>
+			<?php } ?>
+		</div>
+	</section>
+	<?php } ?>
+
+	<div class="epc-inthub-playbook">
+		<div class="epc-inthub-step">
+			<div class="epc-inthub-step__n">1</div>
+			<h4>Enable</h4>
+			<p>Super CP toggles features per tenant under <a href="/<?php echo epc_int_h($backend); ?>/control/portal/epc_tenant_features">Tenant features</a>.</p>
+		</div>
+		<div class="epc-inthub-step">
+			<div class="epc-inthub-step__n">2</div>
+			<h4>Configure</h4>
+			<p>Open <em>Configure</em> on each card — SMTP, payment keys, pixels, store URLs, and API clients.</p>
+		</div>
+		<div class="epc-inthub-step">
+			<div class="epc-inthub-step__n">3</div>
+			<h4>Test &amp; go live</h4>
+			<p>Use built-in test actions, then follow the <a href="<?php echo epc_int_h($guideUrl); ?>">Integrations guide</a> checklist for each module.</p>
+		</div>
 	</div>
 </div>
 

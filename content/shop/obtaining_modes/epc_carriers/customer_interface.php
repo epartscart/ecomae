@@ -66,7 +66,7 @@ function epcCarrierNext() {
 	var country = (document.getElementById('epc_c_country').value || 'AE').toUpperCase().substring(0, 2);
 	var weight = parseFloat(document.getElementById('epc_c_weight').value || '1') || 1;
 	// Demo tariff table (must match PHP epc_channel_demo_rate) — customer pays this fee on the invoice.
-	var base = {dhl: 45, fedex: 42, aramex: 28, ups: 38};
+	var base = <?php echo json_encode(epc_channel_carrier_demo_bases(), JSON_UNESCAPED_SLASHES); ?>;
 	var b = base[carrier] != null ? base[carrier] : 35;
 	var intl = (country && country !== 'AE') ? 1.35 : 1.0;
 	var rate = Math.round((b + (Math.max(0.1, weight) * 8.5)) * intl * 100) / 100;

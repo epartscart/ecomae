@@ -225,6 +225,7 @@ if( isset($_GET['order_id']) )
 				{
 					?>
 					<div class="form-horizontal">
+						<?php require $_SERVER['DOCUMENT_ROOT'] . '/content/shop/payments/epc_payment_method_picker.php'; ?>
 						<?php
 						//Если включена частичная оплата заказа
 						if( $DP_Config->partial_payment )
@@ -350,6 +351,9 @@ if( isset($_GET['order_id']) )
 						var request_object = new Object;
 						request_object.order_id = <?php echo $order_id; ?>;
 						request_object.amount = pay_value;
+						if (typeof window.epcSelectedPayHandler === 'function') {
+							request_object.pay_handler = window.epcSelectedPayHandler();
+						}
 						
 						jQuery.ajax({
 							type: "POST",

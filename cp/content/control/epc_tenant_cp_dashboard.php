@@ -469,7 +469,9 @@ $dayLabelsJson = json_encode(array_values((array) $stats['day_labels']));
 $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['day_counts'])));
 ?>
 <link rel="stylesheet" href="<?php echo epc_tcp_dash_h($cssHref); ?>">
-<link rel="stylesheet" href="/content/shop/finance/epc_insights_suite.css?v=20260721insights1">
+<?php if (function_exists('epc_insights_suite_css_href')) { ?>
+<link rel="stylesheet" href="<?php echo epc_tcp_dash_h(epc_insights_suite_css_href()); ?>">
+<?php } ?>';
 
 <div class="col-lg-12 cp-dash" data-cp-dashboard="command">
 	<div class="cp-dash-hero">

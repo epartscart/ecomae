@@ -1,14 +1,35 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
 $DP_Config = new DP_Config;
+$GLOBALS['DP_Config'] = $DP_Config;
+
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
+	if (function_exists('epc_portal_apply_config')) {
+		try {
+			epc_portal_apply_config($DP_Config);
+			$GLOBALS['DP_Config'] = $DP_Config;
+		} catch (Throwable $e) {
+		}
+	}
+}
 
 try {
-	$db_link = new PDO('mysql:host=' . $DP_Config->host . ';dbname=' . $DP_Config->db . ';charset=utf8', $DP_Config->user, $DP_Config->password);
+	$dbHost = trim((string) ($DP_Config->host ?? ''));
+	if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+		$dbHost = '127.0.0.1';
+	}
+	$db_link = new PDO(
+		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8',
+		$DP_Config->user,
+		$DP_Config->password
+	);
 } catch (PDOException $e) {
 	exit(json_encode(array('status' => false, 'message' => 'No DB connect')));
 }
 $db_link->query('SET NAMES utf8;');
 $db_link->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$GLOBALS['db_link'] = $db_link;
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_parts_agent.php';
@@ -118,12 +139,21 @@ try {
 
 	if ($action === 'list') {
 		$result = epc_agent_cp_list_sessions($db_link, $filters, $limit, $offset);
+		$synced = 0;
+		// Auto-import temp JSON sessions when the DB list is empty (common after chat before first CP open).
+		if ((int) $result['total'] === 0 && empty($filters)) {
+			$synced = epc_agent_cp_sync_file_sessions($db_link, 200);
+			if ($synced > 0) {
+				$result = epc_agent_cp_list_sessions($db_link, $filters, $limit, $offset);
+			}
+		}
 		exit(epc_agent_cp_json_encode(array(
 			'status' => true,
 			'sessions' => $result['sessions'],
 			'total' => $result['total'],
 			'limit' => max(1, min(200, $limit)),
 			'offset' => max(0, $offset),
+			'auto_synced' => $synced,
 		)));
 	}
 

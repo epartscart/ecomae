@@ -556,7 +556,6 @@ if (function_exists('epc_erp_shell_asset_href')) {
 		}
 	}
 	if ($nsInsightsHtml !== '') {
-		echo '<link rel="stylesheet" href="/content/shop/finance/epc_insights_suite.css?v=20260721insights1">';
 		echo '<div class="ns-port"><div class="bd" style="padding:12px">' . $nsInsightsHtml . '</div></div>';
 	}
 	?>

@@ -54,7 +54,7 @@ else//Пользователь не авторизован - ВЫВОД СТРА
     ?>
 
     <!-- Start ФОРМА РЕГИСТРАЦИИ -->
-    <form action="<?php echo $multilang_params['lang_href']; ?>/users/register" id="regform" onsubmit="return onSubmitCheck();" method="post">
+    <form action="<?php echo $multilang_params['lang_href']; ?>/users/register" id="regform" onsubmit="return onSubmitCheck();" method="post" enctype="multipart/form-data">
 		<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
         <!--Блок для выбора Регистрационного Варианта-->
         <div id="RegVariantsSelector">
@@ -215,13 +215,36 @@ else//Пользователь не авторизован - ВЫВОД СТРА
 		
 		
         
-        <!-- Блок для дополнительных полей -->
-        <div id="additional_fields_div">
+        <!-- Блок для дополнительных полей (hidden for retail when enhanced tabs are used; wholesale KYC lives in the Wholesale tab) -->
+        <div id="additional_fields_div"<?php echo !empty($epc_reg_enhanced_ok) ? ' style="display:none;" data-epc-enhanced="1"' : ''; ?>>
         </div>
         <script>
         //Перегенировать поля
+        function epcRegUsesEnhancedTabs(){
+            var box=document.getElementById("additional_fields_div");
+            return !!(box && box.getAttribute("data-epc-enhanced") === "1");
+        }
+        function epcRegIsWholesaleSelected(){
+            if(typeof epcRegActiveType === "function"){
+                return epcRegActiveType() === "wholesale";
+            }
+            var hf=document.getElementById("epc_customer_type_field");
+            if(hf && hf.value){ return hf.value === "wholesale"; }
+            var radio=document.querySelector('input[name="epc_customer_type"]:checked');
+            return !!(radio && radio.value === "wholesale");
+        }
         function regenerateFields()
         {
+            var wrap=document.getElementById("additional_fields_div");
+            // Enhanced Retail/Wholesale tabs already collect profile + KYC/docs.
+            // Additional information is wholesale-only there — do not render CMS duplicates for retail (or wholesale).
+            if(epcRegUsesEnhancedTabs()){
+                if(wrap){
+                    wrap.innerHTML = "";
+                    wrap.style.display = "none";
+                }
+                return;
+            }
             if( reg_fields.length == 0 )
             {
                 return;
@@ -259,6 +282,15 @@ else//Пользователь не авторизован - ВЫВОД СТРА
                     case "text":
                         additional_html += "<input onKeyUp=\"dynamicApplying('"+reg_fields[i].name+"');\" type=\"text\" name=\""+reg_fields[i].name+"\" id=\""+reg_fields[i].name+"\" value='"+reg_fields[i].value_buffer.replace('/(["\'\])/g', "\\$1")+"' class=\"form-control\" placeholder=\""+example+"\" />";
                         break;
+                    case "file":
+                        additional_html += "<input type=\"file\" name=\""+reg_fields[i].name+"\" id=\""+reg_fields[i].name+"\" class=\"form-control\" accept=\".pdf,.jpg,.jpeg,.png,.webp\" />";
+                        if (example) {
+                            additional_html += "<p class=\"help-block\" style=\"margin:4px 0 0;\">"+example+"</p>";
+                        }
+                        break;
+                    case "select":
+                        additional_html += "<input onKeyUp=\"dynamicApplying('"+reg_fields[i].name+"');\" type=\"text\" name=\""+reg_fields[i].name+"\" id=\""+reg_fields[i].name+"\" value='"+reg_fields[i].value_buffer.replace('/(["\'\])/g', "\\$1")+"' class=\"form-control\" placeholder=\""+example+"\" />";
+                        break;
                 };
                 
                 
@@ -270,6 +302,7 @@ else//Пользователь не авторизован - ВЫВОД СТРА
             
             
             document.getElementById("additional_fields_div").innerHTML = additional_html;
+            if(wrap){ wrap.style.display = ""; }
         }//~function regenerateFields()
         
         
@@ -370,17 +403,27 @@ if (is_file($_epcOtpModalFile)) {
         var currentRegVariant = document.getElementById("reg_variant_selector").value;
         
         //1.2 Проверка факта заполнения полей какими-либо значениями
-    	for(var i=0; i<reg_fields.length; i++)
+        // Enhanced Retail/Wholesale tabs own these fields — skip CMS "Additional information" required checks for retail.
+    	if(!epcRegUsesEnhancedTabs())
     	{
-    		if(reg_fields[i].required_for.indexOf(parseInt(currentRegVariant)) != -1)//Заполнение требуется для данного Регистрационного Варианта
-    		{
-    			if(document.getElementById(reg_fields[i].name).value == "")//Но поле не заполнено
-    			{
-    				alert("Заполните поле "+reg_fields[i].caption);
-    				return false;
-    			}
-    		}
-    	}//for(i)
+	    	for(var i=0; i<reg_fields.length; i++)
+	    	{
+	    		if(reg_fields[i].required_for.indexOf(parseInt(currentRegVariant)) != -1)//Заполнение требуется для данного Регистрационного Варианта
+	    		{
+	    			var reqEl=document.getElementById(reg_fields[i].name);
+	    			if(!reqEl){ continue; }
+	    			if(reg_fields[i].widget_type === "file"){
+	    				if(!reqEl.files || !reqEl.files.length){
+	    					alert("Заполните поле "+reg_fields[i].caption);
+	    					return false;
+	    				}
+	    			}else if(reqEl.value == ""){//Но поле не заполнено
+	    				alert("Заполните поле "+reg_fields[i].caption);
+	    				return false;
+	    			}
+	    		}
+	    	}//for(i)
+    	}
         
         
         //1.3 Обработка заполнения пароля:
@@ -402,41 +445,50 @@ if (is_file($_epcOtpModalFile)) {
     	
     	//1.4 Проверка соответствия заполненных значений регулярным выражениям
     	//Если поле пустое - значит его можно было не заполнять (проверка на факт заполнения следует раньше). Но есть там есть значение, то оно обязательно должно соответствовать RegExp, даже если оно не обязательно к заполнению
-    	for(var i=0; i<reg_fields.length; i++)
+    	if(!epcRegUsesEnhancedTabs())
     	{
-    		if(reg_fields[i].show_for.indexOf(parseInt(currentRegVariant)) == -1)//У этого поля не указан текущий Регистрационный Вариант - его нет в форме
-    		{
-    			continue;
-    		}
-			
-			//Если регулярное выражение пустое - значит пропускаем, т.к. требований к содержимому нет
-			if(reg_fields[i].regexp == "")
-			{
-				continue;
-			}
-    		
-    		if(String(document.getElementById(reg_fields[i].name).value) != "")
-    		{
-    			var current_value = String(document.getElementById(reg_fields[i].name).value);//Заполненное значение
-    			var regex = new RegExp(reg_fields[i].regexp);//Регулярное выражение для поля
-    			//Далее ищем подстроку по регулярному выражению
-    			var match = regex.exec(String(current_value));
-    			if(match == null)
-    			{
-    				alert("<?php echo translate_str_by_id(3885); ?> "+reg_fields[i].caption+" <?php echo translate_str_by_id(3930); ?>");
-    				return false;
-    			}
-    			else
-    			{
-    				var match_value = String(match[0]);//Подходящая подстрока
-    				if(match_value != current_value)
-    				{
-    					alert("<?php echo translate_str_by_id(3893); ?> "+reg_fields[i].caption+" <?php echo translate_str_by_id(3931); ?>");
-    					return false;
-    				}
-    			}
-    			//Заполнено правильно, если: есть подстрока по регулярному выражению и она полностью равна самой строке
-    		}
+	    	for(var i=0; i<reg_fields.length; i++)
+	    	{
+	    		if(reg_fields[i].show_for.indexOf(parseInt(currentRegVariant)) == -1)//У этого поля не указан текущий Регистрационный Вариант - его нет в форме
+	    		{
+	    			continue;
+	    		}
+	    		if(reg_fields[i].widget_type === "file")
+	    		{
+	    			continue;
+	    		}
+				
+				//Если регулярное выражение пустое - значит пропускаем, т.к. требований к содержимому нет
+				if(reg_fields[i].regexp == "")
+				{
+					continue;
+				}
+	    		
+	    		var fldEl=document.getElementById(reg_fields[i].name);
+	    		if(!fldEl){ continue; }
+	    		if(String(fldEl.value) != "")
+	    		{
+	    			var current_value = String(fldEl.value);//Заполненное значение
+	    			var regex = new RegExp(reg_fields[i].regexp);//Регулярное выражение для поля
+	    			//Далее ищем подстроку по регулярному выражению
+	    			var match = regex.exec(String(current_value));
+	    			if(match == null)
+	    			{
+	    				alert("<?php echo translate_str_by_id(3885); ?> "+reg_fields[i].caption+" <?php echo translate_str_by_id(3930); ?>");
+	    				return false;
+	    			}
+	    			else
+	    			{
+	    				var match_value = String(match[0]);//Подходящая подстрока
+	    				if(match_value != current_value)
+	    				{
+	    					alert("<?php echo translate_str_by_id(3893); ?> "+reg_fields[i].caption+" <?php echo translate_str_by_id(3931); ?>");
+	    					return false;
+	    				}
+	    			}
+	    			//Заполнено правильно, если: есть подстрока по регулярному выражению и она полностью равна самой строке
+	    		}
+	    	}
     	}
     	
     	

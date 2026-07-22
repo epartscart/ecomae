@@ -66,7 +66,7 @@ defined('_ASTEXE_') or die('No access');
 		<div class="epc-logistics-grid">
 			<a class="epc-logistics-card" href="/<?php echo $DP_Config->backend_dir; ?>/shop/logistics/carriers">
 				<i class="epc-logistics-icon fas fa-shipping-fast" style="background:#0f766e;"></i>
-				<span><strong>Carriers &amp; shipments</strong>DHL, FedEx, Aramex, UPS — rates at checkout and labels from order card.</span>
+				<span><strong>Carriers &amp; shipments</strong>20+ worldwide partners — rates at checkout and labels from order card.</span>
 			</a>
 			<a class="epc-logistics-card" href="/<?php echo $DP_Config->backend_dir; ?>/shop/logistics/offices">
 				<i class="epc-logistics-icon fas fa-store" style="background:#2563eb;"></i>

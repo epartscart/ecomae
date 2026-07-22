@@ -16,21 +16,175 @@ function epc_channel_money($amount)
 	return number_format((float)$amount, 2, '.', ',');
 }
 
+/**
+ * Worldwide carrier partners for storefront checkout + CP logistics hub.
+ * demo_base = AED demo tariff floor used by epc_channel_demo_rate().
+ *
+ * @return array<string,array<string,mixed>>
+ */
 function epc_channel_carriers_catalog()
 {
 	return array(
-		'dhl' => array('name' => 'DHL Express', 'track_url' => 'https://www.dhl.com/ae-en/home/tracking.html?tracking-id=%s', 'services' => array('EXPRESS' => 'Express Worldwide', 'ECONOMY' => 'Economy Select')),
-		'fedex' => array('name' => 'FedEx', 'track_url' => 'https://www.fedex.com/fedextrack/?trknbr=%s', 'services' => array('PRIORITY' => 'International Priority', 'ECONOMY' => 'International Economy')),
-		'aramex' => array('name' => 'Aramex', 'track_url' => 'https://www.aramex.com/track/results?ShipmentNumber=%s', 'services' => array('PPX' => 'Parcel Express', 'DOM' => 'Domestic')),
-		'ups' => array('name' => 'UPS', 'track_url' => 'https://www.ups.com/track?tracknum=%s', 'services' => array('STANDARD' => 'Worldwide Saver')),
+		'dhl' => array(
+			'name' => 'DHL Express', 'region' => 'Global', 'accent' => '#d40511', 'icon' => 'fa-plane',
+			'blurb' => 'Express worldwide via Dubai & European hubs',
+			'track_url' => 'https://www.dhl.com/ae-en/home/tracking.html?tracking-id=%s',
+			'services' => array('EXPRESS' => 'Express Worldwide', 'ECONOMY' => 'Economy Select'),
+			'demo_base' => 45,
+		),
+		'fedex' => array(
+			'name' => 'FedEx', 'region' => 'Global', 'accent' => '#4d148c', 'icon' => 'fa-globe',
+			'blurb' => 'International Priority & Economy from UAE',
+			'track_url' => 'https://www.fedex.com/fedextrack/?trknbr=%s',
+			'services' => array('PRIORITY' => 'International Priority', 'ECONOMY' => 'International Economy'),
+			'demo_base' => 42,
+		),
+		'ups' => array(
+			'name' => 'UPS', 'region' => 'Global', 'accent' => '#351c15', 'icon' => 'fa-truck',
+			'blurb' => 'Worldwide Saver & freight for B2B parts',
+			'track_url' => 'https://www.ups.com/track?tracknum=%s',
+			'services' => array('STANDARD' => 'Worldwide Saver', 'EXPRESS' => 'Worldwide Express'),
+			'demo_base' => 38,
+		),
+		'tnt' => array(
+			'name' => 'TNT Express', 'region' => 'Global', 'accent' => '#ff6600', 'icon' => 'fa-rocket',
+			'blurb' => 'Europe & global express (FedEx network)',
+			'track_url' => 'https://www.tnt.com/express/en_ae/site/shipping-tools/tracking.html?searchType=con&cons=%s',
+			'services' => array('EXPRESS' => 'Global Express', 'ECONOMY' => 'Economy Express'),
+			'demo_base' => 40,
+		),
+		'aramex' => array(
+			'name' => 'Aramex', 'region' => 'MENA', 'accent' => '#e30613', 'icon' => 'fa-map-marker',
+			'blurb' => 'MENA parcel express & domestic UAE',
+			'track_url' => 'https://www.aramex.com/track/results?ShipmentNumber=%s',
+			'services' => array('PPX' => 'Parcel Express', 'DOM' => 'Domestic'),
+			'demo_base' => 28,
+		),
+		'smsa' => array(
+			'name' => 'SMSA Express', 'region' => 'MENA', 'accent' => '#00a651', 'icon' => 'fa-truck',
+			'blurb' => 'Saudi & GCC last-mile express',
+			'track_url' => 'https://www.smsaexpress.com/trackingdetails?tracknumbers=%s',
+			'services' => array('EXPRESS' => 'Express', 'DOM' => 'Domestic'),
+			'demo_base' => 26,
+		),
+		'naqel' => array(
+			'name' => 'Naqel Express', 'region' => 'MENA', 'accent' => '#1b4f9c', 'icon' => 'fa-truck',
+			'blurb' => 'KSA / GCC e-commerce & B2B delivery',
+			'track_url' => 'https://www.naqelexpress.com/en/track?trackingNumber=%s',
+			'services' => array('EXPRESS' => 'Express', 'STANDARD' => 'Standard'),
+			'demo_base' => 25,
+		),
+		'emirates_post' => array(
+			'name' => 'Emirates Post', 'region' => 'MENA', 'accent' => '#c8102e', 'icon' => 'fa-envelope',
+			'blurb' => 'UAE national post & international parcels',
+			'track_url' => 'https://www.emiratespost.ae/English/track-and-trace?TrackingNumber=%s',
+			'services' => array('EMS' => 'EMS Express', 'PARCEL' => 'International Parcel'),
+			'demo_base' => 22,
+		),
+		'imile' => array(
+			'name' => 'iMile', 'region' => 'MENA', 'accent' => '#ff6a00', 'icon' => 'fa-archive',
+			'blurb' => 'Middle East & Asia cross-border parcels',
+			'track_url' => 'https://www.imile.com/track?trackingNo=%s',
+			'services' => array('EXPRESS' => 'Express', 'STANDARD' => 'Standard'),
+			'demo_base' => 24,
+		),
+		'dpd' => array(
+			'name' => 'DPD', 'region' => 'Europe', 'accent' => '#dc0032', 'icon' => 'fa-cube',
+			'blurb' => 'European road & Predict delivery',
+			'track_url' => 'https://www.dpd.com/tracking?parcelNumber=%s',
+			'services' => array('CLASSIC' => 'Classic', 'EXPRESS' => 'Express'),
+			'demo_base' => 32,
+		),
+		'gls' => array(
+			'name' => 'GLS', 'region' => 'Europe', 'accent' => '#00205b', 'icon' => 'fa-road',
+			'blurb' => 'EuroBusinessParcel across EU',
+			'track_url' => 'https://gls-group.com/track/%s',
+			'services' => array('BUSINESS' => 'BusinessParcel', 'EXPRESS' => 'ExpressParcel'),
+			'demo_base' => 31,
+		),
+		'postnl' => array(
+			'name' => 'PostNL', 'region' => 'Europe', 'accent' => '#ed8b00', 'icon' => 'fa-envelope-o',
+			'blurb' => 'Netherlands & EU parcels',
+			'track_url' => 'https://jouw.postnl.nl/track-and-trace/%s',
+			'services' => array('STANDARD' => 'Standard', 'EU' => 'EU Parcel'),
+			'demo_base' => 30,
+		),
+		'royal_mail' => array(
+			'name' => 'Royal Mail', 'region' => 'Europe', 'accent' => '#ff0000', 'icon' => 'fa-flag',
+			'blurb' => 'UK Tracked & International Signed',
+			'track_url' => 'https://www.royalmail.com/track-your-item#/tracking-results/%s',
+			'services' => array('TRACKED' => 'Tracked 48', 'INTL' => 'International Tracked'),
+			'demo_base' => 33,
+		),
+		'chronopost' => array(
+			'name' => 'Chronopost', 'region' => 'Europe', 'accent' => '#003da5', 'icon' => 'fa-clock-o',
+			'blurb' => 'France express & Europe Chrono',
+			'track_url' => 'https://www.chronopost.fr/tracking-no-cms/suivi-page?listeNumerosLT=%s',
+			'services' => array('CHRONO' => 'Chrono 13', 'EUROPE' => 'Chrono Europe'),
+			'demo_base' => 34,
+		),
+		'usps' => array(
+			'name' => 'USPS', 'region' => 'Americas', 'accent' => '#004b87', 'icon' => 'fa-flag-checkered',
+			'blurb' => 'US Priority Mail International',
+			'track_url' => 'https://tools.usps.com/go/TrackConfirmAction?tLabels=%s',
+			'services' => array('PRIORITY' => 'Priority Mail Intl', 'EXPRESS' => 'Priority Express Intl'),
+			'demo_base' => 36,
+		),
+		'canada_post' => array(
+			'name' => 'Canada Post', 'region' => 'Americas', 'accent' => '#e31837', 'icon' => 'fa-leaf',
+			'blurb' => 'Xpresspost International',
+			'track_url' => 'https://www.canadapost-postescanada.ca/track-reperage/en#/details/%s',
+			'services' => array('XPRESS' => 'Xpresspost', 'INTL' => 'International Parcel'),
+			'demo_base' => 35,
+		),
+		'sf_express' => array(
+			'name' => 'SF Express', 'region' => 'Asia', 'accent' => '#000000', 'icon' => 'fa-bolt',
+			'blurb' => 'China & Asia Pacific express',
+			'track_url' => 'https://www.sf-express.com/en/dynamic_function/waybill/#search/bill-number/%s',
+			'services' => array('STANDARD' => 'Standard Express', 'INTL' => 'International'),
+			'demo_base' => 37,
+		),
+		'jt_express' => array(
+			'name' => 'J&T Express', 'region' => 'Asia', 'accent' => '#e60012', 'icon' => 'fa-motorcycle',
+			'blurb' => 'SEA & Middle East e-commerce parcels',
+			'track_url' => 'https://www.jtexpress.ae/trajectoryQuery?waybillNo=%s',
+			'services' => array('EXPRESS' => 'Express', 'ECONOMY' => 'Economy'),
+			'demo_base' => 23,
+		),
+		'yamato' => array(
+			'name' => 'Yamato Transport', 'region' => 'Asia', 'accent' => '#ffd400', 'icon' => 'fa-bicycle',
+			'blurb' => 'Japan TA-Q-BIN & international',
+			'track_url' => 'https://toi.kuronekoyamato.co.jp/cgi-bin/tneko?number=%s',
+			'services' => array('TAQBIN' => 'TA-Q-BIN', 'INTL' => 'International'),
+			'demo_base' => 39,
+		),
+		'bluedart' => array(
+			'name' => 'Blue Dart', 'region' => 'Asia', 'accent' => '#0033a0', 'icon' => 'fa-paper-plane',
+			'blurb' => 'India domestic & export express',
+			'track_url' => 'https://www.bluedart.com/tracking?trackfor=0&trackNo=%s',
+			'services' => array('EXPRESS' => 'Domestic Express', 'INTL' => 'International'),
+			'demo_base' => 29,
+		),
 	);
+}
+
+/**
+ * @return array<string,float>
+ */
+function epc_channel_carrier_demo_bases()
+{
+	$bases = array();
+	foreach (epc_channel_carriers_catalog() as $code => $c) {
+		$bases[$code] = isset($c['demo_base']) ? (float)$c['demo_base'] : 35.0;
+	}
+	return $bases;
 }
 
 function epc_channel_demo_rate($carrier_code, $weight_kg, $dest_country = 'AE')
 {
 	$weight_kg = max(0.1, (float)$weight_kg);
-	$base = array('dhl' => 45, 'fedex' => 42, 'aramex' => 28, 'ups' => 38);
-	$b = isset($base[$carrier_code]) ? $base[$carrier_code] : 35;
+	$bases = epc_channel_carrier_demo_bases();
+	$b = isset($bases[$carrier_code]) ? $bases[$carrier_code] : 35.0;
 	$intl = ($dest_country !== '' && strtoupper($dest_country) !== 'AE') ? 1.35 : 1.0;
 	return round(($b + ($weight_kg * 8.5)) * $intl, 2);
 }

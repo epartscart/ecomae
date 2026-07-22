@@ -7,7 +7,7 @@ defined('_ASTEXE_') or die('No access');
 function epc_pos_cp_footer_scripts(string $contentUrl): void
 {
 	$contentUrl = trim($contentUrl, '/');
-	$ver = '20260606pos1';
+	$ver = '20260722posui1';
 	$map = array(
 		'shop/pos/terminal' => '/content/shop/pos/epc_pos_terminal_js.php',
 		'control/portal/epc_pos_tenant_manage' => '/content/shop/pos/epc_pos_tenant_manage_js.php',

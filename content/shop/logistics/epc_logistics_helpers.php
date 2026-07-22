@@ -21,16 +21,20 @@ function epc_logistics_seed_defaults(PDO $db)
 {
 	epc_channel_ensure_schema($db);
 	$now = time();
-	$carriers = array('dhl', 'fedex', 'aramex', 'ups');
 	$insC = $db->prepare(
 		'INSERT INTO `epc_carrier_accounts` (`code`, `name`, `active`, `demo_mode`, `config_json`, `time_created`)
 		 VALUES (?, ?, 1, 1, ?, ?)
 		 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`)'
 	);
 	$catalog = epc_channel_carriers_catalog();
-	foreach ($carriers as $code) {
-		$name = isset($catalog[$code]['name']) ? $catalog[$code]['name'] : strtoupper($code);
-		$insC->execute(array($code, $name, json_encode(array('origin' => 'Dubai, UAE')), $now));
+	foreach ($catalog as $code => $meta) {
+		$name = isset($meta['name']) ? (string)$meta['name'] : strtoupper((string)$code);
+		$config = array(
+			'origin' => 'Dubai, UAE',
+			'region' => isset($meta['region']) ? (string)$meta['region'] : 'Global',
+			'track_url' => isset($meta['track_url']) ? (string)$meta['track_url'] : '',
+		);
+		$insC->execute(array($code, $name, json_encode($config, JSON_UNESCAPED_UNICODE), $now));
 	}
 }
 
@@ -72,9 +76,18 @@ function epc_logistics_dashboard(PDO $db)
 	$shipped = (int)$db->query("SELECT COUNT(*) FROM `epc_carrier_shipments` WHERE `status` = 'shipped'")->fetchColumn();
 	$pending = (int)$db->query("SELECT COUNT(*) FROM `epc_carrier_shipments` WHERE `status` NOT IN ('shipped','delivered')")->fetchColumn();
 	$carriers = (int)$db->query('SELECT COUNT(*) FROM `epc_carrier_accounts` WHERE `active` = 1')->fetchColumn();
+	$carriers_total = (int)$db->query('SELECT COUNT(*) FROM `epc_carrier_accounts`')->fetchColumn();
 	$shop_orders = (int)$db->query('SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1')->fetchColumn();
+	$regions = array();
+	foreach (epc_channel_carriers_catalog() as $meta) {
+		$r = isset($meta['region']) ? (string)$meta['region'] : 'Global';
+		$regions[$r] = true;
+	}
 	return array(
 		'carriers' => $carriers,
+		'carriers_total' => $carriers_total,
+		'catalog_count' => count(epc_channel_carriers_catalog()),
+		'regions' => count($regions),
 		'shipments' => $shipments,
 		'shipments_shipped' => $shipped,
 		'shipments_pending' => $pending,
@@ -94,7 +107,7 @@ function epc_logistics_demo_report(PDO $db)
 			LEFT JOIN `shop_orders` o ON o.`id` = s.`order_id`
 			ORDER BY s.`id` DESC LIMIT 20'
 		)->fetchAll(PDO::FETCH_ASSOC),
-		'sync_log' => $db->query("SELECT * FROM `epc_channel_sync_log` WHERE `kind` IN ('shipment','seed') OR `channel_code` IN ('dhl','fedex','aramex','ups','logistics') ORDER BY `id` DESC LIMIT 15")->fetchAll(PDO::FETCH_ASSOC),
+		'sync_log' => $db->query("SELECT * FROM `epc_channel_sync_log` WHERE `kind` IN ('shipment','seed','carrier') OR `channel_code` = 'logistics' ORDER BY `id` DESC LIMIT 15")->fetchAll(PDO::FETCH_ASSOC),
 	);
 }
 

@@ -3,6 +3,8 @@
  * Серверный скрипт для получения данных о товарах одной связки (офис-склад)
 */
 header('Content-Type: application/json;charset=utf-8;');
+header('X-Robots-Tag: noindex, nofollow, noarchive');
+header('Cache-Control: no-store');
 ini_set('display_errors', 0);
 //Конфигурация Treelax
 require_once($_SERVER["DOCUMENT_ROOT"]."/config.php");
@@ -30,6 +32,15 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_storefront_pri
 
 //Для работы с пользователями
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_storefront_anti_crawl.php");
+
+// Anti-crawl: block bots, rate-limit scrapers, session-only price visibility.
+$epc_anti_crawl = epc_storefront_anti_crawl_enforce($DP_Config, array(
+	'bucket' => 'getProductsOfBunch',
+	'guest_max' => 24,
+	'user_max' => 90,
+	'window' => 60,
+));
 
 
 
@@ -54,15 +65,23 @@ class ProductsOfBunch//Класс ответа
 			return;
 		}
 		
-		//0. Получаем данные по пользователю
-		if($_POST['async'] == 1 && $DP_Config->tech_key == $_POST['tech_key']){
-			$this->user_id = $_POST['user_id'];
-			$this->group_id = $_POST['group_id'];
-		}else{
-			$this->user_id = DP_User::getUserId();//ID пользователя
-			$userProfile = DP_User::getUserProfile();//Профиль пользователя
-			$this->group_id = $userProfile["groups"][0];//Первая группа пользователя. Если у пользователя несколько групп - работаем только с первой
-        }
+		//0. Пользователь / группа — только из сессии (не доверяем client user_id для цен).
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_anti_crawl.php';
+		$epc_identity = epc_storefront_anti_crawl_resolve_pricing_identity($DP_Config);
+		$this->user_id = (int) $epc_identity['user_id'];
+		$this->group_id = (int) $epc_identity['group_id'];
+		// Async tech_key path may still carry group_id for server-side bulk when session matches.
+		if (!empty($_POST['async']) && (int) $_POST['async'] === 1
+			&& isset($_POST['tech_key'], $DP_Config->tech_key)
+			&& hash_equals((string) $DP_Config->tech_key, (string) $_POST['tech_key'])
+			&& $this->user_id > 0
+			&& isset($_POST['group_id']) && (int) $_POST['group_id'] > 0
+		) {
+			$posted_uid = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
+			if ($posted_uid === $this->user_id) {
+				$this->group_id = (int) $_POST['group_id'];
+			}
+		}
 		// Prefer assigned price-profile group (retail/wholesale/…) when present.
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_pricing.php';
 		if (function_exists('epc_pricing_resolve_customer_group_id')) {
@@ -816,7 +835,11 @@ if (!empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products)) 
 	epc_storefront_fill_warehouse_captions($ProductsOfBunch->Products, $db_link);
 }
 
-if (!epc_storefront_prices_visible_for_user((int) $ProductsOfBunch->user_id)) {
+// Visibility always from session (anti-crawl), never from client-spoofed user_id.
+$epc_visibility_uid = isset($epc_anti_crawl['session_user_id'])
+	? (int) $epc_anti_crawl['session_user_id']
+	: epc_storefront_anti_crawl_session_user_id();
+if (empty($epc_anti_crawl['prices_visible']) && empty($epc_anti_crawl['tech_key'])) {
 	if (!empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products)) {
 		epc_storefront_prices_redact_products($ProductsOfBunch->Products);
 	}
@@ -826,13 +849,13 @@ if (!epc_storefront_prices_visible_for_user((int) $ProductsOfBunch->user_id)) {
 	$epc_vat_file = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_customer_vat.php';
 	if (is_readable($epc_vat_file) && !empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products)) {
 		require_once $epc_vat_file;
-		$epc_vat_ctx = epc_uae_customer_vat_resolve($db_link, (int) $ProductsOfBunch->user_id);
+		$epc_vat_ctx = epc_uae_customer_vat_resolve($db_link, $epc_visibility_uid);
 		$ProductsOfBunch->vat_type = $epc_vat_ctx['vat_type'];
 		$ProductsOfBunch->vat_price_label = $epc_vat_ctx['price_label'];
 		$ProductsOfBunch->vat_display_mode = $epc_vat_ctx['display_mode'];
 		foreach ($ProductsOfBunch->Products as &$epc_vat_product) {
 			if (is_array($epc_vat_product)) {
-				epc_uae_customer_vat_apply_product_row($db_link, $epc_vat_product, (int) $ProductsOfBunch->user_id);
+				epc_uae_customer_vat_apply_product_row($db_link, $epc_vat_product, $epc_visibility_uid);
 			}
 		}
 		unset($epc_vat_product);

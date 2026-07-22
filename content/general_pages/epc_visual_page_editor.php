@@ -21,54 +21,181 @@ function epc_vpe_block_library(): array
 		'hero' => array(
 			'label' => 'Hero',
 			'icon' => 'fa-star',
+			'hint' => 'Large headline with call-to-action',
 			'defaults' => array(
 				'headline' => 'Welcome to our store',
 				'subheadline' => 'Quality parts and fast delivery',
 				'cta_text' => 'Shop now',
 				'cta_url' => '/en/shop',
 			),
+			'fields' => array(
+				'headline' => array('label' => 'Headline', 'type' => 'text'),
+				'subheadline' => array('label' => 'Subheadline', 'type' => 'text'),
+				'cta_text' => array('label' => 'Button label', 'type' => 'text'),
+				'cta_url' => array('label' => 'Button URL', 'type' => 'url'),
+			),
 		),
 		'text' => array(
 			'label' => 'Text',
 			'icon' => 'fa-align-left',
+			'hint' => 'Paragraph or announcement',
 			'defaults' => array(
 				'body' => 'Add your message here.',
+			),
+			'fields' => array(
+				'body' => array('label' => 'Body text', 'type' => 'textarea'),
 			),
 		),
 		'cta' => array(
 			'label' => 'CTA button',
 			'icon' => 'fa-hand-pointer-o',
+			'hint' => 'Standalone action button',
 			'defaults' => array(
 				'text' => 'Contact us',
 				'url' => '/en/kontakty',
 				'style' => 'primary',
 			),
+			'fields' => array(
+				'text' => array('label' => 'Button label', 'type' => 'text'),
+				'url' => array('label' => 'Link URL', 'type' => 'url'),
+				'style' => array('label' => 'Style', 'type' => 'select', 'options' => array('primary' => 'Primary', 'secondary' => 'Secondary')),
+			),
 		),
 		'image' => array(
 			'label' => 'Image',
 			'icon' => 'fa-picture-o',
+			'hint' => 'Banner or promotional image',
 			'defaults' => array(
 				'url' => '/content/files/images/ecomae-platform/assets/electronicae.png',
 				'alt' => 'Banner image',
 				'caption' => '',
 			),
+			'fields' => array(
+				'url' => array('label' => 'Image URL', 'type' => 'url'),
+				'alt' => array('label' => 'Alt text', 'type' => 'text'),
+				'caption' => array('label' => 'Caption', 'type' => 'text'),
+			),
 		),
 		'two_col' => array(
 			'label' => 'Two columns',
 			'icon' => 'fa-columns',
+			'hint' => 'Side-by-side content',
 			'defaults' => array(
 				'left' => 'Left column content',
 				'right' => 'Right column content',
+			),
+			'fields' => array(
+				'left' => array('label' => 'Left column', 'type' => 'textarea'),
+				'right' => array('label' => 'Right column', 'type' => 'textarea'),
 			),
 		),
 		'spacer' => array(
 			'label' => 'Spacer',
 			'icon' => 'fa-arrows-v',
+			'hint' => 'Vertical spacing',
 			'defaults' => array(
 				'height' => 32,
 			),
+			'fields' => array(
+				'height' => array('label' => 'Height (px)', 'type' => 'number'),
+			),
 		),
 	);
+}
+
+/**
+ * Frontend levels operators can switch between in the editor.
+ *
+ * @return array<string, array<string,mixed>>
+ */
+function epc_vpe_frontend_levels(): array
+{
+	return array(
+		'homepage' => array(
+			'label' => 'Homepage',
+			'icon' => 'fa-home',
+			'hint' => 'Main storefront landing',
+			'page_key' => 'homepage',
+			'placement' => 'homepage',
+			'mode' => 'layout',
+			'preview_path' => '/en/',
+		),
+		'product_list' => array(
+			'label' => 'Category / list',
+			'icon' => 'fa-th-list',
+			'hint' => 'Product listing banner',
+			'page_key' => 'product_list',
+			'placement' => 'product_list',
+			'mode' => 'layout',
+			'preview_path' => '/en/shop',
+		),
+		'footer' => array(
+			'label' => 'Footer',
+			'icon' => 'fa-window-minimize',
+			'hint' => 'Storefront footer strip',
+			'page_key' => 'footer',
+			'placement' => 'footer',
+			'mode' => 'layout',
+			'preview_path' => '/en/',
+		),
+		'checkout' => array(
+			'label' => 'Checkout',
+			'icon' => 'fa-shopping-cart',
+			'hint' => 'Cart / checkout sidebar',
+			'page_key' => 'checkout',
+			'placement' => 'checkout',
+			'mode' => 'layout',
+			'preview_path' => '/en/shop/cart',
+		),
+		'login' => array(
+			'label' => 'Login',
+			'icon' => 'fa-sign-in',
+			'hint' => 'Login / register page',
+			'page_key' => 'login',
+			'placement' => 'login',
+			'mode' => 'layout',
+			'preview_path' => '/en/users/login',
+		),
+		'brand' => array(
+			'label' => 'Brand global',
+			'icon' => 'fa-paint-brush',
+			'hint' => 'Colours, logo, tagline',
+			'page_key' => 'brand',
+			'placement' => '',
+			'mode' => 'brand_only',
+			'preview_path' => '/en/',
+		),
+	);
+}
+
+function epc_vpe_normalize_page_key(string $pageKey): string
+{
+	$pageKey = preg_replace('/[^a-z0-9_-]/', '', strtolower(trim($pageKey)));
+	$levels = epc_vpe_frontend_levels();
+	if ($pageKey !== '' && isset($levels[$pageKey])) {
+		return (string) $levels[$pageKey]['page_key'];
+	}
+	if ($pageKey === '') {
+		return 'homepage';
+	}
+	foreach ($levels as $level) {
+		if ((string) ($level['page_key'] ?? '') === $pageKey) {
+			return $pageKey;
+		}
+	}
+	return 'homepage';
+}
+
+function epc_vpe_level_meta(string $pageKey): array
+{
+	$pageKey = epc_vpe_normalize_page_key($pageKey);
+	$levels = epc_vpe_frontend_levels();
+	foreach ($levels as $id => $level) {
+		if ((string) ($level['page_key'] ?? '') === $pageKey || $id === $pageKey) {
+			return array_merge($level, array('id' => $id));
+		}
+	}
+	return array_merge($levels['homepage'], array('id' => 'homepage'));
 }
 
 function epc_vpe_ensure_schema(PDO $pdo): void
@@ -148,25 +275,31 @@ function epc_vpe_target_options(PDO $platformPdo): array
 	return $out;
 }
 
-function epc_vpe_resolve_preview_url(PDO $platformPdo, string $siteKey): string
+function epc_vpe_resolve_preview_url(PDO $platformPdo, string $siteKey, string $pageKey = 'homepage'): string
 {
 	$siteKey = epc_vpe_normalize_site_key($siteKey);
+	$pageKey = epc_vpe_normalize_page_key($pageKey);
+	$base = 'https://www.ecomae.com/en/';
 	foreach (epc_vpe_target_options($platformPdo) as $opt) {
 		if ($opt['site_key'] === $siteKey) {
-			return (string) $opt['preview_url'];
+			$base = (string) $opt['preview_url'];
+			break;
 		}
 	}
-	return 'https://www.ecomae.com/en/';
+	$level = epc_vpe_level_meta($pageKey);
+	$path = (string) ($level['preview_path'] ?? '/en/');
+	$parts = parse_url($base);
+	if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+		return 'https://www.ecomae.com' . $path;
+	}
+	return $parts['scheme'] . '://' . $parts['host'] . $path;
 }
 
 function epc_vpe_layout_load(PDO $pdo, string $siteKey, string $pageKey = 'homepage'): array
 {
 	epc_vpe_ensure_schema($pdo);
 	$siteKey = epc_vpe_normalize_site_key($siteKey);
-	$pageKey = preg_replace('/[^a-z0-9_-]/', '', strtolower($pageKey));
-	if ($pageKey === '') {
-		$pageKey = 'homepage';
-	}
+	$pageKey = epc_vpe_normalize_page_key($pageKey);
 	$st = $pdo->prepare('SELECT * FROM `epc_page_builder_layouts` WHERE `site_key` = ? AND `page_key` = ? LIMIT 1');
 	$st->execute(array($siteKey, $pageKey));
 	$row = $st->fetch(PDO::FETCH_ASSOC);
@@ -184,9 +317,33 @@ function epc_vpe_layout_load(PDO $pdo, string $siteKey, string $pageKey = 'homep
 		}
 		$published = !empty($row['is_published']);
 	}
+	// Brand level (and empty brand on other levels) falls back to homepage/brand globals.
+	if ($pageKey !== 'homepage' || empty($row)) {
+		$homeBrand = array();
+		try {
+			$hst = $pdo->prepare('SELECT `brand_json` FROM `epc_page_builder_layouts` WHERE `site_key` = ? AND `page_key` IN (\'homepage\', \'brand\') ORDER BY FIELD(`page_key`, \'brand\', \'homepage\') LIMIT 1');
+			$hst->execute(array($siteKey));
+			$hb = json_decode((string) ($hst->fetchColumn() ?: ''), true);
+			if (is_array($hb)) {
+				$homeBrand = $hb;
+			}
+		} catch (Throwable $e) {
+			$homeBrand = array();
+		}
+		if ($homeBrand) {
+			foreach ($homeBrand as $bk => $bv) {
+				if ((!isset($brand[$bk]) || $brand[$bk] === '' || $brand[$bk] === null) && $bv !== '' && $bv !== null) {
+					$brand[$bk] = $bv;
+				}
+			}
+		}
+	}
+	$level = epc_vpe_level_meta($pageKey);
 	return array(
 		'site_key' => $siteKey,
 		'page_key' => $pageKey,
+		'level_id' => (string) ($level['id'] ?? $pageKey),
+		'mode' => (string) ($level['mode'] ?? 'layout'),
 		'blocks' => $blocks,
 		'brand' => $brand,
 		'is_published' => $published,
@@ -247,15 +404,31 @@ function epc_vpe_block_to_html(array $block): string
 	}
 }
 
-function epc_vpe_sync_info_blocks(PDO $pdo, string $siteKey, array $blocks, bool $publish): void
+function epc_vpe_sync_info_blocks(PDO $pdo, string $siteKey, array $blocks, bool $publish, string $pageKey = 'homepage'): void
 {
+	$level = epc_vpe_level_meta($pageKey);
+	$placement = (string) ($level['placement'] ?? '');
+	if ($placement === '' || (string) ($level['mode'] ?? '') === 'brand_only') {
+		return;
+	}
+	if (!isset(epc_scp_info_placements()[$placement])) {
+		$placement = 'homepage';
+	}
 	$scope = ($siteKey === 'platform') ? 'platform' : 'tenant';
 	$tenantKey = ($scope === 'tenant') ? $siteKey : '';
-	$existing = epc_scp_info_blocks_list($pdo, 'homepage');
-	$prefix = 'vpe_' . $siteKey . '_';
+	$existing = epc_scp_info_blocks_list($pdo, $placement);
+	$prefix = 'vpe_' . $siteKey . '_' . $placement . '_';
+	// Legacy homepage prefix (pre-levels) — clean when publishing homepage.
+	$legacyPrefix = ($placement === 'homepage') ? ('vpe_' . $siteKey . '_') : '';
 	foreach ($existing as $b) {
 		$key = (string) ($b['block_key'] ?? '');
-		if (strpos($key, $prefix) === 0) {
+		$match = (strpos($key, $prefix) === 0);
+		if (!$match && $legacyPrefix !== '' && strpos($key, $legacyPrefix) === 0 && strpos($key, 'vpe_' . $siteKey . '_homepage_') !== 0) {
+			// Old keys: vpe_{site}_{type}_{idx} without placement segment.
+			$rest = substr($key, strlen($legacyPrefix));
+			$match = (bool) preg_match('/^[a-z0-9]+_\d+$/', $rest);
+		}
+		if ($match) {
 			epc_scp_info_block_delete($pdo, (int) $b['id']);
 		}
 	}
@@ -268,10 +441,10 @@ function epc_vpe_sync_info_blocks(PDO $pdo, string $siteKey, array $blocks, bool
 		$blockKey = $prefix . $type . '_' . (int) $idx;
 		epc_scp_info_block_save($pdo, array(
 			'block_key' => $blockKey,
-			'title' => ucfirst($type) . ' block ' . ((int) $idx + 1),
+			'title' => ucfirst($type) . ' · ' . (string) ($level['label'] ?? $placement) . ' ' . ((int) $idx + 1),
 			'scope' => $scope,
 			'site_key' => $tenantKey,
-			'placement' => 'homepage',
+			'placement' => $placement,
 			'content_html' => epc_vpe_block_to_html($block),
 			'locale' => 'en',
 			'active' => $publish ? 1 : 0,
@@ -348,6 +521,11 @@ function epc_vpe_apply_brand(PDO $platformPdo, string $siteKey, array $brand, bo
 	if (!empty($brand['hero_headline'])) {
 		$settings['system_name'] = (string) $brand['hero_headline'];
 	}
+	if (!empty($brand['hero_subheadline'])) {
+		$settings['hero_subheadline'] = (string) $brand['hero_subheadline'];
+		$theme['hero_subheadline'] = (string) $brand['hero_subheadline'];
+		$settings['theme'] = $theme;
+	}
 	$contact = is_array($settings['contact'] ?? null) ? $settings['contact'] : array();
 	if (!empty($brand['logo_url'])) {
 		$contact['logo_url'] = (string) $brand['logo_url'];
@@ -361,11 +539,16 @@ function epc_vpe_apply_brand(PDO $platformPdo, string $siteKey, array $brand, bo
 	epc_portal_save_site_settings($pdo, $settings);
 }
 
-function epc_vpe_layout_save(PDO $pdo, string $siteKey, array $blocks, array $brand, bool $publish): array
+function epc_vpe_layout_save(PDO $pdo, string $siteKey, array $blocks, array $brand, bool $publish, string $pageKey = 'homepage'): array
 {
 	epc_vpe_ensure_schema($pdo);
 	$siteKey = epc_vpe_normalize_site_key($siteKey);
-	$pageKey = 'homepage';
+	$pageKey = epc_vpe_normalize_page_key($pageKey);
+	$level = epc_vpe_level_meta($pageKey);
+	$mode = (string) ($level['mode'] ?? 'layout');
+	if ($mode === 'brand_only') {
+		$blocks = array();
+	}
 	$now = time();
 	$st = $pdo->prepare(
 		'INSERT INTO `epc_page_builder_layouts`
@@ -387,10 +570,30 @@ function epc_vpe_layout_save(PDO $pdo, string $siteKey, array $blocks, array $br
 		$now,
 		$publish ? $now : 0,
 	));
-	epc_vpe_sync_info_blocks($pdo, $siteKey, $blocks, $publish);
-	epc_vpe_apply_brand($pdo, $siteKey, $brand, $publish);
+	// Keep homepage brand_json aligned when editing Brand global.
+	if ($mode === 'brand_only' || $pageKey === 'homepage') {
+		$mirrorKey = ($pageKey === 'homepage') ? 'brand' : 'homepage';
+		$mirror = epc_vpe_layout_load($pdo, $siteKey, $mirrorKey);
+		$st->execute(array(
+			$siteKey,
+			$mirrorKey,
+			json_encode(array_values((array) ($mirror['blocks'] ?? array())), JSON_UNESCAPED_UNICODE),
+			json_encode($brand, JSON_UNESCAPED_UNICODE),
+			$publish ? 1 : (int) !empty($mirror['is_published']),
+			$now,
+			$publish ? $now : 0,
+		));
+	}
+	epc_vpe_sync_info_blocks($pdo, $siteKey, $blocks, $publish, $pageKey);
+	epc_vpe_apply_brand($pdo, $siteKey, $brand, $publish && ($mode === 'brand_only' || $pageKey === 'homepage'));
 	epc_vpe_clear_cache($siteKey);
-	return array('ok' => true, 'published' => $publish, 'updated_at' => $now);
+	return array(
+		'ok' => true,
+		'published' => $publish,
+		'updated_at' => $now,
+		'page_key' => $pageKey,
+		'level_id' => (string) ($level['id'] ?? $pageKey),
+	);
 }
 
 function epc_vpe_clear_cache(string $siteKey): void
