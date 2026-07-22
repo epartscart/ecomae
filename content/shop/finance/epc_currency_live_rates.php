@@ -455,4 +455,219 @@ if (!function_exists('epc_currency_live_http_get')) {
 			'rows' => $appliedRows,
 		);
 	}
+
+	/**
+	 * Ensure shared settings table used for FX nightly schedule keys.
+	 */
+	function epc_currency_live_settings_ensure(PDO $db): void
+	{
+		try {
+			$db->exec(
+				"CREATE TABLE IF NOT EXISTS `epc_price_settings` (
+					`setting_key` varchar(128) NOT NULL,
+					`setting_value` text,
+					PRIMARY KEY (`setting_key`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8"
+			);
+		} catch (Throwable $e) {
+		}
+	}
+
+	function epc_currency_live_setting_get(PDO $db, string $key, string $default = ''): string
+	{
+		try {
+			epc_currency_live_settings_ensure($db);
+			$st = $db->prepare('SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key` = ? LIMIT 1');
+			$st->execute(array($key));
+			$val = $st->fetchColumn();
+			return ($val === false || $val === null) ? $default : (string) $val;
+		} catch (Throwable $e) {
+			return $default;
+		}
+	}
+
+	function epc_currency_live_setting_set(PDO $db, string $key, string $value): void
+	{
+		epc_currency_live_settings_ensure($db);
+		$db->prepare(
+			'INSERT INTO `epc_price_settings` (`setting_key`, `setting_value`)
+			 VALUES (?, ?)
+			 ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`)'
+		)->execute(array($key, $value));
+	}
+
+	/**
+	 * Nightly auto FX schedule (Asia/Dubai by default).
+	 *
+	 * @return array{
+	 *   enabled:int,timezone:string,hour:int,
+	 *   last_run_at:int,last_status:string,last_provider:string,last_message:string,
+	 *   local_now:string,local_date:string,due:bool,next_window:string
+	 * }
+	 */
+	function epc_currency_live_schedule_get(PDO $db): array
+	{
+		$enabled = (int) epc_currency_live_setting_get($db, 'fx_live_auto_enabled', '1');
+		$tz = trim(epc_currency_live_setting_get($db, 'fx_live_auto_timezone', 'Asia/Dubai'));
+		if ($tz === '') {
+			$tz = 'Asia/Dubai';
+		}
+		$hour = (int) epc_currency_live_setting_get($db, 'fx_live_auto_hour', '2');
+		if ($hour < 0 || $hour > 23) {
+			$hour = 2;
+		}
+		$lastRun = (int) epc_currency_live_setting_get($db, 'fx_live_auto_last_run_at', '0');
+		$lastStatus = epc_currency_live_setting_get($db, 'fx_live_auto_last_status', '');
+		$lastProvider = epc_currency_live_setting_get($db, 'fx_live_auto_last_provider', '');
+		$lastMessage = epc_currency_live_setting_get($db, 'fx_live_auto_last_message', '');
+
+		$prevTz = date_default_timezone_get();
+		try {
+			@date_default_timezone_set($tz);
+		} catch (Throwable $e) {
+			$tz = 'Asia/Dubai';
+			@date_default_timezone_set($tz);
+		}
+		$localNow = date('Y-m-d H:i:s');
+		$localDate = date('Y-m-d');
+		$localHour = (int) date('G');
+		$alreadyToday = false;
+		if ($lastRun > 0) {
+			$alreadyToday = (date('Y-m-d', $lastRun) === $localDate);
+		}
+		$due = false;
+		if ($enabled === 1) {
+			// Nightly window: from configured hour through end of local day, once.
+			$due = (!$alreadyToday && $localHour >= $hour);
+		}
+		$slot = sprintf('%02d:00', $hour) . ' ' . $tz;
+		if ($due) {
+			$nextWindow = 'due now (' . $localDate . ' ' . $slot . ')';
+		} elseif ($localHour < $hour) {
+			$nextWindow = $localDate . ' ' . $slot;
+		} else {
+			$nextWindow = date('Y-m-d', strtotime('+1 day')) . ' ' . $slot;
+		}
+		@date_default_timezone_set($prevTz);
+
+		return array(
+			'enabled' => $enabled ? 1 : 0,
+			'timezone' => $tz,
+			'hour' => $hour,
+			'last_run_at' => $lastRun,
+			'last_status' => $lastStatus,
+			'last_provider' => $lastProvider,
+			'last_message' => $lastMessage,
+			'local_now' => $localNow,
+			'local_date' => $localDate,
+			'due' => $due,
+			'next_window' => $nextWindow,
+		);
+	}
+
+	/**
+	 * @param array{enabled?:int|bool,timezone?:string,hour?:int|string} $data
+	 * @return array{ok:bool,error:string,schedule:array}
+	 */
+	function epc_currency_live_schedule_save(PDO $db, array $data): array
+	{
+		$enabled = !empty($data['enabled']) ? 1 : 0;
+		$tz = trim((string) ($data['timezone'] ?? 'Asia/Dubai'));
+		if ($tz === '') {
+			$tz = 'Asia/Dubai';
+		}
+		// Validate timezone
+		$prevTz = date_default_timezone_get();
+		$okTz = @date_default_timezone_set($tz);
+		@date_default_timezone_set($prevTz);
+		if (!$okTz) {
+			return array('ok' => false, 'error' => 'Invalid timezone', 'schedule' => epc_currency_live_schedule_get($db));
+		}
+		$hour = (int) ($data['hour'] ?? 2);
+		if ($hour < 0 || $hour > 23) {
+			return array('ok' => false, 'error' => 'Hour must be 0–23', 'schedule' => epc_currency_live_schedule_get($db));
+		}
+		epc_currency_live_setting_set($db, 'fx_live_auto_enabled', (string) $enabled);
+		epc_currency_live_setting_set($db, 'fx_live_auto_timezone', $tz);
+		epc_currency_live_setting_set($db, 'fx_live_auto_hour', (string) $hour);
+		return array('ok' => true, 'error' => '', 'schedule' => epc_currency_live_schedule_get($db));
+	}
+
+	/**
+	 * Run scheduled nightly apply when due (or always when $force).
+	 *
+	 * @return array{ok:bool,ran:bool,skipped:bool,reason:string,updated:int,provider:string,as_of:string,error:string,schedule:array}
+	 */
+	function epc_currency_live_schedule_tick(PDO $db, $DP_Config, bool $force = false): array
+	{
+		$schedule = epc_currency_live_schedule_get($db);
+		if (!$force) {
+			if (empty($schedule['enabled'])) {
+				return array(
+					'ok' => true,
+					'ran' => false,
+					'skipped' => true,
+					'reason' => 'disabled',
+					'updated' => 0,
+					'provider' => '',
+					'as_of' => '',
+					'error' => '',
+					'schedule' => $schedule,
+				);
+			}
+			if (empty($schedule['due'])) {
+				return array(
+					'ok' => true,
+					'ran' => false,
+					'skipped' => true,
+					'reason' => 'not_due',
+					'updated' => 0,
+					'provider' => '',
+					'as_of' => '',
+					'error' => '',
+					'schedule' => $schedule,
+				);
+			}
+		}
+
+		$out = epc_currency_live_apply($db, $DP_Config, null);
+		$now = time();
+		if (!$out['ok']) {
+			epc_currency_live_setting_set($db, 'fx_live_auto_last_run_at', (string) $now);
+			epc_currency_live_setting_set($db, 'fx_live_auto_last_status', 'failed');
+			epc_currency_live_setting_set($db, 'fx_live_auto_last_provider', '');
+			epc_currency_live_setting_set($db, 'fx_live_auto_last_message', (string) $out['error']);
+			$schedule = epc_currency_live_schedule_get($db);
+			return array(
+				'ok' => false,
+				'ran' => true,
+				'skipped' => false,
+				'reason' => 'apply_failed',
+				'updated' => 0,
+				'provider' => '',
+				'as_of' => '',
+				'error' => (string) $out['error'],
+				'schedule' => $schedule,
+			);
+		}
+
+		$msg = 'updated=' . (int) $out['updated'] . ' skipped=' . (int) $out['skipped'];
+		epc_currency_live_setting_set($db, 'fx_live_auto_last_run_at', (string) $now);
+		epc_currency_live_setting_set($db, 'fx_live_auto_last_status', 'success');
+		epc_currency_live_setting_set($db, 'fx_live_auto_last_provider', (string) $out['provider']);
+		epc_currency_live_setting_set($db, 'fx_live_auto_last_message', $msg);
+		$schedule = epc_currency_live_schedule_get($db);
+
+		return array(
+			'ok' => true,
+			'ran' => true,
+			'skipped' => false,
+			'reason' => $force ? 'forced' : 'due',
+			'updated' => (int) $out['updated'],
+			'provider' => (string) $out['provider'],
+			'as_of' => (string) $out['as_of'],
+			'error' => '',
+			'schedule' => $schedule,
+		);
+	}
 }

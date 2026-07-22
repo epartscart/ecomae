@@ -10,9 +10,13 @@ defined('_ASTEXE_') or die('No access');
 <?php
 //ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЕМ
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/pricing/epc_pricing.php");
 $userProfile = DP_User::getUserProfile();
 $group_id = $userProfile["groups"][0];//Берем первую группу пользователя
 $user_id = DP_User::getUserId();
+if (function_exists('epc_pricing_resolve_customer_group_id')) {
+	$group_id = epc_pricing_resolve_customer_group_id($db_link, (int) $user_id, (int) $group_id);
+}
 
 //Указатель валюты
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/general/get_currency_indicator.php");
@@ -93,11 +97,28 @@ $SQL_currency_rate = "(SELECT `rate` FROM `shop_currencies` WHERE `iso_code` = (
 				
 				
 				//Получаем наценку:
+				$purchase_price = (float) $price;
 				$markup_query = $db_link->prepare('SELECT `markup`/100 as `markup` FROM `shop_offices_storages_map` WHERE `office_id` = ? AND `storage_id` = ? AND `group_id` = ? AND `min_point` <= ? AND `max_point` > ?;');
 				$markup_query_args = array($office_id, $storage_id, $group_id, $price, $price);
 				$markup_query->execute($markup_query_args);
 				$markup_record = $markup_query->fetch();
 				$price = $price + $price*$markup_record["markup"];//Накидываем наценку
+				// CP price-management stack (guest 40% / retail profile / B2B profile)
+				if (function_exists('epc_pricing_apply_sell_from_purchase')) {
+					$epc_brand = (string) ($product['manufacturer'] ?? '');
+					$epc_article = (string) ($product['article'] ?? $product['article_show'] ?? '');
+					$epc_sell = epc_pricing_apply_sell_from_purchase(
+						$db_link,
+						(int) $group_id,
+						$epc_brand,
+						$purchase_price,
+						$epc_article,
+						(int) $storage_id
+					);
+					if (!empty($epc_sell['visible']) && (float) $epc_sell['price'] > 0) {
+						$price = (float) $epc_sell['price'];
+					}
+				}
 				
 				
 				//ОБРАБАТЫВАЕМ СРОК ПОСТАВКИ

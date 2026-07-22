@@ -78,7 +78,20 @@ function epc_acc_cp_payload_from_post(array $tree)
 		'compare_price' => (float) ($_POST['compare_price'] ?? 0),
 		'currency' => trim((string) ($_POST['currency'] ?? 'AED')) ?: 'AED',
 		'image_url' => trim((string) ($_POST['image_url'] ?? '')),
-		'external_url' => trim((string) ($_POST['external_url'] ?? '')),
+		'external_url' => (function ($url) {
+			$url = trim((string) $url);
+			if ($url === '') {
+				return '';
+			}
+			// Category browse links must not replace the storefront detail page.
+			if (function_exists('epc_acc_is_outbound_external_url')) {
+				return epc_acc_is_outbound_external_url($url) ? $url : '';
+			}
+			if (preg_match('#accessories(-spare-parts)?#i', $url) && !preg_match('#[?&]id=\d+#', $url)) {
+				return '';
+			}
+			return $url;
+		})($_POST['external_url'] ?? ''),
 		'photo_count' => max(1, (int) ($_POST['photo_count'] ?? 1)),
 		'featured' => !empty($_POST['featured']) ? 1 : 0,
 		'stock_qty' => (int) ($_POST['stock_qty'] ?? 0),
@@ -481,8 +494,9 @@ if ($showForm) {
 							</div>
 						</div>
 						<div class="full">
-							<label>Detail / external URL</label>
-							<input class="form-control" name="external_url" value="<?php echo htmlspecialchars((string) ($listing['external_url'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="/en/accessories-spare-parts?category=brakes" />
+							<label>Optional seller / outbound URL</label>
+							<input class="form-control" name="external_url" value="<?php echo htmlspecialchars((string) ($listing['external_url'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="https://… (leave blank — storefront opens /accessories-spare-parts?id=…)" />
+							<p class="muted" style="margin:6px 0 0;">Do not put category browse links here. “View ad” always opens the listing detail page with photos.</p>
 						</div>
 					</div>
 					<div style="margin-top:16px;">

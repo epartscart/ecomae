@@ -2,8 +2,19 @@
 /**
  * Cron / manual: refresh shop_currencies rates from live FX vs main currency.
  *
- * Example:
+ * Modes:
+ *   (default / schedule=1) — run only when nightly auto-update is due
+ *   force=1                — apply immediately (ignore schedule window)
+ *   dry=1                  — preview only, no DB writes
+ *
+ * Examples:
+ *   # Safe for every-minute hosting cron (once per night when due):
  *   curl -sk "https://www.epartscart.com/epc-currency-live-rates-cron.php?token=epartscart-deploy-2026"
+ *   # Dedicated nightly crontab (also works with schedule window):
+ *   0 2 * * * curl -sk "https://www.epartscart.com/epc-currency-live-rates-cron.php?token=epartscart-deploy-2026"
+ *   # Force now:
+ *   curl -sk "https://www.epartscart.com/epc-currency-live-rates-cron.php?token=...&force=1"
+ *   # Dry-run:
  *   curl -sk "https://www.epartscart.com/epc-currency-live-rates-cron.php?token=...&dry=1"
  */
 declare(strict_types=1);
@@ -47,7 +58,10 @@ if ($dry) {
 	if (!$preview['ok']) {
 		exit("FAIL preview: " . $preview['error'] . "\n");
 	}
+	$sched = epc_currency_live_schedule_get($db);
 	echo "OK dry-run base=" . $preview['base_alpha'] . " provider=" . $preview['provider'] . " as_of=" . $preview['as_of'] . "\n";
+	echo "schedule enabled=" . $sched['enabled'] . " tz=" . $sched['timezone'] . " hour=" . $sched['hour']
+		. " due=" . ($sched['due'] ? '1' : '0') . " local_now=" . $sched['local_now'] . "\n";
 	foreach ($preview['rows'] as $row) {
 		$live = $row['has_live'] ? (string) $row['live_rate'] : 'n/a';
 		echo $row['iso_name'] . "\tcurrent=" . $row['current_rate'] . "\tlive=" . $live
@@ -57,12 +71,32 @@ if ($dry) {
 	exit;
 }
 
-$out = epc_currency_live_apply($db, $DP_Config, null);
-if (!$out['ok']) {
-	exit("FAIL apply: " . $out['error'] . "\n");
+$force = !empty($_GET['force']) || !empty($_POST['force']);
+// Backward-compat: apply=1 also forces an immediate apply.
+if (!$force && (!empty($_GET['apply']) || !empty($_POST['apply']))) {
+	$force = true;
 }
-echo "OK updated=" . $out['updated'] . " skipped=" . $out['skipped']
-	. " provider=" . $out['provider'] . " as_of=" . $out['as_of'] . "\n";
-foreach ($out['rows'] as $row) {
-	echo $row['iso_name'] . "\t" . ($row['applied_rate'] ?? $row['live_rate']) . "\n";
+
+$tick = epc_currency_live_schedule_tick($db, $DP_Config, $force);
+$sched = $tick['schedule'] ?? epc_currency_live_schedule_get($db);
+
+if (!empty($tick['skipped'])) {
+	echo "OK skipped reason=" . ($tick['reason'] ?? 'n/a')
+		. " enabled=" . (int) ($sched['enabled'] ?? 0)
+		. " tz=" . ($sched['timezone'] ?? '')
+		. " hour=" . (int) ($sched['hour'] ?? 0)
+		. " local_now=" . ($sched['local_now'] ?? '')
+		. " next=" . ($sched['next_window'] ?? '')
+		. "\n";
+	exit;
 }
+
+if (empty($tick['ok'])) {
+	exit("FAIL apply: " . ($tick['error'] ?? 'unknown') . "\n");
+}
+
+echo "OK ran reason=" . ($tick['reason'] ?? '')
+	. " updated=" . (int) ($tick['updated'] ?? 0)
+	. " provider=" . ($tick['provider'] ?? '')
+	. " as_of=" . ($tick['as_of'] ?? '')
+	. "\n";

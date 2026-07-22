@@ -96,44 +96,42 @@ if (!function_exists('epc_prices_edit_round_price')) {
 }
 
 if (!function_exists('epc_prices_edit_calc_site_price')) {
-	function epc_prices_edit_calc_site_price(PDO $db, $DP_Config, $base_price, $manufacturer, $group_id, $office_id, $storage_id)
+	function epc_prices_edit_calc_site_price(PDO $db, $DP_Config, $base_price, $manufacturer, $group_id, $office_id, $storage_id, $article = '')
 	{
 		$base_price = (float)$base_price;
 		$group_id = (int)$group_id;
+		$article = (string) $article;
 		if ($base_price <= 0 || $group_id <= 0) {
 			return array('visible' => true, 'site_price' => null, 'margin_pct' => null, 'markup_pct' => null);
 		}
 
-		$work_price = $base_price;
-		$markup_decimal = 0.0;
 		$office_id = (int)$office_id;
 		$storage_id = (int)$storage_id;
 
-		if ($office_id > 0 && $storage_id > 0) {
-			$mq = $db->prepare(
-				'SELECT `min_point`, `max_point`, `markup` / 100 AS `markup`
-				 FROM `shop_offices_storages_map`
-				 WHERE `office_id` = ? AND `storage_id` = ? AND `group_id` = ?
-				 ORDER BY `min_point`'
-			);
-			$mq->execute(array($office_id, $storage_id, $group_id));
-			while ($mr = $mq->fetch(PDO::FETCH_ASSOC)) {
-				if ($work_price >= (float)$mr['min_point'] && $work_price <= (float)$mr['max_point']) {
-					$markup_decimal = (float)$mr['markup'];
-					$work_price = $work_price + ($work_price * $markup_decimal);
-					break;
-				}
-			}
-		}
-
-		if (!function_exists('epc_pricing_apply_brand_rule')) {
+		if (!function_exists('epc_pricing_apply_sell_from_purchase')) {
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_pricing.php';
 		}
 
 		$visible = true;
 		$brand_margin = 0.0;
-		if (function_exists('epc_pricing_apply_brand_rule')) {
-			$rule = epc_pricing_apply_brand_rule($db, $group_id, $manufacturer, $work_price, $markup_decimal, $article);
+		$work_price = $base_price;
+		$markup_decimal = 0.0;
+		if (function_exists('epc_pricing_apply_sell_from_purchase')) {
+			// Authoritative stack from purchase: supplier → profile (includes storage_id).
+			$rule = epc_pricing_apply_sell_from_purchase(
+				$db,
+				$group_id,
+				$manufacturer,
+				$base_price,
+				$article,
+				$storage_id
+			);
+			$visible = !empty($rule['visible']);
+			$work_price = (float) $rule['price'];
+			$markup_decimal = (float) ($rule['markup_decimal'] ?? 0.0);
+			$brand_margin = 0.0;
+		} elseif (function_exists('epc_pricing_apply_brand_rule')) {
+			$rule = epc_pricing_apply_brand_rule($db, $group_id, $manufacturer, $base_price, 0.0, $article, $storage_id);
 			$visible = !empty($rule['visible']);
 			$work_price = (float)$rule['price'];
 			$markup_decimal = (float)$rule['markup_decimal'];

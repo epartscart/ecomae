@@ -7427,6 +7427,47 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/part_search_page_"
 <?php if (!empty($epc_chpu_direct_pricing)) { ?>
 <div class="epc-chpu-actions-bar" id="epc-chpu-actions-bar" aria-label="Part page tools"></div>
 <?php } ?>
+<?php
+// CP SKU media (photos + specification sheets) for brand+article part pages.
+if (
+	$search_type === 'prices_by_article_and_manufacturer'
+	&& !empty($manufacturer)
+	&& !empty($article)
+	&& isset($db_link)
+	&& $db_link instanceof PDO
+) {
+	$epcSkuMediaStorefront = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media_storefront.php';
+	if (is_file($epcSkuMediaStorefront)) {
+		require_once $epcSkuMediaStorefront;
+		$epcSkuBrandShow = trim(html_entity_decode((string) $manufacturer, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+		$epcSkuArtShow = trim((string) $article_input);
+		if ($epcSkuArtShow === '') {
+			$epcSkuArtShow = (string) $article;
+		}
+		ob_start();
+		if (function_exists('epc_sku_media_render_storefront')) {
+			epc_sku_media_render_storefront($db_link, array(
+				'brand' => $epcSkuBrandShow,
+				'article' => $epcSkuArtShow,
+				'show_photos' => true,
+				'show_specs' => true,
+			));
+		}
+		$epcSkuMediaHtml = trim((string) ob_get_clean());
+		if ($epcSkuMediaHtml !== '') {
+			echo '<div class="epc-sku-media-part-page container" style="margin:12px auto 18px;max-width:1140px;text-align:left;">';
+			echo '<div class="epc-sku-media-part-page__head" style="margin:0 0 10px;">';
+			echo '<strong style="font-size:15px;letter-spacing:-0.01em;">Photos &amp; specifications</strong>';
+			echo '<span style="display:block;color:#64748b;font-size:13px;margin-top:2px;">'
+				. htmlspecialchars($epcSkuBrandShow . ' · ' . $epcSkuArtShow, ENT_QUOTES, 'UTF-8')
+				. '</span>';
+			echo '</div>';
+			echo $epcSkuMediaHtml;
+			echo '</div>';
+		}
+	}
+}
+?>
 <?php if (empty($epc_brand_picker_mode)) { ?>
 <div id="work_area" align="center">
 	<?php

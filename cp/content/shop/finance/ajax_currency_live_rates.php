@@ -1,7 +1,7 @@
 <?php
 /**
  * CP AJAX — live FX rates for currency settings page.
- * Actions: preview | apply
+ * Actions: preview | apply | schedule_get | schedule_save | schedule_run_now
  */
 define('_ASTEXE_', 1);
 header('Content-Type: application/json; charset=utf-8');
@@ -48,7 +48,11 @@ try {
 		exit(json_encode($out));
 	}
 
-	if ($action === 'apply') {
+	if ($action === 'schedule_get') {
+		exit(json_encode(array('ok' => true, 'schedule' => epc_currency_live_schedule_get($db_link))));
+	}
+
+	if ($action === 'apply' || $action === 'schedule_save' || $action === 'schedule_run_now') {
 		// CSRF for write
 		$session = DP_User::getAdminSession();
 		$expected = (string) ($session['csrf_guard_key'] ?? '');
@@ -56,6 +60,9 @@ try {
 			http_response_code(403);
 			exit(json_encode(array('ok' => false, 'error' => 'csrf')));
 		}
+	}
+
+	if ($action === 'apply') {
 		$only = null;
 		if (!empty($_POST['iso_codes'])) {
 			$decoded = json_decode((string) $_POST['iso_codes'], true);
@@ -68,6 +75,20 @@ try {
 		}
 		$out = epc_currency_live_apply($db_link, $DP_Config, $only);
 		exit(json_encode($out));
+	}
+
+	if ($action === 'schedule_save') {
+		$out = epc_currency_live_schedule_save($db_link, array(
+			'enabled' => !empty($_POST['enabled']) ? 1 : 0,
+			'timezone' => (string) ($_POST['timezone'] ?? 'Asia/Dubai'),
+			'hour' => (int) ($_POST['hour'] ?? 2),
+		));
+		exit(json_encode($out));
+	}
+
+	if ($action === 'schedule_run_now') {
+		$tick = epc_currency_live_schedule_tick($db_link, $DP_Config, true);
+		exit(json_encode($tick));
 	}
 
 	http_response_code(400);

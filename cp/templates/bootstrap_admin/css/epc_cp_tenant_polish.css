@@ -6,7 +6,7 @@
 /* —— Form controls (including bare inputs missing .form-control) —— */
 body.epc-cp-shell #wrapper .content input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]):not([type="file"]),
 body.epc-cp-shell #wrapper .content select:not([multiple]),
-body.epc-cp-shell #wrapper .content textarea,
+body.epc-cp-shell #wrapper .content textarea:not([hidden]):not([aria-hidden="true"]),
 body.epc-cp-shell #wrapper .content .form-control {
 	appearance: none;
 	-webkit-appearance: none;
@@ -23,11 +23,28 @@ body.epc-cp-shell #wrapper .content .form-control {
 	padding: 8px 12px !important;
 	transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
-body.epc-cp-shell #wrapper .content textarea,
-body.epc-cp-shell #wrapper .content textarea.form-control {
+body.epc-cp-shell #wrapper .content textarea:not([hidden]):not([aria-hidden="true"]),
+body.epc-cp-shell #wrapper .content textarea.form-control:not([hidden]) {
 	min-height: 96px;
 	resize: vertical;
 	line-height: 1.5 !important;
+}
+/* Config / JSON carriers must never look like form fields */
+body.epc-cp-shell #wrapper .content textarea[hidden],
+body.epc-cp-shell #wrapper .content textarea[aria-hidden="true"],
+body.epc-cp-shell #wrapper .content #epc-ao-config {
+	display: none !important;
+	visibility: hidden !important;
+	position: absolute !important;
+	width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	max-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
 }
 body.epc-cp-shell #wrapper .content select:not([multiple]) {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M1.4.6L6 5.2 10.6.6 12 2 6 8 0 2z'/%3E%3C/svg%3E") !important;

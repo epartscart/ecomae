@@ -490,7 +490,7 @@
 				});
 			}
 		}
-		// Live margin recalc while editing lines
+		// Live margin recalc while editing lines + warehouse auto-price
 		var lines = root ? root.querySelectorAll('.epc-od__line [data-field]') : [];
 		Array.prototype.forEach.call(lines, function (inp) {
 			if (inp.getAttribute('data-recalc-bound') === '1') {
@@ -501,7 +501,11 @@
 				epcOmsRecalcLine(inp.closest('.epc-od__line'));
 			});
 			inp.addEventListener('change', function () {
-				epcOmsRecalcLine(inp.closest('.epc-od__line'));
+				var card = inp.closest('.epc-od__line');
+				epcOmsRecalcLine(card);
+				if (inp.getAttribute('data-field') === 't2_storage_id' && inp.getAttribute('data-reprice') === '1') {
+					epcOmsApplyWarehousePrice(orderId, card, false);
+				}
 			});
 		});
 		if (window.epcSupplierFulfillment && urls.omsAjax) {
@@ -729,7 +733,159 @@
 			action: 'refresh_item_cost',
 			order_id: orderId,
 			item_id: itemId
-		}, 'Purchase cost refreshed', 'Could not refresh cost');
+		}, 'Warehouse price refreshed', 'Could not refresh cost');
+	};
+
+	function epcOmsApplyWarehousePrice(orderId, card, forceSave) {
+		if (!card) return;
+		var payload = epcOmsCollectLinePayload(card);
+		if (!payload || !payload.t2_storage_id || parseInt(payload.t2_storage_id, 10) <= 0) {
+			return;
+		}
+		if (!payload.t2_article) {
+			epcOdToast('Enter article before warehouse price lookup', false);
+			return;
+		}
+		epcOmsPost({
+			action: 'lookup_warehouse_price',
+			order_id: orderId,
+			t2_storage_id: payload.t2_storage_id,
+			t2_manufacturer: payload.t2_manufacturer || '',
+			t2_article: payload.t2_article || ''
+		}, 'Warehouse price loaded', 'No warehouse price', {
+			skipReload: true,
+			onSuccess: function (ans) {
+				var offer = ans && ans.offer ? ans.offer : null;
+				if (!offer) return;
+				var setVal = function (field, val) {
+					var el = card.querySelector('[data-field="' + field + '"]');
+					if (el && val != null && val !== '') el.value = val;
+				};
+				if (offer.manufacturer) setVal('t2_manufacturer', offer.manufacturer);
+				if (offer.article) setVal('t2_article', offer.article);
+				if (offer.name) setVal('t2_name', offer.name);
+				if (offer.purchase != null) setVal('t2_price_purchase', Number(offer.purchase).toFixed(2));
+				if (offer.price != null) setVal('price', Number(offer.price).toFixed(2));
+				epcOmsRecalcLine(card);
+				if (forceSave) {
+					epcOmsSaveItem(orderId, payload.item_id);
+				}
+			}
+		});
+	}
+
+	window.epcOmsOpenAlt = function (orderId, itemId) {
+		var card = document.querySelector('.epc-od__line[data-item-id="' + itemId + '"]');
+		if (!card) return;
+		var brand = (card.querySelector('[data-field="t2_manufacturer"]') || {}).value || '';
+		var article = (card.querySelector('[data-field="t2_article"]') || {}).value || '';
+		var name = (card.querySelector('[data-field="t2_name"]') || {}).value || '';
+		var qty = (card.querySelector('[data-field="count_need"]') || {}).value || '1';
+		var wh = (card.querySelector('[data-field="t2_storage_id"]') || {}).value || '0';
+		var reqBrand = card.getAttribute('data-req-brand') || brand;
+		var reqArticle = card.getAttribute('data-req-article') || article;
+		document.getElementById('epcOmsAltOrderId').value = String(orderId);
+		document.getElementById('epcOmsAltItemId').value = String(itemId);
+		document.getElementById('epcOmsAltReqLabel').textContent = (reqBrand + ' / ' + reqArticle).trim();
+		document.getElementById('epcOmsAltBrand').value = brand;
+		document.getElementById('epcOmsAltArticle').value = article;
+		document.getElementById('epcOmsAltName').value = name;
+		document.getElementById('epcOmsAltQty').value = qty;
+		document.getElementById('epcOmsAltWarehouse').value = wh;
+		document.getElementById('epcOmsAltSellPreview').value = '';
+		document.getElementById('epcOmsAltLookupHint').textContent = 'Choose warehouse + alt brand/article, then Lookup.';
+		var $ = window.jQuery || window.$;
+		if ($ && $('#epcOmsAltModal').modal) {
+			$('#epcOmsAltModal').modal('show');
+		} else {
+			var modal = document.getElementById('epcOmsAltModal');
+			if (modal) {
+				modal.style.display = 'block';
+				modal.classList.add('in');
+			}
+		}
+	};
+
+	window.epcOmsAltLookupPrice = function () {
+		var orderId = parseInt(document.getElementById('epcOmsAltOrderId').value || '0', 10);
+		var storageId = parseInt(document.getElementById('epcOmsAltWarehouse').value || '0', 10);
+		var brand = document.getElementById('epcOmsAltBrand').value || '';
+		var article = document.getElementById('epcOmsAltArticle').value || '';
+		var hint = document.getElementById('epcOmsAltLookupHint');
+		if (storageId <= 0 || !article) {
+			if (hint) hint.textContent = 'Warehouse and article are required.';
+			return;
+		}
+		epcOmsPost({
+			action: 'lookup_warehouse_price',
+			order_id: orderId,
+			t2_storage_id: storageId,
+			t2_manufacturer: brand,
+			t2_article: article
+		}, 'Price found', 'No price on warehouse', {
+			skipReload: true,
+			onSuccess: function (ans) {
+				var offer = ans && ans.offer ? ans.offer : null;
+				if (!offer) return;
+				if (offer.manufacturer) document.getElementById('epcOmsAltBrand').value = offer.manufacturer;
+				if (offer.article_show || offer.article) document.getElementById('epcOmsAltArticle').value = offer.article_show || offer.article;
+				if (offer.name) document.getElementById('epcOmsAltName').value = offer.name;
+				document.getElementById('epcOmsAltSellPreview').value =
+					Number(offer.price).toFixed(2) + ' (buy ' + Number(offer.purchase).toFixed(2) + ')';
+				if (hint) {
+					hint.textContent = 'Warehouse stock ' + (offer.exist || 0) + ' · markup ' + (offer.markup_percent || 0) + '%';
+				}
+				window._epcOmsAltOffer = offer;
+			}
+		});
+	};
+
+	window.epcOmsAltApply = function () {
+		var orderId = parseInt(document.getElementById('epcOmsAltOrderId').value || '0', 10);
+		var itemId = parseInt(document.getElementById('epcOmsAltItemId').value || '0', 10);
+		var card = document.querySelector('.epc-od__line[data-item-id="' + itemId + '"]');
+		if (!card || orderId <= 0 || itemId <= 0) return;
+		var offer = window._epcOmsAltOffer || null;
+		var brand = document.getElementById('epcOmsAltBrand').value || '';
+		var article = document.getElementById('epcOmsAltArticle').value || '';
+		var name = document.getElementById('epcOmsAltName').value || '';
+		var qty = document.getElementById('epcOmsAltQty').value || '1';
+		var storageId = document.getElementById('epcOmsAltWarehouse').value || '0';
+		var setVal = function (field, val) {
+			var el = card.querySelector('[data-field="' + field + '"]');
+			if (el) el.value = val;
+		};
+		setVal('t2_manufacturer', brand);
+		setVal('t2_article', article);
+		setVal('t2_name', name);
+		setVal('count_need', qty);
+		setVal('t2_storage_id', storageId);
+		if (offer) {
+			setVal('t2_price_purchase', Number(offer.purchase).toFixed(2));
+			setVal('price', Number(offer.price).toFixed(2));
+		}
+		epcOmsRecalcLine(card);
+		epcOmsPost({
+			action: 'update_item',
+			order_id: orderId,
+			item_id: itemId,
+			price: (card.querySelector('[data-field="price"]') || {}).value,
+			count_need: qty,
+			t2_price_purchase: (card.querySelector('[data-field="t2_price_purchase"]') || {}).value,
+			t2_storage_id: storageId,
+			t2_name: name,
+			t2_manufacturer: brand,
+			t2_article: article,
+			offer_alternative: 1,
+			reprice_from_warehouse: offer ? 0 : 1
+		}, 'Alternative applied', 'Could not apply alternative', {
+			onSuccess: function () {
+				var $ = window.jQuery || window.$;
+				if ($ && $('#epcOmsAltModal').modal) {
+					$('#epcOmsAltModal').modal('hide');
+				}
+			}
+		});
 	};
 
 	window.epcOmsSaveCourier = function (orderId) {

@@ -238,30 +238,30 @@ function epc_cp_page_asset_url_map(): array
 				'/lib/datetimepicker/jquery.datetimepicker.css',
 				'/lib/multiple_select/multiple-select.css',
 				'/' . $backend . '/content/users/statistics/assets/modal.css',
-				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsPower1'),
+				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsAlt1'),
 			),
 			'js' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.js',
 				'/lib/multiple_select/jquery.multiple.select.js',
 				'/' . $backend . '/content/users/statistics/assets/main.js',
-				'/' . $backend . '/content/shop/order_process/orders_config.php?v=' . rawurlencode($ver . 'omsPower1')
+				'/' . $backend . '/content/shop/order_process/orders_config.php?v=' . rawurlencode($ver . 'omsAlt1')
 					. (isset($_GET['order_id']) ? '&order_id=' . (int) $_GET['order_id'] : '')
 					. (isset($_GET['status_id']) ? '&status_id=' . (int) $_GET['status_id'] : ''),
-				'/' . $backend . '/content/shop/order_process/orders_cp.js?v=' . rawurlencode($ver . 'omsPower1'),
-				'/' . $backend . '/content/shop/order_process/epc_orders_fulfillment.js?v=' . rawurlencode($ver . 'omsPower1'),
-				'/' . $backend . '/content/shop/order_process/epc_orders_supplier_fulfillment.js?v=' . rawurlencode($ver . 'omsPower1'),
+				'/' . $backend . '/content/shop/order_process/orders_cp.js?v=' . rawurlencode($ver . 'omsAlt1'),
+				'/' . $backend . '/content/shop/order_process/epc_orders_fulfillment.js?v=' . rawurlencode($ver . 'omsAlt1'),
+				'/' . $backend . '/content/shop/order_process/epc_orders_supplier_fulfillment.js?v=' . rawurlencode($ver . 'omsAlt1'),
 			),
 		),
 		'shop/finance/account_operations' => array(
 			'css' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.css',
 				'/' . $backend . '/content/users/statistics/assets/modal.css',
-				'/' . $backend . '/content/shop/finance/epc_account_operations.css?v=' . rawurlencode($ver . 'aoFix2'),
+				'/' . $backend . '/content/shop/finance/epc_account_operations.css?v=' . rawurlencode($ver . 'aoFix3'),
 			),
 			'js' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.js',
 				'/' . $backend . '/content/users/statistics/assets/main.js',
-				'/' . $backend . '/content/shop/finance/account_operations_cp.js?v=' . rawurlencode($ver . 'aoFix2'),
+				'/' . $backend . '/content/shop/finance/account_operations_cp.js?v=' . rawurlencode($ver . 'aoFix3'),
 			),
 		),
 		'shop/orders/statuses' => array(
@@ -294,7 +294,7 @@ function epc_cp_page_asset_url_map(): array
 		),
 		'shop/quote-requests' => array(
 			'js' => array(
-				'/' . $backend . '/content/shop/quote_requests/quote_alt_offer.js?v=' . rawurlencode($ver . 'qAlt1'),
+				'/' . $backend . '/content/shop/quote_requests/quote_alt_offer.js?v=' . rawurlencode($ver . 'qAlt2'),
 			),
 		),
 		'shop/parts_agent_chats' => array(
@@ -343,10 +343,10 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'shop/catalogue/sku_media' => array(
-			'css' => array('/content/shop/catalogue/epc_sku_media.css?v=' . rawurlencode($ver . 'skuMedia3')),
+			'css' => array('/content/shop/catalogue/epc_sku_media.css?v=' . rawurlencode($ver . 'skuMedia4')),
 			'js' => array(
-				'/' . $backend . '/content/shop/catalogue/epc_sku_media_cp_config.php?v=' . rawurlencode($ver . 'skuMedia3'),
-				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia3'),
+				'/' . $backend . '/content/shop/catalogue/epc_sku_media_cp_config.php?v=' . rawurlencode($ver . 'skuMedia4'),
+				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia4'),
 			),
 		),
 		'shop/prices/upload' => array(

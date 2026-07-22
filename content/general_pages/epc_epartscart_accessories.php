@@ -8,7 +8,7 @@ defined('_ASTEXE_') or die('No access');
 $lang_href = (isset($multilang_params['lang_href']) && $multilang_params['lang_href'] !== '')
 	? rtrim((string) $multilang_params['lang_href'], '/')
 	: '/en';
-$epc_acc_ver = '20260721accDeepLink1';
+$epc_acc_ver = '20260721accDetail2';
 ?>
 <link rel="stylesheet" href="/content/general_pages/epc_accessories.css?v=<?php echo rawurlencode($epc_acc_ver); ?>">
 
@@ -100,7 +100,8 @@ $epc_acc_ver = '20260721accDeepLink1';
 			</aside>
 
 			<div class="epc-acc__main">
-				<div class="epc-acc__toolbar">
+				<div id="epc-acc-detail" class="epc-acc__detail" hidden aria-live="polite"></div>
+				<div class="epc-acc__toolbar" id="epc-acc-toolbar">
 					<div class="epc-acc__count" id="epc-acc-count">Loading…</div>
 					<div class="epc-acc__tools">
 						<label>
@@ -184,6 +185,8 @@ $epc_acc_ver = '20260721accDeepLink1';
 		reset: document.getElementById('epc-acc-reset'),
 		sort: document.getElementById('epc-acc-sort'),
 		count: document.getElementById('epc-acc-count'),
+		detail: document.getElementById('epc-acc-detail'),
+		toolbar: document.getElementById('epc-acc-toolbar'),
 		results: document.getElementById('epc-acc-results'),
 		pager: document.getElementById('epc-acc-pager'),
 		viewGrid: document.getElementById('epc-acc-view-grid'),
@@ -255,6 +258,142 @@ $epc_acc_ver = '20260721accDeepLink1';
 		if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
 		if (diff < 604800) return Math.floor(diff / 86400) + ' days ago';
 		return new Date(t * 1000).toLocaleDateString();
+	}
+	/** Canonical storefront detail URL — never use category browse external_url. */
+	function listingHref(item) {
+		if (!item || !item.id) return (lang || '/en') + '/accessories-spare-parts';
+		if (item.detail_url) return String(item.detail_url);
+		if (item.url && String(item.url).indexOf('id=') >= 0) return String(item.url);
+		var href = (lang || '/en') + '/accessories-spare-parts?id=' + encodeURIComponent(item.id);
+		if (item.category) href += '&category=' + encodeURIComponent(item.category);
+		if (item.subcategory) href += '&subcategory=' + encodeURIComponent(item.subcategory);
+		return href;
+	}
+	function listingPhotos(item) {
+		var photos = [];
+		if (item && Array.isArray(item.photos)) {
+			item.photos.forEach(function (p) {
+				var u = typeof p === 'string' ? p : (p && p.url ? p.url : '');
+				if (u) photos.push(u);
+			});
+		}
+		if (!photos.length && item && item.image_url) {
+			photos.push(String(item.image_url));
+		}
+		return photos;
+	}
+	function browseBackHref(item) {
+		var href = (lang || '/en') + '/accessories-spare-parts';
+		var qs = [];
+		if (item && item.category) qs.push('category=' + encodeURIComponent(item.category));
+		if (item && item.subcategory) qs.push('subcategory=' + encodeURIComponent(item.subcategory));
+		return qs.length ? (href + '?' + qs.join('&')) : href;
+	}
+	function clearDetail() {
+		if (els.detail) {
+			els.detail.hidden = true;
+			els.detail.innerHTML = '';
+		}
+		if (els.toolbar) els.toolbar.hidden = false;
+		if (els.results) els.results.hidden = false;
+		if (els.pager) els.pager.hidden = false;
+		root.classList.remove('is-detail');
+	}
+	function renderDetail(item) {
+		if (!els.detail || !item) { clearDetail(); return; }
+		var photos = listingPhotos(item);
+		var main = photos[0] || '';
+		var saved = isSaved(item.id);
+		var vehicleBits = [item.make, item.model, item.year].filter(Boolean).join(' · ');
+		var compareHtml = (item.compare_price && item.compare_price > item.price)
+			? '<span class="epc-acc__compare">' + esc(money(item.compare_price, item.currency)) + '</span>'
+			: '';
+		var thumbs = photos.length > 1
+			? '<div class="epc-acc__detail-thumbs" role="list">' + photos.map(function (u, i) {
+				return '<button type="button" class="' + (i === 0 ? 'is-active' : '') + '" data-src="' + esc(u) + '" aria-label="Photo ' + (i + 1) + '">'
+					+ '<img src="' + esc(u) + '" alt="" loading="lazy" /></button>';
+			}).join('') + '</div>'
+			: '';
+		var desc = String(item.description || '').trim();
+		els.detail.hidden = false;
+		els.detail.innerHTML =
+			'<div class="epc-acc__detail-bar">'
+			+ '<a class="epc-acc__detail-back" href="' + esc(browseBackHref(item)) + '" id="epc-acc-detail-back"><i class="fa fa-arrow-left" aria-hidden="true"></i> Back to listings</a>'
+			+ '<span class="epc-acc__detail-id">Ad #' + esc(item.id) + '</span>'
+			+ '</div>'
+			+ '<div class="epc-acc__detail-grid">'
+			+ '<div class="epc-acc__detail-gallery">'
+			+ '<div class="epc-acc__detail-main">'
+			+ (main
+				? '<img id="epc-acc-detail-main-img" src="' + esc(main) + '" alt="' + esc(item.title || '') + '" />'
+				: '<div class="epc-acc__detail-placeholder"><i class="fa fa-image" aria-hidden="true"></i><span>No photo yet</span></div>')
+			+ '</div>'
+			+ thumbs
+			+ '</div>'
+			+ '<div class="epc-acc__detail-info">'
+			+ '<div class="epc-acc__meta">'
+			+ (item.category_label ? '<span>' + esc(item.category_label) + '</span>' : '')
+			+ (item.subcategory_label ? '<span>' + esc(item.subcategory_label) + '</span>' : '')
+			+ (item.city ? '<span>' + esc(item.city) + '</span>' : '')
+			+ '<span>' + esc(item.condition === 'used' ? 'Used' : 'New') + '</span>'
+			+ '</div>'
+			+ '<h2 class="epc-acc__detail-title">' + esc(item.title || 'Listing') + '</h2>'
+			+ (vehicleBits ? '<p class="epc-acc__article">' + esc(vehicleBits) + (item.updated_at ? ' · ' + esc(relativeUpdated(item.updated_at)) : '') + '</p>' : '')
+			+ '<div class="epc-acc__price">' + esc(money(item.price, item.currency)) + compareHtml + '</div>'
+			+ (item.stock_qty > 0 ? '<div class="epc-acc__stock">' + esc(item.stock_qty) + ' in stock</div>' : '')
+			+ '<div class="epc-acc__detail-specs"><table><tbody>'
+			+ '<tr><th scope="row">Make</th><td>' + esc(item.make || '—') + '</td></tr>'
+			+ '<tr><th scope="row">Model</th><td>' + esc(item.model || '—') + '</td></tr>'
+			+ '<tr><th scope="row">Year</th><td>' + esc(item.year || '—') + '</td></tr>'
+			+ '<tr><th scope="row">City</th><td>' + esc(item.city || '—') + '</td></tr>'
+			+ '<tr><th scope="row">Condition</th><td>' + esc(item.condition === 'used' ? 'Used' : 'New') + '</td></tr>'
+			+ '<tr><th scope="row">Category</th><td>' + esc([item.category_label, item.subcategory_label].filter(Boolean).join(' / ') || '—') + '</td></tr>'
+			+ '</tbody></table></div>'
+			+ (desc ? '<div class="epc-acc__detail-desc"><h3>Details</h3><p>' + esc(desc) + '</p></div>' : '')
+			+ '<div class="epc-acc__actions epc-acc__detail-actions">'
+			+ '<button type="button" class="secondary epc-acc__save' + (saved ? ' is-saved' : '') + '" data-id="' + esc(item.id) + '" id="epc-acc-detail-save">'
+			+ (saved ? 'Saved' : 'Save Ad') + '</button>'
+			+ (item.external_url ? '<a class="primary" href="' + esc(item.external_url) + '" target="_blank" rel="noopener">Seller link</a>' : '')
+			+ '</div>'
+			+ '</div></div>';
+		if (els.toolbar) els.toolbar.hidden = true;
+		if (els.results) els.results.hidden = true;
+		if (els.pager) els.pager.hidden = true;
+		root.classList.add('is-detail');
+		var mainImg = document.getElementById('epc-acc-detail-main-img');
+		Array.prototype.forEach.call(els.detail.querySelectorAll('.epc-acc__detail-thumbs button'), function (btn) {
+			btn.addEventListener('click', function () {
+				Array.prototype.forEach.call(els.detail.querySelectorAll('.epc-acc__detail-thumbs button'), function (b) {
+					b.classList.remove('is-active');
+				});
+				btn.classList.add('is-active');
+				if (mainImg) {
+					mainImg.src = btn.getAttribute('data-src') || mainImg.src;
+				}
+			});
+		});
+		var saveBtn = document.getElementById('epc-acc-detail-save');
+		if (saveBtn) {
+			saveBtn.addEventListener('click', function () {
+				var on = toggleSaved(saveBtn.getAttribute('data-id'));
+				saveBtn.textContent = on ? 'Saved' : 'Save Ad';
+				saveBtn.classList.toggle('is-saved', on);
+			});
+		}
+		var back = document.getElementById('epc-acc-detail-back');
+		if (back) {
+			back.addEventListener('click', function (ev) {
+				// Soft navigate back to category list without full reload when possible.
+				ev.preventDefault();
+				state.id = '';
+				state.category = item.category || state.category || '';
+				state.subcategory = item.subcategory || state.subcategory || '';
+				state.page = 1;
+				clearDetail();
+				load();
+			});
+		}
+		try { window.scrollTo({ top: Math.max(0, root.offsetTop - 12), behavior: 'smooth' }); } catch (e) {}
 	}
 
 	function syncUrl() {
@@ -427,6 +566,22 @@ $epc_acc_ver = '20260721accDeepLink1';
 		if (state.showSavedOnly) {
 			items = (items || []).filter(function (it) { return savedIds.indexOf(String(it.id)) >= 0; });
 		}
+		if (state.id) {
+			var focused = (items || []).filter(function (it) { return String(it.id) === String(state.id); })[0];
+			if (focused) {
+				renderDetail(focused);
+				return;
+			}
+			clearDetail();
+			els.results.hidden = false;
+			els.results.innerHTML =
+				'<div class="epc-acc__empty">'
+				+ '<strong>Listing not found</strong>'
+				+ '<p>This ad is unavailable or not published. <a href="' + esc(browseBackHref({ category: state.category, subcategory: state.subcategory })) + '">Back to listings</a></p>'
+				+ '</div>';
+			return;
+		}
+		clearDetail();
 		if (!items || !items.length) {
 			els.results.innerHTML =
 				'<div class="epc-acc__empty">'
@@ -437,22 +592,21 @@ $epc_acc_ver = '20260721accDeepLink1';
 			return;
 		}
 		els.results.innerHTML = items.map(function (item, idx) {
-			var selfHref = (lang || '/en') + '/accessories-spare-parts?id=' + encodeURIComponent(item.id);
-			var href = item.external_url || selfHref;
+			var href = listingHref(item);
 			var saved = isSaved(item.id);
-			var focus = state.id && String(state.id) === String(item.id);
-			var img = item.image_url
-				? '<img src="' + esc(item.image_url) + '" alt="" loading="lazy" />'
-				: '<span class="epc-acc__media-mark">' + esc((item.make || item.category_label || 'AD').toString().slice(0, 3).toUpperCase()) + '</span>';
+			var cover = listingPhotos(item)[0] || item.image_url || '';
+			var img = cover
+				? '<a class="epc-acc__media-link" href="' + esc(href) + '"><img src="' + esc(cover) + '" alt="" loading="lazy" /></a>'
+				: '<a class="epc-acc__media-link" href="' + esc(href) + '"><span class="epc-acc__media-mark">' + esc((item.make || item.category_label || 'AD').toString().slice(0, 3).toUpperCase()) + '</span></a>';
 			var compareHtml = (item.compare_price && item.compare_price > item.price)
 				? '<span class="epc-acc__compare">' + esc(money(item.compare_price, item.currency)) + '</span>'
 				: '';
 			var vehicleBits = [item.make, item.model, item.year].filter(Boolean).join(' · ');
-			return '<article class="epc-acc__card' + (item.featured ? ' is-featured' : '') + (focus ? ' is-focus' : '') + '" id="epc-acc-listing-' + esc(item.id) + '" data-listing-id="' + esc(item.id) + '" style="animation-delay:' + (Math.min(idx, 8) * 0.03) + 's">'
+			return '<article class="epc-acc__card' + (item.featured ? ' is-featured' : '') + '" id="epc-acc-listing-' + esc(item.id) + '" data-listing-id="' + esc(item.id) + '" style="animation-delay:' + (Math.min(idx, 8) * 0.03) + 's">'
 				+ '<div class="epc-acc__media">'
 				+ (item.featured ? '<span class="epc-acc__featured">Featured</span>' : '')
 				+ '<span class="epc-acc__media-badge">' + esc(item.condition === 'used' ? 'Used' : 'New') + '</span>'
-				+ '<span class="epc-acc__photos"><i class="fa fa-camera" aria-hidden="true"></i> ' + esc(item.photo_count || 1) + '</span>'
+				+ '<span class="epc-acc__photos"><i class="fa fa-camera" aria-hidden="true"></i> ' + esc(item.photo_count || listingPhotos(item).length || 1) + '</span>'
 				+ img
 				+ '</div><div class="epc-acc__body">'
 				+ '<div class="epc-acc__meta">'
@@ -477,14 +631,6 @@ $epc_acc_ver = '20260721accDeepLink1';
 				if (state.showSavedOnly) { renderCards(items, emptyCatalog); }
 			});
 		});
-		if (state.id) {
-			window.setTimeout(function () {
-				var focusEl = document.getElementById('epc-acc-listing-' + String(state.id));
-				if (focusEl && focusEl.scrollIntoView) {
-					focusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-				}
-			}, 80);
-		}
 	}
 
 	function renderPager(page, pages) {

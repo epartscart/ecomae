@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `shop_quote_items` (
   `alt_name` varchar(512) DEFAULT NULL,
   `alt_count_need` int(11) DEFAULT NULL,
   `alt_quoted_price` decimal(12,2) DEFAULT NULL,
+  `alt_storage_id` int(11) DEFAULT NULL COMMENT 'Supplier warehouse for order process',
   PRIMARY KEY (`id`),
   KEY `quote_id` (`quote_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

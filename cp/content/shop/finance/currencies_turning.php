@@ -229,6 +229,63 @@ else
 			</div>
 		</div>
 	</div>
+
+
+	<div class="col-lg-12">
+		<div class="hpanel">
+			<div class="panel-heading hbuilt">
+				Daily auto update (night)
+			</div>
+			<div class="panel-body">
+				<p style="margin:0 0 12px;color:#64748b;font-size:13px;">
+					Automatically fetch and apply live FX rates once per night.
+					Uses the same providers as above. Safe to hit every minute — it only applies when the nightly window is due.
+				</p>
+				<div id="epc_fx_sched_status" class="alert alert-info" style="display:none;margin-bottom:12px;"></div>
+				<div class="row">
+					<div class="col-sm-3">
+						<label style="font-weight:600;">Enabled</label>
+						<div>
+							<label class="checkbox-inline" style="padding-left:0;">
+								<input type="checkbox" id="epc_fx_sched_enabled" value="1" checked>
+								Daily auto update
+							</label>
+						</div>
+					</div>
+					<div class="col-sm-3">
+						<label for="epc_fx_sched_timezone" style="font-weight:600;">Timezone</label>
+						<input type="text" class="form-control input-sm" id="epc_fx_sched_timezone" value="Asia/Dubai">
+					</div>
+					<div class="col-sm-2">
+						<label for="epc_fx_sched_hour" style="font-weight:600;">Night hour</label>
+						<select class="form-control input-sm" id="epc_fx_sched_hour">
+							<?php for ($__h = 0; $__h <= 23; $__h++): ?>
+								<option value="<?php echo $__h; ?>"<?php echo $__h === 2 ? ' selected' : ''; ?>><?php echo sprintf('%02d:00', $__h); ?></option>
+							<?php endfor; ?>
+						</select>
+					</div>
+					<div class="col-sm-4">
+						<label style="font-weight:600;">Actions</label>
+						<div>
+							<button type="button" class="btn btn-sm btn-primary" onclick="epcFxSchedSave();">Save schedule</button>
+							<button type="button" class="btn btn-sm btn-success" onclick="epcFxSchedRunNow();">Run now</button>
+						</div>
+					</div>
+				</div>
+				<div style="margin-top:14px;font-size:13px;color:#334155;line-height:1.55;">
+					<div><strong>Local now:</strong> <span id="epc_fx_sched_local_now">—</span></div>
+					<div><strong>Due now:</strong> <span id="epc_fx_sched_due">—</span></div>
+					<div><strong>Next window:</strong> <span id="epc_fx_sched_next">—</span></div>
+					<div><strong>Last run:</strong> <span id="epc_fx_sched_last">—</span></div>
+					<div style="margin-top:8px;color:#64748b;font-size:12px;">
+						Cron URL (token-gated; every minute or <code>0 2 * * *</code>):
+						<code id="epc_fx_sched_cron_url" style="display:inline-block;margin-top:4px;word-break:break-all;">https://www.epartscart.com/epc-currency-live-rates-cron.php?token=epartscart-deploy-2026</code>
+						<br>Also hooked into the existing every-minute pyprices <code>cron_crutch.php</code> tick.
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 	
 	
 	
@@ -556,6 +613,103 @@ else
 			.catch(function () {
 				epcLiveRatesSetStatus("danger", "Network error applying live rates");
 			});
+	}
+
+	function epcFxSchedSetStatus(kind, text) {
+		var el = document.getElementById("epc_fx_sched_status");
+		if (!el) return;
+		el.style.display = "block";
+		el.className = "alert alert-" + (kind || "info");
+		el.textContent = text || "";
+	}
+
+	function epcFxSchedRender(s) {
+		if (!s) return;
+		var en = document.getElementById("epc_fx_sched_enabled");
+		var tz = document.getElementById("epc_fx_sched_timezone");
+		var hour = document.getElementById("epc_fx_sched_hour");
+		if (en) en.checked = !!s.enabled;
+		if (tz) tz.value = s.timezone || "Asia/Dubai";
+		if (hour) hour.value = String(s.hour != null ? s.hour : 2);
+		var ln = document.getElementById("epc_fx_sched_local_now");
+		var due = document.getElementById("epc_fx_sched_due");
+		var next = document.getElementById("epc_fx_sched_next");
+		var last = document.getElementById("epc_fx_sched_last");
+		if (ln) ln.textContent = (s.local_now || "—") + " (" + (s.timezone || "") + ")";
+		if (due) due.textContent = s.due ? "Yes — will run on next cron tick" : "No";
+		if (next) next.textContent = s.next_window || "—";
+		if (last) {
+			var when = s.last_run_at ? new Date(s.last_run_at * 1000).toLocaleString() : "never";
+			var st = s.last_status || "—";
+			var msg = s.last_message || "";
+			var prov = s.last_provider ? (" · " + s.last_provider) : "";
+			last.textContent = when + " · " + st + prov + (msg ? (" · " + msg) : "");
+		}
+	}
+
+	function epcFxSchedLoad() {
+		fetch(EPC_LIVE_RATES_AJAX + "?action=schedule_get", { credentials: "same-origin" })
+			.then(function (r) { return r.json(); })
+			.then(function (j) {
+				if (!j || !j.ok) {
+					epcFxSchedSetStatus("danger", (j && j.error) ? j.error : "Could not load schedule");
+					return;
+				}
+				epcFxSchedRender(j.schedule);
+			})
+			.catch(function () {
+				epcFxSchedSetStatus("danger", "Network error loading schedule");
+			});
+	}
+
+	function epcFxSchedSave() {
+		epcFxSchedSetStatus("info", "Saving schedule…");
+		var body = new FormData();
+		body.append("action", "schedule_save");
+		body.append("csrf_guard_key", EPC_LIVE_CSRF);
+		body.append("enabled", document.getElementById("epc_fx_sched_enabled").checked ? "1" : "0");
+		body.append("timezone", document.getElementById("epc_fx_sched_timezone").value || "Asia/Dubai");
+		body.append("hour", document.getElementById("epc_fx_sched_hour").value || "2");
+		fetch(EPC_LIVE_RATES_AJAX, { method: "POST", credentials: "same-origin", body: body })
+			.then(function (r) { return r.json(); })
+			.then(function (j) {
+				if (!j || !j.ok) {
+					epcFxSchedSetStatus("danger", (j && (j.message || j.error)) ? (j.message || j.error) : "Save failed");
+					return;
+				}
+				epcFxSchedRender(j.schedule);
+				epcFxSchedSetStatus("success", "Daily auto update schedule saved.");
+			})
+			.catch(function () {
+				epcFxSchedSetStatus("danger", "Network error saving schedule");
+			});
+	}
+
+	function epcFxSchedRunNow() {
+		if (!confirm("Fetch and apply live FX rates now?")) return;
+		epcFxSchedSetStatus("info", "Running live FX update…");
+		var body = new FormData();
+		body.append("action", "schedule_run_now");
+		body.append("csrf_guard_key", EPC_LIVE_CSRF);
+		fetch(EPC_LIVE_RATES_AJAX, { method: "POST", credentials: "same-origin", body: body })
+			.then(function (r) { return r.json(); })
+			.then(function (j) {
+				if (!j || !j.ok) {
+					epcFxSchedSetStatus("danger", (j && (j.error || j.message)) ? (j.error || j.message) : "Run failed");
+					if (j && j.schedule) epcFxSchedRender(j.schedule);
+					return;
+				}
+				if (j.schedule) epcFxSchedRender(j.schedule);
+				epcFxSchedSetStatus("success", "Updated " + (j.updated || 0) + " currencies from " + (j.provider || "live FX") + ".");
+			})
+			.catch(function () {
+				epcFxSchedSetStatus("danger", "Network error running update");
+			});
+	}
+
+	// Load schedule panel on page open
+	if (document.getElementById("epc_fx_sched_enabled")) {
+		epcFxSchedLoad();
 	}
 	</script>
 	

@@ -135,13 +135,37 @@ $message = '';
 $error = '';
 
 epc_pm_ensure_profile_schema($db_link);
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/pricing/epc_pricing.php");
+// Prefer DOCUMENT_ROOT — CP may eval() this page so __DIR__ is unreliable.
+$epc_pm_storage_panel = $_SERVER['DOCUMENT_ROOT'] . '/cp/content/shop/pricing/epc_pm_storage_panel.php';
+if (!is_file($epc_pm_storage_panel) && !empty($DP_Config->backend_dir)) {
+	$epc_pm_storage_panel = $_SERVER['DOCUMENT_ROOT'] . '/' . trim((string) $DP_Config->backend_dir, '/') . '/content/shop/pricing/epc_pm_storage_panel.php';
+}
+if (!is_file($epc_pm_storage_panel)) {
+	$epc_pm_storage_panel = dirname(__FILE__) . '/epc_pm_storage_panel.php';
+}
+require_once $epc_pm_storage_panel;
+epc_pricing_ensure_storage_schema($db_link);
 
 if($_SERVER['REQUEST_METHOD'] === 'POST')
 {
 	require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/stop_csrf.php");
 	$action = isset($_POST['action']) ? $_POST['action'] : '';
+	$storage_actions = array(
+		'save_storage_rule', 'delete_storage_rule',
+		'save_storage_brand_rule', 'delete_storage_brand_rule',
+		'save_storage_article_rule', 'delete_storage_article_rule',
+	);
+	$epc_pm_post_done = false;
+	if (in_array($action, $storage_actions, true)) {
+		list($message, $error) = epc_pm_storage_handle_post($db_link, $_POST);
+		$epc_pm_post_done = true;
+	}
 	try
 	{
+		if ($epc_pm_post_done) {
+			throw new Exception('__epc_pm_skip__');
+		}
 		if($action === 'save_vat')
 		{
 			$vat = (float)str_replace(',', '.', $_POST['vat_percent']);
@@ -317,9 +341,14 @@ if($_SERVER['REQUEST_METHOD'] === 'POST')
 	}
 	catch(Exception $e)
 	{
-		$error = $e->getMessage();
+		if ($e->getMessage() !== '__epc_pm_skip__') {
+			$error = $e->getMessage();
+		}
 	}
 }
+
+$epc_pm_storages = epc_pm_storage_list($db_link);
+$epc_pm_storage_bundle = epc_pm_storage_rules_bundle($db_link);
 
 $profiles = array();
 $profiles_query = $db_link->prepare("SELECT `groups`.*, `epc_price_profiles`.`code`, `epc_price_profiles`.`vat_percent`, `epc_price_profiles`.`margin_percent` FROM `epc_price_profiles` INNER JOIN `groups` ON `groups`.`id` = `epc_price_profiles`.`group_id` ORDER BY `epc_price_profiles`.`id` ASC;");
@@ -392,15 +421,27 @@ if(isset($_GET['preview']) && $_GET['preview'] === '1')
 	$preview_brand = isset($_GET['brand']) ? (string)$_GET['brand'] : 'TOYOTA';
 	$preview_article = isset($_GET['article']) ? (string)$_GET['article'] : '';
 	$preview_base = isset($_GET['base_price']) ? (float)$_GET['base_price'] : 100.0;
+	$preview_storage_id = isset($_GET['storage_id']) ? (int)$_GET['storage_id'] : 0;
 	if($preview_group_id > 0 && $preview_base > 0)
 	{
-		$preview_result = epc_pricing_apply_price_rules($db_link, $preview_group_id, $preview_brand, $preview_base, 0.0, $preview_article);
+		$preview_result = epc_pricing_apply_price_rules(
+			$db_link,
+			$preview_group_id,
+			$preview_brand,
+			$preview_base,
+			0.0,
+			$preview_article,
+			$preview_storage_id
+		);
 	}
 }
 
 $rules_count = count($rules);
 $article_rules_count = count($article_rules);
 $profiles_count = count($profiles);
+$storage_rules_total = (int) ($epc_pm_storage_bundle['counts']['overall'] ?? 0)
+	+ (int) ($epc_pm_storage_bundle['counts']['brand'] ?? 0)
+	+ (int) ($epc_pm_storage_bundle['counts']['article'] ?? 0);
 $backend = $DP_Config->backend_dir;
 ?>
 
@@ -501,21 +542,27 @@ $backend = $DP_Config->backend_dir;
 <div class="epc-pm-hero">
 	<h1>Price Management</h1>
 	<p>
-		Control how customers see prices on the storefront. Set profiles (Retail, Wholesale…),
-		margins at profile / brand / article level, guest pricing, and invoice VAT — then verify with the live calculator below.
+		Control storefront prices at every level: <strong>supplier / warehouse</strong> (overall → brand → article),
+		then customer <strong>profiles</strong> (overall → brand → article), plus guest margin and invoice VAT.
+		Use the live calculator to verify the full stack.
 	</p>
 </div>
 
 <div class="epc-pm-stats">
 	<div class="epc-pm-stat"><strong><?=(int)$profiles_count;?></strong><span>Profiles</span></div>
+	<div class="epc-pm-stat"><strong><?=(int)$storage_rules_total;?></strong><span>Supplier rules</span></div>
 	<div class="epc-pm-stat"><strong><?=epc_pm_h($guest_margin_percent);?>%</strong><span>Guest margin</span></div>
 	<div class="epc-pm-stat"><strong><?=epc_pm_h($vat_percent);?>%</strong><span>Default VAT</span></div>
-	<div class="epc-pm-stat"><strong><?=(int)$rules_count;?></strong><span>Brand rules</span></div>
-	<div class="epc-pm-stat"><strong><?=(int)$article_rules_count;?></strong><span>Article rules</span></div>
+	<div class="epc-pm-stat"><strong><?=(int)$rules_count;?></strong><span>Profile brand rules</span></div>
+	<div class="epc-pm-stat"><strong><?=(int)$article_rules_count;?></strong><span>Profile article rules</span></div>
 </div>
 
 <div class="epc-pm-callout">
-	<strong>How margins stack:</strong> Warehouse base price → <em>Profile overall %</em> → <em>Brand %</em> → <em>Article %</em> → <em>Guest %</em> (visitors only). Each step adds on top of the previous price.
+	<strong>How margins stack (top → bottom):</strong>
+	Purchase → <em>Supplier %</em> → <em>Supplier brand %</em> → <em>Supplier article %</em>
+	→ <em>Profile overall %</em> → <em>Profile brand %</em> → <em>Profile article %</em>
+	→ <em>Guest %</em> (visitors only). Each step adds on top of the previous price.
+	<br><strong>Policy:</strong> Guest + Retail default to <strong>40%</strong> markup. B2B (wholesale / CIS / GCC) prices apply only after manager approval and profile assignment. Checkout blocks any line with no positive margin.
 </div>
 
 <div class="epc-pm-callout" style="border-left-color:#0f766e;background:#f0fdfa;">
@@ -529,14 +576,24 @@ $backend = $DP_Config->backend_dir;
 </div>
 
 <div class="epc-pm-flow">
+	<div class="epc-pm-flow-step"><a href="#epc-pm-step-wh"><span class="epc-pm-flow-num">W</span><div class="epc-pm-flow-label">Warehouse /<br>supplier</div></a></div>
 	<div class="epc-pm-flow-step"><a href="#epc-pm-step1"><span class="epc-pm-flow-num">1</span><div class="epc-pm-flow-label">Profiles &amp;<br>overall margin</div></a></div>
 	<div class="epc-pm-flow-step"><a href="#epc-pm-step2"><span class="epc-pm-flow-num">2</span><div class="epc-pm-flow-label">Guest &amp;<br>VAT settings</div></a></div>
 	<div class="epc-pm-flow-step"><a href="#epc-pm-step3"><span class="epc-pm-flow-num">3</span><div class="epc-pm-flow-label">Assign<br>customer</div></a></div>
-	<div class="epc-pm-flow-step"><a href="#epc-pm-step4"><span class="epc-pm-flow-num">4</span><div class="epc-pm-flow-label">Brand<br>rules</div></a></div>
-	<div class="epc-pm-flow-step"><a href="#epc-pm-step5"><span class="epc-pm-flow-num">5</span><div class="epc-pm-flow-label">Article<br>rules</div></a></div>
+	<div class="epc-pm-flow-step"><a href="#epc-pm-step4"><span class="epc-pm-flow-num">4</span><div class="epc-pm-flow-label">Profile<br>brand</div></a></div>
+	<div class="epc-pm-flow-step"><a href="#epc-pm-step5"><span class="epc-pm-flow-num">5</span><div class="epc-pm-flow-label">Profile<br>article</div></a></div>
 	<div class="epc-pm-flow-step"><a href="#epc-pm-step6"><span class="epc-pm-flow-num">6</span><div class="epc-pm-flow-label">Live<br>calculator</div></a></div>
 	<div class="epc-pm-flow-step"><a href="#epc-pm-step7"><span class="epc-pm-flow-num">7</span><div class="epc-pm-flow-label">Verify on<br>storefront</div></a></div>
 </div>
+
+<?php
+epc_pm_storage_render_section(
+	$epc_pm_storages,
+	$epc_pm_storage_bundle,
+	(string) ($user_session['csrf_guard_key'] ?? ''),
+	(string) $backend
+);
+?>
 
 <!-- STEP 1 -->
 <div class="epc-pm-section" id="epc-pm-step1">
@@ -544,7 +601,7 @@ $backend = $DP_Config->backend_dir;
 		<div class="epc-pm-section-num">1</div>
 		<div>
 			<h2>Customer price profiles</h2>
-			<p>Each profile is a pricing tier (Retail, Wholesale, CIS, GCC). Set an <strong>overall margin %</strong> that applies to every brand for that profile.</p>
+			<p>Each profile is a pricing tier (Retail, Wholesale, CIS, GCC). Set an <strong>overall margin %</strong> that applies to every brand for that profile <em>after</em> supplier rules.</p>
 		</div>
 	</div>
 	<div class="epc-pm-section-body">
@@ -814,12 +871,20 @@ $backend = $DP_Config->backend_dir;
 		<div class="epc-pm-section-num">6</div>
 		<div>
 			<h2>Live price calculator</h2>
-			<p>Test any combination before checking the storefront. Uses your saved settings from Steps 1–5.</p>
+			<p>Test the full stack: supplier rules + customer profile rules. Pick a warehouse to include supplier margins.</p>
 		</div>
 	</div>
 	<div class="epc-pm-section-body">
 		<form method="get" class="epc-pm-form-grid">
 			<input type="hidden" name="preview" value="1" />
+			<div><label>Supplier / warehouse</label>
+				<select class="form-control" name="storage_id">
+					<option value="0">None (profile rules only)</option>
+					<?php foreach ($epc_pm_storages as $st) { ?>
+					<option value="<?= (int) $st['id']; ?>" <?=(isset($_GET['storage_id']) && (int)$_GET['storage_id'] === (int)$st['id']) ? 'selected' : '';?>><?=epc_pm_h($st['name']);?></option>
+					<?php } ?>
+				</select>
+			</div>
 			<div><label>Profile</label>
 				<select class="form-control" name="group_id">
 					<?php foreach($profiles as $profile) { ?>
@@ -881,10 +946,11 @@ $backend = $DP_Config->backend_dir;
 	</div>
 	<div class="epc-pm-section-body">
 		<ol style="line-height:1.8;margin-bottom:0;padding-left:20px;">
+			<li><strong>Supplier test</strong> — set a supplier overall (or brand/article) margin in the Warehouse section, then search an offer from that warehouse. Price should rise before profile margins.</li>
 			<li><strong>Guest test</strong> — log out of the storefront, search a part (e.g. MAZDA). Price should include guest margin (currently <?=epc_pm_h($guest_margin_percent);?>%).</li>
-			<li><strong>Logged-in test</strong> — log in as the customer you assigned in Step 3. Search the same part — price should reflect their profile + brand/article rules.</li>
-			<li><strong>Compare</strong> — use <a href="/<?=epc_pm_h($backend);?>/shop/prices/prices_edit">Prices edit</a> to preview site price per profile against warehouse base.</li>
-			<li><strong>Hidden brands</strong> — if a brand is set to Hide, the part should not appear in search results for that profile.</li>
+			<li><strong>Logged-in test</strong> — log in as the customer you assigned in Step 3. Search the same part — price should reflect supplier stack + their profile + brand/article rules.</li>
+			<li><strong>Compare</strong> — use the live calculator (select warehouse + profile) or <a href="/<?=epc_pm_h($backend);?>/shop/prices/prices_edit">Prices edit</a>.</li>
+			<li><strong>Hidden brands</strong> — if a brand is set to Hide (supplier or profile), the part should not appear in search results for that scope.</li>
 		</ol>
 	</div>
 </div>

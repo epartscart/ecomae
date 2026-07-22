@@ -206,6 +206,121 @@ if (!function_exists('epc_sku_media_photo_url')) {
 	}
 }
 
+if (!function_exists('epc_sku_media_storefront_part_url')) {
+	/**
+	 * Public storefront URL for a brand/article (part search CHPU).
+	 */
+	function epc_sku_media_storefront_part_url(string $brand, string $article, string $langHref = '/en'): string
+	{
+		$brand = trim($brand);
+		$article = trim($article);
+		if ($article === '') {
+			return '';
+		}
+		$docRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
+		$match = $docRoot . '/content/shop/docpart/docpart_article_match.php';
+		if (is_file($match)) {
+			require_once $match;
+		}
+		global $DP_Config;
+		if (function_exists('epc_chpu_build_part_url') && is_object($DP_Config)) {
+			$url = epc_chpu_build_part_url($DP_Config, $langHref, $brand, $article);
+			if (is_string($url) && $url !== '') {
+				return $url;
+			}
+		}
+		$langHref = rtrim($langHref, '/');
+		if ($langHref === '') {
+			$langHref = '/en';
+		}
+		$artKey = function_exists('epc_sku_media_normalize_article')
+			? epc_sku_media_normalize_article($article)
+			: strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $article) ?? '');
+		if ($artKey === '') {
+			return '';
+		}
+		if ($brand === '') {
+			return $langHref . '/parts/brands/' . rawurlencode($artKey);
+		}
+		return $langHref . '/parts/' . rawurlencode(strtoupper($brand)) . '/' . rawurlencode($artKey);
+	}
+}
+
+if (!function_exists('epc_sku_media_attach_local_photo')) {
+	/**
+	 * Attach an existing local image file to a profile (seed / import — not HTTP upload).
+	 *
+	 * @param array<string,mixed> $meta
+	 * @return array{ok:bool,id?:int,error?:string,file_name?:string,url?:string}
+	 */
+	function epc_sku_media_attach_local_photo(PDO $db, int $profileId, string $sourcePath, array $meta = array()): array
+	{
+		epc_sku_media_ensure_schema($db);
+		if ($profileId <= 0) {
+			return array('ok' => false, 'error' => 'Missing profile');
+		}
+		if ($sourcePath === '' || !is_file($sourcePath) || !is_readable($sourcePath)) {
+			return array('ok' => false, 'error' => 'Source image missing');
+		}
+		$ext = strtolower(pathinfo($sourcePath, PATHINFO_EXTENSION));
+		$allowed = array('jpg' => true, 'jpeg' => true, 'png' => true, 'gif' => true, 'webp' => true);
+		if (!isset($allowed[$ext])) {
+			return array('ok' => false, 'error' => 'Unsupported image type');
+		}
+		$dir = epc_sku_media_images_fs();
+		$saved = 'sku_' . $profileId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
+		$dest = $dir . $saved;
+		if (!@copy($sourcePath, $dest)) {
+			return array('ok' => false, 'error' => 'Could not copy image');
+		}
+		@chmod($dest, 0644);
+
+		$sort = (int) ($meta['sort_order'] ?? 0);
+		if ($sort <= 0) {
+			$mx = $db->prepare('SELECT COALESCE(MAX(`sort_order`),0) FROM `epc_sku_photos` WHERE `profile_id` = ?');
+			$mx->execute(array($profileId));
+			$sort = ((int) $mx->fetchColumn()) + 10;
+		}
+		$isPrimary = !empty($meta['is_primary']) ? 1 : 0;
+		if ($isPrimary) {
+			$db->prepare('UPDATE `epc_sku_photos` SET `is_primary` = 0 WHERE `profile_id` = ?')->execute(array($profileId));
+		} else {
+			$cnt = $db->prepare('SELECT COUNT(*) FROM `epc_sku_photos` WHERE `profile_id` = ?');
+			$cnt->execute(array($profileId));
+			if ((int) $cnt->fetchColumn() === 0) {
+				$isPrimary = 1;
+			}
+		}
+		$photoType = trim((string) ($meta['photo_type'] ?? 'product'));
+		$types = epc_sku_media_photo_types();
+		if (!isset($types[$photoType])) {
+			$photoType = 'product';
+		}
+		$db->prepare(
+			'INSERT INTO `epc_sku_photos`
+				(`profile_id`, `file_name`, `alt`, `caption`, `photo_type`, `sort_order`, `is_primary`, `created_at`)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+		)->execute(array(
+			$profileId,
+			$saved,
+			trim((string) ($meta['alt'] ?? '')),
+			trim((string) ($meta['caption'] ?? '')),
+			$photoType,
+			$sort,
+			$isPrimary,
+			time(),
+		));
+		$id = (int) $db->lastInsertId();
+		$db->prepare('UPDATE `epc_sku_profiles` SET `updated_at` = ? WHERE `id` = ?')->execute(array(time(), $profileId));
+		return array(
+			'ok' => true,
+			'id' => $id,
+			'file_name' => $saved,
+			'url' => epc_sku_media_photo_url($saved),
+		);
+	}
+}
+
 if (!function_exists('epc_sku_media_find_profile')) {
 	/**
 	 * @return array<string,mixed>|null
@@ -423,12 +538,13 @@ if (!function_exists('epc_sku_media_search_library')) {
 			if ($sig !== '|') {
 				$seen[$sig] = true;
 			}
+			$articleShow = $article !== '' ? $article : $key;
 			$out[] = array(
 				'id' => (int) ($p['id'] ?? 0),
 				'source' => 'profile',
 				'brand' => $brand,
-				'article' => $article !== '' ? $article : $key,
-				'article_show' => $article !== '' ? $article : $key,
+				'article' => $articleShow,
+				'article_show' => $articleShow,
 				'title' => (string) ($p['title'] ?? ''),
 				'warehouse' => '',
 				'product_id' => (int) ($p['product_id'] ?? 0),
@@ -437,6 +553,7 @@ if (!function_exists('epc_sku_media_search_library')) {
 				'group_count' => (int) ($p['group_count'] ?? 0),
 				'has_profile' => true,
 				'status' => (string) ($p['status'] ?? 'active'),
+				'storefront_url' => epc_sku_media_storefront_part_url($brand, $articleShow),
 			);
 		}
 
@@ -520,12 +637,13 @@ if (!function_exists('epc_sku_media_search_library')) {
 			$wh = isset($priceMap[$priceId]) ? $priceMap[$priceId]['short_name'] : '';
 			$profile = epc_sku_media_find_profile($db, 0, 0, $brand, $key);
 			$hasProfile = is_array($profile);
+			$artOut = $articleShow !== '' ? $articleShow : $key;
 			$out[] = array(
 				'id' => $hasProfile ? (int) $profile['id'] : 0,
 				'source' => 'supplier',
 				'brand' => $brand,
-				'article' => $articleShow !== '' ? $articleShow : $key,
-				'article_show' => $articleShow !== '' ? $articleShow : $key,
+				'article' => $artOut,
+				'article_show' => $artOut,
 				'title' => (string) ($row['name'] ?? ''),
 				'warehouse' => $wh,
 				'product_id' => 0,
@@ -535,6 +653,7 @@ if (!function_exists('epc_sku_media_search_library')) {
 				'has_profile' => $hasProfile,
 				'status' => $hasProfile ? (string) ($profile['status'] ?? 'active') : 'new',
 				'offer_count' => (int) ($row['offer_count'] ?? 1),
+				'storefront_url' => epc_sku_media_storefront_part_url($brand, $artOut),
 			);
 		}
 
@@ -1174,6 +1293,10 @@ if (!function_exists('epc_sku_media_full_payload')) {
 			);
 			$grouped[$gid]['rows'][] = $row;
 		}
+		$profile['storefront_url'] = epc_sku_media_storefront_part_url(
+			(string) ($profile['brand'] ?? ''),
+			(string) ($profile['article'] ?? '')
+		);
 		return array(
 			'profile' => $profile,
 			'photos' => $photos,
@@ -1181,6 +1304,7 @@ if (!function_exists('epc_sku_media_full_payload')) {
 			'photo_types' => epc_sku_media_photo_types(),
 			'value_types' => epc_sku_media_value_types(),
 			'default_spec_types' => epc_sku_media_default_spec_types(),
+			'storefront_url' => (string) $profile['storefront_url'],
 		);
 	}
 }
