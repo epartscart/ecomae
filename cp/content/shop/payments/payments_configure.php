@@ -5,7 +5,7 @@ $paymentsUrl = '/' . $DP_Config->backend_dir . '/shop/payments/payments?tab=conf
 $csrfLocal = isset($user_session['csrf_guard_key']) ? $user_session['csrf_guard_key'] : '';
 ?>
 <div class="col-lg-12">
-	<p class="text-muted">Select the gateway used at checkout (one active at a time). Save dummy keys now — replace with live credentials from your acquirer later.</p>
+	<p class="text-muted">Set the <strong>default</strong> gateway and credentials. All <em>enabled</em> gateways still appear in the customer “Pay with” picker (cards, BNPL, JazzCash, crypto). Replace dummy keys with live credentials before turning off Demo mode.</p>
 </div>
 
 <div class="col-lg-12">

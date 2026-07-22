@@ -116,11 +116,45 @@ function epc_apai_cp_render_shell(array $ctx): void
 	<?php } ?>
 
 	<div class="epc-ape-kpi" id="epc-apai-kpi">
-		<div class="epc-ape-kpi__card"><div class="epc-ape-kpi__label">Suggested</div><div class="epc-ape-kpi__val" data-apai-kpi="suggested">…</div></div>
-		<div class="epc-ape-kpi__card"><div class="epc-ape-kpi__label">Industry</div><div style="font-size:13px;font-weight:600;margin-top:4px" data-apai-kpi="industry_label"><?php echo epc_ape_h($industryLabel); ?></div></div>
-		<div class="epc-ape-kpi__card"><div class="epc-ape-kpi__label">Product lines</div><div class="epc-ape-kpi__val" data-apai-kpi="tax_count">…</div></div>
-		<div class="epc-ape-kpi__card"><div class="epc-ape-kpi__label">Catalogue categories</div><div class="epc-ape-kpi__val" data-apai-kpi="category_map_count">…</div></div>
-		<div class="epc-ape-kpi__card"><div class="epc-ape-kpi__label">Imported</div><div class="epc-ape-kpi__val" data-apai-kpi="imported">…</div></div>
+		<div class="epc-ape-kpi__card">
+			<div class="epc-ape-kpi__icon"><i class="fa fa-lightbulb-o"></i></div>
+			<div class="epc-ape-kpi__body">
+				<div class="epc-ape-kpi__label">Suggested</div>
+				<div class="epc-ape-kpi__val" data-apai-kpi="suggested">…</div>
+				<div class="epc-ape-kpi__hint">awaiting review</div>
+			</div>
+		</div>
+		<div class="epc-ape-kpi__card">
+			<div class="epc-ape-kpi__icon"><i class="fa fa-industry"></i></div>
+			<div class="epc-ape-kpi__body">
+				<div class="epc-ape-kpi__label">Industry</div>
+				<div class="epc-ape-kpi__text" data-apai-kpi="industry_label"><?php echo epc_ape_h($industryLabel); ?></div>
+			</div>
+		</div>
+		<div class="epc-ape-kpi__card">
+			<div class="epc-ape-kpi__icon"><i class="fa fa-sitemap"></i></div>
+			<div class="epc-ape-kpi__body">
+				<div class="epc-ape-kpi__label">Product lines</div>
+				<div class="epc-ape-kpi__val" data-apai-kpi="tax_count">…</div>
+				<div class="epc-ape-kpi__hint">taxonomy nodes</div>
+			</div>
+		</div>
+		<div class="epc-ape-kpi__card">
+			<div class="epc-ape-kpi__icon"><i class="fa fa-folder-open"></i></div>
+			<div class="epc-ape-kpi__body">
+				<div class="epc-ape-kpi__label">Categories</div>
+				<div class="epc-ape-kpi__val" data-apai-kpi="category_map_count">…</div>
+				<div class="epc-ape-kpi__hint">catalogue maps</div>
+			</div>
+		</div>
+		<div class="epc-ape-kpi__card">
+			<div class="epc-ape-kpi__icon"><i class="fa fa-download"></i></div>
+			<div class="epc-ape-kpi__body">
+				<div class="epc-ape-kpi__label">Imported</div>
+				<div class="epc-ape-kpi__val" data-apai-kpi="imported">…</div>
+				<div class="epc-ape-kpi__hint">in catalogue</div>
+			</div>
+		</div>
 	</div>
 
 	<div class="epc-ape-tabs">

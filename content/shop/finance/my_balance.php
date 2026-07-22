@@ -179,6 +179,7 @@ if($user_id > 0)
 
 			
 			<div class="col-md-12">
+				<?php require $_SERVER['DOCUMENT_ROOT'] . '/content/shop/payments/epc_payment_method_picker.php'; ?>
 				<a class="btn btn-ar btn-primary" style="margin-top:7px;" href="javascript:void(0);" onclick="onIncomeButtonClicked()"><?php echo translate_str_by_id(4341); ?></a>
 			</div>
 		</div>
@@ -210,6 +211,9 @@ if($user_id > 0)
 		var request_object = new Object;
 		request_object.amount = pay_value;
 		request_object.office_id = 0;
+		if (typeof window.epcSelectedPayHandler === 'function') {
+			request_object.pay_handler = window.epcSelectedPayHandler();
+		}
 		
 		
 		<?php

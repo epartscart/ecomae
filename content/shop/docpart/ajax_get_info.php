@@ -197,6 +197,8 @@ switch($action){
 			: '**';
 
 		// Цена
+		$epc_exist_js = 0;
+		$epc_min_order_js = 0;
 		if ($epc_guest_commerce_blocked) {
 			$price = htmlspecialchars($epc_sensitive_mask, ENT_QUOTES, 'UTF-8');
 			$time_to_exe = $epc_sensitive_mask;
@@ -214,6 +216,8 @@ switch($action){
 				$price = $price .' '. $product['currency_indicator'];
 			}
 			$exist_display = $product['exist'] . ' ' . translate_str_by_id(4095) . '.';
+			$epc_exist_js = (int) $product['exist'];
+			$epc_min_order_js = (int) $product['min_order'];
 		}
 		?>
 		<div class="row" style="margin: 0;">
@@ -294,13 +298,13 @@ switch($action){
 										<span style="margin-right: 5px; font-size: 18px; font-weight: 600; color: #555; white-space: nowrap;"><?=$price;?></span>
 									</td>
 									<td>
-										<a style="width: 50px; height: 25px; display: inline-block; text-align: center; border: 1px solid #ddd; border-right: 0; border-radius: 4px 0px 0px 4px;" onclick="minusCountNeed(<?=$product['aid'];?>, <?=$product['exist'];?>, <?=$product['min_order'];?>); $('#product_info_count_need').val($('#count_need_<?=$product['aid'];?>').val());" class="count_need_minus" href="javascript:void(0);"><i class="fa fa-minus"></i></a>
+										<a style="width: 50px; height: 25px; display: inline-block; text-align: center; border: 1px solid #ddd; border-right: 0; border-radius: 4px 0px 0px 4px;" onclick="minusCountNeed(<?=$product['aid'];?>, <?=$epc_exist_js;?>, <?=$epc_min_order_js;?>); $('#product_info_count_need').val($('#count_need_<?=$product['aid'];?>').val());" class="count_need_minus" href="javascript:void(0);"><i class="fa fa-minus"></i></a>
 									</td>
 									<td>
-										<input style="text-align: center; width: 58px; font-size: 14px; height: 25px; margin: 0px; vertical-align: middle; border: 1px solid #ddd; box-shadow: none;" type="text" value="<?=$product['count_need'];?>" onChange="$('#count_need_<?=$product['aid'];?>').val($('#product_info_count_need').val()); onKeyUpCountNeed(<?=$product['aid'];?>, <?=$product['exist'];?>, <?=$product['min_order'];?>);" id="product_info_count_need" />
+										<input style="text-align: center; width: 58px; font-size: 14px; height: 25px; margin: 0px; vertical-align: middle; border: 1px solid #ddd; box-shadow: none;" type="text" value="<?=$product['count_need'];?>" onChange="$('#count_need_<?=$product['aid'];?>').val($('#product_info_count_need').val()); onKeyUpCountNeed(<?=$product['aid'];?>, <?=$epc_exist_js;?>, <?=$epc_min_order_js;?>);" id="product_info_count_need" />
 									</td>
 									<td>
-										<a style="width: 50px; height: 25px; display: inline-block; text-align: center; border: 1px solid #ddd; border-left: 0; border-radius: 0px 4px 4px 0px;" onclick="plusCountNeed(<?=$product['aid'];?>, <?=$product['exist'];?>, <?=$product['min_order'];?>); $('#product_info_count_need').val($('#count_need_<?=$product['aid'];?>').val());" class="count_need_plus" href="javascript:void(0);"><i class="fa fa-plus"></i></a>
+										<a style="width: 50px; height: 25px; display: inline-block; text-align: center; border: 1px solid #ddd; border-left: 0; border-radius: 0px 4px 4px 0px;" onclick="plusCountNeed(<?=$product['aid'];?>, <?=$epc_exist_js;?>, <?=$epc_min_order_js;?>); $('#product_info_count_need').val($('#count_need_<?=$product['aid'];?>').val());" class="count_need_plus" href="javascript:void(0);"><i class="fa fa-plus"></i></a>
 									</td>
 								</tr>
 							</table>

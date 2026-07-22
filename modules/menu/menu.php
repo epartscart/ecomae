@@ -31,6 +31,27 @@ $menu_record = $stmt->fetch(PDO::FETCH_ASSOC);//Запись меню
 if($menu_record != false)
 {
     $menu_structure = json_decode($menu_record["structure"], true);//Получаем описание меню
+    if (!is_array($menu_structure)) {
+        $menu_structure = array();
+    }
+
+    // Storefront top menu: hide Cart / My orders / Balance / Information / Contacts
+    if (!empty($isFrontMode) && function_exists('epc_menu_filter_storefront_hidden')) {
+        $menu_ul_class = (string) ($menu_record["menu_ul_class"] ?? '');
+        $module_proto = (string) ($module_record["prototype_name"] ?? ($module_record["name"] ?? ''));
+        $is_top_menu = (stripos($menu_ul_class, 'top-menu') !== false)
+            || ($module_proto === 'top_menu')
+            || (stripos($module_proto, 'top_menu') !== false)
+            || ((int) $menu_id === 1)
+            || ((int) $menu_id === 15);
+        // Primary storefront header menu uses Bootstrap nav classes (not "top-menu-*").
+        if (!$is_top_menu && stripos($menu_ul_class, 'navbar-nav') !== false && stripos($menu_ul_class, 'catalog') === false) {
+            $is_top_menu = true;
+        }
+        if ($is_top_menu) {
+            $menu_structure = epc_menu_filter_storefront_hidden($menu_structure);
+        }
+    }
     
     $class_ul = "";
     if($menu_record["menu_ul_class"] != "")

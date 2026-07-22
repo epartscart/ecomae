@@ -118,8 +118,14 @@ function epc_portal_shared_erp_set_tenant_cookie(string $siteKey): void
 	}
 	$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
 		|| (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-	// HttpOnly cookie; Secure when HTTPS. Avoid array options for older PHP.
-	setcookie(epc_portal_shared_erp_cookie_name(), $key, 0, '/; samesite=Lax', '', $secure, true);
+	// PHP 8+ rejects path="/; samesite=Lax" (ValueError → HTTP 500 on first CP login).
+	setcookie(epc_portal_shared_erp_cookie_name(), $key, array(
+		'expires' => 0,
+		'path' => '/',
+		'secure' => $secure,
+		'httponly' => true,
+		'samesite' => 'Lax',
+	));
 	$_COOKIE[epc_portal_shared_erp_cookie_name()] = $key;
 	if (session_status() === PHP_SESSION_NONE) {
 		@session_start();
@@ -133,7 +139,14 @@ function epc_portal_shared_erp_clear_tenant_cookie(): void
 {
 	$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
 		|| (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-	setcookie(epc_portal_shared_erp_cookie_name(), '', time() - 3600, '/; samesite=Lax', '', $secure, true);
+	// Must use options-array form — stuffing SameSite into path fatals on PHP 8+.
+	setcookie(epc_portal_shared_erp_cookie_name(), '', array(
+		'expires' => time() - 3600,
+		'path' => '/',
+		'secure' => $secure,
+		'httponly' => true,
+		'samesite' => 'Lax',
+	));
 	unset($_COOKIE[epc_portal_shared_erp_cookie_name()]);
 	if (session_status() === PHP_SESSION_ACTIVE) {
 		unset($_SESSION['epc_erp_tenant_bound']);

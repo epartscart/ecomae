@@ -154,7 +154,7 @@ function epc_reg_render_account_tabs(): void
 	<div class="panel panel-primary epc-reg-account-panel">
 		<div class="panel-heading">Customer type</div>
 		<div class="panel-body">
-			<p class="help-block" style="margin-top:0;">Fields marked <strong>*</strong> are mandatory. <strong>Retail customer</strong> — approved immediately; browse, see prices (availability, term, warehouse, price), and checkout (default currency AED where configured). <strong>Wholesale customer</strong> — pending until a manager approves trade pricing and currency in the Control Panel; until then availability qty, term, info, and price show as **.</p>
+			<p class="help-block" style="margin-top:0;">Fields marked <strong>*</strong> are mandatory. <strong>Retail customer</strong> — short form (name, phone, address); approved immediately; no KYC documents. <strong>Wholesale customer</strong> — company details plus <em>Additional information</em> (KYC / AML documents) required; pending until a manager approves trade pricing and currency in the Control Panel.</p>
 			<ul class="nav nav-tabs epc-reg-type-tabs" role="tablist">
 				<li role="presentation" class="active"><a href="#epc_reg_tab_retail" aria-controls="epc_reg_tab_retail" role="tab" data-toggle="tab" data-epc-type="retail">Retail customer</a></li>
 				<li role="presentation"><a href="#epc_reg_tab_wholesale" aria-controls="epc_reg_tab_wholesale" role="tab" data-toggle="tab" data-epc-type="wholesale">Wholesale customer</a></li>
@@ -305,7 +305,8 @@ function epc_reg_render_account_tabs(): void
 					</div>
 
 					<hr style="margin:18px 0 12px;border-top:1px solid #e5e7eb;" />
-					<p class="help-block" style="margin:0 0 12px;"><strong>KYC / AML &amp; e-invoice documents</strong> — required for wholesale approval under UAE compliance practice. PDF or image, max 8&nbsp;MB each.</p>
+					<p class="help-block" style="margin:0 0 4px;font-size:15px;font-weight:700;color:#0f172a;">Additional information (wholesale only)</p>
+					<p class="help-block" style="margin:0 0 12px;"><strong>KYC / AML &amp; e-invoice documents</strong> — required for wholesale approval under UAE compliance practice. Not shown for retail customers. PDF or image, max 8&nbsp;MB each.</p>
 					<div class="form-group">
 						<label for="epc_emirates_id_no" class="col-sm-4 col-lg-3 control-label">Emirates ID no.</label>
 						<div class="col-sm-8 col-lg-9" style="padding:5px;"><input type="text" class="form-control" name="epc_emirates_id_no" id="epc_emirates_id_no" maxlength="20" placeholder="784-XXXX-XXXXXXX-X" /></div>
@@ -765,10 +766,15 @@ function epc_reg_save_enhanced_profile($db_link, int $user_id, array $post, stri
 				$buyerName = trim((string)($post['epc_wholesale_legal_name'] ?? $post['epc_wholesale_company'] ?? $buyerName));
 			}
 			$trn = epc_reg_extract_trn($post);
+			$legalRegNo = $type === 'wholesale'
+				? trim((string)($post['epc_wholesale_trade_licence'] ?? $post['epc_reg_trade_licence'] ?? ''))
+				: '';
 			epc_einvoice_save_buyer_profile($db_link, array(
 				'user_id' => $user_id,
 				'buyer_name' => $buyerName !== '' ? $buyerName : ('Customer #' . $user_id),
 				'trn' => $trn,
+				'legal_reg_no' => $legalRegNo,
+				'legal_reg_type' => $type === 'wholesale' ? 'TL' : 'EID',
 				'address_line1' => $address,
 				'city' => $city,
 				'emirate' => trim((string)($post[$prefix . 'emirate'] ?? $post['epc_retail_emirate'] ?? 'Dubai')),
@@ -818,6 +824,8 @@ function epc_reg_save_uae_buyer_profile($db_link, int $user_id, array $post, str
 		'user_id' => $user_id,
 		'buyer_name' => $buyerName,
 		'trn' => $trn,
+		'legal_reg_no' => trim((string)($post['epc_wholesale_trade_licence'] ?? '')),
+		'legal_reg_type' => 'TL',
 		'address_line1' => $address,
 		'city' => $city,
 		'emirate' => $emirate !== '' ? $emirate : 'Dubai',

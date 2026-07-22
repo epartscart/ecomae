@@ -12,8 +12,9 @@ if (!is_file($path)) {
 	exit;
 }
 
+$ver = '20260722posui1';
 $mtime = (int) filemtime($path);
-$etag = '"' . md5($mtime . '|' . filesize($path)) . '"';
+$etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 
 header('Content-Type: text/css; charset=utf-8');
 header('Cache-Control: public, max-age=86400');
