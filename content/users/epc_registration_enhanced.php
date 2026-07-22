@@ -73,14 +73,14 @@ function epc_reg_render_social_block(array $multilang_params): void
 		));
 	}
 
-	$sendUrl = json_encode((string)($ui['send_code_url'] ?? '/epc-auth-send-code.php'));
-	$verifyUrl = json_encode((string)($ui['verify_code_url'] ?? '/epc-auth-verify-code.php'));
+	$sendUrl = json_encode((string)($ui['send_code_url'] ?? '/content/general_pages/epc_auth_api_send_code.php'));
+	$verifyUrl = json_encode((string)($ui['verify_code_url'] ?? '/content/general_pages/epc_auth_api_verify_code.php'));
 	$uid = 'epc_reg_auth';
 	?>
 	<div class="panel panel-default epc-reg-social-panel" style="margin-bottom:14px">
 		<div class="panel-body epc-cp-auth-modern">
 			<p class="epc-reg-auth-title" style="font-size:18px;font-weight:700;color:#111;margin:0 0 4px;text-align:center">Register and join <?php echo epc_reg_h($siteName); ?></p>
-			<p class="help-block" style="margin-top:0;text-align:center">Quick sign-in with email code or social — or complete the form below for retail (instant) or wholesale (manager approval).</p>
+			<p class="help-block" style="margin-top:0;text-align:center">Quick sign-in with email code or social — or complete the form below for retail (instant) or wholesale (subject to approval only).</p>
 			<?php
 			if ($social !== '') {
 				echo $social;
@@ -112,18 +112,31 @@ function epc_reg_render_social_block(array $multilang_params): void
 		var codeWrap=document.getElementById(<?php echo json_encode($uid . '_codewrap'); ?>);
 		var verifyBtn=document.getElementById(<?php echo json_encode($uid . '_verify'); ?>);
 		function showMsg(t,ok){if(msg){msg.textContent=t;msg.className='epc-cp-auth-msg'+(ok?' is-ok':' is-err');}}
+		function parseJsonResponse(r){
+			return r.text().then(function(t){
+				var d=null;
+				try{d=t?JSON.parse(t):null;}catch(e){d=null;}
+				if(!d||typeof d!=='object'){
+					var hint=(r.status===403)?'Sign-in service blocked — please contact support.':'Network error — please retry.';
+					if(r.status&&r.status!==200&&r.status!==400){hint='Request failed ('+r.status+'). Please retry.';}
+					return {ok:false,message:hint};
+				}
+				if(d.ok===undefined&&!r.ok){d.ok=false;if(!d.message)d.message='Request failed ('+r.status+'). Please retry.';}
+				return d;
+			});
+		}
 		document.getElementById(<?php echo json_encode($uid . '_send'); ?>).addEventListener('click',function(){
 			var em=(document.getElementById(<?php echo json_encode($uid . '_email'); ?>)||{}).value||'';
 			showMsg('Sending…',true);
 			fetch(sendUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,tenant_key:tenantKey,context:'storefront',return_url:returnUrl})})
-			.then(function(r){return r.json();}).then(function(d){showMsg(d.message||'',!!d.ok);if(d.ok){codeWrap.style.display='';verifyBtn.style.display='';}}).catch(function(){showMsg('Network error',false);});
+			.then(parseJsonResponse).then(function(d){showMsg(d.message||'',!!d.ok);if(d.ok){codeWrap.style.display='';verifyBtn.style.display='';}}).catch(function(){showMsg('Network error — please retry.',false);});
 		});
 		verifyBtn.addEventListener('click',function(){
 			var em=(document.getElementById(<?php echo json_encode($uid . '_email'); ?>)||{}).value||'';
 			var code=(document.getElementById(<?php echo json_encode($uid . '_code'); ?>)||{}).value||'';
 			showMsg('Verifying…',true);
 			fetch(verifyUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,code:code,tenant_key:tenantKey,context:'storefront',return_url:returnUrl})})
-			.then(function(r){return r.json();}).then(function(d){if(d.ok&&d.redirect){location.href=d.redirect;return;}showMsg(d.message||'Error',!!d.ok);}).catch(function(){showMsg('Network error',false);});
+			.then(parseJsonResponse).then(function(d){if(d.ok&&d.redirect){location.href=d.redirect;return;}showMsg(d.message||'Error',!!d.ok);}).catch(function(){showMsg('Network error — please retry.',false);});
 		});
 	})();
 	</script>
@@ -154,10 +167,10 @@ function epc_reg_render_account_tabs(): void
 	<div class="panel panel-primary epc-reg-account-panel">
 		<div class="panel-heading">Customer type</div>
 		<div class="panel-body">
-			<p class="help-block" style="margin-top:0;">Fields marked <strong>*</strong> are mandatory. <strong>Retail customer</strong> — short form (name, phone, address); approved immediately; no KYC documents. <strong>Wholesale customer</strong> — company details plus <em>Additional information</em> (KYC / AML documents) required; pending until a manager approves trade pricing and currency in the Control Panel.</p>
+			<p class="help-block" style="margin-top:0;">Fields marked <strong>*</strong> are mandatory. <strong>Retail customer</strong> — short form (name, phone, address); approved immediately; no KYC documents. <strong>Wholesale customer</strong> — <em>subject to approval only</em>; company details plus <em>Additional information</em> (KYC / AML documents) required; pending until a manager approves trade pricing and currency in the Control Panel.</p>
 			<ul class="nav nav-tabs epc-reg-type-tabs" role="tablist">
 				<li role="presentation" class="active"><a href="#epc_reg_tab_retail" aria-controls="epc_reg_tab_retail" role="tab" data-toggle="tab" data-epc-type="retail">Retail customer</a></li>
-				<li role="presentation"><a href="#epc_reg_tab_wholesale" aria-controls="epc_reg_tab_wholesale" role="tab" data-toggle="tab" data-epc-type="wholesale">Wholesale customer</a></li>
+				<li role="presentation"><a href="#epc_reg_tab_wholesale" aria-controls="epc_reg_tab_wholesale" role="tab" data-toggle="tab" data-epc-type="wholesale">Wholesale customer <span style="font-weight:600;opacity:.85">(subject to approval only)</span></a></li>
 			</ul>
 			<div class="tab-content epc-reg-type-panes" style="padding-top:14px;">
 				<div role="tabpanel" class="tab-pane active" id="epc_reg_tab_retail">

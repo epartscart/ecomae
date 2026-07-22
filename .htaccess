@@ -43,8 +43,10 @@ RewriteRule (.*) index.php
 	</FilesMatch>
 </IfModule>
 
-	# Block all epc setup scripts when lockdown flag exists (run epc-security-lockdown.php after deploy)
+	# Block epc setup/debug scripts when lockdown flag exists (run epc-security-lockdown.php after deploy).
+	# Allow runtime auth endpoints (OTP / Google / handoff) — required for storefront registration & login.
 RewriteCond %{DOCUMENT_ROOT}/.epc-security-lockdown -f
+RewriteCond %{REQUEST_URI} !^/epc-auth- [NC]
 RewriteRule ^epc- - [F,L]
 
 <IfModule mod_headers.c>

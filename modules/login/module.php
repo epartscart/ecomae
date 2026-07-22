@@ -19,13 +19,13 @@ $user_session = DP_User::getUserSession();
         if(DP_User::getUserId() == 0)
         {
             ?>
-            <form method="POST">
+            <form method="POST" autocomplete="off" data-epc-no-autofill="1">
                 <input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
 				<input type="hidden" name="authentication" value="true"/>
                 <div class="wrong_authentication" id="wrong_authentication">
                 </div>
-                <input class="login_input" type="text" name="login" value="" placeholder="<?php echo translate_str_by_id(4759); ?>"/>
-                <input class="login_input" type="password" name="password" value="" placeholder="<?php echo translate_str_by_id(1311); ?>"/>
+                <input class="login_input" type="text" name="login" value="" placeholder="<?php echo translate_str_by_id(4759); ?>" autocomplete="off" data-epc-secure-field="1" readonly/>
+                <input class="login_input" type="password" name="password" value="" placeholder="<?php echo translate_str_by_id(1311); ?>" autocomplete="new-password" data-epc-secure-field="1" readonly/>
                 <div id="remember_me_div">
                     <?php echo translate_str_by_id(4666); ?> <input type="checkbox" name="rememberme" value="rememberme"/>
                 </div>
@@ -33,6 +33,25 @@ $user_session = DP_User::getUserSession();
             </form>
             <script>
                 document.getElementById("open_login").innerHTML = "<span><?php echo translate_str_by_id(4758); ?></span>";
+				(function(){
+					var form = document.querySelector('#module_login form[data-epc-no-autofill="1"]');
+					if (!form) return;
+					function unlock(el){ if (el) el.removeAttribute('readonly'); }
+					function clearAutofill(){
+						var fields = form.querySelectorAll('[data-epc-secure-field="1"]');
+						for (var i = 0; i < fields.length; i++) { if (fields[i].value) fields[i].value = ''; }
+					}
+					clearAutofill();
+					setTimeout(clearAutofill, 50);
+					setTimeout(clearAutofill, 300);
+					var secure = form.querySelectorAll('[data-epc-secure-field="1"]');
+					for (var i = 0; i < secure.length; i++) {
+						(function(el){
+							el.addEventListener('focus', function(){ unlock(el); }, true);
+							el.addEventListener('mousedown', function(){ unlock(el); }, true);
+						})(secure[i]);
+					}
+				})();
             </script>
             
             <a href="<?php echo $multilang_params['lang_href']; ?>/users/registration" class="btn btn-success"><?php echo translate_str_by_id(3987); ?></a> 

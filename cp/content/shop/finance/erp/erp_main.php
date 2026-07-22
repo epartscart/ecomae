@@ -568,6 +568,23 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 					<a class="btn btn-default btn-xs" href="<?php echo epc_erp_h($financeOpsUrl); ?>"><i class="fa fa-exchange"></i> Operations</a>
 					<a class="btn btn-default btn-xs" href="<?php echo epc_erp_h($ordersUrl); ?>"><i class="fa fa-shopping-cart"></i> Orders</a>
 					<?php endif; ?>
+					<?php
+					// Standalone /erp portal: logout must be visible in the workspace toolbar.
+					if (!empty($GLOBALS['epc_erp_standalone']) || (isset($epc_erp_portal) && $epc_erp_portal === 'frontend')) {
+						if (!function_exists('epc_erp_portal_logout_html')) {
+							require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
+						}
+						echo epc_erp_portal_logout_html(array(
+							'variant' => 'toolbar',
+							'action' => isset($portal_home) ? (string) $portal_home : (function_exists('epc_erp_portal_canonical_base') ? epc_erp_portal_canonical_base(epc_erp_lang_href()) : '/erp'),
+						));
+					} elseif (!empty($epc_erp_shell_mode)) {
+						$epcErpLogoutUrl = function_exists('epc_cp_logout_redirect_url')
+							? epc_cp_logout_redirect_url() . (strpos(epc_cp_logout_redirect_url(), '?') !== false ? '&' : '?') . 'logout=1'
+							: '/' . htmlspecialchars((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), ENT_QUOTES, 'UTF-8') . '/?logout=1';
+						echo '<a class="btn btn-default btn-xs epc-erp-logout-btn" href="' . htmlspecialchars($epcErpLogoutUrl, ENT_QUOTES, 'UTF-8') . '"><i class="fa fa-sign-out"></i> Log out</a>';
+					}
+					?>
 				</div>
 			</div>
 

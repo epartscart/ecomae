@@ -220,6 +220,14 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 			<?php if ($platformHost && !$isErpOnly): ?>
 			<a href="https://www.ecomae.com/cp/shop/tenant_hub/tenant_hub"><i class="fa fa-cloud"></i> Super CP</a>
 			<?php endif; ?>
+			<?php
+			if (function_exists('epc_erp_portal_logout_html')) {
+				echo epc_erp_portal_logout_html(array(
+					'variant' => 'topbar',
+					'action' => epc_erp_portal_canonical_base($langHref),
+				));
+			}
+			?>
 		</nav>
 	</div>
 </header>

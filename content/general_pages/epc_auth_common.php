@@ -581,11 +581,13 @@ function epc_auth_normalize_mode(string $mode): string
 function epc_auth_read_json_body(): array
 {
 	$raw = file_get_contents('php://input');
-	if (!is_string($raw) || trim($raw) === '') {
-		return is_array($_POST) ? $_POST : array();
+	if (is_string($raw) && trim($raw) !== '') {
+		$decoded = json_decode($raw, true);
+		if (is_array($decoded)) {
+			return $decoded;
+		}
 	}
-	$decoded = json_decode($raw, true);
-	return is_array($decoded) ? $decoded : array();
+	return is_array($_POST) ? $_POST : array();
 }
 
 function epc_auth_storefront_lang_prefix(): string
@@ -975,8 +977,8 @@ function epc_auth_login_context_for_ui(string $mode = 'cp'): array
 		'email_otp_enabled' => !empty($policy['email_otp']),
 		'google_enabled' => !empty($policy['google_oauth']) && $googleReady,
 		'google_start_url' => '/epc-auth-google-start.php',
-		'send_code_url' => '/epc-auth-send-code.php',
-		'verify_code_url' => '/epc-auth-verify-code.php',
+		'send_code_url' => '/content/general_pages/epc_auth_api_send_code.php',
+		'verify_code_url' => '/content/general_pages/epc_auth_api_verify_code.php',
 	);
 }
 

@@ -442,9 +442,9 @@ function epc_auth_smtp_send_html(string $to, string $subject, string $html, stri
 		epc_auth_smtp_apply_to_mailer($mail, $cfg);
 		$mail->CharSet = 'UTF-8';
 		$mail->isHTML(true);
-		// Capture the real SMTP transcript so callers can surface the actual error.
+		// Capture SMTP transcript in memory only — never echo (breaks JSON OTP APIs).
 		if (property_exists($mail, 'SMTPDebug')) {
-			$mail->SMTPDebug = 2;
+			$mail->SMTPDebug = 0;
 			$mail->Debugoutput = function ($line, $level) use (&$debugLines) {
 				$debugLines[] = trim((string) $line);
 			};
@@ -453,8 +453,46 @@ function epc_auth_smtp_send_html(string $to, string $subject, string $html, stri
 		$mail->Subject = $subject;
 		$mail->Body = $html;
 		$mail->AltBody = $altBody !== '' ? $altBody : strip_tags($html);
-		if ($mail->send()) {
+		$obLevel = ob_get_level();
+		ob_start();
+		$sent = false;
+		try {
+			$sent = (bool) $mail->send();
+		} finally {
+			$leaked = (string) ob_get_clean();
+			while (ob_get_level() > $obLevel) {
+				ob_end_clean();
+			}
+			if ($leaked !== '') {
+				foreach (preg_split('/\R/', $leaked) ?: array() as $line) {
+					$line = trim((string) $line);
+					if ($line !== '') {
+						$debugLines[] = $line;
+					}
+				}
+			}
+		}
+		if ($sent) {
 			return array('ok' => true, 'message' => 'Sent via SMTP', 'detail' => '', 'transport' => 'smtp');
+		}
+		// On failure, optionally re-run with debug captured into $debugLines only.
+		if (property_exists($mail, 'SMTPDebug') && empty($debugLines)) {
+			$mail->SMTPDebug = 2;
+			ob_start();
+			try {
+				@$mail->send();
+			} catch (Throwable $ignored) {
+			}
+			$leaked = (string) ob_get_clean();
+			if ($leaked !== '') {
+				foreach (preg_split('/\R/', $leaked) ?: array() as $line) {
+					$line = trim((string) $line);
+					if ($line !== '') {
+						$debugLines[] = $line;
+					}
+				}
+			}
+			$mail->SMTPDebug = 0;
 		}
 		$err = (string) $mail->ErrorInfo;
 		error_log('epc_auth_smtp_send_html: ' . $err);

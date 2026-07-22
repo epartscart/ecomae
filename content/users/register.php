@@ -13,6 +13,16 @@
 */
 defined('_ASTEXE_') or die('No access');
 
+// GET /users/register is the POST target only — show the form on direct visits.
+if (empty($_POST) && strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
+	$lang = '/en';
+	if (!empty($multilang_params['lang_href']) && is_string($multilang_params['lang_href'])) {
+		$lang = rtrim((string) $multilang_params['lang_href'], '/');
+	}
+	header('Location: ' . $lang . '/users/registration', true, 302);
+	exit;
+}
+
 //Класс пользователя
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
 
@@ -339,10 +349,30 @@ try
 				) 
 		);
 		
-		//Переменные для шаблонов уведомления
+		// Professional confirmation email (brand name — never raw multilang hash keys).
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_registration_confirm.php';
+		if (is_readable($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php')) {
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php';
+		}
+		if (is_readable($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_site_context.php')) {
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_site_context.php';
+		}
+		epc_reg_confirm_ensure_notify_template($db_link);
+		$epc_reg_brand = epc_reg_confirm_brand_name($DP_Config);
+		$epc_reg_confirm_url = $DP_Config->domain_path.$multilang_params['lang_href_no_slash']."/users/confirm_contact?code=$activation_code&u_id=$user_id&type=email";
+		$epc_reg_home_url = rtrim((string) $DP_Config->domain_path, '/') . '/' . ltrim((string) ($multilang_params['lang_href'] ?? 'en/'), '/');
+
 		$notify_vars = array();
-		$notify_vars["site_name"] = $DP_Config->site_name;//Название сайта 
-		$notify_vars["email_confirm_href"] = "<a style='text-decoration: underline; color: #0000ee;' target='_blank' href='".$DP_Config->domain_path.$multilang_params['lang_href_no_slash']."/users/confirm_contact?code=$activation_code&u_id=$user_id&type=email'>".translate_str_by_id(4696)."</a>";//Ссылка для подтверждения E-mail
+		$notify_vars["site_name"] = $epc_reg_brand;
+		$notify_vars["customer_email"] = $reg_contact;
+		$notify_vars["email_confirm_href"] = epc_reg_confirm_button_html($epc_reg_confirm_url, 'Confirm my email');
+		$notify_vars["confirm_html"] = epc_reg_confirm_email_body_html(array(
+			'brand' => $epc_reg_brand,
+			'email' => $reg_contact,
+			'confirm_url' => $epc_reg_confirm_url,
+			'customer_type' => isset($epc_reg_customer_type) ? (string) $epc_reg_customer_type : 'retail',
+			'home_url' => $epc_reg_home_url,
+		));
 	}
 	else
 	{
@@ -523,21 +553,27 @@ send_notify('reg_notify_admin', $notify_vars, $persons, false);
 
 if (!isset($_POST["simple_register"]))
 {
-    //Сообщение для пользователя, после регистрации
+    // Professional confirmation message for the customer after registration.
     if( $reg_contact_type == "email" )
     {
-        if (!empty($registration_confirm_email_failed)) {
-            $confirm_url = $DP_Config->domain_path.$multilang_params['lang_href_no_slash']."/users/confirm_contact?code=".urlencode($activation_code)."&u_id=".(int)$user_id."&type=email";
-            echo '<div class="alert alert-warning" style="margin:15px 0;">Account created, but the confirmation e-mail could not be sent (configure SMTP). Use this link to confirm your e-mail:</div>';
-            echo '<p style="margin:15px 0; word-break:break-all;"><a href="'.htmlspecialchars($confirm_url, ENT_QUOTES, 'UTF-8').'">'.htmlspecialchars($confirm_url, ENT_QUOTES, 'UTF-8').'</a></p>';
-        } else {
-            echo translate_str_by_id(4749);
-            if ($epc_reg_customer_type === 'retail' && epc_trade_is_approved($db_link, (int)$user_id)) {
-                echo '<div class="alert alert-success" style="margin:15px 0;">You registered as <strong>Retail</strong>. Your account is approved — confirm your e-mail, then sign in to browse and checkout. Contact us if you need a wholesale upgrade.</div>';
-            } else {
-                echo '<div class="alert alert-info" style="margin:15px 0;">You chose <strong>' . htmlspecialchars(epc_trade_customer_type_label($epc_reg_customer_type), ENT_QUOTES, 'UTF-8') . '</strong>. You can sign in and browse after confirming your contact. Checkout is enabled once a manager approves your wholesale account and assigns your dealing currency.</div>';
-            }
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_registration_confirm.php';
+        if (is_readable($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php')) {
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php';
         }
+        if (is_readable($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_site_context.php')) {
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_site_context.php';
+        }
+        $epc_reg_brand = isset($epc_reg_brand) ? (string) $epc_reg_brand : epc_reg_confirm_brand_name($DP_Config);
+        $confirm_url = $DP_Config->domain_path.$multilang_params['lang_href_no_slash']."/users/confirm_contact?code=".urlencode($activation_code)."&u_id=".(int)$user_id."&type=email";
+        $login_home = rtrim((string) ($multilang_params['lang_href'] ?? '/en/'), '/') . '/';
+        echo epc_reg_confirm_frontend_html(array(
+            'brand' => $epc_reg_brand,
+            'email' => isset($reg_contact) ? (string) $reg_contact : '',
+            'customer_type' => isset($epc_reg_customer_type) ? (string) $epc_reg_customer_type : 'retail',
+            'email_failed' => !empty($registration_confirm_email_failed),
+            'confirm_url' => $confirm_url,
+            'login_url' => $login_home,
+        ));
     }
     else
     {
