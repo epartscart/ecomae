@@ -288,6 +288,24 @@ if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 	}
 	$GLOBALS['epc_cp_topnav_only'] = $epcCpUseTopnav;
 	$GLOBALS['epc_cp_bos_host'] = $epcCpBosHost;
+	if (!empty($epcCpBosHost)) {
+		$epcBocCss = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_console.php';
+		if (is_file($epcBocCss)) {
+			require_once $epcBocCss;
+		}
+		$epcBocVer = function_exists('epc_boc_console_asset_ver') ? epc_boc_console_asset_ver() : '20260722boc1';
+		$epcBocVerQ = rawurlencode((string) $epcBocVer);
+		echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
+		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
+		echo '<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">' . "\n";
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_boc_console_css.php?v=' . htmlspecialchars($epcBocVerQ, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+		$GLOBALS['epc_boc_assets_enqueued'] = true;
+		$GLOBALS['epc_boc_css_in_head'] = true;
+		if (!isset($GLOBALS['epc_cp_footer_scripts']) || !is_array($GLOBALS['epc_cp_footer_scripts'])) {
+			$GLOBALS['epc_cp_footer_scripts'] = array();
+		}
+		$GLOBALS['epc_cp_footer_scripts'][] = '<script src="/content/general_pages/epc_boc_topnav_js.php?v=' . htmlspecialchars($epcBocVerQ, ENT_QUOTES, 'UTF-8') . '"></script>';
+	}
 ?>
 </head>
 <body class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell<?php echo $epcCpUseTopnav ? ' epc-cp-topnav-only' : ''; ?><?php echo $epcCpBosHost ? ' epc-cp-bos-host epc-boc-mode' : ''; ?> epc-cp--<?php echo htmlspecialchars($epc_cp_industry_code, ENT_QUOTES, 'UTF-8'); ?><?php echo $epcApaiPage ? ' epc-apai-page' : ''; ?> <?php echo htmlspecialchars(epc_cp_shell_body_classes(), ENT_QUOTES, 'UTF-8'); ?>">
@@ -1222,7 +1240,7 @@ if (empty($GLOBALS['epc_cp_bos_host']) && !empty($GLOBALS['epc_cp_topnav_only'])
     <div class="content<?php echo ' epc-cp-main-pane'; ?>">
 		<div class="epc-cp-content-inner">
 		<div class="row">
-			
+			<!--epc-cp-main-begin-->
 			<?php
 				require_once $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/control/actions_alert.php';
 				if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: before main content'); }
@@ -1240,10 +1258,7 @@ if (empty($GLOBALS['epc_cp_bos_host']) && !empty($GLOBALS['epc_cp_topnav_only'])
 					}
 				}
 			?>
-		
-			<!--epc-cp-main-begin-->
 			<docpart type="main" name="main" />
-			<!--epc-cp-main-end-->
 			<?php
 				if (!empty($GLOBALS['epc_boc_desktop_auto_shell']) && function_exists('epc_boc_page_shell_close')) {
 					// Close only if page content did not already close via page_frame.
@@ -1254,6 +1269,7 @@ if (empty($GLOBALS['epc_cp_bos_host']) && !empty($GLOBALS['epc_cp_topnav_only'])
 				}
 				if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: after main content'); }
 			?>
+			<!--epc-cp-main-end-->
 		</div>
 		</div>
     </div>

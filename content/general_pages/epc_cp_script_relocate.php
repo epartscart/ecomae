@@ -205,6 +205,7 @@ function epc_cp_render_relocated_footer_scripts(): void
 		foreach ($GLOBALS['epc_cp_footer_styles'] as $styleHtml) {
 			echo $styleHtml . "\n";
 		}
+		$GLOBALS['epc_cp_footer_styles'] = array();
 	}
 	if (empty($GLOBALS['epc_cp_footer_scripts']) || !is_array($GLOBALS['epc_cp_footer_scripts'])) {
 		return;
@@ -212,6 +213,7 @@ function epc_cp_render_relocated_footer_scripts(): void
 	foreach ($GLOBALS['epc_cp_footer_scripts'] as $scriptHtml) {
 		echo $scriptHtml . "\n";
 	}
+	$GLOBALS['epc_cp_footer_scripts'] = array();
 }
 
 /**
