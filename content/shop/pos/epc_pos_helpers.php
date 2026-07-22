@@ -650,12 +650,17 @@ function epc_pos_complete_sale(PDO $db, array $payload, int $adminId): array
 	}
 
 	$saleNo = epc_pos_next_sale_no($db);
+	$saleNotes = trim((string) ($payload['sale_notes'] ?? $payload['notes'] ?? ''));
+	$soNotes = 'POS sale ' . $saleNo;
+	if ($saleNotes !== '') {
+		$soNotes .= ' — ' . mb_substr($saleNotes, 0, 240);
+	}
 	$soData = array(
 		'customer_user_id' => $userId,
 		'contact_id' => $contactId,
 		'title' => 'POS ' . $saleNo,
 		'status' => 'confirmed',
-		'notes' => 'POS sale ' . $saleNo,
+		'notes' => $soNotes,
 		'lines_json' => json_encode(array_map(function ($ln) {
 			return array(
 				'description' => $ln['name'],
@@ -702,7 +707,10 @@ function epc_pos_complete_sale(PDO $db, array $payload, int $adminId): array
 	}
 
 	$settings = epc_pos_get_settings($db);
-	$warehouseId = (int) ($settings['default_warehouse_id'] ?? 0);
+	$warehouseId = (int) ($payload['warehouse_id'] ?? 0);
+	if ($warehouseId <= 0) {
+		$warehouseId = (int) ($settings['default_warehouse_id'] ?? 0);
+	}
 	if ($warehouseId <= 0) {
 		try {
 			require_once __DIR__ . '/../finance/epc_erp_inventory.php';

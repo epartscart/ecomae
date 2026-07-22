@@ -43,18 +43,26 @@ $siteKey = epc_vpe_normalize_site_key((string) ($_GET['site_key'] ?? ''));
 if ($siteKey === '' || !in_array($siteKey, $allowed, true)) {
 	$siteKey = $allowed[0] ?? 'platform';
 }
-
-$layout = epc_vpe_layout_load($pdo, $siteKey);
+$pageKey = epc_vpe_normalize_page_key((string) ($_GET['page_key'] ?? 'homepage'));
+$layout = epc_vpe_layout_load($pdo, $siteKey, $pageKey);
+$level = epc_vpe_level_meta($pageKey);
 $backend = epc_scp_backend();
 $pageUrl = '/' . $backend . '/control/portal/epc_visual_page_editor';
 $ajaxUrl = '/' . $backend . '/content/control/portal/ajax_visual_page_editor.php';
 $lib = epc_vpe_block_library();
+$previewUrl = epc_vpe_resolve_preview_url($pdo, $siteKey, $pageKey);
 
 echo 'window.EPC_VPE = ' . json_encode(array(
 	'ajaxUrl' => $ajaxUrl,
 	'pageUrl' => $pageUrl,
 	'siteKey' => $siteKey,
+	'pageKey' => $pageKey,
+	'levelId' => (string) ($level['id'] ?? $pageKey),
+	'mode' => (string) ($layout['mode'] ?? 'layout'),
+	'isPublished' => !empty($layout['is_published']),
 	'blocks' => $layout['blocks'],
 	'brand' => $layout['brand'],
 	'blockLibrary' => $lib,
+	'levels' => epc_vpe_frontend_levels(),
+	'previewUrl' => $previewUrl,
 ), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) . ';';

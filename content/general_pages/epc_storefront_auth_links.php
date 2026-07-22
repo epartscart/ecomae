@@ -1,6 +1,7 @@
 <?php
 /**
- * Storefront header auth — Vendor login/Register + Customer login/register.
+ * Storefront header auth — Vendor + Customer.
+ * Garage Manager lives in epc_garage_header_link.php (single button → login first).
  */
 defined('_ASTEXE_') or die('No access');
 
@@ -33,17 +34,28 @@ function epc_storefront_auth_vendor_register_url(array $multilang_params = null)
 	return epc_storefront_auth_lang_href($multilang_params) . 'vendor/register';
 }
 
+function epc_storefront_auth_garage_login_url(array $multilang_params = null): string
+{
+	return epc_storefront_auth_lang_href($multilang_params) . 'garage/login';
+}
+
+function epc_storefront_auth_garage_manager_url(array $multilang_params = null): string
+{
+	return epc_storefront_auth_lang_href($multilang_params) . 'garage/manager';
+}
+
 function epc_storefront_auth_links_html(array $multilang_params = null, string $wrapper_class = 'epc-auth-header-links'): string
 {
 	if (class_exists('DP_User') && (int) DP_User::getUserId() > 0) {
+		// Logged-in customer: Garage Manager is the dedicated header button only.
 		return '';
 	}
+
 	$vendorLogin = htmlspecialchars(epc_storefront_auth_vendor_url($multilang_params), ENT_QUOTES, 'UTF-8');
 	$vendorReg = htmlspecialchars(epc_storefront_auth_vendor_register_url($multilang_params), ENT_QUOTES, 'UTF-8');
 	$login = htmlspecialchars(epc_storefront_auth_login_url($multilang_params), ENT_QUOTES, 'UTF-8');
 	$signup = htmlspecialchars(epc_storefront_auth_signup_url($multilang_params), ENT_QUOTES, 'UTF-8');
 
-	// Use FA 4.5-safe icons only (theme ships Font Awesome 4.5.0 — no fa-handshake-o).
 	return '<span class="' . htmlspecialchars($wrapper_class, ENT_QUOTES, 'UTF-8') . '">'
 		. '<span class="epc-auth-header-links__group epc-auth-header-links__group--vendor">'
 		. '<i class="fa fa-briefcase epc-auth-header-links__icon" aria-hidden="true"></i> '
@@ -78,10 +90,6 @@ function epc_storefront_auth_links_styles(): string
 		. '.epc-auth-header-links a:hover{color:#fff;text-decoration:underline}'
 		. '.epc-auth-header-links__vendor-register,.epc-auth-header-links__signup{color:#fda4af}'
 		. '.epc-er-utility__actions .epc-auth-header-links{margin-left:6px}'
-		. '.new-header-user-box .epc-auth-header-links a{display:inline-block;padding:2px 0}'
-		. '.header-box-mobile .epc-auth-header-links{flex-wrap:wrap;gap:4px 8px;font-size:12px}'
-		. '.header-box-mobile .epc-auth-header-links__sep{color:#94a3b8}'
-		. '.header-box-mobile .epc-auth-header-links__slash{color:#94a3b8}'
-		. '.header-box-mobile .epc-auth-header-links__vendor-register,.header-box-mobile .epc-auth-header-links__signup{color:#c0392b}'
+		. '@media(max-width:991px){.epc-auth-header-links{flex-wrap:wrap;white-space:normal;row-gap:4px}}'
 		. '</style>';
 }

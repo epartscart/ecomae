@@ -7,6 +7,56 @@ Disallow: /users
 Disallow: /cp
 Disallow: /*/parts/brands/
 Disallow: /*/parts/all/
+# Price / qty JSON — never crawl or index
+Disallow: /content/shop/docpart/ajax_
+Disallow: /content/shop/docpart/ajax_getProductsOfBunch
+Disallow: /content/shop/docpart/ajax_getProductsOfBunch2
+Disallow: /content/shop/docpart/ajax_epc_cross_search
+Disallow: /content/shop/docpart/ajax_get_info
+Disallow: /api/umapi_proxy
+Disallow: /api/v1/price/
+Disallow: /api/epc_parts_agent
+
+# Known scrapers / AI crawlers — block entire site price surfaces
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
+User-agent: Screaming Frog SEO Spider
+Disallow: /content/shop/docpart/
+Disallow: /shop/part_search
 
 # Industry hubs (energy.ecomae.com, …) serve hub + sub-industry URLs here —
 # Google must see this map (biomass-bioenergy, solar-energy, etc.).

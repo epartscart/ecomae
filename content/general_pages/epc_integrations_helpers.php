@@ -19,18 +19,79 @@ function epc_int_backend(): string
 	return trim((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), '/');
 }
 
+/** @return array<string, array{label:string,icon:string,blurb:string}> */
+function epc_integrations_categories(): array
+{
+	return array(
+		'identity' => array(
+			'label' => 'Identity & messaging',
+			'icon' => 'fa-id-badge',
+			'blurb' => 'Login, email delivery, and customer messaging channels.',
+		),
+		'commerce' => array(
+			'label' => 'Commerce & payments',
+			'icon' => 'fa-shopping-bag',
+			'blurb' => 'Checkout, POS, tax, and settlement rails.',
+		),
+		'growth' => array(
+			'label' => 'Marketing & growth',
+			'icon' => 'fa-bullhorn',
+			'blurb' => 'Broadcast, social, tracking, and storefront content.',
+		),
+		'catalog' => array(
+			'label' => 'Catalog & AI',
+			'icon' => 'fa-cubes',
+			'blurb' => 'Pricing intelligence and parts expert assistants.',
+		),
+		'data' => array(
+			'label' => 'Data & APIs',
+			'icon' => 'fa-database',
+			'blurb' => 'REST keys, Power BI datasets, and analytics embeds.',
+		),
+		'platform' => array(
+			'label' => 'Platform',
+			'icon' => 'fa-server',
+			'blurb' => 'Mobile shells and multi-tenant control.',
+		),
+	);
+}
+
+/**
+ * Resolve a catalog guide field to a CP-clickable URL (never a bare docs path).
+ */
+function epc_integrations_resolve_guide(string $guide, string $key = ''): string
+{
+	$guide = trim($guide);
+	$be = epc_int_backend();
+	$master = '/' . $be . '/control/portal/epc_integrations_guide';
+	if ($guide === '') {
+		return $key !== '' ? $master . '#' . rawurlencode($key) : $master;
+	}
+	if (strpos($guide, 'http://') === 0 || strpos($guide, 'https://') === 0 || strpos($guide, '/') === 0) {
+		return $guide;
+	}
+	if (strpos($guide, 'docs/') === 0 || strpos($guide, '#') === 0) {
+		$anchor = $key !== '' ? $key : ltrim($guide, '#');
+		return $master . '#' . rawurlencode($anchor);
+	}
+	return $master . ($key !== '' ? '#' . rawurlencode($key) : '');
+}
+
 /** @return array<string, array<string, mixed>> */
 function epc_integrations_catalog(): array
 {
 	$be = epc_int_backend();
+	$guide = '/' . $be . '/control/portal/epc_integrations_guide';
 	return array(
 		'email_smtp' => array(
 			'label' => 'Email / SMTP',
 			'icon' => 'fa-envelope',
 			'color' => '#059669',
+			'category' => 'identity',
+			'blurb' => 'Transactional mail (orders, OTP, alerts) via tenant or platform SMTP.',
 			'super_url' => '/' . $be . '/control/portal/epc_cp_auth_settings',
 			'tenant_url' => '/' . $be . '/control/portal/epc_tenant_email_settings',
-			'guide' => 'docs/guides/REGISTRATION_AND_AUTH.md#smtp',
+			'guide' => $guide . '#email_smtp',
 			'super_only_config' => false,
 			'default_enabled' => true,
 			'menu_patterns' => array(),
@@ -39,42 +100,63 @@ function epc_integrations_catalog(): array
 			'label' => 'OAuth (Google, Microsoft…)',
 			'icon' => 'fa-sign-in',
 			'color' => '#2563eb',
+			'category' => 'identity',
+			'blurb' => 'Social / Microsoft login for CP and storefront — configured on Super CP.',
 			'super_url' => '/' . $be . '/control/portal/epc_cp_auth_settings',
 			'tenant_url' => '/' . $be . '/control/portal/epc_integrations_hub',
-			'guide' => 'docs/guides/REGISTRATION_AND_AUTH.md#oauth',
+			'guide' => $guide . '#oauth',
 			'super_only_config' => true,
 			'default_enabled' => true,
 			'menu_patterns' => array(),
 		),
-		'mobile_apps' => array(
-			'label' => 'Mobile apps (Android / iOS)',
-			'icon' => 'fa-mobile-alt',
-			'color' => '#dc2626',
-			'super_url' => '/' . $be . '/control/portal/epc_mobile_apps',
-			'tenant_url' => '/' . $be . '/control/portal/epc_mobile_apps',
-			'guide' => 'docs/guides/MOBILE_APPS.md',
-			'super_only_config' => false,
+		'registration_enhanced' => array(
+			'label' => 'Registration enhanced',
+			'icon' => 'fa-user-plus',
+			'color' => '#0891b2',
+			'category' => 'identity',
+			'blurb' => 'Stronger signup flows, verification, and auth policies for tenants.',
+			'super_url' => '/' . $be . '/control/portal/epc_cp_auth_settings',
+			'tenant_url' => '/' . $be . '/control/portal/epc_integrations_hub',
+			'guide' => $guide . '#registration_enhanced',
+			'super_only_config' => true,
 			'default_enabled' => true,
 			'menu_patterns' => array(),
 		),
-		'auto_price_ai' => array(
-			'label' => 'Auto Price AI',
-			'icon' => 'fa-magic',
-			'color' => '#7c3aed',
-			'super_url' => '/' . $be . '/control/portal/epc_auto_price_engine',
-			'tenant_url' => '/' . $be . '/control/portal/epc_auto_price_engine',
-			'guide' => 'https://www.ecomae.com/platform/auto-price-ai',
+		'whatsapp' => array(
+			'label' => 'WhatsApp sharing',
+			'icon' => 'fa-whatsapp',
+			'color' => '#16a34a',
+			'category' => 'identity',
+			'blurb' => 'wa.me order sharing with bilingual EN/AR templates for sales desks.',
+			'super_url' => '/' . $be . '/shop/orders/whatsapp-guide',
+			'tenant_url' => '/' . $be . '/shop/orders/whatsapp-guide',
+			'guide' => '/' . $be . '/shop/orders/whatsapp-guide',
 			'super_only_config' => false,
 			'default_enabled' => true,
-			'menu_patterns' => array('epc_auto_price', '/shop/parts_agent'),
+			'menu_patterns' => array('whatsapp'),
+		),
+		'payment_gateways' => array(
+			'label' => 'Payment gateways',
+			'icon' => 'fa-credit-card',
+			'color' => '#0369a1',
+			'category' => 'commerce',
+			'blurb' => 'Telr, GCC BNPL, JazzCash/Easypaisa, crypto, and per-account settlements.',
+			'super_url' => '/' . $be . '/shop/payments/payments',
+			'tenant_url' => '/' . $be . '/shop/payments/payments',
+			'guide' => $guide . '#payment_gateways',
+			'super_only_config' => false,
+			'default_enabled' => true,
+			'menu_patterns' => array('/shop/payments/'),
 		),
 		'pos' => array(
 			'label' => 'POS Terminal',
 			'icon' => 'fa-cash-register',
-			'color' => '#2563eb',
+			'color' => '#1d4ed8',
+			'category' => 'commerce',
+			'blurb' => 'Counter sales, cash/card tender, and ERP-linked receipts.',
 			'super_url' => '/' . $be . '/control/portal/epc_pos_tenant_manage',
 			'tenant_url' => '/' . $be . '/shop/pos/terminal',
-			'guide' => 'docs/guides/POS_TERMINAL.md',
+			'guide' => $guide . '#pos',
 			'super_only_config' => false,
 			'default_enabled' => true,
 			'menu_patterns' => array('/shop/pos/'),
@@ -83,83 +165,34 @@ function epc_integrations_catalog(): array
 			'label' => 'Tax Toolkit',
 			'icon' => 'fa-globe',
 			'color' => '#0f766e',
+			'category' => 'commerce',
+			'blurb' => 'Market VAT / tax profiles that follow the tenant country registration.',
 			'super_url' => '/' . $be . '/control/portal/epc_tax_toolkit_manage',
 			'tenant_url' => '/' . $be . '/shop/finance/erp',
-			'guide' => 'docs/guides/TAX_TOOLKIT.md',
+			'guide' => $guide . '#tax_toolkit',
 			'super_only_config' => true,
 			'default_enabled' => true,
 			'menu_patterns' => array('epc_tax_toolkit', 'uae-tax-compliance'),
 		),
-		'visual_page_editor' => array(
-			'label' => 'Visual page editor',
-			'icon' => 'fa-paint-brush',
-			'color' => '#db2777',
-			'super_url' => '/' . $be . '/control/portal/epc_visual_page_editor',
-			'tenant_url' => '/' . $be . '/control/portal/epc_visual_page_editor',
-			'guide' => 'docs/guides/VISUAL_PAGE_EDITOR.md',
+		'custom_shipping' => array(
+			'label' => 'Custom & shipping',
+			'icon' => 'fa-ship',
+			'color' => '#0e7490',
+			'category' => 'commerce',
+			'blurb' => 'Customs declarations, LGP intake, and shipping reports inside ERP.',
+			'super_url' => '/' . $be . '/control/portal/epc_custom_shipping_guide',
+			'tenant_url' => '/' . $be . '/shop/finance/erp?area=custom_shipping&tab=custom_shipping&epc_erp_shell=1',
+			'guide' => '/' . $be . '/control/portal/epc_custom_shipping_guide',
 			'super_only_config' => false,
 			'default_enabled' => true,
-			'menu_patterns' => array('epc_visual_page_editor'),
-		),
-		'registration_enhanced' => array(
-			'label' => 'Registration enhanced',
-			'icon' => 'fa-user-plus',
-			'color' => '#0891b2',
-			'super_url' => '/' . $be . '/control/portal/epc_cp_auth_settings',
-			'tenant_url' => '/' . $be . '/control/portal/epc_integrations_hub',
-			'guide' => 'docs/guides/REGISTRATION_AND_AUTH.md',
-			'super_only_config' => true,
-			'default_enabled' => true,
-			'menu_patterns' => array(),
-		),
-		'payment_gateways' => array(
-			'label' => 'Payment gateways',
-			'icon' => 'fa-credit-card',
-			'color' => '#7c3aed',
-			'super_url' => '/' . $be . '/shop/payments/payments',
-			'tenant_url' => '/' . $be . '/shop/payments/payments',
-			'guide' => 'docs/guides/INTEGRATIONS.md#payment',
-			'super_only_config' => false,
-			'default_enabled' => true,
-			'menu_patterns' => array('/shop/payments/'),
-		),
-		'api_integrations' => array(
-			'label' => 'API clients & keys',
-			'icon' => 'fa-code',
-			'color' => '#475569',
-			'super_url' => '/' . $be . '/control/portal/epc_api_clients_manage',
-			'tenant_url' => '/' . $be . '/control/portal/epc_api_clients_manage',
-			'guide' => 'docs/EPC-API-DOCUMENTATION.md',
-			'super_only_config' => false,
-			'default_enabled' => true,
-			'menu_patterns' => array('epc_api_clients'),
-		),
-		'power_bi' => array(
-			'label' => 'Power BI',
-			'icon' => 'fa-bar-chart',
-			'color' => '#f2c811',
-			'super_url' => '/' . $be . '/control/portal/epc_power_bi',
-			'tenant_url' => '/' . $be . '/control/portal/epc_power_bi',
-			'guide' => '/' . $be . '/control/portal/epc_power_bi_guide',
-			'super_only_config' => false,
-			'default_enabled' => true,
-			'menu_patterns' => array('epc_power_bi', 'powerbi', 'epc_power_bi_guide'),
-		),
-		'parts_agent' => array(
-			'label' => 'AI parts agent',
-			'icon' => 'fa-robot',
-			'color' => '#8e44ad',
-			'super_url' => '/' . $be . '/shop/parts_agent_chats',
-			'tenant_url' => '/' . $be . '/shop/parts_agent_chats',
-			'guide' => 'docs/EPC-AI-PARTS-EXPERT.md',
-			'super_only_config' => false,
-			'default_enabled' => true,
-			'menu_patterns' => array('parts_agent'),
+			'menu_patterns' => array('custom_shipping', 'custom-shipping'),
 		),
 		'social_media_hub' => array(
 			'label' => 'Social media hub',
 			'icon' => 'fa-share-alt',
-			'color' => '#e1306c',
+			'color' => '#db2777',
+			'category' => 'growth',
+			'blurb' => 'Publish calendars, account links, and AI-assisted social posts.',
 			'super_url' => '/' . $be . '/control/portal/epc_social_media_hub',
 			'tenant_url' => '/' . $be . '/control/portal/epc_social_media_hub',
 			'guide' => '/' . $be . '/control/portal/epc_social_media_hub?tab=guide',
@@ -167,13 +200,119 @@ function epc_integrations_catalog(): array
 			'default_enabled' => true,
 			'menu_patterns' => array('epc_social_media_hub'),
 		),
+		'marketing_broadcast' => array(
+			'label' => 'Marketing broadcast',
+			'icon' => 'fa-paper-plane',
+			'color' => '#ea580c',
+			'category' => 'growth',
+			'blurb' => 'Bulk email and WhatsApp campaigns with audience segments.',
+			'super_url' => '/' . $be . '/control/portal/epc_marketing_broadcast',
+			'tenant_url' => '/' . $be . '/control/portal/epc_marketing_broadcast',
+			'guide' => '/' . $be . '/control/portal/epc_marketing_broadcast?tab=guide',
+			'super_only_config' => false,
+			'default_enabled' => true,
+			'menu_patterns' => array('epc_marketing_broadcast', '/shop/marketing/'),
+		),
+		'web_tracker' => array(
+			'label' => 'Web tracker',
+			'icon' => 'fa-line-chart',
+			'color' => '#0284c7',
+			'category' => 'growth',
+			'blurb' => 'GA4 / Meta / TikTok pixels and storefront event wiring.',
+			'super_url' => '/' . $be . '/control/portal/epc_web_tracker',
+			'tenant_url' => '/' . $be . '/control/portal/epc_web_tracker',
+			'guide' => $guide . '#web_tracker',
+			'super_only_config' => false,
+			'default_enabled' => true,
+			'menu_patterns' => array('epc_web_tracker'),
+		),
+		'visual_page_editor' => array(
+			'label' => 'Visual page editor',
+			'icon' => 'fa-paint-brush',
+			'color' => '#be185d',
+			'category' => 'growth',
+			'blurb' => 'Drag-and-drop landing and content blocks for the storefront.',
+			'super_url' => '/' . $be . '/control/portal/epc_visual_page_editor',
+			'tenant_url' => '/' . $be . '/control/portal/epc_visual_page_editor',
+			'guide' => $guide . '#visual_page_editor',
+			'super_only_config' => false,
+			'default_enabled' => true,
+			'menu_patterns' => array('epc_visual_page_editor'),
+		),
+		'auto_price_ai' => array(
+			'label' => 'Auto Price AI',
+			'icon' => 'fa-magic',
+			'color' => '#0f766e',
+			'category' => 'catalog',
+			'blurb' => 'Discover, compare, and import competitive parts pricing by market.',
+			'super_url' => '/' . $be . '/control/portal/epc_auto_price_engine',
+			'tenant_url' => '/' . $be . '/control/portal/epc_auto_price_engine',
+			'guide' => '/' . $be . '/control/portal/epc_auto_price_guide',
+			'super_only_config' => false,
+			'default_enabled' => true,
+			'menu_patterns' => array('epc_auto_price', '/shop/parts_agent'),
+		),
+		'parts_agent' => array(
+			'label' => 'AI parts agent',
+			'icon' => 'fa-robot',
+			'color' => '#0e7490',
+			'category' => 'catalog',
+			'blurb' => 'Conversational parts expert for staff and storefront shoppers.',
+			'super_url' => '/' . $be . '/shop/parts_agent_chats',
+			'tenant_url' => '/' . $be . '/shop/parts_agent_chats',
+			'guide' => $guide . '#parts_agent',
+			'super_only_config' => false,
+			'default_enabled' => true,
+			'menu_patterns' => array('parts_agent'),
+		),
+		'api_integrations' => array(
+			'label' => 'API clients & keys',
+			'icon' => 'fa-code',
+			'color' => '#475569',
+			'category' => 'data',
+			'blurb' => 'Catalog & Price PRO clients plus tenant-scoped REST API keys.',
+			'super_url' => '/' . $be . '/control/portal/epc_api_clients_manage',
+			'tenant_url' => '/' . $be . '/control/portal/epc_api_clients_manage',
+			'guide' => '/' . $be . '/control/portal/epc_api_documentation_guide',
+			'super_only_config' => false,
+			'default_enabled' => true,
+			'menu_patterns' => array('epc_api_clients'),
+		),
+		'power_bi' => array(
+			'label' => 'Power BI',
+			'icon' => 'fa-bar-chart',
+			'color' => '#ca8a04',
+			'category' => 'data',
+			'blurb' => 'JSON/CSV datasets for Desktop refresh and optional report embed.',
+			'super_url' => '/' . $be . '/control/portal/epc_power_bi',
+			'tenant_url' => '/' . $be . '/control/portal/epc_power_bi',
+			'guide' => '/' . $be . '/control/portal/epc_power_bi_guide',
+			'super_only_config' => false,
+			'default_enabled' => true,
+			'menu_patterns' => array('epc_power_bi', 'powerbi', 'epc_power_bi_guide'),
+		),
+		'mobile_apps' => array(
+			'label' => 'Mobile apps (Android / iOS)',
+			'icon' => 'fa-mobile-alt',
+			'color' => '#dc2626',
+			'category' => 'platform',
+			'blurb' => 'PWA install plus Capacitor targets for CP, ERP, and storefront.',
+			'super_url' => '/' . $be . '/control/portal/epc_mobile_apps',
+			'tenant_url' => '/' . $be . '/control/portal/epc_mobile_apps',
+			'guide' => $guide . '#mobile_apps',
+			'super_only_config' => false,
+			'default_enabled' => true,
+			'menu_patterns' => array(),
+		),
 		'tenant_registry' => array(
 			'label' => 'Multi-tenant registry',
 			'icon' => 'fa-sitemap',
 			'color' => '#0369a1',
+			'category' => 'platform',
+			'blurb' => 'Live tenant hosts, DB credentials, and Super CP feature toggles.',
 			'super_url' => '/' . $be . '/shop/tenant_hub/tenant_hub',
 			'tenant_url' => '',
-			'guide' => 'docs/EPC-SUPER-CP-TENANT-CONTROL.md',
+			'guide' => $guide . '#tenant_registry',
 			'super_only_config' => true,
 			'default_enabled' => true,
 			'menu_patterns' => array('tenant_hub'),
@@ -435,15 +574,22 @@ function epc_integrations_hub_rows(?PDO $pdo = null, bool $isSuper = false): arr
 		if (!$isSuper && !empty($meta['super_only_config'])) {
 			$configUrl = '/' . epc_int_backend() . '/control/portal/epc_integrations_hub';
 		}
+		$guideRaw = (string) ($meta['guide'] ?? '');
+		// Tenant CP cannot open Super-only API docs guide — fall back to master guide.
+		if (!$isSuper && strpos($guideRaw, 'epc_api_documentation_guide') !== false) {
+			$guideRaw = '/' . epc_int_backend() . '/control/portal/epc_integrations_guide#api_integrations';
+		}
 		$rows[] = array(
 			'key' => $key,
 			'label' => (string) $meta['label'],
 			'icon' => (string) ($meta['icon'] ?? 'fa-plug'),
 			'color' => (string) ($meta['color'] ?? '#64748b'),
+			'category' => (string) ($meta['category'] ?? 'platform'),
+			'blurb' => (string) ($meta['blurb'] ?? ''),
 			'enabled' => $enabled,
 			'active' => $enabled,
 			'configure_url' => $configUrl,
-			'guide' => (string) ($meta['guide'] ?? ''),
+			'guide' => epc_integrations_resolve_guide($guideRaw, $key),
 			'super_only' => !empty($meta['super_only_config']),
 		);
 	}

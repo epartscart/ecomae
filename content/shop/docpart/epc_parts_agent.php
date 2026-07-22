@@ -2963,10 +2963,46 @@ function epc_agent_cp_get_session(PDO $db, string $session_id): array
 	$msg_stmt->execute(array($safe));
 	$messages = $msg_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-	if (!$session) {
+	if (!$session || empty($messages)) {
 		$file_session = epc_agent_session_load($safe);
-		if (!empty($file_session['messages'])) {
-			return array('session' => null, 'messages' => array());
+		if (!empty($file_session['messages']) && is_array($file_session['messages'])) {
+			try {
+				epc_agent_cp_sync_file_sessions($db, 200);
+				$stmt->execute(array($safe));
+				$session = $stmt->fetch(PDO::FETCH_ASSOC);
+				$msg_stmt->execute(array($safe));
+				$messages = $msg_stmt->fetchAll(PDO::FETCH_ASSOC);
+			} catch (Throwable $e) {
+			}
+			if (!$session || empty($messages)) {
+				$now = time();
+				$session = array(
+					'session_id' => $safe,
+					'created_at' => (int) ($file_session['created'] ?? $now),
+					'updated_at' => $now,
+					'message_count' => count($file_session['messages']),
+					'country_code' => (string) ($file_session['country_code'] ?? ''),
+					'country_name' => (string) ($file_session['country_name'] ?? ''),
+					'last_user_text' => '',
+					'last_agent_text' => '',
+					'user_id' => 0,
+					'ip_hash' => '',
+					'user_agent' => '',
+					'client_ip' => (string) ($file_session['client_ip'] ?? ''),
+					'ip_country_code' => (string) ($file_session['ip_country_code'] ?? ''),
+					'ip_country_name' => (string) ($file_session['ip_country_name'] ?? ''),
+				);
+				$messages = array();
+				foreach ($file_session['messages'] as $m) {
+					$messages[] = array(
+						'id' => 0,
+						'role' => (($m['role'] ?? '') === 'user') ? 'user' : 'agent',
+						'message_text' => (string) ($m['text'] ?? ''),
+						'reply_links_json' => !empty($m['links']) ? json_encode($m['links'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '',
+						'created_at' => (int) ($m['t'] ?? $now),
+					);
+				}
+			}
 		}
 	}
 

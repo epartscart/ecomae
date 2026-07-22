@@ -1,0 +1,130 @@
+/* CP Bulk Upload hub */
+.epc-bu {
+  --bu-ink: #0f172a;
+  --bu-muted: #64748b;
+  --bu-line: #e2e8f0;
+  --bu-card: #fff;
+  --bu-blue: #1d4ed8;
+  --bu-sky: #0284c7;
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+  color: var(--bu-ink);
+}
+.epc-bu * { box-sizing: border-box; }
+
+.epc-bu-brandbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+  padding: 22px 24px; margin: 0 0 18px; border-radius: 18px; color: #f8fafc;
+  background:
+    radial-gradient(900px 240px at 90% -20%, rgba(56, 189, 248, .28), transparent 55%),
+    linear-gradient(135deg, #0f172a 0%, #1d4ed8 52%, #0c4a6e 100%);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, .22);
+}
+.epc-bu-brandbar__mark {
+  width: 52px; height: 52px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.14); font-size: 22px;
+}
+.epc-bu-brandbar__name { font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+.epc-bu-brandbar__sub { margin-top: 4px; font-size: 13px; opacity: .92; max-width: 70ch; }
+.epc-bu-brandbar__actions { margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px; }
+.epc-bu-chip-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px; border-radius: 999px;
+  background: rgba(255,255,255,.14); color: #fff !important;
+  text-decoration: none !important; font-size: 12px; font-weight: 700;
+  border: 1px solid rgba(255,255,255,.18);
+}
+.epc-bu-chip-link:hover { background: rgba(255,255,255,.24); color: #fff !important; }
+
+.epc-bu-kpi {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px; margin: 0 0 18px;
+}
+@media (max-width: 1100px) { .epc-bu-kpi { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .epc-bu-kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.epc-bu-kpi__item {
+  display: flex; gap: 12px; align-items: center;
+  padding: 14px 16px; border-radius: 14px;
+  background: var(--bu-card); border: 1px solid var(--bu-line);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, .04);
+}
+.epc-bu-kpi__icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: #dbeafe; color: var(--bu-blue); font-size: 18px;
+}
+.epc-bu-kpi__icon--amber { background: #fef3c7; color: #b45309; }
+.epc-bu-kpi__icon--green { background: #dcfce7; color: #166534; }
+.epc-bu-kpi__icon--slate { background: #e2e8f0; color: #334155; }
+.epc-bu-kpi__val { font-size: 22px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+.epc-bu-kpi__label { font-size: 11px; font-weight: 700; color: var(--bu-muted); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
+
+.epc-bu-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.epc-bu-tab {
+  border: 1px solid var(--bu-line); background: #fff; color: #334155;
+  border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.epc-bu-tab.is-active { background: var(--bu-blue); border-color: var(--bu-blue); color: #fff; }
+.epc-bu-panel { display: none; }
+.epc-bu-panel.is-on { display: block; }
+
+.epc-bu-section {
+  background: var(--bu-card); border: 1px solid var(--bu-line);
+  border-radius: 16px; margin: 0 0 16px; overflow: hidden;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, .04);
+}
+.epc-bu-section__head {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--bu-line);
+  background: linear-gradient(90deg, #eff6ff, #f8fafc);
+}
+.epc-bu-section__head h3 { margin: 0; font-size: 16px; font-weight: 800; }
+.epc-bu-section__head span { font-size: 12px; color: var(--bu-muted); font-weight: 600; }
+.epc-bu-section__body { padding: 16px; }
+
+.epc-bu-form { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; gap: 12px; align-items: end; }
+@media (max-width: 900px) { .epc-bu-form { grid-template-columns: 1fr; } }
+.epc-bu-field label { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--bu-muted); margin-bottom: 6px; }
+.epc-bu-field input, .epc-bu-field select {
+  width: 100%; border: 1px solid var(--bu-line); border-radius: 10px; padding: 9px 12px; font-size: 13px;
+}
+.epc-bu-customer-pick {
+  margin-top: 8px; border: 1px solid var(--bu-line); border-radius: 12px; max-height: 180px; overflow: auto; display: none;
+}
+.epc-bu-customer-pick button {
+  display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #f1f5f9;
+  background: #fff; padding: 10px 12px; font-size: 13px; cursor: pointer;
+}
+.epc-bu-customer-pick button:hover { background: #eff6ff; }
+.epc-bu-selected {
+  margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: #eff6ff; color: #1e3a8a; font-weight: 700; font-size: 13px;
+}
+
+.epc-bu-table { width: 100%; border-collapse: collapse; margin: 0; }
+.epc-bu-table th {
+  text-align: left; font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--bu-muted); padding: 10px 12px;
+  border-bottom: 1px solid var(--bu-line); background: #fafafa;
+}
+.epc-bu-table td {
+  padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle;
+}
+.epc-bu-table tr:hover td { background: #f8fafc; }
+.epc-bu-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 800;
+  background: #f1f5f9; color: #334155;
+}
+.epc-bu-badge--ok { background: #dcfce7; color: #166534; }
+.epc-bu-badge--warn { background: #fef3c7; color: #b45309; }
+.epc-bu-badge--off { background: #fee2e2; color: #b91c1c; }
+.epc-bu-badge--blue { background: #dbeafe; color: #1d4ed8; }
+.epc-bu-empty { padding: 28px 16px; text-align: center; color: var(--bu-muted); }
+.epc-bu-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 12px; }
+.epc-bu-toolbar .btn { border-radius: 10px; font-weight: 700; }
+.epc-bu-msg { margin: 0 0 14px; }
+.epc-bu-detail-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+@media (max-width: 640px) {
+  .epc-bu-brandbar__name { font-size: 22px; }
+  .epc-bu-brandbar__actions { margin-left: 0; width: 100%; }
+}

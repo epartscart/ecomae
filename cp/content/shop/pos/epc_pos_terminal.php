@@ -48,19 +48,65 @@ $backend = (string) $DP_Config->backend_dir;
 $posUrl = '/' . $backend . '/shop/pos/terminal';
 $ajaxUrl = '/' . $backend . '/content/shop/pos/ajax_pos_endpoint.php';
 $erpUrl = '/' . $backend . '/shop/finance/erp?epc_erp_shell=1&tab=sales_orders';
+$whUrl = '/' . $backend . '/shop/finance/erp?epc_erp_shell=1&tab=inventory';
+$settingsUrl = '/' . $backend . '/control/portal/epc_pos_tenant_manage';
 $csrf = isset($user_session['csrf_guard_key']) ? (string) $user_session['csrf_guard_key'] : '';
 $stats = epc_pos_dashboard_stats($db_link);
 $openSession = $stats['open_session'];
 $taxCtx = epc_tax_toolkit_resolve($db_link, epc_pos_ensure_walkin_user($db_link));
 
+$currency = 'AED';
+$countryCode = strtoupper((string) ($taxCtx['country_code'] ?? 'AE'));
+$worldPath = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_tax_toolkit_world.php';
+if (is_file($worldPath)) {
+	require_once $worldPath;
+	if (function_exists('epc_tax_toolkit_world_rate_overrides')) {
+		$world = epc_tax_toolkit_world_rate_overrides();
+		if (!empty($world[$countryCode]['currency'])) {
+			$currency = (string) $world[$countryCode]['currency'];
+		}
+	}
+}
+
+$warehouses = array();
+$warehouseId = (int) ($settings['default_warehouse_id'] ?? 0);
+$warehouseName = 'Default warehouse';
+try {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
+	if (function_exists('epc_erp_inventory_ensure_schema')) {
+		epc_erp_inventory_ensure_schema($db_link);
+	}
+	if (function_exists('epc_erp_inventory_list_warehouses')) {
+		$warehouses = epc_erp_inventory_list_warehouses($db_link) ?: array();
+	}
+	if ($warehouseId <= 0 && !empty($warehouses[0]['id'])) {
+		$warehouseId = (int) $warehouses[0]['id'];
+	}
+	foreach ($warehouses as $wh) {
+		if ((int) ($wh['id'] ?? 0) === $warehouseId) {
+			$warehouseName = (string) (($wh['name'] ?? '') !== '' ? $wh['name'] : ($wh['code'] ?? 'Warehouse'));
+			break;
+		}
+	}
+} catch (Throwable $e) {
+	$warehouses = array();
+}
+
 require_once __DIR__ . '/epc_pos_terminal_markup.php';
-epc_pos_terminal_render_markup(
-	$stats,
-	$openSession,
-	$taxCtx,
-	$settings,
-	$ajaxUrl,
-	$posUrl,
-	$csrf,
-	$erpUrl
-);
+epc_pos_terminal_render_markup(array(
+	'stats' => $stats,
+	'open_session' => $openSession,
+	'tax_ctx' => $taxCtx,
+	'settings' => $settings,
+	'warehouses' => $warehouses,
+	'warehouse_id' => $warehouseId,
+	'warehouse_name' => $warehouseName,
+	'currency' => $currency,
+	'country_code' => $countryCode,
+	'ajax_url' => $ajaxUrl,
+	'pos_url' => $posUrl,
+	'csrf' => $csrf,
+	'erp_url' => $erpUrl,
+	'warehouse_url' => $whUrl,
+	'settings_url' => $settingsUrl,
+));

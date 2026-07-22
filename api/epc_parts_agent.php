@@ -7,6 +7,17 @@ require_once dirname(__DIR__) . '/config.php';
 require_once dirname(__DIR__) . '/content/shop/docpart/epc_parts_agent.php';
 
 $DP_Config = new DP_Config();
+$GLOBALS['DP_Config'] = $DP_Config;
+if (is_file(dirname(__DIR__) . '/content/general_pages/epc_portal.php')) {
+	require_once dirname(__DIR__) . '/content/general_pages/epc_portal.php';
+	if (function_exists('epc_portal_apply_config')) {
+		try {
+			epc_portal_apply_config($DP_Config);
+			$GLOBALS['DP_Config'] = $DP_Config;
+		} catch (Throwable $e) {
+		}
+	}
+}
 
 if (!epc_agent_enabled($DP_Config)) {
 	echo json_encode(array('ok' => false, 'message' => 'Agent disabled'), JSON_UNESCAPED_UNICODE);
@@ -21,8 +32,12 @@ if ($action === 'bootstrap') {
 }
 
 try {
+	$dbHost = trim((string) ($DP_Config->host ?? ''));
+	if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+		$dbHost = '127.0.0.1';
+	}
 	$db = new PDO(
-		'mysql:host=' . $DP_Config->host . ';dbname=' . $DP_Config->db . ';charset=utf8',
+		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8',
 		$DP_Config->user,
 		$DP_Config->password
 	);
@@ -115,7 +130,8 @@ if ($action === 'chat') {
 	try {
 		epc_agent_persist_turn($db, $session_id, $session, $message, $reply, $meta);
 	} catch (Throwable $e) {
-		// Chat must succeed even if audit logging fails.
+		// Chat must succeed even if audit logging fails — log for CP troubleshooting.
+		error_log('epc_parts_agent persist_turn failed session=' . $session_id . ' err=' . $e->getMessage());
 	}
 
 	echo json_encode(array(

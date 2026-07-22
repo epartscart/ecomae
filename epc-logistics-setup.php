@@ -34,7 +34,7 @@ epc_log_lang($pdo, 'epc_channels_cp', 'Channels', 'Каналы');
 epc_log_lang($pdo, 'epc_logistics_cp', 'Logistics hub', 'Логистика — обзор');
 epc_log_lang($pdo, 'epc_logistics_carriers_cp', 'Carriers & shipments', 'Перевозчики и отправки');
 epc_log_lang($pdo, 'epc_logistics_guide_cp', 'Logistics guide', 'Гид по логистике');
-epc_log_lang($pdo, 'epc_obtain_epc_carriers', 'DHL / FedEx / Aramex / UPS', 'DHL / FedEx / Aramex / UPS');
+epc_log_lang($pdo, 'epc_obtain_epc_carriers', 'Worldwide carriers (DHL, FedEx, Aramex, UPS+)', 'Международные перевозчики (DHL, FedEx, Aramex, UPS+)');
 
 epc_channel_ensure_schema($pdo);
 epc_logistics_seed_defaults($pdo);
