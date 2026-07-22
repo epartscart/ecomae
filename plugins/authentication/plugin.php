@@ -18,6 +18,13 @@ if( !isset($_SERVER['HTTP_USER_AGENT']) )
 //Функция проверки робота (является ли посетитель роботом)
 function isBot()
 {
+	$anti = $_SERVER['DOCUMENT_ROOT'].'/content/shop/docpart/epc_storefront_anti_crawl.php';
+	if (is_file($anti)) {
+		require_once $anti;
+		if (function_exists('epc_storefront_anti_crawl_is_bot')) {
+			return epc_storefront_anti_crawl_is_bot();
+		}
+	}
 	$bots = array(
 	'rambler','googlebot','aport','yahoo','msnbot','turtle','mail.ru','omsktele',
 	'yetibot','picsearch','sape.bot','sape_context','gigabot','snapbot','alexa.com',
@@ -27,7 +34,8 @@ function isBot()
 	'liveinternet.ru','xml-sitemaps.com','agama','metadatalabs.com','h1.hrn.ru',
 	'googlealert.com','seo-rus.com','yaDirectBot','yandeG','yandex',
 	'yandexSomething','Copyscape.com','AdsBot-Google','domaintools.com',
-	'Nigma.ru','bing.com','dotnetdotcom','SiteAnalyzerbot','bot'
+	'Nigma.ru','bing.com','dotnetdotcom','SiteAnalyzerbot','bot',
+	'scrapy','python-requests','gptbot','claudebot','bytespider','ahrefs','semrush'
 	);
 	
 	foreach($bots as $bot)

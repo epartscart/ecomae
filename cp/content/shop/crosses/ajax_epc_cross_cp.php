@@ -56,7 +56,8 @@ $answer = array('status' => false);
 try {
 switch ($action) {
 	case 'lookup_crosses':
-		$search = epc_cp_cross_fetch_search($DP_Config, $anchor_article, $anchor_brand);
+		// tech_key + cp_bulk so storefront anti-crawl does not redact stock for CP staff
+		$search = epc_cp_cross_fetch_search($DP_Config, $anchor_article, $anchor_brand, true);
 		if ($search === null || empty($search['status'])) {
 			$answer['message'] = isset($search['message']) ? (string) $search['message'] : 'Cross search failed or returned no data';
 			break;
@@ -101,7 +102,7 @@ switch ($action) {
 		break;
 
 	case 'verify_crosses':
-		$search = epc_cp_cross_fetch_search($DP_Config, $anchor_article, $anchor_brand);
+		$search = epc_cp_cross_fetch_search($DP_Config, $anchor_article, $anchor_brand, true);
 		$references = ($search && !empty($search['references']) && is_array($search['references']))
 			? $search['references']
 			: array();
@@ -195,7 +196,7 @@ switch ($action) {
 		break;
 
 	case 'sync_from_crossbase':
-		$search = epc_cp_cross_fetch_search($DP_Config, $anchor_article, $anchor_brand);
+		$search = epc_cp_cross_fetch_search($DP_Config, $anchor_article, $anchor_brand, true);
 		if ($search === null || empty($search['status'])) {
 			$answer['message'] = 'Cross search failed';
 			break;
