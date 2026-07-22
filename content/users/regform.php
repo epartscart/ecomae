@@ -334,7 +334,11 @@ else//Пользователь не авторизован - ВЫВОД СТРА
 		?>
 		
 		
-        <button class="btn btn-ar btn-primary" type="submit"><?php echo translate_str_by_id(4743); ?></button>
+        <button class="btn btn-ar btn-primary" type="submit" id="epc_reg_submit_btn"><?php echo translate_str_by_id(4743); ?></button>
+		<div id="epc_reg_creating" style="display:none;margin:18px 0 0;padding:16px 18px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;color:#0f172a;font-size:15px;line-height:1.45;" role="status" aria-live="polite">
+			<strong style="display:block;margin-bottom:4px;">Creating your account…</strong>
+			<span style="color:#475569;">Please wait a moment — we are securing your profile and preparing your confirmation email.</span>
+		</div>
     </form>
     <!-- Start ФОРМА РЕГИСТРАЦИИ -->
 
@@ -371,6 +375,7 @@ if (is_file($_epcOtpModalFile)) {
 			window.epcRegOtpEmail = data.verified_email || currentEmail;
 			var hf = document.getElementById("epc_reg_otp_verified_field");
 			if (hf) hf.value = "1";
+			if (typeof window.epcRegShowCreating === "function") { window.epcRegShowCreating(); }
 			var rf = document.getElementById("regform");
 			if (rf) rf.submit();
 		',
@@ -383,6 +388,13 @@ if (is_file($_epcOtpModalFile)) {
     //Флаги для реализации синхронных проверочных запросов
     var reg_contact_check = false;//Флаг проверки контакта (уникальность и корректность)
     var captcha_correct = false;//Флаг корректности captcha
+	window.epcRegShowCreating = function(){
+		var box = document.getElementById("epc_reg_creating");
+		var btn = document.getElementById("epc_reg_submit_btn");
+		if (box) { box.style.display = "block"; }
+		if (btn) { btn.disabled = true; btn.style.opacity = "0.65"; }
+		try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) {}
+	};
     function onSubmitCheck()
     {
 		if(typeof epcRegUsesEnhancedTabs !== "function"){
@@ -578,6 +590,7 @@ if (is_file($_epcOtpModalFile)) {
 			}
 		}
 
+		if (typeof window.epcRegShowCreating === "function") { window.epcRegShowCreating(); }
     	return true;
     }
     </script>
