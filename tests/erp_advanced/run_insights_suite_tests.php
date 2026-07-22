@@ -56,6 +56,8 @@ $suite = array(
 $html = epc_insights_suite_render($suite, 'cp');
 check('render has financial heading', strpos($html, 'Financial insights') !== false);
 check('render has business heading', strpos($html, 'Business insights') !== false);
+check('render has tiles grid', strpos($html, 'epc-insights__tiles') !== false);
+check('render has meter', strpos($html, 'epc-insights__meter') !== false);
 check('render has CP heading', strpos($html, 'Control panel insights') !== false);
 check('render has anchor id', strpos($html, 'id="epc-insights"') !== false);
 check('urls include aging', strpos((string) epc_insights_suite_urls('/cp')['aging'], 'aging') !== false);

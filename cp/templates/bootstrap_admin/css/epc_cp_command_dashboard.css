@@ -261,15 +261,17 @@ body.epc-cp-shell .cp-dash .cp-dash-port > h4 .fa,
 }
 .cp-dash-port > .bd { padding: 14px; }
 
-/* Nested insight column titles stay dark on white (not red bars) */
+/* Nested insight section titles stay dark on white (not red bars) */
 body.epc-cp .cp-dash .cp-dash-port .epc-insights__col > h4,
-.cp-dash .cp-dash-port .epc-insights__col > h4 {
+.cp-dash .cp-dash-port .epc-insights__col > h4,
+body.epc-cp .cp-dash .cp-dash-port .epc-insights__band-head h4,
+.cp-dash .cp-dash-port .epc-insights__band-head h4 {
 	color: #0f172a !important;
 	background: transparent !important;
 	text-shadow: none !important;
-	padding: 0 0 8px !important;
+	padding: 0 !important;
 	border: 0 !important;
-	margin: 0 0 8px !important;
+	margin: 0 !important;
 	font-weight: 800 !important;
 }
 
