@@ -62,24 +62,13 @@ function epc_mb_render_hub(): void
 		}
 	}
 
-	epc_cp_page_frame_open(array(
-		'class' => 'epc-mb-hub',
-		'hero' => array(
-			'badge' => 'Marketing broadcast',
-			'title' => $shop['shop_name'] . ' — Email & WhatsApp',
-			'sub' => 'Compose once · preview · send brochures by email or WhatsApp to your customers.',
-			'actions' => array(
-				array('label' => 'Guide', 'icon' => 'fa-book', 'url' => $guideUrl, 'primary' => true),
-				array('label' => 'Email SMTP', 'icon' => 'fa-envelope', 'url' => $emailSettingsUrl),
-				array('label' => 'Integrations', 'icon' => 'fa-plug', 'url' => $integrationsUrl),
-			),
-		),
-	));
+	// Brand bar is the single hero — skip the generic frame hero to avoid double headers.
+	epc_cp_page_frame_open(array('class' => 'epc-mb-hub'));
 
 	echo '<header class="epc-mb-brandbar">';
 	echo '<div class="epc-mb-brandbar__mark"><i class="fa fa-bullhorn" aria-hidden="true"></i></div>';
 	echo '<div><div class="epc-mb-brandbar__name">Marketing broadcast</div>';
-	echo '<div class="epc-mb-brandbar__sub">' . epc_mb_h($shop['shop_name']) . ' · SMTP + WhatsApp · audience → template → preview → send</div></div>';
+	echo '<div class="epc-mb-brandbar__sub">' . epc_mb_h($shop['shop_name']) . ' — Email &amp; WhatsApp · audience → template → preview → send</div></div>';
 	echo '<div class="epc-mb-brandbar__actions">';
 	echo '<a class="epc-mb-chip-link" href="' . epc_mb_h($guideUrl) . '"><i class="fa fa-book"></i> Guide</a>';
 	echo '<a class="epc-mb-chip-link" href="' . epc_mb_h($emailSettingsUrl) . '"><i class="fa fa-envelope"></i> Email SMTP</a>';
@@ -307,7 +296,7 @@ function epc_mb_render_whatsapp_tab(PDO $pdo, array $templates, array $groups, s
 	echo '</div></div></div>';
 
 	echo '<div class="epc-mb-panel"><div class="epc-mb-panel__head"><h4><i class="fa fa-whatsapp"></i> Template &amp; message</h4></div><div class="epc-mb-panel__body">';
-	echo '<div class="epc-mb-step"><div class="epc-mb-step__label"><span class="epc-mb-step__num">2</span> Procedure template</div>';
+	echo '<div class="epc-mb-step"><div class="epc-mb-step__label"><span class="epc-mb-step__num">2</span> Message template</div>';
 	echo '<div class="epc-mb-templates" id="epc-mb-wa-templates">';
 	$ti = 0;
 	foreach ($templates as $key => $tpl) {
@@ -395,10 +384,10 @@ function epc_mb_render_guide_tab(array $shop, string $emailSettingsUrl, string $
 		array(
 			'title' => 'Pick a brochure template',
 			'icon' => 'fa-th-large',
-			'body' => '<p>Click a template card to load content into the composer (empty fields only — your edits are not overwritten).</p>'
+			'body' => '<p>Click a template card to load that brochure into the composer and live preview. Switching cards replaces subject / body so you always see the selected design.</p>'
 				. '<p><strong>Email:</strong> HTML brochures (sale, new arrivals, service reminder, blank).<br>'
-				. '<strong>WhatsApp:</strong> bilingual EN+AR procedures (promo, brochure share, follow-up, event, blank).</p>'
-				. '<p>Merge tags: <code>{{customer_name}}</code>, <code>{{shop_name}}</code>, <code>{{shop_url}}</code>. Use <em>Reload template</em> to refill from the selected card.</p>',
+				. '<strong>WhatsApp:</strong> bilingual EN+AR messages (promo, brochure share, follow-up, event, blank).</p>'
+				. '<p>Merge tags: <code>{{customer_name}}</code>, <code>{{shop_name}}</code>, <code>{{shop_url}}</code>. After you edit by hand, use <em>Reload template</em> to restore the selected card.</p>',
 		),
 		array(
 			'title' => 'Preview, then send email',

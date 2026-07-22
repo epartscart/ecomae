@@ -196,7 +196,8 @@
 
 		qsa('.epc-mb-tpl[data-channel="' + channel + '"]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
-				setTemplateKey(form, channel, btn.getAttribute('data-template'), false);
+				// Card pick = load that brochure into the composer (force replace).
+				setTemplateKey(form, channel, btn.getAttribute('data-template'), true);
 			});
 		});
 
