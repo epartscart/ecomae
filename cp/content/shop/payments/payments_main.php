@@ -6,11 +6,18 @@ defined('_ASTEXE_') or die('No access');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/payments/epc_payment_helpers.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_frame.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_assets.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 	require __DIR__ . '/ajax_payments.php';
 	exit;
 }
+
+$ver = epc_cp_page_asset_version();
+epc_cp_register_page_assets(
+	array(),
+	array('/content/general_pages/epc_payments_cp_js.php?v=' . rawurlencode($ver . 'payAcc2'))
+);
 
 $tab = isset($_GET['tab']) ? preg_replace('/[^a-z_]/', '', (string)$_GET['tab']) : 'dashboard';
 if ($tab === '') {
@@ -77,7 +84,9 @@ epc_cp_page_frame_open(array(
 .epc-pay-actions .btn { border-radius:9px; }
 </style>
 
-<div class="epc-pay-hub">
+<div class="epc-pay-hub"
+	data-ajax-url="<?php echo epc_payment_h('/' . trim((string)$DP_Config->backend_dir, '/') . '/content/shop/payments/ajax_payments_endpoint.php'); ?>"
+	data-csrf="<?php echo epc_payment_h($csrf); ?>">
 	<p class="epc-pay-hint">
 		<strong>Multi-method checkout:</strong> enable gateways below, then customers choose Card / BNPL / JazzCash / Crypto on the order page.
 		Active default: <strong><?php echo epc_payment_h($report['active_name'] ?: 'None'); ?></strong>
