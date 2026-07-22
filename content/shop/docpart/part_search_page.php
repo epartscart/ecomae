@@ -2529,13 +2529,26 @@ function epcMountChpuCrossActions()
 	var tools = document.querySelector('.epc-parts-result-tools');
 	var crossBtn = document.getElementById('epc-cross-search-btn');
 	var fitmentBtn = document.getElementById('epc-fitment-check-btn');
+	var specBtn = document.getElementById('epc-spec-check-btn');
+	/* Order in CHPU bar: Fitment → Spec → Cross references */
+	if(bar && fitmentBtn && fitmentBtn.parentNode !== bar)
+	{
+		bar.appendChild(fitmentBtn);
+	}
+	if(bar && specBtn && specBtn.parentNode !== bar)
+	{
+		if(crossBtn && crossBtn.parentNode === bar)
+		{
+			bar.insertBefore(specBtn, crossBtn);
+		}
+		else
+		{
+			bar.appendChild(specBtn);
+		}
+	}
 	if(bar && crossBtn && crossBtn.parentNode !== bar)
 	{
 		bar.appendChild(crossBtn);
-	}
-	if(bar && fitmentBtn && fitmentBtn.parentNode !== bar)
-	{
-		bar.insertBefore(fitmentBtn, crossBtn && crossBtn.parentNode === bar ? crossBtn : null);
 	}
 	if(bar && tools)
 	{
@@ -4880,10 +4893,37 @@ if($search_type == 'prices_by_article_and_manufacturer' && !empty($manufacturer)
 $epc_result_article = !empty($article_input) ? $article_input : $article;
 $epc_result_brand_display = $epc_result_brand !== '' ? $epc_result_brand : translate_str_by_id(2070);
 $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] === '1';
+
+/* Preload SKU media once: photos stay on-page; specs open from Spec splash next to Fitment. */
+$epc_sku_storefront_data = null;
+$epc_sku_specs_html = '';
+if (
+	empty($epc_brand_picker_mode)
+	&& $search_type === 'prices_by_article_and_manufacturer'
+	&& $epc_result_brand !== ''
+	&& $epc_result_article !== ''
+	&& isset($db_link)
+	&& $db_link instanceof PDO
+) {
+	$epcSkuMediaStorefrontEarly = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media_storefront.php';
+	if (is_file($epcSkuMediaStorefrontEarly)) {
+		require_once $epcSkuMediaStorefrontEarly;
+		if (function_exists('epc_sku_media_storefront_load')) {
+			$epc_sku_storefront_data = epc_sku_media_storefront_load($db_link, array(
+				'brand' => $epc_result_brand,
+				'article' => $epc_result_article,
+			));
+			if (is_array($epc_sku_storefront_data) && !empty($epc_sku_storefront_data['groups']) && function_exists('epc_sku_media_render_spec_groups_html')) {
+				$epc_sku_specs_html = epc_sku_media_render_spec_groups_html($epc_sku_storefront_data['groups']);
+			}
+		}
+	}
+}
+$epc_has_sku_specs = ($epc_sku_specs_html !== '');
 ?>
 <?php
 /* Search-result hero ("Searching for") + related-parts strip removed from UI —
-   header search + results table are enough. Fitment/cross helpers stay available
+   header search + results table are enough. Fitment/cross/spec helpers stay available
    via compact toolbar controls below when needed. */
 ?>
 <?php if (empty($epc_brand_picker_mode)) { ?>
@@ -4891,6 +4931,11 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 	<button type="button" class="btn btn-default btn-sm epc-fitment-check-btn" id="epc-fitment-check-btn" data-article="<?php echo htmlspecialchars($epc_result_article, ENT_QUOTES, 'UTF-8'); ?>"<?php if ($epc_result_brand !== '') { ?> data-brand="<?php echo htmlspecialchars($epc_result_brand, ENT_QUOTES, 'UTF-8'); ?>"<?php } ?>>
 		<i class="fa fa-car" aria-hidden="true"></i> Fitment check
 	</button>
+	<?php if ($epc_has_sku_specs) { ?>
+	<button type="button" class="btn btn-default btn-sm epc-spec-check-btn" id="epc-spec-check-btn" data-article="<?php echo htmlspecialchars($epc_result_article, ENT_QUOTES, 'UTF-8'); ?>"<?php if ($epc_result_brand !== '') { ?> data-brand="<?php echo htmlspecialchars($epc_result_brand, ENT_QUOTES, 'UTF-8'); ?>"<?php } ?> title="Open technical specifications">
+		<i class="fa fa-list-alt" aria-hidden="true"></i> Spec
+	</button>
+	<?php } ?>
 	<button type="button" class="btn btn-default btn-sm epc-cross-search-btn" id="epc-cross-search-btn" data-article="<?php echo htmlspecialchars($epc_result_article, ENT_QUOTES, 'UTF-8'); ?>" title="Open all cross references">
 		<i class="fa fa-random" aria-hidden="true"></i>
 		<span id="epc-cross-search-count"><?php echo count($epc_cross_fallback_rows); ?> references</span>
@@ -4918,6 +4963,27 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 		</div>
 	</div>
 </div>
+<?php if ($epc_has_sku_specs) { ?>
+<div class="epc-fitment-panel epc-spec-panel" id="epc-spec-panel" aria-live="polite" role="dialog" aria-modal="true" aria-labelledby="epc-spec-panel-title">
+	<div class="epc-fitment-panel__head">
+		<div>
+			<div class="epc-fitment-panel__title" id="epc-spec-panel-title">Specifications</div>
+			<div class="epc-fitment-panel__hint"><?php echo htmlspecialchars(trim($epc_result_brand . ' · ' . $epc_result_article), ENT_QUOTES, 'UTF-8'); ?> — technical details, dimensions and notes</div>
+		</div>
+		<button type="button" class="epc-fitment-panel__close" id="epc-spec-close" aria-label="Close specifications">&times;</button>
+	</div>
+	<div class="epc-fitment-panel__body epc-spec-panel__body">
+		<div class="epc-spec-panel__scroll" id="epc-spec-panel-body">
+			<?php
+			if (function_exists('epc_sku_media_emit_storefront_css')) {
+				epc_sku_media_emit_storefront_css();
+			}
+			echo $epc_sku_specs_html;
+			?>
+		</div>
+	</div>
+</div>
+<?php } ?>
 <?php } ?>
 <script>
 (function(){
@@ -5537,6 +5603,9 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 		}, 40);
 	}
 	function openFitmentPanel(article, preferredBrand, anchorEl) {
+		if(typeof window.epcCloseSpecSplash === 'function') {
+			window.epcCloseSpecSplash();
+		}
 		ensureFitmentPanelPortal();
 		positionFitmentPanel(anchorEl);
 		panel.classList.add('active');
@@ -5575,7 +5644,54 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 			resetFitmentPanelStyles();
 		};
 	}
+
+	/* Spec splash — same centered overlay pattern as Fitment check */
+	var specBtn = document.getElementById('epc-spec-check-btn');
+	var specPanel = document.getElementById('epc-spec-panel');
+	var specClose = document.getElementById('epc-spec-close');
+	function closeSpecPanel() {
+		if(!specPanel) { return; }
+		specPanel.classList.remove('active', 'epc-fitment-panel--centered', 'epc-fitment-panel--anchored');
+		if(!panel || !panel.classList.contains('active')) {
+			document.body.style.overflow = '';
+		}
+	}
+	function openSpecPanel() {
+		if(!specPanel) { return; }
+		if(panel && panel.classList.contains('active')) {
+			panel.classList.remove('active');
+			resetFitmentPanelStyles();
+		}
+		if(specPanel.parentNode !== document.body) {
+			document.body.appendChild(specPanel);
+		}
+		specPanel.classList.add('epc-fitment-panel--centered', 'active');
+		document.body.style.overflow = 'hidden';
+		try {
+			var scrollBox = document.getElementById('epc-spec-panel-body');
+			if(scrollBox) { scrollBox.scrollTop = 0; }
+		} catch(e) {}
+	}
+	window.epcOpenSpecSplash = openSpecPanel;
+	window.epcCloseSpecSplash = closeSpecPanel;
+	if(specBtn && specPanel) {
+		specBtn.onclick = function() {
+			if(specPanel.classList.contains('active')) {
+				closeSpecPanel();
+			} else {
+				openSpecPanel();
+			}
+		};
+	}
+	if(specClose) {
+		specClose.onclick = function() { closeSpecPanel(); };
+	}
+
 	document.addEventListener('keydown', function(event) {
+		if(event.key === 'Escape' && specPanel && specPanel.classList.contains('active')) {
+			closeSpecPanel();
+			return;
+		}
 		if(event.key === 'Escape' && panel.classList.contains('active')) {
 			panel.classList.remove('active');
 			document.body.style.overflow = '';
@@ -7428,7 +7544,7 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/part_search_page_"
 <div class="epc-chpu-actions-bar" id="epc-chpu-actions-bar" aria-label="Part page tools"></div>
 <?php } ?>
 <?php
-// CP SKU media (photos + specification sheets) for brand+article part pages.
+// CP SKU media: photos stay on the part page; specifications open from Spec splash (next to Fitment).
 if (
 	$search_type === 'prices_by_article_and_manufacturer'
 	&& !empty($manufacturer)
@@ -7450,17 +7566,20 @@ if (
 				'brand' => $epcSkuBrandShow,
 				'article' => $epcSkuArtShow,
 				'show_photos' => true,
-				'show_specs' => true,
+				'show_specs' => false,
 			));
 		}
 		$epcSkuMediaHtml = trim((string) ob_get_clean());
 		if ($epcSkuMediaHtml !== '') {
 			echo '<div class="epc-sku-media-part-page container" style="margin:12px auto 18px;max-width:1140px;text-align:left;">';
 			echo '<div class="epc-sku-media-part-page__head" style="margin:0 0 10px;">';
-			echo '<strong style="font-size:15px;letter-spacing:-0.01em;">Photos &amp; specifications</strong>';
+			echo '<strong style="font-size:15px;letter-spacing:-0.01em;">Photos</strong>';
 			echo '<span style="display:block;color:#64748b;font-size:13px;margin-top:2px;">'
-				. htmlspecialchars($epcSkuBrandShow . ' · ' . $epcSkuArtShow, ENT_QUOTES, 'UTF-8')
-				. '</span>';
+				. htmlspecialchars($epcSkuBrandShow . ' · ' . $epcSkuArtShow, ENT_QUOTES, 'UTF-8');
+			if (!empty($epc_has_sku_specs)) {
+				echo ' · use <strong>Spec</strong> next to Fitment for full details';
+			}
+			echo '</span>';
 			echo '</div>';
 			echo $epcSkuMediaHtml;
 			echo '</div>';
