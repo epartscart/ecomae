@@ -1,8 +1,7 @@
 <?php
 /**
- * CP — Auto Workshop Online operator guide (Portal / Config).
- *
- * CMS route: /cp/control/portal/epc_autoworkshop_guide
+ * CP — Auto Workshop / Garage operator guide.
+ * CMS: /cp/control/portal/epc_autoworkshop_guide
  */
 if (!defined('_ASTEXE_')) {
 	$qs = isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== ''
@@ -12,7 +11,6 @@ if (!defined('_ASTEXE_')) {
 	exit;
 }
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_frame.php';
 
 function epc_awg_h($v): string
@@ -20,127 +18,123 @@ function epc_awg_h($v): string
 	return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
 }
 
-$backend = htmlspecialchars((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), ENT_QUOTES, 'UTF-8');
-$domain = rtrim((string) ($GLOBALS['DP_Config']->domain_path ?? '/'), '/');
-if ($domain === '') {
-	$domain = '';
-}
-$storefrontUrl = ($domain !== '' ? $domain : '') . '/auto-workshop';
+$backend = trim((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), '/');
+$domain = rtrim((string) ($GLOBALS['DP_Config']->domain_path ?? ''), '/');
+$storefrontUrl = ($domain !== '' ? $domain : '') . '/en/auto-workshop';
 $workshopCpUrl = '/' . $backend . '/shop/workshop/workshop';
+$checkinUrl = $workshopCpUrl . '?tab=checkin';
+$boardUrl = $workshopCpUrl . '?tab=board';
 $erpUrl = '/' . $backend . '/shop/finance/erp?epc_erp_shell=1';
-$partsUrl = '/' . $backend . '/shop/orders/orders';
 $katalogUrl = '/katalog-laximo';
-
-$steps = array(
-	array(
-		'title' => 'Open the workshop desk',
-		'body' => 'Use <strong>Workshop &amp; service</strong> in Control Panel for day-to-day job cards, or open the public <strong>Auto Workshop Online</strong> page for customers and advisors.',
-	),
-	array(
-		'title' => 'Check in the vehicle',
-		'body' => 'Capture plate / VIN, customer, odometer, and complaint. VIN decode (Laximo) helps lock the correct catalogue before parts are pulled.',
-	),
-	array(
-		'title' => 'Build the job card',
-		'body' => 'Add labour lines (hours × rate) and parts from warehouse / OEM search. Send an estimate for approval before work starts when required.',
-	),
-	array(
-		'title' => 'Repair → QC → invoice',
-		'body' => 'Track status through repair and QC. Invoice parts + labour; warranty jobs can post to a warranty provision in Client ERP.',
-	),
-	array(
-		'title' => 'Keep history',
-		'body' => 'Vehicle history stays on the job card trail so the next visit starts with prior parts, labour, and warranty notes.',
-	),
-);
+$ordersUrl = '/' . $backend . '/shop/orders/orders';
+$smsUrl = '/' . $backend . '/control/sms-operatory';
+$commsUrl = '/' . $backend . '/control/communications';
 
 epc_cp_page_frame_open(array(
 	'class' => 'epc-autoworkshop-guide',
 	'hero' => array(
-		'badge' => 'Auto Workshop Online',
-		'title' => 'Workshop & service — operator guide',
-		'sub' => 'Vehicle check-in → job card (parts + labour) → estimate → repair → QC → invoice. Linked to your storefront catalogue and Client ERP.',
+		'badge' => 'Garage management',
+		'title' => 'Auto Workshop Online — operator guide',
+		'sub' => 'Professional repair workshop: check-in → job card (parts + labour) → estimate → bay/tech → QC → ready → handover. Linked to storefront booking and Client ERP.',
 		'actions' => array(
-			array('url' => $storefrontUrl, 'label' => 'View site', 'icon' => 'fa-external-link', 'primary' => true),
-			array('url' => $workshopCpUrl, 'label' => 'Workshop CP', 'icon' => 'fa-wrench'),
-			array('url' => $erpUrl, 'label' => 'Client ERP', 'icon' => 'fa-university'),
+			array('url' => $boardUrl, 'label' => 'Open floor board', 'icon' => 'fa-th-large', 'primary' => true),
+			array('url' => $checkinUrl, 'label' => 'New check-in', 'icon' => 'fa-car'),
+			array('url' => $storefrontUrl, 'label' => 'Public site', 'icon' => 'fa-external-link'),
 		),
 	),
 ));
 ?>
 <style>
-.epc-awg-step{border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;margin:0 0 12px;background:#fff}
-.epc-awg-step h4{margin:0 0 8px;font-size:15px;color:#0f172a}
-.epc-awg-step p{margin:0;color:#334155;line-height:1.55}
-.epc-awg-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#0ea5e9;color:#fff;font-weight:700;font-size:13px;margin-right:8px}
+.epc-awg{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--accent:#0e7490}
 .epc-awg-flow{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
-.epc-awg-flow li{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:999px;padding:6px 12px;font-size:12px;color:#334155}
+.epc-awg-flow li{background:#ecfeff;border:1px solid #a5f3fc;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;color:#155e75}
+.epc-awg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:0 0 14px}
+.epc-awg-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 4px 14px rgba(15,23,42,.04)}
+.epc-awg-card h4{margin:0 0 8px;font-size:14px;color:var(--ink)}
+.epc-awg-card p,.epc-awg-card li{font-size:12px;color:#334155;line-height:1.5;margin:0}
+.epc-awg-card ol{margin:0;padding-left:18px}
+.epc-awg-num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;margin-right:6px}
+.epc-awg-panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 14px}
+.epc-awg-panel h3{margin:0 0 10px;font-size:15px}
 </style>
 
-<div class="epc-portal-settings epc-autoworkshop-guide">
-	<div class="hpanel">
-		<div class="panel-heading"><h4>Process flow</h4></div>
-		<div class="panel-body">
-			<ul class="epc-awg-flow">
-				<li>Vehicle check-in</li>
-				<li>Job card (parts + labour)</li>
-				<li>Estimate approval</li>
-				<li>Repair</li>
-				<li>QC &amp; test</li>
-				<li>Invoice + warranty</li>
-			</ul>
+<div class="epc-awg">
+	<div class="epc-awg-panel">
+		<h3>Process flow</h3>
+		<ul class="epc-awg-flow">
+			<li>1 Check-in</li>
+			<li>2 Estimate</li>
+			<li>3 Approved</li>
+			<li>4 In progress</li>
+			<li>5 QC</li>
+			<li>6 Ready</li>
+			<li>7 Delivered</li>
+		</ul>
+	</div>
+
+	<div class="epc-awg-panel">
+		<h3>Quick links</h3>
+		<a class="btn btn-primary btn-sm" href="<?php echo epc_awg_h($boardUrl); ?>"><i class="fa fa-th-large"></i> Floor board</a>
+		<a class="btn btn-default btn-sm" href="<?php echo epc_awg_h($checkinUrl); ?>"><i class="fa fa-car"></i> Check-in</a>
+		<a class="btn btn-default btn-sm" href="<?php echo epc_awg_h($storefrontUrl); ?>" target="_blank" rel="noopener"><i class="fa fa-globe"></i> Book / track (site)</a>
+		<a class="btn btn-default btn-sm" href="<?php echo epc_awg_h($katalogUrl); ?>" target="_blank" rel="noopener"><i class="fa fa-search"></i> OEM catalog</a>
+		<a class="btn btn-default btn-sm" href="<?php echo epc_awg_h($ordersUrl); ?>"><i class="fa fa-shopping-cart"></i> Parts orders</a>
+		<a class="btn btn-default btn-sm" href="<?php echo epc_awg_h($erpUrl); ?>"><i class="fa fa-university"></i> Client ERP</a>
+		<a class="btn btn-default btn-sm" href="<?php echo epc_awg_h($commsUrl); ?>"><i class="fa fa-envelope"></i> Test e-mail/SMS</a>
+	</div>
+
+	<div class="epc-awg-grid">
+		<div class="epc-awg-card">
+			<h4><span class="epc-awg-num">1</span>Open the desk</h4>
+			<p>Go to <strong>Workshop &amp; service</strong>. The floor board shows every open job by status. Empty desks auto-load UAE demo jobs so you can click through immediately.</p>
+		</div>
+		<div class="epc-awg-card">
+			<h4><span class="epc-awg-num">2</span>Check in the vehicle</h4>
+			<p>Use <strong>Check-in</strong>: plate, customer phone, complaint, optional VIN/make/model/odometer. Assign bay + technician when known. Optional first labour/part lines.</p>
+		</div>
+		<div class="epc-awg-card">
+			<h4><span class="epc-awg-num">3</span>Build the job card</h4>
+			<p>Click a card → add parts and labour (hours × rate). VAT defaults to 5%. Totals recalculate automatically. Move status to Estimate / Approved.</p>
+		</div>
+		<div class="epc-awg-card">
+			<h4><span class="epc-awg-num">4</span>Repair → QC → ready</h4>
+			<p>Set <strong>In progress</strong> while work runs, <strong>QC</strong> for final check, then <strong>Ready</strong> for collection. Mark <strong>Delivered</strong> after handover.</p>
+		</div>
+		<div class="epc-awg-card">
+			<h4><span class="epc-awg-num">5</span>Customer booking</h4>
+			<p>Public page <code>/auto-workshop</code> lets customers request service and track by job number or plate. New bookings land in Check-in.</p>
+		</div>
+		<div class="epc-awg-card">
+			<h4><span class="epc-awg-num">6</span>Parts &amp; invoice</h4>
+			<p>Pull OEM fitment via Laximo / Parts search; raise supplier orders from Orders. Job card holds the billable total — post formal invoice in Client ERP when needed. Notify via Communications / SMS Operators.</p>
 		</div>
 	</div>
 
-	<div class="hpanel">
-		<div class="panel-heading"><h4>Quick links</h4></div>
-		<div class="panel-body">
-			<a class="btn btn-primary btn-sm" href="<?php echo epc_awg_h($storefrontUrl); ?>" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> View site — Auto Workshop Online</a>
-			<a class="btn btn-default btn-sm" href="<?php echo epc_awg_h($workshopCpUrl); ?>"><i class="fa fa-wrench"></i> Workshop &amp; service (CP)</a>
-			<a class="btn btn-default btn-sm" href="<?php echo epc_awg_h($erpUrl); ?>"><i class="fa fa-university"></i> Client ERP</a>
-			<a class="btn btn-default btn-sm" href="<?php echo epc_awg_h($katalogUrl); ?>" target="_blank" rel="noopener"><i class="fa fa-car"></i> OEM catalog (Laximo)</a>
-			<a class="btn btn-default btn-sm" href="<?php echo epc_awg_h($partsUrl); ?>"><i class="fa fa-shopping-cart"></i> Orders</a>
-		</div>
-	</div>
-
-	<div class="hpanel">
-		<div class="panel-heading"><h4>Step-by-step</h4></div>
-		<div class="panel-body">
-			<?php foreach ($steps as $i => $step) { ?>
-			<div class="epc-awg-step">
-				<h4><span class="epc-awg-num"><?php echo (int) ($i + 1); ?></span><?php echo epc_awg_h($step['title']); ?></h4>
-				<p><?php echo $step['body']; ?></p>
+	<div class="epc-awg-panel">
+		<h3>What the module covers</h3>
+		<div class="row">
+			<div class="col-md-6">
+				<ul>
+					<li>Kanban floor board (garage statuses)</li>
+					<li>Job cards with parts + labour + VAT</li>
+					<li>Bay / ramp and technician assignment</li>
+					<li>Vehicle plate / VIN / odometer context</li>
+				</ul>
 			</div>
-			<?php } ?>
-		</div>
-	</div>
-
-	<div class="hpanel">
-		<div class="panel-heading"><h4>What this module covers</h4></div>
-		<div class="panel-body">
-			<div class="row">
-				<div class="col-md-6">
-					<ul>
-						<li>Job cards with parts + labour</li>
-						<li>Vehicle / VIN context for fitment</li>
-						<li>Estimate approval before work</li>
-						<li>Link to warehouse stock &amp; OEM search</li>
-					</ul>
-				</div>
-				<div class="col-md-6">
-					<ul>
-						<li>QC &amp; delivery status</li>
-						<li>Invoice into Client ERP</li>
-						<li>Warranty / sublet notes</li>
-						<li>Service history per vehicle</li>
-					</ul>
-				</div>
+			<div class="col-md-6">
+				<ul>
+					<li>Storefront book + track</li>
+					<li>Demo seed for training</li>
+					<li>Links to OEM catalog, orders, ERP</li>
+					<li>Ready for e-mail/SMS customer updates</li>
+				</ul>
 			</div>
-			<p class="text-muted" style="margin:12px 0 0">
-				Industry pack: <code>automotive_workshop</code> (garage process + labour hours + warranty).
-				Storefront URL: <code>/auto-workshop</code> · CP: <code>/<?php echo $backend; ?>/shop/workshop/workshop</code>
-			</p>
 		</div>
+		<p class="text-muted" style="margin:12px 0 0;font-size:12px">
+			Industry pack: <code>automotive_workshop</code> ·
+			CP: <code>/<?php echo epc_awg_h($backend); ?>/shop/workshop/workshop</code> ·
+			Site: <code>/auto-workshop</code>
+		</p>
 	</div>
 </div>
 <?php epc_cp_page_frame_close(); ?>

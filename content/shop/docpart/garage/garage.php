@@ -75,8 +75,22 @@ if( $user_id > 0)
 		//Для работы с пользователем
 		require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
 		$user_session = DP_User::getUserSession();
-		
+		$epc_g_lang = isset($multilang_params['lang_href']) ? rtrim((string)$multilang_params['lang_href'], '/') : '/en';
 		?>
+		<style>
+		.epc-garazh-gms{margin:0 0 18px;padding:18px 20px;border-radius:16px;color:#f8fafc;background:linear-gradient(125deg,#0b1220,#164e63 55%,#0e7490);box-shadow:0 14px 32px rgba(11,18,32,.18)}
+		.epc-garazh-gms h2{margin:0 0 6px;color:#fff;font-size:22px;font-weight:800}
+		.epc-garazh-gms p{margin:0 0 12px;opacity:.92;max-width:60ch}
+		.epc-garazh-gms a{display:inline-flex;align-items:center;gap:6px;margin:0 8px 6px 0;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff!important;font-weight:700;text-decoration:none!important;border:1px solid rgba(255,255,255,.22);font-size:12px}
+		.epc-garazh-gms a:hover{background:rgba(255,255,255,.28)}
+		</style>
+		<div class="epc-garazh-gms col-md-12">
+			<h2><i class="fa fa-wrench"></i> My Garage · Service ready</h2>
+			<p>Keep your vehicles here, then book workshop service or track an open job. Workshop staff use Garage Manager for the full repair workflow.</p>
+			<a href="<?php echo htmlspecialchars($epc_g_lang.'/auto-workshop#book', ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-calendar"></i> Book service</a>
+			<a href="<?php echo htmlspecialchars($epc_g_lang.'/auto-workshop#track', ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-search"></i> Track job</a>
+			<a href="<?php echo htmlspecialchars($epc_g_lang.'/garage/login', ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-sign-in"></i> Garage Manager login</a>
+		</div>
 		<div class="col-md-6" style="padding-bottom:20px;">
 			<a class="btn btn-ar btn-primary" href="<?php echo $multilang_params['lang_href']; ?>/garazh/avtomobil"><i class="fa fa-car"></i> <i class="fa fa-plus"></i><?php echo translate_str_by_id(4262); ?></a>
 			<a href="<?php echo $multilang_params['lang_href']; ?>/garazh/bloknot?garage=0" class="btn btn-ar btn-primary"><i class="fa fa-pencil-square-o"></i> <?php echo translate_str_by_id(2100); ?></a>
