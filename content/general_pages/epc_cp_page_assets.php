@@ -17,6 +17,13 @@ function epc_cp_page_asset_url_map(): array
 	$backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
 
 	return array(
+		'control/config' => array(
+			'css' => array('/content/general_pages/epc_config_edit_css.php?v=' . rawurlencode($ver . 'cfg6')),
+			'js' => array(
+				'/' . $backend . '/content/control/epc_config_edit.js?v=' . rawurlencode($ver . 'cfg6'),
+				'/' . $backend . '/content/control/epc_config_edit_status.js?v=' . rawurlencode($ver . 'cfg6'),
+			),
+		),
 		'control/cp-guideline' => array(
 			'css' => array('/content/general_pages/epc_cp_guideline_css.php?v=' . rawurlencode($ver)),
 		),
