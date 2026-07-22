@@ -46,7 +46,7 @@ function epc_reg_tr($pdo, $key, $en, $ru, $ar = '')
 }
 
 epc_reg_tr($pdo, 'epc_shipping_export_title', 'Shipping & export', 'Доставка и экспорт', 'الشحن والتصدير');
-epc_reg_tr($pdo, 'epc_shipping_export_desc', 'UAE warehouse ships GCC, Pakistan and worldwide export.', 'Склад ОАЭ — доставка в GCC, Пакистан и мир.', 'مستودع الإمارات — شحن الخليج وباكستان والعالم.');
+epc_reg_tr($pdo, 'epc_shipping_export_desc', 'UAE-Oman-KSA warehouse — Fast ship to GCC and worldwide. Couriers: DHL, FedEx, Aramex, UPS.', 'Склады ОАЭ–Оман–КСА — быстрая доставка в GCC и мир. Курьеры: DHL, FedEx, Aramex, UPS.', 'مستودعات الإمارات وعُمان والسعودية — شحن سريع للخليج والعالم. شركات الشحن: DHL وFedEx وAramex وUPS.');
 epc_reg_tr($pdo, 'epc_lang_ar_caption', 'Arabic', 'Арабский', 'العربية');
 
 $langSteps = array();
