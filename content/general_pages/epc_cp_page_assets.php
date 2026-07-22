@@ -146,11 +146,21 @@ function epc_cp_page_asset_url_map(): array
 			'css' => array(
 				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
 				'/content/general_pages/epc_portal_module_pages_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_integrations_hub_css.php?v=' . rawurlencode($ver . 'inthub3'),
 			),
 			'js' => array(
 				'/' . $backend . '/content/control/portal/epc_integrations_hub_config.php?v=' . rawurlencode($ver),
 				'/' . $backend . '/content/control/portal/epc_integrations_hub.js?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/control/portal/epc_integrations_hub_ui.js?v=' . rawurlencode($ver . 'inthub3'),
 			),
+		),
+		'control/portal/epc_integrations_guide' => array(
+			'css' => array(
+				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_portal_module_pages_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_integrations_hub_css.php?v=' . rawurlencode($ver . 'inthub3'),
+			),
+			'js' => array(),
 		),
 		'control/portal/epc_social_media_hub' => array(
 			'css' => array(
