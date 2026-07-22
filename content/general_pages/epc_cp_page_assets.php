@@ -44,7 +44,7 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'control/portal/epc_visual_page_editor' => array(
-			'css' => array('/content/general_pages/epc_visual_page_editor_css.php?v=' . rawurlencode($ver)),
+			'css' => array('/content/general_pages/epc_visual_page_editor_css.php?v=' . rawurlencode($ver . 'vpe1')),
 		),
 		'control/portal/epc_pos_tenant_manage' => array(
 			'css' => array(
@@ -555,11 +555,15 @@ function epc_cp_page_footer_scripts(string $contentUrl): void
 	if ($contentUrl === 'control/portal/epc_visual_page_editor') {
 		global $DP_Config;
 		$backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
-		$ver = epc_cp_page_asset_version();
+		$ver = epc_cp_page_asset_version() . 'vpe1';
 		$siteKey = isset($_GET['site_key']) ? preg_replace('/[^a-z0-9_]/', '', strtolower((string) $_GET['site_key'])) : '';
+		$pageKey = isset($_GET['page_key']) ? preg_replace('/[^a-z0-9_-]/', '', strtolower((string) $_GET['page_key'])) : '';
 		$qs = 'v=' . rawurlencode($ver);
 		if ($siteKey !== '') {
 			$qs .= '&site_key=' . rawurlencode($siteKey);
+		}
+		if ($pageKey !== '') {
+			$qs .= '&page_key=' . rawurlencode($pageKey);
 		}
 		$configSrc = '/' . $backend . '/content/control/portal/epc_visual_page_editor_config.php?' . $qs;
 		$jsSrc = '/' . $backend . '/content/control/portal/epc_visual_page_editor.js?v=' . rawurlencode($ver);
