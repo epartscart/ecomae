@@ -278,6 +278,15 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/order_process/order_card_cp.js?v=' . rawurlencode($ver . 'omsForms2'),
 			),
 		),
+		'shop/logistics/carriers' => array(
+			'css' => array(
+				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver . 'lc2'),
+				'/content/general_pages/epc_logistics_carriers.css?v=' . rawurlencode($ver . 'lc2'),
+			),
+			'js' => array(
+				'/' . $backend . '/content/shop/logistics/logistics_carriers.js?v=' . rawurlencode($ver . 'lc2'),
+			),
+		),
 		'shop/logistics/storages' => array(
 			'js' => array(
 				'/' . $backend . '/content/shop/epc_cp_table_filter.js?v=' . rawurlencode($ver . 'cpFull2'),

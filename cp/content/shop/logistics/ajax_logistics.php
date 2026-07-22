@@ -21,6 +21,30 @@ try {
 			epc_logistics_seed_sample_data($db_link);
 			echo json_encode(array('status' => true, 'message' => 'Sample carrier shipment loaded'));
 			break;
+		case 'seed_carriers':
+			epc_logistics_seed_defaults($db_link);
+			$n = count(epc_channel_carriers_catalog());
+			epc_channel_log($db_link, 'seed', 'Worldwide carrier partners seeded (' . $n . ')', 'logistics');
+			echo json_encode(array('status' => true, 'message' => 'Seeded ' . $n . ' worldwide carrier partners'));
+			break;
+		case 'toggle_carrier':
+			$code = preg_replace('/[^a-z0-9_]/', '', strtolower((string)($_POST['carrier_code'] ?? '')));
+			if ($code === '') {
+				echo json_encode(array('status' => false, 'message' => 'Missing carrier code'));
+				break;
+			}
+			$row = $db_link->prepare('SELECT `id`, `active` FROM `epc_carrier_accounts` WHERE `code` = ? LIMIT 1');
+			$row->execute(array($code));
+			$cur = $row->fetch(PDO::FETCH_ASSOC);
+			if (!$cur) {
+				echo json_encode(array('status' => false, 'message' => 'Carrier not found — seed partners first'));
+				break;
+			}
+			$next = ((int)$cur['active'] === 1) ? 0 : 1;
+			$db_link->prepare('UPDATE `epc_carrier_accounts` SET `active` = ? WHERE `code` = ?')->execute(array($next, $code));
+			epc_channel_log($db_link, 'carrier', ($next ? 'Enabled' : 'Disabled') . ' carrier ' . $code, $code);
+			echo json_encode(array('status' => true, 'message' => ($next ? 'Enabled' : 'Disabled') . ' ' . $code, 'active' => $next));
+			break;
 		case 'create_shipment':
 			$oid = isset($_POST['order_id']) ? (int)$_POST['order_id'] : 0;
 			$carrier = isset($_POST['carrier_code']) ? (string)$_POST['carrier_code'] : 'dhl';

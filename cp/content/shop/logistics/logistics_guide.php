@@ -100,7 +100,7 @@ $channelsGuideUrl = '/' . $DP_Config->backend_dir . '/shop/channels/guide';
 				<p><strong>A. Storefront customer order (normal checkout)</strong></p>
 				<ol>
 					<li>Customer adds parts to cart and checks out on <?php echo htmlspecialchars($epc_logistics_site_host ?: 'your storefront', ENT_QUOTES, 'UTF-8'); ?>.</li>
-					<li>Selects delivery method — pickup, local courier, or <strong>DHL / FedEx / Aramex / UPS</strong>.</li>
+					<li>Selects delivery method — pickup, local courier, or <strong>worldwide carriers</strong> (DHL, FedEx, Aramex, UPS, SMSA, DPD, and more).</li>
 					<li>For carriers: enters city, country, address, weight — sees demo or live rates.</li>
 					<li>Order appears in CP <a href="<?php echo epc_logistics_h($ordersUrl); ?>">Orders</a> like any other sale.</li>
 				</ol>
@@ -140,7 +140,7 @@ $channelsGuideUrl = '/' . $DP_Config->backend_dir . '/shop/channels/guide';
 				<h5>Step 3 — Enable carrier delivery at checkout</h5>
 				<ol class="epc-log-flow" style="margin-bottom:0;">
 					<li>CP → <a href="<?php echo epc_logistics_h($obtainModesUrl); ?>">Delivery methods</a>.</li>
-					<li>Ensure <strong>DHL / FedEx / Aramex / UPS</strong> (<code>epc_carriers</code>) is <strong>available</strong>.</li>
+					<li>Ensure the <strong>Carriers</strong> delivery method (<code>epc_carriers</code>) is <strong>available</strong> — partners are managed under Logistics → Carriers.</li>
 					<li>Parameters: <em>Demo mode</em>, <em>Origin city</em> (default Dubai).</li>
 				</ol>
 			</div>

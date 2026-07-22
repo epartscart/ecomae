@@ -12,7 +12,20 @@ if (empty($user_session) || !is_array($user_session)) {
 	return;
 }
 
-$include = $_SERVER['DOCUMENT_ROOT'] . '/' . $GLOBALS['DP_Config']->backend_dir . '/content/shop/logistics/logistics_carriers.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_assets.php';
+$ver = epc_cp_page_asset_version() . 'lc2';
+$backend = (string)$GLOBALS['DP_Config']->backend_dir;
+epc_cp_register_page_assets(
+	array(
+		'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver),
+		'/content/general_pages/epc_logistics_carriers.css?v=' . rawurlencode($ver),
+	),
+	array(
+		'/' . $backend . '/content/shop/logistics/logistics_carriers.js?v=' . rawurlencode($ver),
+	)
+);
+
+$include = $_SERVER['DOCUMENT_ROOT'] . '/' . $backend . '/content/shop/logistics/logistics_carriers.php';
 if (!is_file($include)) {
 	echo '<div class="alert alert-danger">Logistics carriers module not found.</div>';
 	return;
