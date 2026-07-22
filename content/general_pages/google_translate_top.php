@@ -1,5 +1,27 @@
 <?php
 defined('_ASTEXE_') or die('No access');
+
+$epc_cms_active_langs = array('en');
+if (isset($db_link) && $db_link instanceof PDO) {
+	try {
+		$epc_cms_lang_q = $db_link->query('SELECT `lang_code` FROM `lang_languages` WHERE `active` = 1');
+		if ($epc_cms_lang_q) {
+			$epc_cms_active_langs = array();
+			while ($epc_cms_lang_row = $epc_cms_lang_q->fetch(PDO::FETCH_ASSOC)) {
+				$code = strtolower(trim((string) ($epc_cms_lang_row['lang_code'] ?? '')));
+				if ($code !== '') {
+					$epc_cms_active_langs[] = $code;
+				}
+			}
+			if ($epc_cms_active_langs === array()) {
+				$epc_cms_active_langs = array('en');
+			}
+		}
+	} catch (Exception $e) {
+		$epc_cms_active_langs = array('en', 'ar');
+	}
+}
+$epc_cms_current_lang = isset($multilang_params['lang']) ? strtolower((string) $multilang_params['lang']) : 'en';
 ?>
 <style>
 	.epc-google-translate-top {
@@ -216,6 +238,8 @@ defined('_ASTEXE_') or die('No access');
 	var epcTranslateManualKey = 'epcTranslateManualLanguage';
 	var epcTranslateAutoKey = 'epcTranslateAutoLanguage';
 	var epcTranslateAutoAppliedKey = 'epcTranslateAutoAppliedLanguage';
+	var epcCmsActiveLangs = <?php echo json_encode(array_values($epc_cms_active_langs), JSON_UNESCAPED_UNICODE); ?>;
+	var epcCmsCurrentLang = <?php echo json_encode($epc_cms_current_lang, JSON_UNESCAPED_UNICODE); ?>;
 
 	function epcTranslateStatus(message) {
 		var status = document.getElementById('epc_translate_auto_status');
@@ -223,6 +247,30 @@ defined('_ASTEXE_') or die('No access');
 			status.textContent = message || '';
 			status.title = message || '';
 		}
+	}
+
+	function epcCmsLangNavigate(lang) {
+		lang = String(lang || '').toLowerCase();
+		if (!lang || !epcCmsActiveLangs || epcCmsActiveLangs.indexOf(lang) === -1) {
+			return false;
+		}
+		if (typeof window.lang_selected === 'function') {
+			window.lang_selected(lang);
+			return true;
+		}
+		var date = new Date(new Date().getTime() + 15552000 * 1000);
+		document.cookie = 'lang=' + lang + '; path=/; expires=' + date.toUTCString();
+		var path = window.location.pathname || '/';
+		var search = window.location.search || '';
+		var hash = window.location.hash || '';
+		var parts = path.split('/');
+		if (parts.length > 1 && /^[a-z]{2}(?:-[a-zA-Z]+)?$/i.test(parts[1] || '')) {
+			parts[1] = lang;
+			window.location.assign(parts.join('/') + search + hash);
+			return true;
+		}
+		window.location.assign('/' + lang + (path === '/' ? '/' : path) + search + hash);
+		return true;
 	}
 
 	function epcTranslateCookieLanguage() {
@@ -257,6 +305,13 @@ defined('_ASTEXE_') or die('No access');
 	}
 
 	function epcApplyNativeTranslate(lang) {
+		try {
+			localStorage.setItem(epcTranslateManualKey, lang || 'en');
+		} catch (e) {}
+		// CMS languages (en/ar/…): switch storefront locale via URL so parts pages keep working.
+		if (epcCmsLangNavigate(lang)) {
+			return;
+		}
 		if (lang === 'en') {
 			epcClearTranslateCookie();
 			window.location.reload();
@@ -283,6 +338,9 @@ defined('_ASTEXE_') or die('No access');
 			}
 			sessionStorage.setItem(epcTranslateAutoAppliedKey, lang);
 		} catch (e) {}
+		if (epcCmsLangNavigate(lang)) {
+			return;
+		}
 		epcSetTranslateCookie(lang);
 		var select = document.getElementById('epc_native_translate_select');
 		if (select) {
@@ -506,9 +564,14 @@ defined('_ASTEXE_') or die('No access');
 		if (!select) {
 			return;
 		}
-		select.value = epcTranslateCookieLanguage();
+		var preferred = epcCmsCurrentLang || epcTranslateCookieLanguage() || 'en';
+		if (select.querySelector('option[value="' + preferred + '"]')) {
+			select.value = preferred;
+		} else {
+			select.value = epcTranslateCookieLanguage() || 'en';
+		}
 		if (select.value && select.value !== 'en') {
-			epcTranslateStatus('Auto language active: ' + select.value);
+			epcTranslateStatus('Language: ' + select.value);
 		}
 		select.addEventListener('change', function() {
 			try {
@@ -516,6 +579,11 @@ defined('_ASTEXE_') or die('No access');
 			} catch (e) {}
 			epcApplyNativeTranslate(this.value);
 		});
+		// Do not auto-redirect away from an explicit CMS locale URL (e.g. /ar/parts/...).
+		if (epcCmsCurrentLang && epcCmsCurrentLang !== 'en' && epcCmsActiveLangs.indexOf(epcCmsCurrentLang) !== -1) {
+			epcTranslateStatus('Language: ' + epcCmsCurrentLang);
+			return;
+		}
 		epcAutoTranslateByCountry();
 	}
 

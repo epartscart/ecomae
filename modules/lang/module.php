@@ -38,21 +38,44 @@ if( $DP_Config->multilang )
 		
 		
 		<script>
-		//На случай, если модуль подключается в нескольких местах
-		if( typeof lang_selected != 'function' )
+	//На случай, если модуль подключается в нескольких местах
+	if( typeof lang_selected != 'function' )
+	{
+		window.lang_selected = function(lang)
 		{
-			window.lang_selected = function(lang)
-			{
-				//Записать в куки язык
-				var date = new Date(new Date().getTime() + 15552000 * 1000);
-				document.cookie = "lang="+lang+"; path=/; expires=" + date.toUTCString();
-				
-				//Перейти на URL этой же страницы, но, для другого языка
-				var page_url_with_lang_tag = '<?php echo $multilang_params['page_url_with_lang_tag']; ?>';
-				location = page_url_with_lang_tag.replace('<lang>', lang);
-			};
-		}
-		</script>
+			lang = String(lang || '').toLowerCase().replace(/[^a-z\-]/g, '');
+			if (!lang) {
+				return;
+			}
+			//Записать в куки язык
+			var date = new Date(new Date().getTime() + 15552000 * 1000);
+			document.cookie = "lang="+lang+"; path=/; expires=" + date.toUTCString();
+			
+			//Перейти на URL этой же страницы, но, для другого языка
+			var page_url_with_lang_tag = '<?php echo isset($multilang_params['page_url_with_lang_tag']) ? $multilang_params['page_url_with_lang_tag'] : ''; ?>';
+			var target = '';
+			if (page_url_with_lang_tag && page_url_with_lang_tag.indexOf('<lang>') !== -1) {
+				target = page_url_with_lang_tag.replace('<lang>', lang);
+			} else {
+				// Fallback: swap first path segment when it looks like a language code
+				var path = window.location.pathname || '/';
+				var search = window.location.search || '';
+				var hash = window.location.hash || '';
+				var parts = path.split('/');
+				// path like /en/parts/... → ["", "en", "parts", ...]
+				if (parts.length > 1 && /^[a-z]{2}(?:-[a-zA-Z]+)?$/i.test(parts[1] || '')) {
+					parts[1] = lang;
+					target = parts.join('/') + search + hash;
+				} else {
+					target = '/' + lang + (path === '/' ? '/' : path) + search + hash;
+				}
+			}
+			if (target) {
+				window.location.assign(target);
+			}
+		};
+	}
+</script>
 		
 		
 		

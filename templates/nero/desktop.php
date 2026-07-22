@@ -115,7 +115,7 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	: '';
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $multilang_params['lang']; ?>" data-theme="default" data-epc-industry="<?php echo htmlspecialchars($epc_portal_industry_code, ENT_QUOTES, 'UTF-8'); ?>" data-epc-style="<?php echo htmlspecialchars($epc_portal_style_template, ENT_QUOTES, 'UTF-8'); ?>" data-epc-commerce="<?php echo $epc_commerce_storefront ? 'on' : 'off'; ?>" data-epc-storefront="<?php echo htmlspecialchars($epc_storefront_package !== '' ? $epc_storefront_package : 'default', ENT_QUOTES, 'UTF-8'); ?>">
+<html lang="<?php echo htmlspecialchars($multilang_params['lang'], ENT_QUOTES, 'UTF-8'); ?>"<?php echo (isset($multilang_params['lang']) && strtolower((string)$multilang_params['lang']) === 'ar') ? ' dir="rtl"' : ''; ?> data-theme="default" data-epc-industry="<?php echo htmlspecialchars($epc_portal_industry_code, ENT_QUOTES, 'UTF-8'); ?>" data-epc-style="<?php echo htmlspecialchars($epc_portal_style_template, ENT_QUOTES, 'UTF-8'); ?>" data-epc-commerce="<?php echo $epc_commerce_storefront ? 'on' : 'off'; ?>" data-epc-storefront="<?php echo htmlspecialchars($epc_storefront_package !== '' ? $epc_storefront_package : 'default', ENT_QUOTES, 'UTF-8'); ?>">
 <head>
 	<!-- Google tag (gtag.js) - per-tenant measurement ID, deferred until after first paint -->
 	<?php
