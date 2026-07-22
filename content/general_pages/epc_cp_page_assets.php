@@ -104,18 +104,18 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'control/portal/epc_auto_price_engine' => array(
-			'css' => array('/content/general_pages/epc_auto_price_engine_css.php?v=' . rawurlencode($ver)),
+			'css' => array('/content/general_pages/epc_auto_price_engine_css.php?v=' . rawurlencode($ver . 'disc1')),
 			'js' => array(
-				'/content/general_pages/epc_auto_price_shell_js.php?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/epc_auto_price_discover.js?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/epc_auto_price_imports.js?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/epc_auto_price_product_lines.js?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/epc_auto_price_sources.js?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/epc_auto_price_compare.js?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_auto_price_shell_js.php?v=' . rawurlencode($ver . 'disc1'),
+				'/' . $backend . '/content/control/portal/epc_auto_price_discover.js?v=' . rawurlencode($ver . 'disc1'),
+				'/' . $backend . '/content/control/portal/epc_auto_price_imports.js?v=' . rawurlencode($ver . 'disc1'),
+				'/' . $backend . '/content/control/portal/epc_auto_price_product_lines.js?v=' . rawurlencode($ver . 'disc1'),
+				'/' . $backend . '/content/control/portal/epc_auto_price_sources.js?v=' . rawurlencode($ver . 'disc1'),
+				'/' . $backend . '/content/control/portal/epc_auto_price_compare.js?v=' . rawurlencode($ver . 'disc1'),
 			),
 		),
 		'control/portal/epc_auto_price_guide' => array(
-			'css' => array('/content/general_pages/epc_auto_price_engine_css.php?v=' . rawurlencode($ver)),
+			'css' => array('/content/general_pages/epc_auto_price_engine_css.php?v=' . rawurlencode($ver . 'disc1')),
 		),
 		'control/portal/epc_erp_only_onboard_guide' => array(
 			'css' => array(

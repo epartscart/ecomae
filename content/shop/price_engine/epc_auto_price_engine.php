@@ -3221,15 +3221,16 @@ function epc_disc_persist_source_price_range_meta(array &$meta, array $rangeComp
 function epc_disc_default_discover_view(PDO $pdo, string $siteKey): string
 {
 	$siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($siteKey)));
+	$industry = function_exists('epc_apai_resolve_industry') ? epc_apai_resolve_industry($pdo, $siteKey) : 'general_retail';
+	// Auto parts operators care first about catalogue vs live market — not empty arbitrage gaps.
+	if ($industry === 'auto_parts') {
+		return 'catalogue_match';
+	}
 	if (is_file(__DIR__ . '/epc_apai_marketplace_channels.php')) {
 		require_once __DIR__ . '/epc_apai_marketplace_channels.php';
 		if (function_exists('epc_apai_marketplace_arbitrage_enabled') && epc_apai_marketplace_arbitrage_enabled($pdo, $siteKey)) {
 			return 'marketplace_opportunities';
 		}
-	}
-	$industry = function_exists('epc_apai_resolve_industry') ? epc_apai_resolve_industry($pdo, $siteKey) : 'general_retail';
-	if ($industry === 'auto_parts') {
-		return 'market_confirmed';
 	}
 	if ($industry === 'tax_advisory') {
 		return 'all_suggestions';
@@ -3290,9 +3291,11 @@ function epc_disc_default_discover_filters(PDO $pdo, string $siteKey, array $raw
 		if ($curCount === 0) {
 			$fallbackOrder = array();
 			if ($view === 'marketplace_opportunities') {
-				$fallbackOrder = array('all_suggestions', 'market_confirmed');
+				$fallbackOrder = array('catalogue_match', 'all_suggestions', 'market_confirmed');
 			} elseif ($view === 'market_confirmed') {
-				$fallbackOrder = array('all_suggestions');
+				$fallbackOrder = array('catalogue_match', 'all_suggestions');
+			} elseif ($view === 'catalogue_match') {
+				$fallbackOrder = array('all_suggestions', 'market_confirmed', 'marketplace_opportunities');
 			}
 			foreach ($fallbackOrder as $fbView) {
 				$fbProbe = array_merge($filters, array('view' => $fbView, 'limit' => 1));
