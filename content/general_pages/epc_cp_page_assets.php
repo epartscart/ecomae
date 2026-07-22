@@ -298,10 +298,10 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'shop/parts_agent_chats' => array(
-			'css' => array('/content/general_pages/epc_agent_cp_css.php?v=' . rawurlencode($ver . 'cpFull2')),
+			'css' => array('/content/general_pages/epc_agent_cp_css.php?v=' . rawurlencode($ver . 'pacFix3')),
 			'js' => array(
-				'/content/shop/parts_agent/parts_agent_chats_config.php?v=' . rawurlencode($ver . 'cpFull2'),
-				'/content/general_pages/epc_agent_cp_js.php?v=' . rawurlencode($ver . 'cpFull2'),
+				'/content/shop/parts_agent/parts_agent_chats_config.php?v=' . rawurlencode($ver . 'pacFix3'),
+				'/content/general_pages/epc_agent_cp_js.php?v=' . rawurlencode($ver . 'pacFix3'),
 			),
 		),
 		'shop/accessories' => array(
