@@ -4,7 +4,7 @@
 (function () {
 	'use strict';
 	var cfg = window.EPC_LC || {};
-	var url = cfg.url || '';
+	var url = cfg.url || cfg.ajaxUrl || '';
 	var csrf = cfg.csrf || '';
 
 	function msg(ok, text) {
@@ -24,15 +24,20 @@
 				fd.append(k, extra[k]);
 			});
 		}
-		var endpoint = url || (cfg.pageUrl || '');
+		var endpoint = url;
+		if (!endpoint) {
+			return Promise.reject(new Error('Missing carriers AJAX URL'));
+		}
 		return fetch(endpoint, { method: 'POST', body: fd, credentials: 'same-origin' })
 			.then(function (r) {
 				return r.text().then(function (text) {
+					var data;
 					try {
-						return JSON.parse(text);
+						data = JSON.parse(text);
 					} catch (e) {
-						throw new Error(r.status + ' non-JSON response');
+						throw new Error('Bad response (' + r.status + ')');
 					}
+					return data;
 				});
 			});
 	}
@@ -48,7 +53,10 @@
 		});
 	}
 
-	document.addEventListener('DOMContentLoaded', function () {
+	function bind() {
+		if (window.__epcLcBound) return;
+		window.__epcLcBound = true;
+
 		document.querySelectorAll('.epc-lc-filter').forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				applyRegionFilter(btn.getAttribute('data-region') || 'all');
@@ -63,8 +71,8 @@
 					msg(!!j.status, j.message || '');
 					if (j.status) setTimeout(function () { location.reload(); }, 700);
 					else seedBtn.disabled = false;
-				}).catch(function () {
-					msg(false, 'Network error');
+				}).catch(function (err) {
+					msg(false, (err && err.message) || 'Network error');
 					seedBtn.disabled = false;
 				});
 			});
@@ -78,8 +86,8 @@
 					msg(!!j.status, j.message || '');
 					if (j.status) setTimeout(function () { location.reload(); }, 700);
 					else sampleBtn.disabled = false;
-				}).catch(function () {
-					msg(false, 'Network error');
+				}).catch(function (err) {
+					msg(false, (err && err.message) || 'Network error');
 					sampleBtn.disabled = false;
 				});
 			});
@@ -95,10 +103,16 @@
 					if (j.status) setTimeout(function () { location.reload(); }, 500);
 					else btn.disabled = false;
 				}).catch(function (err) {
-					msg(false, (err && err.message) ? err.message : 'Network error');
+					msg(false, (err && err.message) || 'Network error');
 					btn.disabled = false;
 				});
 			});
 		});
-	});
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', bind);
+	} else {
+		bind();
+	}
 })();

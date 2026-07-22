@@ -238,12 +238,17 @@ echo '<div class="col-lg-12 epc-lc-hub">';
 	</section>
 </div>
 <script>
-window.EPC_LC = <?php echo json_encode(array(
-	'url' => '/' . trim((string)$DP_Config->backend_dir, '/') . '/content/shop/logistics/ajax_logistics.php',
-	'pageUrl' => $carriersUrl,
-	'csrf' => $csrf,
-), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+window.EPC_LC = <?php
+	$epcLcBackend = isset($GLOBALS['DP_Config']->backend_dir) ? trim((string)$GLOBALS['DP_Config']->backend_dir, '/') : 'cp';
+	echo json_encode(array(
+		// Prefer CMS page POST (admin session already established in CP shell).
+		'url' => $carriersUrl,
+		'ajaxUrl' => '/' . $epcLcBackend . '/content/shop/logistics/ajax_logistics.php',
+		'csrf' => $csrf,
+	), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+?>;
 </script>
+<script src="/<?php echo htmlspecialchars($epcLcBackend, ENT_QUOTES, 'UTF-8'); ?>/content/shop/logistics/logistics_carriers.js?v=<?php echo (int)(@filemtime(__DIR__ . '/logistics_carriers.js') ?: time()); ?>"></script>
 </div>
 <?php
 ?>

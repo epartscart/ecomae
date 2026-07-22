@@ -280,11 +280,11 @@ function epc_cp_page_asset_url_map(): array
 		),
 		'shop/logistics/carriers' => array(
 			'css' => array(
-				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver . 'lc2'),
-				'/content/general_pages/epc_logistics_carriers.css?v=' . rawurlencode($ver . 'lc2'),
+				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver . 'lc3'),
+				'/content/general_pages/epc_logistics_carriers.css?v=' . rawurlencode($ver . 'lc3'),
 			),
 			'js' => array(
-				'/' . $backend . '/content/shop/logistics/logistics_carriers.js?v=' . rawurlencode($ver . 'lc2'),
+				'/' . $backend . '/content/shop/logistics/logistics_carriers.js?v=' . rawurlencode($ver . 'lc3'),
 			),
 		),
 		'shop/logistics/storages' => array(
