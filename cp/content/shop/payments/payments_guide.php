@@ -38,9 +38,18 @@ if (!$host) {
 			<ol>
 				<li>Open <a href="<?php echo epc_payment_h($paymentsUrl); ?>">Payment gateways</a> → <em>Seed / refresh gateways</em>.</li>
 				<li>Set a default (e.g. Stripe or Telr) and keep Crypto / JazzCash / Tabby enabled for the customer picker.</li>
-				<li>On the storefront order page, choose <em>Pay with</em> → Card / BNPL / JazzCash / Crypto.</li>
+				<li><strong>Individual accounts:</strong> open <a href="<?php echo epc_payment_h($paymentsUrl . '?tab=accounts'); ?>">Individual accounts</a> and attach merchant keys / connected account ID / payout IBAN to each office or vendor.</li>
+				<li>On the storefront order page, choose <em>Pay with</em> → Card / BNPL / JazzCash / Crypto. Funds are attributed to that order’s office/vendor account.</li>
 				<li>For crypto live: Configure → Crypto (NOWPayments) → paste API key + IPN secret → turn off Demo mode.</li>
 			</ol>
+
+			<h4>Individual accounts (who receives the money)</h4>
+			<ul>
+				<li><strong>Direct</strong> — office/vendor merchant credentials are used for the charge.</li>
+				<li><strong>Connected</strong> — store connected account ID (e.g. Stripe Connect <code>acct_…</code>).</li>
+				<li><strong>Payout</strong> — platform collects; settlement ledger shows net due to IBAN for manual/batch payout.</li>
+				<li>Multi-vendor orders create settlement rows per vendor storage share.</li>
+			</ul>
 
 			<h4>Checkout flow on <?php echo htmlspecialchars($host, ENT_QUOTES, 'UTF-8'); ?></h4>
 			<ol>

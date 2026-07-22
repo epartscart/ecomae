@@ -261,17 +261,53 @@ else
 	}
 }
 
-
-
-
+// Individual payment account (office / vendor) — money attributed to that account
+$epc_payment_account_id = 0;
+$epc_pay_account = null;
+try {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/payments/epc_payment_accounts.php';
+	$orderForAccount = isset($request_object['order_id']) ? (int)$request_object['order_id'] : 0;
+	$epc_pay_account = epc_pay_accounts_resolve_for_order($db_link, $orderForAccount);
+	if (is_array($epc_pay_account)) {
+		$epc_payment_account_id = (int)($epc_pay_account['id'] ?? 0);
+		$accHandler = preg_replace('/[^a-z0-9_]/', '', (string)($epc_pay_account['handler'] ?? ''));
+		// Prefer account's own merchant handler unless customer explicitly picked another enabled gateway
+		if ($accHandler !== '' && empty($request_object['pay_handler'])) {
+			$active_system = $accHandler;
+		}
+		if (($epc_pay_account['owner_type'] ?? '') === 'office' && (int)($epc_pay_account['owner_id'] ?? 0) > 0 && (int)$office_id === 0) {
+			$office_id = (int)$epc_pay_account['owner_id'];
+		}
+	}
+} catch (Throwable $e) {
+	$epc_payment_account_id = 0;
+}
 
 $create_result = $db_link->prepare('INSERT INTO `shop_users_accounting` (`user_id`, `time`, `income`, `amount`, `operation_code`, `active`, `pay_orders`, `office_id`) VALUES (?, ?, ?, ?, (SELECT `id` FROM `shop_accounting_codes` WHERE `key` = ? LIMIT 1) , ?, ?, ?);');
 if( $create_result->execute( array($user_id, time(), 1, $amount, $operation_key, 0, $pay_order, $office_id) ) == true)
 {
+	$newOpId = (int)$db_link->lastInsertId();
+	if ($epc_payment_account_id > 0) {
+		try {
+			$db_link->prepare('UPDATE `shop_users_accounting` SET `epc_payment_account_id` = ? WHERE `id` = ?')
+				->execute(array($epc_payment_account_id, $newOpId));
+		} catch (Throwable $e) {
+		}
+	}
 	$answer = array();
 	$answer["result"] = true;
-	$answer["operation"] = $db_link->lastInsertId();
+	$answer["operation"] = $newOpId;
 	$answer["pay_system"] = $active_system;
+	$answer["payment_account_id"] = $epc_payment_account_id;
+	if (is_array($epc_pay_account)) {
+		$answer["payment_account"] = array(
+			'id' => $epc_payment_account_id,
+			'title' => (string)($epc_pay_account['title'] ?? ''),
+			'owner_type' => (string)($epc_pay_account['owner_type'] ?? ''),
+			'owner_id' => (int)($epc_pay_account['owner_id'] ?? 0),
+			'handler' => (string)($epc_pay_account['handler'] ?? ''),
+		);
+	}
 	exit(json_encode($answer));
 }
 else

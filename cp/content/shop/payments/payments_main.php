@@ -46,9 +46,10 @@ epc_cp_page_frame_open(array(
 	'hero' => array(
 		'badge' => 'Payments',
 		'title' => 'Payment gateways',
-		'sub' => 'GCC, Pakistan, cards, BNPL, wallets, and cryptocurrency — enable methods customers can pick at checkout.',
+		'sub' => 'Platform gateways plus individual office/vendor accounts so each seller can receive payment.',
 		'actions' => array(
-			array('label' => 'Configure', 'url' => $paymentsUrl . '?tab=configure', 'icon' => 'fa-cog', 'primary' => true),
+			array('label' => 'Individual accounts', 'url' => $paymentsUrl . '?tab=accounts', 'icon' => 'fa-users', 'primary' => true),
+			array('label' => 'Configure', 'url' => $paymentsUrl . '?tab=configure', 'icon' => 'fa-cog'),
 			array('label' => 'Guide', 'url' => $guideUrl, 'icon' => 'fa-book'),
 		),
 	),
@@ -85,6 +86,7 @@ epc_cp_page_frame_open(array(
 
 	<div class="epc-pay-tabs">
 		<a class="<?php echo $tab === 'dashboard' ? 'active' : ''; ?>" href="<?php echo epc_payment_h($paymentsUrl . '?tab=dashboard'); ?>">Dashboard</a>
+		<a class="<?php echo $tab === 'accounts' ? 'active' : ''; ?>" href="<?php echo epc_payment_h($paymentsUrl . '?tab=accounts'); ?>">Individual accounts</a>
 		<a class="<?php echo $tab === 'configure' ? 'active' : ''; ?>" href="<?php echo epc_payment_h($paymentsUrl . '?tab=configure'); ?>">Configure</a>
 		<a class="<?php echo $tab === 'legacy' ? 'active' : ''; ?>" href="<?php echo epc_payment_h($paymentsUrl . '?tab=legacy'); ?>">Legacy (CIS)</a>
 	</div>
@@ -164,6 +166,10 @@ epc_cp_page_frame_open(array(
 	</div>
 	<?php endif; ?>
 
+	<?php if ($tab === 'accounts'): ?>
+	<?php require __DIR__ . '/payments_accounts.php'; ?>
+	<?php endif; ?>
+
 	<?php if ($tab === 'configure'): ?>
 	<?php require __DIR__ . '/payments_configure.php'; ?>
 	<?php endif; ?>
@@ -188,6 +194,7 @@ epc_cp_page_frame_open(array(
 		el.style.display = 'block';
 		if (j.status) setTimeout(function(){ location.reload(); }, 700);
 	}
+	window.epcPayPost = function(action, extra){ return post(action, extra).then(msg); };
 	var seed = document.getElementById('epc_btn_seed');
 	if (seed) seed.addEventListener('click', function(){ post('seed_dummy', {}).then(msg); });
 	var actStripe = document.getElementById('epc_btn_activate_stripe');
