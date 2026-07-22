@@ -975,7 +975,10 @@ function multilang_init()
 		$multilang_params['lang'] = $lang_record['lang_code'];//Рабочий язык
 	}
 	
-	// Принудительный язык витрины (как backend_ui_lang для ПУ): только для фронта, см. config frontend_ui_lang
+	// Default storefront language (frontend_ui_lang): only when URL has no explicit
+	// active language. Forcing EN on /ar/... breaks the language switcher (cookie
+	// flipped back to EN; native select stays English). Bare "/" already redirects
+	// to /{frontend_ui_lang}/ in index.php.
 	if( isset($DP_Config->frontend_ui_lang) && $DP_Config->frontend_ui_lang !== null && $DP_Config->frontend_ui_lang !== '' )
 	{
 		$forced_front = trim( (string) $DP_Config->frontend_ui_lang );
@@ -1010,7 +1013,8 @@ function multilang_init()
 			{
 				$is_front_mode_here = $isFrontMode;
 			}
-			if( $is_front_mode_here )
+			$url_has_explicit_lang = !empty($multilang_params['is_lang_url_exists']);
+			if( $is_front_mode_here && !$url_has_explicit_lang )
 			{
 				$multilang_params['lang'] = $forced_front;
 				setcookie("lang", $forced_front, time()+9999999, "/", '',false);
