@@ -314,12 +314,14 @@ try
 			} catch (Exception $e) {
 			}
 		}
-		if (!function_exists('epc_pricing_line_has_positive_margin')
-			|| !epc_pricing_line_has_positive_margin($price, $epc_line_purchase)) {
+		if (!function_exists('epc_pricing_offer_allows_cart')
+			|| !epc_pricing_offer_allows_cart($price, $epc_line_purchase, (float) ($cart_record['t2_markup'] ?? 0))) {
 			$result = array();
 			$result['status'] = false;
 			$result['code'] = 'no_margin';
-			$result['message'] = 'Order blocked: every line must include a positive margin. Guest/retail use 40% markup; B2B prices follow the approved customer profile. Remove zero-margin items and try again.';
+			$result['message'] = function_exists('epc_pricing_customer_safe_no_margin_message')
+				? epc_pricing_customer_safe_no_margin_message('checkout')
+				: 'Unable to place this order right now. Please refresh and try again.';
 			exit(json_encode($result));
 		}
 		

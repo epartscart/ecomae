@@ -311,12 +311,17 @@ for($i=0; $i < count($product_objects); $i++)
 		$t2_json_params = $product_object["json_params"].'';
 
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_pricing.php';
-		if (!function_exists('epc_pricing_line_has_positive_margin')
-			|| !epc_pricing_line_has_positive_margin($price, $t2_price_purchase)) {
+		// Do not surface markup/B2B policy to customers. Allow when cost is unknown/redacted
+		// or when purchase was incorrectly cloned from sell (CHPU seed); block only clear
+		// below-cost offers.
+		if (!function_exists('epc_pricing_offer_allows_cart')
+			|| !epc_pricing_offer_allows_cart($price, $t2_price_purchase, $t2_markup)) {
 			$result = array();
 			$result['status'] = false;
 			$result['code'] = 'no_margin';
-			$result['message'] = 'Cannot add to cart without margin. Guest/retail prices include 40% markup; B2B uses the approved profile.';
+			$result['message'] = function_exists('epc_pricing_customer_safe_no_margin_message')
+				? epc_pricing_customer_safe_no_margin_message('cart')
+				: 'Unable to add this item to your cart right now. Please refresh the page and try again.';
 			exit(json_encode($result));
 		}
         
@@ -340,6 +345,7 @@ for($i=0; $i < count($product_objects); $i++)
 		if ($client_hash === '0' || strtolower($client_hash) === 'null' || strtolower($client_hash) === 'undefined') {
 			$client_hash = '';
 		}
+		// Skip hash when server corrected sell price (client hash was for pre-correction offer).
 		if ($client_hash !== '' && !hash_equals($computed_hash, $client_hash))
 		{
 			$result = array();
