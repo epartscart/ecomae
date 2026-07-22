@@ -348,6 +348,20 @@ if (!function_exists('epc_boc_nav')) {
                 unset($out[$gid]);
             }
         }
+        // Super CP only: segregate platform fleet vs active-tenant CP modules.
+        if (is_file(__DIR__ . '/epc_boc_tenant_scope.php')) {
+            require_once __DIR__ . '/epc_boc_tenant_scope.php';
+            $isSuper = function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host();
+            if ($isSuper) {
+                if (function_exists('epc_boc_handle_tenant_switch')) {
+                    global $db_link;
+                    epc_boc_handle_tenant_switch(($db_link instanceof PDO) ? $db_link : null);
+                }
+                if (function_exists('epc_boc_nav_apply_tenant_scope')) {
+                    $out = epc_boc_nav_apply_tenant_scope($out);
+                }
+            }
+        }
         return $out;
     }
 }
