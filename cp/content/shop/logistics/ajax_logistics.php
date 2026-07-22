@@ -90,6 +90,4 @@ try {
 	echo json_encode(array('status' => false, 'message' => $e->getMessage()));
 }
 
-if ($epcAjaxDirect) {
-	exit;
-}
+die();

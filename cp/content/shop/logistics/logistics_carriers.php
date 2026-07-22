@@ -22,8 +22,12 @@ if (!isset($db_link) || !($db_link instanceof PDO)) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
+	if (!headers_sent()) {
+		header('Content-Type: application/json; charset=utf-8');
+	}
 	require __DIR__ . '/ajax_logistics.php';
-	exit;
+	// CMS eval can ignore exit in some embeds — hard-stop after JSON.
+	die();
 }
 
 $epcLcSeedNote = '';
@@ -241,9 +245,10 @@ echo '<div class="col-lg-12 epc-lc-hub">';
 window.EPC_LC = <?php
 	$epcLcBackend = isset($GLOBALS['DP_Config']->backend_dir) ? trim((string)$GLOBALS['DP_Config']->backend_dir, '/') : 'cp';
 	echo json_encode(array(
-		// Prefer CMS page POST (admin session already established in CP shell).
-		'url' => $carriersUrl,
+		// Direct AJAX file (JSON-only). Page URL kept as fallback.
+		'url' => '/' . $epcLcBackend . '/content/shop/logistics/ajax_logistics.php',
 		'ajaxUrl' => '/' . $epcLcBackend . '/content/shop/logistics/ajax_logistics.php',
+		'pageUrl' => $carriersUrl,
 		'csrf' => $csrf,
 	), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 ?>;
