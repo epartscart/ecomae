@@ -235,15 +235,46 @@ try
         //Получаем дополнительные регистрационные поля
         $reg_fields_query = $db_link->prepare('SELECT * FROM `reg_fields` WHERE `main_flag` = 0;');
         $reg_fields_query->execute();
+        $epc_reg_customer_type_early = isset($_POST['epc_customer_type']) ? strtolower(trim((string) $_POST['epc_customer_type'])) : 'retail';
+        $epc_enhanced_active = is_readable($_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_registration_enhanced.php');
         while ($reg_field_record = $reg_fields_query->fetch()) {
             $show_for = json_decode($reg_field_record["show_for"], true);
+            if (!is_array($show_for)) {
+                $show_for = array();
+            }
 
             //Есть ли данное поле в этом Регистрационном Варианте показано
-            if (array_search($_POST["reg_variant"], $show_for) !== false) {
-                if ($db_link->prepare('INSERT INTO `users_profiles` (`user_id`, `data_key`, `data_value`) VALUES (?, ?, ?);')->execute(array($user_id,
-                        $reg_field_record["name"], htmlentities($_POST[$reg_field_record["name"]]))) != true) {
-                    throw new Exception(translate_str_by_id(3913));
+            if (array_search($_POST["reg_variant"], $show_for) === false && array_search((int) $_POST["reg_variant"], $show_for) === false) {
+                continue;
+            }
+
+            $field_name = (string) $reg_field_record["name"];
+            $widget = (string) ($reg_field_record["widget_type"] ?? 'text');
+            $category = (string) ($reg_field_record["field_category"] ?? '');
+
+            // File uploads are stored later via epc_reg_store_kyc_upload (wholesale only).
+            if ($widget === 'file') {
+                continue;
+            }
+
+            // Enhanced registration: compliance / KYC / business "additional information" is wholesale-only.
+            if ($epc_enhanced_active && $epc_reg_customer_type_early !== 'wholesale') {
+                if (in_array($category, array('business', 'einvoice', 'kyc_aml', 'documents', 'identity'), true)
+                    || strpos($field_name, 'epc_') === 0
+                    || $field_name === 'company_name'
+                    || $field_name === 'patronymic'
+                ) {
+                    continue;
                 }
+            }
+
+            $raw_val = isset($_POST[$field_name]) ? (string) $_POST[$field_name] : '';
+            if ($db_link->prepare('INSERT INTO `users_profiles` (`user_id`, `data_key`, `data_value`) VALUES (?, ?, ?);')->execute(array(
+                $user_id,
+                $field_name,
+                htmlentities($raw_val),
+            )) != true) {
+                throw new Exception(translate_str_by_id(3913));
             }
         }
     }

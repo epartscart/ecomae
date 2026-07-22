@@ -272,7 +272,7 @@ function epc_einvoice_save_buyer_profile(PDO $db, array $data): void
 		trim((string)($data['trn'] ?? '')),
 		$tin,
 		trim((string)($data['legal_reg_no'] ?? '')),
-		in_array($data['legal_reg_type'] ?? 'TL', array('TL', 'EID', 'PAS', 'CD'), true) ? $data['legal_reg_type'] : 'TL',
+		in_array(($data['legal_reg_type'] ?? 'TL'), array('TL', 'EID', 'PAS', 'CD'), true) ? (string)($data['legal_reg_type'] ?? 'TL') : 'TL',
 		trim((string)($data['authority_name'] ?? '')),
 		trim((string)($data['address_line1'] ?? '')),
 		trim((string)($data['city'] ?? 'Dubai')),
