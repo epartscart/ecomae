@@ -4,6 +4,138 @@
 */
 defined('_ASTEXE_') or die('No access');
 
+/**
+ * Resolve a menu item's path fragment for hide-list matching (front menu cleanup).
+ */
+function epc_menu_item_path_key(array $item): string
+{
+	global $db_link;
+
+	$href = '';
+	$mode = (string) ($item['link_mode'] ?? '');
+	if ($mode === 'url') {
+		$href = (string) ($item['href'] ?? '');
+	} elseif ($mode === 'content' && !empty($item['content_id']) && isset($db_link) && $db_link instanceof PDO) {
+		try {
+			$stmt = $db_link->prepare('SELECT `url` FROM `content` WHERE `id` = :id LIMIT 1');
+			$stmt->bindValue(':id', (int) $item['content_id'], PDO::PARAM_INT);
+			$stmt->execute();
+			$row = $stmt->fetch(PDO::FETCH_ASSOC);
+			if ($row) {
+				$href = '/' . ltrim((string) $row['url'], '/');
+			}
+		} catch (Throwable $e) {
+			$href = '';
+		}
+	}
+
+	$href = strtolower(trim($href));
+	$href = preg_replace('~^https?://[^/]+~', '', $href);
+	$href = preg_replace('~^/(en|me|ru)/~', '/', $href);
+	return trim($href, '/');
+}
+
+/**
+ * Hide Cart / My orders / Balance / Information / Contacts from the storefront top menu.
+ *
+ * @param list<array<string,mixed>> $items
+ * @return list<array<string,mixed>>
+ */
+function epc_menu_filter_storefront_hidden(array $items): array
+{
+	$pathHide = array(
+		'shop/cart',
+		'shop/orders',
+		'shop/balans',
+		'kontakty',
+		'contacts',
+		'payment',
+		'delivery',
+	);
+	$captionHide = array(
+		'cart',
+		'my orders',
+		'my order',
+		'balance',
+		'information',
+		'contacts',
+		'корзина',
+		'мои заказы',
+		'баланс',
+		'информация',
+		'контакты',
+	);
+
+	$out = array();
+	foreach ($items as $item) {
+		if (!is_array($item)) {
+			continue;
+		}
+
+		$path = epc_menu_item_path_key($item);
+		$captionRaw = (string) ($item['a_innerhtml'] ?? '');
+		$caption = function_exists('translate_str_by_id') ? (string) translate_str_by_id($captionRaw) : $captionRaw;
+		$caption = mb_strtolower(trim(html_entity_decode(strip_tags($caption), ENT_QUOTES, 'UTF-8')));
+
+		$hide = false;
+		if ($caption !== '' && in_array($caption, $captionHide, true)) {
+			$hide = true;
+		}
+		if (!$hide && $path !== '') {
+			foreach ($pathHide as $needle) {
+				if ($path === $needle || strpos($path, $needle . '/') === 0 || substr($path, -strlen($needle)) === $needle) {
+					// Keep Product / Selection catalogs etc.; only exact path matches for payment/delivery as leaf URLs.
+					if (in_array($needle, array('payment', 'delivery'), true)) {
+						if ($path === $needle || preg_match('~(^|/)' . preg_quote($needle, '~') . '(/|$)~', $path)) {
+							$hide = true;
+							break;
+						}
+					} else {
+						$hide = true;
+						break;
+					}
+				}
+			}
+		}
+
+		// Information dropdown: parent with payment/delivery children (or empty/# href + Information caption).
+		if (!$hide && !empty($item['$count']) && !empty($item['data']) && is_array($item['data'])) {
+			$childPaths = array();
+			foreach ($item['data'] as $child) {
+				if (is_array($child)) {
+					$childPaths[] = epc_menu_item_path_key($child);
+				}
+			}
+			$hasPayment = false;
+			$hasDelivery = false;
+			foreach ($childPaths as $cp) {
+				if ($cp === 'payment' || strpos($cp, 'payment') !== false) {
+					$hasPayment = true;
+				}
+				if ($cp === 'delivery' || strpos($cp, 'delivery') !== false) {
+					$hasDelivery = true;
+				}
+			}
+			if ($hasPayment || $hasDelivery) {
+				$hide = true;
+			}
+		}
+
+		if ($hide) {
+			continue;
+		}
+
+		if (!empty($item['data']) && is_array($item['data'])) {
+			$item['data'] = epc_menu_filter_storefront_hidden($item['data']);
+			$item['$count'] = count($item['data']);
+		}
+
+		$out[] = $item;
+	}
+
+	return $out;
+}
+
 
 //Рекурсивный метод получения HTML-кода пунктов меню
 /*

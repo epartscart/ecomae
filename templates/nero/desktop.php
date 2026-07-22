@@ -610,6 +610,16 @@ if(!empty($DP_Template->data_value->message_header)){
 	</div>
 <?php } else { ?>
     <div class="top-menu-line" style="background: <?=$DP_Template->data_value->top_menu_color;?>;">
+		<style>
+		/* Hide clutter from top menu (Cart / Orders / Balance / Information / Contacts) */
+		.top-menu-line .top-menu-ul > li:has(> a[href*="/shop/cart"]),
+		.top-menu-line .top-menu-ul > li:has(> a[href*="/shop/orders"]),
+		.top-menu-line .top-menu-ul > li:has(> a[href*="/shop/balans"]),
+		.top-menu-line .top-menu-ul > li:has(> a[href*="/kontakty"]),
+		.top-menu-line .top-menu-ul > li:has(> a[href*="/contacts"]),
+		.top-menu-line .top-menu-ul > li.have_child:has(a[href*="/payment"]),
+		.top-menu-line .top-menu-ul > li.have_child:has(a[href*="/delivery"]){display:none!important}
+		</style>
 		<div class="container">
 			<table>
 				<tr>
@@ -1145,9 +1155,8 @@ if(!empty($DP_Template->data_value->message_header)){
 				<?php if (!function_exists('epc_portal_storefront_enabled') || epc_portal_storefront_enabled()): ?>
 				<a class="mobile-box-erp-login" href="<?php
 					$epc_gl = isset($multilang_params['lang_href']) ? rtrim((string)$multilang_params['lang_href'], '/') : '/en';
-					$epc_gl_staff = class_exists('DP_User') && (DP_User::isAdmin() || DP_User::isBackendGroup());
-					echo htmlspecialchars($epc_gl_staff ? ($epc_gl . '/garage/manager') : ($epc_gl . '/garage/login'), ENT_QUOTES, 'UTF-8');
-				?>"><i class="fa fa-wrench" aria-hidden="true"></i> <?php echo $epc_gl_staff ? 'Garage Manager' : 'Garage login'; ?></a>
+					echo htmlspecialchars($epc_gl . '/garage/login', ENT_QUOTES, 'UTF-8');
+				?>"><i class="fa fa-wrench" aria-hidden="true"></i> Garage Manager</a>
 				<a class="mobile-box-erp-login" href="<?php echo function_exists('epc_portal_erp_url') ? epc_portal_erp_url((string) $multilang_params['lang_href']) : ($multilang_params['lang_href'] . '/erp'); ?>"><i class="fa fa-line-chart" aria-hidden="true"></i> <?php echo htmlspecialchars(translate_str_by_key('epc_menu_erp_login') ?: 'ERP Login', ENT_QUOTES, 'UTF-8'); ?></a>
 				<?php endif; ?>
 				<select id="epc_currency_select_mobile" class="epc-mobile-currency-select" aria-label="Display currency" <?php if ($epc_currency_locked_for_user) { ?>disabled="disabled"<?php } ?>>

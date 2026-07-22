@@ -31,6 +31,21 @@ $menu_record = $stmt->fetch(PDO::FETCH_ASSOC);//Запись меню
 if($menu_record != false)
 {
     $menu_structure = json_decode($menu_record["structure"], true);//Получаем описание меню
+    if (!is_array($menu_structure)) {
+        $menu_structure = array();
+    }
+
+    // Storefront top menu: hide Cart / My orders / Balance / Information / Contacts
+    if (!empty($isFrontMode) && function_exists('epc_menu_filter_storefront_hidden')) {
+        $menu_ul_class = (string) ($menu_record["menu_ul_class"] ?? '');
+        $module_name = (string) ($module_record["name"] ?? '');
+        $is_top_menu = (stripos($menu_ul_class, 'top-menu') !== false)
+            || ($module_name === 'top_menu')
+            || ((int) $menu_id === 1);
+        if ($is_top_menu) {
+            $menu_structure = epc_menu_filter_storefront_hidden($menu_structure);
+        }
+    }
     
     $class_ul = "";
     if($menu_record["menu_ul_class"] != "")

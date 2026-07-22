@@ -1,6 +1,7 @@
 <?php
 /**
- * Storefront header auth — Vendor + Customer + Garage staff login.
+ * Storefront header auth — Vendor + Customer.
+ * Garage Manager lives in epc_garage_header_link.php (single button → login first).
  */
 defined('_ASTEXE_') or die('No access');
 
@@ -45,26 +46,9 @@ function epc_storefront_auth_garage_manager_url(array $multilang_params = null):
 
 function epc_storefront_auth_links_html(array $multilang_params = null, string $wrapper_class = 'epc-auth-header-links'): string
 {
-	$garageLogin = htmlspecialchars(epc_storefront_auth_garage_login_url($multilang_params), ENT_QUOTES, 'UTF-8');
-	$garageManager = htmlspecialchars(epc_storefront_auth_garage_manager_url($multilang_params), ENT_QUOTES, 'UTF-8');
-
-	$staffGarage = '';
-	if (class_exists('DP_User') && (DP_User::isAdmin() || DP_User::isBackendGroup())) {
-		$staffGarage = '<span class="epc-auth-header-links__group epc-auth-header-links__group--garage">'
-			. '<i class="fa fa-wrench epc-auth-header-links__icon" aria-hidden="true"></i> '
-			. '<a class="epc-auth-header-links__garage" href="' . $garageManager . '" title="Garage Manager System">Garage Manager</a>'
-			. '</span>';
-	}
-
-	$garageGuest = '<span class="epc-auth-header-links__group epc-auth-header-links__group--garage">'
-		. '<i class="fa fa-wrench epc-auth-header-links__icon" aria-hidden="true"></i> '
-		. '<a class="epc-auth-header-links__garage" href="' . $garageLogin . '" title="Garage Management System login">Garage login</a>'
-		. '</span>';
-	$garageBlock = $staffGarage !== '' ? $staffGarage : $garageGuest;
-
 	if (class_exists('DP_User') && (int) DP_User::getUserId() > 0) {
-		// Logged-in customer: keep Garage login/Manager visible in the header.
-		return '<span class="' . htmlspecialchars($wrapper_class, ENT_QUOTES, 'UTF-8') . '">' . $garageBlock . '</span>';
+		// Logged-in customer: Garage Manager is the dedicated header button only.
+		return '';
 	}
 
 	$vendorLogin = htmlspecialchars(epc_storefront_auth_vendor_url($multilang_params), ENT_QUOTES, 'UTF-8');
@@ -73,8 +57,6 @@ function epc_storefront_auth_links_html(array $multilang_params = null, string $
 	$signup = htmlspecialchars(epc_storefront_auth_signup_url($multilang_params), ENT_QUOTES, 'UTF-8');
 
 	return '<span class="' . htmlspecialchars($wrapper_class, ENT_QUOTES, 'UTF-8') . '">'
-		. $garageBlock
-		. '<span class="epc-auth-header-links__sep" aria-hidden="true">|</span>'
 		. '<span class="epc-auth-header-links__group epc-auth-header-links__group--vendor">'
 		. '<i class="fa fa-briefcase epc-auth-header-links__icon" aria-hidden="true"></i> '
 		. '<a class="epc-auth-header-links__vendor-login" href="' . $vendorLogin . '" title="Vendor portal login">Vendor login</a>'

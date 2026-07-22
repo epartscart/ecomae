@@ -17,7 +17,12 @@ $bookUrl = $lang . '/auto-workshop';
 $myGarage = $lang . '/garazh';
 
 $isStaff = epc_ws_staff_ok();
+// After staff login, continue into Garage Manager. Guests stay on this gate.
 if ($isStaff && empty($_GET['stay'])) {
+	if (!headers_sent()) {
+		header('Location: ' . $managerUrl, true, 302);
+		exit;
+	}
 	echo '<script>location=' . json_encode($managerUrl) . ';</script>';
 	return;
 }
