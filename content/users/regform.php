@@ -57,21 +57,34 @@ else//Пользователь не авторизован - ВЫВОД СТРА
     <form action="<?php echo $multilang_params['lang_href']; ?>/users/register" id="regform" onsubmit="return onSubmitCheck();" method="post" enctype="multipart/form-data">
 		<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
         <!--Блок для выбора Регистрационного Варианта-->
-        <div id="RegVariantsSelector">
+        <div id="RegVariantsSelector"<?php echo !empty($epc_reg_enhanced_ok) ? ' style="display:none;" data-epc-simple-reg="1"' : ''; ?>>
     		<?php
-            //Выводим в JavaScript Регистрационные Варианты:
+            // Enhanced signup: one simple form for all customers — hide CMS variant UI,
+            // default to Individual (id=1) when present; documents stay in CP after onboard.
             $reg_variants_query = $db_link->prepare('SELECT COUNT(*) FROM `reg_variants` ORDER BY `order` ASC;');
 			$reg_variants_query->execute();
-            if( $reg_variants_query->fetchColumn() == 1)
+            if( $reg_variants_query->fetchColumn() == 1 || !empty($epc_reg_enhanced_ok) )
             {
 				$reg_variants_query = $db_link->prepare('SELECT * FROM `reg_variants` ORDER BY `order` ASC;');
 				$reg_variants_query->execute();
-                $reg_variant_record = $reg_variants_query->fetch();
+                $reg_variant_records = $reg_variants_query->fetchAll();
+                $epc_default_variant = null;
+                foreach ($reg_variant_records as $rv) {
+                    if ((int)$rv['id'] === 1) {
+                        $epc_default_variant = $rv;
+                        break;
+                    }
+                }
+                if ($epc_default_variant === null && !empty($reg_variant_records[0])) {
+                    $epc_default_variant = $reg_variant_records[0];
+                }
+                if ($epc_default_variant !== null) {
                 ?>
                 <select id="reg_variant_selector" name="reg_variant" style="display:none" onchange="regenerateFields();">
-                    <option value="<?php echo $reg_variant_record["id"]; ?>"><?php echo $reg_variant_record["caption"]; ?></option>
+                    <option value="<?php echo (int)$epc_default_variant["id"]; ?>" selected="selected"><?php echo htmlspecialchars((string)$epc_default_variant["caption"], ENT_QUOTES, 'UTF-8'); ?></option>
                 </select>
                 <?php
+                }
             }
             else
             {
