@@ -21,10 +21,13 @@ function epc_cp_page_asset_url_map(): array
 			'css' => array('/content/general_pages/epc_cp_guideline_css.php?v=' . rawurlencode($ver)),
 		),
 		'control/portal/industry_settings' => array(
-			'css' => array('/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver)),
+			'css' => array(
+				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_industry_settings_css.php?v=' . rawurlencode($ver . 'inds3'),
+			),
 			'js' => array(
-				'/' . $backend . '/content/control/portal/industry_settings_config.php?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/control/portal/industry_settings.js?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/control/portal/industry_settings_config.php?v=' . rawurlencode($ver . 'inds3'),
+				'/' . $backend . '/content/control/portal/industry_settings.js?v=' . rawurlencode($ver . 'inds3'),
 			),
 		),
 		'control/portal/epc_tax_toolkit_manage' => array(
