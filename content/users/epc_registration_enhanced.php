@@ -112,18 +112,31 @@ function epc_reg_render_social_block(array $multilang_params): void
 		var codeWrap=document.getElementById(<?php echo json_encode($uid . '_codewrap'); ?>);
 		var verifyBtn=document.getElementById(<?php echo json_encode($uid . '_verify'); ?>);
 		function showMsg(t,ok){if(msg){msg.textContent=t;msg.className='epc-cp-auth-msg'+(ok?' is-ok':' is-err');}}
+		function parseJsonResponse(r){
+			return r.text().then(function(t){
+				var d=null;
+				try{d=t?JSON.parse(t):null;}catch(e){d=null;}
+				if(!d||typeof d!=='object'){
+					var hint=(r.status===403)?'Sign-in service blocked — please contact support.':'Network error — please retry.';
+					if(r.status&&r.status!==200&&r.status!==400){hint='Request failed ('+r.status+'). Please retry.';}
+					return {ok:false,message:hint};
+				}
+				if(d.ok===undefined&&!r.ok){d.ok=false;if(!d.message)d.message='Request failed ('+r.status+'). Please retry.';}
+				return d;
+			});
+		}
 		document.getElementById(<?php echo json_encode($uid . '_send'); ?>).addEventListener('click',function(){
 			var em=(document.getElementById(<?php echo json_encode($uid . '_email'); ?>)||{}).value||'';
 			showMsg('Sending…',true);
 			fetch(sendUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,tenant_key:tenantKey,context:'storefront',return_url:returnUrl})})
-			.then(function(r){return r.json();}).then(function(d){showMsg(d.message||'',!!d.ok);if(d.ok){codeWrap.style.display='';verifyBtn.style.display='';}}).catch(function(){showMsg('Network error',false);});
+			.then(parseJsonResponse).then(function(d){showMsg(d.message||'',!!d.ok);if(d.ok){codeWrap.style.display='';verifyBtn.style.display='';}}).catch(function(){showMsg('Network error — please retry.',false);});
 		});
 		verifyBtn.addEventListener('click',function(){
 			var em=(document.getElementById(<?php echo json_encode($uid . '_email'); ?>)||{}).value||'';
 			var code=(document.getElementById(<?php echo json_encode($uid . '_code'); ?>)||{}).value||'';
 			showMsg('Verifying…',true);
 			fetch(verifyUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,code:code,tenant_key:tenantKey,context:'storefront',return_url:returnUrl})})
-			.then(function(r){return r.json();}).then(function(d){if(d.ok&&d.redirect){location.href=d.redirect;return;}showMsg(d.message||'Error',!!d.ok);}).catch(function(){showMsg('Network error',false);});
+			.then(parseJsonResponse).then(function(d){if(d.ok&&d.redirect){location.href=d.redirect;return;}showMsg(d.message||'Error',!!d.ok);}).catch(function(){showMsg('Network error — please retry.',false);});
 		});
 	})();
 	</script>

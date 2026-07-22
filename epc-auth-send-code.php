@@ -28,6 +28,7 @@ try {
 	}
 
 	require_once __DIR__ . '/content/general_pages/epc_portal.php';
+	require_once __DIR__ . '/content/general_pages/epc_portal_tenant.php';
 	$platformPdo = epc_portal_platform_pdo();
 	if (!$platformPdo instanceof PDO) {
 		$cfg = epc_auth_bootstrap_config();
