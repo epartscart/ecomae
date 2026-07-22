@@ -9,8 +9,8 @@
  *     'modal_id'    => 'epc_otp_reg',        // unique per page (default: epc_otp_modal)
  *     'context'     => 'storefront',          // 'cp' or 'storefront'
  *     'tenant_key'  => '',
- *     'send_url'    => '/epc-auth-send-code.php',
- *     'verify_url'  => '/epc-auth-verify-code.php',  // or /epc-auth-otp-verify-only.php
+ *     'send_url'    => '/content/general_pages/epc_auth_api_send_code.php',
+ *     'verify_url'  => '/content/general_pages/epc_auth_api_verify_code.php',  // or epc_auth_api_verify_only.php
  *     'return_url'  => '/en/',
  *     'logo_url'    => '/design/logo.png',    // optional
  *     'label'       => 'epartscart',          // brand name shown in sub-heading
@@ -84,8 +84,12 @@ function epc_otp_modal_render(array $cfg = []): string
 	$id         = preg_replace('/[^a-z0-9_]/', '_', strtolower((string) ($cfg['modal_id'] ?? 'epc_otp_modal')));
 	$context    = (string) ($cfg['context'] ?? 'storefront');
 	$tenantKey  = (string) ($cfg['tenant_key'] ?? '');
-	$sendUrl    = (string) ($cfg['send_url'] ?? '/epc-auth-send-code.php');
-	$verifyUrl  = (string) ($cfg['verify_url'] ?? '/epc-auth-verify-code.php');
+	$sendUrl    = (string) ($cfg['send_url'] ?? '/content/general_pages/epc_auth_api_send_code.php');
+	$verifyUrl  = (string) ($cfg['verify_url'] ?? (
+		!empty($cfg['verify_only'])
+			? '/content/general_pages/epc_auth_api_verify_only.php'
+			: '/content/general_pages/epc_auth_api_verify_code.php'
+	));
 	$returnUrl  = (string) ($cfg['return_url'] ?? '');
 	$logoUrl    = (string) ($cfg['logo_url'] ?? '');
 	$label      = (string) ($cfg['label'] ?? 'epartscart');
@@ -223,6 +227,20 @@ function startResendTimer(secs){
   tick();
 }
 
+function parseJsonResponse(r){
+  return r.text().then(function(t){
+    var d=null;
+    try{d=t?JSON.parse(t):null;}catch(e){d=null;}
+    if(!d||typeof d!=='object'){
+      var hint=(r.status===403)?'Verification service blocked — please contact support.':'Network error — please retry.';
+      if(r.status&&r.status!==200&&r.status!==400){hint='Request failed ('+r.status+'). Please retry.';}
+      return {ok:false,message:hint};
+    }
+    if(d.ok===undefined&&!r.ok){d.ok=false;if(!d.message)d.message='Request failed ('+r.status+'). Please retry.';}
+    return d;
+  });
+}
+
 // ── Send OTP ──
 function doSend(email,isResend){
   currentEmail=email||currentEmail;
@@ -233,7 +251,7 @@ function doSend(email,isResend){
   var body={email:currentEmail,tenant_key:TENANT,context:CTX};
   if(RETURN_URL)body.return_url=RETURN_URL;
   fetch(SEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-  .then(function(r){return r.json();})
+  .then(parseJsonResponse)
   .then(function(d){
     showMsg(d.message||'',!!d.ok);
     if(d.ok){startResendTimer(60);}
@@ -251,7 +269,7 @@ function doVerify(){
   var body={email:currentEmail,code:code,tenant_key:TENANT,context:CTX};
   if(RETURN_URL)body.return_url=RETURN_URL;
   fetch(VERIFY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-  .then(function(r){return r.json();})
+  .then(parseJsonResponse)
   .then(function(d){
     if(btn){btn.textContent='Continue';btn.disabled=false;}
     if(d.ok){

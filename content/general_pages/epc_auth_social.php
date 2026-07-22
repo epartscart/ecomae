@@ -240,8 +240,8 @@ function epc_cp_login_modern_auth_html(array $ui): string
 	}
 
 	$tenantKey  = (string) ($ui['tenant_key'] ?? '');
-	$sendUrl    = (string) ($ui['send_code_url'] ?? '/epc-auth-send-code.php');
-	$verifyUrl  = (string) ($ui['verify_code_url'] ?? '/epc-auth-verify-code.php');
+	$sendUrl    = (string) ($ui['send_code_url'] ?? '/content/general_pages/epc_auth_api_send_code.php');
+	$verifyUrl  = (string) ($ui['verify_code_url'] ?? '/content/general_pages/epc_auth_api_verify_code.php');
 	$providers  = epc_auth_social_providers();
 	$google     = $providers['google'] ?? array();
 	$googleConfigured = !empty($google['enabled']);

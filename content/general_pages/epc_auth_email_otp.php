@@ -181,6 +181,60 @@ function epc_auth_otp_verify(PDO $platformPdo, string $email, string $code, arra
 }
 
 /**
+ * Verify OTP for registration only — no login session / user provisioning.
+ *
+ * @param array<string,mixed> $context
+ * @return array{ok:bool,message:string,verified_email?:string}
+ */
+function epc_auth_otp_verify_email_only(PDO $platformPdo, string $email, string $code, array $context = array()): array
+{
+	$email = strtolower(trim($email));
+	$code = preg_replace('/\D/', '', trim($code));
+	if ($email === '' || strlen($code) !== 6) {
+		return array('ok' => false, 'message' => 'Email and 6-digit code are required');
+	}
+	if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+		return array('ok' => false, 'message' => 'Invalid email address');
+	}
+	if (!epc_auth_require_https()) {
+		return array('ok' => false, 'message' => 'HTTPS is required');
+	}
+
+	epc_auth_otp_ensure_schema($platformPdo);
+	$hash = hash('sha256', $code . '|' . epc_auth_signing_secret());
+	$tenantKey = preg_replace(
+		'/[^a-z0-9_]/',
+		'',
+		strtolower((string) ($context['tenant_key'] ?? $context['site_key'] ?? ''))
+	);
+
+	$st = $platformPdo->prepare(
+		'SELECT `id` FROM `epc_auth_otp_requests`
+		 WHERE `email` = ? AND `code_hash` = ? AND `tenant_key` = ? AND `expires_at` >= ?
+		 ORDER BY `id` DESC LIMIT 1'
+	);
+	$st->execute(array($email, $hash, $tenantKey, time()));
+	$row = $st->fetch(PDO::FETCH_ASSOC);
+	if (!$row) {
+		return array('ok' => false, 'message' => 'Invalid or expired code — please try again');
+	}
+
+	$platformPdo->prepare('DELETE FROM `epc_auth_otp_requests` WHERE `id` = ?')->execute(array((int) $row['id']));
+
+	if (session_status() === PHP_SESSION_NONE) {
+		session_start();
+	}
+	$_SESSION['epc_otp_verified_email'] = $email;
+	$_SESSION['epc_otp_verified_at'] = time();
+
+	return array(
+		'ok' => true,
+		'message' => 'Email verified',
+		'verified_email' => $email,
+	);
+}
+
+/**
  * @return array{ok:bool, message:string, detail:string, transport:string}
  */
 function epc_auth_send_otp_email(string $email, string $code, array $context): array

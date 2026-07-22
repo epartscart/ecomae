@@ -73,14 +73,14 @@ function epc_reg_render_social_block(array $multilang_params): void
 		));
 	}
 
-	$sendUrl = json_encode((string)($ui['send_code_url'] ?? '/epc-auth-send-code.php'));
-	$verifyUrl = json_encode((string)($ui['verify_code_url'] ?? '/epc-auth-verify-code.php'));
+	$sendUrl = json_encode((string)($ui['send_code_url'] ?? '/content/general_pages/epc_auth_api_send_code.php'));
+	$verifyUrl = json_encode((string)($ui['verify_code_url'] ?? '/content/general_pages/epc_auth_api_verify_code.php'));
 	$uid = 'epc_reg_auth';
 	?>
 	<div class="panel panel-default epc-reg-social-panel" style="margin-bottom:14px">
 		<div class="panel-body epc-cp-auth-modern">
 			<p class="epc-reg-auth-title" style="font-size:18px;font-weight:700;color:#111;margin:0 0 4px;text-align:center">Register and join <?php echo epc_reg_h($siteName); ?></p>
-			<p class="help-block" style="margin-top:0;text-align:center">Quick sign-in with email code or social — or complete the form below for retail (instant) or wholesale (manager approval).</p>
+			<p class="help-block" style="margin-top:0;text-align:center">Quick sign-in with email code or social — or complete the form below for retail (instant) or wholesale (subject to approval only).</p>
 			<?php
 			if ($social !== '') {
 				echo $social;
@@ -154,10 +154,10 @@ function epc_reg_render_account_tabs(): void
 	<div class="panel panel-primary epc-reg-account-panel">
 		<div class="panel-heading">Customer type</div>
 		<div class="panel-body">
-			<p class="help-block" style="margin-top:0;">Fields marked <strong>*</strong> are mandatory. <strong>Retail customer</strong> — short form (name, phone, address); approved immediately; no KYC documents. <strong>Wholesale customer</strong> — company details plus <em>Additional information</em> (KYC / AML documents) required; pending until a manager approves trade pricing and currency in the Control Panel.</p>
+			<p class="help-block" style="margin-top:0;">Fields marked <strong>*</strong> are mandatory. <strong>Retail customer</strong> — short form (name, phone, address); approved immediately; no KYC documents. <strong>Wholesale customer</strong> — <em>subject to approval only</em>; company details plus <em>Additional information</em> (KYC / AML documents) required; pending until a manager approves trade pricing and currency in the Control Panel.</p>
 			<ul class="nav nav-tabs epc-reg-type-tabs" role="tablist">
 				<li role="presentation" class="active"><a href="#epc_reg_tab_retail" aria-controls="epc_reg_tab_retail" role="tab" data-toggle="tab" data-epc-type="retail">Retail customer</a></li>
-				<li role="presentation"><a href="#epc_reg_tab_wholesale" aria-controls="epc_reg_tab_wholesale" role="tab" data-toggle="tab" data-epc-type="wholesale">Wholesale customer</a></li>
+				<li role="presentation"><a href="#epc_reg_tab_wholesale" aria-controls="epc_reg_tab_wholesale" role="tab" data-toggle="tab" data-epc-type="wholesale">Wholesale customer <span style="font-weight:600;opacity:.85">(subject to approval only)</span></a></li>
 			</ul>
 			<div class="tab-content epc-reg-type-panes" style="padding-top:14px;">
 				<div role="tabpanel" class="tab-pane active" id="epc_reg_tab_retail">

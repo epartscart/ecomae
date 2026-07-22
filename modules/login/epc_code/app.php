@@ -12,8 +12,8 @@ $ui        = epc_auth_login_context_for_ui('storefront');
 $uid       = 'epc_sf_' . preg_replace('/[^a-z0-9_]/', '_', (string) $login_form_postfix);
 $modalId   = $uid . '_otpm';
 $tenantKey = (string) ($ui['tenant_key'] ?? '');
-$sendUrl   = (string) ($ui['send_code_url'] ?? '/epc-auth-send-code.php');
-$verifyUrl = (string) ($ui['verify_code_url'] ?? '/epc-auth-verify-code.php');
+$sendUrl   = (string) ($ui['send_code_url'] ?? '/content/general_pages/epc_auth_api_send_code.php');
+$verifyUrl = (string) ($ui['verify_code_url'] ?? '/content/general_pages/epc_auth_api_verify_code.php');
 $returnUrl = rtrim((string) ($multilang_params['lang_href'] ?? '/en'), '/') . '/';
 
 // Detect logo for branding in modal
