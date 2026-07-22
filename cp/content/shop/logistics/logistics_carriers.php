@@ -5,7 +5,6 @@
 defined('_ASTEXE_') or die('No access');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/logistics/epc_logistics_helpers.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_frame.php';
 
 if (!isset($db_link) || !($db_link instanceof PDO)) {
 	try {
@@ -27,22 +26,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 	exit;
 }
 
-// Keep account rows in sync with the worldwide catalog.
-epc_logistics_seed_defaults($db_link);
+$epcLcSeedNote = '';
+try {
+	// Keep account rows in sync with the worldwide catalog (idempotent).
+	epc_logistics_seed_defaults($db_link);
+} catch (Throwable $e) {
+	$epcLcSeedNote = 'Partner sync skipped: ' . $e->getMessage();
+}
 
-$dash = epc_logistics_dashboard($db_link);
-$carriers = epc_channel_list_carriers($db_link);
+try {
+	$dash = epc_logistics_dashboard($db_link);
+	$carriers = epc_channel_list_carriers($db_link);
+	$shipments = $db_link->query(
+		'SELECT s.* FROM `epc_carrier_shipments` s ORDER BY s.`id` DESC LIMIT 30'
+	)->fetchAll(PDO::FETCH_ASSOC);
+	$logs = $db_link->query(
+		"SELECT * FROM `epc_channel_sync_log` WHERE `kind` IN ('shipment','seed','carrier') OR `channel_code` = 'logistics' ORDER BY `id` DESC LIMIT 12"
+	)->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+	echo '<div class="alert alert-danger">Logistics data unavailable: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '</div>';
+	return;
+}
+
 $catalog = epc_channel_carriers_catalog();
 $byCode = array();
 foreach ($carriers as $ca) {
 	$byCode[(string)$ca['code']] = $ca;
 }
-$shipments = $db_link->query(
-	'SELECT s.* FROM `epc_carrier_shipments` s ORDER BY s.`id` DESC LIMIT 30'
-)->fetchAll(PDO::FETCH_ASSOC);
-$logs = $db_link->query(
-	"SELECT * FROM `epc_channel_sync_log` WHERE `kind` IN ('shipment','seed','carrier') OR `channel_code` = 'logistics' ORDER BY `id` DESC LIMIT 12"
-)->fetchAll(PDO::FETCH_ASSOC);
 
 extract(epc_logistics_configure_urls());
 $csrf = isset($user_session['csrf_guard_key']) ? (string)$user_session['csrf_guard_key'] : '';
@@ -60,9 +70,15 @@ foreach ($byCode as $ca) {
 	}
 }
 
-epc_cp_page_frame_open(array('class' => 'epc-lc-hub'));
+// Avoid nested BOS shell conflicts — render a self-contained col frame.
+$epcLcCssVer = @filemtime($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_logistics_carriers.css') ?: time();
+echo '<link rel="stylesheet" href="/content/general_pages/epc_logistics_carriers.css?v=' . rawurlencode((string)$epcLcCssVer) . '">';
+echo '<div class="col-lg-12 epc-lc-hub">';
 ?>
 <div class="epc-lc">
+	<?php if ($epcLcSeedNote !== '') { ?>
+		<div class="alert alert-warning"><?php echo epc_logistics_h($epcLcSeedNote); ?></div>
+	<?php } ?>
 	<header class="epc-lc-brandbar">
 		<div class="epc-lc-brandbar__mark" aria-hidden="true"><i class="fa fa-truck"></i></div>
 		<div>
@@ -227,6 +243,6 @@ window.EPC_LC = <?php echo json_encode(array(
 	'csrf' => $csrf,
 ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
 </script>
+</div>
 <?php
-epc_cp_page_frame_close();
 ?>
