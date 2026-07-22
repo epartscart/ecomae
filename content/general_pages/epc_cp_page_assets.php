@@ -232,9 +232,9 @@ function epc_cp_page_asset_url_map(): array
 		'shop/pos/terminal' => array(
 			'css' => array(
 				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver),
-				'/content/shop/pos/epc_pos_css.php?v=' . rawurlencode($ver),
+				'/content/shop/pos/epc_pos_css.php?v=' . rawurlencode($ver . 'posui1'),
 			),
-			'js' => array('/content/shop/pos/epc_pos_terminal_js.php?v=' . rawurlencode($ver)),
+			'js' => array('/content/shop/pos/epc_pos_terminal_js.php?v=' . rawurlencode($ver . 'posui1')),
 		),
 		'shop/orders/items' => array(
 			'css' => array(
