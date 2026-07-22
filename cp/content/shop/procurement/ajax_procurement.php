@@ -38,8 +38,12 @@ try {
 			epc_proc_json(true, 'Supplier profile saved');
 
 		case 'sync_suppliers':
-			$n = epc_erp_sync_suppliers_from_storages($db_link);
-			epc_proc_json(true, 'Linked ' . $n . ' warehouse(s) as suppliers', array('created' => $n));
+			$r = epc_procurement_sync_suppliers_from_warehouses($db_link);
+			epc_proc_json(
+				true,
+				'Warehouses synced: ' . (int)$r['created'] . ' new supplier(s), ' . (int)$r['updated'] . ' name/code refresh(es)',
+				$r
+			);
 
 		case 'create_purchase':
 			$id = epc_erp_create_purchase($db_link, $_POST);

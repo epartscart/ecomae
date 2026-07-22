@@ -3221,15 +3221,16 @@ function epc_disc_persist_source_price_range_meta(array &$meta, array $rangeComp
 function epc_disc_default_discover_view(PDO $pdo, string $siteKey): string
 {
 	$siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($siteKey)));
+	$industry = function_exists('epc_apai_resolve_industry') ? epc_apai_resolve_industry($pdo, $siteKey) : 'general_retail';
+	// Auto parts operators care first about catalogue vs live market — not empty arbitrage gaps.
+	if ($industry === 'auto_parts') {
+		return 'catalogue_match';
+	}
 	if (is_file(__DIR__ . '/epc_apai_marketplace_channels.php')) {
 		require_once __DIR__ . '/epc_apai_marketplace_channels.php';
 		if (function_exists('epc_apai_marketplace_arbitrage_enabled') && epc_apai_marketplace_arbitrage_enabled($pdo, $siteKey)) {
 			return 'marketplace_opportunities';
 		}
-	}
-	$industry = function_exists('epc_apai_resolve_industry') ? epc_apai_resolve_industry($pdo, $siteKey) : 'general_retail';
-	if ($industry === 'auto_parts') {
-		return 'market_confirmed';
 	}
 	if ($industry === 'tax_advisory') {
 		return 'all_suggestions';
@@ -3290,9 +3291,11 @@ function epc_disc_default_discover_filters(PDO $pdo, string $siteKey, array $raw
 		if ($curCount === 0) {
 			$fallbackOrder = array();
 			if ($view === 'marketplace_opportunities') {
-				$fallbackOrder = array('all_suggestions', 'market_confirmed');
+				$fallbackOrder = array('catalogue_match', 'all_suggestions', 'market_confirmed');
 			} elseif ($view === 'market_confirmed') {
-				$fallbackOrder = array('all_suggestions');
+				$fallbackOrder = array('catalogue_match', 'all_suggestions');
+			} elseif ($view === 'catalogue_match') {
+				$fallbackOrder = array('all_suggestions', 'market_confirmed', 'marketplace_opportunities');
 			}
 			foreach ($fallbackOrder as $fbView) {
 				$fbProbe = array_merge($filters, array('view' => $fbView, 'limit' => 1));
@@ -3614,15 +3617,20 @@ function epc_disc_merge_cross_source_prices(PDO $pdo, string $siteKey): array
 /**
  * Match tenant catalogue / warehouse products to live market prices across sources.
  *
+ * @param array<string,mixed> $opts Optional: limit (int) caps matched rows before final sort
  * @return array{ok:bool,items:array,count:int,message:string}
  */
-function epc_disc_match_catalogue_to_market(PDO $pdo, string $siteKey): array
+function epc_disc_match_catalogue_to_market(PDO $pdo, string $siteKey, array $opts = array()): array
 {
 	$siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($siteKey)));
 	$seen = array();
 	$items = array();
+	$hardLimit = max(0, (int) ($opts['limit'] ?? 0));
 
-	$addMatch = function (int $productId, string $baKey, string $brand, string $article, string $title) use ($pdo, $siteKey, &$seen, &$items): void {
+	$addMatch = function (int $productId, string $baKey, string $brand, string $article, string $title) use ($pdo, $siteKey, &$seen, &$items, $hardLimit): void {
+		if ($hardLimit > 0 && count($items) >= $hardLimit) {
+			return;
+		}
 		if ($productId <= 0 || $baKey === '' || isset($seen[$baKey])) {
 			return;
 		}
@@ -3693,6 +3701,9 @@ function epc_disc_match_catalogue_to_market(PDO $pdo, string $siteKey): array
 		);
 		$stmt->execute();
 		foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: array() as $row) {
+			if ($hardLimit > 0 && count($items) >= $hardLimit) {
+				break;
+			}
 			$baKey = strtolower(trim((string) ($row['external_sku'] ?? '')));
 			$parts = explode(':', $baKey, 2);
 			$addMatch(
@@ -3707,25 +3718,30 @@ function epc_disc_match_catalogue_to_market(PDO $pdo, string $siteKey): array
 	}
 
 	try {
-		$stmt = $pdo->query(
-			'SELECT `manufacturer`, `article`, `name`
-			 FROM `shop_docpart_prices_data`
-			 WHERE `article` IS NOT NULL AND `article` != \'\'
-			 GROUP BY UPPER(REPLACE(REPLACE(`article`, \' \', \'\'), \'-\', \'\')), LOWER(`manufacturer`)
-			 LIMIT 300'
-		);
-		foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: array() as $row) {
-			$brand = epc_apai_normalize_brand((string) ($row['manufacturer'] ?? ''));
-			$article = epc_apai_normalize_article((string) ($row['article'] ?? ''));
-			$baKey = epc_apai_brand_article_key($brand, $article);
-			if ($baKey === '') {
-				continue;
+		if ($hardLimit <= 0 || count($items) < $hardLimit) {
+			$stmt = $pdo->query(
+				'SELECT `manufacturer`, `article`, `name`
+				 FROM `shop_docpart_prices_data`
+				 WHERE `article` IS NOT NULL AND `article` != \'\'
+				 GROUP BY UPPER(REPLACE(REPLACE(`article`, \' \', \'\'), \'-\', \'\')), LOWER(`manufacturer`)
+				 LIMIT 300'
+			);
+			foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: array() as $row) {
+				if ($hardLimit > 0 && count($items) >= $hardLimit) {
+					break;
+				}
+				$brand = epc_apai_normalize_brand((string) ($row['manufacturer'] ?? ''));
+				$article = epc_apai_normalize_article((string) ($row['article'] ?? ''));
+				$baKey = epc_apai_brand_article_key($brand, $article);
+				if ($baKey === '') {
+					continue;
+				}
+				$productId = epc_disc_find_catalogue_by_brand_article($pdo, $baKey);
+				if ($productId <= 0) {
+					continue;
+				}
+				$addMatch($productId, $baKey, $brand, $article, (string) ($row['name'] ?? ''));
 			}
-			$productId = epc_disc_find_catalogue_by_brand_article($pdo, $baKey);
-			if ($productId <= 0) {
-				continue;
-			}
-			$addMatch($productId, $baKey, $brand, $article, (string) ($row['name'] ?? ''));
 		}
 	} catch (Throwable $e) {
 	}
@@ -4763,10 +4779,13 @@ function epc_disc_queue_list_for_discover(PDO $pdo, string $siteKey, array $filt
 	$fastPartial = !empty($filters['fast_partial']);
 
 	if ($view === 'catalogue_match') {
+		// fast_partial used to return [] here — badge counts stayed correct while the grid
+		// showed an empty state. Always load matches; cap work under partial/shell loads.
+		$matchOpts = array();
 		if ($fastPartial) {
-			return array();
+			$matchOpts['limit'] = max($limit, 40);
 		}
-		$matchData = epc_disc_match_catalogue_to_market($pdo, $siteKey);
+		$matchData = epc_disc_match_catalogue_to_market($pdo, $siteKey, $matchOpts);
 		$visible = array();
 		foreach ((array) ($matchData['items'] ?? array()) as $match) {
 			$visible[] = epc_disc_catalogue_match_to_discover_card($match);

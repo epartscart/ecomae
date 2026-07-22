@@ -498,7 +498,9 @@ $needsListings = ($tab === 'listings');
 $needsWizard = ($tab === 'wizard');
 $needsSources = ($tab === 'sources');
 $needsKpiChrome = !$apaiPartial && ($needsDiscover || $needsImports || $needsProductLines);
-$needsFlatTax = !$apaiPartial && ($needsDiscover || $needsUaeSources || $needsCompare || $needsWizard || $needsSources);
+// Shell-inline Discover sets apaiPartial=true for lighter loads — still need taxonomy options in the filter.
+$needsFlatTax = ($needsDiscover || $needsUaeSources || $needsCompare || $needsWizard || $needsSources)
+	&& (!$apaiPartial || !empty($apaiShellInlineDiscover));
 
 $tenantCfg = epc_ape_tenant_config_get($pdo, $siteKey);
 $rules = ($needsRules || $needsCompare) ? epc_ape_rules_get($pdo, $siteKey) : array('min_margin_percent' => 15);
@@ -635,6 +637,15 @@ if ($needsDiscover) {
 	}
 	$discFilters['limit'] = $apaiPartial ? 15 : 20;
 	$discQueue = epc_disc_queue_list_for_discover($pdo, $siteKey, $discFilters);
+	if (function_exists('epc_disc_discover_counts')) {
+		try {
+			$discDiscoverCounts = epc_disc_discover_counts($pdo, $siteKey, array(
+				'taxonomy_id' => $discFilterTax,
+			));
+		} catch (Throwable $e) {
+			$discDiscoverCounts = array();
+		}
+	}
 }
 $discCrawlJob = ($needsDiscover && function_exists('epc_disc_crawl_job_active'))
 	? epc_disc_crawl_job_active($pdo, $siteKey)
@@ -837,12 +848,46 @@ $guideBase = '/' . $backend . '/control/portal/epc_auto_price_guide';
 	</form>
 	<?php } ?>
 
-	<div class="epc-ape-kpi">
-		<div class="epc-ape-kpi__card"><div class="epc-ape-kpi__label">Suggested</div><div class="epc-ape-kpi__val"><?php echo (int) $discKpi['suggested']; ?></div></div>
-		<div class="epc-ape-kpi__card"><div class="epc-ape-kpi__label">Industry</div><div style="font-size:13px;font-weight:600;margin-top:4px"><?php echo epc_ape_h($industryLabel); ?></div></div>
-		<div class="epc-ape-kpi__card"><div class="epc-ape-kpi__label">Product lines</div><div class="epc-ape-kpi__val"><?php echo (int) $taxCount; ?></div></div>
-		<div class="epc-ape-kpi__card"><div class="epc-ape-kpi__label">Catalogue categories</div><div class="epc-ape-kpi__val"><?php echo (int) $categoryMapCount; ?></div></div>
-		<div class="epc-ape-kpi__card"><div class="epc-ape-kpi__label">Imported</div><div class="epc-ape-kpi__val"><?php echo (int) $discKpi['imported']; ?></div></div>
+	<div class="epc-ape-kpi" id="epc-apai-kpi">
+		<div class="epc-ape-kpi__card">
+			<div class="epc-ape-kpi__icon"><i class="fa fa-lightbulb-o"></i></div>
+			<div class="epc-ape-kpi__body">
+				<div class="epc-ape-kpi__label">Suggested</div>
+				<div class="epc-ape-kpi__val"><?php echo number_format((int) $discKpi['suggested']); ?></div>
+				<div class="epc-ape-kpi__hint">awaiting review</div>
+			</div>
+		</div>
+		<div class="epc-ape-kpi__card">
+			<div class="epc-ape-kpi__icon"><i class="fa fa-industry"></i></div>
+			<div class="epc-ape-kpi__body">
+				<div class="epc-ape-kpi__label">Industry</div>
+				<div class="epc-ape-kpi__text"><?php echo epc_ape_h($industryLabel); ?></div>
+			</div>
+		</div>
+		<div class="epc-ape-kpi__card">
+			<div class="epc-ape-kpi__icon"><i class="fa fa-sitemap"></i></div>
+			<div class="epc-ape-kpi__body">
+				<div class="epc-ape-kpi__label">Product lines</div>
+				<div class="epc-ape-kpi__val"><?php echo number_format((int) $taxCount); ?></div>
+				<div class="epc-ape-kpi__hint">taxonomy nodes</div>
+			</div>
+		</div>
+		<div class="epc-ape-kpi__card">
+			<div class="epc-ape-kpi__icon"><i class="fa fa-folder-open"></i></div>
+			<div class="epc-ape-kpi__body">
+				<div class="epc-ape-kpi__label">Categories</div>
+				<div class="epc-ape-kpi__val"><?php echo number_format((int) $categoryMapCount); ?></div>
+				<div class="epc-ape-kpi__hint">catalogue maps</div>
+			</div>
+		</div>
+		<div class="epc-ape-kpi__card">
+			<div class="epc-ape-kpi__icon"><i class="fa fa-download"></i></div>
+			<div class="epc-ape-kpi__body">
+				<div class="epc-ape-kpi__label">Imported</div>
+				<div class="epc-ape-kpi__val"><?php echo number_format((int) $discKpi['imported']); ?></div>
+				<div class="epc-ape-kpi__hint">in catalogue</div>
+			</div>
+		</div>
 	</div>
 
 	<div class="epc-ape-tabs">
@@ -866,157 +911,210 @@ $guideBase = '/' . $backend . '/control/portal/epc_auto_price_guide';
 
 <?php } ?>
 
-	<?php if ($tab === 'discover') { ?>
-	<div class="row">
-		<div class="col-md-12">
-			<div class="hpanel"><div class="panel-heading"><h4>Discover <small><?php echo count($discQueue); ?> in <?php echo epc_ape_h($discViewLabels[$discView] ?? ucfirst($discView)); ?> — <?php echo epc_ape_h($industryLabel); ?> · <?php echo epc_ape_h($tenantCountryMeta['label']); ?></small></h4></div><div class="panel-body">
-				<p class="text-muted" style="font-size:12px;margin-bottom:10px"><strong>No category pick required</strong> — click <strong>Quick crawl</strong> to search all top product lines automatically (~30s). Use the product-line dropdown only when you want a focused filter.</p>
-				<?php if ($industryKey === 'auto_parts') { ?>
-				<p class="text-muted" style="font-size:12px;margin-bottom:10px">Target products = same brand + article on <strong>2+ sources</strong>. Configure <a href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=uae_sources'); ?>">spare247.com credentials</a> on Market sources for authenticated B2B reference pricing.</p>
-				<?php } ?>
-				<?php if (is_array($discAutoSeedResult) && empty($discAutoSeedResult['skipped']) && ((int) ($discAutoSeedResult['suggested'] ?? 0) > 0)) { ?>
-				<div class="alert alert-success" style="font-size:12px;margin-bottom:10px;padding:8px 12px">
-					<i class="fa fa-magic"></i> Auto-seeded <?php echo (int) ($discAutoSeedResult['suggested'] ?? 0); ?> suggestion(s) from your industry top lines — no manual search needed.
+	<?php if ($tab === 'discover') {
+		$discSubTabs = array();
+		if ($industryKey === 'auto_parts') {
+			$discSubTabs = array(
+				'catalogue_match' => array('label' => 'My stock vs market', 'icon' => 'fa-balance-scale', 'hint' => 'Your catalogue priced against live sources'),
+				'market_confirmed' => array('label' => 'Market confirmed', 'icon' => 'fa-check-circle', 'hint' => 'Same part on 2+ sources'),
+				'all_suggestions' => array('label' => 'Suggestions', 'icon' => 'fa-lightbulb-o', 'hint' => 'New finds to review'),
+				'price_changes' => array('label' => 'Price moves', 'icon' => 'fa-line-chart', 'hint' => 'Imported items with source price changes'),
+			);
+			if ($arbEnabled) {
+				$discSubTabs = array(
+					'catalogue_match' => $discSubTabs['catalogue_match'],
+					'marketplace_opportunities' => array('label' => 'Sell gaps', 'icon' => 'fa-shopping-bag', 'hint' => 'Buy elsewhere → list on your marketplaces'),
+					'market_confirmed' => $discSubTabs['market_confirmed'],
+					'all_suggestions' => $discSubTabs['all_suggestions'],
+					'price_changes' => $discSubTabs['price_changes'],
+				);
+			}
+		} else {
+			$discSubTabs = array(
+				'all_suggestions' => array('label' => 'New finds', 'icon' => 'fa-lightbulb-o', 'hint' => 'Fresh suggestions'),
+				'price_changes' => array('label' => 'Price moves', 'icon' => 'fa-line-chart', 'hint' => 'Source price changes'),
+			);
+			if ($arbEnabled) {
+				$discSubTabs = array(
+					'marketplace_opportunities' => array('label' => 'Sell gaps', 'icon' => 'fa-shopping-bag', 'hint' => 'Buy low, list on Noon / Amazon / eBay'),
+				) + $discSubTabs;
+			}
+		}
+		$viewMeta = $discSubTabs[$discView] ?? array('label' => ($discViewLabels[$discView] ?? 'Discover'), 'icon' => 'fa-search', 'hint' => '');
+		$showingCount = count($discQueue);
+		?>
+	<div class="epc-disc-workspace">
+		<div class="epc-disc-command">
+			<div class="epc-disc-command__intro">
+				<span class="epc-disc-command__eyebrow"><i class="fa fa-compass"></i> Discover</span>
+				<h3><?php echo epc_ape_h($viewMeta['label']); ?></h3>
+				<p>
+					<?php echo epc_ape_h($industryLabel); ?> · <?php echo epc_ape_h($tenantCountryMeta['label']); ?>
+					<?php if (!empty($viewMeta['hint'])) { ?> — <?php echo epc_ape_h($viewMeta['hint']); ?><?php } ?>
+					· showing <strong><?php echo (int) $showingCount; ?></strong>
+				</p>
+			</div>
+			<div class="epc-disc-command__actions">
+				<button type="button" class="btn btn-primary epc-disc-cta" id="epc-disc-crawl-btn" data-crawl-mode="quick">
+					<i class="fa fa-cloud-download"></i> Quick crawl
+					<small>Top lines · ~30s</small>
+				</button>
+				<button type="button" class="btn btn-default" id="epc-disc-crawl-full-btn" data-crawl-mode="full" title="Background crawl of all sources">
+					<i class="fa fa-cloud"></i> Full crawl
+				</button>
+				<button type="button" class="btn btn-default" id="epc-disc-fetch-btn" title="Refresh prices on visible cards">
+					<i class="fa fa-refresh"></i> Refresh prices
+				</button>
+			</div>
+		</div>
+
+		<?php if (is_array($discAutoSeedResult) && empty($discAutoSeedResult['skipped']) && ((int) ($discAutoSeedResult['suggested'] ?? 0) > 0)) { ?>
+		<div class="epc-disc-banner epc-disc-banner--ok">
+			<i class="fa fa-magic"></i> Auto-loaded <?php echo (int) ($discAutoSeedResult['suggested'] ?? 0); ?> suggestion(s) from top product lines.
+		</div>
+		<?php } ?>
+
+		<?php if ($discCrawlJob) { ?>
+		<div class="alert alert-info epc-disc-crawl-progress" id="epc-disc-crawl-progress">
+			<i class="fa fa-spinner fa-spin"></i> Crawl in progress… <span id="epc-disc-crawl-progress-msg">queued</span>
+		</div>
+		<?php } ?>
+
+		<div class="epc-disc-views epc-imports-subtabs epc-disc-subtabs" id="epc-disc-subtabs">
+			<?php foreach ($discSubTabs as $vk => $vmeta) {
+				$vcnt = is_array($discDiscoverCounts) ? (int) ($discDiscoverCounts[$vk] ?? 0) : null;
+				$vactive = $discView === $vk ? ' epc-imports-subtabs__pill--active is-active' : '';
+				$vhref = $pageBase . '?site_key=' . urlencode($siteKey) . '&tab=discover&view=' . $vk;
+				if ($discFilterTax > 0) {
+					$vhref .= '&taxonomy_id=' . $discFilterTax;
+				}
+				if ($discSort !== 'newest') {
+					$vhref .= '&disc_sort=' . urlencode($discSort);
+				}
+				$zeroCls = ($vcnt === 0) ? ' is-zero' : '';
+				?>
+			<a class="epc-disc-view-pill epc-imports-subtabs__pill<?php echo $vactive . $zeroCls; ?>" href="<?php echo epc_ape_h($vhref); ?>" data-disc-view="<?php echo epc_ape_h($vk); ?>" title="<?php echo epc_ape_h($vmeta['hint']); ?>">
+				<i class="fa <?php echo epc_ape_h($vmeta['icon']); ?>"></i>
+				<span class="epc-disc-view-pill__label"><?php echo epc_ape_h($vmeta['label']); ?></span>
+				<span class="epc-disc-view-pill__count badge" data-disc-count="<?php echo epc_ape_h($vk); ?>"><?php echo $vcnt === null ? '…' : (int) $vcnt; ?></span>
+			</a>
+			<?php } ?>
+		</div>
+
+		<div class="epc-disc-toolbar">
+			<div class="epc-disc-search">
+				<div class="input-group">
+					<input type="text" class="form-control" id="epc-disc-search-input" placeholder="<?php echo $industryKey === 'auto_parts' ? 'Brand + article e.g. Toyota 1310154101' : 'Search keyword or model…'; ?>" />
+					<span class="input-group-btn">
+						<button type="button" class="btn btn-primary" id="epc-disc-search-btn" title="Full search (all sources)"><i class="fa fa-search"></i> Search</button>
+						<button type="button" class="btn btn-default" id="epc-disc-fast-search-btn" title="Fast search (3 sources)"><i class="fa fa-bolt"></i></button>
+					</span>
 				</div>
-				<?php } ?>
-				<div class="epc-imports-subtabs epc-disc-subtabs" id="epc-disc-subtabs">
+			</div>
+			<form method="get" class="epc-disc-filters" id="epc-disc-tax-filter">
+				<input type="hidden" name="site_key" value="<?php echo epc_ape_h($siteKey); ?>" />
+				<input type="hidden" name="tab" value="discover" />
+				<input type="hidden" name="view" value="<?php echo epc_ape_h($discView); ?>" />
+				<select name="taxonomy_id" id="epc-disc-taxonomy-filter" class="form-control input-sm" title="Optional product line filter">
+					<option value="0">All product lines</option>
 					<?php
-					$discSubTabs = array();
-					if ($arbEnabled) {
-						$discSubTabs['marketplace_opportunities'] = 'Marketplace opportunities';
-					}
-					if ($industryKey === 'auto_parts') {
-						$discSubTabs += array(
-							'market_confirmed' => 'Market confirmed',
-							'all_suggestions' => 'All suggestions',
-							'catalogue_match' => 'My products vs market',
-							'price_changes' => 'Price changes',
-						);
-					} else {
-						$discSubTabs += array(
-							'all_suggestions' => 'New',
-							'price_changes' => 'Price changes',
-						);
-					}
-					foreach ($discSubTabs as $vk => $vlabel) {
-						$vcnt = is_array($discDiscoverCounts) ? (int) ($discDiscoverCounts[$vk] ?? 0) : null;
-						$vactive = $discView === $vk ? ' epc-imports-subtabs__pill--active' : '';
-						$vhref = $pageBase . '?site_key=' . urlencode($siteKey) . '&tab=discover&view=' . $vk;
-						if ($discFilterTax > 0) {
-							$vhref .= '&taxonomy_id=' . $discFilterTax;
-						}
-						if ($discSort !== 'newest') {
-							$vhref .= '&disc_sort=' . urlencode($discSort);
-						}
-						echo '<a class="epc-imports-subtabs__pill' . $vactive . '" href="' . epc_ape_h($vhref) . '" data-disc-view="' . epc_ape_h($vk) . '">';
-						echo epc_ape_h($vlabel) . ' <span class="badge" data-disc-count="' . epc_ape_h($vk) . '">' . ($vcnt === null ? '…' : $vcnt) . '</span></a>';
+					foreach ($flatTax as $tn) {
+						$pad = str_repeat('— ', max(0, (int) $tn['level'] - 1));
+						echo '<option value="' . (int) $tn['id'] . '"' . ($discFilterTax === (int) $tn['id'] ? ' selected' : '') . '>' . epc_ape_h($pad . $tn['name_en']) . '</option>';
 					}
 					?>
-				</div>
-				<?php if ($arbEnabled && in_array($discView, array('marketplace_opportunities', 'all_suggestions'), true)) { ?>
-				<div class="alert alert-warning" style="font-size:11px;margin:10px 0;padding:8px 12px">
-					<strong>Buy sources only for sourcing</strong> — prices from <?php echo epc_ape_h(implode(', ', array_slice((array) ($arbChannels['buy'] ?? array('sharafdg', 'jumbo')), 0, 4))); ?> show buy range (not sell target).
-					Sell on <?php echo epc_ape_h(implode(', ', array_column((array) ($arbChannels['sell'] ?? array()), 'label'))); ?> only.
-				</div>
-				<?php } ?>
-				<?php if ($discCrawlJob) { ?>
-				<div class="alert alert-info" id="epc-disc-crawl-progress" style="margin-bottom:10px;padding:8px 12px">
-					<i class="fa fa-spinner fa-spin"></i> Last crawl in progress… <span id="epc-disc-crawl-progress-msg">queued</span>
-				</div>
-				<?php } ?>
-				<div class="epc-disc-toolbar" style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-					<div class="input-group input-group-sm" style="max-width:320px">
-						<input type="text" class="form-control" id="epc-disc-search-input" placeholder="<?php echo $industryKey === 'auto_parts' ? 'Brand + article e.g. Toyota 1310154101' : 'Search keyword or model…'; ?>" />
-						<span class="input-group-btn">
-							<button type="button" class="btn btn-primary" id="epc-disc-search-btn" title="Full search (all sources)"><i class="fa fa-search"></i> Search</button>
-							<button type="button" class="btn btn-default" id="epc-disc-fast-search-btn" title="Fast search (3 sources)"><i class="fa fa-bolt"></i></button>
-						</span>
-					</div>
-					<button type="button" class="btn btn-warning btn-sm" id="epc-disc-crawl-btn" data-crawl-mode="quick"><i class="fa fa-cloud-download"></i> Quick crawl</button>
-					<button type="button" class="btn btn-default btn-sm" id="epc-disc-crawl-full-btn" data-crawl-mode="full"><i class="fa fa-cloud"></i> Full crawl (background)</button>
-					<button type="button" class="btn btn-default btn-sm" id="epc-disc-fetch-btn"><i class="fa fa-refresh"></i> Fetch latest prices</button>
-					<span class="text-muted" id="epc-disc-global-last-crawl" style="font-size:11px"><?php
-					if ($discLastCrawlAt > 0) {
-						echo 'Last crawl: ' . epc_ape_h(date('Y-m-d H:i', $discLastCrawlAt));
-					} else {
-						echo 'Quick crawl = top 5 product lines + sources (~30s)';
-					}
-					?></span>
-				</div>
+				</select>
+				<select name="disc_sort" id="epc-disc-sort" class="form-control input-sm">
+					<option value="newest"<?php echo $discSort === 'newest' ? ' selected' : ''; ?>>Newest</option>
+					<option value="price_change"<?php echo $discSort === 'price_change' ? ' selected' : ''; ?>>Price change</option>
+					<option value="last_updated"<?php echo $discSort === 'last_updated' ? ' selected' : ''; ?>>Last updated</option>
+				</select>
+				<button type="submit" class="btn btn-default btn-sm">Apply</button>
+			</form>
+			<div class="epc-disc-toolbar__meta">
+				<span id="epc-disc-global-last-crawl"><?php
+				if ($discLastCrawlAt > 0) {
+					echo 'Last crawl ' . epc_ape_h(date('Y-m-d H:i', $discLastCrawlAt));
+				} else {
+					echo 'No crawl yet';
+				}
+				?></span>
+				<a href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=product_lines'); ?>">Product lines</a>
+				<a href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=uae_sources'); ?>">Sources</a>
+			</div>
+		</div>
 
-				<form method="get" class="form-inline epc-disc-filters" style="margin-bottom:14px" id="epc-disc-tax-filter">
-					<input type="hidden" name="site_key" value="<?php echo epc_ape_h($siteKey); ?>" />
-					<input type="hidden" name="tab" value="discover" />
-					<input type="hidden" name="view" value="<?php echo epc_ape_h($discView); ?>" />
-					<label>Product line <small class="text-muted">(optional)</small></label>
-					<select name="taxonomy_id" id="epc-disc-taxonomy-filter" class="form-control input-sm">
-						<option value="0">All product lines</option>
-						<?php
-						foreach ($flatTax as $tn) {
-							$pad = str_repeat('— ', max(0, (int) $tn['level'] - 1));
-							echo '<option value="' . (int) $tn['id'] . '"' . ($discFilterTax === (int) $tn['id'] ? ' selected' : '') . '>' . epc_ape_h($pad . $tn['name_en']) . '</option>';
-						}
-						?>
-					</select>
-					<label style="margin-left:8px">Sort</label>
-					<select name="disc_sort" id="epc-disc-sort" class="form-control input-sm">
-						<option value="newest"<?php echo $discSort === 'newest' ? ' selected' : ''; ?>>Newest</option>
-						<option value="price_change"<?php echo $discSort === 'price_change' ? ' selected' : ''; ?>>Price change</option>
-						<option value="last_updated"<?php echo $discSort === 'last_updated' ? ' selected' : ''; ?>>Last updated</option>
-					</select>
-					<button type="submit" class="btn btn-default btn-sm">Apply filters</button>
-					<a class="btn btn-default btn-sm" href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=product_lines'); ?>">Browse product lines</a>
-					<a class="btn btn-link btn-sm" href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=uae_sources'); ?>">Manage sources</a>
-				</form>
+		<?php if ($arbEnabled && $discView === 'marketplace_opportunities') { ?>
+		<div class="epc-disc-banner epc-disc-banner--tip">
+			<i class="fa fa-info-circle"></i>
+			<strong>Sourcing prices ≠ sell prices.</strong>
+			Buy-side quotes from <?php echo epc_ape_h(implode(', ', array_slice((array) ($arbChannels['buy'] ?? array('sharafdg', 'jumbo')), 0, 3))); ?>
+			help you decide; list on <?php echo epc_ape_h(implode(', ', array_column((array) ($arbChannels['sell'] ?? array()), 'label')) ?: 'your marketplaces'); ?>.
+		</div>
+		<?php } ?>
 
-				<?php if ($discViewFallback === 'market_confirmed') { ?>
-				<div class="alert alert-info" style="margin-bottom:12px">
-					<strong>No market-confirmed parts yet</strong> — showing all suggestions.
-					Parts on 2+ sources appear under <a href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=discover&view=market_confirmed'); ?>">Market confirmed</a>.
-					<button type="button" class="btn btn-warning btn-xs" id="epc-disc-crawl-banner-btn" data-crawl-mode="quick" style="margin-left:8px"><i class="fa fa-cloud-download"></i> Quick crawl</button>
-				</div>
-				<?php } elseif ($discViewFallback === 'marketplace_opportunities' && $arbEnabled) { ?>
-				<div class="alert alert-info" style="margin-bottom:12px">
-					<strong>No marketplace gaps yet</strong> — crawl buy sources (Sharaf DG, Jumbo, spare247…) then we check Noon/Amazon/eBay for missing listings.
-					<button type="button" class="btn btn-warning btn-xs" id="epc-disc-crawl-banner-btn" data-crawl-mode="quick" style="margin-left:8px"><i class="fa fa-cloud-download"></i> Quick crawl</button>
-				</div>
+		<?php if ($discViewFallback !== '') { ?>
+		<div class="epc-disc-banner epc-disc-banner--tip">
+			<i class="fa fa-exchange"></i>
+			No items in <strong><?php echo epc_ape_h($discViewLabels[$discViewFallback] ?? $discViewFallback); ?></strong> — showing <strong><?php echo epc_ape_h($viewMeta['label']); ?></strong> instead.
+			<button type="button" class="btn btn-default btn-xs" id="epc-disc-crawl-banner-btn" data-crawl-mode="quick"><i class="fa fa-cloud-download"></i> Quick crawl</button>
+		</div>
+		<?php } ?>
+
+		<?php if ($discQueue && in_array($discView, array('market_confirmed', 'all_suggestions', 'marketplace_opportunities'), true)) { ?>
+		<div class="epc-disc-bulk-bar" id="epc-disc-bulk-bar">
+			<label style="margin:0;font-weight:normal"><input type="checkbox" id="epc-disc-select-all" /> Select all</label>
+			<a href="#" id="epc-disc-clear-sel" class="btn btn-link btn-sm" style="padding-left:0">Clear</a>
+			<button type="button" class="btn btn-success btn-sm" id="epc-disc-bulk-approve" disabled><i class="fa fa-plus"></i> Add selected to catalogue (0)</button>
+		</div>
+		<?php } ?>
+
+		<?php if (!$discQueue) { ?>
+		<div class="epc-disc-empty">
+			<div class="epc-disc-empty__visual"><i class="fa <?php echo epc_ape_h($viewMeta['icon']); ?>"></i></div>
+			<h4><?php
+			if ($discView === 'price_changes') {
+				echo 'No price moves yet';
+			} elseif ($discView === 'catalogue_match') {
+				echo 'No catalogue matches yet';
+			} elseif ($discView === 'market_confirmed') {
+				echo 'No market-confirmed parts yet';
+			} elseif ($discView === 'marketplace_opportunities') {
+				echo 'No sell gaps found yet';
+			} else {
+				echo 'Nothing in this view yet';
+			}
+			?></h4>
+			<p><?php
+			if ($discView === 'price_changes') {
+				echo 'Imported products show up here when a source price moves away from your import baseline.';
+			} elseif ($discView === 'catalogue_match') {
+				echo 'Publish products with brand + article (or warehouse SKUs) so we can compare them to live market prices.';
+			} elseif ($discView === 'market_confirmed') {
+				echo 'Run a Quick crawl — parts seen on 2+ sources land here as market-confirmed.';
+			} elseif ($discView === 'marketplace_opportunities') {
+				echo 'Crawl buy sources first. Items you can source but are not listed on your sell marketplaces appear here.';
+			} else {
+				echo 'Start with Quick crawl — it scans top product lines automatically in about 30 seconds.';
+			}
+			?></p>
+			<ol class="epc-disc-empty__steps">
+				<li><strong>Crawl</strong> market sources</li>
+				<li><strong>Review</strong> matches &amp; gaps</li>
+				<li><strong>Import</strong> winners to catalogue</li>
+			</ol>
+			<div class="epc-disc-empty__actions">
+				<button type="button" class="btn btn-primary" id="epc-disc-crawl-empty-btn" data-crawl-mode="quick"><i class="fa fa-cloud-download"></i> Quick crawl</button>
+				<?php if ($discView !== 'catalogue_match' && is_array($discDiscoverCounts) && (int) ($discDiscoverCounts['catalogue_match'] ?? 0) > 0) { ?>
+				<a class="btn btn-default" href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=discover&view=catalogue_match'); ?>"><i class="fa fa-balance-scale"></i> My stock vs market (<?php echo (int) $discDiscoverCounts['catalogue_match']; ?>)</a>
+				<?php } elseif ($discView !== 'all_suggestions' && is_array($discDiscoverCounts) && (int) ($discDiscoverCounts['all_suggestions'] ?? 0) > 0) { ?>
+				<a class="btn btn-default" href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=discover&view=all_suggestions'); ?>"><i class="fa fa-list"></i> Suggestions (<?php echo (int) $discDiscoverCounts['all_suggestions']; ?>)</a>
 				<?php } ?>
-
-				<?php if ($discQueue && in_array($discView, array('market_confirmed', 'all_suggestions', 'marketplace_opportunities'), true)) { ?>
-				<div class="epc-disc-bulk-bar" style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-					<label style="margin:0;font-weight:normal"><input type="checkbox" id="epc-disc-select-all" /> Select all</label>
-					<a href="#" id="epc-disc-clear-sel" class="btn btn-link btn-sm" style="padding-left:0">Clear</a>
-					<button type="button" class="btn btn-success btn-sm" id="epc-disc-bulk-approve" disabled><i class="fa fa-plus"></i> Add selected to catalogue (0)</button>
-				</div>
-				<?php } ?>
-
-				<?php if (!$discQueue) { ?>
-				<div class="epc-disc-empty-state" style="padding:24px 16px;text-align:center;border:1px dashed #ddd;border-radius:6px;background:#fafafa;margin-bottom:16px">
-					<p class="text-muted" style="margin-bottom:12px"><?php
-					if ($discView === 'price_changes') {
-						echo 'No price changes detected — imported products appear here when source price moves from the import baseline.';
-					} elseif ($discView === 'catalogue_match') {
-						echo 'No catalogue products matched to market — publish products with brand + article or link warehouse SKUs.';
-					} elseif ($discView === 'market_confirmed') {
-						echo 'No market-confirmed parts yet — crawl sources or search by brand + article. Parts on 2+ sources appear here.';
-					} elseif ($discView === 'marketplace_opportunities') {
-						echo 'No arbitrage gaps yet — products on buy sources (not your sell marketplaces) appear here after crawl. Buy low, list on Noon/Amazon/eBay.';
-					} else {
-						echo 'No suggestions yet — click Quick crawl below (searches all top product lines automatically; no category filter needed). First visit? Items usually appear within 30 seconds.';
-					}
-					?></p>
-					<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
-						<button type="button" class="btn btn-warning btn-sm" id="epc-disc-crawl-empty-btn" data-crawl-mode="quick"><i class="fa fa-cloud-download"></i> Quick crawl — no category needed</button>
-						<?php if ($discView === 'market_confirmed' && is_array($discDiscoverCounts) && (int) ($discDiscoverCounts['all_suggestions'] ?? 0) > 0) { ?>
-						<a class="btn btn-default btn-sm" href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=discover&view=all_suggestions'); ?>"><i class="fa fa-list"></i> Show all suggestions (<?php echo (int) $discDiscoverCounts['all_suggestions']; ?>)</a>
-						<?php } elseif ($discView !== 'all_suggestions' && is_array($discDiscoverCounts) && (int) ($discDiscoverCounts['all_suggestions'] ?? 0) > 0) { ?>
-						<a class="btn btn-default btn-sm" href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=discover&view=all_suggestions'); ?>"><i class="fa fa-list"></i> Show all suggestions</a>
-						<?php } ?>
-						<a class="btn btn-primary btn-sm" href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=product_lines'); ?>"><i class="fa fa-sitemap"></i> Browse product lines</a>
-					</div>
-				</div>
-				<?php } else { ?>
-				<div class="epc-disc-grid">
+				<a class="btn btn-default" href="<?php echo epc_ape_h($pageBase . '?site_key=' . urlencode($siteKey) . '&tab=product_lines'); ?>"><i class="fa fa-sitemap"></i> Product lines</a>
+			</div>
+		</div>
+		<?php } else { ?>
+		<div class="epc-disc-grid">
 					<?php foreach ($discQueue as $item) {
 						$img = function_exists('epc_disc_queue_preview_image') ? epc_disc_queue_preview_image($item) : (string) ($item['images'][0] ?? '');
 						$imgCount = count((array) ($item['images'] ?? array()));
@@ -1211,37 +1309,37 @@ $guideBase = '/' . $backend . '/control/portal/epc_auto_price_guide';
 					<?php } ?>
 				</div>
 				<?php } ?>
-			</div></div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-6">
-			<div class="hpanel"><div class="panel-heading"><h4>Run discovery</h4></div><div class="panel-body">
-				<form method="post">
-					<input type="hidden" name="epc_ape_action" value="run_discovery" />
-					<input type="hidden" name="site_key" value="<?php echo epc_ape_h($siteKey); ?>" />
-					<input type="hidden" name="return_tab" value="discover" />
-					<div class="form-group"><label>Taxonomy slug</label>
-						<input class="form-control input-sm" name="taxonomy_slug" placeholder="cell-phones, headphones, gaming-consoles" value="<?php echo epc_ape_h((string) ($_GET['taxonomy'] ?? '')); ?>" />
-					</div>
-					<div class="form-group"><label>Keyword (optional)</label>
-						<input class="form-control input-sm" name="discovery_keyword" placeholder="Samsung Galaxy UAE" />
-					</div>
-					<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-search"></i> Discover products</button>
-				</form>
-				<p class="text-muted" style="font-size:11px;margin-top:10px">Curated <?php echo epc_ape_h('.' . $tenantCountryMeta['tld']); ?> demo products for <?php echo epc_ape_h($industryLabel); ?> when search API is not configured. Add SerpAPI or Google CSE in Market sources tab.</p>
-			</div></div>
-		</div>
-		<div class="col-md-6">
-			<div class="hpanel"><div class="panel-heading"><h4>Paste product URLs (batch)</h4></div><div class="panel-body">
-				<form method="post">
-					<input type="hidden" name="epc_ape_action" value="batch_urls" />
-					<input type="hidden" name="site_key" value="<?php echo epc_ape_h($siteKey); ?>" />
-					<div class="form-group"><textarea class="form-control" name="batch_urls" rows="5" placeholder="https://www.sharafdg.com/…&#10;https://www.jumbo.ae/…"></textarea></div>
-					<button type="submit" class="btn btn-default btn-sm">Fetch &amp; queue</button>
-				</form>
-			</div></div>
-		</div>
+
+		<details class="epc-disc-advanced">
+			<summary><i class="fa fa-sliders"></i> Advanced tools — taxonomy discover &amp; paste URLs</summary>
+			<div class="epc-disc-advanced__grid">
+				<div class="epc-disc-advanced__card">
+					<h5>Run taxonomy discovery</h5>
+					<form method="post">
+						<input type="hidden" name="epc_ape_action" value="run_discovery" />
+						<input type="hidden" name="site_key" value="<?php echo epc_ape_h($siteKey); ?>" />
+						<input type="hidden" name="return_tab" value="discover" />
+						<div class="form-group"><label>Taxonomy slug</label>
+							<input class="form-control input-sm" name="taxonomy_slug" placeholder="brakes, filters, engine-parts" value="<?php echo epc_ape_h((string) ($_GET['taxonomy'] ?? '')); ?>" />
+						</div>
+						<div class="form-group"><label>Keyword (optional)</label>
+							<input class="form-control input-sm" name="discovery_keyword" placeholder="Toyota oil filter" />
+						</div>
+						<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-search"></i> Discover products</button>
+					</form>
+					<p class="help-block">Uses configured search / curated <?php echo epc_ape_h('.' . $tenantCountryMeta['tld']); ?> demos when APIs are offline.</p>
+				</div>
+				<div class="epc-disc-advanced__card">
+					<h5>Paste product URLs</h5>
+					<form method="post">
+						<input type="hidden" name="epc_ape_action" value="batch_urls" />
+						<input type="hidden" name="site_key" value="<?php echo epc_ape_h($siteKey); ?>" />
+						<div class="form-group"><textarea class="form-control" name="batch_urls" rows="5" placeholder="https://www.spare247.com/…&#10;https://www.autoparts.ae/…"></textarea></div>
+						<button type="submit" class="btn btn-default btn-sm">Fetch &amp; queue</button>
+					</form>
+				</div>
+			</div>
+		</details>
 	</div>
 	<?php } ?>
 	<?php if ($apaiShellInlineDiscover) { ?>

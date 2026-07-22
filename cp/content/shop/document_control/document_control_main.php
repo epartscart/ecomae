@@ -147,48 +147,135 @@ $wrapClass = $epc_dc_embed ? 'epc-dc-erp-embed' : 'col-lg-12 epc-erp-shell';
 					<li><strong>Payment Receipt</strong> — customer payment acknowledgment</li>
 				</ul>
 			<?php elseif ($tab === 'company'): ?>
-				<form id="epc_dc_company_form" class="form-horizontal">
+				<?php $logo = trim((string)($company['logo_path'] ?? '')); ?>
+				<form id="epc_dc_company_form" class="epc-dc-company">
 					<input type="hidden" name="action" value="save_company">
 					<input type="hidden" name="csrf_guard_key" value="<?php echo epc_dc_h($csrf); ?>">
-					<div class="row">
-						<div class="col-md-8">
-							<div class="form-group"><label class="col-sm-3 control-label">Legal name</label>
-								<div class="col-sm-9"><input class="form-control" name="legal_name" value="<?php echo epc_dc_h($company['legal_name'] ?? ''); ?>"></div></div>
-							<div class="form-group"><label class="col-sm-3 control-label">Trade name</label>
-								<div class="col-sm-9"><input class="form-control" name="trade_name" value="<?php echo epc_dc_h($company['trade_name'] ?? ''); ?>"></div></div>
-							<div class="form-group"><label class="col-sm-3 control-label">Address line 1</label>
-								<div class="col-sm-9"><input class="form-control" name="address_line1" value="<?php echo epc_dc_h($company['address_line1'] ?? ''); ?>"></div></div>
-							<div class="form-group"><label class="col-sm-3 control-label">Address line 2</label>
-								<div class="col-sm-9"><input class="form-control" name="address_line2" value="<?php echo epc_dc_h($company['address_line2'] ?? ''); ?>"></div></div>
-							<div class="form-group"><label class="col-sm-3 control-label">City / Country</label>
-								<div class="col-sm-4"><input class="form-control" name="city" value="<?php echo epc_dc_h($company['city'] ?? ''); ?>"></div>
-								<div class="col-sm-5"><input class="form-control" name="country" value="<?php echo epc_dc_h($company['country'] ?? 'United Arab Emirates'); ?>"></div></div>
-							<div class="form-group"><label class="col-sm-3 control-label">TRN (VAT reg.)</label>
-								<div class="col-sm-9"><input class="form-control" name="trn" value="<?php echo epc_dc_h($company['trn'] ?? ''); ?>" placeholder="15-digit UAE TRN"></div></div>
-							<div class="form-group"><label class="col-sm-3 control-label">Phone / Email</label>
-								<div class="col-sm-4"><input class="form-control" name="phone" value="<?php echo epc_dc_h($company['phone'] ?? ''); ?>"></div>
-								<div class="col-sm-5"><input class="form-control" name="email" value="<?php echo epc_dc_h($company['email'] ?? ''); ?>"></div></div>
-							<div class="form-group"><label class="col-sm-3 control-label">Website</label>
-								<div class="col-sm-9"><input class="form-control" name="website" value="<?php echo epc_dc_h($company['website'] ?? ''); ?>"></div></div>
-							<div class="form-group"><label class="col-sm-3 control-label">Bank / IBAN</label>
-								<div class="col-sm-4"><input class="form-control" name="bank_name" value="<?php echo epc_dc_h($company['bank_name'] ?? ''); ?>"></div>
-								<div class="col-sm-5"><input class="form-control" name="bank_iban" value="<?php echo epc_dc_h($company['bank_iban'] ?? ''); ?>"></div></div>
-							<div class="form-group"><label class="col-sm-3 control-label">Legal footer</label>
-								<div class="col-sm-9"><textarea class="form-control" rows="4" name="legal_footer"><?php echo epc_dc_h($company['legal_footer'] ?? ''); ?></textarea>
-								<p class="help-block">Shown on all documents — FTA retention, TRN disclaimer, terms.</p></div></div>
-							<div class="form-group"><div class="col-sm-offset-3 col-sm-9">
+
+					<div class="epc-dc-company-layout">
+						<div class="epc-dc-company-main">
+							<section class="epc-dc-card">
+								<header class="epc-dc-card__head">
+									<h4>Identity</h4>
+									<p>Legal and trade names shown on invoices and receipts.</p>
+								</header>
+								<div class="epc-dc-grid epc-dc-grid--2">
+									<label class="epc-dc-field">
+										<span>Legal name</span>
+										<input class="form-control" name="legal_name" value="<?php echo epc_dc_h($company['legal_name'] ?? ''); ?>">
+									</label>
+									<label class="epc-dc-field">
+										<span>Trade name</span>
+										<input class="form-control" name="trade_name" value="<?php echo epc_dc_h($company['trade_name'] ?? ''); ?>">
+									</label>
+								</div>
+							</section>
+
+							<section class="epc-dc-card">
+								<header class="epc-dc-card__head">
+									<h4>Address</h4>
+									<p>Registered / correspondence address for document headers.</p>
+								</header>
+								<div class="epc-dc-grid">
+									<label class="epc-dc-field epc-dc-field--full">
+										<span>Address line 1</span>
+										<input class="form-control" name="address_line1" value="<?php echo epc_dc_h($company['address_line1'] ?? ''); ?>">
+									</label>
+									<label class="epc-dc-field epc-dc-field--full">
+										<span>Address line 2</span>
+										<input class="form-control" name="address_line2" value="<?php echo epc_dc_h($company['address_line2'] ?? ''); ?>">
+									</label>
+									<label class="epc-dc-field">
+										<span>City</span>
+										<input class="form-control" name="city" value="<?php echo epc_dc_h($company['city'] ?? ''); ?>">
+									</label>
+									<label class="epc-dc-field">
+										<span>Country</span>
+										<input class="form-control" name="country" value="<?php echo epc_dc_h($company['country'] ?? 'United Arab Emirates'); ?>">
+									</label>
+								</div>
+							</section>
+
+							<section class="epc-dc-card">
+								<header class="epc-dc-card__head">
+									<h4>Tax &amp; contact</h4>
+									<p>TRN and contact details used on FTA tax invoices.</p>
+								</header>
+								<div class="epc-dc-grid">
+									<label class="epc-dc-field epc-dc-field--full">
+										<span>TRN (VAT registration)</span>
+										<input class="form-control" name="trn" value="<?php echo epc_dc_h($company['trn'] ?? ''); ?>" placeholder="15-digit UAE TRN">
+									</label>
+									<label class="epc-dc-field">
+										<span>Phone</span>
+										<input class="form-control" name="phone" value="<?php echo epc_dc_h($company['phone'] ?? ''); ?>">
+									</label>
+									<label class="epc-dc-field">
+										<span>Email</span>
+										<input class="form-control" name="email" type="email" value="<?php echo epc_dc_h($company['email'] ?? ''); ?>">
+									</label>
+									<label class="epc-dc-field epc-dc-field--full">
+										<span>Website</span>
+										<input class="form-control" name="website" value="<?php echo epc_dc_h($company['website'] ?? ''); ?>">
+									</label>
+								</div>
+							</section>
+
+							<section class="epc-dc-card">
+								<header class="epc-dc-card__head">
+									<h4>Banking</h4>
+									<p>Optional payment details for receipts and invoices.</p>
+								</header>
+								<div class="epc-dc-grid epc-dc-grid--2">
+									<label class="epc-dc-field">
+										<span>Bank name</span>
+										<input class="form-control" name="bank_name" value="<?php echo epc_dc_h($company['bank_name'] ?? ''); ?>">
+									</label>
+									<label class="epc-dc-field">
+										<span>IBAN</span>
+										<input class="form-control" name="bank_iban" value="<?php echo epc_dc_h($company['bank_iban'] ?? ''); ?>">
+									</label>
+								</div>
+							</section>
+
+							<section class="epc-dc-card">
+								<header class="epc-dc-card__head">
+									<h4>Legal footer</h4>
+									<p>Shown on all documents — FTA retention, TRN disclaimer, terms.</p>
+								</header>
+								<label class="epc-dc-field epc-dc-field--full">
+									<span>Footer text</span>
+									<textarea class="form-control" rows="4" name="legal_footer"><?php echo epc_dc_h($company['legal_footer'] ?? ''); ?></textarea>
+								</label>
+							</section>
+
+							<div class="epc-dc-company-actions">
 								<button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save company profile</button>
 								<button type="button" class="btn btn-default" id="epc_dc_sync_seller"><i class="fa fa-download"></i> Import from E-Invoicing</button>
-							</div></div>
+							</div>
 						</div>
-						<div class="col-md-4">
-							<h4>Company logo</h4>
-							<?php $logo = trim((string)($company['logo_path'] ?? '')); ?>
-							<?php if ($logo !== ''): ?><p><img src="<?php echo epc_dc_h($logo); ?>" class="epc-dc-logo" alt="Logo"></p><?php endif; ?>
-							<input type="file" id="epc_dc_logo_file" accept="image/*">
-							<button type="button" class="btn btn-sm btn-success" id="epc_dc_upload_logo"><i class="fa fa-upload"></i> Upload logo</button>
-							<p class="help-block">PNG or JPG recommended. Appears on every document header.</p>
-						</div>
+
+						<aside class="epc-dc-company-side">
+							<section class="epc-dc-card epc-dc-card--logo">
+								<header class="epc-dc-card__head">
+									<h4>Company logo</h4>
+									<p>Appears on every document header.</p>
+								</header>
+								<div class="epc-dc-logo-box<?php echo $logo === '' ? ' is-empty' : ''; ?>">
+									<?php if ($logo !== ''): ?>
+										<img src="<?php echo epc_dc_h($logo); ?>" class="epc-dc-logo" alt="Company logo">
+									<?php else: ?>
+										<div class="epc-dc-logo-placeholder"><i class="fa fa-image"></i><span>No logo uploaded</span></div>
+									<?php endif; ?>
+								</div>
+								<label class="epc-dc-file">
+									<span class="epc-dc-file__btn"><i class="fa fa-folder-open"></i> Choose image</span>
+									<input type="file" id="epc_dc_logo_file" accept="image/*">
+								</label>
+								<button type="button" class="btn btn-success btn-block" id="epc_dc_upload_logo"><i class="fa fa-upload"></i> Upload logo</button>
+								<p class="help-block" style="margin:10px 0 0;">PNG or JPG recommended. Keep a clean square or wide mark.</p>
+							</section>
+						</aside>
 					</div>
 				</form>
 			<?php elseif ($tab === 'templates'): ?>

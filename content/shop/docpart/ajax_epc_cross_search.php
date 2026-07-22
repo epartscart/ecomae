@@ -1,6 +1,7 @@
 <?php
 
 header('Content-Type: application/json;charset=utf-8;');
+header('X-Robots-Tag: noindex, nofollow, noarchive');
 
 
 
@@ -14,10 +15,14 @@ if(is_file($docpart_cross_interchange_path))
 }
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/docpart_manufacturer_synonyms.php");
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_crossbase_cache.php");
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_storefront_anti_crawl.php");
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_storefront_prices_helpers.php");
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
 
 
 
 $DP_Config = new DP_Config;
+$GLOBALS['DP_Config'] = $DP_Config;
 
 $article_input = isset($_GET['article']) ? trim((string)$_GET['article']) : '';
 
@@ -87,6 +92,16 @@ catch(Exception $e)
 	epc_cross_json(array('status' => false, 'message' => 'Database unavailable', 'references' => array(), 'stock' => array()));
 
 }
+
+$GLOBALS['db_link'] = $db_link;
+
+// Anti-crawl after DB connect (session/visibility need PDO). tech_key+cp_bulk still allowed.
+$epc_cross_anti_crawl = epc_storefront_anti_crawl_enforce($DP_Config, array(
+	'bucket' => 'cross_search',
+	'guest_max' => 20,
+	'user_max' => 80,
+	'window' => 60,
+));
 
 
 
@@ -3342,7 +3357,15 @@ if($reciprocal_crossbase_count > 0)
 
 $source = count($source_parts) ? implode('_and_', $source_parts) : 'none';
 
-
+// Guest / pending: never return raw price/qty/warehouse in stock[].
+// CP bulk (tech_key) keeps full stock for admin tooling.
+$epc_cross_prices_visible = true;
+if (empty($epc_cross_cp_bulk)
+	&& (empty($epc_cross_anti_crawl['tech_key']) && empty($epc_cross_anti_crawl['prices_visible']))
+) {
+	epc_storefront_anti_crawl_redact_cross_stock($stock);
+	$epc_cross_prices_visible = false;
+}
 
 epc_cross_json(array(
 
@@ -3388,6 +3411,8 @@ epc_cross_json(array(
 	'manufacturer_synonyms' => $manufacturer_synonym_map,
 
 	'manufacturer_canonical' => $manufacturer_canonical_map,
+
+	'prices_visible' => $epc_cross_prices_visible,
 
 ));
 

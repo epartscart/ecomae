@@ -12,7 +12,18 @@ if (empty($user_session) || !is_array($user_session)) {
 	return;
 }
 
-$include = $_SERVER['DOCUMENT_ROOT'] . '/' . $GLOBALS['DP_Config']->backend_dir . '/content/shop/logistics/logistics_carriers.php';
+// CSS/JS for this URL are declared in epc_cp_page_assets.php (shop/logistics/carriers).
+// The module also emits a CSS <link> fallback so the hub never renders unstyled.
+
+$backend = (string)$GLOBALS['DP_Config']->backend_dir;
+$include = $_SERVER['DOCUMENT_ROOT'] . '/' . $backend . '/content/shop/logistics/logistics_carriers.php';
+if (!is_file($include)) {
+	// Some CP boots set DOCUMENT_ROOT to the backend folder.
+	$alt = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/logistics/logistics_carriers.php';
+	if (is_file($alt)) {
+		$include = $alt;
+	}
+}
 if (!is_file($include)) {
 	echo '<div class="alert alert-danger">Logistics carriers module not found.</div>';
 	return;

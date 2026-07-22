@@ -25,6 +25,21 @@ if ($backend === '') {
 	$backend = 'cp';
 }
 
+$shopName = 'Your shop';
+$shopUrl = '/';
+try {
+	require_once $docRoot . '/content/shop/marketing/epc_marketing_broadcast_helpers.php';
+	if (function_exists('epc_mb_shop_context')) {
+		$shop = epc_mb_shop_context($DP_Config);
+		$shopName = (string) ($shop['shop_name'] ?? $shopName);
+		$shopUrl = (string) ($shop['shop_url'] ?? $shopUrl);
+	}
+} catch (Throwable $e) {
+	// keep defaults
+}
+
 echo 'window.EPC_MB=' . json_encode(array(
 	'ajaxUrl' => '/content/general_pages/ajax_epc_marketing_broadcast.php',
+	'shopName' => $shopName,
+	'shopUrl' => $shopUrl,
 ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';

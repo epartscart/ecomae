@@ -43,13 +43,30 @@ $currency = !empty($paysystem_parameters['currency']) ? (string)$paysystem_param
 $sum = (float)$operation['amount'];
 $handler = preg_replace('/[^a-z0-9_]/', '', (string)$EPC_PAY_HANDLER);
 
+// Crypto: dedicated invoice UI (works in demo + live NOWPayments)
+if ($handler === 'nowpayments') {
+	$payPage = '/content/shop/finance/payment_systems/crypto_pay_page.php';
+	?>
+	<form name="pay_form" style="display:none" method="post" action="<?php echo htmlspecialchars($payPage, ENT_QUOTES, 'UTF-8'); ?>">
+		<input type="hidden" name="EPC_PAY_HANDLER" value="<?php echo htmlspecialchars($handler, ENT_QUOTES, 'UTF-8'); ?>">
+		<input type="hidden" name="operation_id" value="<?php echo (int)$operation_id; ?>">
+		<input type="hidden" name="sum" value="<?php echo htmlspecialchars((string)$sum, ENT_QUOTES, 'UTF-8'); ?>">
+		<input type="hidden" name="operation_description" value="<?php echo htmlspecialchars($operation_description, ENT_QUOTES, 'UTF-8'); ?>">
+		<input type="hidden" name="user_id" value="<?php echo (int)$user_id; ?>">
+		<input type="hidden" name="currency" value="<?php echo htmlspecialchars($currency, ENT_QUOTES, 'UTF-8'); ?>">
+	</form>
+	<script>document.forms['pay_form'].submit();</script>
+	<?php
+	exit;
+}
+
 if (!$demoMode) {
 	?>
 	<!DOCTYPE html><html><head><meta charset="utf-8"><title>Configure gateway</title>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"></head>
 	<body style="padding:40px"><div class="container"><div class="alert alert-warning">
-	<strong><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $handler)), ENT_QUOTES, 'UTF-8'); ?></strong> is set to live mode but live API integration is not wired yet.
-	Enable <em>Demo mode</em> in CP → Payment gateways, or add real API keys and implement the live redirect.
+	<strong><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $handler)), ENT_QUOTES, 'UTF-8'); ?></strong> is set to live mode but live API redirect for this acquirer is not wired yet.
+	Enable <em>Demo mode</em> in CP → Payment gateways, or keep using Crypto (NOWPayments) which supports live API keys.
 	<br><a href="<?php echo $multilang_params['lang_href']; ?>/shop/balans" class="btn btn-default btn-sm" style="margin-top:12px">Back</a>
 	</div></div></body></html>
 	<?php

@@ -399,6 +399,13 @@
   display: grid;
   gap: 14px;
 }
+/* Spec splash (part page): denser, readable tables inside Fitment-style overlay */
+.epc-spec-panel .epc-sku-storefront__specs {
+  gap: 12px;
+}
+.epc-spec-panel .epc-sku-storefront__group {
+  box-shadow: 0 8px 20px rgba(15, 23, 42, .04);
+}
 .epc-sku-storefront__group {
   border: 1px solid #e2e8f0;
   border-radius: 12px;

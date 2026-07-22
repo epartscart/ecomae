@@ -100,6 +100,8 @@ function epc_cp_mainstream_menu_apply(PDO $pdo)
 	epc_cp_mm_lang($pdo, 'epc_logistics_guide_cp', 'Logistics guide', 'Гид по логистике');
 	epc_cp_mm_lang($pdo, 'epc_logistics_obtain_cp', 'Delivery methods', 'Способы доставки');
 	epc_cp_mm_lang($pdo, 'epc_logistics_orders_cp', 'Customer orders', 'Заказы клиентов');
+	epc_cp_mm_lang($pdo, 'epc_whatsapp_guide', 'WhatsApp guide', 'Гид WhatsApp');
+	epc_cp_mm_lang($pdo, 'epc_whatsapp_guide_cp', 'WhatsApp guide', 'Гид WhatsApp');
 	epc_cp_mm_lang($pdo, 'epc_custom_shipping_cp', 'Custom & Shipping', 'Таможня и доставка');
 	epc_cp_mm_lang($pdo, 'epc_custom_shipping_guide_cp', 'Custom & Shipping guide', 'Гид: таможня и доставка');
 
@@ -194,6 +196,16 @@ function epc_cp_mainstream_menu_apply(PDO $pdo)
 		'#64748b',
 		'fas fa-shopping-cart',
 		0
+	);
+	$items['whatsapp_guide'] = epc_cp_mm_ensure_item(
+		$pdo,
+		$logisticsGroup,
+		'epc_whatsapp_guide',
+		'/<backend>/shop/orders/whatsapp-guide',
+		55,
+		'#25D366',
+		'fab fa-whatsapp',
+		1
 	);
 
 	// Remove obtaining modes from Channels group if it still points at logistics URL

@@ -1,0 +1,297 @@
+/* Catalogue tree editor — professional CP shell */
+.epc-cat-editor {
+	--epc-ce-ink: #0f172a;
+	--epc-ce-muted: #64748b;
+	--epc-ce-line: #e2e8f0;
+	--epc-ce-soft: #f8fafc;
+	--epc-ce-blue: #2563eb;
+	--epc-ce-green: #16a34a;
+	--epc-ce-red: #dc2626;
+	--epc-ce-amber: #d97706;
+	margin: 0 0 24px;
+}
+
+.epc-cat-editor__toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	padding: 12px 14px;
+	margin-bottom: 14px;
+	border: 1px solid var(--epc-ce-line);
+	border-radius: 12px;
+	background:
+		radial-gradient(900px 160px at 0% 0%, rgba(37, 99, 235, 0.07), transparent 55%),
+		linear-gradient(180deg, #ffffff 0%, var(--epc-ce-soft) 100%);
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.epc-cat-editor__toolbar .epc-ce-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 8px 12px;
+	border: 1px solid var(--epc-ce-line);
+	border-radius: 9px;
+	background: #fff;
+	color: var(--epc-ce-ink);
+	font-size: 13px;
+	font-weight: 650;
+	line-height: 1.2;
+	text-decoration: none !important;
+	cursor: pointer;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.epc-cat-editor__toolbar .epc-ce-btn:hover {
+	border-color: #93c5fd;
+	box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+	transform: translateY(-1px);
+	color: var(--epc-ce-ink);
+}
+
+.epc-cat-editor__toolbar .epc-ce-btn--primary {
+	background: var(--epc-ce-blue);
+	border-color: var(--epc-ce-blue);
+	color: #fff !important;
+}
+
+.epc-cat-editor__toolbar .epc-ce-btn--primary:hover {
+	background: #1d4ed8;
+	border-color: #1d4ed8;
+	color: #fff !important;
+}
+
+.epc-cat-editor__toolbar .epc-ce-btn--danger {
+	color: var(--epc-ce-red);
+}
+
+.epc-cat-editor__toolbar .epc-ce-btn--danger:hover {
+	border-color: #fca5a5;
+	box-shadow: 0 4px 14px rgba(220, 38, 38, 0.12);
+}
+
+.epc-cat-editor__toolbar .epc-ce-btn i {
+	font-size: 14px;
+	opacity: 0.9;
+}
+
+.epc-cat-editor__toolbar-spacer {
+	flex: 1 1 12px;
+	min-width: 8px;
+}
+
+.epc-cat-editor__options {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 14px;
+	margin-bottom: 14px;
+	border: 1px solid var(--epc-ce-line);
+	border-radius: 10px;
+	background: #fff;
+	color: var(--epc-ce-muted);
+	font-size: 13px;
+}
+
+.epc-cat-editor__options label {
+	margin: 0;
+	font-weight: 600;
+	color: var(--epc-ce-ink);
+	cursor: pointer;
+}
+
+.epc-cat-editor__workspace {
+	display: grid;
+	grid-template-columns: minmax(280px, 1fr) minmax(300px, 1fr);
+	gap: 14px;
+	align-items: start;
+}
+
+@media (max-width: 991px) {
+	.epc-cat-editor__workspace {
+		grid-template-columns: 1fr;
+	}
+}
+
+.epc-cat-editor__pane {
+	border: 1px solid var(--epc-ce-line);
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	overflow: hidden;
+	min-width: 0;
+}
+
+.epc-cat-editor__pane-h {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--epc-ce-line);
+	background: linear-gradient(180deg, #ffffff 0%, var(--epc-ce-soft) 100%);
+}
+
+.epc-cat-editor__pane-h h3 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--epc-ce-ink);
+	letter-spacing: 0.01em;
+}
+
+.epc-cat-editor__pane-h span {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--epc-ce-muted);
+}
+
+.epc-cat-editor__search {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 14px;
+	border-bottom: 1px solid var(--epc-ce-line);
+	background: #fff;
+}
+
+.epc-cat-editor__search input {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 34px;
+	padding: 6px 10px;
+	border: 1px solid var(--epc-ce-line);
+	border-radius: 8px;
+	font-size: 13px;
+	color: var(--epc-ce-ink);
+	background: var(--epc-ce-soft);
+}
+
+.epc-cat-editor__search input:focus {
+	outline: none;
+	border-color: #93c5fd;
+	background: #fff;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.epc-cat-editor__tree-wrap {
+	padding: 8px;
+	background:
+		linear-gradient(180deg, #fbfdff 0%, #ffffff 40%);
+}
+
+.epc-cat-editor__tree-wrap #container_A {
+	height: min(62vh, 560px) !important;
+	min-height: 360px;
+	border: 1px solid var(--epc-ce-line);
+	border-radius: 8px;
+	background: #fff;
+}
+
+.epc-cat-editor__pane-f {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 10px 14px;
+	border-top: 1px solid var(--epc-ce-line);
+	background: var(--epc-ce-soft);
+}
+
+.epc-cat-editor__pane-f .btn {
+	border-radius: 8px;
+}
+
+.epc-cat-editor__detail-body {
+	padding: 14px 16px 18px;
+	min-height: 280px;
+}
+
+.epc-cat-editor__detail-body .epc-ce-empty {
+	padding: 36px 16px;
+	text-align: center;
+	color: var(--epc-ce-muted);
+	font-size: 13px;
+}
+
+.epc-cat-editor__detail-body .epc-ce-section {
+	margin: 0 0 16px;
+}
+
+.epc-cat-editor__detail-body .epc-ce-section-title {
+	margin: 0 0 10px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--epc-ce-line);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--epc-ce-muted);
+}
+
+.epc-cat-editor__detail-body .form-group {
+	margin-bottom: 10px;
+}
+
+.epc-cat-editor__detail-body .control-label {
+	font-size: 12px;
+	font-weight: 650;
+	color: var(--epc-ce-muted);
+	padding-top: 8px;
+}
+
+.epc-cat-editor__detail-body .form-control {
+	border-radius: 8px;
+	border-color: var(--epc-ce-line);
+	font-size: 13px;
+}
+
+.epc-cat-editor__detail-body .hr-line-dashed {
+	display: none;
+}
+
+.epc-cat-editor__detail-body #image_div {
+	margin-top: 8px;
+	padding: 10px;
+	border: 1px dashed var(--epc-ce-line);
+	border-radius: 10px;
+	background: var(--epc-ce-soft);
+}
+
+.epc-cat-editor__detail-body #image_div img {
+	max-width: 120px;
+	max-height: 120px;
+	border-radius: 6px;
+}
+
+/* Hide file inputs used only for multipart save — never show “Choose File” clutter */
+.epc-cat-editor #img_box,
+form[name="form_to_save"] #img_box,
+#img_box {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	border: 0 !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
+
+form[name="form_to_save"] {
+	display: none !important;
+}
+
+.webix_tree_item {
+	font-size: 13px;
+}
+
+.epc-cat-editor .webix_view {
+	font-family: inherit;
+}
