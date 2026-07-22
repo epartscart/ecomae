@@ -98,20 +98,22 @@ if (is_file($epcAuthSocialFile)) {
 	echo epc_cp_login_modern_auth_html($epcAuthUi);
 }
 ?>
-                        <form id="login_form" method="POST">
+                        <form id="login_form" method="POST" autocomplete="off" data-epc-no-autofill="1">
 							<input type="hidden" name="authentication" value="authentication"/>
+							<input type="text" name="epc_autofill_trap_user" value="" tabindex="-1" aria-hidden="true" autocomplete="username" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
+							<input type="password" name="epc_autofill_trap_pass" value="" tabindex="-1" aria-hidden="true" autocomplete="current-password" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
                             
 							
 							<div class="form-group">
 								<label class="control-label" for="auth_contact_select"><?php echo translate_str_by_id(4016); ?></label>
-								<select class="form-control" name="auth_contact_select" id="auth_contact_select" onchange="on_auth_contact_select_changed();">
+								<select class="form-control" name="auth_contact_select" id="auth_contact_select" onchange="on_auth_contact_select_changed();" autocomplete="off">
 									<option value="email">E-mail</option>
 									<option value="phone"><?php echo translate_str_by_id(1312); ?></option>
 								</select>
 							</div>
 							<div class="form-group">
 								<label for="auth_contact_input" class="control-label" id="auth_contact_label"></label>
-								<input type="text" placeholder="" title="" value="" name="auth_contact" id="auth_contact_input" class="form-control" />
+								<input type="text" placeholder="" title="" value="" name="auth_contact" id="auth_contact_input" class="form-control" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-epc-secure-field="1" readonly />
                             </div>
 							<script>
 							//Обработка выбора контакта
@@ -134,10 +136,37 @@ if (is_file($epcAuthSocialFile)) {
 							
                             <div class="form-group">
                                 <label class="control-label" for="password"><?php echo translate_str_by_id(1311); ?></label>
-                                <input type="password" title="Please enter your password" placeholder="<?php echo translate_str_by_id(4019); ?>" required="" value="" name="password" id="password" class="form-control">
+                                <input type="password" title="Please enter your password" placeholder="<?php echo translate_str_by_id(4019); ?>" required="" value="" name="password" id="password" class="form-control" autocomplete="new-password" data-epc-secure-field="1" readonly>
                             </div>
                             <button type="submit" class="btn btn-success btn-block"><?php echo translate_str_by_id(4008); ?></button>
                         </form>
+						<script>
+						(function(){
+							var form = document.getElementById('login_form');
+							if (!form) return;
+							function unlock(el){ if (el) el.removeAttribute('readonly'); }
+							function clearAutofill(){
+								var fields = form.querySelectorAll('[data-epc-secure-field="1"]');
+								for (var i = 0; i < fields.length; i++) {
+									if (fields[i].value) fields[i].value = '';
+								}
+								var traps = form.querySelectorAll('input[name^="epc_autofill_trap_"]');
+								for (var t = 0; t < traps.length; t++) traps[t].value = '';
+							}
+							clearAutofill();
+							setTimeout(clearAutofill, 50);
+							setTimeout(clearAutofill, 300);
+							setTimeout(clearAutofill, 1000);
+							var secure = form.querySelectorAll('[data-epc-secure-field="1"]');
+							for (var i = 0; i < secure.length; i++) {
+								(function(el){
+									el.addEventListener('focus', function(){ unlock(el); }, true);
+									el.addEventListener('mousedown', function(){ unlock(el); }, true);
+									el.addEventListener('touchstart', function(){ unlock(el); }, true);
+								})(secure[i]);
+							}
+						})();
+						</script>
 <?php if ($epcLoginCentered && !empty($epcLogin['features'])) { ?>
 						<ul class="epc-cp-login-features epc-cp-login-features--card">
 							<?php foreach ($epcLogin['features'] as $icon => $label) { ?>

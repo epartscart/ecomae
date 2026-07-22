@@ -28,7 +28,7 @@ $label = htmlspecialchars((string) ($ui['login_label'] ?? 'Shop'), ENT_QUOTES, '
 	<p class="epc-cp-auth-hint">Enter your email — we&rsquo;ll send a 6-digit code. New customers are registered automatically.</p>
 	<div class="form-group">
 		<input type="email" class="form-control" id="<?php echo htmlspecialchars($uid, ENT_QUOTES, 'UTF-8'); ?>_email"
-			autocomplete="email" placeholder="your@email.com" />
+			autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-epc-secure-field="1" readonly placeholder="your@email.com" value="" />
 	</div>
 	<button type="button" class="btn btn-ar btn-block epc-continue-email" id="<?php echo htmlspecialchars($uid, ENT_QUOTES, 'UTF-8'); ?>_send">
 		Continue with Email
@@ -36,6 +36,20 @@ $label = htmlspecialchars((string) ($ui['login_label'] ?? 'Shop'), ENT_QUOTES, '
 	<style>.epc-continue-email{background:#111827;border-color:#111827;color:#fff;font-weight:600}.epc-continue-email:hover,.epc-continue-email:focus{background:#000;border-color:#000;color:#fff}</style>
 	<p class="epc-cp-auth-msg" id="<?php echo htmlspecialchars($uid, ENT_QUOTES, 'UTF-8'); ?>_msg" aria-live="polite"></p>
 </div>
+<script>
+(function(){
+	var el = document.getElementById(<?php echo json_encode($uid . '_email'); ?>);
+	if (!el) return;
+	function unlock(){ el.removeAttribute('readonly'); }
+	function clear(){ if (el.value) el.value = ''; }
+	clear();
+	setTimeout(clear, 50);
+	setTimeout(clear, 300);
+	el.addEventListener('focus', unlock, true);
+	el.addEventListener('mousedown', unlock, true);
+	el.addEventListener('touchstart', unlock, true);
+})();
+</script>
 
 <?php
 // Render the Skywork-style 6-box modal
