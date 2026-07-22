@@ -418,6 +418,19 @@ function epc_cp_page_asset_url_map(): array
 				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia4'),
 			),
 		),
+		'filemanager' => array(
+			'css' => array(
+				'/' . $backend . '/lib/elfinder/css/elfinder.min.css',
+				'/' . $backend . '/lib/elfinder/css/theme.css',
+				'/' . $backend . '/content/filemanager/epc_filemanager.css?v=' . rawurlencode($ver . 'fm5'),
+			),
+			'js' => array(
+				'/lib/jquery_browser/jquery.browser.js',
+				'/' . $backend . '/lib/elfinder/js/elfinder.min.js',
+				'/' . $backend . '/content/filemanager/epc_filemanager_config.php?v=' . rawurlencode($ver . 'fm5'),
+				'/' . $backend . '/content/filemanager/epc_filemanager.js?v=' . rawurlencode($ver . 'fm5'),
+			),
+		),
 		'shop/catalogue/catalogue_editor' => array(
 			'css' => array('/content/shop/catalogue/epc_catalogue_editor.css?v=' . rawurlencode($ver . 'catEd1')),
 		),
