@@ -160,11 +160,11 @@ function epc_cp_page_asset_url_map(): array
 			'css' => array(
 				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
 				'/content/general_pages/epc_portal_module_pages_css.php?v=' . rawurlencode($ver),
-				'/content/general_pages/epc_marketing_broadcast_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_marketing_broadcast_css.php?v=' . rawurlencode($ver . 'mb1'),
 			),
 			'js' => array(
-				'/content/general_pages/epc_marketing_broadcast_config.php?v=' . rawurlencode($ver),
-				'/content/general_pages/epc_marketing_broadcast_js.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_marketing_broadcast_config.php?v=' . rawurlencode($ver . 'mb1'),
+				'/content/general_pages/epc_marketing_broadcast_js.php?v=' . rawurlencode($ver . 'mb1'),
 			),
 		),
 		'control/portal/epc_mobile_apps' => array(

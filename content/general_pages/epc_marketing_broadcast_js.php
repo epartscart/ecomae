@@ -23,7 +23,7 @@ if (!is_file($path)) {
 	exit;
 }
 
-$ver = '20260609mb1';
+$ver = '20260722mb1';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 
