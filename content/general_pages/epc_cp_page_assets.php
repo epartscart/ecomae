@@ -17,6 +17,24 @@ function epc_cp_page_asset_url_map(): array
 	$backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
 
 	return array(
+		'control/communications' => array(
+			'css' => array('/content/general_pages/epc_comms_notify_css.php?v=' . rawurlencode($ver . 'cn1')),
+			'js' => array(
+				'/' . $backend . '/content/control/epc_comms_notify.js?v=' . rawurlencode($ver . 'cn1'),
+			),
+		),
+		'control/notifications_settings' => array(
+			'css' => array('/content/general_pages/epc_comms_notify_css.php?v=' . rawurlencode($ver . 'cn1')),
+			'js' => array(
+				'/' . $backend . '/content/control/epc_comms_notify.js?v=' . rawurlencode($ver . 'cn1'),
+			),
+		),
+		'control/notifications_settings/notification' => array(
+			'css' => array('/content/general_pages/epc_comms_notify_css.php?v=' . rawurlencode($ver . 'cn1')),
+			'js' => array(
+				'/' . $backend . '/content/control/epc_comms_notify.js?v=' . rawurlencode($ver . 'cn1'),
+			),
+		),
 		'control/config' => array(
 			'css' => array('/content/general_pages/epc_config_edit_css.php?v=' . rawurlencode($ver . 'cfg6')),
 			'js' => array(
