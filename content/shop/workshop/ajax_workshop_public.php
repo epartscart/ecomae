@@ -27,30 +27,64 @@ $action = (string) ($_POST['action'] ?? $_GET['action'] ?? '');
 
 try {
 	if ($action === 'track') {
-		$ref = (string) ($_POST['ref'] ?? $_GET['ref'] ?? '');
+		$ref = trim((string) ($_POST['ref'] ?? $_GET['ref'] ?? ''));
 		$phone = (string) ($_POST['phone'] ?? $_GET['phone'] ?? '');
 		$job = epc_ws_job_find_public($db, $ref, $phone);
-		if (!$job) {
-			echo json_encode(array('status' => false, 'message' => 'No job found for that reference.'));
+		if ($job) {
+			$h = $job['header'];
+			$statuses = epc_ws_statuses();
+			echo json_encode(array(
+				'status' => true,
+				'job' => array(
+					'job_no' => $h['job_no'],
+					'status' => $h['status'],
+					'status_label' => $statuses[$h['status']] ?? $h['status'],
+					'plate' => $h['plate'],
+					'make' => $h['make'],
+					'model' => $h['model'],
+					'customer_name' => $h['customer_name'],
+					'grand_total' => (float) $h['grand_total'],
+					'time_updated' => (int) $h['time_updated'],
+					'estimate_approved' => (int) $h['estimate_approved'],
+				),
+			));
 			exit;
 		}
-		$h = $job['header'];
-		$statuses = epc_ws_statuses();
-		echo json_encode(array(
-			'status' => true,
-			'job' => array(
-				'job_no' => $h['job_no'],
-				'status' => $h['status'],
-				'status_label' => $statuses[$h['status']] ?? $h['status'],
-				'plate' => $h['plate'],
-				'make' => $h['make'],
-				'model' => $h['model'],
-				'customer_name' => $h['customer_name'],
-				'grand_total' => (float) $h['grand_total'],
-				'time_updated' => (int) $h['time_updated'],
-				'estimate_approved' => (int) $h['estimate_approved'],
-			),
-		));
+		// Also allow tracking appointment references (AP-…)
+		if ($ref !== '') {
+			$st = $db->prepare('SELECT * FROM `epc_ws_appointments` WHERE `ref_no` = ? OR `plate` = ? ORDER BY id DESC LIMIT 1');
+			$st->execute(array($ref, strtoupper($ref)));
+			$a = $st->fetch(PDO::FETCH_ASSOC);
+			if ($a) {
+				if ($phone !== '') {
+					$jp = preg_replace('/\D+/', '', (string) $a['customer_phone']);
+					$pp = preg_replace('/\D+/', '', $phone);
+					if ($jp !== '' && $pp !== '' && substr($jp, -7) !== substr($pp, -7)) {
+						$a = null;
+					}
+				}
+			}
+			if ($a) {
+				$ast = epc_ws_appointment_statuses();
+				echo json_encode(array(
+					'status' => true,
+					'job' => array(
+						'job_no' => $a['ref_no'],
+						'status' => $a['status'],
+						'status_label' => 'Appointment: ' . ($ast[$a['status']] ?? $a['status']),
+						'plate' => $a['plate'],
+						'make' => $a['make'],
+						'model' => $a['model'],
+						'customer_name' => $a['customer_name'],
+						'grand_total' => 0,
+						'time_updated' => (int) $a['time_updated'],
+						'estimate_approved' => 0,
+					),
+				));
+				exit;
+			}
+		}
+		echo json_encode(array('status' => false, 'message' => 'No job found for that reference.'));
 		exit;
 	}
 
