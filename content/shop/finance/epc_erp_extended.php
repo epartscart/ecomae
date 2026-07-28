@@ -179,14 +179,17 @@ function epc_erp_po_save(PDO $db, array $data)
 	if (is_array($poLineDescs)) {
 		$poLineQtys = $data['po_line_qty'] ?? array();
 		$poLineUnits = $data['po_line_unit'] ?? array();
+		$poLineItemCodes = $data['po_line_item_code'] ?? array();
 		foreach ($poLineDescs as $i => $descRaw) {
 			$desc = trim((string) $descRaw);
 			$qty = round((float) ($poLineQtys[$i] ?? 0), 3);
 			$unitCost = round((float) ($poLineUnits[$i] ?? 0), 4);
+			$itemCode = trim((string) ($poLineItemCodes[$i] ?? ''));
 			if ($desc === '' || $qty <= 0) {
 				continue;
 			}
 			$lines[] = array(
+				'item_code' => $itemCode,
 				'description' => $desc,
 				'qty' => $qty,
 				'unit_cost_ex_vat' => $unitCost,

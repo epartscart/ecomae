@@ -25,3 +25,4 @@ if (!is_file($include)) {
 }
 
 include $include;
+?>

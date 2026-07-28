@@ -7,9 +7,11 @@ defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_gl.php';
 include __DIR__ . '/erp_entry_form_css.php';
 
 epc_jewel_ensure_schema($db_link);
+$coa_list = epc_erp_gl_list_coa($db_link);
 $companyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
 $csrfLocal = isset($csrf) ? $csrf : '';
 $journals = epc_jewel_journal_list($db_link, $companyId);
@@ -75,17 +77,27 @@ erp_page_header('<i class="fa fa-book"></i> Journal Voucher', 'Journal voucher e
 
 			<div class="ef-section">
 				<span class="ef-section-title">Journal Lines</span>
-				<table class="ef-grid">
+				<table class="ef-grid" id="epc_jv_lines_grid">
 					<thead><tr>
-						<th>No.</th><th>Account Code</th><th>Account Name</th>
+						<th>No.</th><th>Link COA Account</th><th>Account Code</th><th>Account Name</th>
 						<th>Cost Centre</th><th>Debit</th><th>Credit</th><th>Narration</th>
 					</tr></thead>
 					<tbody>
 					<?php for ($r = 0; $r < 6; $r++): ?>
-						<tr>
+						<tr class="epc-jv-line-row">
 							<td><?php echo $r + 1; ?></td>
-							<td><input name="lines[<?php echo $r; ?>][account_code]" maxlength="20" style="width:80px"></td>
-							<td><input name="lines[<?php echo $r; ?>][account_name]" maxlength="80" style="min-width:120px"></td>
+							<td>
+								<select class="form-control input-sm epc-jv-coa-select" style="width:140px;">
+									<option value="">-- Link COA Account --</option>
+									<?php foreach ($coa_list as $a): ?>
+										<option value="<?php echo epc_erp_h($a['code']); ?>" data-name="<?php echo epc_erp_h($a['name']); ?>">
+											<?php echo epc_erp_h($a['code'] . ' — ' . $a['name']); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+							</td>
+							<td><input name="lines[<?php echo $r; ?>][account_code]" class="epc-jv-code-input" maxlength="20" style="width:80px" readonly></td>
+							<td><input name="lines[<?php echo $r; ?>][account_name]" class="epc-jv-name-input" maxlength="80" style="min-width:120px" readonly></td>
 							<td><input name="lines[<?php echo $r; ?>][cost_centre]" maxlength="20" style="width:60px"></td>
 							<td><input name="lines[<?php echo $r; ?>][debit]" type="number" step="0.01" value="0.00" style="width:80px"></td>
 							<td><input name="lines[<?php echo $r; ?>][credit]" type="number" step="0.01" value="0.00" style="width:80px"></td>
@@ -122,6 +134,25 @@ erp_page_header('<i class="fa fa-book"></i> Journal Voucher', 'Journal voucher e
 				<button type="button" class="btn btn-default btn-sm" onclick="document.getElementById('jw_jv_form').style.display='none'">Cancel</button>
 			</div>
 			</form>
+			<script>
+			(function(){
+				var grid = document.getElementById('epc_jv_lines_grid');
+				if (!grid) return;
+				grid.addEventListener('change', function(ev) {
+					if (ev.target.classList.contains('epc-jv-coa-select')) {
+						var opt = ev.target.options[ev.target.selectedIndex];
+						var tr = ev.target.closest('.epc-jv-line-row');
+						if (opt && opt.value !== '') {
+							tr.querySelector('.epc-jv-code-input').value = opt.value;
+							tr.querySelector('.epc-jv-name-input').value = opt.getAttribute('data-name') || '';
+						} else {
+							tr.querySelector('.epc-jv-code-input').value = '';
+							tr.querySelector('.epc-jv-name-input').value = '';
+						}
+					}
+				});
+			})();
+			</script>
 		</div>
 	</div>
 	<div class="ef-status">
