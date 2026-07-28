@@ -43,8 +43,9 @@ require_once $fin . '/epc_erp_helpers.php';
 require_once $fin . '/epc_uae_vat.php';
 
 try {
-    $db = new PDO("mysql:host=$host;dbname=$name;charset=utf8", $user, $pass, array(
+    $db = new PDO("mysql:host=$host;dbname=$name;charset=utf8;connect_timeout=2", $user, $pass, array(
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_TIMEOUT => 2,
     ));
 } catch (Throwable $e) {
     echo "ERROR: Cannot connect to database: " . $e->getMessage() . "\n";
@@ -603,8 +604,22 @@ $all_balances = $db->query("
 ")->fetch(PDO::FETCH_ASSOC);
 
 check('All GL journals balance (sum debits = sum credits)',
-    abs((float)$all_balances['total_debit'] - (float)$all_balances['total_credit']) < 0.01,
+    abs((float)$all_balances['total_debit'] - (float)$all_balances['total_credit']) < 0.0001,
     'Dr=' . $all_balances['total_debit'] . ' Cr=' . $all_balances['total_credit']);
+
+// Double-entry bookkeeping checks
+$negative_check = $db->query("
+    SELECT COUNT(*) FROM `epc_erp_gl_lines` WHERE `debit` < 0 OR `credit` < 0
+")->fetchColumn();
+check('No negative debit or credit values exist in ledger lines', (int)$negative_check === 0);
+
+$journal_lines_count = $db->query("
+    SELECT `journal_id`, COUNT(*) as cnt
+    FROM `epc_erp_gl_lines`
+    GROUP BY `journal_id`
+    HAVING cnt < 2
+")->fetchAll(PDO::FETCH_ASSOC);
+check('All posted journals have at least two transaction lines (double-entry minimum)', count($journal_lines_count) === 0);
 
 // ============================================================================
 // SECTION 15: PERFORMANCE & INDEXING

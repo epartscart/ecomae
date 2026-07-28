@@ -474,13 +474,21 @@ function epc_erp_gl_post_journal(PDO $db, array $header, array $lines)
 	if (empty($lines)) {
 		throw new Exception('Journal must have lines');
 	}
+	if (count($lines) < 2) {
+		throw new Exception('Double-entry bookkeeping requires at least two lines');
+	}
 	$total_dr = 0.0;
 	$total_cr = 0.0;
 	foreach ($lines as $line) {
-		$total_dr += round((float)($line['debit'] ?? 0), 2);
-		$total_cr += round((float)($line['credit'] ?? 0), 2);
+		$dr_val = (float)($line['debit'] ?? 0);
+		$cr_val = (float)($line['credit'] ?? 0);
+		if ($dr_val < 0 || $cr_val < 0) {
+			throw new Exception('Ledger posting values must be greater than or equal to zero (no double-negatives allowed)');
+		}
+		$total_dr += round($dr_val, 4);
+		$total_cr += round($cr_val, 4);
 	}
-	if (abs($total_dr - $total_cr) > 0.009) {
+	if (abs($total_dr - $total_cr) > 0.0001) {
 		throw new Exception('Journal not balanced: debit ' . $total_dr . ' vs credit ' . $total_cr);
 	}
 	if ($total_dr <= 0) {

@@ -51,8 +51,9 @@ require_once $fin . '/epc_crm_schema.php';
 require_once $fin . '/epc_crm_helpers.php';
 
 try {
-    $db = new PDO("mysql:host=$host;dbname=$name;charset=utf8", $user, $pass, array(
+    $db = new PDO("mysql:host=$host;dbname=$name;charset=utf8;connect_timeout=2", $user, $pass, array(
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_TIMEOUT => 2,
     ));
 } catch (Throwable $e) {
     echo "ERROR: Cannot connect to database: " . $e->getMessage() . "\n";

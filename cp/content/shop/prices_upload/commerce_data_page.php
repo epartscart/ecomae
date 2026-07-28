@@ -17,3 +17,4 @@ echo '<div class="col-lg-12">'
 	. '<a class="btn btn-default" href="' . $pricesUrl . '"><i class="fa fa-list"></i> Price lists</a>'
 	. '</p>'
 	. '</div></div>';
+?>

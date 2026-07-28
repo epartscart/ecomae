@@ -15,6 +15,7 @@ $filters = array(
 	'q' => isset($_GET['q']) ? trim((string) $_GET['q']) : '',
 );
 $orders = epc_erp_sales_orders_list($db_link, $date_from, $date_to, $filters, 200);
+$inventory_items = $db_link->query('SELECT `id`, `sku`, `name`, `sales_price`, `purchase_price` FROM `epc_erp_inv_items` WHERE `active` = 1 ORDER BY `sku` LIMIT 1000')->fetchAll(PDO::FETCH_ASSOC);
 
 if ($erpOnly) {
 	// Customer master = users rows; show the linked ERP contact name when present
@@ -124,7 +125,20 @@ if ($erpOnly) {
 				$custLabel = 'User #' . (int) $r['customer_user_id'];
 			}
 			echo '<td>' . epc_erp_h($custLabel) . '</td>';
-			echo '<td>' . epc_erp_h($r['title']) . '</td>';
+
+			// Load lines to display item codes & descriptions under Title column
+			$soLinesSt = $db_link->prepare('SELECT `item_code`, `description`, `qty` FROM `epc_erp_sales_order_lines` WHERE `sales_order_id` = ? ORDER BY `line_no`');
+			$soLinesSt->execute(array((int)$r['id']));
+			$soLines = $soLinesSt->fetchAll(PDO::FETCH_ASSOC);
+			$linesInfo = '';
+			if (!empty($soLines)) {
+				$linesInfo .= '<div style="font-size:11px;color:#666;margin-top:4px;border-top:1px dashed #e3e3e3;padding-top:4px;">';
+				foreach ($soLines as $sl) {
+					$linesInfo .= '• <code>' . epc_erp_h($sl['item_code'] ?: 'N/A') . '</code> ' . epc_erp_h($sl['description']) . ' (' . (float)$sl['qty'] . ')<br>';
+				}
+				$linesInfo .= '</div>';
+			}
+			echo '<td>' . epc_erp_h($r['title']) . $linesInfo . '</td>';
 			echo '<td class="num">' . epc_erp_money($r['total_amount']) . '</td>';
 			echo '<td>' . epc_erp_dim_badges($db_link, 'sales_order', (int) $r['id']) . '</td>';
 		if ($epcJwMode) {
@@ -192,10 +206,38 @@ if ($erpOnly) {
 			</div></div>
 		<div class="form-group"><label class="col-sm-3">Title</label><div class="col-sm-9"><input name="title" class="form-control input-sm" required></div></div>
 		<div class="form-group"><label class="col-sm-3">Line (ex VAT)</label><div class="col-sm-9 form-inline">
-			<input name="line_desc[]" class="form-control input-sm" placeholder="Description" required>
-			<input name="line_qty[]" type="number" step="0.001" value="1" class="form-control input-sm" style="width:70px">
-			<input name="line_unit[]" type="number" step="0.01" class="form-control input-sm" placeholder="Unit AED" required>
+			<select class="form-control input-sm epc-so-item-select" style="width:160px; margin-right:4px;">
+				<option value="">-- Link Inventory Item --</option>
+				<?php foreach ($inventory_items as $itm): ?>
+					<option value="<?php echo (int)$itm['id']; ?>" data-sku="<?php echo epc_erp_h($itm['sku']); ?>" data-name="<?php echo epc_erp_h($itm['name']); ?>" data-price="<?php echo epc_erp_h($itm['sales_price']); ?>">
+						<?php echo epc_erp_h($itm['sku'] . ' — ' . $itm['name']); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+			<input name="item_code[]" class="form-control input-sm epc-so-item-code" placeholder="Item Code" style="width:100px; margin-right:4px;">
+			<input name="line_desc[]" class="form-control input-sm epc-so-item-desc" placeholder="Description" required style="width:200px; margin-right:4px;">
+			<input name="line_qty[]" type="number" step="0.001" value="1" class="form-control input-sm" style="width:70px; margin-right:4px;">
+			<input name="line_unit[]" type="number" step="0.01" class="form-control input-sm epc-so-item-price" placeholder="Unit AED" required style="width:100px;">
 		</div></div>
+		<script>
+		(function(){
+			document.querySelectorAll('.epc-so-item-select').forEach(function(select) {
+				select.addEventListener('change', function() {
+					var opt = this.options[this.selectedIndex];
+					var row = this.closest('.form-inline');
+					if (opt && opt.value !== '') {
+						row.querySelector('.epc-so-item-code').value = opt.getAttribute('data-sku') || '';
+						row.querySelector('.epc-so-item-desc').value = opt.getAttribute('data-name') || '';
+						row.querySelector('.epc-so-item-price').value = opt.getAttribute('data-price') || '0';
+					} else {
+						row.querySelector('.epc-so-item-code').value = '';
+						row.querySelector('.epc-so-item-desc').value = '';
+						row.querySelector('.epc-so-item-price').value = '';
+					}
+				});
+			});
+		})();
+		</script>
 		<?php echo epc_erp_dim_render_fields($db_link); ?>
 		<?php echo epc_jw_sales_order_line_fields_html($db_link); ?>
 		<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create draft SO</button></div></div>

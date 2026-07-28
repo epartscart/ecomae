@@ -38,6 +38,8 @@ function epc_erp_order_fulfillment_ensure_schema(PDO $db): void
 		KEY `x_order_item` (`shop_order_item_id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='PO lines linked to shop order items';");
 
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_po_lines', 'item_code', "varchar(32) NOT NULL DEFAULT ''");
+
 	try {
 		$db->exec('ALTER TABLE `epc_erp_sales_orders` ADD KEY `x_shop_order` (`shop_order_id`)');
 	} catch (Exception $e) {
@@ -346,8 +348,8 @@ function epc_erp_order_fulfillment_append_po_lines(PDO $db, int $poId, array $li
 	$now = time();
 	$ins = $db->prepare(
 		'INSERT INTO `epc_erp_po_lines`
-		(`po_id`, `shop_order_item_id`, `supplier_id`, `storage_id`, `line_no`, `description`, `qty`, `unit_cost_ex_vat`, `line_ex_vat`, `time_updated`)
-		VALUES (?,?,?,?,?,?,?,?,?,?)'
+		(`po_id`, `shop_order_item_id`, `supplier_id`, `storage_id`, `line_no`, `item_code`, `description`, `qty`, `unit_cost_ex_vat`, `line_ex_vat`, `time_updated`)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?)'
 	);
 	foreach ($lines as $ln) {
 		$lineEx = round((float) ($ln['line_ex_vat'] ?? 0), 2);
@@ -360,6 +362,7 @@ function epc_erp_order_fulfillment_append_po_lines(PDO $db, int $poId, array $li
 			(int) ($po['supplier_id'] ?? 0),
 			(int) ($ln['storage_id'] ?? 0),
 			++$lineNo,
+			trim((string) ($ln['item_code'] ?? '')),
 			mb_substr((string) ($ln['description'] ?? 'Line'), 0, 255),
 			(float) ($ln['qty'] ?? 0),
 			(float) ($ln['unit_cost_ex_vat'] ?? 0),

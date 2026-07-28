@@ -9,6 +9,7 @@ $epcJwMode = epc_jw_is_jewellery_tenant($db_link);
 $poStatus = isset($_GET['po_status']) ? (string) $_GET['po_status'] : '';
 $poListLimit = max(50, min(2000, (int) ($_GET['po_limit'] ?? 100)));
 $pos = epc_erp_po_list($db_link, $poStatus, $poListLimit);
+$inventory_items = $db_link->query('SELECT `id`, `sku`, `name`, `sales_price`, `purchase_price` FROM `epc_erp_inv_items` WHERE `active` = 1 ORDER BY `sku` LIMIT 1000')->fetchAll(PDO::FETCH_ASSOC);
 if (!isset($suppliers)) {
 	$suppliers = epc_erp_list_suppliers($db_link);
 }
@@ -117,7 +118,20 @@ if (empty($pos)) {
 		$epcPoLines = $epcPoLinesMap[$epcPoId] ?? array();
 		echo '<tr><td class="epc-d365-statcol">' . erp_status_dot(erp_status_tone($p['status'])) . '</td>';
 		echo '<td>' . epc_erp_h($p['po_no']) . '</td><td>' . epc_erp_h($p['supplier_name']) . '</td>';
-		echo '<td>' . epc_erp_h($p['title']) . '</td><td class="num">' . epc_erp_money($p['total_amount']) . '</td>';
+
+		// Load structured lines to display item codes & descriptions under Title column
+		$poLinesSt = $db_link->prepare('SELECT `item_code`, `description`, `qty` FROM `epc_erp_po_lines` WHERE `po_id` = ? ORDER BY `line_no`');
+		$poLinesSt->execute(array($epcPoId));
+		$poLines = $poLinesSt->fetchAll(PDO::FETCH_ASSOC);
+		$linesInfo = '';
+		if (!empty($poLines)) {
+			$linesInfo .= '<div style="font-size:11px;color:#666;margin-top:4px;border-top:1px dashed #e3e3e3;padding-top:4px;">';
+			foreach ($poLines as $pl) {
+				$linesInfo .= '• <code>' . epc_erp_h($pl['item_code'] ?: 'N/A') . '</code> ' . epc_erp_h($pl['description']) . ' (' . (float)$pl['qty'] . ')<br>';
+			}
+			$linesInfo .= '</div>';
+		}
+		echo '<td>' . epc_erp_h($p['title']) . $linesInfo . '</td><td class="num">' . epc_erp_money($p['total_amount']) . '</td>';
 		echo '<td>' . epc_erp_dim_badges_render($db_link, $epcPoDimMap[$epcPoId] ?? array()) . '</td>';
 		if ($epcJwMode) {
 			echo '<td>' . epc_erp_h($p['jw_karat'] ?? '') . '</td>';
@@ -215,7 +229,7 @@ ob_start();
 		<input name="title" class="form-control input-sm" required placeholder="Description"></div></div>
 	<div class="form-group"><label class="col-sm-3">Line items</label><div class="col-sm-9">
 		<table class="table table-condensed" id="epc_erp_po_lines_grid" style="margin-bottom:6px;background:#fff;">
-			<thead><tr><th>Description</th><th class="num" style="width:90px;">Qty</th><th class="num" style="width:130px;">Unit cost ex VAT</th><th style="width:26px;"></th></tr></thead>
+			<thead><tr><th>Item dropdown</th><th>Item Code</th><th>Description</th><th class="num" style="width:90px;">Qty</th><th class="num" style="width:130px;">Unit cost ex VAT</th><th style="width:26px;"></th></tr></thead>
 			<tbody></tbody>
 		</table>
 		<button type="button" class="btn btn-xs btn-default" id="epc_erp_po_add_line"><i class="fa fa-plus"></i> Add line</button>
@@ -231,12 +245,21 @@ ob_start();
 	var grid = document.getElementById('epc_erp_po_lines_grid');
 	var addBtn = document.getElementById('epc_erp_po_add_line');
 	if (!grid || !addBtn) return;
+
+	// Pre-build options HTML from PHP array
+	var options = '<option value="">-- Choose Item --</option>';
+	<?php foreach ($inventory_items as $itm): ?>
+		options += '<option value="<?php echo (int)$itm['id']; ?>" data-sku="<?php echo epc_erp_h($itm['sku']); ?>" data-name="<?php echo epc_erp_h($itm['name']); ?>" data-price="<?php echo epc_erp_h($itm['purchase_price']); ?>"><?php echo epc_erp_h($itm['sku'] . ' — ' . $itm['name']); ?></option>';
+	<?php endforeach; ?>
+
 	function addRow() {
 		var tbody = grid.querySelector('tbody');
 		var tr = document.createElement('tr');
-		tr.innerHTML = '<td><input type="text" name="po_line_desc[]" class="form-control input-sm"></td>'
+		tr.innerHTML = '<td><select class="form-control input-sm epc-po-item-select" style="width:140px;">' + options + '</select></td>'
+			+ '<td><input type="text" name="po_line_item_code[]" class="form-control input-sm epc-po-item-code" style="width:100px;"></td>'
+			+ '<td><input type="text" name="po_line_desc[]" class="form-control input-sm epc-po-item-desc"></td>'
 			+ '<td><input type="number" step="0.001" min="0" name="po_line_qty[]" class="form-control input-sm" value="1"></td>'
-			+ '<td><input type="number" step="0.0001" min="0" name="po_line_unit[]" class="form-control input-sm" value="0"></td>'
+			+ '<td><input type="number" step="0.0001" min="0" name="po_line_unit[]" class="form-control input-sm epc-po-item-cost" value="0"></td>'
 			+ '<td><button type="button" class="btn btn-xs btn-danger epc-erp-po-rm-line">&times;</button></td>';
 		tbody.appendChild(tr);
 	}
@@ -244,6 +267,21 @@ ob_start();
 	grid.addEventListener('click', function(ev){
 		if (ev.target.classList.contains('epc-erp-po-rm-line')) {
 			ev.target.closest('tr').remove();
+		}
+	});
+	grid.addEventListener('change', function(ev){
+		if (ev.target.classList.contains('epc-po-item-select')) {
+			var opt = ev.target.options[ev.target.selectedIndex];
+			var tr = ev.target.closest('tr');
+			if (opt && opt.value !== '') {
+				tr.querySelector('.epc-po-item-code').value = opt.getAttribute('data-sku') || '';
+				tr.querySelector('.epc-po-item-desc').value = opt.getAttribute('data-name') || '';
+				tr.querySelector('.epc-po-item-cost').value = opt.getAttribute('data-price') || '0';
+			} else {
+				tr.querySelector('.epc-po-item-code').value = '';
+				tr.querySelector('.epc-po-item-desc').value = '';
+				tr.querySelector('.epc-po-item-cost').value = '0';
+			}
 		}
 	});
 })();

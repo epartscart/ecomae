@@ -10,3 +10,4 @@ if (!is_file($include)) {
 	return;
 }
 require $include;
+?>

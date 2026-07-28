@@ -161,6 +161,8 @@ function epc_erp_vouchers_ensure_schema(PDO $db): void
 		KEY `x_so` (`sales_order_id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP sales order lines';");
 
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_sales_order_lines', 'item_code', "varchar(32) NOT NULL DEFAULT ''");
+
 	epc_erp_schema_add_column_if_missing($db, 'epc_erp_purchase_orders', 'voucher_no', 'varchar(32) DEFAULT NULL');
 	epc_erp_schema_add_column_if_missing($db, 'epc_erp_purchases', 'voucher_no', 'varchar(32) DEFAULT NULL');
 	epc_erp_schema_add_column_if_missing($db, 'epc_erp_purchases', 'po_id', 'int(11) NOT NULL DEFAULT 0');
@@ -269,6 +271,7 @@ function epc_erp_sales_order_parse_lines(array $data): array
 			$unit = round((float) ($data['line_unit'][$i] ?? 0), 4);
 			$net = round($qty * $unit, 2);
 			$lines[] = array(
+				'item_code' => trim((string) ($data['item_code'][$i] ?? '')),
 				'description' => $desc,
 				'qty' => $qty,
 				'unit_price_ex_vat' => $unit,
@@ -343,14 +346,15 @@ function epc_erp_sales_order_save(PDO $db, array $data): int
 		$soId = (int) $db->lastInsertId();
 	}
 	$ins = $db->prepare(
-		'INSERT INTO `epc_erp_sales_order_lines` (`sales_order_id`, `line_no`, `description`, `qty`, `unit_price_ex_vat`, `line_ex_vat`)
-		 VALUES (?,?,?,?,?,?)'
+		'INSERT INTO `epc_erp_sales_order_lines` (`sales_order_id`, `line_no`, `item_code`, `description`, `qty`, `unit_price_ex_vat`, `line_ex_vat`)
+		 VALUES (?,?,?,?,?,?,?)'
 	);
 	$lineNo = 1;
 	foreach ($lines as $ln) {
 		$ins->execute(array(
 			$soId,
 			$lineNo++,
+			trim((string) ($ln['item_code'] ?? '')),
 			mb_substr(trim((string) ($ln['description'] ?? $ln['item_name'] ?? 'Line')), 0, 255),
 			max(0.0001, (float) ($ln['qty'] ?? 1)),
 			round((float) ($ln['unit_price_ex_vat'] ?? $ln['unit_price'] ?? 0), 4),

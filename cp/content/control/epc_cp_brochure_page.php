@@ -35,3 +35,4 @@ epc_cp_full_brochure_render_and_exit(array(
 	'print' => $print,
 	'base_path' => '/' . $backend . '/control/cp_brochure',
 ));
+?>
