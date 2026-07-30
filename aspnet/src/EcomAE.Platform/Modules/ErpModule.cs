@@ -1,3 +1,7 @@
+using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Migration;
+using EcomAE.Platform.Services;
+using EcomAE.Platform.Surfaces;
 using EcomAE.Platform.Routing;
 using EcomAE.Platform.Security;
 
@@ -10,16 +14,20 @@ public sealed class ErpModule : ISurfaceModule
         "ERP",
         EcomAeRoutes.Erp,
         "content/shop/finance/ and cp/content/shop/finance/erp/",
-        "placeholder",
+        "shell-started",
         [EcomAePermissions.SuperErpAccess, EcomAePermissions.TenantErpAccess]);
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(EcomAeRoutes.Erp, () => Results.Ok(new
+        endpoints.MapGet(EcomAeRoutes.ErpParity, (IErpParityReporter reporter) => Results.Ok(reporter.BuildReport()));
+
+        foreach (var route in EcomAeRoutes.ErpAliases)
         {
-            surface = "Super ERP / tenant ERP",
-            migration = "placeholder",
-            next = "Port ERP shell, chart of accounts, journal vouchers, dashboards, treasury"
-        }));
+            endpoints.MapGet(route, (HttpContext context, ISurfaceShellCatalog shells) =>
+            {
+                var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+                return Results.Ok(shells.Build("erp", tenant));
+            });
+        }
     }
 }

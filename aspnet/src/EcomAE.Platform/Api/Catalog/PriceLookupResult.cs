@@ -10,7 +10,10 @@ public sealed record PriceLookupResult(
 
 public sealed record PriceOfferDto(
     string Supplier,
-    string Storage,
+    string Brand,
+    string Article,
+    string Name,
     decimal Price,
     string Currency,
-    int Quantity);
+    int StockHint,
+    string LeadTime);

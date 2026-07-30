@@ -34,10 +34,18 @@ public sealed class ApiModule : ISurfaceModule
                 "Retire PHP api/v1/catalog.php after parity"
             ])));
 
+        endpoints.MapGet(EcomAeRoutes.CatalogParity, (ICatalogParityReporter reporter) => Results.Ok(reporter.BuildReport()));
+
         endpoints.MapGet(EcomAeRoutes.PriceLookup, async (string brand, string article, IPriceLookupService service, CancellationToken cancellationToken) =>
         {
             var result = await service.LookupAsync(new PriceLookupRequest(brand, article), cancellationToken);
             return result.Status ? Results.Ok(result) : Results.BadRequest(result);
+        });
+
+        endpoints.MapGet(EcomAeRoutes.PriceLookupParity, async (IPriceLookupParityReporter reporter, CancellationToken cancellationToken) =>
+        {
+            var report = await reporter.BuildReportAsync(cancellationToken);
+            return Results.Ok(report);
         });
     }
 }

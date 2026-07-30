@@ -21,6 +21,6 @@ public sealed class MigrationPriceLookupService : IPriceLookupService
             request.NormalizedArticle,
             [],
             "placeholder",
-            "ASP.NET Core route is available; database-backed price lookup will replace api/v1/price/lookup.php in a later milestone."));
+            "ASP.NET Core route is available; database-backed price lookup will use LegacyPriceLookupSql against shop_docpart_prices_data before replacing api/v1/price/lookup.php."));
     }
 }
