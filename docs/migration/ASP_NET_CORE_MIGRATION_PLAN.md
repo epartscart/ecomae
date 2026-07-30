@@ -70,3 +70,21 @@ The first migration slice adds an ASP.NET Core foundation under `aspnet/` withou
 | API key/session checks | `Api` authorization policy |
 
 The policies initially define the permission names and wiring only. Real authentication must be connected to the existing user/session tables or a new Identity store in a later milestone.
+
+## Third Milestone Included Here
+
+- SQL contract for reading active tenants from the existing `epc_portal_tenants` registry table.
+- `PortalTenantRow` mapper that translates PHP registry columns into ASP.NET Core `TenantRegistryRecord` values.
+- Legacy session bridge contracts that understand the current PHP cookie/header names (`admin_session`, `admin_u_id`, `session`, `u_id`, and `X-API-Key`).
+- `/auth/session/probe` diagnostic route for validating the bridge during migration. This route is a temporary migration aid and must be removed or locked before production cutover.
+
+## Existing Registry Table Mapping
+
+The ASP.NET Core registry bridge is aligned with the PHP-created `epc_portal_tenants` table: `site_key`, `hostname`, `db_name`, `status`, `is_demo`, `erp_only_shared`, `is_active`, `dedicated_db`, and `scale_policy`.
+
+## Authentication Bridge Rules
+
+1. PHP remains the source of truth until ASP.NET Core Identity/session storage is complete.
+2. ASP.NET Core reads legacy cookies/API headers only to classify the request during transition.
+3. Real DB-backed session verification must replace the probe validator before any protected ASP.NET Core module is exposed publicly.
+4. Once .NET auth parity is proven, PHP sessions can be retired surface by surface.
