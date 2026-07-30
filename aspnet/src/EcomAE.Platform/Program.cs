@@ -18,6 +18,7 @@ builder.Services.AddEcomAeAuthorization();
 builder.Services.AddEcomAeSurfaceModules();
 builder.Services.AddSingleton<IPriceLookupService, MigrationPriceLookupService>();
 builder.Services.AddSingleton<IMigrationParityReporter, MigrationParityReporter>();
+builder.Services.AddSingleton<IMigrationReadinessReporter, MigrationReadinessReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();
 
@@ -28,6 +29,8 @@ app.UseMiddleware<TenantResolutionMiddleware>();
 app.MapHealthChecks(EcomAeRoutes.Health);
 
 app.MapGet(EcomAeRoutes.MigrationStatus, (IMigrationParityReporter reporter) => Results.Ok(reporter.BuildReport()));
+
+app.MapGet(EcomAeRoutes.MigrationReadiness, (IMigrationReadinessReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.TenantContext, (HttpContext context) =>
 {

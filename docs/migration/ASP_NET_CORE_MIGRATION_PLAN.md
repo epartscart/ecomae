@@ -120,3 +120,11 @@ The ASP.NET Core registry bridge is aligned with the PHP-created `epc_portal_ten
 4. Run old PHP endpoint and new ASP.NET endpoint in parity mode.
 5. Cut traffic to ASP.NET Core after response schema and performance match.
 6. Delete the PHP endpoint once production telemetry proves parity.
+
+
+## Sixth Milestone Included Here
+
+- Added `/migration/readiness` to report whether PHP can be removed.
+- The readiness report intentionally returns `not-ready-for-php-removal` until CP, ERP, BOS, tenant surfaces, APIs, and worker jobs reach tested parity.
+- Each readiness item names the legacy PHP entry, ASP.NET Core destination, blocking status, and corrective action needed before production cutover.
+- Production should only route a surface to ASP.NET Core after response parity, auth parity, tenant-mode validation, and worker telemetry checks pass.
