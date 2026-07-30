@@ -221,6 +221,15 @@ check 'route cutover middleware emits target runtime header' contains "$ROOT/asp
 check 'route cutover middleware emits PHP fallback header' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/RouteCutoverDecisionMiddleware.cs" 'X-EcomAE-PHP-Fallback'
 check 'program wires route cutover middleware' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'RouteCutoverDecisionMiddleware'
 check 'route cutover middleware tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/RouteCutoverDecisionMiddlewareTests.cs"
+check 'ASP.NET production runbook exists' test -f "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md"
+check 'ASP.NET platform systemd unit exists' test -f "$ROOT/deploy/aspnet/ecomae-platform.service"
+check 'ASP.NET worker systemd unit exists' test -f "$ROOT/deploy/aspnet/ecomae-workers.service"
+check 'ASP.NET production env template keeps PHP fallback' contains "$ROOT/deploy/aspnet/platform.env.example" 'MigrationRouteCutover__RequirePhpFallback=true'
+check 'ASP.NET diagnostics-only nginx config allowlists migration routes' contains "$ROOT/deploy/aspnet/nginx-diagnostics-only.conf" 'allow YOUR_OFFICE_IP'
+check 'ASP.NET exact API shadow example exists' contains "$ROOT/deploy/aspnet/nginx-api-shadow-example.conf" '/api/v1/catalog/status'
+check 'ASP.NET deploy script exists' test -x "$ROOT/scripts/deploy_aspnet_foundation.sh"
+check 'ASP.NET deploy script runs detailed foundation tests' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'run_detailed_foundation_tests.sh'
+check 'ASP.NET rollback script exists' test -x "$ROOT/scripts/rollback_aspnet_foundation.sh"
 check 'consolidated PR push script exists' test -x "$ROOT/scripts/push_consolidated_pr_update.sh"
 check 'migration plan documents zero PHP final state' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'zero PHP files'
 

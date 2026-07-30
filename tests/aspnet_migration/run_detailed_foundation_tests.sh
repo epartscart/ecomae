@@ -68,6 +68,8 @@ SHELL_FILES=(
     "$ROOT/scripts/prepare_consolidated_aspnet_pr.sh"
     "$ROOT/scripts/push_consolidated_pr_update.sh"
     "$ROOT/scripts/rebase_conflicted_pr_range.sh"
+    "$ROOT/scripts/deploy_aspnet_foundation.sh"
+    "$ROOT/scripts/rollback_aspnet_foundation.sh"
 )
 for file in "${SHELL_FILES[@]}"; do
     if [[ ! -f "$file" ]]; then

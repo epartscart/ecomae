@@ -370,3 +370,10 @@ The script checks out the final migration files from the source branch onto late
 - The runner treats missing local .NET SDK and live staging access as warnings when those dependencies are unavailable, while still failing on deterministic repository/script/PHP regressions.
 - The foundation check now verifies that this detailed runner exists and includes the PHP lint and missing-.NET guardrails needed for repeatable review.
 
+
+## Thirty Ninth Milestone Included Here
+
+- Added production deployment artifacts for running the ASP.NET Core migration foundation beside PHP on CloudPanel/Nginx.
+- Included systemd unit templates, a server-only environment template, diagnostics-only Nginx routing, an exact-route API shadow example, deploy/rollback scripts, and a production deployment runbook.
+- The deployment artifacts keep PHP fallback enabled by default and expose only `/health` plus allowlisted `/migration/*` diagnostics before route-by-route parity approval.
+
