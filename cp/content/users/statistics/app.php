@@ -97,7 +97,7 @@ $messages = getBlockStyle(DP_User::getUserMessagesById($_GET['user_id']));
                                             <td><?php echo $query['name']; ?></td>
                                             <td><?php echo $query['time']; ?></td>
                                         </tr>
-                                        <?
+                                        <?php
                                     }
                                     ?>
                                     </tbody>
@@ -130,7 +130,7 @@ $messages = getBlockStyle(DP_User::getUserMessagesById($_GET['user_id']));
                                                     <td><?php echo $order['sum']; ?></td>
                                                     <td><?php echo $order['debt']; ?></td>
                                                 </tr>
-                                            <?
+                                            <?php
                                         }
                                     ?>
                                 </tbody>
@@ -166,7 +166,7 @@ $messages = getBlockStyle(DP_User::getUserMessagesById($_GET['user_id']));
                                         <td><?php echo $item['article']; ?></td>
                                         <td><?php echo $item['order_id']; ?></td>
                                     </tr>
-                                    <?
+                                    <?php
                                 }
                                 ?>
                                 </tbody>
@@ -199,7 +199,7 @@ $messages = getBlockStyle(DP_User::getUserMessagesById($_GET['user_id']));
                                             <td><?php echo $operation['amount']; ?></td>
                                             <td><?php echo $operation['order_id']; ?></td>
                                         </tr>
-                                        <?
+                                        <?php
                                     }
                                     ?>
                                     </tbody>
@@ -237,7 +237,7 @@ $messages = getBlockStyle(DP_User::getUserMessagesById($_GET['user_id']));
                                             <td><?php echo $item['price']; ?></td>
                                             <td><?php echo $item['storage']; ?></td>
                                         </tr>
-                                        <?
+                                        <?php
                                     }
                                 ?>
                                 </tbody>
@@ -281,7 +281,7 @@ $messages = getBlockStyle(DP_User::getUserMessagesById($_GET['user_id']));
                                                 <?php endif; ?>
                                             </td>
                                         </tr>
-                                        <?
+                                        <?php
                                     }
                                 ?>
                                 </tbody>
@@ -314,7 +314,7 @@ $messages = getBlockStyle(DP_User::getUserMessagesById($_GET['user_id']));
                                                 <td><?php echo $car['model']; ?></td>
                                                 <td><?php echo $car['engine_value']; ?></td>
                                             </tr>
-                                            <?
+                                            <?php
                                         }
                                     }
                                 ?>
@@ -345,7 +345,7 @@ $messages = getBlockStyle(DP_User::getUserMessagesById($_GET['user_id']));
                                         <td><?php echo $return['return_sum']; ?></td>
                                         <td><?php echo $return['return_complete'] == '1' ? translate_str_by_id(2456) : translate_str_by_id(2457); ?></td>
                                     </tr>
-                                    <?
+                                    <?php
                                 }
                                 ?>
                                 </tbody>
