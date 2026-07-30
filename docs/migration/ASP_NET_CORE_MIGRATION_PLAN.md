@@ -88,3 +88,19 @@ The ASP.NET Core registry bridge is aligned with the PHP-created `epc_portal_ten
 2. ASP.NET Core reads legacy cookies/API headers only to classify the request during transition.
 3. Real DB-backed session verification must replace the probe validator before any protected ASP.NET Core module is exposed publicly.
 4. Once .NET auth parity is proven, PHP sessions can be retired surface by surface.
+
+## Fourth Milestone Included Here
+
+- Surface module contracts for CP, ERP, BOS, storefront, and API replacement work.
+- Central module endpoint mapper so each surface can be ported independently.
+- Migration parity reporter exposed through `/migration/status` to list final state, PHP runtime status, surface descriptors, and next milestones.
+- Worker service skeleton for replacing PHP cron/setup jobs with ASP.NET Core hosted services.
+
+## Surface Port Order
+
+1. API module: catalog, price lookup, tenant, ERP, BOS, mobile, and webhook APIs.
+2. CP module: login shell, tenant hub, menu, orders, pricing, settings, integrations.
+3. ERP module: shell, accounting dashboard, chart of accounts, journal vouchers, treasury.
+4. BOS module: command center, fleet health, tenant operations, audit log.
+5. Storefront module: SEO routes, product pages, cart, checkout, CMS, sitemaps.
+6. Worker module: price import, sitemap generation, notifications, backups, scheduled ERP reports.

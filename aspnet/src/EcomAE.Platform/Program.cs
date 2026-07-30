@@ -1,6 +1,8 @@
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Migration;
+using EcomAE.Platform.Modules;
 using EcomAE.Platform.Routing;
 using EcomAE.Platform.Security;
 using EcomAE.Platform.Services;
@@ -12,6 +14,8 @@ builder.Services.AddSingleton<ITenantRegistry, ConfigurationTenantRegistry>();
 builder.Services.AddSingleton<ILegacySessionValidator, HttpLegacySessionValidator>();
 builder.Services.AddSingleton<ITenantResolver, RouteTenantResolver>();
 builder.Services.AddEcomAeAuthorization();
+builder.Services.AddEcomAeSurfaceModules();
+builder.Services.AddSingleton<IMigrationParityReporter, MigrationParityReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();
 
@@ -21,14 +25,7 @@ app.UseMiddleware<TenantResolutionMiddleware>();
 
 app.MapHealthChecks(EcomAeRoutes.Health);
 
-app.MapGet(EcomAeRoutes.MigrationStatus, () => Results.Ok(new
-{
-    service = "EcomAE ASP.NET Core platform foundation",
-    status = "started",
-    target = "Replace PHP CP, ERP, BOS, storefront, API and worker surfaces in phases",
-    phpRuntime = "kept during migration only",
-    finalState = "zero PHP files and no PHP runtime"
-}));
+app.MapGet(EcomAeRoutes.MigrationStatus, (IMigrationParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.TenantContext, (HttpContext context) =>
 {
@@ -42,9 +39,7 @@ app.MapGet(EcomAeRoutes.LegacySessionProbe, async (HttpContext context, ILegacyS
     return Results.Ok(new { session.Kind, session.UserId, session.IsAuthenticated, session.Permissions });
 });
 
-app.MapGet(EcomAeRoutes.ControlPanel, () => Results.Ok(new { surface = "Super CP / tenant CP", migration = "placeholder" }));
-app.MapGet(EcomAeRoutes.Erp, () => Results.Ok(new { surface = "Super ERP / tenant ERP", migration = "placeholder" }));
-app.MapGet(EcomAeRoutes.Bos, () => Results.Ok(new { surface = "Super BOS", migration = "placeholder" }));
+app.MapEcomAeSurfaceModules();
 
 app.Run();
 

@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcomAE.Platform", "src\Ecom
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcomAE.Platform.Tests", "tests\EcomAE.Platform.Tests\EcomAE.Platform.Tests.csproj", "{B9917AB9-E7FD-4218-A879-1104E8D30121}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcomAE.Workers", "src\EcomAE.Workers\EcomAE.Workers.csproj", "{3C1A96E7-EB66-4094-A38A-CDA2574F9A6A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,5 +22,9 @@ Global
 		{B9917AB9-E7FD-4218-A879-1104E8D30121}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9917AB9-E7FD-4218-A879-1104E8D30121}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9917AB9-E7FD-4218-A879-1104E8D30121}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C1A96E7-EB66-4094-A38A-CDA2574F9A6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C1A96E7-EB66-4094-A38A-CDA2574F9A6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C1A96E7-EB66-4094-A38A-CDA2574F9A6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C1A96E7-EB66-4094-A38A-CDA2574F9A6A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
