@@ -1,0 +1,20 @@
+[Unit]
+Description=EcomAE ASP.NET Platform
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/ecomae-aspnet/current/platform
+ExecStart=/usr/bin/dotnet /var/www/ecomae-aspnet/current/platform/EcomAE.Platform.dll
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/ecomae-aspnet/platform.env
+SyslogIdentifier=ecomae-platform
+User=www-data
+Group=www-data
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
