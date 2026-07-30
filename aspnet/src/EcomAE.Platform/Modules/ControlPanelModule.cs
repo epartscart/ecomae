@@ -1,3 +1,6 @@
+using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Services;
+using EcomAE.Platform.Surfaces;
 using EcomAE.Platform.Routing;
 using EcomAE.Platform.Security;
 
@@ -10,16 +13,15 @@ public sealed class ControlPanelModule : ISurfaceModule
         "Control Panel / Super CP",
         EcomAeRoutes.ControlPanel,
         "cp/",
-        "placeholder",
+        "shell-started",
         [EcomAePermissions.SuperCpAccess, EcomAePermissions.TenantCpAccess]);
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(EcomAeRoutes.ControlPanel, () => Results.Ok(new
+        endpoints.MapGet(EcomAeRoutes.ControlPanel, (HttpContext context, ISurfaceShellCatalog shells) =>
         {
-            surface = "Super CP / tenant CP",
-            migration = "placeholder",
-            next = "Port login shell, tenant hub, menu, orders, prices, settings"
-        }));
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            return Results.Ok(shells.Build("cp", tenant));
+        });
     }
 }

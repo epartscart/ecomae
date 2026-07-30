@@ -7,6 +7,7 @@ using EcomAE.Platform.Modules;
 using EcomAE.Platform.Routing;
 using EcomAE.Platform.Security;
 using EcomAE.Platform.Services;
+using EcomAE.Platform.Surfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,7 @@ builder.Services.AddSingleton<ILegacySessionValidator, HttpLegacySessionValidato
 builder.Services.AddSingleton<ITenantResolver, RouteTenantResolver>();
 builder.Services.AddEcomAeAuthorization();
 builder.Services.AddEcomAeSurfaceModules();
+builder.Services.AddSingleton<ISurfaceShellCatalog, MigrationSurfaceShellCatalog>();
 builder.Services.AddSingleton<IPriceLookupService, MigrationPriceLookupService>();
 builder.Services.AddSingleton<IMigrationParityReporter, MigrationParityReporter>();
 builder.Services.AddSingleton<IMigrationReadinessReporter, MigrationReadinessReporter>();

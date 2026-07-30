@@ -78,13 +78,18 @@ check 'cutover tests cover BOS route' contains "$ROOT/aspnet/tests/EcomAE.Platfo
 check 'migration progress route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/migration/progress'
 check 'migration progress reporter exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Migration/MigrationProgressReporter.cs"
 check 'program maps migration progress' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'EcomAeRoutes.MigrationProgress'
-check 'progress report exposes 20 percent complete' contains "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationProgressReporterTests.cs" 'Assert.Equal(20, report.OverallCompletePercent)'
+check 'progress report exposes 28 percent complete' contains "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationProgressReporterTests.cs" 'Assert.Equal(28, report.OverallCompletePercent)'
 check 'progress report blocks PHP removal' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/MigrationProgressReporter.cs" 'Production cutover and PHP removal'
 check 'surface parity route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/migration/surface-parity'
 check 'surface parity reporter exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfaceParityReporter.cs"
 check 'program maps surface parity' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'EcomAeRoutes.SurfaceParity'
 check 'surface parity tests cover ERP-only tenants' contains "$ROOT/aspnet/tests/EcomAE.Platform.Tests/SurfaceParityReporterTests.cs" 'ERP-only tenant'
 check 'surface parity report names fifty percent gate' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfaceParityReport.cs" 'RequiredBeforeFiftyPercent'
+check 'surface shell catalog exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Surfaces/MigrationSurfaceShellCatalog.cs"
+check 'CP module uses surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs" 'ISurfaceShellCatalog'
+check 'ERP module uses surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ErpModule.cs" 'ISurfaceShellCatalog'
+check 'BOS module uses surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/BosModule.cs" 'ISurfaceShellCatalog'
+check 'program registers surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ISurfaceShellCatalog, MigrationSurfaceShellCatalog'
 check 'migration plan documents zero PHP final state' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'zero PHP files'
 
 echo "----------------------------"

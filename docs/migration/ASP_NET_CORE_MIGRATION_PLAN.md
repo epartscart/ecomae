@@ -152,3 +152,11 @@ The ASP.NET Core registry bridge is aligned with the PHP-created `epc_portal_ten
 - The parity matrix covers login, Super CP, Platform ERP, Super BOS, tenant CP, tenant ERP, storefront, public APIs, and worker jobs.
 - The migration should not be marked 50% complete until at least one customer-facing shell moves beyond placeholder status, catalog/price APIs read the real database, legacy session parity is validated, and proxy rollback telemetry exists.
 - This keeps progress reporting honest while making the next 50% gate explicit for reviewers and production operators.
+
+
+## Tenth Milestone Included Here
+
+- Replaced CP, ERP, and BOS placeholder responses with structured ASP.NET Core surface shell payloads.
+- Added `ISurfaceShellCatalog` and `MigrationSurfaceShellCatalog` so `/CP`, `/ERP`, and `/BOS` return sections, legacy mappings, tenant mode, and next parity checks.
+- Progress increased from 20% to 28% because the first CP/ERP/BOS ASP.NET shell layer now exists, but it is not 50% until database-backed modules, auth parity, and production proxy gates pass.
+- Remaining route-level work to reach 50% is real login parity, ERP finance data parity, BOS audit parity, and catalog/price database reads.
