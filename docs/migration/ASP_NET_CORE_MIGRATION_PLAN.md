@@ -144,3 +144,11 @@ The ASP.NET Core registry bridge is aligned with the PHP-created `epc_portal_ten
 - Current measured completion is 20%: platform foundation, tenant routing, migration telemetry, and API scaffolding have started or completed.
 - Current measured pending work is 80%: CP, ERP, BOS, tenant surfaces, storefront, workers, database-backed APIs, parity testing, deployment routing, and PHP removal remain.
 - The progress report is intentionally conservative and should only increase when production-parity code and tests replace PHP behavior.
+
+
+## Ninth Milestone Included Here
+
+- Added `/migration/surface-parity` to track parity evidence required before the migration can honestly claim 50% completion.
+- The parity matrix covers login, Super CP, Platform ERP, Super BOS, tenant CP, tenant ERP, storefront, public APIs, and worker jobs.
+- The migration should not be marked 50% complete until at least one customer-facing shell moves beyond placeholder status, catalog/price APIs read the real database, legacy session parity is validated, and proxy rollback telemetry exists.
+- This keeps progress reporting honest while making the next 50% gate explicit for reviewers and production operators.

@@ -7,6 +7,7 @@ public static class EcomAeRoutes
     public const string MigrationReadiness = "/migration/readiness";
     public const string MigrationCutoverPlan = "/migration/cutover-plan";
     public const string MigrationProgress = "/migration/progress";
+    public const string SurfaceParity = "/migration/surface-parity";
     public const string TenantContext = "/tenant/context";
     public const string LegacySessionProbe = "/auth/session/probe";
     public const string ControlPanel = "/CP";

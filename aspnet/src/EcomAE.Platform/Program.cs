@@ -21,6 +21,7 @@ builder.Services.AddSingleton<IMigrationParityReporter, MigrationParityReporter>
 builder.Services.AddSingleton<IMigrationReadinessReporter, MigrationReadinessReporter>();
 builder.Services.AddSingleton<IMigrationCutoverPlanner, MigrationCutoverPlanner>();
 builder.Services.AddSingleton<IMigrationProgressReporter, MigrationProgressReporter>();
+builder.Services.AddSingleton<ISurfaceParityReporter, SurfaceParityReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();
 
@@ -37,6 +38,8 @@ app.MapGet(EcomAeRoutes.MigrationReadiness, (IMigrationReadinessReporter reporte
 app.MapGet(EcomAeRoutes.MigrationCutoverPlan, (IMigrationCutoverPlanner planner) => Results.Ok(planner.BuildPlan()));
 
 app.MapGet(EcomAeRoutes.MigrationProgress, (IMigrationProgressReporter reporter) => Results.Ok(reporter.BuildReport()));
+
+app.MapGet(EcomAeRoutes.SurfaceParity, (ISurfaceParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.TenantContext, (HttpContext context) =>
 {
