@@ -40,6 +40,11 @@ if (function_exists('epc_static_serve_maybe_exit')) {
 // Always load config first — class DP_Config; instance is required before redirect logic (dp_core also instantiates later).
 require_once $_SERVER["DOCUMENT_ROOT"] . "/config.php";
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_route_aliases.php';
+if (epc_portal_alias_redirect_uppercase_surfaces()) {
+	exit;
+}
+
 // Public REST API v1 — exit before marketing/ERP/storefront bootstrap.
 $__epcApiPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 if (is_string($__epcApiPath) && preg_match('#^/epc-api/v1(?:/|$)#', $__epcApiPath)) {
@@ -178,6 +183,10 @@ if (function_exists('epc_ecomae_platform_try_exit_standalone')) {
 	epc_ecomae_platform_try_exit_standalone();
 }
 if (function_exists('epc_ecomae_marketing_redirect_legacy_cms_path') && epc_ecomae_marketing_redirect_legacy_cms_path()) {
+	exit;
+}
+
+if (function_exists('epc_portal_alias_try_bos_entry') && epc_portal_alias_try_bos_entry()) {
 	exit;
 }
 
