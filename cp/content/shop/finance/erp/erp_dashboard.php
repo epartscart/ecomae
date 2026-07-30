@@ -418,4 +418,3 @@ erp_section_card('Jewellery modules', ob_get_clean(), array('icon' => 'fa-diamon
 </script>
 <?php
 // End executive dashboard.
-</content>
