@@ -160,3 +160,11 @@ The ASP.NET Core registry bridge is aligned with the PHP-created `epc_portal_ten
 - Added `ISurfaceShellCatalog` and `MigrationSurfaceShellCatalog` so `/CP`, `/ERP`, and `/BOS` return sections, legacy mappings, tenant mode, and next parity checks.
 - Progress increased from 20% to 28% because the first CP/ERP/BOS ASP.NET shell layer now exists, but it is not 50% until database-backed modules, auth parity, and production proxy gates pass.
 - Remaining route-level work to reach 50% is real login parity, ERP finance data parity, BOS audit parity, and catalog/price database reads.
+
+
+## Eleventh Milestone Included Here
+
+- ASP.NET Core CP, ERP, and BOS modules now map lowercase, uppercase, and trailing-slash aliases.
+- `ecomae.com/cp`, `ecomae.com/cp/`, `ecomae.com/CP`, `ecomae.com/CP/`, plus matching ERP and BOS forms all route to the same shell payload.
+- The canonical generated route is lowercase (`/cp`, `/erp`, `/bos`) while uppercase aliases remain accepted for operator-entered URLs and legacy bookmarks.
+- Live login testing still requires a user-entered password; credentials should never be committed or placed in PR text.

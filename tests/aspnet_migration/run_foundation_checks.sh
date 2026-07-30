@@ -90,6 +90,10 @@ check 'CP module uses surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.P
 check 'ERP module uses surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ErpModule.cs" 'ISurfaceShellCatalog'
 check 'BOS module uses surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/BosModule.cs" 'ISurfaceShellCatalog'
 check 'program registers surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ISurfaceShellCatalog, MigrationSurfaceShellCatalog'
+check 'CP aliases include lowercase trailing slash' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '"/cp/"'
+check 'ERP aliases include uppercase trailing slash' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '"/ERP/"'
+check 'BOS aliases include lowercase trailing slash' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '"/bos/"'
+check 'surface route alias tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/SurfaceRouteAliasTests.cs"
 check 'migration plan documents zero PHP final state' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'zero PHP files'
 
 echo "----------------------------"

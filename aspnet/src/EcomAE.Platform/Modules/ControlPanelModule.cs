@@ -18,10 +18,13 @@ public sealed class ControlPanelModule : ISurfaceModule
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(EcomAeRoutes.ControlPanel, (HttpContext context, ISurfaceShellCatalog shells) =>
+        foreach (var route in EcomAeRoutes.ControlPanelAliases)
         {
-            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-            return Results.Ok(shells.Build("cp", tenant));
-        });
+            endpoints.MapGet(route, (HttpContext context, ISurfaceShellCatalog shells) =>
+            {
+                var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+                return Results.Ok(shells.Build("cp", tenant));
+            });
+        }
     }
 }

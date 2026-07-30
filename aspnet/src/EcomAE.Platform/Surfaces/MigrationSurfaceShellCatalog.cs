@@ -20,7 +20,7 @@ public sealed class MigrationSurfaceShellCatalog : ISurfaceShellCatalog
         "Super CP / tenant CP",
         "shell-started",
         "cp/",
-        "/CP",
+        "/cp",
         TenantModeName(tenant),
         [
             new("dashboard", "Dashboard", ["tenant overview", "orders summary", "pricing alerts"], "cp/index.php", "mapped"),
@@ -34,7 +34,7 @@ public sealed class MigrationSurfaceShellCatalog : ISurfaceShellCatalog
         "Super ERP / tenant ERP",
         "shell-started",
         "cp/content/shop/finance/erp/",
-        "/ERP",
+        "/erp",
         TenantModeName(tenant),
         [
             new("finance-dashboard", "Finance dashboard", ["KPIs", "balances", "cash movement"], "cp/content/shop/finance/erp/erp_dashboard.php", "mapped"),
@@ -48,7 +48,7 @@ public sealed class MigrationSurfaceShellCatalog : ISurfaceShellCatalog
         "Super BOS",
         "shell-started",
         "bos/",
-        "/BOS",
+        "/bos",
         TenantModeName(tenant),
         [
             new("command-center", "Command center", ["fleet health", "tenant operations", "incident queue"], "bos/index.php", "mapped"),

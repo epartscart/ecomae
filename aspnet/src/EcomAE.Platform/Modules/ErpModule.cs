@@ -18,10 +18,13 @@ public sealed class ErpModule : ISurfaceModule
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(EcomAeRoutes.Erp, (HttpContext context, ISurfaceShellCatalog shells) =>
+        foreach (var route in EcomAeRoutes.ErpAliases)
         {
-            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-            return Results.Ok(shells.Build("erp", tenant));
-        });
+            endpoints.MapGet(route, (HttpContext context, ISurfaceShellCatalog shells) =>
+            {
+                var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+                return Results.Ok(shells.Build("erp", tenant));
+            });
+        }
     }
 }

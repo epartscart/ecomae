@@ -18,10 +18,13 @@ public sealed class BosModule : ISurfaceModule
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(EcomAeRoutes.Bos, (HttpContext context, ISurfaceShellCatalog shells) =>
+        foreach (var route in EcomAeRoutes.BosAliases)
         {
-            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-            return Results.Ok(shells.Build("bos", tenant));
-        });
+            endpoints.MapGet(route, (HttpContext context, ISurfaceShellCatalog shells) =>
+            {
+                var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+                return Results.Ok(shells.Build("bos", tenant));
+            });
+        }
     }
 }
