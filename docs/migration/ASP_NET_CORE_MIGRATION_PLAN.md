@@ -50,3 +50,23 @@ The first migration slice adds an ASP.NET Core foundation under `aspnet/` withou
 7. Port storefront and SEO routes.
 8. Port background jobs.
 9. Remove PHP once all parity tests pass.
+
+## Second Milestone Included Here
+
+- Configuration-backed tenant registry abstraction.
+- Seed tenant records for platform, live tenant, and ERP-only tenant examples.
+- Permission constants and ASP.NET Core authorization policy names for CP, ERP, BOS, tenant, and API access.
+- Shared route constants for `/CP`, `/ERP`, `/BOS`, `/health`, `/migration/status`, and `/tenant/context`.
+
+## Authorization Migration Targets
+
+| Current PHP control | ASP.NET Core target |
+| --- | --- |
+| Super CP session checks | `SuperCp` authorization policy |
+| Super ERP access | `SuperErp` authorization policy |
+| Super BOS access | `SuperBos` authorization policy |
+| Tenant CP login/session | `TenantCp` authorization policy |
+| Tenant ERP login/session | `TenantErp` authorization policy |
+| API key/session checks | `Api` authorization policy |
+
+The policies initially define the permission names and wiring only. Real authentication must be connected to the existing user/session tables or a new Identity store in a later milestone.

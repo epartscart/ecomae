@@ -6,13 +6,15 @@ namespace EcomAE.Platform.Services;
 public sealed class RouteTenantResolver : ITenantResolver
 {
     private readonly EcomAeOptions _options;
+    private readonly ITenantRegistry _tenantRegistry;
 
-    public RouteTenantResolver(IOptions<EcomAeOptions> options)
+    public RouteTenantResolver(IOptions<EcomAeOptions> options, ITenantRegistry tenantRegistry)
     {
         _options = options.Value;
+        _tenantRegistry = tenantRegistry;
     }
 
-    public ValueTask<TenantContext> ResolveAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
+    public async ValueTask<TenantContext> ResolveAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
     {
         var host = httpContext.Request.Host.Host.ToLowerInvariant();
         var path = NormalizePath(httpContext.Request.Path.Value);
@@ -27,11 +29,12 @@ public sealed class RouteTenantResolver : ITenantResolver
         };
 
         var platformHost = _options.PlatformHost.ToLowerInvariant();
-        var mode = host == platformHost || host == TrimWww(platformHost)
+        var registryRecord = await _tenantRegistry.FindByHostAsync(host, cancellationToken);
+        var mode = registryRecord?.Mode ?? (host == platformHost || host == TrimWww(platformHost)
             ? TenantMode.Platform
-            : surface == TenantSurface.Erp ? TenantMode.ErpOnlyTenant : TenantMode.LiveTenant;
+            : surface == TenantSurface.Erp ? TenantMode.ErpOnlyTenant : TenantMode.LiveTenant);
 
-        return ValueTask.FromResult(new TenantContext(host, path, surface, mode));
+        return new TenantContext(host, path, surface, mode, registryRecord?.SiteKey, registryRecord?.DatabaseName);
     }
 
     private static string NormalizePath(string? path)

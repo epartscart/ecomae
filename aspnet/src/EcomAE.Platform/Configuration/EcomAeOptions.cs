@@ -13,4 +13,6 @@ public sealed class EcomAeOptions
     public string DefaultBosPath { get; set; } = "/BOS";
 
     public string TenantRegistryConnectionStringName { get; set; } = "TenantRegistry";
+
+    public List<TenantSeedOptions> SeedTenants { get; set; } = [];
 }
