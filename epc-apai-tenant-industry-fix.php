@@ -85,7 +85,7 @@ foreach ($presets as $siteKey => $preset) {
 			'SELECT q.`id`, n.`industry_key`, n.`name_en`
 			 FROM `epc_product_discovery_queue` q
 			 INNER JOIN `epc_product_taxonomy_nodes` n ON n.`id` = q.`taxonomy_node_id`
-			 WHERE q.`site_key` = ? AND q.`status` = \'suggested\' AND n.`industry_key` <> ?'
+			 WHERE q.`site_key` = ? AND q.`status` = \'suggested\' AND n.`industry_key` <> ?
 			 LIMIT 500'
 		);
 		$badStmt->execute(array($siteKey, $industryKey));
