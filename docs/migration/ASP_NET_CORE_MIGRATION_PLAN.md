@@ -309,3 +309,9 @@ The script checks out the final migration files from the source branch onto late
 - The report confirms bridge input support for `PHPSESSID`, `X-API-Key`, and Bearer API keys while keeping production login validation on PHP until the session store and claims mapping are wired.
 - Progress increased to 53%; remaining auth work is production session-store validation, claims/permissions mapping, and CP/ERP/BOS login replay.
 
+
+## Thirtieth Milestone Included Here
+
+- Added `/cp/parity` with `IControlPanelParityReporter` so the Super CP shell can report verified route/session readiness separately from broader surface parity.
+- The report names CP alias handling, legacy-session diagnostics, and required evidence for login, tenant administration, user management, settings, dashboards, permission denial, and audit logging.
+- Progress increased to 54%; remaining CP work is implementation-depth parity for real Super CP workflows before production traffic can leave PHP.

@@ -27,6 +27,7 @@ builder.Services.AddSingleton<IPriceLookupService, RepositoryPriceLookupService>
 builder.Services.AddSingleton<IPriceLookupParityReporter, PriceLookupParityReporter>();
 builder.Services.AddSingleton<ICatalogParityReporter, CatalogParityReporter>();
 builder.Services.AddSingleton<IMigrationParityReporter, MigrationParityReporter>();
+builder.Services.AddSingleton<IControlPanelParityReporter, ControlPanelParityReporter>();
 builder.Services.AddSingleton<IMigrationReadinessReporter, MigrationReadinessReporter>();
 builder.Services.AddSingleton<IMigrationCutoverPlanner, MigrationCutoverPlanner>();
 builder.Services.AddSingleton<IMigrationRouteCutoverPolicy, MigrationRouteCutoverPolicy>();

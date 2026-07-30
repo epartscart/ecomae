@@ -11,7 +11,7 @@ public sealed class MigrationProgressReporter : IMigrationProgressReporter
             new("Migration telemetry, readiness, and cutover reporting", 3, 100, "complete", "Expose reports to operators after ASP.NET Core hosting is enabled."),
             new("Public API compatibility scaffolding", 10, 90, "catalog-and-price-parity-endpoints-started", "Replace placeholder price lookup with database-backed catalog services and parity tests."),
             new("Legacy CP/ERP/BOS session bridge", 7, 95, "session-and-api-client-parity-visible", "Validate PHP session cookie semantics and permission mapping against production login flows."),
-            new("Super CP migration", 12, 25, "shell-started", "Port login, users, tenant administration, settings, and dashboards."),
+            new("Super CP migration", 12, 35, "cp-parity-visible", "Port login, users, tenant administration, settings, and dashboards."),
             new("Platform ERP migration", 18, 22, "shell-started", "Port finance, inventory, sales, purchase, invoice, reporting, and audit modules."),
             new("Super BOS migration", 8, 25, "shell-started", "Port command center, privileged operations, and audit trails."),
             new("Tenant CP and tenant ERP migration", 10, 0, "pending", "Port tenant-scoped CP/ERP workflows for live and ERP-only tenants."),

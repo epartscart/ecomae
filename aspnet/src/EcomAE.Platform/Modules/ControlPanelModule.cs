@@ -1,4 +1,5 @@
 using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Migration;
 using EcomAE.Platform.Services;
 using EcomAE.Platform.Surfaces;
 using EcomAE.Platform.Routing;
@@ -18,6 +19,8 @@ public sealed class ControlPanelModule : ISurfaceModule
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
+        endpoints.MapGet(EcomAeRoutes.ControlPanelParity, (IControlPanelParityReporter reporter) => Results.Ok(reporter.BuildReport()));
+
         foreach (var route in EcomAeRoutes.ControlPanelAliases)
         {
             endpoints.MapGet(route, (HttpContext context, ISurfaceShellCatalog shells) =>

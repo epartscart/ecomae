@@ -14,6 +14,7 @@ public static class EcomAeRoutes
     public const string LegacySessionParity = "/auth/session/parity";
     public const string LegacyApiClientParity = "/auth/api-client/parity";
     public const string ControlPanel = "/cp";
+    public const string ControlPanelParity = "/cp/parity";
     public const string Erp = "/erp";
     public const string Bos = "/bos";
     public const string ApiPrefix = "/api";
