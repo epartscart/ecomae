@@ -142,6 +142,9 @@ check 'live smoke can post super login without printing secrets' contains "$ROOT
 check 'live smoke checks CloudPanel dashboard path' contains "$ROOT/tests/live_smoke/run_ecomae_surface_smoke.sh" 'ECOMAE_CLOUDPANEL_DASHBOARD_PATH'
 check 'live smoke reports proxy tunnel failures' contains "$ROOT/tests/live_smoke/run_ecomae_surface_smoke.sh" 'blocked by outbound proxy CONNECT tunnel'
 check 'live smoke requires opt-in' contains "$ROOT/tests/live_smoke/run_ecomae_surface_smoke.sh" 'RUN_LIVE_ECOMAE_SMOKE=1'
+check 'detailed foundation test runner exists' test -x "$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh"
+check 'detailed foundation test runner includes PHP lint' contains "$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh" 'php -l'
+check 'detailed foundation test runner handles missing dotnet' contains "$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh" 'dotnet SDK is not installed'
 check 'live smoke checks super BOS trailing slash' contains "$ROOT/tests/live_smoke/run_ecomae_surface_smoke.sh" 'Super BOS trailing slash'
 check 'consolidated PR script exists' test -x "$ROOT/scripts/prepare_consolidated_aspnet_pr.sh"
 check 'consolidated PR script starts from origin main' contains "$ROOT/scripts/prepare_consolidated_aspnet_pr.sh" 'git checkout -B "$TARGET_BRANCH" "$BASE_REMOTE/$BASE_BRANCH"'
@@ -207,17 +210,47 @@ check 'program registers route cutover policy' contains "$ROOT/aspnet/src/EcomAE
 check 'route cutover policy tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationRouteCutoverPolicyTests.cs"
 check 'route cutover route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/migration/route-cutover'
 check 'program maps route cutover endpoint' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'EcomAeRoutes.MigrationRouteCutover'
-check 'route cutover endpoint uses tenant context' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'policy.Decide(tenant)'
+check 'route cutover endpoint uses tenant context' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'policy.Decide(tenant)' 
 check 'route cutover options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Configuration/MigrationRouteCutoverOptions.cs"
 check 'appsettings configures route cutover' contains "$ROOT/aspnet/src/EcomAE.Platform/appsettings.json" 'MigrationRouteCutover'
 check 'program binds route cutover options' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'MigrationRouteCutoverOptions.SectionName'
 check 'route cutover policy consumes options' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/MigrationRouteCutoverPolicy.cs" 'IOptions<MigrationRouteCutoverOptions>'
-check 'route cutover tests cover disabled API shadow traffic' contains "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationRouteCutoverPolicyTests.cs" 'ApiCanBeDisabledByConfiguration'
+check 'route cutover tests cover disabled API shadow traffic' contains "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationRouteCutoverPolicyTests.cs" 'ApiCanBeDisabledByConfiguration' 
 check 'route cutover middleware exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Middleware/RouteCutoverDecisionMiddleware.cs"
 check 'route cutover middleware emits target runtime header' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/RouteCutoverDecisionMiddleware.cs" 'X-EcomAE-Target-Runtime'
 check 'route cutover middleware emits PHP fallback header' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/RouteCutoverDecisionMiddleware.cs" 'X-EcomAE-PHP-Fallback'
 check 'program wires route cutover middleware' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'RouteCutoverDecisionMiddleware'
 check 'route cutover middleware tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/RouteCutoverDecisionMiddlewareTests.cs"
+check 'ASP.NET production runbook exists' test -f "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md"
+check 'ASP.NET platform systemd unit exists' test -f "$ROOT/deploy/aspnet/ecomae-platform.service"
+check 'ASP.NET worker systemd unit exists' test -f "$ROOT/deploy/aspnet/ecomae-workers.service"
+check 'ASP.NET production env template keeps PHP fallback' contains "$ROOT/deploy/aspnet/platform.env.example" 'MigrationRouteCutover__RequirePhpFallback=true'
+check 'ASP.NET diagnostics-only nginx config allowlists migration routes' contains "$ROOT/deploy/aspnet/nginx-diagnostics-only.conf" 'allow YOUR_OFFICE_IP'
+check 'ASP.NET exact API shadow example exists' contains "$ROOT/deploy/aspnet/nginx-api-shadow-example.conf" '/api/v1/catalog/status'
+check 'ASP.NET deploy script exists' test -x "$ROOT/scripts/deploy_aspnet_foundation.sh"
+check 'ASP.NET deploy script runs detailed foundation tests' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'run_detailed_foundation_tests.sh'
+check 'ASP.NET rollback script exists' test -x "$ROOT/scripts/rollback_aspnet_foundation.sh"
+check 'ASP.NET production preflight script exists' test -x "$ROOT/scripts/preflight_aspnet_production.sh"
+check 'ASP.NET production preflight checks PHP fallback' contains "$ROOT/scripts/preflight_aspnet_production.sh" 'MigrationRouteCutover__RequirePhpFallback=true'
+check 'CloudPanel include template avoids broad cutover' contains "$ROOT/deploy/aspnet/cloudpanel-site-include.template.conf" 'intentionally avoids /cp, /erp, /bos, /api'
+check 'ASP.NET go-live checklist exists' test -f "$ROOT/deploy/aspnet/GO_LIVE_CHECKLIST.md"
+check 'ASP.NET go-live checklist requires exact-match proxy' contains "$ROOT/deploy/aspnet/GO_LIVE_CHECKLIST.md" 'exact-match only'
+check 'ASP.NET proxy guardrail script exists' test -x "$ROOT/scripts/verify_aspnet_proxy_guardrails.sh"
+check 'ASP.NET proxy guardrail script blocks broad API' contains "$ROOT/scripts/verify_aspnet_proxy_guardrails.sh" 'contains a broad API location'
+check 'ASP.NET remote deploy script exists' test -x "$ROOT/scripts/remote_aspnet_foundation_deploy.sh"
+check 'ASP.NET remote deploy is dry-run by default' contains "$ROOT/scripts/remote_aspnet_foundation_deploy.sh" 'ECOMAE_RUN_REMOTE_DEPLOY:-0'
+check 'ASP.NET remote deploy env example exists' test -f "$ROOT/deploy/aspnet/remote-deploy.env.example"
+check 'ASP.NET remote deploy env keeps remote execution disabled' contains "$ROOT/deploy/aspnet/remote-deploy.env.example" 'ECOMAE_RUN_REMOTE_DEPLOY=0'
+check 'CloudPanel quick start exists' test -f "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md"
+check 'CloudPanel quick start explains repo root' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'run from the repository root'
+check 'CloudPanel quick start has paste-safe finder' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Paste-safe repo finder'
+check 'CloudPanel quick start warns about literal placeholder path' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Do not paste the example path'
+check 'CloudPanel missing repo recovery exists' test -f "$ROOT/deploy/aspnet/CLOUDPANEL_MISSING_REPO_RECOVERY.md"
+check 'CloudPanel missing repo recovery requires real git URL' contains "$ROOT/deploy/aspnet/CLOUDPANEL_MISSING_REPO_RECOVERY.md" 'Set ECOMAE_GIT_URL to the real repository URL first'
+check 'production runbook troubleshoots missing script' contains "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md" 'No such file or directory'
+check 'Codex PR cleanup script exists' test -x "$ROOT/scripts/cleanup_codex_prs.sh"
+check 'Codex PR cleanup script is dry-run by default' contains "$ROOT/scripts/cleanup_codex_prs.sh" 'RUN_CLOSE:-0'
+check 'open PR consolidation runbook exists' test -f "$ROOT/docs/migration/OPEN_PR_CONSOLIDATION_RUNBOOK.md"
 check 'consolidated PR push script exists' test -x "$ROOT/scripts/push_consolidated_pr_update.sh"
 check 'migration plan documents zero PHP final state' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'zero PHP files'
 

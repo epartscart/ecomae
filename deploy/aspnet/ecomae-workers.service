@@ -1,0 +1,20 @@
+[Unit]
+Description=EcomAE ASP.NET Migration Workers
+After=network-online.target mysql.service mariadb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/ecomae-aspnet/current/workers
+ExecStart=/usr/bin/dotnet /var/www/ecomae-aspnet/current/workers/EcomAE.Workers.dll
+Restart=always
+RestartSec=10
+EnvironmentFile=/etc/ecomae-aspnet/platform.env
+SyslogIdentifier=ecomae-workers
+User=www-data
+Group=www-data
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
