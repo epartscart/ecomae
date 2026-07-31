@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <RootNamespace>EcomAE.Platform.Tests</RootNamespace>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -11,5 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\EcomAE.Platform\EcomAE.Platform.csproj" />
+    <ProjectReference Include="..\..\src\EcomAE.Workers\EcomAE.Workers.csproj" />
   </ItemGroup>
 </Project>

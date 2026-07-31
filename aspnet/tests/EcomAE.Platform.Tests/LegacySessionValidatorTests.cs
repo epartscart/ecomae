@@ -26,7 +26,7 @@ public sealed class LegacySessionValidatorTests
     public async Task ApiKeyHeaderMapsToApiPermission()
     {
         var context = new DefaultHttpContext();
-        context.Request.Headers["X-API-Key"] = "epc_test_key";
+        context.Request.Headers["X-API-Key"] = "epc_catalog_test_key";
         var validator = new HttpLegacySessionValidator();
 
         var session = await validator.ValidateAsync(context);

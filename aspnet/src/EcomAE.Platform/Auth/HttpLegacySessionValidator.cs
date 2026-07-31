@@ -35,13 +35,15 @@ public sealed class HttpLegacySessionValidator : ILegacySessionValidator
                 []));
         }
 
-        var apiKey = httpContext.Request.Headers["X-API-Key"].FirstOrDefault();
-        if (!string.IsNullOrWhiteSpace(apiKey))
+        var apiKey = httpContext.Request.Headers["X-API-Key"].FirstOrDefault()
+            ?? LegacyApiClientKeyParser.ExtractFromAuthorizationHeader(httpContext.Request.Headers.Authorization.FirstOrDefault());
+        var parsedApiKey = LegacyApiClientKeyParser.Parse(apiKey);
+        if (parsedApiKey is not null)
         {
             return ValueTask.FromResult(new LegacySessionContext(
                 LegacySessionKind.ApiKey,
                 0,
-                apiKey,
+                parsedApiKey.Prefix,
                 [EcomAePermissions.ApiAccess]));
         }
 

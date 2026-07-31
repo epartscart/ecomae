@@ -1,3 +1,9 @@
+using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Migration;
+using EcomAE.Platform.Services;
+using EcomAE.Platform.Surfaces;
+using EcomAE.Platform.Routing;
+
 namespace EcomAE.Platform.Modules;
 
 public sealed class StorefrontModule : ISurfaceModule
@@ -7,16 +13,17 @@ public sealed class StorefrontModule : ISurfaceModule
         "Storefront / Marketing",
         "/",
         "content/shop/, content/general_pages/, templates/",
-        "not_started",
+        "shell-started",
         []);
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/storefront/migration-placeholder", () => Results.Ok(new
+        endpoints.MapGet(EcomAeRoutes.StorefrontParity, (IStorefrontParityReporter reporter) => Results.Ok(reporter.BuildReport()));
+
+        endpoints.MapGet("/storefront/migration-placeholder", (HttpContext context, ISurfaceShellCatalog shells) =>
         {
-            surface = "Storefront / marketing",
-            migration = "not_started",
-            next = "Port SEO-safe storefront routes, product pages, cart, checkout, CMS, sitemaps"
-        }));
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            return Results.Ok(shells.Build("storefront", tenant));
+        });
     }
 }

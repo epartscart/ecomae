@@ -41,3 +41,8 @@ epc-operator-probe.php
 
 # Generated warehouse sitemaps (epc-seo-sitemap-warm.php)
 /sitemap-warehouse-*.xml
+
+# .NET
+[Bb]in/
+[Oo]bj/
+.vs/
