@@ -1,10 +1,3 @@
-/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/rpswa.dswa.cache.json
-/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.GeneratedMSBuildEditorConfig.editorconfig
-/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.AssemblyInfoInputs.cache
-/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.AssemblyInfo.cs
-/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.csproj.CoreCompileInputs.cache
-/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.MvcApplicationPartsAssemblyInfo.cache
-/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.sourcelink.json
 /app/aspnet/src/EcomAE.Platform/bin/Debug/net10.0/appsettings.json
 /app/aspnet/src/EcomAE.Platform/bin/Debug/net10.0/EcomAE.Platform.staticwebassets.endpoints.json
 /app/aspnet/src/EcomAE.Platform/bin/Debug/net10.0/EcomAE.Platform
@@ -12,6 +5,13 @@
 /app/aspnet/src/EcomAE.Platform/bin/Debug/net10.0/EcomAE.Platform.runtimeconfig.json
 /app/aspnet/src/EcomAE.Platform/bin/Debug/net10.0/EcomAE.Platform.dll
 /app/aspnet/src/EcomAE.Platform/bin/Debug/net10.0/EcomAE.Platform.pdb
+/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/rpswa.dswa.cache.json
+/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.GeneratedMSBuildEditorConfig.editorconfig
+/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.AssemblyInfoInputs.cache
+/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.AssemblyInfo.cs
+/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.csproj.CoreCompileInputs.cache
+/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.MvcApplicationPartsAssemblyInfo.cache
+/app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/EcomAE.Platform.sourcelink.json
 /app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/rjimswa.dswa.cache.json
 /app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/rjsmrazor.dswa.cache.json
 /app/aspnet/src/EcomAE.Platform/obj/Debug/net10.0/rjsmcshtml.dswa.cache.json

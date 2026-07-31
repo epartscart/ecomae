@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EcomAE.Workers")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1c7bd1607f45b580a9b244e47b2295ee027ffe90")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1271e3b6eb2616fdb5b4b0f7ebd8ed57f09b59da")]
 [assembly: System.Reflection.AssemblyProductAttribute("EcomAE.Workers")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EcomAE.Workers")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
