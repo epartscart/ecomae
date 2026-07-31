@@ -29,7 +29,7 @@ public sealed class PriceLookupParityReporter : IPriceLookupParityReporter
             "PHP price lookup routes and shop_docpart_prices_data",
             result.MigrationStatus,
             SampleRequest.NormalizedBrand,
-            SampleRequest.NormalizedArticle,
+            SampleRequest.Article,
             readyForShadowTraffic ? "shadow-ready-with-gaps" : "not-ready",
             readyForShadowTraffic,
             gaps);
