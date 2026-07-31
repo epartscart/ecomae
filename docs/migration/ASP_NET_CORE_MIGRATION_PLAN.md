@@ -362,3 +362,67 @@ The script checks out the final migration files from the source branch onto late
 - Re-scoped `/migration/progress` to measure completion of this ASP.NET Core migration foundation PR rather than claiming production traffic has already moved.
 - Foundation progress now reaches 100% because route constants, modules, parity diagnostics, worker scaffolding, data/cutover reports, live-smoke tooling, PHP alias compatibility, and operator scripts are present and checked.
 - Production migration remains intentionally gated by the dedicated parity, data replay, live smoke, and cutover validation reports before any PHP fallback is disabled.
+
+
+## Thirty Eighth Milestone Included Here
+
+- Added a detailed foundation verification runner that chains repository wiring checks, PHP route-alias regression tests, PHP syntax checks, shell syntax checks, optional .NET unit tests, and optional live smoke checks.
+- The runner treats missing local .NET SDK and live staging access as warnings when those dependencies are unavailable, while still failing on deterministic repository/script/PHP regressions.
+- The foundation check now verifies that this detailed runner exists and includes the PHP lint and missing-.NET guardrails needed for repeatable review.
+
+
+## Thirty Ninth Milestone Included Here
+
+- Added production deployment artifacts for running the ASP.NET Core migration foundation beside PHP on CloudPanel/Nginx.
+- Included systemd unit templates, a server-only environment template, diagnostics-only Nginx routing, an exact-route API shadow example, deploy/rollback scripts, and a production deployment runbook.
+- The deployment artifacts keep PHP fallback enabled by default and expose only `/health` plus allowlisted `/migration/*` diagnostics before route-by-route parity approval.
+
+
+## Fortieth Milestone Included Here
+
+- Added a production preflight script for the ASP.NET foundation deployment that checks required server commands, .NET version compatibility, release directory presence, server-only environment-file permissions, placeholder credential cleanup, PHP fallback, and optional localhost health.
+- Added a CloudPanel include template that deliberately avoids broad `/cp`, `/erp`, `/bos`, `/api`, and storefront cutover rules during the diagnostics-only first exposure.
+- Extended the detailed foundation runner and static foundation checks so deployment scripts, rollback scripts, and production preflight coverage stay reviewable in CI.
+
+
+## Forty First Milestone Included Here
+
+- Added a route-by-route go-live checklist for production cutover evidence, exact-match proxy changes, diagnostic headers, monitoring, rollback, and approver tracking.
+- Added proxy guardrail verification that scans deployment Nginx snippets and fails if broad CP/ERP/BOS/API/storefront catch-all locations are introduced before parity approval.
+- Wired the guardrail script into the detailed foundation runner and static foundation checks so future deployment edits cannot accidentally broaden production cutover scope.
+
+
+## Forty Second Milestone Included Here
+
+- Added dry-run-first remote deployment automation for production operators using SSH, a server-reachable Git repository, detailed foundation checks, production preflight checks, proxy guardrails, and the existing publish script.
+- Added a remote deployment environment template that keeps actual execution, systemd restarts, and Nginx reloads disabled until an operator explicitly enables each safety switch.
+- Extended the runbook and foundation checks so remote deployment automation remains secret-safe and reviewable without broad route cutover.
+
+
+## Forty Third Milestone Included Here
+
+- Added a CloudPanel quick-start guide for production shells that are not inside the repository root, including how to find or clone the repository before running preflight and deployment scripts.
+- Updated the production runbook with troubleshooting for `scripts/preflight_aspnet_production.sh: No such file or directory`, matching the observed CloudPanel terminal failure mode.
+- Extended static foundation checks so the quick-start troubleshooting remains available with the deployment artifacts.
+
+
+## Forty Fourth Milestone Included Here
+
+- Hardened the CloudPanel quick start after the operator pasted the placeholder `/path/to/ecomae-repo` literally.
+- Added a paste-safe repository finder that searches for `scripts/preflight_aspnet_production.sh`, changes into the real repo root when found, and clearly reports when the repository must be cloned first.
+- Extended static foundation checks so the paste-safe finder and placeholder warning stay present in production deployment docs.
+
+
+## Forty Fifth Milestone Included Here
+
+- Added a CloudPanel missing-repository recovery guide for the observed `ECOMAE repo not found` state.
+- The guide provides a paste-safe clone flow guarded by `ECOMAE_GIT_URL` and `ECOMAE_GIT_REF` checks so operators cannot accidentally run placeholder values.
+- Linked the quick start and production runbook to the recovery flow and added foundation checks for the new clone guardrails.
+
+
+## Forty Sixth Milestone Included Here
+
+- Added an open Codex PR consolidation runbook for the observed GitHub state with many open migration PRs and conflict noise.
+- Added a dry-run-first `scripts/cleanup_codex_prs.sh` helper that uses GitHub CLI to keep one final PR and close superseded Codex-labeled PRs only when `RUN_CLOSE=1`.
+- Extended foundation checks so the PR cleanup workflow stays discoverable and safe before production deployment.
+
