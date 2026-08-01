@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>EcomAE.Workers</RootNamespace>
+    <AssemblyName>EcomAE.Workers</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EcomAE.Platform\EcomAE.Platform.csproj" />
+  </ItemGroup>
+</Project>
