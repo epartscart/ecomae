@@ -29,15 +29,15 @@ paths=(
   content/general_pages/epc_portal_route_aliases.php
   cp/content/shop/finance/erp/erp_dashboard.php
   cp/content/users/statistics/app.php
-  docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md
+  deploy/aspnet
+  docs/migration
   epc-all-tasks-final-report.php
   epc-apai-tenant-industry-fix.php
   epc-regenerate-issues-report.php
   index.php
   pyapi/requirements.txt
-  tests/aspnet_migration
-  tests/erp_advanced/run_surface_route_alias_tests.php
-  tests/live_smoke
+  scripts
+  tests
 )
 
 for path in "${paths[@]}"; do
