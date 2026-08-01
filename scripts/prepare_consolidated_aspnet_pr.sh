@@ -29,12 +29,23 @@ paths=(
   content/general_pages/epc_portal_route_aliases.php
   cp/content/shop/finance/erp/erp_dashboard.php
   cp/content/users/statistics/app.php
-  docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md
+  deploy/aspnet
+  docs/migration
   epc-all-tasks-final-report.php
   epc-apai-tenant-industry-fix.php
   epc-regenerate-issues-report.php
   index.php
   pyapi/requirements.txt
+  scripts/cleanup_codex_prs.sh
+  scripts/deploy_aspnet_foundation.sh
+  scripts/inventory_php_routes.sh
+  scripts/preflight_aspnet_production.sh
+  scripts/prepare_consolidated_aspnet_pr.sh
+  scripts/push_consolidated_pr_update.sh
+  scripts/rebase_conflicted_pr_range.sh
+  scripts/remote_aspnet_foundation_deploy.sh
+  scripts/rollback_aspnet_foundation.sh
+  scripts/verify_aspnet_proxy_guardrails.sh
   tests/aspnet_migration
   tests/erp_advanced/run_surface_route_alias_tests.php
   tests/live_smoke
