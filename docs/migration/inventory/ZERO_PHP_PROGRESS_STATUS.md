@@ -54,6 +54,7 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 - Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first.
 - Run `bash scripts/run_zero_php_final_gate_checklist.sh`.
+- On CloudPanel: add smoke keys to `/etc/ecomae-aspnet/platform.env`, then `bash scripts/cloudpanel_capture_final_gate_artifacts.sh`.
 - Run opt-in staging smoke with real `epc_pricepro_` / `epc_catalog_` keys and admin cookies; copy JSON into `docs/migration/evidence/decommission/staging-smoke/`.
 - Attach parity samples; enable only approved `location =` shadows.
 - Create `RELEASE_OWNER_APPROVAL.md` only after human approval; then remove PHP.

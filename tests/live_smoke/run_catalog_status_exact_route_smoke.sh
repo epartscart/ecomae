@@ -11,6 +11,7 @@ fi
 ROUTE="/api/v1/catalog/status"
 OUT_DIR="${ECOMAE_SMOKE_OUT_DIR:-/tmp}"
 ASPNET_OUT="${OUT_DIR}/ecomae-aspnet-catalog-status.json"
+mkdir -p "$OUT_DIR"
 
 aspnet_status="$(curl -sS -o "$ASPNET_OUT" -w '%{http_code}' \
   -H "X-API-Key: ${ECOMAE_CATALOG_API_KEY}" \
@@ -31,5 +32,6 @@ if [[ -n "${ECOMAE_PHP_BASE_URL:-}" ]]; then
   fi
 fi
 
+cp -f "$ASPNET_OUT" "${OUT_DIR}/catalog-status-aspnet.json"
 echo "PASS catalog status exact-route smoke completed for ${ROUTE}; broad /api cutover was not required."
-echo "Artifact: ${ASPNET_OUT}"
+echo "Artifact: ${OUT_DIR}/catalog-status-aspnet.json"

@@ -43,7 +43,10 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
         var root = ResolveEvidenceRoot();
         var checklist = new[]
         {
-            Item("staging-smoke-price", "Price lookup exact-route staging smoke artifact",
+            Item("public-probes", "Public production diagnostic probes attached (no secrets)",
+                File.Exists(Path.Combine(root, "public-probes", "www-zero-php-completion.json"))
+                && File.Exists(Path.Combine(root, "public-probes", "www-php-decommission-readiness.json"))),
+            Item("staging-smoke-price", "Price lookup exact-route staging smoke artifact (authenticated 200)",
                 File.Exists(Path.Combine(root, "staging-smoke", "price-lookup-aspnet.json"))),
             Item("staging-smoke-catalog", "Catalog status exact-route staging smoke artifact",
                 File.Exists(Path.Combine(root, "staging-smoke", "catalog-status-aspnet.json"))),
@@ -55,6 +58,8 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
             Item("exact-route-shadows-only", "Exact-route nginx shadow examples present; broad cutover still forbidden",
                 File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"))
                 && File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"))),
+            Item("cloudpanel-capture-script", "CloudPanel final-gate capture script exists",
+                File.Exists(Path.Combine(FindRepoRoot(), "scripts", "cloudpanel_capture_final_gate_artifacts.sh"))),
             Item("rollback-validated", "Operator rollback script exists and keeps PHP fallback",
                 File.Exists(Path.Combine(FindRepoRoot(), "scripts", "rollback_aspnet_foundation.sh"))),
             Item("release-owner-approval", "Release-owner written approval artifact",
@@ -93,7 +98,8 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
             ],
             [
                 "Keep PHP authoritative for all production traffic.",
-                "Run bash scripts/run_zero_php_final_gate_checklist.sh (and opt-in live smoke with real keys).",
+                "Run bash scripts/run_zero_php_final_gate_checklist.sh.",
+                "On CloudPanel: add ECOMAE_PRICE_LOOKUP_API_KEY / ECOMAE_CATALOG_API_KEY to platform.env, then bash scripts/cloudpanel_capture_final_gate_artifacts.sh.",
                 "Copy generated smoke JSON into docs/migration/evidence/decommission/staging-smoke/ after staging runs.",
                 "Promote only approved exact-route shadows one path at a time.",
                 "Do not remove PHP-FPM/cron/rewrites until ReadyToRemovePhp is true with release-owner approval."

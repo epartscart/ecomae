@@ -16,7 +16,24 @@ Weighted completion remains **95% / 5% pending**. The residual 5% is PHP runtime
 bash scripts/run_zero_php_final_gate_checklist.sh
 ```
 
-Evidence pack: `docs/migration/evidence/decommission/`
+On CloudPanel after deploy (loads keys from `/etc/ecomae-aspnet/platform.env` when present):
+
+```bash
+cd /opt/ecomae-aspnet-source
+bash scripts/cloudpanel_capture_final_gate_artifacts.sh
+```
+
+Add to `platform.env` (server-only, never commit):
+
+```bash
+ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...
+ECOMAE_CATALOG_API_KEY=epc_catalog_...
+# optional for digest smoke:
+# ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=...'
+```
+
+Evidence pack: `docs/migration/evidence/decommission/`  
+Public probes (no secrets) are already attached under `public-probes/`.
 
 Opt-in staging smoke:
 

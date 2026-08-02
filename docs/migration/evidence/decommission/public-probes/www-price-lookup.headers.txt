@@ -1,0 +1,10 @@
+HTTP/2 401 
+date: Sun, 02 Aug 2026 17:33:47 GMT
+content-type: application/json; charset=utf-8
+server: cloudflare
+x-content-type-options: nosniff
+cache-control: no-store
+x-ecom-api-client: 1
+cf-cache-status: DYNAMIC
+alt-svc: h3=":443"; ma=86400
+
