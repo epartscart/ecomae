@@ -52,6 +52,18 @@ sudo install -m 0600 deploy/aspnet/platform.env.example /etc/ecomae-aspnet/platf
 sudo nano /etc/ecomae-aspnet/platform.env
 ```
 
+If `nano` opens `/etc/ecomae-aspnet/platform.env`:
+
+1. Confirm `ConnectionStrings__TenantRegistry=...` has real Server/Database/User/Password (no `<db_user>` placeholders).
+2. Save: `Ctrl+O`, then `Enter`.
+3. Exit: `Ctrl+X`.
+4. Continue deploy:
+
+```bash
+cd /root/ecomae   # or your real repo path
+bash scripts/cloudpanel_continue_after_env.sh
+```
+
 Replace placeholders in `/etc/ecomae-aspnet/platform.env`. Never commit production secrets.
 
 ## 5. Run preflight from the repo root

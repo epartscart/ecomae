@@ -256,8 +256,16 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 43.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 44.0%'
 check 'zero PHP progress status blocks broad cutover' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Broad `/api`, `/cp`, `/erp`, `/bos`'
+check 'catalog manufacturers route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/manufacturers'
+check 'DB catalog manufacturers repository exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbCatalogManufacturerRepository.cs"
+check 'program registers catalog manufacturers service' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ICatalogManufacturerService, CatalogManufacturerService'
+check 'API module gates manufacturers with catalog auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" '"catalog", "manufacturers"'
+check 'catalog manufacturers evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-manufacturers/README.md"
+check 'catalog manufacturers nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-manufacturers-shadow-example.conf"
+check 'CloudPanel continue-after-env script exists' test -x "$ROOT/scripts/cloudpanel_continue_after_env.sh"
+check 'CloudPanel quick start explains nano save/exit' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Ctrl+O'
 check 'worker dry-run evidence provider exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs"
 check 'worker dry-run evidence keeps PHP fallback required' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'PhpFallbackRequired: true'
 check 'worker dry-run evidence includes rollback command' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'disable ASP.NET worker flag'

@@ -12,8 +12,8 @@ public sealed class CatalogParityReporterTests
 
         Assert.True(report.ReadyForShadowTraffic);
         Assert.Contains("api/v1/catalog.php", report.LegacySource, StringComparison.Ordinal);
-        Assert.Contains("DbCatalogStatusRepository", report.AspNetSource, StringComparison.Ordinal);
-        Assert.Equal("status-route-wired-awaiting-staging", report.Status);
+        Assert.Contains("manufacturers", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("status-and-manufacturers-wired-awaiting-staging", report.Status);
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("manufacturer", StringComparison.OrdinalIgnoreCase));
     }
 }

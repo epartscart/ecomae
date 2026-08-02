@@ -57,6 +57,12 @@ else
     fail 'exact price lookup shadow route example is missing'
 fi
 
+if grep -R --line-number -E '^[[:space:]]*location[[:space:]]+= /api/v1/catalog/manufacturers' "$CONF_DIR" >/dev/null; then
+    pass 'exact catalog manufacturers shadow route example is present'
+else
+    fail 'exact catalog manufacturers shadow route example is missing'
+fi
+
 if grep -R --line-number -E 'allow YOUR_OFFICE_IP' "$CONF_DIR" >/dev/null; then
     pass 'diagnostic migration routes are visibly allowlisted'
 else
