@@ -42,7 +42,9 @@ dotnet publish "$ROOT/aspnet/src/EcomAE.Workers/EcomAE.Workers.csproj" -c "$DOTN
 
 # Pack Zero-PHP final-gate evidence/ops files into the platform ContentRoot so
 # /migration/php-decommission-readiness can see attached git artifacts on the server.
+# Gate checklist exact-route-shadows-only requires all four shadow examples below.
 install -d \
+  "$PLATFORM_DIR/docs/migration" \
   "$PLATFORM_DIR/docs/migration/evidence" \
   "$PLATFORM_DIR/deploy/aspnet" \
   "$PLATFORM_DIR/scripts"
@@ -50,14 +52,32 @@ cp -a "$ROOT/docs/migration/evidence/decommission" "$PLATFORM_DIR/docs/migration
 install -m 0644 "$ROOT/docs/migration/PHP_DECOMMISSION_READINESS.md" "$PLATFORM_DIR/docs/migration/PHP_DECOMMISSION_READINESS.md"
 install -m 0644 \
   "$ROOT/deploy/aspnet/nginx-price-lookup-shadow-example.conf" \
+  "$ROOT/deploy/aspnet/nginx-api-shadow-example.conf" \
   "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" \
+  "$ROOT/deploy/aspnet/nginx-storefront-digests-shadow-example.conf" \
   "$PLATFORM_DIR/deploy/aspnet/"
+# Pack remaining exact-route catalog shadow examples for one-path promotion helpers.
+shopt -s nullglob
+for shadow in "$ROOT"/deploy/aspnet/nginx-*-shadow-example.conf; do
+  install -m 0644 "$shadow" "$PLATFORM_DIR/deploy/aspnet/"
+done
+shopt -u nullglob
 install -m 0755 \
   "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" \
+  "$ROOT/scripts/cloudpanel_validate_final_gate_env.sh" \
+  "$ROOT/scripts/cloudpanel_issue_smoke_credentials.sh" \
+  "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" \
+  "$ROOT/scripts/wait_for_aspnet_health.sh" \
   "$ROOT/scripts/rollback_aspnet_foundation.sh" \
   "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" \
   "$PLATFORM_DIR/scripts/"
+# PHP issuer used by cloudpanel_issue_smoke_credentials.sh
+if [[ -f "$ROOT/scripts/php/issue_final_gate_smoke_credentials.php" ]]; then
+  install -d "$PLATFORM_DIR/scripts/php"
+  install -m 0644 "$ROOT/scripts/php/issue_final_gate_smoke_credentials.php" "$PLATFORM_DIR/scripts/php/"
+fi
 printf 'Packed decommission evidence into %s/docs/migration/evidence/decommission\n' "$PLATFORM_DIR"
+printf 'Packed gate shadow examples (price/api/surface/storefront) into %s/deploy/aspnet\n' "$PLATFORM_DIR"
 
 ln -sfn "$RELEASE_DIR" "$RELEASE_ROOT/current"
 

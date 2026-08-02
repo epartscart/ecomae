@@ -375,6 +375,20 @@ check 'final gate checklist script exists' test -x "$ROOT/scripts/run_zero_php_f
 check 'CloudPanel final-gate capture script exists' test -x "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh"
 check 'deploy packs decommission evidence into release' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'Packed decommission evidence'
 check 'deploy copies public probe evidence directory' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'docs/migration/evidence/decommission'
+check 'deploy packs price lookup gate shadow' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'nginx-price-lookup-shadow-example.conf'
+check 'deploy packs catalog/api gate shadow' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'nginx-api-shadow-example.conf'
+check 'deploy packs surface digests gate shadow' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'nginx-surface-digests-shadow-example.conf'
+check 'deploy packs storefront digests gate shadow' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'nginx-storefront-digests-shadow-example.conf'
+check 'deploy packs exact-route extract helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_extract_exact_route_shadow.sh'
+check 'exact-route extract helper exists' test -x "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh"
+check 'exact-route extract helper refuses broad /api' contains "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" 'refusing broad surface cutover'
+check 'surface digests shadow covers config-items' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /cp/config-items'
+check 'surface digests shadow covers admin-sessions' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /cp/admin-sessions'
+check 'surface digests shadow covers storages' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /cp/storages'
+check 'surface digests shadow covers accounts-summary' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /erp/accounts-summary'
+check 'surface digests shadow covers cash-accounts' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /erp/cash-accounts'
+check 'surface digests shadow covers cash-entries' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /erp/cash-entries'
+check 'surface digests shadow covers bos tenants' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /bos/tenants'
 check 'CloudPanel final-gate capture never removes PHP' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'never removes PHP'
 check 'public decommission probes attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json"
 check 'public decommission readiness probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
