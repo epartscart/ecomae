@@ -87,6 +87,14 @@ builder.Services.AddSingleton<ICatalogOfflineCacheRepository>(sp =>
         : new MigrationCatalogOfflineCacheRepository();
 });
 builder.Services.AddSingleton<ICatalogOfflineCacheService, CatalogOfflineCacheService>();
+builder.Services.AddSingleton<ICatalogBrandPartsRepository>(sp =>
+{
+    var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
+    return connections.IsConfigured
+        ? ActivatorUtilities.CreateInstance<DbCatalogBrandPartsRepository>(sp)
+        : new MigrationCatalogBrandPartsRepository();
+});
+builder.Services.AddSingleton<ICatalogBrandPartsService, CatalogBrandPartsService>();
 builder.Services.AddSingleton<ICatalogParityReporter, CatalogParityReporter>();
 builder.Services.AddSingleton<IMigrationParityReporter, MigrationParityReporter>();
 builder.Services.AddSingleton<IControlPanelParityReporter, ControlPanelParityReporter>();

@@ -10,13 +10,13 @@ public sealed class ZeroPhpCompletionReporterTests
     {
         var report = new ZeroPhpCompletionReporter().BuildReport();
 
-        Assert.Equal(49, report.OverallCompletePercent);
-        Assert.Equal(51, report.OverallPendingPercent);
+        Assert.Equal(51, report.OverallCompletePercent);
+        Assert.Equal(49, report.OverallPendingPercent);
         Assert.Equal("not-ready-for-php-removal", report.Status);
         Assert.Contains(report.Areas, area => area.Name == "Foundation, deployment, and diagnostics" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "PHP runtime decommission" && area.CompletePercent == 0 && area.Status == "blocked");
-        Assert.Contains(report.Areas, area => area.Name == "Storefront and public API parity" && area.CompletePercent == 74);
-        Assert.Contains(report.Areas, area => area.Name == "Data, auth, observability, and rollback evidence" && area.CompletePercent == 45);
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_production_deploy_foundation.sh", StringComparison.Ordinal));
+        Assert.Contains(report.Areas, area => area.Name == "Storefront and public API parity" && area.CompletePercent == 82);
+        Assert.Contains(report.Areas, area => area.Name == "Data, auth, observability, and rollback evidence" && area.CompletePercent == 48);
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_find_and_redeploy.sh", StringComparison.Ordinal));
     }
 }
