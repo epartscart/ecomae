@@ -370,6 +370,17 @@ check 'CP api-clients route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/R
 check 'PHP decommission readiness route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/migration/php-decommission-readiness'
 check 'PHP decommission readiness doc exists' test -f "$ROOT/docs/migration/PHP_DECOMMISSION_READINESS.md"
 check 'PHP decommission readiness blocks removal' contains "$ROOT/docs/migration/PHP_DECOMMISSION_READINESS.md" 'blocked-not-ready-for-php-removal'
+
+check 'final gate checklist script exists' test -x "$ROOT/scripts/run_zero_php_final_gate_checklist.sh"
+check 'final gate checklist never removes PHP' contains "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" 'never removes PHP'
+check 'catalog status smoke runner exists' test -x "$ROOT/tests/live_smoke/run_catalog_status_exact_route_smoke.sh"
+check 'surface digest smoke runner exists' test -x "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh"
+check 'surface digests shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf"
+check 'surface digests shadow is exact-route only' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /cp/dashboard-summary'
+check 'decommission evidence pack exists' test -f "$ROOT/docs/migration/evidence/decommission/README.md"
+check 'release owner approval is example only by default' test -f "$ROOT/docs/migration/evidence/decommission/RELEASE_OWNER_APPROVAL.example.md"
+check 'release owner approval marker not committed live' bash -c '! test -f "$ROOT/docs/migration/evidence/decommission/RELEASE_OWNER_APPROVAL.md"'
+check 'parity sample template exists' test -f "$ROOT/docs/migration/parity/templates/exact-route-parity-sample.template.json"
 check 'EF catalog scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ICatalogScaffoldRepository.cs"
 check 'zero PHP path-to-100 documents remaining batches' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Path to 100%'
 check 'batch statuses record dry-run scaffolding' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'aspnet-dry-run-scaffolded'

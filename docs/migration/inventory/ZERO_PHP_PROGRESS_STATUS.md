@@ -48,14 +48,15 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 ## Path to 100% / Remaining 5% (PHP runtime decommission only)
 
-100% requires green parity evidence for every tracked route/job, staging smoke, approved exact-route shadows, and release-owner approval to remove PHP-FPM/cron/rewrites/source. Dry-run scaffolding does **not** authorize PHP removal. See `/migration/php-decommission-readiness`. Remaining batches still need promotion from dry-run scaffolding to shadow/live.
+100% requires green parity evidence for every tracked route/job, staging smoke, approved exact-route shadows, and release-owner approval to remove PHP-FPM/cron/rewrites/source. Dry-run scaffolding does **not** authorize PHP removal. See `/migration/php-decommission-readiness` and `bash scripts/run_zero_php_final_gate_checklist.sh`. Remaining batches still need promotion from dry-run scaffolding to shadow/live.
 
 ## Next execution order
 
 - Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first.
-- Run exact-route staging smoke; attach artifacts; enable only approved `location =` shadows.
-- Promote batch entries from dry-run → shadow → live with parity evidence.
-- Remove PHP only after every tracked item is live/removed with rollback approval.
+- Run `bash scripts/run_zero_php_final_gate_checklist.sh`.
+- Run opt-in staging smoke with real `epc_pricepro_` / `epc_catalog_` keys and admin cookies; copy JSON into `docs/migration/evidence/decommission/staging-smoke/`.
+- Attach parity samples; enable only approved `location =` shadows.
+- Create `RELEASE_OWNER_APPROVAL.md` only after human approval; then remove PHP.
 
 ## Guardrail
 

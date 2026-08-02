@@ -39,7 +39,7 @@
     "BOS digests: fleet summary/health/readiness/audit-log",
     "storefront account/orders/garage/profile digests",
     "tracked worker dry-run validator layer + all 61 batches dry-run scaffolding",
-    "PHP decommission readiness reporter (blocked)",
+    "PHP decommission readiness reporter + final-gate checklist/smoke kit (blocked)",
     "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],
   "architectureComplianceDoc": "docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md",
@@ -51,9 +51,9 @@
   ],
   "nextExecutionOrder": [
     "Refresh /opt/ecomae-aspnet-source with git reset --hard origin/main, then cloudpanel_find_and_redeploy.sh.",
-    "Run exact-route staging smoke for price/catalog with real API keys.",
+    "Run bash scripts/run_zero_php_final_gate_checklist.sh.",
+    "Run opt-in staging smoke for price/catalog/surface digests with real keys/cookies; copy artifacts into docs/migration/evidence/decommission/staging-smoke/.",
     "Attach parity samples, then enable only approved location = nginx shadows.",
-    "Promote batch entries without broad proxy cutover.",
-    "Remove PHP only after every item is live or removed and rollback evidence is approved."
+    "Add RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after human approval, then remove PHP."
   ]
 }
