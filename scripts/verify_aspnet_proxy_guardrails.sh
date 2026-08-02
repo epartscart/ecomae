@@ -63,6 +63,14 @@ else
     fail 'exact catalog manufacturers shadow route example is missing'
 fi
 
+for route in models modifications brands; do
+    if grep -R --line-number -E "^[[:space:]]*location[[:space:]]+= /api/v1/catalog/${route}" "$CONF_DIR" >/dev/null; then
+        pass "exact catalog ${route} shadow route example is present"
+    else
+        fail "exact catalog ${route} shadow route example is missing"
+    fi
+done
+
 if grep -R --line-number -E 'allow YOUR_OFFICE_IP' "$CONF_DIR" >/dev/null; then
     pass 'diagnostic migration routes are visibly allowlisted'
 else

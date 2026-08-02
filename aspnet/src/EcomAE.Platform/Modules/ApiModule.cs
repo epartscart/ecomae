@@ -158,6 +158,81 @@ public sealed class ApiModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.CatalogModels, async (
+            HttpContext httpContext,
+            string? section,
+            int? mfa_id,
+            int? MFA_ID,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogVehicleCacheService vehicleCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "models", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var mfaId = mfa_id ?? MFA_ID ?? 0;
+            var result = await vehicleCache.GetModelsAsync(section ?? "passenger", mfaId, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(new { ok = false, error = new { code = "missing_params", message = result.Message } }, statusCode: 400);
+            }
+
+            await LogCatalogAsync(httpContext, usageLogger, authResult.Client, "catalog_models", result, cancellationToken);
+            return CatalogListOk(result, authResult.Client);
+        });
+
+        endpoints.MapGet(EcomAeRoutes.CatalogModifications, async (
+            HttpContext httpContext,
+            string? section,
+            int? ms_id,
+            int? MS_ID,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogVehicleCacheService vehicleCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "modifications", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var msId = ms_id ?? MS_ID ?? 0;
+            var result = await vehicleCache.GetModificationsAsync(section ?? "passenger", msId, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(new { ok = false, error = new { code = "missing_params", message = result.Message } }, statusCode: 400);
+            }
+
+            await LogCatalogAsync(httpContext, usageLogger, authResult.Client, "catalog_modifications", result, cancellationToken);
+            return CatalogListOk(result, authResult.Client);
+        });
+
+        endpoints.MapGet(EcomAeRoutes.CatalogBrands, async (
+            HttpContext httpContext,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogVehicleCacheService vehicleCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "brands", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await vehicleCache.GetBrandsAsync(cancellationToken);
+            await LogCatalogAsync(httpContext, usageLogger, authResult.Client, "catalog_brands", result, cancellationToken);
+            return CatalogListOk(result, authResult.Client);
+        });
+
         endpoints.MapGet(EcomAeRoutes.CatalogParity, (ICatalogParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
         endpoints.MapGet(EcomAeRoutes.PriceLookup, async (
@@ -236,6 +311,77 @@ public sealed class ApiModule : ISurfaceModule
         {
             var report = await reporter.BuildReportAsync(cancellationToken);
             return Results.Ok(report);
+        });
+    }
+
+    private static async Task<(LegacyApiClientRecord? Client, IResult? Error)> AuthorizeCatalogAsync(
+        HttpContext httpContext,
+        ILegacyApiClientAuthenticator authenticator,
+        ILegacyApiUsageLogger usageLogger,
+        IOptions<PriceLookupOptions> options,
+        string action,
+        CancellationToken cancellationToken)
+    {
+        if (!options.Value.RequireApiClientAuth)
+        {
+            return (null, null);
+        }
+
+        var auth = await authenticator.RequireAsync(httpContext.Request, "catalog", action, cancellationToken);
+        if (auth.Succeeded)
+        {
+            return (auth.Client, null);
+        }
+
+        return (null, Results.Json(
+            new { ok = false, error = new { code = auth.Code, message = auth.Message } },
+            statusCode: auth.StatusCode));
+    }
+
+    private static async Task LogCatalogAsync(
+        HttpContext httpContext,
+        ILegacyApiUsageLogger usageLogger,
+        LegacyApiClientRecord? client,
+        string action,
+        CatalogCacheListResult result,
+        CancellationToken cancellationToken)
+    {
+        if (client is null)
+        {
+            return;
+        }
+
+        await usageLogger.LogAsync(new LegacyApiUsageLogEntry(
+            action,
+            result.Section,
+            "api_client",
+            client.Id,
+            httpContext.Request.Path.HasValue ? httpContext.Request.Path.Value! : string.Empty,
+            200,
+            QuotaBlocked: false,
+            $"{result.Section}:{result.Rows}",
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty), cancellationToken);
+    }
+
+    private static IResult CatalogListOk(CatalogCacheListResult result, LegacyApiClientRecord? client)
+    {
+        return Results.Ok(new
+        {
+            ok = result.Ok,
+            action = result.Action,
+            section = result.Section,
+            mfa_id = result.MfaId,
+            ms_id = result.MsId,
+            rows = result.Rows,
+            source = result.Source,
+            stale = true,
+            data = result.Data,
+            message = result.Message,
+            client = client is null ? null : new
+            {
+                label = client.Label,
+                key_prefix = client.ClientKeyPrefix
+            }
         });
     }
 }

@@ -28,6 +28,9 @@ public static class EcomAeRoutes
     public const string ApiMigrationStatus = "/api/migration/status";
     public const string CatalogStatus = "/api/v1/catalog/status";
     public const string CatalogManufacturers = "/api/v1/catalog/manufacturers";
+    public const string CatalogModels = "/api/v1/catalog/models";
+    public const string CatalogModifications = "/api/v1/catalog/modifications";
+    public const string CatalogBrands = "/api/v1/catalog/brands";
     public const string CatalogParity = "/api/v1/catalog/parity";
     public const string PriceLookup = "/api/v1/price/lookup";
     public const string PriceLookupParity = "/api/v1/price/parity";

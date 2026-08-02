@@ -13,7 +13,7 @@ public sealed class CatalogParityReporterTests
         Assert.True(report.ReadyForShadowTraffic);
         Assert.Contains("api/v1/catalog.php", report.LegacySource, StringComparison.Ordinal);
         Assert.Contains("manufacturers", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal("status-and-manufacturers-wired-awaiting-staging", report.Status);
-        Assert.Contains(report.RemainingGaps, gap => gap.Contains("model", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("catalog-cache-routes-wired-awaiting-staging", report.Status);
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("article", StringComparison.OrdinalIgnoreCase));
     }
 }
