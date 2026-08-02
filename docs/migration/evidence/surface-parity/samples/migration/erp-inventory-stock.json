@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "summary": {
+    "rowCount": 0,
+    "qtyOnHand": 0,
+    "stockValue": 0,
+    "warehouseCount": 0,
+    "itemCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode contract sample; PHP remains authoritative"
+}

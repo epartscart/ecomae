@@ -44,13 +44,12 @@ for route in \
   /migration/php-decommission-readiness \
   /migration/presentation-parity \
   /migration/live-surface-links \
-  /migration/surface-parity
+  /migration/surface-parity \
+  /migration/surface-field-parity
 do
   code="$(curl -sS -m 20 -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${route}" || echo 000)"
   if [[ "$code" == "200" ]]; then
     record "live${route}" pass "HTTP 200"
-  elif [[ "$route" == "/migration/live-surface-links" && "$code" == "404" ]]; then
-    record "live${route}" blocked "HTTP 404 until CloudPanel redeploy of main includes live-surface-links"
   else
     record "live${route}" fail "HTTP $code"
   fi

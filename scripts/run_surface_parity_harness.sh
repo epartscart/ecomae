@@ -153,6 +153,34 @@ else
   record "authenticated-digest-capture" blocked "set ECOMAE_ASPNET_BASE_URL and admin cookie to capture dual samples"
 fi
 
+# Migration-mode contract samples (no secrets) must satisfy locked field contracts.
+python3 "$ROOT/scripts/generate_migration_digest_contract_samples.py" >/dev/null
+declare -A CONTRACT_REQUIREMENTS=(
+  [cp-dashboard-summary.json]="users,adminSessions,portalTenants,activePortalTenants,source,message"
+  [erp-dashboard-summary.json]="cashPosition,supplierCredit,supplierDebit,supplierNet,cashAccounts,activeSuppliers,activePurchases,source,message"
+  [bos-fleet-summary.json]="portalTenants,activePortalTenants,adminSessions,withDatabase,erpOnly,source,message"
+  [storefront-account-summary.json]="userId,orders,sessions,garageVehicles,source,message"
+  [erp-inventory-stock.json]="rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message"
+)
+mig_fail=0
+for sample in "${!CONTRACT_REQUIREMENTS[@]}"; do
+  path="$SAMPLES/migration/$sample"
+  req="${CONTRACT_REQUIREMENTS[$sample]}"
+  path_arg="summary"
+  if python3 "$ROOT/scripts/compare_surface_payload_parity.py" --left "$path" --right "$path" --path "$path_arg" --contract-only --require "$req"; then
+    record "migration-contract/$sample" pass "field contract satisfied"
+  else
+    record "migration-contract/$sample" fail "field contract failed"
+    mig_fail=$((mig_fail + 1))
+  fi
+done
+if python3 "$ROOT/scripts/compare_surface_payload_parity.py" --left "$SAMPLES/migration/bos-fleet-readiness.json" --right "$SAMPLES/migration/bos-fleet-readiness.json" --path readiness --contract-only \
+  --require tenants,pass,warn,fail,active,withDatabase,erpOnly,source,message; then
+  record "migration-contract/bos-fleet-readiness.json" pass "field contract satisfied"
+else
+  record "migration-contract/bos-fleet-readiness.json" fail "field contract failed"
+fi
+
 # Fixture self-test for compare script
 fixture_left="$SAMPLES/_fixture-left.json"
 fixture_right="$SAMPLES/_fixture-right.json"

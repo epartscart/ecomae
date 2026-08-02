@@ -1,8 +1,8 @@
 {
-  "capturedAtUtc": "2026-08-02T18:14:15Z",
-  "passed": 10,
+  "capturedAtUtc": "2026-08-02T18:21:07Z",
+  "passed": 17,
   "failed": 0,
-  "blocked": 2,
+  "blocked": 1,
   "cutoverAllowed": false,
   "phpAuthoritative": true,
   "note": "No nginx cutover and no PHP removal. Dual authenticated samples still required before any exact-route shadow promotion.",
@@ -39,8 +39,8 @@
     },
     {
       "area": "live/migration/surface-field-parity",
-      "status": "blocked",
-      "detail": "HTTP 404 until redeploy includes this PR"
+      "status": "pass",
+      "detail": "HTTP 200"
     },
     {
       "area": "php-chrome/CP/",
@@ -61,6 +61,36 @@
       "area": "authenticated-digest-capture",
       "status": "blocked",
       "detail": "set ECOMAE_ASPNET_BASE_URL and admin cookie to capture dual samples"
+    },
+    {
+      "area": "migration-contract/cp-dashboard-summary.json",
+      "status": "pass",
+      "detail": "field contract satisfied"
+    },
+    {
+      "area": "migration-contract/erp-dashboard-summary.json",
+      "status": "pass",
+      "detail": "field contract satisfied"
+    },
+    {
+      "area": "migration-contract/storefront-account-summary.json",
+      "status": "pass",
+      "detail": "field contract satisfied"
+    },
+    {
+      "area": "migration-contract/bos-fleet-summary.json",
+      "status": "pass",
+      "detail": "field contract satisfied"
+    },
+    {
+      "area": "migration-contract/erp-inventory-stock.json",
+      "status": "pass",
+      "detail": "field contract satisfied"
+    },
+    {
+      "area": "migration-contract/bos-fleet-readiness.json",
+      "status": "pass",
+      "detail": "field contract satisfied"
     },
     {
       "area": "compare-script",
