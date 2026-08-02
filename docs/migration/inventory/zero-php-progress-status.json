@@ -1,0 +1,41 @@
+{
+  "status": "foundation-and-planning-complete-implementation-pending",
+  "trueZeroPhpCompletionPercent": 35.0,
+  "pendingPercent": 65.0,
+  "foundationPercent": 35.0,
+  "routeJobImplementationPercent": 0.0,
+  "routeJobParityPercent": 0.0,
+  "routeJobShadowOrBetterPercent": 0.0,
+  "inventory": {
+    "totalPhpFiles": 3049,
+    "jobLikeFiles": 140,
+    "surfaceCounts": {
+      "api": 53,
+      "bos": 9,
+      "cp": 638,
+      "erp": 431,
+      "platform": 812,
+      "storefront": 1106
+    }
+  },
+  "planning": {
+    "ownershipAssigned": 3049,
+    "ownershipAssignmentPercent": 100.0,
+    "batchAssignments": 3049,
+    "batchAssignmentPercent": 100.0,
+    "totalBatches": 61,
+    "assignmentStatuses": {
+      "owner-assigned-pending-parity": 3049
+    },
+    "batchStatuses": {
+      "planned-not-implemented": 61
+    }
+  },
+  "nextExecutionOrder": [
+    "Implement batch 1 worker replacements in ASP.NET Core dry-run mode.",
+    "Attach PHP-vs-ASP.NET parity samples for each route/job in the batch.",
+    "Move passing batch items to aspnet-shadow, then parity-ready, then live.",
+    "Repeat batches without broad proxy cutover.",
+    "Remove PHP only after every item is live or removed and rollback evidence is approved."
+  ]
+}
