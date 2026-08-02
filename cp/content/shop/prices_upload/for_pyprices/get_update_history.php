@@ -335,7 +335,7 @@ if( !$epc_embed_indicator_only )
 				{
 					?>
 					<i class="fas fa-info-circle" onclick='show_modalTaskResult(<?php echo $price_id; ?>, "info", <?php echo json_encode($indicator); ?>);' style="margin-left:7px;color:#3498db;cursor:pointer;"></i>
-					<?
+					<?php
 				}
 				
 				
