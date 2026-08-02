@@ -1,0 +1,24 @@
+{
+  "status": "planned-not-cut-over",
+  "exact_route_batches": 61,
+  "batch_1": {
+    "name": "worker-dry-run-replacements",
+    "target_runtime": "ASP.NET Core worker service",
+    "production_runtime": "PHP fallback remains authoritative",
+    "items": [
+      "price-import",
+      "sitemap",
+      "notifications",
+      "backups",
+      "erp-reports"
+    ],
+    "required_evidence": [
+      "dry-run output captured",
+      "PHP-vs-ASP.NET parity sample attached",
+      "rollback command recorded",
+      "owner approval recorded"
+    ]
+  },
+  "assignment_source": "git ls-files *.php at generator runtime",
+  "template_generation": "dry-run by default; use --write to create per-route/job evidence files"
+}
