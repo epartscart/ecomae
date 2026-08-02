@@ -1,0 +1,13 @@
+{
+  "status": "planned",
+  "ownership_assignment_percent": 100.0,
+  "owners": [
+    {"surface": "api", "target": "ASP.NET Core Web API", "fallback": "PHP exact route"},
+    {"surface": "cp", "target": "ASP.NET Core CP modules", "fallback": "PHP CP"},
+    {"surface": "erp", "target": "ASP.NET Core ERP modules", "fallback": "PHP ERP"},
+    {"surface": "bos", "target": "ASP.NET Core BOS modules", "fallback": "PHP BOS"},
+    {"surface": "storefront", "target": "ASP.NET Core storefront", "fallback": "PHP storefront"},
+    {"surface": "workers", "target": "ASP.NET Core worker services", "fallback": "PHP cron/setup scripts"},
+    {"surface": "ai", "target": "Python FastAPI AI microservice only", "fallback": "none without explicit approval"}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "generated_by": "scripts/generate_zero_php_100_evidence_templates.py",
+  "tracked_php_files": 3049,
+  "job_like_php_files": 140,
+  "route_job_implementation_complete_percent": 0.0,
+  "route_job_parity_ready_percent": 0.0,
+  "route_job_shadow_or_better_percent": 0.0,
+  "notes": [
+    "This inventory summary is intentionally conservative.",
+    "Detailed per-route evidence must be attached before any item moves to parity-ready."
+  ]
+}
