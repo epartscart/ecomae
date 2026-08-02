@@ -15,7 +15,7 @@ PHP_BIN="${ECOMAE_PHP_BIN:-php}"
 
 printf '%s\n' '== Issue final-gate smoke credentials =='
 printf 'Env file: %s\n' "$ENV_FILE"
-printf 'Note: does not CREATE tables (ecomae_aspnet often lacks CREATE). Uses existing epc_api_clients.\n'
+printf 'Note: uses PHP DP_Config credentials → TenantRegistry DB. CREATE only with ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES.\n'
 
 if [[ "${ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS:-}" != "YES" ]]; then
   printf 'Refusing without confirmation.\n' >&2
@@ -63,13 +63,13 @@ if [[ "$rc" -eq 3 ]]; then
   exit 3
 fi
 if [[ "$rc" -ne 0 ]]; then
-  printf '\nIf INSERT/UPDATE was denied for ecomae_aspnet (issuer never CREATE TABLEs), either:\n' >&2
-  printf '  A) Point at PHP app DB user (has write):\n' >&2
-  printf '       export ECOMAE_PHP_DOCROOT=/path/to/site/htdocs   # must contain config.php\n' >&2
-  printf '       ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n' >&2
-  printf '  B) Or export ECOMAE_SMOKE_DB_HOST/NAME/USER/PASSWORD and re-run.\n' >&2
-  printf '  C) Or GRANT INSERT,UPDATE ON <db>.epc_api_clients TO '\''ecomae_aspnet'\''@'\''localhost'\'';\n' >&2
-  printf 'If the table is missing, create it once as MySQL root (DDL SQL is printed by the PHP issuer).\n' >&2
+  printf '\nIf the table is missing in TenantRegistry DB (e.g. asap.epc_api_clients):\n' >&2
+  printf '  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n' >&2
+  printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n' >&2
+  printf 'Or combine create+issue:\n' >&2
+  printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES \\\n' >&2
+  printf '    bash scripts/cloudpanel_issue_smoke_credentials.sh\n' >&2
+  printf 'If PHP user cannot reach TenantRegistry db, export ECOMAE_SMOKE_DB_* or GRANT to ecomae_aspnet.\n' >&2
   exit "$rc"
 fi
 
