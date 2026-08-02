@@ -391,6 +391,12 @@ check 'catalog brand-parts parity compare script exists' test -f "$ROOT/scripts/
 check 'deploy packs catalog list compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_list_parity.py'
 check 'deploy packs catalog offline-cache compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_offline_cache_parity.py'
 check 'deploy packs surface parity harness' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'run_surface_parity_harness.sh'
+check 'storefront digest exact-route smoke exists' test -x "$ROOT/tests/live_smoke/run_storefront_digest_exact_route_smoke.sh"
+check 'price lookup compare supports contract-only' contains "$ROOT/scripts/compare_price_lookup_parity.py" '--contract-only'
+check 'harness lists cp-config-items contract' contains "$ROOT/scripts/run_surface_parity_harness.sh" 'cp-config-items.json'
+check 'harness lists bos-tenants contract' contains "$ROOT/scripts/run_surface_parity_harness.sh" 'bos-tenants.json'
+check 'harness supports customer cookie capture' contains "$ROOT/scripts/run_surface_parity_harness.sh" 'ECOMAE_CUSTOMER_COOKIE_HEADER'
+check 'capture wires optional storefront smoke' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'run_storefront_digest_exact_route_smoke.sh'
 check 'exact-route extract helper exists' test -x "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh"
 check 'exact-route extract helper refuses broad /api' contains "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" 'refusing broad surface cutover'
 check 'surface digests shadow covers config-items' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /cp/config-items'

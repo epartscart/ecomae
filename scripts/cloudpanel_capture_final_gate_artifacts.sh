@@ -257,8 +257,26 @@ elif [[ "$health_ready" -eq 1 ]]; then
   printf 'SKIP surface digest smoke: set ECOMAE_ADMIN_COOKIE_HEADER or ECOMAE_ADMIN_COOKIE_JAR.\n'
 fi
 
+# Optional storefront customer digests (promotion aid; not required for ReadyToRemovePhp).
+smoke_storefront=0
+if [[ "$health_ready" -eq 1 && ( -n "${ECOMAE_CUSTOMER_COOKIE_HEADER:-}" || -n "${ECOMAE_CUSTOMER_COOKIE_JAR:-}" ) ]]; then
+  printf '\n-- Optional storefront customer digest smoke --\n'
+  export RUN_STOREFRONT_DIGEST_SMOKE=1
+  export ECOMAE_REQUIRE_AUTHENTICATED_DIGEST_200=1
+  export ECOMAE_ASPNET_BASE_URL="$ASPNET_BASE"
+  export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
+  if bash tests/live_smoke/run_storefront_digest_exact_route_smoke.sh; then
+    smoke_storefront=1
+  else
+    rm -f "$SMOKE_DIR/storefront-digests-aspnet.json" "$SMOKE_DIR/ecomae-aspnet-storefront-digests.json"
+    printf 'WARN storefront digest smoke failed (optional — admin/surface smoke can still proceed)\n'
+  fi
+elif [[ "$health_ready" -eq 1 ]]; then
+  printf 'SKIP storefront digest smoke: set ECOMAE_CUSTOMER_COOKIE_HEADER or ECOMAE_CUSTOMER_COOKIE_JAR (session=...; u_id=...).\n'
+fi
+
 printf '\n-- Smoke artifact summary --\n'
-for name in price-lookup-aspnet.json catalog-status-aspnet.json surface-digests-aspnet.json; do
+for name in price-lookup-aspnet.json catalog-status-aspnet.json surface-digests-aspnet.json storefront-digests-aspnet.json; do
   path="$SMOKE_DIR/$name"
   if [[ -s "$path" ]]; then
     printf 'OK   %s (%s bytes)\n' "$path" "$(wc -c <"$path" | tr -d ' ')"
@@ -266,10 +284,11 @@ for name in price-lookup-aspnet.json catalog-status-aspnet.json surface-digests-
     printf 'MISS %s\n' "$path"
   fi
 done
-printf 'Captured this run: price=%s catalog=%s surfaces=%s\n' "$smoke_price" "$smoke_catalog" "$smoke_surfaces"
+printf 'Captured this run: price=%s catalog=%s surfaces=%s storefront=%s\n' \
+  "$smoke_price" "$smoke_catalog" "$smoke_surfaces" "$smoke_storefront"
 
 # Prevent capture's RUN_* exports from re-running failing live smoke inside the checklist.
-unset RUN_PRICE_LOOKUP_SMOKE RUN_CATALOG_STATUS_SMOKE RUN_SURFACE_DIGEST_SMOKE || true
+unset RUN_PRICE_LOOKUP_SMOKE RUN_CATALOG_STATUS_SMOKE RUN_SURFACE_DIGEST_SMOKE RUN_STOREFRONT_DIGEST_SMOKE || true
 
 printf '\n-- Final gate checklist --\n'
 bash scripts/run_zero_php_final_gate_checklist.sh || true

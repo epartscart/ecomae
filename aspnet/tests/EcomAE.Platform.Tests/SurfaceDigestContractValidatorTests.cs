@@ -190,6 +190,35 @@ public sealed class SurfaceDigestContractValidatorTests
     }
 
     [Fact]
+    public void PriceLookupEnvelopeSatisfiesContract()
+    {
+        var contract = SurfacePayloadContractCatalog.All.Single(c => c.AspNetRoute == "/api/v1/price/lookup");
+        var json = """
+            {"status":true,"brand":"TOYOTA","article":"044650K020","offers":[
+              {"supplier":"fast","brand":"TOYOTA","article":"04465-0K020","name":"Brake Pad Set","price":120,"currency":"AED","stockHint":8,"leadTime":"same day"}
+            ]}
+            """;
+        var failures = SurfaceDigestContractValidator.Validate(contract, json);
+        Assert.True(failures.Count == 0, string.Join("; ", failures));
+    }
+
+    [Fact]
+    public void StorefrontProfileAndBosFleetHealthSatisfyContracts()
+    {
+        var payloads = new Dictionary<string, string>
+        {
+            ["/storefront/profile"] = """{"ok":true,"surface":"storefront","user_id":9,"email":"a@b.c","email_confirmed":false,"phone":"","phone_confirmed":false,"reg_variant":"email","profile_fields":{},"source":"migration","message":"x","session":{},"note":"x"}""",
+            ["/bos/fleet-health"] = """{"ok":true,"surface":"bos","summary":{"portalTenants":0,"activePortalTenants":0,"adminSessions":0,"withDatabase":0,"erpOnly":0,"source":"migration","message":"x"},"sampleTenants":[],"source":"migration","message":"x","session":{},"note":"x"}"""
+        };
+        foreach (var (route, json) in payloads)
+        {
+            var contract = SurfacePayloadContractCatalog.All.Single(c => c.AspNetRoute == route);
+            var failures = SurfaceDigestContractValidator.Validate(contract, json);
+            Assert.True(failures.Count == 0, $"{route}: {string.Join("; ", failures)}");
+        }
+    }
+
+    [Fact]
     public void CatalogOfflineCacheAndVinEnvelopesSatisfyContracts()
     {
         var payloads = new Dictionary<string, string>

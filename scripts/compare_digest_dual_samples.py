@@ -21,7 +21,15 @@ SUMMARY_CONTRACTS = {
         "summary",
         "cashPosition,supplierCredit,supplierDebit,supplierNet,cashAccounts,activeSuppliers,activePurchases,source,message",
     ),
+    "erp-accounts-summary": (
+        "summary",
+        "cashPosition,supplierCredit,supplierDebit,supplierNet,cashAccounts,activeSuppliers,activePurchases,source,message",
+    ),
     "bos-fleet-summary": (
+        "summary",
+        "portalTenants,activePortalTenants,adminSessions,withDatabase,erpOnly,source,message",
+    ),
+    "bos-fleet-health": (
         "summary",
         "portalTenants,activePortalTenants,adminSessions,withDatabase,erpOnly,source,message",
     ),
@@ -37,6 +45,16 @@ SUMMARY_CONTRACTS = {
         "readiness",
         "tenants,pass,warn,fail,active,withDatabase,erpOnly,source,message",
     ),
+}
+
+# List digests: stem -> collection key (envelope ok/surface/key/count/source/message)
+LIST_CONTRACTS = {
+    "cp-config-items": "items",
+    "cp-admin-sessions": "sessions",
+    "cp-storages": "storages",
+    "erp-cash-accounts": "accounts",
+    "erp-cash-entries": "entries",
+    "bos-tenants": "tenants",
 }
 
 
@@ -84,6 +102,30 @@ def main() -> int:
             print(f"FAIL {stem}")
             print(proc.stdout or proc.stderr)
 
+    def check_list_envelope(path: Path, key: str, label: str) -> None:
+        nonlocal pairs, failed
+        pairs += 1
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as ex:  # noqa: BLE001
+            failed += 1
+            print(f"FAIL {label}: {ex}")
+            return
+        required = ["ok", "surface", key, "count", "source", "message", "session", "note"]
+        missing = [k for k in required if k not in doc]
+        if missing:
+            failed += 1
+            print(f"FAIL {label}: missing {missing}")
+        else:
+            print(f"PASS {label}")
+
+    for stem, key in LIST_CONTRACTS.items():
+        php = samples / f"php-{stem}.json"
+        asp = samples / f"aspnet-{stem}.json"
+        if php.exists() and asp.exists():
+            check_list_envelope(php, key, f"php-{stem}")
+            check_list_envelope(asp, key, f"aspnet-{stem}")
+
     # Also accept migration-mode goldens for contract-only self-check.
     mig = samples / "migration"
     if args.contract_only and mig.is_dir():
@@ -112,6 +154,10 @@ def main() -> int:
                 failed += 1
                 print(f"FAIL migration/{stem}")
                 print(proc.stdout or proc.stderr)
+        for stem, key in LIST_CONTRACTS.items():
+            path = mig / f"{stem}.json"
+            if path.exists():
+                check_list_envelope(path, key, f"migration/{stem}")
 
     report = {"pairsChecked": pairs, "failed": failed, "cutoverAllowed": False}
     print(json.dumps(report))
