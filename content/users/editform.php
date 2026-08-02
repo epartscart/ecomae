@@ -355,7 +355,7 @@ else//Пользователь авторизован
 					reg_fields[i].value_buffer = '<?php echo $user_profile_record["data_value"]; ?>';
 				}
 			}
-			<?
+			<?php
 		}
 		?>
 		</script>
