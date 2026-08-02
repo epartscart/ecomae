@@ -82,6 +82,32 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+
+    public async Task<StorefrontAccountSummary> BuildStorefrontAccountAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0)
+        {
+            return new(0, 0, 0, "rejected", "Valid customer user id is required.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var orders = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerOrders, userId, cancellationToken).ConfigureAwait(false);
+            var sessions = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerSessionsForUser, userId, cancellationToken).ConfigureAwait(false);
+            return new(userId, orders, sessions, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, 0, 0, "database-error", ex.Message);
+        }
+    }
+
     private static async Task<int> ScalarIntAsync(DbConnection connection, string sql, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
@@ -95,6 +121,25 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             return await ScalarIntAsync(connection, sql, cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    private static async Task<int> ScalarIntSafeAsync(DbConnection connection, string sql, int userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@userId";
+            parameter.Value = userId;
+            command.Parameters.Add(parameter);
+            var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return Convert.ToInt32(value ?? 0, CultureInfo.InvariantCulture);
         }
         catch
         {

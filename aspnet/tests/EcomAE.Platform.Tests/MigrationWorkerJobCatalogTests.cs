@@ -27,5 +27,8 @@ public sealed class MigrationWorkerJobCatalogTests
             && job.LegacyPhpEntry.Contains("epc-uae-tax-legislation-cron.php", StringComparison.Ordinal));
         Assert.Contains(catalog.Jobs, job => job.Key == "apai-background-jobs"
             && job.LegacyPhpEntry.Contains("epc-apai-background-jobs-cron.php", StringComparison.Ordinal));
+        Assert.Contains(catalog.Jobs, job => job.Key == "fulfillment-queue");
+        Assert.Contains(catalog.Jobs, job => job.Key == "apai-sync-categories");
+        Assert.Contains(catalog.Jobs, job => job.Key == "integrations-cleanup");
     }
 }

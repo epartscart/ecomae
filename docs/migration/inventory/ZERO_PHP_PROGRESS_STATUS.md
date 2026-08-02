@@ -4,10 +4,10 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 
 ## Current percentage
 
-- True zero-PHP completion: 63.0%.
-- Pending to 100%: 37.0%.
+- True zero-PHP completion: 67.0%.
+- Pending to 100%: 33.0%.
 - Foundation/planning floor: 35.0%.
-- Route/job implementation started (not parity-ready): price/catalog routes + worker dry-runs + admin backend-group claims + session-gated CP/ERP/BOS shells/summaries.
+- Route/job implementation started (not parity-ready): price/catalog/account shells + worker dry-runs + admin/customer session claims + surface summaries.
 - Route/job parity-ready: 0.0%.
 - Route/job shadow-or-better: 0.0%.
 
@@ -34,18 +34,17 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 ## Concrete implementation progress (honest)
 
 - Catalog/price API routes with DB/cache readers + API-key auth (including suppliers alias).
-- Admin sessions require `users_groups_bind` ∩ `groups.for_backend`; customer sessions validated.
-- CP/ERP/BOS shells session-gated with identity payload + read-only dashboard/fleet summaries.
-- `/migration/umapi-usage` and `/migration/platform-jobs` diagnostics.
-- Worker dry-run validators (writes blocked) through seo warm / UAE tax / APAI jobs.
-- Production deploy helpers only (no broad PHP cutover).
+- Admin backend-group claims + customer session validation.
+- CP/ERP/BOS shells session-gated with identity + read-only summaries.
+- Storefront customer account shell + account-summary (read-only).
+- Worker dry-run validators across core cron/queue jobs (writes blocked).
+- Migration diagnostics only; no broad PHP cutover.
 
 ## Next execution order
 
 - Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first. Do **not** use `/var/www/ecomae`.
-- Run exact-route staging smoke for price lookup and catalog routes with real API keys; attach artifacts.
-- Enable only approved `location =` nginx shadows after smoke passes.
-- Continue batch-by-batch worker/route replacements with parity evidence.
+- Run exact-route staging smoke; attach artifacts; enable only approved `location =` shadows.
+- Continue batch-by-batch replacements with parity evidence.
 - Remove PHP only after every tracked item is live/removed with rollback approval.
 
 ## Guardrail

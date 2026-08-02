@@ -24,7 +24,10 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
                 new SeoSitemapPingDryRunExecutor(),
                 new SeoSitemapWarmDryRunExecutor(),
                 new UaeTaxLegislationDryRunExecutor(),
-                new ApaiBackgroundJobsDryRunExecutor()
+                new ApaiBackgroundJobsDryRunExecutor(),
+                new FulfillmentQueueDryRunExecutor(),
+                new ApaiSyncCategoriesDryRunExecutor(),
+                new IntegrationsCleanupDryRunExecutor()
             ])
     {
     }
@@ -49,7 +52,10 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
                 new SeoSitemapPingDryRunExecutor(),
                 new SeoSitemapWarmDryRunExecutor(),
                 new UaeTaxLegislationDryRunExecutor(),
-                new ApaiBackgroundJobsDryRunExecutor()
+                new ApaiBackgroundJobsDryRunExecutor(),
+                new FulfillmentQueueDryRunExecutor(),
+                new ApaiSyncCategoriesDryRunExecutor(),
+                new IntegrationsCleanupDryRunExecutor()
             ])
     {
     }

@@ -29,4 +29,12 @@ public static class LegacySurfaceDashboardSql
     public const string SumStockValue = """
         SELECT COALESCE(SUM(`quantity` * `avg_cost`), 0) FROM `epc_inventory_stock`
         """;
+
+    public const string CountCustomerOrders = """
+        SELECT COUNT(*) FROM `shop_orders` WHERE `user_id` = @userId
+        """;
+
+    public const string CountCustomerSessionsForUser = """
+        SELECT COUNT(*) FROM `sessions` WHERE `user_id` = @userId
+        """;
 }

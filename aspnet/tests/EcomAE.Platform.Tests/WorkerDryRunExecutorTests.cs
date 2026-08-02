@@ -251,4 +251,66 @@ public sealed class WorkerDryRunExecutorTests
         Assert.Equal("1", output.Metrics["pending"]);
     }
 
+
+    [Fact]
+    public void FulfillmentQueueDryRunValidatesSampleWithoutClaims()
+    {
+        var executor = new FulfillmentQueueDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "fulfillment-queue");
+        var request = new MigrationWorkerJobRunRequest(
+            "fulfillment-queue",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_orders"] = "1001,queued\n1002,done\nbad"
+            });
+
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.True(output.WritesBlocked);
+        Assert.Equal("0", output.Metrics["claims"]);
+        Assert.Equal("1", output.Metrics["queued"]);
+    }
+
+    [Fact]
+    public void ApaiSyncCategoriesDryRunValidatesSampleWithoutWrites()
+    {
+        var executor = new ApaiSyncCategoriesDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "apai-sync-categories");
+        var request = new MigrationWorkerJobRunRequest(
+            "apai-sync-categories",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_categories"] = "10,Brakes\nbad"
+            });
+
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["writes"]);
+        Assert.Equal("1", output.Metrics["valid_categories"]);
+    }
+
+    [Fact]
+    public void IntegrationsCleanupDryRunValidatesSampleWithoutDeletes()
+    {
+        var executor = new IntegrationsCleanupDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "integrations-cleanup");
+        var request = new MigrationWorkerJobRunRequest(
+            "integrations-cleanup",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_integrations"] = "old_feed,90\nnew_feed,7\nbad"
+            });
+
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["deletes"]);
+        Assert.Equal("1", output.Metrics["stale_candidates"]);
+    }
+
 }

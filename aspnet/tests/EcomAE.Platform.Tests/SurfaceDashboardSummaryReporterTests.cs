@@ -19,6 +19,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", bos.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
+
+        var account = await reporter.BuildStorefrontAccountAsync(9);
+        Assert.Equal("migration", account.Source);
+        Assert.Equal(9, account.UserId);
     }
 
     [Fact]

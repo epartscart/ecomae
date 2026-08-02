@@ -22,3 +22,10 @@ public sealed record BosFleetSummary(
     int AdminSessions,
     string Source,
     string Message);
+
+public sealed record StorefrontAccountSummary(
+    int UserId,
+    int Orders,
+    int Sessions,
+    string Source,
+    string Message);

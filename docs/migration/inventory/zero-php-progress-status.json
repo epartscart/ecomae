@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 63.0,
-  "pendingPercent": 37.0,
+  "trueZeroPhpCompletionPercent": 67.0,
+  "pendingPercent": 33.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -32,12 +32,12 @@
     }
   },
   "concreteStarted": [
-    "catalog/price DB+auth routes including suppliers alias",
+    "catalog/price DB+auth routes including suppliers",
     "admin backend-group claims + customer session checks",
-    "CP/ERP/BOS session-gated shells + dashboard/fleet summaries",
-    "/migration/umapi-usage and /migration/platform-jobs",
-    "worker dry-runs through seo-warm/uae-tax/apai",
-    "cloudpanel deploy helpers"
+    "CP/ERP/BOS shells + summaries",
+    "storefront account shell + account-summary",
+    "worker dry-runs including fulfillment/apai-sync/integrations-cleanup",
+    "migration diagnostics + cloudpanel deploy helpers"
   ],
   "nextExecutionOrder": [
     "Refresh /opt/ecomae-aspnet-source with git reset --hard origin/main, then cloudpanel_find_and_redeploy.sh.",

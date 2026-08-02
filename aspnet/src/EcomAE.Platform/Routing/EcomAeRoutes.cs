@@ -53,6 +53,8 @@ public static class EcomAeRoutes
     public const string PriceLookup = "/api/v1/price/lookup";
     public const string PriceLookupParity = "/api/v1/price/parity";
     public const string StorefrontParity = "/storefront/parity";
+    public const string StorefrontAccount = "/storefront/account";
+    public const string StorefrontAccountSummary = "/storefront/account-summary";
 
     public static readonly string[] ControlPanelAliases = [ControlPanel, "/cp/", "/CP", "/CP/"];
 

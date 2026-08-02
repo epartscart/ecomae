@@ -21,6 +21,9 @@ builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, SeoSitemapPingD
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, SeoSitemapWarmDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, UaeTaxLegislationDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApaiBackgroundJobsDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, FulfillmentQueueDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApaiSyncCategoriesDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, IntegrationsCleanupDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobRunner>(sp => new MigrationWorkerJobRunner(
     sp.GetRequiredService<MigrationWorkerJobCatalog>(),
     sp.GetRequiredService<TimeProvider>(),

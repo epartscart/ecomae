@@ -260,7 +260,7 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 63.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 67.0%'
 check 'legacy session SQL checks customer sessions without type filter' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionSql.cs" 'CountCustomerSession'
 check 'legacy session DB evidence exists' test -f "$ROOT/docs/migration/evidence/legacy-session-db/README.md"
 check 'catalog article route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/article'
@@ -296,6 +296,13 @@ check 'catalog suppliers nginx shadow example exists' test -f "$ROOT/deploy/aspn
 check 'seo-sitemap-warm dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/SeoSitemapWarmDryRunExecutor.cs"
 check 'uae-tax-legislation dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/UaeTaxLegislationDryRunExecutor.cs"
 check 'apai-background-jobs dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ApaiBackgroundJobsDryRunExecutor.cs"
+check 'storefront account route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/storefront/account'
+check 'storefront account summary route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/storefront/account-summary'
+check 'storefront account requires customer session' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/StorefrontModule.cs" 'Customer session required'
+check 'fulfillment-queue dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/FulfillmentQueueDryRunExecutor.cs"
+check 'apai-sync-categories dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ApaiSyncCategoriesDryRunExecutor.cs"
+check 'integrations-cleanup dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/IntegrationsCleanupDryRunExecutor.cs"
+
 
 
 check 'CloudPanel bootstrap-from-github script exists' test -x "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh"
