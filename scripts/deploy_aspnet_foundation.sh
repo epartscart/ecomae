@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+RELEASE_ROOT="${ECOMAE_ASPNET_RELEASE_ROOT:-/var/www/ecomae-aspnet}"
+SERVICE_ENV_DIR="${ECOMAE_ASPNET_ENV_DIR:-/etc/ecomae-aspnet}"
+RUN_SYSTEMD="${ECOMAE_RUN_SYSTEMD:-0}"
+RUN_NGINX_RELOAD="${ECOMAE_RUN_NGINX_RELOAD:-0}"
+DOTNET_CONFIGURATION="${DOTNET_CONFIGURATION:-Release}"
+PLATFORM_PORT="${ECOMAE_ASPNET_PORT:-5100}"
+
+require_command() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        printf 'Missing required command: %s\n' "$1" >&2
+        exit 1
+    fi
+}
+
+require_command dotnet
+require_command install
+
+printf '== EcomAE ASP.NET Core foundation deploy ==\n'
+printf 'Repo: %s\n' "$ROOT"
+printf 'Release root: %s\n' "$RELEASE_ROOT"
+printf 'Systemd actions: %s\n' "$RUN_SYSTEMD"
+printf 'Nginx reload: %s\n' "$RUN_NGINX_RELOAD"
+
+"$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh"
+
+dotnet restore "$ROOT/aspnet/EcomAE.AspNetCore.sln"
+dotnet test "$ROOT/aspnet/tests/EcomAE.Platform.Tests"
+
+STAMP="$(date -u +%Y%m%d%H%M%S)"
+RELEASE_DIR="$RELEASE_ROOT/releases/$STAMP"
+PLATFORM_DIR="$RELEASE_DIR/platform"
+WORKERS_DIR="$RELEASE_DIR/workers"
+
+install -d "$PLATFORM_DIR" "$WORKERS_DIR" "$RELEASE_ROOT/releases"
+
+dotnet publish "$ROOT/aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj" -c "$DOTNET_CONFIGURATION" -o "$PLATFORM_DIR"
+dotnet publish "$ROOT/aspnet/src/EcomAE.Workers/EcomAE.Workers.csproj" -c "$DOTNET_CONFIGURATION" -o "$WORKERS_DIR"
+
+ln -sfn "$RELEASE_DIR" "$RELEASE_ROOT/current"
+
+printf '\nPublished release: %s\n' "$RELEASE_DIR"
+printf 'Current symlink: %s/current -> %s\n' "$RELEASE_ROOT" "$RELEASE_DIR"
+
+if [[ ! -f "$SERVICE_ENV_DIR/platform.env" ]]; then
+    printf '\nEnvironment file missing: %s/platform.env\n' "$SERVICE_ENV_DIR"
+    printf 'Create it from deploy/aspnet/platform.env.example before starting services.\n'
+fi
+
+if [[ "$RUN_SYSTEMD" == "1" ]]; then
+    install -d /etc/systemd/system "$SERVICE_ENV_DIR"
+    install -m 0644 "$ROOT/deploy/aspnet/ecomae-platform.service" /etc/systemd/system/ecomae-platform.service
+    install -m 0644 "$ROOT/deploy/aspnet/ecomae-workers.service" /etc/systemd/system/ecomae-workers.service
+    systemctl daemon-reload
+    systemctl enable ecomae-platform.service
+    systemctl restart ecomae-platform.service
+    systemctl status ecomae-platform.service --no-pager
+else
+    printf '\nSkipped systemd actions. Set ECOMAE_RUN_SYSTEMD=1 to install/restart services.\n'
+fi
+
+if [[ "$RUN_NGINX_RELOAD" == "1" ]]; then
+    nginx -t
+    systemctl reload nginx
+else
+    printf 'Skipped nginx reload. Add deploy/aspnet/nginx-diagnostics-only.conf to the CloudPanel site and reload manually.\n'
+fi
+
+printf '\nLocal verification command after service start:\n'
+printf 'curl -i http://127.0.0.1:%s/health\n' "$PLATFORM_PORT"
