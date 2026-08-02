@@ -42,6 +42,7 @@
     "presentation-preserving CP/ERP/BOS/storefront HTML shells (PHP CSS reuse; JSON default)",
     "live Super CP/tenant/ERP/frontend link catalog + public stack probe",
     "field/function/presentation parity contracts + harness (cutover blocked)",
+    "migration-mode digest contract validator + golden samples (no secrets)",
     "PHP decommission readiness reporter + final-gate checklist/smoke kit (blocked)",
     "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],

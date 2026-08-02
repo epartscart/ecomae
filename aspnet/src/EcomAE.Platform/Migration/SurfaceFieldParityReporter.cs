@@ -29,13 +29,15 @@ public sealed class SurfaceFieldParityReporter : ISurfaceFieldParityReporter
                 "Presentation shells must reuse PHP chrome CSS URLs from LegacyPresentationAssets for cp/erp/bos/storefront.",
                 "Function map ties PHP entries to ASP.NET digests/shells without claiming write/posting/cart parity.",
                 "scripts/compare_surface_payload_parity.py performs recursive field-by-field JSON compare for dual samples.",
+                "SurfaceDigestContractValidator locks migration-mode digest envelopes in unit tests before cutover.",
                 "CutoverAllowed is false; AdminAspNetEnabled/StorefrontAspNetEnabled must remain false; RequirePhpFallback must remain true."
             ],
             [
                 "Capture authenticated ASP.NET + PHP (or shared-DB fixture) dual samples for each contracted digest route.",
                 "Run scripts/run_surface_parity_harness.sh and attach match=true samples under docs/migration/evidence/surface-parity/samples/.",
                 "Do not enable broad /cp /erp /bos / storefront nginx cutover until every contract has match=true evidence.",
-                "Storefront cart/checkout/SEO HTML and ERP voucher posting UX are still PHP-authoritative gaps."
+                "Storefront cart/checkout/SEO HTML and ERP voucher posting UX are still PHP-authoritative gaps.",
+                "Authenticated CloudPanel cookies/API keys are still required for live dual-sample promotion."
             ],
             [
                 "Keep PHP authoritative for operator chrome and storefront HTML.",

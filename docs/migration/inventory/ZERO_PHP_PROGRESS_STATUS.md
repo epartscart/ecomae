@@ -47,6 +47,7 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - Presentation-preserving CP/ERP/BOS/storefront HTML shells (reuse PHP CSS assets; JSON default for tooling).
 - Live Super CP / tenant / ERP / frontend link catalog + stack probe (`/migration/live-surface-links`).
 - Field/function/presentation parity contracts + harness (`/migration/surface-field-parity`, `scripts/run_surface_parity_harness.sh`).
+- Migration-mode digest contract validator + golden samples (no secrets); live final-gate checklist ~5/9.
 - PHP decommission readiness reporter documents blockers; removal remains blocked.
 - No broad PHP cutover; parity/shadow remain 0%.
 
