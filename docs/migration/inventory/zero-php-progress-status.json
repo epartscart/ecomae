@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 52.0,
-  "pendingPercent": 48.0,
+  "trueZeroPhpCompletionPercent": 54.0,
+  "pendingPercent": 46.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -35,7 +35,7 @@
     "/api/v1/price/lookup DB+auth",
     "/api/v1/catalog/status DB+auth",
     "/api/v1/catalog/manufacturers DB+auth",
-    "worker dry-run validators for price-import/sitemap/backups/notifications/erp-reports",
+    "worker dry-run validators for price-import/sitemap/backups/notifications/erp-reports/currency-live-rates",
     "scripts/cloudpanel_production_deploy_foundation.sh",
     "scripts/cloudpanel_find_and_redeploy.sh",
     "/api/v1/catalog/models DB+auth",
@@ -49,9 +49,10 @@
     "/api/v1/catalog/products DB/cache+auth",
     "/api/v1/catalog/engine-search DB/cache+auth",
     "/api/v1/catalog/article-links DB/cache+auth",
+    "/api/v1/catalog/article DB/cache+auth",
     "/api/v1/catalog/brand-parts DB+auth",
-    "DbBackedLegacySessionValidator admin sessions.type=1",
-    "/migration/umapi-usage diagnostic",
+    "DbBackedLegacySessionValidator admin+customer sessions",
+    "/migration/umapi-usage diagnostic + recent_today",
     "scripts/cloudpanel_bootstrap_from_github.sh"
   ],
   "nextExecutionOrder": [

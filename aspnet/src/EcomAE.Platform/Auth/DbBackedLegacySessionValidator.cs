@@ -48,6 +48,15 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
         var customerUser = ParseInt(httpContext.Request.Cookies["u_id"]);
         if (!string.IsNullOrWhiteSpace(customerSession) && customerUser > 0)
         {
+            if (_sessions.IsConfigured)
+            {
+                var exists = await _sessions.CustomerSessionExistsAsync(customerSession, customerUser, cancellationToken).ConfigureAwait(false);
+                if (!exists)
+                {
+                    return new LegacySessionContext(LegacySessionKind.Anonymous, 0, null, []);
+                }
+            }
+
             return new LegacySessionContext(
                 LegacySessionKind.Customer,
                 customerUser,

@@ -20,18 +20,18 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "Port ERP accounting, inventory, invoices, reports, and permission checks.",
                 "Port BOS privileged operations and validate tenant CP/ERP host behavior."
             ]),
-            new("Storefront and public API parity", 15, 82, "price-and-catalog-cache-routes-started", [
-                "Price lookup plus most catalog cache/DB routes (incl. engine-search, article-links, brand-parts) have readers + API-key auth.",
-                "Still need live UMAPI proxy fills, staging smoke artifacts, and exact-route shadows only after evidence."
+            new("Storefront and public API parity", 15, 86, "price-and-catalog-cache-routes-started", [
+                "Price lookup plus catalog cache/DB routes including article/engine-search/brand-parts have readers + API-key auth.",
+                "Still need live UMAPI proxy fills (articles/engine), staging smoke artifacts, and exact-route shadows only after evidence."
             ]),
-            new("Background jobs and scheduled work", 10, 40, "dry-run-validators-started", [
-                "Dry-run validators exist for price-import, sitemap, backups, notifications, and erp-reports (writes blocked).",
+            new("Background jobs and scheduled work", 10, 48, "dry-run-validators-started", [
+                "Dry-run validators exist for price-import, sitemap, backups, notifications, erp-reports, and currency-live-rates (writes blocked).",
                 "Batch 1 still requires per-job parity samples and live smoke before schedule cutover."
             ]),
-            new("Data, auth, observability, and rollback evidence", 15, 55, "auth-wired-evidence-pending", [
+            new("Data, auth, observability, and rollback evidence", 15, 62, "auth-wired-evidence-pending", [
                 "API-key auth/quota path is wired for price lookup and catalog cache/DB routes against epc_api_clients.",
-                "Admin cookie sessions are validated against PHP sessions.type=1 when TenantRegistry DB is configured.",
-                "UMAPI usage summary is available at /migration/umapi-usage (diagnostics only).",
+                "Admin and customer cookie sessions are validated against PHP sessions when TenantRegistry DB is configured.",
+                "UMAPI usage summary + recent_today events available at /migration/umapi-usage (diagnostics only).",
                 "Staging smoke artifacts, live rollback approvals, and full route evidence packs remain pending."
             ]),
             new("PHP runtime decommission", 5, 0, "blocked", [

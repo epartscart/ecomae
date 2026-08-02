@@ -39,6 +39,7 @@ public sealed class UmapiUsageSummaryReporter : IUmapiUsageSummaryReporter
             var byAction = await BucketsAsync(connection, LegacyUmapiUsageSql.ByActionToday, "action", cancellationToken).ConfigureAwait(false);
             var bySource = await BucketsAsync(connection, LegacyUmapiUsageSql.BySourceToday, "source", cancellationToken).ConfigureAwait(false);
             var history = await HistoryAsync(connection, safeDays, cancellationToken).ConfigureAwait(false);
+            var recent = await RecentAsync(connection, 100, cancellationToken).ConfigureAwait(false);
 
             var remaining = Math.Max(0, _dailyLimit - todayLive);
             var pct = _dailyLimit > 0 ? Math.Round(todayLive * 100.0 / _dailyLimit, 1) : 0;
@@ -54,6 +55,7 @@ public sealed class UmapiUsageSummaryReporter : IUmapiUsageSummaryReporter
                 byAction,
                 bySource,
                 history,
+                recent,
                 "database",
                 string.Empty);
         }
@@ -64,7 +66,7 @@ public sealed class UmapiUsageSummaryReporter : IUmapiUsageSummaryReporter
     }
 
     private UmapiUsageSummary Empty(string source, string message)
-        => new(_dailyLimit, 0, 0, 0, _dailyLimit, 0, false, [], [], [], source, message);
+        => new(_dailyLimit, 0, 0, 0, _dailyLimit, 0, false, [], [], [], [], source, message);
 
     private static async Task<int> ScalarAsync(DbConnection connection, string sql, CancellationToken cancellationToken)
     {
@@ -117,6 +119,41 @@ public sealed class UmapiUsageSummaryReporter : IUmapiUsageSummaryReporter
                 Convert.ToInt32(reader["live"], CultureInfo.InvariantCulture),
                 Convert.ToInt32(reader["cache"], CultureInfo.InvariantCulture),
                 Convert.ToInt32(reader["blocked"], CultureInfo.InvariantCulture)));
+        }
+
+        return rows;
+    }
+
+    private static async Task<IReadOnlyList<UmapiUsageRecentEvent>> RecentAsync(
+        DbConnection connection,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = LegacyUmapiUsageSql.RecentToday;
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "@limit";
+        parameter.Value = Math.Clamp(limit, 1, 500);
+        command.Parameters.Add(parameter);
+
+        var rows = new List<UmapiUsageRecentEvent>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var createdAt = Convert.ToInt64(reader["created_at"], CultureInfo.InvariantCulture);
+            var time = DateTimeOffset.FromUnixTimeSeconds(createdAt).UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+            rows.Add(new UmapiUsageRecentEvent(
+                createdAt,
+                time,
+                Convert.ToString(reader["action"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["section"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["source"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["request_path"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToInt32(reader["http_status"], CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader["from_cache"], CultureInfo.InvariantCulture) == 1,
+                Convert.ToInt32(reader["quota_blocked"], CultureInfo.InvariantCulture) == 1,
+                Convert.ToInt32(reader["is_live"], CultureInfo.InvariantCulture) == 1,
+                Convert.ToString(reader["message"], CultureInfo.InvariantCulture) ?? string.Empty));
         }
 
         return rows;

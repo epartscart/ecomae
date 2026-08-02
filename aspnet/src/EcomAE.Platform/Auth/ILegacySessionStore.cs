@@ -5,4 +5,6 @@ public interface ILegacySessionStore
     bool IsConfigured { get; }
 
     Task<bool> AdminSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default);
+
+    Task<bool> CustomerSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default);
 }

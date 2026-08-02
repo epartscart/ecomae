@@ -159,6 +159,7 @@ app.MapGet(EcomAeRoutes.MigrationUmapiUsage, async (int? days, IUmapiUsageSummar
         by_action_today = summary.ByActionToday,
         by_source_today = summary.BySourceToday,
         history = summary.History,
+        recent_today = summary.RecentToday,
         source = summary.Source,
         message = summary.Message,
         note = "Internal migration diagnostic only. External catalog clients must not call PHP usage_report."

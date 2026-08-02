@@ -576,6 +576,47 @@ public sealed class ApiModule : ISurfaceModule
             return OfflineCacheOk(result, authResult.Client);
         });
 
+        endpoints.MapGet(EcomAeRoutes.CatalogArticle, async (
+            HttpContext httpContext,
+            string? section,
+            int? id,
+            string? language,
+            string? region,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogOfflineCacheService offlineCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "article", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await offlineCache.LookupArticleAsync(section, id ?? 0, language, region, cancellationToken);
+            await LogOfflineCacheAsync(httpContext, usageLogger, authResult.Client, "catalog_article", result.Ok, result.Code, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(
+                    new
+                    {
+                        ok = false,
+                        error = new { code = result.Code, message = result.Message },
+                        action = result.Action,
+                        section = result.Section,
+                        source = result.Source,
+                        requested_id = id,
+                        note = result.Code == "cache_miss"
+                            ? "No epc_umapi_cache row matched this article id; PHP/UMAPI remains authoritative for live fills."
+                            : null
+                    },
+                    statusCode: result.StatusCode);
+            }
+
+            return OfflineCacheOk(result, authResult.Client);
+        });
+
         endpoints.MapGet(EcomAeRoutes.CatalogBrandParts, async (
             HttpContext httpContext,
             string? brand,

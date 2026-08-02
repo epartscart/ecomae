@@ -4,10 +4,10 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 
 ## Current percentage
 
-- True zero-PHP completion: 52.0%.
-- Pending to 100%: 48.0%.
+- True zero-PHP completion: 54.0%.
+- Pending to 100%: 46.0%.
 - Foundation/planning floor: 35.0%.
-- Route/job implementation started (not parity-ready): price lookup + catalog cache/DB routes + worker dry-run validators + admin session DB check.
+- Route/job implementation started (not parity-ready): price lookup + catalog cache/DB routes + worker dry-run validators + admin/customer session DB checks.
 - Route/job parity-ready: 0.0%.
 - Route/job shadow-or-better: 0.0%.
 
@@ -37,11 +37,11 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 - `/api/v1/catalog/status`: DB status reader + catalog API-key auth + evidence pack. Staging smoke still required.
 - `/api/v1/catalog/models|/modifications|/brands`: DB cache readers + auth + shadow examples.
 - `/api/v1/catalog/manufacturers`: DB cache reader + catalog API-key auth + exact-route shadow example. Staging smoke still required.
-- `/api/v1/catalog/vin|/engines|/analogs|/article-brands|/categories|/products|/engine-search|/article-links`: offline DB/cache readers + auth + shadow examples (cache-miss keeps PHP authoritative).
+- `/api/v1/catalog/vin|/engines|/analogs|/article-brands|/categories|/products|/engine-search|/article-links|/article`: offline DB/cache readers + auth + shadow examples (cache-miss keeps PHP authoritative).
 - `/api/v1/catalog/brand-parts`: DB stock reader from `shop_docpart_prices_data` + auth + shadow example.
-- Admin session DB check: `DbBackedLegacySessionValidator` against `sessions.type=1` when TenantRegistry DB is configured.
-- `/migration/umapi-usage`: read-only UMAPI usage summary diagnostic (not an external catalog API).
-- Worker dry-run validators (writes blocked): price-import, sitemap, backups, notifications, erp-reports.
+- Admin + customer session DB checks: `DbBackedLegacySessionValidator` against `sessions` when TenantRegistry DB is configured (admin uses `type=1`).
+- `/migration/umapi-usage`: read-only UMAPI usage summary + `recent_today` events (not an external catalog API).
+- Worker dry-run validators (writes blocked): price-import, sitemap, backups, notifications, erp-reports, currency-live-rates.
 - Production deploy helpers: `scripts/cloudpanel_production_deploy_foundation.sh`, `scripts/cloudpanel_find_and_redeploy.sh`, `scripts/cloudpanel_bootstrap_from_github.sh` (diagnostics/foundation only; no broad PHP cutover).
 
 ## Next execution order
