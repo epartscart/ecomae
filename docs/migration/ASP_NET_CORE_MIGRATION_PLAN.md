@@ -1,5 +1,12 @@
 # ASP.NET Core Migration Plan
 
+> **Enterprise BOS alignment:** Follow `PROJECT_ARCHITECTURE_INSTRUCTIONS.md` as
+> project law. ASP.NET Core 10 + EF Core 10 own the enterprise app. Legacy MySQL
+> is a **bridge system of record** during Zero-PHP; long-term primary DB is
+> **PostgreSQL 17** (SQL Server 2025 alternative). See
+> `ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md`. Do not introduce Java/Node/Go/PHP
+> backends. Python is AI-only.
+
 ## Objective
 
 Move ECOM AE from the current PHP runtime to an ASP.NET Core platform while keeping production PHP online during the transition. The final state is zero PHP files, no PHP-FPM, and no PHP runtime dependency.
@@ -25,7 +32,7 @@ The first migration slice adds an ASP.NET Core foundation under `aspnet/` withou
 
 1. Keep PHP running until ASP.NET Core has tested parity for the route being cut over.
 2. Build tenant resolution first; every later module depends on tenant context.
-3. Keep existing MySQL schema initially; introduce .NET migrations only after parity.
+3. Keep existing MySQL schema as the bridge SoR initially; introduce EF Core 10 and plan PostgreSQL 17 migration after route/job parity evidence.
 4. Move one module at a time behind routing/proxy rules.
 5. After all routes, APIs, jobs, and setup tasks are replaced, remove PHP files and PHP runtime.
 

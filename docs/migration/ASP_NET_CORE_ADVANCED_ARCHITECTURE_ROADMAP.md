@@ -6,7 +6,7 @@ This roadmap captures the modern ASP.NET Core practices required after the migra
 
 - **Clean / Hexagonal Architecture:** Keep domain logic independent from ASP.NET Core, databases, queues, and UI code by using ports/adapters and clear application boundaries.
 - **CQRS with MediatR-style pipelines:** Separate commands that mutate state from queries that read state, and route cross-cutting validation, authorization, logging, and telemetry through explicit pipelines.
-- **Event-driven systems:** Prefer asynchronous events for internal workflows that do not require immediate response coupling. Evaluate MassTransit with RabbitMQ first, and Kafka only for high-throughput event-streaming use cases.
+- **Event-driven systems:** Prefer asynchronous events for internal workflows that do not require immediate response coupling. Per Enterprise BOS law, use **Apache Kafka 4** as the primary messaging platform; RabbitMQ 4 is the documented alternative.
 - **Migration rule:** Begin as a modular ASP.NET Core platform beside PHP, then split services only when route parity, data ownership, and operational runbooks are proven.
 
 ## 2. Hyper-performance and memory tuning

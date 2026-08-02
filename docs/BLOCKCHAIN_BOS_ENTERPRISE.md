@@ -1,5 +1,10 @@
 # Blockchain BOS Enterprise System
 
+> **Enterprise BOS alignment:** Blockchain is an **integration/proof layer only**.
+> Business logic and system of record remain in ASP.NET Core (target PG17 + EF Core 10).
+> Do not treat MySQL/PHP as the permanent SoR. Blockchain nodes are never accessed
+> directly by frontends or Python. See `docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md`.
+
 ECOM AE is positioned and engineered as one **Blockchain BOS Enterprise System** — not a normal BOS with a blockchain sticker.
 
 ## Product model

@@ -333,6 +333,22 @@ check 'Python migration doc defers to ASP.NET Core ownership' contains "$ROOT/do
 check 'apai-weekly-platform-sync dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ApaiWeeklyPlatformSyncDryRunExecutor.cs"
 check 'apai-daily-source-expand dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ApaiDailySourceExpandDryRunExecutor.cs"
 check 'api-client-ping dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ApiClientPingDryRunExecutor.cs"
+check 'Enterprise BOS instructions are canonical project law' contains "$ROOT/docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md" 'Canonical project law'
+check 'Enterprise BOS forbids Java Node Go PHP backends' contains "$ROOT/docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md" 'Do not introduce Java Spring Boot, Node.js backend, Go backend, PHP'
+check 'Enterprise BOS requires PostgreSQL 17' contains "$ROOT/docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md" 'PostgreSQL 17'
+check 'Enterprise BOS requires Python AI-only' contains "$ROOT/docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md" 'Use Python only for AI-related workloads'
+check 'Enterprise BOS compliance marks PG17 not migrated' contains "$ROOT/docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md" '❌ not migrated'
+check 'Enterprise BOS compliance marks Redis not wired' contains "$ROOT/docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md" 'Redis 8'
+check 'EF Core 10 package referenced by platform' contains "$ROOT/aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj" 'Microsoft.EntityFrameworkCore'
+check 'EF Core scaffold DbContext exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/EcomAeScaffoldDbContext.cs"
+check 'EF Core scaffold is not registered in Program' bash -c '! grep -q "AddDbContext" "$ROOT/aspnet/src/EcomAE.Platform/Program.cs"'
+check 'no Go module backend at repo root' bash -c '! test -f "$ROOT/go.mod"'
+check 'no Maven pom Spring backend at repo root' bash -c '! test -f "$ROOT/pom.xml"'
+check 'Python migration doc is superseded historical' contains "$ROOT/docs/PYTHON_MIGRATION.md" 'SUPERSEDED / HISTORICAL ONLY'
+check 'hybrid roadmap marks pyapi business surface legacy' contains "$ROOT/docs/migration/ASP_NET_CORE_PYTHON_HYBRID_ROADMAP.md" 'temporary legacy'
+check 'advanced architecture prefers Kafka primary' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Apache Kafka 4'
+check 'blockchain doc keeps business SoR in ASP.NET' contains "$ROOT/docs/BLOCKCHAIN_BOS_ENTERPRISE.md" 'integration/proof layer only'
+check 'tenant scale doc marks PHP MySQL as interim' contains "$ROOT/docs/TENANT_SCALE_1000.md" 'interim'
 
 check 'CloudPanel bootstrap-from-github script exists' test -x "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh"
 check 'CloudPanel bootstrap resets hard to origin main' contains "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh" 'git reset --hard'
@@ -478,7 +494,7 @@ check 'Codex PR cleanup script exists' test -x "$ROOT/scripts/cleanup_codex_prs.
 check 'Codex PR cleanup script is dry-run by default' contains "$ROOT/scripts/cleanup_codex_prs.sh" 'RUN_CLOSE:-0'
 check 'open PR consolidation runbook exists' test -f "$ROOT/docs/migration/OPEN_PR_CONSOLIDATION_RUNBOOK.md"
 check 'Cursor handoff status exists' test -f "$ROOT/docs/migration/CURSOR_HANDOFF_STATUS.md"
-check 'Cursor handoff status records foundation complete' contains "$ROOT/docs/migration/CURSOR_HANDOFF_STATUS.md" 'Repository foundation | 100%'
+check 'Cursor handoff status defers to Enterprise BOS law' contains "$ROOT/docs/migration/CURSOR_HANDOFF_STATUS.md" 'PROJECT_ARCHITECTURE_INSTRUCTIONS.md'
 check 'Cursor handoff status blocks broad cutover' contains "$ROOT/docs/migration/CURSOR_HANDOFF_STATUS.md" 'Do not proxy broad'
 check 'consolidated PR push script exists' test -x "$ROOT/scripts/push_consolidated_pr_update.sh"
 check 'migration plan documents zero PHP final state' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'zero PHP files'

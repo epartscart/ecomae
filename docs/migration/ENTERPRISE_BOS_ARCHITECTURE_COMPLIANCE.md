@@ -1,8 +1,18 @@
 # Enterprise BOS Architecture Compliance Tracker
 
-Tracks adherence to `PROJECT_ARCHITECTURE_INSTRUCTIONS.md` (Enterprise BOS Cloud Platform Technology & Architecture Instructions).
+Tracks adherence to `PROJECT_ARCHITECTURE_INSTRUCTIONS.md` (Enterprise BOS Cloud Platform Technology & Architecture Instructions) — the **canonical project law**.
 
 This is a **compliance tracker**, not a claim that production already runs the full target stack.
+
+## Superseded / interim docs (do not follow for ownership)
+
+| Doc | Status |
+| --- | --- |
+| `docs/PYTHON_MIGRATION.md` | Historical. Python business APIs must not expand; AI-only going forward. |
+| `docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md` | Valid for Zero-PHP sequencing; MySQL is **bridge SoR**, target is PG17 + EF Core 10. |
+| `docs/BLOCKCHAIN_BOS_ENTERPRISE.md` | Blockchain remains integration/proof only; business SoR moves to ASP.NET Core. |
+| `docs/TENANT_SCALE_1000.md` | Interim PHP/MySQL scale; destination is ASP.NET workers + PG17 tenancy. |
+| `docs/migration/CURSOR_HANDOFF_STATUS.md` | Operational handoff; progress % deferred to Zero-PHP status + this tracker. |
 
 ## Decision guide (mandatory)
 
@@ -24,7 +34,7 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | ASP.NET Core owns enterprise app | 🔶 migration in progress | Exact-route ASP.NET ownership; PHP temporary fallback |
 | No new non-.NET backends | ✅ | No Java/Node/Go introduced |
 | Python AI-only | 🔶 partial | Hybrid roadmap states AI-only; legacy `docs/PYTHON_MIGRATION.md` is superseded for business APIs |
-| EF Core 10 primary ORM | ❌ not wired | Current bridge uses `MySqlConnector` ADO; EF Core is next scaffolding track |
+| EF Core 10 primary ORM | 🔶 package + empty scaffold | `Microsoft.EntityFrameworkCore` 10.0.0 referenced; `EcomAeScaffoldDbContext` not registered in `Program.cs`; production still uses `MySqlConnector` ADO |
 | PostgreSQL 17 primary SoR | ❌ not migrated | Legacy MySQL/MariaDB remains SoR during Zero-PHP; PG17 is target after parity |
 | Redis 8 | ❌ not wired | Documented in scaffolding notes; PHP cookies remain authoritative |
 | Kafka 4 (or RabbitMQ) | ❌ not wired | Event architecture planned; not claimed live |

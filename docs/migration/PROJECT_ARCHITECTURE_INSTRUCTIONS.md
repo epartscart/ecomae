@@ -1,6 +1,12 @@
 # Enterprise BOS Cloud Platform - Technology & Architecture Instructions
 
-These instructions are mandatory for future migration and feature work.
+> **Canonical project law.** Every technical decision in this repository must follow
+> these instructions. Track live vs target status in
+> `docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md`. Scaffolding notes live in
+> `docs/migration/ASPNET_TARGET_STACK_SCAFFOLDING_NOTES.md`. Zero-PHP progress is tracked
+> separately and must not be used to claim full Enterprise BOS stack readiness.
+
+These instructions are mandatory for all migration and feature work.
 
 You are building a large-scale Enterprise Business Operating System (BOS) designed for millions of users, thousands of organizations, multi-tenant SaaS operation, cloud-native deployment, high availability, AI capabilities, blockchain integration, enterprise security, and long-term maintainability.
 
