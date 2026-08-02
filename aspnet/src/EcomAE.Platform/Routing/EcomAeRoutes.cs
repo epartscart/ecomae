@@ -26,6 +26,8 @@ public static class EcomAeRoutes
     public const string ControlPanelTenants = "/cp/tenants";
     public const string ControlPanelUsers = "/cp/users";
     public const string ControlPanelGroups = "/cp/groups";
+    public const string ControlPanelModules = "/cp/modules";
+    public const string ControlPanelConfigItems = "/cp/config-items";
     public const string Erp = "/erp";
     public const string ErpParity = "/erp/parity";
     public const string ErpDashboardSummary = "/erp/dashboard-summary";
@@ -33,11 +35,15 @@ public static class EcomAeRoutes
     public const string ErpSuppliers = "/erp/suppliers";
     public const string ErpPurchases = "/erp/purchases";
     public const string ErpCashAccounts = "/erp/cash-accounts";
+    public const string ErpCashEntries = "/erp/cash-entries";
+    public const string ErpInvoices = "/erp/invoices";
+    public const string ErpGlJournals = "/erp/gl-journals";
     public const string Bos = "/bos";
     public const string BosParity = "/bos/parity";
     public const string BosFleetSummary = "/bos/fleet-summary";
     public const string BosTenants = "/bos/tenants";
     public const string BosFleetHealth = "/bos/fleet-health";
+    public const string BosFleetReadiness = "/bos/fleet-readiness";
     public const string ApiPrefix = "/api";
     public const string ApiMigrationStatus = "/api/migration/status";
     public const string CatalogStatus = "/api/v1/catalog/status";

@@ -11,13 +11,16 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "Keep /health and allowlisted /migration/* public while production routes remain on PHP.",
                 "Track Enterprise BOS architecture compliance; do not invent cutover infra."
             ]),
-            new("Route inventory and cutover ownership", 10, 40, "inventory-complete-execution-pending", [
-                "Inventory and ownership assignment are complete for 3049 PHP files / 61 batches.",
-                "Execution remains route-by-route; broad /, /api, /cp, /erp, and /bos cutovers stay blocked."
+            new("Route inventory and cutover ownership", 10, 50, "batch1-dry-run-scaffolded-execution-pending", [
+                "Inventory ownership remains complete for 3049 PHP files / 61 batches.",
+                "Batch 1 worker dry-run scaffolding exists; 60 batches remain planned-not-implemented.",
+                "Broad /, /api, /cp, /erp, and /bos cutovers stay blocked."
             ]),
-            new("CP, ERP, BOS, and tenant workflow parity", 25, 72, "cash-accounts-erp-lists-started", [
-                "CP/ERP/BOS digests include tenants, users, groups, suppliers, purchases, cash-accounts, fleet health.",
-                "Still need login UX, tenant admin writes, and full ERP/BOS workflow ports."
+            new("CP, ERP, BOS, and tenant workflow parity", 25, 88, "erp-gl-cp-modules-bos-readiness-started", [
+                "CP digests: tenants/users/groups/modules/config-items metadata.",
+                "ERP digests: accounts/suppliers/purchases/cash/invoices/GL journals.",
+                "BOS digests: fleet summary/health/readiness scoring (platform DB only).",
+                "Still need login UX, tenant admin writes, and full workflow ports."
             ]),
             new("Storefront and public API parity", 15, 100, "account-profile-garage-wired", [
                 "Catalog/price routes plus customer-gated account/orders/garage/profile digests are wired.",
@@ -29,7 +32,7 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
             ]),
             new("Data, auth, observability, and rollback evidence", 15, 100, "nested-acl-otel-scaffold-wired", [
                 "Admin sessions expose capabilities plus nested modules_access ACL; ActivitySource names are reserved.",
-                "Enterprise BOS compliance/scaffolding docs track EF Core, YARP, Redis, Kafka, PG17 as not live.",
+                "EF Core stub entities exist but DbContext is not registered; PG17/YARP/Redis/Kafka remain not live.",
                 "Staging smoke artifacts and live rollback approvals remain pending before PHP removal."
             ]),
             new("PHP runtime decommission", 5, 0, "blocked", [

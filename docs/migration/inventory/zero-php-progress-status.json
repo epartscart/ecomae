@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 82.0,
-  "pendingPercent": 18.0,
+  "trueZeroPhpCompletionPercent": 87.0,
+  "pendingPercent": 13.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -28,25 +28,33 @@
       "owner-assigned-pending-parity": 3049
     },
     "batchStatuses": {
-      "planned-not-implemented": 61
+      "aspnet-dry-run-scaffolded": 1,
+      "planned-not-implemented": 60
     }
   },
   "concreteStarted": [
     "catalog/price DB+auth routes",
     "nested modules_access ACL + surface capabilities",
-    "CP digests: tenants/users/groups",
-    "ERP digests: accounts/suppliers/purchases/cash-accounts",
+    "CP digests: tenants/users/groups/modules/config-items",
+    "ERP digests: accounts/suppliers/purchases/cash/invoices/gl-journals",
+    "BOS digests: fleet summary/health/readiness",
     "storefront account/orders/garage/profile digests",
-    "tracked worker dry-run validator layer",
-    "Enterprise BOS compliance + ActivitySource scaffolding",
-    "migration diagnostics + cloudpanel deploy helpers"
+    "tracked worker dry-run validator layer + batch-1 dry-run scaffolding",
+    "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],
   "architectureComplianceDoc": "docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md",
+  "pathTo100Percent": [
+    "Exact-route staging smoke + parity artifacts for implemented routes",
+    "Enable only approved location= nginx shadows",
+    "Execute remaining 60 batches with parity evidence",
+    "Promote batch-1 from dry-run scaffolding to shadow/live",
+    "Release-owner approval before PHP decommission"
+  ],
   "nextExecutionOrder": [
     "Refresh /opt/ecomae-aspnet-source with git reset --hard origin/main, then cloudpanel_find_and_redeploy.sh.",
     "Run exact-route staging smoke for price/catalog with real API keys.",
     "Attach parity samples, then enable only approved location = nginx shadows.",
-    "Advance EF Core/PG17/YARP/OTel tracks per compliance doc without broad cutover.",
+    "Continue batch-by-batch replacements without broad proxy cutover.",
     "Remove PHP only after every item is live or removed and rollback evidence is approved."
   ]
 }

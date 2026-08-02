@@ -7,7 +7,7 @@ namespace EcomAE.Platform.Tests;
 public sealed class EcomAeScaffoldDbContextTests
 {
     [Fact]
-    public void ScaffoldDbContextCanBeConstructedWithoutProductionRegistration()
+    public void ScaffoldDbContextModelsCatalogStubsWithoutProductionRegistration()
     {
         var options = new DbContextOptionsBuilder<EcomAeScaffoldDbContext>()
             .UseInMemoryDatabase("ecomae-scaffold-test")
@@ -15,6 +15,9 @@ public sealed class EcomAeScaffoldDbContextTests
 
         using var context = new EcomAeScaffoldDbContext(options);
         Assert.NotNull(context.Model);
-        Assert.Empty(context.Model.GetEntityTypes());
+        Assert.Contains(context.Model.GetEntityTypes(), type => type.ClrType == typeof(CatalogBrandStub));
+        Assert.Contains(context.Model.GetEntityTypes(), type => type.ClrType == typeof(CatalogProductStub));
+        Assert.NotNull(context.CatalogBrands);
+        Assert.NotNull(context.CatalogProducts);
     }
 }

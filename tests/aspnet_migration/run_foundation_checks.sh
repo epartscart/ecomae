@@ -260,7 +260,7 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 82.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 87.0%'
 check 'legacy session SQL checks customer sessions without type filter' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionSql.cs" 'CountCustomerSession'
 check 'legacy session DB evidence exists' test -f "$ROOT/docs/migration/evidence/legacy-session-db/README.md"
 check 'catalog article route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/article'
@@ -349,6 +349,15 @@ check 'hybrid roadmap marks pyapi business surface legacy' contains "$ROOT/docs/
 check 'advanced architecture prefers Kafka primary' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Apache Kafka 4'
 check 'blockchain doc keeps business SoR in ASP.NET' contains "$ROOT/docs/BLOCKCHAIN_BOS_ENTERPRISE.md" 'integration/proof layer only'
 check 'tenant scale doc marks PHP MySQL as interim' contains "$ROOT/docs/TENANT_SCALE_1000.md" 'interim'
+check 'ERP cash-entries route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/cash-entries'
+check 'ERP invoices route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/invoices'
+check 'ERP gl-journals route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/gl-journals'
+check 'CP modules route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/modules'
+check 'CP config-items route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/config-items'
+check 'BOS fleet-readiness route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/bos/fleet-readiness'
+check 'EF catalog scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ICatalogScaffoldRepository.cs"
+check 'zero PHP path-to-100 documents remaining batches' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Path to 100%'
+check 'batch statuses record dry-run scaffolding' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'aspnet-dry-run-scaffolded'
 
 check 'CloudPanel bootstrap-from-github script exists' test -x "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh"
 check 'CloudPanel bootstrap resets hard to origin main' contains "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh" 'git reset --hard'

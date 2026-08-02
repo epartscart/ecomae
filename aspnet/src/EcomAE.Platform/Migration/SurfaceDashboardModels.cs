@@ -177,3 +177,90 @@ public sealed record StorefrontProfileResult(
     IReadOnlyDictionary<string, string> ProfileFields,
     string Source,
     string Message);
+
+public sealed record ErpCashEntryDigest(
+    long Id,
+    long AccountId,
+    string AccountName,
+    string AccountType,
+    long TimeUnix,
+    int Direction,
+    decimal Amount,
+    string Reference,
+    string Note);
+
+public sealed record ErpCashEntryListResult(
+    IReadOnlyList<ErpCashEntryDigest> Entries,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpInvoiceDigest(
+    long Id,
+    string InvoiceNumber,
+    long OrderId,
+    int UserId,
+    string CustomerEmail,
+    long IssueDate,
+    string Status,
+    decimal TotalInclVat);
+
+public sealed record ErpInvoiceListResult(
+    IReadOnlyList<ErpInvoiceDigest> Invoices,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpGlJournalDigest(
+    long Id,
+    string JournalNo,
+    long JournalDate,
+    string SourceType,
+    long SourceId,
+    string Status,
+    decimal TotalDebit);
+
+public sealed record ErpGlJournalListResult(
+    IReadOnlyList<ErpGlJournalDigest> Journals,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpModuleDigest(
+    int Id,
+    string Caption,
+    bool Activated,
+    bool IsFrontend,
+    bool IsPrototype,
+    bool ControlAvailable);
+
+public sealed record CpModuleListResult(
+    IReadOnlyList<CpModuleDigest> Modules,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpConfigItemMetaDigest(
+    string Name,
+    string Caption,
+    string Type,
+    string ConfigGroup,
+    bool Visible,
+    int Order);
+
+public sealed record CpConfigItemMetaListResult(
+    IReadOnlyList<CpConfigItemMetaDigest> Items,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record BosFleetReadinessResult(
+    int Tenants,
+    int Pass,
+    int Warn,
+    int Fail,
+    int Active,
+    int WithDatabase,
+    int ErpOnly,
+    string Source,
+    string Message);

@@ -29,12 +29,18 @@ PHP dashboards remain authoritative. No writes.
 - `GET /cp/tenants?limit=100` — portal tenant list
 - `GET /cp/users?limit=100` — users digest
 - `GET /cp/groups?limit=100` — groups digest
+- `GET /cp/modules?limit=200` — modules digest
+- `GET /cp/config-items?limit=200` — config_items metadata only (no secret values)
 - `GET /bos/tenants?limit=100` — same list for BOS
 - `GET /bos/fleet-health?limit=25` — fleet summary + sample tenants
+- `GET /bos/fleet-readiness` — platform-DB readiness scoring (no per-tenant connects)
 - `GET /erp/accounts-summary` — epc_erp_* cash/supplier KPIs
 - `GET /erp/suppliers?limit=200` — active suppliers + balances
 - `GET /erp/purchases?limit=200` — recent purchases
 - `GET /erp/cash-accounts?limit=200` — cash/bank accounts with balances
+- `GET /erp/cash-entries?limit=200&account_id=` — cash/bank entries
+- `GET /erp/invoices?limit=150` — e-invoice documents
+- `GET /erp/gl-journals?limit=200` — GL journals with debit totals
 - `GET /storefront/orders?limit=25` — customer-gated recent shop_orders
 - `GET /storefront/garage?limit=50` — customer-gated garage vehicles
 - `GET /storefront/profile` — customer-gated users + users_profiles
