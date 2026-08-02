@@ -42,30 +42,50 @@ classify_key() {
 status_price="$(classify_key "$ECOMAE_PRICE_LOOKUP_API_KEY" "epc_pricepro_")"
 status_catalog="$(classify_key "$ECOMAE_CATALOG_API_KEY" "epc_catalog_")"
 
+cookie_hint=""
 if [[ -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
   if [[ -r "${ECOMAE_ADMIN_COOKIE_JAR}" ]]; then
     status_cookie="PRESENT_JAR"
   else
     status_cookie="BAD_FORMAT"
+    cookie_hint="cookie jar path not readable"
   fi
 elif [[ -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" ]]; then
   hdr="${ECOMAE_ADMIN_COOKIE_HEADER}"
+  # Strip accidental wrapping quotes from env file values.
+  if [[ "${hdr:0:1}" == "'" && "${hdr: -1}" == "'" ]]; then
+    hdr="${hdr:1:${#hdr}-2}"
+  elif [[ "${hdr:0:1}" == '"' && "${hdr: -1}" == '"' ]]; then
+    hdr="${hdr:1:${#hdr}-2}"
+  fi
+  ECOMAE_ADMIN_COOKIE_HEADER="$hdr"
+  export ECOMAE_ADMIN_COOKIE_HEADER
   if [[ "$hdr" == *"admin_session="* && "$hdr" == *"admin_u_id="* ]]; then
     # admin_u_id should be numeric after =
     if printf '%s' "$hdr" | grep -Eq 'admin_u_id=[0-9]+'; then
       status_cookie="PRESENT"
     else
       status_cookie="BAD_FORMAT"
+      cookie_hint="admin_u_id must be digits (admin_u_id=123)"
     fi
   else
     status_cookie="BAD_FORMAT"
+    has_session=0
+    has_uid=0
+    [[ "$hdr" == *"admin_session="* ]] && has_session=1
+    [[ "$hdr" == *"admin_u_id="* ]] && has_uid=1
+    cookie_hint="need both admin_session= (has=${has_session}) and admin_u_id= (has=${has_uid}); length=${#hdr}"
   fi
 fi
 
 printf 'ECOMAE_PRICE_LOOKUP_API_KEY: %s (expect prefix epc_pricepro_)\n' "$status_price"
 printf 'ECOMAE_CATALOG_API_KEY: %s (expect prefix epc_catalog_)\n' "$status_catalog"
 printf 'ECOMAE_ADMIN_COOKIE_HEADER/JAR: %s (expect admin_session=...; admin_u_id=<digits>)\n' "$status_cookie"
+if [[ -n "${cookie_hint:-}" ]]; then
+  printf '  cookie detail: %s\n' "$cookie_hint"
+fi
 printf 'Never prints secret values. Does not remove PHP.\n'
+printf 'Next if anything MISSING/BAD_FORMAT: bash scripts/cloudpanel_prepare_smoke_secrets.sh\n'
 
 for s in "$status_price" "$status_catalog" "$status_cookie"; do
   if [[ "$s" == "BAD_FORMAT" ]]; then

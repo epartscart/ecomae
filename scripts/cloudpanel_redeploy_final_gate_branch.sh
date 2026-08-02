@@ -72,13 +72,14 @@ if [[ -z "${ECOMAE_ADMIN_COOKIE_HEADER:-}" && -z "${ECOMAE_ADMIN_COOKIE_JAR:-}" 
 fi
 
 if [[ "$missing" -ne 0 ]]; then
-  printf '\nEdit secrets, then continue:\n'
+  printf '\nBLOCKED: smoke secrets incomplete. Run:\n'
+  printf '  bash scripts/cloudpanel_prepare_smoke_secrets.sh\n'
   printf '  nano %s\n' "$ENV_FILE"
   printf '  source %s\n' "$ENV_FILE"
-  printf '  curl -sS -H "Cookie: $ECOMAE_ADMIN_COOKIE_HEADER" http://127.0.0.1:5100/auth/session/probe\n'
+  printf '  bash scripts/cloudpanel_validate_final_gate_env.sh\n'
   printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
   printf '  bash scripts/cloudpanel_commit_final_gate_smoke.sh\n'
-  printf 'Do NOT remove PHP.\n'
+  printf 'Do NOT remove PHP. Stopping before capture.\n'
   exit 2
 fi
 
@@ -90,18 +91,25 @@ else
   probe_code="$(curl -sS -m 20 -o "$probe_tmp" -w '%{http_code}' -H "Cookie: ${ECOMAE_ADMIN_COOKIE_HEADER}" http://127.0.0.1:5100/auth/session/probe || true)"
 fi
 printf 'HTTP %s\n' "$probe_code"
-python3 - "$probe_tmp" <<'PY' || true
+if ! python3 - "$probe_tmp" <<'PY'
 import json, sys
 doc = json.load(open(sys.argv[1], encoding="utf-8"))
 print({k: doc.get(k) for k in ("Kind", "kind", "IsAuthenticated", "isAuthenticated", "has_backend_access", "UserId", "userId")})
-kind = doc.get("Kind") or doc.get("kind")
+kind = doc.get("Kind") if doc.get("Kind") is not None else doc.get("kind")
 auth = doc.get("IsAuthenticated")
 if auth is None:
     auth = doc.get("isAuthenticated")
-if str(kind) != "Admin" or auth is False:
-    raise SystemExit("Admin session probe failed — refresh ECOMAE_ADMIN_COOKIE_HEADER from a live Super CP login")
+is_admin = kind in ("Admin", 2) or str(kind) == "2"
+if not is_admin or auth is False:
+    raise SystemExit(1)
 print("Admin session OK")
 PY
+then
+  rm -f "$probe_tmp"
+  printf 'BLOCKED: Admin session probe failed — refresh ECOMAE_ADMIN_COOKIE_HEADER from a live Super CP login.\n'
+  printf '  bash scripts/cloudpanel_prepare_smoke_secrets.sh\n'
+  exit 2
+fi
 rm -f "$probe_tmp"
 
 printf '\n-- Capture final-gate artifacts --\n'
