@@ -1,0 +1,17 @@
+{
+  "batch": 0,
+  "legacyPhpEntry": "REPLACE_WITH_PHP_PATH",
+  "aspnetRouteOrJob": "REPLACE_WITH_ASPNET_ROUTE_OR_WORKER_KEY",
+  "cutoverMode": "exact-route-only",
+  "phpFallbackRequired": true,
+  "status": "parity-sample-required",
+  "comparedAtUtc": "1970-01-01T00:00:00Z",
+  "phpSamplePath": "docs/migration/evidence/decommission/parity-samples/REPLACE-php.json",
+  "aspnetSamplePath": "docs/migration/evidence/decommission/parity-samples/REPLACE-aspnet.json",
+  "match": false,
+  "notes": [
+    "Attach real staging payloads before changing status to parity-ready.",
+    "Do not enable nginx shadow until match=true and smoke passes.",
+    "Do not remove PHP fallback until release-owner approval exists."
+  ]
+}
