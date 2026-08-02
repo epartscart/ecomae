@@ -26,16 +26,82 @@ public sealed class ApiModule : ISurfaceModule
             next = "Port catalog, price lookup, tenant, ERP, BOS, mobile, and webhook APIs"
         }));
 
-        endpoints.MapGet(EcomAeRoutes.CatalogStatus, () => Results.Ok(new CatalogStatusResult(
-            "Catalog",
-            "api/v1/catalog.php",
-            EcomAeRoutes.CatalogStatus,
-            "placeholder",
-            [
-                "Connect catalog status to UMAPI/Laximo replacement services",
-                "Add manufacturer/model/catalog endpoints",
-                "Retire PHP api/v1/catalog.php after parity"
-            ])));
+        endpoints.MapGet(EcomAeRoutes.CatalogStatus, async (
+            HttpContext httpContext,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogStatusService catalogStatus,
+            CancellationToken cancellationToken) =>
+        {
+            // Reuse RequireApiClientAuth as the shared exact-route API auth switch.
+            LegacyApiClientRecord? client = null;
+            if (options.Value.RequireApiClientAuth)
+            {
+                var auth = await authenticator.RequireAsync(httpContext.Request, "catalog", "status", cancellationToken);
+                if (!auth.Succeeded)
+                {
+                    return Results.Json(
+                        new { ok = false, error = new { code = auth.Code, message = auth.Message } },
+                        statusCode: auth.StatusCode);
+                }
+
+                client = auth.Client;
+            }
+
+            var payload = await catalogStatus.GetStatusAsync(cancellationToken);
+            if (client is not null)
+            {
+                await usageLogger.LogAsync(new LegacyApiUsageLogEntry(
+                    "catalog_status",
+                    string.Empty,
+                    "api_client",
+                    client.Id,
+                    "/api/v1/catalog/status",
+                    200,
+                    QuotaBlocked: false,
+                    payload.Source,
+                    httpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty), cancellationToken);
+            }
+
+            return Results.Ok(new
+            {
+                connected = payload.Connected,
+                message = payload.Message,
+                last_checked = payload.LastChecked,
+                last_success = payload.LastSuccess,
+                last_error = payload.LastError,
+                status_code = payload.StatusCode,
+                counts = new
+                {
+                    manufacturers = payload.Counts.Manufacturers,
+                    models = payload.Counts.Models,
+                    modifications = payload.Counts.Modifications,
+                    brands = payload.Counts.Brands,
+                    vins = payload.Counts.Vins
+                },
+                sections = payload.Sections,
+                cache_rows = payload.CacheRows,
+                offline_ready = payload.OfflineReady,
+                action_required = payload.ActionRequired,
+                source = payload.Source,
+                migration = new CatalogStatusResult(
+                    "Catalog",
+                    "api/v1/catalog.php?action=status",
+                    EcomAeRoutes.CatalogStatus,
+                    payload.Source == "database" ? "db-backed-read-only" : "migration-placeholder",
+                    [
+                        "Add manufacturer/model/catalog endpoints with exact-route parity",
+                        "Replay PHP catalog fixtures before public cutover",
+                        "Keep PHP fallback until live smoke passes"
+                    ]),
+                client = client is null ? null : new
+                {
+                    label = client.Label,
+                    key_prefix = client.ClientKeyPrefix
+                }
+            });
+        });
 
         endpoints.MapGet(EcomAeRoutes.CatalogParity, (ICatalogParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 

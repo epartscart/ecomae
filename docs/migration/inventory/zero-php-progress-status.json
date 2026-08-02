@@ -1,7 +1,7 @@
 {
-  "status": "foundation-and-planning-complete-implementation-pending",
-  "trueZeroPhpCompletionPercent": 35.0,
-  "pendingPercent": 65.0,
+  "status": "implementation-started-parity-pending",
+  "trueZeroPhpCompletionPercent": 43.0,
+  "pendingPercent": 57.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -31,11 +31,17 @@
       "planned-not-implemented": 61
     }
   },
+  "concreteStarted": [
+    "/api/v1/price/lookup DB+auth",
+    "/api/v1/catalog/status DB+auth",
+    "worker dry-run validators for price-import/sitemap/backups/notifications/erp-reports",
+    "scripts/cloudpanel_production_deploy_foundation.sh"
+  ],
   "nextExecutionOrder": [
-    "Implement batch 1 worker replacements in ASP.NET Core dry-run mode.",
-    "Attach PHP-vs-ASP.NET parity samples for each route/job in the batch.",
-    "Move passing batch items to aspnet-shadow, then parity-ready, then live.",
-    "Repeat batches without broad proxy cutover.",
+    "Deploy ASP.NET foundation on production with scripts/cloudpanel_production_deploy_foundation.sh (diagnostics only).",
+    "Run exact-route staging smoke for /api/v1/price/lookup and /api/v1/catalog/status with real API keys.",
+    "Attach PHP-vs-ASP.NET parity samples, then enable only approved location = nginx shadows.",
+    "Continue batch-by-batch replacements without broad proxy cutover.",
     "Remove PHP only after every item is live or removed and rollback evidence is approved."
   ]
 }

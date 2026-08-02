@@ -10,6 +10,10 @@ builder.Services.AddSingleton<ZeroPhpBatchOneWorkerDryRunEvidenceManifest>();
 builder.Services.AddSingleton<ZeroPhpBatchOneWorkerDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerDryRunEvidenceProvider, MigrationWorkerDryRunEvidenceProvider>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, PriceImportDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, SitemapDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, BackupDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, NotificationsDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ErpReportsDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobRunner>(sp => new MigrationWorkerJobRunner(
     sp.GetRequiredService<MigrationWorkerJobCatalog>(),
     sp.GetRequiredService<TimeProvider>(),
