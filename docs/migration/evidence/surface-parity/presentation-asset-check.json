@@ -1,0 +1,162 @@
+{
+  "capturedAtUtc": "2026-08-02T18:14:12Z",
+  "baseUrl": "https://www.ecomae.com",
+  "assets": [
+    {
+      "surface": "cp",
+      "href": "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "cp",
+      "href": "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/css/bootstrap.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/css/bootstrap.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "cp",
+      "href": "/epc-static.php?f=cp/templates/bootstrap_admin/fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=cp/templates/bootstrap_admin/fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "cp",
+      "href": "/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "cp",
+      "href": "/epc-static.php?f=cp/templates/bootstrap_admin/css/astself.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=cp/templates/bootstrap_admin/css/astself.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "cp",
+      "href": "/content/general_pages/epc_cp_ui_css.php",
+      "url": "https://www.ecomae.com/content/general_pages/epc_cp_ui_css.php",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "cp",
+      "href": "/content/general_pages/epc_cp_professional_css.php",
+      "url": "https://www.ecomae.com/content/general_pages/epc_cp_professional_css.php",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "erp",
+      "href": "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "erp",
+      "href": "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/css/bootstrap.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/css/bootstrap.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "erp",
+      "href": "/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "erp",
+      "href": "/epc-static.php?f=cp/content/shop/finance/erp/theme/erp_theme.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=cp/content/shop/finance/erp/theme/erp_theme.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "erp",
+      "href": "/epc-static.php?f=cp/content/shop/finance/erp/theme/erp_dashboard_premium.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=cp/content/shop/finance/erp/theme/erp_dashboard_premium.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "erp",
+      "href": "/content/general_pages/epc_cp_ui_css.php",
+      "url": "https://www.ecomae.com/content/general_pages/epc_cp_ui_css.php",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "erp",
+      "href": "/content/general_pages/epc_cp_professional_css.php",
+      "url": "https://www.ecomae.com/content/general_pages/epc_cp_professional_css.php",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "bos",
+      "href": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "bos",
+      "href": "/epc-static.php?f=bos/epc_bos_shell.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=bos/epc_bos_shell.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "storefront",
+      "href": "/epc-static.php?f=templates/modex/assets/css/preload.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=templates/modex/assets/css/preload.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "storefront",
+      "href": "/epc-static.php?f=templates/modex/assets/css/style_color.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=templates/modex/assets/css/style_color.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "storefront",
+      "href": "/epc-static.php?f=templates/modex/assets/css/width-boxed.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=templates/modex/assets/css/width-boxed.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "storefront",
+      "href": "/epc-static.php?f=templates/modex/css/catalogue/catalogue.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=templates/modex/css/catalogue/catalogue.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "storefront",
+      "href": "/epc-static.php?f=templates/modex/css/astself.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=templates/modex/css/astself.css",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "surface": "storefront",
+      "href": "/epc-static.php?f=templates/modex/css/docpart/style.css",
+      "url": "https://www.ecomae.com/epc-static.php?f=templates/modex/css/docpart/style.css",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "okCount": 22,
+  "total": 22
+}

@@ -48,12 +48,12 @@ public static class LegacyPresentationAssets
 
     public static readonly IReadOnlyList<string> StorefrontStylesheets =
     [
-        "/templates/modex/assets/css/preload.css",
-        "/templates/modex/assets/css/style_color.css",
-        "/templates/modex/assets/css/width-boxed.css",
-        "/templates/modex/css/catalogue/catalogue.css",
-        "/templates/modex/css/astself.css",
-        "/templates/modex/css/docpart/style.css"
+        "/epc-static.php?f=templates/modex/assets/css/preload.css",
+        "/epc-static.php?f=templates/modex/assets/css/style_color.css",
+        "/epc-static.php?f=templates/modex/assets/css/width-boxed.css",
+        "/epc-static.php?f=templates/modex/css/catalogue/catalogue.css",
+        "/epc-static.php?f=templates/modex/css/astself.css",
+        "/epc-static.php?f=templates/modex/css/docpart/style.css"
     ];
 
     public static string BodyClassFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch

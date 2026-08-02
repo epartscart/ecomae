@@ -1,0 +1,71 @@
+{
+  "capturedAtUtc": "2026-08-02T18:14:15Z",
+  "passed": 10,
+  "failed": 0,
+  "blocked": 2,
+  "cutoverAllowed": false,
+  "phpAuthoritative": true,
+  "note": "No nginx cutover and no PHP removal. Dual authenticated samples still required before any exact-route shadow promotion.",
+  "results": [
+    {
+      "area": "unit-contracts",
+      "status": "pass",
+      "detail": "surface/presentation contract tests green"
+    },
+    {
+      "area": "presentation-assets",
+      "status": "pass",
+      "detail": "22/22 PHP chrome CSS URLs resolve on https://www.ecomae.com"
+    },
+    {
+      "area": "presentation-brand",
+      "status": "pass",
+      "detail": "ECOM AE brand mark URL returns HTTP 200"
+    },
+    {
+      "area": "live/migration/presentation-parity",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "live/migration/surface-parity",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "live/migration/live-surface-links",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "live/migration/surface-field-parity",
+      "status": "blocked",
+      "detail": "HTTP 404 until redeploy includes this PR"
+    },
+    {
+      "area": "php-chrome/CP/",
+      "status": "pass",
+      "detail": "still PHP HTML (no cutover)"
+    },
+    {
+      "area": "php-chrome/ERP/",
+      "status": "pass",
+      "detail": "still PHP HTML (no cutover)"
+    },
+    {
+      "area": "php-chrome/BOS/",
+      "status": "pass",
+      "detail": "still PHP HTML (no cutover)"
+    },
+    {
+      "area": "authenticated-digest-capture",
+      "status": "blocked",
+      "detail": "set ECOMAE_ASPNET_BASE_URL and admin cookie to capture dual samples"
+    },
+    {
+      "area": "compare-script",
+      "status": "pass",
+      "detail": "field-by-field compare ignores note and matches summary"
+    }
+  ]
+}
