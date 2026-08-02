@@ -1,7 +1,1 @@
-{
-  "ok": false,
-  "error": {
-    "code": "missing_api_key",
-    "message": "Send X-API-Key: epc_catalog_\u2026 or epc_pricepro_\u2026 (issued on onboarding)."
-  }
-}
+{"ok":false,"error":{"code":"missing_api_key","message":"Send X-API-Key: epc_catalog_… or epc_pricepro_… (issued on onboarding)."}}

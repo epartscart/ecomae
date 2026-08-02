@@ -14,7 +14,10 @@ Weighted completion remains **95% / 5% pending**. The residual 5% is PHP runtime
 
 ```bash
 bash scripts/run_zero_php_final_gate_checklist.sh
+bash scripts/probe_live_surface_stack.sh
 ```
+
+Live operator URL catalog: `docs/migration/LIVE_SURFACE_LINKS.md` and `GET /migration/live-surface-links`.
 
 On CloudPanel after deploy (loads keys from `/etc/ecomae-aspnet/platform.env` when present):
 
