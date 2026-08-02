@@ -18,9 +18,11 @@ public sealed class ErpParityReporter : IErpParityReporter
                 "Surface parity report tracks finance dashboard, chart of accounts, vouchers, invoices, inventory, and reports."
             ],
             [
+                "On CloudPanel: ensure_epc_api_clients_table.sh → issue_smoke_credentials.sh → validate_final_gate_env.sh → capture surface digests.",
                 "Replay PHP finance dashboard, chart-of-accounts, voucher, invoice, and inventory fixtures.",
                 "Port ERP permissions, tenant scoping, exports, and audit evidence.",
-                "Validate ERP-only tenant navigation and rollback behavior in staging."
+                "Validate ERP-only tenant navigation and rollback behavior in staging.",
+                "Promote only location = digests via nginx-surface-digests-shadow-example.conf (never broad /erp)."
             ]);
     }
 }

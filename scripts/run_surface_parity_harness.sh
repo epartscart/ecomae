@@ -128,10 +128,20 @@ if [[ -n "$ASPNET_BASE" && ( -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" || -n "${ECOMA
   fi
   for route in \
     /cp/dashboard-summary \
+    /cp/groups?limit=5 \
+    /cp/modules?limit=5 \
+    /cp/menus?limit=5 \
+    /cp/pages?limit=5 \
     /cp/config-items?limit=5 \
     /erp/dashboard-summary \
     /erp/accounts-summary \
+    /erp/suppliers?limit=5 \
+    /erp/purchases?limit=5 \
     /erp/cash-accounts?limit=5 \
+    /erp/warehouses?limit=5 \
+    /erp/sales-orders?limit=5 \
+    /erp/invoices?limit=5 \
+    /erp/gl-journals?limit=5 \
     /bos/fleet-summary \
     /bos/tenants?limit=5 \
     /bos/fleet-health

@@ -14,6 +14,8 @@ public sealed class ErpParityReporterTests
         Assert.Equal("presentation-shell-scaffolded-awaiting-staging", report.Status);
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("admin session", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("ERP-only tenants", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("chart-of-accounts", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("never broad /erp", StringComparison.Ordinal));
     }
 }

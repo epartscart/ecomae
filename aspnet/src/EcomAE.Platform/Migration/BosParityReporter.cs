@@ -19,9 +19,11 @@ public sealed class BosParityReporter : IBosParityReporter
                 "Surface parity report tracks privileged operations, tenant fleet health, audit trails, and rollback safety."
             ],
             [
+                "On CloudPanel: ensure_epc_api_clients_table.sh → issue_smoke_credentials.sh → validate_final_gate_env.sh → capture surface digests.",
                 "Replay PHP BOS command-center and tenant fleet health fixtures.",
                 "Port privileged operations, emergency rollback controls, and audit evidence.",
-                "Validate super-admin access denial and approval workflows before cutover."
+                "Validate super-admin access denial and approval workflows before cutover.",
+                "Promote only location = digests via nginx-surface-digests-shadow-example.conf (never broad /bos)."
             ]);
     }
 }

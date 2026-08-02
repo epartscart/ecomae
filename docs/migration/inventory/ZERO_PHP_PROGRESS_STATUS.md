@@ -68,7 +68,7 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 ## Next execution order
 
-- Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` (or the open smoke-issuer branch until merged).
+- Redeploy smoke-issuer: `bash scripts/cloudpanel_redeploy_final_gate_branch.sh` (use `origin/main` after PR merge).
 - Ensure API clients table: `ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh`
 - Issue smoke creds: `ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh` (login Super CP if admin cookie missing).
 - Validate (redacted): `bash scripts/cloudpanel_validate_final_gate_env.sh` (or `bash scripts/cloudpanel_prepare_smoke_secrets.sh`).

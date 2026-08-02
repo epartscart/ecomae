@@ -383,6 +383,9 @@ check 'deploy packs exact-route extract helper' contains "$ROOT/scripts/deploy_a
 check 'deploy packs ensure epc_api_clients helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_ensure_epc_api_clients_table.sh'
 check 'deploy packs smoke secrets prepare helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_prepare_smoke_secrets.sh'
 check 'deploy packs smoke commit helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_commit_final_gate_smoke.sh'
+check 'deploy packs smoke credential issuer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_issue_smoke_credentials.sh'
+check 'smoke credential issuer exists' test -x "$ROOT/scripts/cloudpanel_issue_smoke_credentials.sh"
+check 'smoke issuer uses PHP DP_Config bootstrap' contains "$ROOT/scripts/php/_smoke_db_bootstrap.php" 'DP_Config'
 check 'deploy packs smoke DB bootstrap PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" '_smoke_db_bootstrap.php'
 check 'deploy packs ensure table PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ensure_epc_api_clients_table.php'
 check 'ensure epc_api_clients helper exists' test -x "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh"
@@ -417,7 +420,16 @@ check 'surface field parity probe contractCount is current' contains "$ROOT/docs
 check 'live surface links probe includes field parity route' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/migration/surface-field-parity'
 check 'live surface links probe includes catalog brand-parts' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/api/v1/catalog/brand-parts'
 check 'zero php probe next actions mention ensure table' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'ensure_epc_api_clients_table'
+check 'zero php probe next actions mention issue smoke creds' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'issue_smoke_credentials'
+check 'zero php probe next actions mention smoke-issuer redeploy' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'cloudpanel_redeploy_final_gate_branch.sh'
 check 'php decommission probe next actions mention ensure table' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" 'ensure_epc_api_clients_table'
+check 'php decommission probe next actions mention issue smoke' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" 'issue_smoke_credentials'
+check 'live surface links probe includes cp parity board' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/cp/parity'
+check 'surface digest smoke covers erp gl-journals' contains "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh" '/erp/gl-journals'
+check 'surface digest smoke covers cp groups' contains "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh" '/cp/groups'
+check 'capture incomplete footer mentions ensure table' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'cloudpanel_ensure_epc_api_clients_table.sh'
+check 'CloudPanel quick start points to smoke-issuer redeploy' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'cloudpanel_redeploy_final_gate_branch.sh'
+check 'zero php progress JSON next order mentions ensure table' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'cloudpanel_ensure_epc_api_clients_table.sh'
 check 'php decommission probe marks exact-route shadows present' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); i=next(c for c in d["checklist"] if c["id"]=="exact-route-shadows-only"); assert i["status"]=="present"' "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
 check 'surface parity probe public API status is wired' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-parity.json" 'catalog-cache-routes-wired-awaiting-staging'
 check 'redeploy final-gate defaults to smoke-issuer branch' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'cursor/smoke-issuer-php-platform-pdo-7b3b'

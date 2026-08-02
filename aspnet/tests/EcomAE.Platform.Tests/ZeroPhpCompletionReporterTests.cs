@@ -25,9 +25,10 @@ public sealed class ZeroPhpCompletionReporterTests
         Assert.Contains(report.Areas, area => area.Name == "Storefront and public API parity" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "Background jobs and scheduled work" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "Data, auth, observability, and rollback evidence" && area.CompletePercent == 100);
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_bootstrap_from_github.sh", StringComparison.Ordinal)
-            || action.Contains("cloudpanel_find_and_redeploy.sh", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_redeploy_final_gate_branch.sh", StringComparison.Ordinal)
+            || action.Contains("smoke-issuer-php-platform-pdo-7b3b", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("ensure_epc_api_clients_table", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("issue_smoke_credentials", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("ECOMAE_CUSTOMER_COOKIE_HEADER", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md", StringComparison.Ordinal));
     }

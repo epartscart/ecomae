@@ -81,7 +81,7 @@
     }
   ],
   "nextActions": [
-    "Redeploy with git reset --hard origin/main then scripts/cloudpanel_find_and_redeploy.sh (or cloudpanel_bootstrap_from_github.sh).",
+    "Redeploy smoke-issuer branch: bash scripts/cloudpanel_redeploy_final_gate_branch.sh (or ECOMAE_BRANCH=cursor/smoke-issuer-php-platform-pdo-7b3b bash scripts/cloudpanel_find_and_redeploy.sh). Use origin/main after PR merge.",
     "Ensure table \u002B issue smoke creds: cloudpanel_ensure_epc_api_clients_table.sh \u2192 cloudpanel_issue_smoke_credentials.sh (never invent keys).",
     "Validate env (redacted): cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
     "Capture/commit staging-smoke for price lookup, catalog status, and surface digests.",
