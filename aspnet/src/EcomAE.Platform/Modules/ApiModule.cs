@@ -233,6 +233,26 @@ public sealed class ApiModule : ISurfaceModule
             return CatalogListOk(result, authResult.Client);
         });
 
+        // PHP action=suppliers uses the same brands/suppliers table payload as ASP.NET /catalog/brands.
+        endpoints.MapGet(EcomAeRoutes.CatalogSuppliers, async (
+            HttpContext httpContext,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogVehicleCacheService vehicleCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "brands", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await vehicleCache.GetBrandsAsync(cancellationToken);
+            await LogCatalogAsync(httpContext, usageLogger, authResult.Client, "catalog_suppliers", result, cancellationToken);
+            return CatalogListOk(result with { Action = "suppliers" }, authResult.Client);
+        });
+
         endpoints.MapGet(EcomAeRoutes.CatalogVin, async (
             HttpContext httpContext,
             string? vin,

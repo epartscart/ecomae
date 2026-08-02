@@ -22,10 +22,13 @@ public static class EcomAeRoutes
     public const string LegacyApiClientParity = "/auth/api-client/parity";
     public const string ControlPanel = "/cp";
     public const string ControlPanelParity = "/cp/parity";
+    public const string ControlPanelDashboardSummary = "/cp/dashboard-summary";
     public const string Erp = "/erp";
     public const string ErpParity = "/erp/parity";
+    public const string ErpDashboardSummary = "/erp/dashboard-summary";
     public const string Bos = "/bos";
     public const string BosParity = "/bos/parity";
+    public const string BosFleetSummary = "/bos/fleet-summary";
     public const string ApiPrefix = "/api";
     public const string ApiMigrationStatus = "/api/migration/status";
     public const string CatalogStatus = "/api/v1/catalog/status";
@@ -33,6 +36,7 @@ public static class EcomAeRoutes
     public const string CatalogModels = "/api/v1/catalog/models";
     public const string CatalogModifications = "/api/v1/catalog/modifications";
     public const string CatalogBrands = "/api/v1/catalog/brands";
+    public const string CatalogSuppliers = "/api/v1/catalog/suppliers";
     public const string CatalogVin = "/api/v1/catalog/vin";
     public const string CatalogEngines = "/api/v1/catalog/engines";
     public const string CatalogAnalogs = "/api/v1/catalog/analogs";
@@ -49,6 +53,8 @@ public static class EcomAeRoutes
     public const string PriceLookup = "/api/v1/price/lookup";
     public const string PriceLookupParity = "/api/v1/price/parity";
     public const string StorefrontParity = "/storefront/parity";
+    public const string StorefrontAccount = "/storefront/account";
+    public const string StorefrontAccountSummary = "/storefront/account-summary";
 
     public static readonly string[] ControlPanelAliases = [ControlPanel, "/cp/", "/CP", "/CP/"];
 

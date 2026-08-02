@@ -22,6 +22,29 @@ public sealed class ErpModule : ISurfaceModule
     {
         endpoints.MapGet(EcomAeRoutes.ErpParity, (IErpParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
+        endpoints.MapGet(EcomAeRoutes.ErpDashboardSummary, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin)
+            {
+                return Unauthorized("Admin session required for ERP dashboard summary.");
+            }
+
+            var summary = await dashboards.BuildErpAsync(cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                summary,
+                session = SessionPayload(session),
+                note = "Read-only migration summary. PHP ERP dashboard remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ErpAliases)
         {
             endpoints.MapGet(route, async (HttpContext context, ISurfaceShellCatalog shells, ILegacySessionValidator validator) =>
@@ -29,14 +52,30 @@ public sealed class ErpModule : ISurfaceModule
                 var session = await validator.ValidateAsync(context);
                 if (session.Kind != LegacySessionKind.Admin)
                 {
-                    return Results.Json(
-                        new { ok = false, error = new { code = "unauthorized", message = "Admin session required for ERP shell." } },
-                        statusCode: StatusCodes.Status401Unauthorized);
+                    return Unauthorized("Admin session required for ERP shell.");
                 }
 
                 var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-                return Results.Ok(shells.Build("erp", tenant));
+                return Results.Ok(new
+                {
+                    shell = shells.Build("erp", tenant),
+                    session = SessionPayload(session)
+                });
             });
         }
     }
+
+    private static IResult Unauthorized(string message) => Results.Json(
+        new { ok = false, error = new { code = "unauthorized", message } },
+        statusCode: StatusCodes.Status401Unauthorized);
+
+    private static object SessionPayload(LegacySessionContext session) => new
+    {
+        kind = session.Kind.ToString(),
+        user_id = session.UserId,
+        email = session.Email,
+        group_ids = session.Groups,
+        has_backend_access = session.HasBackendAccess,
+        permissions = session.Permissions
+    };
 }

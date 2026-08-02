@@ -7,4 +7,6 @@ public interface ILegacySessionStore
     Task<bool> AdminSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default);
 
     Task<bool> CustomerSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default);
+
+    Task<LegacyAdminIdentity?> GetAdminIdentityAsync(int userId, CancellationToken cancellationToken = default);
 }

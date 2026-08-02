@@ -12,8 +12,8 @@ public sealed class ControlPanelParityReporterTests
 
         Assert.Equal("Control Panel / Super CP", report.Surface);
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("route aliases", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("admin session", StringComparison.OrdinalIgnoreCase));
-        Assert.Equal("shell-session-gated-awaiting-staging", report.Status);
+        Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("backend-group session", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("shell-summaries-session-gated-awaiting-staging", report.Status);
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("user management", StringComparison.OrdinalIgnoreCase));
     }
 }

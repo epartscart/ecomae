@@ -13,9 +13,12 @@ public sealed class LegacySessionParityReporterTests
         Assert.Contains("admin_session/admin_u_id cookies", report.SupportedInputs);
         Assert.Contains("session/u_id cookies", report.SupportedInputs);
         Assert.Contains("sessions.type=1", report.SupportedInputs);
-        Assert.Contains("admin+customer sessions table checks", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(report.SupportedInputs, item => item.Contains("for_backend", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("backend group claims", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("X-API-Key header", report.SupportedInputs);
-        Assert.Equal("session-db-checks-wired-awaiting-staging", report.Status);
-        Assert.Contains(report.RemainingGaps, gap => gap.Contains("permissions", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("session-db-claims-wired-awaiting-staging", report.Status);
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("claims", StringComparison.OrdinalIgnoreCase)
+            || gap.Contains("permissions", StringComparison.OrdinalIgnoreCase)
+            || gap.Contains("roles", StringComparison.OrdinalIgnoreCase));
     }
 }
