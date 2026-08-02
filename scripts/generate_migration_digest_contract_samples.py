@@ -29,6 +29,44 @@ def readiness(fields: dict) -> dict:
     }
 
 
+def list_digest(surface: str, key: str, items: list | None = None) -> dict:
+    rows = items or []
+    return {
+        "ok": True,
+        "surface": surface,
+        key: rows,
+        "count": len(rows),
+        "source": "migration",
+        "message": "TenantRegistry DB is not configured.",
+        "session": {"kind": "Admin", "user_id": 1},
+        "note": "migration-mode contract sample; PHP remains authoritative",
+    }
+
+
+def catalog_status() -> dict:
+    return {
+        "connected": False,
+        "message": "migration placeholder",
+        "last_checked": None,
+        "last_success": None,
+        "last_error": None,
+        "status_code": 0,
+        "counts": {
+            "manufacturers": 0,
+            "models": 0,
+            "modifications": 0,
+            "brands": 0,
+            "vins": 0,
+        },
+        "sections": [],
+        "cache_rows": 0,
+        "offline_ready": False,
+        "action_required": "Configure TenantRegistry MySQL",
+        "source": "migration",
+        "note": "migration-mode contract sample; PHP remains authoritative",
+    }
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     samples = {
@@ -83,6 +121,79 @@ def main() -> None:
                 "erpOnly": 0,
             }
         ),
+        "cp-tenants.json": list_digest("cp", "tenants"),
+        "cp-users.json": list_digest("cp", "users"),
+        "cp-groups.json": list_digest("cp", "groups"),
+        "cp-modules.json": list_digest("cp", "modules"),
+        "cp-menus.json": list_digest("cp", "menus"),
+        "cp-pages.json": list_digest("cp", "pages"),
+        "cp-currencies.json": list_digest("cp", "currencies"),
+        "cp-api-clients.json": list_digest("cp", "clients"),
+        "erp-suppliers.json": list_digest("erp", "suppliers"),
+        "erp-purchases.json": list_digest("erp", "purchases"),
+        "erp-coa-accounts.json": list_digest("erp", "accounts"),
+        "erp-warehouses.json": list_digest("erp", "warehouses"),
+        "erp-sales-orders.json": list_digest("erp", "orders"),
+        "erp-purchase-orders.json": list_digest("erp", "orders"),
+        "erp-invoices.json": list_digest("erp", "invoices"),
+        "erp-gl-journals.json": list_digest("erp", "journals"),
+        "bos-audit-log.json": list_digest("bos", "entries"),
+        "bos-fleet-health.json": {
+            "ok": True,
+            "surface": "bos",
+            "summary": {
+                "portalTenants": 0,
+                "activePortalTenants": 0,
+                "adminSessions": 0,
+                "withDatabase": 0,
+                "erpOnly": 0,
+                "source": "migration",
+                "message": "TenantRegistry DB is not configured.",
+            },
+            "sampleTenants": [],
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "session": {"kind": "Admin", "user_id": 1},
+            "note": "migration-mode contract sample; PHP remains authoritative",
+        },
+        "storefront-orders.json": {
+            "ok": True,
+            "surface": "storefront",
+            "user_id": 9,
+            "orders": [],
+            "count": 0,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "session": {"kind": "Customer", "user_id": 9},
+            "note": "migration-mode contract sample; PHP remains authoritative",
+        },
+        "storefront-garage.json": {
+            "ok": True,
+            "surface": "storefront",
+            "user_id": 9,
+            "vehicles": [],
+            "count": 0,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "session": {"kind": "Customer", "user_id": 9},
+            "note": "migration-mode contract sample; PHP remains authoritative",
+        },
+        "storefront-profile.json": {
+            "ok": True,
+            "surface": "storefront",
+            "user_id": 9,
+            "email": "migration@example.com",
+            "email_confirmed": False,
+            "phone": "",
+            "phone_confirmed": False,
+            "reg_variant": "email",
+            "profile_fields": {},
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "session": {"kind": "Customer", "user_id": 9},
+            "note": "migration-mode contract sample; PHP remains authoritative",
+        },
+        "api-catalog-status.json": catalog_status(),
     }
 
     for name, payload in samples.items():

@@ -19,8 +19,15 @@ Nothing here authorizes PHP removal by itself. `GET /migration/php-decommission-
 
 ```bash
 cd /opt/ecomae-aspnet-source
+# platform.env must contain ECOMAE_PRICE_LOOKUP_API_KEY, ECOMAE_CATALOG_API_KEY,
+# and ECOMAE_ADMIN_COOKIE_HEADER (or COOKIE_JAR) or staging-smoke/ stays empty.
+source /etc/ecomae-aspnet/platform.env
 bash scripts/cloudpanel_capture_final_gate_artifacts.sh
+# When all three smoke JSON files exist:
+bash scripts/cloudpanel_commit_final_gate_smoke.sh
 ```
+
+Surface smoke is accepted only when `ok=true` **and** at least one non-migration digest returns HTTP 200.
 
 ## Operator commands
 

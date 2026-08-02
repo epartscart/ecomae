@@ -32,34 +32,37 @@ On CloudPanel after deploy (loads keys from `/etc/ecomae-aspnet/platform.env` wh
 cd /opt/ecomae-aspnet-source
 git fetch origin main && git checkout -f main && git reset --hard origin/main
 bash scripts/cloudpanel_find_and_redeploy.sh
+
+# Required before capture can write staging-smoke/*.json (server-only, never commit):
+# ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...
+# ECOMAE_CATALOG_API_KEY=epc_catalog_...
+# ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=...'
+
+source /etc/ecomae-aspnet/platform.env
 bash scripts/cloudpanel_capture_final_gate_artifacts.sh
+# When all three smoke files exist:
+bash scripts/cloudpanel_commit_final_gate_smoke.sh
 ```
 
 Deploy packs `docs/migration/evidence/decommission` into the ASP.NET release ContentRoot so `/migration/php-decommission-readiness` can see attached git artifacts on the server (checklist should show public probes/scripts present after redeploy; authenticated smoke + approval still required).
 
-Add to `platform.env` (server-only, never commit):
-
-```bash
-ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...
-ECOMAE_CATALOG_API_KEY=epc_catalog_...
-# optional for digest smoke:
-# ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=...'
-```
-
 Evidence pack: `docs/migration/evidence/decommission/`  
-Public probes (no secrets) are already attached under `public-probes/`.
+Public probes (no secrets) are already attached under `public-probes/`.  
+Authenticated surface smoke now requires at least one CP/ERP/BOS digest HTTP **200** (`ok:true` alone with only 401s is rejected).
 
 Opt-in staging smoke:
 
 - `tests/live_smoke/run_price_lookup_exact_route_smoke.sh`
 - `tests/live_smoke/run_catalog_status_exact_route_smoke.sh`
 - `tests/live_smoke/run_surface_digest_exact_route_smoke.sh`
+- `scripts/cloudpanel_commit_final_gate_smoke.sh` (push real artifacts only)
 
 Exact-route shadow examples:
 
 - `deploy/aspnet/nginx-price-lookup-shadow-example.conf`
 - `deploy/aspnet/nginx-api-shadow-example.conf` (catalog status)
 - `deploy/aspnet/nginx-surface-digests-shadow-example.conf`
+- `deploy/aspnet/nginx-storefront-digests-shadow-example.conf`
 
 ## Why the last 5% remains
 

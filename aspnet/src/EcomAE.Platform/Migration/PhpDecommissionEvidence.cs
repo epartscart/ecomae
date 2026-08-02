@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace EcomAE.Platform.Migration;
 
-internal static class PhpDecommissionEvidence
+public static class PhpDecommissionEvidence
 {
     public static bool HasAuthenticatedPriceLookupSmoke(string root)
     {
@@ -63,9 +63,32 @@ internal static class PhpDecommissionEvidence
             return false;
         }
 
-        return doc.RootElement.TryGetProperty("routes", out var routes)
-            && routes.ValueKind == JsonValueKind.Array
-            && routes.GetArrayLength() > 0;
+        if (!doc.RootElement.TryGetProperty("routes", out var routes)
+            || routes.ValueKind != JsonValueKind.Array
+            || routes.GetArrayLength() == 0)
+        {
+            return false;
+        }
+
+        // Require at least one authenticated CP/ERP/BOS digest HTTP 200 (migration probes alone are insufficient).
+        foreach (var route in routes.EnumerateArray())
+        {
+            if (!route.TryGetProperty("route", out var routeName)
+                || !route.TryGetProperty("status", out var status)
+                || status.ValueKind != JsonValueKind.Number
+                || status.GetInt32() != 200)
+            {
+                continue;
+            }
+
+            var name = routeName.GetString() ?? string.Empty;
+            if (!name.StartsWith("/migration/", StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static bool HasParitySamples(string root)

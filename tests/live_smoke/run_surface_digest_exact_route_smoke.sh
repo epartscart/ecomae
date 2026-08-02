@@ -11,6 +11,8 @@ COOKIE_JAR="${ECOMAE_ADMIN_COOKIE_JAR:-}"
 COOKIE_HEADER="${ECOMAE_ADMIN_COOKIE_HEADER:-}"
 OUT_DIR="${ECOMAE_SMOKE_OUT_DIR:-/tmp}"
 OUT_FILE="${OUT_DIR}/ecomae-aspnet-surface-digests.json"
+# Default: digest routes must return authenticated HTTP 200 (401 no longer counts as pass).
+REQUIRE_DIGEST_200="${ECOMAE_REQUIRE_AUTHENTICATED_DIGEST_200:-1}"
 mkdir -p "$OUT_DIR"
 
 if [[ -z "$COOKIE_JAR" && -z "$COOKIE_HEADER" ]]; then
@@ -31,16 +33,23 @@ routes=(
   "/migration/presentation-parity"
   "/migration/live-surface-links"
   "/cp/dashboard-summary"
+  "/cp/tenants?limit=5"
+  "/cp/users?limit=5"
+  "/cp/currencies?limit=5"
+  "/cp/api-clients?limit=5"
   "/erp/dashboard-summary"
-  "/bos/fleet-summary"
   "/erp/coa-accounts?limit=5"
   "/erp/purchase-orders?limit=5"
-  "/cp/currencies?limit=5"
+  "/erp/inventory-stock"
+  "/bos/fleet-summary"
+  "/bos/fleet-health"
+  "/bos/fleet-readiness"
   "/bos/audit-log?limit=5"
 )
 
 pass=0
 fail=0
+digest_200=0
 results_tmp="$(mktemp)"
 : >"$results_tmp"
 
@@ -60,29 +69,37 @@ for route in "${routes[@]}"; do
       fail=$((fail + 1))
     fi
   else
-    case "$status" in
-      200|401)
-        echo "PASS ${route} HTTP $status"
-        pass=$((pass + 1))
-        ;;
-      *)
-        echo "FAIL ${route} returned HTTP $status"
-        fail=$((fail + 1))
-        ;;
-    esac
+    if [[ "$status" == "200" ]]; then
+      echo "PASS ${route} HTTP $status"
+      pass=$((pass + 1))
+      digest_200=$((digest_200 + 1))
+    elif [[ "$REQUIRE_DIGEST_200" != "1" && "$status" == "401" ]]; then
+      echo "PASS ${route} HTTP $status (legacy allow-401 mode)"
+      pass=$((pass + 1))
+    else
+      echo "FAIL ${route} returned HTTP $status (authenticated digest 200 required)"
+      fail=$((fail + 1))
+    fi
   fi
   printf '%s\t%s\t%s\n' "$route" "$status" "$bytes" >>"$results_tmp"
 done
 
-python3 - "$OUT_FILE" "$results_tmp" <<'PY'
+python3 - "$OUT_FILE" "$results_tmp" "$digest_200" "$fail" <<'PY'
 import json, sys
-out, src = sys.argv[1], sys.argv[2]
+out, src, digest_200, fail = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
 routes = []
 with open(src, encoding="utf-8") as fh:
     for line in fh:
         route, status, bytes_ = line.rstrip("\n").split("\t")
         routes.append({"route": route, "status": int(status), "bytes": int(bytes_)})
-payload = {"ok": True, "surface": "migration-smoke", "routes": routes}
+ok = fail == 0 and digest_200 > 0
+payload = {
+    "ok": ok,
+    "surface": "migration-smoke",
+    "authenticatedDigest200Count": digest_200,
+    "routes": routes,
+    "note": "ok=true only when at least one CP/ERP/BOS digest returns HTTP 200 and no route failed",
+}
 with open(out, "w", encoding="utf-8") as fh:
     json.dump(payload, fh, indent=2)
     fh.write("\n")
@@ -91,5 +108,8 @@ rm -f "$results_tmp"
 
 cp -f "$OUT_FILE" "${OUT_DIR}/surface-digests-aspnet.json"
 echo "Artifact: ${OUT_DIR}/surface-digests-aspnet.json"
-echo "Passed: $pass  Failed: $fail"
-exit $(( fail > 0 ? 1 : 0 ))
+echo "Passed: $pass  Failed: $fail  AuthenticatedDigest200: $digest_200"
+if [[ "$fail" -gt 0 || "$digest_200" -lt 1 ]]; then
+  exit 1
+fi
+exit 0

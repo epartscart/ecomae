@@ -181,6 +181,65 @@ else
   record "migration-contract/bos-fleet-readiness.json" fail "field contract failed"
 fi
 
+# Empty list digests must still expose the contracted collection key + envelope fields.
+declare -A LIST_CONTRACTS=(
+  [cp-tenants.json]=tenants
+  [cp-users.json]=users
+  [cp-groups.json]=groups
+  [cp-modules.json]=modules
+  [cp-menus.json]=menus
+  [cp-pages.json]=pages
+  [cp-currencies.json]=currencies
+  [cp-api-clients.json]=clients
+  [erp-suppliers.json]=suppliers
+  [erp-purchases.json]=purchases
+  [erp-coa-accounts.json]=accounts
+  [erp-warehouses.json]=warehouses
+  [erp-sales-orders.json]=orders
+  [erp-purchase-orders.json]=orders
+  [erp-invoices.json]=invoices
+  [erp-gl-journals.json]=journals
+  [bos-audit-log.json]=entries
+  [storefront-orders.json]=orders
+  [storefront-garage.json]=vehicles
+)
+for sample in "${!LIST_CONTRACTS[@]}"; do
+  path="$SAMPLES/migration/$sample"
+  key="${LIST_CONTRACTS[$sample]}"
+  if python3 - "$path" "$key" <<'PY'
+import json, sys
+path, key = sys.argv[1], sys.argv[2]
+doc = json.load(open(path, encoding="utf-8"))
+required = ["ok", "surface", key, "count", "source", "message", "session", "note"]
+missing = [k for k in required if k not in doc]
+sys.exit(1 if missing else 0)
+PY
+  then
+    record "migration-list-contract/$sample" pass "envelope + $key present"
+  else
+    record "migration-list-contract/$sample" fail "missing envelope fields for $key"
+    mig_fail=$((mig_fail + 1))
+  fi
+done
+
+if python3 - "$SAMPLES/migration/api-catalog-status.json" <<'PY'
+import json, sys
+doc = json.load(open(sys.argv[1], encoding="utf-8"))
+for key in ("connected", "message", "status_code", "counts", "source"):
+    if key not in doc:
+        raise SystemExit(1)
+counts = doc["counts"]
+for key in ("manufacturers", "models", "modifications", "brands", "vins"):
+    if key not in counts:
+        raise SystemExit(1)
+PY
+then
+  record "migration-contract/api-catalog-status.json" pass "PHP-shaped catalog status contract satisfied"
+else
+  record "migration-contract/api-catalog-status.json" fail "catalog status contract failed"
+  mig_fail=$((mig_fail + 1))
+fi
+
 # Fixture self-test for compare script
 fixture_left="$SAMPLES/_fixture-left.json"
 fixture_right="$SAMPLES/_fixture-right.json"

@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "surface": "storefront",
+  "user_id": 9,
+  "orders": [],
+  "count": 0,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "session": {
+    "kind": "Customer",
+    "user_id": 9
+  },
+  "note": "migration-mode contract sample; PHP remains authoritative"
+}
