@@ -74,13 +74,16 @@ Opt-in staging smoke:
 - `tests/live_smoke/run_surface_digest_exact_route_smoke.sh`
 - `scripts/cloudpanel_commit_final_gate_smoke.sh` (push real artifacts only)
 
-Exact-route shadow examples:
+Exact-route shadow examples (all four are packed into the ASP.NET ContentRoot on deploy):
 
 - `deploy/aspnet/nginx-price-lookup-shadow-example.conf`
 - `deploy/aspnet/nginx-api-shadow-example.conf` (catalog status)
 - `deploy/aspnet/nginx-surface-digests-shadow-example.conf`
 - `deploy/aspnet/nginx-storefront-digests-shadow-example.conf`
-- `deploy/aspnet/nginx-storefront-digests-shadow-example.conf`
+
+One-path extract helper (writes a **disabled** snippet; never auto-enables traffic):
+
+- `bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status`
 
 ## Why the last 5% remains
 

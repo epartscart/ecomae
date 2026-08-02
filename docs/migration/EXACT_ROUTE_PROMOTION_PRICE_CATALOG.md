@@ -14,13 +14,26 @@ PHP remains authoritative until each step below is green. Never enable broad `/a
 
 ## Promote one path at a time
 
+Preferred: extract a **disabled** single-route snippet, review it, then enable:
+
+```bash
+cd /opt/ecomae-aspnet-source
+bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status
+# Review /tmp/ecomae-exact-route-api-v1-catalog-status.conf.disabled
+# Then copy into the site include path and reload nginx (operator only).
+```
+
+The helper refuses broad `/api`, `/cp`, `/erp`, `/bos`, `/storefront`.
+
 ### Price lookup (already live on many hosts)
 
 Example: `deploy/aspnet/nginx-price-lookup-shadow-example.conf`
 
 ```bash
 # On CloudPanel
-sudo cp /opt/ecomae-aspnet-source/deploy/aspnet/nginx-price-lookup-shadow-example.conf \
+bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/price/lookup
+# after review:
+sudo cp /tmp/ecomae-exact-route-api-v1-price-lookup.conf.disabled \
   /etc/nginx/sites-enabled/ecomae-price-lookup-shadow.conf   # or include path used by the site
 sudo nginx -t && sudo systemctl reload nginx
 curl -sS -o /tmp/price.json -w '%{http_code}\n' \
@@ -36,7 +49,8 @@ Example: `deploy/aspnet/nginx-api-shadow-example.conf`
 Must forward `X-API-Key` and `Authorization` (same as price shadow).
 
 ```bash
-sudo cp /opt/ecomae-aspnet-source/deploy/aspnet/nginx-api-shadow-example.conf \
+bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status
+sudo cp /tmp/ecomae-exact-route-api-v1-catalog-status.conf.disabled \
   /etc/nginx/sites-enabled/ecomae-catalog-status-shadow.conf
 sudo nginx -t && sudo systemctl reload nginx
 curl -sS -o /tmp/catalog.json -w '%{http_code}\n' \
