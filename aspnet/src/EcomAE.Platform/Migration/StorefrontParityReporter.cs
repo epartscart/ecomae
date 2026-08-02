@@ -8,9 +8,10 @@ public sealed class StorefrontParityReporter : IStorefrontParityReporter
             "Storefront / customer commerce",
             "tenant storefront root, content/shop/, content/general_pages/, and templates/",
             "/storefront/parity plus customer-gated account, account-summary, orders, garage, and profile",
-            "account-profile-garage-session-gated-awaiting-staging",
+            "presentation-shell-scaffolded-awaiting-staging",
             [
                 "Storefront shell lists home, CMS, catalog, cart, checkout, and customer account sections.",
+                "Storefront account/placeholder shells negotiate presentation-preserving HTML (templates/modex CSS) while defaulting to JSON for tooling.",
                 "Customer session gate protects /storefront/account, account-summary, orders, garage, and profile digests.",
                 "Tenant resolver keeps live storefront traffic classified before cutover.",
                 "Live smoke script can validate storefront reachability when explicitly enabled."

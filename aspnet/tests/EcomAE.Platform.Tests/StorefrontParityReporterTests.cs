@@ -11,7 +11,7 @@ public sealed class StorefrontParityReporterTests
         var report = new StorefrontParityReporter().BuildReport();
 
         Assert.Equal("Storefront / customer commerce", report.Surface);
-        Assert.Equal("account-profile-garage-session-gated-awaiting-staging", report.Status);
+        Assert.Equal("presentation-shell-scaffolded-awaiting-staging", report.Status);
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("Customer session gate", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("checkout", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("SEO metadata", StringComparison.OrdinalIgnoreCase));

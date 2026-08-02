@@ -1,6 +1,7 @@
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
 using EcomAE.Platform.Surfaces;
 using EcomAE.Platform.Routing;
@@ -14,22 +15,33 @@ public sealed class StorefrontModule : ISurfaceModule
         "Storefront / Marketing",
         "/",
         "content/shop/, content/general_pages/, templates/",
-        "shell-started",
+        "presentation-shell-scaffolded",
         []);
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet(EcomAeRoutes.StorefrontParity, (IStorefrontParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
-        endpoints.MapGet("/storefront/migration-placeholder", (HttpContext context, ISurfaceShellCatalog shells) =>
+        endpoints.MapGet("/storefront/migration-placeholder", (
+            HttpContext context,
+            ISurfaceShellCatalog shells,
+            ILegacyHtmlShellRenderer html) =>
         {
             var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-            return Results.Ok(shells.Build("storefront", tenant));
+            return SurfaceShellResponder.Respond(
+                context,
+                "storefront",
+                shells,
+                html,
+                tenant,
+                new { kind = "anonymous", note = "migration placeholder" },
+                "Presentation-preserving storefront placeholder. PHP storefront remains authoritative.");
         });
 
         endpoints.MapGet(EcomAeRoutes.StorefrontAccount, async (
             HttpContext context,
             ISurfaceShellCatalog shells,
+            ILegacyHtmlShellRenderer html,
             ILegacySessionValidator validator,
             CancellationToken cancellationToken) =>
         {
@@ -40,12 +52,14 @@ public sealed class StorefrontModule : ISurfaceModule
             }
 
             var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-            return Results.Ok(new
-            {
-                shell = shells.Build("storefront", tenant),
-                session = SessionPayload(session),
-                note = "Customer-gated account shell only. PHP storefront remains authoritative."
-            });
+            return SurfaceShellResponder.Respond(
+                context,
+                "storefront",
+                shells,
+                html,
+                tenant,
+                SessionPayload(session),
+                "Customer-gated account shell only. PHP storefront remains authoritative.");
         });
 
         endpoints.MapGet(EcomAeRoutes.StorefrontAccountSummary, async (

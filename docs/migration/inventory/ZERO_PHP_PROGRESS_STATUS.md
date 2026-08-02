@@ -43,6 +43,7 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - BOS digests: fleet summary/health/readiness + audit-log.
 - Storefront account/orders/garage/profile digests.
 - Tracked write-blocked worker dry-run validator layer + batches 1–61 dry-run scaffolding.
+- Presentation-preserving CP/ERP/BOS/storefront HTML shells (reuse PHP CSS assets; JSON default for tooling).
 - PHP decommission readiness reporter documents blockers; removal remains blocked.
 - No broad PHP cutover; parity/shadow remain 0%.
 
