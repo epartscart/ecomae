@@ -155,8 +155,31 @@ check 'legacy price SQL maps shop_docpart_prices_data' contains "$ROOT/aspnet/sr
 check 'price offer DTO exposes lead time' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/PriceLookupResult.cs" 'LeadTime'
 check 'price offer repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/IPriceOfferRepository.cs"
 check 'repository price lookup service exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/RepositoryPriceLookupService.cs"
-check 'program registers price offer repository' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'IPriceOfferRepository, MigrationPriceOfferRepository'
+check 'CSV price offer repository exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/CsvPriceOfferRepository.cs"
+check 'CSV price offer repository filters positive price' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/CsvPriceOfferRepository.cs" 'price <= 0'
+check 'CSV price offer repository preserves legacy limit' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/CsvPriceOfferRepository.cs" 'LegacyPriceLookupSql.DefaultLimit'
+check 'DB price offer repository exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbPriceOfferRepository.cs"
+check 'DB price offer repository uses legacy SQL' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbPriceOfferRepository.cs" 'LegacyPriceLookupSql.LookupOffers'
+check 'DB price offer repository is read-only' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbPriceOfferRepository.cs" 'Performs zero writes'
+check 'tenant DB connection factory exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/ITenantDbConnectionFactory.cs"
+check 'MySQL tenant DB connection factory exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/MySqlTenantDbConnectionFactory.cs"
+check 'platform references MySqlConnector' contains "$ROOT/aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj" 'MySqlConnector'
+check 'program can register CSV price repository' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'PriceLookup:FixtureCsvPath'
+check 'program can register DB price repository' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'DbPriceOfferRepository'
+check 'program registers tenant DB connection factory' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ITenantDbConnectionFactory, MySqlTenantDbConnectionFactory'
+check 'program keeps migration price repository fallback' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'MigrationPriceOfferRepository'
+check 'price lookup fixture CSV exists' test -f "$ROOT/tests/fixtures/price_lookup/php-baseline.csv"
+check 'price lookup parity script exists' test -x "$ROOT/scripts/compare_price_lookup_parity.py"
+check 'price lookup PHP baseline sample exists' test -f "$ROOT/docs/migration/evidence/price-lookup/php-baseline-sample.json"
+check 'price lookup ASP.NET output sample exists' test -f "$ROOT/docs/migration/evidence/price-lookup/aspnet-output-sample.json"
+check 'price lookup evidence runbook names exact route' contains "$ROOT/docs/migration/evidence/price-lookup/README.md" '/api/v1/price/lookup'
+check 'price lookup evidence documents DB repository' contains "$ROOT/docs/migration/evidence/price-lookup/README.md" 'DbPriceOfferRepository'
+check 'price lookup smoke script exists' test -x "$ROOT/tests/live_smoke/run_price_lookup_exact_route_smoke.sh"
+check 'price lookup smoke is opt-in' contains "$ROOT/tests/live_smoke/run_price_lookup_exact_route_smoke.sh" 'RUN_PRICE_LOOKUP_SMOKE=1'
+check 'price lookup rollback keeps exact route only' contains "$ROOT/docs/migration/evidence/price-lookup/README.md" 'exact-route only'
 check 'program registers repository price lookup service' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'IPriceLookupService, RepositoryPriceLookupService'
+check 'DB price offer repository tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/DbPriceOfferRepositoryTests.cs"
+check 'CSV price offer repository tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/CsvPriceOfferRepositoryTests.cs"
 check 'legacy API key parser exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientKeyParser.cs"
 check 'legacy API key parser supports catalog prefix' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientKeyParser.cs" 'epc_catalog_'
 check 'legacy API key parser supports pricepro prefix' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientKeyParser.cs" 'epc_pricepro_'
@@ -197,8 +220,26 @@ check 'worker placeholder logs job count' contains "$ROOT/aspnet/src/EcomAE.Work
 check 'worker job runner interface exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/IMigrationWorkerJobRunner.cs"
 check 'worker job runner dry-run status exists' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerJobRunner.cs" 'dry-run-planned'
 check 'worker job runner blocks non-dry-run' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerJobRunner.cs" 'manual-approval-required'
-check 'worker program registers job runner' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerJobRunner, MigrationWorkerJobRunner'
+check 'worker program registers job runner' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'AddSingleton<IMigrationWorkerJobRunner>'
 check 'worker job runner tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationWorkerJobRunnerTests.cs"
+check 'worker dry-run executor interface exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/IMigrationWorkerJobDryRunExecutor.cs"
+check 'price import dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/PriceImportDryRunExecutor.cs"
+check 'price import dry-run executor blocks writes' contains "$ROOT/aspnet/src/EcomAE.Workers/PriceImportDryRunExecutor.cs" 'WritesBlocked: true'
+check 'price import dry-run executor validates sku' contains "$ROOT/aspnet/src/EcomAE.Workers/PriceImportDryRunExecutor.cs" '"sku"'
+check 'worker program registers price import dry-run executor' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerJobDryRunExecutor, PriceImportDryRunExecutor'
+check 'price import dry-run executor tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/PriceImportDryRunExecutorTests.cs"
+check 'worker dry-run evidence provider exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs"
+check 'worker dry-run evidence keeps PHP fallback required' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'PhpFallbackRequired: true'
+check 'worker dry-run evidence includes rollback command' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'disable ASP.NET worker flag'
+check 'worker job runner attaches dry-run evidence' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerJobRunner.cs" 'BuildEvidence'
+check 'worker dry-run evidence tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationWorkerDryRunEvidenceProviderTests.cs"
+check 'worker batch dry-run reporter exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerBatchDryRunReporter.cs"
+check 'worker batch dry-run report keeps fallback blocker' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerBatchDryRunReporter.cs" 'PHP schedulers remain authoritative fallback'
+check 'worker batch dry-run reporter tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationWorkerBatchDryRunReporterTests.cs"
+check 'worker placeholder logs batch dry-run report' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerPlaceholder.cs" 'Batch worker dry-run report'
+check 'worker placeholder logs dry-run blockers' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerPlaceholder.cs" 'RemainingBlockers'
+check 'worker program registers batch dry-run reporter' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerBatchDryRunReporter, MigrationWorkerBatchDryRunReporter'
+check 'worker program keeps zero-php batch one catalog' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'ZeroPhpBatchOneWorkerReplacementCatalog'
 check 'worker schedule planner interface exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/IMigrationWorkerSchedulePlanner.cs"
 check 'worker schedule planner has distributed lock readiness' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerSchedulePlanner.cs" 'RequiresDistributedLock: true'
 check 'worker schedule planner includes dead-letter policy' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerSchedulePlanner.cs" 'exponential-backoff-with-dead-letter'

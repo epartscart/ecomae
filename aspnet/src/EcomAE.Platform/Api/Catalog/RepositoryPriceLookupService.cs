@@ -33,6 +33,6 @@ public sealed class RepositoryPriceLookupService : IPriceLookupService
             request.NormalizedArticle,
             offers,
             offers.Length > 0 ? "repository" : "repository-empty",
-            offers.Length > 0 ? string.Empty : "No offers returned yet; database provider wiring is the next migration step.");
+            offers.Length > 0 ? string.Empty : "No offers returned for this brand/article; confirm tenant DB data, CSV fixture, or PHP baseline samples.");
     }
 }

@@ -19,11 +19,12 @@ public sealed class PriceLookupParityReporter : IPriceLookupParityReporter
 
         if (result.Offers.Count == 0)
         {
-            gaps.Add("Wire IPriceOfferRepository to production price tables and validate row-level totals against PHP.");
+            gaps.Add("Configure TenantRegistry/MySQL for DbPriceOfferRepository or PriceLookup:FixtureCsvPath, then validate row-level totals against PHP.");
         }
 
+        gaps.Add("Attach live staging smoke artifacts for /api/v1/price/lookup before exact-route shadow.");
         gaps.Add("Compare request/response schema with PHP api/v1 price endpoints using captured production fixtures.");
-        gaps.Add("Apply legacy API-key policy, quota logging, and tenant scoping before public cutover.");
+        gaps.Add("Apply legacy API-key policy and quota logging against epc_api_clients before public cutover.");
 
         return new PriceLookupParityReport(
             "PHP price lookup routes and shop_docpart_prices_data",

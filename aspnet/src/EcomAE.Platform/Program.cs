@@ -1,6 +1,7 @@
 using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Modules;
@@ -13,6 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<EcomAeOptions>(builder.Configuration.GetSection(EcomAeOptions.SectionName));
 builder.Services.Configure<MigrationRouteCutoverOptions>(builder.Configuration.GetSection(MigrationRouteCutoverOptions.SectionName));
+builder.Services.Configure<PriceLookupOptions>(builder.Configuration.GetSection(PriceLookupOptions.SectionName));
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<ITenantRegistry, ConfigurationTenantRegistry>();
 builder.Services.AddSingleton<ILegacySessionValidator, HttpLegacySessionValidator>();
 builder.Services.AddSingleton<ILegacySessionParityReporter, LegacySessionParityReporter>();
@@ -22,7 +25,24 @@ builder.Services.AddSingleton<ITenantResolver, RouteTenantResolver>();
 builder.Services.AddEcomAeAuthorization();
 builder.Services.AddEcomAeSurfaceModules();
 builder.Services.AddSingleton<ISurfaceShellCatalog, MigrationSurfaceShellCatalog>();
-builder.Services.AddSingleton<IPriceOfferRepository, MigrationPriceOfferRepository>();
+builder.Services.AddSingleton<ITenantDbConnectionFactory, MySqlTenantDbConnectionFactory>();
+builder.Services.AddSingleton<IPriceOfferRepository>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var csvPath = configuration["PriceLookup:FixtureCsvPath"];
+    if (!string.IsNullOrWhiteSpace(csvPath))
+    {
+        return new CsvPriceOfferRepository(csvPath);
+    }
+
+    var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
+    if (connections.IsConfigured)
+    {
+        return ActivatorUtilities.CreateInstance<DbPriceOfferRepository>(sp);
+    }
+
+    return new MigrationPriceOfferRepository();
+});
 builder.Services.AddSingleton<IPriceLookupService, RepositoryPriceLookupService>();
 builder.Services.AddSingleton<IPriceLookupParityReporter, PriceLookupParityReporter>();
 builder.Services.AddSingleton<ICatalogParityReporter, CatalogParityReporter>();
