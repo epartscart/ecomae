@@ -10,8 +10,10 @@ public sealed class LegacySessionParityReporterTests
     {
         var report = new LegacySessionParityReporter().BuildReport();
 
-        Assert.Contains("PHPSESSID cookie", report.SupportedInputs);
+        Assert.Contains("admin_session/admin_u_id cookies", report.SupportedInputs);
+        Assert.Contains("sessions.type=1", report.SupportedInputs);
         Assert.Contains("X-API-Key header", report.SupportedInputs);
+        Assert.Equal("admin-db-check-wired-awaiting-staging", report.Status);
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("permissions", StringComparison.OrdinalIgnoreCase));
     }
 }

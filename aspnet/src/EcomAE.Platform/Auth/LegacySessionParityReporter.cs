@@ -6,12 +6,12 @@ public sealed class LegacySessionParityReporter : ILegacySessionParityReporter
     {
         return new LegacySessionParityReport(
             "PHP CP/ERP/BOS session cookies and API authorization headers",
-            "ASP.NET Core HttpLegacySessionValidator bridge and diagnostic probe",
-            "bridge-ready-db-pending",
-            ["PHPSESSID cookie", "X-API-Key header", "Bearer API key header"],
+            "ASP.NET Core DbBackedLegacySessionValidator (admin sessions table check) + diagnostic probe",
+            "admin-db-check-wired-awaiting-staging",
+            ["admin_session/admin_u_id cookies", "sessions.type=1", "X-API-Key header", "Bearer API key header"],
             [
-                "Validate PHP session IDs against the production session store.",
                 "Map PHP user roles and permissions into ASP.NET Core authorization claims.",
+                "Validate customer storefront sessions against the sessions table.",
                 "Replay CP, ERP, and BOS login flows in staging before traffic cutover."
             ]);
     }

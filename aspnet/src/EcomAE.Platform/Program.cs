@@ -18,7 +18,14 @@ builder.Services.Configure<PriceLookupOptions>(builder.Configuration.GetSection(
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<ITenantRegistry, ConfigurationTenantRegistry>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
-builder.Services.AddSingleton<ILegacySessionValidator, HttpLegacySessionValidator>();
+builder.Services.AddSingleton<ILegacySessionStore>(sp =>
+{
+    var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
+    return connections.IsConfigured
+        ? ActivatorUtilities.CreateInstance<DbLegacySessionStore>(sp)
+        : new MigrationLegacySessionStore();
+});
+builder.Services.AddSingleton<ILegacySessionValidator, DbBackedLegacySessionValidator>();
 builder.Services.AddSingleton<ILegacySessionParityReporter, LegacySessionParityReporter>();
 builder.Services.AddSingleton<ITenantDbConnectionFactory, MySqlTenantDbConnectionFactory>();
 builder.Services.AddSingleton<ILegacyApiClientStore, DbLegacyApiClientStore>();
