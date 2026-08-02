@@ -24,6 +24,9 @@ builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApaiBackgroundJ
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, FulfillmentQueueDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApaiSyncCategoriesDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, IntegrationsCleanupDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ProductExistLimitDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, CacheWarmupDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ImportOrchestratorDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobRunner>(sp => new MigrationWorkerJobRunner(
     sp.GetRequiredService<MigrationWorkerJobCatalog>(),
     sp.GetRequiredService<TimeProvider>(),

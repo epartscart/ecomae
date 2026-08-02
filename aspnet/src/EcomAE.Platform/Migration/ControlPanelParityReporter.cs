@@ -8,7 +8,7 @@ public sealed class ControlPanelParityReporter : IControlPanelParityReporter
             "Control Panel / Super CP",
             "ecomae.com/CP and /cp",
             "/cp/parity plus admin-session-gated /cp shell",
-            "shell-summaries-session-gated-awaiting-staging",
+            "tenant-fleet-digests-session-gated-awaiting-staging",
             [
                 "Canonical CP route aliases are mapped to the ASP.NET Core shell.",
                 "CP shell requires admin backend-group session via DbBackedLegacySessionValidator (401 when anonymous).",

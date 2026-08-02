@@ -313,4 +313,63 @@ public sealed class WorkerDryRunExecutorTests
         Assert.Equal("1", output.Metrics["stale_candidates"]);
     }
 
+
+    [Fact]
+    public void ProductExistLimitDryRunValidatesSampleWithoutWrites()
+    {
+        var executor = new ProductExistLimitDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "product-exist-limit");
+        var request = new MigrationWorkerJobRunRequest(
+            "product-exist-limit",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["limit"] = "1",
+                ["sample_products"] = "A-1,3\nB-2,1\nbad"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["writes"]);
+        Assert.Equal("1", output.Metrics["over_limit"]);
+    }
+
+    [Fact]
+    public void CacheWarmupDryRunValidatesKeysWithoutWarms()
+    {
+        var executor = new CacheWarmupDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "cache-warmup");
+        var request = new MigrationWorkerJobRunRequest(
+            "cache-warmup",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_keys"] = "epc_catalog_vin\nbad key"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["warms"]);
+        Assert.Equal("1", output.Metrics["valid_keys"]);
+    }
+
+    [Fact]
+    public void ImportOrchestratorDryRunValidatesSampleWithoutWrites()
+    {
+        var executor = new ImportOrchestratorDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "import-orchestrator");
+        var request = new MigrationWorkerJobRunRequest(
+            "import-orchestrator",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_imports"] = "uae_csv,120\nbad"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["writes"]);
+        Assert.Equal("120", output.Metrics["preview_rows"]);
+    }
+
 }

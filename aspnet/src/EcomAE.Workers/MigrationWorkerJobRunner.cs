@@ -27,7 +27,10 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
                 new ApaiBackgroundJobsDryRunExecutor(),
                 new FulfillmentQueueDryRunExecutor(),
                 new ApaiSyncCategoriesDryRunExecutor(),
-                new IntegrationsCleanupDryRunExecutor()
+                new IntegrationsCleanupDryRunExecutor(),
+                new ProductExistLimitDryRunExecutor(),
+                new CacheWarmupDryRunExecutor(),
+                new ImportOrchestratorDryRunExecutor()
             ])
     {
     }
@@ -55,7 +58,10 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
                 new ApaiBackgroundJobsDryRunExecutor(),
                 new FulfillmentQueueDryRunExecutor(),
                 new ApaiSyncCategoriesDryRunExecutor(),
-                new IntegrationsCleanupDryRunExecutor()
+                new IntegrationsCleanupDryRunExecutor(),
+                new ProductExistLimitDryRunExecutor(),
+                new CacheWarmupDryRunExecutor(),
+                new ImportOrchestratorDryRunExecutor()
             ])
     {
     }

@@ -16,7 +16,7 @@ public sealed class LegacySessionParityReporterTests
         Assert.Contains(report.SupportedInputs, item => item.Contains("for_backend", StringComparison.OrdinalIgnoreCase));
         Assert.Contains("backend group claims", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("X-API-Key header", report.SupportedInputs);
-        Assert.Equal("session-db-claims-wired-awaiting-staging", report.Status);
+        Assert.Equal("session-capabilities-wired-awaiting-staging", report.Status);
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("claims", StringComparison.OrdinalIgnoreCase)
             || gap.Contains("permissions", StringComparison.OrdinalIgnoreCase)
             || gap.Contains("roles", StringComparison.OrdinalIgnoreCase));

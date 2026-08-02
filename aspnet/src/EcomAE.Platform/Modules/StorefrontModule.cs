@@ -70,6 +70,34 @@ public sealed class StorefrontModule : ISurfaceModule
                 note = "Read-only migration summary. PHP customer account remains authoritative."
             });
         });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontOrders, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer)
+            {
+                return Unauthorized("Customer session required for storefront orders digest.");
+            }
+
+            var result = await dashboards.ListStorefrontOrdersAsync(session.UserId, limit ?? 25, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "storefront",
+                user_id = result.UserId,
+                orders = result.Orders,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only recent shop_orders digest. PHP customer orders remain authoritative."
+            });
+        });
     }
 
     private static IResult Unauthorized(string message) => Results.Json(
@@ -82,6 +110,7 @@ public sealed class StorefrontModule : ISurfaceModule
         user_id = session.UserId,
         email = session.Email,
         group_ids = session.Groups,
+        capabilities = session.Capabilities,
         permissions = session.Permissions
     };
 }

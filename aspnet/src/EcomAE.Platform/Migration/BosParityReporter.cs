@@ -8,7 +8,7 @@ public sealed class BosParityReporter : IBosParityReporter
             "Super BOS / BOC",
             "ecomae.com/BOS, /bos, and cp/content/control/portal/epc_boc_*",
             "/bos/parity plus admin-session-gated /bos shell",
-            "shell-summaries-session-gated-awaiting-staging",
+            "fleet-health-digests-session-gated-awaiting-staging",
             [
                 "Canonical BOS route aliases are mapped to the ASP.NET Core shell.",
                 "BOS shell requires admin session via DbBackedLegacySessionValidator (401 when anonymous).",

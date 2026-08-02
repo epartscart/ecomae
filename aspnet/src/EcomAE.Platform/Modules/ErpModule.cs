@@ -45,6 +45,31 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpAccountsSummary, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for accounts summary.");
+            }
+
+            var result = await dashboards.BuildErpAccountsAsync(cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                summary = result.Summary,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP cash/supplier KPI digest using epc_erp_* tables. PHP remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ErpAliases)
         {
             endpoints.MapGet(route, async (HttpContext context, ISurfaceShellCatalog shells, ILegacySessionValidator validator) =>
@@ -76,6 +101,7 @@ public sealed class ErpModule : ISurfaceModule
         email = session.Email,
         group_ids = session.Groups,
         has_backend_access = session.HasBackendAccess,
+        capabilities = session.Capabilities,
         permissions = session.Permissions
     };
 }

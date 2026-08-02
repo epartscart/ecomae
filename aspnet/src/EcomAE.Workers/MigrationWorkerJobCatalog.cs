@@ -18,6 +18,9 @@ public sealed class MigrationWorkerJobCatalog
         new("apai-background-jobs", "epc-apai-background-jobs-cron.php", "EcomAE.Workers.ApaiBackgroundJobs", "scheduled", "planned", "Previewed pending APAI jobs match PHP claim set; no claims/writes until parity smoke."),
         new("fulfillment-queue", "content/shop/finance/epc_fulfillment_queue.php", "EcomAE.Workers.FulfillmentQueue", "queue-driven", "planned", "Previewed queued fulfillment orders match PHP queue; no claim/complete until parity smoke."),
         new("apai-sync-categories", "epc-apai-sync-categories-all.php", "EcomAE.Workers.ApaiSyncCategories", "scheduled", "planned", "Validated category rows match PHP sync preview; no category writes until parity smoke."),
-        new("integrations-cleanup", "epc-integrations-cleanup.php", "EcomAE.Workers.IntegrationsCleanup", "scheduled", "planned", "Previewed stale integrations match PHP cleanup candidates; no deletes until parity smoke.")
+        new("integrations-cleanup", "epc-integrations-cleanup.php", "EcomAE.Workers.IntegrationsCleanup", "scheduled", "planned", "Previewed stale integrations match PHP cleanup candidates; no deletes until parity smoke."),
+        new("product-exist-limit", "content/cron/product_exist_limit.php", "EcomAE.Workers.ProductExistLimit", "scheduled", "planned", "Previewed over-limit product rows match PHP dry preview; no product writes until parity smoke."),
+        new("cache-warmup", "epc-cache-warmup.php / epc-cache-warm-tenants.php", "EcomAE.Workers.CacheWarmup", "scheduled", "planned", "Validated cache keys match PHP warm targets; no cache writes until parity smoke."),
+        new("import-orchestrator", "content/general_pages/epc_import_orchestrator.php", "EcomAE.Workers.ImportOrchestrator", "queue-driven", "planned", "Previewed import sources/rows match PHP orchestrator; no import writes until parity smoke.")
     ];
 }

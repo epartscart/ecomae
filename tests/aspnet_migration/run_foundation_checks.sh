@@ -260,7 +260,7 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 67.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 72.0%'
 check 'legacy session SQL checks customer sessions without type filter' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionSql.cs" 'CountCustomerSession'
 check 'legacy session DB evidence exists' test -f "$ROOT/docs/migration/evidence/legacy-session-db/README.md"
 check 'catalog article route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/article'
@@ -302,6 +302,17 @@ check 'storefront account requires customer session' contains "$ROOT/aspnet/src/
 check 'fulfillment-queue dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/FulfillmentQueueDryRunExecutor.cs"
 check 'apai-sync-categories dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ApaiSyncCategoriesDryRunExecutor.cs"
 check 'integrations-cleanup dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/IntegrationsCleanupDryRunExecutor.cs"
+check 'CP tenants route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/tenants'
+check 'BOS tenants route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/bos/tenants'
+check 'BOS fleet-health route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/bos/fleet-health'
+check 'ERP accounts-summary route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/accounts-summary'
+check 'storefront orders route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/storefront/orders'
+check 'ERP cash SQL uses epc_erp_cash_bank_accounts' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs" 'epc_erp_cash_bank_accounts'
+check 'session capabilities exposed on probe' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'capabilities = session.Capabilities'
+check 'product-exist-limit dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ProductExistLimitDryRunExecutor.cs"
+check 'cache-warmup dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/CacheWarmupDryRunExecutor.cs"
+check 'import-orchestrator dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ImportOrchestratorDryRunExecutor.cs"
+
 
 
 
