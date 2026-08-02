@@ -11,8 +11,10 @@ Scaffolding-only guidance for Enterprise BOS target components. **Nothing here e
 
 ## EF Core 10 readiness
 
-- Target: EF Core 10 repositories/domain patterns owning all business data access.
-- Bridge phase: keep read-only SQL digests; introduce DbContext per bounded context (Catalog, Identity, ERP, TenantRegistry) without dual-write.
+- Package: `Microsoft.EntityFrameworkCore` 10.0.0 is referenced by `EcomAE.Platform`.
+- Scaffold type: `EcomAE.Platform.Data.Scaffolding.EcomAeScaffoldDbContext` (empty model).
+- **Not wired:** `Program.cs` must not call `AddDbContext` until repository cutover is approved.
+- Bridge phase: keep read-only SQL digests via `MySqlConnector`; introduce DbContext per bounded context (Catalog, Identity, ERP, TenantRegistry) without dual-write.
 - PostgreSQL 17 is the long-term primary SoR; do not claim PG live until migration + parity evidence exist.
 - SQL Server 2025 remains the documented alternative, not the current path.
 

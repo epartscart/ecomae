@@ -8,16 +8,14 @@ Target architecture: ASP.NET Core is the primary web platform and owns routing, 
 - Python owns only delegated AI-service work: AI, ML, LLMs, generative AI, NLP, recommendations, OCR, computer vision, image processing, document intelligence, predictive analytics, forecasting, data science, AI agents, AI search, and speech processing.
 - PHP is only a temporary compatibility fallback during migration. No new business feature should be implemented in PHP.
 
-## Current Python strengths already present
+## Current Python surface (legacy — not AI-only compliant)
 
-The existing `pyapi` FastAPI service is already aligned with the hybrid target for price and catalog-adjacent work:
+Existing `pyapi` / `pyprices` FastAPI helpers include **business** endpoints (search, prices, orders, dashboard, ingest writes). Under Enterprise BOS law these are **temporary legacy**, not the target hybrid:
 
-- FastAPI sidecar entrypoint under `/pyapi/*`.
-- Price/search normalization with uppercase alphanumeric article keys.
-- Storefront part search over `shop_docpart_prices_data`.
-- CP/ERP price-list, upload-history, dashboard, and order read endpoints.
-- Price ingest and URL refresh worker capabilities.
-- Shared database/session compatibility with the legacy platform during migration.
+- Keep them only until ASP.NET Core exact-route parity replaces them.
+- Do **not** expand Python business APIs, transactions, or permission control.
+- New Python work must be AI/ML/OCR/LLM/vision/data-science sidecars called by ASP.NET Core only.
+- FastAPI remains acceptable for those AI sidecars under `/pyapi/*` when ownership is AI-only.
 
 ## Keep/build Python where Python is stronger
 
