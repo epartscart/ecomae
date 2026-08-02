@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 87.0,
-  "pendingPercent": 13.0,
+  "trueZeroPhpCompletionPercent": 92.0,
+  "pendingPercent": 8.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -28,26 +28,26 @@
       "owner-assigned-pending-parity": 3049
     },
     "batchStatuses": {
-      "aspnet-dry-run-scaffolded": 1,
-      "planned-not-implemented": 60
+      "aspnet-dry-run-scaffolded": 2,
+      "planned-not-implemented": 59
     }
   },
   "concreteStarted": [
     "catalog/price DB+auth routes",
     "nested modules_access ACL + surface capabilities",
-    "CP digests: tenants/users/groups/modules/config-items",
-    "ERP digests: accounts/suppliers/purchases/cash/invoices/gl-journals",
-    "BOS digests: fleet summary/health/readiness",
+    "CP digests: tenants/users/groups/modules/config-items/menus/pages/admin-sessions/storages",
+    "ERP digests: accounts/suppliers/purchases/cash/invoices/gl-journals/coa/warehouses/sales-orders",
+    "BOS digests: fleet summary/health/readiness/audit-log",
     "storefront account/orders/garage/profile digests",
-    "tracked worker dry-run validator layer + batch-1 dry-run scaffolding",
+    "tracked worker dry-run validator layer + batch-1/2 dry-run scaffolding",
     "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],
   "architectureComplianceDoc": "docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md",
   "pathTo100Percent": [
     "Exact-route staging smoke + parity artifacts for implemented routes",
     "Enable only approved location= nginx shadows",
-    "Execute remaining 60 batches with parity evidence",
-    "Promote batch-1 from dry-run scaffolding to shadow/live",
+    "Execute remaining 59 batches with parity evidence",
+    "Promote batches 1–2 from dry-run scaffolding to shadow/live",
     "Release-owner approval before PHP decommission"
   ],
   "nextExecutionOrder": [

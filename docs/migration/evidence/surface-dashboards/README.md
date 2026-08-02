@@ -31,9 +31,14 @@ PHP dashboards remain authoritative. No writes.
 - `GET /cp/groups?limit=100` — groups digest
 - `GET /cp/modules?limit=200` — modules digest
 - `GET /cp/config-items?limit=200` — config_items metadata only (no secret values)
+- `GET /cp/menus?limit=200` — menu metadata (structure JSON omitted)
+- `GET /cp/pages?limit=200` — content pages metadata (body omitted)
+- `GET /cp/admin-sessions?limit=200` — admin session counts by user (no raw tokens)
+- `GET /cp/storages?limit=200` — shop_storages digest
 - `GET /bos/tenants?limit=100` — same list for BOS
 - `GET /bos/fleet-health?limit=25` — fleet summary + sample tenants
 - `GET /bos/fleet-readiness` — platform-DB readiness scoring (no per-tenant connects)
+- `GET /bos/audit-log?limit=100&area=` — epc_boc_audit recent entries (meta omitted)
 - `GET /erp/accounts-summary` — epc_erp_* cash/supplier KPIs
 - `GET /erp/suppliers?limit=200` — active suppliers + balances
 - `GET /erp/purchases?limit=200` — recent purchases
@@ -41,6 +46,9 @@ PHP dashboards remain authoritative. No writes.
 - `GET /erp/cash-entries?limit=200&account_id=` — cash/bank entries
 - `GET /erp/invoices?limit=150` — e-invoice documents
 - `GET /erp/gl-journals?limit=200` — GL journals with debit totals
+- `GET /erp/coa-accounts?limit=300` — chart of accounts
+- `GET /erp/warehouses?limit=200` — ERP inventory warehouses
+- `GET /erp/sales-orders?limit=200` — ERP sales orders
 - `GET /storefront/orders?limit=25` — customer-gated recent shop_orders
 - `GET /storefront/garage?limit=50` — customer-gated garage vehicles
 - `GET /storefront/profile` — customer-gated users + users_profiles

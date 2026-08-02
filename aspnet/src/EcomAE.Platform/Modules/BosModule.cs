@@ -122,6 +122,34 @@ public sealed class BosModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.BosAuditLog, async (
+            HttpContext context,
+            int? limit,
+            string? area,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return Unauthorized("Admin BOS capability required for audit log digest.");
+            }
+
+            var result = await dashboards.ListBosAuditLogAsync(area, limit ?? 100, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "bos",
+                entries = result.Entries,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_boc_audit digest (meta omitted). PHP epc_boc_audit_recent remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.BosAliases)
         {
             endpoints.MapGet(route, async (HttpContext context, ISurfaceShellCatalog shells, ILegacySessionValidator validator) =>

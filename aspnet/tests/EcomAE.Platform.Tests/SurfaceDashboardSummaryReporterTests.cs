@@ -30,6 +30,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var modules = await reporter.ListCpModulesAsync(10);
         var configItems = await reporter.ListCpConfigItemsMetaAsync(10);
         var readiness = await reporter.BuildBosFleetReadinessAsync();
+        var coa = await reporter.ListErpCoaAccountsAsync(10);
+        var warehouses = await reporter.ListErpWarehousesAsync(10);
+        var salesOrders = await reporter.ListErpSalesOrdersAsync(10);
+        var menus = await reporter.ListCpMenusAsync(10);
+        var pages = await reporter.ListCpPagesAsync(10);
+        var adminSessions = await reporter.ListCpAdminSessionsAsync(10);
+        var storages = await reporter.ListCpStoragesAsync(10);
+        var audit = await reporter.ListBosAuditLogAsync(null, 10);
 
         Assert.Equal("migration", cp.Source);
         Assert.Equal("migration", erp.Source);
@@ -51,6 +59,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", modules.Source);
         Assert.Equal("migration", configItems.Source);
         Assert.Equal("migration", readiness.Source);
+        Assert.Equal("migration", coa.Source);
+        Assert.Equal("migration", warehouses.Source);
+        Assert.Equal("migration", salesOrders.Source);
+        Assert.Equal("migration", menus.Source);
+        Assert.Equal("migration", pages.Source);
+        Assert.Equal("migration", adminSessions.Source);
+        Assert.Equal("migration", storages.Source);
+        Assert.Equal("migration", audit.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
@@ -81,6 +97,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_gl_journals", LegacySurfaceDashboardSql.SelectErpGlJournals, StringComparison.Ordinal);
         Assert.Contains("epc_einvoice_documents", LegacySurfaceDashboardSql.SelectErpInvoices, StringComparison.Ordinal);
         Assert.Contains("config_items", LegacySurfaceDashboardSql.SelectCpConfigItemsMeta, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_coa_accounts", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_inv_warehouses", LegacySurfaceDashboardSql.SelectErpWarehouses, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_sales_orders", LegacySurfaceDashboardSql.SelectErpSalesOrders, StringComparison.Ordinal);
+        Assert.Contains("epc_boc_audit", LegacySurfaceDashboardSql.SelectBosAuditLog, StringComparison.Ordinal);
+        Assert.Contains("shop_storages", LegacySurfaceDashboardSql.SelectCpStorages, StringComparison.Ordinal);
+        Assert.DoesNotContain("`session`", LegacySurfaceDashboardSql.SelectCpAdminSessions, StringComparison.Ordinal);
         Assert.DoesNotContain("INSERT", LegacySurfaceDashboardSql.SumSupplierCredit, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE", LegacySurfaceDashboardSql.SelectPortalTenants, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("DELETE", LegacySurfaceDashboardSql.SelectCustomerOrders, StringComparison.OrdinalIgnoreCase);

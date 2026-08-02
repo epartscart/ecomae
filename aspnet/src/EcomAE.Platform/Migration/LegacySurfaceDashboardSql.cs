@@ -221,4 +221,86 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    public const string SelectErpCoaAccounts = """
+        SELECT `id`, IFNULL(`code`, '') AS code, IFNULL(`name`, '') AS name,
+               IFNULL(`account_type`, '') AS account_type, IFNULL(`normal_side`, '') AS normal_side,
+               IFNULL(`parent_id`, 0) AS parent_id, IFNULL(`opening_balance`, 0) AS opening_balance,
+               `active`
+        FROM `epc_erp_coa_accounts`
+        WHERE `active` = 1
+        ORDER BY `code` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpWarehouses = """
+        SELECT `id`, IFNULL(`storage_id`, 0) AS storage_id, IFNULL(`code`, '') AS code,
+               IFNULL(`name`, '') AS name, `active`, IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_erp_inv_warehouses`
+        WHERE `active` = 1
+        ORDER BY `name` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpSalesOrders = """
+        SELECT `id`, IFNULL(`so_no`, '') AS so_no, IFNULL(`customer_user_id`, 0) AS customer_user_id,
+               IFNULL(`total_amount`, 0) AS total_amount, IFNULL(`status`, '') AS status,
+               IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_erp_sales_orders`
+        ORDER BY `time_created` DESC, `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpMenus = """
+        SELECT `id`, IFNULL(`caption`, '') AS caption, `is_frontend`,
+               IFNULL(`menu_ul_class`, '') AS menu_ul_class, IFNULL(`menu_ul_id`, '') AS menu_ul_id
+        FROM `menu`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpPages = """
+        SELECT `id`, IFNULL(`value`, '') AS caption, IFNULL(`url`, '') AS url,
+               IFNULL(`alias`, '') AS alias, `is_frontend`, IFNULL(`published_flag`, 0) AS published_flag,
+               IFNULL(`level`, 0) AS level, IFNULL(`order`, 0) AS sort_order
+        FROM `content`
+        ORDER BY `level` ASC, `order` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Admin session metadata only — never selects the raw session token column.</summary>
+    public const string SelectCpAdminSessions = """
+        SELECT s.`user_id`, IFNULL(u.`email`, '') AS email, s.`type`, COUNT(*) AS session_count
+        FROM `sessions` s
+        LEFT JOIN `users` u ON u.`user_id` = s.`user_id`
+        WHERE s.`type` = 1
+        GROUP BY s.`user_id`, u.`email`, s.`type`
+        ORDER BY session_count DESC, s.`user_id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpStorages = """
+        SELECT `id`, IFNULL(`name`, '') AS name, IFNULL(`short_name`, '') AS short_name,
+               IFNULL(`hidden`, 0) AS hidden
+        FROM `shop_storages`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectBosAuditLog = """
+        SELECT `id`, `ts`, `user_id`, IFNULL(`actor`, '') AS actor, IFNULL(`area`, '') AS area,
+               IFNULL(`action`, '') AS action, IFNULL(`target`, '') AS target, IFNULL(`ip`, '') AS ip
+        FROM `epc_boc_audit`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectBosAuditLogForArea = """
+        SELECT `id`, `ts`, `user_id`, IFNULL(`actor`, '') AS actor, IFNULL(`area`, '') AS area,
+               IFNULL(`action`, '') AS action, IFNULL(`target`, '') AS target, IFNULL(`ip`, '') AS ip
+        FROM `epc_boc_audit`
+        WHERE `area` = @area
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

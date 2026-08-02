@@ -43,4 +43,20 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpConfigItemMetaListResult> ListCpConfigItemsMetaAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<BosFleetReadinessResult> BuildBosFleetReadinessAsync(CancellationToken cancellationToken = default);
+
+    Task<ErpCoaAccountListResult> ListErpCoaAccountsAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<ErpWarehouseListResult> ListErpWarehousesAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<ErpSalesOrderListResult> ListErpSalesOrdersAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<CpMenuListResult> ListCpMenusAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<CpPageListResult> ListCpPagesAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<CpAdminSessionListResult> ListCpAdminSessionsAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<CpStorageListResult> ListCpStoragesAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<BosAuditLogListResult> ListBosAuditLogAsync(string? area, int limit, CancellationToken cancellationToken = default);
 }

@@ -6,10 +6,10 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 ## Current percentage
 
-- True zero-PHP completion: 87.0%.
-- Pending to 100%: 13.0%.
+- True zero-PHP completion: 92.0%.
+- Pending to 100%: 8.0%.
 - Foundation/planning floor: 35.0%.
-- Route/job implementation started (not parity-ready): digests + nested ACL + worker dry-run layer + batch-1 dry-run scaffolding.
+- Route/job implementation started (not parity-ready): digests + nested ACL + worker dry-run layer + batch-1/2 dry-run scaffolding.
 - Route/job parity-ready: 0.0%.
 - Route/job shadow-or-better: 0.0%.
 
@@ -32,17 +32,17 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - Ownership assigned: 3049 (100.0%).
 - Batch assignments: 3049 (100.0%).
 - Total exact-route batches: 61.
-- Batch statuses: batch 1 `aspnet-dry-run-scaffolded`; batches 2–61 `planned-not-implemented`.
+- Batch statuses: batches 1–2 `aspnet-dry-run-scaffolded`; batches 3–61 `planned-not-implemented`.
 
 ## Concrete implementation progress (honest)
 
 - Catalog/price API routes with DB/cache readers + API-key auth.
 - Admin nested modules_access ACL + surface capabilities.
-- CP digests: dashboard, tenants, users, groups, modules, config-items metadata.
-- ERP digests: accounts, suppliers, purchases, cash accounts/entries, invoices, GL journals.
-- BOS digests: fleet summary/health/readiness (platform DB only).
+- CP digests: dashboard, tenants, users, groups, modules, config-items, menus, pages, admin-sessions (no raw tokens), storages.
+- ERP digests: accounts, suppliers, purchases, cash accounts/entries, invoices, GL journals, COA, warehouses, sales-orders.
+- BOS digests: fleet summary/health/readiness + audit-log (platform DB only).
 - Storefront account/orders/garage/profile digests.
-- Tracked write-blocked worker dry-run validator layer + batch-1 dry-run scaffolding.
+- Tracked write-blocked worker dry-run validator layer + batch-1/2 dry-run scaffolding.
 - EF Core stub entities (unwired); Enterprise BOS compliance docs.
 - No broad PHP cutover; parity/shadow remain 0%; PHP decommission blocked.
 

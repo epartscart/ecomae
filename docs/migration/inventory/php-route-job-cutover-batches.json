@@ -1,5 +1,5 @@
 {
-  "status": "planned-not-implemented",
+  "status": "implementation-started-parity-pending",
   "sourcePlanStatus": "owner-assigned-pending-parity",
   "batchSize": 50,
   "totalBatches": 61,
@@ -13,7 +13,7 @@
   "batches": [
     {
       "batch": 1,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -587,11 +587,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 1 ASP.NET dry-run scaffolding catalog + evidence artifact writer landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 2,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -1164,7 +1165,8 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 2 ASP.NET dry-run scaffolding catalog + evidence artifact writer landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 3,

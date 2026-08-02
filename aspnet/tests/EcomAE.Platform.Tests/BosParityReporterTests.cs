@@ -11,7 +11,7 @@ public sealed class BosParityReporterTests
         var report = new BosParityReporter().BuildReport();
 
         Assert.Equal("Super BOS / BOC", report.Surface);
-        Assert.Equal("fleet-readiness-digests-session-gated-awaiting-staging", report.Status);
+        Assert.Equal("audit-log-fleet-readiness-session-gated-awaiting-staging", report.Status);
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("admin session", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("case-insensitive", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("privileged operations", StringComparison.OrdinalIgnoreCase));
