@@ -12,10 +12,12 @@ public static partial class UmapiCacheKeyBuilder
 {
     public static string Build(string action, string section, string language, string region, IReadOnlyDictionary<string, object?> parameters)
     {
-        var ordered = parameters
-            .OrderBy(pair => pair.Key, StringComparer.Ordinal)
-            .ToDictionary(pair => pair.Key, pair => pair.Value);
-        var json = JsonSerializer.Serialize(ordered);
+        // PHP json_encode([]) => "[]"; json_encode(assoc) => object. Match both.
+        var json = parameters.Count == 0
+            ? "[]"
+            : JsonSerializer.Serialize(parameters
+                .OrderBy(pair => pair.Key, StringComparer.Ordinal)
+                .ToDictionary(pair => pair.Key, pair => pair.Value));
         var material = $"{action}|{section}|{language}|{region}|{json}";
         return Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(material))).ToLowerInvariant();
     }

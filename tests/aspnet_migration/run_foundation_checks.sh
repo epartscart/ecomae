@@ -256,7 +256,7 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 46.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 47.0%'
 check 'zero PHP progress status blocks broad cutover' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Broad `/api`, `/cp`, `/erp`, `/bos`'
 check 'catalog manufacturers route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/manufacturers'
 check 'DB catalog manufacturers repository exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbCatalogManufacturerRepository.cs"
@@ -284,6 +284,9 @@ check 'catalog vin nginx shadow example exists' test -f "$ROOT/deploy/aspnet/ngi
 check 'catalog engines nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-engines-shadow-example.conf"
 check 'catalog analogs nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-analogs-shadow-example.conf"
 check 'catalog offline cache service tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/CatalogOfflineCacheServiceTests.cs"
+check 'catalog article-brands route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/article-brands'
+check 'API module maps article-brands offline cache' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'LookupArticleBrandsAsync'
+check 'catalog article-brands nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-article-brands-shadow-example.conf"
 check 'CloudPanel continue-after-env script exists' test -x "$ROOT/scripts/cloudpanel_continue_after_env.sh"
 check 'CloudPanel quick start explains nano save/exit' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Ctrl+O'
 check 'worker dry-run evidence provider exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs"

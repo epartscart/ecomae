@@ -344,6 +344,47 @@ public sealed class ApiModule : ISurfaceModule
             return OfflineCacheOk(result, authResult.Client);
         });
 
+        endpoints.MapGet(EcomAeRoutes.CatalogArticleBrands, async (
+            HttpContext httpContext,
+            string? section,
+            string? article,
+            string? language,
+            string? region,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogOfflineCacheService offlineCache,
+            CancellationToken cancellationToken) =>
+        {
+            // PHP action=brands is BrandRefinement(article). ASP.NET /catalog/brands is suppliers list.
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "brands", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await offlineCache.LookupArticleBrandsAsync(section, article, language, region, cancellationToken);
+            await LogOfflineCacheAsync(httpContext, usageLogger, authResult.Client, "catalog_article_brands", result.Ok, result.Code, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(
+                    new
+                    {
+                        ok = false,
+                        error = new { code = result.Code, message = result.Message },
+                        action = result.Action,
+                        section = result.Section,
+                        source = result.Source,
+                        note = result.Code == "cache_miss"
+                            ? "No epc_umapi_cache row for BrandRefinement; PHP/UMAPI remains authoritative for live fills."
+                            : null
+                    },
+                    statusCode: result.StatusCode);
+            }
+
+            return OfflineCacheOk(result, authResult.Client);
+        });
+
         endpoints.MapGet(EcomAeRoutes.CatalogParity, (ICatalogParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
         endpoints.MapGet(EcomAeRoutes.PriceLookup, async (

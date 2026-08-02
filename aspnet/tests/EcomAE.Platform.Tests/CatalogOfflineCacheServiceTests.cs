@@ -129,6 +129,53 @@ public sealed class CatalogOfflineCacheServiceTests
     }
 
     [Fact]
+    public void EmptyParamsCacheKeyMatchesPhpEmptyArray()
+    {
+        var key = UmapiCacheKeyBuilder.Build("article", "passenger", "en", "WWW", new Dictionary<string, object?>());
+        // sha1("article|passenger|en|WWW|[]")
+        Assert.Equal(
+            Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(
+                System.Text.Encoding.UTF8.GetBytes("article|passenger|en|WWW|[]"))).ToLowerInvariant(),
+            key);
+    }
+
+    [Fact]
+    public async Task LookupArticleBrandsRequiresArticle()
+    {
+        var service = new CatalogOfflineCacheService(new StaticOfflineRepo());
+        var result = await service.LookupArticleBrandsAsync("passenger", " ", "en", "WWW");
+        Assert.False(result.Ok);
+        Assert.Equal("missing_params", result.Code);
+    }
+
+    [Fact]
+    public async Task LookupArticleBrandsReturnsCacheHit()
+    {
+        var cacheKey = UmapiCacheKeyBuilder.Build(
+            "brands",
+            "passenger",
+            "en",
+            "WWW",
+            new Dictionary<string, object?> { ["article"] = "0986424590" });
+        var service = new CatalogOfflineCacheService(new StaticOfflineRepo(
+            action: new CatalogActionCacheRow(
+                cacheKey,
+                "brands",
+                "passenger",
+                "en",
+                "WWW",
+                JsonSerializer.Serialize(new { data = new[] { new { brand = "BOSCH" } } }),
+                1,
+                200,
+                1710000000)));
+
+        var result = await service.LookupArticleBrandsAsync("passenger", "0986424590", "en", "WWW");
+        Assert.True(result.Ok);
+        Assert.Equal("brands", result.Action);
+        Assert.Equal(1, result.Rows);
+    }
+
+    [Fact]
     public void LegacySqlContractsAreSelectOnly()
     {
         Assert.Equal("epc_umapi_vin_cache", LegacyCatalogVinSql.SourceTable);

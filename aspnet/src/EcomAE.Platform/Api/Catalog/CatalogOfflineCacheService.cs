@@ -77,6 +77,18 @@ public sealed class CatalogOfflineCacheService : ICatalogOfflineCacheService
         return LookupActionAsync("analogs", section, language, region, parameters, cancellationToken);
     }
 
+    public Task<CatalogActionCacheLookupResult> LookupArticleBrandsAsync(string? section, string? article, string? language, string? region, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(article))
+        {
+            return Task.FromResult(new CatalogActionCacheLookupResult(
+                false, 400, "missing_params", "Article number is required.", "brands", section ?? "passenger", null, 0, true, "rejected"));
+        }
+
+        var parameters = new Dictionary<string, object?> { ["article"] = article.Trim() };
+        return LookupActionAsync("brands", section, language, region, parameters, cancellationToken);
+    }
+
     private async Task<CatalogActionCacheLookupResult> LookupActionAsync(
         string action,
         string? section,
