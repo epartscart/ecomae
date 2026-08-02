@@ -22,6 +22,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var suppliers = await reporter.ListErpSuppliersAsync(10);
         var purchases = await reporter.ListErpPurchasesAsync(10);
         var garage = await reporter.ListStorefrontGarageAsync(9, 10);
+        var cashAccounts = await reporter.ListErpCashAccountsAsync(10);
+        var profile = await reporter.BuildStorefrontProfileAsync(9);
 
         Assert.Equal("migration", cp.Source);
         Assert.Equal("migration", erp.Source);
@@ -35,12 +37,15 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", suppliers.Source);
         Assert.Equal("migration", purchases.Source);
         Assert.Equal("migration", garage.Source);
+        Assert.Equal("migration", cashAccounts.Source);
+        Assert.Equal("migration", profile.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
         Assert.Empty(orders.Orders);
         Assert.Empty(users.Users);
         Assert.Empty(garage.Vehicles);
+        Assert.Empty(cashAccounts.Accounts);
 
         var account = await reporter.BuildStorefrontAccountAsync(9);
         Assert.Equal("migration", account.Source);
@@ -57,6 +62,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("shop_orders", LegacySurfaceDashboardSql.SelectCustomerOrders, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_garage", LegacySurfaceDashboardSql.SelectCustomerGarage, StringComparison.Ordinal);
         Assert.Contains("epc_erp_purchases", LegacySurfaceDashboardSql.SelectErpPurchases, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_cash_bank_accounts", LegacySurfaceDashboardSql.SelectErpCashAccounts, StringComparison.Ordinal);
+        Assert.Contains("users_profiles", LegacySurfaceDashboardSql.SelectStorefrontUserProfiles, StringComparison.Ordinal);
         Assert.DoesNotContain("INSERT", LegacySurfaceDashboardSql.SumSupplierCredit, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE", LegacySurfaceDashboardSql.SelectPortalTenants, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("DELETE", LegacySurfaceDashboardSql.SelectCustomerOrders, StringComparison.OrdinalIgnoreCase);

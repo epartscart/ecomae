@@ -152,3 +152,28 @@ public sealed record StorefrontGarageResult(
     int Count,
     string Source,
     string Message);
+
+public sealed record ErpCashAccountDigest(
+    long Id,
+    string Name,
+    string AccountType,
+    string CurrencyCode,
+    decimal OpeningBalance,
+    decimal Balance);
+
+public sealed record ErpCashAccountListResult(
+    IReadOnlyList<ErpCashAccountDigest> Accounts,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontProfileResult(
+    int UserId,
+    string Email,
+    int EmailConfirmed,
+    string Phone,
+    int PhoneConfirmed,
+    int RegVariant,
+    IReadOnlyDictionary<string, string> ProfileFields,
+    string Source,
+    string Message);

@@ -126,6 +126,37 @@ public sealed class StorefrontModule : ISurfaceModule
                 note = "Read-only shop_docpart_garage digest. PHP garage remains authoritative."
             });
         });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontProfile, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer)
+            {
+                return Unauthorized("Customer session required for storefront profile digest.");
+            }
+
+            var result = await dashboards.BuildStorefrontProfileAsync(session.UserId, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "storefront",
+                user_id = result.UserId,
+                email = result.Email,
+                email_confirmed = result.EmailConfirmed,
+                phone = result.Phone,
+                phone_confirmed = result.PhoneConfirmed,
+                reg_variant = result.RegVariant,
+                profile_fields = result.ProfileFields,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only users/users_profiles digest. PHP DP_User::getUserProfile remains authoritative."
+            });
+        });
     }
 
     private static IResult Unauthorized(string message) => Results.Json(

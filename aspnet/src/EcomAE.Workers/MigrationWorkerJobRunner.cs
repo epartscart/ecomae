@@ -33,7 +33,10 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
                 new ImportOrchestratorDryRunExecutor(),
                 new ApaiHourlyCrawlDryRunExecutor(),
                 new WebhooksProcessDryRunExecutor(),
-                new OfflineResilienceWarmDryRunExecutor()
+                new OfflineResilienceWarmDryRunExecutor(),
+                new ApaiWeeklyPlatformSyncDryRunExecutor(),
+                new ApaiDailySourceExpandDryRunExecutor(),
+                new ApiClientPingDryRunExecutor()
             ])
     {
     }
@@ -67,7 +70,10 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
                 new ImportOrchestratorDryRunExecutor(),
                 new ApaiHourlyCrawlDryRunExecutor(),
                 new WebhooksProcessDryRunExecutor(),
-                new OfflineResilienceWarmDryRunExecutor()
+                new OfflineResilienceWarmDryRunExecutor(),
+                new ApaiWeeklyPlatformSyncDryRunExecutor(),
+                new ApaiDailySourceExpandDryRunExecutor(),
+                new ApiClientPingDryRunExecutor()
             ])
     {
     }

@@ -126,4 +126,38 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Mirrors PHP <c>epc_erp_list_cash_accounts</c> with balance calculation.</summary>
+    public const string SelectErpCashAccounts = """
+        SELECT a.`id`, a.`name`, a.`account_type`, IFNULL(a.`currency_code`, '') AS currency_code,
+               a.`opening_balance`,
+               (a.`opening_balance` + IFNULL(x.in_amt, 0) - IFNULL(x.out_amt, 0)) AS balance
+        FROM `epc_erp_cash_bank_accounts` a
+        LEFT JOIN (
+            SELECT `account_id`,
+                SUM(CASE WHEN `direction` = 1 THEN `amount` ELSE 0 END) AS in_amt,
+                SUM(CASE WHEN `direction` = 0 THEN `amount` ELSE 0 END) AS out_amt
+            FROM `epc_erp_cash_bank_entries`
+            WHERE `active` = 1
+            GROUP BY `account_id`
+        ) x ON x.`account_id` = a.`id`
+        WHERE a.`active` = 1
+        ORDER BY a.`account_type` ASC, a.`name` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectStorefrontUserCore = """
+        SELECT `user_id`, `email`, `email_confirmed`, `phone`, `phone_confirmed`, `reg_variant`
+        FROM `users`
+        WHERE `user_id` = @userId
+        LIMIT 1
+        """;
+
+    public const string SelectStorefrontUserProfiles = """
+        SELECT `data_key`, `data_value`
+        FROM `users_profiles`
+        WHERE `user_id` = @userId
+        ORDER BY `data_key` ASC
+        LIMIT 200
+        """;
+
 }

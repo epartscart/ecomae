@@ -117,6 +117,7 @@ public sealed class LegacySessionValidatorTests
         Assert.Contains("`for_backend` = 1", LegacySessionSql.SelectBackendGroupIds, StringComparison.Ordinal);
         Assert.Contains("modules_access", LegacySessionSql.SelectModuleAccessForGroup, StringComparison.Ordinal);
         Assert.Contains("NOT EXISTS", LegacySessionSql.SelectOpenModules, StringComparison.Ordinal);
+        Assert.Contains("`parent`", LegacySessionSql.SelectGroupParent, StringComparison.Ordinal);
         Assert.DoesNotContain("`type`", LegacySessionSql.CountCustomerSession, StringComparison.Ordinal);
         Assert.DoesNotContain("INSERT", LegacySessionSql.CountAdminSession, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE", LegacySessionSql.SelectUserGroupIds, StringComparison.OrdinalIgnoreCase);

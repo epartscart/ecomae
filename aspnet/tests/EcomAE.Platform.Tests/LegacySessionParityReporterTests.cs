@@ -16,10 +16,11 @@ public sealed class LegacySessionParityReporterTests
         Assert.Contains(report.SupportedInputs, item => item.Contains("for_backend", StringComparison.OrdinalIgnoreCase));
         Assert.Contains("backend group claims", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("X-API-Key header", report.SupportedInputs);
-        Assert.Equal("module-acl-probe-wired-awaiting-staging", report.Status);
-        Assert.Contains("modules_access/open modules", report.SupportedInputs);
-        Assert.Contains(report.RemainingGaps, gap => gap.Contains("modules_access", StringComparison.OrdinalIgnoreCase)
-            || gap.Contains("inheritance", StringComparison.OrdinalIgnoreCase)
-            || gap.Contains("login", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("nested-module-acl-wired-awaiting-staging", report.Status);
+        Assert.Contains(report.SupportedInputs, item => item.Contains("modules_access", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.SupportedInputs, item => item.Contains("parent", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("login", StringComparison.OrdinalIgnoreCase)
+            || gap.Contains("OAuth", StringComparison.OrdinalIgnoreCase)
+            || gap.Contains("OIDC", StringComparison.OrdinalIgnoreCase));
     }
 }

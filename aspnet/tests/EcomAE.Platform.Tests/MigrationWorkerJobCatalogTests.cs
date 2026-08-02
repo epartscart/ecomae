@@ -36,5 +36,8 @@ public sealed class MigrationWorkerJobCatalogTests
         Assert.Contains(catalog.Jobs, job => job.Key == "apai-hourly-crawl");
         Assert.Contains(catalog.Jobs, job => job.Key == "webhooks-process");
         Assert.Contains(catalog.Jobs, job => job.Key == "offline-resilience-warm");
+        Assert.Contains(catalog.Jobs, job => job.Key == "apai-weekly-platform-sync");
+        Assert.Contains(catalog.Jobs, job => job.Key == "apai-daily-source-expand");
+        Assert.Contains(catalog.Jobs, job => job.Key == "api-client-ping");
     }
 }
