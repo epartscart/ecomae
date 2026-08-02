@@ -24,7 +24,7 @@ public sealed class PriceLookupParityReporter : IPriceLookupParityReporter
 
         gaps.Add("Attach live staging smoke artifacts for /api/v1/price/lookup before exact-route shadow.");
         gaps.Add("Compare request/response schema with PHP api/v1 price endpoints using captured production fixtures.");
-        gaps.Add("Apply legacy API-key policy and quota logging against epc_api_clients before public cutover.");
+        gaps.Add("Replay staging X-API-Key (epc_pricepro_) against ASP.NET and PHP, then enable only location = /api/v1/price/lookup shadow.");
 
         return new PriceLookupParityReport(
             "PHP price lookup routes and shop_docpart_prices_data",

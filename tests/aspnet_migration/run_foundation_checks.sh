@@ -196,7 +196,20 @@ check 'legacy API client policy checks quota' contains "$ROOT/aspnet/src/EcomAE.
 check 'legacy API usage log SQL exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiUsageLogSql.cs"
 check 'legacy API usage log SQL maps epc_umapi_usage_log' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiUsageLogSql.cs" 'epc_umapi_usage_log'
 check 'legacy API usage logger exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/MigrationLegacyApiUsageLogger.cs"
-check 'program registers legacy API usage logger' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ILegacyApiUsageLogger, MigrationLegacyApiUsageLogger'
+check 'DB legacy API usage logger exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbLegacyApiUsageLogger.cs"
+check 'program registers legacy API usage logger' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ILegacyApiUsageLogger, DbLegacyApiUsageLogger'
+check 'legacy API client authenticator exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientAuthenticator.cs"
+check 'legacy API client store interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/ILegacyApiClientStore.cs"
+check 'DB legacy API client store exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbLegacyApiClientStore.cs"
+check 'program registers legacy API client store' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ILegacyApiClientStore, DbLegacyApiClientStore'
+check 'program registers legacy API client authenticator' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ILegacyApiClientAuthenticator, LegacyApiClientAuthenticator'
+check 'API module gates price lookup with price_pro auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'price_pro'
+check 'API module price lookup auth is configurable' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'RequireApiClientAuth'
+check 'price lookup options require API client auth by default' contains "$ROOT/aspnet/src/EcomAE.Platform/Configuration/PriceLookupOptions.cs" 'RequireApiClientAuth'
+check 'legacy API client authenticator tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/LegacyApiClientAuthenticatorTests.cs"
+check 'price lookup exact-route nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-price-lookup-shadow-example.conf"
+check 'price lookup exact-route nginx shadow is exact match' contains "$ROOT/deploy/aspnet/nginx-price-lookup-shadow-example.conf" 'location = /api/v1/price/lookup'
+check 'price lookup smoke requires API key' contains "$ROOT/tests/live_smoke/run_price_lookup_exact_route_smoke.sh" 'ECOMAE_PRICE_LOOKUP_API_KEY'
 check 'PR range rebase script exists' test -x "$ROOT/scripts/rebase_conflicted_pr_range.sh"
 check 'PR range rebase script covers PR 500 default' contains "$ROOT/scripts/rebase_conflicted_pr_range.sh" 'START_PR="${1:-500}"'
 check 'PR range rebase script covers PR 508 default' contains "$ROOT/scripts/rebase_conflicted_pr_range.sh" 'END_PR="${2:-508}"'
