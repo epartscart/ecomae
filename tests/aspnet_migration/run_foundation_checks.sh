@@ -260,8 +260,15 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 52.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 54.0%'
+check 'legacy session SQL checks customer sessions without type filter' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionSql.cs" 'CountCustomerSession'
 check 'legacy session DB evidence exists' test -f "$ROOT/docs/migration/evidence/legacy-session-db/README.md"
+check 'catalog article route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/article'
+check 'API module maps article offline cache' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'LookupArticleAsync'
+check 'catalog article nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-article-shadow-example.conf"
+check 'currency live-rates dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/CurrencyLiveRatesDryRunExecutor.cs"
+check 'worker program registers currency live-rates dry-run' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'CurrencyLiveRatesDryRunExecutor'
+check 'UMAPI usage recent today SQL is select only' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacyUmapiUsageSql.cs" 'RecentToday'
 check 'CloudPanel bootstrap-from-github script exists' test -x "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh"
 check 'CloudPanel bootstrap resets hard to origin main' contains "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh" 'git reset --hard'
 check 'CloudPanel quick start documents stale checkout recovery' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'git reset --hard origin/main'

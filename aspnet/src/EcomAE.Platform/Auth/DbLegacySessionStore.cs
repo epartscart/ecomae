@@ -18,7 +18,13 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
 
     public bool IsConfigured => _connections.IsConfigured;
 
-    public async Task<bool> AdminSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
+    public Task<bool> AdminSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
+        => ExistsAsync(LegacySessionSql.CountAdminSession, sessionToken, userId, cancellationToken);
+
+    public Task<bool> CustomerSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
+        => ExistsAsync(LegacySessionSql.CountCustomerSession, sessionToken, userId, cancellationToken);
+
+    private async Task<bool> ExistsAsync(string sql, string sessionToken, int userId, CancellationToken cancellationToken)
     {
         if (!_connections.IsConfigured
             || string.IsNullOrWhiteSpace(sessionToken)
@@ -29,7 +35,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
 
         await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
-        command.CommandText = LegacySessionSql.CountAdminSession;
+        command.CommandText = sql;
         AddParameter(command, "@session", sessionToken);
         AddParameter(command, "@userId", userId);
 

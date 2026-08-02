@@ -9,6 +9,7 @@ Tracked PHP routes (offline/cache path):
 - `api/v1/catalog.php?action=categories`
 - `api/v1/catalog.php?action=products`
 - `api/v1/catalog.php?action=engine_search`
+- `api/v1/catalog.php?action=article` (path/id; PHP cache key often empty params)
 - `api/umapi_proxy.php?action=article_links` (auth via catalog `article`)
 
 ## ASP.NET implementation
@@ -21,6 +22,7 @@ Tracked PHP routes (offline/cache path):
 - `/api/v1/catalog/products?section=passenger&category_id=...&id=...`
 - `/api/v1/catalog/engine-search?section=passenger&code=...&mfa_id=0`
 - `/api/v1/catalog/article-links?section=passenger&id=...`
+- `/api/v1/catalog/article?section=passenger&id=...` (id-matched `epc_umapi_cache` row)
 - Service: `CatalogOfflineCacheService`
 - Repository: `DbCatalogOfflineCacheRepository` (read-only)
 - Tables: `epc_umapi_vin_cache`, `epc_umapi_cache`
@@ -43,6 +45,7 @@ Note: ASP.NET `/api/v1/catalog/brands` remains the suppliers/brands table list (
 - `deploy/aspnet/nginx-catalog-products-shadow-example.conf`
 - `deploy/aspnet/nginx-catalog-engine-search-shadow-example.conf`
 - `deploy/aspnet/nginx-catalog-article-links-shadow-example.conf`
+- `deploy/aspnet/nginx-catalog-article-shadow-example.conf`
 - `deploy/aspnet/nginx-catalog-brand-parts-shadow-example.conf`
 
 ## Staging smoke
@@ -64,6 +67,8 @@ curl -sS -H "X-API-Key: epc_catalog_REAL_KEY" \
   "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/engine-search?section=passenger&code=3L"
 curl -sS -H "X-API-Key: epc_catalog_REAL_KEY" \
   "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/article-links?section=passenger&id=123"
+curl -sS -H "X-API-Key: epc_catalog_REAL_KEY" \
+  "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/article?section=passenger&id=123"
 curl -sS -H "X-API-Key: epc_catalog_REAL_KEY" \
   "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/brand-parts?brand=BOSCH&limit=20"
 ```

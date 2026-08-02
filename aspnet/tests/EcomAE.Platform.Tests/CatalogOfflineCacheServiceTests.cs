@@ -270,12 +270,33 @@ public sealed class CatalogOfflineCacheServiceTests
     }
 
     [Fact]
+    public async Task LookupArticleUsesIdMatchedCacheRow()
+    {
+        var service = new CatalogOfflineCacheService(new StaticOfflineRepo(
+            article: new CatalogActionCacheRow(
+                "key",
+                "article",
+                "passenger",
+                "en",
+                "WWW",
+                JsonSerializer.Serialize(new { ART_ID = 55, TITLE = "Pad" }),
+                1,
+                200,
+                1710000000)));
+
+        var result = await service.LookupArticleAsync("passenger", 55, "en", "WWW");
+        Assert.True(result.Ok);
+        Assert.Equal("article", result.Action);
+    }
+
+    [Fact]
     public void LegacySqlContractsAreSelectOnly()
     {
         Assert.Equal("epc_umapi_vin_cache", LegacyCatalogVinSql.SourceTable);
         Assert.Equal("epc_umapi_cache", LegacyUmapiActionCacheSql.SourceTable);
         Assert.StartsWith("SELECT", LegacyCatalogVinSql.SelectByVinLanguageRegion.Trim(), StringComparison.OrdinalIgnoreCase);
         Assert.StartsWith("SELECT", LegacyUmapiActionCacheSql.SelectByCacheKey.Trim(), StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith("SELECT", LegacyUmapiActionCacheSql.SelectArticleById.Trim(), StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("INSERT", LegacyCatalogVinSql.SelectByVinLanguageRegion, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE", LegacyUmapiActionCacheSql.SelectByCacheKey, StringComparison.OrdinalIgnoreCase);
     }
@@ -284,11 +305,16 @@ public sealed class CatalogOfflineCacheServiceTests
     {
         private readonly CatalogVinCacheRow? _vin;
         private readonly CatalogActionCacheRow? _action;
+        private readonly CatalogActionCacheRow? _article;
 
-        public StaticOfflineRepo(CatalogVinCacheRow? vin = null, CatalogActionCacheRow? action = null)
+        public StaticOfflineRepo(
+            CatalogVinCacheRow? vin = null,
+            CatalogActionCacheRow? action = null,
+            CatalogActionCacheRow? article = null)
         {
             _vin = vin;
             _action = action;
+            _article = article;
         }
 
         public Task<CatalogVinCacheRow?> FindVinAsync(string vin, string language, string region, CancellationToken cancellationToken = default)
@@ -296,5 +322,8 @@ public sealed class CatalogOfflineCacheServiceTests
 
         public Task<CatalogActionCacheRow?> FindActionCacheAsync(string cacheKey, CancellationToken cancellationToken = default)
             => Task.FromResult(_action is not null && _action.CacheKey == cacheKey ? _action : null);
+
+        public Task<CatalogActionCacheRow?> FindArticleByIdAsync(string section, string language, string region, int articleId, CancellationToken cancellationToken = default)
+            => Task.FromResult(_article);
     }
 }

@@ -17,7 +17,8 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
                 new SitemapDryRunExecutor(),
                 new BackupDryRunExecutor(),
                 new NotificationsDryRunExecutor(),
-                new ErpReportsDryRunExecutor()
+                new ErpReportsDryRunExecutor(),
+                new CurrencyLiveRatesDryRunExecutor()
             ])
     {
     }
@@ -35,7 +36,8 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
                 new SitemapDryRunExecutor(),
                 new BackupDryRunExecutor(),
                 new NotificationsDryRunExecutor(),
-                new ErpReportsDryRunExecutor()
+                new ErpReportsDryRunExecutor(),
+                new CurrencyLiveRatesDryRunExecutor()
             ])
     {
     }

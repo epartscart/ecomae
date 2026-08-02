@@ -22,8 +22,11 @@ public sealed class UmapiUsageSummaryReporterTests
     {
         Assert.Equal("epc_umapi_usage_log", LegacyUmapiUsageSql.SourceTable);
         Assert.StartsWith("SELECT", LegacyUmapiUsageSql.CountTodayLive.Trim(), StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith("SELECT", LegacyUmapiUsageSql.RecentToday.Trim(), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ORDER BY `id` DESC", LegacyUmapiUsageSql.RecentToday, StringComparison.Ordinal);
         Assert.DoesNotContain("INSERT", LegacyUmapiUsageSql.ByActionToday, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE", LegacyUmapiUsageSql.History, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("DELETE", LegacyUmapiUsageSql.RecentToday, StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed class UnconfiguredFactory : ITenantDbConnectionFactory

@@ -9,4 +9,10 @@ public static class LegacySessionSql
         SELECT COUNT(*) FROM `sessions`
         WHERE `session` = @session AND `type` = 1 AND `user_id` = @userId
         """;
+
+    /// <summary>Mirrors PHP DP_User::getUserId storefront check (no type filter).</summary>
+    public const string CountCustomerSession = """
+        SELECT COUNT(*) FROM `sessions`
+        WHERE `session` = @session AND `user_id` = @userId
+        """;
 }

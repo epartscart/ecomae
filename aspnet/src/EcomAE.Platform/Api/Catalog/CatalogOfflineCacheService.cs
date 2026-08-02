@@ -161,6 +161,49 @@ public sealed class CatalogOfflineCacheService : ICatalogOfflineCacheService
         return LookupActionAsync("article_links", section, language, region, parameters, cancellationToken);
     }
 
+    public async Task<CatalogActionCacheLookupResult> LookupArticleAsync(string? section, int articleId, string? language, string? region, CancellationToken cancellationToken = default)
+    {
+        if (articleId <= 0)
+        {
+            return new CatalogActionCacheLookupResult(
+                false, 400, "missing_params", "Article ID is required.", "article", section ?? "passenger", null, 0, true, "rejected");
+        }
+
+        var normalizedSection = NormalizeSection(section);
+        var lang = string.IsNullOrWhiteSpace(language) ? "en" : language.Trim();
+        var reg = string.IsNullOrWhiteSpace(region) ? "WWW" : region.Trim();
+
+        // Prefer id-matched row; PHP empty-params key is ambiguous across article ids.
+        var row = await _repository.FindArticleByIdAsync(normalizedSection, lang, reg, articleId, cancellationToken).ConfigureAwait(false);
+        if (row is null || string.IsNullOrWhiteSpace(row.ResponseJson))
+        {
+            return new CatalogActionCacheLookupResult(
+                false,
+                404,
+                "cache_miss",
+                "No saved article cache row for this id; PHP/UMAPI remains authoritative.",
+                "article",
+                normalizedSection,
+                null,
+                0,
+                true,
+                "database-empty");
+        }
+
+        var payload = DecodeObject(row.ResponseJson);
+        return new CatalogActionCacheLookupResult(
+            true,
+            200,
+            string.Empty,
+            string.Empty,
+            "article",
+            normalizedSection,
+            payload,
+            row.RowsCount,
+            true,
+            "database");
+    }
+
     private async Task<CatalogActionCacheLookupResult> LookupActionAsync(
         string action,
         string? section,

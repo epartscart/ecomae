@@ -62,6 +62,35 @@ public sealed class DbCatalogOfflineCacheRepository : ICatalogOfflineCacheReposi
         AddParameter(command, "@cacheKey", cacheKey);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        return await ReadActionRowAsync(reader, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<CatalogActionCacheRow?> FindArticleByIdAsync(
+        string section,
+        string language,
+        string region,
+        int articleId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured || articleId <= 0)
+        {
+            return null;
+        }
+
+        await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+        await using var command = connection.CreateCommand();
+        command.CommandText = LegacyUmapiActionCacheSql.SelectArticleById;
+        AddParameter(command, "@section", section);
+        AddParameter(command, "@language", language);
+        AddParameter(command, "@region", region);
+        AddParameter(command, "@articleId", articleId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        return await ReadActionRowAsync(reader, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<CatalogActionCacheRow?> ReadActionRowAsync(DbDataReader reader, CancellationToken cancellationToken)
+    {
         if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
             return null;

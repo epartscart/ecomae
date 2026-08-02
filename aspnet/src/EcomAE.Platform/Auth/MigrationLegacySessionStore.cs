@@ -7,4 +7,7 @@ public sealed class MigrationLegacySessionStore : ILegacySessionStore
 
     public Task<bool> AdminSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
         => Task.FromResult(false);
+
+    public Task<bool> CustomerSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
+        => Task.FromResult(false);
 }

@@ -49,6 +49,31 @@ public sealed class LegacySessionValidatorTests
     }
 
     [Fact]
+    public async Task CustomerCookiesRejectedWhenDbSaysMissing()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Headers.Cookie = "session=cust; u_id=9";
+        var validator = new DbBackedLegacySessionValidator(new StaticSessionStore(configured: true, exists: false));
+
+        var session = await validator.ValidateAsync(context);
+
+        Assert.Equal(LegacySessionKind.Anonymous, session.Kind);
+    }
+
+    [Fact]
+    public async Task CustomerCookiesAcceptedWhenDbConfirmsRow()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Headers.Cookie = "session=cust; u_id=9";
+        var validator = new DbBackedLegacySessionValidator(new StaticSessionStore(configured: true, exists: true));
+
+        var session = await validator.ValidateAsync(context);
+
+        Assert.Equal(LegacySessionKind.Customer, session.Kind);
+        Assert.Equal(9, session.UserId);
+    }
+
+    [Fact]
     public async Task ApiKeyHeaderMapsToApiPermission()
     {
         var context = new DefaultHttpContext();
@@ -67,7 +92,9 @@ public sealed class LegacySessionValidatorTests
     {
         Assert.Equal("sessions", LegacySessionSql.SourceTable);
         Assert.StartsWith("SELECT", LegacySessionSql.CountAdminSession.Trim(), StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith("SELECT", LegacySessionSql.CountCustomerSession.Trim(), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("`type` = 1", LegacySessionSql.CountAdminSession, StringComparison.Ordinal);
+        Assert.DoesNotContain("`type`", LegacySessionSql.CountCustomerSession, StringComparison.Ordinal);
         Assert.DoesNotContain("INSERT", LegacySessionSql.CountAdminSession, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -84,6 +111,9 @@ public sealed class LegacySessionValidatorTests
         public bool IsConfigured { get; }
 
         public Task<bool> AdminSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
+            => Task.FromResult(_exists);
+
+        public Task<bool> CustomerSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
             => Task.FromResult(_exists);
     }
 }

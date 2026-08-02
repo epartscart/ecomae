@@ -91,4 +91,27 @@ public sealed class WorkerDryRunExecutorTests
         Assert.Equal("dry-run-validated", output.Status);
         Assert.Equal("0", output.Metrics["reports_generated"]);
     }
+
+    [Fact]
+    public void CurrencyLiveRatesDryRunValidatesSampleWithoutWrites()
+    {
+        var executor = new CurrencyLiveRatesDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "currency-live-rates");
+        var request = new MigrationWorkerJobRunRequest(
+            "currency-live-rates",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_rates"] = "USD,3.6725\nEUR,4.01\nbad-row"
+            });
+
+        var output = executor.Execute(job, request);
+
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.True(output.WritesBlocked);
+        Assert.Equal("0", output.Metrics["writes"]);
+        Assert.Equal("2", output.Metrics["valid_rates"]);
+        Assert.Equal("1", output.Metrics["invalid_rates"]);
+    }
 }

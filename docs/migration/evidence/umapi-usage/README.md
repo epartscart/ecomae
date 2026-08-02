@@ -7,6 +7,7 @@ External catalog clients are forbidden from calling PHP `usage_report`. ASP.NET 
 - Route: `GET /migration/umapi-usage?days=7`
 - Reporter: `UmapiUsageSummaryReporter` (read-only)
 - Table: `epc_umapi_usage_log`
+- Includes: today totals, by-action/by-source, history, and `recent_today` event rows
 - Daily limit: `Umapi:DailyLimit` config (default 1000)
 - Nginx: keep under allowlisted `/migration/` diagnostics include
 

@@ -42,4 +42,12 @@ public static class LegacyUmapiUsageSql
         GROUP BY `usage_date`
         ORDER BY `usage_date` DESC
         """;
+
+    public const string RecentToday = """
+        SELECT `created_at`, `action`, `section`, `source`, `request_path`, `http_status`, `from_cache`, `quota_blocked`, `is_live`, `message`
+        FROM `epc_umapi_usage_log`
+        WHERE `usage_date` = CURDATE()
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
 }
