@@ -26,6 +26,53 @@ public sealed class PhpDecommissionReadinessReporterTests
         Assert.False(string.Equals(report.Checklist.First(item => item.Id == "staging-smoke-price").Status, "present", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void BuildReportReadsEvidenceFromPackedReleaseContentRoot()
+    {
+        var repoRoot = RepoHostEnvironment.FindRepoRoot();
+        var releaseRoot = Path.Combine(Path.GetTempPath(), "ecomae-packed-release-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(releaseRoot, "docs", "migration", "evidence"));
+            Directory.CreateDirectory(Path.Combine(releaseRoot, "deploy", "aspnet"));
+            Directory.CreateDirectory(Path.Combine(releaseRoot, "scripts"));
+            CopyDirectory(Path.Combine(repoRoot, "docs", "migration", "evidence", "decommission"), Path.Combine(releaseRoot, "docs", "migration", "evidence", "decommission"));
+            File.Copy(Path.Combine(repoRoot, "docs", "migration", "PHP_DECOMMISSION_READINESS.md"), Path.Combine(releaseRoot, "docs", "migration", "PHP_DECOMMISSION_READINESS.md"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "scripts", "cloudpanel_capture_final_gate_artifacts.sh"), Path.Combine(releaseRoot, "scripts", "cloudpanel_capture_final_gate_artifacts.sh"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "scripts", "rollback_aspnet_foundation.sh"), Path.Combine(releaseRoot, "scripts", "rollback_aspnet_foundation.sh"), overwrite: true);
+
+            var report = new PhpDecommissionReadinessReporter(new RepoHostEnvironment { ContentRootPath = releaseRoot }).BuildReport();
+
+            Assert.False(report.ReadyToRemovePhp);
+            Assert.Contains(report.Checklist, item => item.Id == "public-probes" && item.Status == "present");
+            Assert.Contains(report.Checklist, item => item.Id == "exact-route-shadows-only" && item.Status == "present");
+            Assert.Contains(report.Checklist, item => item.Id == "cloudpanel-capture-script" && item.Status == "present");
+            Assert.Contains(report.Checklist, item => item.Id == "rollback-validated" && item.Status == "present");
+            Assert.True(report.ChecklistCompleteCount >= 4);
+        }
+        finally
+        {
+            if (Directory.Exists(releaseRoot))
+            {
+                Directory.Delete(releaseRoot, recursive: true);
+            }
+        }
+    }
+
+    private static void CopyDirectory(string source, string destination)
+    {
+        Directory.CreateDirectory(destination);
+        foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var relative = Path.GetRelativePath(source, file);
+            var target = Path.Combine(destination, relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target, overwrite: true);
+        }
+    }
+
     private sealed class RepoHostEnvironment : IHostEnvironment
     {
         public string EnvironmentName { get; set; } = Environments.Development;
@@ -33,7 +80,7 @@ public sealed class PhpDecommissionReadinessReporterTests
         public string ContentRootPath { get; set; } = FindRepoRoot();
         public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
 
-        private static string FindRepoRoot()
+        public static string FindRepoRoot()
         {
             var current = new DirectoryInfo(AppContext.BaseDirectory);
             while (current is not null)
