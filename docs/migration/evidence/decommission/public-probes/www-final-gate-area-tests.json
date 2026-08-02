@@ -1,0 +1,90 @@
+{
+  "capturedAtUtc": "2026-08-02T18:06:18Z",
+  "passed": 12,
+  "failed": 0,
+  "blocked": 4,
+  "readyToRemovePhp": false,
+  "note": "PHP decommission blocked until authenticated smoke + RELEASE_OWNER_APPROVAL.md exist on CloudPanel.",
+  "results": [
+    {
+      "area": "unit-tests",
+      "status": "pass",
+      "detail": "EcomAE.Platform.Tests green"
+    },
+    {
+      "area": "final-gate-checklist",
+      "status": "pass",
+      "detail": "checklist script exited 0"
+    },
+    {
+      "area": "live/health",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "live/migration/zero-php-completion",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "live/migration/php-decommission-readiness",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "live/migration/presentation-parity",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "live/migration/live-surface-links",
+      "status": "blocked",
+      "detail": "HTTP 404 until CloudPanel redeploy of main includes live-surface-links"
+    },
+    {
+      "area": "live/migration/surface-parity",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "live-price-lookup-unauth",
+      "status": "pass",
+      "detail": "ASP.NET JSON auth gate"
+    },
+    {
+      "area": "staging-smoke-price",
+      "status": "blocked",
+      "detail": "ECOMAE_PRICE_LOOKUP_API_KEY missing in this environment"
+    },
+    {
+      "area": "staging-smoke-catalog",
+      "status": "blocked",
+      "detail": "ECOMAE_CATALOG_API_KEY missing in this environment"
+    },
+    {
+      "area": "staging-smoke-surfaces",
+      "status": "blocked",
+      "detail": "admin cookie missing in this environment"
+    },
+    {
+      "area": "php-chrome/CP/",
+      "status": "pass",
+      "detail": "still PHP HTML (expected pre-decommission)"
+    },
+    {
+      "area": "php-chrome/ERP/",
+      "status": "pass",
+      "detail": "still PHP HTML (expected pre-decommission)"
+    },
+    {
+      "area": "php-chrome/BOS/",
+      "status": "pass",
+      "detail": "still PHP HTML (expected pre-decommission)"
+    },
+    {
+      "area": "decommission-refuses-without-confirm",
+      "status": "pass",
+      "detail": "gated script refused"
+    }
+  ]
+}

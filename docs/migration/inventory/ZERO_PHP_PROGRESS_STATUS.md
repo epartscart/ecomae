@@ -8,6 +8,7 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 - True zero-PHP completion: 95.0%.
 - Pending to 100%: 5.0%.
+- Final-gate unlock path is wired (`ReadyToRemovePhp` becomes true only with validated smoke + approval). PHP is **not** removed yet.
 - Foundation/planning floor: 35.0%.
 - Route/job implementation started (not parity-ready): digests + nested ACL + worker dry-run layer + all 61 batches dry-run scaffolding.
 - Route/job parity-ready: 0.0%.

@@ -10,6 +10,7 @@ They are **not** a substitute for authenticated staging smoke (`staging-smoke/*.
 - `www-php-decommission-readiness.json` — live `/migration/php-decommission-readiness` (`readyToRemovePhp=false`)
 - `www-presentation-parity.json` — live `/migration/presentation-parity` (PHP chrome asset contract)
 - `www-live-surface-stack.json` — classified live Super CP / tenant / ASP.NET stack probe
+- `www-final-gate-area-tests.json` — unit/live/chrome/smoke-area results (`readyToRemovePhp=false`)
 - `www-price-lookup-missing-key.json` — unauthenticated price lookup JSON 401 from ASP.NET
 - `www-price-lookup.headers.txt` — response headers (cookies/CF noise stripped)
 
