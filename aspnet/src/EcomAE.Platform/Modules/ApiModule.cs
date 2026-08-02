@@ -233,6 +233,117 @@ public sealed class ApiModule : ISurfaceModule
             return CatalogListOk(result, authResult.Client);
         });
 
+        endpoints.MapGet(EcomAeRoutes.CatalogVin, async (
+            HttpContext httpContext,
+            string? vin,
+            string? language,
+            string? region,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogOfflineCacheService offlineCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "vin", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await offlineCache.LookupVinAsync(vin, language, region, cancellationToken);
+            await LogOfflineCacheAsync(httpContext, usageLogger, authResult.Client, "catalog_vin", result.Ok, result.Code, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(
+                    new { ok = false, error = new { code = result.Code, message = result.Message } },
+                    statusCode: result.StatusCode);
+            }
+
+            return Results.Ok(result.Payload);
+        });
+
+        endpoints.MapGet(EcomAeRoutes.CatalogEngines, async (
+            HttpContext httpContext,
+            string? section,
+            int? mfa_id,
+            int? MFA_ID,
+            string? language,
+            string? region,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogOfflineCacheService offlineCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "engines", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await offlineCache.LookupEnginesAsync(section, mfa_id ?? MFA_ID ?? 0, language, region, cancellationToken);
+            await LogOfflineCacheAsync(httpContext, usageLogger, authResult.Client, "catalog_engines", result.Ok, result.Code, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(
+                    new
+                    {
+                        ok = false,
+                        error = new { code = result.Code, message = result.Message },
+                        action = result.Action,
+                        section = result.Section,
+                        source = result.Source,
+                        note = result.Code == "cache_miss"
+                            ? "No epc_umapi_cache row for engines; PHP/UMAPI remains authoritative for live fills."
+                            : null
+                    },
+                    statusCode: result.StatusCode);
+            }
+
+            return OfflineCacheOk(result, authResult.Client);
+        });
+
+        endpoints.MapGet(EcomAeRoutes.CatalogAnalogs, async (
+            HttpContext httpContext,
+            string? section,
+            string? article,
+            string? brand,
+            string? language,
+            string? region,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogOfflineCacheService offlineCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "analogs", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await offlineCache.LookupAnalogsAsync(section, article, brand, language, region, cancellationToken);
+            await LogOfflineCacheAsync(httpContext, usageLogger, authResult.Client, "catalog_analogs", result.Ok, result.Code, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(
+                    new
+                    {
+                        ok = false,
+                        error = new { code = result.Code, message = result.Message },
+                        action = result.Action,
+                        section = result.Section,
+                        source = result.Source,
+                        note = result.Code == "cache_miss"
+                            ? "No epc_umapi_cache row for analogs; PHP/UMAPI remains authoritative for live fills."
+                            : null
+                    },
+                    statusCode: result.StatusCode);
+            }
+
+            return OfflineCacheOk(result, authResult.Client);
+        });
+
         endpoints.MapGet(EcomAeRoutes.CatalogParity, (ICatalogParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
         endpoints.MapGet(EcomAeRoutes.PriceLookup, async (
@@ -377,6 +488,51 @@ public sealed class ApiModule : ISurfaceModule
             stale = true,
             data = result.Data,
             message = result.Message,
+            client = client is null ? null : new
+            {
+                label = client.Label,
+                key_prefix = client.ClientKeyPrefix
+            }
+        });
+    }
+
+    private static async Task LogOfflineCacheAsync(
+        HttpContext httpContext,
+        ILegacyApiUsageLogger usageLogger,
+        LegacyApiClientRecord? client,
+        string action,
+        bool ok,
+        string code,
+        CancellationToken cancellationToken)
+    {
+        if (client is null)
+        {
+            return;
+        }
+
+        await usageLogger.LogAsync(new LegacyApiUsageLogEntry(
+            action,
+            string.Empty,
+            "api_client",
+            client.Id,
+            httpContext.Request.Path.HasValue ? httpContext.Request.Path.Value! : string.Empty,
+            ok ? 200 : (code == "cache_miss" ? 404 : 400),
+            QuotaBlocked: false,
+            ok ? "cache_hit" : code,
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty), cancellationToken);
+    }
+
+    private static IResult OfflineCacheOk(CatalogActionCacheLookupResult result, LegacyApiClientRecord? client)
+    {
+        return Results.Ok(new
+        {
+            ok = true,
+            action = result.Action,
+            section = result.Section,
+            rows = result.Rows,
+            source = result.Source,
+            stale = result.Stale,
+            data = result.Payload,
             client = client is null ? null : new
             {
                 label = client.Label,
