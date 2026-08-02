@@ -4,6 +4,10 @@
  * Issue/rotate final-gate smoke API keys and bind an active admin session into platform.env.
  * CLI only. Never prints plaintext keys/cookies. Requires ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES.
  *
+ * Never runs CREATE TABLE — ecomae_aspnet often lacks DDL. Uses existing epc_api_clients.
+ * Prefers PHP app PDO (ECOMAE_PHP_DOCROOT/config.php) or ECOMAE_SMOKE_DB_* when the
+ * ASP.NET DB user cannot INSERT/UPDATE.
+ *
  * Usage:
  *   ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES php scripts/php/issue_final_gate_smoke_credentials.php
  */
@@ -24,42 +28,34 @@ if (!is_file($envFile) || !is_readable($envFile)) {
 	fwrite(STDERR, "Missing env file: {$envFile}\n");
 	exit(2);
 }
-
-$env = parse_env_file($envFile);
-$conn = $env['ConnectionStrings__TenantRegistry'] ?? '';
-if ($conn === '' || str_contains($conn, '<db_')) {
-	fwrite(STDERR, "ConnectionStrings__TenantRegistry missing/placeholder in {$envFile}\n");
+if (!is_writable($envFile)) {
+	fwrite(STDERR, "Env file not writable: {$envFile}\n");
 	exit(2);
 }
 
-$pdo = pdo_from_dotnet_conn($conn);
-$pdo->exec(
-	"CREATE TABLE IF NOT EXISTS `epc_api_clients` (
-		`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-		`client_key_hash` CHAR(64) NOT NULL,
-		`client_key_prefix` VARCHAR(32) NOT NULL DEFAULT '',
-		`product` VARCHAR(32) NOT NULL DEFAULT 'catalog',
-		`label` VARCHAR(190) NOT NULL DEFAULT '',
-		`contact_email` VARCHAR(190) NOT NULL DEFAULT '',
-		`active` TINYINT(1) NOT NULL DEFAULT 1,
-		`daily_limit` INT NOT NULL DEFAULT 1000,
-		`calls_today` INT NOT NULL DEFAULT 0,
-		`calls_reset_date` DATE NULL,
-		`allowed_actions_json` TEXT NULL,
-		`time_created` INT UNSIGNED NOT NULL DEFAULT 0,
-		`time_updated` INT UNSIGNED NOT NULL DEFAULT 0,
-		PRIMARY KEY (`id`),
-		UNIQUE KEY `client_key_hash` (`client_key_hash`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
-);
+$env = parse_env_file($envFile);
+[$pdo, $dbSource] = open_smoke_pdo($env);
+fwrite(STDERR, "DB source: {$dbSource}\n");
+
+ensure_api_clients_readable($pdo);
 
 $catalogActions = json_encode(
 	['manufacturers', 'models', 'modifications', 'categories', 'articles', 'vin', 'status', 'engines', 'analogs', 'brands', 'products', 'suppliers'],
 	JSON_UNESCAPED_UNICODE
 );
 
-$priceKey = upsert_key($pdo, 'price_pro', 'Final-gate smoke Price PRO', 'smoke-final-gate@ecomae.local', 5000, '[]');
-$catalogKey = upsert_key($pdo, 'catalog', 'Final-gate smoke Catalog', 'smoke-final-gate@ecomae.local', 5000, $catalogActions);
+try {
+	$priceKey = upsert_key($pdo, 'price_pro', 'Final-gate smoke Price PRO', 'smoke-final-gate@ecomae.local', 5000, '[]');
+	$catalogKey = upsert_key($pdo, 'catalog', 'Final-gate smoke Catalog', 'smoke-final-gate@ecomae.local', 5000, $catalogActions);
+} catch (Throwable $e) {
+	fwrite(STDERR, "Failed to INSERT/UPDATE epc_api_clients: " . $e->getMessage() . "\n");
+	fwrite(STDERR, "Issuer never runs CREATE. Fix privileges or use the PHP app DB user:\n");
+	fwrite(STDERR, "  A) export ECOMAE_PHP_DOCROOT=/path/to/htdocs  (must contain config.php)\n");
+	fwrite(STDERR, "  B) export ECOMAE_SMOKE_DB_HOST=127.0.0.1 ECOMAE_SMOKE_DB_NAME=... \\\n");
+	fwrite(STDERR, "       ECOMAE_SMOKE_DB_USER=... ECOMAE_SMOKE_DB_PASSWORD=...\n");
+	fwrite(STDERR, "  C) GRANT INSERT,UPDATE ON <db>.epc_api_clients TO 'ecomae_aspnet'@'localhost';\n");
+	exit(1);
+}
 
 [$sessionToken, $userId] = find_admin_session($pdo);
 if ($sessionToken === null) {
@@ -80,6 +76,112 @@ fwrite(STDOUT, "admin_u_id={$userId}\n");
 fwrite(STDOUT, "Next: source {$envFile} && bash scripts/cloudpanel_validate_final_gate_env.sh\n");
 exit(0);
 
+/**
+ * @param array<string,string> $env
+ * @return array{0: PDO, 1: string}
+ */
+function open_smoke_pdo(array $env): array
+{
+	// 1) Explicit smoke DB overrides (operator-supplied PHP app user).
+	$smokeHost = getenv('ECOMAE_SMOKE_DB_HOST') ?: '';
+	$smokeDb = getenv('ECOMAE_SMOKE_DB_NAME') ?: '';
+	$smokeUser = getenv('ECOMAE_SMOKE_DB_USER') ?: '';
+	$smokePass = getenv('ECOMAE_SMOKE_DB_PASSWORD') ?: '';
+	if ($smokeDb !== '' && $smokeUser !== '') {
+		$host = $smokeHost !== '' ? $smokeHost : '127.0.0.1';
+		$pdo = new PDO(
+			"mysql:host={$host};dbname={$smokeDb};charset=utf8mb4",
+			$smokeUser,
+			$smokePass,
+			[
+				PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+			]
+		);
+		return [$pdo, "ECOMAE_SMOKE_DB_* user={$smokeUser} db={$smokeDb}"];
+	}
+
+	// 2) PHP site config.php (same grants the live PHP app uses).
+	$docroot = getenv('ECOMAE_PHP_DOCROOT') ?: '';
+	if ($docroot === '') {
+		foreach ([
+			'/home/ecomae/htdocs/www.ecomae.com',
+			'/home/ecomae/htdocs',
+			'/home/cloudpanel/htdocs/www.ecomae.com',
+			'/home/www/htdocs',
+			'/var/www/www.ecomae.com',
+			'/var/www/ecomae',
+			'/var/www/html',
+		] as $candidate) {
+			if (is_file($candidate . '/config.php')) {
+				$docroot = $candidate;
+				break;
+			}
+		}
+	}
+	if ($docroot !== '' && is_file($docroot . '/config.php')) {
+		try {
+			/** @var mixed $pdo */
+			$pdo = null;
+			require $docroot . '/config.php';
+			if (isset($pdo) && $pdo instanceof PDO) {
+				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+				return [$pdo, "php-config.php ({$docroot})"];
+			}
+		} catch (Throwable $e) {
+			fwrite(STDERR, "WARN: PHP config.php PDO failed: " . $e->getMessage() . "\n");
+		}
+	}
+
+	// 3) ASP.NET platform.env connection (may be read-mostly / no INSERT).
+	$conn = $env['ConnectionStrings__TenantRegistry'] ?? '';
+	if ($conn === '' || str_contains($conn, '<db_')) {
+		fwrite(STDERR, "No usable DB credentials.\n");
+		fwrite(STDERR, "Set ECOMAE_PHP_DOCROOT or ECOMAE_SMOKE_DB_*, or fill ConnectionStrings__TenantRegistry in {$GLOBALS['envFile']}.\n");
+		exit(2);
+	}
+
+	$pdo = pdo_from_dotnet_conn($conn);
+	return [$pdo, 'ConnectionStrings__TenantRegistry (platform.env)'];
+}
+
+function ensure_api_clients_readable(PDO $pdo): void
+{
+	try {
+		$pdo->query('SELECT 1 FROM `epc_api_clients` LIMIT 1');
+	} catch (Throwable $e) {
+		fwrite(STDERR, "Table epc_api_clients missing or not readable.\n");
+		fwrite(STDERR, "Create it once as MySQL root/admin (this issuer never runs CREATE):\n");
+		fwrite(STDERR, <<<'SQL'
+CREATE TABLE IF NOT EXISTS `epc_api_clients` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `client_key_hash` CHAR(64) NOT NULL,
+  `client_key_prefix` VARCHAR(32) NOT NULL DEFAULT '',
+  `product` VARCHAR(32) NOT NULL DEFAULT 'catalog',
+  `label` VARCHAR(190) NOT NULL DEFAULT '',
+  `contact_email` VARCHAR(190) NOT NULL DEFAULT '',
+  `active` TINYINT(1) NOT NULL DEFAULT 1,
+  `daily_limit` INT NOT NULL DEFAULT 1000,
+  `calls_today` INT NOT NULL DEFAULT 0,
+  `calls_reset_date` DATE NULL,
+  `allowed_actions_json` TEXT NULL,
+  `time_created` INT UNSIGNED NOT NULL DEFAULT 0,
+  `time_updated` INT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `client_key_hash` (`client_key_hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SQL
+		);
+		fwrite(STDERR, "Detail: " . $e->getMessage() . "\n");
+		exit(1);
+	}
+}
+
+/**
+ * @return array<string,string>
+ */
 function parse_env_file(string $path): array
 {
 	$out = [];
@@ -172,6 +274,11 @@ function upsert_key(PDO $pdo, string $product, string $label, string $email, int
 /** @return array{0:?string,1:int} */
 function find_admin_session(PDO $pdo): array
 {
+	$forced = trim((string) (getenv('ECOMAE_FORCE_ADMIN_COOKIE_HEADER') ?: ''));
+	if ($forced !== '' && preg_match('/admin_session=([^;]+)/', $forced, $mSid) && preg_match('/admin_u_id=(\d+)/', $forced, $mUid)) {
+		return [$mSid[1], (int) $mUid[1]];
+	}
+
 	// Prefer newest admin session rows. Column names vary slightly across installs.
 	$candidates = [
 		'SELECT `session`, `user_id` FROM `sessions` WHERE `type` = 1 AND `user_id` > 0 ORDER BY `id` DESC LIMIT 1',
