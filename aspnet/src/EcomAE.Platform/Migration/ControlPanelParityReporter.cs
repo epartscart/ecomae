@@ -7,10 +7,11 @@ public sealed class ControlPanelParityReporter : IControlPanelParityReporter
         return new ControlPanelParityReport(
             "Control Panel / Super CP",
             "ecomae.com/CP and /cp",
-            "/cp/parity plus /cp shell",
-            "shell-parity-visible",
+            "/cp/parity plus admin-session-gated /cp shell",
+            "shell-session-gated-awaiting-staging",
             [
                 "Canonical CP route aliases are mapped to the ASP.NET Core shell.",
+                "CP shell requires admin session via DbBackedLegacySessionValidator (401 when anonymous).",
                 "Legacy session probe and parity endpoints are available before CP cutover.",
                 "Surface parity report tracks CP login, dashboard shell, tenant selector, and access-denial evidence."
             ],

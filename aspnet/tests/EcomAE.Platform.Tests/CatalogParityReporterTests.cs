@@ -15,6 +15,7 @@ public sealed class CatalogParityReporterTests
         Assert.Contains("manufacturers", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("vin", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("article", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("articles", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("brand-parts", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("catalog-cache-routes-wired-awaiting-staging", report.Status);
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("UMAPI", StringComparison.OrdinalIgnoreCase));

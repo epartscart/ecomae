@@ -18,7 +18,10 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
                 new BackupDryRunExecutor(),
                 new NotificationsDryRunExecutor(),
                 new ErpReportsDryRunExecutor(),
-                new CurrencyLiveRatesDryRunExecutor()
+                new CurrencyLiveRatesDryRunExecutor(),
+                new DemoExpireDryRunExecutor(),
+                new PlatformJobsDryRunExecutor(),
+                new SeoSitemapPingDryRunExecutor()
             ])
     {
     }
@@ -37,7 +40,10 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
                 new BackupDryRunExecutor(),
                 new NotificationsDryRunExecutor(),
                 new ErpReportsDryRunExecutor(),
-                new CurrencyLiveRatesDryRunExecutor()
+                new CurrencyLiveRatesDryRunExecutor(),
+                new DemoExpireDryRunExecutor(),
+                new PlatformJobsDryRunExecutor(),
+                new SeoSitemapPingDryRunExecutor()
             ])
     {
     }

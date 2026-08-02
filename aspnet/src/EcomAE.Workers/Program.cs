@@ -15,6 +15,9 @@ builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, BackupDryRunExe
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, NotificationsDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ErpReportsDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, CurrencyLiveRatesDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, DemoExpireDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, PlatformJobsDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, SeoSitemapPingDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobRunner>(sp => new MigrationWorkerJobRunner(
     sp.GetRequiredService<MigrationWorkerJobCatalog>(),
     sp.GetRequiredService<TimeProvider>(),

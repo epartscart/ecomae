@@ -204,6 +204,93 @@ public sealed class CatalogOfflineCacheService : ICatalogOfflineCacheService
             "database");
     }
 
+
+    public Task<CatalogActionCacheLookupResult> LookupArticlesAsync(
+        string? section,
+        string? ptIds,
+        string? categoryId,
+        string? id,
+        string? limit,
+        string? offset,
+        string? vehicleType,
+        string? language,
+        string? region,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedSection = NormalizeSection(section);
+        var parameters = new Dictionary<string, object?>();
+        // PHP epc_passthrough_params keeps request values as strings.
+        if (!string.IsNullOrWhiteSpace(ptIds))
+        {
+            parameters["PT_IDS"] = ptIds.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(categoryId))
+        {
+            parameters["CATEGORY_ID"] = categoryId.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(id))
+        {
+            parameters["ID"] = id.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(limit))
+        {
+            parameters["limit"] = limit.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(offset))
+        {
+            parameters["offset"] = offset.Trim();
+        }
+
+        parameters["type"] = ResolveVehicleType(normalizedSection, vehicleType);
+        return LookupActionAsync("articles", normalizedSection, language, region, parameters, cancellationToken);
+    }
+
+    public async Task<CatalogActionCacheLookupResult> LookupEngineAsync(string? section, int engineId, string? language, string? region, CancellationToken cancellationToken = default)
+    {
+        if (engineId <= 0)
+        {
+            return new CatalogActionCacheLookupResult(
+                false, 400, "missing_params", "Engine ID is required.", "engine", section ?? "passenger", null, 0, true, "rejected");
+        }
+
+        var normalizedSection = NormalizeSection(section);
+        var lang = string.IsNullOrWhiteSpace(language) ? "en" : language.Trim();
+        var reg = string.IsNullOrWhiteSpace(region) ? "WWW" : region.Trim();
+
+        var row = await _repository.FindEngineByIdAsync(normalizedSection, lang, reg, engineId, cancellationToken).ConfigureAwait(false);
+        if (row is null || string.IsNullOrWhiteSpace(row.ResponseJson))
+        {
+            return new CatalogActionCacheLookupResult(
+                false,
+                404,
+                "cache_miss",
+                "No saved engine cache row for this id; PHP/UMAPI remains authoritative for live fills.",
+                "engine",
+                normalizedSection,
+                null,
+                0,
+                true,
+                "database-empty");
+        }
+
+        var payload = DecodeObject(row.ResponseJson);
+        return new CatalogActionCacheLookupResult(
+            true,
+            200,
+            string.Empty,
+            string.Empty,
+            "engine",
+            normalizedSection,
+            payload,
+            row.RowsCount,
+            true,
+            "database");
+    }
+
     private async Task<CatalogActionCacheLookupResult> LookupActionAsync(
         string action,
         string? section,

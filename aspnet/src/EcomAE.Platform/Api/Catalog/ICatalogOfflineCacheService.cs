@@ -19,4 +19,18 @@ public interface ICatalogOfflineCacheService
     Task<CatalogActionCacheLookupResult> LookupArticleLinksAsync(string? section, int articleId, string? language, string? region, CancellationToken cancellationToken = default);
 
     Task<CatalogActionCacheLookupResult> LookupArticleAsync(string? section, int articleId, string? language, string? region, CancellationToken cancellationToken = default);
+
+    Task<CatalogActionCacheLookupResult> LookupArticlesAsync(
+        string? section,
+        string? ptIds,
+        string? categoryId,
+        string? id,
+        string? limit,
+        string? offset,
+        string? vehicleType,
+        string? language,
+        string? region,
+        CancellationToken cancellationToken = default);
+
+    Task<CatalogActionCacheLookupResult> LookupEngineAsync(string? section, int engineId, string? language, string? region, CancellationToken cancellationToken = default);
 }

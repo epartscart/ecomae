@@ -15,5 +15,11 @@ public sealed class MigrationWorkerJobCatalogTests
         Assert.Contains(catalog.Jobs, job => job.Key == "erp-reports" && job.RequiredParity.Contains("ERP PHP totals", StringComparison.Ordinal));
         Assert.Contains(catalog.Jobs, job => job.Key == "currency-live-rates"
             && job.LegacyPhpEntry.Contains("epc-currency-live-rates-cron.php", StringComparison.Ordinal));
+        Assert.Contains(catalog.Jobs, job => job.Key == "demo-expire"
+            && job.LegacyPhpEntry.Contains("epc-demo-expire-cron.php", StringComparison.Ordinal));
+        Assert.Contains(catalog.Jobs, job => job.Key == "platform-jobs"
+            && job.LegacyPhpEntry.Contains("epc-platform-jobs-cron.php", StringComparison.Ordinal));
+        Assert.Contains(catalog.Jobs, job => job.Key == "seo-sitemap-ping"
+            && job.LegacyPhpEntry.Contains("epc-seo-sitemap-ping.php", StringComparison.Ordinal));
     }
 }
