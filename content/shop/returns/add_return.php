@@ -184,13 +184,13 @@ if($access_flag === true){
         {
             ?>
                 var retention_percentage = "<?php echo $DP_Config->retention_percentage;?>";
-            <?
+            <?php
         }
         else
         {
             ?>
                 var retention_percentage = 0;
-            <?
+            <?php
         }
     ?>
     var main_total_price = "<?php echo $price_sum_total;?>";

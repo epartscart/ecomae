@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Remove a single demo tenant from Super CP registry (safe; never touches live tenants).
  * https://www.ecomae.com/epc-tenant-remove-demo.php?token=...&site_key=demo_260607_ap_2

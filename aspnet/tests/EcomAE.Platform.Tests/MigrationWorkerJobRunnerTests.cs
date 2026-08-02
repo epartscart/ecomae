@@ -17,6 +17,11 @@ public sealed class MigrationWorkerJobRunnerTests
         Assert.True(result.DryRun);
         Assert.Equal("dry-run-planned", result.Status);
         Assert.Contains("EcomAE.Workers.PriceImport", result.Message, StringComparison.Ordinal);
+        Assert.NotNull(result.Evidence);
+        Assert.Equal("price-import", result.Evidence.JobKey);
+        Assert.True(result.Evidence.PhpFallbackRequired);
+        Assert.Contains("PHP baseline", result.Evidence.PhpBaselineSample, StringComparison.Ordinal);
+        Assert.Contains("disable ASP.NET worker flag", result.Evidence.RollbackCommand, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -29,6 +34,7 @@ public sealed class MigrationWorkerJobRunnerTests
 
         Assert.Equal("manual-approval-required", result.Status);
         Assert.Contains("concrete implementation", result.Message, StringComparison.Ordinal);
+        Assert.Null(result.Evidence);
     }
 
     [Fact]
