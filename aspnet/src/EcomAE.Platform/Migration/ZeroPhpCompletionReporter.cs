@@ -20,9 +20,9 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "Port ERP accounting, inventory, invoices, reports, and permission checks.",
                 "Port BOS privileged operations and validate tenant CP/ERP host behavior."
             ]),
-            new("Storefront and public API parity", 15, 58, "price-and-catalog-cache-routes-started", [
-                "Price lookup plus catalog status/manufacturers/models/modifications/brands have DB readers + API-key auth.",
-                "Still need article/VIN/live UMAPI endpoints, staging smoke artifacts, and exact-route shadows only after evidence."
+            new("Storefront and public API parity", 15, 74, "price-and-catalog-cache-routes-started", [
+                "Price lookup plus catalog status/manufacturers/models/modifications/brands/vin/engines/analogs/article-brands/categories/products have DB/cache readers + API-key auth.",
+                "Still need live UMAPI proxy fills, staging smoke artifacts, and exact-route shadows only after evidence."
             ]),
             new("Background jobs and scheduled work", 10, 40, "dry-run-validators-started", [
                 "Dry-run validators exist for price-import, sitemap, backups, notifications, and erp-reports (writes blocked).",

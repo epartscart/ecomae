@@ -31,6 +31,12 @@ public static class EcomAeRoutes
     public const string CatalogModels = "/api/v1/catalog/models";
     public const string CatalogModifications = "/api/v1/catalog/modifications";
     public const string CatalogBrands = "/api/v1/catalog/brands";
+    public const string CatalogVin = "/api/v1/catalog/vin";
+    public const string CatalogEngines = "/api/v1/catalog/engines";
+    public const string CatalogAnalogs = "/api/v1/catalog/analogs";
+    public const string CatalogArticleBrands = "/api/v1/catalog/article-brands";
+    public const string CatalogCategories = "/api/v1/catalog/categories";
+    public const string CatalogProducts = "/api/v1/catalog/products";
     public const string CatalogParity = "/api/v1/catalog/parity";
     public const string PriceLookup = "/api/v1/price/lookup";
     public const string PriceLookupParity = "/api/v1/price/parity";

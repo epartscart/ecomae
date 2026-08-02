@@ -4,8 +4,8 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 
 ## Current percentage
 
-- True zero-PHP completion: 45.0%.
-- Pending to 100%: 55.0%.
+- True zero-PHP completion: 48.0%.
+- Pending to 100%: 52.0%.
 - Foundation/planning floor: 35.0%.
 - Route/job implementation started (not parity-ready): price lookup + catalog cache routes + worker dry-run validators.
 - Route/job parity-ready: 0.0%.
@@ -37,6 +37,7 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 - `/api/v1/catalog/status`: DB status reader + catalog API-key auth + evidence pack. Staging smoke still required.
 - `/api/v1/catalog/models|/modifications|/brands`: DB cache readers + auth + shadow examples.
 - `/api/v1/catalog/manufacturers`: DB cache reader + catalog API-key auth + exact-route shadow example. Staging smoke still required.
+- `/api/v1/catalog/vin|/engines|/analogs|/article-brands|/categories|/products`: offline DB/cache readers + auth + shadow examples (cache-miss keeps PHP authoritative).
 - Worker dry-run validators (writes blocked): price-import, sitemap, backups, notifications, erp-reports.
 - Production deploy helper: `scripts/cloudpanel_production_deploy_foundation.sh` (diagnostics/foundation only; no broad PHP cutover).
 
