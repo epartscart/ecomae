@@ -44,6 +44,9 @@ check 'unit tests classify tenant ERP-only mode' contains "$ROOT/aspnet/tests/Ec
 check 'portal tenant SQL maps epc_portal_tenants' contains "$ROOT/aspnet/src/EcomAE.Platform/Data/PortalTenantSql.cs" 'epc_portal_tenants'
 check 'portal tenant row maps ERP-only mode' contains "$ROOT/aspnet/src/EcomAE.Platform/Data/PortalTenantRow.cs" 'TenantMode.ErpOnlyTenant'
 check 'legacy session validator exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/HttpLegacySessionValidator.cs"
+check 'DB-backed legacy session validator exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbBackedLegacySessionValidator.cs"
+check 'DB legacy session store is read-only' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbLegacySessionStore.cs" 'Performs zero writes'
+check 'legacy session SQL checks admin type' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionSql.cs" '`type` = 1'
 check 'legacy session tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/LegacySessionValidatorTests.cs"
 check 'legacy session parity reporter interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/ILegacySessionParityReporter.cs"
 check 'legacy session parity route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/auth/session/parity'
@@ -52,7 +55,8 @@ check 'program registers legacy session parity reporter' contains "$ROOT/aspnet/
 check 'legacy session parity tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/LegacySessionParityReporterTests.cs"
 check 'api key legacy sessions authenticate' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionContext.cs" 'Kind == LegacySessionKind.ApiKey'
 check 'legacy session probe route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/auth/session/probe'
-check 'program registers legacy session validator' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ILegacySessionValidator, HttpLegacySessionValidator'
+check 'program registers legacy session validator' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ILegacySessionValidator, DbBackedLegacySessionValidator'
+check 'program registers legacy session store' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ILegacySessionStore'
 check 'surface module contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Modules/ISurfaceModule.cs"
 check 'CP module exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"
 check 'ERP module exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"
@@ -183,7 +187,7 @@ check 'CSV price offer repository tests exist' test -f "$ROOT/aspnet/tests/EcomA
 check 'legacy API key parser exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientKeyParser.cs"
 check 'legacy API key parser supports catalog prefix' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientKeyParser.cs" 'epc_catalog_'
 check 'legacy API key parser supports pricepro prefix' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientKeyParser.cs" 'epc_pricepro_'
-check 'legacy session validator uses API key parser' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/HttpLegacySessionValidator.cs" 'LegacyApiClientKeyParser.Parse'
+check 'legacy session validator uses API key parser' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbBackedLegacySessionValidator.cs" 'LegacyApiClientKeyParser.Parse'
 check 'legacy API client SQL contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientSql.cs"
 check 'legacy API client SQL maps epc_api_clients' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientSql.cs" 'epc_api_clients'
 check 'legacy API client policy exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientPolicy.cs"
@@ -256,7 +260,8 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 50.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 51.0%'
+check 'legacy session DB evidence exists' test -f "$ROOT/docs/migration/evidence/legacy-session-db/README.md"
 check 'zero PHP progress status blocks broad cutover' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Broad `/api`, `/cp`, `/erp`, `/bos`'
 check 'catalog manufacturers route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/manufacturers'
 check 'DB catalog manufacturers repository exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbCatalogManufacturerRepository.cs"

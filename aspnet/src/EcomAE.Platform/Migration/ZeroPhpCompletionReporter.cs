@@ -28,8 +28,9 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "Dry-run validators exist for price-import, sitemap, backups, notifications, and erp-reports (writes blocked).",
                 "Batch 1 still requires per-job parity samples and live smoke before schedule cutover."
             ]),
-            new("Data, auth, observability, and rollback evidence", 15, 40, "auth-wired-evidence-pending", [
+            new("Data, auth, observability, and rollback evidence", 15, 48, "auth-wired-evidence-pending", [
                 "API-key auth/quota path is wired for price lookup and catalog cache/DB routes against epc_api_clients.",
+                "Admin cookie sessions are validated against PHP sessions.type=1 when TenantRegistry DB is configured.",
                 "Staging smoke artifacts, live rollback approvals, and full route evidence packs remain pending."
             ]),
             new("PHP runtime decommission", 5, 0, "blocked", [
@@ -46,7 +47,7 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
             "not-ready-for-php-removal",
             areas,
             [
-                "Deploy ASP.NET foundation on production with diagnostics-only exposure (scripts/cloudpanel_production_deploy_foundation.sh).",
+                "Deploy ASP.NET foundation on production with diagnostics-only exposure (scripts/cloudpanel_find_and_redeploy.sh).",
                 "Run exact-route staging smoke for /api/v1/price/lookup and /api/v1/catalog/status with real API keys.",
                 "Attach smoke artifacts, then enable only approved location = exact-route nginx shadows.",
                 "Repeat exact-route/job cutovers through all 61 batches until zero PHP-only routes/jobs remain."

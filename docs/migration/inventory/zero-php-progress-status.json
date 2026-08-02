@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 50.0,
-  "pendingPercent": 50.0,
+  "trueZeroPhpCompletionPercent": 51.0,
+  "pendingPercent": 49.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -49,7 +49,8 @@
     "/api/v1/catalog/products DB/cache+auth",
     "/api/v1/catalog/engine-search DB/cache+auth",
     "/api/v1/catalog/article-links DB/cache+auth",
-    "/api/v1/catalog/brand-parts DB+auth"
+    "/api/v1/catalog/brand-parts DB+auth",
+    "DbBackedLegacySessionValidator admin sessions.type=1"
   ],
   "nextExecutionOrder": [
     "Redeploy with scripts/cloudpanel_find_and_redeploy.sh (do not use /var/www/ecomae).",

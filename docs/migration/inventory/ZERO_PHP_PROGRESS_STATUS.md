@@ -4,10 +4,10 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 
 ## Current percentage
 
-- True zero-PHP completion: 50.0%.
-- Pending to 100%: 50.0%.
+- True zero-PHP completion: 51.0%.
+- Pending to 100%: 49.0%.
 - Foundation/planning floor: 35.0%.
-- Route/job implementation started (not parity-ready): price lookup + catalog cache/DB routes + worker dry-run validators.
+- Route/job implementation started (not parity-ready): price lookup + catalog cache/DB routes + worker dry-run validators + admin session DB check.
 - Route/job parity-ready: 0.0%.
 - Route/job shadow-or-better: 0.0%.
 
@@ -39,6 +39,7 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 - `/api/v1/catalog/manufacturers`: DB cache reader + catalog API-key auth + exact-route shadow example. Staging smoke still required.
 - `/api/v1/catalog/vin|/engines|/analogs|/article-brands|/categories|/products|/engine-search|/article-links`: offline DB/cache readers + auth + shadow examples (cache-miss keeps PHP authoritative).
 - `/api/v1/catalog/brand-parts`: DB stock reader from `shop_docpart_prices_data` + auth + shadow example.
+- Admin session DB check: `DbBackedLegacySessionValidator` against `sessions.type=1` when TenantRegistry DB is configured.
 - Worker dry-run validators (writes blocked): price-import, sitemap, backups, notifications, erp-reports.
 - Production deploy helpers: `scripts/cloudpanel_production_deploy_foundation.sh`, `scripts/cloudpanel_find_and_redeploy.sh` (diagnostics/foundation only; no broad PHP cutover).
 
