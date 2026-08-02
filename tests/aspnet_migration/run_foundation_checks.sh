@@ -175,6 +175,8 @@ check 'legacy API usage log SQL maps epc_umapi_usage_log' contains "$ROOT/aspnet
 check 'legacy API usage logger exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/MigrationLegacyApiUsageLogger.cs"
 check 'program registers legacy API usage logger' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ILegacyApiUsageLogger, MigrationLegacyApiUsageLogger'
 check 'PR range rebase script exists' test -x "$ROOT/scripts/rebase_conflicted_pr_range.sh"
+check 'PR 569 conflict fix script exists' test -x "$ROOT/scripts/resolve_pr_569_conflicts.sh"
+check 'PR 569 conflict fix script fetches pull ref' contains "$ROOT/scripts/resolve_pr_569_conflicts.sh" 'pull/${PR_NUMBER}/head'
 check 'PR range rebase script covers PR 500 default' contains "$ROOT/scripts/rebase_conflicted_pr_range.sh" 'START_PR="${1:-500}"'
 check 'PR range rebase script covers PR 508 default' contains "$ROOT/scripts/rebase_conflicted_pr_range.sh" 'END_PR="${2:-508}"'
 check 'PR rebase runbook exists' test -f "$ROOT/docs/migration/PR_REBASE_CONFLICT_RUNBOOK.md"
@@ -239,6 +241,8 @@ check 'ASP.NET production env template keeps PHP fallback' contains "$ROOT/deplo
 check 'ASP.NET diagnostics-only nginx config allowlists migration routes' contains "$ROOT/deploy/aspnet/nginx-diagnostics-only.conf" 'allow YOUR_OFFICE_IP'
 check 'ASP.NET exact API shadow example exists' contains "$ROOT/deploy/aspnet/nginx-api-shadow-example.conf" '/api/v1/catalog/status'
 check 'ASP.NET deploy script exists' test -x "$ROOT/scripts/deploy_aspnet_foundation.sh"
+check 'ASP.NET detached deploy script exists' test -x "$ROOT/scripts/deploy_aspnet_foundation_detached.sh"
+check 'ASP.NET detached deploy uses nohup' contains "$ROOT/scripts/deploy_aspnet_foundation_detached.sh" 'nohup'
 check 'ASP.NET deploy script runs detailed foundation tests' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'run_detailed_foundation_tests.sh'
 check 'ASP.NET rollback script exists' test -x "$ROOT/scripts/rollback_aspnet_foundation.sh"
 check 'ASP.NET production preflight script exists' test -x "$ROOT/scripts/preflight_aspnet_production.sh"
@@ -259,6 +263,8 @@ check 'CloudPanel quick start warns about literal placeholder path' contains "$R
 check 'CloudPanel missing repo recovery exists' test -f "$ROOT/deploy/aspnet/CLOUDPANEL_MISSING_REPO_RECOVERY.md"
 check 'CloudPanel missing repo recovery requires real git URL' contains "$ROOT/deploy/aspnet/CLOUDPANEL_MISSING_REPO_RECOVERY.md" 'Set ECOMAE_GIT_URL to the real repository URL first'
 check 'production runbook troubleshoots missing script' contains "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md" 'No such file or directory'
+check 'production runbook documents detached deploy' contains "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md" 'deploy_aspnet_foundation_detached.sh'
+check 'production runbook documents PR 569 conflict helper' contains "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md" 'resolve_pr_569_conflicts.sh'
 check 'Codex PR cleanup script exists' test -x "$ROOT/scripts/cleanup_codex_prs.sh"
 check 'Codex PR cleanup script is dry-run by default' contains "$ROOT/scripts/cleanup_codex_prs.sh" 'RUN_CLOSE:-0'
 check 'open PR consolidation runbook exists' test -f "$ROOT/docs/migration/OPEN_PR_CONSOLIDATION_RUNBOOK.md"

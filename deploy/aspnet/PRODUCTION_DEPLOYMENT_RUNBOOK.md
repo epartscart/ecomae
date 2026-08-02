@@ -151,3 +151,54 @@ bash scripts/remote_aspnet_foundation_deploy.sh
 ```
 
 After reviewing the dry-run plan and ensuring SSH, repository access, `/etc/ecomae-aspnet/platform.env`, .NET, PHP, and release directories are ready on the server, set `ECOMAE_RUN_REMOTE_DEPLOY=1`. Keep `ECOMAE_RUN_NGINX_RELOAD=0` unless an approved exact diagnostics include has already been installed through CloudPanel/Nginx change control.
+
+## If SSH/CloudPanel session ends during deploy
+
+Use the detached wrapper so the deploy continues after the browser/SSH session disconnects:
+
+```bash
+sudo ECOMAE_RUN_SYSTEMD=1 \
+ECOMAE_ASPNET_RELEASE_ROOT=/var/www/ecomae-aspnet \
+bash scripts/deploy_aspnet_foundation_detached.sh
+```
+
+Then follow the log printed by the wrapper:
+
+```bash
+tail -f deploy/logs/aspnet-foundation-deploy-*.log
+```
+
+If `tmux` is available and preferred:
+
+```bash
+sudo ECOMAE_DEPLOY_USE_TMUX=1 \
+ECOMAE_RUN_SYSTEMD=1 \
+ECOMAE_ASPNET_RELEASE_ROOT=/var/www/ecomae-aspnet \
+bash scripts/deploy_aspnet_foundation_detached.sh
+```
+
+This wrapper still runs `scripts/deploy_aspnet_foundation.sh`; it only protects the long-running publish/test/service restart process from session disconnects.
+
+## Fix PR #569 merge conflicts from terminal
+
+Use this after confirming PR #569 is the desired branch to update:
+
+```bash
+bash scripts/resolve_pr_569_conflicts.sh
+```
+
+If conflicts appear, resolve them, then continue the rebase:
+
+```bash
+git status --short
+git add <resolved-files>
+git rebase --continue
+```
+
+After checks pass and you are ready to update the PR branch:
+
+```bash
+RUN_PUSH=1 bash scripts/resolve_pr_569_conflicts.sh
+```
+
+If PR #569 uses a different source branch name than the helper branch, push explicitly with `git push --force-with-lease origin HEAD:<pr-569-source-branch>`.
