@@ -117,7 +117,7 @@ The ASP.NET Core registry bridge is aligned with the PHP-created `epc_portal_ten
 1. Preserve current public route shapes before changing clients.
 2. Add ASP.NET Core DTOs and service interfaces.
 3. Connect services to existing MySQL/catalog tables.
-4. Run old PHP endpoint and new ASP.NET endpoint in parity mode.
+4. Run old PHP endpoint and new ASP.NET Core endpoint in parity mode.
 5. Cut traffic to ASP.NET Core after response schema and performance match.
 6. Delete the PHP endpoint once production telemetry proves parity.
 
@@ -158,7 +158,7 @@ The ASP.NET Core registry bridge is aligned with the PHP-created `epc_portal_ten
 
 - Replaced CP, ERP, and BOS placeholder responses with structured ASP.NET Core surface shell payloads.
 - Added `ISurfaceShellCatalog` and `MigrationSurfaceShellCatalog` so `/CP`, `/ERP`, and `/BOS` return sections, legacy mappings, tenant mode, and next parity checks.
-- Progress increased from 20% to 28% because the first CP/ERP/BOS ASP.NET shell layer now exists, but it is not 50% until database-backed modules, auth parity, and production proxy gates pass.
+- Progress increased from 20% to 28% because the first CP/ERP/BOS ASP.NET Core shell layer now exists, but it is not 50% until database-backed modules, auth parity, and production proxy gates pass.
 - Remaining route-level work to reach 50% is real login parity, ERP finance data parity, BOS audit parity, and catalog/price database reads.
 
 
@@ -180,7 +180,7 @@ The ASP.NET Core registry bridge is aligned with the PHP-created `epc_portal_ten
 
 ## PR Conflict Resolution Procedure
 
-When several ASP.NET migration PRs are open and all conflict, close the duplicate PRs and create one consolidated branch from latest `origin/main`:
+When several ASP.NET Core migration PRs are open and all conflict, close the duplicate PRs and create one consolidated branch from latest `origin/main`:
 
 ```bash
 scripts/prepare_consolidated_aspnet_pr.sh work aspnet-migration-consolidated
@@ -193,41 +193,41 @@ The script checks out the final migration files from the source branch onto late
 ## Thirteenth Milestone Included Here
 
 - Added `LegacyPriceLookupSql` to mirror the current PHP `/api/v1/price/lookup.php` query contract against `shop_docpart_prices_data`.
-- Expanded ASP.NET price offer DTO shape to include brand, article, item name, stock hint, and lead time fields that exist in the PHP response.
+- Expanded ASP.NET Core price offer DTO shape to include brand, article, item name, stock hint, and lead time fields that exist in the PHP response.
 - Progress increased from 28% to 30% because the price API now has an explicit SQL parity contract, but full API migration remains pending until it executes against the real database with auth and response parity tests.
 
 
 ## Fourteenth Milestone Included Here
 
 - Added `IPriceOfferRepository`, `PriceOfferRow`, `MigrationPriceOfferRepository`, and `RepositoryPriceLookupService` to move the price API from static placeholder response toward a repository-backed pipeline.
-- The ASP.NET price lookup service now normalizes brand/article input, asks a repository for legacy offer rows, and maps rows into the PHP-compatible offer DTO shape.
+- The ASP.NET Core price lookup service now normalizes brand/article input, asks a repository for legacy offer rows, and maps rows into the PHP-compatible offer DTO shape.
 - Progress increased from 30% to 32%; the remaining API work is provider-backed database execution, API-key auth parity, and response comparison against PHP.
 
 
 ## Fifteenth Milestone Included Here
 
 - Added `LegacyApiClientKeyParser` and `LegacyApiClientKey` to mirror PHP API key prefix rules for `epc_catalog_` and `epc_pricepro_` keys.
-- The ASP.NET legacy session validator now accepts `X-API-Key` and Bearer authorization headers only when the key matches the legacy prefix contract.
+- The ASP.NET Core legacy session validator now accepts `X-API-Key` and Bearer authorization headers only when the key matches the legacy prefix contract.
 - This moves auth parity forward; remaining work is validating hashed keys against `epc_api_clients`, enforcing products/actions, and consuming daily quota in the database.
 
 
 ## Sixteenth Milestone Included Here
 
 - Added `LegacyApiClientRecord`, `LegacyApiClientSql`, and `LegacyApiClientPolicy` to mirror PHP `epc_api_clients` product, action, and daily quota semantics.
-- ASP.NET now has testable policy logic for `catalog`, `price_pro`, `both`, wildcard actions, JSON/list action filters, and daily quota availability.
+- ASP.NET Core now has testable policy logic for `catalog`, `price_pro`, `both`, wildcard actions, JSON/list action filters, and daily quota availability.
 - Progress increased from 33% to 35%; the remaining auth work is executing these contracts against the database and logging usage parity.
 
 
 ## Seventeenth Milestone Included Here
 
 - Added `LegacyApiUsageLogEntry`, `LegacyApiUsageLogSql`, `ILegacyApiUsageLogger`, and `MigrationLegacyApiUsageLogger` to mirror PHP `epc_umapi_usage_log` field limits and usage logging shape.
-- ASP.NET now has a registered usage logger boundary for API client parity, with tests for truncation, default source, quota-blocked metadata, and table mapping.
+- ASP.NET Core now has a registered usage logger boundary for API client parity, with tests for truncation, default source, quota-blocked metadata, and table mapping.
 - Progress increased from 35% to 36%; remaining work is database-backed insert execution and wiring logger calls into every API auth success/failure path.
 
 
 ## Eighteenth Milestone Included Here
 
-- Added a structured ASP.NET storefront shell payload for home/CMS, catalog browsing, cart/checkout, and customer account migration areas.
+- Added a structured ASP.NET Core storefront shell payload for home/CMS, catalog browsing, cart/checkout, and customer account migration areas.
 - Updated `StorefrontModule` to use `ISurfaceShellCatalog`, matching the CP/ERP/BOS shell approach.
 - Progress increased from 36% to 37%; storefront still requires rendered HTML parity, catalog integration, cart/session compatibility, and checkout validation before PHP storefront removal.
 
@@ -255,8 +255,8 @@ The script checks out the final migration files from the source branch onto late
 
 ## Twenty Second Milestone Included Here
 
-- Added `IMigrationRouteCutoverPolicy` and `MigrationRouteCutoverDecision` to make PHP-vs-ASP.NET runtime decisions explicit for API, storefront, CP, ERP, BOS, and unknown surfaces.
-- API routes are now modeled as eligible for ASP.NET shadow traffic with PHP fallback, while CP/ERP/BOS/storefront remain PHP-primary until business parity is complete.
+- Added `IMigrationRouteCutoverPolicy` and `MigrationRouteCutoverDecision` to make PHP-vs-ASP.NET Core runtime decisions explicit for API, storefront, CP, ERP, BOS, and unknown surfaces.
+- API routes are now modeled as eligible for ASP.NET Core shadow traffic with PHP fallback, while CP/ERP/BOS/storefront remain PHP-primary until business parity is complete.
 - Added `scripts/push_consolidated_pr_update.sh` to push the conflict-free consolidated branch from a GitHub-connected workstation and then close superseded PRs #500 through #508.
 - Progress increased to 45%; the remaining 55% is the business migration work: login, permissions, data writes, reports, storefront checkout, database-backed API/auth execution, production telemetry, and final PHP removal.
 
@@ -270,8 +270,8 @@ The script checks out the final migration files from the source branch onto late
 
 ## Twenty Fourth Milestone Included Here
 
-- Added `MigrationRouteCutoverOptions` and `MigrationRouteCutover` appsettings so API shadow traffic, admin ASP.NET shells, storefront ASP.NET traffic, and PHP fallback requirements are configurable.
-- `MigrationRouteCutoverPolicy` now consumes options, allowing operators to disable API shadow traffic or later enable ASP.NET traffic per surface without changing code.
+- Added `MigrationRouteCutoverOptions` and `MigrationRouteCutover` appsettings so API shadow traffic, admin ASP.NET Core shells, storefront ASP.NET Core traffic, and PHP fallback requirements are configurable.
+- `MigrationRouteCutoverPolicy` now consumes options, allowing operators to disable API shadow traffic or later enable ASP.NET Core traffic per surface without changing code.
 - Progress increased to 47%; remaining cutover work is real proxy/feature-flag integration, telemetry gates, and per-surface parity sign-off.
 
 
@@ -284,7 +284,7 @@ The script checks out the final migration files from the source branch onto late
 
 ## Twenty Sixth Milestone Included Here
 
-- Added `/api/v1/price/parity` with `IPriceLookupParityReporter` to expose the current ASP.NET price lookup sample, source status, shadow-readiness, and remaining PHP parity gaps.
+- Added `/api/v1/price/parity` with `IPriceLookupParityReporter` to expose the current ASP.NET Core price lookup sample, source status, shadow-readiness, and remaining PHP parity gaps.
 - The endpoint uses the repository-backed `IPriceLookupService`, keeping the public API path testable while production PHP remains authoritative.
 - Progress reached 50%; the remaining 50% is primarily real DB integrations, business workflow parity, production feature flags, telemetry gates, and PHP removal.
 
@@ -300,7 +300,7 @@ The script checks out the final migration files from the source branch onto late
 
 - Added `/auth/api-client/parity` with `ILegacyApiClientParityReporter` so API key prefixes, policy rules, legacy SQL sources, and remaining DB execution gaps are visible to operators.
 - This keeps auth cutover safe: parser/policy/log-contract parity is documented, but hashed key lookup and usage-row writes remain pending before production API replacement.
-- Progress increased to 52%; continue with small implementation-depth tasks until every PHP-backed workflow has ASP.NET parity.
+- Progress increased to 52%; continue with small implementation-depth tasks until every PHP-backed workflow has ASP.NET Core parity.
 
 
 ## Twenty Ninth Milestone Included Here
@@ -338,7 +338,7 @@ The script checks out the final migration files from the source branch onto late
 
 ## Thirty Fourth Milestone Included Here
 
-- Added `/migration/cutover-validation` with `ICutoverValidationReporter` so release owners can see required signals, rollback controls, and approval gates before moving traffic from PHP to ASP.NET.
+- Added `/migration/cutover-validation` with `ICutoverValidationReporter` so release owners can see required signals, rollback controls, and approval gates before moving traffic from PHP to ASP.NET Core.
 - The report keeps PHP authoritative until route flags, shadow evidence, latency budgets, access-denial behavior, audit logs, and manual approvals are complete per surface.
 - Progress increased to 68%; the remaining 32% is production execution: workflow ports, fixture replay, feature-flag enforcement, monitoring, and actual PHP retirement.
 
@@ -380,7 +380,7 @@ The script checks out the final migration files from the source branch onto late
 
 ## Fortieth Milestone Included Here
 
-- Added a production preflight script for the ASP.NET foundation deployment that checks required server commands, .NET version compatibility, release directory presence, server-only environment-file permissions, placeholder credential cleanup, PHP fallback, and optional localhost health.
+- Added a production preflight script for the ASP.NET Core foundation deployment that checks required server commands, .NET version compatibility, release directory presence, server-only environment-file permissions, placeholder credential cleanup, PHP fallback, and optional localhost health.
 - Added a CloudPanel include template that deliberately avoids broad `/cp`, `/erp`, `/bos`, `/api`, and storefront cutover rules during the diagnostics-only first exposure.
 - Extended the detailed foundation runner and static foundation checks so deployment scripts, rollback scripts, and production preflight coverage stay reviewable in CI.
 
@@ -426,3 +426,36 @@ The script checks out the final migration files from the source branch onto late
 - Added a dry-run-first `scripts/cleanup_codex_prs.sh` helper that uses GitHub CLI to keep one final PR and close superseded Codex-labeled PRs only when `RUN_CLOSE=1`.
 - Extended foundation checks so the PR cleanup workflow stays discoverable and safe before production deployment.
 
+
+## Forty Seventh Milestone Included Here
+
+- Added a Cursor handoff status document that summarizes completion percentages, remaining operational tasks, blocked actions, and evidence required for diagnostics-only production go-live.
+- Marked repository foundation and deployment guardrails as complete while clearly separating authenticated GitHub/server operations from code work.
+- Extended foundation checks so the handoff remains present and continues to warn against broad route cutover before parity approval.
+
+
+## Forty Eighth Milestone Included Here
+
+- Clarified operator-facing scripts, runbooks, handoff docs, and parity text to consistently say ASP.NET Core rather than ambiguous ASP.NET.
+- Added a modern-stack confirmation document that explicitly excludes legacy ASP.NET, System.Web, Web Forms, MVC 5, Web API 2, and .NET Framework-only hosting assumptions.
+- Extended foundation checks so future edits keep the migration aligned to ASP.NET Core and not legacy ASP.NET.
+
+
+## Forty Ninth Milestone Included Here
+
+- Added an ASP.NET Core advanced architecture roadmap covering clean/hexagonal architecture, CQRS, event-driven systems, performance tuning, cloud-native orchestration, tenant data partitioning, distributed caching, and zero-trust security.
+- Clarified that these are post-foundation implementation tracks and acceptance gates, not permission to remove PHP fallback or broad-cutover routes.
+- Extended foundation checks so advanced ASP.NET Core architecture requirements remain visible during future migration work.
+
+## Fiftieth Milestone Included Here
+
+- Extended the ASP.NET Core advanced architecture roadmap with principal-level systems engineering tracks for Roslyn/IL inspection, GC tuning, Kestrel transport internals, SIMD/vectorization, unmanaged interop, CPU-cache-aware data design, Native AOT operations, Polly resilience pipelines, chaos engineering, OpenTelemetry trace context, and eBPF observability.
+- Clarified that these low-level techniques require benchmark/profiler evidence, specialist ownership, staging validation, explicit blast-radius limits, and rollback plans before production use.
+- Extended foundation checks so these distinguished-engineering topics remain visible without changing the current diagnostics-only PHP-fallback production posture.
+
+
+## Fifty First Milestone Included Here
+
+- Added a Zero-PHP Production Cutover Roadmap that defines the path to ASP.NET Core serving 100% of production traffic and PHP being fully decommissioned.
+- Documented required phases for route inventory, implementation completion, data readiness, security readiness, performance/reliability/observability gates, staged rollout, and PHP decommission.
+- Added a short status report: migration scaffolding is complete, deployment automation is mostly ready, feature parity is still pending, and zero-PHP production remains blocked until every PHP route/job is replaced and verified live.

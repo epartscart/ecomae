@@ -73,6 +73,7 @@ SHELL_FILES=(
     "$ROOT/scripts/preflight_aspnet_production.sh"
     "$ROOT/scripts/verify_aspnet_proxy_guardrails.sh"
     "$ROOT/scripts/remote_aspnet_foundation_deploy.sh"
+    "$ROOT/scripts/inventory_php_routes.sh"
 )
 for file in "${SHELL_FILES[@]}"; do
     if [[ ! -f "$file" ]]; then
@@ -87,7 +88,11 @@ for file in "${SHELL_FILES[@]}"; do
     fi
 done
 
-run_required 'ASP.NET proxy guardrail checks' "$ROOT/scripts/verify_aspnet_proxy_guardrails.sh"
+
+run_required 'zero-PHP route inventory JSON is valid' bash -c '"$1" json >/tmp/ecomae_php_inventory.json && python3 -m json.tool /tmp/ecomae_php_inventory.json >/dev/null' _ "$ROOT/scripts/inventory_php_routes.sh"
+run_required 'zero-PHP route inventory markdown renders' bash -c '"$1" markdown >/tmp/ecomae_php_inventory.md && test -s /tmp/ecomae_php_inventory.md' _ "$ROOT/scripts/inventory_php_routes.sh"
+
+run_required 'ASP.NET Core proxy guardrail checks' "$ROOT/scripts/verify_aspnet_proxy_guardrails.sh"
 
 if command -v dotnet >/dev/null 2>&1; then
     run_required '.NET unit tests' dotnet test "$ROOT/aspnet/tests/EcomAE.Platform.Tests"

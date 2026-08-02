@@ -5,7 +5,7 @@ REPO="${GITHUB_REPOSITORY:-epartscart/ecomae}"
 LABEL="${CODEX_PR_LABEL:-codex}"
 KEEP_PR="${KEEP_PR:-}"
 RUN_CLOSE="${RUN_CLOSE:-0}"
-COMMENT="${COMMENT:-Superseded by the consolidated ASP.NET migration PR. Keeping one clean PR avoids conflict churn before production deployment.}"
+COMMENT="${COMMENT:-Superseded by the consolidated ASP.NET Core migration PR. Keeping one clean PR avoids conflict churn before production deployment.}"
 
 if ! command -v gh >/dev/null 2>&1; then
   echo "gh CLI is required. Install GitHub CLI and run: gh auth login" >&2

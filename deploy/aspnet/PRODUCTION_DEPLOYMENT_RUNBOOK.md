@@ -1,4 +1,4 @@
-# EcomAE ASP.NET Foundation Production Deployment Runbook
+# EcomAE ASP.NET Core Foundation Production Deployment Runbook
 
 This runbook deploys the ASP.NET Core migration foundation beside the existing PHP application. PHP must remain authoritative until parity/cutover reports prove a route is safe to move.
 
@@ -6,20 +6,20 @@ This runbook deploys the ASP.NET Core migration foundation beside the existing P
 
 1. Rotate any password shared outside the secret manager before or immediately after the deployment window.
 2. Keep PHP-FPM and the existing CloudPanel site enabled.
-3. Start ASP.NET on `127.0.0.1` only.
+3. Start ASP.NET Core on `127.0.0.1` only.
 4. Expose `/health` and allowlisted `/migration/*` first.
 5. Cut over one exact route at a time only after parity approval.
-6. Roll back by removing ASP.NET proxy blocks so PHP handles the route again.
+6. Roll back by removing ASP.NET Core proxy blocks so PHP handles the route again.
 
 ## Files in this folder
 
 | File | Purpose |
 | --- | --- |
 | `platform.env.example` | Copy to `/etc/ecomae-aspnet/platform.env` and fill server-only values. |
-| `ecomae-platform.service` | systemd unit for the ASP.NET platform host. |
+| `ecomae-platform.service` | systemd unit for the ASP.NET Core platform host. |
 | `ecomae-workers.service` | systemd unit for migration workers; keep disabled until worker dry-runs are approved. |
 | `nginx-diagnostics-only.conf` | Safe first CloudPanel/Nginx include for `/health` and allowlisted `/migration/*`. |
-| `nginx-api-shadow-example.conf` | Example exact-route ASP.NET API proxy block after parity approval. |
+| `nginx-api-shadow-example.conf` | Example exact-route ASP.NET Core API proxy block after parity approval. |
 | `cloudpanel-site-include.template.conf` | CloudPanel include wrapper for diagnostics-only first exposure. |
 | `GO_LIVE_CHECKLIST.md` | Per-route approval checklist for exact-match cutovers. |
 | `remote-deploy.env.example` | Local operator template for dry-run-first SSH deployment automation. |
@@ -118,9 +118,9 @@ Do not proxy broad `/api/`, `/cp`, `/erp`, `/bos`, or storefront locations until
 
 ## Rollback
 
-To roll back ASP.NET traffic immediately:
+To roll back ASP.NET Core traffic immediately:
 
-1. Remove the ASP.NET `location` block for the affected route.
+1. Remove the ASP.NET Core `location` block for the affected route.
 2. Validate and reload Nginx:
 
 ```bash

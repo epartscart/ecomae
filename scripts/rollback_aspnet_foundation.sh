@@ -6,7 +6,7 @@ RUN_SYSTEMD="${ECOMAE_RUN_SYSTEMD:-0}"
 RUN_NGINX_RELOAD="${ECOMAE_RUN_NGINX_RELOAD:-0}"
 TARGET_RELEASE="${1:-}"
 
-printf '== EcomAE ASP.NET foundation rollback ==\n'
+printf '== EcomAE ASP.NET Core foundation rollback ==\n'
 printf 'Release root: %s\n' "$RELEASE_ROOT"
 
 if [[ -n "$TARGET_RELEASE" ]]; then
@@ -31,7 +31,7 @@ if [[ "$RUN_NGINX_RELOAD" == "1" ]]; then
     nginx -t
     systemctl reload nginx
 else
-    printf 'Skipped nginx reload. Remove ASP.NET location blocks and reload CloudPanel/Nginx manually if needed.\n'
+    printf 'Skipped nginx reload. Remove ASP.NET Core location blocks and reload CloudPanel/Nginx manually if needed.\n'
 fi
 
-printf '\nEmergency traffic rollback: remove ASP.NET proxy location blocks so CloudPanel/PHP handles routes again.\n'
+printf '\nEmergency traffic rollback: remove ASP.NET Core proxy location blocks so CloudPanel/PHP handles routes again.\n'

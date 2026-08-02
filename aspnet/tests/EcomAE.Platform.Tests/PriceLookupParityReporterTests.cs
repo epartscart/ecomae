@@ -13,7 +13,7 @@ public sealed class PriceLookupParityReporterTests
         var report = await reporter.BuildReportAsync();
 
         Assert.Equal("TOYOTA", report.SampleBrand);
-        Assert.Equal("04465-0K020", report.SampleArticle);
+        Assert.Equal("044650K020", report.SampleArticle);
         Assert.True(report.ReadyForShadowTraffic);
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("legacy API-key policy", StringComparison.Ordinal));
     }

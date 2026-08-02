@@ -6,7 +6,7 @@ Use this when the CloudPanel shell prints:
 ECOMAE repo not found on this server. Clone it first, then re-run this block.
 ```
 
-That message means the ASP.NET migration repository is not deployed on the server yet. The server cannot run `scripts/preflight_aspnet_production.sh` until the repository is cloned or copied there.
+That message means the ASP.NET Core migration repository is not deployed on the server yet. The server cannot run `scripts/preflight_aspnet_production.sh` until the repository is cloned or copied there.
 
 ## Paste-safe clone block
 

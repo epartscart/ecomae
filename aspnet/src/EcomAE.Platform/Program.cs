@@ -39,6 +39,8 @@ builder.Services.AddSingleton<IDataParityReporter, DataParityReporter>();
 builder.Services.AddSingleton<ICutoverValidationReporter, CutoverValidationReporter>();
 builder.Services.AddSingleton<IMigrationProgressReporter, MigrationProgressReporter>();
 builder.Services.AddSingleton<ISurfaceParityReporter, SurfaceParityReporter>();
+builder.Services.AddSingleton<IZeroPhpCompletionReporter, ZeroPhpCompletionReporter>();
+builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();
 
@@ -56,6 +58,10 @@ app.MapGet(EcomAeRoutes.MigrationReadiness, (IMigrationReadinessReporter reporte
 app.MapGet(EcomAeRoutes.MigrationCutoverPlan, (IMigrationCutoverPlanner planner) => Results.Ok(planner.BuildPlan()));
 
 app.MapGet(EcomAeRoutes.MigrationProgress, (IMigrationProgressReporter reporter) => Results.Ok(reporter.BuildReport()));
+
+app.MapGet(EcomAeRoutes.ZeroPhpCompletion, (IZeroPhpCompletionReporter reporter) => Results.Ok(reporter.BuildReport()));
+
+app.MapGet(EcomAeRoutes.PythonSidecars, (IPythonSidecarCatalogReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.MigrationRouteCutover, (HttpContext context, IMigrationRouteCutoverPolicy policy) =>
 {

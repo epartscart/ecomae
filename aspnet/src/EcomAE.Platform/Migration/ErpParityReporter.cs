@@ -10,7 +10,7 @@ public sealed class ErpParityReporter : IErpParityReporter
             "/erp/parity plus /erp shell",
             "finance-shell-parity-visible",
             [
-                "Canonical ERP route aliases are mapped to the ASP.NET shell.",
+                "Canonical ERP route aliases are mapped to the ASP.NET Core shell.",
                 "Tenant resolver classifies ERP-only tenants before route cutover.",
                 "Surface parity report tracks finance dashboard, chart of accounts, vouchers, invoices, inventory, and reports."
             ],
