@@ -4,19 +4,29 @@ The command `bash scripts/preflight_aspnet_production.sh` must be run from the r
 
 **Do not use `/var/www/ecomae`.** That path is usually missing. Source checkouts live under `/root/ecomae` or `/opt/ecomae-aspnet-source`. Published releases live under `/var/www/ecomae-aspnet`.
 
-After a merged PR, prefer the paste-safe one-shot:
+After a merged PR, use this paste-safe bootstrap (works even when local scripts are missing/stale):
 
 ```bash
-# If you already have a checkout somewhere:
-ECOMAE_REPO="$(find /var/www /opt /root -maxdepth 6 -type f -path '*/scripts/cloudpanel_find_and_redeploy.sh' -print -quit 2>/dev/null | sed 's#/scripts/cloudpanel_find_and_redeploy.sh##')"
-if [ -n "$ECOMAE_REPO" ]; then
-  cd "$ECOMAE_REPO" && bash scripts/cloudpanel_find_and_redeploy.sh
-else
-  mkdir -p /opt && cd /opt
+# Preferred: always refresh /opt/ecomae-aspnet-source to latest main, then deploy.
+mkdir -p /opt
+cd /opt
+if [ ! -d ecomae-aspnet-source/.git ]; then
   git clone https://github.com/epartscart/ecomae.git ecomae-aspnet-source
-  cd /opt/ecomae-aspnet-source && bash scripts/cloudpanel_find_and_redeploy.sh
 fi
+cd /opt/ecomae-aspnet-source
+git fetch origin main
+git checkout -f main
+git reset --hard origin/main
+bash scripts/cloudpanel_find_and_redeploy.sh
 ```
+
+If `scripts/cloudpanel_find_and_redeploy.sh` is still missing, your checkout never updated. Run:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_bootstrap_from_github.sh)"
+```
+
+**Common mistake:** `cd /opt/ecomae-aspnet-source` then run a new script without `git fetch/reset` first. An old checkout will not contain newly merged scripts.
 
 Do not paste the example path `/path/to/ecomae-repo` literally. Replace it with the real repository path found by the commands below.
 

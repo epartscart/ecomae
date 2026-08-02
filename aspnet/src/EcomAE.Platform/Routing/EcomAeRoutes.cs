@@ -12,6 +12,7 @@ public static class EcomAeRoutes
     public const string MigrationRouteCutover = "/migration/route-cutover";
     public const string MigrationDataParity = "/migration/data-parity";
     public const string MigrationCutoverValidation = "/migration/cutover-validation";
+    public const string MigrationUmapiUsage = "/migration/umapi-usage";
     public const string SurfaceParity = "/migration/surface-parity";
     public const string TenantContext = "/tenant/context";
     public const string TenantWorkspaceParity = "/tenant/workspace/parity";
