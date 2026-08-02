@@ -10,11 +10,12 @@ public sealed class ZeroPhpCompletionReporterTests
     {
         var report = new ZeroPhpCompletionReporter().BuildReport();
 
-        Assert.Equal(35, report.OverallCompletePercent);
-        Assert.Equal(65, report.OverallPendingPercent);
+        Assert.Equal(43, report.OverallCompletePercent);
+        Assert.Equal(57, report.OverallPendingPercent);
         Assert.Equal("not-ready-for-php-removal", report.Status);
         Assert.Contains(report.Areas, area => area.Name == "Foundation, deployment, and diagnostics" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "PHP runtime decommission" && area.CompletePercent == 0 && area.Status == "blocked");
-        Assert.Contains(report.NextActions, action => action.Contains("one exact low-risk route", StringComparison.Ordinal));
+        Assert.Contains(report.Areas, area => area.Name == "Storefront and public API parity" && area.CompletePercent == 45);
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_production_deploy_foundation.sh", StringComparison.Ordinal));
     }
 }

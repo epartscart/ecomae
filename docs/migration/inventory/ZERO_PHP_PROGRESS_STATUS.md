@@ -4,10 +4,10 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 
 ## Current percentage
 
-- True zero-PHP completion: 35.0%.
-- Pending to 100%: 65.0%.
+- True zero-PHP completion: 43.0%.
+- Pending to 100%: 57.0%.
 - Foundation/planning floor: 35.0%.
-- Route/job implementation complete: 0.0%.
+- Route/job implementation started (not parity-ready): price lookup + catalog status + worker dry-run validators.
 - Route/job parity-ready: 0.0%.
 - Route/job shadow-or-better: 0.0%.
 
@@ -31,17 +31,21 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 - Batch assignments: 3049 (100.0%).
 - Total exact-route batches: 61.
 
+## Concrete implementation progress (honest)
+
+- `/api/v1/price/lookup`: DB repository + API-key auth + evidence pack + exact-route shadow example. Staging smoke still required.
+- `/api/v1/catalog/status`: DB status reader + catalog API-key auth + evidence pack. Staging smoke still required.
+- Worker dry-run validators (writes blocked): price-import, sitemap, backups, notifications, erp-reports.
+- Production deploy helper: `scripts/cloudpanel_production_deploy_foundation.sh` (diagnostics/foundation only; no broad PHP cutover).
+
 ## Next execution order
 
-- Implement batch 1 worker replacements in ASP.NET Core dry-run mode. Batch 1 now has a generated worker replacement catalog scaffold, dry-run planner, parity reporter, dry-run evidence manifest, and batch-wide dry-run executor in `aspnet/src/EcomAE.Workers/ZeroPhpBatchOneWorkerReplacement.cs`, `aspnet/src/EcomAE.Workers/ZeroPhpBatchOneWorkerReplacementRunner.cs`, `aspnet/src/EcomAE.Workers/ZeroPhpBatchOneWorkerParityReporter.cs`, `aspnet/src/EcomAE.Workers/ZeroPhpBatchOneWorkerDryRunEvidence.cs`, and `aspnet/src/EcomAE.Workers/ZeroPhpBatchOneWorkerDryRunExecutor.cs`.
-- Attach PHP-vs-ASP.NET parity samples for each route/job in the batch.
-- Move passing batch items to aspnet-shadow, then parity-ready, then live.
-- Repeat batches without broad proxy cutover.
-- Remove PHP only after every item is live or removed and rollback evidence is approved.
-- To reach 90% honestly, complete the selected exact-route batches in `docs/migration/inventory/ZERO_PHP_90_PERCENT_TARGET_PLAN.md`; this requires live-or-removed evidence for 2580 tracked PHP route/job assignments.
-- Run `scripts/verify_zero_php_90_readiness.py` before any 90% claim; it must show 2600/2600 selected items ready before PRs may advertise 90% completion.
-- Use `scripts/generate_zero_php_90_evidence_templates.py --write` to create the 2600 evidence templates, then fill them with real parity, rollback, and smoke results before rerunning the 90% readiness gate.
+- Deploy ASP.NET foundation on production via CloudPanel script (diagnostics only).
+- Run exact-route staging smoke for price lookup and catalog status with real API keys; attach artifacts.
+- Enable only approved `location =` nginx shadows after smoke passes.
+- Continue batch-by-batch worker/route replacements with parity evidence.
+- Remove PHP only after every tracked item is live/removed with rollback approval.
 
 ## Guardrail
 
-Do not report 100% until every tracked PHP route/job is `live` or `removed`, PHP fallback removal has rollback approval, and production smoke checks pass.
+Do not report 100% until every tracked PHP route/job is `live` or `removed`, PHP fallback removal has rollback approval, and production smoke checks pass. Broad `/api`, `/cp`, `/erp`, `/bos`, or storefront cutover remains forbidden.

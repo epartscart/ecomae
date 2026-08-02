@@ -8,7 +8,17 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
     private readonly IReadOnlyCollection<IMigrationWorkerJobDryRunExecutor> _dryRunExecutors;
 
     public MigrationWorkerJobRunner(MigrationWorkerJobCatalog catalog, TimeProvider timeProvider)
-        : this(catalog, timeProvider, new MigrationWorkerDryRunEvidenceProvider(), [new PriceImportDryRunExecutor()])
+        : this(
+            catalog,
+            timeProvider,
+            new MigrationWorkerDryRunEvidenceProvider(),
+            [
+                new PriceImportDryRunExecutor(),
+                new SitemapDryRunExecutor(),
+                new BackupDryRunExecutor(),
+                new NotificationsDryRunExecutor(),
+                new ErpReportsDryRunExecutor()
+            ])
     {
     }
 
@@ -16,7 +26,17 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
         MigrationWorkerJobCatalog catalog,
         TimeProvider timeProvider,
         IMigrationWorkerDryRunEvidenceProvider evidenceProvider)
-        : this(catalog, timeProvider, evidenceProvider, [new PriceImportDryRunExecutor()])
+        : this(
+            catalog,
+            timeProvider,
+            evidenceProvider,
+            [
+                new PriceImportDryRunExecutor(),
+                new SitemapDryRunExecutor(),
+                new BackupDryRunExecutor(),
+                new NotificationsDryRunExecutor(),
+                new ErpReportsDryRunExecutor()
+            ])
     {
     }
 

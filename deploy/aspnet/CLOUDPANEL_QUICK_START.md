@@ -64,10 +64,22 @@ The preflight should only pass after .NET, PHP, curl, release directories, and t
 
 ## 6. Deploy diagnostics-only ASP.NET Core
 
+One-shot from repo root (preferred):
+
+```bash
+cd /root/ecomae   # or the real repo path from step 1
+sudo ECOMAE_BRANCH=main \
+ECOMAE_RUN_SYSTEMD=1 \
+ECOMAE_INSTALL_DIAGNOSTICS_NGINX=0 \
+bash scripts/cloudpanel_production_deploy_foundation.sh
+```
+
+Or the lower-level deploy:
+
 ```bash
 sudo ECOMAE_RUN_SYSTEMD=1 \
 ECOMAE_ASPNET_RELEASE_ROOT=/var/www/ecomae-aspnet \
 bash scripts/deploy_aspnet_foundation.sh
 ```
 
-Then expose only `/health` and allowlisted `/migration/*` through CloudPanel/Nginx. Do not proxy broad CP/ERP/BOS/API/storefront routes until route-level parity is approved.
+Then expose only `/health` and allowlisted `/migration/*` through CloudPanel/Nginx. Do not proxy broad CP/ERP/BOS/API/storefront routes until route-level parity is approved. Never set `ECOMAE_ENABLE_PRICE_LOOKUP_SHADOW=1` in the one-shot script; that flag is rejected until staging smoke evidence exists.

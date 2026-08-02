@@ -6,13 +6,13 @@ public sealed class CatalogParityReporter : ICatalogParityReporter
     {
         return new CatalogParityReport(
             "PHP api/v1/catalog.php and Laximo/UMAPI integrations",
-            "ASP.NET Core catalog status and planned endpoint contracts",
-            "contract-ready-with-gaps",
+            "ASP.NET Core /api/v1/catalog/status with DbCatalogStatusRepository + catalog API-key auth",
+            "status-route-wired-awaiting-staging",
             ReadyForShadowTraffic: true,
             [
                 "Wire manufacturer, model, vehicle, catalog group, and part endpoints to production providers.",
-                "Replay captured PHP catalog fixtures against ASP.NET Core responses before public cutover.",
-                "Enforce legacy API-key product/action policy and tenant scoping on every catalog route."
+                "Replay captured PHP catalog status fixtures against ASP.NET Core responses before public cutover.",
+                "Enforce staging smoke with epc_catalog_ API keys before enabling location = /api/v1/catalog/status shadow."
             ]);
     }
 }

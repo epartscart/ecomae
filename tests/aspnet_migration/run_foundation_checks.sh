@@ -240,7 +240,24 @@ check 'price import dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Wo
 check 'price import dry-run executor blocks writes' contains "$ROOT/aspnet/src/EcomAE.Workers/PriceImportDryRunExecutor.cs" 'WritesBlocked: true'
 check 'price import dry-run executor validates sku' contains "$ROOT/aspnet/src/EcomAE.Workers/PriceImportDryRunExecutor.cs" '"sku"'
 check 'worker program registers price import dry-run executor' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerJobDryRunExecutor, PriceImportDryRunExecutor'
+check 'worker program registers sitemap dry-run executor' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerJobDryRunExecutor, SitemapDryRunExecutor'
+check 'worker program registers backup dry-run executor' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerJobDryRunExecutor, BackupDryRunExecutor'
+check 'worker program registers notifications dry-run executor' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerJobDryRunExecutor, NotificationsDryRunExecutor'
+check 'worker program registers erp-reports dry-run executor' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerJobDryRunExecutor, ErpReportsDryRunExecutor'
+check 'sitemap dry-run executor blocks writes' contains "$ROOT/aspnet/src/EcomAE.Workers/SitemapDryRunExecutor.cs" 'WritesBlocked: true'
+check 'backup dry-run executor blocks writes' contains "$ROOT/aspnet/src/EcomAE.Workers/BackupDryRunExecutor.cs" 'WritesBlocked: true'
 check 'price import dry-run executor tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/PriceImportDryRunExecutorTests.cs"
+check 'worker dry-run executor tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/WorkerDryRunExecutorTests.cs"
+check 'DB catalog status repository exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbCatalogStatusRepository.cs"
+check 'DB catalog status repository is read-only' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbCatalogStatusRepository.cs" 'Performs zero writes'
+check 'program registers catalog status service' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ICatalogStatusService, CatalogStatusService'
+check 'API module gates catalog status with catalog auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" '"catalog", "status"'
+check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-status/README.md"
+check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
+check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
+check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 43.0%'
+check 'zero PHP progress status blocks broad cutover' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Broad `/api`, `/cp`, `/erp`, `/bos`'
 check 'worker dry-run evidence provider exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs"
 check 'worker dry-run evidence keeps PHP fallback required' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'PhpFallbackRequired: true'
 check 'worker dry-run evidence includes rollback command' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'disable ASP.NET worker flag'

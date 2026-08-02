@@ -48,6 +48,14 @@ builder.Services.AddSingleton<IPriceOfferRepository>(sp =>
 });
 builder.Services.AddSingleton<IPriceLookupService, RepositoryPriceLookupService>();
 builder.Services.AddSingleton<IPriceLookupParityReporter, PriceLookupParityReporter>();
+builder.Services.AddSingleton<ICatalogStatusRepository>(sp =>
+{
+    var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
+    return connections.IsConfigured
+        ? ActivatorUtilities.CreateInstance<DbCatalogStatusRepository>(sp)
+        : new MigrationCatalogStatusRepository();
+});
+builder.Services.AddSingleton<ICatalogStatusService, CatalogStatusService>();
 builder.Services.AddSingleton<ICatalogParityReporter, CatalogParityReporter>();
 builder.Services.AddSingleton<IMigrationParityReporter, MigrationParityReporter>();
 builder.Services.AddSingleton<IControlPanelParityReporter, ControlPanelParityReporter>();
