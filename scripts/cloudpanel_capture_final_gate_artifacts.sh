@@ -53,6 +53,22 @@ ECOMAE_CATALOG_API_KEY="${ECOMAE_CATALOG_API_KEY:-${CATALOG_API_KEY:-}}"
 printf '\n-- Smoke env preflight (values redacted) --\n'
 bash "$REPO/scripts/cloudpanel_validate_final_gate_env.sh" || true
 
+# Fail fast when secrets were never filled (avoids long public-probe loops that still skip smoke).
+if [[ -z "${ECOMAE_PRICE_LOOKUP_API_KEY:-}" || -z "${ECOMAE_CATALOG_API_KEY:-}" || ( -z "${ECOMAE_ADMIN_COOKIE_HEADER:-}" && -z "${ECOMAE_ADMIN_COOKIE_JAR:-}" ) ]]; then
+  if [[ "${ECOMAE_ALLOW_PUBLIC_ONLY_CAPTURE:-0}" != "1" ]]; then
+    printf '\nBLOCKED: smoke secrets still MISSING in %s\n' "$ENV_FILE"
+    printf 'Issue them on this server (does not print secrets):\n'
+    printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+    printf 'If that reports no admin session: log into https://www.ecomae.com/CP/ once, then re-run issue.\n'
+    printf 'Then:\n'
+    printf '  source %s\n' "$ENV_FILE"
+    printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
+    printf 'Or set ECOMAE_ALLOW_PUBLIC_ONLY_CAPTURE=1 to capture public probes only.\n'
+    exit 2
+  fi
+  printf 'WARN: continuing public-only capture (ECOMAE_ALLOW_PUBLIC_ONLY_CAPTURE=1); authenticated smoke will SKIP.\n'
+fi
+
 capture_json() {
   local url="$1"
   local out="$2"

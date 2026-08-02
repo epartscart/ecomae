@@ -6,18 +6,23 @@ set -euo pipefail
 ECOMAE_ASPNET_ENV_DIR="${ECOMAE_ASPNET_ENV_DIR:-/etc/ecomae-aspnet}"
 ENV_FILE="${ECOMAE_ASPNET_ENV_DIR}/platform.env"
 
+ROOT="$(cd "$(dirname "$0")" && pwd)"
 printf '%s\n' '== Prepare final-gate smoke secrets =='
 printf 'Env file: %s\n' "$ENV_FILE"
-printf 'This script does NOT invent keys. Plaintext API keys exist only at issuance time.\n'
+printf 'Fastest path on CloudPanel: issue keys from DB into platform.env (secrets not printed).\n'
 
 if [[ ! -f "$ENV_FILE" ]]; then
   printf 'ERROR: %s missing. Run deploy first.\n' "$ENV_FILE" >&2
   exit 2
 fi
 
-bash "$(cd "$(dirname "$0")" && pwd)/cloudpanel_validate_final_gate_env.sh" || true
+bash "$ROOT/cloudpanel_validate_final_gate_env.sh" || true
 
-printf '\n-- How to get API keys --\n'
+printf '\n-- Recommended (server issues keys + binds active admin session) --\n'
+printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+printf 'If admin cookie still missing: log into https://www.ecomae.com/CP/ once, then re-run the issue script.\n'
+
+printf '\n-- Manual alternative --\n'
 printf '1) Super CP → API clients (epc_api_clients). Create/reveal a price_pro + catalog key.\n'
 printf '2) Keys must start with epc_pricepro_ and epc_catalog_ (full secret, not just prefix).\n'
 printf '3) Put them in %s as:\n' "$ENV_FILE"
