@@ -17,7 +17,7 @@ check() {
 contains() {
   local file="$1"
   local needle="$2"
-  grep -Fq "$needle" "$file"
+  grep -Fq -- "$needle" "$file"
 }
 
 echo "== ASP.NET Core migration foundation =="
@@ -199,6 +199,11 @@ check 'worker job runner dry-run status exists' contains "$ROOT/aspnet/src/EcomA
 check 'worker job runner blocks non-dry-run' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerJobRunner.cs" 'manual-approval-required'
 check 'worker program registers job runner' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerJobRunner, MigrationWorkerJobRunner'
 check 'worker job runner tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationWorkerJobRunnerTests.cs"
+check 'worker dry-run evidence provider exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs"
+check 'worker dry-run evidence keeps PHP fallback required' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'PhpFallbackRequired: true'
+check 'worker dry-run evidence includes rollback command' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'disable ASP.NET worker flag'
+check 'worker job runner attaches dry-run evidence' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerJobRunner.cs" 'BuildEvidence'
+check 'worker dry-run evidence tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationWorkerDryRunEvidenceProviderTests.cs"
 check 'worker schedule planner interface exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/IMigrationWorkerSchedulePlanner.cs"
 check 'worker schedule planner has distributed lock readiness' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerSchedulePlanner.cs" 'RequiresDistributedLock: true'
 check 'worker schedule planner includes dead-letter policy' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerSchedulePlanner.cs" 'exponential-backoff-with-dead-letter'
@@ -253,6 +258,19 @@ check 'Codex PR cleanup script is dry-run by default' contains "$ROOT/scripts/cl
 check 'open PR consolidation runbook exists' test -f "$ROOT/docs/migration/OPEN_PR_CONSOLIDATION_RUNBOOK.md"
 check 'consolidated PR push script exists' test -x "$ROOT/scripts/push_consolidated_pr_update.sh"
 check 'migration plan documents zero PHP final state' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'zero PHP files'
+check 'zero PHP architecture instructions exist' test -f "$ROOT/docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md"
+check 'zero PHP architecture names ASP.NET as source of truth' contains "$ROOT/docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md" 'single source of truth'
+check 'zero PHP completion report stays truthful at 35 percent' contains "$ROOT/docs/migration/ZERO_PHP_COMPLETION_REPORT.md" '35.0%'
+check 'zero PHP progress status tracks 3049 PHP files' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" '3,049'
+check 'zero PHP 100 evidence generator exists' test -x "$ROOT/scripts/generate_zero_php_100_evidence_templates.py"
+check 'zero PHP 100 readiness verifier exists' test -x "$ROOT/scripts/verify_zero_php_100_readiness.py"
+check 'zero PHP evidence summary JSON exists' test -f "$ROOT/docs/migration/inventory/zero-php-100-evidence-template-summary.json"
+check 'zero PHP evidence summary keeps PHP fallback required' contains "$ROOT/docs/migration/inventory/zero-php-100-evidence-template-summary.json" 'php_fallback_required'
+check 'zero PHP generator is dry-run by default' contains "$ROOT/scripts/generate_zero_php_100_evidence_templates.py" 'Default mode is a dry run'
+check 'zero PHP generator supports explicit write mode' contains "$ROOT/scripts/generate_zero_php_100_evidence_templates.py" '--write'
+check 'zero PHP dry-run summary selects all tracked PHP items' contains "$ROOT/docs/migration/inventory/zero-php-100-evidence-template-summary.json" '"selected_items": 3049'
+check 'zero PHP dry-run summary reports missing templates' contains "$ROOT/docs/migration/inventory/zero-php-100-evidence-template-summary.json" '"missing_templates": 3049'
+check 'zero PHP progress references final readiness gate' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'verify_zero_php_100_readiness.py'
 
 echo "----------------------------"
 echo "Passed: $pass  Failed: $fail"

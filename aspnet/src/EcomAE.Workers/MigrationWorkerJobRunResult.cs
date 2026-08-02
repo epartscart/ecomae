@@ -6,4 +6,5 @@ public sealed record MigrationWorkerJobRunResult(
     bool DryRun,
     string Message,
     DateTimeOffset RequestedAt,
-    DateTimeOffset CompletedAt);
+    DateTimeOffset CompletedAt,
+    MigrationWorkerDryRunEvidence? Evidence = null);

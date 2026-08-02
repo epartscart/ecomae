@@ -1,4 +1,4 @@
-<?
+<?php
 function generateArticleUrl2 ($Num){
 	$Num = preg_replace("/[&nbsp;\W]/", "", $Num);
 	if (($_GET['clid'] and $_GET['clid']!=1) or $_GET['pid'] or $_GET['shopid']){
