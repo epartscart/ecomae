@@ -209,6 +209,7 @@ app.MapGet(EcomAeRoutes.LegacySessionProbe, async (HttpContext context, ILegacyS
         group_ids = session.Groups,
         has_backend_access = session.HasBackendAccess,
         capabilities = session.Capabilities,
+        module_acl = session.Modules,
         session.Permissions
     });
 });

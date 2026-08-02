@@ -77,4 +77,53 @@ public static class LegacySurfaceDashboardSql
         ORDER BY `id` DESC
         LIMIT @limit
         """;
+
+    public const string SelectCpUsers = """
+        SELECT `user_id`, `email`, `phone`, `unlocked`, `time_registered`, `time_last_visit`
+        FROM `users`
+        ORDER BY `user_id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpGroups = """
+        SELECT `id`, `value`, `for_backend`, `for_guests`, `for_registrated`, `unblocked`, `parent`, `level`
+        FROM `groups`
+        ORDER BY `level` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpSuppliers = """
+        SELECT s.`id`, s.`name`, s.`storage_id`,
+            IFNULL((SELECT SUM(`amount`) FROM `epc_erp_supplier_accounting`
+                    WHERE `supplier_id` = s.`id` AND `active` = 1 AND `is_credit` = 1), 0)
+            - IFNULL((SELECT SUM(`amount`) FROM `epc_erp_supplier_accounting`
+                    WHERE `supplier_id` = s.`id` AND `active` = 1 AND `is_credit` = 0), 0) AS balance
+        FROM `epc_erp_suppliers` s
+        WHERE s.`active` = 1
+        ORDER BY s.`name` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPurchases = """
+        SELECT p.`id`, p.`supplier_id`, s.`name` AS supplier_name, p.`purchase_date`,
+               p.`invoice_number`, p.`total_amount`, p.`status`, p.`order_id`
+        FROM `epc_erp_purchases` p
+        INNER JOIN `epc_erp_suppliers` s ON s.`id` = p.`supplier_id`
+        WHERE p.`active` = 1
+        ORDER BY p.`purchase_date` DESC, p.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string CountCustomerGarage = """
+        SELECT COUNT(*) FROM `shop_docpart_garage` WHERE `user_id` = @userId
+        """;
+
+    public const string SelectCustomerGarage = """
+        SELECT `id`, `caption`, `marka`, `model`, `year`, `vin`, `active`
+        FROM `shop_docpart_garage`
+        WHERE `user_id` = @userId
+        ORDER BY `active` DESC, `caption` ASC
+        LIMIT @limit
+        """;
+
 }

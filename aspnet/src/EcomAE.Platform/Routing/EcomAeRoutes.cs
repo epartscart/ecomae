@@ -24,10 +24,14 @@ public static class EcomAeRoutes
     public const string ControlPanelParity = "/cp/parity";
     public const string ControlPanelDashboardSummary = "/cp/dashboard-summary";
     public const string ControlPanelTenants = "/cp/tenants";
+    public const string ControlPanelUsers = "/cp/users";
+    public const string ControlPanelGroups = "/cp/groups";
     public const string Erp = "/erp";
     public const string ErpParity = "/erp/parity";
     public const string ErpDashboardSummary = "/erp/dashboard-summary";
     public const string ErpAccountsSummary = "/erp/accounts-summary";
+    public const string ErpSuppliers = "/erp/suppliers";
+    public const string ErpPurchases = "/erp/purchases";
     public const string Bos = "/bos";
     public const string BosParity = "/bos/parity";
     public const string BosFleetSummary = "/bos/fleet-summary";
@@ -60,6 +64,7 @@ public static class EcomAeRoutes
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     public const string StorefrontOrders = "/storefront/orders";
+    public const string StorefrontGarage = "/storefront/garage";
 
     public static readonly string[] ControlPanelAliases = [ControlPanel, "/cp/", "/CP", "/CP/"];
 

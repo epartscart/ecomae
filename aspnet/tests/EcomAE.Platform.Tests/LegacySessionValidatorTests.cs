@@ -115,9 +115,12 @@ public sealed class LegacySessionValidatorTests
         Assert.StartsWith("SELECT", LegacySessionSql.SelectBackendGroupIds.Trim(), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("`type` = 1", LegacySessionSql.CountAdminSession, StringComparison.Ordinal);
         Assert.Contains("`for_backend` = 1", LegacySessionSql.SelectBackendGroupIds, StringComparison.Ordinal);
+        Assert.Contains("modules_access", LegacySessionSql.SelectModuleAccessForGroup, StringComparison.Ordinal);
+        Assert.Contains("NOT EXISTS", LegacySessionSql.SelectOpenModules, StringComparison.Ordinal);
         Assert.DoesNotContain("`type`", LegacySessionSql.CountCustomerSession, StringComparison.Ordinal);
         Assert.DoesNotContain("INSERT", LegacySessionSql.CountAdminSession, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE", LegacySessionSql.SelectUserGroupIds, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("DELETE", LegacySessionSql.SelectOpenModules, StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed class StaticSessionStore : ILegacySessionStore

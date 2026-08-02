@@ -8,11 +8,11 @@ public sealed class ErpParityReporter : IErpParityReporter
             "Platform ERP",
             "ecomae.com/ERP, /erp, and cp/content/shop/finance/erp/",
             "/erp/parity plus admin-session-gated /erp shell",
-            "erp-kpi-digests-session-gated-awaiting-staging",
+            "suppliers-purchases-digests-session-gated-awaiting-staging",
             [
                 "Canonical ERP route aliases are mapped to the ASP.NET Core shell.",
                 "ERP shell requires admin session via DbBackedLegacySessionValidator (401 when anonymous).",
-                "Read-only /erp/dashboard-summary exposes migration KPI/fleet counts.",
+                "Read-only /erp/dashboard-summary, /erp/accounts-summary, /erp/suppliers, and /erp/purchases digests are wired.",
                 "Tenant resolver classifies ERP-only tenants before route cutover.",
                 "Surface parity report tracks finance dashboard, chart of accounts, vouchers, invoices, inventory, and reports."
             ],

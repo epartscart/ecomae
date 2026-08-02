@@ -53,7 +53,8 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                     FullAdminPermissions,
                     identity.Email,
                     identity.GroupIds,
-                    HasBackendAccess: true);
+                    HasBackendAccess: true,
+                    ModuleAcl: identity.Modules);
             }
 
             return new LegacySessionContext(

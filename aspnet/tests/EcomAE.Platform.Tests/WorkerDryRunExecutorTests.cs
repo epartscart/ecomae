@@ -372,4 +372,61 @@ public sealed class WorkerDryRunExecutorTests
         Assert.Equal("120", output.Metrics["preview_rows"]);
     }
 
+    [Fact]
+    public void ApaiHourlyCrawlDryRunValidatesSampleWithoutWrites()
+    {
+        var executor = new ApaiHourlyCrawlDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "apai-hourly-crawl");
+        var request = new MigrationWorkerJobRunRequest(
+            "apai-hourly-crawl",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_tenants"] = "demo,parts\nbad"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["crawls"]);
+        Assert.Equal("1", output.Metrics["valid_rows"]);
+    }
+
+    [Fact]
+    public void WebhooksProcessDryRunValidatesSampleWithoutSends()
+    {
+        var executor = new WebhooksProcessDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "webhooks-process");
+        var request = new MigrationWorkerJobRunRequest(
+            "webhooks-process",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_deliveries"] = "12,pending\n13,done\nbad"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["sends"]);
+        Assert.Equal("1", output.Metrics["pending"]);
+    }
+
+    [Fact]
+    public void OfflineResilienceWarmDryRunValidatesTargetsWithoutWarms()
+    {
+        var executor = new OfflineResilienceWarmDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "offline-resilience-warm");
+        var request = new MigrationWorkerJobRunRequest(
+            "offline-resilience-warm",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_targets"] = "/api/v1/catalog/status\nbad target"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["warms"]);
+        Assert.Equal("1", output.Metrics["valid_targets"]);
+    }
+
 }

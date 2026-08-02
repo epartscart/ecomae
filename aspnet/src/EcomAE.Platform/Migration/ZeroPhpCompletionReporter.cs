@@ -14,21 +14,21 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "Inventory and ownership assignment are complete for 3049 PHP files / 61 batches.",
                 "Execution remains route-by-route; broad /, /api, /cp, /erp, and /bos cutovers stay blocked."
             ]),
-            new("CP, ERP, BOS, and tenant workflow parity", 25, 48, "tenant-fleet-digests-started", [
-                "CP/ERP/BOS shells are session-gated with capabilities, dashboard summaries, tenant digests, and ERP KPI SQL parity.",
-                "Still need login UX, tenant admin writes, full ERP/BOS workflows, and module ACL."
+            new("CP, ERP, BOS, and tenant workflow parity", 25, 60, "users-groups-erp-lists-started", [
+                "CP/ERP/BOS shells expose capability-gated digests: tenants, users, groups, ERP suppliers/purchases/accounts, fleet health.",
+                "Still need login UX, tenant admin writes, full ERP/BOS workflows, and nested module ACL inheritance."
             ]),
-            new("Storefront and public API parity", 15, 97, "account-orders-digest-started", [
-                "Catalog/price routes plus customer-gated account shell/summary/orders digests are wired.",
+            new("Storefront and public API parity", 15, 99, "account-garage-digest-started", [
+                "Catalog/price routes plus customer-gated account/orders/garage digests are wired.",
                 "Live UMAPI proxy fills, HTML storefront parity, checkout, and staging smoke remain."
             ]),
-            new("Background jobs and scheduled work", 10, 88, "dry-run-validators-started", [
-                "Dry-run validators cover core cron/queue jobs including product-exist-limit, cache-warmup, and import-orchestrator (writes blocked).",
+            new("Background jobs and scheduled work", 10, 94, "dry-run-validators-started", [
+                "Dry-run validators cover cron/queue jobs including APAI hourly crawl, webhooks-process, and offline-resilience-warm (writes blocked).",
                 "Batch 1 still requires per-job parity samples and live smoke before schedule cutover."
             ]),
-            new("Data, auth, observability, and rollback evidence", 15, 90, "session-capabilities-wired-evidence-pending", [
-                "Admin backend-group claims expose surface capabilities on probe/shells; customer sessions gate account/orders digests.",
-                "ERP digests use epc_erp_* cash/supplier mirrors; tenant fleet digests are read-only.",
+            new("Data, auth, observability, and rollback evidence", 15, 94, "module-acl-probe-wired-evidence-pending", [
+                "Admin sessions expose coarse capabilities plus modules_access/open-module ACL on probe/shells.",
+                "Customer sessions gate account/orders/garage digests; ERP digests use epc_erp_* mirrors.",
                 "Staging smoke artifacts, live rollback approvals, and full route evidence packs remain pending."
             ]),
             new("PHP runtime decommission", 5, 0, "blocked", [

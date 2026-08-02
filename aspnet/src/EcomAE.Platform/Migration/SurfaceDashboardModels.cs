@@ -32,6 +32,7 @@ public sealed record StorefrontAccountSummary(
     int UserId,
     int Orders,
     int Sessions,
+    int GarageVehicles,
     string Source,
     string Message);
 
@@ -74,6 +75,80 @@ public sealed record StorefrontOrderDigest(
 public sealed record StorefrontOrdersResult(
     int UserId,
     IReadOnlyList<StorefrontOrderDigest> Orders,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpUserDigest(
+    int UserId,
+    string Email,
+    string Phone,
+    int Unlocked,
+    long TimeRegistered,
+    long TimeLastVisit);
+
+public sealed record CpUserListResult(
+    IReadOnlyList<CpUserDigest> Users,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpGroupDigest(
+    int Id,
+    string Value,
+    bool ForBackend,
+    bool ForGuests,
+    bool ForRegistrated,
+    bool Unblocked,
+    int Parent,
+    int Level);
+
+public sealed record CpGroupListResult(
+    IReadOnlyList<CpGroupDigest> Groups,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpSupplierDigest(
+    long Id,
+    string Name,
+    long StorageId,
+    decimal Balance);
+
+public sealed record ErpSupplierListResult(
+    IReadOnlyList<ErpSupplierDigest> Suppliers,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpPurchaseDigest(
+    long Id,
+    long SupplierId,
+    string SupplierName,
+    long PurchaseDate,
+    string InvoiceNumber,
+    decimal TotalAmount,
+    string Status,
+    long OrderId);
+
+public sealed record ErpPurchaseListResult(
+    IReadOnlyList<ErpPurchaseDigest> Purchases,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontGarageVehicleDigest(
+    long Id,
+    string Caption,
+    string Marka,
+    string Model,
+    string Year,
+    string Vin,
+    int Active);
+
+public sealed record StorefrontGarageResult(
+    int UserId,
+    IReadOnlyList<StorefrontGarageVehicleDigest> Vehicles,
     int Count,
     string Source,
     string Message);
