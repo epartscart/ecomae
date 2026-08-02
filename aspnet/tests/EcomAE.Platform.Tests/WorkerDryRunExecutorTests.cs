@@ -429,4 +429,61 @@ public sealed class WorkerDryRunExecutorTests
         Assert.Equal("1", output.Metrics["valid_targets"]);
     }
 
+    [Fact]
+    public void ApaiWeeklyPlatformSyncDryRunValidatesSampleWithoutWrites()
+    {
+        var executor = new ApaiWeeklyPlatformSyncDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "apai-weekly-platform-sync");
+        var request = new MigrationWorkerJobRunRequest(
+            "apai-weekly-platform-sync",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_sources"] = "tecdoc,500\nbad"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["writes"]);
+        Assert.Equal("500", output.Metrics["preview_rows"]);
+    }
+
+    [Fact]
+    public void ApaiDailySourceExpandDryRunValidatesSampleWithoutWrites()
+    {
+        var executor = new ApaiDailySourceExpandDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "apai-daily-source-expand");
+        var request = new MigrationWorkerJobRunRequest(
+            "apai-daily-source-expand",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_expansions"] = "brands,2\nbad"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["writes"]);
+        Assert.Equal("1", output.Metrics["valid_rows"]);
+    }
+
+    [Fact]
+    public void ApiClientPingDryRunValidatesSampleWithoutPings()
+    {
+        var executor = new ApiClientPingDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "api-client-ping");
+        var request = new MigrationWorkerJobRunRequest(
+            "api-client-ping",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_clients"] = "7,/health\nbad"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.Equal("0", output.Metrics["pings"]);
+        Assert.Equal("1", output.Metrics["valid_rows"]);
+    }
+
 }

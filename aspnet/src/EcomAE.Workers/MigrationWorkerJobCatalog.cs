@@ -24,6 +24,9 @@ public sealed class MigrationWorkerJobCatalog
         new("import-orchestrator", "content/general_pages/epc_import_orchestrator.php", "EcomAE.Workers.ImportOrchestrator", "queue-driven", "planned", "Previewed import sources/rows match PHP orchestrator; no import writes until parity smoke."),
         new("apai-hourly-crawl", "epc-apai-hourly-crawl.php", "EcomAE.Workers.ApaiHourlyCrawl", "scheduled", "planned", "Validated tenant/source crawl targets match PHP preview; no crawl writes until parity smoke."),
         new("webhooks-process", "epc-webhooks-process.php", "EcomAE.Workers.WebhooksProcess", "queue-driven", "planned", "Previewed pending webhook deliveries match PHP queue; no sends/retries until parity smoke."),
-        new("offline-resilience-warm", "epc-offline-resilience-warm.php", "EcomAE.Workers.OfflineResilienceWarm", "scheduled", "planned", "Validated warm targets match PHP preview; no HTTP/cache writes until parity smoke.")
+        new("offline-resilience-warm", "epc-offline-resilience-warm.php", "EcomAE.Workers.OfflineResilienceWarm", "scheduled", "planned", "Validated warm targets match PHP preview; no HTTP/cache writes until parity smoke."),
+        new("apai-weekly-platform-sync", "epc-apai-weekly-platform-sync.php", "EcomAE.Workers.ApaiWeeklyPlatformSync", "scheduled", "planned", "Validated weekly sync sources match PHP preview; no sync writes until parity smoke."),
+        new("apai-daily-source-expand", "epc-apai-daily-source-expand.php", "EcomAE.Workers.ApaiDailySourceExpand", "scheduled", "planned", "Validated daily expand targets match PHP preview; no expand writes until parity smoke."),
+        new("api-client-ping", "epc-api-client-ping.php", "EcomAE.Workers.ApiClientPing", "scheduled", "planned", "Validated client ping targets match PHP preview; no outbound pings until parity smoke.")
     ];
 }

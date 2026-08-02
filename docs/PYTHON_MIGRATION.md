@@ -1,5 +1,12 @@
 # PHP → Python migration plan (strangler fig)
 
+> **Superseded for enterprise ownership:** Enterprise BOS architecture
+> (`docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md`) makes **ASP.NET Core 10**
+> the sole enterprise backend. Python is allowed **only for AI/ML sidecars**.
+> Do not expand Python business APIs, transactions, or permissions. Prefer the
+> ASP.NET Core Zero-PHP migration path. This document remains historical for
+> existing `pyapi/` hot-path helpers only.
+
 Goal: move the platform to Python **incrementally** — new fast Python services take
 over one hot path at a time while the PHP CMS keeps serving everything else.
 Both stacks share the same MySQL database, so there is no big-bang cutover and

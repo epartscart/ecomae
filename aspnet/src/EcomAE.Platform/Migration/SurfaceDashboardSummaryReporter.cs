@@ -383,6 +383,110 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpCashAccountListResult> ListErpCashAccountsAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpCashAccounts;
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<ErpCashAccountDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new ErpCashAccountDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["account_type"] is DBNull ? string.Empty : reader["account_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToDecimal(reader["opening_balance"] is DBNull ? 0m : reader["opening_balance"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["balance"] is DBNull ? 0m : reader["balance"], CultureInfo.InvariantCulture)));
+            }
+
+            return new(rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontProfileResult> BuildStorefrontProfileAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, string.Empty, 0, string.Empty, 0, 0, new Dictionary<string, string>(), "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0)
+        {
+            return new(0, string.Empty, 0, string.Empty, 0, 0, new Dictionary<string, string>(), "rejected", "Valid customer user id is required.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            string email = string.Empty;
+            var emailConfirmed = 0;
+            string phone = string.Empty;
+            var phoneConfirmed = 0;
+            var regVariant = 0;
+
+            await using (var userCommand = connection.CreateCommand())
+            {
+                userCommand.CommandText = LegacySurfaceDashboardSql.SelectStorefrontUserCore;
+                AddParameter(userCommand, "@userId", userId);
+                await using var userReader = await userCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (!await userReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return new(userId, string.Empty, 0, string.Empty, 0, 0, new Dictionary<string, string>(), "not-found", "User row not found.");
+                }
+
+                email = Convert.ToString(userReader["email"] is DBNull ? string.Empty : userReader["email"], CultureInfo.InvariantCulture) ?? string.Empty;
+                emailConfirmed = Convert.ToInt32(userReader["email_confirmed"] is DBNull ? 0 : userReader["email_confirmed"], CultureInfo.InvariantCulture);
+                phone = Convert.ToString(userReader["phone"] is DBNull ? string.Empty : userReader["phone"], CultureInfo.InvariantCulture) ?? string.Empty;
+                phoneConfirmed = Convert.ToInt32(userReader["phone_confirmed"] is DBNull ? 0 : userReader["phone_confirmed"], CultureInfo.InvariantCulture);
+                regVariant = Convert.ToInt32(userReader["reg_variant"] is DBNull ? 0 : userReader["reg_variant"], CultureInfo.InvariantCulture);
+            }
+
+            var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                await using var profileCommand = connection.CreateCommand();
+                profileCommand.CommandText = LegacySurfaceDashboardSql.SelectStorefrontUserProfiles;
+                AddParameter(profileCommand, "@userId", userId);
+                await using var profileReader = await profileCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await profileReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var key = Convert.ToString(profileReader["data_key"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (key.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    fields[key] = Convert.ToString(profileReader["data_value"] is DBNull ? string.Empty : profileReader["data_value"], CultureInfo.InvariantCulture) ?? string.Empty;
+                }
+            }
+            catch
+            {
+                // users_profiles may be missing on some tenants; core user fields still return.
+            }
+
+            return new(userId, email, emailConfirmed, phone, phoneConfirmed, regVariant, fields, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, string.Empty, 0, string.Empty, 0, 0, new Dictionary<string, string>(), "database-error", ex.Message);
+        }
+    }
+
     private static BosFleetSummary SummarizeFleet(IReadOnlyList<PortalTenantDigest> tenants, int adminSessions, string source, string message)
         => new(
             tenants.Count,

@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 77.0,
-  "pendingPercent": 23.0,
+  "trueZeroPhpCompletionPercent": 82.0,
+  "pendingPercent": 18.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -33,18 +33,20 @@
   },
   "concreteStarted": [
     "catalog/price DB+auth routes",
-    "admin backend-group claims + surface capabilities + module ACL probe",
+    "nested modules_access ACL + surface capabilities",
     "CP digests: tenants/users/groups",
-    "ERP digests: accounts/suppliers/purchases",
-    "storefront account/orders/garage digests",
-    "worker dry-runs including apai-hourly-crawl/webhooks-process/offline-resilience-warm",
+    "ERP digests: accounts/suppliers/purchases/cash-accounts",
+    "storefront account/orders/garage/profile digests",
+    "tracked worker dry-run validator layer",
+    "Enterprise BOS compliance + ActivitySource scaffolding",
     "migration diagnostics + cloudpanel deploy helpers"
   ],
+  "architectureComplianceDoc": "docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md",
   "nextExecutionOrder": [
     "Refresh /opt/ecomae-aspnet-source with git reset --hard origin/main, then cloudpanel_find_and_redeploy.sh.",
     "Run exact-route staging smoke for price/catalog with real API keys.",
     "Attach parity samples, then enable only approved location = nginx shadows.",
-    "Continue batch-by-batch replacements without broad proxy cutover.",
+    "Advance EF Core/PG17/YARP/OTel tracks per compliance doc without broad cutover.",
     "Remove PHP only after every item is live or removed and rollback evidence is approved."
   ]
 }

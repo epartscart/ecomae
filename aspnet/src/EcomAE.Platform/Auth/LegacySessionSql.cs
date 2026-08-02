@@ -47,7 +47,9 @@ public static class LegacySessionSql
         """;
 
     /// <summary>
-    /// Explicit modules_access grants for one group. Nested group inheritance is pending.
+    /// Explicit modules_access grants for one group.
+    /// Callers should expand group ancestry via <see cref="SelectGroupParent"/> first
+    /// (PHP access_control: grants on a parent apply to nested child groups).
     /// </summary>
     public const string SelectModuleAccessForGroup = """
         SELECT DISTINCT ma.`module_id`, IFNULL(m.`caption`, '') AS caption
@@ -55,5 +57,11 @@ public static class LegacySessionSql
         LEFT JOIN `modules` m ON m.`id` = ma.`module_id`
         WHERE ma.`group_id` = @groupId
         ORDER BY ma.`module_id` ASC
+        """;
+
+    public const string SelectGroupParent = """
+        SELECT `parent` FROM `groups`
+        WHERE `id` = @groupId
+        LIMIT 1
         """;
 }

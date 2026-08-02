@@ -43,8 +43,48 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
 
         var backendSet = backendGroups.ToHashSet();
         var hasBackend = userGroups.Any(backendSet.Contains);
-        var modules = await LoadModuleAclAsync(connection, userGroups, cancellationToken).ConfigureAwait(false);
+        var effectiveGroups = await ExpandGroupAncestryAsync(connection, userGroups, cancellationToken).ConfigureAwait(false);
+        var modules = await LoadModuleAclAsync(connection, effectiveGroups, cancellationToken).ConfigureAwait(false);
         return new LegacyAdminIdentity(email, userGroups, hasBackend, modules);
+    }
+
+    /// <summary>
+    /// Walks <c>groups.parent</c> upward so parent module grants apply to nested child groups
+    /// (PHP access_control expands allowed groups downward; ancestry expansion is equivalent for a user).
+    /// </summary>
+    private static async Task<IReadOnlyList<int>> ExpandGroupAncestryAsync(
+        DbConnection connection,
+        IReadOnlyList<int> groupIds,
+        CancellationToken cancellationToken)
+    {
+        var expanded = new HashSet<int>();
+        foreach (var start in groupIds.Where(id => id > 0).Distinct())
+        {
+            var current = start;
+            var guard = 0;
+            while (current > 0 && expanded.Add(current) && guard++ < 32)
+            {
+                try
+                {
+                    await using var command = connection.CreateCommand();
+                    command.CommandText = LegacySessionSql.SelectGroupParent;
+                    AddParameter(command, "@groupId", current);
+                    var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                    if (scalar is null or DBNull)
+                    {
+                        break;
+                    }
+
+                    current = Convert.ToInt32(scalar, CultureInfo.InvariantCulture);
+                }
+                catch
+                {
+                    break;
+                }
+            }
+        }
+
+        return expanded.OrderBy(id => id).ToArray();
     }
 
     private static async Task<IReadOnlyList<ModuleAclEntry>> LoadModuleAclAsync(

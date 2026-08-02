@@ -260,7 +260,7 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 77.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 82.0%'
 check 'legacy session SQL checks customer sessions without type filter' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionSql.cs" 'CountCustomerSession'
 check 'legacy session DB evidence exists' test -f "$ROOT/docs/migration/evidence/legacy-session-db/README.md"
 check 'catalog article route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/article'
@@ -322,6 +322,17 @@ check 'session probe exposes module_acl' contains "$ROOT/aspnet/src/EcomAE.Platf
 check 'apai-hourly-crawl dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ApaiHourlyCrawlDryRunExecutor.cs"
 check 'webhooks-process dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/WebhooksProcessDryRunExecutor.cs"
 check 'offline-resilience-warm dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/OfflineResilienceWarmDryRunExecutor.cs"
+check 'ERP cash-accounts route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/cash-accounts'
+check 'storefront profile route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/storefront/profile'
+check 'nested ACL group parent SQL exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionSql.cs" 'SelectGroupParent'
+check 'ActivitySource scaffolding exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Observability/EcomAeActivitySources.cs"
+check 'Enterprise BOS architecture compliance doc exists' test -f "$ROOT/docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md"
+check 'ASP.NET target stack scaffolding notes exist' test -f "$ROOT/docs/migration/ASPNET_TARGET_STACK_SCAFFOLDING_NOTES.md"
+check 'Enterprise BOS instructions exist' test -f "$ROOT/docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md"
+check 'Python migration doc defers to ASP.NET Core ownership' contains "$ROOT/docs/PYTHON_MIGRATION.md" 'ASP.NET Core 10'
+check 'apai-weekly-platform-sync dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ApaiWeeklyPlatformSyncDryRunExecutor.cs"
+check 'apai-daily-source-expand dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ApaiDailySourceExpandDryRunExecutor.cs"
+check 'api-client-ping dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ApiClientPingDryRunExecutor.cs"
 
 check 'CloudPanel bootstrap-from-github script exists' test -x "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh"
 check 'CloudPanel bootstrap resets hard to origin main' contains "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh" 'git reset --hard'

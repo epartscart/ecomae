@@ -34,7 +34,9 @@ PHP dashboards remain authoritative. No writes.
 - `GET /erp/accounts-summary` — epc_erp_* cash/supplier KPIs
 - `GET /erp/suppliers?limit=200` — active suppliers + balances
 - `GET /erp/purchases?limit=200` — recent purchases
+- `GET /erp/cash-accounts?limit=200` — cash/bank accounts with balances
 - `GET /storefront/orders?limit=25` — customer-gated recent shop_orders
 - `GET /storefront/garage?limit=50` — customer-gated garage vehicles
+- `GET /storefront/profile` — customer-gated users + users_profiles
 
 All require appropriate admin/customer sessions. PHP remains authoritative.

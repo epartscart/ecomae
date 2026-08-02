@@ -30,6 +30,9 @@ builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ImportOrchestra
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApaiHourlyCrawlDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, WebhooksProcessDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, OfflineResilienceWarmDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApaiWeeklyPlatformSyncDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApaiDailySourceExpandDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApiClientPingDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobRunner>(sp => new MigrationWorkerJobRunner(
     sp.GetRequiredService<MigrationWorkerJobCatalog>(),
     sp.GetRequiredService<TimeProvider>(),

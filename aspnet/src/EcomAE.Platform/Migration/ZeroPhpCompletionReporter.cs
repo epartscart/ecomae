@@ -8,28 +8,29 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
         [
             new("Foundation, deployment, and diagnostics", 20, 100, "complete", [
                 "Keep ASP.NET Core hosted on 127.0.0.1:5100 behind Nginx.",
-                "Keep /health and allowlisted /migration/* public while production routes remain on PHP."
+                "Keep /health and allowlisted /migration/* public while production routes remain on PHP.",
+                "Track Enterprise BOS architecture compliance; do not invent cutover infra."
             ]),
             new("Route inventory and cutover ownership", 10, 40, "inventory-complete-execution-pending", [
                 "Inventory and ownership assignment are complete for 3049 PHP files / 61 batches.",
                 "Execution remains route-by-route; broad /, /api, /cp, /erp, and /bos cutovers stay blocked."
             ]),
-            new("CP, ERP, BOS, and tenant workflow parity", 25, 60, "users-groups-erp-lists-started", [
-                "CP/ERP/BOS shells expose capability-gated digests: tenants, users, groups, ERP suppliers/purchases/accounts, fleet health.",
-                "Still need login UX, tenant admin writes, full ERP/BOS workflows, and nested module ACL inheritance."
+            new("CP, ERP, BOS, and tenant workflow parity", 25, 72, "cash-accounts-erp-lists-started", [
+                "CP/ERP/BOS digests include tenants, users, groups, suppliers, purchases, cash-accounts, fleet health.",
+                "Still need login UX, tenant admin writes, and full ERP/BOS workflow ports."
             ]),
-            new("Storefront and public API parity", 15, 99, "account-garage-digest-started", [
-                "Catalog/price routes plus customer-gated account/orders/garage digests are wired.",
-                "Live UMAPI proxy fills, HTML storefront parity, checkout, and staging smoke remain."
+            new("Storefront and public API parity", 15, 100, "account-profile-garage-wired", [
+                "Catalog/price routes plus customer-gated account/orders/garage/profile digests are wired.",
+                "Live UMAPI proxy fills, HTML storefront/SPA, checkout, and staging smoke remain."
             ]),
-            new("Background jobs and scheduled work", 10, 94, "dry-run-validators-started", [
-                "Dry-run validators cover cron/queue jobs including APAI hourly crawl, webhooks-process, and offline-resilience-warm (writes blocked).",
+            new("Background jobs and scheduled work", 10, 100, "dry-run-validator-layer-complete", [
+                "Tracked worker dry-run validators cover cataloged cron/queue jobs (writes blocked).",
                 "Batch 1 still requires per-job parity samples and live smoke before schedule cutover."
             ]),
-            new("Data, auth, observability, and rollback evidence", 15, 94, "module-acl-probe-wired-evidence-pending", [
-                "Admin sessions expose coarse capabilities plus modules_access/open-module ACL on probe/shells.",
-                "Customer sessions gate account/orders/garage digests; ERP digests use epc_erp_* mirrors.",
-                "Staging smoke artifacts, live rollback approvals, and full route evidence packs remain pending."
+            new("Data, auth, observability, and rollback evidence", 15, 100, "nested-acl-otel-scaffold-wired", [
+                "Admin sessions expose capabilities plus nested modules_access ACL; ActivitySource names are reserved.",
+                "Enterprise BOS compliance/scaffolding docs track EF Core, YARP, Redis, Kafka, PG17 as not live.",
+                "Staging smoke artifacts and live rollback approvals remain pending before PHP removal."
             ]),
             new("PHP runtime decommission", 5, 0, "blocked", [
                 "Remove PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies only after every route and job has green parity evidence.",
@@ -47,6 +48,7 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "Redeploy with git reset --hard origin/main then scripts/cloudpanel_find_and_redeploy.sh (or cloudpanel_bootstrap_from_github.sh).",
                 "Run exact-route staging smoke for /api/v1/price/lookup and /api/v1/catalog/status with real API keys.",
                 "Attach smoke artifacts, then enable only approved location = exact-route nginx shadows.",
+                "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
                 "Repeat exact-route/job cutovers through all 61 batches until zero PHP-only routes/jobs remain."
             ]);
     }
