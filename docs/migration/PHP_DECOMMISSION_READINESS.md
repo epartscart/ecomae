@@ -44,7 +44,13 @@ ECOMAE_CATALOG_API_KEY=epc_catalog_...
 ECOMAE_ADMIN_COOKIE_HEADER=admin_session=...; admin_u_id=123
 ```
 
-Helper (no secret print): `bash scripts/cloudpanel_prepare_smoke_secrets.sh`
+Helpers (no secret print):
+
+```bash
+# Preferred on CloudPanel — writes keys (+ admin cookie if a live CP session exists):
+ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh
+bash scripts/cloudpanel_prepare_smoke_secrets.sh
+```
 
 Common CloudPanel failures:
 - `cloudpanel_validate_final_gate_env.sh: No such file` → you are on stale `main`; use the one-liner above (PR #599 branch).
