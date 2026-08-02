@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 44.0,
-  "pendingPercent": 56.0,
+  "trueZeroPhpCompletionPercent": 45.0,
+  "pendingPercent": 55.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -36,7 +36,10 @@
     "/api/v1/catalog/status DB+auth",
     "/api/v1/catalog/manufacturers DB+auth",
     "worker dry-run validators for price-import/sitemap/backups/notifications/erp-reports",
-    "scripts/cloudpanel_production_deploy_foundation.sh"
+    "scripts/cloudpanel_production_deploy_foundation.sh",
+    "/api/v1/catalog/models DB+auth",
+    "/api/v1/catalog/modifications DB+auth",
+    "/api/v1/catalog/brands DB+auth"
   ],
   "nextExecutionOrder": [
     "Deploy ASP.NET foundation on production with scripts/cloudpanel_production_deploy_foundation.sh (diagnostics only).",
