@@ -30,6 +30,8 @@ fi
 
 chmod 600 "$ENV_FILE" || true
 printf 'platform.env looks filled. Starting foundation deploy...\n'
+printf 'Reminder: keep StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final-gate approval.\n'
+printf 'After deploy: bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
 
 REPO=""
 for candidate in "${REPO_CANDIDATES[@]}"; do

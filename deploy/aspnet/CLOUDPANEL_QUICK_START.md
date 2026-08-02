@@ -81,16 +81,31 @@ sudo nano /etc/ecomae-aspnet/platform.env
 If `nano` opens `/etc/ecomae-aspnet/platform.env`:
 
 1. Confirm `ConnectionStrings__TenantRegistry=...` has real Server/Database/User/Password (no `<db_user>` placeholders).
-2. Save: `Ctrl+O`, then `Enter`.
-3. Exit: `Ctrl+X`.
-4. Continue deploy:
+2. Keep these flags as-is for now (PHP remains authoritative):
+   - `MigrationRouteCutover__StorefrontAspNetEnabled=false`
+   - `MigrationRouteCutover__AdminAspNetEnabled=false`
+   - `MigrationRouteCutover__RequirePhpFallback=true`
+3. Optional for the final 5% smoke gate (add at bottom if you have real keys):
+   - `ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...`
+   - `ECOMAE_CATALOG_API_KEY=epc_catalog_...`
+4. Save: `Ctrl+O`, then `Enter`.
+5. Exit: `Ctrl+X`.
+6. Continue deploy:
 
 ```bash
-cd /root/ecomae   # or your real repo path
+cd /opt/ecomae-aspnet-source   # or /root/ecomae — your real repo path
 bash scripts/cloudpanel_continue_after_env.sh
 ```
 
-Replace placeholders in `/etc/ecomae-aspnet/platform.env`. Never commit production secrets.
+After deploy succeeds, capture final-gate artifacts (still does not remove PHP):
+
+```bash
+cd /opt/ecomae-aspnet-source
+git fetch origin main && git checkout -f main && git reset --hard origin/main
+bash scripts/cloudpanel_capture_final_gate_artifacts.sh
+```
+
+Replace placeholders in `/etc/ecomae-aspnet/platform.env`. Never commit production secrets. Never flip broad storefront/admin ASP.NET flags from this file until exact-route smoke + release-owner approval exist.
 
 ## 5. Run preflight from the repo root
 
