@@ -51,6 +51,9 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - Final-gate smoke hardening: authenticated digest HTTP 200 required; catalog + storefront shadow examples in gate; CloudPanel commit helper for real smoke only.
 - Smoke env preflight (prefix/cookie format, no secret print), catalog nginx API-key header fix, price/catalog promotion runbook, dual-sample compare helpers, live still-PHP public probes.
 - CloudPanel smoke credential issuer writes `epc_pricepro_` / `epc_catalog_` keys (+ active admin session cookie) into `platform.env` without printing secrets.
+- Deploy packs all four gate shadow examples (price/api/surface/storefront) into ContentRoot so live `exact-route-shadows-only` is not a false negative.
+- Exact-route extract helper emits one disabled `location =` snippet; refuses broad `/cp|/erp|/bos|/api|/storefront`.
+- Field contracts + shadow stubs cover remaining wired digests (config-items, admin-sessions, storages, accounts-summary, cash-*, bos/tenants).
 - PHP decommission readiness reporter documents blockers; removal remains blocked.
 - No broad PHP cutover; parity/shadow remain 0%.
 
@@ -61,10 +64,10 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 ## Next execution order
 
 - Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first.
-- Run `bash scripts/run_zero_php_final_gate_checklist.sh`.
-- On CloudPanel: add smoke keys to `/etc/ecomae-aspnet/platform.env`, then `bash scripts/cloudpanel_capture_final_gate_artifacts.sh`.
-- Run opt-in staging smoke with real `epc_pricepro_` / `epc_catalog_` keys and admin cookies; copy JSON into `docs/migration/evidence/decommission/staging-smoke/`.
-- Attach parity samples; enable only approved `location =` shadows.
+- Issue smoke creds: `ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh`
+- Capture + commit: `source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh`
+- Extract one approved path: `bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status` (enable only after smoke).
+- Attach dual PHP↔ASP.NET parity samples; promote shadows one `location =` at a time.
 - Create `RELEASE_OWNER_APPROVAL.md` only after human approval; then remove PHP.
 
 ## Guardrail

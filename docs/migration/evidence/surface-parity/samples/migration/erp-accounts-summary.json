@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "summary": {
+    "cashPosition": 0,
+    "supplierCredit": 0,
+    "supplierDebit": 0,
+    "supplierNet": 0,
+    "cashAccounts": 0,
+    "activeSuppliers": 0,
+    "activePurchases": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode contract sample; PHP remains authoritative",
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured."
+}

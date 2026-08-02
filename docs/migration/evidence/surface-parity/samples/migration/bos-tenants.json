@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "surface": "bos",
+  "tenants": [],
+  "count": 0,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode contract sample; PHP remains authoritative"
+}

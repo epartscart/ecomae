@@ -72,6 +72,16 @@ public sealed class SurfaceDigestContractValidatorTests
                 readiness = await reporter.BuildBosFleetReadinessAsync(),
                 session,
                 note = "contract validation"
+            },
+            ["/erp/accounts-summary"] = new
+            {
+                ok = true,
+                surface = "erp",
+                summary = (await reporter.BuildErpAccountsAsync()).Summary,
+                source = "migration",
+                message = "TenantRegistry DB is not configured.",
+                session,
+                note = "contract validation"
             }
         };
 
@@ -100,14 +110,20 @@ public sealed class SurfaceDigestContractValidatorTests
             ["/cp/pages"] = Envelope("cp", "pages", await reporter.ListCpPagesAsync(10), session),
             ["/cp/currencies"] = Envelope("cp", "currencies", await reporter.ListCpCurrenciesAsync(10), session),
             ["/cp/api-clients"] = Envelope("cp", "clients", await reporter.ListCpApiClientsMetaAsync(10), session),
+            ["/cp/config-items"] = Envelope("cp", "items", await reporter.ListCpConfigItemsMetaAsync(10), session),
+            ["/cp/admin-sessions"] = Envelope("cp", "sessions", await reporter.ListCpAdminSessionsAsync(10), session),
+            ["/cp/storages"] = Envelope("cp", "storages", await reporter.ListCpStoragesAsync(10), session),
             ["/erp/suppliers"] = Envelope("erp", "suppliers", await reporter.ListErpSuppliersAsync(10), session),
             ["/erp/purchases"] = Envelope("erp", "purchases", await reporter.ListErpPurchasesAsync(10), session),
+            ["/erp/cash-accounts"] = Envelope("erp", "accounts", await reporter.ListErpCashAccountsAsync(10), session),
+            ["/erp/cash-entries"] = Envelope("erp", "entries", await reporter.ListErpCashEntriesAsync(null, 10), session),
             ["/erp/coa-accounts"] = Envelope("erp", "accounts", await reporter.ListErpCoaAccountsAsync(10), session),
             ["/erp/warehouses"] = Envelope("erp", "warehouses", await reporter.ListErpWarehousesAsync(10), session),
             ["/erp/sales-orders"] = Envelope("erp", "orders", await reporter.ListErpSalesOrdersAsync(10), session),
             ["/erp/purchase-orders"] = Envelope("erp", "orders", await reporter.ListErpPurchaseOrdersAsync(10), session),
             ["/erp/invoices"] = Envelope("erp", "invoices", await reporter.ListErpInvoicesAsync(10), session),
             ["/erp/gl-journals"] = Envelope("erp", "journals", await reporter.ListErpGlJournalsAsync(10), session),
+            ["/bos/tenants"] = Envelope("bos", "tenants", await reporter.ListPortalTenantsAsync(10), session),
             ["/bos/audit-log"] = Envelope("bos", "entries", await reporter.ListBosAuditLogAsync(null, 10), session),
             ["/storefront/orders"] = new
             {
