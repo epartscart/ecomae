@@ -2,7 +2,7 @@
 
 This directory holds **operator-attached** artifacts for the final 5% Zero-PHP gate.
 
-Nothing here authorizes PHP removal by itself. `GET /migration/php-decommission-readiness` stays `blocked-not-ready-for-php-removal` until every checklist item is present **and** release-owner approval is attached. The ASP.NET reporter still keeps `ReadyToRemovePhp=false` as a hard guardrail until that full gate is intentionally opened by humans.
+Nothing here authorizes PHP removal by itself. `GET /migration/php-decommission-readiness` stays `blocked-not-ready-for-php-removal` until every checklist item is present with validated smoke JSON **and** release-owner approval is attached. `ReadyToRemovePhp` becomes true only when that full gate is green; `scripts/cloudpanel_php_decommission.sh` still requires `ECOMAE_CONFIRM_PHP_DECOMMISSION=YES`.
 
 ## Layout
 

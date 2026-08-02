@@ -55,8 +55,9 @@
   "nextExecutionOrder": [
     "Refresh /opt/ecomae-aspnet-source with git reset --hard origin/main, then cloudpanel_find_and_redeploy.sh (packs decommission evidence into the release).",
     "Confirm /migration/php-decommission-readiness shows public-probes/scripts present after redeploy.",
-    "Add ECOMAE_PRICE_LOOKUP_API_KEY / ECOMAE_CATALOG_API_KEY to /etc/ecomae-aspnet/platform.env, then bash scripts/cloudpanel_capture_final_gate_artifacts.sh.",
-    "Attach parity samples, then enable only approved location = nginx shadows.",
-    "Add RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after human approval, then remove PHP."
+    "Add ECOMAE_PRICE_LOOKUP_API_KEY / ECOMAE_CATALOG_API_KEY / ECOMAE_ADMIN_COOKIE_HEADER to /etc/ecomae-aspnet/platform.env, then bash scripts/cloudpanel_capture_final_gate_artifacts.sh.",
+    "Commit staging-smoke/*.json + RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK.",
+    "When readyToRemovePhp=true: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh",
+    "Do not claim 100% or stop PHP-FPM until that gated script accepts the green readiness endpoint."
   ]
 }

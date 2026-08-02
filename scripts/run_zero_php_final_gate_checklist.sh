@@ -28,6 +28,8 @@ echo "This script never removes PHP-FPM, PHP cron, or PHP rewrites."
 [[ -x "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh" ]] && record_pass "surface digest smoke runner executable" || record_fail "surface smoke runner missing"
 [[ -x "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" ]] && record_pass "CloudPanel final-gate capture script executable" || record_fail "CloudPanel capture script missing"
 [[ -x "$ROOT/scripts/probe_live_surface_stack.sh" ]] && record_pass "live surface stack probe executable" || record_fail "live surface stack probe missing"
+[[ -x "$ROOT/scripts/cloudpanel_php_decommission.sh" ]] && record_pass "gated PHP decommission script executable" || record_fail "cloudpanel_php_decommission.sh missing"
+[[ -x "$ROOT/scripts/run_php_decommission_area_tests.sh" ]] && record_pass "final-gate area test runner executable" || record_fail "run_php_decommission_area_tests.sh missing"
 [[ -f "$ROOT/docs/migration/LIVE_SURFACE_LINKS.md" ]] && record_pass "live surface links catalog doc exists" || record_fail "LIVE_SURFACE_LINKS.md missing"
 
 if [[ -f "$EVIDENCE/public-probes/www-zero-php-completion.json" && -f "$EVIDENCE/public-probes/www-php-decommission-readiness.json" ]]; then
