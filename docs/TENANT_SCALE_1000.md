@@ -1,6 +1,11 @@
 # Tenant scale readiness (1000+ mix tenants)
 
-This document describes the foundations shipped so the platform can absorb a large mixed fleet (commerce + ERP-only + demos) without rewriting PHP to Python.
+> **Enterprise BOS alignment:** This document describes **interim** PHP/MySQL fleet
+> scale. Destination ownership is ASP.NET Core workers, multi-tenant services, and
+> PostgreSQL 17 per `PROJECT_ARCHITECTURE_INSTRUCTIONS.md`. Do not expand PHP scale
+> features as the long-term architecture.
+
+This document describes the foundations shipped so the platform can absorb a large mixed fleet (commerce + ERP-only + demos) during the Zero-PHP transition.
 
 ## Goals
 
