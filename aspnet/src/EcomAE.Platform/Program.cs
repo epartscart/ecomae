@@ -5,6 +5,7 @@ using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Modules;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Routing;
 using EcomAE.Platform.Security;
 using EcomAE.Platform.Services;
@@ -36,6 +37,8 @@ builder.Services.AddSingleton<ITenantResolver, RouteTenantResolver>();
 builder.Services.AddEcomAeAuthorization();
 builder.Services.AddEcomAeSurfaceModules();
 builder.Services.AddSingleton<ISurfaceShellCatalog, MigrationSurfaceShellCatalog>();
+builder.Services.AddSingleton<ILegacyHtmlShellRenderer, LegacyHtmlShellRenderer>();
+builder.Services.AddSingleton<IPresentationParityReporter, PresentationParityReporter>();
 builder.Services.AddSingleton<IPriceOfferRepository>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
@@ -191,6 +194,8 @@ app.MapGet(EcomAeRoutes.MigrationPlatformJobs, async (int? limit, IPlatformJobsS
 });
 
 app.MapGet(EcomAeRoutes.SurfaceParity, (ISurfaceParityReporter reporter) => Results.Ok(reporter.BuildReport()));
+
+app.MapGet(EcomAeRoutes.PresentationParity, (IPresentationParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.TenantContext, (HttpContext context) =>
 {

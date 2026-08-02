@@ -13,7 +13,7 @@ public sealed class StorefrontShellCatalogTests
         var shell = new MigrationSurfaceShellCatalog().Build("storefront", tenant);
 
         Assert.Equal("Storefront / customer commerce", shell.Surface);
-        Assert.Equal("shell-started", shell.ShellStatus);
+        Assert.Equal("presentation-shell-scaffolded", shell.ShellStatus);
         Assert.Contains(shell.Sections, section => section.Key == "catalog" && section.Capabilities.Contains("part search"));
         Assert.Contains(shell.Sections, section => section.Key == "cart" && section.MigrationStatus == "pending-port");
         Assert.Contains(shell.NextParityChecks, check => check.Contains("checkout parity", StringComparison.Ordinal));

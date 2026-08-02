@@ -1,6 +1,7 @@
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
 using EcomAE.Platform.Surfaces;
 using EcomAE.Platform.Routing;
@@ -15,7 +16,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         "Control Panel / Super CP",
         EcomAeRoutes.ControlPanel,
         "cp/",
-        "shell-started",
+        "presentation-shell-scaffolded",
         [EcomAePermissions.SuperCpAccess, EcomAePermissions.TenantCpAccess]);
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
@@ -344,7 +345,11 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         foreach (var route in EcomAeRoutes.ControlPanelAliases)
         {
-            endpoints.MapGet(route, async (HttpContext context, ISurfaceShellCatalog shells, ILegacySessionValidator validator) =>
+            endpoints.MapGet(route, async (
+                HttpContext context,
+                ISurfaceShellCatalog shells,
+                ILegacyHtmlShellRenderer html,
+                ILegacySessionValidator validator) =>
             {
                 var session = await validator.ValidateAsync(context);
                 if (session.Kind != LegacySessionKind.Admin)
@@ -353,11 +358,14 @@ public sealed class ControlPanelModule : ISurfaceModule
                 }
 
                 var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-                return Results.Ok(new
-                {
-                    shell = shells.Build("cp", tenant),
-                    session = SessionPayload(session)
-                });
+                return SurfaceShellResponder.Respond(
+                    context,
+                    "cp",
+                    shells,
+                    html,
+                    tenant,
+                    SessionPayload(session),
+                    "Presentation-preserving CP shell. PHP Super CP remains authoritative until cutover approval.");
             });
         }
     }

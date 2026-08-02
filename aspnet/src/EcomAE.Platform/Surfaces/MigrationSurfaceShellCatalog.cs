@@ -19,7 +19,7 @@ public sealed class MigrationSurfaceShellCatalog : ISurfaceShellCatalog
 
     private static SurfaceShellResponse BuildControlPanel(TenantContext? tenant) => new(
         "Super CP / tenant CP",
-        "shell-started",
+        "presentation-shell-scaffolded",
         "cp/",
         "/cp",
         TenantModeName(tenant),
@@ -29,11 +29,11 @@ public sealed class MigrationSurfaceShellCatalog : ISurfaceShellCatalog
             new("tenant-admin", "Tenant administration", ["tenant registry", "ERP-only mode", "live tenant controls"], "cp/content/control/portal/", "pending-port"),
             new("settings", "Settings", ["store settings", "integrations", "security"], "cp/content/", "pending-port")
         ],
-        ["Validate login redirect behavior.", "Match menu visibility for super and tenant users.", "Run CP permission parity tests."]);
+        ["Validate login redirect behavior.", "Match menu visibility for super and tenant users.", "Compare HTML chrome CSS against PHP desktop.php.", "Run CP permission parity tests."]);
 
     private static SurfaceShellResponse BuildErp(TenantContext? tenant) => new(
         "Super ERP / tenant ERP",
-        "shell-started",
+        "presentation-shell-scaffolded",
         "cp/content/shop/finance/erp/",
         "/erp",
         TenantModeName(tenant),
@@ -43,11 +43,11 @@ public sealed class MigrationSurfaceShellCatalog : ISurfaceShellCatalog
             new("vouchers", "Vouchers", ["journal vouchers", "posting", "audit trail"], "content/shop/finance/epc_erp_vouchers.php", "pending-port"),
             new("inventory", "Inventory and fulfillment", ["stock movements", "purchase orders", "sales orders"], "content/shop/finance/epc_erp_order_fulfillment.php", "pending-port")
         ],
-        ["Match ERP-only tenant access.", "Compare finance totals against PHP fixtures.", "Validate posting/audit permission rules."]);
+        ["Match ERP-only tenant access.", "Compare finance totals against PHP fixtures.", "Compare HTML chrome CSS against PHP erp_desktop.php.", "Validate posting/audit permission rules."]);
 
     private static SurfaceShellResponse BuildBos(TenantContext? tenant) => new(
         "Super BOS",
-        "shell-started",
+        "presentation-shell-scaffolded",
         "bos/",
         "/bos",
         TenantModeName(tenant),
@@ -56,12 +56,12 @@ public sealed class MigrationSurfaceShellCatalog : ISurfaceShellCatalog
             new("audit", "Audit and controls", ["privileged actions", "review queue", "rollback notes"], "cp/content/control/portal/", "pending-port"),
             new("operations", "Operations", ["tenant enablement", "job status", "system checks"], "cp/content/control/", "pending-port")
         ],
-        ["Require super BOS permission.", "Mirror PHP audit log writes.", "Validate emergency rollback path."]);
+        ["Require super BOS permission.", "Mirror PHP audit log writes.", "Compare HTML chrome CSS against bos/epc_bos_shell.css.", "Validate emergency rollback path."]);
 
 
     private static SurfaceShellResponse BuildStorefront(TenantContext? tenant) => new(
         "Storefront / customer commerce",
-        "shell-started",
+        "presentation-shell-scaffolded",
         "content/shop/ and templates/",
         "/",
         TenantModeName(tenant),
@@ -71,7 +71,7 @@ public sealed class MigrationSurfaceShellCatalog : ISurfaceShellCatalog
             new("cart", "Cart and checkout", ["cart", "checkout", "order submit"], "content/shop/", "pending-port"),
             new("account", "Customer account", ["login", "orders", "garage"], "content/users/", "pending-port")
         ],
-        ["Compare rendered HTML metadata against PHP storefront.", "Validate cart/session compatibility.", "Run checkout parity with sandbox payment mode."]);
+        ["Compare rendered HTML metadata against PHP storefront.", "Reuse templates/modex CSS asset URLs for presentation parity.", "Validate cart/session compatibility.", "Run checkout parity with sandbox payment mode."]);
 
     private static string TenantModeName(TenantContext? tenant) => tenant?.Mode.ToString() ?? "Unknown";
 }

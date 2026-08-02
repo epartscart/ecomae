@@ -13,7 +13,7 @@ public sealed class SurfaceShellCatalogTests
         var shell = new MigrationSurfaceShellCatalog().Build("erp", tenant);
 
         Assert.Equal("Super ERP / tenant ERP", shell.Surface);
-        Assert.Equal("shell-started", shell.ShellStatus);
+        Assert.Equal("presentation-shell-scaffolded", shell.ShellStatus);
         Assert.Equal("ErpOnlyTenant", shell.TenantMode);
         Assert.Contains(shell.Sections, section => section.Key == "finance-dashboard" && section.MigrationStatus == "mapped");
         Assert.Contains(shell.NextParityChecks, check => check.Contains("ERP-only tenant", StringComparison.Ordinal));

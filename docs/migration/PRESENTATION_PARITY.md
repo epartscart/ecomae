@@ -1,0 +1,32 @@
+# Presentation parity contract (PHP → ASP.NET Core)
+
+Frontend and backend presentation must stay the same during conversion. ASP.NET Core surface shells reuse the live PHP chrome assets; digests stay JSON for tooling.
+
+## Contract
+
+1. **Same assets** — HTML shells link PHP CSS/JS paths (`/epc-static.php?f=...`, `/content/general_pages/epc_cp_*_css.php`, `bos/epc_bos_shell.css`, `templates/modex/...`).
+2. **JSON preserved** — Default response for `/cp`, `/erp`, `/bos`, `/storefront/account` remains JSON. Use `?format=json` to force JSON.
+3. **HTML for browsers** — `Accept: text/html` (without `application/json`) or `?format=html` returns the presentation-preserving chrome shell.
+4. **Auth errors stay JSON** — Unauthorized shell probes remain `401` JSON so API clients are not surprised.
+5. **PHP remains authoritative** — Full interactive UX (login writes, menus, widgets, cart/checkout) stays on PHP until staging smoke + release-owner approval.
+
+## Routes
+
+| Surface | Shell | Presentation reporter |
+| --- | --- | --- |
+| CP | `/cp?format=html` | `/migration/presentation-parity` |
+| ERP | `/erp?format=html` | same |
+| BOS | `/bos?format=html` | same |
+| Storefront | `/storefront/account?format=html` (customer session) or `/storefront/migration-placeholder?format=html` | same |
+
+## Evidence
+
+Capture HTML samples under `docs/migration/evidence/presentation/` after CloudPanel redeploy:
+
+- stylesheet `href` list matches PHP desktop chrome
+- brand mark resolves to `/content/general_pages/epc_ecomae_logo_svg.php`
+- JSON `?format=json` shape still includes `shell` + `session`
+
+## Guardrail
+
+Do not enable broad `/cp`, `/erp`, `/bos`, or storefront cutover from this scaffold alone. Presentation scaffolding does not change Zero-PHP completion (still 95% / remaining 5% = PHP decommission gate).

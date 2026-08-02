@@ -1,6 +1,7 @@
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
 using EcomAE.Platform.Surfaces;
 using EcomAE.Platform.Routing;
@@ -15,7 +16,7 @@ public sealed class BosModule : ISurfaceModule
         "BOS / BOC",
         EcomAeRoutes.Bos,
         "bos/ and cp/content/control/portal/epc_boc_*",
-        "shell-started",
+        "presentation-shell-scaffolded",
         [EcomAePermissions.SuperBosAccess]);
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
@@ -152,7 +153,11 @@ public sealed class BosModule : ISurfaceModule
 
         foreach (var route in EcomAeRoutes.BosAliases)
         {
-            endpoints.MapGet(route, async (HttpContext context, ISurfaceShellCatalog shells, ILegacySessionValidator validator) =>
+            endpoints.MapGet(route, async (
+                HttpContext context,
+                ISurfaceShellCatalog shells,
+                ILegacyHtmlShellRenderer html,
+                ILegacySessionValidator validator) =>
             {
                 var session = await validator.ValidateAsync(context);
                 if (session.Kind != LegacySessionKind.Admin)
@@ -161,11 +166,14 @@ public sealed class BosModule : ISurfaceModule
                 }
 
                 var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-                return Results.Ok(new
-                {
-                    shell = shells.Build("bos", tenant),
-                    session = SessionPayload(session)
-                });
+                return SurfaceShellResponder.Respond(
+                    context,
+                    "bos",
+                    shells,
+                    html,
+                    tenant,
+                    SessionPayload(session),
+                    "Presentation-preserving BOS shell. PHP Super BOS remains authoritative until cutover approval.");
             });
         }
     }

@@ -39,6 +39,7 @@
     "BOS digests: fleet summary/health/readiness/audit-log",
     "storefront account/orders/garage/profile digests",
     "tracked worker dry-run validator layer + all 61 batches dry-run scaffolding",
+    "presentation-preserving CP/ERP/BOS/storefront HTML shells (PHP CSS reuse; JSON default)",
     "PHP decommission readiness reporter + final-gate checklist/smoke kit (blocked)",
     "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],
