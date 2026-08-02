@@ -26,6 +26,13 @@ echo "This script never removes PHP-FPM, PHP cron, or PHP rewrites."
 [[ -x "$ROOT/tests/live_smoke/run_price_lookup_exact_route_smoke.sh" ]] && record_pass "price lookup smoke runner executable" || record_fail "price smoke runner missing"
 [[ -x "$ROOT/tests/live_smoke/run_catalog_status_exact_route_smoke.sh" ]] && record_pass "catalog status smoke runner executable" || record_fail "catalog smoke runner missing"
 [[ -x "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh" ]] && record_pass "surface digest smoke runner executable" || record_fail "surface smoke runner missing"
+[[ -x "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" ]] && record_pass "CloudPanel final-gate capture script executable" || record_fail "CloudPanel capture script missing"
+
+if [[ -f "$EVIDENCE/public-probes/www-zero-php-completion.json" && -f "$EVIDENCE/public-probes/www-php-decommission-readiness.json" ]]; then
+  record_pass "public production diagnostic probes attached"
+else
+  record_skip "public probes not attached under public-probes/"
+fi
 
 if [[ -f "$SMOKE_DIR/price-lookup-aspnet.json" ]]; then
   record_pass "attached price-lookup staging smoke artifact"

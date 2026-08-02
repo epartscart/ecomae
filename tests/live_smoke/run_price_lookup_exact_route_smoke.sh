@@ -11,8 +11,11 @@ fi
 BRAND="${PRICE_LOOKUP_BRAND:-TOYOTA}"
 ARTICLE="${PRICE_LOOKUP_ARTICLE:-04465-0K020}"
 ROUTE="/api/v1/price/lookup?brand=${BRAND}&article=${ARTICLE}"
+OUT_DIR="${ECOMAE_SMOKE_OUT_DIR:-/tmp}"
+ASPNET_OUT="${OUT_DIR}/ecomae-aspnet-price-lookup.json"
+mkdir -p "$OUT_DIR"
 
-aspnet_status="$(curl -sS -o /tmp/ecomae-aspnet-price-lookup.json -w '%{http_code}' \
+aspnet_status="$(curl -sS -o "$ASPNET_OUT" -w '%{http_code}' \
   -H "X-API-Key: ${ECOMAE_PRICE_LOOKUP_API_KEY}" \
   "${ECOMAE_ASPNET_BASE_URL}${ROUTE}")"
 if [[ "$aspnet_status" != "200" ]]; then
@@ -21,7 +24,8 @@ if [[ "$aspnet_status" != "200" ]]; then
 fi
 
 if [[ -n "${ECOMAE_PHP_BASE_URL:-}" ]]; then
-  php_status="$(curl -sS -o /tmp/ecomae-php-price-lookup.json -w '%{http_code}' \
+  php_out="${OUT_DIR}/ecomae-php-price-lookup.json"
+  php_status="$(curl -sS -o "$php_out" -w '%{http_code}' \
     -H "X-API-Key: ${ECOMAE_PRICE_LOOKUP_API_KEY}" \
     "${ECOMAE_PHP_BASE_URL}${ROUTE}")"
   if [[ "$php_status" != "200" ]]; then
@@ -30,4 +34,6 @@ if [[ -n "${ECOMAE_PHP_BASE_URL:-}" ]]; then
   fi
 fi
 
+cp -f "$ASPNET_OUT" "${OUT_DIR}/price-lookup-aspnet.json"
 echo "PASS price lookup exact-route smoke completed for ${ROUTE}; broad /api cutover was not required."
+echo "Artifact: ${OUT_DIR}/price-lookup-aspnet.json"

@@ -11,6 +11,7 @@ COOKIE_JAR="${ECOMAE_ADMIN_COOKIE_JAR:-}"
 COOKIE_HEADER="${ECOMAE_ADMIN_COOKIE_HEADER:-}"
 OUT_DIR="${ECOMAE_SMOKE_OUT_DIR:-/tmp}"
 OUT_FILE="${OUT_DIR}/ecomae-aspnet-surface-digests.json"
+mkdir -p "$OUT_DIR"
 
 if [[ -z "$COOKIE_JAR" && -z "$COOKIE_HEADER" ]]; then
   echo "FAIL provide ECOMAE_ADMIN_COOKIE_JAR or ECOMAE_ADMIN_COOKIE_HEADER for admin session digests"
@@ -86,6 +87,7 @@ with open(out, "w", encoding="utf-8") as fh:
 PY
 rm -f "$results_tmp"
 
-echo "Artifact: ${OUT_FILE}"
+cp -f "$OUT_FILE" "${OUT_DIR}/surface-digests-aspnet.json"
+echo "Artifact: ${OUT_DIR}/surface-digests-aspnet.json"
 echo "Passed: $pass  Failed: $fail"
 exit $(( fail > 0 ? 1 : 0 ))

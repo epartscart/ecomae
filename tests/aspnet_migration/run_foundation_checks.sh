@@ -372,6 +372,10 @@ check 'PHP decommission readiness doc exists' test -f "$ROOT/docs/migration/PHP_
 check 'PHP decommission readiness blocks removal' contains "$ROOT/docs/migration/PHP_DECOMMISSION_READINESS.md" 'blocked-not-ready-for-php-removal'
 
 check 'final gate checklist script exists' test -x "$ROOT/scripts/run_zero_php_final_gate_checklist.sh"
+check 'CloudPanel final-gate capture script exists' test -x "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh"
+check 'CloudPanel final-gate capture never removes PHP' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'never removes PHP'
+check 'public decommission probes attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json"
+check 'public decommission readiness probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
 check 'final gate checklist never removes PHP' contains "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" 'never removes PHP'
 check 'catalog status smoke runner exists' test -x "$ROOT/tests/live_smoke/run_catalog_status_exact_route_smoke.sh"
 check 'surface digest smoke runner exists' test -x "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh"

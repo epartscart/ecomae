@@ -1,0 +1,90 @@
+{
+    "overallCompletePercent": 95,
+    "overallPendingPercent": 5,
+    "status": "not-ready-for-php-removal",
+    "areas": [
+        {
+            "name": "Foundation, deployment, and diagnostics",
+            "weightPercent": 20,
+            "completePercent": 100,
+            "status": "complete",
+            "pendingWork": [
+                "Keep ASP.NET Core hosted on 127.0.0.1:5100 behind Nginx.",
+                "Keep /health and allowlisted /migration/* public while production routes remain on PHP.",
+                "Track Enterprise BOS architecture compliance; do not invent cutover infra."
+            ]
+        },
+        {
+            "name": "Route inventory and cutover ownership",
+            "weightPercent": 10,
+            "completePercent": 100,
+            "status": "all-61-batches-dry-run-scaffolded-execution-pending",
+            "pendingWork": [
+                "Inventory ownership remains complete for 3049 PHP files / 61 batches.",
+                "All 61 batches have ASP.NET dry-run scaffolding; parity/shadow/live remain 0%.",
+                "Broad /, /api, /cp, /erp, and /bos cutovers stay blocked."
+            ]
+        },
+        {
+            "name": "CP, ERP, BOS, and tenant workflow parity",
+            "weightPercent": 25,
+            "completePercent": 100,
+            "status": "po-stock-currencies-api-clients-wired",
+            "pendingWork": [
+                "CP digests include menus/pages/sessions/storages/currencies/api-clients metadata.",
+                "ERP digests include COA/warehouses/sales-orders/purchase-orders/inventory-stock KPIs.",
+                "BOS digests include fleet readiness and audit-log.",
+                "Still need login UX, tenant admin writes, and full workflow ports before parity claims."
+            ]
+        },
+        {
+            "name": "Storefront and public API parity",
+            "weightPercent": 15,
+            "completePercent": 100,
+            "status": "account-profile-garage-wired",
+            "pendingWork": [
+                "Catalog/price routes plus customer-gated account/orders/garage/profile digests are wired.",
+                "Live UMAPI proxy fills, HTML storefront/SPA, checkout, and staging smoke remain."
+            ]
+        },
+        {
+            "name": "Background jobs and scheduled work",
+            "weightPercent": 10,
+            "completePercent": 100,
+            "status": "dry-run-validator-layer-complete",
+            "pendingWork": [
+                "Tracked worker dry-run validators cover cataloged cron/queue jobs (writes blocked).",
+                "All 61 cutover batches still require per-entry parity samples and live smoke before schedule cutover."
+            ]
+        },
+        {
+            "name": "Data, auth, observability, and rollback evidence",
+            "weightPercent": 15,
+            "completePercent": 100,
+            "status": "nested-acl-otel-scaffold-wired",
+            "pendingWork": [
+                "Admin sessions expose capabilities plus nested modules_access ACL; ActivitySource names are reserved.",
+                "EF Core stub entities exist but DbContext is not registered; PG17/YARP/Redis/Kafka remain not live.",
+                "Staging smoke artifacts and live rollback approvals remain pending before PHP removal."
+            ]
+        },
+        {
+            "name": "PHP runtime decommission",
+            "weightPercent": 5,
+            "completePercent": 0,
+            "status": "blocked",
+            "pendingWork": [
+                "Remove PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies only after every route and job has green parity evidence.",
+                "Keep PHP fallback required until the final release-owner decommission approval.",
+                "See /migration/php-decommission-readiness for the explicit blocker list."
+            ]
+        }
+    ],
+    "nextActions": [
+        "Redeploy with git reset --hard origin/main then scripts/cloudpanel_find_and_redeploy.sh (or cloudpanel_bootstrap_from_github.sh).",
+        "Run exact-route staging smoke for /api/v1/price/lookup and /api/v1/catalog/status with real API keys.",
+        "Attach smoke artifacts, then enable only approved location = exact-route nginx shadows.",
+        "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
+        "The remaining 5% is PHP runtime decommission only \u2014 run scripts/run_zero_php_final_gate_checklist.sh, attach staging smoke/parity artifacts, then release-owner approval before PHP removal."
+    ]
+}

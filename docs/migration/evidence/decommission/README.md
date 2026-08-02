@@ -6,6 +6,7 @@ Nothing here authorizes PHP removal by itself. `GET /migration/php-decommission-
 
 ## Layout
 
+- `public-probes/` — no-secret production diagnostic captures (already attached)
 - `staging-smoke/` — copy JSON outputs from opt-in smoke runners
   - `price-lookup-aspnet.json`
   - `catalog-status-aspnet.json`
@@ -13,6 +14,13 @@ Nothing here authorizes PHP removal by itself. `GET /migration/php-decommission-
 - `parity-samples/` — PHP-vs-ASP.NET comparison JSON samples
 - `RELEASE_OWNER_APPROVAL.example.md` — template only
 - `RELEASE_OWNER_APPROVAL.md` — create only when a release owner approves (must contain `APPROVED_TO_REMOVE_PHP_FALLBACK`)
+
+## CloudPanel one-shot
+
+```bash
+cd /opt/ecomae-aspnet-source
+bash scripts/cloudpanel_capture_final_gate_artifacts.sh
+```
 
 ## Operator commands
 
