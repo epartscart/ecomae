@@ -1,0 +1,19 @@
+{
+  "route": "/api/v1/catalog/status",
+  "legacyPhpEntry": "api/v1/catalog.php?action=status",
+  "aspNetRoute": "/api/v1/catalog/status",
+  "capturedAtUtc": "2026-08-02T18:35:32Z",
+  "comparison": "public-unauthenticated",
+  "publicHost": {
+    "status": 404,
+    "contentType": "text/html; charset=UTF-8",
+    "classification": "php-html"
+  },
+  "aspnetExpectationLoopback": {
+    "status": 401,
+    "contentType": "application/json",
+    "bodyMarker": "missing_api_key"
+  },
+  "result": "public-still-php-pending-exact-route-shadow",
+  "note": "Does not authorize PHP removal. Authenticated 200 smoke still required under staging-smoke/."
+}

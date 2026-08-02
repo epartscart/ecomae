@@ -13,10 +13,14 @@ ECOMAE_ASPNET_RELEASE_ROOT="${ECOMAE_ASPNET_RELEASE_ROOT:-/var/www/ecomae-aspnet
 ECOMAE_ASPNET_ENV_DIR="${ECOMAE_ASPNET_ENV_DIR:-/etc/ecomae-aspnet}"
 CANDIDATES=("${ECOMAE_REPO:-}" /root/ecomae /opt/ecomae-aspnet-source /opt/ecomae)
 
-printf '== CloudPanel find + redeploy (main) ==\n'
+printf '== CloudPanel find + redeploy (%s) ==\n' "$ECOMAE_BRANCH"
 printf 'Note: /var/www/ecomae is NOT a required path.\n'
 printf 'Release root: %s\n' "$ECOMAE_ASPNET_RELEASE_ROOT"
 printf 'Env dir:      %s\n' "$ECOMAE_ASPNET_ENV_DIR"
+if [[ "$ECOMAE_BRANCH" == "main" ]]; then
+  printf 'NOTE: final-gate smoke preflight (validate/wait) may be on branch cursor/smoke-preflight-public-probes-7b3b until PR #599 merges.\n'
+  printf '      Prefer: bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-preflight-public-probes-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"\n'
+fi
 
 find_repo() {
   local candidate found
@@ -94,6 +98,11 @@ ECOMAE_ASPNET_RELEASE_ROOT="$ECOMAE_ASPNET_RELEASE_ROOT" \
 bash scripts/cloudpanel_production_deploy_foundation.sh
 
 printf '\nVerify:\n'
+printf '  bash scripts/wait_for_aspnet_health.sh\n'
 printf '  curl -i http://127.0.0.1:5100/health\n'
 printf '  systemctl status ecomae-platform.service --no-pager\n'
+printf 'Then capture (needs real keys/cookie in /etc/ecomae-aspnet/platform.env):\n'
+printf '  source /etc/ecomae-aspnet/platform.env\n'
+printf '  bash scripts/cloudpanel_validate_final_gate_env.sh\n'
+printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
 printf 'PHP remains fallback. Do not enable broad nginx cutover.\n'

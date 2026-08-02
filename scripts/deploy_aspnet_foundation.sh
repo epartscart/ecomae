@@ -77,6 +77,9 @@ if [[ "$RUN_SYSTEMD" == "1" ]]; then
     systemctl enable ecomae-platform.service
     systemctl restart ecomae-platform.service
     systemctl status ecomae-platform.service --no-pager
+    # systemd can report active before Kestrel binds :5100 — wait before callers run smoke.
+    ECOMAE_ASPNET_BASE_URL="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:${PLATFORM_PORT}}" \
+      bash "$ROOT/scripts/wait_for_aspnet_health.sh"
 else
     printf '\nSkipped systemd actions. Set ECOMAE_RUN_SYSTEMD=1 to install/restart services.\n'
 fi

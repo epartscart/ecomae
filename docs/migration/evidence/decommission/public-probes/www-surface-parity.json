@@ -1,0 +1,83 @@
+{
+    "status": "parity-not-yet-reached",
+    "items": [
+        {
+            "surface": "Login",
+            "capability": "legacy session and permission bridge",
+            "legacyRoute": "/cp/login.php",
+            "aspNetRoute": "/auth/session/probe",
+            "status": "bridge-started",
+            "requiredEvidence": "Validated PHP cookie, user id, role, tenant, and permission parity for CP/ERP/BOS users."
+        },
+        {
+            "surface": "Super CP",
+            "capability": "dashboard shell",
+            "legacyRoute": "ecomae.com/CP",
+            "aspNetRoute": "/CP",
+            "status": "presentation-shell-scaffolded",
+            "requiredEvidence": "ASP.NET Core route renders presentation-preserving shell using PHP CP CSS assets; menu, tenant selector, and access denial still need full parity evidence."
+        },
+        {
+            "surface": "Platform ERP",
+            "capability": "finance dashboard",
+            "legacyRoute": "ecomae.com/ERP",
+            "aspNetRoute": "/ERP",
+            "status": "presentation-shell-scaffolded",
+            "requiredEvidence": "ASP.NET Core route renders presentation-preserving ERP chrome using PHP ERP theme CSS; finance KPIs/workflows still need full parity evidence."
+        },
+        {
+            "surface": "Super BOS",
+            "capability": "operations command center",
+            "legacyRoute": "ecomae.com/BOS",
+            "aspNetRoute": "/BOS",
+            "status": "presentation-shell-scaffolded",
+            "requiredEvidence": "ASP.NET Core route renders presentation-preserving BOS chrome using bos/epc_bos_shell.css; privileged ops still need full parity evidence."
+        },
+        {
+            "surface": "Tenant CP",
+            "capability": "tenant administration",
+            "legacyRoute": "tenant.com/CP",
+            "aspNetRoute": "/CP",
+            "status": "tenant-routing-started",
+            "requiredEvidence": "Live tenant CP login, menus, user scopes, settings, and order/pricing modules pass parity tests."
+        },
+        {
+            "surface": "Tenant ERP",
+            "capability": "tenant finance operations",
+            "legacyRoute": "tenant.com/ERP",
+            "aspNetRoute": "/ERP",
+            "status": "tenant-routing-started",
+            "requiredEvidence": "Live-tenant and ERP-only tenant ERP workflows pass parity tests against production fixtures."
+        },
+        {
+            "surface": "Storefront",
+            "capability": "customer-facing commerce",
+            "legacyRoute": "tenant storefront",
+            "aspNetRoute": "/",
+            "status": "presentation-shell-scaffolded",
+            "requiredEvidence": "Account shell can negotiate HTML chrome using templates/modex CSS; catalog/cart/checkout/SEO still need full parity evidence."
+        },
+        {
+            "surface": "Public API",
+            "capability": "catalog and price lookup",
+            "legacyRoute": "/api/v1/catalog.php and /api/v1/price/lookup.php",
+            "aspNetRoute": "/api/v1/catalog/status and /api/v1/price/lookup",
+            "status": "scaffold-started",
+            "requiredEvidence": "Response schema, error handling, authentication, database reads, and latency match PHP API behavior."
+        },
+        {
+            "surface": "Workers",
+            "capability": "scheduled jobs",
+            "legacyRoute": "PHP cron/setup scripts",
+            "aspNetRoute": "EcomAE.Workers",
+            "status": "placeholder",
+            "requiredEvidence": "Imports, sitemap, notifications, backups, cleanup, retries, and telemetry run without PHP cron dependency."
+        }
+    ],
+    "requiredBeforeFiftyPercent": [
+        "Run scripts/run_surface_parity_harness.sh and attach field-by-field dual samples under docs/migration/evidence/surface-parity/samples/.",
+        "Use /migration/surface-field-parity contracts before any exact-route shadow promotion.",
+        "Validate legacy session bridge against real CP/ERP/BOS login cookies and permissions.",
+        "Keep broad /cp /erp /bos /storefront cutover blocked until every contracted digest/presentation match is true."
+    ]
+}

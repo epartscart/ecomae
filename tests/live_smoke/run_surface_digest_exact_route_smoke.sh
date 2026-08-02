@@ -58,6 +58,27 @@ for route in "${routes[@]}"; do
   status="$(curl -sS -o "$tmp" -w '%{http_code}' "${auth_args[@]}" \
     "${ECOMAE_ASPNET_BASE_URL}${route}" || true)"
   bytes="$(wc -c <"$tmp" | tr -d ' ')"
+  marker=""
+  if [[ "$status" != "200" ]]; then
+    marker="$(python3 - "$tmp" <<'PY'
+import json, sys
+raw = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+try:
+    doc = json.loads(raw)
+    if isinstance(doc, dict):
+        if isinstance(doc.get("error"), dict):
+            print(str(doc["error"].get("code") or doc["error"])[:120])
+        elif "message" in doc:
+            print(str(doc.get("message"))[:120])
+        else:
+            print(raw[:120].replace("\n", " "))
+    else:
+        print(raw[:120].replace("\n", " "))
+except Exception:
+    print(raw[:120].replace("\n", " "))
+PY
+)"
+  fi
   rm -f "$tmp"
 
   if [[ "$route" == /migration/* ]]; then
@@ -65,7 +86,7 @@ for route in "${routes[@]}"; do
       echo "PASS ${route} HTTP $status"
       pass=$((pass + 1))
     else
-      echo "FAIL ${route} returned HTTP $status"
+      echo "FAIL ${route} returned HTTP $status marker=${marker}"
       fail=$((fail + 1))
     fi
   else
@@ -77,11 +98,12 @@ for route in "${routes[@]}"; do
       echo "PASS ${route} HTTP $status (legacy allow-401 mode)"
       pass=$((pass + 1))
     else
-      echo "FAIL ${route} returned HTTP $status (authenticated digest 200 required)"
+      echo "FAIL ${route} returned HTTP $status (authenticated digest 200 required) marker=${marker}"
       fail=$((fail + 1))
     fi
   fi
-  printf '%s\t%s\t%s\n' "$route" "$status" "$bytes" >>"$results_tmp"
+  # marker may be empty; keep TSV columns stable
+  printf '%s\t%s\t%s\t%s\n' "$route" "$status" "$bytes" "${marker//$'\t'/ }" >>"$results_tmp"
 done
 
 python3 - "$OUT_FILE" "$results_tmp" "$digest_200" "$fail" <<'PY'
@@ -90,8 +112,13 @@ out, src, digest_200, fail = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys
 routes = []
 with open(src, encoding="utf-8") as fh:
     for line in fh:
-        route, status, bytes_ = line.rstrip("\n").split("\t")
-        routes.append({"route": route, "status": int(status), "bytes": int(bytes_)})
+        parts = line.rstrip("\n").split("\t")
+        route, status, bytes_ = parts[0], parts[1], parts[2]
+        marker = parts[3] if len(parts) > 3 else ""
+        entry = {"route": route, "status": int(status), "bytes": int(bytes_)}
+        if marker:
+            entry["errorMarker"] = marker
+        routes.append(entry)
 ok = fail == 0 and digest_200 > 0
 payload = {
     "ok": ok,

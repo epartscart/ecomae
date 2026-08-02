@@ -106,7 +106,11 @@ if [[ "$ECOMAE_RUN_NGINX_RELOAD" == "1" ]]; then
 fi
 
 printf '\n== Deploy complete (foundation only) ==\n'
-printf 'Health check: curl -i http://127.0.0.1:5100/health\n'
+printf 'Health check: bash scripts/wait_for_aspnet_health.sh\n'
+printf '            curl -i http://127.0.0.1:5100/health\n'
 printf 'PHP remains authoritative for CP/ERP/BOS/API/storefront.\n'
 printf 'Do not remove PHP. Do not proxy broad /api.\n'
-printf 'Next: configure ConnectionStrings__TenantRegistry, run exact-route smoke for /api/v1/price/lookup.\n'
+printf 'Next: set ECOMAE_* smoke keys in platform.env, then:\n'
+printf '  source /etc/ecomae-aspnet/platform.env\n'
+printf '  bash scripts/cloudpanel_validate_final_gate_env.sh\n'
+printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'

@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# Paste-safe: deploy the final-gate smoke-preflight branch (PR #599), NOT stale main.
+#
+# On CloudPanel as root, copy this ENTIRE block:
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-preflight-public-probes-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
+#
+# Or from an existing checkout:
+#   bash scripts/cloudpanel_redeploy_final_gate_branch.sh
+#
+# Never removes PHP. Never invents API keys/cookies — you must set them in platform.env.
+set -euo pipefail
+
+ECOMAE_GIT_URL="${ECOMAE_GIT_URL:-https://github.com/epartscart/ecomae.git}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/smoke-preflight-public-probes-7b3b}"
+REPO="${ECOMAE_REPO:-/opt/ecomae-aspnet-source}"
+ECOMAE_ASPNET_ENV_DIR="${ECOMAE_ASPNET_ENV_DIR:-/etc/ecomae-aspnet}"
+ENV_FILE="${ECOMAE_ASPNET_ENV_DIR}/platform.env"
+
+printf '== CloudPanel redeploy FINAL-GATE branch ==\n'
+printf 'Branch: %s\n' "$ECOMAE_BRANCH"
+printf 'Repo:   %s\n' "$REPO"
+printf 'This is NOT main until PR #599 merges. Stale main lacks validate/wait scripts.\n'
+
+mkdir -p "$(dirname "$REPO")"
+if [[ ! -d "$REPO/.git" ]]; then
+  git clone "$ECOMAE_GIT_URL" "$REPO"
+fi
+
+cd "$REPO"
+git remote set-url origin "$ECOMAE_GIT_URL" || true
+git fetch origin "$ECOMAE_BRANCH"
+git checkout -f "$ECOMAE_BRANCH"
+git reset --hard "origin/$ECOMAE_BRANCH"
+git clean -fd
+
+printf 'HEAD: %s\n' "$(git rev-parse --short HEAD)"
+test -f scripts/cloudpanel_validate_final_gate_env.sh
+test -f scripts/wait_for_aspnet_health.sh
+test -f scripts/cloudpanel_capture_final_gate_artifacts.sh
+printf 'Final-gate scripts present.\n'
+
+ECOMAE_BRANCH="$ECOMAE_BRANCH" bash scripts/cloudpanel_find_and_redeploy.sh
+
+printf '\n-- Post-deploy health wait --\n'
+bash scripts/wait_for_aspnet_health.sh
+
+printf '\n-- Env preflight (values redacted) --\n'
+bash scripts/cloudpanel_validate_final_gate_env.sh || true
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  printf 'ERROR: %s missing\n' "$ENV_FILE" >&2
+  exit 2
+fi
+
+# shellcheck disable=SC1090
+set -a; source "$ENV_FILE"; set +a
+ECOMAE_PRICE_LOOKUP_API_KEY="${ECOMAE_PRICE_LOOKUP_API_KEY:-${PRICE_LOOKUP_API_KEY:-}}"
+ECOMAE_CATALOG_API_KEY="${ECOMAE_CATALOG_API_KEY:-${CATALOG_API_KEY:-}}"
+
+missing=0
+if [[ -z "$ECOMAE_PRICE_LOOKUP_API_KEY" || "$ECOMAE_PRICE_LOOKUP_API_KEY" != epc_pricepro_* ]]; then
+  printf 'BLOCKED: set ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_... in %s\n' "$ENV_FILE"
+  missing=1
+fi
+if [[ -z "$ECOMAE_CATALOG_API_KEY" || "$ECOMAE_CATALOG_API_KEY" != epc_catalog_* ]]; then
+  printf 'BLOCKED: set ECOMAE_CATALOG_API_KEY=epc_catalog_... in %s\n' "$ENV_FILE"
+  missing=1
+fi
+if [[ -z "${ECOMAE_ADMIN_COOKIE_HEADER:-}" && -z "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
+  printf 'BLOCKED: set ECOMAE_ADMIN_COOKIE_HEADER='\''admin_session=...; admin_u_id=123'\'' in %s\n' "$ENV_FILE"
+  missing=1
+fi
+
+if [[ "$missing" -ne 0 ]]; then
+  printf '\nEdit secrets, then continue:\n'
+  printf '  nano %s\n' "$ENV_FILE"
+  printf '  source %s\n' "$ENV_FILE"
+  printf '  curl -sS -H "Cookie: $ECOMAE_ADMIN_COOKIE_HEADER" http://127.0.0.1:5100/auth/session/probe\n'
+  printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
+  printf '  bash scripts/cloudpanel_commit_final_gate_smoke.sh\n'
+  printf 'Do NOT remove PHP.\n'
+  exit 2
+fi
+
+printf '\n-- Admin session probe --\n'
+probe_tmp="$(mktemp)"
+if [[ -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
+  probe_code="$(curl -sS -m 20 -o "$probe_tmp" -w '%{http_code}' -b "$ECOMAE_ADMIN_COOKIE_JAR" http://127.0.0.1:5100/auth/session/probe || true)"
+else
+  probe_code="$(curl -sS -m 20 -o "$probe_tmp" -w '%{http_code}' -H "Cookie: ${ECOMAE_ADMIN_COOKIE_HEADER}" http://127.0.0.1:5100/auth/session/probe || true)"
+fi
+printf 'HTTP %s\n' "$probe_code"
+python3 - "$probe_tmp" <<'PY' || true
+import json, sys
+doc = json.load(open(sys.argv[1], encoding="utf-8"))
+print({k: doc.get(k) for k in ("Kind", "kind", "IsAuthenticated", "isAuthenticated", "has_backend_access", "UserId", "userId")})
+kind = doc.get("Kind") or doc.get("kind")
+auth = doc.get("IsAuthenticated")
+if auth is None:
+    auth = doc.get("isAuthenticated")
+if str(kind) != "Admin" or auth is False:
+    raise SystemExit("Admin session probe failed — refresh ECOMAE_ADMIN_COOKIE_HEADER from a live Super CP login")
+print("Admin session OK")
+PY
+rm -f "$probe_tmp"
+
+printf '\n-- Capture final-gate artifacts --\n'
+bash scripts/cloudpanel_capture_final_gate_artifacts.sh
+
+printf '\n-- Commit smoke if complete --\n'
+bash scripts/cloudpanel_commit_final_gate_smoke.sh || true
+printf 'Done. PHP remains authoritative until ReadyToRemovePhp + release-owner approval.\n'

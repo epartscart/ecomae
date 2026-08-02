@@ -1,1 +1,88 @@
-{"status":"blocked-not-ready-for-php-removal","readyToRemovePhp":false,"blockerCount":7,"checklistCompleteCount":5,"checklistTotalCount":9,"checklistCompletePercent":55.6,"checklist":[{"id":"public-probes","description":"Public production diagnostic probes attached (no secrets)","status":"present","detail":"evidence located"},{"id":"staging-smoke-price","description":"Price lookup exact-route staging smoke artifact (authenticated 200)","status":"missing","detail":"attach authenticated 200 smoke under staging-smoke/price-lookup-aspnet.json"},{"id":"staging-smoke-catalog","description":"Catalog status exact-route staging smoke artifact","status":"missing","detail":"attach authenticated smoke under staging-smoke/catalog-status-aspnet.json"},{"id":"staging-smoke-surfaces","description":"CP/ERP/BOS digest staging smoke artifact","status":"missing","detail":"attach surface-digests-aspnet.json with ok=true and routes[]"},{"id":"parity-samples-attached","description":"At least one attached PHP-vs-ASP.NET parity sample under evidence","status":"present","detail":"evidence located"},{"id":"exact-route-shadows-only","description":"Exact-route nginx shadow examples present; broad cutover still forbidden","status":"present","detail":"evidence located"},{"id":"cloudpanel-capture-script","description":"CloudPanel final-gate capture script exists","status":"present","detail":"evidence located"},{"id":"rollback-validated","description":"Operator rollback script exists and keeps PHP fallback","status":"present","detail":"evidence located"},{"id":"release-owner-approval","description":"Release-owner written approval artifact","status":"missing","detail":"create RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK after smoke"}],"blockers":["staging-smoke-price: Price lookup exact-route staging smoke artifact (authenticated 200)","staging-smoke-catalog: Catalog status exact-route staging smoke artifact","staging-smoke-surfaces: CP/ERP/BOS digest staging smoke artifact","release-owner-approval: Release-owner written approval artifact","Authenticated CloudPanel smoke keys/cookies are required; this agent cannot invent them.","Broad /, /api, /cp, /erp, /bos, and storefront nginx cutovers remain forbidden.","PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies must remain until ReadyToRemovePhp is true."],"requiredEvidence":["Green PHP-vs-ASP.NET parity samples for tracked routes under evidence/parity-samples/","Staging smoke artifacts for exact-route proxies under docs/migration/evidence/decommission/staging-smoke/","Operator rollback command validation","Release-owner APPROVED_TO_REMOVE_PHP_FALLBACK artifact"],"nextActions":["Keep PHP authoritative for all production traffic.","Run bash scripts/run_zero_php_final_gate_checklist.sh.","On CloudPanel: add ECOMAE_PRICE_LOOKUP_API_KEY / ECOMAE_CATALOG_API_KEY / ECOMAE_ADMIN_COOKIE_HEADER to platform.env, then bash scripts/cloudpanel_capture_final_gate_artifacts.sh.","Copy generated smoke JSON into docs/migration/evidence/decommission/staging-smoke/ after staging runs.","Promote only approved exact-route shadows one path at a time.","Do not remove PHP-FPM/cron/rewrites until ReadyToRemovePhp is true with release-owner approval."]}
+{
+    "status": "blocked-not-ready-for-php-removal",
+    "readyToRemovePhp": false,
+    "blockerCount": 8,
+    "checklistCompleteCount": 4,
+    "checklistTotalCount": 9,
+    "checklistCompletePercent": 44.4,
+    "checklist": [
+        {
+            "id": "public-probes",
+            "description": "Public production diagnostic probes attached (no secrets)",
+            "status": "present",
+            "detail": "evidence located"
+        },
+        {
+            "id": "staging-smoke-price",
+            "description": "Price lookup exact-route staging smoke artifact (authenticated 200)",
+            "status": "missing",
+            "detail": "attach authenticated 200 smoke under staging-smoke/price-lookup-aspnet.json"
+        },
+        {
+            "id": "staging-smoke-catalog",
+            "description": "Catalog status exact-route staging smoke artifact",
+            "status": "missing",
+            "detail": "attach authenticated smoke under staging-smoke/catalog-status-aspnet.json"
+        },
+        {
+            "id": "staging-smoke-surfaces",
+            "description": "CP/ERP/BOS digest staging smoke artifact",
+            "status": "missing",
+            "detail": "attach surface-digests-aspnet.json with ok=true and at least one non-migration digest HTTP 200"
+        },
+        {
+            "id": "parity-samples-attached",
+            "description": "At least one attached PHP-vs-ASP.NET parity sample under evidence",
+            "status": "present",
+            "detail": "evidence located"
+        },
+        {
+            "id": "exact-route-shadows-only",
+            "description": "Exact-route nginx shadow examples present; broad cutover still forbidden",
+            "status": "missing",
+            "detail": "attach evidence before considering PHP removal"
+        },
+        {
+            "id": "cloudpanel-capture-script",
+            "description": "CloudPanel final-gate capture script exists",
+            "status": "present",
+            "detail": "evidence located"
+        },
+        {
+            "id": "rollback-validated",
+            "description": "Operator rollback script exists and keeps PHP fallback",
+            "status": "present",
+            "detail": "evidence located"
+        },
+        {
+            "id": "release-owner-approval",
+            "description": "Release-owner written approval artifact",
+            "status": "missing",
+            "detail": "create RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK after smoke"
+        }
+    ],
+    "blockers": [
+        "staging-smoke-price: Price lookup exact-route staging smoke artifact (authenticated 200)",
+        "staging-smoke-catalog: Catalog status exact-route staging smoke artifact",
+        "staging-smoke-surfaces: CP/ERP/BOS digest staging smoke artifact",
+        "exact-route-shadows-only: Exact-route nginx shadow examples present; broad cutover still forbidden",
+        "release-owner-approval: Release-owner written approval artifact",
+        "Authenticated CloudPanel smoke keys/cookies are required; this agent cannot invent them.",
+        "Broad /, /api, /cp, /erp, /bos, and storefront nginx cutovers remain forbidden.",
+        "PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies must remain until ReadyToRemovePhp is true."
+    ],
+    "requiredEvidence": [
+        "Green PHP-vs-ASP.NET parity samples for tracked routes under evidence/parity-samples/",
+        "Staging smoke artifacts for exact-route proxies under docs/migration/evidence/decommission/staging-smoke/",
+        "Operator rollback command validation",
+        "Release-owner APPROVED_TO_REMOVE_PHP_FALLBACK artifact"
+    ],
+    "nextActions": [
+        "Keep PHP authoritative for all production traffic.",
+        "Run bash scripts/run_zero_php_final_gate_checklist.sh.",
+        "On CloudPanel: add ECOMAE_PRICE_LOOKUP_API_KEY / ECOMAE_CATALOG_API_KEY / ECOMAE_ADMIN_COOKIE_HEADER to platform.env, then bash scripts/cloudpanel_capture_final_gate_artifacts.sh.",
+        "Copy generated smoke JSON into docs/migration/evidence/decommission/staging-smoke/ after staging runs.",
+        "Promote only approved exact-route shadows one path at a time.",
+        "Do not remove PHP-FPM/cron/rewrites until ReadyToRemovePhp is true with release-owner approval."
+    ]
+}

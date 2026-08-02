@@ -1,0 +1,10 @@
+{
+  "capturedAtUtc": "2026-08-02T18:35:32Z",
+  "url": "https://www.ecomae.com/api/v1/catalog/status",
+  "status": 404,
+  "contentType": "text/html; charset=UTF-8",
+  "bodyPrefix": "<!DOCTYPE html> <html lang=\"en\" data-theme=\"default\" data-epc-industry=\"platform_host\" data-epc-style=\"classic\" data-epc-commerce=\"off\" data-epc-storefront=\"default\"> <head> \t<!-- ",
+  "classification": "php-html",
+  "note": "Public host still PHP HTML until exact-route nginx shadow + API key smoke.",
+  "notStagingSmoke": true
+}

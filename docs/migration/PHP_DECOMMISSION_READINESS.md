@@ -28,21 +28,29 @@ Live operator URL catalog: `docs/migration/LIVE_SURFACE_LINKS.md` and `GET /migr
 
 On CloudPanel after deploy (loads keys from `/etc/ecomae-aspnet/platform.env` when present):
 
+**Until PR #599 is merged, do NOT reset to `main`** — main still lacks `cloudpanel_validate_final_gate_env.sh` / health wait. Paste this one-liner as root:
+
 ```bash
-cd /opt/ecomae-aspnet-source
-git fetch origin main && git checkout -f main && git reset --hard origin/main
-bash scripts/cloudpanel_find_and_redeploy.sh
-
-# Required before capture can write staging-smoke/*.json (server-only, never commit):
-# ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...
-# ECOMAE_CATALOG_API_KEY=epc_catalog_...
-# ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=...'
-
-source /etc/ecomae-aspnet/platform.env
-bash scripts/cloudpanel_capture_final_gate_artifacts.sh
-# When all three smoke files exist:
-bash scripts/cloudpanel_commit_final_gate_smoke.sh
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-preflight-public-probes-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
 ```
+
+That script redeploys the final-gate branch, waits for `:5100/health`, validates env (no secret print), then captures. It exits with `BLOCKED` until keys/cookie are set.
+
+Required in `/etc/ecomae-aspnet/platform.env` (server-only, never commit):
+
+```bash
+ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...
+ECOMAE_CATALOG_API_KEY=epc_catalog_...
+ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=...'
+```
+
+Common CloudPanel failures:
+- `cloudpanel_validate_final_gate_env.sh: No such file` → you are on stale `main`; use the one-liner above (PR #599 branch).
+- `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (automatic on the PR branch).
+- `SKIP price/catalog smoke` → empty API keys in `platform.env`.
+- Digest routes HTTP 401 → stale/invalid admin cookie; probe `/auth/session/probe` until `Kind=Admin`.
+
+Exact-route promotion (after smoke only): `docs/migration/EXACT_ROUTE_PROMOTION_PRICE_CATALOG.md`
 
 Deploy packs `docs/migration/evidence/decommission` into the ASP.NET release ContentRoot so `/migration/php-decommission-readiness` can see attached git artifacts on the server (checklist should show public probes/scripts present after redeploy; authenticated smoke + approval still required).
 
@@ -62,6 +70,7 @@ Exact-route shadow examples:
 - `deploy/aspnet/nginx-price-lookup-shadow-example.conf`
 - `deploy/aspnet/nginx-api-shadow-example.conf` (catalog status)
 - `deploy/aspnet/nginx-surface-digests-shadow-example.conf`
+- `deploy/aspnet/nginx-storefront-digests-shadow-example.conf`
 - `deploy/aspnet/nginx-storefront-digests-shadow-example.conf`
 
 ## Why the last 5% remains
