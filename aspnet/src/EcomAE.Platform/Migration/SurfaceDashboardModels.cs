@@ -377,3 +377,59 @@ public sealed record BosAuditLogListResult(
     int Count,
     string Source,
     string Message);
+
+public sealed record ErpPurchaseOrderDigest(
+    long Id,
+    string PoNo,
+    long SupplierId,
+    string Title,
+    decimal TotalAmount,
+    string Status,
+    long TimeCreated);
+
+public sealed record ErpPurchaseOrderListResult(
+    IReadOnlyList<ErpPurchaseOrderDigest> Orders,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpInventoryStockSummaryResult(
+    long RowCount,
+    decimal QtyOnHand,
+    decimal StockValue,
+    int WarehouseCount,
+    int ItemCount,
+    string Source,
+    string Message);
+
+public sealed record CpCurrencyDigest(
+    int Id,
+    string IsoCode,
+    string IsoName,
+    string CaptionShort,
+    decimal Rate,
+    bool Available,
+    int SortOrder);
+
+public sealed record CpCurrencyListResult(
+    IReadOnlyList<CpCurrencyDigest> Currencies,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpApiClientMetaDigest(
+    long Id,
+    string ClientKeyPrefix,
+    string Product,
+    string Label,
+    string ContactEmail,
+    bool Active,
+    int DailyLimit,
+    int CallsToday,
+    long TimeCreated);
+
+public sealed record CpApiClientMetaListResult(
+    IReadOnlyList<CpApiClientMetaDigest> Clients,
+    int Count,
+    string Source,
+    string Message);

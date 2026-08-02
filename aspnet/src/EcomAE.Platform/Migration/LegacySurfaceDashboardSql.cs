@@ -303,4 +303,43 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    public const string SelectErpPurchaseOrders = """
+        SELECT `id`, IFNULL(`po_no`, '') AS po_no, IFNULL(`supplier_id`, 0) AS supplier_id,
+               IFNULL(`title`, '') AS title, IFNULL(`total_amount`, 0) AS total_amount,
+               IFNULL(`status`, '') AS status, IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_erp_purchase_orders`
+        ORDER BY `time_created` DESC, `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpInventoryStockSummary = """
+        SELECT COUNT(*) AS row_count,
+               IFNULL(SUM(`qty_on_hand`), 0) AS qty_on_hand,
+               IFNULL(SUM(`qty_on_hand` * `avg_unit_cost`), 0) AS stock_value,
+               COUNT(DISTINCT `warehouse_id`) AS warehouse_count,
+               COUNT(DISTINCT `item_id`) AS item_count
+        FROM `epc_erp_inv_stock`
+        """;
+
+    public const string SelectCpCurrencies = """
+        SELECT `id`, IFNULL(`iso_code`, '') AS iso_code, IFNULL(`iso_name`, '') AS iso_name,
+               IFNULL(`caption_short`, '') AS caption_short, IFNULL(`rate`, 0) AS rate,
+               IFNULL(`available`, 0) AS available, IFNULL(`order`, 0) AS sort_order
+        FROM `shop_currencies`
+        ORDER BY `order` ASC, `iso_name` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>API client metadata only — never selects client_key_hash.</summary>
+    public const string SelectCpApiClientsMeta = """
+        SELECT `id`, IFNULL(`client_key_prefix`, '') AS client_key_prefix,
+               IFNULL(`product`, '') AS product, IFNULL(`label`, '') AS label,
+               IFNULL(`contact_email`, '') AS contact_email, `active`,
+               IFNULL(`daily_limit`, 0) AS daily_limit, IFNULL(`calls_today`, 0) AS calls_today,
+               IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_api_clients`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

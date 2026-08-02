@@ -35,6 +35,8 @@ PHP dashboards remain authoritative. No writes.
 - `GET /cp/pages?limit=200` — content pages metadata (body omitted)
 - `GET /cp/admin-sessions?limit=200` — admin session counts by user (no raw tokens)
 - `GET /cp/storages?limit=200` — shop_storages digest
+- `GET /cp/currencies?limit=200` — shop_currencies digest
+- `GET /cp/api-clients?limit=200` — epc_api_clients metadata (no key hashes)
 - `GET /bos/tenants?limit=100` — same list for BOS
 - `GET /bos/fleet-health?limit=25` — fleet summary + sample tenants
 - `GET /bos/fleet-readiness` — platform-DB readiness scoring (no per-tenant connects)
@@ -49,6 +51,8 @@ PHP dashboards remain authoritative. No writes.
 - `GET /erp/coa-accounts?limit=300` — chart of accounts
 - `GET /erp/warehouses?limit=200` — ERP inventory warehouses
 - `GET /erp/sales-orders?limit=200` — ERP sales orders
+- `GET /erp/purchase-orders?limit=200` — ERP purchase orders
+- `GET /erp/inventory-stock` — ERP inventory stock KPI summary
 - `GET /storefront/orders?limit=25` — customer-gated recent shop_orders
 - `GET /storefront/garage?limit=50` — customer-gated garage vehicles
 - `GET /storefront/profile` — customer-gated users + users_profiles

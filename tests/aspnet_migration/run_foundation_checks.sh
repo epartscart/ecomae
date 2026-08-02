@@ -260,7 +260,7 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 92.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 95.0%'
 check 'legacy session SQL checks customer sessions without type filter' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionSql.cs" 'CountCustomerSession'
 check 'legacy session DB evidence exists' test -f "$ROOT/docs/migration/evidence/legacy-session-db/README.md"
 check 'catalog article route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/article'
@@ -363,6 +363,13 @@ check 'CP admin-sessions route exists' contains "$ROOT/aspnet/src/EcomAE.Platfor
 check 'CP storages route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/storages'
 check 'BOS fleet-readiness route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/bos/fleet-readiness'
 check 'BOS audit-log route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/bos/audit-log'
+check 'ERP purchase-orders route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/purchase-orders'
+check 'ERP inventory-stock route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/inventory-stock'
+check 'CP currencies route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/currencies'
+check 'CP api-clients route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/api-clients'
+check 'PHP decommission readiness route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/migration/php-decommission-readiness'
+check 'PHP decommission readiness doc exists' test -f "$ROOT/docs/migration/PHP_DECOMMISSION_READINESS.md"
+check 'PHP decommission readiness blocks removal' contains "$ROOT/docs/migration/PHP_DECOMMISSION_READINESS.md" 'blocked-not-ready-for-php-removal'
 check 'EF catalog scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ICatalogScaffoldRepository.cs"
 check 'zero PHP path-to-100 documents remaining batches' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Path to 100%'
 check 'batch statuses record dry-run scaffolding' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'aspnet-dry-run-scaffolded'
@@ -440,6 +447,9 @@ check 'worker placeholder logs dry-run blockers' contains "$ROOT/aspnet/src/Ecom
 check 'worker program registers batch dry-run reporter' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerBatchDryRunReporter, MigrationWorkerBatchDryRunReporter'
 check 'worker program keeps zero-php batch one catalog' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'ZeroPhpBatchOneWorkerReplacementCatalog'
 check 'worker program keeps zero-php batch two catalog' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'ZeroPhpBatchTwoWorkerReplacementCatalog'
+check 'worker program registers cutover batch catalog' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'ZeroPhpCutoverBatchCatalog'
+check 'cutover batch catalog covers remaining batches' contains "$ROOT/aspnet/src/EcomAE.Workers/ZeroPhpCutoverBatchCatalog.cs" 'LastGeneratedBatch = 61'
+check 'all batches marked dry-run scaffolded in progress json' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" '"aspnet-dry-run-scaffolded": 61'
 check 'zero-php batch two catalog file exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ZeroPhpBatchTwoWorkerReplacement.cs"
 check 'zero-php batch two dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ZeroPhpBatchTwoWorkerDryRunExecutor.cs"
 check 'worker schedule planner interface exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/IMigrationWorkerSchedulePlanner.cs"

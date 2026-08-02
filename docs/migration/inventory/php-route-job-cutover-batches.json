@@ -588,7 +588,7 @@
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
       ],
-      "notes": "Batch 1 ASP.NET dry-run scaffolding catalog + evidence artifact writer landed. Still write-blocked; no PHP disable and no broad cutover."
+      "notes": "Batch 1 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 2,
@@ -1166,11 +1166,11 @@
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
       ],
-      "notes": "Batch 2 ASP.NET dry-run scaffolding catalog + evidence artifact writer landed. Still write-blocked; no PHP disable and no broad cutover."
+      "notes": "Batch 2 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 3,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -1745,11 +1745,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 3 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 4,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -2325,11 +2326,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 4 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 5,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -2902,11 +2904,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 5 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 6,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -3480,11 +3483,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 6 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 7,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -4057,11 +4061,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 7 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 8,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -4634,11 +4639,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 8 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 9,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -5211,11 +5217,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 9 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 10,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -5791,11 +5798,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 10 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 11,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -6368,11 +6376,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 11 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 12,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -6945,11 +6954,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 12 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 13,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -7522,11 +7532,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 13 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 14,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -8099,11 +8110,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 14 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 15,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -8676,11 +8688,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 15 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 16,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -9253,11 +9266,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 16 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 17,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -9830,11 +9844,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 17 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 18,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -10407,11 +10422,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 18 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 19,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -10984,11 +11000,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 19 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 20,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -11561,11 +11578,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 20 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 21,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -12138,11 +12156,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 21 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 22,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -12716,11 +12735,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 22 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 23,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -13293,11 +13313,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 23 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 24,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -13870,11 +13891,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 24 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 25,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -14447,11 +14469,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 25 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 26,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -15024,11 +15047,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 26 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 27,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -15601,11 +15625,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 27 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 28,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -16178,11 +16203,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 28 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 29,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -16755,11 +16781,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 29 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 30,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -17335,11 +17362,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 30 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 31,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -17912,11 +17940,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 31 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 32,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -18489,11 +18518,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 32 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 33,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -19066,11 +19096,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 33 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 34,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -19643,11 +19674,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 34 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 35,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -20220,11 +20252,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 35 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 36,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -20797,11 +20830,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 36 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 37,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -21374,11 +21408,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 37 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 38,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -21951,11 +21986,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 38 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 39,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -22528,11 +22564,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 39 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 40,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -23105,11 +23142,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 40 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 41,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -23682,11 +23720,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 41 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 42,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -24259,11 +24298,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 42 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 43,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -24836,11 +24876,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 43 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 44,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -25413,11 +25454,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 44 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 45,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -25990,11 +26032,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 45 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 46,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -26567,11 +26610,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 46 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 47,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -27144,11 +27188,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 47 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 48,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -27721,11 +27766,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 48 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 49,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -28298,11 +28344,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 49 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 50,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -28877,11 +28924,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 50 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 51,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -29454,11 +29502,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 51 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 52,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -30031,11 +30080,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 52 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 53,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -30608,11 +30658,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 53 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 54,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -31185,11 +31236,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 54 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 55,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -31762,11 +31814,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 55 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 56,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -32339,11 +32392,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 56 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 57,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -32916,11 +32970,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 57 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 58,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -33493,11 +33548,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 58 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 59,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -34070,11 +34126,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 59 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 60,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 50,
@@ -34647,11 +34704,12 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 60 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     },
     {
       "batch": 61,
-      "status": "planned-not-implemented",
+      "status": "aspnet-dry-run-scaffolded",
       "cutoverMode": "exact-route-only",
       "phpFallbackRequired": true,
       "items": 49,
@@ -35213,7 +35271,8 @@
           "nextStatus": "owner-assigned-pending-parity",
           "cutoverRule": "exact-route-only-with-php-fallback-until-live-parity"
         }
-      ]
+      ],
+      "notes": "Batch 61 ASP.NET dry-run scaffolding catalog + evidence planner landed. Still write-blocked; no PHP disable and no broad cutover."
     }
   ]
 }

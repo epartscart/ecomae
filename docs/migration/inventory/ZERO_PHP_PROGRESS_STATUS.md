@@ -6,10 +6,10 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 ## Current percentage
 
-- True zero-PHP completion: 92.0%.
-- Pending to 100%: 8.0%.
+- True zero-PHP completion: 95.0%.
+- Pending to 100%: 5.0%.
 - Foundation/planning floor: 35.0%.
-- Route/job implementation started (not parity-ready): digests + nested ACL + worker dry-run layer + batch-1/2 dry-run scaffolding.
+- Route/job implementation started (not parity-ready): digests + nested ACL + worker dry-run layer + all 61 batches dry-run scaffolding.
 - Route/job parity-ready: 0.0%.
 - Route/job shadow-or-better: 0.0%.
 
@@ -32,29 +32,29 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - Ownership assigned: 3049 (100.0%).
 - Batch assignments: 3049 (100.0%).
 - Total exact-route batches: 61.
-- Batch statuses: batches 1–2 `aspnet-dry-run-scaffolded`; batches 3–61 `planned-not-implemented`.
+- Batch statuses: all 61 batches `aspnet-dry-run-scaffolded`.
 
 ## Concrete implementation progress (honest)
 
 - Catalog/price API routes with DB/cache readers + API-key auth.
 - Admin nested modules_access ACL + surface capabilities.
-- CP digests: dashboard, tenants, users, groups, modules, config-items, menus, pages, admin-sessions (no raw tokens), storages.
-- ERP digests: accounts, suppliers, purchases, cash accounts/entries, invoices, GL journals, COA, warehouses, sales-orders.
-- BOS digests: fleet summary/health/readiness + audit-log (platform DB only).
+- CP digests: dashboard, tenants, users, groups, modules, config-items, menus, pages, admin-sessions, storages, currencies, api-clients metadata.
+- ERP digests: accounts, suppliers, purchases, cash, invoices, GL, COA, warehouses, sales-orders, purchase-orders, inventory-stock KPIs.
+- BOS digests: fleet summary/health/readiness + audit-log.
 - Storefront account/orders/garage/profile digests.
-- Tracked write-blocked worker dry-run validator layer + batch-1/2 dry-run scaffolding.
-- EF Core stub entities (unwired); Enterprise BOS compliance docs.
-- No broad PHP cutover; parity/shadow remain 0%; PHP decommission blocked.
+- Tracked write-blocked worker dry-run validator layer + batches 1–61 dry-run scaffolding.
+- PHP decommission readiness reporter documents blockers; removal remains blocked.
+- No broad PHP cutover; parity/shadow remain 0%.
 
-## Path to 100% (honest)
+## Path to 100% / Remaining 5% (PHP runtime decommission only)
 
-100% requires all 61 batches live/removed with parity evidence, staging smoke, approved exact-route shadows, and release-owner approval to remove PHP. This PR does **not** claim 100%.
+100% requires green parity evidence for every tracked route/job, staging smoke, approved exact-route shadows, and release-owner approval to remove PHP-FPM/cron/rewrites/source. Dry-run scaffolding does **not** authorize PHP removal. See `/migration/php-decommission-readiness`. Remaining batches still need promotion from dry-run scaffolding to shadow/live.
 
 ## Next execution order
 
 - Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first.
 - Run exact-route staging smoke; attach artifacts; enable only approved `location =` shadows.
-- Continue batch-by-batch replacements with parity evidence.
+- Promote batch entries from dry-run → shadow → live with parity evidence.
 - Remove PHP only after every tracked item is live/removed with rollback approval.
 
 ## Guardrail

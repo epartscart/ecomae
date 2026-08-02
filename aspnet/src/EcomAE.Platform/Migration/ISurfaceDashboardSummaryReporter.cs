@@ -59,4 +59,12 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpStorageListResult> ListCpStoragesAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<BosAuditLogListResult> ListBosAuditLogAsync(string? area, int limit, CancellationToken cancellationToken = default);
+
+    Task<ErpPurchaseOrderListResult> ListErpPurchaseOrdersAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<ErpInventoryStockSummaryResult> BuildErpInventoryStockSummaryAsync(CancellationToken cancellationToken = default);
+
+    Task<CpCurrencyListResult> ListCpCurrenciesAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<CpApiClientMetaListResult> ListCpApiClientsMetaAsync(int limit, CancellationToken cancellationToken = default);
 }
