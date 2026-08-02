@@ -184,7 +184,7 @@ elif [[ "$health_ready" -eq 1 ]]; then
 fi
 
 if [[ "$health_ready" -eq 1 && ( -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" || -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ) ]]; then
-  printf '-- Admin session preflight /auth/session/probe --\n'
+  printf '%s\n' '-- Admin session preflight /auth/session/probe --'
   probe_tmp="$(mktemp)"
   auth_args=()
   if [[ -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
@@ -199,13 +199,15 @@ if [[ "$health_ready" -eq 1 && ( -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" || -n "${E
     if python3 - "$probe_tmp" <<'PY'
 import json, sys
 doc = json.load(open(sys.argv[1], encoding="utf-8"))
-kind = doc.get("Kind") or doc.get("kind")
+kind = doc.get("Kind") if doc.get("Kind") is not None else doc.get("kind")
 auth = doc.get("IsAuthenticated")
 if auth is None:
     auth = doc.get("isAuthenticated")
 backend = doc.get("has_backend_access")
 print(f"kind={kind!r} isAuthenticated={auth!r} has_backend_access={backend!r}")
-if str(kind) != "Admin" or auth is False:
+# JSON may serialize LegacySessionKind as string "Admin" or int 2.
+is_admin = kind in ("Admin", 2) or str(kind) == "2"
+if not is_admin or auth is False:
     raise SystemExit(1)
 PY
     then
@@ -214,11 +216,11 @@ PY
     else
       printf 'FAIL admin session probe: not an authenticated Admin session (HTTP %s)\n' "$probe_code"
       python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); print({k:d.get(k) for k in ("Kind","kind","IsAuthenticated","isAuthenticated","has_backend_access","UserId","userId")})' "$probe_tmp" || true
-      printf 'HINT: log into Super CP in a browser, copy Cookie header (admin_session + admin_u_id), set ECOMAE_ADMIN_COOKIE_HEADER, re-run capture.\n'
+      printf '%s\n' 'HINT: log into Super CP, DevTools → copy Request Cookie with admin_session=... and admin_u_id=<digits>, set ECOMAE_ADMIN_COOKIE_HEADER (no quotes inside the value), re-run.'
     fi
   else
     printf 'FAIL admin session probe HTTP %s\n' "$probe_code"
-    printf 'HINT: cookie missing/expired, or TenantRegistry DB cannot validate admin sessions.\n'
+    printf '%s\n' 'HINT: cookie missing/expired, or TenantRegistry DB cannot validate admin sessions.'
   fi
   rm -f "$probe_tmp"
 

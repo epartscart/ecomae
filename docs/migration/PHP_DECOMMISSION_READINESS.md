@@ -41,14 +41,17 @@ Required in `/etc/ecomae-aspnet/platform.env` (server-only, never commit):
 ```bash
 ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...
 ECOMAE_CATALOG_API_KEY=epc_catalog_...
-ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=...'
+ECOMAE_ADMIN_COOKIE_HEADER=admin_session=...; admin_u_id=123
 ```
+
+Helper (no secret print): `bash scripts/cloudpanel_prepare_smoke_secrets.sh`
 
 Common CloudPanel failures:
 - `cloudpanel_validate_final_gate_env.sh: No such file` → you are on stale `main`; use the one-liner above (PR #599 branch).
 - `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (automatic on the PR branch).
-- `SKIP price/catalog smoke` → empty API keys in `platform.env`.
-- Digest routes HTTP 401 → stale/invalid admin cookie; probe `/auth/session/probe` until `Kind=Admin`.
+- `ECOMAE_*_API_KEY: MISSING` → keys empty; issue/copy plaintext `epc_pricepro_` / `epc_catalog_` keys (DB stores hashes only).
+- `ECOMAE_ADMIN_COOKIE_HEADER/JAR: BAD_FORMAT` or probe `kind:0` → cookie missing both `admin_session` + numeric `admin_u_id`, or not logged in as Super CP.
+- Probe success is `kind:2` (or `"Admin"`) with `isAuthenticated:true`.
 
 Exact-route promotion (after smoke only): `docs/migration/EXACT_ROUTE_PROMOTION_PRICE_CATALOG.md`
 
