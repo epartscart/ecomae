@@ -13,7 +13,7 @@ public sealed class LiveSurfaceLinkReporterTests
         var report = new LiveSurfaceLinkReporter().BuildReport();
 
         Assert.Equal("www.ecomae.com", report.PlatformHost);
-        Assert.True(report.Links.Count >= 70);
+        Assert.True(report.Links.Count >= 90);
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/BOS/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/CP/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/ERP/", StringComparison.OrdinalIgnoreCase));
@@ -25,9 +25,14 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/bos/parity");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/api/v1/catalog/models");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/api/v1/catalog/brand-parts");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/api/v1/catalog/article-brands");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/api/v1/catalog/engine-search");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/cp/groups");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/cp/users");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/erp/gl-journals");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/erp/inventory-stock");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/bos/tenants");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/bos/audit-log");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/storefront/account-summary");
         Assert.Contains(report.Links, link => link.Surface.Contains("Price lookup", StringComparison.OrdinalIgnoreCase) && link.StackToday == "aspnet");
         Assert.Contains(report.CutoverRules, rule => rule.Contains("Broad", StringComparison.OrdinalIgnoreCase));

@@ -18,11 +18,12 @@ public sealed class MigrationParityReporter : IMigrationParityReporter
             "kept during migration only",
             _surfaceModules.Select(module => module.Descriptor).ToArray(),
             [
-                "Replace placeholder CP login and tenant hub",
-                "Replace ERP shell and finance dashboard",
-                "Replace BOS command center",
-                "Port catalog/price APIs",
-                "Port background jobs and remove PHP cron scripts"
+                "CloudPanel ensure→issue→validate→capture staging-smoke (never invent keys/cookies).",
+                "Dual-sample compare_*_parity.py for catalog/price/surface digests before each location= shadow.",
+                "Promote exact-route nginx shadows one path at a time; keep broad /api /cp /erp /bos /storefront blocked.",
+                "Port remaining interactive UX (CP login forms, ERP voucher posting, storefront cart/checkout HTML).",
+                "Worker dry-run layer is complete; live schedule cutover still requires job parity + PHP cron removal approval.",
+                "Release-owner APPROVED_TO_REMOVE_PHP_FALLBACK before ReadyToRemovePhp / PHP-FPM decommission."
             ]);
     }
 }

@@ -73,9 +73,10 @@ if [[ -z "${ECOMAE_ADMIN_COOKIE_HEADER:-}" && -z "${ECOMAE_ADMIN_COOKIE_JAR:-}" 
 fi
 
 if [[ "$missing" -ne 0 ]]; then
-  printf '\nBLOCKED: smoke secrets incomplete. Run:\n'
-  printf '  bash scripts/cloudpanel_prepare_smoke_secrets.sh\n'
-  printf '  nano %s\n' "$ENV_FILE"
+  printf '\nBLOCKED: smoke secrets incomplete. Preferred path:\n'
+  printf '  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
+  printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+  printf '  (optional manual guidance: bash scripts/cloudpanel_prepare_smoke_secrets.sh)\n'
   printf '  source %s\n' "$ENV_FILE"
   printf '  bash scripts/cloudpanel_validate_final_gate_env.sh\n'
   printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
@@ -107,8 +108,9 @@ print("Admin session OK")
 PY
 then
   rm -f "$probe_tmp"
-  printf 'BLOCKED: Admin session probe failed — refresh ECOMAE_ADMIN_COOKIE_HEADER from a live Super CP login.\n'
-  printf '  bash scripts/cloudpanel_prepare_smoke_secrets.sh\n'
+  printf 'BLOCKED: Admin session probe failed — login https://www.ecomae.com/CP/ then re-issue cookie:\n'
+  printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+  printf '  (optional: bash scripts/cloudpanel_prepare_smoke_secrets.sh)\n'
   exit 2
 fi
 rm -f "$probe_tmp"

@@ -14,7 +14,7 @@ public sealed class ApiModule : ISurfaceModule
         "Public and tenant APIs",
         EcomAeRoutes.ApiPrefix,
         "api/, api/v1/, epc-api-v1.php, pyapi/",
-        "placeholder",
+        "catalog-cache-routes-wired-awaiting-staging",
         [EcomAePermissions.ApiAccess]);
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
@@ -22,8 +22,8 @@ public sealed class ApiModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ApiMigrationStatus, () => Results.Ok(new
         {
             surface = "API",
-            migration = "placeholder",
-            next = "Port catalog, price lookup, tenant, ERP, BOS, mobile, and webhook APIs"
+            migration = "catalog-cache-routes-wired-awaiting-staging",
+            next = "ensure→issue→capture staging-smoke, dual-sample compare_*_parity.py, then one location= catalog/price shadow at a time (never broad /api)"
         }));
 
         endpoints.MapGet(EcomAeRoutes.CatalogStatus, async (
@@ -91,9 +91,9 @@ public sealed class ApiModule : ISurfaceModule
                     EcomAeRoutes.CatalogStatus,
                     payload.Source == "database" ? "db-backed-read-only" : "migration-placeholder",
                     [
-                        "Add manufacturer/model/catalog endpoints with exact-route parity",
-                        "Replay PHP catalog fixtures before public cutover",
-                        "Keep PHP fallback until live smoke passes"
+                        "On CloudPanel: ensure_epc_api_clients_table.sh → issue_smoke_credentials.sh → capture catalog smoke",
+                        "Dual-sample compare_catalog_status_parity.py / compare_catalog_list_parity.py before each shadow",
+                        "Promote one nginx-catalog-*-shadow-example.conf location= at a time; keep PHP fallback until smoke passes"
                     ]),
                 client = client is null ? null : new
                 {

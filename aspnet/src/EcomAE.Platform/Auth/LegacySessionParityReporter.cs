@@ -10,6 +10,8 @@ public sealed class LegacySessionParityReporter : ILegacySessionParityReporter
             "nested-module-acl-wired-awaiting-staging",
             ["admin_session/admin_u_id cookies", "session/u_id cookies", "sessions.type=1", "users_groups_bind∩groups.for_backend", "modules_access with groups.parent ancestry", "X-API-Key header", "Bearer API key header"],
             [
+                "On CloudPanel: issue_smoke_credentials.sh binds active admin_session cookie; validate via /auth/session/probe (kind=Admin).",
+                "Optional storefront digests: ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits> (not required for ReadyToRemovePhp).",
                 "Replay CP, ERP, BOS, and storefront login flows in staging before traffic cutover.",
                 "Replace legacy cookie bridge with Enterprise BOS identity (OAuth 2.1 / OIDC / JWT) after parity evidence."
             ]);

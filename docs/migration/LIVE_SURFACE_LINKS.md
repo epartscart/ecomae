@@ -66,11 +66,8 @@ Tenant BOS is generally Super-CP-only; tenant hosts may still answer `/BOS/` via
 
 These exist in ASP.NET on loopback (`127.0.0.1:5100`) but are **not** broadly cut over on the public host yet:
 
-- `/cp/dashboard-summary`, `/cp/config-items` (plus other surface digests in `nginx-surface-digests-shadow-example.conf`)
-- `/erp/dashboard-summary`, `/erp/cash-accounts`
-- `/bos/fleet-summary`, `/bos/tenants`
-- `/api/v1/catalog/status`
-- Catalog list/offline: `/manufacturers`, `/models`, `/modifications`, `/brands`, `/suppliers`, `/vin`, `/engines`, `/analogs`, `/brand-parts`, `/articles`, …
+- Full CP/ERP/BOS digest set in `nginx-surface-digests-shadow-example.conf` (dashboard, tenants/users/groups/menus/pages, cash/COA/warehouses/orders/invoices/GL, fleet/audit, …)
+- `/api/v1/catalog/status` plus list/offline/UMAPI catalog paths (`manufacturers`…`brand-parts`, `article`, `engine`, …)
 - `/storefront/account-summary`, `/storefront/orders`, `/storefront/garage`, `/storefront/profile` (optional; needs customer cookie)
 
 Enable only via `deploy/aspnet/nginx-surface-digests-shadow-example.conf` / catalog / storefront shadow examples after smoke.

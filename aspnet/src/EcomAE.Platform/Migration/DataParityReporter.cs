@@ -19,8 +19,9 @@ public sealed class DataParityReporter : IDataParityReporter
                 "PHP session store and CP/ERP/BOS permission tables for login parity."
             ],
             [
+                "On CloudPanel: ensure_epc_api_clients_table.sh → issue_smoke_credentials.sh → capture staging-smoke JSON (never invent).",
                 "Run read-only shadow queries against production-like MySQL fixtures.",
-                "Compare PHP and ASP.NET Core JSON payloads for catalog, price, tenant, auth, and session probes.",
+                "Compare PHP and ASP.NET Core JSON payloads via compare_*_parity.py for catalog, price, tenant, auth, and session probes.",
                 "Record approved fixtures and latency budgets before enabling route cutover flags.",
                 "Keep PHP authoritative until every production data source has replay evidence and rollback coverage."
             ]);

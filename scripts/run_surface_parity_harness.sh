@@ -128,23 +128,35 @@ if [[ -n "$ASPNET_BASE" && ( -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" || -n "${ECOMA
   fi
   for route in \
     /cp/dashboard-summary \
+    /cp/tenants?limit=5 \
+    /cp/users?limit=5 \
     /cp/groups?limit=5 \
     /cp/modules?limit=5 \
     /cp/menus?limit=5 \
     /cp/pages?limit=5 \
+    /cp/currencies?limit=5 \
+    /cp/api-clients?limit=5 \
     /cp/config-items?limit=5 \
+    /cp/admin-sessions?limit=5 \
+    /cp/storages?limit=5 \
     /erp/dashboard-summary \
     /erp/accounts-summary \
     /erp/suppliers?limit=5 \
     /erp/purchases?limit=5 \
     /erp/cash-accounts?limit=5 \
+    /erp/cash-entries?limit=5 \
+    /erp/coa-accounts?limit=5 \
     /erp/warehouses?limit=5 \
     /erp/sales-orders?limit=5 \
+    /erp/purchase-orders?limit=5 \
+    /erp/inventory-stock \
     /erp/invoices?limit=5 \
     /erp/gl-journals?limit=5 \
     /bos/fleet-summary \
     /bos/tenants?limit=5 \
-    /bos/fleet-health
+    /bos/fleet-health \
+    /bos/fleet-readiness \
+    /bos/audit-log?limit=5
   do
     path_only="${route%%\?*}"
     name="$(echo "$path_only" | tr '/' '_')"
@@ -345,7 +357,22 @@ fi
 
 # Optional API-key dual-sample capture against ASP.NET (never invents keys).
 if [[ -n "$ASPNET_BASE" && -n "${ECOMAE_CATALOG_API_KEY:-}" ]]; then
-  for route in /api/v1/catalog/status /api/v1/catalog/manufacturers?section=passenger /api/v1/catalog/brands; do
+  for route in \
+    /api/v1/catalog/status \
+    /api/v1/catalog/manufacturers?section=passenger \
+    /api/v1/catalog/models \
+    /api/v1/catalog/modifications \
+    /api/v1/catalog/brands \
+    /api/v1/catalog/suppliers \
+    /api/v1/catalog/engines \
+    /api/v1/catalog/analogs \
+    /api/v1/catalog/article-brands \
+    /api/v1/catalog/categories \
+    /api/v1/catalog/products \
+    /api/v1/catalog/engine-search \
+    /api/v1/catalog/article-links \
+    /api/v1/catalog/brand-parts
+  do
     path_only="${route%%\?*}"
     name="$(echo "$path_only" | tr '/' '_')"
     out="$SAMPLES/aspnet${name}.json"

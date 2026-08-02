@@ -396,26 +396,18 @@
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
-      "surface": "ERP dashboard digest",
-      "url": "https://www.ecomae.com/erp/dashboard-summary",
+      "surface": "CP tenants digest",
+      "url": "https://www.ecomae.com/cp/tenants",
       "stackToday": "php-fallback",
-      "aspNetRouteHint": "/erp/dashboard-summary",
-      "notes": "Needs exact-route nginx shadow after smoke."
+      "aspNetRouteHint": "/cp/tenants",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
-      "surface": "BOS fleet digest",
-      "url": "https://www.ecomae.com/bos/fleet-summary",
+      "surface": "CP users digest",
+      "url": "https://www.ecomae.com/cp/users",
       "stackToday": "php-fallback",
-      "aspNetRouteHint": "/bos/fleet-summary",
-      "notes": "Needs exact-route nginx shadow after smoke."
-    },
-    {
-      "hostClass": "aspnet-digest-pending-shadow",
-      "surface": "CP config-items digest",
-      "url": "https://www.ecomae.com/cp/config-items",
-      "stackToday": "php-fallback",
-      "aspNetRouteHint": "/cp/config-items",
+      "aspNetRouteHint": "/cp/users",
       "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
     },
     {
@@ -428,18 +420,18 @@
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
-      "surface": "CP menus digest",
-      "url": "https://www.ecomae.com/cp/menus",
-      "stackToday": "php-fallback",
-      "aspNetRouteHint": "/cp/menus",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
-    },
-    {
-      "hostClass": "aspnet-digest-pending-shadow",
       "surface": "CP modules digest",
       "url": "https://www.ecomae.com/cp/modules",
       "stackToday": "php-fallback",
       "aspNetRouteHint": "/cp/modules",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "CP menus digest",
+      "url": "https://www.ecomae.com/cp/menus",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/cp/menus",
       "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
     },
     {
@@ -452,10 +444,58 @@
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
-      "surface": "ERP cash-accounts digest",
-      "url": "https://www.ecomae.com/erp/cash-accounts",
+      "surface": "CP currencies digest",
+      "url": "https://www.ecomae.com/cp/currencies",
       "stackToday": "php-fallback",
-      "aspNetRouteHint": "/erp/cash-accounts",
+      "aspNetRouteHint": "/cp/currencies",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "CP api-clients digest",
+      "url": "https://www.ecomae.com/cp/api-clients",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/cp/api-clients",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "CP config-items digest",
+      "url": "https://www.ecomae.com/cp/config-items",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/cp/config-items",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "CP admin-sessions digest",
+      "url": "https://www.ecomae.com/cp/admin-sessions",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/cp/admin-sessions",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "CP storages digest",
+      "url": "https://www.ecomae.com/cp/storages",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/cp/storages",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "ERP dashboard digest",
+      "url": "https://www.ecomae.com/erp/dashboard-summary",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/erp/dashboard-summary",
+      "notes": "Needs exact-route nginx shadow after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "ERP accounts-summary digest",
+      "url": "https://www.ecomae.com/erp/accounts-summary",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/erp/accounts-summary",
       "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
     },
     {
@@ -476,6 +516,30 @@
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "ERP cash-accounts digest",
+      "url": "https://www.ecomae.com/erp/cash-accounts",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/erp/cash-accounts",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "ERP cash-entries digest",
+      "url": "https://www.ecomae.com/erp/cash-entries",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/erp/cash-entries",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "ERP COA accounts digest",
+      "url": "https://www.ecomae.com/erp/coa-accounts",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/erp/coa-accounts",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
       "surface": "ERP warehouses digest",
       "url": "https://www.ecomae.com/erp/warehouses",
       "stackToday": "php-fallback",
@@ -488,6 +552,22 @@
       "url": "https://www.ecomae.com/erp/sales-orders",
       "stackToday": "php-fallback",
       "aspNetRouteHint": "/erp/sales-orders",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "ERP purchase-orders digest",
+      "url": "https://www.ecomae.com/erp/purchase-orders",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/erp/purchase-orders",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "ERP inventory-stock digest",
+      "url": "https://www.ecomae.com/erp/inventory-stock",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/erp/inventory-stock",
       "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
     },
     {
@@ -508,10 +588,42 @@
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "BOS fleet digest",
+      "url": "https://www.ecomae.com/bos/fleet-summary",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/bos/fleet-summary",
+      "notes": "Needs exact-route nginx shadow after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
       "surface": "BOS tenants digest",
       "url": "https://www.ecomae.com/bos/tenants",
       "stackToday": "php-fallback",
       "aspNetRouteHint": "/bos/tenants",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "BOS fleet-health digest",
+      "url": "https://www.ecomae.com/bos/fleet-health",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/bos/fleet-health",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "BOS fleet-readiness digest",
+      "url": "https://www.ecomae.com/bos/fleet-readiness",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/bos/fleet-readiness",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "BOS audit-log digest",
+      "url": "https://www.ecomae.com/bos/audit-log",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/bos/audit-log",
       "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
     },
     {
@@ -588,11 +700,51 @@
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
-      "surface": "Catalog brand-parts",
-      "url": "https://www.ecomae.com/api/v1/catalog/brand-parts",
+      "surface": "Catalog article-brands",
+      "url": "https://www.ecomae.com/api/v1/catalog/article-brands",
       "stackToday": "php-fallback",
-      "aspNetRouteHint": "/api/v1/catalog/brand-parts",
-      "notes": "compare_catalog_brand_parts_parity.py \u002B nginx-catalog-brand-parts-shadow-example.conf."
+      "aspNetRouteHint": "/api/v1/catalog/article-brands",
+      "notes": "Offline-cache; nginx-catalog-article-brands-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog categories",
+      "url": "https://www.ecomae.com/api/v1/catalog/categories",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/categories",
+      "notes": "Offline-cache; nginx-catalog-categories-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog products",
+      "url": "https://www.ecomae.com/api/v1/catalog/products",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/products",
+      "notes": "Offline-cache; nginx-catalog-products-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog engine-search",
+      "url": "https://www.ecomae.com/api/v1/catalog/engine-search",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/engine-search",
+      "notes": "Offline-cache; nginx-catalog-engine-search-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog article-links",
+      "url": "https://www.ecomae.com/api/v1/catalog/article-links",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/article-links",
+      "notes": "Offline-cache; nginx-catalog-article-links-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog article",
+      "url": "https://www.ecomae.com/api/v1/catalog/article",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/article",
+      "notes": "UMAPI/cache path; nginx-catalog-article-shadow-example.conf."
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
@@ -601,6 +753,22 @@
       "stackToday": "php-fallback",
       "aspNetRouteHint": "/api/v1/catalog/articles",
       "notes": "UMAPI/cache path; promote after smoke \u002B dual sample."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog engine",
+      "url": "https://www.ecomae.com/api/v1/catalog/engine",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/engine",
+      "notes": "UMAPI/cache path; nginx-catalog-engine-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog brand-parts",
+      "url": "https://www.ecomae.com/api/v1/catalog/brand-parts",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/brand-parts",
+      "notes": "compare_catalog_brand_parts_parity.py \u002B nginx-catalog-brand-parts-shadow-example.conf."
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
