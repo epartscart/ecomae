@@ -177,7 +177,35 @@ public sealed class SurfaceDigestContractValidatorTests
             ["/api/v1/catalog/manufacturers"] = """{"ok":true,"section":"passenger","rows":0,"source":"migration","data":[],"message":"x"}""",
             ["/api/v1/catalog/models"] = """{"ok":true,"action":"models","section":"passenger","rows":0,"source":"migration","data":[],"message":"x"}""",
             ["/api/v1/catalog/modifications"] = """{"ok":true,"action":"modifications","section":"passenger","rows":0,"source":"migration","data":[],"message":"x"}""",
-            ["/api/v1/catalog/brands"] = """{"ok":true,"action":"brands","section":"all","rows":0,"source":"migration","data":[],"message":"x"}"""
+            ["/api/v1/catalog/brands"] = """{"ok":true,"action":"brands","section":"all","rows":0,"source":"migration","data":[],"message":"x"}""",
+            ["/api/v1/catalog/suppliers"] = """{"ok":true,"action":"suppliers","section":"all","rows":0,"source":"migration","data":[],"message":"x"}"""
+        };
+
+        foreach (var (route, json) in payloads)
+        {
+            var contract = SurfacePayloadContractCatalog.All.Single(c => c.AspNetRoute == route);
+            var failures = SurfaceDigestContractValidator.Validate(contract, json);
+            Assert.True(failures.Count == 0, $"{route}: {string.Join("; ", failures)}");
+        }
+    }
+
+    [Fact]
+    public void CatalogOfflineCacheAndVinEnvelopesSatisfyContracts()
+    {
+        var payloads = new Dictionary<string, string>
+        {
+            ["/api/v1/catalog/engines"] = """{"ok":true,"action":"engines","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
+            ["/api/v1/catalog/analogs"] = """{"ok":true,"action":"analogs","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
+            ["/api/v1/catalog/article-brands"] = """{"ok":true,"action":"brands","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
+            ["/api/v1/catalog/categories"] = """{"ok":true,"action":"categories","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
+            ["/api/v1/catalog/products"] = """{"ok":true,"action":"products","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
+            ["/api/v1/catalog/engine-search"] = """{"ok":true,"action":"engine_search","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
+            ["/api/v1/catalog/article-links"] = """{"ok":true,"action":"article_links","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
+            ["/api/v1/catalog/article"] = """{"ok":true,"action":"article","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
+            ["/api/v1/catalog/articles"] = """{"ok":true,"action":"articles","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
+            ["/api/v1/catalog/engine"] = """{"ok":true,"action":"engine","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
+            ["/api/v1/catalog/vin"] = """{"ok":true,"source":"migration","stale":true,"vin":"WBAXG1103CDW29096","language":"en","region":"WWW","vehicle_count":0,"payload":{}}""",
+            ["/api/v1/catalog/brand-parts"] = """{"ok":true,"brand":"BOSCH","rows":0,"source":"migration","data":[],"message":"x"}"""
         };
 
         foreach (var (route, json) in payloads)

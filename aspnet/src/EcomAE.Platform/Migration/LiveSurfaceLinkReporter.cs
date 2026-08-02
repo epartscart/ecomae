@@ -66,7 +66,10 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("aspnet-digest-pending-shadow", "CP dashboard digest", "https://www.ecomae.com/cp/dashboard-summary", "php-fallback", "/cp/dashboard-summary", "Needs exact-route nginx shadow after smoke; currently PHP 404 HTML."),
             Link("aspnet-digest-pending-shadow", "ERP dashboard digest", "https://www.ecomae.com/erp/dashboard-summary", "php-fallback", "/erp/dashboard-summary", "Needs exact-route nginx shadow after smoke."),
             Link("aspnet-digest-pending-shadow", "BOS fleet digest", "https://www.ecomae.com/bos/fleet-summary", "php-fallback", "/bos/fleet-summary", "Needs exact-route nginx shadow after smoke."),
-            Link("aspnet-digest-pending-shadow", "Catalog status", "https://www.ecomae.com/api/v1/catalog/status", "php-fallback", "/api/v1/catalog/status", "Needs exact-route nginx shadow + API key smoke.")
+            Link("aspnet-digest-pending-shadow", "Catalog status", "https://www.ecomae.com/api/v1/catalog/status", "php-fallback", "/api/v1/catalog/status", "Needs exact-route nginx shadow + API key smoke."),
+            Link("aspnet-digest-pending-shadow", "Catalog manufacturers", "https://www.ecomae.com/api/v1/catalog/manufacturers?section=passenger", "php-fallback", "/api/v1/catalog/manufacturers", "Wave-1 after status; compare_catalog_list_parity.py + nginx-catalog-manufacturers-shadow-example.conf."),
+            Link("aspnet-digest-pending-shadow", "Catalog brands", "https://www.ecomae.com/api/v1/catalog/brands", "php-fallback", "/api/v1/catalog/brands", "List envelope contracted; promote one path after smoke."),
+            Link("aspnet-digest-pending-shadow", "Catalog VIN", "https://www.ecomae.com/api/v1/catalog/vin", "php-fallback", "/api/v1/catalog/vin", "Offline VIN decode; compare_catalog_vin_parity.py after dual sample.")
         ];
 
         return new LiveSurfaceLinkReport(

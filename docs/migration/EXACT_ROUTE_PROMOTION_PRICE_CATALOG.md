@@ -72,7 +72,20 @@ curl -sS -o /tmp/mfr-aspnet.json -w '%{http_code}\n' \
 python3 scripts/compare_catalog_list_parity.py manufacturers /tmp/mfr-php.json /tmp/mfr-aspnet.json
 ```
 
-Same pattern for `/api/v1/catalog/models`, `/modifications`, `/brands` using `nginx-catalog-*-shadow-example.conf`.
+Same pattern for `/api/v1/catalog/models`, `/modifications`, `/brands`, `/suppliers` using `nginx-catalog-*-shadow-example.conf`.
+
+### Catalog offline-cache / VIN / brand-parts (wave 2)
+
+```bash
+bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/engines
+# … dual sample …
+python3 scripts/compare_catalog_offline_cache_parity.py engines /tmp/engines-php.json /tmp/engines-aspnet.json
+
+python3 scripts/compare_catalog_vin_parity.py /tmp/vin-php.json /tmp/vin-aspnet.json
+python3 scripts/compare_catalog_brand_parts_parity.py /tmp/bp-php.json /tmp/bp-aspnet.json
+```
+
+Promote only after smoke + compare green. Never broad `/api`.
 
 ## Rollback
 

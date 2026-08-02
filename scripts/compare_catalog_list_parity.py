@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Compare PHP vs ASP.NET catalog list JSON envelopes (manufacturers/models/modifications/brands).
+"""Compare PHP vs ASP.NET catalog list JSON envelopes.
+
+Kinds: manufacturers|models|modifications|brands|suppliers
 
 Usage:
   python3 scripts/compare_catalog_list_parity.py manufacturers php.json aspnet.json
-  python3 scripts/compare_catalog_list_parity.py models php.json aspnet.json --contract-only
+  python3 scripts/compare_catalog_list_parity.py suppliers php.json aspnet.json --contract-only
 """
 from __future__ import annotations
 
@@ -16,13 +18,15 @@ ENVELOPES: dict[str, list[str]] = {
     "models": ["ok", "action", "section", "rows", "source", "data", "message"],
     "modifications": ["ok", "action", "section", "rows", "source", "data", "message"],
     "brands": ["ok", "action", "section", "rows", "source", "data", "message"],
+    "suppliers": ["ok", "action", "section", "rows", "source", "data", "message"],
 }
 
 
 def main() -> int:
     if len(sys.argv) < 4:
         print(
-            "Usage: compare_catalog_list_parity.py <manufacturers|models|modifications|brands> "
+            "Usage: compare_catalog_list_parity.py "
+            "<manufacturers|models|modifications|brands|suppliers> "
             "<php.json> <aspnet.json> [--contract-only]",
             file=sys.stderr,
         )
@@ -56,7 +60,6 @@ def main() -> int:
                 failures.append(f"{field} mismatch: php={php.get(field)!r} aspnet={aspnet.get(field)!r}")
         if php.get("rows") != aspnet.get("rows"):
             failures.append(f"rows mismatch: php={php.get('rows')!r} aspnet={aspnet.get('rows')!r}")
-        # Value mode also requires equal list lengths; deep item compare is operator-reviewed.
         php_data = php.get("data") if isinstance(php.get("data"), list) else []
         asp_data = aspnet.get("data") if isinstance(aspnet.get("data"), list) else []
         if len(php_data) != len(asp_data):

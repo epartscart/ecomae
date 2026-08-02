@@ -71,7 +71,24 @@ install -m 0755 \
   "$ROOT/scripts/wait_for_aspnet_health.sh" \
   "$ROOT/scripts/rollback_aspnet_foundation.sh" \
   "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" \
+  "$ROOT/scripts/run_surface_parity_harness.sh" \
   "$PLATFORM_DIR/scripts/"
+# Parity compare helpers used after dual-sample capture (post-smoke promotion).
+for compare in \
+  compare_catalog_status_parity.py \
+  compare_catalog_list_parity.py \
+  compare_catalog_offline_cache_parity.py \
+  compare_catalog_vin_parity.py \
+  compare_catalog_brand_parts_parity.py \
+  compare_price_lookup_parity.py \
+  compare_digest_dual_samples.py \
+  compare_surface_payload_parity.py \
+  generate_migration_digest_contract_samples.py
+do
+  if [[ -f "$ROOT/scripts/$compare" ]]; then
+    install -m 0755 "$ROOT/scripts/$compare" "$PLATFORM_DIR/scripts/"
+  fi
+done
 # PHP issuer + ensure-table helpers (DP_Config bootstrap required by issue script).
 install -d "$PLATFORM_DIR/scripts/php"
 for php_helper in \
@@ -86,6 +103,7 @@ done
 printf 'Packed decommission evidence into %s/docs/migration/evidence/decommission\n' "$PLATFORM_DIR"
 printf 'Packed gate shadow examples (price/api/surface/storefront) into %s/deploy/aspnet\n' "$PLATFORM_DIR"
 printf 'Packed smoke issuer/ensure PHP helpers into %s/scripts/php\n' "$PLATFORM_DIR"
+printf 'Packed catalog/price parity compare scripts into %s/scripts\n' "$PLATFORM_DIR"
 
 ln -sfn "$RELEASE_DIR" "$RELEASE_ROOT/current"
 

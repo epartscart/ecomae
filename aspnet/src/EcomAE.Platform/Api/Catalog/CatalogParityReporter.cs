@@ -10,8 +10,9 @@ public sealed class CatalogParityReporter : ICatalogParityReporter
             "catalog-cache-routes-wired-awaiting-staging",
             ReadyForShadowTraffic: true,
             [
-                "Wire live UMAPI proxy fills for articles/engine (not PHP-cacheable) still served by PHP on cache miss.",
-                "Replay captured PHP catalog fixtures against ASP.NET Core responses before public cutover.",
+                "Envelope contracts cover all wired catalog routes; dual-sample via compare_catalog_*_parity.py before each shadow.",
+                "Promote one nginx-catalog-*-shadow-example.conf location = path after authenticated smoke (never broad /api).",
+                "Wire live UMAPI proxy fills for articles/engine on cache miss still remain PHP-authoritative.",
                 "Enforce staging smoke with epc_catalog_ API keys before enabling exact-route catalog shadows."
             ]);
     }

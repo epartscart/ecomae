@@ -240,6 +240,63 @@ else
   mig_fail=$((mig_fail + 1))
 fi
 
+# Catalog list / offline-cache / vin / brand-parts migration samples via compare scripts.
+for kind in manufacturers models modifications brands suppliers; do
+  sample="$SAMPLES/migration/api-catalog-${kind}.json"
+  if [[ -f "$sample" ]] && python3 "$ROOT/scripts/compare_catalog_list_parity.py" "$kind" "$sample" "$sample" --contract-only; then
+    record "migration-catalog-list/$kind" pass "envelope contract via compare_catalog_list_parity.py"
+  else
+    record "migration-catalog-list/$kind" fail "catalog list contract failed for $kind"
+    mig_fail=$((mig_fail + 1))
+  fi
+done
+for kind in engines analogs article-brands categories products engine-search article-links article articles engine; do
+  sample="$SAMPLES/migration/api-catalog-${kind}.json"
+  if [[ -f "$sample" ]] && python3 "$ROOT/scripts/compare_catalog_offline_cache_parity.py" "$kind" "$sample" "$sample" --contract-only; then
+    record "migration-catalog-offline/$kind" pass "offline-cache envelope contract"
+  else
+    record "migration-catalog-offline/$kind" fail "offline-cache contract failed for $kind"
+    mig_fail=$((mig_fail + 1))
+  fi
+done
+if [[ -f "$SAMPLES/migration/api-catalog-vin.json" ]] \
+  && python3 "$ROOT/scripts/compare_catalog_vin_parity.py" \
+    "$SAMPLES/migration/api-catalog-vin.json" "$SAMPLES/migration/api-catalog-vin.json" --contract-only; then
+  record "migration-catalog-vin" pass "VIN envelope contract"
+else
+  record "migration-catalog-vin" fail "VIN contract failed"
+  mig_fail=$((mig_fail + 1))
+fi
+if [[ -f "$SAMPLES/migration/api-catalog-brand-parts.json" ]] \
+  && python3 "$ROOT/scripts/compare_catalog_brand_parts_parity.py" \
+    "$SAMPLES/migration/api-catalog-brand-parts.json" "$SAMPLES/migration/api-catalog-brand-parts.json" --contract-only; then
+  record "migration-catalog-brand-parts" pass "brand-parts envelope contract"
+else
+  record "migration-catalog-brand-parts" fail "brand-parts contract failed"
+  mig_fail=$((mig_fail + 1))
+fi
+
+# Optional API-key dual-sample capture against ASP.NET (never invents keys).
+if [[ -n "$ASPNET_BASE" && -n "${ECOMAE_CATALOG_API_KEY:-}" ]]; then
+  for route in /api/v1/catalog/status /api/v1/catalog/manufacturers?section=passenger /api/v1/catalog/brands; do
+    path_only="${route%%\?*}"
+    name="$(echo "$path_only" | tr '/' '_')"
+    out="$SAMPLES/aspnet${name}.json"
+    code="$(curl -sS -m 30 -o "$out" -w '%{http_code}' \
+      -H "X-API-Key: ${ECOMAE_CATALOG_API_KEY}" \
+      "${ASPNET_BASE}${route}" || echo 000)"
+    if [[ "$code" == "200" ]]; then
+      record "aspnet-catalog$path_only" pass "captured $out"
+    elif [[ "$code" == "401" ]]; then
+      record "aspnet-catalog$path_only" blocked "HTTP 401 — check ECOMAE_CATALOG_API_KEY"
+    else
+      record "aspnet-catalog$path_only" fail "HTTP $code"
+    fi
+  done
+else
+  record "catalog-api-key-capture" blocked "set ECOMAE_ASPNET_BASE_URL and ECOMAE_CATALOG_API_KEY to capture catalog dual samples"
+fi
+
 # Fixture self-test for compare script
 fixture_left="$SAMPLES/_fixture-left.json"
 fixture_right="$SAMPLES/_fixture-right.json"

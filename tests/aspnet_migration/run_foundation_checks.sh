@@ -385,6 +385,12 @@ check 'deploy packs smoke DB bootstrap PHP' contains "$ROOT/scripts/deploy_aspne
 check 'deploy packs ensure table PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ensure_epc_api_clients_table.php'
 check 'ensure epc_api_clients helper exists' test -x "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh"
 check 'catalog list parity compare script exists' test -f "$ROOT/scripts/compare_catalog_list_parity.py"
+check 'catalog offline-cache parity compare script exists' test -f "$ROOT/scripts/compare_catalog_offline_cache_parity.py"
+check 'catalog vin parity compare script exists' test -f "$ROOT/scripts/compare_catalog_vin_parity.py"
+check 'catalog brand-parts parity compare script exists' test -f "$ROOT/scripts/compare_catalog_brand_parts_parity.py"
+check 'deploy packs catalog list compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_list_parity.py'
+check 'deploy packs catalog offline-cache compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_offline_cache_parity.py'
+check 'deploy packs surface parity harness' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'run_surface_parity_harness.sh'
 check 'exact-route extract helper exists' test -x "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh"
 check 'exact-route extract helper refuses broad /api' contains "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" 'refusing broad surface cutover'
 check 'surface digests shadow covers config-items' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /cp/config-items'
