@@ -28,29 +28,27 @@ Live operator URL catalog: `docs/migration/LIVE_SURFACE_LINKS.md` and `GET /migr
 
 On CloudPanel after deploy (loads keys from `/etc/ecomae-aspnet/platform.env` when present):
 
+**Until PR #599 is merged, do NOT reset to `main`** — main still lacks `cloudpanel_validate_final_gate_env.sh` / health wait. Paste this one-liner as root:
+
 ```bash
-cd /opt/ecomae-aspnet-source
-git fetch origin main && git checkout -f main && git reset --hard origin/main
-bash scripts/cloudpanel_find_and_redeploy.sh
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-preflight-public-probes-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
+```
 
-# Required before capture can write staging-smoke/*.json (server-only, never commit):
-# ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...
-# ECOMAE_CATALOG_API_KEY=epc_catalog_...
-# ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=...'
+That script redeploys the final-gate branch, waits for `:5100/health`, validates env (no secret print), then captures. It exits with `BLOCKED` until keys/cookie are set.
 
-source /etc/ecomae-aspnet/platform.env
-bash scripts/wait_for_aspnet_health.sh
-bash scripts/cloudpanel_validate_final_gate_env.sh
-# All three must show PRESENT. Digests returning 401 means refresh admin cookie.
-bash scripts/cloudpanel_capture_final_gate_artifacts.sh
-# When all three smoke files exist:
-bash scripts/cloudpanel_commit_final_gate_smoke.sh
+Required in `/etc/ecomae-aspnet/platform.env` (server-only, never commit):
+
+```bash
+ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...
+ECOMAE_CATALOG_API_KEY=epc_catalog_...
+ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=...'
 ```
 
 Common CloudPanel failures:
-- `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (now automatic in deploy/capture).
-- `SKIP price/catalog smoke` → empty `ECOMAE_PRICE_LOOKUP_API_KEY` / `ECOMAE_CATALOG_API_KEY` in `platform.env`.
-- Digest routes HTTP 401 → stale/invalid `ECOMAE_ADMIN_COOKIE_HEADER`; probe `/auth/session/probe` until `Kind=Admin`.
+- `cloudpanel_validate_final_gate_env.sh: No such file` → you are on stale `main`; use the one-liner above (PR #599 branch).
+- `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (automatic on the PR branch).
+- `SKIP price/catalog smoke` → empty API keys in `platform.env`.
+- Digest routes HTTP 401 → stale/invalid admin cookie; probe `/auth/session/probe` until `Kind=Admin`.
 
 Exact-route promotion (after smoke only): `docs/migration/EXACT_ROUTE_PROMOTION_PRICE_CATALOG.md`
 
