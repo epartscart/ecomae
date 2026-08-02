@@ -276,9 +276,9 @@ check 'catalog analogs route constant exists' contains "$ROOT/aspnet/src/EcomAE.
 check 'DB catalog offline cache repository exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbCatalogOfflineCacheRepository.cs"
 check 'DB catalog offline cache repository is read-only' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbCatalogOfflineCacheRepository.cs" 'Performs zero writes'
 check 'program registers catalog offline cache service' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ICatalogOfflineCacheService, CatalogOfflineCacheService'
-check 'API module gates vin with catalog auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" '"catalog", "vin"'
-check 'API module gates engines with catalog auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" '"catalog", "engines"'
-check 'API module gates analogs with catalog auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" '"catalog", "analogs"'
+check 'API module gates vin with catalog auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "vin"'
+check 'API module gates engines with catalog auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "engines"'
+check 'API module gates analogs with catalog auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "analogs"'
 check 'catalog offline cache evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-offline-cache/README.md"
 check 'catalog vin nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-vin-shadow-example.conf"
 check 'catalog engines nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-engines-shadow-example.conf"
