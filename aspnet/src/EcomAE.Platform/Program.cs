@@ -110,6 +110,7 @@ builder.Services.AddSingleton<ICutoverValidationReporter, CutoverValidationRepor
 builder.Services.AddSingleton<IMigrationProgressReporter, MigrationProgressReporter>();
 builder.Services.AddSingleton<ISurfaceParityReporter, SurfaceParityReporter>();
 builder.Services.AddSingleton<IZeroPhpCompletionReporter, ZeroPhpCompletionReporter>();
+builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryReporter>();
 builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();
@@ -142,6 +143,27 @@ app.MapGet(EcomAeRoutes.MigrationRouteCutover, (HttpContext context, IMigrationR
 app.MapGet(EcomAeRoutes.MigrationDataParity, (IDataParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.MigrationCutoverValidation, (ICutoverValidationReporter reporter) => Results.Ok(reporter.BuildReport()));
+
+app.MapGet(EcomAeRoutes.MigrationUmapiUsage, async (int? days, IUmapiUsageSummaryReporter reporter, CancellationToken cancellationToken) =>
+{
+    var summary = await reporter.BuildAsync(days ?? 7, cancellationToken);
+    return Results.Ok(new
+    {
+        daily_limit = summary.DailyLimit,
+        today_live = summary.TodayLive,
+        today_cache = summary.TodayCache,
+        today_blocked = summary.TodayBlocked,
+        remaining = summary.Remaining,
+        pct_used = summary.PctUsed,
+        quota_exceeded = summary.QuotaExceeded,
+        by_action_today = summary.ByActionToday,
+        by_source_today = summary.BySourceToday,
+        history = summary.History,
+        source = summary.Source,
+        message = summary.Message,
+        note = "Internal migration diagnostic only. External catalog clients must not call PHP usage_report."
+    });
+});
 
 app.MapGet(EcomAeRoutes.SurfaceParity, (ISurfaceParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 

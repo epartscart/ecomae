@@ -260,8 +260,16 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 51.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 52.0%'
 check 'legacy session DB evidence exists' test -f "$ROOT/docs/migration/evidence/legacy-session-db/README.md"
+check 'CloudPanel bootstrap-from-github script exists' test -x "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh"
+check 'CloudPanel bootstrap resets hard to origin main' contains "$ROOT/scripts/cloudpanel_bootstrap_from_github.sh" 'git reset --hard'
+check 'CloudPanel quick start documents stale checkout recovery' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'git reset --hard origin/main'
+check 'UMAPI usage migration route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/migration/umapi-usage'
+check 'program registers UMAPI usage reporter' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'IUmapiUsageSummaryReporter, UmapiUsageSummaryReporter'
+check 'UMAPI usage reporter is read-only' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/UmapiUsageSummaryReporter.cs" 'Performs zero writes'
+check 'UMAPI usage reporter tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/UmapiUsageSummaryReporterTests.cs"
+check 'UMAPI usage evidence exists' test -f "$ROOT/docs/migration/evidence/umapi-usage/README.md"
 check 'zero PHP progress status blocks broad cutover' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Broad `/api`, `/cp`, `/erp`, `/bos`'
 check 'catalog manufacturers route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/manufacturers'
 check 'DB catalog manufacturers repository exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbCatalogManufacturerRepository.cs"

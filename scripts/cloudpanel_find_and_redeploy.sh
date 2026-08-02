@@ -2,10 +2,9 @@
 # Paste-safe CloudPanel redeploy after a merged PR.
 # Does NOT assume /var/www/ecomae exists.
 #
-# Usage (as root on the server):
-#   bash scripts/cloudpanel_find_and_redeploy.sh
-# Or from anywhere after clone:
-#   curl is not required — copy this file or run from an existing checkout.
+# If this file itself is missing on the server, your checkout is stale.
+# Run first (paste-safe):
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_bootstrap_from_github.sh)"
 set -euo pipefail
 
 ECOMAE_GIT_URL="${ECOMAE_GIT_URL:-https://github.com/epartscart/ecomae.git}"
@@ -22,11 +21,22 @@ printf 'Env dir:      %s\n' "$ECOMAE_ASPNET_ENV_DIR"
 find_repo() {
   local candidate found
   for candidate in "${CANDIDATES[@]}"; do
+    if [[ -n "$candidate" && -d "$candidate/.git" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  for candidate in "${CANDIDATES[@]}"; do
     if [[ -n "$candidate" && -f "$candidate/scripts/cloudpanel_production_deploy_foundation.sh" ]]; then
       printf '%s\n' "$candidate"
       return 0
     fi
   done
+  found="$(find /var/www /opt /root -maxdepth 6 -type d -name '.git' -path '*/ecomae*/.git' -print -quit 2>/dev/null || true)"
+  if [[ -n "$found" ]]; then
+    printf '%s\n' "$(dirname "$found")"
+    return 0
+  fi
   found="$(find /var/www /opt /root -maxdepth 6 -type f -path '*/scripts/cloudpanel_production_deploy_foundation.sh' -print -quit 2>/dev/null || true)"
   if [[ -n "$found" ]]; then
     printf '%s\n' "${found%/scripts/cloudpanel_production_deploy_foundation.sh}"
@@ -41,17 +51,24 @@ if REPO="$(find_repo)"; then
 else
   printf 'Repo not found. Cloning to /opt/ecomae-aspnet-source ...\n'
   mkdir -p /opt
-  if [[ ! -d /opt/ecomae-aspnet-source/.git ]]; then
-    git clone "$ECOMAE_GIT_URL" /opt/ecomae-aspnet-source
-  fi
+  rm -rf /opt/ecomae-aspnet-source
+  git clone "$ECOMAE_GIT_URL" /opt/ecomae-aspnet-source
   REPO="/opt/ecomae-aspnet-source"
 fi
 
 cd "$REPO"
 pwd
+git remote set-url origin "$ECOMAE_GIT_URL" || true
 git fetch origin "$ECOMAE_BRANCH"
-git checkout "$ECOMAE_BRANCH"
-git pull --ff-only origin "$ECOMAE_BRANCH"
+git checkout -f "$ECOMAE_BRANCH"
+git reset --hard "origin/$ECOMAE_BRANCH"
+
+if [[ ! -f scripts/cloudpanel_production_deploy_foundation.sh ]]; then
+  printf 'ERROR: scripts/cloudpanel_production_deploy_foundation.sh still missing after git reset.\n' >&2
+  printf 'Run bootstrap instead:\n' >&2
+  printf '  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_bootstrap_from_github.sh)"\n' >&2
+  exit 1
+fi
 
 if [[ ! -f "${ECOMAE_ASPNET_ENV_DIR}/platform.env" ]]; then
   mkdir -p "$ECOMAE_ASPNET_ENV_DIR" "$ECOMAE_ASPNET_RELEASE_ROOT/releases"

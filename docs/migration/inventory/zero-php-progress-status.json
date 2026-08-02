@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 51.0,
-  "pendingPercent": 49.0,
+  "trueZeroPhpCompletionPercent": 52.0,
+  "pendingPercent": 48.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -50,10 +50,12 @@
     "/api/v1/catalog/engine-search DB/cache+auth",
     "/api/v1/catalog/article-links DB/cache+auth",
     "/api/v1/catalog/brand-parts DB+auth",
-    "DbBackedLegacySessionValidator admin sessions.type=1"
+    "DbBackedLegacySessionValidator admin sessions.type=1",
+    "/migration/umapi-usage diagnostic",
+    "scripts/cloudpanel_bootstrap_from_github.sh"
   ],
   "nextExecutionOrder": [
-    "Redeploy with scripts/cloudpanel_find_and_redeploy.sh (do not use /var/www/ecomae).",
+    "Refresh /opt/ecomae-aspnet-source with git reset --hard origin/main, then cloudpanel_find_and_redeploy.sh (or bootstrap_from_github.sh).",
     "Run exact-route staging smoke for /api/v1/price/lookup and catalog routes with real API keys.",
     "Attach PHP-vs-ASP.NET parity samples, then enable only approved location = nginx shadows.",
     "Continue batch-by-batch replacements without broad proxy cutover.",
