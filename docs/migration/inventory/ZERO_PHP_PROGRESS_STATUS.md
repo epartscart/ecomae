@@ -66,8 +66,11 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 ## Next execution order
 
-- Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first.
-- Issue smoke creds: `ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh`
+- Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` (or the open smoke-issuer branch until merged).
+- Ensure API clients table: `ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh`
+- Issue smoke creds: `ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh` (login Super CP if admin cookie missing).
+- Validate (redacted): `bash scripts/cloudpanel_validate_final_gate_env.sh` (or `bash scripts/cloudpanel_prepare_smoke_secrets.sh`).
+- Optional storefront: set `ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits>` (not required for ReadyToRemovePhp).
 - Capture + commit: `source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh`
 - Extract one approved path: `bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status` (enable only after smoke).
 - Attach dual PHP↔ASP.NET parity samples; promote shadows one `location =` at a time.

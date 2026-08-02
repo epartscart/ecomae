@@ -14,6 +14,9 @@ public sealed class StorefrontParityReporterTests
         Assert.Equal("presentation-shell-scaffolded-awaiting-staging", report.Status);
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("Customer session gate", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("checkout", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("ECOMAE_CUSTOMER_COOKIE_HEADER", StringComparison.Ordinal));
+        Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("not required for ReadyToRemovePhp", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("SEO metadata", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("StorefrontAspNetEnabled=false", StringComparison.Ordinal));
     }
 }

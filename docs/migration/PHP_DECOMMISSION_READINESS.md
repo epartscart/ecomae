@@ -28,13 +28,15 @@ Live operator URL catalog: `docs/migration/LIVE_SURFACE_LINKS.md` and `GET /migr
 
 On CloudPanel after deploy (loads keys from `/etc/ecomae-aspnet/platform.env` when present):
 
-**Until PR #599 is merged, do NOT reset to `main`** — main still lacks `cloudpanel_validate_final_gate_env.sh` / health wait. Paste this one-liner as root:
+Prefer refreshing `/opt/ecomae-aspnet-source` to `origin/main` (PRs #599–#602 merged; smoke-issuer branch if table/issuer fixes are not on main yet), then:
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-preflight-public-probes-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
+bash scripts/cloudpanel_find_and_redeploy.sh
+# or paste-safe:
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_bootstrap_from_github.sh)"
 ```
 
-That script redeploys the final-gate branch, waits for `:5100/health`, validates env (no secret print), then captures. It exits with `BLOCKED` until keys/cookie are set.
+Deploy waits for `:5100/health`, validates env (no secret print), then capture can run. Capture exits with `BLOCKED` until keys/cookie are set.
 
 Required in `/etc/ecomae-aspnet/platform.env` (server-only, never commit):
 
@@ -42,19 +44,25 @@ Required in `/etc/ecomae-aspnet/platform.env` (server-only, never commit):
 ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...
 ECOMAE_CATALOG_API_KEY=epc_catalog_...
 ECOMAE_ADMIN_COOKIE_HEADER=admin_session=...; admin_u_id=123
+# Optional storefront digests (not required for ReadyToRemovePhp):
+# ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=123
 ```
 
 Helpers (no secret print):
 
 ```bash
-# Preferred on CloudPanel — writes keys (+ admin cookie if a live CP session exists):
+# If epc_api_clients is missing (Table doesn't exist):
+ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh
+# Preferred — writes keys (+ admin cookie if a live CP session exists):
 ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh
 bash scripts/cloudpanel_prepare_smoke_secrets.sh
+bash scripts/cloudpanel_validate_final_gate_env.sh
 ```
 
 Common CloudPanel failures:
-- `cloudpanel_validate_final_gate_env.sh: No such file` → you are on stale `main`; use the one-liner above (PR #599 branch).
-- `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (automatic on the PR branch).
+- `cloudpanel_validate_final_gate_env.sh: No such file` → stale checkout; `git fetch` + `git reset --hard origin/main` (or the open smoke-issuer branch) then redeploy.
+- `Table '….epc_api_clients' doesn't exist` → run `cloudpanel_ensure_epc_api_clients_table.sh` with confirm, then re-issue.
+- `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (`wait_for_aspnet_health.sh`).
 - `ECOMAE_*_API_KEY: MISSING` → keys empty; issue/copy plaintext `epc_pricepro_` / `epc_catalog_` keys (DB stores hashes only).
 - `ECOMAE_ADMIN_COOKIE_HEADER/JAR: BAD_FORMAT` or probe `kind:0` → cookie missing both `admin_session` + numeric `admin_u_id`, or not logged in as Super CP.
 - Probe success is `kind:2` (or `"Admin"`) with `isAuthenticated:true`.

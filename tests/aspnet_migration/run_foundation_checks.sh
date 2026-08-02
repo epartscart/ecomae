@@ -381,6 +381,8 @@ check 'deploy packs surface digests gate shadow' contains "$ROOT/scripts/deploy_
 check 'deploy packs storefront digests gate shadow' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'nginx-storefront-digests-shadow-example.conf'
 check 'deploy packs exact-route extract helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_extract_exact_route_shadow.sh'
 check 'deploy packs ensure epc_api_clients helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_ensure_epc_api_clients_table.sh'
+check 'deploy packs smoke secrets prepare helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_prepare_smoke_secrets.sh'
+check 'deploy packs smoke commit helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_commit_final_gate_smoke.sh'
 check 'deploy packs smoke DB bootstrap PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" '_smoke_db_bootstrap.php'
 check 'deploy packs ensure table PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ensure_epc_api_clients_table.php'
 check 'ensure epc_api_clients helper exists' test -x "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh"
@@ -409,6 +411,11 @@ check 'surface digests shadow covers bos tenants' contains "$ROOT/deploy/aspnet/
 check 'CloudPanel final-gate capture never removes PHP' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'never removes PHP'
 check 'public decommission probes attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json"
 check 'public decommission readiness probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
+check 'surface field parity public probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json"
+check 'surface field parity probe tracks catalog vin contract' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '/api/v1/catalog/vin'
+check 'surface field parity probe contractCount is current' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"contractCount": 53'
+check 'live surface links probe includes field parity route' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/migration/surface-field-parity'
+check 'zero php probe next actions mention ensure table' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'ensure_epc_api_clients_table'
 check 'final gate checklist never removes PHP' contains "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" 'never removes PHP'
 check 'catalog status smoke runner exists' test -x "$ROOT/tests/live_smoke/run_catalog_status_exact_route_smoke.sh"
 check 'surface digest smoke runner exists' test -x "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh"
@@ -437,6 +444,9 @@ check 'program registers catalog manufacturers service' contains "$ROOT/aspnet/s
 check 'API module gates manufacturers with catalog auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" '"catalog", "manufacturers"'
 check 'catalog manufacturers evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-manufacturers/README.md"
 check 'catalog manufacturers nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-manufacturers-shadow-example.conf"
+check 'catalog models nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-models-shadow-example.conf"
+check 'catalog modifications nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-modifications-shadow-example.conf"
+check 'catalog brands nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-brands-shadow-example.conf"
 check 'catalog models route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/models'
 check 'catalog modifications route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/modifications'
 check 'catalog brands route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/brands'

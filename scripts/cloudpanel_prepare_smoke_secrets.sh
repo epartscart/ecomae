@@ -40,6 +40,15 @@ printf '5) Test (must show kind=2 or Kind=Admin, isAuthenticated=true):\n'
 printf '     source %s\n' "$ENV_FILE"
 printf '     curl -sS -H "Cookie: \$ECOMAE_ADMIN_COOKIE_HEADER" http://127.0.0.1:5100/auth/session/probe; echo\n'
 
+printf '\n-- Optional storefront customer cookie (not required for ReadyToRemovePhp) --\n'
+printf '1) Browser: log into the public storefront as a customer (not Super CP).\n'
+printf '2) DevTools → Cookie / Request Headers → copy session= and u_id= (digits).\n'
+printf '3) In %s:\n' "$ENV_FILE"
+printf '     ECOMAE_CUSTOMER_COOKIE_HEADER=session=PASTE; u_id=123\n'
+printf '4) Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh\n'
+printf '5) Capture optional storefront digests via cloudpanel_capture_final_gate_artifacts.sh\n'
+printf '   or: RUN_STOREFRONT_DIGEST_SMOKE=1 bash tests/live_smoke/run_storefront_digest_exact_route_smoke.sh\n'
+
 # Optional: list API client prefixes from DB if mysql client + connection string available (no secrets).
 if [[ -f "$ENV_FILE" ]]; then
   # shellcheck disable=SC1090

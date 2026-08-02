@@ -77,7 +77,9 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 [
                     "Redeploy with git reset --hard origin/main then scripts/cloudpanel_find_and_redeploy.sh (or cloudpanel_bootstrap_from_github.sh).",
                     "Ensure table + issue smoke creds: cloudpanel_ensure_epc_api_clients_table.sh → cloudpanel_issue_smoke_credentials.sh (never invent keys).",
+                    "Validate env (redacted): cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
                     "Capture/commit staging-smoke for price lookup, catalog status, and surface digests.",
+                    "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
                     "Promote one location = shadow at a time; compare_catalog_status_parity.py / compare_catalog_list_parity.py before more catalog paths.",
                     "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
                     "The remaining 5% is PHP runtime decommission only — run scripts/run_zero_php_final_gate_checklist.sh, attach staging smoke/parity artifacts, then release-owner approval before PHP removal."

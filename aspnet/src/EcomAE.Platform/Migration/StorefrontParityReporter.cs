@@ -14,12 +14,14 @@ public sealed class StorefrontParityReporter : IStorefrontParityReporter
                 "Storefront account/placeholder shells negotiate presentation-preserving HTML (templates/modex CSS) while defaulting to JSON for tooling.",
                 "Customer session gate protects /storefront/account, account-summary, orders, garage, and profile digests.",
                 "Tenant resolver keeps live storefront traffic classified before cutover.",
-                "Live smoke script can validate storefront reachability when explicitly enabled."
+                "Optional customer smoke: ECOMAE_CUSTOMER_COOKIE_HEADER (session=...; u_id=<digits>) via run_storefront_digest_exact_route_smoke.sh / capture artifacts.",
+                "Storefront digests are optional promotion evidence — not required for ReadyToRemovePhp."
             ],
             [
                 "Replay PHP storefront HTML, SEO metadata, catalog, cart, checkout, and account fixtures.",
                 "Validate cart/session compatibility and sandbox payment handoff.",
-                "Compare asset rendering, cache headers, and localized catalog output before traffic cutover."
+                "Compare asset rendering, cache headers, and localized catalog output before traffic cutover.",
+                "Keep StorefrontAspNetEnabled=false until exact-route storefront digest shadows have dual-sample match."
             ]);
     }
 }

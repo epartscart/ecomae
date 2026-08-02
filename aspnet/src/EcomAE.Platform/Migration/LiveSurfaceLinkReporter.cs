@@ -29,6 +29,7 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("aspnet-diagnostics", "Presentation parity", "https://www.ecomae.com/migration/presentation-parity", "aspnet", "/migration/presentation-parity", "PHP chrome asset contract for ASP.NET shells."),
             Link("aspnet-diagnostics", "Live surface links", "https://www.ecomae.com/migration/live-surface-links", "aspnet", "/migration/live-surface-links", "This catalog."),
             Link("aspnet-diagnostics", "Surface parity", "https://www.ecomae.com/migration/surface-parity", "aspnet", "/migration/surface-parity", "Surface-by-surface parity statuses."),
+            Link("aspnet-diagnostics", "Surface field parity", "https://www.ecomae.com/migration/surface-field-parity", "aspnet", "/migration/surface-field-parity", "Field/function contracts for all wired digests + catalog routes."),
             Link("aspnet-api", "Price lookup", "https://www.ecomae.com/api/v1/price/lookup", "aspnet", "/api/v1/price/lookup", "Already on ASP.NET; unauthenticated returns JSON missing_api_key."),
 
             // Industry showcase frontends (*.ecomae.com) — not dedicated client tenants
@@ -69,7 +70,11 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("aspnet-digest-pending-shadow", "Catalog status", "https://www.ecomae.com/api/v1/catalog/status", "php-fallback", "/api/v1/catalog/status", "Needs exact-route nginx shadow + API key smoke."),
             Link("aspnet-digest-pending-shadow", "Catalog manufacturers", "https://www.ecomae.com/api/v1/catalog/manufacturers?section=passenger", "php-fallback", "/api/v1/catalog/manufacturers", "Wave-1 after status; compare_catalog_list_parity.py + nginx-catalog-manufacturers-shadow-example.conf."),
             Link("aspnet-digest-pending-shadow", "Catalog brands", "https://www.ecomae.com/api/v1/catalog/brands", "php-fallback", "/api/v1/catalog/brands", "List envelope contracted; promote one path after smoke."),
-            Link("aspnet-digest-pending-shadow", "Catalog VIN", "https://www.ecomae.com/api/v1/catalog/vin", "php-fallback", "/api/v1/catalog/vin", "Offline VIN decode; compare_catalog_vin_parity.py after dual sample.")
+            Link("aspnet-digest-pending-shadow", "Catalog VIN", "https://www.ecomae.com/api/v1/catalog/vin", "php-fallback", "/api/v1/catalog/vin", "Offline VIN decode; compare_catalog_vin_parity.py after dual sample."),
+            Link("aspnet-digest-pending-shadow", "Storefront account summary", "https://www.ecomae.com/storefront/account-summary", "php-fallback", "/storefront/account-summary", "Optional customer digest; needs ECOMAE_CUSTOMER_COOKIE_* + nginx-storefront-digests-shadow-example.conf."),
+            Link("aspnet-digest-pending-shadow", "Storefront orders", "https://www.ecomae.com/storefront/orders", "php-fallback", "/storefront/orders", "Optional customer digest; not required for ReadyToRemovePhp."),
+            Link("aspnet-digest-pending-shadow", "Storefront garage", "https://www.ecomae.com/storefront/garage", "php-fallback", "/storefront/garage", "Optional customer digest after smoke."),
+            Link("aspnet-digest-pending-shadow", "Storefront profile", "https://www.ecomae.com/storefront/profile", "php-fallback", "/storefront/profile", "Optional customer digest after smoke.")
         ];
 
         return new LiveSurfaceLinkReport(
@@ -85,7 +90,9 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             [
                 "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
                 "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh (login Super CP if cookie missing).",
+                "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh (or bash scripts/cloudpanel_prepare_smoke_secrets.sh).",
                 "source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh",
+                "Optional storefront digests: set ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits> (not required for ReadyToRemovePhp).",
                 "Extract one path: bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status (then manufacturers via nginx-catalog-*-shadow-example.conf).",
                 "Dual-sample: python3 scripts/compare_catalog_list_parity.py manufacturers php.json aspnet.json — then human APPROVED_TO_REMOVE_PHP_FALLBACK."
             ]);

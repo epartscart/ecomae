@@ -29,6 +29,7 @@ Live JSON catalog after deploy: `https://www.ecomae.com/migration/live-surface-l
 | Presentation parity | https://www.ecomae.com/migration/presentation-parity |
 | Live surface links | https://www.ecomae.com/migration/live-surface-links |
 | Surface parity | https://www.ecomae.com/migration/surface-parity |
+| Surface field parity | https://www.ecomae.com/migration/surface-field-parity |
 | Price lookup API | https://www.ecomae.com/api/v1/price/lookup |
 
 ## Industry showcase frontends (`*.ecomae.com`)
@@ -68,8 +69,10 @@ These exist in ASP.NET on loopback (`127.0.0.1:5100`) but are **not** broadly cu
 - `/erp/dashboard-summary`
 - `/bos/fleet-summary`
 - `/api/v1/catalog/status`
+- `/api/v1/catalog/manufacturers` (and other list/offline/VIN/brand-parts catalog paths)
+- `/storefront/account-summary`, `/storefront/orders`, `/storefront/garage`, `/storefront/profile` (optional; needs customer cookie)
 
-Enable only via `deploy/aspnet/nginx-surface-digests-shadow-example.conf` / catalog shadow examples after smoke.
+Enable only via `deploy/aspnet/nginx-surface-digests-shadow-example.conf` / catalog / storefront shadow examples after smoke.
 
 ## Final PHP cutover gate
 
