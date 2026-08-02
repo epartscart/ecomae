@@ -1,0 +1,36 @@
+{
+  "created_templates": 0,
+  "evidence_root": "docs/migration/evidence/zero-php-100",
+  "existing_templates": 0,
+  "missing_templates": 3049,
+  "mode": "dry-run",
+  "required_evidence_schema_fields": [
+    "implementation_reference",
+    "php_baseline_sample",
+    "aspnet_dry_run_or_shadow_sample",
+    "response_or_data_parity_comparison",
+    "exact_route_cutover_data",
+    "auth_tenant_permission_parity_result",
+    "rollback_command",
+    "rollback_approval",
+    "production_smoke_status",
+    "php_fallback_safety",
+    "owner_approval"
+  ],
+  "selected_batches": 61,
+  "selected_items": 3049,
+  "status": {
+    "broad_cutover_allowed": false,
+    "exact_route_batches": 61,
+    "job_like_php_files": 140,
+    "next_batch": "worker-dry-run-replacements",
+    "pending_to_100_percent": 65.0,
+    "php_fallback_required": true,
+    "route_job_implementation_complete_percent": 0.0,
+    "route_job_parity_ready_percent": 0.0,
+    "route_job_shadow_or_better_percent": 0.0,
+    "total_tracked_php_files": 3049,
+    "true_zero_php_completion_percent": 35.0
+  },
+  "truthfulness_guardrail": "Do not report 100% until every tracked PHP route/job is live or removed, rollback approval exists, production smoke checks pass, and PHP fallback is no longer required for the item."
+}
