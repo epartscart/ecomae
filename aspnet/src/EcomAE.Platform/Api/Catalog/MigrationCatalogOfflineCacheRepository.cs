@@ -10,4 +10,7 @@ public sealed class MigrationCatalogOfflineCacheRepository : ICatalogOfflineCach
 
     public Task<CatalogActionCacheRow?> FindArticleByIdAsync(string section, string language, string region, int articleId, CancellationToken cancellationToken = default)
         => Task.FromResult<CatalogActionCacheRow?>(null);
+
+    public Task<CatalogActionCacheRow?> FindEngineByIdAsync(string section, string language, string region, int engineId, CancellationToken cancellationToken = default)
+        => Task.FromResult<CatalogActionCacheRow?>(null);
 }

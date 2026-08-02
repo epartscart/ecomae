@@ -111,6 +111,7 @@ builder.Services.AddSingleton<IMigrationProgressReporter, MigrationProgressRepor
 builder.Services.AddSingleton<ISurfaceParityReporter, SurfaceParityReporter>();
 builder.Services.AddSingleton<IZeroPhpCompletionReporter, ZeroPhpCompletionReporter>();
 builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryReporter>();
+builder.Services.AddSingleton<IPlatformJobsSummaryReporter, PlatformJobsSummaryReporter>();
 builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();
@@ -163,6 +164,25 @@ app.MapGet(EcomAeRoutes.MigrationUmapiUsage, async (int? days, IUmapiUsageSummar
         source = summary.Source,
         message = summary.Message,
         note = "Internal migration diagnostic only. External catalog clients must not call PHP usage_report."
+    });
+});
+
+app.MapGet(EcomAeRoutes.MigrationPlatformJobs, async (int? limit, IPlatformJobsSummaryReporter reporter, CancellationToken cancellationToken) =>
+{
+    var summary = await reporter.BuildAsync(limit ?? 50, cancellationToken);
+    return Results.Ok(new
+    {
+        total = summary.Total,
+        queued = summary.Queued,
+        running = summary.Running,
+        done = summary.Done,
+        failed = summary.Failed,
+        by_status = summary.ByStatus,
+        by_type = summary.ByType,
+        recent = summary.Recent,
+        source = summary.Source,
+        message = summary.Message,
+        note = "Internal migration diagnostic only. Does not claim or complete jobs; PHP cron remains authoritative."
     });
 });
 

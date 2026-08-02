@@ -30,4 +30,24 @@ public static class LegacyUmapiActionCacheSql
         ORDER BY `last_sync` DESC
         LIMIT 1
         """;
+
+    /// <summary>
+    /// PHP action=engine is not normally cacheable; opportunistic id match if a row exists.
+    /// </summary>
+    public const string SelectEngineById = """
+        SELECT `cache_key`, `action`, `section`, `language`, `region`, `response_json`, `rows_count`, `http_status`, `last_sync`
+        FROM `epc_umapi_cache`
+        WHERE `action` = 'engine'
+          AND `section` = @section
+          AND `language` = @language
+          AND `region` = @region
+          AND (
+            `response_json` LIKE CONCAT('%"ENG_ID":', @engineId, '%')
+            OR `response_json` LIKE CONCAT('%"ENG_ID": "', @engineId, '"%')
+            OR `response_json` LIKE CONCAT('%"id":', @engineId, '%')
+            OR `response_json` LIKE CONCAT('%"id": "', @engineId, '"%')
+          )
+        ORDER BY `last_sync` DESC
+        LIMIT 1
+        """;
 }

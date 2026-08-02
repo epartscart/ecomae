@@ -114,4 +114,74 @@ public sealed class WorkerDryRunExecutorTests
         Assert.Equal("2", output.Metrics["valid_rates"]);
         Assert.Equal("1", output.Metrics["invalid_rates"]);
     }
+
+    [Fact]
+    public void DemoExpireDryRunValidatesSampleWithoutDeletes()
+    {
+        var executor = new DemoExpireDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "demo-expire");
+        var request = new MigrationWorkerJobRunRequest(
+            "demo-expire",
+            DateTimeOffset.FromUnixTimeSeconds(1_720_000_000),
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_tenants"] = "demo-acme,1710000000\ndemo-live,0\nbad-row"
+            });
+
+        var output = executor.Execute(job, request);
+
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.True(output.WritesBlocked);
+        Assert.Equal("0", output.Metrics["deletes"]);
+        Assert.Equal("1", output.Metrics["expired_candidates"]);
+        Assert.Equal("1", output.Metrics["active_candidates"]);
+    }
+
+    [Fact]
+    public void PlatformJobsDryRunValidatesSampleWithoutClaims()
+    {
+        var executor = new PlatformJobsDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "platform-jobs");
+        var request = new MigrationWorkerJobRunRequest(
+            "platform-jobs",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_jobs"] = "seo_warm,queued\nseo_warm,running\nbad"
+            });
+
+        var output = executor.Execute(job, request);
+
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.True(output.WritesBlocked);
+        Assert.Equal("0", output.Metrics["claims"]);
+        Assert.Equal("1", output.Metrics["queued"]);
+        Assert.Equal("1", output.Metrics["running"]);
+    }
+
+    [Fact]
+    public void SeoSitemapPingDryRunValidatesUrlsWithoutPings()
+    {
+        var executor = new SeoSitemapPingDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "seo-sitemap-ping");
+        var request = new MigrationWorkerJobRunRequest(
+            "seo-sitemap-ping",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_urls"] = "https://www.ecomae.com/sitemap.xml\nnot-a-url"
+            });
+
+        var output = executor.Execute(job, request);
+
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.True(output.WritesBlocked);
+        Assert.Equal("0", output.Metrics["pings"]);
+        Assert.Equal("1", output.Metrics["valid_urls"]);
+        Assert.Equal("1", output.Metrics["invalid_urls"]);
+    }
+
 }

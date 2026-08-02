@@ -617,6 +617,108 @@ public sealed class ApiModule : ISurfaceModule
             return OfflineCacheOk(result, authResult.Client);
         });
 
+        endpoints.MapGet(EcomAeRoutes.CatalogArticles, async (
+            HttpContext httpContext,
+            string? section,
+            string? PT_IDS,
+            string? pt_ids,
+            string? CATEGORY_ID,
+            string? category_id,
+            string? ID,
+            string? id,
+            string? limit,
+            string? offset,
+            string? vehicle_type,
+            string? type,
+            string? language,
+            string? region,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogOfflineCacheService offlineCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "articles", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await offlineCache.LookupArticlesAsync(
+                section,
+                PT_IDS ?? pt_ids,
+                CATEGORY_ID ?? category_id,
+                ID ?? id,
+                limit,
+                offset,
+                vehicle_type ?? type,
+                language,
+                region,
+                cancellationToken);
+            await LogOfflineCacheAsync(httpContext, usageLogger, authResult.Client, "catalog_articles", result.Ok, result.Code, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(
+                    new
+                    {
+                        ok = false,
+                        error = new { code = result.Code, message = result.Message },
+                        action = result.Action,
+                        section = result.Section,
+                        source = result.Source,
+                        note = result.Code == "cache_miss"
+                            ? "PHP does not cache action=articles; live UMAPI fills remain on PHP until an outbound proxy is approved."
+                            : null
+                    },
+                    statusCode: result.StatusCode);
+            }
+
+            return OfflineCacheOk(result, authResult.Client);
+        });
+
+        endpoints.MapGet(EcomAeRoutes.CatalogEngine, async (
+            HttpContext httpContext,
+            string? section,
+            int? id,
+            int? ENG_ID,
+            string? language,
+            string? region,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogOfflineCacheService offlineCache,
+            CancellationToken cancellationToken) =>
+        {
+            // Singular engine is not in PHP catalog allowlist; authorize via engines.
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "engines", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await offlineCache.LookupEngineAsync(section, id ?? ENG_ID ?? 0, language, region, cancellationToken);
+            await LogOfflineCacheAsync(httpContext, usageLogger, authResult.Client, "catalog_engine", result.Ok, result.Code, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(
+                    new
+                    {
+                        ok = false,
+                        error = new { code = result.Code, message = result.Message },
+                        action = result.Action,
+                        section = result.Section,
+                        source = result.Source,
+                        requested_id = id ?? ENG_ID,
+                        note = result.Code == "cache_miss"
+                            ? "PHP does not cache action=engine; live UMAPI fills remain on PHP until an outbound proxy is approved."
+                            : null
+                    },
+                    statusCode: result.StatusCode);
+            }
+
+            return OfflineCacheOk(result, authResult.Client);
+        });
+
         endpoints.MapGet(EcomAeRoutes.CatalogBrandParts, async (
             HttpContext httpContext,
             string? brand,
