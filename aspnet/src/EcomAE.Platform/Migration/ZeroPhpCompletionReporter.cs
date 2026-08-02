@@ -2,8 +2,19 @@ namespace EcomAE.Platform.Migration;
 
 public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
 {
+    private readonly IPhpDecommissionReadinessReporter _decommission;
+
+    public ZeroPhpCompletionReporter(IPhpDecommissionReadinessReporter decommission)
+    {
+        _decommission = decommission;
+    }
+
     public ZeroPhpCompletionReport BuildReport()
     {
+        var gate = _decommission.BuildReport();
+        var decommissionComplete = gate.ReadyToRemovePhp ? 100 : 0;
+        var decommissionStatus = gate.ReadyToRemovePhp ? "ready-for-php-removal" : "blocked";
+
         ZeroPhpCompletionArea[] areas =
         [
             new("Foundation, deployment, and diagnostics", 20, 100, "complete", [
@@ -35,26 +46,41 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "EF Core stub entities exist but DbContext is not registered; PG17/YARP/Redis/Kafka remain not live.",
                 "Staging smoke artifacts and live rollback approvals remain pending before PHP removal."
             ]),
-            new("PHP runtime decommission", 5, 0, "blocked", [
-                "Remove PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies only after every route and job has green parity evidence.",
-                "Keep PHP fallback required until the final release-owner decommission approval.",
-                "See /migration/php-decommission-readiness for the explicit blocker list."
-            ])
+            new("PHP runtime decommission", 5, decommissionComplete, decommissionStatus, gate.ReadyToRemovePhp
+                ?
+                [
+                    "Final-gate checklist is complete and ReadyToRemovePhp is true.",
+                    "Run ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh on CloudPanel only.",
+                    "Keep exact-route shadows; do not enable broad tree cutovers."
+                ]
+                :
+                [
+                    $"Final-gate checklist {gate.ChecklistCompleteCount}/{gate.ChecklistTotalCount} ({gate.ChecklistCompletePercent}%).",
+                    "Authenticated staging smoke + RELEASE_OWNER_APPROVAL.md are still required.",
+                    "See /migration/php-decommission-readiness for the explicit blocker list."
+                ])
         ];
 
         var complete = areas.Sum(area => area.WeightPercent * area.CompletePercent) / 100;
         return new ZeroPhpCompletionReport(
             complete,
             100 - complete,
-            "not-ready-for-php-removal",
+            gate.ReadyToRemovePhp ? "ready-for-php-removal" : "not-ready-for-php-removal",
             areas,
-            [
-                "Redeploy with git reset --hard origin/main then scripts/cloudpanel_find_and_redeploy.sh (or cloudpanel_bootstrap_from_github.sh).",
-                "Run exact-route staging smoke for /api/v1/price/lookup and /api/v1/catalog/status with real API keys.",
-                "Attach smoke artifacts, then enable only approved location = exact-route nginx shadows.",
-                "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
-                "Use /migration/live-surface-links and docs/migration/LIVE_SURFACE_LINKS.md for operator/tenant URLs while PHP remains authoritative.",
-                "The remaining 5% is PHP runtime decommission only — run scripts/run_zero_php_final_gate_checklist.sh, attach staging smoke/parity artifacts, then release-owner approval before PHP removal."
-            ]);
+            gate.ReadyToRemovePhp
+                ?
+                [
+                    "ReadyToRemovePhp is true — run the gated CloudPanel decommission script with explicit confirmation.",
+                    "Keep rollback available and avoid broad /api /cp /erp /bos /storefront cutover."
+                ]
+                :
+                [
+                    "Redeploy with git reset --hard origin/main then scripts/cloudpanel_find_and_redeploy.sh (or cloudpanel_bootstrap_from_github.sh).",
+                    "Run exact-route staging smoke for /api/v1/price/lookup and /api/v1/catalog/status with real API keys.",
+                    "Attach smoke artifacts, then enable only approved location = exact-route nginx shadows.",
+                    "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
+                    "Use /migration/live-surface-links and docs/migration/LIVE_SURFACE_LINKS.md for operator/tenant URLs while PHP remains authoritative.",
+                    "The remaining 5% is PHP runtime decommission only — run scripts/run_zero_php_final_gate_checklist.sh, attach staging smoke/parity artifacts, then release-owner approval before PHP removal."
+                ]);
     }
 }

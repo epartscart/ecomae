@@ -15,6 +15,13 @@ Weighted completion remains **95% / 5% pending**. The residual 5% is PHP runtime
 ```bash
 bash scripts/run_zero_php_final_gate_checklist.sh
 bash scripts/probe_live_surface_stack.sh
+bash scripts/run_php_decommission_area_tests.sh
+```
+
+When (and only when) `/migration/php-decommission-readiness` shows `readyToRemovePhp=true`:
+
+```bash
+ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh
 ```
 
 Live operator URL catalog: `docs/migration/LIVE_SURFACE_LINKS.md` and `GET /migration/live-surface-links`.

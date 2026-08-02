@@ -21,9 +21,57 @@ public sealed class PhpDecommissionReadinessReporterTests
         Assert.Contains(report.Checklist, item => item.Id == "exact-route-shadows-only" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "public-probes" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "cloudpanel-capture-script" && item.Status == "present");
+        Assert.Contains(report.Checklist, item => item.Id == "parity-samples-attached" && item.Status == "present");
         Assert.Contains(report.NextActions, action => action.Contains("run_zero_php_final_gate_checklist.sh", StringComparison.OrdinalIgnoreCase));
         Assert.True(report.ChecklistCompletePercent < 100);
         Assert.False(string.Equals(report.Checklist.First(item => item.Id == "staging-smoke-price").Status, "present", StringComparison.Ordinal));
+        Assert.Contains(report.Blockers, blocker => blocker.Contains("Authenticated CloudPanel smoke keys", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void BuildReportBecomesReadyOnlyWhenAllValidatedEvidenceExists()
+    {
+        var repoRoot = RepoHostEnvironment.FindRepoRoot();
+        var releaseRoot = Path.Combine(Path.GetTempPath(), "ecomae-ready-release-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var evidence = Path.Combine(releaseRoot, "docs", "migration", "evidence", "decommission");
+            Directory.CreateDirectory(Path.Combine(evidence, "public-probes"));
+            Directory.CreateDirectory(Path.Combine(evidence, "staging-smoke"));
+            Directory.CreateDirectory(Path.Combine(evidence, "parity-samples"));
+            Directory.CreateDirectory(Path.Combine(releaseRoot, "deploy", "aspnet"));
+            Directory.CreateDirectory(Path.Combine(releaseRoot, "scripts"));
+
+            File.WriteAllText(Path.Combine(evidence, "public-probes", "www-zero-php-completion.json"), "{}");
+            File.WriteAllText(Path.Combine(evidence, "public-probes", "www-php-decommission-readiness.json"), "{}");
+            File.WriteAllText(Path.Combine(evidence, "staging-smoke", "price-lookup-aspnet.json"), """{"brand":"TOYOTA","offers":[]}""");
+            File.WriteAllText(Path.Combine(evidence, "staging-smoke", "catalog-status-aspnet.json"), """{"status":"ok"}""");
+            File.WriteAllText(Path.Combine(evidence, "staging-smoke", "surface-digests-aspnet.json"), """{"ok":true,"routes":[{"route":"/cp/dashboard-summary","status":200}]}""");
+            File.WriteAllText(Path.Combine(evidence, "parity-samples", "sample.json"), """{"route":"/api/v1/price/lookup"}""");
+            File.WriteAllText(Path.Combine(evidence, "RELEASE_OWNER_APPROVAL.md"), "APPROVED_TO_REMOVE_PHP_FALLBACK\n");
+            File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "scripts", "cloudpanel_capture_final_gate_artifacts.sh"), Path.Combine(releaseRoot, "scripts", "cloudpanel_capture_final_gate_artifacts.sh"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "scripts", "rollback_aspnet_foundation.sh"), Path.Combine(releaseRoot, "scripts", "rollback_aspnet_foundation.sh"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "scripts", "run_zero_php_final_gate_checklist.sh"), Path.Combine(releaseRoot, "scripts", "run_zero_php_final_gate_checklist.sh"), overwrite: true);
+
+            var report = new PhpDecommissionReadinessReporter(new RepoHostEnvironment { ContentRootPath = releaseRoot }).BuildReport();
+            Assert.True(report.ReadyToRemovePhp);
+            Assert.Equal("ready-for-php-removal", report.Status);
+            Assert.Equal(100, report.ChecklistCompletePercent);
+
+            var completion = new ZeroPhpCompletionReporter(new PhpDecommissionReadinessReporter(new RepoHostEnvironment { ContentRootPath = releaseRoot })).BuildReport();
+            Assert.Equal(100, completion.OverallCompletePercent);
+            Assert.Equal(0, completion.OverallPendingPercent);
+            Assert.Equal("ready-for-php-removal", completion.Status);
+        }
+        finally
+        {
+            if (Directory.Exists(releaseRoot))
+            {
+                Directory.Delete(releaseRoot, recursive: true);
+            }
+        }
     }
 
     [Fact]
