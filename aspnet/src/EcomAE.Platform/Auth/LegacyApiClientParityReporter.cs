@@ -6,7 +6,7 @@ public sealed class LegacyApiClientParityReporter : ILegacyApiClientParityReport
     {
         return new LegacyApiClientParityReport(
             "PHP api key checks backed by epc_api_clients and epc_umapi_usage_log",
-            "ASP.NET parser, policy evaluator, and usage-log contract",
+            "ASP.NET Core parser, policy evaluator, and usage-log contract",
             "contract-ready-db-pending",
             ["epc_catalog_", "epc_pricepro_"],
             ["product scope", "allowed actions", "daily quota", "usage log shape"],

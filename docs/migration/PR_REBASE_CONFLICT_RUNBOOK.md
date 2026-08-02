@@ -1,6 +1,6 @@
 # PR Rebase and Conflict Runbook
 
-Use this runbook when several ASP.NET migration PRs contain overlapping commits and GitHub reports conflicts against `main`.
+Use this runbook when several ASP.NET Core migration PRs contain overlapping commits and GitHub reports conflicts against `main`.
 
 ## Recommended resolution
 

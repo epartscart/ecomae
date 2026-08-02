@@ -27,18 +27,24 @@ public sealed record TenantContext(
     string? SiteKey = null,
     string? DatabaseName = null)
 {
-    public bool IsPlatform => Mode == TenantMode.Platform;
-
-    public bool IsTenant => Mode is TenantMode.LiveTenant or TenantMode.ErpOnlyTenant or TenantMode.DemoTenant;
-
     public static TenantContext ForKnownTenant(
-        string? siteKey,
+        string siteKey,
         string host,
         TenantMode mode,
         TenantSurface surface,
         string path,
         string? databaseName = null)
     {
-        return new TenantContext(host, path, surface, mode, siteKey, databaseName);
+        return new TenantContext(
+            Host: host,
+            Path: path,
+            Surface: surface,
+            Mode: mode,
+            SiteKey: siteKey,
+            DatabaseName: databaseName);
     }
+
+    public bool IsPlatform => Mode == TenantMode.Platform;
+
+    public bool IsTenant => Mode is TenantMode.LiveTenant or TenantMode.ErpOnlyTenant or TenantMode.DemoTenant;
 }

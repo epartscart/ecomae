@@ -9,7 +9,7 @@ passed=0
 pass() { printf '  PASS  %s\n' "$1"; passed=$((passed + 1)); }
 fail() { printf '  FAIL  %s\n' "$1"; failed=$((failed + 1)); }
 
-printf '== ASP.NET proxy guardrail verification ==\n'
+printf '== ASP.NET Core proxy guardrail verification ==\n'
 printf 'Config directory: %s\n' "$CONF_DIR"
 
 if [[ ! -d "$CONF_DIR" ]]; then

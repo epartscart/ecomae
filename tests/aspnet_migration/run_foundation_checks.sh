@@ -17,7 +17,7 @@ check() {
 contains() {
   local file="$1"
   local needle="$2"
-  grep -Fq "$needle" "$file"
+  grep -Fq -- "$needle" "$file"
 }
 
 echo "== ASP.NET Core migration foundation =="
@@ -221,26 +221,45 @@ check 'route cutover middleware emits target runtime header' contains "$ROOT/asp
 check 'route cutover middleware emits PHP fallback header' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/RouteCutoverDecisionMiddleware.cs" 'X-EcomAE-PHP-Fallback'
 check 'program wires route cutover middleware' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'RouteCutoverDecisionMiddleware'
 check 'route cutover middleware tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/RouteCutoverDecisionMiddlewareTests.cs"
-check 'ASP.NET production runbook exists' test -f "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md"
-check 'ASP.NET platform systemd unit exists' test -f "$ROOT/deploy/aspnet/ecomae-platform.service"
-check 'ASP.NET worker systemd unit exists' test -f "$ROOT/deploy/aspnet/ecomae-workers.service"
-check 'ASP.NET production env template keeps PHP fallback' contains "$ROOT/deploy/aspnet/platform.env.example" 'MigrationRouteCutover__RequirePhpFallback=true'
-check 'ASP.NET diagnostics-only nginx config allowlists migration routes' contains "$ROOT/deploy/aspnet/nginx-diagnostics-only.conf" 'allow YOUR_OFFICE_IP'
-check 'ASP.NET exact API shadow example exists' contains "$ROOT/deploy/aspnet/nginx-api-shadow-example.conf" '/api/v1/catalog/status'
-check 'ASP.NET deploy script exists' test -x "$ROOT/scripts/deploy_aspnet_foundation.sh"
-check 'ASP.NET deploy script runs detailed foundation tests' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'run_detailed_foundation_tests.sh'
-check 'ASP.NET rollback script exists' test -x "$ROOT/scripts/rollback_aspnet_foundation.sh"
-check 'ASP.NET production preflight script exists' test -x "$ROOT/scripts/preflight_aspnet_production.sh"
-check 'ASP.NET production preflight checks PHP fallback' contains "$ROOT/scripts/preflight_aspnet_production.sh" 'MigrationRouteCutover__RequirePhpFallback=true'
+check 'ASP.NET Core modern stack confirmation exists' test -f "$ROOT/docs/migration/ASP_NET_CORE_MODERN_STACK.md"
+check 'ASP.NET Core modern stack excludes legacy ASP.NET' contains "$ROOT/docs/migration/ASP_NET_CORE_MODERN_STACK.md" 'not legacy ASP.NET'
+check 'ASP.NET Core modern stack excludes System.Web' contains "$ROOT/docs/migration/ASP_NET_CORE_MODERN_STACK.md" 'System.Web'
+check 'ASP.NET Core advanced architecture roadmap exists' test -f "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md"
+check 'ASP.NET Core roadmap covers CQRS' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'CQRS'
+check 'ASP.NET Core roadmap covers zero allocation' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Zero-allocation'
+check 'ASP.NET Core roadmap covers Kubernetes' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Kubernetes'
+check 'ASP.NET Core roadmap covers sharding' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Database sharding'
+check 'ASP.NET Core roadmap covers zero trust' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Zero-trust'
+check 'ASP.NET Core roadmap covers Roslyn and IL' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Roslyn, IL'
+check 'ASP.NET Core roadmap covers GC tuning' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Garbage Collector tuning'
+check 'ASP.NET Core roadmap covers Kestrel transport internals' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Kestrel transport internals'
+check 'ASP.NET Core roadmap covers SIMD vectorization' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'SIMD/vectorization'
+check 'ASP.NET Core roadmap covers unmanaged interop' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Unmanaged interop'
+check 'ASP.NET Core roadmap covers CPU cache design' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'CPU cache-aware design'
+check 'ASP.NET Core roadmap covers Polly resilience' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Polly resilience pipelines'
+check 'ASP.NET Core roadmap covers chaos engineering' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'Chaos experiments'
+check 'ASP.NET Core roadmap covers OpenTelemetry' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'OpenTelemetry trace context'
+check 'ASP.NET Core roadmap covers eBPF observability' contains "$ROOT/docs/migration/ASP_NET_CORE_ADVANCED_ARCHITECTURE_ROADMAP.md" 'eBPF observability'
+check 'ASP.NET Core production runbook exists' test -f "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md"
+check 'ASP.NET Core platform systemd unit exists' test -f "$ROOT/deploy/aspnet/ecomae-platform.service"
+check 'ASP.NET Core worker systemd unit exists' test -f "$ROOT/deploy/aspnet/ecomae-workers.service"
+check 'ASP.NET Core production env template keeps PHP fallback' contains "$ROOT/deploy/aspnet/platform.env.example" 'MigrationRouteCutover__RequirePhpFallback=true'
+check 'ASP.NET Core diagnostics-only nginx config allowlists migration routes' contains "$ROOT/deploy/aspnet/nginx-diagnostics-only.conf" 'allow YOUR_OFFICE_IP'
+check 'ASP.NET Core exact API shadow example exists' contains "$ROOT/deploy/aspnet/nginx-api-shadow-example.conf" '/api/v1/catalog/status'
+check 'ASP.NET Core deploy script exists' test -x "$ROOT/scripts/deploy_aspnet_foundation.sh"
+check 'ASP.NET Core deploy script runs detailed foundation tests' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'run_detailed_foundation_tests.sh'
+check 'ASP.NET Core rollback script exists' test -x "$ROOT/scripts/rollback_aspnet_foundation.sh"
+check 'ASP.NET Core production preflight script exists' test -x "$ROOT/scripts/preflight_aspnet_production.sh"
+check 'ASP.NET Core production preflight checks PHP fallback' contains "$ROOT/scripts/preflight_aspnet_production.sh" 'MigrationRouteCutover__RequirePhpFallback=true'
 check 'CloudPanel include template avoids broad cutover' contains "$ROOT/deploy/aspnet/cloudpanel-site-include.template.conf" 'intentionally avoids /cp, /erp, /bos, /api'
-check 'ASP.NET go-live checklist exists' test -f "$ROOT/deploy/aspnet/GO_LIVE_CHECKLIST.md"
-check 'ASP.NET go-live checklist requires exact-match proxy' contains "$ROOT/deploy/aspnet/GO_LIVE_CHECKLIST.md" 'exact-match only'
-check 'ASP.NET proxy guardrail script exists' test -x "$ROOT/scripts/verify_aspnet_proxy_guardrails.sh"
-check 'ASP.NET proxy guardrail script blocks broad API' contains "$ROOT/scripts/verify_aspnet_proxy_guardrails.sh" 'contains a broad API location'
-check 'ASP.NET remote deploy script exists' test -x "$ROOT/scripts/remote_aspnet_foundation_deploy.sh"
-check 'ASP.NET remote deploy is dry-run by default' contains "$ROOT/scripts/remote_aspnet_foundation_deploy.sh" 'ECOMAE_RUN_REMOTE_DEPLOY:-0'
-check 'ASP.NET remote deploy env example exists' test -f "$ROOT/deploy/aspnet/remote-deploy.env.example"
-check 'ASP.NET remote deploy env keeps remote execution disabled' contains "$ROOT/deploy/aspnet/remote-deploy.env.example" 'ECOMAE_RUN_REMOTE_DEPLOY=0'
+check 'ASP.NET Core go-live checklist exists' test -f "$ROOT/deploy/aspnet/GO_LIVE_CHECKLIST.md"
+check 'ASP.NET Core go-live checklist requires exact-match proxy' contains "$ROOT/deploy/aspnet/GO_LIVE_CHECKLIST.md" 'exact-match only'
+check 'ASP.NET Core proxy guardrail script exists' test -x "$ROOT/scripts/verify_aspnet_proxy_guardrails.sh"
+check 'ASP.NET Core proxy guardrail script blocks broad API' contains "$ROOT/scripts/verify_aspnet_proxy_guardrails.sh" 'contains a broad API location'
+check 'ASP.NET Core remote deploy script exists' test -x "$ROOT/scripts/remote_aspnet_foundation_deploy.sh"
+check 'ASP.NET Core remote deploy is dry-run by default' contains "$ROOT/scripts/remote_aspnet_foundation_deploy.sh" 'ECOMAE_RUN_REMOTE_DEPLOY:-0'
+check 'ASP.NET Core remote deploy env example exists' test -f "$ROOT/deploy/aspnet/remote-deploy.env.example"
+check 'ASP.NET Core remote deploy env keeps remote execution disabled' contains "$ROOT/deploy/aspnet/remote-deploy.env.example" 'ECOMAE_RUN_REMOTE_DEPLOY=0'
 check 'CloudPanel quick start exists' test -f "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md"
 check 'CloudPanel quick start explains repo root' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'run from the repository root'
 check 'CloudPanel quick start has paste-safe finder' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Paste-safe repo finder'
@@ -251,8 +270,20 @@ check 'production runbook troubleshoots missing script' contains "$ROOT/deploy/a
 check 'Codex PR cleanup script exists' test -x "$ROOT/scripts/cleanup_codex_prs.sh"
 check 'Codex PR cleanup script is dry-run by default' contains "$ROOT/scripts/cleanup_codex_prs.sh" 'RUN_CLOSE:-0'
 check 'open PR consolidation runbook exists' test -f "$ROOT/docs/migration/OPEN_PR_CONSOLIDATION_RUNBOOK.md"
+check 'Cursor handoff status exists' test -f "$ROOT/docs/migration/CURSOR_HANDOFF_STATUS.md"
+check 'Cursor handoff status records foundation complete' contains "$ROOT/docs/migration/CURSOR_HANDOFF_STATUS.md" 'Repository foundation | 100%'
+check 'Cursor handoff status blocks broad cutover' contains "$ROOT/docs/migration/CURSOR_HANDOFF_STATUS.md" 'Do not proxy broad'
 check 'consolidated PR push script exists' test -x "$ROOT/scripts/push_consolidated_pr_update.sh"
 check 'migration plan documents zero PHP final state' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'zero PHP files'
+check 'zero PHP production roadmap exists' test -f "$ROOT/docs/migration/ZERO_PHP_PRODUCTION_CUTOVER_ROADMAP.md"
+check 'zero PHP roadmap defines final state' contains "$ROOT/docs/migration/ZERO_PHP_PRODUCTION_CUTOVER_ROADMAP.md" 'ASP.NET Core serves 100% of production traffic and PHP is fully decommissioned'
+check 'zero PHP roadmap requires route inventory' contains "$ROOT/docs/migration/ZERO_PHP_PRODUCTION_CUTOVER_ROADMAP.md" 'Route inventory shows zero `php-only`'
+check 'zero PHP roadmap blocks broad cutover' contains "$ROOT/docs/migration/ZERO_PHP_PRODUCTION_CUTOVER_ROADMAP.md" 'Block broad `/api`, `/cp`, `/erp`, `/bos`, and storefront catch-all cutovers'
+check 'zero PHP roadmap reports readiness percent' contains "$ROOT/docs/migration/ZERO_PHP_PRODUCTION_CUTOVER_ROADMAP.md" 'approximately 35% complete'
+check 'zero PHP inventory script exists' test -x "$ROOT/scripts/inventory_php_routes.sh"
+check 'zero PHP inventory script reports php-only status' contains "$ROOT/scripts/inventory_php_routes.sh" 'inventory-required-for-zero-php'
+check 'zero PHP inventory script emits surface counts' contains "$ROOT/scripts/inventory_php_routes.sh" 'surfaceCounts'
+check 'zero PHP inventory script excludes vendor dependencies' contains "$ROOT/scripts/inventory_php_routes.sh" "-not -path './vendor/*'"
 
 echo "----------------------------"
 echo "Passed: $pass  Failed: $fail"

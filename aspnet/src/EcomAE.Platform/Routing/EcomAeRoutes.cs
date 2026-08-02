@@ -7,6 +7,8 @@ public static class EcomAeRoutes
     public const string MigrationReadiness = "/migration/readiness";
     public const string MigrationCutoverPlan = "/migration/cutover-plan";
     public const string MigrationProgress = "/migration/progress";
+    public const string ZeroPhpCompletion = "/migration/zero-php-completion";
+    public const string PythonSidecars = "/migration/python-sidecars";
     public const string MigrationRouteCutover = "/migration/route-cutover";
     public const string MigrationDataParity = "/migration/data-parity";
     public const string MigrationCutoverValidation = "/migration/cutover-validation";

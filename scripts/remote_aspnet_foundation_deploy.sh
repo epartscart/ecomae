@@ -12,7 +12,7 @@ RUN_REMOTE_DEPLOY="${ECOMAE_RUN_REMOTE_DEPLOY:-0}"
 RUN_SYSTEMD="${ECOMAE_RUN_SYSTEMD:-0}"
 RUN_NGINX_RELOAD="${ECOMAE_RUN_NGINX_RELOAD:-0}"
 
-printf '== EcomAE remote ASP.NET foundation deploy ==\n'
+printf '== EcomAE remote ASP.NET Core foundation deploy ==\n'
 printf 'Remote host: %s\n' "${REMOTE_HOST:-<unset>}"
 printf 'Remote user: %s\n' "$REMOTE_USER"
 printf 'Remote port: %s\n' "$REMOTE_PORT"

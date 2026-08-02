@@ -10,7 +10,7 @@ public sealed class BosParityReporter : IBosParityReporter
             "/bos/parity plus /bos shell",
             "operations-shell-parity-visible",
             [
-                "Canonical BOS route aliases are mapped to the ASP.NET shell.",
+                "Canonical BOS route aliases are mapped to the ASP.NET Core shell.",
                 "Apache BOS rewrites are case-insensitive for operator-entered URLs.",
                 "Surface parity report tracks privileged operations, tenant fleet health, audit trails, and rollback safety."
             ],

@@ -20,7 +20,7 @@ public sealed class DataParityReporter : IDataParityReporter
             ],
             [
                 "Run read-only shadow queries against production-like MySQL fixtures.",
-                "Compare PHP and ASP.NET JSON payloads for catalog, price, tenant, auth, and session probes.",
+                "Compare PHP and ASP.NET Core JSON payloads for catalog, price, tenant, auth, and session probes.",
                 "Record approved fixtures and latency budgets before enabling route cutover flags.",
                 "Keep PHP authoritative until every production data source has replay evidence and rollback coverage."
             ]);

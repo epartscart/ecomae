@@ -30,10 +30,10 @@ check_command() {
     fi
 }
 
-printf '== EcomAE ASP.NET production preflight ==\n'
+printf '== EcomAE ASP.NET Core production preflight ==\n'
 printf 'Release root: %s\n' "$RELEASE_ROOT"
 printf 'Environment file: %s\n' "$ENV_FILE"
-printf 'Local ASP.NET port: %s\n' "$PLATFORM_PORT"
+printf 'Local ASP.NET Core port: %s\n' "$PLATFORM_PORT"
 
 check_command dotnet required
 check_command php required
@@ -89,12 +89,12 @@ fi
 
 if [[ "$CHECK_LOCAL_SERVICE" == "1" ]]; then
     if curl -fsS "http://127.0.0.1:$PLATFORM_PORT/health" >/dev/null; then
-        pass "local ASP.NET /health endpoint responded"
+        pass "local ASP.NET Core /health endpoint responded"
     else
-        fail "local ASP.NET /health endpoint did not respond on port $PLATFORM_PORT"
+        fail "local ASP.NET Core /health endpoint did not respond on port $PLATFORM_PORT"
     fi
 else
-    warn "local ASP.NET /health check skipped; set ECOMAE_CHECK_LOCAL_ASPNET=1 after service start"
+    warn "local ASP.NET Core /health check skipped; set ECOMAE_CHECK_LOCAL_ASPNET=1 after service start"
 fi
 
 printf '\n----------------------------\n'

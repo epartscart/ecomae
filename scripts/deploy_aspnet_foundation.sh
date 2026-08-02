@@ -19,7 +19,7 @@ require_command() {
 require_command dotnet
 require_command install
 
-printf '== EcomAE ASP.NET foundation deploy ==\n'
+printf '== EcomAE ASP.NET Core foundation deploy ==\n'
 printf 'Repo: %s\n' "$ROOT"
 printf 'Release root: %s\n' "$RELEASE_ROOT"
 printf 'Systemd actions: %s\n' "$RUN_SYSTEMD"

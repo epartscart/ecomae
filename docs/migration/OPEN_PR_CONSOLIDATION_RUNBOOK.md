@@ -51,7 +51,7 @@ Merge the final PR only when:
 
 - GitHub shows no merge conflicts.
 - Required checks are green.
-- The PR title/body clearly identify it as the final consolidated ASP.NET migration foundation PR.
+- The PR title/body clearly identify it as the final consolidated ASP.NET Core migration foundation PR.
 - Deployment runbooks and diagnostics-only guardrails are included.
 
 After merge, deploy from `main` or from the approved release tag created from `main`.

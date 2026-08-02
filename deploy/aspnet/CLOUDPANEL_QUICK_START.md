@@ -1,4 +1,4 @@
-# CloudPanel ASP.NET Foundation Quick Start
+# CloudPanel ASP.NET Core Foundation Quick Start
 
 The command `bash scripts/preflight_aspnet_production.sh` must be run from the repository root. If CloudPanel shows `No such file or directory`, you are not inside the checked-out repo yet or the repository has not been cloned to that server.
 
@@ -62,7 +62,7 @@ bash scripts/preflight_aspnet_production.sh
 
 The preflight should only pass after .NET, PHP, curl, release directories, and the server-only environment file are ready.
 
-## 6. Deploy diagnostics-only ASP.NET
+## 6. Deploy diagnostics-only ASP.NET Core
 
 ```bash
 sudo ECOMAE_RUN_SYSTEMD=1 \

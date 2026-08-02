@@ -1,0 +1,653 @@
+{
+  "status": "target-plan-not-completion-claim",
+  "targetPercent": 90.0,
+  "currentFoundationPercent": 35.0,
+  "currentPendingPercent": 65.0,
+  "implementationWeightPercent": 65.0,
+  "totalAssignments": 3049,
+  "requiredLiveOrRemovedItems": 2580,
+  "selectedItems": 2600,
+  "selectedBatches": 52,
+  "remainingItemsAfter90Target": 449,
+  "rules": [
+    "Do not report 90% until selectedItems are live or removed.",
+    "Every selected item needs ASP.NET Core implementation, parity sample, exact-route proxy, rollback command, and production smoke evidence.",
+    "PHP fallback remains until the selected item is live or removed with approved rollback.",
+    "No broad CP, ERP, BOS, API, or storefront proxy cutover is authorized by this plan."
+  ],
+  "batches": [
+    {
+      "batch": 1,
+      "items": 50,
+      "primarySlice": "worker-replacement",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 45,
+        "aspnet-with-python-ai-helper": 5
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 2,
+      "items": 50,
+      "primarySlice": "worker-replacement",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 3,
+      "items": 50,
+      "primarySlice": "worker-replacement",
+      "riskCounts": {
+        "high": 40,
+        "medium": 10
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 4,
+      "items": 50,
+      "primarySlice": "public-api-port",
+      "riskCounts": {
+        "high": 6,
+        "medium": 44
+      },
+      "ownerCounts": {
+        "aspnet-core": 44,
+        "aspnet-with-python-ai-helper": 6
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 5,
+      "items": 50,
+      "primarySlice": "ai-service-contract",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-with-python-ai-helper": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 6,
+      "items": 50,
+      "primarySlice": "ai-service-contract",
+      "riskCounts": {
+        "high": 18,
+        "medium": 32
+      },
+      "ownerCounts": {
+        "aspnet-with-python-ai-helper": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 7,
+      "items": 50,
+      "primarySlice": "ai-service-contract",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-with-python-ai-helper": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 8,
+      "items": 50,
+      "primarySlice": "ai-service-contract",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-with-python-ai-helper": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 9,
+      "items": 50,
+      "primarySlice": "ai-service-contract",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-with-python-ai-helper": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 10,
+      "items": 50,
+      "primarySlice": "ai-service-contract",
+      "riskCounts": {
+        "high": 17,
+        "medium": 33
+      },
+      "ownerCounts": {
+        "aspnet-core": 17,
+        "aspnet-with-python-ai-helper": 33
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 11,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 12,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 13,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 14,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 15,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 16,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 17,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 18,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 19,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 20,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 21,
+      "items": 50,
+      "primarySlice": "cp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 22,
+      "items": 50,
+      "primarySlice": "erp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 23,
+      "items": 50,
+      "primarySlice": "erp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 24,
+      "items": 50,
+      "primarySlice": "erp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 25,
+      "items": 50,
+      "primarySlice": "erp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 26,
+      "items": 50,
+      "primarySlice": "erp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 27,
+      "items": 50,
+      "primarySlice": "erp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 28,
+      "items": 50,
+      "primarySlice": "erp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 29,
+      "items": 50,
+      "primarySlice": "erp-workflow-port",
+      "riskCounts": {
+        "high": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 30,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "high": 23,
+        "medium": 27
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 31,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 32,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 33,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 34,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 35,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 36,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 37,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 38,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 39,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 40,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 41,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 42,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 43,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 44,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 45,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 46,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 47,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 48,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 49,
+      "items": 50,
+      "primarySlice": "storefront-port",
+      "riskCounts": {
+        "medium": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 50,
+      "items": 50,
+      "primarySlice": "platform-route-port",
+      "riskCounts": {
+        "low": 38,
+        "medium": 12
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 51,
+      "items": 50,
+      "primarySlice": "platform-route-port",
+      "riskCounts": {
+        "low": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    },
+    {
+      "batch": 52,
+      "items": 50,
+      "primarySlice": "platform-route-port",
+      "riskCounts": {
+        "low": 50
+      },
+      "ownerCounts": {
+        "aspnet-core": 50
+      },
+      "requiredStatusBeforeCountingToward90": "live-or-removed-with-rollback-and-smoke-evidence"
+    }
+  ]
+}
