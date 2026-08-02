@@ -103,6 +103,61 @@ public sealed class ApiModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.CatalogManufacturers, async (
+            HttpContext httpContext,
+            string? section,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogManufacturerService manufacturers,
+            CancellationToken cancellationToken) =>
+        {
+            LegacyApiClientRecord? client = null;
+            if (options.Value.RequireApiClientAuth)
+            {
+                var auth = await authenticator.RequireAsync(httpContext.Request, "catalog", "manufacturers", cancellationToken);
+                if (!auth.Succeeded)
+                {
+                    return Results.Json(
+                        new { ok = false, error = new { code = auth.Code, message = auth.Message } },
+                        statusCode: auth.StatusCode);
+                }
+
+                client = auth.Client;
+            }
+
+            var result = await manufacturers.GetBySectionAsync(section ?? "passenger", cancellationToken);
+            if (client is not null)
+            {
+                await usageLogger.LogAsync(new LegacyApiUsageLogEntry(
+                    "catalog_manufacturers",
+                    result.Section,
+                    "api_client",
+                    client.Id,
+                    "/api/v1/catalog/manufacturers",
+                    200,
+                    QuotaBlocked: false,
+                    $"{result.Section}:{result.Rows}",
+                    httpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty), cancellationToken);
+            }
+
+            return Results.Ok(new
+            {
+                ok = result.Ok,
+                section = result.Section,
+                rows = result.Rows,
+                source = result.Source,
+                stale = true,
+                data = result.Data,
+                message = result.Message,
+                client = client is null ? null : new
+                {
+                    label = client.Label,
+                    key_prefix = client.ClientKeyPrefix
+                }
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.CatalogParity, (ICatalogParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
         endpoints.MapGet(EcomAeRoutes.PriceLookup, async (

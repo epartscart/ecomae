@@ -56,6 +56,14 @@ builder.Services.AddSingleton<ICatalogStatusRepository>(sp =>
         : new MigrationCatalogStatusRepository();
 });
 builder.Services.AddSingleton<ICatalogStatusService, CatalogStatusService>();
+builder.Services.AddSingleton<ICatalogManufacturerRepository>(sp =>
+{
+    var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
+    return connections.IsConfigured
+        ? ActivatorUtilities.CreateInstance<DbCatalogManufacturerRepository>(sp)
+        : new MigrationCatalogManufacturerRepository();
+});
+builder.Services.AddSingleton<ICatalogManufacturerService, CatalogManufacturerService>();
 builder.Services.AddSingleton<ICatalogParityReporter, CatalogParityReporter>();
 builder.Services.AddSingleton<IMigrationParityReporter, MigrationParityReporter>();
 builder.Services.AddSingleton<IControlPanelParityReporter, ControlPanelParityReporter>();

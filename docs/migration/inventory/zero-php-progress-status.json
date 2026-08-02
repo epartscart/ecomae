@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 43.0,
-  "pendingPercent": 57.0,
+  "trueZeroPhpCompletionPercent": 44.0,
+  "pendingPercent": 56.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -34,6 +34,7 @@
   "concreteStarted": [
     "/api/v1/price/lookup DB+auth",
     "/api/v1/catalog/status DB+auth",
+    "/api/v1/catalog/manufacturers DB+auth",
     "worker dry-run validators for price-import/sitemap/backups/notifications/erp-reports",
     "scripts/cloudpanel_production_deploy_foundation.sh"
   ],
