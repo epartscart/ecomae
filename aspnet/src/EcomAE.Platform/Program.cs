@@ -110,6 +110,7 @@ builder.Services.AddSingleton<ICutoverValidationReporter, CutoverValidationRepor
 builder.Services.AddSingleton<IMigrationProgressReporter, MigrationProgressReporter>();
 builder.Services.AddSingleton<ISurfaceParityReporter, SurfaceParityReporter>();
 builder.Services.AddSingleton<IZeroPhpCompletionReporter, ZeroPhpCompletionReporter>();
+builder.Services.AddSingleton<IPhpDecommissionReadinessReporter, PhpDecommissionReadinessReporter>();
 builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryReporter>();
 builder.Services.AddSingleton<IPlatformJobsSummaryReporter, PlatformJobsSummaryReporter>();
 builder.Services.AddSingleton<ISurfaceDashboardSummaryReporter, SurfaceDashboardSummaryReporter>();
@@ -133,6 +134,8 @@ app.MapGet(EcomAeRoutes.MigrationCutoverPlan, (IMigrationCutoverPlanner planner)
 app.MapGet(EcomAeRoutes.MigrationProgress, (IMigrationProgressReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.ZeroPhpCompletion, (IZeroPhpCompletionReporter reporter) => Results.Ok(reporter.BuildReport()));
+
+app.MapGet(EcomAeRoutes.PhpDecommissionReadiness, (IPhpDecommissionReadinessReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.PythonSidecars, (IPythonSidecarCatalogReporter reporter) => Results.Ok(reporter.BuildReport()));
 

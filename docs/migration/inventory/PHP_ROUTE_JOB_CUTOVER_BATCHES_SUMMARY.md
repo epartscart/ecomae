@@ -7,7 +7,7 @@ Generated from `scripts/build_zero_php_cutover_batches.py`. This converts the ow
 - Total assignments: 3049.
 - Batch size: 50.
 - Total batches: 61.
-- Status: batches 1–2 `aspnet-dry-run-scaffolded`; batches 3–61 `planned-not-implemented`.
+- Status: all 61 batches `aspnet-dry-run-scaffolded` (execution/parity still pending).
 
 ## Rules
 

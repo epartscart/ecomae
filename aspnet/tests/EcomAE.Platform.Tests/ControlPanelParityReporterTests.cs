@@ -13,7 +13,7 @@ public sealed class ControlPanelParityReporterTests
         Assert.Equal("Control Panel / Super CP", report.Surface);
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("route aliases", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("backend-group session", StringComparison.OrdinalIgnoreCase));
-        Assert.Equal("menus-pages-sessions-storages-session-gated-awaiting-staging", report.Status);
+        Assert.Equal("currencies-api-clients-session-gated-awaiting-staging", report.Status);
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("user management", StringComparison.OrdinalIgnoreCase));
     }
 }

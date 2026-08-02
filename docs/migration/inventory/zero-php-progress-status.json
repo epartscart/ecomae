@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 92.0,
-  "pendingPercent": 8.0,
+  "trueZeroPhpCompletionPercent": 95.0,
+  "pendingPercent": 5.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -28,33 +28,32 @@
       "owner-assigned-pending-parity": 3049
     },
     "batchStatuses": {
-      "aspnet-dry-run-scaffolded": 2,
-      "planned-not-implemented": 59
+      "aspnet-dry-run-scaffolded": 61
     }
   },
   "concreteStarted": [
     "catalog/price DB+auth routes",
     "nested modules_access ACL + surface capabilities",
-    "CP digests: tenants/users/groups/modules/config-items/menus/pages/admin-sessions/storages",
-    "ERP digests: accounts/suppliers/purchases/cash/invoices/gl-journals/coa/warehouses/sales-orders",
+    "CP digests: tenants/users/groups/modules/config/menus/pages/sessions/storages/currencies/api-clients",
+    "ERP digests: accounts/suppliers/purchases/cash/invoices/gl/coa/warehouses/sales-orders/purchase-orders/inventory-stock",
     "BOS digests: fleet summary/health/readiness/audit-log",
     "storefront account/orders/garage/profile digests",
-    "tracked worker dry-run validator layer + batch-1/2 dry-run scaffolding",
+    "tracked worker dry-run validator layer + all 61 batches dry-run scaffolding",
+    "PHP decommission readiness reporter (blocked)",
     "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],
   "architectureComplianceDoc": "docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md",
   "pathTo100Percent": [
     "Exact-route staging smoke + parity artifacts for implemented routes",
     "Enable only approved location= nginx shadows",
-    "Execute remaining 59 batches with parity evidence",
-    "Promote batches 1–2 from dry-run scaffolding to shadow/live",
-    "Release-owner approval before PHP decommission"
+    "Promote all 61 batches from dry-run scaffolding to shadow/live with parity evidence",
+    "Release-owner approval before PHP decommission (remaining 5%)"
   ],
   "nextExecutionOrder": [
     "Refresh /opt/ecomae-aspnet-source with git reset --hard origin/main, then cloudpanel_find_and_redeploy.sh.",
     "Run exact-route staging smoke for price/catalog with real API keys.",
     "Attach parity samples, then enable only approved location = nginx shadows.",
-    "Continue batch-by-batch replacements without broad proxy cutover.",
+    "Promote batch entries without broad proxy cutover.",
     "Remove PHP only after every item is live or removed and rollback evidence is approved."
   ]
 }

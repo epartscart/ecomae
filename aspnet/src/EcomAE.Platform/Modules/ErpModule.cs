@@ -314,6 +314,56 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpPurchaseOrders, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for purchase-orders digest.");
+            }
+
+            var result = await dashboards.ListErpPurchaseOrdersAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                orders = result.Orders,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP purchase-orders digest. PHP epc_erp_purchase_orders remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpInventoryStock, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for inventory-stock digest.");
+            }
+
+            var result = await dashboards.BuildErpInventoryStockSummaryAsync(cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                summary = result,
+                session = SessionPayload(session),
+                note = "Read-only ERP inventory stock KPI digest. PHP epc_erp_inv_stock remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ErpAliases)
         {
             endpoints.MapGet(route, async (HttpContext context, ISurfaceShellCatalog shells, ILegacySessionValidator validator) =>

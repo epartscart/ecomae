@@ -8,6 +8,7 @@ public static class EcomAeRoutes
     public const string MigrationCutoverPlan = "/migration/cutover-plan";
     public const string MigrationProgress = "/migration/progress";
     public const string ZeroPhpCompletion = "/migration/zero-php-completion";
+    public const string PhpDecommissionReadiness = "/migration/php-decommission-readiness";
     public const string PythonSidecars = "/migration/python-sidecars";
     public const string MigrationRouteCutover = "/migration/route-cutover";
     public const string MigrationDataParity = "/migration/data-parity";
@@ -32,6 +33,8 @@ public static class EcomAeRoutes
     public const string ControlPanelPages = "/cp/pages";
     public const string ControlPanelAdminSessions = "/cp/admin-sessions";
     public const string ControlPanelStorages = "/cp/storages";
+    public const string ControlPanelCurrencies = "/cp/currencies";
+    public const string ControlPanelApiClients = "/cp/api-clients";
     public const string Erp = "/erp";
     public const string ErpParity = "/erp/parity";
     public const string ErpDashboardSummary = "/erp/dashboard-summary";
@@ -45,6 +48,8 @@ public static class EcomAeRoutes
     public const string ErpCoaAccounts = "/erp/coa-accounts";
     public const string ErpWarehouses = "/erp/warehouses";
     public const string ErpSalesOrders = "/erp/sales-orders";
+    public const string ErpPurchaseOrders = "/erp/purchase-orders";
+    public const string ErpInventoryStock = "/erp/inventory-stock";
     public const string Bos = "/bos";
     public const string BosParity = "/bos/parity";
     public const string BosFleetSummary = "/bos/fleet-summary";

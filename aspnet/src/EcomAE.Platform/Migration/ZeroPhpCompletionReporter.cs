@@ -11,15 +11,15 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "Keep /health and allowlisted /migration/* public while production routes remain on PHP.",
                 "Track Enterprise BOS architecture compliance; do not invent cutover infra."
             ]),
-            new("Route inventory and cutover ownership", 10, 70, "batch1-2-dry-run-scaffolded-execution-pending", [
+            new("Route inventory and cutover ownership", 10, 100, "all-61-batches-dry-run-scaffolded-execution-pending", [
                 "Inventory ownership remains complete for 3049 PHP files / 61 batches.",
-                "Batches 1–2 worker dry-run scaffolding exist; 59 batches remain planned-not-implemented.",
+                "All 61 batches have ASP.NET dry-run scaffolding; parity/shadow/live remain 0%.",
                 "Broad /, /api, /cp, /erp, and /bos cutovers stay blocked."
             ]),
-            new("CP, ERP, BOS, and tenant workflow parity", 25, 100, "coa-warehouses-menus-audit-digests-wired", [
-                "CP digests: tenants/users/groups/modules/config-items/menus/pages/admin-sessions/storages.",
-                "ERP digests: accounts/suppliers/purchases/cash/invoices/GL/COA/warehouses/sales-orders.",
-                "BOS digests: fleet summary/health/readiness plus audit-log (platform DB only).",
+            new("CP, ERP, BOS, and tenant workflow parity", 25, 100, "po-stock-currencies-api-clients-wired", [
+                "CP digests include menus/pages/sessions/storages/currencies/api-clients metadata.",
+                "ERP digests include COA/warehouses/sales-orders/purchase-orders/inventory-stock KPIs.",
+                "BOS digests include fleet readiness and audit-log.",
                 "Still need login UX, tenant admin writes, and full workflow ports before parity claims."
             ]),
             new("Storefront and public API parity", 15, 100, "account-profile-garage-wired", [
@@ -28,7 +28,7 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
             ]),
             new("Background jobs and scheduled work", 10, 100, "dry-run-validator-layer-complete", [
                 "Tracked worker dry-run validators cover cataloged cron/queue jobs (writes blocked).",
-                "Batches 1–2 still require per-job parity samples and live smoke before schedule cutover."
+                "All 61 cutover batches still require per-entry parity samples and live smoke before schedule cutover."
             ]),
             new("Data, auth, observability, and rollback evidence", 15, 100, "nested-acl-otel-scaffold-wired", [
                 "Admin sessions expose capabilities plus nested modules_access ACL; ActivitySource names are reserved.",
@@ -37,7 +37,8 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
             ]),
             new("PHP runtime decommission", 5, 0, "blocked", [
                 "Remove PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies only after every route and job has green parity evidence.",
-                "Keep PHP fallback required until the final release-owner decommission approval."
+                "Keep PHP fallback required until the final release-owner decommission approval.",
+                "See /migration/php-decommission-readiness for the explicit blocker list."
             ])
         ];
 
@@ -52,7 +53,7 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "Run exact-route staging smoke for /api/v1/price/lookup and /api/v1/catalog/status with real API keys.",
                 "Attach smoke artifacts, then enable only approved location = exact-route nginx shadows.",
                 "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
-                "Repeat exact-route/job cutovers through all 61 batches until zero PHP-only routes/jobs remain."
+                "The remaining 5% is PHP runtime decommission only — blocked until parity + release-owner approval."
             ]);
     }
 }
