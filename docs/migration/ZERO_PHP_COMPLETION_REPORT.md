@@ -26,4 +26,6 @@ Zero-PHP completion can only be claimed after all tracked PHP route/job inventor
 Every cutover must retain PHP fallback until route/job-specific rollback evidence is recorded and approved.
 ## Latest implementation movement
 
-Batch 1 worker replacement has moved from pure planning to ASP.NET Core dry-run evidence attachment. Dry-run results can now carry PHP baseline guidance, ASP.NET dry-run sample wording, parity comparison instructions, rollback commands, production smoke status, PHP fallback safety, and required approvals. The Batch 1 dry-run reporter summarizes all planned worker jobs and their remaining blockers, but PHP remains authoritative until real job implementations, database/write parity, monitoring, scheduling, and production smoke evidence are complete.
+Batch 1 worker replacement has moved from pure planning to ASP.NET Core dry-run evidence attachment. Dry-run results can now carry PHP baseline guidance, ASP.NET dry-run sample wording, parity comparison instructions, rollback commands, production smoke status, PHP fallback safety, and required approvals. The Batch 1 dry-run reporter summarizes all planned worker jobs and their remaining blockers.
+
+The `price-import` job now has a concrete ASP.NET Core dry-run executor for PHP baseline CSV samples. It validates required `sku`, `price`, and `currency` columns and emits row/currency/write metrics with database writes blocked. PHP remains authoritative until database/write parity, monitoring, scheduling, production smoke evidence, and rollback approval are complete.

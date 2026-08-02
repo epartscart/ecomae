@@ -22,6 +22,31 @@ public sealed class MigrationWorkerJobRunnerTests
         Assert.True(result.Evidence.PhpFallbackRequired);
         Assert.Contains("PHP baseline", result.Evidence.PhpBaselineSample, StringComparison.Ordinal);
         Assert.Contains("disable ASP.NET worker flag", result.Evidence.RollbackCommand, StringComparison.Ordinal);
+        Assert.NotNull(result.DryRunOutput);
+        Assert.Equal("dry-run-needs-sample", result.DryRunOutput.Status);
+        Assert.True(result.DryRunOutput.WritesBlocked);
+    }
+
+    [Fact]
+    public void PlanRunExecutesPriceImportDryRunSampleWithoutWrites()
+    {
+        var runner = new MigrationWorkerJobRunner(new MigrationWorkerJobCatalog(), TimeProvider.System);
+        var request = new MigrationWorkerJobRunRequest(
+            "price-import",
+            DateTimeOffset.UnixEpoch,
+            "migration-test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_csv"] = "sku,price,currency\nSKU-1,12.50,AED"
+            });
+
+        var result = runner.PlanRun(request);
+
+        Assert.Equal("dry-run-planned", result.Status);
+        Assert.NotNull(result.DryRunOutput);
+        Assert.Equal("dry-run-validated", result.DryRunOutput.Status);
+        Assert.Equal("1", result.DryRunOutput.Metrics["valid_rows"]);
+        Assert.Equal("0", result.DryRunOutput.Metrics["writes"]);
     }
 
     [Fact]

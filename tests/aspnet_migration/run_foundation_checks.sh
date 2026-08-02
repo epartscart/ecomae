@@ -202,8 +202,14 @@ check 'worker placeholder logs job count' contains "$ROOT/aspnet/src/EcomAE.Work
 check 'worker job runner interface exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/IMigrationWorkerJobRunner.cs"
 check 'worker job runner dry-run status exists' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerJobRunner.cs" 'dry-run-planned'
 check 'worker job runner blocks non-dry-run' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerJobRunner.cs" 'manual-approval-required'
-check 'worker program registers job runner' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerJobRunner, MigrationWorkerJobRunner'
+check 'worker program registers job runner' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'AddSingleton<IMigrationWorkerJobRunner>'
 check 'worker job runner tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationWorkerJobRunnerTests.cs"
+check 'worker dry-run executor interface exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/IMigrationWorkerJobDryRunExecutor.cs"
+check 'price import dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/PriceImportDryRunExecutor.cs"
+check 'price import dry-run executor blocks writes' contains "$ROOT/aspnet/src/EcomAE.Workers/PriceImportDryRunExecutor.cs" 'WritesBlocked: true'
+check 'price import dry-run executor validates sku' contains "$ROOT/aspnet/src/EcomAE.Workers/PriceImportDryRunExecutor.cs" '"sku"'
+check 'worker program registers price import dry-run executor' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerJobDryRunExecutor, PriceImportDryRunExecutor'
+check 'price import dry-run executor tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/PriceImportDryRunExecutorTests.cs"
 check 'worker dry-run evidence provider exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs"
 check 'worker dry-run evidence keeps PHP fallback required' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'PhpFallbackRequired: true'
 check 'worker dry-run evidence includes rollback command' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'disable ASP.NET worker flag'

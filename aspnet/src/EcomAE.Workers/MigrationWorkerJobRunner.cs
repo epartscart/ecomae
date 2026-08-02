@@ -5,9 +5,10 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
     private readonly MigrationWorkerJobCatalog _catalog;
     private readonly TimeProvider _timeProvider;
     private readonly IMigrationWorkerDryRunEvidenceProvider _evidenceProvider;
+    private readonly IReadOnlyCollection<IMigrationWorkerJobDryRunExecutor> _dryRunExecutors;
 
     public MigrationWorkerJobRunner(MigrationWorkerJobCatalog catalog, TimeProvider timeProvider)
-        : this(catalog, timeProvider, new MigrationWorkerDryRunEvidenceProvider())
+        : this(catalog, timeProvider, new MigrationWorkerDryRunEvidenceProvider(), [new PriceImportDryRunExecutor()])
     {
     }
 
@@ -15,10 +16,20 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
         MigrationWorkerJobCatalog catalog,
         TimeProvider timeProvider,
         IMigrationWorkerDryRunEvidenceProvider evidenceProvider)
+        : this(catalog, timeProvider, evidenceProvider, [new PriceImportDryRunExecutor()])
+    {
+    }
+
+    public MigrationWorkerJobRunner(
+        MigrationWorkerJobCatalog catalog,
+        TimeProvider timeProvider,
+        IMigrationWorkerDryRunEvidenceProvider evidenceProvider,
+        IEnumerable<IMigrationWorkerJobDryRunExecutor> dryRunExecutors)
     {
         _catalog = catalog;
         _timeProvider = timeProvider;
         _evidenceProvider = evidenceProvider;
+        _dryRunExecutors = dryRunExecutors.ToArray();
     }
 
     public MigrationWorkerJobRunResult PlanRun(MigrationWorkerJobRunRequest request)
@@ -43,6 +54,9 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
             : $"Execution is blocked until {job.TargetService} has a concrete implementation, retries, locks, and monitoring.";
 
         var evidence = request.DryRun ? _evidenceProvider.BuildEvidence(job, request) : null;
+        var dryRunOutput = request.DryRun
+            ? _dryRunExecutors.FirstOrDefault(executor => executor.CanExecute(job))?.Execute(job, request)
+            : null;
 
         return new MigrationWorkerJobRunResult(
             job.Key,
@@ -51,6 +65,7 @@ public sealed class MigrationWorkerJobRunner : IMigrationWorkerJobRunner
             message,
             request.RequestedAt,
             completedAt,
-            evidence);
+            evidence,
+            dryRunOutput);
     }
 }
