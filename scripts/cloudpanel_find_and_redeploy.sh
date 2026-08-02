@@ -18,8 +18,9 @@ printf 'Note: /var/www/ecomae is NOT a required path.\n'
 printf 'Release root: %s\n' "$ECOMAE_ASPNET_RELEASE_ROOT"
 printf 'Env dir:      %s\n' "$ECOMAE_ASPNET_ENV_DIR"
 if [[ "$ECOMAE_BRANCH" == "main" ]]; then
-  printf 'NOTE: final-gate smoke preflight (validate/wait) may be on branch cursor/smoke-preflight-public-probes-7b3b until PR #599 merges.\n'
-  printf '      Prefer: bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-preflight-public-probes-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"\n'
+  printf 'NOTE: if ensure-table / smoke-issuer fixes are not on main yet, prefer:\n'
+  printf '      ECOMAE_BRANCH=cursor/smoke-issuer-php-platform-pdo-7b3b bash scripts/cloudpanel_find_and_redeploy.sh\n'
+  printf '      or: bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-issuer-php-platform-pdo-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"\n'
 fi
 
 find_repo() {

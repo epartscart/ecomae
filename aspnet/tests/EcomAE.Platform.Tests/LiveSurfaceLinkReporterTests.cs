@@ -13,13 +13,16 @@ public sealed class LiveSurfaceLinkReporterTests
         var report = new LiveSurfaceLinkReporter().BuildReport();
 
         Assert.Equal("www.ecomae.com", report.PlatformHost);
-        Assert.True(report.Links.Count >= 50);
+        Assert.True(report.Links.Count >= 60);
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/BOS/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/CP/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/ERP/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "tenant" && link.Url.Contains("electronicae.com", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "aspnet-diagnostics" && link.StackToday == "aspnet");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/migration/surface-field-parity");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/api/v1/catalog/models");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/api/v1/catalog/brand-parts");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/bos/tenants");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/storefront/account-summary");
         Assert.Contains(report.Links, link => link.Surface.Contains("Price lookup", StringComparison.OrdinalIgnoreCase) && link.StackToday == "aspnet");
         Assert.Contains(report.CutoverRules, rule => rule.Contains("Broad", StringComparison.OrdinalIgnoreCase));

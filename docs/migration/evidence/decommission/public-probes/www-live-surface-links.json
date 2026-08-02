@@ -388,6 +388,30 @@
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "CP config-items digest",
+      "url": "https://www.ecomae.com/cp/config-items",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/cp/config-items",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "ERP cash-accounts digest",
+      "url": "https://www.ecomae.com/erp/cash-accounts",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/erp/cash-accounts",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "BOS tenants digest",
+      "url": "https://www.ecomae.com/bos/tenants",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/bos/tenants",
+      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
       "surface": "Catalog status",
       "url": "https://www.ecomae.com/api/v1/catalog/status",
       "stackToday": "php-fallback",
@@ -404,6 +428,22 @@
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog models",
+      "url": "https://www.ecomae.com/api/v1/catalog/models",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/models",
+      "notes": "List envelope; nginx-catalog-models-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog modifications",
+      "url": "https://www.ecomae.com/api/v1/catalog/modifications",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/modifications",
+      "notes": "List envelope; nginx-catalog-modifications-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
       "surface": "Catalog brands",
       "url": "https://www.ecomae.com/api/v1/catalog/brands",
       "stackToday": "php-fallback",
@@ -412,11 +452,51 @@
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog suppliers",
+      "url": "https://www.ecomae.com/api/v1/catalog/suppliers",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/suppliers",
+      "notes": "List envelope; nginx-catalog-suppliers-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
       "surface": "Catalog VIN",
       "url": "https://www.ecomae.com/api/v1/catalog/vin",
       "stackToday": "php-fallback",
       "aspNetRouteHint": "/api/v1/catalog/vin",
       "notes": "Offline VIN decode; compare_catalog_vin_parity.py after dual sample."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog engines",
+      "url": "https://www.ecomae.com/api/v1/catalog/engines",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/engines",
+      "notes": "Offline-cache; compare_catalog_offline_cache_parity.py."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog analogs",
+      "url": "https://www.ecomae.com/api/v1/catalog/analogs",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/analogs",
+      "notes": "Offline-cache; nginx-catalog-analogs-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog brand-parts",
+      "url": "https://www.ecomae.com/api/v1/catalog/brand-parts",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/brand-parts",
+      "notes": "compare_catalog_brand_parts_parity.py \u002B nginx-catalog-brand-parts-shadow-example.conf."
+    },
+    {
+      "hostClass": "aspnet-digest-pending-shadow",
+      "surface": "Catalog articles",
+      "url": "https://www.ecomae.com/api/v1/catalog/articles",
+      "stackToday": "php-fallback",
+      "aspNetRouteHint": "/api/v1/catalog/articles",
+      "notes": "UMAPI/cache path; promote after smoke \u002B dual sample."
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",

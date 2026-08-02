@@ -22,7 +22,9 @@ public sealed class PriceLookupParityReporter : IPriceLookupParityReporter
             gaps.Add("Configure TenantRegistry/MySQL for DbPriceOfferRepository or PriceLookup:FixtureCsvPath, then validate row-level totals against PHP.");
         }
 
+        gaps.Add("On CloudPanel: ensure_epc_api_clients_table.sh → issue_smoke_credentials.sh (epc_pricepro_ key) → validate_final_gate_env.sh.");
         gaps.Add("Attach live staging smoke artifacts for /api/v1/price/lookup before exact-route shadow.");
+        gaps.Add("Contract-only dry run: python3 scripts/compare_price_lookup_parity.py sample.json sample.json --contract-only.");
         gaps.Add("Compare request/response schema with PHP api/v1 price endpoints using captured production fixtures.");
         gaps.Add("Replay staging X-API-Key (epc_pricepro_) against ASP.NET and PHP, then enable only location = /api/v1/price/lookup shadow.");
 

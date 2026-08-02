@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using EcomAE.Platform.Migration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
@@ -23,9 +25,37 @@ public sealed class PhpDecommissionReadinessReporterTests
         Assert.Contains(report.Checklist, item => item.Id == "cloudpanel-capture-script" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "parity-samples-attached" && item.Status == "present");
         Assert.Contains(report.NextActions, action => action.Contains("run_zero_php_final_gate_checklist.sh", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_issue_smoke_credentials.sh", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_capture_final_gate_artifacts.sh", StringComparison.Ordinal));
         Assert.True(report.ChecklistCompletePercent < 100);
         Assert.False(string.Equals(report.Checklist.First(item => item.Id == "staging-smoke-price").Status, "present", StringComparison.Ordinal));
         Assert.Contains(report.Blockers, blocker => blocker.Contains("Authenticated CloudPanel smoke keys", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void WritePhpDecommissionReadinessProbeSnapshotWhenRequested()
+    {
+        // ECOMAE_WRITE_PHP_DECOMMISSION_PROBE=1 dotnet test --filter WritePhpDecommissionReadinessProbeSnapshotWhenRequested
+        if (!string.Equals(Environment.GetEnvironmentVariable("ECOMAE_WRITE_PHP_DECOMMISSION_PROBE"), "1", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var report = new PhpDecommissionReadinessReporter(new RepoHostEnvironment()).BuildReport();
+        Assert.False(report.ReadyToRemovePhp);
+        Assert.Contains(report.Checklist, item => item.Id == "exact-route-shadows-only" && item.Status == "present");
+
+        var json = JsonSerializer.Serialize(report, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        }) + "\n";
+
+        var path = Path.Combine(RepoHostEnvironment.FindRepoRoot(), "docs", "migration", "evidence", "decommission", "public-probes", "www-php-decommission-readiness.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, json);
     }
 
     [Fact]

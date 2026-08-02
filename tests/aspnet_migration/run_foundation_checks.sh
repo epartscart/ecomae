@@ -415,7 +415,12 @@ check 'surface field parity public probe attached' test -f "$ROOT/docs/migration
 check 'surface field parity probe tracks catalog vin contract' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '/api/v1/catalog/vin'
 check 'surface field parity probe contractCount is current' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"contractCount": 53'
 check 'live surface links probe includes field parity route' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/migration/surface-field-parity'
+check 'live surface links probe includes catalog brand-parts' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/api/v1/catalog/brand-parts'
 check 'zero php probe next actions mention ensure table' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'ensure_epc_api_clients_table'
+check 'php decommission probe next actions mention ensure table' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" 'ensure_epc_api_clients_table'
+check 'php decommission probe marks exact-route shadows present' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); i=next(c for c in d["checklist"] if c["id"]=="exact-route-shadows-only"); assert i["status"]=="present"' "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
+check 'surface parity probe public API status is wired' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-parity.json" 'catalog-cache-routes-wired-awaiting-staging'
+check 'redeploy final-gate defaults to smoke-issuer branch' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'cursor/smoke-issuer-php-platform-pdo-7b3b'
 check 'final gate checklist never removes PHP' contains "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" 'never removes PHP'
 check 'catalog status smoke runner exists' test -x "$ROOT/tests/live_smoke/run_catalog_status_exact_route_smoke.sh"
 check 'surface digest smoke runner exists' test -x "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh"

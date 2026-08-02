@@ -59,13 +59,12 @@ After the rebase is clean, run the local validation commands:
 bash tests/aspnet_migration/run_foundation_checks.sh
 bash tests/aspnet_migration/run_detailed_foundation_tests.sh
 bash scripts/verify_aspnet_proxy_guardrails.sh
-python3 -m py_compile scripts/generate_zero_php_100_evidence_templates.py
+bash scripts/run_zero_php_final_gate_checklist.sh
 python3 scripts/verify_zero_php_90_readiness.py || true
-python3 scripts/verify_zero_php_100_readiness.py || true
 if command -v dotnet >/dev/null 2>&1; then dotnet test aspnet/tests/EcomAE.Platform.Tests; else echo "WARN: dotnet SDK is not installed; skipping dotnet test"; fi
 ```
 
-The 90% and 100% readiness scripts must still report **NOT READY** until real route/job parity, rollback approval, and production smoke evidence exists for all tracked PHP route/job items.
+Final-gate / 90% readiness must still report **NOT READY** until real route/job parity, rollback approval, and production smoke evidence exists for all tracked PHP route/job items.
 
 ## 3. Push the repaired PR branch
 
