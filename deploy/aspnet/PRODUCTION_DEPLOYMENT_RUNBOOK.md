@@ -58,7 +58,7 @@ bash scripts/deploy_aspnet_foundation.sh
 For systemd installation/restart in the same run, execute as a privileged operator:
 
 ```bash
-sudo ECOMAE_RUN_SYSTEMD=1 \
+sudo env ECOMAE_RUN_SYSTEMD=1 \
 ECOMAE_ASPNET_RELEASE_ROOT=/var/www/ecomae-aspnet \
 bash scripts/deploy_aspnet_foundation.sh
 ```
@@ -157,7 +157,7 @@ After reviewing the dry-run plan and ensuring SSH, repository access, `/etc/ecom
 Use the detached wrapper so the deploy continues after the browser/SSH session disconnects:
 
 ```bash
-sudo ECOMAE_RUN_SYSTEMD=1 \
+sudo env ECOMAE_RUN_SYSTEMD=1 \
 ECOMAE_ASPNET_RELEASE_ROOT=/var/www/ecomae-aspnet \
 bash scripts/deploy_aspnet_foundation_detached.sh
 ```
@@ -171,7 +171,7 @@ tail -f deploy/logs/aspnet-foundation-deploy-*.log
 If `tmux` is available and preferred:
 
 ```bash
-sudo ECOMAE_DEPLOY_USE_TMUX=1 \
+sudo env ECOMAE_DEPLOY_USE_TMUX=1 \
 ECOMAE_RUN_SYSTEMD=1 \
 ECOMAE_ASPNET_RELEASE_ROOT=/var/www/ecomae-aspnet \
 bash scripts/deploy_aspnet_foundation_detached.sh
@@ -181,7 +181,7 @@ This wrapper still runs `scripts/deploy_aspnet_foundation.sh`; it only protects 
 
 ## Fix PR #569 merge conflicts from terminal
 
-Use this after confirming PR #569 is the desired branch to update:
+Use this after confirming PR #569 is the desired branch to update. If GitHub CLI is installed, the helper uses `gh pr checkout 569` so `RUN_PUSH=1` updates the actual PR branch. Without `gh`, it fetches the read-only pull ref and prints the explicit push command you must run for the real PR source branch:
 
 ```bash
 bash scripts/resolve_pr_569_conflicts.sh

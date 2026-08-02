@@ -176,7 +176,8 @@ check 'legacy API usage logger exists' test -f "$ROOT/aspnet/src/EcomAE.Platform
 check 'program registers legacy API usage logger' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ILegacyApiUsageLogger, MigrationLegacyApiUsageLogger'
 check 'PR range rebase script exists' test -x "$ROOT/scripts/rebase_conflicted_pr_range.sh"
 check 'PR 569 conflict fix script exists' test -x "$ROOT/scripts/resolve_pr_569_conflicts.sh"
-check 'PR 569 conflict fix script fetches pull ref' contains "$ROOT/scripts/resolve_pr_569_conflicts.sh" 'pull/${PR_NUMBER}/head'
+check 'PR 569 conflict fix script can use gh checkout' contains "$ROOT/scripts/resolve_pr_569_conflicts.sh" 'gh pr checkout'
+check 'PR 569 conflict fix script fetches pull ref fallback' contains "$ROOT/scripts/resolve_pr_569_conflicts.sh" 'pull/${PR_NUMBER}/head'
 check 'PR range rebase script covers PR 500 default' contains "$ROOT/scripts/rebase_conflicted_pr_range.sh" 'START_PR="${1:-500}"'
 check 'PR range rebase script covers PR 508 default' contains "$ROOT/scripts/rebase_conflicted_pr_range.sh" 'END_PR="${2:-508}"'
 check 'PR rebase runbook exists' test -f "$ROOT/docs/migration/PR_REBASE_CONFLICT_RUNBOOK.md"
@@ -264,6 +265,7 @@ check 'CloudPanel missing repo recovery exists' test -f "$ROOT/deploy/aspnet/CLO
 check 'CloudPanel missing repo recovery requires real git URL' contains "$ROOT/deploy/aspnet/CLOUDPANEL_MISSING_REPO_RECOVERY.md" 'Set ECOMAE_GIT_URL to the real repository URL first'
 check 'production runbook troubleshoots missing script' contains "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md" 'No such file or directory'
 check 'production runbook documents detached deploy' contains "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md" 'deploy_aspnet_foundation_detached.sh'
+check 'production runbook uses sudo env for deploy' contains "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md" 'sudo env ECOMAE_RUN_SYSTEMD=1'
 check 'production runbook documents PR 569 conflict helper' contains "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md" 'resolve_pr_569_conflicts.sh'
 check 'Codex PR cleanup script exists' test -x "$ROOT/scripts/cleanup_codex_prs.sh"
 check 'Codex PR cleanup script is dry-run by default' contains "$ROOT/scripts/cleanup_codex_prs.sh" 'RUN_CLOSE:-0'

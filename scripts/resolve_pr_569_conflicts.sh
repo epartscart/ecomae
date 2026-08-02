@@ -4,14 +4,15 @@ set -euo pipefail
 REMOTE="${REMOTE:-origin}"
 BASE_BRANCH="${BASE_BRANCH:-main}"
 PR_NUMBER="${PR_NUMBER:-569}"
-PR_BRANCH="${PR_BRANCH:-pr-${PR_NUMBER}-conflict-fix}"
+FALLBACK_BRANCH="${PR_BRANCH:-pr-${PR_NUMBER}-conflict-fix}"
 RUN_PUSH="${RUN_PUSH:-0}"
 RUN_CHECKS="${RUN_CHECKS:-1}"
+USE_GH="${USE_GH:-auto}"
 
 printf '== EcomAE PR #%s conflict fixer ==\n' "$PR_NUMBER"
 printf 'Remote: %s\n' "$REMOTE"
 printf 'Base branch: %s\n' "$BASE_BRANCH"
-printf 'Local fix branch: %s\n' "$PR_BRANCH"
+printf 'Fallback branch: %s\n' "$FALLBACK_BRANCH"
 printf 'Push enabled: %s\n' "$RUN_PUSH"
 
 if ! command -v git >/dev/null 2>&1; then
@@ -25,8 +26,20 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
 fi
 
 git fetch "$REMOTE" "$BASE_BRANCH"
-git fetch "$REMOTE" "pull/${PR_NUMBER}/head:${PR_BRANCH}"
-git checkout "$PR_BRANCH"
+
+checkout_method="pull-ref"
+if [[ "$USE_GH" != "0" ]] && command -v gh >/dev/null 2>&1; then
+  printf 'Using gh pr checkout so pushes update the real PR branch when permissions allow.\n'
+  gh pr checkout "$PR_NUMBER"
+  checkout_method="gh"
+else
+  printf 'gh not available; fetching PR head into local fallback branch %s.\n' "$FALLBACK_BRANCH"
+  git fetch "$REMOTE" "pull/${PR_NUMBER}/head:${FALLBACK_BRANCH}"
+  git checkout "$FALLBACK_BRANCH"
+fi
+
+CURRENT_BRANCH="$(git branch --show-current)"
+printf 'Current branch: %s\n' "$CURRENT_BRANCH"
 
 printf '\nRebasing PR #%s onto %s/%s...\n' "$PR_NUMBER" "$REMOTE" "$BASE_BRANCH"
 if ! git rebase "$REMOTE/$BASE_BRANCH"; then
@@ -65,16 +78,27 @@ if [[ "$RUN_CHECKS" == "1" ]]; then
 fi
 
 if [[ "$RUN_PUSH" == "1" ]]; then
-  git push --force-with-lease "$REMOTE" "$PR_BRANCH"
-  printf 'Pushed rebased PR branch %s. If #569 uses a different source branch, push to that branch instead after review.\n' "$PR_BRANCH"
+  if [[ "$checkout_method" == "gh" ]]; then
+    git push --force-with-lease
+  else
+    cat <<PUSHHELP
+
+Fetched PR #$PR_NUMBER through a read-only pull ref. Push to the real PR source branch explicitly.
+If the source branch is in this repository:
+  git push --force-with-lease $REMOTE HEAD:<actual-pr-569-source-branch>
+
+If it is from a fork, push to that fork remote/branch instead.
+PUSHHELP
+    exit 3
+  fi
 else
   cat <<PLAN
 
-Dry-run complete. Review the rebased branch locally.
-To update the PR source branch after review, run one of these:
+Rebase/check flow completed locally.
+To update PR #$PR_NUMBER after review:
   RUN_PUSH=1 bash scripts/resolve_pr_569_conflicts.sh
 
-If PR #569 uses a different source branch, push explicitly with:
-  git push --force-with-lease $REMOTE HEAD:<pr-569-source-branch>
+If gh is unavailable, push explicitly to the actual PR source branch:
+  git push --force-with-lease $REMOTE HEAD:<actual-pr-569-source-branch>
 PLAN
 fi
