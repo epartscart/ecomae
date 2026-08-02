@@ -29,9 +29,12 @@ public static partial class UmapiCacheKeyBuilder
             return string.Empty;
         }
 
-        return VinCleaner().Replace(vin.ToUpperInvariant(), string.Empty);
+        return AlnumCleaner().Replace(vin.ToUpperInvariant(), string.Empty);
     }
 
+    /// <summary>Mirrors PHP <c>epc_normalize_engine_code</c> (same character class as VIN normalize).</summary>
+    public static string NormalizeEngineCode(string? code) => NormalizeVin(code);
+
     [GeneratedRegex("[^A-Z0-9]")]
-    private static partial Regex VinCleaner();
+    private static partial Regex AlnumCleaner();
 }

@@ -121,6 +121,46 @@ public sealed class CatalogOfflineCacheService : ICatalogOfflineCacheService
         return LookupActionAsync("products", normalizedSection, language, region, parameters, cancellationToken);
     }
 
+    public Task<CatalogActionCacheLookupResult> LookupEngineSearchAsync(string? section, string? code, int mfaId, string? language, string? region, CancellationToken cancellationToken = default)
+    {
+        var needle = UmapiCacheKeyBuilder.NormalizeEngineCode(code);
+        if (needle.Length is < 2 or > 12)
+        {
+            return Task.FromResult(new CatalogActionCacheLookupResult(
+                false,
+                400,
+                "missing_params",
+                "Valid engine code is required (2–12 characters, e.g. 3L, 12R, 5L).",
+                "engine_search",
+                section ?? "passenger",
+                null,
+                0,
+                true,
+                "rejected"));
+        }
+
+        // PHP: array('code' => $needle, 'MFA_ID' => (int)$mfaFilter) — MFA_ID may be 0.
+        var parameters = new Dictionary<string, object?>
+        {
+            ["code"] = needle,
+            ["MFA_ID"] = mfaId < 0 ? 0 : mfaId
+        };
+        return LookupActionAsync("engine_search", section, language, region, parameters, cancellationToken);
+    }
+
+    public Task<CatalogActionCacheLookupResult> LookupArticleLinksAsync(string? section, int articleId, string? language, string? region, CancellationToken cancellationToken = default)
+    {
+        if (articleId <= 0)
+        {
+            return Task.FromResult(new CatalogActionCacheLookupResult(
+                false, 400, "missing_params", "Article ID is required.", "article_links", section ?? "passenger", null, 0, true, "rejected"));
+        }
+
+        // PHP caches with params array('id' => $id) as integer.
+        var parameters = new Dictionary<string, object?> { ["id"] = articleId };
+        return LookupActionAsync("article_links", section, language, region, parameters, cancellationToken);
+    }
+
     private async Task<CatalogActionCacheLookupResult> LookupActionAsync(
         string action,
         string? section,

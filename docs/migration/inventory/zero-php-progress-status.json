@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 48.0,
-  "pendingPercent": 52.0,
+  "trueZeroPhpCompletionPercent": 50.0,
+  "pendingPercent": 50.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -37,6 +37,7 @@
     "/api/v1/catalog/manufacturers DB+auth",
     "worker dry-run validators for price-import/sitemap/backups/notifications/erp-reports",
     "scripts/cloudpanel_production_deploy_foundation.sh",
+    "scripts/cloudpanel_find_and_redeploy.sh",
     "/api/v1/catalog/models DB+auth",
     "/api/v1/catalog/modifications DB+auth",
     "/api/v1/catalog/brands DB+auth",
@@ -45,11 +46,14 @@
     "/api/v1/catalog/analogs DB/cache+auth",
     "/api/v1/catalog/article-brands DB/cache+auth",
     "/api/v1/catalog/categories DB/cache+auth",
-    "/api/v1/catalog/products DB/cache+auth"
+    "/api/v1/catalog/products DB/cache+auth",
+    "/api/v1/catalog/engine-search DB/cache+auth",
+    "/api/v1/catalog/article-links DB/cache+auth",
+    "/api/v1/catalog/brand-parts DB+auth"
   ],
   "nextExecutionOrder": [
-    "Deploy ASP.NET foundation on production with scripts/cloudpanel_production_deploy_foundation.sh (diagnostics only).",
-    "Run exact-route staging smoke for /api/v1/price/lookup and /api/v1/catalog/status with real API keys.",
+    "Redeploy with scripts/cloudpanel_find_and_redeploy.sh (do not use /var/www/ecomae).",
+    "Run exact-route staging smoke for /api/v1/price/lookup and catalog routes with real API keys.",
     "Attach PHP-vs-ASP.NET parity samples, then enable only approved location = nginx shadows.",
     "Continue batch-by-batch replacements without broad proxy cutover.",
     "Remove PHP only after every item is live or removed and rollback evidence is approved."
