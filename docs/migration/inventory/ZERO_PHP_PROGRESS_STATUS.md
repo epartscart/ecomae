@@ -46,9 +46,9 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - PHP decommission readiness reporter documents blockers; removal remains blocked.
 - No broad PHP cutover; parity/shadow remain 0%.
 
-## Remaining 5% (PHP runtime decommission only)
+## Path to 100% / Remaining 5% (PHP runtime decommission only)
 
-100% requires green parity evidence for every tracked route/job, staging smoke, approved exact-route shadows, and release-owner approval to remove PHP-FPM/cron/rewrites/source. Dry-run scaffolding does **not** authorize PHP removal. See `/migration/php-decommission-readiness`.
+100% requires green parity evidence for every tracked route/job, staging smoke, approved exact-route shadows, and release-owner approval to remove PHP-FPM/cron/rewrites/source. Dry-run scaffolding does **not** authorize PHP removal. See `/migration/php-decommission-readiness`. Remaining batches still need promotion from dry-run scaffolding to shadow/live.
 
 ## Next execution order
 
