@@ -18,6 +18,8 @@
 - Ownership assignment and batch planning are complete, but real implementation/parity/live cutover is not complete.
 - PHP remains the production fallback and must not be broadly cut over for CP, ERP, BOS, API, or storefront surfaces.
 - Batch 1 worker replacement has started at the ASP.NET Core dry-run evidence layer: the worker runner now attaches PHP baseline instructions, ASP.NET dry-run sample text, parity comparison guidance, rollback command text, smoke status, fallback safety, and approvals. A catalog-wide Batch 1 dry-run reporter now summarizes evidence readiness for all planned worker jobs while keeping blockers and PHP fallback visible, and the worker host logs this report at startup for operator review. This is still not production execution or parity-ready cutover.
+
+- Route parity movement: `/api/v1/price/lookup` now has an ASP.NET repository-backed read path for captured PHP/staging CSV exports, PHP and ASP.NET output samples, an automated JSON parity comparator, exact-route smoke script, rollback command, and exact-route-only cutover notes. This is still not broad production cutover; staging/production smoke artifacts must be attached before advancing readiness percentages.
 - Real implementation movement: the `price-import` worker now has an ASP.NET Core dry-run executor that accepts a PHP baseline CSV sample (`sample_csv`), validates required `sku`, `price`, and `currency` columns, reports row/currency metrics, and guarantees `writes=0`/`WritesBlocked=true`. This creates a concrete parity sampling path for Batch 1 without enabling production writes or removing PHP fallback.
 
 ## Final evidence workflow before any 100% claim

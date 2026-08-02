@@ -152,10 +152,22 @@ check 'consolidated PR script avoids merging old PR history' contains "$ROOT/scr
 check 'consolidated PR script includes aspnet tree' contains "$ROOT/scripts/prepare_consolidated_aspnet_pr.sh" 'aspnet'
 check 'legacy price SQL contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/LegacyPriceLookupSql.cs"
 check 'legacy price SQL maps shop_docpart_prices_data' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/LegacyPriceLookupSql.cs" 'shop_docpart_prices_data'
+check 'CSV price offer repository exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/CsvPriceOfferRepository.cs"
+check 'CSV price offer repository filters positive price' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/CsvPriceOfferRepository.cs" 'price <= 0'
+check 'CSV price offer repository preserves legacy limit' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/CsvPriceOfferRepository.cs" 'LegacyPriceLookupSql.DefaultLimit'
+check 'program can register CSV price repository' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'PriceLookup:FixtureCsvPath'
+check 'price lookup fixture CSV exists' test -f "$ROOT/tests/fixtures/price_lookup/php-baseline.csv"
+check 'price lookup parity script exists' test -x "$ROOT/scripts/compare_price_lookup_parity.py"
+check 'price lookup PHP baseline sample exists' test -f "$ROOT/docs/migration/evidence/price-lookup/php-baseline-sample.json"
+check 'price lookup ASP.NET output sample exists' test -f "$ROOT/docs/migration/evidence/price-lookup/aspnet-output-sample.json"
+check 'price lookup evidence runbook names exact route' contains "$ROOT/docs/migration/evidence/price-lookup/README.md" '/api/v1/price/lookup'
+check 'price lookup smoke script exists' test -x "$ROOT/tests/live_smoke/run_price_lookup_exact_route_smoke.sh"
+check 'price lookup smoke is opt-in' contains "$ROOT/tests/live_smoke/run_price_lookup_exact_route_smoke.sh" 'RUN_PRICE_LOOKUP_SMOKE=1'
+check 'price lookup rollback keeps exact route only' contains "$ROOT/docs/migration/evidence/price-lookup/README.md" 'exact-route only'
 check 'price offer DTO exposes lead time' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/PriceLookupResult.cs" 'LeadTime'
 check 'price offer repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/IPriceOfferRepository.cs"
 check 'repository price lookup service exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/RepositoryPriceLookupService.cs"
-check 'program registers price offer repository' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'IPriceOfferRepository, MigrationPriceOfferRepository'
+check 'program registers price offer repository' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'AddSingleton<IPriceOfferRepository>'
 check 'program registers repository price lookup service' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'IPriceLookupService, RepositoryPriceLookupService'
 check 'legacy API key parser exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientKeyParser.cs"
 check 'legacy API key parser supports catalog prefix' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientKeyParser.cs" 'epc_catalog_'

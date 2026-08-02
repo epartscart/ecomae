@@ -1,0 +1,29 @@
+{
+  "status": true,
+  "brand": "TOYOTA",
+  "article": "044650K020",
+  "offers": [
+    {
+      "supplier": "fast",
+      "brand": "TOYOTA",
+      "article": "04465-0K020",
+      "name": "Brake Pad Set",
+      "price": 120.00,
+      "currency": "AED",
+      "stockHint": 8,
+      "leadTime": "same day"
+    },
+    {
+      "supplier": "slow",
+      "brand": "TOYOTA",
+      "article": "04465-0K020",
+      "name": "Brake Pad Set",
+      "price": 150.00,
+      "currency": "AED",
+      "stockHint": 4,
+      "leadTime": "2 days"
+    }
+  ],
+  "migrationStatus": "repository",
+  "message": ""
+}

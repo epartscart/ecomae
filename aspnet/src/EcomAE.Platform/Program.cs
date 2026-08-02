@@ -22,7 +22,13 @@ builder.Services.AddSingleton<ITenantResolver, RouteTenantResolver>();
 builder.Services.AddEcomAeAuthorization();
 builder.Services.AddEcomAeSurfaceModules();
 builder.Services.AddSingleton<ISurfaceShellCatalog, MigrationSurfaceShellCatalog>();
-builder.Services.AddSingleton<IPriceOfferRepository, MigrationPriceOfferRepository>();
+builder.Services.AddSingleton<IPriceOfferRepository>(sp =>
+{
+    var csvPath = sp.GetRequiredService<IConfiguration>()["PriceLookup:FixtureCsvPath"];
+    return string.IsNullOrWhiteSpace(csvPath)
+        ? new MigrationPriceOfferRepository()
+        : new CsvPriceOfferRepository(csvPath);
+});
 builder.Services.AddSingleton<IPriceLookupService, RepositoryPriceLookupService>();
 builder.Services.AddSingleton<IPriceLookupParityReporter, PriceLookupParityReporter>();
 builder.Services.AddSingleton<ICatalogParityReporter, CatalogParityReporter>();
