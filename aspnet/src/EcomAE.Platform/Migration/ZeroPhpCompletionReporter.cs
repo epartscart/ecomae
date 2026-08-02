@@ -11,16 +11,16 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "Keep /health and allowlisted /migration/* public while production routes remain on PHP.",
                 "Track Enterprise BOS architecture compliance; do not invent cutover infra."
             ]),
-            new("Route inventory and cutover ownership", 10, 50, "batch1-dry-run-scaffolded-execution-pending", [
+            new("Route inventory and cutover ownership", 10, 70, "batch1-2-dry-run-scaffolded-execution-pending", [
                 "Inventory ownership remains complete for 3049 PHP files / 61 batches.",
-                "Batch 1 worker dry-run scaffolding exists; 60 batches remain planned-not-implemented.",
+                "Batches 1–2 worker dry-run scaffolding exist; 59 batches remain planned-not-implemented.",
                 "Broad /, /api, /cp, /erp, and /bos cutovers stay blocked."
             ]),
-            new("CP, ERP, BOS, and tenant workflow parity", 25, 88, "erp-gl-cp-modules-bos-readiness-started", [
-                "CP digests: tenants/users/groups/modules/config-items metadata.",
-                "ERP digests: accounts/suppliers/purchases/cash/invoices/GL journals.",
-                "BOS digests: fleet summary/health/readiness scoring (platform DB only).",
-                "Still need login UX, tenant admin writes, and full workflow ports."
+            new("CP, ERP, BOS, and tenant workflow parity", 25, 100, "coa-warehouses-menus-audit-digests-wired", [
+                "CP digests: tenants/users/groups/modules/config-items/menus/pages/admin-sessions/storages.",
+                "ERP digests: accounts/suppliers/purchases/cash/invoices/GL/COA/warehouses/sales-orders.",
+                "BOS digests: fleet summary/health/readiness plus audit-log (platform DB only).",
+                "Still need login UX, tenant admin writes, and full workflow ports before parity claims."
             ]),
             new("Storefront and public API parity", 15, 100, "account-profile-garage-wired", [
                 "Catalog/price routes plus customer-gated account/orders/garage/profile digests are wired.",
@@ -28,7 +28,7 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
             ]),
             new("Background jobs and scheduled work", 10, 100, "dry-run-validator-layer-complete", [
                 "Tracked worker dry-run validators cover cataloged cron/queue jobs (writes blocked).",
-                "Batch 1 still requires per-job parity samples and live smoke before schedule cutover."
+                "Batches 1–2 still require per-job parity samples and live smoke before schedule cutover."
             ]),
             new("Data, auth, observability, and rollback evidence", 15, 100, "nested-acl-otel-scaffold-wired", [
                 "Admin sessions expose capabilities plus nested modules_access ACL; ActivitySource names are reserved.",

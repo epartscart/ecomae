@@ -28,6 +28,10 @@ public static class EcomAeRoutes
     public const string ControlPanelGroups = "/cp/groups";
     public const string ControlPanelModules = "/cp/modules";
     public const string ControlPanelConfigItems = "/cp/config-items";
+    public const string ControlPanelMenus = "/cp/menus";
+    public const string ControlPanelPages = "/cp/pages";
+    public const string ControlPanelAdminSessions = "/cp/admin-sessions";
+    public const string ControlPanelStorages = "/cp/storages";
     public const string Erp = "/erp";
     public const string ErpParity = "/erp/parity";
     public const string ErpDashboardSummary = "/erp/dashboard-summary";
@@ -38,12 +42,16 @@ public static class EcomAeRoutes
     public const string ErpCashEntries = "/erp/cash-entries";
     public const string ErpInvoices = "/erp/invoices";
     public const string ErpGlJournals = "/erp/gl-journals";
+    public const string ErpCoaAccounts = "/erp/coa-accounts";
+    public const string ErpWarehouses = "/erp/warehouses";
+    public const string ErpSalesOrders = "/erp/sales-orders";
     public const string Bos = "/bos";
     public const string BosParity = "/bos/parity";
     public const string BosFleetSummary = "/bos/fleet-summary";
     public const string BosTenants = "/bos/tenants";
     public const string BosFleetHealth = "/bos/fleet-health";
     public const string BosFleetReadiness = "/bos/fleet-readiness";
+    public const string BosAuditLog = "/bos/audit-log";
     public const string ApiPrefix = "/api";
     public const string ApiMigrationStatus = "/api/migration/status";
     public const string CatalogStatus = "/api/v1/catalog/status";

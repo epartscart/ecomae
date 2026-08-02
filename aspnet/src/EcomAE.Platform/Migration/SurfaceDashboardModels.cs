@@ -264,3 +264,116 @@ public sealed record BosFleetReadinessResult(
     int ErpOnly,
     string Source,
     string Message);
+
+public sealed record ErpCoaAccountDigest(
+    long Id,
+    string Code,
+    string Name,
+    string AccountType,
+    string NormalSide,
+    long ParentId,
+    decimal OpeningBalance,
+    bool Active);
+
+public sealed record ErpCoaAccountListResult(
+    IReadOnlyList<ErpCoaAccountDigest> Accounts,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpWarehouseDigest(
+    long Id,
+    long StorageId,
+    string Code,
+    string Name,
+    bool Active,
+    long TimeCreated);
+
+public sealed record ErpWarehouseListResult(
+    IReadOnlyList<ErpWarehouseDigest> Warehouses,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpSalesOrderDigest(
+    long Id,
+    string SoNo,
+    int CustomerUserId,
+    decimal TotalAmount,
+    string Status,
+    long TimeCreated);
+
+public sealed record ErpSalesOrderListResult(
+    IReadOnlyList<ErpSalesOrderDigest> Orders,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpMenuDigest(
+    int Id,
+    string Caption,
+    bool IsFrontend,
+    string MenuUlClass,
+    string MenuUlId);
+
+public sealed record CpMenuListResult(
+    IReadOnlyList<CpMenuDigest> Menus,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPageDigest(
+    int Id,
+    string Caption,
+    string Url,
+    string Alias,
+    bool IsFrontend,
+    bool Published,
+    int Level,
+    int SortOrder);
+
+public sealed record CpPageListResult(
+    IReadOnlyList<CpPageDigest> Pages,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpAdminSessionDigest(
+    int UserId,
+    string Email,
+    int Type,
+    int SessionCount);
+
+public sealed record CpAdminSessionListResult(
+    IReadOnlyList<CpAdminSessionDigest> Sessions,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpStorageDigest(
+    int Id,
+    string Name,
+    string ShortName,
+    bool Hidden);
+
+public sealed record CpStorageListResult(
+    IReadOnlyList<CpStorageDigest> Storages,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record BosAuditLogDigest(
+    long Id,
+    long Ts,
+    int UserId,
+    string Actor,
+    string Area,
+    string Action,
+    string Target,
+    string Ip);
+
+public sealed record BosAuditLogListResult(
+    IReadOnlyList<BosAuditLogDigest> Entries,
+    int Count,
+    string Source,
+    string Message);

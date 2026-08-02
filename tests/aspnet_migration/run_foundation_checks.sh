@@ -260,7 +260,7 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 87.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 92.0%'
 check 'legacy session SQL checks customer sessions without type filter' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionSql.cs" 'CountCustomerSession'
 check 'legacy session DB evidence exists' test -f "$ROOT/docs/migration/evidence/legacy-session-db/README.md"
 check 'catalog article route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/article'
@@ -352,9 +352,17 @@ check 'tenant scale doc marks PHP MySQL as interim' contains "$ROOT/docs/TENANT_
 check 'ERP cash-entries route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/cash-entries'
 check 'ERP invoices route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/invoices'
 check 'ERP gl-journals route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/gl-journals'
+check 'ERP coa-accounts route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/coa-accounts'
+check 'ERP warehouses route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/warehouses'
+check 'ERP sales-orders route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/sales-orders'
 check 'CP modules route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/modules'
 check 'CP config-items route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/config-items'
+check 'CP menus route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/menus'
+check 'CP pages route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/pages'
+check 'CP admin-sessions route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/admin-sessions'
+check 'CP storages route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/storages'
 check 'BOS fleet-readiness route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/bos/fleet-readiness'
+check 'BOS audit-log route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/bos/audit-log'
 check 'EF catalog scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ICatalogScaffoldRepository.cs"
 check 'zero PHP path-to-100 documents remaining batches' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Path to 100%'
 check 'batch statuses record dry-run scaffolding' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'aspnet-dry-run-scaffolded'
@@ -431,6 +439,9 @@ check 'worker placeholder logs batch dry-run report' contains "$ROOT/aspnet/src/
 check 'worker placeholder logs dry-run blockers' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerPlaceholder.cs" 'RemainingBlockers'
 check 'worker program registers batch dry-run reporter' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'IMigrationWorkerBatchDryRunReporter, MigrationWorkerBatchDryRunReporter'
 check 'worker program keeps zero-php batch one catalog' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'ZeroPhpBatchOneWorkerReplacementCatalog'
+check 'worker program keeps zero-php batch two catalog' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'ZeroPhpBatchTwoWorkerReplacementCatalog'
+check 'zero-php batch two catalog file exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ZeroPhpBatchTwoWorkerReplacement.cs"
+check 'zero-php batch two dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ZeroPhpBatchTwoWorkerDryRunExecutor.cs"
 check 'worker schedule planner interface exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/IMigrationWorkerSchedulePlanner.cs"
 check 'worker schedule planner has distributed lock readiness' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerSchedulePlanner.cs" 'RequiresDistributedLock: true'
 check 'worker schedule planner includes dead-letter policy' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerSchedulePlanner.cs" 'exponential-backoff-with-dead-letter'
