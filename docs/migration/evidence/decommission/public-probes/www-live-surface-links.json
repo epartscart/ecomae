@@ -1,0 +1,402 @@
+{
+    "status": "catalogued-php-authoritative-except-allowlisted-aspnet",
+    "platformHost": "www.ecomae.com",
+    "links": [
+        {
+            "hostClass": "super-cp",
+            "surface": "Frontend / marketing",
+            "url": "https://www.ecomae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Platform marketing home remains PHP."
+        },
+        {
+            "hostClass": "super-cp",
+            "surface": "Control Panel",
+            "url": "https://www.ecomae.com/CP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/cp",
+            "notes": "PHP chrome authoritative; ASP.NET shell available on loopback when AdminAspNetEnabled."
+        },
+        {
+            "hostClass": "super-cp",
+            "surface": "Control Panel (alias)",
+            "url": "https://www.ecomae.com/cp/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/cp",
+            "notes": "Case-insensitive alias of Super CP."
+        },
+        {
+            "hostClass": "super-cp",
+            "surface": "ERP",
+            "url": "https://www.ecomae.com/ERP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/erp",
+            "notes": "Platform ERP desktop remains PHP."
+        },
+        {
+            "hostClass": "super-cp",
+            "surface": "ERP (alias)",
+            "url": "https://www.ecomae.com/erp/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/erp",
+            "notes": "Case-insensitive alias of Platform ERP."
+        },
+        {
+            "hostClass": "super-cp",
+            "surface": "BOS",
+            "url": "https://www.ecomae.com/BOS/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/bos",
+            "notes": "Super BOS command center remains PHP."
+        },
+        {
+            "hostClass": "super-cp",
+            "surface": "BOS (alias)",
+            "url": "https://www.ecomae.com/bos/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/bos",
+            "notes": "Case-insensitive alias of Super BOS."
+        },
+        {
+            "hostClass": "super-cp",
+            "surface": "Dedicated Super CP host",
+            "url": "https://cp.ecomae.com/CP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/cp",
+            "notes": "cp.ecomae.com is the dedicated Super CP hostname."
+        },
+        {
+            "hostClass": "super-cp",
+            "surface": "Dedicated Super CP BOS",
+            "url": "https://cp.ecomae.com/BOS/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/bos",
+            "notes": "BOS on dedicated Super CP host."
+        },
+        {
+            "hostClass": "super-cp",
+            "surface": "Dedicated Super CP ERP",
+            "url": "https://cp.ecomae.com/ERP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/erp",
+            "notes": "ERP on dedicated Super CP host."
+        },
+        {
+            "hostClass": "aspnet-diagnostics",
+            "surface": "Health",
+            "url": "https://www.ecomae.com/health",
+            "stackToday": "aspnet",
+            "aspNetRouteHint": "/health",
+            "notes": "ASP.NET health check."
+        },
+        {
+            "hostClass": "aspnet-diagnostics",
+            "surface": "Zero-PHP completion",
+            "url": "https://www.ecomae.com/migration/zero-php-completion",
+            "stackToday": "aspnet",
+            "aspNetRouteHint": "/migration/zero-php-completion",
+            "notes": "Weighted completion (95%/5%)."
+        },
+        {
+            "hostClass": "aspnet-diagnostics",
+            "surface": "PHP decommission readiness",
+            "url": "https://www.ecomae.com/migration/php-decommission-readiness",
+            "stackToday": "aspnet",
+            "aspNetRouteHint": "/migration/php-decommission-readiness",
+            "notes": "Final-gate checklist; ReadyToRemovePhp=false."
+        },
+        {
+            "hostClass": "aspnet-diagnostics",
+            "surface": "Presentation parity",
+            "url": "https://www.ecomae.com/migration/presentation-parity",
+            "stackToday": "aspnet",
+            "aspNetRouteHint": "/migration/presentation-parity",
+            "notes": "PHP chrome asset contract for ASP.NET shells."
+        },
+        {
+            "hostClass": "aspnet-diagnostics",
+            "surface": "Live surface links",
+            "url": "https://www.ecomae.com/migration/live-surface-links",
+            "stackToday": "aspnet",
+            "aspNetRouteHint": "/migration/live-surface-links",
+            "notes": "This catalog."
+        },
+        {
+            "hostClass": "aspnet-diagnostics",
+            "surface": "Surface parity",
+            "url": "https://www.ecomae.com/migration/surface-parity",
+            "stackToday": "aspnet",
+            "aspNetRouteHint": "/migration/surface-parity",
+            "notes": "Surface-by-surface parity statuses."
+        },
+        {
+            "hostClass": "aspnet-api",
+            "surface": "Price lookup",
+            "url": "https://www.ecomae.com/api/v1/price/lookup",
+            "stackToday": "aspnet",
+            "aspNetRouteHint": "/api/v1/price/lookup",
+            "notes": "Already on ASP.NET; unauthenticated returns JSON missing_api_key."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Healthcare frontend",
+            "url": "https://healthcare.ecomae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Industry subdomain showcase storefront."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Healthcare CP",
+            "url": "https://healthcare.ecomae.com/CP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/cp",
+            "notes": "Industry CP chrome (PHP)."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Healthcare ERP",
+            "url": "https://healthcare.ecomae.com/ERP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/erp",
+            "notes": "Industry ERP chrome (PHP)."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Home & living frontend",
+            "url": "https://homeliving.ecomae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Industry subdomain showcase storefront."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Retail frontend",
+            "url": "https://retail.ecomae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Industry subdomain showcase storefront."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Fashion frontend",
+            "url": "https://fashion.ecomae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Industry subdomain showcase storefront."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Jewellery frontend",
+            "url": "https://jewellery.ecomae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Industry subdomain showcase storefront."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Food frontend",
+            "url": "https://food.ecomae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Industry subdomain showcase storefront."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Beauty frontend",
+            "url": "https://beauty.ecomae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Industry subdomain showcase storefront."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Sports frontend",
+            "url": "https://sports.ecomae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Industry subdomain showcase storefront."
+        },
+        {
+            "hostClass": "industry-frontend",
+            "surface": "Pet frontend",
+            "url": "https://pet.ecomae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Industry subdomain showcase storefront."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Electronicae frontend",
+            "url": "https://www.electronicae.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Dedicated tenant storefront."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Electronicae CP",
+            "url": "https://www.electronicae.com/CP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/cp",
+            "notes": "Tenant CP."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Electronicae ERP",
+            "url": "https://www.electronicae.com/ERP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/erp",
+            "notes": "Tenant ERP."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Style N Look frontend",
+            "url": "https://www.stylenlook.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Dedicated tenant storefront."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Style N Look CP",
+            "url": "https://www.stylenlook.com/CP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/cp",
+            "notes": "Tenant CP."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Style N Look ERP",
+            "url": "https://www.stylenlook.com/ERP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/erp",
+            "notes": "Tenant ERP."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Jewellery Trend frontend",
+            "url": "https://www.thejewellerytrend.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Dedicated tenant storefront."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Jewellery Trend CP",
+            "url": "https://www.thejewellerytrend.com/CP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/cp",
+            "notes": "Tenant CP."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Jewellery Trend ERP",
+            "url": "https://www.thejewellerytrend.com/ERP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/erp",
+            "notes": "Tenant ERP."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Taxofin CA frontend",
+            "url": "https://www.taxofinca.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Dedicated tenant storefront."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Taxofin CA CP",
+            "url": "https://www.taxofinca.com/CP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/cp",
+            "notes": "Tenant CP."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "Taxofin CA ERP",
+            "url": "https://www.taxofinca.com/ERP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/erp",
+            "notes": "Tenant ERP."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "ePartsCart frontend",
+            "url": "https://epartscart.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "Live auto-parts tenant/storefront host."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "ePartsCart CP",
+            "url": "https://epartscart.com/CP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/cp",
+            "notes": "Tenant CP."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "ePartsCart ERP",
+            "url": "https://epartscart.com/ERP/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/erp",
+            "notes": "Tenant ERP."
+        },
+        {
+            "hostClass": "tenant",
+            "surface": "ePartsCart www frontend",
+            "url": "https://www.epartscart.com/",
+            "stackToday": "php",
+            "aspNetRouteHint": "/",
+            "notes": "www alias for ePartsCart."
+        },
+        {
+            "hostClass": "aspnet-digest-pending-shadow",
+            "surface": "CP dashboard digest",
+            "url": "https://www.ecomae.com/cp/dashboard-summary",
+            "stackToday": "php-fallback",
+            "aspNetRouteHint": "/cp/dashboard-summary",
+            "notes": "Needs exact-route nginx shadow after smoke; currently PHP 404 HTML."
+        },
+        {
+            "hostClass": "aspnet-digest-pending-shadow",
+            "surface": "ERP dashboard digest",
+            "url": "https://www.ecomae.com/erp/dashboard-summary",
+            "stackToday": "php-fallback",
+            "aspNetRouteHint": "/erp/dashboard-summary",
+            "notes": "Needs exact-route nginx shadow after smoke."
+        },
+        {
+            "hostClass": "aspnet-digest-pending-shadow",
+            "surface": "BOS fleet digest",
+            "url": "https://www.ecomae.com/bos/fleet-summary",
+            "stackToday": "php-fallback",
+            "aspNetRouteHint": "/bos/fleet-summary",
+            "notes": "Needs exact-route nginx shadow after smoke."
+        },
+        {
+            "hostClass": "aspnet-digest-pending-shadow",
+            "surface": "Catalog status",
+            "url": "https://www.ecomae.com/api/v1/catalog/status",
+            "stackToday": "php-fallback",
+            "aspNetRouteHint": "/api/v1/catalog/status",
+            "notes": "Needs exact-route nginx shadow + API key smoke."
+        }
+    ],
+    "cutoverRules": [
+        "Broad /, /api, /cp, /erp, /bos, storefront nginx cutover remains forbidden.",
+        "Only approved location = exact-route shadows may be enabled after staging smoke.",
+        "Keep MigrationRouteCutover StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final gate.",
+        "ReadyToRemovePhp stays false without staging-smoke artifacts + RELEASE_OWNER_APPROVAL.md."
+    ],
+    "nextActions": [
+        "On CloudPanel: set ECOMAE_PRICE_LOOKUP_API_KEY / ECOMAE_CATALOG_API_KEY / optional ECOMAE_ADMIN_COOKIE_HEADER in /etc/ecomae-aspnet/platform.env.",
+        "Run bash scripts/cloudpanel_capture_final_gate_artifacts.sh and commit staging-smoke/*.json.",
+        "Enable deploy/aspnet/nginx-surface-digests-shadow-example.conf one location block at a time.",
+        "Capture PHP-vs-ASP.NET parity samples, then human APPROVED_TO_REMOVE_PHP_FALLBACK."
+    ]
+}

@@ -50,6 +50,9 @@ fi
 ECOMAE_PRICE_LOOKUP_API_KEY="${ECOMAE_PRICE_LOOKUP_API_KEY:-${PRICE_LOOKUP_API_KEY:-}}"
 ECOMAE_CATALOG_API_KEY="${ECOMAE_CATALOG_API_KEY:-${CATALOG_API_KEY:-}}"
 
+printf '\n-- Smoke env preflight (values redacted) --\n'
+bash "$REPO/scripts/cloudpanel_validate_final_gate_env.sh" || true
+
 capture_json() {
   local url="$1"
   local out="$2"
@@ -64,16 +67,24 @@ capture_json() {
 }
 
 printf '\n-- Public / loopback diagnostics --\n'
-capture_json "$ASPNET_BASE/migration/zero-php-completion" "$PUBLIC_DIR/loopback-zero-php-completion.json" || true
-capture_json "$ASPNET_BASE/migration/php-decommission-readiness" "$PUBLIC_DIR/loopback-php-decommission-readiness.json" || true
-capture_json "$ASPNET_BASE/migration/presentation-parity" "$PUBLIC_DIR/loopback-presentation-parity.json" || true
-capture_json "$ASPNET_BASE/migration/live-surface-links" "$PUBLIC_DIR/loopback-live-surface-links.json" || true
 health_code="$(curl -sS -m 20 -o "$PUBLIC_DIR/loopback-health.txt" -w '%{http_code}' "$ASPNET_BASE/health" || true)"
 if [[ "$health_code" == "200" ]]; then
   printf 'OK   %s/health -> %s\n' "$ASPNET_BASE" "$PUBLIC_DIR/loopback-health.txt"
 else
-  printf 'WARN %s/health -> HTTP %s\n' "$ASPNET_BASE" "$health_code"
+  printf 'ERROR %s/health -> HTTP %s (ASP.NET not up; aborting authenticated smoke)\n' "$ASPNET_BASE" "$health_code"
+  printf 'Fix: bash scripts/cloudpanel_find_and_redeploy.sh\n'
+  # Still capture public probes; skip opt-in smoke below by clearing keys.
+  ECOMAE_PRICE_LOOKUP_API_KEY=""
+  ECOMAE_CATALOG_API_KEY=""
+  ECOMAE_ADMIN_COOKIE_HEADER=""
+  ECOMAE_ADMIN_COOKIE_JAR=""
 fi
+
+capture_json "$ASPNET_BASE/migration/zero-php-completion" "$PUBLIC_DIR/loopback-zero-php-completion.json" || true
+capture_json "$ASPNET_BASE/migration/php-decommission-readiness" "$PUBLIC_DIR/loopback-php-decommission-readiness.json" || true
+capture_json "$ASPNET_BASE/migration/presentation-parity" "$PUBLIC_DIR/loopback-presentation-parity.json" || true
+capture_json "$ASPNET_BASE/migration/live-surface-links" "$PUBLIC_DIR/loopback-live-surface-links.json" || true
+capture_json "$ASPNET_BASE/migration/surface-field-parity" "$PUBLIC_DIR/loopback-surface-field-parity.json" || true
 
 if [[ -x "$REPO/scripts/probe_live_surface_stack.sh" ]]; then
   printf '\n-- Public live surface stack probe (no secrets) --\n'
@@ -120,34 +131,82 @@ smoke_price=0
 smoke_catalog=0
 smoke_surfaces=0
 if [[ -n "$ECOMAE_PRICE_LOOKUP_API_KEY" ]]; then
-  export RUN_PRICE_LOOKUP_SMOKE=1
-  export ECOMAE_ASPNET_BASE_URL="$ASPNET_BASE"
-  export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
-  if bash tests/live_smoke/run_price_lookup_exact_route_smoke.sh; then
-    smoke_price=1
+  if [[ "$ECOMAE_PRICE_LOOKUP_API_KEY" != epc_pricepro_* ]]; then
+    printf 'SKIP price lookup smoke: ECOMAE_PRICE_LOOKUP_API_KEY BAD_FORMAT (expect epc_pricepro_ prefix).\n'
+  else
+    export RUN_PRICE_LOOKUP_SMOKE=1
+    export ECOMAE_ASPNET_BASE_URL="$ASPNET_BASE"
+    export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
+    if bash tests/live_smoke/run_price_lookup_exact_route_smoke.sh; then
+      smoke_price=1
+    fi
   fi
 else
   printf 'SKIP price lookup smoke: set ECOMAE_PRICE_LOOKUP_API_KEY in %s or the environment.\n' "$ENV_FILE"
 fi
 
 if [[ -n "$ECOMAE_CATALOG_API_KEY" ]]; then
-  export RUN_CATALOG_STATUS_SMOKE=1
-  export ECOMAE_ASPNET_BASE_URL="$ASPNET_BASE"
-  export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
-  if bash tests/live_smoke/run_catalog_status_exact_route_smoke.sh; then
-    smoke_catalog=1
+  if [[ "$ECOMAE_CATALOG_API_KEY" != epc_catalog_* ]]; then
+    printf 'SKIP catalog status smoke: ECOMAE_CATALOG_API_KEY BAD_FORMAT (expect epc_catalog_ prefix).\n'
+  else
+    export RUN_CATALOG_STATUS_SMOKE=1
+    export ECOMAE_ASPNET_BASE_URL="$ASPNET_BASE"
+    export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
+    if bash tests/live_smoke/run_catalog_status_exact_route_smoke.sh; then
+      smoke_catalog=1
+    fi
   fi
 else
   printf 'SKIP catalog status smoke: set ECOMAE_CATALOG_API_KEY in %s or the environment.\n' "$ENV_FILE"
 fi
 
 if [[ -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" || -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
-  export RUN_SURFACE_DIGEST_SMOKE=1
-  export ECOMAE_REQUIRE_AUTHENTICATED_DIGEST_200=1
-  export ECOMAE_ASPNET_BASE_URL="$ASPNET_BASE"
-  export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
-  if bash tests/live_smoke/run_surface_digest_exact_route_smoke.sh; then
-    smoke_surfaces=1
+  printf '-- Admin session preflight /auth/session/probe --\n'
+  probe_tmp="$(mktemp)"
+  auth_args=()
+  if [[ -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
+    auth_args+=(-b "$ECOMAE_ADMIN_COOKIE_JAR")
+  else
+    auth_args+=(-H "Cookie: ${ECOMAE_ADMIN_COOKIE_HEADER}")
+  fi
+  probe_code="$(curl -sS -m 20 -o "$probe_tmp" -w '%{http_code}' "${auth_args[@]}" \
+    "$ASPNET_BASE/auth/session/probe" || true)"
+  probe_ok=0
+  if [[ "$probe_code" == "200" ]]; then
+    if python3 - "$probe_tmp" <<'PY'
+import json, sys
+doc = json.load(open(sys.argv[1], encoding="utf-8"))
+kind = doc.get("Kind") or doc.get("kind")
+auth = doc.get("IsAuthenticated")
+if auth is None:
+    auth = doc.get("isAuthenticated")
+backend = doc.get("has_backend_access")
+print(f"kind={kind!r} isAuthenticated={auth!r} has_backend_access={backend!r}")
+if str(kind) != "Admin" or auth is False:
+    raise SystemExit(1)
+PY
+    then
+      probe_ok=1
+      printf 'OK   admin session probe\n'
+    else
+      printf 'FAIL admin session probe: not an authenticated Admin session (HTTP %s)\n' "$probe_code"
+      python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); print({k:d.get(k) for k in ("Kind","kind","IsAuthenticated","isAuthenticated","has_backend_access","UserId","userId")})' "$probe_tmp" || true
+    fi
+  else
+    printf 'FAIL admin session probe HTTP %s\n' "$probe_code"
+  fi
+  rm -f "$probe_tmp"
+
+  if [[ "$probe_ok" -eq 1 ]]; then
+    export RUN_SURFACE_DIGEST_SMOKE=1
+    export ECOMAE_REQUIRE_AUTHENTICATED_DIGEST_200=1
+    export ECOMAE_ASPNET_BASE_URL="$ASPNET_BASE"
+    export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
+    if bash tests/live_smoke/run_surface_digest_exact_route_smoke.sh; then
+      smoke_surfaces=1
+    fi
+  else
+    printf 'SKIP surface digest smoke: fix ECOMAE_ADMIN_COOKIE_HEADER/JAR so /auth/session/probe returns Kind=Admin.\n'
   fi
 else
   printf 'SKIP surface digest smoke: set ECOMAE_ADMIN_COOKIE_HEADER or ECOMAE_ADMIN_COOKIE_JAR.\n'

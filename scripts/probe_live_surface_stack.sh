@@ -20,6 +20,8 @@ urls=(
   "https://www.ecomae.com/migration/php-decommission-readiness"
   "https://www.ecomae.com/migration/presentation-parity"
   "https://www.ecomae.com/migration/live-surface-links"
+  "https://www.ecomae.com/migration/surface-field-parity"
+  "https://www.ecomae.com/migration/surface-parity"
   "https://www.ecomae.com/api/v1/price/lookup"
   "https://www.ecomae.com/cp/dashboard-summary"
   "https://www.ecomae.com/erp/dashboard-summary"

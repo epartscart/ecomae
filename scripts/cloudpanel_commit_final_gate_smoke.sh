@@ -48,14 +48,32 @@ if [[ "$missing" -ne 0 ]]; then
   exit 1
 fi
 
-# Soft validate surface smoke ok + authenticated 200 digests without inventing data.
-python3 - "$SMOKE/surface-digests-aspnet.json" <<'PY'
+# Soft validate smoke JSON without inventing data.
+python3 - "$SMOKE" <<'PY'
 import json, sys
-path = sys.argv[1]
-with open(path, encoding="utf-8") as fh:
-    doc = json.load(fh)
-if not doc.get("ok") is True:
-    raise SystemExit(f"FAIL {path}: ok must be true")
+from pathlib import Path
+root = Path(sys.argv[1])
+
+price = json.loads((root / "price-lookup-aspnet.json").read_text(encoding="utf-8"))
+if isinstance(price.get("error"), dict) and price["error"].get("code") in {
+    "missing_api_key", "unauthorized", "invalid_api_key"
+}:
+    raise SystemExit("FAIL price-lookup-aspnet.json looks unauthenticated")
+if price.get("ok") is False:
+    raise SystemExit("FAIL price-lookup-aspnet.json ok=false")
+print("OK price lookup smoke JSON")
+
+catalog = json.loads((root / "catalog-status-aspnet.json").read_text(encoding="utf-8"))
+if catalog.get("ok") is False or isinstance(catalog.get("error"), dict):
+    raise SystemExit("FAIL catalog-status-aspnet.json has error envelope")
+for key in ("connected", "counts", "source"):
+    if key not in catalog:
+        raise SystemExit(f"FAIL catalog-status-aspnet.json missing {key}")
+print("OK catalog status smoke JSON")
+
+doc = json.loads((root / "surface-digests-aspnet.json").read_text(encoding="utf-8"))
+if doc.get("ok") is not True:
+    raise SystemExit("FAIL surface-digests-aspnet.json: ok must be true")
 routes = doc.get("routes") or []
 digest_200 = [
     r for r in routes
@@ -64,7 +82,7 @@ digest_200 = [
     and not str(r.get("route") or "").startswith("/migration/")
 ]
 if not digest_200:
-    raise SystemExit(f"FAIL {path}: need at least one non-migration digest HTTP 200")
+    raise SystemExit("FAIL surface-digests-aspnet.json: need at least one non-migration digest HTTP 200")
 print(f"OK surface smoke: {len(digest_200)} authenticated digest 200 route(s)")
 PY
 

@@ -39,10 +39,13 @@ bash scripts/cloudpanel_find_and_redeploy.sh
 # ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=...'
 
 source /etc/ecomae-aspnet/platform.env
+bash scripts/cloudpanel_validate_final_gate_env.sh
 bash scripts/cloudpanel_capture_final_gate_artifacts.sh
 # When all three smoke files exist:
 bash scripts/cloudpanel_commit_final_gate_smoke.sh
 ```
+
+Exact-route promotion (after smoke only): `docs/migration/EXACT_ROUTE_PROMOTION_PRICE_CATALOG.md`
 
 Deploy packs `docs/migration/evidence/decommission` into the ASP.NET release ContentRoot so `/migration/php-decommission-readiness` can see attached git artifacts on the server (checklist should show public probes/scripts present after redeploy; authenticated smoke + approval still required).
 
@@ -62,6 +65,7 @@ Exact-route shadow examples:
 - `deploy/aspnet/nginx-price-lookup-shadow-example.conf`
 - `deploy/aspnet/nginx-api-shadow-example.conf` (catalog status)
 - `deploy/aspnet/nginx-surface-digests-shadow-example.conf`
+- `deploy/aspnet/nginx-storefront-digests-shadow-example.conf`
 - `deploy/aspnet/nginx-storefront-digests-shadow-example.conf`
 
 ## Why the last 5% remains

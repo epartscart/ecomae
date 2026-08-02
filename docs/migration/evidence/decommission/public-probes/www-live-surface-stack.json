@@ -1,5 +1,5 @@
 {
-  "capturedAtUtc": "2026-08-02T17:59:40Z",
+  "capturedAtUtc": "2026-08-02T18:35:53Z",
   "note": "Public probe only. Does not authorize PHP removal or broad cutover.",
   "routes": [
     {
@@ -63,28 +63,28 @@
       "status": 200,
       "stack": "aspnet-json",
       "contentType": "application/json; charset=utf-8",
-      "bytes": 3455
+      "bytes": 3494
     },
     {
       "url": "https://www.ecomae.com/migration/php-decommission-readiness",
       "status": 200,
       "stack": "aspnet-json",
       "contentType": "application/json; charset=utf-8",
-      "bytes": 3102
+      "bytes": 3394
     },
     {
       "url": "https://www.ecomae.com/migration/presentation-parity",
       "status": 200,
       "stack": "aspnet-json",
       "contentType": "application/json; charset=utf-8",
-      "bytes": 3438
+      "bytes": 3540
     },
     {
       "url": "https://www.ecomae.com/migration/live-surface-links",
-      "status": 404,
-      "stack": "other",
-      "contentType": "",
-      "bytes": 0
+      "status": 200,
+      "stack": "aspnet-json",
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 10151
     },
     {
       "url": "https://www.ecomae.com/api/v1/price/lookup",
@@ -126,7 +126,7 @@
       "status": 200,
       "stack": "php-html",
       "contentType": "text/html; charset=utf-8",
-      "bytes": 173772
+      "bytes": 173787
     },
     {
       "url": "https://healthcare.ecomae.com/CP/",
@@ -140,7 +140,7 @@
       "status": 200,
       "stack": "php-html",
       "contentType": "text/html; charset=UTF-8",
-      "bytes": 173790
+      "bytes": 173781
     },
     {
       "url": "https://www.electronicae.com/",

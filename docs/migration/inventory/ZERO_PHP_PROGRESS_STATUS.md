@@ -49,6 +49,7 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - Field/function/presentation parity contracts + harness (`/migration/surface-field-parity`, `scripts/run_surface_parity_harness.sh`).
 - Migration-mode digest contract validator + golden samples (no secrets); live final-gate checklist ~5/9 until authenticated smoke is attached from CloudPanel.
 - Final-gate smoke hardening: authenticated digest HTTP 200 required; catalog + storefront shadow examples in gate; CloudPanel commit helper for real smoke only.
+- Smoke env preflight (prefix/cookie format, no secret print), catalog nginx API-key header fix, price/catalog promotion runbook, dual-sample compare helpers, live still-PHP public probes.
 - PHP decommission readiness reporter documents blockers; removal remains blocked.
 - No broad PHP cutover; parity/shadow remain 0%.
 

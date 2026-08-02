@@ -1,0 +1,10 @@
+{
+  "capturedAtUtc": "2026-08-02T18:35:32Z",
+  "url": "https://www.ecomae.com/cp/dashboard-summary",
+  "status": 404,
+  "contentType": "text/html; charset=UTF-8",
+  "bodyPrefix": "<!DOCTYPE html> <html> <head> \t<base href=\"/cp/templates/bootstrap_admin/\">     <meta charset=\"utf-8\">     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">   ",
+  "classification": "php-html",
+  "note": "Public CP digest still PHP HTML 404 until exact-route shadow after authenticated smoke.",
+  "notStagingSmoke": true
+}
