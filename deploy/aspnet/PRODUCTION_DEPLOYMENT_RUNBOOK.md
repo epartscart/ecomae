@@ -181,6 +181,9 @@ This wrapper still runs `scripts/deploy_aspnet_foundation.sh`; it only protects 
 
 ## Fix PR #569 merge conflicts from terminal
 
+
+For the exact CloudPanel failure where the prompt is `root@srv...:~#` and PR #569 commands fail because the shell is outside the repo, use `deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md` first.
+
 Use this after confirming PR #569 is the desired branch to update. If GitHub CLI is installed, the helper uses `gh pr checkout 569` so `RUN_PUSH=1` updates the actual PR branch. Without `gh`, it fetches the read-only pull ref and prints the explicit push command you must run for the real PR source branch:
 
 ```bash

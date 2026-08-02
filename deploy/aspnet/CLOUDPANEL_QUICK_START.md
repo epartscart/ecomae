@@ -1,5 +1,7 @@
 # CloudPanel ASP.NET Foundation Quick Start
 
+If the prompt looks like `root@srv...:~#`, you are probably in `/root`, not the repository. Run the paste-safe repo finder below before any `bash scripts/...` or `git rebase --continue` command. For PR #569 specifically, use `deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md`.
+
 The command `bash scripts/preflight_aspnet_production.sh` must be run from the repository root. If CloudPanel shows `No such file or directory`, you are not inside the checked-out repo yet or the repository has not been cloned to that server.
 
 Do not paste the example path `/path/to/ecomae-repo` literally. Replace it with the real repository path found by the commands below.
@@ -65,7 +67,7 @@ The preflight should only pass after .NET, PHP, curl, release directories, and t
 ## 6. Deploy diagnostics-only ASP.NET
 
 ```bash
-sudo ECOMAE_RUN_SYSTEMD=1 \
+sudo env ECOMAE_RUN_SYSTEMD=1 \
 ECOMAE_ASPNET_RELEASE_ROOT=/var/www/ecomae-aspnet \
 bash scripts/deploy_aspnet_foundation.sh
 ```

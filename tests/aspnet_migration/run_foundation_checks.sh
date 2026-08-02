@@ -261,6 +261,11 @@ check 'CloudPanel quick start exists' test -f "$ROOT/deploy/aspnet/CLOUDPANEL_QU
 check 'CloudPanel quick start explains repo root' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'run from the repository root'
 check 'CloudPanel quick start has paste-safe finder' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Paste-safe repo finder'
 check 'CloudPanel quick start warns about literal placeholder path' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Do not paste the example path'
+check 'CloudPanel quick start warns about root prompt' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'root@srv...:~#'
+check 'PR 569 CloudPanel quick fix runbook exists' test -f "$ROOT/deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md"
+check 'PR 569 CloudPanel quick fix explains not git repo' contains "$ROOT/deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md" 'not a git repository'
+check 'PR 569 CloudPanel quick fix finds repo before scripts' contains "$ROOT/deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md" 'find /var/www /opt /root'
+check 'PR 569 CloudPanel quick fix uses sudo env deploy' contains "$ROOT/deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md" 'sudo env ECOMAE_RUN_SYSTEMD=1'
 check 'CloudPanel missing repo recovery exists' test -f "$ROOT/deploy/aspnet/CLOUDPANEL_MISSING_REPO_RECOVERY.md"
 check 'CloudPanel missing repo recovery requires real git URL' contains "$ROOT/deploy/aspnet/CLOUDPANEL_MISSING_REPO_RECOVERY.md" 'Set ECOMAE_GIT_URL to the real repository URL first'
 check 'production runbook troubleshoots missing script' contains "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md" 'No such file or directory'
