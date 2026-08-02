@@ -226,6 +226,50 @@ public sealed class CatalogOfflineCacheServiceTests
     }
 
     [Fact]
+    public async Task LookupEngineSearchRejectsShortCode()
+    {
+        var service = new CatalogOfflineCacheService(new StaticOfflineRepo());
+        var result = await service.LookupEngineSearchAsync("passenger", "X", 0, "en", "WWW");
+        Assert.False(result.Ok);
+        Assert.Equal(400, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task LookupEngineSearchUsesPhpParamShape()
+    {
+        var cacheKey = UmapiCacheKeyBuilder.Build(
+            "engine_search",
+            "passenger",
+            "en",
+            "WWW",
+            new Dictionary<string, object?> { ["code"] = "3L", ["MFA_ID"] = 0 });
+        var service = new CatalogOfflineCacheService(new StaticOfflineRepo(
+            action: new CatalogActionCacheRow(
+                cacheKey,
+                "engine_search",
+                "passenger",
+                "en",
+                "WWW",
+                JsonSerializer.Serialize(new { code = "3L", matches = new[] { new { ENGINE_CODE = "3L" } } }),
+                1,
+                200,
+                1710000000)));
+
+        var result = await service.LookupEngineSearchAsync("passenger", "3L", 0, "en", "WWW");
+        Assert.True(result.Ok);
+        Assert.Equal("engine_search", result.Action);
+    }
+
+    [Fact]
+    public async Task LookupArticleLinksRequiresId()
+    {
+        var service = new CatalogOfflineCacheService(new StaticOfflineRepo());
+        var result = await service.LookupArticleLinksAsync("passenger", 0, "en", "WWW");
+        Assert.False(result.Ok);
+        Assert.Equal("missing_params", result.Code);
+    }
+
+    [Fact]
     public void LegacySqlContractsAreSelectOnly()
     {
         Assert.Equal("epc_umapi_vin_cache", LegacyCatalogVinSql.SourceTable);

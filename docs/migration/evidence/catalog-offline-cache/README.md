@@ -8,6 +8,8 @@ Tracked PHP routes (offline/cache path):
 - `api/v1/catalog.php?action=brands` (BrandRefinement by article — not supplier list)
 - `api/v1/catalog.php?action=categories`
 - `api/v1/catalog.php?action=products`
+- `api/v1/catalog.php?action=engine_search`
+- `api/umapi_proxy.php?action=article_links` (auth via catalog `article`)
 
 ## ASP.NET implementation
 
@@ -17,13 +19,17 @@ Tracked PHP routes (offline/cache path):
 - `/api/v1/catalog/article-brands?section=passenger&article=...` (PHP `action=brands`)
 - `/api/v1/catalog/categories?section=passenger&id=...`
 - `/api/v1/catalog/products?section=passenger&category_id=...&id=...`
+- `/api/v1/catalog/engine-search?section=passenger&code=...&mfa_id=0`
+- `/api/v1/catalog/article-links?section=passenger&id=...`
 - Service: `CatalogOfflineCacheService`
 - Repository: `DbCatalogOfflineCacheRepository` (read-only)
 - Tables: `epc_umapi_vin_cache`, `epc_umapi_cache`
 - Cache key: `UmapiCacheKeyBuilder` mirrors PHP `epc_cache_key` / `epc_normalize_vin`
-- Auth: catalog API-key actions `vin` / `engines` / `analogs` / `brands` / `categories` / `products`
+- Auth: catalog API-key actions as mapped per route
 - Writes: zero
 - Cache miss: HTTP 404; PHP/UMAPI remains authoritative for live fills
+
+Related stock route (not UMAPI cache): `/api/v1/catalog/brand-parts?brand=...` → `shop_docpart_prices_data`.
 
 Note: ASP.NET `/api/v1/catalog/brands` remains the suppliers/brands table list (PHP `action=suppliers`). Article BrandRefinement is intentionally on `/article-brands`.
 
@@ -35,6 +41,9 @@ Note: ASP.NET `/api/v1/catalog/brands` remains the suppliers/brands table list (
 - `deploy/aspnet/nginx-catalog-article-brands-shadow-example.conf`
 - `deploy/aspnet/nginx-catalog-categories-shadow-example.conf`
 - `deploy/aspnet/nginx-catalog-products-shadow-example.conf`
+- `deploy/aspnet/nginx-catalog-engine-search-shadow-example.conf`
+- `deploy/aspnet/nginx-catalog-article-links-shadow-example.conf`
+- `deploy/aspnet/nginx-catalog-brand-parts-shadow-example.conf`
 
 ## Staging smoke
 
@@ -51,6 +60,12 @@ curl -sS -H "X-API-Key: epc_catalog_REAL_KEY" \
   "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/categories?section=passenger&id=1"
 curl -sS -H "X-API-Key: epc_catalog_REAL_KEY" \
   "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/products?section=passenger&category_id=1&id=1"
+curl -sS -H "X-API-Key: epc_catalog_REAL_KEY" \
+  "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/engine-search?section=passenger&code=3L"
+curl -sS -H "X-API-Key: epc_catalog_REAL_KEY" \
+  "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/article-links?section=passenger&id=123"
+curl -sS -H "X-API-Key: epc_catalog_REAL_KEY" \
+  "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/brand-parts?brand=BOSCH&limit=20"
 ```
 
 Keep PHP fallback until artifacts are attached. Do not enable nginx shadows without staging smoke.

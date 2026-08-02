@@ -43,7 +43,13 @@ if [[ -z "$REPO" ]]; then
   REPO="${found%/scripts/cloudpanel_production_deploy_foundation.sh}"
 fi
 if [[ -z "$REPO" || ! -d "$REPO" ]]; then
-  printf 'Repository not found.\n' >&2
+  printf 'Repository not found under /root/ecomae, /opt/ecomae-aspnet-source, or /opt/ecomae.\n' >&2
+  printf '/var/www/ecomae is NOT used — that path is usually missing.\n' >&2
+  printf 'Paste-safe recovery (as root):\n' >&2
+  printf '  mkdir -p /opt && cd /opt\n' >&2
+  printf '  git clone https://github.com/epartscart/ecomae.git ecomae-aspnet-source\n' >&2
+  printf '  cd /opt/ecomae-aspnet-source && git checkout main && git pull --ff-only\n' >&2
+  printf '  bash scripts/cloudpanel_find_and_redeploy.sh\n' >&2
   exit 1
 fi
 

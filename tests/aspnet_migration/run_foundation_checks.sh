@@ -256,7 +256,7 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 48.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 50.0%'
 check 'zero PHP progress status blocks broad cutover' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Broad `/api`, `/cp`, `/erp`, `/bos`'
 check 'catalog manufacturers route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/manufacturers'
 check 'DB catalog manufacturers repository exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbCatalogManufacturerRepository.cs"
@@ -293,6 +293,20 @@ check 'API module maps categories offline cache' contains "$ROOT/aspnet/src/Ecom
 check 'API module maps products offline cache' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'LookupProductsAsync'
 check 'catalog categories nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-categories-shadow-example.conf"
 check 'catalog products nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-products-shadow-example.conf"
+check 'catalog engine-search route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/engine-search'
+check 'catalog article-links route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/article-links'
+check 'catalog brand-parts route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/brand-parts'
+check 'program registers catalog brand parts service' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ICatalogBrandPartsService, CatalogBrandPartsService'
+check 'DB catalog brand parts repository is read-only' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Catalog/DbCatalogBrandPartsRepository.cs" 'Performs zero writes'
+check 'API module maps engine-search offline cache' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'LookupEngineSearchAsync'
+check 'API module maps article-links offline cache' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'LookupArticleLinksAsync'
+check 'catalog engine-search nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-engine-search-shadow-example.conf"
+check 'catalog article-links nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-article-links-shadow-example.conf"
+check 'catalog brand-parts nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-brand-parts-shadow-example.conf"
+check 'catalog brand-parts evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-brand-parts/README.md"
+check 'CloudPanel find-and-redeploy script exists' test -x "$ROOT/scripts/cloudpanel_find_and_redeploy.sh"
+check 'CloudPanel find-and-redeploy rejects var www ecomae assumption' contains "$ROOT/scripts/cloudpanel_find_and_redeploy.sh" '/var/www/ecomae is NOT a required path'
+check 'CloudPanel quick start warns against var www ecomae' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Do not use `/var/www/ecomae`'
 check 'CloudPanel continue-after-env script exists' test -x "$ROOT/scripts/cloudpanel_continue_after_env.sh"
 check 'CloudPanel quick start explains nano save/exit' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Ctrl+O'
 check 'worker dry-run evidence provider exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs"
