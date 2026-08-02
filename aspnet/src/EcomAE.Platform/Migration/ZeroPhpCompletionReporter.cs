@@ -76,10 +76,10 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 :
                 [
                     "Redeploy with git reset --hard origin/main then scripts/cloudpanel_find_and_redeploy.sh (or cloudpanel_bootstrap_from_github.sh).",
-                    "Run exact-route staging smoke for /api/v1/price/lookup and /api/v1/catalog/status with real API keys.",
-                    "Attach smoke artifacts, then enable only approved location = exact-route nginx shadows.",
+                    "Ensure table + issue smoke creds: cloudpanel_ensure_epc_api_clients_table.sh → cloudpanel_issue_smoke_credentials.sh (never invent keys).",
+                    "Capture/commit staging-smoke for price lookup, catalog status, and surface digests.",
+                    "Promote one location = shadow at a time; compare_catalog_status_parity.py / compare_catalog_list_parity.py before more catalog paths.",
                     "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
-                    "Use /migration/live-surface-links and docs/migration/LIVE_SURFACE_LINKS.md for operator/tenant URLs while PHP remains authoritative.",
                     "The remaining 5% is PHP runtime decommission only — run scripts/run_zero_php_final_gate_checklist.sh, attach staging smoke/parity artifacts, then release-owner approval before PHP removal."
                 ]);
     }

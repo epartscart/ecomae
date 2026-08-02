@@ -169,6 +169,25 @@ public sealed class SurfaceDigestContractValidatorTests
         Assert.Contains(failures, f => f.Contains("adminSessions", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void CatalogListEnvelopesSatisfyContractsWhenDataEmpty()
+    {
+        var payloads = new Dictionary<string, string>
+        {
+            ["/api/v1/catalog/manufacturers"] = """{"ok":true,"section":"passenger","rows":0,"source":"migration","data":[],"message":"x"}""",
+            ["/api/v1/catalog/models"] = """{"ok":true,"action":"models","section":"passenger","rows":0,"source":"migration","data":[],"message":"x"}""",
+            ["/api/v1/catalog/modifications"] = """{"ok":true,"action":"modifications","section":"passenger","rows":0,"source":"migration","data":[],"message":"x"}""",
+            ["/api/v1/catalog/brands"] = """{"ok":true,"action":"brands","section":"all","rows":0,"source":"migration","data":[],"message":"x"}"""
+        };
+
+        foreach (var (route, json) in payloads)
+        {
+            var contract = SurfacePayloadContractCatalog.All.Single(c => c.AspNetRoute == route);
+            var failures = SurfaceDigestContractValidator.Validate(contract, json);
+            Assert.True(failures.Count == 0, $"{route}: {string.Join("; ", failures)}");
+        }
+    }
+
     private static object Envelope(string surface, string listKey, object listResult, object session)
     {
         var node = JsonSerializer.SerializeToNode(

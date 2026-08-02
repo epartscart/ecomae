@@ -80,10 +80,11 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "ReadyToRemovePhp stays false without staging-smoke artifacts + RELEASE_OWNER_APPROVAL.md."
             ],
             [
-                "On CloudPanel: set ECOMAE_PRICE_LOOKUP_API_KEY / ECOMAE_CATALOG_API_KEY / optional ECOMAE_ADMIN_COOKIE_HEADER in /etc/ecomae-aspnet/platform.env.",
-                "Run bash scripts/cloudpanel_capture_final_gate_artifacts.sh and commit staging-smoke/*.json.",
-                "Enable deploy/aspnet/nginx-surface-digests-shadow-example.conf one location block at a time.",
-                "Capture PHP-vs-ASP.NET parity samples, then human APPROVED_TO_REMOVE_PHP_FALLBACK."
+                "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
+                "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh (login Super CP if cookie missing).",
+                "source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh",
+                "Extract one path: bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status (then manufacturers via nginx-catalog-*-shadow-example.conf).",
+                "Dual-sample: python3 scripts/compare_catalog_list_parity.py manufacturers php.json aspnet.json — then human APPROVED_TO_REMOVE_PHP_FALLBACK."
             ]);
     }
 

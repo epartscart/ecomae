@@ -60,6 +60,20 @@ curl -sS -o /tmp/catalog.json -w '%{http_code}\n' \
 
 Expect HTTP 200 JSON with `connected` / `counts` / `source` (not PHP HTML 404).
 
+### Catalog manufacturers (wave 1 after status)
+
+```bash
+bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/manufacturers
+# review disabled snippet, then enable + reload
+curl -sS -o /tmp/mfr-aspnet.json -w '%{http_code}\n' \
+  -H "X-API-Key: $ECOMAE_CATALOG_API_KEY" \
+  "https://www.ecomae.com/api/v1/catalog/manufacturers?section=passenger"
+# Capture PHP twin, then:
+python3 scripts/compare_catalog_list_parity.py manufacturers /tmp/mfr-php.json /tmp/mfr-aspnet.json
+```
+
+Same pattern for `/api/v1/catalog/models`, `/modifications`, `/brands` using `nginx-catalog-*-shadow-example.conf`.
+
 ## Rollback
 
 ```bash

@@ -191,6 +191,28 @@ public static class SurfacePayloadContractCatalog
             ["connected", "message", "status_code", "counts", "source"],
             ["manufacturers", "models", "modifications", "brands", "vins"],
             ["catalog status"],
+            "n/a-json-api"),
+        // Catalog list wave 1 — envelope locked; item shape compared via scripts/compare_catalog_list_parity.py
+        // when dual samples are attached (empty data[] still satisfies the contract validator).
+        Contract("api", "/api/v1/catalog/manufacturers", "api/v1/catalog.php manufacturers", "api-key",
+            ["ok", "section", "rows", "source", "data", "message"],
+            [],
+            ["cached manufacturers list"],
+            "n/a-json-api"),
+        Contract("api", "/api/v1/catalog/models", "api/v1/catalog.php models", "api-key",
+            ["ok", "action", "section", "rows", "source", "data", "message"],
+            [],
+            ["cached models list"],
+            "n/a-json-api"),
+        Contract("api", "/api/v1/catalog/modifications", "api/v1/catalog.php modifications", "api-key",
+            ["ok", "action", "section", "rows", "source", "data", "message"],
+            [],
+            ["cached modifications list"],
+            "n/a-json-api"),
+        Contract("api", "/api/v1/catalog/brands", "api/v1/catalog.php brands", "api-key",
+            ["ok", "action", "section", "rows", "source", "data", "message"],
+            [],
+            ["cached brands list"],
             "n/a-json-api")
     ];
 
@@ -209,7 +231,8 @@ public static class SurfacePayloadContractCatalog
         new("storefront", "account/orders/garage/profile", "/storefront/account-summary|/storefront/orders|/storefront/garage|/storefront/profile", "digest-wired-awaiting-dual-sample", "Customer session digests; PHP account remains authoritative."),
         new("frontend", "tenant/industry storefront HTML", "/", "php-authoritative", "No broad storefront cutover until HTML/SEO/cart parity samples match."),
         new("api", "price lookup", "/api/v1/price/lookup", "aspnet-live-exact-route", "Already on ASP.NET with JSON auth gate; authenticated offer parity still required."),
-        new("api", "catalog status", "/api/v1/catalog/status", "awaiting-exact-route-shadow", "Contract ready; public host still PHP until shadow + smoke.")
+        new("api", "catalog status", "/api/v1/catalog/status", "awaiting-exact-route-shadow", "Contract ready; public host still PHP until shadow + smoke."),
+        new("api", "catalog manufacturers/models/modifications/brands", "/api/v1/catalog/manufacturers|/models|/modifications|/brands", "digest-wired-awaiting-dual-sample", "Envelope contracts + compare_catalog_list_parity.py; enable nginx-catalog-*-shadow-example.conf one path after smoke.")
     ];
 
     private static SurfacePayloadContract Contract(

@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "action": "models",
+  "section": "passenger",
+  "mfa_id": 1,
+  "ms_id": null,
+  "rows": 0,
+  "source": "migration",
+  "stale": true,
+  "data": [],
+  "message": "TenantRegistry DB is not configured."
+}

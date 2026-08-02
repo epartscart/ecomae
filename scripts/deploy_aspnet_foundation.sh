@@ -66,18 +66,26 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" \
   "$ROOT/scripts/cloudpanel_validate_final_gate_env.sh" \
   "$ROOT/scripts/cloudpanel_issue_smoke_credentials.sh" \
+  "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh" \
   "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" \
   "$ROOT/scripts/wait_for_aspnet_health.sh" \
   "$ROOT/scripts/rollback_aspnet_foundation.sh" \
   "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" \
   "$PLATFORM_DIR/scripts/"
-# PHP issuer used by cloudpanel_issue_smoke_credentials.sh
-if [[ -f "$ROOT/scripts/php/issue_final_gate_smoke_credentials.php" ]]; then
-  install -d "$PLATFORM_DIR/scripts/php"
-  install -m 0644 "$ROOT/scripts/php/issue_final_gate_smoke_credentials.php" "$PLATFORM_DIR/scripts/php/"
-fi
+# PHP issuer + ensure-table helpers (DP_Config bootstrap required by issue script).
+install -d "$PLATFORM_DIR/scripts/php"
+for php_helper in \
+  issue_final_gate_smoke_credentials.php \
+  ensure_epc_api_clients_table.php \
+  _smoke_db_bootstrap.php
+do
+  if [[ -f "$ROOT/scripts/php/$php_helper" ]]; then
+    install -m 0644 "$ROOT/scripts/php/$php_helper" "$PLATFORM_DIR/scripts/php/"
+  fi
+done
 printf 'Packed decommission evidence into %s/docs/migration/evidence/decommission\n' "$PLATFORM_DIR"
 printf 'Packed gate shadow examples (price/api/surface/storefront) into %s/deploy/aspnet\n' "$PLATFORM_DIR"
+printf 'Packed smoke issuer/ensure PHP helpers into %s/scripts/php\n' "$PLATFORM_DIR"
 
 ln -sfn "$RELEASE_DIR" "$RELEASE_ROOT/current"
 
