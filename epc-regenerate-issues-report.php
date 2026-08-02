@@ -63,7 +63,7 @@ if ($storedRel === '') {
 
 $filePath = $_SERVER['DOCUMENT_ROOT'] . $storedRel;
 if (!is_file($filePath)) {
-    exit(json_encode(['status' => false, 'message' => 'Archived file missing on disk', 'path' => $storedRel]);
+    exit(json_encode(['status' => false, 'message' => 'Archived file missing on disk', 'path' => $storedRel]));
 }
 
 $q = $db->prepare('SELECT * FROM `shop_docpart_prices` WHERE `id` = ? LIMIT 1');
