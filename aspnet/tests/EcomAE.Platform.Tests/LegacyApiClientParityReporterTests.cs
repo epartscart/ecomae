@@ -1,0 +1,17 @@
+using EcomAE.Platform.Auth;
+using Xunit;
+
+namespace EcomAE.Platform.Tests;
+
+public sealed class LegacyApiClientParityReporterTests
+{
+    [Fact]
+    public void BuildReportNamesPrefixesAndDatabaseGaps()
+    {
+        var report = new LegacyApiClientParityReporter().BuildReport();
+
+        Assert.Contains("epc_catalog_", report.SupportedPrefixes);
+        Assert.Contains("daily quota", report.EnforcedRules);
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("epc_api_clients", StringComparison.Ordinal));
+    }
+}
