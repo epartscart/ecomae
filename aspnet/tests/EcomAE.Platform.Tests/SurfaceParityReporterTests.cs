@@ -17,6 +17,7 @@ public sealed class SurfaceParityReporterTests
         Assert.Contains(report.Items, item => item.Surface == "Super BOS" && item.LegacyRoute == "ecomae.com/BOS");
         Assert.Contains(report.Items, item => item.Surface == "Tenant ERP" && item.RequiredEvidence.Contains("ERP-only tenant", StringComparison.Ordinal));
         Assert.Contains(report.Items, item => item.Surface == "Super CP" && item.Status == "presentation-shell-scaffolded");
-        Assert.Contains(report.RequiredBeforeFiftyPercent, gate => gate.Contains("HTML chrome parity", StringComparison.Ordinal));
+        Assert.Contains(report.RequiredBeforeFiftyPercent, gate => gate.Contains("run_surface_parity_harness.sh", StringComparison.Ordinal));
+        Assert.Contains(report.RequiredBeforeFiftyPercent, gate => gate.Contains("surface-field-parity", StringComparison.Ordinal));
     }
 }

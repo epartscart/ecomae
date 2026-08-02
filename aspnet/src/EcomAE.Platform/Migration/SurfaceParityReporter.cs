@@ -21,10 +21,10 @@ public sealed class SurfaceParityReporter : ISurfaceParityReporter
             "parity-not-yet-reached",
             items,
             [
-                "Capture HTML chrome parity samples (CSS asset URLs + DOM) for CP/ERP/BOS/storefront against PHP.",
-                "Connect catalog/price APIs to existing MySQL tables with response parity tests.",
+                "Run scripts/run_surface_parity_harness.sh and attach field-by-field dual samples under docs/migration/evidence/surface-parity/samples/.",
+                "Use /migration/surface-field-parity contracts before any exact-route shadow promotion.",
                 "Validate legacy session bridge against real CP/ERP/BOS login cookies and permissions.",
-                "Add production proxy flags and rollback telemetry for the first ASP.NET Core-routed surface."
+                "Keep broad /cp /erp /bos /storefront cutover blocked until every contracted digest/presentation match is true."
             ]);
     }
 }
