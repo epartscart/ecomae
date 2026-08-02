@@ -60,13 +60,15 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
             Item("staging-smoke-surfaces", "CP/ERP/BOS digest staging smoke artifact",
                 PhpDecommissionEvidence.HasSurfaceDigestSmoke(root),
                 PhpDecommissionEvidence.HasSurfaceDigestSmoke(root)
-                    ? "validated surface digest smoke JSON"
-                    : "attach surface-digests-aspnet.json with ok=true and routes[]"),
+                    ? "validated surface digest smoke JSON with authenticated digest HTTP 200"
+                    : "attach surface-digests-aspnet.json with ok=true and at least one non-migration digest HTTP 200"),
             Item("parity-samples-attached", "At least one attached PHP-vs-ASP.NET parity sample under evidence",
                 PhpDecommissionEvidence.HasParitySamples(root)),
             Item("exact-route-shadows-only", "Exact-route nginx shadow examples present; broad cutover still forbidden",
                 File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"))
-                && File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"))),
+                && File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-api-shadow-example.conf"))
+                && File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"))
+                && File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-storefront-digests-shadow-example.conf"))),
             Item("cloudpanel-capture-script", "CloudPanel final-gate capture script exists",
                 File.Exists(Path.Combine(FindRepoRoot(), "scripts", "cloudpanel_capture_final_gate_artifacts.sh"))),
             Item("rollback-validated", "Operator rollback script exists and keeps PHP fallback",

@@ -46,11 +46,13 @@ public sealed class PhpDecommissionReadinessReporterTests
             File.WriteAllText(Path.Combine(evidence, "public-probes", "www-php-decommission-readiness.json"), "{}");
             File.WriteAllText(Path.Combine(evidence, "staging-smoke", "price-lookup-aspnet.json"), """{"brand":"TOYOTA","offers":[]}""");
             File.WriteAllText(Path.Combine(evidence, "staging-smoke", "catalog-status-aspnet.json"), """{"status":"ok"}""");
-            File.WriteAllText(Path.Combine(evidence, "staging-smoke", "surface-digests-aspnet.json"), """{"ok":true,"routes":[{"route":"/cp/dashboard-summary","status":200}]}""");
+            File.WriteAllText(Path.Combine(evidence, "staging-smoke", "surface-digests-aspnet.json"), """{"ok":true,"authenticatedDigest200Count":1,"routes":[{"route":"/cp/dashboard-summary","status":200}]}""");
             File.WriteAllText(Path.Combine(evidence, "parity-samples", "sample.json"), """{"route":"/api/v1/price/lookup"}""");
             File.WriteAllText(Path.Combine(evidence, "RELEASE_OWNER_APPROVAL.md"), "APPROVED_TO_REMOVE_PHP_FALLBACK\n");
             File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-api-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-api-shadow-example.conf"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-storefront-digests-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-storefront-digests-shadow-example.conf"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "scripts", "cloudpanel_capture_final_gate_artifacts.sh"), Path.Combine(releaseRoot, "scripts", "cloudpanel_capture_final_gate_artifacts.sh"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "scripts", "rollback_aspnet_foundation.sh"), Path.Combine(releaseRoot, "scripts", "rollback_aspnet_foundation.sh"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "scripts", "run_zero_php_final_gate_checklist.sh"), Path.Combine(releaseRoot, "scripts", "run_zero_php_final_gate_checklist.sh"), overwrite: true);
@@ -87,7 +89,9 @@ public sealed class PhpDecommissionReadinessReporterTests
             CopyDirectory(Path.Combine(repoRoot, "docs", "migration", "evidence", "decommission"), Path.Combine(releaseRoot, "docs", "migration", "evidence", "decommission"));
             File.Copy(Path.Combine(repoRoot, "docs", "migration", "PHP_DECOMMISSION_READINESS.md"), Path.Combine(releaseRoot, "docs", "migration", "PHP_DECOMMISSION_READINESS.md"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-api-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-api-shadow-example.conf"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-storefront-digests-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-storefront-digests-shadow-example.conf"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "scripts", "cloudpanel_capture_final_gate_artifacts.sh"), Path.Combine(releaseRoot, "scripts", "cloudpanel_capture_final_gate_artifacts.sh"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "scripts", "rollback_aspnet_foundation.sh"), Path.Combine(releaseRoot, "scripts", "rollback_aspnet_foundation.sh"), overwrite: true);
 

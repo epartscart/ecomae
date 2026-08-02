@@ -153,8 +153,8 @@ public static class SurfacePayloadContractCatalog
             ["price lookup offers"],
             "n/a-json-api"),
         Contract("api", "/api/v1/catalog/status", "api/v1/catalog.php status", "api-key",
-            ["ok", "status"],
-            ["status"],
+            ["connected", "message", "status_code", "counts", "source"],
+            ["manufacturers", "models", "modifications", "brands", "vins"],
             ["catalog status"],
             "n/a-json-api")
     ];

@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "surface": "storefront",
+  "user_id": 9,
+  "email": "migration@example.com",
+  "email_confirmed": false,
+  "phone": "",
+  "phone_confirmed": false,
+  "reg_variant": "email",
+  "profile_fields": {},
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "session": {
+    "kind": "Customer",
+    "user_id": 9
+  },
+  "note": "migration-mode contract sample; PHP remains authoritative"
+}

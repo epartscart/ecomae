@@ -1,0 +1,21 @@
+{
+  "connected": false,
+  "message": "migration placeholder",
+  "last_checked": null,
+  "last_success": null,
+  "last_error": null,
+  "status_code": 0,
+  "counts": {
+    "manufacturers": 0,
+    "models": 0,
+    "modifications": 0,
+    "brands": 0,
+    "vins": 0
+  },
+  "sections": [],
+  "cache_rows": 0,
+  "offline_ready": false,
+  "action_required": "Configure TenantRegistry MySQL",
+  "source": "migration",
+  "note": "migration-mode contract sample; PHP remains authoritative"
+}
