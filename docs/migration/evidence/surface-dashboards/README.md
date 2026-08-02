@@ -27,9 +27,14 @@ PHP dashboards remain authoritative. No writes.
 ## Additional digests
 
 - `GET /cp/tenants?limit=100` — portal tenant list
+- `GET /cp/users?limit=100` — users digest
+- `GET /cp/groups?limit=100` — groups digest
 - `GET /bos/tenants?limit=100` — same list for BOS
 - `GET /bos/fleet-health?limit=25` — fleet summary + sample tenants
 - `GET /erp/accounts-summary` — epc_erp_* cash/supplier KPIs
+- `GET /erp/suppliers?limit=200` — active suppliers + balances
+- `GET /erp/purchases?limit=200` — recent purchases
 - `GET /storefront/orders?limit=25` — customer-gated recent shop_orders
+- `GET /storefront/garage?limit=50` — customer-gated garage vehicles
 
 All require appropriate admin/customer sessions. PHP remains authoritative.

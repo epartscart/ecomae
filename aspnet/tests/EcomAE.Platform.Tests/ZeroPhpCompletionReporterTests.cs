@@ -10,15 +10,15 @@ public sealed class ZeroPhpCompletionReporterTests
     {
         var report = new ZeroPhpCompletionReporter().BuildReport();
 
-        Assert.Equal(72, report.OverallCompletePercent);
-        Assert.Equal(28, report.OverallPendingPercent);
+        Assert.Equal(77, report.OverallCompletePercent);
+        Assert.Equal(23, report.OverallPendingPercent);
         Assert.Equal("not-ready-for-php-removal", report.Status);
         Assert.Contains(report.Areas, area => area.Name == "Foundation, deployment, and diagnostics" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "PHP runtime decommission" && area.CompletePercent == 0 && area.Status == "blocked");
-        Assert.Contains(report.Areas, area => area.Name == "CP, ERP, BOS, and tenant workflow parity" && area.CompletePercent == 48);
-        Assert.Contains(report.Areas, area => area.Name == "Storefront and public API parity" && area.CompletePercent == 97);
-        Assert.Contains(report.Areas, area => area.Name == "Background jobs and scheduled work" && area.CompletePercent == 88);
-        Assert.Contains(report.Areas, area => area.Name == "Data, auth, observability, and rollback evidence" && area.CompletePercent == 90);
+        Assert.Contains(report.Areas, area => area.Name == "CP, ERP, BOS, and tenant workflow parity" && area.CompletePercent == 60);
+        Assert.Contains(report.Areas, area => area.Name == "Storefront and public API parity" && area.CompletePercent == 99);
+        Assert.Contains(report.Areas, area => area.Name == "Background jobs and scheduled work" && area.CompletePercent == 94);
+        Assert.Contains(report.Areas, area => area.Name == "Data, auth, observability, and rollback evidence" && area.CompletePercent == 94);
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_bootstrap_from_github.sh", StringComparison.Ordinal)
             || action.Contains("cloudpanel_find_and_redeploy.sh", StringComparison.Ordinal));
     }

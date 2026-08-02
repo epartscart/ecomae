@@ -5,7 +5,7 @@ using EcomAE.Platform.Data;
 namespace EcomAE.Platform.Auth;
 
 /// <summary>
-/// Read-only session/identity lookup against PHP sessions/users/groups. Performs zero writes.
+/// Read-only session/identity lookup against PHP sessions/users/groups/modules. Performs zero writes.
 /// </summary>
 public sealed class DbLegacySessionStore : ILegacySessionStore
 {
@@ -43,7 +43,55 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
 
         var backendSet = backendGroups.ToHashSet();
         var hasBackend = userGroups.Any(backendSet.Contains);
-        return new LegacyAdminIdentity(email, userGroups, hasBackend);
+        var modules = await LoadModuleAclAsync(connection, userGroups, cancellationToken).ConfigureAwait(false);
+        return new LegacyAdminIdentity(email, userGroups, hasBackend, modules);
+    }
+
+    private static async Task<IReadOnlyList<ModuleAclEntry>> LoadModuleAclAsync(
+        DbConnection connection,
+        IReadOnlyList<int> groupIds,
+        CancellationToken cancellationToken)
+    {
+        var byId = new Dictionary<int, ModuleAclEntry>();
+
+        try
+        {
+            await using (var openCommand = connection.CreateCommand())
+            {
+                openCommand.CommandText = LegacySessionSql.SelectOpenModules;
+                await using var openReader = await openCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await openReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var id = Convert.ToInt32(openReader["id"], CultureInfo.InvariantCulture);
+                    var caption = Convert.ToString(openReader["caption"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    byId[id] = new ModuleAclEntry(id, caption, OpenAccess: true);
+                }
+            }
+
+            foreach (var groupId in groupIds.Distinct())
+            {
+                await using var grantCommand = connection.CreateCommand();
+                grantCommand.CommandText = LegacySessionSql.SelectModuleAccessForGroup;
+                AddParameter(grantCommand, "@groupId", groupId);
+                await using var grantReader = await grantCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await grantReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var id = Convert.ToInt32(grantReader["module_id"], CultureInfo.InvariantCulture);
+                    var caption = Convert.ToString(grantReader["caption"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (!byId.ContainsKey(id))
+                    {
+                        byId[id] = new ModuleAclEntry(id, caption, OpenAccess: false);
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Missing modules tables degrade to empty ACL for migration safety.
+            return Array.Empty<ModuleAclEntry>();
+        }
+
+        return byId.Values.OrderBy(item => item.ModuleId).ToArray();
     }
 
     private async Task<bool> ExistsAsync(string sql, string sessionToken, int userId, CancellationToken cancellationToken)

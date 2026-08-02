@@ -17,15 +17,18 @@ public sealed record LegacySessionContext(
     string[] Permissions,
     string Email = "",
     IReadOnlyList<int>? GroupIds = null,
-    bool HasBackendAccess = false)
+    bool HasBackendAccess = false,
+    IReadOnlyList<ModuleAclEntry>? ModuleAcl = null)
 {
     public IReadOnlyList<int> Groups => GroupIds ?? Array.Empty<int>();
+
+    public IReadOnlyList<ModuleAclEntry> Modules => ModuleAcl ?? Array.Empty<ModuleAclEntry>();
 
     public bool IsAuthenticated => Kind != LegacySessionKind.Anonymous && (UserId > 0 || Kind == LegacySessionKind.ApiKey);
 
     /// <summary>
     /// Coarse surface capabilities derived from session kind/permissions.
-    /// Fine-grained PHP module ACL mapping remains pending.
+    /// Fine-grained PHP module ACL is exposed separately via <see cref="Modules"/>.
     /// </summary>
     public IReadOnlyList<string> Capabilities
     {

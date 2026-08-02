@@ -17,4 +17,14 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpAccountsSummaryResult> BuildErpAccountsAsync(CancellationToken cancellationToken = default);
 
     Task<StorefrontOrdersResult> ListStorefrontOrdersAsync(int userId, int limit, CancellationToken cancellationToken = default);
+
+    Task<CpUserListResult> ListCpUsersAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<CpGroupListResult> ListCpGroupsAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<ErpSupplierListResult> ListErpSuppliersAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<ErpPurchaseListResult> ListErpPurchasesAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<StorefrontGarageResult> ListStorefrontGarageAsync(int userId, int limit, CancellationToken cancellationToken = default);
 }

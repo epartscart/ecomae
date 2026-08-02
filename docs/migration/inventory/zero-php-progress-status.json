@@ -1,7 +1,7 @@
 {
   "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 72.0,
-  "pendingPercent": 28.0,
+  "trueZeroPhpCompletionPercent": 77.0,
+  "pendingPercent": 23.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -33,10 +33,11 @@
   },
   "concreteStarted": [
     "catalog/price DB+auth routes",
-    "admin backend-group claims + surface capabilities",
-    "CP/ERP/BOS digests including tenants/fleet-health/accounts-summary",
-    "storefront account/orders digests",
-    "worker dry-runs including product-exist-limit/cache-warmup/import-orchestrator",
+    "admin backend-group claims + surface capabilities + module ACL probe",
+    "CP digests: tenants/users/groups",
+    "ERP digests: accounts/suppliers/purchases",
+    "storefront account/orders/garage digests",
+    "worker dry-runs including apai-hourly-crawl/webhooks-process/offline-resilience-warm",
     "migration diagnostics + cloudpanel deploy helpers"
   ],
   "nextExecutionOrder": [
