@@ -4,4 +4,7 @@
     <RootNamespace>EcomAE.Platform</RootNamespace>
     <AssemblyName>EcomAE.Platform</AssemblyName>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MySqlConnector" Version="2.6.1" />
+  </ItemGroup>
 </Project>

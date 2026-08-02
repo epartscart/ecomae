@@ -8,7 +8,14 @@ builder.Services.AddSingleton<ZeroPhpBatchOneWorkerReplacementRunner>();
 builder.Services.AddSingleton<ZeroPhpBatchOneWorkerParityReporter>();
 builder.Services.AddSingleton<ZeroPhpBatchOneWorkerDryRunEvidenceManifest>();
 builder.Services.AddSingleton<ZeroPhpBatchOneWorkerDryRunExecutor>();
-builder.Services.AddSingleton<IMigrationWorkerJobRunner, MigrationWorkerJobRunner>();
+builder.Services.AddSingleton<IMigrationWorkerDryRunEvidenceProvider, MigrationWorkerDryRunEvidenceProvider>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, PriceImportDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobRunner>(sp => new MigrationWorkerJobRunner(
+    sp.GetRequiredService<MigrationWorkerJobCatalog>(),
+    sp.GetRequiredService<TimeProvider>(),
+    sp.GetRequiredService<IMigrationWorkerDryRunEvidenceProvider>(),
+    sp.GetServices<IMigrationWorkerJobDryRunExecutor>()));
+builder.Services.AddSingleton<IMigrationWorkerBatchDryRunReporter, MigrationWorkerBatchDryRunReporter>();
 builder.Services.AddSingleton<IMigrationWorkerSchedulePlanner, MigrationWorkerSchedulePlanner>();
 builder.Services.AddHostedService<MigrationWorkerPlaceholder>();
 
