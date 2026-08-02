@@ -30,7 +30,8 @@ Live JSON catalog after deploy: `https://www.ecomae.com/migration/live-surface-l
 | Live surface links | https://www.ecomae.com/migration/live-surface-links |
 | Surface parity | https://www.ecomae.com/migration/surface-parity |
 | Surface field parity | https://www.ecomae.com/migration/surface-field-parity |
-| CP / ERP / BOS parity boards | https://www.ecomae.com/cp/parity · /erp/parity · /bos/parity |
+| CP / ERP / BOS / storefront parity boards | /cp/parity · /erp/parity · /bos/parity · /storefront/parity (loopback) |
+| Auth / data / catalog / price parity | /auth/session/parity · /auth/api-client/parity · /migration/data-parity · /api/v1/catalog/parity · /api/v1/price/parity |
 | Price lookup API | https://www.ecomae.com/api/v1/price/lookup |
 
 ## Industry showcase frontends (`*.ecomae.com`)

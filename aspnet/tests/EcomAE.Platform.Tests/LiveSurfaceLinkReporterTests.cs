@@ -13,7 +13,7 @@ public sealed class LiveSurfaceLinkReporterTests
         var report = new LiveSurfaceLinkReporter().BuildReport();
 
         Assert.Equal("www.ecomae.com", report.PlatformHost);
-        Assert.True(report.Links.Count >= 90);
+        Assert.True(report.Links.Count >= 105);
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/BOS/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/CP/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/ERP/", StringComparison.OrdinalIgnoreCase));
@@ -23,6 +23,10 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/cp/parity");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/erp/parity");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/bos/parity");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/auth/session/parity");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/auth/api-client/parity");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/api/v1/catalog/parity");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/migration/data-parity");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/api/v1/catalog/models");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/api/v1/catalog/brand-parts");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/api/v1/catalog/article-brands");

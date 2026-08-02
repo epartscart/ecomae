@@ -144,7 +144,7 @@
       "url": "https://www.ecomae.com/cp/parity",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/parity",
-      "notes": "Control Panel RemainingGaps / verified capabilities (loopback or allowlisted)."
+      "notes": "Control Panel RemainingGaps / verified capabilities (loopback 127.0.0.1:5100 or allowlisted)."
     },
     {
       "hostClass": "aspnet-diagnostics",
@@ -152,7 +152,7 @@
       "url": "https://www.ecomae.com/erp/parity",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/parity",
-      "notes": "ERP RemainingGaps / verified capabilities."
+      "notes": "ERP RemainingGaps / verified capabilities (loopback or allowlisted)."
     },
     {
       "hostClass": "aspnet-diagnostics",
@@ -160,7 +160,55 @@
       "url": "https://www.ecomae.com/bos/parity",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/bos/parity",
-      "notes": "BOS RemainingGaps / verified capabilities."
+      "notes": "BOS RemainingGaps / verified capabilities (loopback or allowlisted)."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront parity board",
+      "url": "https://www.ecomae.com/storefront/parity",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/parity",
+      "notes": "Storefront RemainingGaps (loopback or allowlisted)."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Data parity board",
+      "url": "https://www.ecomae.com/migration/data-parity",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/data-parity",
+      "notes": "Production data source contracts; cutover blocked."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Session parity board",
+      "url": "https://www.ecomae.com/auth/session/parity",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/auth/session/parity",
+      "notes": "Legacy session RemainingGaps (loopback; use /auth/session/probe with cookie)."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "API client parity board",
+      "url": "https://www.ecomae.com/auth/api-client/parity",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/auth/api-client/parity",
+      "notes": "epc_api_clients auth RemainingGaps (loopback)."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Catalog parity board",
+      "url": "https://www.ecomae.com/api/v1/catalog/parity",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/api/v1/catalog/parity",
+      "notes": "Catalog RemainingGaps (loopback or after catalog shadow)."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Price parity board",
+      "url": "https://www.ecomae.com/api/v1/price/parity",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/api/v1/price/parity",
+      "notes": "Price lookup RemainingGaps (loopback or after price shadow)."
     },
     {
       "hostClass": "aspnet-api",

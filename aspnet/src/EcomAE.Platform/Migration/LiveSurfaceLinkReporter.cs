@@ -30,9 +30,15 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("aspnet-diagnostics", "Live surface links", "https://www.ecomae.com/migration/live-surface-links", "aspnet", "/migration/live-surface-links", "This catalog."),
             Link("aspnet-diagnostics", "Surface parity", "https://www.ecomae.com/migration/surface-parity", "aspnet", "/migration/surface-parity", "Surface-by-surface parity statuses."),
             Link("aspnet-diagnostics", "Surface field parity", "https://www.ecomae.com/migration/surface-field-parity", "aspnet", "/migration/surface-field-parity", "Field/function contracts for all wired digests + catalog routes."),
-            Link("aspnet-diagnostics", "CP parity board", "https://www.ecomae.com/cp/parity", "aspnet", "/cp/parity", "Control Panel RemainingGaps / verified capabilities (loopback or allowlisted)."),
-            Link("aspnet-diagnostics", "ERP parity board", "https://www.ecomae.com/erp/parity", "aspnet", "/erp/parity", "ERP RemainingGaps / verified capabilities."),
-            Link("aspnet-diagnostics", "BOS parity board", "https://www.ecomae.com/bos/parity", "aspnet", "/bos/parity", "BOS RemainingGaps / verified capabilities."),
+            Link("aspnet-diagnostics", "CP parity board", "https://www.ecomae.com/cp/parity", "aspnet", "/cp/parity", "Control Panel RemainingGaps / verified capabilities (loopback 127.0.0.1:5100 or allowlisted)."),
+            Link("aspnet-diagnostics", "ERP parity board", "https://www.ecomae.com/erp/parity", "aspnet", "/erp/parity", "ERP RemainingGaps / verified capabilities (loopback or allowlisted)."),
+            Link("aspnet-diagnostics", "BOS parity board", "https://www.ecomae.com/bos/parity", "aspnet", "/bos/parity", "BOS RemainingGaps / verified capabilities (loopback or allowlisted)."),
+            Link("aspnet-diagnostics", "Storefront parity board", "https://www.ecomae.com/storefront/parity", "aspnet", "/storefront/parity", "Storefront RemainingGaps (loopback or allowlisted)."),
+            Link("aspnet-diagnostics", "Data parity board", "https://www.ecomae.com/migration/data-parity", "aspnet", "/migration/data-parity", "Production data source contracts; cutover blocked."),
+            Link("aspnet-diagnostics", "Session parity board", "https://www.ecomae.com/auth/session/parity", "aspnet", "/auth/session/parity", "Legacy session RemainingGaps (loopback; use /auth/session/probe with cookie)."),
+            Link("aspnet-diagnostics", "API client parity board", "https://www.ecomae.com/auth/api-client/parity", "aspnet", "/auth/api-client/parity", "epc_api_clients auth RemainingGaps (loopback)."),
+            Link("aspnet-diagnostics", "Catalog parity board", "https://www.ecomae.com/api/v1/catalog/parity", "aspnet", "/api/v1/catalog/parity", "Catalog RemainingGaps (loopback or after catalog shadow)."),
+            Link("aspnet-diagnostics", "Price parity board", "https://www.ecomae.com/api/v1/price/parity", "aspnet", "/api/v1/price/parity", "Price lookup RemainingGaps (loopback or after price shadow)."),
             Link("aspnet-api", "Price lookup", "https://www.ecomae.com/api/v1/price/lookup", "aspnet", "/api/v1/price/lookup", "Already on ASP.NET; unauthenticated returns JSON missing_api_key."),
 
             // Industry showcase frontends (*.ecomae.com) — not dedicated client tenants

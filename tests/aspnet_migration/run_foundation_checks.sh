@@ -395,7 +395,18 @@ check 'catalog vin parity compare script exists' test -f "$ROOT/scripts/compare_
 check 'catalog brand-parts parity compare script exists' test -f "$ROOT/scripts/compare_catalog_brand_parts_parity.py"
 check 'deploy packs catalog list compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_list_parity.py'
 check 'deploy packs catalog offline-cache compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_offline_cache_parity.py'
+check 'deploy packs catalog status compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_status_parity.py'
+check 'deploy packs catalog vin compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_vin_parity.py'
+check 'deploy packs catalog brand-parts compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_brand_parts_parity.py'
+check 'deploy packs price lookup compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_price_lookup_parity.py'
+check 'deploy packs digest dual-sample compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_digest_dual_samples.py'
+check 'deploy packs surface payload compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_surface_payload_parity.py'
 check 'deploy packs surface parity harness' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'run_surface_parity_harness.sh'
+check 'live surface stack probe exists' test -x "$ROOT/scripts/probe_live_surface_stack.sh"
+check 'live surface stack probe covers data-parity' contains "$ROOT/scripts/probe_live_surface_stack.sh" '/migration/data-parity'
+check 'live surface stack probe covers cp parity' contains "$ROOT/scripts/probe_live_surface_stack.sh" '/cp/parity'
+check 'api client parity reporter mentions ensure' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientParityReporter.cs" 'ensure_epc_api_clients_table.sh'
+check 'session parity reporter mentions issue smoke' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'issue_smoke_credentials.sh'
 check 'storefront digest exact-route smoke exists' test -x "$ROOT/tests/live_smoke/run_storefront_digest_exact_route_smoke.sh"
 check 'price lookup compare supports contract-only' contains "$ROOT/scripts/compare_price_lookup_parity.py" '--contract-only'
 check 'harness lists cp-config-items contract' contains "$ROOT/scripts/run_surface_parity_harness.sh" 'cp-config-items.json'
@@ -433,6 +444,7 @@ check 'API migration status is post-scaffold honest' contains "$ROOT/aspnet/src/
 check 'migration parity milestones mention ensure' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/MigrationParityReporter.cs" 'ensure'
 check 'live surface links probe includes catalog article-brands' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/api/v1/catalog/article-brands'
 check 'live surface links probe includes bos audit-log' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/bos/audit-log'
+check 'live surface links probe includes session parity' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/auth/session/parity'
 check 'presentation parity probe mentions ensure path' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-presentation-parity.json" 'ensure'
 check 'harness catalog capture includes brand-parts' contains "$ROOT/scripts/run_surface_parity_harness.sh" '/api/v1/catalog/brand-parts'
 check 'harness admin capture includes bos audit-log' contains "$ROOT/scripts/run_surface_parity_harness.sh" '/bos/audit-log'
