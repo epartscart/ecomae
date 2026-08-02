@@ -12,6 +12,9 @@ public sealed class MigrationWorkerJobCatalog
         new("currency-live-rates", "epc-currency-live-rates-cron.php", "EcomAE.Workers.CurrencyLiveRates", "scheduled", "planned", "Previewed ISO/rate rows match PHP dry=1 output; no shop_currencies writes until parity smoke."),
         new("demo-expire", "epc-demo-expire-cron.php", "EcomAE.Workers.DemoExpire", "scheduled", "planned", "Previewed expired demo tenants match PHP dry preview; no deletes/reminders until parity smoke."),
         new("platform-jobs", "epc-platform-jobs-cron.php", "EcomAE.Workers.PlatformJobs", "scheduled", "planned", "Previewed queued/running rows match PHP claim set; no claim/complete until parity smoke."),
-        new("seo-sitemap-ping", "epc-seo-sitemap-ping.php", "EcomAE.Workers.SeoSitemapPing", "scheduled", "planned", "Validated sitemap/ping URLs match PHP targets; no outbound ping until parity smoke.")
+        new("seo-sitemap-ping", "epc-seo-sitemap-ping.php", "EcomAE.Workers.SeoSitemapPing", "scheduled", "planned", "Validated sitemap/ping URLs match PHP targets; no outbound ping until parity smoke."),
+        new("seo-sitemap-warm", "epc-seo-sitemap-warm.php", "EcomAE.Workers.SeoSitemapWarm", "scheduled", "planned", "Validated warm URLs match PHP targets; no HTTP warm fetches until parity smoke."),
+        new("uae-tax-legislation", "epc-uae-tax-legislation-cron.php", "EcomAE.Workers.UaeTaxLegislation", "scheduled", "planned", "Validated legislation doc rows match PHP dry preview; no KB writes until parity smoke."),
+        new("apai-background-jobs", "epc-apai-background-jobs-cron.php", "EcomAE.Workers.ApaiBackgroundJobs", "scheduled", "planned", "Previewed pending APAI jobs match PHP claim set; no claims/writes until parity smoke.")
     ];
 }

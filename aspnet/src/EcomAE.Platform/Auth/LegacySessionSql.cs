@@ -15,4 +15,22 @@ public static class LegacySessionSql
         SELECT COUNT(*) FROM `sessions`
         WHERE `session` = @session AND `user_id` = @userId
         """;
+
+    public const string SelectUserEmail = """
+        SELECT `email` FROM `users`
+        WHERE `user_id` = @userId
+        LIMIT 1
+        """;
+
+    public const string SelectUserGroupIds = """
+        SELECT `group_id` FROM `users_groups_bind`
+        WHERE `user_id` = @userId
+        ORDER BY `group_id` ASC
+        """;
+
+    public const string SelectBackendGroupIds = """
+        SELECT `id` FROM `groups`
+        WHERE `for_backend` = 1
+        ORDER BY `id` ASC
+        """;
 }

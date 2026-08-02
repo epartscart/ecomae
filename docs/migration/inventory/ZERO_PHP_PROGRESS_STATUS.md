@@ -4,10 +4,10 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 
 ## Current percentage
 
-- True zero-PHP completion: 58.0%.
-- Pending to 100%: 42.0%.
+- True zero-PHP completion: 63.0%.
+- Pending to 100%: 37.0%.
 - Foundation/planning floor: 35.0%.
-- Route/job implementation started (not parity-ready): price lookup + catalog cache/DB routes + worker dry-run validators + admin/customer session DB checks + session-gated CP/ERP/BOS shells.
+- Route/job implementation started (not parity-ready): price/catalog routes + worker dry-runs + admin backend-group claims + session-gated CP/ERP/BOS shells/summaries.
 - Route/job parity-ready: 0.0%.
 - Route/job shadow-or-better: 0.0%.
 
@@ -33,22 +33,16 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 
 ## Concrete implementation progress (honest)
 
-- `/api/v1/price/lookup`: DB repository + API-key auth + evidence pack + exact-route shadow example. Staging smoke still required.
-- `/api/v1/catalog/status`: DB status reader + catalog API-key auth + evidence pack. Staging smoke still required.
-- `/api/v1/catalog/models|/modifications|/brands`: DB cache readers + auth + shadow examples.
-- `/api/v1/catalog/manufacturers`: DB cache reader + catalog API-key auth + exact-route shadow example. Staging smoke still required.
-- `/api/v1/catalog/vin|/engines|/analogs|/article-brands|/categories|/products|/engine-search|/article-links|/article|/articles|/engine`: offline/opportunistic DB/cache readers + auth + shadow examples (cache-miss keeps PHP authoritative; articles/engine are not PHP-cacheable).
-- `/api/v1/catalog/brand-parts`: DB stock reader from `shop_docpart_prices_data` + auth + shadow example.
-- Admin + customer session DB checks: `DbBackedLegacySessionValidator` against `sessions` when TenantRegistry DB is configured (admin uses `type=1`).
-- CP/ERP/BOS shells: require admin session (401 anonymous); parity endpoints remain public.
-- `/migration/umapi-usage`: read-only UMAPI usage summary + `recent_today` events.
-- `/migration/platform-jobs`: read-only queue summary (no claim/complete).
-- Worker dry-run validators (writes blocked): price-import, sitemap, backups, notifications, erp-reports, currency-live-rates, demo-expire, platform-jobs, seo-sitemap-ping.
-- Production deploy helpers: `scripts/cloudpanel_production_deploy_foundation.sh`, `scripts/cloudpanel_find_and_redeploy.sh`, `scripts/cloudpanel_bootstrap_from_github.sh` (diagnostics/foundation only; no broad PHP cutover).
+- Catalog/price API routes with DB/cache readers + API-key auth (including suppliers alias).
+- Admin sessions require `users_groups_bind` ∩ `groups.for_backend`; customer sessions validated.
+- CP/ERP/BOS shells session-gated with identity payload + read-only dashboard/fleet summaries.
+- `/migration/umapi-usage` and `/migration/platform-jobs` diagnostics.
+- Worker dry-run validators (writes blocked) through seo warm / UAE tax / APAI jobs.
+- Production deploy helpers only (no broad PHP cutover).
 
 ## Next execution order
 
-- Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first (stale checkouts miss new scripts). Do **not** use `/var/www/ecomae`.
+- Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first. Do **not** use `/var/www/ecomae`.
 - Run exact-route staging smoke for price lookup and catalog routes with real API keys; attach artifacts.
 - Enable only approved `location =` nginx shadows after smoke passes.
 - Continue batch-by-batch worker/route replacements with parity evidence.

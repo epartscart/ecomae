@@ -6,7 +6,7 @@ public sealed class CatalogParityReporter : ICatalogParityReporter
     {
         return new CatalogParityReport(
             "PHP api/v1/catalog.php and Laximo/UMAPI integrations",
-            "ASP.NET Core catalog status/manufacturers/models/modifications/brands/vin/engines/analogs/article-brands/categories/products/engine-search/article-links/article/articles/engine/brand-parts DB/cache readers + API-key auth",
+            "ASP.NET Core catalog status/manufacturers/models/modifications/brands/vin/engines/analogs/article-brands/categories/products/engine-search/article-links/article/articles/engine/suppliers/brand-parts DB/cache readers + API-key auth",
             "catalog-cache-routes-wired-awaiting-staging",
             ReadyForShadowTraffic: true,
             [

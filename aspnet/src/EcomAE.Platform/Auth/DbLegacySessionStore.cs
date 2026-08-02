@@ -5,7 +5,7 @@ using EcomAE.Platform.Data;
 namespace EcomAE.Platform.Auth;
 
 /// <summary>
-/// Read-only session lookup against PHP <c>sessions</c>. Performs zero writes.
+/// Read-only session/identity lookup against PHP sessions/users/groups. Performs zero writes.
 /// </summary>
 public sealed class DbLegacySessionStore : ILegacySessionStore
 {
@@ -24,6 +24,28 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
     public Task<bool> CustomerSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
         => ExistsAsync(LegacySessionSql.CountCustomerSession, sessionToken, userId, cancellationToken);
 
+    public async Task<LegacyAdminIdentity?> GetAdminIdentityAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured || userId <= 0)
+        {
+            return null;
+        }
+
+        await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+        var email = await ScalarStringAsync(connection, LegacySessionSql.SelectUserEmail, userId, cancellationToken).ConfigureAwait(false) ?? string.Empty;
+        var userGroups = await IntListAsync(connection, LegacySessionSql.SelectUserGroupIds, "@userId", userId, cancellationToken).ConfigureAwait(false);
+        var backendGroups = await IntListAsync(connection, LegacySessionSql.SelectBackendGroupIds, null, null, cancellationToken).ConfigureAwait(false);
+        if (backendGroups.Count == 0)
+        {
+            // PHP epc_auth_backend_group_ids falls back to group id 3 when none marked for_backend.
+            backendGroups = [3];
+        }
+
+        var backendSet = backendGroups.ToHashSet();
+        var hasBackend = userGroups.Any(backendSet.Contains);
+        return new LegacyAdminIdentity(email, userGroups, hasBackend);
+    }
+
     private async Task<bool> ExistsAsync(string sql, string sessionToken, int userId, CancellationToken cancellationToken)
     {
         if (!_connections.IsConfigured
@@ -41,6 +63,39 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
 
         var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
         return Convert.ToInt32(scalar ?? 0, CultureInfo.InvariantCulture) > 0;
+    }
+
+    private static async Task<string?> ScalarStringAsync(DbConnection connection, string sql, int userId, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        AddParameter(command, "@userId", userId);
+        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return value is null or DBNull ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
+    }
+
+    private static async Task<List<int>> IntListAsync(
+        DbConnection connection,
+        string sql,
+        string? parameterName,
+        object? parameterValue,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        if (parameterName is not null && parameterValue is not null)
+        {
+            AddParameter(command, parameterName, parameterValue);
+        }
+
+        var rows = new List<int>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
+        }
+
+        return rows;
     }
 
     private static void AddParameter(DbCommand command, string name, object value)

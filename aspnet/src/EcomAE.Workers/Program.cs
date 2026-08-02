@@ -18,6 +18,9 @@ builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, CurrencyLiveRat
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, DemoExpireDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, PlatformJobsDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, SeoSitemapPingDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, SeoSitemapWarmDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, UaeTaxLegislationDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApaiBackgroundJobsDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobRunner>(sp => new MigrationWorkerJobRunner(
     sp.GetRequiredService<MigrationWorkerJobCatalog>(),
     sp.GetRequiredService<TimeProvider>(),

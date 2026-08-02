@@ -21,5 +21,11 @@ public sealed class MigrationWorkerJobCatalogTests
             && job.LegacyPhpEntry.Contains("epc-platform-jobs-cron.php", StringComparison.Ordinal));
         Assert.Contains(catalog.Jobs, job => job.Key == "seo-sitemap-ping"
             && job.LegacyPhpEntry.Contains("epc-seo-sitemap-ping.php", StringComparison.Ordinal));
+        Assert.Contains(catalog.Jobs, job => job.Key == "seo-sitemap-warm"
+            && job.LegacyPhpEntry.Contains("epc-seo-sitemap-warm.php", StringComparison.Ordinal));
+        Assert.Contains(catalog.Jobs, job => job.Key == "uae-tax-legislation"
+            && job.LegacyPhpEntry.Contains("epc-uae-tax-legislation-cron.php", StringComparison.Ordinal));
+        Assert.Contains(catalog.Jobs, job => job.Key == "apai-background-jobs"
+            && job.LegacyPhpEntry.Contains("epc-apai-background-jobs-cron.php", StringComparison.Ordinal));
     }
 }

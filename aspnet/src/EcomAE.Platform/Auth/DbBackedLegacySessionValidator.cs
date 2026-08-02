@@ -3,11 +3,22 @@ using EcomAE.Platform.Security;
 namespace EcomAE.Platform.Auth;
 
 /// <summary>
-/// Validates admin cookies against PHP <c>sessions</c> when TenantRegistry DB is configured.
+/// Validates admin/customer cookies against PHP sessions when TenantRegistry DB is configured.
+/// Admin backend access mirrors PHP <c>epc_auth_user_has_backend_access</c> (groups.for_backend).
 /// Falls back to cookie-presence bridge when DB is unavailable (migration/diagnostics only).
 /// </summary>
 public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
 {
+    private static readonly string[] FullAdminPermissions =
+    [
+        EcomAePermissions.SuperCpAccess,
+        EcomAePermissions.SuperErpAccess,
+        EcomAePermissions.SuperBosAccess,
+        EcomAePermissions.TenantCpAccess,
+        EcomAePermissions.TenantErpAccess,
+        EcomAePermissions.ApiAccess
+    ];
+
     private readonly ILegacySessionStore _sessions;
 
     public DbBackedLegacySessionValidator(ILegacySessionStore sessions)
@@ -26,22 +37,31 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                 var exists = await _sessions.AdminSessionExistsAsync(adminSession, adminUser, cancellationToken).ConfigureAwait(false);
                 if (!exists)
                 {
-                    return new LegacySessionContext(LegacySessionKind.Anonymous, 0, null, []);
+                    return Anonymous();
                 }
+
+                var identity = await _sessions.GetAdminIdentityAsync(adminUser, cancellationToken).ConfigureAwait(false);
+                if (identity is null || !identity.HasBackendAccess)
+                {
+                    return Anonymous();
+                }
+
+                return new LegacySessionContext(
+                    LegacySessionKind.Admin,
+                    adminUser,
+                    adminSession,
+                    FullAdminPermissions,
+                    identity.Email,
+                    identity.GroupIds,
+                    HasBackendAccess: true);
             }
 
             return new LegacySessionContext(
                 LegacySessionKind.Admin,
                 adminUser,
                 adminSession,
-                [
-                    EcomAePermissions.SuperCpAccess,
-                    EcomAePermissions.SuperErpAccess,
-                    EcomAePermissions.SuperBosAccess,
-                    EcomAePermissions.TenantCpAccess,
-                    EcomAePermissions.TenantErpAccess,
-                    EcomAePermissions.ApiAccess
-                ]);
+                FullAdminPermissions,
+                HasBackendAccess: true);
         }
 
         var customerSession = httpContext.Request.Cookies["session"];
@@ -53,7 +73,7 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                 var exists = await _sessions.CustomerSessionExistsAsync(customerSession, customerUser, cancellationToken).ConfigureAwait(false);
                 if (!exists)
                 {
-                    return new LegacySessionContext(LegacySessionKind.Anonymous, 0, null, []);
+                    return Anonymous();
                 }
             }
 
@@ -76,8 +96,11 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                 [EcomAePermissions.ApiAccess]);
         }
 
-        return new LegacySessionContext(LegacySessionKind.Anonymous, 0, null, []);
+        return Anonymous();
     }
+
+    private static LegacySessionContext Anonymous()
+        => new(LegacySessionKind.Anonymous, 0, null, []);
 
     private static int ParseInt(string? value)
         => int.TryParse(value, out var parsed) ? parsed : 0;

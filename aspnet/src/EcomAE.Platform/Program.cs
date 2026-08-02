@@ -112,6 +112,7 @@ builder.Services.AddSingleton<ISurfaceParityReporter, SurfaceParityReporter>();
 builder.Services.AddSingleton<IZeroPhpCompletionReporter, ZeroPhpCompletionReporter>();
 builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryReporter>();
 builder.Services.AddSingleton<IPlatformJobsSummaryReporter, PlatformJobsSummaryReporter>();
+builder.Services.AddSingleton<ISurfaceDashboardSummaryReporter, SurfaceDashboardSummaryReporter>();
 builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();
@@ -199,7 +200,16 @@ app.MapGet(EcomAeRoutes.TenantWorkspaceParity, (ITenantWorkspaceParityReporter r
 app.MapGet(EcomAeRoutes.LegacySessionProbe, async (HttpContext context, ILegacySessionValidator validator) =>
 {
     var session = await validator.ValidateAsync(context, context.RequestAborted);
-    return Results.Ok(new { session.Kind, session.UserId, session.IsAuthenticated, session.Permissions });
+    return Results.Ok(new
+    {
+        session.Kind,
+        session.UserId,
+        session.IsAuthenticated,
+        session.Email,
+        group_ids = session.Groups,
+        has_backend_access = session.HasBackendAccess,
+        session.Permissions
+    });
 });
 
 app.MapGet(EcomAeRoutes.LegacyApiClientParity, (ILegacyApiClientParityReporter reporter) => Results.Ok(reporter.BuildReport()));
