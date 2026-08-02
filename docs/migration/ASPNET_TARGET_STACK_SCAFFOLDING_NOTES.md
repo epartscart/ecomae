@@ -12,7 +12,8 @@ Scaffolding-only guidance for Enterprise BOS target components. **Nothing here e
 ## EF Core 10 readiness
 
 - Package: `Microsoft.EntityFrameworkCore` 10.0.0 is referenced by `EcomAE.Platform`.
-- Scaffold type: `EcomAE.Platform.Data.Scaffolding.EcomAeScaffoldDbContext` (empty model).
+- Scaffold type: `EcomAE.Platform.Data.Scaffolding.EcomAeScaffoldDbContext` with catalog stub entities.
+- Unwired contract: `ICatalogScaffoldRepository` (no DI registration).
 - **Not wired:** `Program.cs` must not call `AddDbContext` until repository cutover is approved.
 - Bridge phase: keep read-only SQL digests via `MySqlConnector`; introduce DbContext per bounded context (Catalog, Identity, ERP, TenantRegistry) without dual-write.
 - PostgreSQL 17 is the long-term primary SoR; do not claim PG live until migration + parity evidence exist.

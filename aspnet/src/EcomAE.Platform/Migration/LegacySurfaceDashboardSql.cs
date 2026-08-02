@@ -160,4 +160,65 @@ public static class LegacySurfaceDashboardSql
         LIMIT 200
         """;
 
+    public const string SelectErpCashEntries = """
+        SELECT e.`id`, e.`account_id`, a.`name` AS account_name, a.`account_type`,
+               e.`time`, e.`direction`, e.`amount`,
+               IFNULL(e.`reference`, '') AS reference, IFNULL(e.`note`, '') AS note
+        FROM `epc_erp_cash_bank_entries` e
+        INNER JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = e.`account_id`
+        WHERE e.`active` = 1
+        ORDER BY e.`time` DESC, e.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpCashEntriesForAccount = """
+        SELECT e.`id`, e.`account_id`, a.`name` AS account_name, a.`account_type`,
+               e.`time`, e.`direction`, e.`amount`,
+               IFNULL(e.`reference`, '') AS reference, IFNULL(e.`note`, '') AS note
+        FROM `epc_erp_cash_bank_entries` e
+        INNER JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = e.`account_id`
+        WHERE e.`active` = 1 AND e.`account_id` = @accountId
+        ORDER BY e.`time` DESC, e.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpInvoices = """
+        SELECT d.`id`, IFNULL(d.`invoice_number`, '') AS invoice_number, d.`order_id`, d.`user_id`,
+               IFNULL(u.`email`, '') AS customer_email, d.`issue_date`,
+               IFNULL(d.`status`, '') AS status, IFNULL(d.`total_incl_vat`, 0) AS total_incl_vat
+        FROM `epc_einvoice_documents` d
+        LEFT JOIN `users` u ON u.`user_id` = d.`user_id`
+        WHERE d.`active` = 1
+        ORDER BY d.`issue_date` DESC, d.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpGlJournals = """
+        SELECT j.`id`, IFNULL(j.`journal_no`, '') AS journal_no, j.`journal_date`,
+               IFNULL(j.`source_type`, '') AS source_type, IFNULL(j.`source_id`, 0) AS source_id,
+               IFNULL(j.`status`, '') AS status,
+               (SELECT IFNULL(SUM(`debit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_debit
+        FROM `epc_erp_gl_journals` j
+        WHERE j.`active` = 1
+        ORDER BY j.`journal_date` DESC, j.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpModules = """
+        SELECT `id`, IFNULL(`caption`, '') AS caption, `activated`, `is_frontend`,
+               `is_prototype`, `control_available`
+        FROM `modules`
+        WHERE `is_prototype` = 0
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpConfigItemsMeta = """
+        SELECT `name`, IFNULL(`caption`, '') AS caption, IFNULL(`type`, '') AS type,
+               IFNULL(`config_group`, '') AS config_group, `visible`, `order`
+        FROM `config_items`
+        ORDER BY `order` ASC, `name` ASC
+        LIMIT @limit
+        """;
+
 }

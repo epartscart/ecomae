@@ -6,10 +6,10 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 ## Current percentage
 
-- True zero-PHP completion: 82.0%.
-- Pending to 100%: 18.0%.
+- True zero-PHP completion: 87.0%.
+- Pending to 100%: 13.0%.
 - Foundation/planning floor: 35.0%.
-- Route/job implementation started (not parity-ready): catalog/price APIs + nested ACL + surface digests + worker dry-run layer.
+- Route/job implementation started (not parity-ready): digests + nested ACL + worker dry-run layer + batch-1 dry-run scaffolding.
 - Route/job parity-ready: 0.0%.
 - Route/job shadow-or-better: 0.0%.
 
@@ -32,23 +32,29 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - Ownership assigned: 3049 (100.0%).
 - Batch assignments: 3049 (100.0%).
 - Total exact-route batches: 61.
+- Batch statuses: batch 1 `aspnet-dry-run-scaffolded`; batches 2–61 `planned-not-implemented`.
 
 ## Concrete implementation progress (honest)
 
 - Catalog/price API routes with DB/cache readers + API-key auth.
-- Admin backend-group claims, nested modules_access ACL, surface capabilities.
-- CP digests: dashboard, tenants, users, groups.
-- ERP digests: accounts KPIs, suppliers, purchases, cash-accounts.
+- Admin nested modules_access ACL + surface capabilities.
+- CP digests: dashboard, tenants, users, groups, modules, config-items metadata.
+- ERP digests: accounts, suppliers, purchases, cash accounts/entries, invoices, GL journals.
+- BOS digests: fleet summary/health/readiness (platform DB only).
 - Storefront account/orders/garage/profile digests.
-- Tracked write-blocked worker dry-run validator layer.
-- OpenTelemetry ActivitySource scaffolding + Enterprise BOS compliance docs.
-- Migration diagnostics only; no broad PHP cutover; PG17/EF Core/YARP/Redis not live.
+- Tracked write-blocked worker dry-run validator layer + batch-1 dry-run scaffolding.
+- EF Core stub entities (unwired); Enterprise BOS compliance docs.
+- No broad PHP cutover; parity/shadow remain 0%; PHP decommission blocked.
+
+## Path to 100% (honest)
+
+100% requires all 61 batches live/removed with parity evidence, staging smoke, approved exact-route shadows, and release-owner approval to remove PHP. This PR does **not** claim 100%.
 
 ## Next execution order
 
-- Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first. Do **not** use `/var/www/ecomae`.
+- Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first.
 - Run exact-route staging smoke; attach artifacts; enable only approved `location =` shadows.
-- Advance EF Core / observability / YARP scaffolding per compliance tracker without inventing cutover.
+- Continue batch-by-batch replacements with parity evidence.
 - Remove PHP only after every tracked item is live/removed with rollback approval.
 
 ## Guardrail

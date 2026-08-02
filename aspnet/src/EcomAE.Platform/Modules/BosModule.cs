@@ -99,6 +99,29 @@ public sealed class BosModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.BosFleetReadiness, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return Unauthorized("Admin BOS capability required for fleet readiness.");
+            }
+
+            var result = await dashboards.BuildBosFleetReadinessAsync(cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "bos",
+                readiness = result,
+                session = SessionPayload(session),
+                note = "Platform-DB-only readiness scoring (no per-tenant connects). PHP epc_bos_health_check remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.BosAliases)
         {
             endpoints.MapGet(route, async (HttpContext context, ISurfaceShellCatalog shells, ILegacySessionValidator validator) =>
