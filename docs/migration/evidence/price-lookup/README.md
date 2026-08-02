@@ -9,8 +9,10 @@ Tracked PHP route/job: `api/v1/price/lookup` backed by `shop_docpart_prices_data
 - Production-intent read repository: `DbPriceOfferRepository` executes `LegacyPriceLookupSql.LookupOffers` against `shop_docpart_prices_data` with tenant database scoping via `ITenantDbConnectionFactory` / `MySqlTenantDbConnectionFactory`.
 - Offline parity repository: `CsvPriceOfferRepository` for captured PHP/staging baseline CSV exports (`PriceLookup:FixtureCsvPath`), preserving legacy normalization, positive-price filtering, ascending price ordering, and the legacy limit of 25 rows.
 - DI selection order: CSV fixture path → configured MySQL connection → `MigrationPriceOfferRepository` noop fallback.
+- Auth: `LegacyApiClientAuthenticator` mirrors PHP `epc_api_client_require_auth('price_pro', 'lookup')` using `DbLegacyApiClientStore` / `epc_api_clients` when `PriceLookup:RequireApiClientAuth=true` (default).
 - Writes: not applicable for this read-only route; the route performs zero writes.
-- Remaining gaps before exact-route shadow: live staging smoke artifacts, legacy API-key/quota enforcement against `epc_api_clients`, and PHP vs ASP.NET response comparison with real staging URLs.
+- Exact-route nginx example only: `deploy/aspnet/nginx-price-lookup-shadow-example.conf` (`location = /api/v1/price/lookup`). Do not enable until staging smoke with a real `epc_pricepro_` key passes.
+- Remaining gaps before exact-route shadow: live staging smoke artifacts with API key, and PHP vs ASP.NET response comparison with real staging URLs.
 
 ## PHP baseline sample
 
@@ -39,10 +41,11 @@ PRICE LOOKUP PARITY PASSED: 2 offer(s) matched
 RUN_PRICE_LOOKUP_SMOKE=1 \
 ECOMAE_ASPNET_BASE_URL="https://REAL-ASPNET-STAGING-URL" \
 ECOMAE_PHP_BASE_URL="https://REAL-PHP-STAGING-URL" \
+ECOMAE_PRICE_LOOKUP_API_KEY="epc_pricepro_REAL_STAGING_KEY" \
 bash tests/live_smoke/run_price_lookup_exact_route_smoke.sh
 ```
 
-Local repository evidence: the smoke script is exact-route only and defaults to skipped unless staging URLs are provided. Production/staging execution must attach the generated `/tmp/ecomae-aspnet-price-lookup.json` and optional `/tmp/ecomae-php-price-lookup.json` artifacts before promotion.
+Local repository evidence: the smoke script is exact-route only and defaults to skipped unless staging URLs and an `epc_pricepro_` API key are provided. Production/staging execution must attach the generated `/tmp/ecomae-aspnet-price-lookup.json` and optional `/tmp/ecomae-php-price-lookup.json` artifacts before promotion.
 
 ## Rollback
 
@@ -50,6 +53,14 @@ Disable only the exact ASP.NET price lookup route shadow/proxy and keep PHP fall
 
 ```bash
 sudo rm -f /etc/nginx/conf.d/ecomae-price-lookup-shadow.conf
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Example enable path after staging smoke approval:
+
+```bash
+sudo cp deploy/aspnet/nginx-price-lookup-shadow-example.conf /etc/nginx/conf.d/ecomae-price-lookup-shadow.conf
 sudo nginx -t
 sudo systemctl reload nginx
 ```

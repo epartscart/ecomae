@@ -21,4 +21,10 @@ public sealed class PriceLookupOptions
     /// Request-scoped <c>TenantContext.DatabaseName</c> always wins when present.
     /// </summary>
     public string? DatabaseName { get; set; }
+
+    /// <summary>
+    /// When true (default), <c>/api/v1/price/lookup</c> requires PHP-parity API-key auth
+    /// via <c>epc_api_clients</c>. Set false only for offline CSV fixture demos.
+    /// </summary>
+    public bool RequireApiClientAuth { get; set; } = true;
 }

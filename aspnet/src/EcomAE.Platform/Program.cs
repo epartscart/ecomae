@@ -17,15 +17,18 @@ builder.Services.Configure<MigrationRouteCutoverOptions>(builder.Configuration.G
 builder.Services.Configure<PriceLookupOptions>(builder.Configuration.GetSection(PriceLookupOptions.SectionName));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<ITenantRegistry, ConfigurationTenantRegistry>();
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<ILegacySessionValidator, HttpLegacySessionValidator>();
 builder.Services.AddSingleton<ILegacySessionParityReporter, LegacySessionParityReporter>();
-builder.Services.AddSingleton<ILegacyApiUsageLogger, MigrationLegacyApiUsageLogger>();
+builder.Services.AddSingleton<ITenantDbConnectionFactory, MySqlTenantDbConnectionFactory>();
+builder.Services.AddSingleton<ILegacyApiClientStore, DbLegacyApiClientStore>();
+builder.Services.AddSingleton<ILegacyApiUsageLogger, DbLegacyApiUsageLogger>();
+builder.Services.AddSingleton<ILegacyApiClientAuthenticator, LegacyApiClientAuthenticator>();
 builder.Services.AddSingleton<ILegacyApiClientParityReporter, LegacyApiClientParityReporter>();
 builder.Services.AddSingleton<ITenantResolver, RouteTenantResolver>();
 builder.Services.AddEcomAeAuthorization();
 builder.Services.AddEcomAeSurfaceModules();
 builder.Services.AddSingleton<ISurfaceShellCatalog, MigrationSurfaceShellCatalog>();
-builder.Services.AddSingleton<ITenantDbConnectionFactory, MySqlTenantDbConnectionFactory>();
 builder.Services.AddSingleton<IPriceOfferRepository>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();

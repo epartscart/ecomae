@@ -24,8 +24,24 @@ public sealed class LegacyApiClientKeyParserTests
     }
 
     [Fact]
+    public void ParseRejectsInvalidCharactersAfterPrefix()
+    {
+        Assert.Null(LegacyApiClientKeyParser.Parse("epc_pricepro_bad-key!"));
+    }
+
+    [Fact]
     public void ExtractFromAuthorizationHeaderSupportsBearerKeys()
     {
         Assert.Equal("epc_catalog_abc123", LegacyApiClientKeyParser.ExtractFromAuthorizationHeader("Bearer epc_catalog_abc123"));
+    }
+
+    [Fact]
+    public void ExtractFromRequestPrefersXApiKeyHeader()
+    {
+        var context = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+        context.Request.Headers["X-API-Key"] = "epc_pricepro_fromheader01";
+        context.Request.Headers.Authorization = "Bearer epc_catalog_ignored01";
+
+        Assert.Equal("epc_pricepro_fromheader01", LegacyApiClientKeyParser.ExtractFromRequest(context.Request));
     }
 }
