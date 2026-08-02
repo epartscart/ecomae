@@ -39,11 +39,18 @@ bash scripts/cloudpanel_find_and_redeploy.sh
 # ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=...'
 
 source /etc/ecomae-aspnet/platform.env
+bash scripts/wait_for_aspnet_health.sh
 bash scripts/cloudpanel_validate_final_gate_env.sh
+# All three must show PRESENT. Digests returning 401 means refresh admin cookie.
 bash scripts/cloudpanel_capture_final_gate_artifacts.sh
 # When all three smoke files exist:
 bash scripts/cloudpanel_commit_final_gate_smoke.sh
 ```
+
+Common CloudPanel failures:
+- `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (now automatic in deploy/capture).
+- `SKIP price/catalog smoke` → empty `ECOMAE_PRICE_LOOKUP_API_KEY` / `ECOMAE_CATALOG_API_KEY` in `platform.env`.
+- Digest routes HTTP 401 → stale/invalid `ECOMAE_ADMIN_COOKIE_HEADER`; probe `/auth/session/probe` until `Kind=Admin`.
 
 Exact-route promotion (after smoke only): `docs/migration/EXACT_ROUTE_PROMOTION_PRICE_CATALOG.md`
 

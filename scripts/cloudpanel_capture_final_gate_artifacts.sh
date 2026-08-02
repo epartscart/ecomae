@@ -66,18 +66,26 @@ capture_json() {
   printf 'OK   %s -> %s\n' "$url" "$out"
 }
 
+printf '\n-- Wait for ASP.NET loopback health --\n'
+health_ready=1
+if ! ECOMAE_ASPNET_BASE_URL="$ASPNET_BASE" bash "$REPO/scripts/wait_for_aspnet_health.sh"; then
+  health_ready=0
+  printf 'ERROR ASP.NET loopback not ready; aborting authenticated smoke (public probes still run).\n'
+  printf 'Fix: systemctl status ecomae-platform.service --no-pager\n'
+  printf '     journalctl -u ecomae-platform.service -n 80 --no-pager\n'
+  printf '     bash scripts/cloudpanel_find_and_redeploy.sh\n'
+  ECOMAE_PRICE_LOOKUP_API_KEY=""
+  ECOMAE_CATALOG_API_KEY=""
+  ECOMAE_ADMIN_COOKIE_HEADER=""
+  ECOMAE_ADMIN_COOKIE_JAR=""
+fi
+
 printf '\n-- Public / loopback diagnostics --\n'
 health_code="$(curl -sS -m 20 -o "$PUBLIC_DIR/loopback-health.txt" -w '%{http_code}' "$ASPNET_BASE/health" || true)"
 if [[ "$health_code" == "200" ]]; then
   printf 'OK   %s/health -> %s\n' "$ASPNET_BASE" "$PUBLIC_DIR/loopback-health.txt"
 else
-  printf 'ERROR %s/health -> HTTP %s (ASP.NET not up; aborting authenticated smoke)\n' "$ASPNET_BASE" "$health_code"
-  printf 'Fix: bash scripts/cloudpanel_find_and_redeploy.sh\n'
-  # Still capture public probes; skip opt-in smoke below by clearing keys.
-  ECOMAE_PRICE_LOOKUP_API_KEY=""
-  ECOMAE_CATALOG_API_KEY=""
-  ECOMAE_ADMIN_COOKIE_HEADER=""
-  ECOMAE_ADMIN_COOKIE_JAR=""
+  printf 'WARN %s/health -> HTTP %s\n' "$ASPNET_BASE" "$health_code"
 fi
 
 capture_json "$ASPNET_BASE/migration/zero-php-completion" "$PUBLIC_DIR/loopback-zero-php-completion.json" || true
@@ -130,7 +138,18 @@ printf '\n-- Opt-in authenticated smoke (requires keys/cookies in env) --\n'
 smoke_price=0
 smoke_catalog=0
 smoke_surfaces=0
-if [[ -n "$ECOMAE_PRICE_LOOKUP_API_KEY" ]]; then
+# Do not leave failed/stale smoke JSON that the checklist would mis-count as attached.
+rm -f \
+  "$SMOKE_DIR/price-lookup-aspnet.json" \
+  "$SMOKE_DIR/ecomae-aspnet-price-lookup.json" \
+  "$SMOKE_DIR/catalog-status-aspnet.json" \
+  "$SMOKE_DIR/ecomae-aspnet-catalog-status.json" \
+  "$SMOKE_DIR/surface-digests-aspnet.json" \
+  "$SMOKE_DIR/ecomae-aspnet-surface-digests.json"
+
+if [[ "$health_ready" -ne 1 ]]; then
+  printf 'SKIP all authenticated smoke: loopback ASP.NET health not ready.\n'
+elif [[ -n "$ECOMAE_PRICE_LOOKUP_API_KEY" ]]; then
   if [[ "$ECOMAE_PRICE_LOOKUP_API_KEY" != epc_pricepro_* ]]; then
     printf 'SKIP price lookup smoke: ECOMAE_PRICE_LOOKUP_API_KEY BAD_FORMAT (expect epc_pricepro_ prefix).\n'
   else
@@ -139,13 +158,15 @@ if [[ -n "$ECOMAE_PRICE_LOOKUP_API_KEY" ]]; then
     export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
     if bash tests/live_smoke/run_price_lookup_exact_route_smoke.sh; then
       smoke_price=1
+    else
+      rm -f "$SMOKE_DIR/price-lookup-aspnet.json" "$SMOKE_DIR/ecomae-aspnet-price-lookup.json"
     fi
   fi
 else
   printf 'SKIP price lookup smoke: set ECOMAE_PRICE_LOOKUP_API_KEY in %s or the environment.\n' "$ENV_FILE"
 fi
 
-if [[ -n "$ECOMAE_CATALOG_API_KEY" ]]; then
+if [[ "$health_ready" -eq 1 && -n "$ECOMAE_CATALOG_API_KEY" ]]; then
   if [[ "$ECOMAE_CATALOG_API_KEY" != epc_catalog_* ]]; then
     printf 'SKIP catalog status smoke: ECOMAE_CATALOG_API_KEY BAD_FORMAT (expect epc_catalog_ prefix).\n'
   else
@@ -154,13 +175,15 @@ if [[ -n "$ECOMAE_CATALOG_API_KEY" ]]; then
     export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
     if bash tests/live_smoke/run_catalog_status_exact_route_smoke.sh; then
       smoke_catalog=1
+    else
+      rm -f "$SMOKE_DIR/catalog-status-aspnet.json" "$SMOKE_DIR/ecomae-aspnet-catalog-status.json"
     fi
   fi
-else
+elif [[ "$health_ready" -eq 1 ]]; then
   printf 'SKIP catalog status smoke: set ECOMAE_CATALOG_API_KEY in %s or the environment.\n' "$ENV_FILE"
 fi
 
-if [[ -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" || -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
+if [[ "$health_ready" -eq 1 && ( -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" || -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ) ]]; then
   printf '-- Admin session preflight /auth/session/probe --\n'
   probe_tmp="$(mktemp)"
   auth_args=()
@@ -191,9 +214,11 @@ PY
     else
       printf 'FAIL admin session probe: not an authenticated Admin session (HTTP %s)\n' "$probe_code"
       python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); print({k:d.get(k) for k in ("Kind","kind","IsAuthenticated","isAuthenticated","has_backend_access","UserId","userId")})' "$probe_tmp" || true
+      printf 'HINT: log into Super CP in a browser, copy Cookie header (admin_session + admin_u_id), set ECOMAE_ADMIN_COOKIE_HEADER, re-run capture.\n'
     fi
   else
     printf 'FAIL admin session probe HTTP %s\n' "$probe_code"
+    printf 'HINT: cookie missing/expired, or TenantRegistry DB cannot validate admin sessions.\n'
   fi
   rm -f "$probe_tmp"
 
@@ -204,11 +229,13 @@ PY
     export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
     if bash tests/live_smoke/run_surface_digest_exact_route_smoke.sh; then
       smoke_surfaces=1
+    else
+      rm -f "$SMOKE_DIR/surface-digests-aspnet.json" "$SMOKE_DIR/ecomae-aspnet-surface-digests.json"
     fi
   else
     printf 'SKIP surface digest smoke: fix ECOMAE_ADMIN_COOKIE_HEADER/JAR so /auth/session/probe returns Kind=Admin.\n'
   fi
-else
+elif [[ "$health_ready" -eq 1 ]]; then
   printf 'SKIP surface digest smoke: set ECOMAE_ADMIN_COOKIE_HEADER or ECOMAE_ADMIN_COOKIE_JAR.\n'
 fi
 
@@ -223,6 +250,9 @@ for name in price-lookup-aspnet.json catalog-status-aspnet.json surface-digests-
 done
 printf 'Captured this run: price=%s catalog=%s surfaces=%s\n' "$smoke_price" "$smoke_catalog" "$smoke_surfaces"
 
+# Prevent capture's RUN_* exports from re-running failing live smoke inside the checklist.
+unset RUN_PRICE_LOOKUP_SMOKE RUN_CATALOG_STATUS_SMOKE RUN_SURFACE_DIGEST_SMOKE || true
+
 printf '\n-- Final gate checklist --\n'
 bash scripts/run_zero_php_final_gate_checklist.sh || true
 
@@ -230,12 +260,19 @@ if [[ "$smoke_price" -eq 1 && "$smoke_catalog" -eq 1 && "$smoke_surfaces" -eq 1 
   printf '\nAll three smoke artifacts written. Commit + push from the server:\n'
   printf '  bash scripts/cloudpanel_commit_final_gate_smoke.sh\n'
 else
-  printf '\nSmoke incomplete. Add real values to %s then re-run:\n' "$ENV_FILE"
-  printf '  ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...\n'
-  printf '  ECOMAE_CATALOG_API_KEY=epc_catalog_...\n'
-  printf '  ECOMAE_ADMIN_COOKIE_HEADER='\''admin_session=...; admin_u_id=...'\''\n'
-  printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
-  printf '  bash scripts/cloudpanel_commit_final_gate_smoke.sh\n'
+  printf '\nSmoke incomplete (from your last CloudPanel run pattern):\n'
+  printf '  1) Wait for health: bash scripts/wait_for_aspnet_health.sh\n'
+  printf '  2) Set REAL keys in %s (empty values skip smoke):\n' "$ENV_FILE"
+  printf '       ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...\n'
+  printf '       ECOMAE_CATALOG_API_KEY=epc_catalog_...\n'
+  printf '  3) Fresh admin cookie (401 digests = expired/invalid cookie):\n'
+  printf '       ECOMAE_ADMIN_COOKIE_HEADER='\''admin_session=...; admin_u_id=123'\''\n'
+  printf '       Test: curl -sS -H "Cookie: $ECOMAE_ADMIN_COOKIE_HEADER" http://127.0.0.1:5100/auth/session/probe\n'
+  printf '  4) Re-run:\n'
+  printf '       source %s\n' "$ENV_FILE"
+  printf '       bash scripts/cloudpanel_validate_final_gate_env.sh\n'
+  printf '       bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
+  printf '       bash scripts/cloudpanel_commit_final_gate_smoke.sh\n'
 fi
 printf 'Then open a PR and add RELEASE_OWNER_APPROVAL.md only after human approval.\n'
 printf 'Do NOT remove PHP from this script.\n'

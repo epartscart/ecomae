@@ -94,6 +94,11 @@ ECOMAE_ASPNET_RELEASE_ROOT="$ECOMAE_ASPNET_RELEASE_ROOT" \
 bash scripts/cloudpanel_production_deploy_foundation.sh
 
 printf '\nVerify:\n'
+printf '  bash scripts/wait_for_aspnet_health.sh\n'
 printf '  curl -i http://127.0.0.1:5100/health\n'
 printf '  systemctl status ecomae-platform.service --no-pager\n'
+printf 'Then capture (needs real keys/cookie in /etc/ecomae-aspnet/platform.env):\n'
+printf '  source /etc/ecomae-aspnet/platform.env\n'
+printf '  bash scripts/cloudpanel_validate_final_gate_env.sh\n'
+printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
 printf 'PHP remains fallback. Do not enable broad nginx cutover.\n'

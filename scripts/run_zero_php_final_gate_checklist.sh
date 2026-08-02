@@ -27,6 +27,7 @@ echo "This script never removes PHP-FPM, PHP cron, or PHP rewrites."
 [[ -f "$ROOT/deploy/aspnet/nginx-storefront-digests-shadow-example.conf" ]] && record_pass "storefront digest exact-route shadow example exists" || record_fail "storefront shadow example missing"
 [[ -x "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" ]] && record_pass "CloudPanel smoke commit helper executable" || record_fail "cloudpanel_commit_final_gate_smoke.sh missing"
 [[ -x "$ROOT/scripts/cloudpanel_validate_final_gate_env.sh" ]] && record_pass "CloudPanel smoke env validator executable" || record_fail "cloudpanel_validate_final_gate_env.sh missing"
+[[ -x "$ROOT/scripts/wait_for_aspnet_health.sh" ]] && record_pass "ASP.NET health wait helper executable" || record_fail "wait_for_aspnet_health.sh missing"
 [[ -f "$ROOT/docs/migration/EXACT_ROUTE_PROMOTION_PRICE_CATALOG.md" ]] && record_pass "price/catalog exact-route promotion runbook exists" || record_fail "EXACT_ROUTE_PROMOTION_PRICE_CATALOG.md missing"
 [[ -x "$ROOT/scripts/compare_catalog_status_parity.py" ]] && record_pass "catalog status parity compare script executable" || record_fail "compare_catalog_status_parity.py missing"
 [[ -x "$ROOT/scripts/compare_digest_dual_samples.py" ]] && record_pass "digest dual-sample compare script executable" || record_fail "compare_digest_dual_samples.py missing"
@@ -45,22 +46,54 @@ else
   record_skip "public probes not attached under public-probes/"
 fi
 
-if [[ -f "$SMOKE_DIR/price-lookup-aspnet.json" ]]; then
-  record_pass "attached price-lookup staging smoke artifact"
+if [[ -f "$SMOKE_DIR/price-lookup-aspnet.json" ]] && python3 - "$SMOKE_DIR/price-lookup-aspnet.json" <<'PY'
+import json, sys
+doc = json.load(open(sys.argv[1], encoding="utf-8"))
+if doc.get("ok") is False:
+    raise SystemExit(1)
+err = doc.get("error")
+if isinstance(err, dict) and err.get("code") in {"missing_api_key", "unauthorized", "invalid_api_key"}:
+    raise SystemExit(1)
+PY
+then
+  record_pass "attached validated price-lookup staging smoke artifact"
 else
-  record_skip "price-lookup-aspnet.json not attached yet (run opt-in smoke on staging, then copy into staging-smoke/)"
+  record_skip "price-lookup-aspnet.json missing or unauthenticated (run opt-in smoke, then attach)"
 fi
 
-if [[ -f "$SMOKE_DIR/catalog-status-aspnet.json" ]]; then
-  record_pass "attached catalog-status staging smoke artifact"
+if [[ -f "$SMOKE_DIR/catalog-status-aspnet.json" ]] && python3 - "$SMOKE_DIR/catalog-status-aspnet.json" <<'PY'
+import json, sys
+doc = json.load(open(sys.argv[1], encoding="utf-8"))
+if doc.get("ok") is False or isinstance(doc.get("error"), dict):
+    raise SystemExit(1)
+for key in ("connected", "counts", "source"):
+    if key not in doc:
+        raise SystemExit(1)
+PY
+then
+  record_pass "attached validated catalog-status staging smoke artifact"
 else
-  record_skip "catalog-status-aspnet.json not attached yet"
+  record_skip "catalog-status-aspnet.json missing or invalid"
 fi
 
-if [[ -f "$SMOKE_DIR/surface-digests-aspnet.json" ]]; then
-  record_pass "attached surface-digests staging smoke artifact"
+if [[ -f "$SMOKE_DIR/surface-digests-aspnet.json" ]] && python3 - "$SMOKE_DIR/surface-digests-aspnet.json" <<'PY'
+import json, sys
+doc = json.load(open(sys.argv[1], encoding="utf-8"))
+if doc.get("ok") is not True:
+    raise SystemExit(1)
+routes = doc.get("routes") or []
+ok = any(
+    isinstance(r, dict)
+    and int(r.get("status") or 0) == 200
+    and not str(r.get("route") or "").startswith("/migration/")
+    for r in routes
+)
+raise SystemExit(0 if ok else 1)
+PY
+then
+  record_pass "attached validated surface-digests staging smoke artifact"
 else
-  record_skip "surface-digests-aspnet.json not attached yet"
+  record_skip "surface-digests-aspnet.json missing or lacks authenticated digest HTTP 200"
 fi
 
 parity_count=0
