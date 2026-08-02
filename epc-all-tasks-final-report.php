@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Final task matrix — runs session probes and returns PASS/FAIL/BLOCKED per task.
  * GET ?token=...
