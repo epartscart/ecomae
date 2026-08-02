@@ -176,6 +176,56 @@ public sealed class CatalogOfflineCacheServiceTests
     }
 
     [Fact]
+    public void CategoriesCacheKeyUsesStringIdAndVehicleType()
+    {
+        var key = UmapiCacheKeyBuilder.Build(
+            "categories",
+            "passenger",
+            "en",
+            "WWW",
+            new Dictionary<string, object?> { ["ID"] = "10", ["type"] = "PC" });
+        Assert.Equal(
+            Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(
+                System.Text.Encoding.UTF8.GetBytes("categories|passenger|en|WWW|{\"ID\":\"10\",\"type\":\"PC\"}"))).ToLowerInvariant(),
+            key);
+    }
+
+    [Fact]
+    public async Task LookupCategoriesDefaultsTypeFromSection()
+    {
+        var cacheKey = UmapiCacheKeyBuilder.Build(
+            "categories",
+            "commercial",
+            "en",
+            "WWW",
+            new Dictionary<string, object?> { ["type"] = "CV" });
+        var service = new CatalogOfflineCacheService(new StaticOfflineRepo(
+            action: new CatalogActionCacheRow(
+                cacheKey,
+                "categories",
+                "commercial",
+                "en",
+                "WWW",
+                JsonSerializer.Serialize(new { data = new[] { new { name = "Engine" } } }),
+                1,
+                200,
+                1710000000)));
+
+        var result = await service.LookupCategoriesAsync("commercial", null, null, "en", "WWW");
+        Assert.True(result.Ok);
+        Assert.Equal("categories", result.Action);
+    }
+
+    [Fact]
+    public async Task LookupProductsReturnsCacheMiss()
+    {
+        var service = new CatalogOfflineCacheService(new StaticOfflineRepo());
+        var result = await service.LookupProductsAsync("passenger", "1", "2", "PC", "en", "WWW");
+        Assert.False(result.Ok);
+        Assert.Equal("cache_miss", result.Code);
+    }
+
+    [Fact]
     public void LegacySqlContractsAreSelectOnly()
     {
         Assert.Equal("epc_umapi_vin_cache", LegacyCatalogVinSql.SourceTable);

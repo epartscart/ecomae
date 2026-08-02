@@ -385,6 +385,107 @@ public sealed class ApiModule : ISurfaceModule
             return OfflineCacheOk(result, authResult.Client);
         });
 
+        endpoints.MapGet(EcomAeRoutes.CatalogCategories, async (
+            HttpContext httpContext,
+            string? section,
+            string? id,
+            string? ID,
+            string? vehicle_type,
+            string? type,
+            string? language,
+            string? region,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogOfflineCacheService offlineCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "categories", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await offlineCache.LookupCategoriesAsync(
+                section,
+                id ?? ID,
+                vehicle_type ?? type,
+                language,
+                region,
+                cancellationToken);
+            await LogOfflineCacheAsync(httpContext, usageLogger, authResult.Client, "catalog_categories", result.Ok, result.Code, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(
+                    new
+                    {
+                        ok = false,
+                        error = new { code = result.Code, message = result.Message },
+                        action = result.Action,
+                        section = result.Section,
+                        source = result.Source,
+                        note = result.Code == "cache_miss"
+                            ? "No epc_umapi_cache row for categories; PHP/UMAPI remains authoritative for live fills."
+                            : null
+                    },
+                    statusCode: result.StatusCode);
+            }
+
+            return OfflineCacheOk(result, authResult.Client);
+        });
+
+        endpoints.MapGet(EcomAeRoutes.CatalogProducts, async (
+            HttpContext httpContext,
+            string? section,
+            string? category_id,
+            string? CATEGORY_ID,
+            string? id,
+            string? ID,
+            string? vehicle_type,
+            string? type,
+            string? language,
+            string? region,
+            ILegacyApiClientAuthenticator authenticator,
+            ILegacyApiUsageLogger usageLogger,
+            IOptions<PriceLookupOptions> options,
+            ICatalogOfflineCacheService offlineCache,
+            CancellationToken cancellationToken) =>
+        {
+            var authResult = await AuthorizeCatalogAsync(httpContext, authenticator, usageLogger, options, "products", cancellationToken);
+            if (authResult.Error is not null)
+            {
+                return authResult.Error;
+            }
+
+            var result = await offlineCache.LookupProductsAsync(
+                section,
+                category_id ?? CATEGORY_ID,
+                id ?? ID,
+                vehicle_type ?? type,
+                language,
+                region,
+                cancellationToken);
+            await LogOfflineCacheAsync(httpContext, usageLogger, authResult.Client, "catalog_products", result.Ok, result.Code, cancellationToken);
+            if (!result.Ok)
+            {
+                return Results.Json(
+                    new
+                    {
+                        ok = false,
+                        error = new { code = result.Code, message = result.Message },
+                        action = result.Action,
+                        section = result.Section,
+                        source = result.Source,
+                        note = result.Code == "cache_miss"
+                            ? "No epc_umapi_cache row for products; PHP/UMAPI remains authoritative for live fills."
+                            : null
+                    },
+                    statusCode: result.StatusCode);
+            }
+
+            return OfflineCacheOk(result, authResult.Client);
+        });
+
         endpoints.MapGet(EcomAeRoutes.CatalogParity, (ICatalogParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
         endpoints.MapGet(EcomAeRoutes.PriceLookup, async (
