@@ -25,6 +25,9 @@ bash scripts/cloudpanel_capture_final_gate_artifacts.sh
 ## Operator commands
 
 ```bash
+Live operator URL catalog: `docs/migration/LIVE_SURFACE_LINKS.md`  
+Public stack probe: `bash scripts/probe_live_surface_stack.sh`
+
 # Local checklist (no PHP removal, live smoke opt-in)
 bash scripts/run_zero_php_final_gate_checklist.sh
 

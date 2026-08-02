@@ -66,11 +66,18 @@ capture_json() {
 printf '\n-- Public / loopback diagnostics --\n'
 capture_json "$ASPNET_BASE/migration/zero-php-completion" "$PUBLIC_DIR/loopback-zero-php-completion.json" || true
 capture_json "$ASPNET_BASE/migration/php-decommission-readiness" "$PUBLIC_DIR/loopback-php-decommission-readiness.json" || true
+capture_json "$ASPNET_BASE/migration/presentation-parity" "$PUBLIC_DIR/loopback-presentation-parity.json" || true
+capture_json "$ASPNET_BASE/migration/live-surface-links" "$PUBLIC_DIR/loopback-live-surface-links.json" || true
 health_code="$(curl -sS -m 20 -o "$PUBLIC_DIR/loopback-health.txt" -w '%{http_code}' "$ASPNET_BASE/health" || true)"
 if [[ "$health_code" == "200" ]]; then
   printf 'OK   %s/health -> %s\n' "$ASPNET_BASE" "$PUBLIC_DIR/loopback-health.txt"
 else
   printf 'WARN %s/health -> HTTP %s\n' "$ASPNET_BASE" "$health_code"
+fi
+
+if [[ -x "$REPO/scripts/probe_live_surface_stack.sh" ]]; then
+  printf '\n-- Public live surface stack probe (no secrets) --\n'
+  ECOMAE_PROBE_OUT_DIR="$PUBLIC_DIR" bash "$REPO/scripts/probe_live_surface_stack.sh" || true
 fi
 
 printf '\n-- Opt-in authenticated smoke (requires keys/cookies in env) --\n'

@@ -28,6 +28,8 @@ fi
 routes=(
   "/migration/php-decommission-readiness"
   "/migration/zero-php-completion"
+  "/migration/presentation-parity"
+  "/migration/live-surface-links"
   "/cp/dashboard-summary"
   "/erp/dashboard-summary"
   "/bos/fleet-summary"

@@ -1,0 +1,223 @@
+{
+  "capturedAtUtc": "2026-08-02T17:59:40Z",
+  "note": "Public probe only. Does not authorize PHP removal or broad cutover.",
+  "routes": [
+    {
+      "url": "https://www.ecomae.com/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 239599
+    },
+    {
+      "url": "https://www.ecomae.com/CP/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29888
+    },
+    {
+      "url": "https://www.ecomae.com/ERP/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 170253
+    },
+    {
+      "url": "https://www.ecomae.com/BOS/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365
+    },
+    {
+      "url": "https://cp.ecomae.com/CP/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29887
+    },
+    {
+      "url": "https://cp.ecomae.com/ERP/",
+      "status": 404,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 397053
+    },
+    {
+      "url": "https://cp.ecomae.com/BOS/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365
+    },
+    {
+      "url": "https://www.ecomae.com/health",
+      "status": 200,
+      "stack": "aspnet-health",
+      "contentType": "text/plain",
+      "bytes": 7
+    },
+    {
+      "url": "https://www.ecomae.com/migration/zero-php-completion",
+      "status": 200,
+      "stack": "aspnet-json",
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 3455
+    },
+    {
+      "url": "https://www.ecomae.com/migration/php-decommission-readiness",
+      "status": 200,
+      "stack": "aspnet-json",
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 3102
+    },
+    {
+      "url": "https://www.ecomae.com/migration/presentation-parity",
+      "status": 200,
+      "stack": "aspnet-json",
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 3438
+    },
+    {
+      "url": "https://www.ecomae.com/migration/live-surface-links",
+      "status": 404,
+      "stack": "other",
+      "contentType": "",
+      "bytes": 0
+    },
+    {
+      "url": "https://www.ecomae.com/api/v1/price/lookup",
+      "status": 401,
+      "stack": "aspnet-json",
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 135
+    },
+    {
+      "url": "https://www.ecomae.com/cp/dashboard-summary",
+      "status": 404,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 30042
+    },
+    {
+      "url": "https://www.ecomae.com/erp/dashboard-summary",
+      "status": 404,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 304181
+    },
+    {
+      "url": "https://www.ecomae.com/bos/fleet-summary",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 142674
+    },
+    {
+      "url": "https://www.ecomae.com/api/v1/catalog/status",
+      "status": 404,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 304285
+    },
+    {
+      "url": "https://healthcare.ecomae.com/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 173772
+    },
+    {
+      "url": "https://healthcare.ecomae.com/CP/",
+      "status": 200,
+      "stack": "other",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 52
+    },
+    {
+      "url": "https://healthcare.ecomae.com/ERP/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 173790
+    },
+    {
+      "url": "https://www.electronicae.com/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 289347
+    },
+    {
+      "url": "https://www.electronicae.com/CP/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29663
+    },
+    {
+      "url": "https://www.electronicae.com/ERP/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 167803
+    },
+    {
+      "url": "https://www.stylenlook.com/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 278342
+    },
+    {
+      "url": "https://www.stylenlook.com/CP/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29606
+    },
+    {
+      "url": "https://www.stylenlook.com/ERP/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 167771
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 314480
+    },
+    {
+      "url": "https://www.taxofinca.com/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 268993
+    },
+    {
+      "url": "https://epartscart.com/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 505855
+    },
+    {
+      "url": "https://epartscart.com/CP/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 36246
+    },
+    {
+      "url": "https://epartscart.com/ERP/",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 178499
+    }
+  ]
+}
