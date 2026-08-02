@@ -21,6 +21,9 @@ public sealed class LegacySessionValidatorTests
         Assert.Contains(EcomAePermissions.SuperCpAccess, session.Permissions);
         Assert.Contains(EcomAePermissions.TenantErpAccess, session.Permissions);
         Assert.True(session.HasBackendAccess);
+        Assert.Contains("cp", session.Capabilities);
+        Assert.Contains("erp", session.Capabilities);
+        Assert.Contains("bos", session.Capabilities);
     }
 
     [Fact]

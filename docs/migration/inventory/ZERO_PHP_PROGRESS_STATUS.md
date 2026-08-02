@@ -4,10 +4,10 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 
 ## Current percentage
 
-- True zero-PHP completion: 67.0%.
-- Pending to 100%: 33.0%.
+- True zero-PHP completion: 72.0%.
+- Pending to 100%: 28.0%.
 - Foundation/planning floor: 35.0%.
-- Route/job implementation started (not parity-ready): price/catalog/account shells + worker dry-runs + admin/customer session claims + surface summaries.
+- Route/job implementation started (not parity-ready): catalog/price APIs + session capabilities + surface digests + worker dry-runs.
 - Route/job parity-ready: 0.0%.
 - Route/job shadow-or-better: 0.0%.
 
@@ -33,11 +33,11 @@ This status is generated from the tracked inventory, ownership plan, and exact-r
 
 ## Concrete implementation progress (honest)
 
-- Catalog/price API routes with DB/cache readers + API-key auth (including suppliers alias).
-- Admin backend-group claims + customer session validation.
-- CP/ERP/BOS shells session-gated with identity + read-only summaries.
-- Storefront customer account shell + account-summary (read-only).
-- Worker dry-run validators across core cron/queue jobs (writes blocked).
+- Catalog/price API routes with DB/cache readers + API-key auth.
+- Admin backend-group claims with surface capabilities on probe/shells.
+- CP/ERP/BOS digests: dashboard summaries, `/cp/tenants`, `/bos/tenants`, `/bos/fleet-health`, `/erp/accounts-summary` (epc_erp_* KPI SQL).
+- Storefront customer account shell/summary/orders digests.
+- Broad set of write-blocked worker dry-run validators.
 - Migration diagnostics only; no broad PHP cutover.
 
 ## Next execution order

@@ -45,6 +45,33 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelTenants, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for tenant digest.");
+            }
+
+            var result = await dashboards.ListPortalTenantsAsync(limit ?? 100, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                tenants = result.Tenants,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only portal tenant digest. PHP tenant control remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ControlPanelAliases)
         {
             endpoints.MapGet(route, async (HttpContext context, ISurfaceShellCatalog shells, ILegacySessionValidator validator) =>
@@ -76,6 +103,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         email = session.Email,
         group_ids = session.Groups,
         has_backend_access = session.HasBackendAccess,
+        capabilities = session.Capabilities,
         permissions = session.Permissions
     };
 }

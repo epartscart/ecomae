@@ -30,5 +30,8 @@ public sealed class MigrationWorkerJobCatalogTests
         Assert.Contains(catalog.Jobs, job => job.Key == "fulfillment-queue");
         Assert.Contains(catalog.Jobs, job => job.Key == "apai-sync-categories");
         Assert.Contains(catalog.Jobs, job => job.Key == "integrations-cleanup");
+        Assert.Contains(catalog.Jobs, job => job.Key == "product-exist-limit");
+        Assert.Contains(catalog.Jobs, job => job.Key == "cache-warmup");
+        Assert.Contains(catalog.Jobs, job => job.Key == "import-orchestrator");
     }
 }

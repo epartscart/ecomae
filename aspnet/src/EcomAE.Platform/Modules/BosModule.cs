@@ -45,6 +45,60 @@ public sealed class BosModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.BosTenants, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return Unauthorized("Admin BOS capability required for tenant digest.");
+            }
+
+            var result = await dashboards.ListPortalTenantsAsync(limit ?? 100, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "bos",
+                tenants = result.Tenants,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only portal tenant digest. PHP BOS tenant switcher remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.BosFleetHealth, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return Unauthorized("Admin BOS capability required for fleet health.");
+            }
+
+            var result = await dashboards.BuildBosFleetHealthAsync(limit ?? 25, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "bos",
+                summary = result.Summary,
+                sample_tenants = result.SampleTenants,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only fleet health digest. PHP epc_bos_health_check remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.BosAliases)
         {
             endpoints.MapGet(route, async (HttpContext context, ISurfaceShellCatalog shells, ILegacySessionValidator validator) =>
@@ -76,6 +130,7 @@ public sealed class BosModule : ISurfaceModule
         email = session.Email,
         group_ids = session.Groups,
         has_backend_access = session.HasBackendAccess,
+        capabilities = session.Capabilities,
         permissions = session.Permissions
     };
 }

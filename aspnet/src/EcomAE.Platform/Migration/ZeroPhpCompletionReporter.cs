@@ -4,7 +4,6 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
 {
     public ZeroPhpCompletionReport BuildReport()
     {
-        // Honest weighted progress only. Do not claim 90/100 without evidence for every tracked route/job.
         ZeroPhpCompletionArea[] areas =
         [
             new("Foundation, deployment, and diagnostics", 20, 100, "complete", [
@@ -15,21 +14,21 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 "Inventory and ownership assignment are complete for 3049 PHP files / 61 batches.",
                 "Execution remains route-by-route; broad /, /api, /cp, /erp, and /bos cutovers stay blocked."
             ]),
-            new("CP, ERP, BOS, and tenant workflow parity", 25, 34, "shell-summaries-started", [
-                "CP/ERP/BOS shells require admin backend-group sessions and expose identity + read-only dashboard summaries.",
-                "Still need login UX, tenant admin, ERP workflows, BOS ops, and fine-grained role mapping."
+            new("CP, ERP, BOS, and tenant workflow parity", 25, 48, "tenant-fleet-digests-started", [
+                "CP/ERP/BOS shells are session-gated with capabilities, dashboard summaries, tenant digests, and ERP KPI SQL parity.",
+                "Still need login UX, tenant admin writes, full ERP/BOS workflows, and module ACL."
             ]),
-            new("Storefront and public API parity", 15, 95, "price-catalog-and-account-shell-started", [
-                "Price/catalog cache routes including suppliers plus customer-gated storefront account shell/summary are wired.",
+            new("Storefront and public API parity", 15, 97, "account-orders-digest-started", [
+                "Catalog/price routes plus customer-gated account shell/summary/orders digests are wired.",
                 "Live UMAPI proxy fills, HTML storefront parity, checkout, and staging smoke remain."
             ]),
-            new("Background jobs and scheduled work", 10, 80, "dry-run-validators-started", [
-                "Dry-run validators cover core cron/queue jobs including fulfillment, APAI sync/cleanup, SEO, tax, and platform jobs (writes blocked).",
+            new("Background jobs and scheduled work", 10, 88, "dry-run-validators-started", [
+                "Dry-run validators cover core cron/queue jobs including product-exist-limit, cache-warmup, and import-orchestrator (writes blocked).",
                 "Batch 1 still requires per-job parity samples and live smoke before schedule cutover."
             ]),
-            new("Data, auth, observability, and rollback evidence", 15, 84, "auth-claims-wired-evidence-pending", [
-                "API-key auth and admin backend-group claims are wired; customer sessions gate storefront account routes.",
-                "UMAPI usage, platform-jobs, and CP/ERP/BOS/storefront summary diagnostics are read-only.",
+            new("Data, auth, observability, and rollback evidence", 15, 90, "session-capabilities-wired-evidence-pending", [
+                "Admin backend-group claims expose surface capabilities on probe/shells; customer sessions gate account/orders digests.",
+                "ERP digests use epc_erp_* cash/supplier mirrors; tenant fleet digests are read-only.",
                 "Staging smoke artifacts, live rollback approvals, and full route evidence packs remain pending."
             ]),
             new("PHP runtime decommission", 5, 0, "blocked", [
@@ -39,7 +38,6 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
         ];
 
         var complete = areas.Sum(area => area.WeightPercent * area.CompletePercent) / 100;
-
         return new ZeroPhpCompletionReport(
             complete,
             100 - complete,
