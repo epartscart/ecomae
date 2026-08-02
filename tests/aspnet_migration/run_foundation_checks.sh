@@ -178,6 +178,8 @@ check 'PR range rebase script exists' test -x "$ROOT/scripts/rebase_conflicted_p
 check 'PR 569 conflict fix script exists' test -x "$ROOT/scripts/resolve_pr_569_conflicts.sh"
 check 'PR 569 conflict fix script can use gh checkout' contains "$ROOT/scripts/resolve_pr_569_conflicts.sh" 'gh pr checkout'
 check 'PR 569 conflict fix script fetches pull ref fallback' contains "$ROOT/scripts/resolve_pr_569_conflicts.sh" 'pull/${PR_NUMBER}/head'
+check 'PR 569 conflict fix script knows source branch' contains "$ROOT/scripts/resolve_pr_569_conflicts.sh" 'codex/audit-project-performance-of-agent-n5lnu3'
+check 'PR 569 conflict fix script pushes fallback source branch' contains "$ROOT/scripts/resolve_pr_569_conflicts.sh" 'HEAD:$PR_SOURCE_BRANCH'
 check 'PR range rebase script covers PR 500 default' contains "$ROOT/scripts/rebase_conflicted_pr_range.sh" 'START_PR="${1:-500}"'
 check 'PR range rebase script covers PR 508 default' contains "$ROOT/scripts/rebase_conflicted_pr_range.sh" 'END_PR="${2:-508}"'
 check 'PR rebase runbook exists' test -f "$ROOT/docs/migration/PR_REBASE_CONFLICT_RUNBOOK.md"
@@ -266,6 +268,8 @@ check 'PR 569 CloudPanel quick fix runbook exists' test -f "$ROOT/deploy/aspnet/
 check 'PR 569 CloudPanel quick fix explains not git repo' contains "$ROOT/deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md" 'not a git repository'
 check 'PR 569 CloudPanel quick fix finds repo before scripts' contains "$ROOT/deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md" 'find /var/www /opt /root'
 check 'PR 569 CloudPanel quick fix uses sudo env deploy' contains "$ROOT/deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md" 'sudo env ECOMAE_RUN_SYSTEMD=1'
+check 'PR 569 CloudPanel quick fix names source branch' contains "$ROOT/deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md" 'codex/audit-project-performance-of-agent-n5lnu3'
+check 'PR 569 CloudPanel quick fix explains GitHub auth prompt' contains "$ROOT/deploy/aspnet/PR_569_CLOUDPANEL_QUICK_FIX.md" "Username for 'https://github.com'"
 check 'CloudPanel missing repo recovery exists' test -f "$ROOT/deploy/aspnet/CLOUDPANEL_MISSING_REPO_RECOVERY.md"
 check 'CloudPanel missing repo recovery requires real git URL' contains "$ROOT/deploy/aspnet/CLOUDPANEL_MISSING_REPO_RECOVERY.md" 'Set ECOMAE_GIT_URL to the real repository URL first'
 check 'production runbook troubleshoots missing script' contains "$ROOT/deploy/aspnet/PRODUCTION_DEPLOYMENT_RUNBOOK.md" 'No such file or directory'

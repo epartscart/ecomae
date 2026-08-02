@@ -75,10 +75,20 @@ If `gh pr checkout 569` was used, update the PR branch with:
 git push --force-with-lease
 ```
 
-If `gh` was not available, the local `pr-569-conflict-fix` branch was created from GitHub's read-only pull ref. Push it only when you know the actual PR #569 source branch name:
+If `gh` was not available, the local `pr-569-conflict-fix` branch was created from GitHub's read-only pull ref. PR #569's source branch is `codex/audit-project-performance-of-agent-n5lnu3`, so push the rebased branch back there:
 
 ```bash
-git push --force-with-lease origin HEAD:<actual-pr-569-source-branch>
+git push --force-with-lease origin HEAD:codex/audit-project-performance-of-agent-n5lnu3
+```
+
+If Git prompts for `Username for 'https://github.com':`, authenticate with a GitHub account/token that has permission to push to `epartscart/ecomae`, or install/login GitHub CLI first:
+
+```bash
+apt update
+apt install -y gh
+gh auth login
+gh pr checkout 569
+git push --force-with-lease
 ```
 
 ## 4. Deploy after PR #569 is merged
