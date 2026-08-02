@@ -20,8 +20,12 @@ On CloudPanel after deploy (loads keys from `/etc/ecomae-aspnet/platform.env` wh
 
 ```bash
 cd /opt/ecomae-aspnet-source
+git fetch origin main && git checkout -f main && git reset --hard origin/main
+bash scripts/cloudpanel_find_and_redeploy.sh
 bash scripts/cloudpanel_capture_final_gate_artifacts.sh
 ```
+
+Deploy packs `docs/migration/evidence/decommission` into the ASP.NET release ContentRoot so `/migration/php-decommission-readiness` can see attached git artifacts on the server (checklist should show public probes/scripts present after redeploy; authenticated smoke + approval still required).
 
 Add to `platform.env` (server-only, never commit):
 

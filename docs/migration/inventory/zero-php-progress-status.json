@@ -50,9 +50,9 @@
     "Release-owner approval before PHP decommission (remaining 5%)"
   ],
   "nextExecutionOrder": [
-    "Refresh /opt/ecomae-aspnet-source with git reset --hard origin/main, then cloudpanel_find_and_redeploy.sh.",
-    "Run bash scripts/run_zero_php_final_gate_checklist.sh.",
-    "Run opt-in staging smoke for price/catalog/surface digests with real keys/cookies; copy artifacts into docs/migration/evidence/decommission/staging-smoke/.",
+    "Refresh /opt/ecomae-aspnet-source with git reset --hard origin/main, then cloudpanel_find_and_redeploy.sh (packs decommission evidence into the release).",
+    "Confirm /migration/php-decommission-readiness shows public-probes/scripts present after redeploy.",
+    "Add ECOMAE_PRICE_LOOKUP_API_KEY / ECOMAE_CATALOG_API_KEY to /etc/ecomae-aspnet/platform.env, then bash scripts/cloudpanel_capture_final_gate_artifacts.sh.",
     "Attach parity samples, then enable only approved location = nginx shadows.",
     "Add RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after human approval, then remove PHP."
   ]

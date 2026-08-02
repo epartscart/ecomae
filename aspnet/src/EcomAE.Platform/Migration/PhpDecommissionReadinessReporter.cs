@@ -115,14 +115,21 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
 
     private string ResolveEvidenceRoot()
     {
-        var configured = Path.Combine(FindRepoRoot(), "docs", "migration", "evidence", "decommission");
-        if (Directory.Exists(configured))
+        foreach (var candidate in EvidenceRootCandidates())
         {
-            return configured;
+            if (Directory.Exists(candidate))
+            {
+                return candidate;
+            }
         }
 
-        var contentRelative = Path.Combine(_environment.ContentRootPath, "docs", "migration", "evidence", "decommission");
-        return Directory.Exists(contentRelative) ? contentRelative : configured;
+        return Path.Combine(_environment.ContentRootPath, "docs", "migration", "evidence", "decommission");
+    }
+
+    private IEnumerable<string> EvidenceRootCandidates()
+    {
+        yield return Path.Combine(_environment.ContentRootPath, "docs", "migration", "evidence", "decommission");
+        yield return Path.Combine(FindRepoRoot(), "docs", "migration", "evidence", "decommission");
     }
 
     private string FindRepoRoot()
@@ -131,7 +138,8 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
         while (current is not null)
         {
             if (File.Exists(Path.Combine(current.FullName, "docs", "migration", "PHP_DECOMMISSION_READINESS.md"))
-                || File.Exists(Path.Combine(current.FullName, "aspnet", "src", "EcomAE.Platform", "EcomAE.Platform.csproj")))
+                || File.Exists(Path.Combine(current.FullName, "aspnet", "src", "EcomAE.Platform", "EcomAE.Platform.csproj"))
+                || File.Exists(Path.Combine(current.FullName, "scripts", "cloudpanel_capture_final_gate_artifacts.sh")))
             {
                 return current.FullName;
             }
