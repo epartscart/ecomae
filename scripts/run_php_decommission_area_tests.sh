@@ -178,7 +178,7 @@ else
 fi
 
 # Catalog exact-route shadows live: unauth must be ASP.NET JSON gate (not PHP HTML).
-for path in /api/v1/catalog/status /api/v1/catalog/manufacturers /api/v1/catalog/models /api/v1/catalog/modifications /api/v1/catalog/brands /api/v1/catalog/suppliers /api/v1/catalog/vin /api/v1/catalog/engines /api/v1/catalog/analogs /api/v1/catalog/article-brands /api/v1/catalog/categories /api/v1/catalog/products /api/v1/catalog/engine-search /api/v1/catalog/article-links /api/v1/catalog/article; do
+for path in /api/v1/catalog/status /api/v1/catalog/manufacturers /api/v1/catalog/models /api/v1/catalog/modifications /api/v1/catalog/brands /api/v1/catalog/suppliers /api/v1/catalog/vin /api/v1/catalog/engines /api/v1/catalog/analogs /api/v1/catalog/article-brands /api/v1/catalog/categories /api/v1/catalog/products /api/v1/catalog/engine-search /api/v1/catalog/article-links /api/v1/catalog/article /api/v1/catalog/articles; do
   code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"
   if [[ "$code" == "401" ]] && grep -q 'missing_api_key' /tmp/area.body; then
     record "public${path}-exact-route" pass "ASP.NET JSON auth gate on exact-route shadow"
