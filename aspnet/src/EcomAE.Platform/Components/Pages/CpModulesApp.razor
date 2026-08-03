@@ -1,0 +1,149 @@
+@page "/cp/modules-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Modules · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-mod-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c1222 0%,#1e293b 50%,#334155 100%);
+        }
+        .epc-mod-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-mod-hero p { margin:0; color:#cbd5e1; max-width:40rem; font-size:.92rem; line-height:1.45; }
+        .epc-mod-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-mod-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#475569;
+        }
+        .epc-mod-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-mod-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-mod-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-mod-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-mod-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-mod-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-mod-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-mod-table th, .epc-mod-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-mod-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-mod-table a { color:#334155; font-weight:700; text-decoration:none; }
+        .epc-mod-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-mod-badge--ok { background:#dcfce7; color:#166534; }
+        .epc-mod-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-mod-badge--info { background:#e2e8f0; color:#334155; }
+        .epc-mod-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-mod-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-mod-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Modules</h1>
+        <p>Read-only CP modules registry from <code>/cp/modules</code> digest under PHP CP desktop chrome. Activate/deactivate and modules manager writes stay on live PHP — same-to-same for tenants.</p>
+        <div class="epc-mod-cta">
+            <a href="@_phpTab">Open PHP modules manager</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/users-app">Users list</a>
+            <a class="ghost" href="/cp/groups-app">Groups list</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-mod-kpis" aria-label="Modules KPIs">
+        <div class="epc-mod-kpi"><strong>@_modules.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-mod-kpi"><strong>@_activated</strong><span>Activated in page</span></div>
+        <div class="epc-mod-kpi"><strong>@_frontend</strong><span>Frontend modules</span></div>
+    </div>
+
+    <div class="epc-mod-table-wrap">
+        <table class="epc-mod-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Caption</th>
+                    <th>Activated</th>
+                    <th>Frontend</th>
+                    <th>Prototype</th>
+                    <th>Control</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_modules.Count == 0)
+                {
+                    <tr><td colspan="7">No modules in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var m in _modules)
+                    {
+                        <tr>
+                            <td><strong>@m.Id</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(m.Caption) ? "—" : m.Caption)</td>
+                            <td>
+                                @if (m.Activated)
+                                {
+                                    <span class="epc-mod-badge epc-mod-badge--ok">yes</span>
+                                }
+                                else
+                                {
+                                    <span class="epc-mod-badge epc-mod-badge--off">no</span>
+                                }
+                            </td>
+                            <td><span class="epc-mod-badge epc-mod-badge--info">@(m.IsFrontend ? "yes" : "no")</span></td>
+                            <td><span class="epc-mod-badge epc-mod-badge--info">@(m.IsPrototype ? "yes" : "no")</span></td>
+                            <td><span class="epc-mod-badge epc-mod-badge--info">@(m.ControlAvailable ? "yes" : "no")</span></td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-mod-note">
+        Read-only preview · JSON digest <a href="/cp/modules?limit=200">/cp/modules</a>.
+        PHP <code>modules_manager</code> remains authoritative for activate/deactivate/install.
+        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/modules/modules_manager";
+    private bool _isAdmin;
+    private IReadOnlyList<CpModuleDigest> _modules = [];
+    private int _activated;
+    private int _frontend;
+    private int _limit = 200;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListCpModulesAsync(_limit, ctx.RequestAborted);
+        _modules = result.Modules;
+        _activated = _modules.Count(m => m.Activated);
+        _frontend = _modules.Count(m => m.IsFrontend);
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

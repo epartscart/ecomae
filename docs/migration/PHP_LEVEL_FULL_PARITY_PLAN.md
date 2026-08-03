@@ -100,12 +100,15 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - Invisible migration law + operator verify (`cloudpanel_verify_tenant_hosts_still_php.sh`).
 - Digests/Blazor previews never replace live tenant product chrome.
 
-### Hybrid ERP tab family continue ← current
-- ✅ PO (#669) · invoices (#670) · cash (#671) · COA (#672) · GL (#673) · warehouses (#674) · suppliers (#675)
-- **This PR:** `/erp/purchases-app` over `/erp/purchases` digest; PHP purchasing/purchases / `epc_erp_list_purchases` authoritative for writes.
-- Next after core ERP digest apps: dual-sample evidence packs + remaining digests without `*-app` (inventory-stock KPI, accounts-summary) / CP/BOS presentation depth.
-- Exact-route www preview only — tenant `/ERP/` chrome stays PHP (same-to-same).
-- Destination: ASP.NET Core 10 Enterprise BOS owns finance modules; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
+### Hybrid ERP tab family continue
+- ✅ Core ERP list digests have Blazor `*-app` through purchases (#676).
+
+### Hybrid CP continue ← current
+- ✅ Users/Groups (#662) · Orders (#661)
+- **This PR:** `/cp/modules-app` over `/cp/modules` digest; PHP `modules_manager` authoritative for writes.
+- Next: `/cp/pages-app` · `/cp/menus-app` · `/bos/audit-log-app` · dual-sample evidence.
+- Exact-route www preview only — tenant `/CP/` chrome stays PHP (same-to-same).
+- Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
 Do **not** start Batch 6 cutover while interactive `aspnet-complete` is still 0 and tenants must remain same-to-same on PHP chrome.

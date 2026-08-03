@@ -40,6 +40,8 @@ public static class EcomAeRoutes
     public const string ControlPanelUsers = "/cp/users";
     public const string ControlPanelGroups = "/cp/groups";
     public const string ControlPanelModules = "/cp/modules";
+    /// <summary>CP modules Blazor list (JSON digest remains <see cref="ControlPanelModules"/>).</summary>
+    public const string ControlPanelModulesApp = "/cp/modules-app";
     public const string ControlPanelConfigItems = "/cp/config-items";
     public const string ControlPanelMenus = "/cp/menus";
     public const string ControlPanelPages = "/cp/pages";

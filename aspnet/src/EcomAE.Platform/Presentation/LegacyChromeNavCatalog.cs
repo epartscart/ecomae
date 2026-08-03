@@ -37,6 +37,8 @@ public static class LegacyChromeNavCatalog
         new("Orders PHP OMS", "/CP/shop/orders/orders"),
         new("Users list", "/cp/users-app"),
         new("Groups list", "/cp/groups-app"),
+        new("Modules list", "/cp/modules-app"),
+        new("Modules PHP", "/CP/modules/modules_manager"),
         new("Users PHP", "/CP/control/users"),
         new("Groups PHP", "/CP/users/usergroups"),
         new("Multivendor", "/CP/control/shop/multivendor"),
