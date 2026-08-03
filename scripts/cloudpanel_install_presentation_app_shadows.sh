@@ -8,12 +8,17 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CONF="${ECOMAE_NGINX_SITE_CONF:-/etc/nginx/sites-enabled/www.ecomae.com.conf}"
 EXAMPLE="$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf"
 
+# shellcheck source=scripts/lib/ecomae_nginx_site_safety.sh
+source "$ROOT/scripts/lib/ecomae_nginx_site_safety.sh"
+
 if [[ "${ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS:-}" != "YES" ]]; then
   printf 'Refusing without ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES\n' >&2
   exit 2
 fi
 [[ -f "$CONF" ]] || { printf 'ERROR: missing %s\n' "$CONF" >&2; exit 1; }
 [[ -f "$EXAMPLE" ]] || { printf 'ERROR: missing %s\n' "$EXAMPLE" >&2; exit 1; }
+# Presentation/login shadows: platform www only. Never tenant/industry by default.
+ecomae_assert_nginx_shadow_target_allowed "$CONF" presentation
 
 bak="/root/$(basename "$CONF").bak.presentation-apps.$(date -u +%Y%m%d%H%M%S)"
 cp -a "$CONF" "$bak"

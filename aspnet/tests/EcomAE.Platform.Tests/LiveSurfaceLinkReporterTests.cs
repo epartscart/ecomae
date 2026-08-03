@@ -145,6 +145,8 @@ public sealed class LiveSurfaceLinkReporterTests
                 || link.AspNetRouteHint.StartsWith("/erp/", StringComparison.Ordinal)
                 || link.AspNetRouteHint.StartsWith("/bos/", StringComparison.Ordinal))));
         Assert.Contains(report.CutoverRules, rule => rule.Contains("Broad", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.CutoverRules, rule => rule.Contains("tenant", StringComparison.OrdinalIgnoreCase)
+            && rule.Contains("PHP", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/migration/console"
@@ -185,6 +187,8 @@ public sealed class LiveSurfaceLinkReporterTests
             || action.Contains("secret_succession", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("CHROME_PARITY_GAP_MATRIX", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_live_tenant_php_chrome.sh", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("ECOMAE_CONFIRM_TENANT_HOST_SHADOW", StringComparison.Ordinal));
     }
 
     [Fact]

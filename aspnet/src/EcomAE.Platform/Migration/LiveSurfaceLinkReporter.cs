@@ -141,6 +141,7 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             "www.ecomae.com",
             links,
             [
+                "Live tenant and industry frontend/CP/ERP must remain PHP — migration shadows default to www.ecomae.com only (see docs/migration/TENANT_MIGRATION_SAFETY.md).",
                 "Broad /, /api, /cp, /erp, /bos, storefront nginx cutover remains forbidden.",
                 "Only approved location = exact-route shadows may be enabled after staging smoke.",
                 "Keep MigrationRouteCutover StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final gate.",
@@ -165,6 +166,8 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Presentation + login exact-routes: /cp|/erp|/bos|/storefront/{app,login} + POST /auth/login/admin — ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES bash scripts/cloudpanel_install_presentation_app_shadows.sh",
                 "Login bridge needs EcomAE__SecretSuccession (= PHP secret_succession) in platform.env; without it UI falls back to PHP login.",
                 "Hybrid chrome: ASP.NET shells link PHP modules (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /CP/ /ERP/ /BOS/ remain PHP.",
+                "Tenant safety probe: bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh (expect PHP HTML on tenant / /CP/ /ERP/).",
+                "Shadow installers refuse tenant vhosts unless ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES; presentation shadows refuse tenants by default.",
                 "Human RELEASE_OWNER_APPROVAL.md is the final ReadyToRemovePhp blocker — do not remove PHP while chrome is PHP-authoritative."
             ]);
 

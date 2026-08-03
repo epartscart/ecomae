@@ -21,9 +21,12 @@ public sealed class PhpDecommissionReadinessReporterTests
         Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "missing");
         Assert.Contains(report.Checklist, item => item.Id == "rollback-validated" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "exact-route-shadows-only" && item.Status == "present");
+        Assert.Contains(report.Checklist, item => item.Id == "tenant-php-chrome-safe" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "public-probes" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "cloudpanel-capture-script" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "parity-samples-attached" && item.Status == "present");
+        Assert.Contains(report.Blockers, blocker => blocker.Contains("tenant", StringComparison.OrdinalIgnoreCase)
+            || blocker.Contains("industry", StringComparison.OrdinalIgnoreCase));
         Assert.True(report.ChecklistCompletePercent < 100);
         Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "missing");
         // After #612, authenticated staging smoke is attached on main; remaining blocker is human approval.
@@ -91,6 +94,12 @@ public sealed class PhpDecommissionReadinessReporterTests
             File.Copy(Path.Combine(repoRoot, "scripts", "cloudpanel_capture_final_gate_artifacts.sh"), Path.Combine(releaseRoot, "scripts", "cloudpanel_capture_final_gate_artifacts.sh"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "scripts", "rollback_aspnet_foundation.sh"), Path.Combine(releaseRoot, "scripts", "rollback_aspnet_foundation.sh"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "scripts", "run_zero_php_final_gate_checklist.sh"), Path.Combine(releaseRoot, "scripts", "run_zero_php_final_gate_checklist.sh"), overwrite: true);
+            Directory.CreateDirectory(Path.Combine(releaseRoot, "scripts", "lib"));
+            Directory.CreateDirectory(Path.Combine(releaseRoot, "docs", "migration"));
+            File.Copy(Path.Combine(repoRoot, "scripts", "ecomae_nginx_site_safety.py"), Path.Combine(releaseRoot, "scripts", "ecomae_nginx_site_safety.py"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "scripts", "lib", "ecomae_nginx_site_safety.sh"), Path.Combine(releaseRoot, "scripts", "lib", "ecomae_nginx_site_safety.sh"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "scripts", "cloudpanel_probe_live_tenant_php_chrome.sh"), Path.Combine(releaseRoot, "scripts", "cloudpanel_probe_live_tenant_php_chrome.sh"), overwrite: true);
+            File.Copy(Path.Combine(repoRoot, "docs", "migration", "TENANT_MIGRATION_SAFETY.md"), Path.Combine(releaseRoot, "docs", "migration", "TENANT_MIGRATION_SAFETY.md"), overwrite: true);
 
             var report = new PhpDecommissionReadinessReporter(new RepoHostEnvironment { ContentRootPath = releaseRoot }).BuildReport();
             Assert.True(report.ReadyToRemovePhp);

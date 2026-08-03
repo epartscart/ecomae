@@ -1,0 +1,225 @@
+{
+  "generatedAtUtc": "2026-08-03T12:34:45Z",
+  "status": "pass",
+  "policy": "live-tenant-product-chrome-must-remain-php",
+  "passCount": 21,
+  "failCount": 0,
+  "probes": [
+    {
+      "url": "https://epartscart.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 506568,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://epartscart.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 36246,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://epartscart.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 178499,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.epartscart.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 506568,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.epartscart.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 36246,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.epartscart.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 178499,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.electronicae.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 289900,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.electronicae.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29663,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.electronicae.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 167803,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.stylenlook.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 278895,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.stylenlook.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29606,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.stylenlook.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 167771,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 315033,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29740,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 167888,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.taxofinca.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 269466,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.taxofinca.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29612,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.taxofinca.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 167778,
+      "hostClass": "tenant",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.ecomae.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 239599,
+      "hostClass": "platform",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.ecomae.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29888,
+      "hostClass": "platform",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    },
+    {
+      "url": "https://www.ecomae.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 170253,
+      "hostClass": "platform",
+      "reason": "html-chrome-markers",
+      "result": "pass"
+    }
+  ],
+  "notes": [
+    "ASP.NET exact-route digests/APIs on www.ecomae.com are intentional and out of scope here.",
+    "This probe fails if / /CP/ /ERP/ on live tenant hosts look like Blazor scaffolds or JSON digests.",
+    "php-plain (e.g. PHP license/domain_path text) is not ASP.NET cutover; industry hosts are optional.",
+    "Do not remove PHP while live tenants depend on PHP chrome."
+  ]
+}

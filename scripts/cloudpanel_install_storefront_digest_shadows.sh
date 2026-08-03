@@ -17,6 +17,9 @@ CONF="${ECOMAE_NGINX_SITE_CONF:-/etc/nginx/sites-enabled/www.ecomae.com.conf}"
 EXAMPLE="$ROOT/deploy/aspnet/nginx-storefront-digests-shadow-example.conf"
 PROBE="${ECOMAE_DIGEST_SHADOW_PROBE:-1}"
 
+# shellcheck source=scripts/lib/ecomae_nginx_site_safety.sh
+source "$ROOT/scripts/lib/ecomae_nginx_site_safety.sh"
+
 if [[ "${ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS:-}" != "YES" ]]; then
   printf 'Refusing without ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES\n' >&2
   exit 2
@@ -29,6 +32,8 @@ if [[ ! -f "$EXAMPLE" ]]; then
   printf 'ERROR: missing shadow example %s\n' "$EXAMPLE" >&2
   exit 1
 fi
+# Storefront digests on www only by default — live ePartsCart/tenant storefronts stay PHP.
+ecomae_assert_nginx_shadow_target_allowed "$CONF" exact-route
 
 bak="/root/$(basename "$CONF").bak.storefront-digests.$(date -u +%Y%m%d%H%M%S)"
 cp -a "$CONF" "$bak"
