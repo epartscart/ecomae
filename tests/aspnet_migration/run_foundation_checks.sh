@@ -411,6 +411,7 @@ check 'smoke export bundle helper exists' test -x "$ROOT/scripts/cloudpanel_expo
 check 'smoke token push helper exists' test -x "$ROOT/scripts/cloudpanel_push_final_gate_smoke.sh"
 check 'smoke token push requires GH_TOKEN' contains "$ROOT/scripts/cloudpanel_push_final_gate_smoke.sh" 'GH_TOKEN'
 check 'smoke token push disables terminal prompt' contains "$ROOT/scripts/cloudpanel_push_final_gate_smoke.sh" 'GIT_TERMINAL_PROMPT=0'
+check 'smoke token push rejects placeholder tokens' contains "$ROOT/scripts/cloudpanel_push_final_gate_smoke.sh" 'documentation placeholder'
 check 'smoke commit preserves unpushed commit' contains "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" 'pushing without reset'
 check 'smoke commit recovers failed push auth' contains "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" 'cloudpanel_export_final_gate_smoke_bundle.sh'
 check 'smoke commit prefers token push helper' contains "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" 'cloudpanel_push_final_gate_smoke.sh'
