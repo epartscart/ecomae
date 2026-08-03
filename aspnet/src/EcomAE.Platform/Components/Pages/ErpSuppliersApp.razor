@@ -1,0 +1,132 @@
+@page "/erp/suppliers-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Suppliers · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Suppliers" BreadcrumbArea="Accounts Payable" BreadcrumbTab="Payables">
+    <style>
+        .epc-sup-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#431407 0%,#7c2d12 45%,#9a3412 100%);
+        }
+        .epc-sup-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-sup-hero p { margin:0; color:#fed7aa; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-sup-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-sup-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#c2410c;
+        }
+        .epc-sup-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-sup-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-sup-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-sup-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-sup-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-sup-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-sup-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-sup-table th, .epc-sup-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-sup-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-sup-table a { color:#c2410c; font-weight:700; text-decoration:none; }
+        .epc-sup-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#ffedd5; color:#9a3412; }
+        .epc-sup-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#7c2d12; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-sup-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-sup-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Suppliers</h1>
+        <p>Read-only ERP suppliers from <code>/erp/suppliers</code> digest under PHP ERP desktop chrome. Payables UI, supplier create/sync, and writes stay on live PHP (`epc_erp_list_suppliers` / AP payables) — same-to-same for tenants.</p>
+        <div class="epc-sup-cta">
+            <a href="@_phpTab">Open PHP payables</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
+            <a class="ghost" href="/erp/warehouses-app">Warehouses</a>
+            <a class="ghost" href="/erp/app">ERP dashboard</a>
+        </div>
+    </section>
+
+    <div class="epc-sup-kpis" aria-label="Supplier KPIs">
+        <div class="epc-sup-kpi"><strong>@_suppliers.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-sup-kpi"><strong>@_openBalance</strong><span>With non-zero balance</span></div>
+        <div class="epc-sup-kpi"><strong>@_totalBalance.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Sum of balances</span></div>
+    </div>
+
+    <div class="epc-sup-table-wrap">
+        <table class="epc-sup-table">
+            <thead>
+                <tr>
+                    <th>Supplier</th>
+                    <th>Storage ID</th>
+                    <th>Balance</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_suppliers.Count == 0)
+                {
+                    <tr><td colspan="4">No suppliers in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var s in _suppliers)
+                    {
+                        var phpHref = $"{_phpTab}&supplier_id={s.Id.ToString(CultureInfo.InvariantCulture)}";
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(s.Name) ? $"#{s.Id}" : s.Name)</strong></td>
+                            <td>@(s.StorageId > 0 ? s.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td><span class="epc-sup-badge">@s.Balance.ToString("N2", CultureInfo.InvariantCulture)</span></td>
+                            <td><a href="@phpHref">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-sup-note">
+        Read-only preview · JSON digest <a href="/erp/suppliers?limit=200">/erp/suppliers</a>.
+        PHP AP payables (`area=ap&amp;tab=payables`) / <code>epc_erp_list_suppliers</code> remain authoritative for create/sync/payments.
+        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=ap&tab=payables";
+    private bool _isAdmin;
+    private IReadOnlyList<ErpSupplierDigest> _suppliers = [];
+    private int _openBalance;
+    private decimal _totalBalance;
+    private int _limit = 100;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListErpSuppliersAsync(_limit, ctx.RequestAborted);
+        _suppliers = result.Suppliers;
+        _openBalance = _suppliers.Count(s => s.Balance != 0m);
+        _totalBalance = _suppliers.Sum(s => s.Balance);
+        _source = result.Source;
+        _message = result.Message;
+    }
+}
