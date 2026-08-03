@@ -37,10 +37,10 @@ Live www chain (after exact-route shadows; uses `MFA_ID`/`MS_ID` keys from cache
 Walks manufacturers until `epc_umapi_models` returns rows (first MFA is often empty):
 
 ```bash
-source /etc/ecomae-aspnet/platform.env
+set -a; source /etc/ecomae-aspnet/platform.env; set +a   # export vars for python
 bash scripts/cloudpanel_probe_catalog_vehicle_chain.sh
-# If still empty, find a warm MFA on TenantRegistry DB:
-# SELECT mfa_id, COUNT(*) c FROM epc_umapi_models WHERE section='passenger' GROUP BY mfa_id ORDER BY c DESC LIMIT 10;
+# If still empty:
+bash scripts/cloudpanel_list_warm_catalog_models_mfa.sh
 ```
 
 Keep PHP fallback until artifacts are attached.

@@ -448,6 +448,9 @@ check 'catalog vehicle chain probe exists' test -x "$ROOT/scripts/cloudpanel_pro
 check 'catalog vehicle chain probe reads MFA_ID' contains "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" '("MFA_ID", "mfa_id")'
 check 'catalog vehicle chain probe walks MFA_IDs' contains "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" 'ECOMAE_VEHICLE_CHAIN_MAX_MFA'
 check 'catalog vehicle chain probe hints epc_umapi_models' contains "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" 'epc_umapi_models'
+check 'catalog vehicle chain probe exports platform.env' contains "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" 'set -a'
+check 'warm models MFA list helper exists' test -x "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh"
+check 'deploy packs warm models MFA list helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_list_warm_catalog_models_mfa.sh'
 check 'exact-route installer accepts public ASP.NET when local SNI HTML' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'public URL serves ASP.NET JSON gate'
 check 'deploy packs catalog vehicle chain probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_catalog_vehicle_chain.sh'
 check 'deploy packs pre-PHP-removal parity verdict helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'verify_pre_php_removal_parity.sh'

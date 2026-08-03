@@ -5,20 +5,28 @@
 # Never removes PHP. Never prints API keys.
 #
 # Usage (CloudPanel):
-#   source /etc/ecomae-aspnet/platform.env
+#   set -a; source /etc/ecomae-aspnet/platform.env; set +a   # export for python/children
 #   bash scripts/cloudpanel_probe_catalog_vehicle_chain.sh
 #
 # Optional:
 #   ECOMAE_VEHICLE_CHAIN_MAX_MFA=40   # max manufacturers to try (default 40)
 set -euo pipefail
 
+ENV_FILE="${ECOMAE_ASPNET_ENV_FILE:-/etc/ecomae-aspnet/platform.env}"
+if [[ -z "${ECOMAE_CATALOG_API_KEY:-}" && -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+fi
+
 BASE="${ECOMAE_PUBLIC_BASE_URL:-https://www.ecomae.com}"
-KEY="${ECOMAE_CATALOG_API_KEY:-}"
+KEY="${ECOMAE_CATALOG_API_KEY:-${CATALOG_API_KEY:-}}"
 SECTION="${ECOMAE_CATALOG_SECTION:-passenger}"
 MAX_MFA="${ECOMAE_VEHICLE_CHAIN_MAX_MFA:-40}"
 
 if [[ -z "$KEY" ]]; then
-  printf 'ERROR: set ECOMAE_CATALOG_API_KEY (source /etc/ecomae-aspnet/platform.env)\n' >&2
+  printf 'ERROR: ECOMAE_CATALOG_API_KEY missing. Use: set -a; source %s; set +a\n' "$ENV_FILE" >&2
   exit 2
 fi
 
@@ -122,8 +130,8 @@ if [[ "$MFA_ID" -gt 0 ]]; then
   python3 -m json.tool /tmp/ecomae-vehicle-models.json | head -30
 else
   printf 'WARN: no non-empty models cache among first %s MFA_IDs.\n' "$MAX_MFA" >&2
-  printf 'Hint (CloudPanel MySQL on TenantRegistry DB):\n' >&2
-  printf "  SELECT mfa_id, COUNT(*) c FROM epc_umapi_models WHERE section='%s' GROUP BY mfa_id ORDER BY c DESC LIMIT 10;\n" "$SECTION" >&2
+  printf 'Hint: bash scripts/cloudpanel_list_warm_catalog_models_mfa.sh\n' >&2
+  printf "  (or MySQL) SELECT mfa_id, COUNT(*) c FROM epc_umapi_models WHERE section='%s' GROUP BY mfa_id ORDER BY c DESC LIMIT 10;\n" "$SECTION" >&2
   printf 'Then: curl .../models?section=%s&mfa_id=<id>\n' "$SECTION" >&2
   exit 4
 fi
