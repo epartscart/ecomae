@@ -40,6 +40,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Tab UIs (154) | `erp_tabs_*.php` + nav tabs | directory → PHP; SO list at `/erp/sales-orders-app` | hybrid-deeplink (+ Batch 4 SO read UI) |
 | Sales orders tab | `erp_tabs_sales_orders.php` | `/erp/sales-orders-app` over `/erp/sales-orders` digest | digest-only + hybrid-deeplink (Batch 4; writes PHP) |
 | Purchase orders tab | `erp_tabs_purchase_orders.php` | `/erp/purchase-orders-app` over `/erp/purchase-orders` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
+| Invoices tab | `erp_tabs_invoices.php` | `/erp/invoices-app` over `/erp/invoices` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Writes / ajax_erp / print | PHP | — | php-only |
 | Digests | — | cash/suppliers/SO/PO/GL/… | digest-only |
 
