@@ -28,6 +28,8 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Purchase orders PHP" && item.Href.Contains("tab=purchase_orders", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Invoices list" && item.Href == "/erp/invoices-app");
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Invoices PHP" && item.Href.Contains("tab=invoices", StringComparison.Ordinal));
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Cash & bank list" && item.Href == "/erp/cash-accounts-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Cash & bank PHP" && item.Href.Contains("tab=cash_bank", StringComparison.Ordinal));
     }
 
     [Fact]

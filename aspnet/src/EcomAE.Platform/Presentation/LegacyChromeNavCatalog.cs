@@ -63,12 +63,13 @@ public static class LegacyChromeNavCatalog
         new("Purchase orders PHP", "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders"),
         new("Invoices list", "/erp/invoices-app"),
         new("Invoices PHP", "/ERP/?epc_erp_shell=1&area=sales&tab=invoices"),
+        new("Cash & bank list", "/erp/cash-accounts-app"),
+        new("Cash & bank PHP", "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"),
         new("General ledger", "/ERP/?epc_erp_shell=1&area=finance"),
         new("Staff", "/ERP/?epc_erp_shell=1&area=people"),
         new("Income Statement", "/ERP/?epc_erp_shell=1&area=finance"),
         new("Balance Sheet", "/ERP/?epc_erp_shell=1&area=finance"),
-        new("General Journal", "/ERP/?epc_erp_shell=1&area=finance"),
-        new("Cash & bank", "/ERP/?epc_erp_shell=1&area=banking")
+        new("General Journal", "/ERP/?epc_erp_shell=1&area=finance")
     ];
 
     /// <summary>BOS sidebar sections → PHP /BOS/ (and CP portal modules when applicable).</summary>
