@@ -72,9 +72,14 @@
         </div>
         <h2>Operator Access</h2>
         <p>Manage your entire tenant fleet from one dashboard.</p>
-        <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/BOS/" ErrorMessage="@_error" SubmitLabel="Sign In to BOS" Accent="blue" />
-        <div class="secure"><i class="fa fa-lock"></i> 256-bit encrypted · Session isolated · Audit logged</div>
-        <div class="foot">ECOMAE · Business Operating System · admin bridge for digests; native PHP /BOS/ for full $_SESSION modules</div>
+        <div class="epc-login-bridge-note" style="margin:0 0 1rem;padding:.65rem .75rem;border:1px solid #854d0e;background:#422006;color:#fde68a;border-radius:.45rem;font-size:.82rem;line-height:1.4">
+            Batch 3 decision: this form mints <strong>MySQL admin cookies</strong> for ASP.NET digests and <code>/bos/app</code> only.
+            It is <strong>not</strong> PHP <code>$_SESSION['epc_bos_context']</code>. Full tenant module UX stays on
+            <a class="epc-login-php" href="/BOS/">live /BOS/</a> (PHP-authoritative).
+        </div>
+        <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/BOS/" ErrorMessage="@_error" SubmitLabel="Sign In (admin bridge)" Accent="blue" />
+        <div class="secure"><i class="fa fa-lock"></i> Admin-cookie bridge · Native BOS session remains PHP</div>
+        <div class="foot">ECOMAE · /bos/login ≠ /BOS/?action=login · keep /BOS/ PHP-authoritative</div>
     </section>
 </div>
 

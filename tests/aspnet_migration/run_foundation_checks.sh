@@ -462,6 +462,15 @@ check 'module function parity inventory exists' test -f "$ROOT/docs/migration/in
 check 'presentation parity probe script exists' test -x "$ROOT/scripts/cloudpanel_probe_php_presentation_parity.sh"
 check 'presentation compare helper exists' test -f "$ROOT/scripts/compare_php_aspnet_presentation.py"
 check 'login bridge service exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbLegacyAdminLoginService.cs"
+check 'login session token factory exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionTokenFactory.cs"
+check 'customer session insert includes last_activiti_time' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyAdminLoginSql.cs" 'last_activiti_time'
+check 'customer token formula uses userId' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionTokenFactory.cs" 'CustomerSessionToken'
+check 'login cookie dual-sample compare exists' test -x "$ROOT/scripts/compare_login_cookie_dual_samples.py"
+check 'login cookie dual-sample capture exists' test -x "$ROOT/scripts/cloudpanel_capture_login_cookie_dual_samples.sh"
+check 'secret succession verify helper exists' test -x "$ROOT/scripts/cloudpanel_verify_secret_succession_configured.sh"
+check 'login session bridge evidence dir exists' test -d "$ROOT/docs/migration/evidence/login-session-bridge"
+check 'login bridge keeps BOS PHP-authoritative' contains "$ROOT/docs/migration/evidence/login-session-bridge/README.md" 'PHP-authoritative'
+check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
 check 'presentation installer expects login routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 9'
 check 'digest dual compare accepts migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migrationBaselinePairs'

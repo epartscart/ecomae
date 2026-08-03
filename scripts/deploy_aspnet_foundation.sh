@@ -111,7 +111,10 @@ for compare in \
   compare_price_lookup_parity.py \
   compare_digest_dual_samples.py \
   compare_surface_payload_parity.py \
-  generate_migration_digest_contract_samples.py
+  compare_login_cookie_dual_samples.py \
+  generate_migration_digest_contract_samples.py \
+  cloudpanel_verify_secret_succession_configured.sh \
+  cloudpanel_capture_login_cookie_dual_samples.sh
 do
   if [[ -f "$ROOT/scripts/$compare" ]]; then
     install -m 0755 "$ROOT/scripts/$compare" "$PLATFORM_DIR/scripts/"

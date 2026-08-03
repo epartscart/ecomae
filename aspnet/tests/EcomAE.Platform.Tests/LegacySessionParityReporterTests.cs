@@ -16,14 +16,18 @@ public sealed class LegacySessionParityReporterTests
         Assert.Contains(report.SupportedInputs, item => item.Contains("for_backend", StringComparison.OrdinalIgnoreCase));
         Assert.Contains("backend group claims", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("X-API-Key header", report.SupportedInputs);
-        Assert.Equal("login-bridge-hybrid-awaiting-secret-and-staging", report.Status);
+        Assert.Equal("login-bridge-hybrid-batch3-hardened", report.Status);
         Assert.Contains(report.SupportedInputs, item => item.Contains("modules_access", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.SupportedInputs, item => item.Contains("parent", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.SupportedInputs, item => item.Contains("/auth/login/admin", StringComparison.Ordinal));
+        Assert.Contains(report.SupportedInputs, item => item.Contains("customer token", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.SupportedInputs, item => item.Contains("dual-sample", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("issue_smoke_credentials.sh", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("ECOMAE_CONFIRM_SYNC_ADMIN_SESSION", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("SecretSuccession", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("ECOMAE_CUSTOMER_COOKIE_HEADER", StringComparison.Ordinal));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("keep /BOS/ PHP-authoritative", StringComparison.Ordinal));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("dual-sample", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("login", StringComparison.OrdinalIgnoreCase)
             || gap.Contains("OAuth", StringComparison.OrdinalIgnoreCase)
             || gap.Contains("OIDC", StringComparison.OrdinalIgnoreCase));

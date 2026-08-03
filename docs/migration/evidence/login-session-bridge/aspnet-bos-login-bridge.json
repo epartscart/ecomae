@@ -1,0 +1,17 @@
+{
+  "surface": "bos",
+  "role": "aspnet-login-bridge-sample",
+  "capturedAt": "2026-08-03T00:00:00Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "setCookie": [
+    "admin_session=STUB; path=/; httponly; samesite=lax",
+    "admin_u_id=0; path=/; httponly; samesite=lax"
+  ],
+  "probe": {
+    "kind": "Admin",
+    "has_backend_access": true
+  },
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "Contract stub. DECISION: admin cookies ≠ PHP $_SESSION epc_bos_context; /BOS/ remains PHP-authoritative."
+}

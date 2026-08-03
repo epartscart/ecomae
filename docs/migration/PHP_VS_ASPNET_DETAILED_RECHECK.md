@@ -6,7 +6,9 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Batch 1 ✅ (#658):** `PhpSurfaceHead` puts PHP webfonts/CSS/GA4 into `<head>` for login/shell routes; probe uses chrome-asset markers.
 
-**Batch 2 (in progress):** Authenticated desktop chrome (`PhpCpDesktopChrome`, `PhpErpDesktopChrome`, `PhpBosDesktopChrome`, `PhpStorefrontDesktopChrome`) emits PHP structural selectors (`#header`, `.epc-cp-topnav`, `.epc-erp-topnav`, `.bos-topnav`, modex header). Module bodies remain PHP via hybrid workspace. Requires CloudPanel redeploy + presentation shadows before live evidence can show structural chrome lift; still never `readyForPhpRemoval`.
+**Batch 2 ✅ (#659):** Authenticated desktop chrome (`Php*DesktopChrome`) emits PHP structural selectors. Module bodies remain PHP via hybrid workspace.
+
+**Batch 3 (in progress):** Login bridge hardening — PHP-compatible customer token formula, SecretSuccession verify helper, cookie dual-sample harness, **decision: `/BOS/` stays PHP-authoritative** for `$_SESSION` modules. Still never `readyForPhpRemoval`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

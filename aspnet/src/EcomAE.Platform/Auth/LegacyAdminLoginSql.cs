@@ -24,11 +24,15 @@ public static class LegacyAdminLoginSql
           (@session, @userId, @time, '', 1, @contactType, @csrf)
         """;
 
-    /// <summary>Mirrors storefront/customer INSERT (no type=1).</summary>
+    /// <summary>
+    /// Mirrors storefront customer INSERT with <c>last_activiti_time</c>
+    /// (<c>epc_auth_create_storefront_session_record</c>); plugin login omits the column but
+    /// the common helper sets it for session GC.
+    /// </summary>
     public const string InsertCustomerSession = """
         INSERT INTO `sessions`
-          (`session`, `user_id`, `time`, `data`, `csrf_guard_key`)
+          (`session`, `user_id`, `time`, `data`, `last_activiti_time`, `csrf_guard_key`)
         VALUES
-          (@session, @userId, @time, '', @csrf)
+          (@session, @userId, @time, '', @time, @csrf)
         """;
 }

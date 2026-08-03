@@ -19,7 +19,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 
 | Module family | PHP route family | ASP.NET | Status |
 | --- | --- | --- | --- |
-| Login / session | `/CP/` auth plugin | `/cp/login` bridge (opt-in) | hybrid-deeplink |
+| Login / session | `/CP/` auth plugin | `/cp/login` bridge (opt-in Batch 3 dual-sample) | hybrid-deeplink |
 | Command centre chrome | `desktop.php` widgets | `/cp/app` + `PhpCpDesktopChrome` mega-nav + 405 directory | digest-only + hybrid-deeplink (Batch 2 desktop) |
 | Orders / OMS | `/CP/control/shop/orders*` | directory → PHP | hybrid-deeplink |
 | Customers / users / groups | `/CP/control/users*` | digests + directory → PHP | digest-only + hybrid-deeplink |
@@ -34,7 +34,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 
 | Module family | PHP | ASP.NET | Status |
 | --- | --- | --- | --- |
-| Login landing | `/ERP/` | `/erp/login` | hybrid-deeplink |
+| Login landing | `/ERP/` | `/erp/login` (Batch 3 admin cookie bridge) | hybrid-deeplink |
 | Dashboard chrome | ERP desktop | `/erp/app` + `PhpErpDesktopChrome` topnav + categories/tabs | digest-only + hybrid-deeplink (Batch 2 desktop) |
 | Areas (35 with tabs) | `erp_nav_areas.php` | directory → PHP | hybrid-deeplink |
 | Tab UIs (154) | `erp_tabs_*.php` + nav tabs | directory → PHP | hybrid-deeplink |
@@ -45,7 +45,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 
 | Module family | PHP | ASP.NET | Status |
 | --- | --- | --- | --- |
-| Login (`$_SESSION`) | `/BOS/?action=login` | `/bos/login` admin-cookie bridge | hybrid-deeplink (model mismatch) |
+| Login (`$_SESSION`) | `/BOS/?action=login` | `/bos/login` admin-cookie bridge only | hybrid-deeplink (Batch 3 decision: keep `/BOS/` PHP-authoritative) |
 | Fleet / tenant ops / commerce / catalogue / … | ~99–116 module IDs | `/bos/app` + `PhpBosDesktopChrome` topnav + directory → PHP | hybrid-deeplink (Batch 2 desktop; session model still PHP) |
 | Digests | — | fleet-summary/tenants/health/… | digest-only |
 
@@ -57,7 +57,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Search / VIN / catalog browse | PHP + Laximo/UMAPI | directory → PHP | hybrid-deeplink |
 | Cart / checkout / payments | PHP | directory → PHP | hybrid-deeplink |
 | Account digests | PHP | `/storefront/account-summary|orders|garage|profile` | digest-only |
-| Customer login | PHP | `/storefront/login` bridge | hybrid-deeplink |
+| Customer login | PHP | `/storefront/login` bridge (Batch 3 PHP token formula) | hybrid-deeplink |
 
 ## Catalog / API
 

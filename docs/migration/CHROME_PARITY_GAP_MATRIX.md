@@ -19,14 +19,14 @@ Authoritative product chrome remains **PHP** until intentional exact-route cutov
 | --- | --- | --- | --- | --- | --- |
 | Platform CP chrome | `/CP/` (login when unauth) | `/cp/login` → `/cp/app` (auth) | Hybrid Batch 2: `PhpCpDesktopChrome` (`#header`, `.epc-cp-topnav` mega) | Digests ASP.NET; modules PHP via mega-nav / directory | ACL menu cache + desktop widgets still PHP; not cut over |
 | Tenant CP chrome | `tenant/CP/` | same `/cp/app` when shadowed on tenant vhost | Hybrid | Tenant DB via registry | Per-tenant shadow install still operator-driven; keep PHP chrome |
-| CP login | `/CP/` auth plugin | `/cp/login` + `POST /auth/login/admin` | Bridge UI (+ Batch 1 HeadOutlet) | Writes PHP-compatible `sessions` + `admin_*` cookies when `SecretSuccession` set | Rate-limit / social / demo / shared-ERP picker still PHP |
+| CP login | `/CP/` auth plugin | `/cp/login` + `POST /auth/login/admin` | Bridge UI (+ Batch 1 HeadOutlet) | Batch 3: PHP-compatible `sessions` + `admin_*` when `SecretSuccession` set; cookie dual-sample harness | Rate-limit / social / demo / shared-ERP picker still PHP |
 | Platform ERP | `/ERP/` | `/erp/app` | Hybrid Batch 2: `PhpErpDesktopChrome` (`.epc-erp-topbar`, `.epc-erp-topnav`) | Digests ASP.NET; tab bodies PHP | Writes / ajax_erp still PHP |
 | Client / platform ERP routers | `/cp/client-erp/…`, `/cp/platform-erp/` | link via PHP | PHP-live | PHP | Not cut over |
-| ERP login | ERP routers / CP plugin | `/erp/login` | Bridge UI | Same admin session mint | Shared-tenant picker still PHP |
-| Super BOS | `/BOS/` | `/bos/app` | Hybrid Batch 2: `PhpBosDesktopChrome` (`.bos-topnav`, `.bos-main`) | Digests ASP.NET | **BOS `$_SESSION` ≠ MySQL admin cookies** — use `/BOS/` for full fleet UX |
-| BOS login | `POST /bos/?action=login` | `/bos/login` (admin bridge) | Bridge + PHP link | Admin cookies for digests only | Native BOS PHP session login remains required for modules |
+| ERP login | ERP routers / CP plugin | `/erp/login` | Bridge UI | Same admin session mint (Batch 3 dual-sample) | Shared-tenant picker still PHP |
+| Super BOS | `/BOS/` | `/bos/app` | Hybrid Batch 2: `PhpBosDesktopChrome` (`.bos-topnav`, `.bos-main`) | Digests ASP.NET | **DECISION:** `/BOS/` PHP-authoritative — admin cookies ≠ `$_SESSION` |
+| BOS login | `POST /bos/?action=login` | `/bos/login` (admin bridge) | Bridge + explicit Batch 3 warning | Admin cookies for digests/`/bos/app` only | Native BOS PHP session login remains required for modules |
 | Storefront home | `epartscart.com/` | `/storefront/app` | Hybrid Batch 2: `PhpStorefrontDesktopChrome` (modex header/search/nav) | Digests ASP.NET | Marketing/cart/checkout PHP |
-| Storefront login | PHP customer login | `/storefront/login` | Bridge UI | Customer `session`/`u_id` cookies | Full account UX PHP |
+| Storefront login | PHP customer login | `/storefront/login` | Bridge UI | Batch 3: customer token `md5(contact+userId+time+secret)` + `last_activiti_time` | Full account UX PHP |
 | Digests CP/ERP/BOS | n/a (JSON) | 30/30 exact-routes | n/a | Live | Contract dual-sample recorded |
 | Storefront digests | n/a | 4/4 exact-routes | n/a | Live | Customer cookie for 200 |
 | Catalog API | PHP UMAPI fill | 18/18 exact-routes | n/a | Live cache readers | Misses remain PHP/UMAPI |

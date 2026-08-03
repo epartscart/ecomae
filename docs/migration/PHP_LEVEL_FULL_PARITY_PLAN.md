@@ -52,13 +52,13 @@ flowchart TD
 - Operator: redeploy + presentation shadows + `bash scripts/cloudpanel_probe_php_presentation_parity.sh`.
 - Keep product `/CP/ /ERP/ /BOS/ /` on PHP.
 
-### Batch 2 — Authenticated chrome structure ← current (this PR)
+### Batch 2 — Authenticated chrome structure ✅ (merged #659)
 | Surface | PHP source | ASP.NET desktop chrome | Status |
 | --- | --- | --- | --- |
-| CP | `desktop.php` `#header` + `epc-cp-topnav` mega | `PhpCpDesktopChrome` + `CpCommandCentreApp` | ⬜ PR |
-| ERP | `erp_desktop` topbar + `epc-erp-topnav` | `PhpErpDesktopChrome` + `ErpBosDashboardApp` | ⬜ PR |
-| BOS | `bos/index.php` `bos-topnav` + `bos-main` | `PhpBosDesktopChrome` + `BosFleetApp` | ⬜ PR |
-| Storefront | Modex header/search/nav | `PhpStorefrontDesktopChrome` + `StorefrontPreviewApp` | ⬜ PR |
+| CP | `desktop.php` `#header` + `epc-cp-topnav` mega | `PhpCpDesktopChrome` + `CpCommandCentreApp` | ✅ |
+| ERP | `erp_desktop` topbar + `epc-erp-topnav` | `PhpErpDesktopChrome` + `ErpBosDashboardApp` | ✅ |
+| BOS | `bos/index.php` `bos-topnav` + `bos-main` | `PhpBosDesktopChrome` + `BosFleetApp` | ✅ |
+| Storefront | Modex header/search/nav | `PhpStorefrontDesktopChrome` + `StorefrontPreviewApp` | ✅ |
 
 - Mega-panel groupings: `LegacyDesktopChromeCatalog` (CP brochure groups, ERP category→area tabs, BOS keyword sections).
 - Authenticated shells wrap hybrid directory + `?php=` iframe inside PHP-class desktop chrome.
@@ -66,10 +66,12 @@ flowchart TD
 - Probes may lift structural selectors (`#header`, `.epc-cp-topnav`, `.bos-topnav`, `.epc-erp-topnav`) but must **not** claim `readyForPhpRemoval`.
 - BOS: admin-cookie digests ≠ PHP `$_SESSION` — full tenant module UX stays on `/BOS/`.
 
-### Batch 3 — Login bridge hardening
-- `EcomAE__SecretSuccession` on host; dual-sample cookie compare.
-- Social/demo/shared-ERP picker remain PHP.
-- BOS native session bridge or keep `/BOS/` PHP-authoritative (decision gate).
+### Batch 3 — Login bridge hardening ← current (this PR)
+- Host: `EcomAE__SecretSuccession` (= PHP `secret_succession`); verify with `scripts/cloudpanel_verify_secret_succession_configured.sh` (never prints value).
+- Customer mint formula fixed to PHP `md5(contact+userId+time+secret)` + `last_activiti_time`; CSRF IP prefers `X-Forwarded-For`.
+- Dual-sample cookie harness: `scripts/cloudpanel_capture_login_cookie_dual_samples.sh` + `scripts/compare_login_cookie_dual_samples.py` → `docs/migration/evidence/login-session-bridge/` (`cutoverAllowed=false`).
+- Social/demo/shared-ERP picker / rate-limit / password upgrade remain PHP.
+- **Decision locked:** keep `/BOS/` PHP-authoritative for native `$_SESSION` modules; `/bos/login` is admin-cookie bridge for digests/`/bos/app` only.
 
 ### Batch 4 — Vertical module slices (one family → exact-route)
 Priority order:

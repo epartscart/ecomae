@@ -1,0 +1,17 @@
+{
+  "surface": "storefront",
+  "role": "aspnet-login-bridge-sample",
+  "capturedAt": "2026-08-03T00:00:00Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "setCookie": [
+    "session=STUB; path=/; httponly; samesite=lax",
+    "u_id=0; path=/; httponly; samesite=lax"
+  ],
+  "probe": {
+    "kind": "Customer",
+    "has_backend_access": false
+  },
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "Contract stub. Customer token formula md5(contact+userId+time+secret)."
+}
