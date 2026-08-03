@@ -1,0 +1,154 @@
+@page "/cp/pages-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Pages · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-pg-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#134e4a 0%,#115e59 45%,#0f766e 100%);
+        }
+        .epc-pg-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-pg-hero p { margin:0; color:#99f6e4; max-width:40rem; font-size:.92rem; line-height:1.45; }
+        .epc-pg-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-pg-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#0d9488;
+        }
+        .epc-pg-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-pg-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-pg-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-pg-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-pg-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-pg-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-pg-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-pg-table th, .epc-pg-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-pg-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-pg-table a { color:#0f766e; font-weight:700; text-decoration:none; }
+        .epc-pg-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-pg-badge--ok { background:#ccfbf1; color:#115e59; }
+        .epc-pg-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-pg-badge--info { background:#e2e8f0; color:#334155; }
+        .epc-pg-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdfa; border:1px solid #99f6e4; border-radius:.45rem; color:#134e4a; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-pg-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-pg-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Content Pages</h1>
+        <p>Read-only CP content pages metadata from <code>/cp/pages</code> digest under PHP CP desktop chrome. Body HTML omitted. Create/edit/publish stay on live PHP content manager — same-to-same for tenants.</p>
+        <div class="epc-pg-cta">
+            <a href="@_phpTab">Open PHP content manager</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/modules-app">Modules list</a>
+            <a class="ghost" href="/cp/users-app">Users list</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-pg-kpis" aria-label="Pages KPIs">
+        <div class="epc-pg-kpi"><strong>@_pages.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-pg-kpi"><strong>@_published</strong><span>Published in page</span></div>
+        <div class="epc-pg-kpi"><strong>@_frontend</strong><span>Frontend pages</span></div>
+    </div>
+
+    <div class="epc-pg-table-wrap">
+        <table class="epc-pg-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Caption</th>
+                    <th>Alias</th>
+                    <th>URL</th>
+                    <th>Level</th>
+                    <th>Order</th>
+                    <th>Published</th>
+                    <th>Frontend</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_pages.Count == 0)
+                {
+                    <tr><td colspan="9">No pages in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var p in _pages)
+                    {
+                        var phpHref = $"{_phpTab}/content?content_id={p.Id.ToString(CultureInfo.InvariantCulture)}";
+                        <tr>
+                            <td><strong>@p.Id</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Caption) ? "—" : p.Caption)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Alias) ? "—" : p.Alias)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Url) ? "—" : p.Url)</td>
+                            <td>@p.Level</td>
+                            <td>@p.SortOrder</td>
+                            <td>
+                                @if (p.Published)
+                                {
+                                    <span class="epc-pg-badge epc-pg-badge--ok">yes</span>
+                                }
+                                else
+                                {
+                                    <span class="epc-pg-badge epc-pg-badge--off">no</span>
+                                }
+                            </td>
+                            <td><span class="epc-pg-badge epc-pg-badge--info">@(p.IsFrontend ? "yes" : "no")</span></td>
+                            <td><a href="@phpHref">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-pg-note">
+        Read-only preview · JSON digest <a href="/cp/pages?limit=200">/cp/pages</a> (body omitted).
+        PHP <code>content_manager</code> remains authoritative for create/edit/publish.
+        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/content/content_manager";
+    private bool _isAdmin;
+    private IReadOnlyList<CpPageDigest> _pages = [];
+    private int _published;
+    private int _frontend;
+    private int _limit = 200;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListCpPagesAsync(_limit, ctx.RequestAborted);
+        _pages = result.Pages;
+        _published = _pages.Count(p => p.Published);
+        _frontend = _pages.Count(p => p.IsFrontend);
+        _source = result.Source;
+        _message = result.Message;
+    }
+}
