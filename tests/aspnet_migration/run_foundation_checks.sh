@@ -447,6 +447,14 @@ check 'Blazor migration console route constant exists' contains "$ROOT/aspnet/sr
 check 'Program maps Blazor Razor components' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'MapRazorComponents'
 check 'Program enables antiforgery for Blazor SSR' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'UseAntiforgery'
 check 'Blazor Zero-PHP console page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ZeroPhpConsole.razor"
+check 'Blazor CP command centre app exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor"
+check 'Blazor ERP BOS dashboard app exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"
+check 'Blazor BOS fleet app exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosFleetApp.razor"
+check 'Blazor storefront preview app exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor"
+check 'presentation app shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf"
+check 'presentation app installer exists' test -x "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh"
+check 'CP stylesheets include command dashboard CSS' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs" 'epc_cp_command_dashboard_css.php'
+check 'presentation parity mentions /cp/app preview' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PresentationParityReporter.cs" '/cp/app'
 check 'digest dual compare accepts migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migrationBaselinePairs'
 check 'digest dual compare detects seeded migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migration-contract-golden'
 check 'digest dual capture cleans seeded php baselines' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'CLEAN seeded baseline'

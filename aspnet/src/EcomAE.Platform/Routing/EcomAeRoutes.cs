@@ -26,6 +26,7 @@ public static class EcomAeRoutes
     public const string LegacySessionParity = "/auth/session/parity";
     public const string LegacyApiClientParity = "/auth/api-client/parity";
     public const string ControlPanel = "/cp";
+    public const string ControlPanelApp = "/cp/app";
     public const string ControlPanelParity = "/cp/parity";
     public const string ControlPanelDashboardSummary = "/cp/dashboard-summary";
     public const string ControlPanelTenants = "/cp/tenants";
@@ -40,6 +41,7 @@ public static class EcomAeRoutes
     public const string ControlPanelCurrencies = "/cp/currencies";
     public const string ControlPanelApiClients = "/cp/api-clients";
     public const string Erp = "/erp";
+    public const string ErpApp = "/erp/app";
     public const string ErpParity = "/erp/parity";
     public const string ErpDashboardSummary = "/erp/dashboard-summary";
     public const string ErpAccountsSummary = "/erp/accounts-summary";
@@ -55,6 +57,7 @@ public static class EcomAeRoutes
     public const string ErpPurchaseOrders = "/erp/purchase-orders";
     public const string ErpInventoryStock = "/erp/inventory-stock";
     public const string Bos = "/bos";
+    public const string BosApp = "/bos/app";
     public const string BosParity = "/bos/parity";
     public const string BosFleetSummary = "/bos/fleet-summary";
     public const string BosTenants = "/bos/tenants";
@@ -85,6 +88,7 @@ public static class EcomAeRoutes
     public const string PriceLookup = "/api/v1/price/lookup";
     public const string PriceLookupParity = "/api/v1/price/parity";
     public const string StorefrontParity = "/storefront/parity";
+    public const string StorefrontApp = "/storefront/app";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     public const string StorefrontOrders = "/storefront/orders";

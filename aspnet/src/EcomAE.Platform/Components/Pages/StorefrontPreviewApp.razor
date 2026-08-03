@@ -1,0 +1,55 @@
+@page "/storefront/app"
+@using EcomAE.Platform.Presentation
+
+<PageTitle>eparts storefront · ASP.NET preview</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+
+<style>
+    .epc-sf { --red:#dc2626; --ink:#111; --bg:#0b1220; --panel:#111827; font-family:"PT Sans","Segoe UI",sans-serif; color:#f8fafc; background:radial-gradient(900px 500px at 20% 0%,rgba(220,38,38,.25),transparent 55%), linear-gradient(180deg,#0b1220,#111827); min-height:100vh; }
+    .epc-sf-wrap { width:min(1100px, calc(100% - 2rem)); margin:0 auto; padding:1.5rem 0 3rem; }
+    .epc-sf-top { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:center; margin-bottom:1.5rem; }
+    .epc-sf-brand img { height:42px; }
+    .epc-sf-hero { display:grid; grid-template-columns:1.2fr .9fr; gap:1.2rem; align-items:center; }
+    .epc-sf h1 { margin:.4rem 0 .7rem; font-size:clamp(1.7rem,4vw,2.6rem); line-height:1.1; }
+    .epc-sf p { color:#cbd5e1; max-width:34rem; line-height:1.5; }
+    .epc-sf-cta { display:flex; gap:.55rem; flex-wrap:wrap; margin:1rem 0; }
+    .epc-sf-btn { display:inline-flex; padding:.7rem 1rem; border-radius:.45rem; font-weight:700; text-decoration:none; }
+    .epc-sf-btn-red { background:var(--red); color:#fff; }
+    .epc-sf-btn-ghost { background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.2); }
+    .epc-sf-card { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:.8rem; min-height:220px; padding:1rem; }
+    .epc-sf-note { margin-top:1.25rem; padding:.8rem; background:#fff8e8; color:#7a4e00; border-radius:.45rem; font-size:.88rem; }
+    @@media (max-width:900px){ .epc-sf-hero{grid-template-columns:1fr;} }
+</style>
+
+<div class="epc-sf">
+    <div class="epc-sf-wrap">
+        <div class="epc-sf-top">
+            <div class="epc-sf-brand">
+                <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" />
+            </div>
+            <div>
+                <a class="epc-sf-btn epc-sf-btn-ghost" href="https://epartscart.com/">Live PHP storefront</a>
+                <a class="epc-sf-btn epc-sf-btn-ghost" href="/storefront/account-summary">Account digest</a>
+            </div>
+        </div>
+        <div class="epc-sf-hero">
+            <section>
+                <div style="display:inline-block;padding:.25rem .55rem;border-radius:999px;background:rgba(220,38,38,.2);color:#fecaca;font-size:.75rem;font-weight:700">PROFESSIONAL AUTO SPARE PARTS STORE</div>
+                <h1>Find genuine and aftermarket spare parts faster, cleaner, and with confidence.</h1>
+                <p>ASP.NET Blazor presentation preview reusing modex/storefront CSS assets. Full search, catalog, cart, and checkout remain on the live PHP storefront until intentional cutover.</p>
+                <div class="epc-sf-cta">
+                    <a class="epc-sf-btn epc-sf-btn-red" href="https://epartscart.com/shop/part_search">Search parts</a>
+                    <a class="epc-sf-btn epc-sf-btn-ghost" href="https://epartscart.com/">Open catalog</a>
+                    <a class="epc-sf-btn epc-sf-btn-ghost" href="https://epartscart.com/">View brands</a>
+                </div>
+            </section>
+            <section class="epc-sf-card">
+                <strong>Presentation parity shell</strong>
+                <p style="margin:.6rem 0 0;color:#cbd5e1">Pixel/DOM parity against <code>templates/modex/desktop.php</code> is still required before any public <code>/</code> cutover. Digests: account/orders/garage/profile are already on ASP.NET exact-routes.</p>
+            </section>
+        </div>
+        <div class="epc-sf-note">
+            Live epartscart.com homepage/CP/ERP screens you attached are PHP. This /storefront/app route is an ASP.NET preview only — do not remove PHP.
+        </div>
+    </div>
+</div>

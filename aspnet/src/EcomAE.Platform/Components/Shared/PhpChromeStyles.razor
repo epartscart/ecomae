@@ -1,0 +1,9 @@
+@* Links the same PHP chrome stylesheets used by live /CP/ /ERP/ /BOS/ /storefront. *@
+@foreach (var href in LegacyPresentationAssets.StylesheetsFor(Surface))
+{
+    <link rel="stylesheet" href="@href" />
+}
+
+@code {
+    [Parameter, EditorRequired] public string Surface { get; set; } = "cp";
+}

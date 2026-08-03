@@ -1,0 +1,66 @@
+@page "/bos/app"
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Super BOS · Fleet Command</PageTitle>
+<PhpChromeStyles Surface="bos" />
+
+<style>
+    .epc-bosapp { --bg:#0b0b0b; --panel:#151515; --line:#2a2a2a; --ink:#f5f5f5; --muted:#a3a3a3; --accent:#facc15; font-family:"Segoe UI",Tahoma,sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; }
+    .epc-bosapp a { color:var(--accent); }
+    .epc-bosapp-wrap { width:min(1100px, calc(100% - 2rem)); margin:0 auto; padding:1.5rem 0 3rem; }
+    .epc-bosapp h1 { margin:.2rem 0 .5rem; font-size:clamp(1.6rem,3vw,2.2rem); }
+    .epc-bosapp-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.65rem; margin:1.1rem 0; }
+    .epc-bosapp-card { background:var(--panel); border:1px solid var(--line); border-radius:.55rem; padding:.9rem; }
+    .epc-bosapp-card strong { display:block; font-size:1.4rem; }
+    .epc-bosapp-card span { color:var(--muted); font-size:.8rem; }
+    .epc-bosapp-note { margin-top:1rem; padding:.8rem; border:1px solid #444; border-radius:.45rem; color:var(--muted); font-size:.88rem; }
+</style>
+
+<div class="epc-bosapp">
+    <div class="epc-bosapp-wrap">
+        <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center">
+            <div>
+                <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:36px;background:#fff;border-radius:4px;padding:2px" />
+                <h1>Super BOS · Fleet command</h1>
+                <p style="color:var(--muted);max-width:36rem">ASP.NET Blazor presentation shell using PHP BOS chrome CSS. Live PHP BOS remains at <a href="/BOS/">/BOS/</a>.</p>
+            </div>
+            <a href="/migration/console" style="color:#fff;border:1px solid #444;padding:.5rem .8rem;border-radius:.4rem;text-decoration:none">Zero-PHP console</a>
+        </div>
+        <div class="epc-bosapp-grid">
+            <div class="epc-bosapp-card"><strong>@_tenants</strong><span>Portal tenants</span></div>
+            <div class="epc-bosapp-card"><strong>@_active</strong><span>Active tenants</span></div>
+            <div class="epc-bosapp-card"><strong>@_sessions</strong><span>Admin sessions</span></div>
+            <div class="epc-bosapp-card"><strong>@_withDb</strong><span>With database</span></div>
+            <div class="epc-bosapp-card"><strong>@_erpOnly</strong><span>ERP-only</span></div>
+            <div class="epc-bosapp-card"><strong>@_source</strong><span>Digest source</span></div>
+        </div>
+        <div class="epc-bosapp-note">@_note This is not broad /bos cutover. Exact-route preview only.</div>
+    </div>
+</div>
+
+@code {
+    private int _tenants, _active, _sessions, _withDb, _erpOnly;
+    private string _source = "n/a";
+    private string _note = "Unauthenticated preview (BOS digests need admin cookie).";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin) return;
+        var summary = await Dashboards.BuildBosAsync(ctx.RequestAborted);
+        _tenants = summary.PortalTenants;
+        _active = summary.ActivePortalTenants;
+        _sessions = summary.AdminSessions;
+        _withDb = summary.WithDatabase;
+        _erpOnly = summary.ErpOnly;
+        _source = summary.Source;
+        _note = "Admin session detected — fleet KPIs from ASP.NET BOS digests. ";
+    }
+}
