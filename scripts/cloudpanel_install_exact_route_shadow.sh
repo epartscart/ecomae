@@ -83,7 +83,10 @@ path = Path(sys.argv[1])
 route = sys.argv[2]
 block = sys.argv[3].rstrip() + "\n"
 text = path.read_text(encoding="utf-8")
-if f"location = {route}" in text:
+# Exact location match only — substring would false-positive
+# /api/v1/catalog/article against article-brands / article-links.
+loc_re = re.compile(rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{")
+if loc_re.search(text):
     print(f"ALREADY PRESENT: location = {route}")
     raise SystemExit(0)
 
@@ -113,9 +116,12 @@ nginx -t
 systemctl reload nginx
 printf 'Reloaded nginx.\n'
 
-# Show surrounding context
+# Show surrounding context (fixed-string exact location line; avoid article⊂article-links).
 printf '\n-- Conf context --\n'
-grep -nE "location = ${ROUTE}|location = /health|location = /api/v1/catalog/status|location \^~ /migration|location / \\{" "$CONF" | head -20
+{
+  grep -nF "location = ${ROUTE} {" "$CONF" || true
+  grep -nE "location = /health \{|location \^~ /migration/|location = /api/v1/catalog/status \{|location / \{" "$CONF" || true
+} | sort -t: -k1,1n | head -20
 
 printf '\n-- Quick probes (no secrets printed) --\n'
 is_aspnet_json_gate() {

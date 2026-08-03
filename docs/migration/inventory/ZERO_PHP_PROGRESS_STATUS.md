@@ -62,6 +62,7 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 - Smoke catalog key ACL missing `engine_search` / `article` until re-issue after updated `issue_final_gate_smoke_credentials.php`
 - Offline-cache routes return ASP.NET `404 cache_miss` when probe params ≠ warm `epc_umapi_cache` key (PHP/UMAPI still fills live)
 - Local nginx `--resolve` probes may hit wrong `default_server` HTML while public URL returns ASP.NET JSON
+- Installer bug (fixed): substring `location = /api/v1/catalog/article` falsely matched `article-brands` / `article-links` as ALREADY PRESENT — re-run install after fix lands
 
 ## Inventory
 
