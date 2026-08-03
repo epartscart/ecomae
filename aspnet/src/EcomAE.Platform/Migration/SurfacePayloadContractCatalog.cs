@@ -310,7 +310,7 @@ public static class SurfacePayloadContractCatalog
         new("api", "catalog status", "/api/v1/catalog/status", "awaiting-exact-route-shadow", "Contract ready; public host still PHP until shadow + smoke."),
         new("api", "catalog manufacturers/models/modifications/brands/suppliers", "/api/v1/catalog/manufacturers|…|/suppliers", "digest-wired-awaiting-dual-sample", "Envelope contracts + compare_catalog_list_parity.py; one-path nginx-catalog-*-shadow after smoke."),
         new("api", "catalog offline-cache + vin + brand-parts", "/api/v1/catalog/engines|analogs|…|vin|brand-parts", "digest-wired-awaiting-dual-sample", "Offline-cache envelopes + compare_catalog_offline_cache_parity.py / compare_catalog_vin_parity.py."),
-        new("api", "catalog miss / UMAPI fill", "/api/v1/catalog/* miss → 404", "digest-wired-awaiting-dual-sample", "Batch 5: ASP.NET returns cache_miss/vin_cache_miss; live UMAPI fill remains PHP (compare_catalog_miss_dual_samples.py, cutoverAllowed=false).")
+        new("api", "catalog miss / UMAPI fill", "/api/v1/catalog/* miss → 404", "digest-wired-awaiting-dual-sample", "Batch 5: ASP.NET returns cache_miss/vin_cache_miss; catalog-miss-fill dry-run outbound/writes blocked; live UMAPI fill remains PHP (cutoverAllowed=false).")
     ];
 
     private static SurfacePayloadContract Contract(

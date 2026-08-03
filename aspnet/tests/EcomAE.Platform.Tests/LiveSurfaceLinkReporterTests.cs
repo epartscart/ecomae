@@ -192,6 +192,8 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("umapi article", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_catalog_miss_path.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("compare_catalog_miss_dual_samples.py", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("catalog-miss-fill", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("miss-fill-dry-run-report.json", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("action_not_allowed", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("Wired catalog exact-routes complete", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("Surface digests: 30/30", StringComparison.Ordinal));

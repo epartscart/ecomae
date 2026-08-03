@@ -36,6 +36,7 @@ builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApaiSyncCategor
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, IntegrationsCleanupDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ProductExistLimitDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, CacheWarmupDryRunExecutor>();
+builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, CatalogMissFillDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ImportOrchestratorDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, ApaiHourlyCrawlDryRunExecutor>();
 builder.Services.AddSingleton<IMigrationWorkerJobDryRunExecutor, WebhooksProcessDryRunExecutor>();

@@ -12,7 +12,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Batch 4 ✅ (#661–#665):** OMS · Users/Groups · ERP SO · Search · Cart hybrid read UIs. Checkout/qty/guest cart remain PHP.
 
-**Batch 5 (in progress):** Catalog miss / UMAPI harness — ASP.NET cache readers return 404 `cache_miss`/`vin_cache_miss`; live fills stay PHP. Still never `readyForPhpRemoval`.
+**Batch 5 (in progress):** Miss harness ✅ (#666). Miss-fill worker dry-run (`catalog-miss-fill`) write-/outbound-blocked; live UMAPI fills stay PHP. Still never `readyForPhpRemoval`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

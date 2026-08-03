@@ -311,6 +311,12 @@ check 'ERP cash SQL uses epc_erp_cash_bank_accounts' contains "$ROOT/aspnet/src/
 check 'session capabilities exposed on probe' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'capabilities = session.Capabilities'
 check 'product-exist-limit dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ProductExistLimitDryRunExecutor.cs"
 check 'cache-warmup dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/CacheWarmupDryRunExecutor.cs"
+check 'catalog-miss-fill dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/CatalogMissFillDryRunExecutor.cs"
+check 'worker catalog includes catalog-miss-fill' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerJobCatalog.cs" 'catalog-miss-fill'
+check 'worker Program registers catalog-miss-fill dry-run' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'CatalogMissFillDryRunExecutor'
+check 'catalog miss-fill dry-run evidence stub exists' test -f "$ROOT/docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json"
+check 'catalog miss-fill dry-run evidence blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json" '"cutoverAllowed": false'
+check 'catalog miss-fill dry-run evidence blocks outbound' contains "$ROOT/docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json" '"outboundBlocked": true'
 check 'import-orchestrator dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ImportOrchestratorDryRunExecutor.cs"
 check 'CP users route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/users'
 check 'CP groups route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/groups'
@@ -488,6 +494,7 @@ check 'catalog miss probe refuses cutover claim' contains "$ROOT/scripts/cloudpa
 check 'deploy packs catalog miss compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_miss_dual_samples.py'
 check 'deploy packs catalog miss probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_catalog_miss_path.sh'
 check 'Batch 5 plan documents miss harness' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'miss-path probe'
+check 'Batch 5 plan documents miss-fill dry-run' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'catalog-miss-fill'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
 check 'presentation installer expects login+OMS+users/groups+ERP SO+search+cart routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 16'

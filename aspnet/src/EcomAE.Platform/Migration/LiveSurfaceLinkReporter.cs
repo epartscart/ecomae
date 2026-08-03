@@ -168,6 +168,7 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article",
                 "Batch 5 catalog miss probe: bash scripts/cloudpanel_probe_catalog_miss_path.sh (expect 401 unauth / 404 cache_miss|vin_cache_miss; cutoverAllowed=false).",
                 "Batch 5 miss dual-sample: bash scripts/cloudpanel_capture_catalog_miss_dual_samples.sh && python3 scripts/compare_catalog_miss_dual_samples.py (PHP fill remains authoritative).",
+                "Batch 5 miss-fill dry-run: worker job catalog-miss-fill (sample_actions); outbound/writes blocked; see docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json.",
                 "If engine-search/article auth 403 action_not_allowed: re-issue smoke creds (allowlist now includes engine_search+article) via ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
                 "Wired catalog exact-routes complete (18/18). Surface digests: 30/30. Storefront digests: 4/4 (batch installer; never broad /storefront).",
                 "Storefront batch: ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh",

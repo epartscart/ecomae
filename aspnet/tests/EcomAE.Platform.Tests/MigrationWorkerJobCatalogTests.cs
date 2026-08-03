@@ -32,6 +32,8 @@ public sealed class MigrationWorkerJobCatalogTests
         Assert.Contains(catalog.Jobs, job => job.Key == "integrations-cleanup");
         Assert.Contains(catalog.Jobs, job => job.Key == "product-exist-limit");
         Assert.Contains(catalog.Jobs, job => job.Key == "cache-warmup");
+        Assert.Contains(catalog.Jobs, job => job.Key == "catalog-miss-fill"
+            && job.LegacyPhpEntry.Contains("umapi_proxy.php", StringComparison.Ordinal));
         Assert.Contains(catalog.Jobs, job => job.Key == "import-orchestrator");
         Assert.Contains(catalog.Jobs, job => job.Key == "apai-hourly-crawl");
         Assert.Contains(catalog.Jobs, job => job.Key == "webhooks-process");

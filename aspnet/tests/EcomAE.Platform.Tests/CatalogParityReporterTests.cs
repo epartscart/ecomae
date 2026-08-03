@@ -24,6 +24,8 @@ public sealed class CatalogParityReporterTests
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("UMAPI", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("cloudpanel_probe_catalog_miss_path.sh", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("compare_catalog_miss_dual_samples", StringComparison.Ordinal));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("catalog-miss-fill", StringComparison.Ordinal));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("CatalogMissFillDryRunExecutor", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("cutoverAllowed=false", StringComparison.Ordinal));
     }
 }
