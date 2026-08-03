@@ -33,6 +33,7 @@ Authoritative product chrome remains **PHP** until intentional exact-route cutov
 | Digests CP/ERP/BOS | n/a (JSON) | 30/30 exact-routes | n/a | Live | Contract dual-sample recorded |
 | Storefront digests | n/a | 4/4 exact-routes | n/a | Live | Customer cookie for 200 |
 | Catalog API | PHP UMAPI fill | 18/18 exact-routes | n/a | Live cache readers | Miss → ASP.NET 404 `cache_miss`; live fill PHP (Batch 5 harness) |
+| Hybrid UI dual-sample | PHP product paths | `*-app` + `/cp/orders` www previews | Blazor SSR markers + PHP deeplinks | Contract stubs + compare harness (`hybrid-ui-dual-samples/`) | Live cookie captures pending CloudPanel; cutoverAllowed=false |
 
 ## Strengthen rules (do not violate)
 

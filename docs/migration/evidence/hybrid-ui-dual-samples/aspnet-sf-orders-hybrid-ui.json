@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "sf-orders",
+  "surface": "storefront",
+  "appRoute": "/storefront/orders-app",
+  "digestRoute": "/storefront/orders",
+  "phpAuthoritativePath": "https://epartscart.com/shop/orders",
+  "blazorMarker": "StorefrontOrdersApp",
+  "chromeShell": "PhpStorefrontDesktopChrome",
+  "authKind": "customer",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-03T19:11:53Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Contract stub. Re-run on CloudPanel with cookies + ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1."
+}

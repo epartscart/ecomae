@@ -60,7 +60,7 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 
 ## Next architecture tracks (ordered)
 
-1. Finish exact-route Zero-PHP digests/parity with PHP fallback (storefront account family: garage → profile → dual-sample evidence packs).
+1. Finish exact-route Zero-PHP digests/parity with PHP fallback (hybrid UI dual-sample contract harness shipped → CloudPanel live captures next; profile www preview may land via open PR).
 2. Introduce EF Core 10 against current DB bridge, then plan PostgreSQL 17 cutover.
 3. Wire OpenTelemetry exporters + Serilog sinks; keep ActivitySource names stable.
 4. Add YARP edge design behind Nginx for approved exact routes only.

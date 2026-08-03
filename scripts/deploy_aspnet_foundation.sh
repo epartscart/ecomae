@@ -94,6 +94,7 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" \
   "$ROOT/scripts/cloudpanel_probe_catalog_miss_path.sh" \
   "$ROOT/scripts/cloudpanel_capture_catalog_miss_dual_samples.sh" \
+  "$ROOT/scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh" \
   "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh" \
   "$ROOT/scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh" \
   "$ROOT/scripts/wait_for_aspnet_health.sh" \
@@ -117,10 +118,12 @@ for compare in \
   compare_surface_payload_parity.py \
   compare_login_cookie_dual_samples.py \
   compare_catalog_miss_dual_samples.py \
+  compare_hybrid_ui_dual_samples.py \
   generate_migration_digest_contract_samples.py \
   cloudpanel_verify_secret_succession_configured.sh \
   cloudpanel_capture_login_cookie_dual_samples.sh \
   cloudpanel_capture_catalog_miss_dual_samples.sh \
+  cloudpanel_capture_hybrid_ui_dual_samples.sh \
   cloudpanel_probe_catalog_miss_path.sh
 do
   if [[ -f "$ROOT/scripts/$compare" ]]; then

@@ -495,6 +495,16 @@ check 'deploy packs catalog miss compare' contains "$ROOT/scripts/deploy_aspnet_
 check 'deploy packs catalog miss probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_catalog_miss_path.sh'
 check 'Batch 5 plan documents miss harness' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'miss-path probe'
 check 'Batch 5 plan documents miss-fill dry-run' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'catalog-miss-fill'
+check 'hybrid UI dual-sample compare exists' test -x "$ROOT/scripts/compare_hybrid_ui_dual_samples.py"
+check 'hybrid UI dual-sample capture exists' test -x "$ROOT/scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh"
+check 'hybrid UI evidence dir exists' test -d "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples"
+check 'hybrid UI evidence keeps PHP authoritative' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/README.md" 'PHP-authoritative'
+check 'hybrid UI compare refuses cutover' contains "$ROOT/scripts/compare_hybrid_ui_dual_samples.py" 'cutoverAllowed=false'
+check 'hybrid UI compare result blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/compare-result.json" '"cutoverAllowed": false'
+check 'hybrid UI inventory blocks tenant chrome cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-hybrid-authoritative-inventory.json" '"tenantChromePhp": true'
+check 'deploy packs hybrid UI compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_hybrid_ui_dual_samples.py'
+check 'deploy packs hybrid UI capture' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_capture_hybrid_ui_dual_samples.sh'
+check 'parity plan documents hybrid UI dual-sample packs' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'dual-sample evidence packs for hybrid UIs'
 check 'tenant safety law documents same-to-same' contains "$ROOT/docs/migration/TENANT_MIGRATION_SAFETY.md" 'Same-to-same / invisible migration'
 check 'tenant safety law digests never replace UX' contains "$ROOT/docs/migration/TENANT_MIGRATION_SAFETY.md" 'never** replace tenant product chrome'
 check 'parity plan hard rule same-to-same' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'Same-to-same / invisible migration'

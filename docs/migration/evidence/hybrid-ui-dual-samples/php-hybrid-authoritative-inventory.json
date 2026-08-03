@@ -1,0 +1,180 @@
+{
+  "role": "php-hybrid-authoritative-inventory",
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-03T19:11:53Z",
+  "surfaces": {
+    "cp": "/CP/",
+    "erp": "/ERP/",
+    "bos": "/BOS/",
+    "storefront": "https://epartscart.com/"
+  },
+  "hybridUiTargets": [
+    {
+      "stem": "cp-orders",
+      "appRoute": "/cp/orders",
+      "digestRoute": "/cp/orders-digest",
+      "phpAuthoritativePath": "/CP/shop/orders/orders"
+    },
+    {
+      "stem": "cp-users",
+      "appRoute": "/cp/users-app",
+      "digestRoute": "/cp/users",
+      "phpAuthoritativePath": "/CP/control/users"
+    },
+    {
+      "stem": "cp-groups",
+      "appRoute": "/cp/groups-app",
+      "digestRoute": "/cp/groups",
+      "phpAuthoritativePath": "/CP/users/usergroups"
+    },
+    {
+      "stem": "cp-modules",
+      "appRoute": "/cp/modules-app",
+      "digestRoute": "/cp/modules",
+      "phpAuthoritativePath": "/CP/modules/modules_manager"
+    },
+    {
+      "stem": "cp-pages",
+      "appRoute": "/cp/pages-app",
+      "digestRoute": "/cp/pages",
+      "phpAuthoritativePath": "/CP/content/content_manager"
+    },
+    {
+      "stem": "cp-menus",
+      "appRoute": "/cp/menus-app",
+      "digestRoute": "/cp/menus",
+      "phpAuthoritativePath": "/CP/menu/menu_manager"
+    },
+    {
+      "stem": "cp-tenants",
+      "appRoute": "/cp/tenants-app",
+      "digestRoute": "/cp/tenants",
+      "phpAuthoritativePath": "/CP/control/portal/epc_tenant_control_center"
+    },
+    {
+      "stem": "cp-currencies",
+      "appRoute": "/cp/currencies-app",
+      "digestRoute": "/cp/currencies",
+      "phpAuthoritativePath": "/CP/shop/finance/nastrojka-kursov-valyut"
+    },
+    {
+      "stem": "cp-storages",
+      "appRoute": "/cp/storages-app",
+      "digestRoute": "/cp/storages",
+      "phpAuthoritativePath": "/CP/shop/logistics/storages"
+    },
+    {
+      "stem": "cp-admin-sessions",
+      "appRoute": "/cp/admin-sessions-app",
+      "digestRoute": "/cp/admin-sessions",
+      "phpAuthoritativePath": "/CP/control/users"
+    },
+    {
+      "stem": "cp-api-clients",
+      "appRoute": "/cp/api-clients-app",
+      "digestRoute": "/cp/api-clients",
+      "phpAuthoritativePath": "/CP/control/portal/epc_api_clients_manage"
+    },
+    {
+      "stem": "cp-config-items",
+      "appRoute": "/cp/config-items-app",
+      "digestRoute": "/cp/config-items",
+      "phpAuthoritativePath": "/CP/control/config_edit"
+    },
+    {
+      "stem": "erp-sales-orders",
+      "appRoute": "/erp/sales-orders-app",
+      "digestRoute": "/erp/sales-orders",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders"
+    },
+    {
+      "stem": "erp-purchase-orders",
+      "appRoute": "/erp/purchase-orders-app",
+      "digestRoute": "/erp/purchase-orders",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders"
+    },
+    {
+      "stem": "erp-invoices",
+      "appRoute": "/erp/invoices-app",
+      "digestRoute": "/erp/invoices",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=sales&tab=invoices"
+    },
+    {
+      "stem": "erp-cash-accounts",
+      "appRoute": "/erp/cash-accounts-app",
+      "digestRoute": "/erp/cash-accounts",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
+    },
+    {
+      "stem": "erp-coa-accounts",
+      "appRoute": "/erp/coa-accounts-app",
+      "digestRoute": "/erp/coa-accounts",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=coa"
+    },
+    {
+      "stem": "erp-gl-journals",
+      "appRoute": "/erp/gl-journals-app",
+      "digestRoute": "/erp/gl-journals",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=gl"
+    },
+    {
+      "stem": "erp-warehouses",
+      "appRoute": "/erp/warehouses-app",
+      "digestRoute": "/erp/warehouses",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory"
+    },
+    {
+      "stem": "erp-suppliers",
+      "appRoute": "/erp/suppliers-app",
+      "digestRoute": "/erp/suppliers",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=ap&tab=payables"
+    },
+    {
+      "stem": "erp-purchases",
+      "appRoute": "/erp/purchases-app",
+      "digestRoute": "/erp/purchases",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchases"
+    },
+    {
+      "stem": "bos-audit-log",
+      "appRoute": "/bos/audit-log-app",
+      "digestRoute": "/bos/audit-log",
+      "phpAuthoritativePath": "/CP/control/portal/epc_boc_audit_log"
+    },
+    {
+      "stem": "sf-search",
+      "appRoute": "/storefront/search-app",
+      "digestRoute": null,
+      "phpAuthoritativePath": "https://epartscart.com/shop/part_search"
+    },
+    {
+      "stem": "sf-cart",
+      "appRoute": "/storefront/cart-app",
+      "digestRoute": null,
+      "phpAuthoritativePath": "https://epartscart.com/shop/cart"
+    },
+    {
+      "stem": "sf-orders",
+      "appRoute": "/storefront/orders-app",
+      "digestRoute": "/storefront/orders",
+      "phpAuthoritativePath": "https://epartscart.com/shop/orders"
+    },
+    {
+      "stem": "sf-garage",
+      "appRoute": "/storefront/garage-app",
+      "digestRoute": "/storefront/garage",
+      "phpAuthoritativePath": "https://epartscart.com/shop/part_search"
+    },
+    {
+      "stem": "sf-profile",
+      "appRoute": "/storefront/profile-app",
+      "digestRoute": "/storefront/profile",
+      "phpAuthoritativePath": "https://epartscart.com/users/profile"
+    }
+  ],
+  "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."
+}

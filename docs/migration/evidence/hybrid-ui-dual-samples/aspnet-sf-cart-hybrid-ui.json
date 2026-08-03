@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "sf-cart",
+  "surface": "storefront",
+  "appRoute": "/storefront/cart-app",
+  "digestRoute": null,
+  "phpAuthoritativePath": "https://epartscart.com/shop/cart",
+  "blazorMarker": "StorefrontCartApp",
+  "chromeShell": "PhpStorefrontDesktopChrome",
+  "authKind": "customer",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-03T19:11:53Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Contract stub. Re-run on CloudPanel with cookies + ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1."
+}
