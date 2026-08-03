@@ -118,36 +118,60 @@ printf '\n-- Conf context --\n'
 grep -nE "location = ${ROUTE}|location = /health|location = /api/v1/catalog/status|location \^~ /migration|location / \\{" "$CONF" | head -20
 
 printf '\n-- Quick probes (no secrets printed) --\n'
+is_aspnet_json_gate() {
+  local body="$1"
+  local code="$2"
+  if grep -qi '<!DOCTYPE\|<html' "$body" 2>/dev/null; then
+    return 1
+  fi
+  if [[ "$code" == "401" ]] && grep -q 'missing_api_key' "$body" 2>/dev/null; then
+    return 0
+  fi
+  grep -q 'missing_api_key\|"ok":false' "$body" 2>/dev/null
+}
+
 # 1) App loopback — proves the ASP.NET route exists (expect 401 JSON without key).
 loop_code="$(curl -sS -m 10 -o /tmp/ecomae-exact-route-loop.body -w '%{http_code}' \
   "http://127.0.0.1:5100${ROUTE}" || echo 000)"
 printf 'loopback :5100 %s -> HTTP %s\n' "$ROUTE" "$loop_code"
 head -c 140 /tmp/ecomae-exact-route-loop.body; echo
 
-# 2) Local nginx, bypass Cloudflare — authoritative for "is the location wired?"
-local_code="$(curl -sS -m 15 -k --resolve www.ecomae.com:443:127.0.0.1 \
+# 2) Local nginx, bypass Cloudflare (IPv4 + SNI Host). May hit a non-www default_server.
+local_code="$(curl -4 -sS -m 15 -k --resolve www.ecomae.com:443:127.0.0.1 \
+  -H 'Host: www.ecomae.com' \
   -o /tmp/ecomae-exact-route-local.body -w '%{http_code}' \
   "https://www.ecomae.com${ROUTE}" || echo 000)"
 printf 'local nginx  %s -> HTTP %s\n' "$ROUTE" "$local_code"
 head -c 140 /tmp/ecomae-exact-route-local.body; echo
 
-# 3) Public URL (may lag at CDN edge for a few seconds).
+# 3) Public URL — proves edge/origin serve the shadow (authoritative when local SNI mismatches).
 pub_code="$(curl -sS -m 20 -o /tmp/ecomae-exact-route-probe.body -w '%{http_code}' \
   "https://www.ecomae.com${ROUTE}" || echo 000)"
 printf 'public URL   %s -> HTTP %s\n' "$ROUTE" "$pub_code"
 head -c 140 /tmp/ecomae-exact-route-probe.body; echo
 
-if grep -qi '<!DOCTYPE\|<html' /tmp/ecomae-exact-route-local.body; then
-  printf 'FAIL: local nginx still HTML — location may be in the wrong server block.\n' >&2
+local_ok=0
+pub_ok=0
+if is_aspnet_json_gate /tmp/ecomae-exact-route-local.body "$local_code"; then
+  local_ok=1
+fi
+if is_aspnet_json_gate /tmp/ecomae-exact-route-probe.body "$pub_code"; then
+  pub_ok=1
+fi
+
+if [[ "$local_ok" -eq 1 ]]; then
+  printf 'OK: local nginx serves ASP.NET JSON gate for %s.\n' "$ROUTE"
+elif [[ "$pub_ok" -eq 1 ]]; then
+  printf 'OK: public URL serves ASP.NET JSON gate for %s.\n' "$ROUTE"
+  if grep -qi '<!DOCTYPE\|<html' /tmp/ecomae-exact-route-local.body 2>/dev/null; then
+    printf 'WARN: local --resolve hit HTML (likely wrong default_server/SNI). Public ASP.NET JSON confirms the location is live.\n' >&2
+  fi
+else
+  printf 'FAIL: neither local nginx nor public URL returned ASP.NET JSON for %s.\n' "$ROUTE" >&2
   printf 'Debug: nginx -T 2>/dev/null | grep -n "%s" -A8 | head -40\n' "$ROUTE" >&2
   exit 4
 fi
-if [[ "$local_code" == "401" ]] || grep -q 'missing_api_key\|application/json' /tmp/ecomae-exact-route-local.body; then
-  printf 'OK: local nginx serves ASP.NET JSON gate for %s.\n' "$ROUTE"
-else
-  printf 'OK: local nginx non-HTML response HTTP %s for %s.\n' "$local_code" "$ROUTE"
-fi
-if grep -qi '<!DOCTYPE\|<html' /tmp/ecomae-exact-route-probe.body; then
+if [[ "$pub_ok" -eq 0 ]] && grep -qi '<!DOCTYPE\|<html' /tmp/ecomae-exact-route-probe.body 2>/dev/null; then
   printf 'WARN: public URL still HTML (Cloudflare edge lag?). Re-check in a few seconds:\n' >&2
   printf '  curl -sS -o /tmp/p.json -w "%%{http_code}\\n" "https://www.ecomae.com%s"\n' "$ROUTE" >&2
 fi
