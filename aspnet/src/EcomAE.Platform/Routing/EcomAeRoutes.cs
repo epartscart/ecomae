@@ -45,6 +45,8 @@ public static class EcomAeRoutes
     /// <summary>CP modules Blazor list (JSON digest remains <see cref="ControlPanelModules"/>).</summary>
     public const string ControlPanelModulesApp = "/cp/modules-app";
     public const string ControlPanelConfigItems = "/cp/config-items";
+    /// <summary>CP config items Blazor list (JSON digest remains <see cref="ControlPanelConfigItems"/>; secrets never returned).</summary>
+    public const string ControlPanelConfigItemsApp = "/cp/config-items-app";
     public const string ControlPanelMenus = "/cp/menus";
     /// <summary>CP menus Blazor list (JSON digest remains <see cref="ControlPanelMenus"/>).</summary>
     public const string ControlPanelMenusApp = "/cp/menus-app";
