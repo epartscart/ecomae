@@ -60,7 +60,7 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 
 ## Next architecture tracks (ordered)
 
-1. Finish exact-route Zero-PHP digests/parity with PHP fallback (ERP digest `*-app` coverage largely landed; next dual-sample evidence + remaining KPI digests / CP-BOS depth).
+1. Finish exact-route Zero-PHP digests/parity with PHP fallback (continue CP/BOS hybrid Blazor: modules → pages/menus → audit-log; then dual-sample evidence).
 2. Introduce EF Core 10 against current DB bridge, then plan PostgreSQL 17 cutover.
 3. Wire OpenTelemetry exporters + Serilog sinks; keep ActivitySource names stable.
 4. Add YARP edge design behind Nginx for approved exact routes only.
