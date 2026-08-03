@@ -90,6 +90,7 @@ TARGETS = [
     ("bos-tenants", "bos", "/bos/tenants-app", "/bos/tenants", "/CP/control/portal/epc_tenant_control_center", "BosTenantsApp", "PhpBosDesktopChrome", "admin"),
     ("bos-fleet-health", "bos", "/bos/fleet-health-app", "/bos/fleet-health", "/CP/control/portal/epc_platform_health_checkup", "BosFleetHealthApp", "PhpBosDesktopChrome", "admin"),
     ("bos-fleet-readiness", "bos", "/bos/fleet-readiness-app", "/bos/fleet-readiness", "/CP/control/portal/epc_platform_health_checkup", "BosFleetReadinessApp", "PhpBosDesktopChrome", "admin"),
+    ("bos-fleet-summary", "bos", "/bos/fleet-summary-app", "/bos/fleet-summary", "/BOS/", "BosFleetSummaryApp", "PhpBosDesktopChrome", "admin"),
     ("sf-search", "storefront", "/storefront/search-app", "", "https://epartscart.com/shop/part_search", "StorefrontSearchApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-cart", "storefront", "/storefront/cart-app", "", "https://epartscart.com/shop/cart", "StorefrontCartApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-orders", "storefront", "/storefront/orders-app", "/storefront/orders", "https://epartscart.com/shop/orders", "StorefrontOrdersApp", "PhpStorefrontDesktopChrome", "customer"),

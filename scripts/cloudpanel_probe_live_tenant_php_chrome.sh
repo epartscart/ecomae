@@ -86,6 +86,7 @@ ASPNET_BAD_MARKERS=(
   "BosTenantsApp"
   "BosFleetHealthApp"
   "BosFleetReadinessApp"
+  "BosFleetSummaryApp"
   "CpTenantsApp"
   "CpCurrenciesApp"
   "CpStoragesApp"
