@@ -19,7 +19,9 @@ fi
 bash "$ROOT/cloudpanel_validate_final_gate_env.sh" || true
 
 printf '\n-- Recommended (server issues keys + binds active admin session) --\n'
-printf 'If CREATE denied for ecomae_aspnet: bash scripts/cloudpanel_print_epc_api_clients_ddl.sh (paste as MySQL admin).\n'
+printf '  bash scripts/cloudpanel_diagnose_smoke_db.sh\n'
+printf 'If CREATE denied: ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh\n'
+printf '  (alt) ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh\n'
 printf '  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
 printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
 printf '    bash scripts/cloudpanel_issue_smoke_credentials.sh\n'

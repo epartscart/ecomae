@@ -60,7 +60,9 @@ if [[ -z "${ECOMAE_PRICE_LOOKUP_API_KEY:-}" || -z "${ECOMAE_CATALOG_API_KEY:-}" 
   if [[ "${ECOMAE_ALLOW_PUBLIC_ONLY_CAPTURE:-0}" != "1" ]]; then
     printf '\nBLOCKED: smoke secrets still MISSING in %s\n' "$ENV_FILE"
     printf 'Preferred path on this server (does not print secrets):\n'
-    printf '  bash scripts/cloudpanel_print_epc_api_clients_ddl.sh   # if CREATE denied for ecomae_aspnet\n'
+    printf '  bash scripts/cloudpanel_diagnose_smoke_db.sh\n'
+    printf '  ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh\n'
+    printf '  # or: ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh\n'
     printf '  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
     printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
     printf '    bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
@@ -307,7 +309,9 @@ else
   printf '\nSmoke incomplete — preferred CloudPanel recovery:\n'
   printf '  1) Wait for health: bash scripts/wait_for_aspnet_health.sh\n'
   printf '  2) Ensure table + issue keys/cookie (never invent secrets):\n'
-  printf '       bash scripts/cloudpanel_print_epc_api_clients_ddl.sh   # if CREATE denied\n'
+  printf '       bash scripts/cloudpanel_diagnose_smoke_db.sh\n'
+  printf '       ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh\n'
+  printf '       # or align: ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh\n'
   printf '       ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
   printf '       ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
   printf '         bash scripts/cloudpanel_issue_smoke_credentials.sh\n'

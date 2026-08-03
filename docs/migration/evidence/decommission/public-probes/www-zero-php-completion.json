@@ -82,9 +82,9 @@
   ],
   "nextActions": [
     "Redeploy main: bash scripts/cloudpanel_redeploy_final_gate_branch.sh (or git reset --hard origin/main \u0026\u0026 bash scripts/cloudpanel_find_and_redeploy.sh).",
-    "If CREATE denied: cloudpanel_print_epc_api_clients_ddl.sh \u2192 paste as MySQL admin on TenantRegistry DB.",
-    "Ensure table \u002B issue smoke creds into TenantRegistry DB: cloudpanel_ensure_epc_api_clients_table.sh \u2192 ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES cloudpanel_issue_smoke_credentials.sh (never invent keys; quoted admin cookie).",
-    "If issuer blocks PHP db\u2260TenantRegistry: fix ConnectionStrings__TenantRegistry / GRANTs (or ECOMAE_SMOKE_DB_*), then re-issue.",
+    "Diagnose smoke DB: cloudpanel_diagnose_smoke_db.sh (TenantRegistry vs PHP app db, redacted).",
+    "If CREATE denied: cloudpanel_apply_epc_api_clients_ddl.sh (debian.cnf) or align TenantRegistry Database= via cloudpanel_align_tenant_registry_to_php_db.sh.",
+    "Ensure table \u002B issue smoke creds: cloudpanel_ensure_epc_api_clients_table.sh \u2192 ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES cloudpanel_issue_smoke_credentials.sh (never invent keys).",
     "Validate env (redacted): cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
     "Capture/commit staging-smoke for price lookup, catalog status, and surface digests.",
     "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",

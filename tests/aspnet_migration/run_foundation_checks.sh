@@ -401,8 +401,16 @@ check 'deploy packs ensure table PHP' contains "$ROOT/scripts/deploy_aspnet_foun
 check 'ensure epc_api_clients helper exists' test -x "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh"
 check 'epc_api_clients DDL SQL exists' test -f "$ROOT/scripts/sql/epc_api_clients.sql"
 check 'print epc_api_clients DDL helper exists' test -x "$ROOT/scripts/cloudpanel_print_epc_api_clients_ddl.sh"
+check 'apply epc_api_clients DDL helper exists' test -x "$ROOT/scripts/cloudpanel_apply_epc_api_clients_ddl.sh"
+check 'smoke DB diagnose helper exists' test -x "$ROOT/scripts/cloudpanel_diagnose_smoke_db.sh"
+check 'align TenantRegistry to PHP db helper exists' test -x "$ROOT/scripts/cloudpanel_align_tenant_registry_to_php_db.sh"
 check 'deploy packs print epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_print_epc_api_clients_ddl.sh'
+check 'deploy packs apply epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_apply_epc_api_clients_ddl.sh'
+check 'deploy packs smoke DB diagnose helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_diagnose_smoke_db.sh'
+check 'deploy packs align TenantRegistry helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_align_tenant_registry_to_php_db.sh'
 check 'deploy packs epc_api_clients SQL' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'epc_api_clients.sql'
+check 'deploy packs diagnose_smoke_db PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'diagnose_smoke_db.php'
+check 'deploy packs align_tenant_registry PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'align_tenant_registry_to_php_db.php'
 check 'smoke bootstrap prints CREATE recovery DDL' contains "$ROOT/scripts/php/_smoke_db_bootstrap.php" 'smoke_print_epc_api_clients_recovery'
 check 'smoke bootstrap can sync admin session' contains "$ROOT/scripts/php/_smoke_db_bootstrap.php" 'smoke_sync_admin_session_to_tenant'
 check 'smoke issuer supports SYNC_ADMIN_SESSION' contains "$ROOT/scripts/php/issue_final_gate_smoke_credentials.php" 'ECOMAE_CONFIRM_SYNC_ADMIN_SESSION'
