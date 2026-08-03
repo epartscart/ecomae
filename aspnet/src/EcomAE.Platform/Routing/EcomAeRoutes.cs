@@ -108,6 +108,8 @@ public static class EcomAeRoutes
     public const string StorefrontApp = "/storefront/app";
     /// <summary>Batch 4: storefront part search Blazor results (PHP part_search remains authoritative for cart/tabs).</summary>
     public const string StorefrontSearchApp = "/storefront/search-app";
+    /// <summary>Batch 4: authenticated cart Blazor summary (qty/checkout writes remain PHP /shop/cart).</summary>
+    public const string StorefrontCartApp = "/storefront/cart-app";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     public const string StorefrontOrders = "/storefront/orders";

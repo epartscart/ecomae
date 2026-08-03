@@ -403,4 +403,34 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// Batch 4 authenticated customer cart KPI (mirrors PHP ajax_get_cart_info).
+    /// Guest carts (<c>session_id</c>) stay PHP-only for this slice.
+    /// </summary>
+    public const string SelectStorefrontCartSummary = """
+        SELECT COUNT(`id`) AS `count`,
+               IFNULL(SUM(`price` * `count_need`), 0) AS `sum`
+        FROM `shop_carts`
+        WHERE `user_id` = @userId
+          AND `session_id` = 0
+        """;
+
+    /// <summary>
+    /// Batch 4 authenticated customer cart lines (read-only subset of cart.php).
+    /// Qty/check/delete/add and checkout remain PHP.
+    /// </summary>
+    public const string SelectStorefrontCartLines = """
+        SELECT `id`, IFNULL(`price`, 0) AS price, IFNULL(`count_need`, 0) AS count_need,
+               IFNULL(`checked_for_order`, 0) AS checked_for_order, IFNULL(`product_type`, 0) AS product_type,
+               IFNULL(`t2_manufacturer`, '') AS manufacturer, IFNULL(`t2_article`, '') AS article,
+               IFNULL(`t2_name`, '') AS name, IFNULL(`t2_time_to_exe`, '') AS time_to_exe,
+               IFNULL(`t2_time_to_exe_guaranteed`, '') AS time_to_exe_guaranteed,
+               IFNULL(`t2_min_order`, 0) AS min_order
+        FROM `shop_carts`
+        WHERE `user_id` = @userId
+          AND `session_id` = 0
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

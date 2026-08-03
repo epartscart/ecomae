@@ -84,8 +84,8 @@ Priority order:
 1. **CP Orders/OMS (read UI first; writes PHP)** ✅ (#661): `/cp/orders` + `/cp/orders-digest`
 2. **CP Users/Groups** ✅ (#662): digests stay `/cp/users` + `/cp/groups`; Blazor UI at `/cp/users-app` + `/cp/groups-app`
 3. **ERP sales orders tab family** ✅ (#663): `/erp/sales-orders-app` over `/erp/sales-orders` digest; PHP writes authoritative
-4. **Storefront search results** — this PR: `/storefront/search-app` read-only warehouse offers; PHP `/shop/part_search` authoritative for tabs/cart
-5. Cart/checkout last
+4. **Storefront search results** ✅ (#664): `/storefront/search-app` read-only warehouse offers; PHP `/shop/part_search` authoritative for tabs
+5. **Cart/checkout** — this PR: `/storefront/cart-app` authenticated cart summary; qty/guest cart/checkout remain PHP `/shop/cart` + `/shop/checkout/*`
 
 Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location =` only. Keep PHP hero/animation/graphical class trees when the surface has them.
 

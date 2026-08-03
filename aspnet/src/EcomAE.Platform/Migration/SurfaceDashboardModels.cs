@@ -477,3 +477,30 @@ public sealed record StorefrontPartSearchResult(
     int Count,
     string Source,
     string Message);
+
+public sealed record StorefrontCartLineDigest(
+    long Id,
+    decimal Price,
+    decimal CountNeed,
+    bool CheckedForOrder,
+    int ProductType,
+    string Manufacturer,
+    string Article,
+    string Name,
+    string TimeToExe,
+    string TimeToExeGuaranteed,
+    decimal MinOrder);
+
+public sealed record StorefrontCartSummary(
+    int Count,
+    decimal Sum,
+    string Source,
+    string Message);
+
+public sealed record StorefrontCartListResult(
+    int UserId,
+    StorefrontCartSummary Summary,
+    IReadOnlyList<StorefrontCartLineDigest> Lines,
+    int Count,
+    string Source,
+    string Message);
