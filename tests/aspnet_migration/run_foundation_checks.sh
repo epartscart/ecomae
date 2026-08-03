@@ -435,6 +435,19 @@ check 'surface digest batch installer expects 30 routes' contains "$ROOT/scripts
 check 'surface digest batch probe expects PASS=30' contains "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh" 'expected 30 digest routes'
 check 'deploy packs surface digest batch installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_surface_digest_shadows.sh'
 check 'deploy packs surface digest batch probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_surface_digest_shadows.sh'
+check 'storefront digest batch installer exists' test -x "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh"
+check 'storefront digest batch probe exists' test -x "$ROOT/scripts/cloudpanel_probe_storefront_digest_shadows.sh"
+check 'storefront digest batch installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh" 'ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS'
+check 'storefront digest batch installer expects 4 routes' contains "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh" 'expected 4 storefront digest locations'
+check 'deploy packs storefront digest batch installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_storefront_digest_shadows.sh'
+check 'deploy packs storefront digest batch probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_storefront_digest_shadows.sh'
+check 'digest dual-sample capture helper exists' test -x "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh"
+check 'deploy packs digest dual-sample capture helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_capture_digest_dual_samples.sh'
+check 'Blazor migration console route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/migration/console'
+check 'Program maps Blazor Razor components' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'MapRazorComponents'
+check 'Blazor Zero-PHP console page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ZeroPhpConsole.razor"
+check 'progress status reports storefront digests 4/4' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" '4 / 4'
+check 'progress json reports storefrontDigestExactRoutesLive 4' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" '"storefrontDigestExactRoutesLive": 4'
 check 'pre-PHP-removal parity verdict helper exists' test -x "$ROOT/scripts/verify_pre_php_removal_parity.sh"
 check 'pre-PHP-removal verdict never removes PHP' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'NEVER removes PHP'
 check 'pre-PHP-removal verdict skips nested heavy area suite' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'ECOMAE_AREA_SKIP_HEAVY=1'

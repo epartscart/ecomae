@@ -65,16 +65,18 @@ Tenant BOS is generally Super-CP-only; tenant hosts may still answer `/BOS/` via
 
 ## Catalog exact-route shadows (www)
 
-**Live (public unauth ASP.NET JSON 401):** price lookup + **all wired catalog API paths (18/18)** through `brand-parts` + **all 30 CP/ERP/BOS surface digests** from `nginx-surface-digests-shadow-example.conf` (digest gate: `unauthorized`).
+**Live (public unauth ASP.NET JSON 401):** price lookup + **all wired catalog API paths (18/18)** through `brand-parts` + **all 30 CP/ERP/BOS surface digests** + **all 4 storefront digests** (digest gate: `unauthorized`).
 
-**Surface digests:** **30 / 30** live (batch: `cloudpanel_install_surface_digest_shadows.sh`; never broad `/cp|/erp|/bos`).
+**Surface digests:** **30 / 30** live. **Storefront digests:** **4 / 4** live (`cloudpanel_install_storefront_digest_shadows.sh`; never broad `/storefront`).
+
+**Blazor SSR console:** `/migration/console` — Zero-PHP operator board (redeploy ASP.NET to ship). Not product chrome cutover.
 
 ## Exact-route digests pending nginx shadow
 
-- `/storefront/account-summary`, `/storefront/orders`, `/storefront/garage`, `/storefront/profile` (optional; needs customer cookie; not required for `ReadyToRemovePhp`)
+None for wired digest sets. Product chrome (`/`, `/CP/`, `/ERP/`, `/BOS/`) remains PHP by design until intentional shell cutover.
 
-Enable storefront digests only via `deploy/aspnet/nginx-storefront-digests-shadow-example.conf` after smoke. Never broad `/api|/cp|/erp|/bos|/storefront`.
+Never broad `/api|/cp|/erp|/bos|/storefront`.
 
 ## Final PHP cutover gate
 
-Weighted meter still **95% / 5%** (PHP runtime decommission residual). That is **not** “95% of routes live.” Wired catalog exact-routes are **18/18**; surface digests **30/30**; product chrome still PHP. Remaining work: dual samples, optional storefront digests, human `RELEASE_OWNER_APPROVAL.md`. Do not remove PHP-FPM/cron/rewrites until `/migration/php-decommission-readiness` reports ready with approval attached.
+Weighted meter still **95% / 5%** (PHP runtime decommission residual). That is **not** “95% of routes live.” Catalog **18/18**, surface digests **30/30**, storefront digests **4/4**; product chrome still PHP. Remaining work: dual samples + human `RELEASE_OWNER_APPROVAL.md`. Do not remove PHP-FPM/cron/rewrites until `/migration/php-decommission-readiness` reports ready with approval attached.

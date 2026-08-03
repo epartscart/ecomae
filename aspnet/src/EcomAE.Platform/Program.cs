@@ -1,5 +1,6 @@
 using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Auth;
+using EcomAE.Platform.Components;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
@@ -12,6 +13,7 @@ using EcomAE.Platform.Services;
 using EcomAE.Platform.Surfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddRazorComponents();
 
 builder.Services.Configure<EcomAeOptions>(builder.Configuration.GetSection(EcomAeOptions.SectionName));
 builder.Services.Configure<MigrationRouteCutoverOptions>(builder.Configuration.GetSection(MigrationRouteCutoverOptions.SectionName));
@@ -233,6 +235,9 @@ app.MapGet(EcomAeRoutes.LegacyApiClientParity, (ILegacyApiClientParityReporter r
 app.MapGet(EcomAeRoutes.LegacySessionParity, (ILegacySessionParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapEcomAeSurfaceModules();
+
+// Blazor SSR ops console (exact /migration/console). Interim improvement UI — not product chrome cutover.
+app.MapRazorComponents<App>();
 
 app.Run();
 

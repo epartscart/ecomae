@@ -22,30 +22,30 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 
 | Path | Auth / warm notes |
 | --- | --- |
-| `/health`, `/migration/*` | ASP.NET diagnostics |
+| `/health`, `/migration/*` | ASP.NET diagnostics + Blazor SSR console `/migration/console` |
 | `/api/v1/price/lookup` | Live |
 | `/api/v1/catalog/status` … `/brand-parts` | **All 18/18 wired catalog API paths live** |
-| All 30 CP/ERP/BOS digests in `nginx-surface-digests-shadow-example.conf` | Live unauth **401 unauthorized** (admin cookie for 200); batch installer |
+| All 30 CP/ERP/BOS digests | Live unauth **401 unauthorized** |
+| All 4 storefront digests | Live unauth **401 unauthorized** (customer cookie for 200) |
 
-**Catalog exact-route progress:** **18 / 18** — wired catalog API exact-route set complete on www.
+**Catalog exact-route progress:** **18 / 18**
 
-**Surface digest exact-route progress:** **30 / 30** (from `nginx-surface-digests-shadow-example.conf`; one `location =` each, never broad `/cp|/erp|/bos`).
+**Surface digest exact-route progress:** **30 / 30**
+
+**Storefront digest exact-route progress:** **4 / 4**
 
 ### Still 100% PHP on public www (blocks Zero-PHP)
 
 - Product chrome: `/`, `/CP/`, `/ERP/`, `/BOS/` (and aliases)
-- Storefront digests (`/storefront/*`) — optional; not required for `ReadyToRemovePhp`
-- Dual-sample PHP↔ASP.NET parity attachments for promoted routes
+- Dual-sample PHP↔ASP.NET parity attachments for promoted digests
 - Human `RELEASE_OWNER_APPROVAL.md` with `APPROVED_TO_REMOVE_PHP_FALLBACK`
 - PHP-FPM / cron / rewrite removal (gated script only)
 
-### Known ops gaps (not missing nginx locations)
+### Improvements shipped
 
-- Offline-cache routes return ASP.NET `404 cache_miss` when probe params ≠ warm `epc_umapi_cache` key (PHP/UMAPI still fills live)
-- Local nginx `--resolve` probes may hit wrong `default_server` HTML while public URL returns ASP.NET JSON
-- Installer exact-match required for prefix-colliding paths (`article` vs `article-links`, `engine` vs `engines`)
-- Digest shadows need Cookie proxy (from `nginx-surface-digests-shadow-example.conf`); unauth gate is `401 unauthorized` (not `missing_api_key`)
-- Digests that were real PHP pages may show CDN-cached HTML 200 briefly after `location=` insert — batch probe retries cache-bust
+- Blazor SSR Zero-PHP operator console at `/migration/console` (interim ops UI; Enterprise BOS still targets Angular/React for product chrome)
+- Batch installers for surface + storefront digests (one nginx reload each)
+- Digest dual-sample capture helper: `scripts/cloudpanel_capture_digest_dual_samples.sh`
 
 ## Inventory
 
@@ -74,9 +74,10 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 - Admin nested modules_access ACL + surface capabilities.
 - CP/ERP/BOS/storefront digests scaffolded on loopback + staging smoke attached (PR #612).
 - **Public exact-route catalog/price shadows complete (18/18 catalog + price + health/migration).**
-- **Surface digests live: 30/30** via `cloudpanel_install_surface_digest_shadows.sh` (exact `location =` only).
+- **Surface digests live: 30/30.** Storefront digests: **4/4.**
+- Blazor SSR migration console (ops improvement).
 - No broad PHP cutover; route/job parity/shadow metrics remain 0%.
-- PHP decommission readiness: smoke present; removal blocked on human `RELEASE_OWNER_APPROVAL.md` after dual samples + chrome plan.
+- PHP decommission readiness: smoke present; removal blocked on dual samples + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Path to 100% / Remaining 5% (PHP runtime decommission only)
 
@@ -84,20 +85,20 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 
 **Practically still pending before approval is honest:**
 
-1. Confirm public digest batch probe PASS=30 (re-run if CDN lag).
-2. Attach dual PHP↔ASP.NET parity samples for promoted digests/routes.
-3. Keep product chrome on PHP until intentional shell cutover.
+1. Redeploy ASP.NET so `/migration/console` is live; confirm storefront probe PASS=4.
+2. Capture dual PHP↔ASP.NET digest samples (`cloudpanel_capture_digest_dual_samples.sh`).
+3. Keep product chrome on PHP until intentional shell cutover (Blazor console is **not** chrome cutover).
 4. Human `RELEASE_OWNER_APPROVAL.md` — then gated PHP decommission only.
 
 ## Next execution order
 
-- Batch install (one reload): `ECOMAE_CONFIRM_INSTALL_SURFACE_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_surface_digest_shadows.sh`
-- Probe only: `bash scripts/cloudpanel_probe_surface_digest_shadows.sh` — expect PASS=30 ASP.NET JSON `unauthorized`.
-- Optional storefront digests: `nginx-storefront-digests-shadow-example.conf` + customer cookie (not required for ReadyToRemovePhp).
-- Run fail-closed parity verdict (chrome must keep PHP): `bash scripts/verify_pre_php_removal_parity.sh`
-- Confirm readiness: `curl -sS http://127.0.0.1:5100/migration/php-decommission-readiness` (8/9; approval missing).
-- Do **not** remove PHP until dual samples + human approval exist.
-- Create `RELEASE_OWNER_APPROVAL.md` **only after human approval**; then gated PHP decommission.
+- Redeploy: `bash scripts/cloudpanel_find_and_redeploy.sh` (or foundation deploy) so Blazor console ships.
+- Storefront batch: `ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh`
+- Dual samples: `bash scripts/cloudpanel_capture_digest_dual_samples.sh` then `python3 scripts/compare_digest_dual_samples.py`
+- Fail-closed parity: `bash scripts/verify_pre_php_removal_parity.sh`
+- Confirm readiness: `curl -sS https://www.ecomae.com/migration/php-decommission-readiness` (8/9; approval missing).
+- Human creates `RELEASE_OWNER_APPROVAL.md` with `APPROVED_TO_REMOVE_PHP_FALLBACK` only after that approval.
+- Do **not** remove PHP until then.
 
 ## Guardrail
 
