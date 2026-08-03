@@ -52,6 +52,8 @@ public static class EcomAeRoutes
     /// <summary>CP content pages Blazor list (JSON digest remains <see cref="ControlPanelPages"/>).</summary>
     public const string ControlPanelPagesApp = "/cp/pages-app";
     public const string ControlPanelAdminSessions = "/cp/admin-sessions";
+    /// <summary>CP admin sessions Blazor list (JSON digest remains <see cref="ControlPanelAdminSessions"/>; tokens never returned).</summary>
+    public const string ControlPanelAdminSessionsApp = "/cp/admin-sessions-app";
     public const string ControlPanelStorages = "/cp/storages";
     /// <summary>CP storages Blazor list (JSON digest remains <see cref="ControlPanelStorages"/>).</summary>
     public const string ControlPanelStoragesApp = "/cp/storages-app";
