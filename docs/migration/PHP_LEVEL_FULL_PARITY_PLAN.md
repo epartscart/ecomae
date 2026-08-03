@@ -103,12 +103,14 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 ### Hybrid ERP tab family continue
 - ✅ Core ERP list digests have Blazor `*-app` through purchases (#676).
 
-### Hybrid CP continue ← current
-- ✅ Users/Groups (#662) · Orders (#661) · Modules (#677) · Pages (#678) · Menus (#679)
-- ✅ BOS audit-log (#680) · Tenants (#681) · Currencies (#682) · Storages (#683) · Admin-sessions (#684) · API clients (#685)
-- **This PR:** `/cp/config-items-app` over `/cp/config-items` digest (secrets never returned); PHP `config_edit` authoritative.
-- Next: dual-sample evidence packs for hybrid UIs (CloudPanel operator captures).
-- Exact-route www preview only — tenant `/CP/` chrome stays PHP (same-to-same).
+### Hybrid CP continue
+- ✅ Users/Groups · Orders · Modules · Pages · Menus · Tenants · Currencies · Storages · Admin-sessions · API clients · Config-items (#686)
+
+### Hybrid storefront continue ← current
+- ✅ Search (#Batch 4) · Cart (#Batch 4)
+- **This PR:** `/storefront/orders-app` over `/storefront/orders` digest; PHP `/shop/orders` authoritative.
+- Next: `/storefront/garage-app` · `/storefront/profile-app` · dual-sample evidence packs (CloudPanel).
+- Exact-route www preview only — live epartscart.com / tenant storefronts stay PHP (same-to-same).
 - Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 
 ### Batch 6 — Decommission gate (**blocked / premature**)

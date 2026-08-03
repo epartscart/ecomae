@@ -502,20 +502,24 @@ check 'parity plan blocks Batch 6 premature cutover' contains "$ROOT/docs/migrat
 check 'same-to-same tenant verify script exists' test -x "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh"
 check 'same-to-same verify refuses cutover' contains "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh" 'cutoverAllowed=false'
 check 'tenant chrome probe rejects Batch 4 Blazor markers' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'StorefrontCartApp'
+check 'tenant chrome probe rejects storefront orders-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'StorefrontOrdersApp'
 check 'deploy packs same-to-same tenant verify' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_verify_tenant_hosts_still_php.sh'
 check 'deploy packs live tenant chrome probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_live_tenant_php_chrome.sh'
 check 'tenant safety operator verify note exists' test -f "$ROOT/docs/migration/evidence/tenant-safety/OPERATOR_VERIFY.md"
 check 'presentation parity states digests not tenant UX' contains "$ROOT/docs/migration/PRESENTATION_PARITY.md" 'not** tenant product chrome'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS+CP meta+audit-log+ERP SO/PO/INV/CASH/COA/GL/WH/SUP/PUR+search+cart routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 34'
+check 'presentation installer expects login+OMS+CP meta+audit-log+ERP SO/PO/INV/CASH/COA/GL/WH/SUP/PUR+search+cart+sf-orders routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 35'
 check 'presentation installer treats example conf as allowlist' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'Example conf is the allowlist'
 check 'presentation nginx includes /storefront/search-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /storefront/search-app'
 check 'presentation nginx includes /storefront/cart-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /storefront/cart-app'
+check 'presentation nginx includes /storefront/orders-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /storefront/orders-app'
 check 'storefront search-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'StorefrontSearchApp'
 check 'storefront cart-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'StorefrontCartApp'
+check 'storefront orders-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'StorefrontOrdersApp'
 check 'storefront search Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"
 check 'storefront cart Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor"
+check 'storefront orders Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOrdersApp.razor"
 check 'storefront part search SQL uses prices_data' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs" 'SelectStorefrontPartSearch'
 check 'storefront cart SQL uses shop_carts' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs" 'SelectStorefrontCartLines'
 check 'CP users-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelUsersApp'
