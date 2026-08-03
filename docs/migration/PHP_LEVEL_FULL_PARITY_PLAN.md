@@ -113,7 +113,7 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 
 ### Dual-sample evidence packs for hybrid UIs ← current
-- ✅ Contract harness: `cloudpanel_capture_hybrid_ui_dual_samples.sh` + `compare_hybrid_ui_dual_samples.py` + evidence under `hybrid-ui-dual-samples/` (27 UI stubs + PHP inventory; `cutoverAllowed=false`).
+- dual-sample evidence packs for hybrid UIs ✅: `cloudpanel_capture_hybrid_ui_dual_samples.sh` + `compare_hybrid_ui_dual_samples.py` + evidence under `hybrid-ui-dual-samples/` (27 UI stubs + PHP inventory; `cutoverAllowed=false`).
 - Next: CloudPanel operator live captures (admin/customer cookies + `ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1`) after presentation shadows; keep tenant verify `cutoverAllowed=false`.
 - Stubs are CI floor only — never invent live pass results or `RELEASE_OWNER_APPROVAL.md`.
 
