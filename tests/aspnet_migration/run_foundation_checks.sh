@@ -453,7 +453,9 @@ check 'catalog vehicle chain probe avoids printf -- options' contains "$ROOT/scr
 check 'catalog vehicle chain probe falls back to loopback' contains "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" 'ECOMAE_ASPNET_LOOPBACK'
 check 'catalog vehicle chain probe prefers warm MFA list' contains "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" 'cloudpanel_list_warm_catalog_models_mfa.sh'
 check 'warm models MFA list helper exists' test -x "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh"
+check 'warm vehicle ids helper lists modifications' contains "$ROOT/scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh" 'epc_umapi_modifications'
 check 'deploy packs warm models MFA list helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_list_warm_catalog_models_mfa.sh'
+check 'deploy packs warm vehicle ids helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_list_warm_catalog_vehicle_ids.sh'
 check 'exact-route installer accepts public ASP.NET when local SNI HTML' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'public URL serves ASP.NET JSON gate'
 check 'deploy packs catalog vehicle chain probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_catalog_vehicle_chain.sh'
 check 'deploy packs pre-PHP-removal parity verdict helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'verify_pre_php_removal_parity.sh'
