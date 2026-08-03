@@ -480,7 +480,13 @@ check 'login session bridge evidence dir exists' test -d "$ROOT/docs/migration/e
 check 'login bridge keeps BOS PHP-authoritative' contains "$ROOT/docs/migration/evidence/login-session-bridge/README.md" 'PHP-authoritative'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 11'
+check 'presentation installer expects login+OMS+users/groups routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 13'
+check 'CP users-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelUsersApp'
+check 'CP groups-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelGroupsApp'
+check 'CP users Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpUsersApp.razor"
+check 'CP groups Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpGroupsApp.razor"
+check 'presentation nginx includes /cp/users-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/users-app'
+check 'presentation nginx includes /cp/groups-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/groups-app'
 check 'CP orders route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelOrders'
 check 'CP orders digest SQL selects shop_orders' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs" 'SelectCpShopOrders'
 check 'CP orders Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpOrdersApp.razor"
