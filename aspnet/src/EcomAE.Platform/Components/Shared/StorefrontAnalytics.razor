@@ -1,0 +1,16 @@
+@* Mirrors templates/modex/desktop.php GA4 + optional Clarity hooks. *@
+@if (Enabled)
+{
+    <script async src="https://www.googletagmanager.com/gtag/js?id=@MeasurementId"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){ dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', '@MeasurementId');
+    </script>
+}
+
+@code {
+    [Parameter] public bool Enabled { get; set; } = true;
+    [Parameter] public string MeasurementId { get; set; } = "G-J19D1KHXCG";
+}

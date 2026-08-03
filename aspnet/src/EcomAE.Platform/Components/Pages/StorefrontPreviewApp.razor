@@ -3,14 +3,11 @@
 @using EcomAE.Platform.Presentation
 
 <PageTitle>eParts Cart (Autoparts)</PageTitle>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-@foreach (var href in LegacyPresentationAssets.StylesheetsFor("storefront"))
-{
-    <link rel="stylesheet" href="@href" />
-}
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics />
 
 <style>
-    .epc-sf { --red:#dc2626; --ink:#111; font-family:"PT Sans","Segoe UI",sans-serif; color:var(--ink); background:#fff; min-height:100vh; }
+    .epc-sf { --red:#dc2626; --ink:#111; font-family: @(LegacyPhpFontAssets.StackFor("storefront")); color:var(--ink); background:#fff; min-height:100vh; }
     .epc-sf a { color:inherit; text-decoration:none; }
     .epc-sf-topbar { background:#111; color:#fff; display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; padding:.4rem 1rem; font-size:.78rem; }
     .epc-sf-topbar a { color:#fff; margin-right:.7rem; }

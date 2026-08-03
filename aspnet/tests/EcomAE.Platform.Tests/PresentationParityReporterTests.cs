@@ -12,17 +12,17 @@ public sealed class PresentationParityReporterTests
     {
         var report = new PresentationParityReporter().BuildReport();
 
-        Assert.Equal("hybrid-chrome-php-login-parity", report.Status);
+        Assert.Equal("scaffold-not-full-php-parity", report.Status);
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "cp" && surface.Stylesheets.Count > 0);
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "erp");
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "bos" && surface.LegacyChromeSource.Contains("epc_bos_shell", StringComparison.Ordinal));
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "storefront");
-        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("/cp/app", StringComparison.Ordinal));
-        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("PhpChromeLayout", StringComparison.Ordinal));
-        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("redirect", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("LegacyChromeNavCatalog", StringComparison.Ordinal));
-        Assert.Contains(report.RemainingGaps, gap => gap.Contains("cloudpanel_install_presentation_app_shadows.sh", StringComparison.Ordinal));
-        Assert.Contains(report.RemainingGaps, gap => gap.Contains("CHROME_PARITY_GAP_MATRIX", StringComparison.Ordinal));
+        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("NOT full PHP", StringComparison.OrdinalIgnoreCase)
+            || guarantee.Contains("Digests/APIs only", StringComparison.Ordinal));
+        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("cloudpanel_probe_php_presentation_parity.sh", StringComparison.Ordinal));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("MODULE_FUNCTION_PARITY", StringComparison.Ordinal)
+            || gap.Contains("functional test", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("PHP_VS_ASPNET_DETAILED_RECHECK", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("Pixel/DOM parity", StringComparison.OrdinalIgnoreCase));
     }
 

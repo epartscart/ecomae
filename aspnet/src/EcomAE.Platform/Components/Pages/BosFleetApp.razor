@@ -12,7 +12,7 @@
 <PhpChromeStyles Surface="bos" />
 
 <style>
-    .epc-bosapp { --bg:#0b0b0b; --panel:#151515; --line:#2a2a2a; --ink:#f5f5f5; --muted:#a3a3a3; --accent:#facc15; font-family:"Segoe UI",Tahoma,sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; }
+    .epc-bosapp { --bg:#0b0b0b; --panel:#151515; --line:#2a2a2a; --ink:#f5f5f5; --muted:#a3a3a3; --accent:#facc15; font-family: @(LegacyPhpFontAssets.StackFor("bos")); background:var(--bg); color:var(--ink); min-height:100vh; }
     .epc-bosapp a { color:var(--accent); }
     .epc-bosapp-wrap { width:min(1100px, calc(100% - 2rem)); margin:0 auto; padding:1.5rem 0 3rem; }
     .epc-bosapp h1 { margin:.2rem 0 .5rem; font-size:clamp(1.6rem,3vw,2.2rem); }

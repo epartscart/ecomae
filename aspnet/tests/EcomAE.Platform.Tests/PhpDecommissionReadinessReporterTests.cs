@@ -16,9 +16,11 @@ public sealed class PhpDecommissionReadinessReporterTests
 
         Assert.Equal("blocked-not-ready-for-php-removal", report.Status);
         Assert.False(report.ReadyToRemovePhp);
-        Assert.True(report.ChecklistTotalCount >= 8);
+        Assert.True(report.ChecklistTotalCount >= 10);
         Assert.True(report.BlockerCount >= 1);
         Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "missing");
+        Assert.Contains(report.Checklist, item => item.Id == "chrome-presentation-parity" && item.Status == "missing");
+        Assert.Contains(report.Checklist, item => item.Id == "module-function-parity" && item.Status == "missing");
         Assert.Contains(report.Checklist, item => item.Id == "rollback-validated" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "exact-route-shadows-only" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "tenant-php-chrome-safe" && item.Status == "present");
@@ -28,17 +30,17 @@ public sealed class PhpDecommissionReadinessReporterTests
         Assert.Contains(report.Blockers, blocker => blocker.Contains("tenant", StringComparison.OrdinalIgnoreCase)
             || blocker.Contains("industry", StringComparison.OrdinalIgnoreCase));
         Assert.True(report.ChecklistCompletePercent < 100);
-        Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "missing");
-        // After #612, authenticated staging smoke is attached on main; remaining blocker is human approval.
+        // Staging smoke may be attached; chrome/module presentation + human approval still block PHP removal.
         Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-price").Status);
         Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-catalog").Status);
         Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-surfaces").Status);
-        Assert.Contains(report.NextActions, action => action.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("do not invent", StringComparison.OrdinalIgnoreCase)
-            || action.Contains("APPROVED_TO_REMOVE_PHP_FALLBACK", StringComparison.Ordinal));
+        Assert.Contains(report.Blockers, blocker => blocker.Contains("chrome-presentation-parity", StringComparison.OrdinalIgnoreCase)
+            || blocker.Contains("presentation", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.Blockers, blocker => blocker.Contains("module-function-parity", StringComparison.OrdinalIgnoreCase)
+            || blocker.Contains("module", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Blockers, blocker => blocker.Contains("RELEASE_OWNER_APPROVAL", StringComparison.OrdinalIgnoreCase)
             || blocker.Contains("release-owner-approval", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(report.NextActions, action => action.Contains("cloudpanel_issue_smoke_credentials.sh", StringComparison.Ordinal));
+        Assert.Contains(report.RequiredEvidence, evidence => evidence.Contains("php-vs-aspnet-recheck.json", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -87,6 +89,10 @@ public sealed class PhpDecommissionReadinessReporterTests
             File.WriteAllText(Path.Combine(evidence, "staging-smoke", "surface-digests-aspnet.json"), """{"ok":true,"authenticatedDigest200Count":1,"routes":[{"route":"/cp/dashboard-summary","status":200}]}""");
             File.WriteAllText(Path.Combine(evidence, "parity-samples", "sample.json"), """{"route":"/api/v1/price/lookup"}""");
             File.WriteAllText(Path.Combine(evidence, "RELEASE_OWNER_APPROVAL.md"), "APPROVED_TO_REMOVE_PHP_FALLBACK\n");
+            var presentation = Path.Combine(releaseRoot, "docs", "migration", "evidence", "presentation");
+            Directory.CreateDirectory(presentation);
+            File.WriteAllText(Path.Combine(presentation, "php-vs-aspnet-recheck.json"), """{"status":"pass","readyForPhpRemoval":false}""");
+            File.WriteAllText(Path.Combine(presentation, "MODULE_FUNCTION_TEST_PASS.md"), "MODULE_FUNCTION_PARITY_PASS\n");
             File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-api-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-api-shadow-example.conf"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"), overwrite: true);
