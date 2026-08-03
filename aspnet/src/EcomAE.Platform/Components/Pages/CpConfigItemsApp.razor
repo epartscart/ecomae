@@ -1,0 +1,140 @@
+@page "/cp/config-items-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Config Items · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-ci-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#18181b 0%,#27272a 50%,#3f3f46 100%);
+        }
+        .epc-ci-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-ci-hero p { margin:0; color:#d4d4d8; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-ci-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-ci-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#18181b; background:#a3e635;
+        }
+        .epc-ci-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-ci-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-ci-kpi { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-ci-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-ci-kpi span { color:#71717a; font-size:.78rem; }
+        .epc-ci-table-wrap { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; overflow:auto; }
+        .epc-ci-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-ci-table th, .epc-ci-table td { padding:.55rem .7rem; border-bottom:1px solid #f4f4f5; text-align:left; white-space:nowrap; }
+        .epc-ci-table th { background:#fafafa; color:#52525b; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-ci-table a { color:#65a30d; font-weight:700; text-decoration:none; }
+        .epc-ci-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-ci-badge--ok { background:#ecfccb; color:#3f6212; }
+        .epc-ci-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-ci-badge--info { background:#e4e4e7; color:#3f3f46; }
+        .epc-ci-note { margin-top:1rem; padding:.75rem .9rem; background:#fafafa; border:1px solid #d4d4d8; border-radius:.45rem; color:#3f3f46; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-ci-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-ci-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Config Items</h1>
+        <p>Read-only <code>config_items</code> metadata from <code>/cp/config-items</code> digest under PHP CP desktop chrome. Secret values never returned. Edits stay on live PHP site config — same-to-same for tenants.</p>
+        <div class="epc-ci-cta">
+            <a href="@_phpTab">Open PHP site config</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/CP/control/config">PHP configuration</a>
+            <a class="ghost" href="/cp/api-clients-app">API clients</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-ci-kpis" aria-label="Config items KPIs">
+        <div class="epc-ci-kpi"><strong>@_items.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-ci-kpi"><strong>@_visible</strong><span>Visible</span></div>
+        <div class="epc-ci-kpi"><strong>@_groups</strong><span>Config groups</span></div>
+    </div>
+
+    <div class="epc-ci-table-wrap">
+        <table class="epc-ci-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Caption</th>
+                    <th>Type</th>
+                    <th>Group</th>
+                    <th>Visible</th>
+                    <th>Order</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_items.Count == 0)
+                {
+                    <tr><td colspan="7">No config items in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var item in _items)
+                    {
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(item.Name) ? "—" : item.Name)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Caption) ? "—" : item.Caption)</td>
+                            <td><span class="epc-ci-badge epc-ci-badge--info">@(string.IsNullOrWhiteSpace(item.Type) ? "—" : item.Type)</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(item.ConfigGroup) ? "—" : item.ConfigGroup)</td>
+                            <td><span class="epc-ci-badge @(item.Visible ? "epc-ci-badge--ok" : "epc-ci-badge--off")">@(item.Visible ? "yes" : "no")</span></td>
+                            <td>@item.Order.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-ci-note">
+        Read-only preview · JSON digest <a href="/cp/config-items?limit=200">/cp/config-items</a> (secret values never returned).
+        PHP <code>config_edit</code> / <code>/CP/control/config</code> remain authoritative for edits.
+        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/config_edit";
+    private bool _isAdmin;
+    private IReadOnlyList<CpConfigItemMetaDigest> _items = [];
+    private int _visible;
+    private int _groups;
+    private int _limit = 200;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListCpConfigItemsMetaAsync(_limit, ctx.RequestAborted);
+        _items = result.Items;
+        _visible = _items.Count(i => i.Visible);
+        _groups = _items.Select(i => i.ConfigGroup).Where(g => !string.IsNullOrWhiteSpace(g)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

@@ -52,6 +52,8 @@ public static class LegacyChromeNavCatalog
         new("Admin sessions list", "/cp/admin-sessions-app"),
         new("API clients list", "/cp/api-clients-app"),
         new("API clients PHP", "/CP/control/portal/epc_api_clients_manage"),
+        new("Config items list", "/cp/config-items-app"),
+        new("Site config PHP", "/CP/control/config_edit"),
         new("Users PHP", "/CP/control/users"),
         new("Groups PHP", "/CP/users/usergroups"),
         new("Multivendor", "/CP/control/shop/multivendor"),

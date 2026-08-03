@@ -508,7 +508,7 @@ check 'tenant safety operator verify note exists' test -f "$ROOT/docs/migration/
 check 'presentation parity states digests not tenant UX' contains "$ROOT/docs/migration/PRESENTATION_PARITY.md" 'not** tenant product chrome'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS+users/groups/modules/pages/menus/tenants/currencies/storages/admin-sessions/api-clients+audit-log+ERP SO/PO/INV/CASH/COA/GL/WH/SUP/PUR+search+cart routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 33'
+check 'presentation installer expects login+OMS+CP meta+audit-log+ERP SO/PO/INV/CASH/COA/GL/WH/SUP/PUR+search+cart routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 34'
 check 'presentation installer treats example conf as allowlist' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'Example conf is the allowlist'
 check 'presentation nginx includes /storefront/search-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /storefront/search-app'
 check 'presentation nginx includes /storefront/cart-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /storefront/cart-app'
@@ -545,6 +545,7 @@ check 'presentation nginx includes /cp/currencies-app' contains "$ROOT/deploy/as
 check 'presentation nginx includes /cp/storages-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/storages-app'
 check 'presentation nginx includes /cp/admin-sessions-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/admin-sessions-app'
 check 'presentation nginx includes /cp/api-clients-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/api-clients-app'
+check 'presentation nginx includes /cp/config-items-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/config-items-app'
 check 'presentation nginx includes /bos/audit-log-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /bos/audit-log-app'
 check 'CP modules-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelModulesApp'
 check 'CP pages-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelPagesApp'
@@ -554,6 +555,7 @@ check 'CP currencies-app route constant exists' contains "$ROOT/aspnet/src/EcomA
 check 'CP storages-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelStoragesApp'
 check 'CP admin-sessions-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelAdminSessionsApp'
 check 'CP api-clients-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelApiClientsApp'
+check 'CP config-items-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelConfigItemsApp'
 check 'BOS audit-log-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'BosAuditLogApp'
 check 'CP modules Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpModulesApp.razor"
 check 'CP pages Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpPagesApp.razor"
@@ -563,6 +565,7 @@ check 'CP currencies Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platfo
 check 'CP storages Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpStoragesApp.razor"
 check 'CP admin-sessions Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpAdminSessionsApp.razor"
 check 'CP api-clients Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpApiClientsApp.razor"
+check 'CP config-items Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpConfigItemsApp.razor"
 check 'BOS audit-log Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosAuditLogApp.razor"
 check 'ERP sales-orders-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpSalesOrdersApp'
 check 'ERP purchase-orders-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpPurchaseOrdersApp'

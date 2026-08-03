@@ -80,6 +80,7 @@ ASPNET_BAD_MARKERS=(
   "CpStoragesApp"
   "CpAdminSessionsApp"
   "CpApiClientsApp"
+  "CpConfigItemsApp"
   '"error":"unauthorized"'
   '"title":"Unauthorized"'
   "X-EcomAE-Route-Cutover"
