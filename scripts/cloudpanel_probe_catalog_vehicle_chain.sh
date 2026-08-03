@@ -115,13 +115,8 @@ print(" ".join(str(i) for i in ids))
 PY
 }
 
-# Prefer DB-warm MFA_IDs (from epc_umapi_models) when helper is present.
-WARM_MFA=""
-if [[ -x "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh" ]]; then
-  say "== warm MFA_IDs from epc_umapi_models =="
-  if warm_out="$(bash "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh" 2>/dev/null)"; then
-    printf '%s\n' "$warm_out"
-    WARM_MFA="$(printf '%s\n' "$warm_out" | python3 -c '
+parse_id_counts() {
+  python3 -c '
 import re,sys
 ids=[]
 for line in sys.stdin:
@@ -132,9 +127,30 @@ for line in sys.stdin:
     if m:
         ids.append(m.group(1))
 print(" ".join(ids))
-')"
+'
+}
+
+WARM_HELPER="$ROOT/scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh"
+[[ -x "$WARM_HELPER" ]] || WARM_HELPER="$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh"
+
+# Prefer DB-warm MFA_IDs (from epc_umapi_models) when helper is present.
+WARM_MFA=""
+if [[ -x "$WARM_HELPER" ]]; then
+  say "== warm MFA_IDs from epc_umapi_models =="
+  if warm_out="$(bash "$WARM_HELPER" models 2>/dev/null || bash "$WARM_HELPER" 2>/dev/null)"; then
+    printf '%s\n' "$warm_out"
+    WARM_MFA="$(printf '%s\n' "$warm_out" | parse_id_counts)"
   else
     say "WARN: warm MFA list helper failed (continuing with manufacturers walk)"
+  fi
+fi
+
+WARM_MS=""
+if [[ -x "$ROOT/scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh" ]]; then
+  say "== warm MS_IDs from epc_umapi_modifications =="
+  if warm_ms_out="$(bash "$ROOT/scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh" modifications 2>/dev/null)"; then
+    printf '%s\n' "$warm_ms_out"
+    WARM_MS="$(printf '%s\n' "$warm_ms_out" | parse_id_counts)"
   fi
 fi
 
@@ -185,13 +201,60 @@ else
   exit 4
 fi
 
-if [[ "$MS_ID" -le 0 ]]; then
-  say "WARN: models returned rows but no MS_ID/ms_id>0 — cannot probe modifications." >&2
+# Build MS candidates: warm mods table first, then MS_IDs from chosen models payload.
+MS_FROM_MODELS="$(python3 - <<'PY'
+import json
+rows=json.load(open("/tmp/ecomae-vehicle-models.json")).get("data") or []
+ids=[]
+seen=set()
+for row in rows:
+    if not isinstance(row, dict):
+        continue
+    for k in ("MS_ID", "ms_id"):
+        try:
+            n=int(row.get(k) or 0)
+        except (TypeError, ValueError):
+            continue
+        if n>0 and n not in seen:
+            seen.add(n); ids.append(str(n))
+            break
+    if len(ids)>=40:
+        break
+print(" ".join(ids))
+PY
+)"
+MS_LIST="$(python3 -c 'import sys; seen=set(); out=[]
+for tok in (sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]).split():
+    if tok.isdigit() and int(tok)>0 and tok not in seen:
+        seen.add(tok); out.append(tok)
+print(" ".join(out[:40]))' "$WARM_MS" "$MS_ID" "$MS_FROM_MODELS")"
+
+if [[ -z "$MS_LIST" ]]; then
+  say "WARN: no MS_ID candidates — cannot probe modifications." >&2
   exit 0
 fi
+say "MS candidates: ${MS_LIST}"
 
-say "== modifications?section=${SECTION}&ms_id=${MS_ID} =="
-mods_code="$(curl_json /tmp/ecomae-vehicle-mods.json "/api/v1/catalog/modifications?section=${SECTION}&ms_id=${MS_ID}")"
-say "HTTP ${mods_code}"
-python3 -m json.tool /tmp/ecomae-vehicle-mods.json | head -30
+CHOSEN_MS=0
+MS_TRIED=0
+: > /tmp/ecomae-vehicle-mods.json
+for candidate in $MS_LIST; do
+  MS_TRIED=$((MS_TRIED + 1))
+  say "== modifications?section=${SECTION}&ms_id=${candidate} (try ${MS_TRIED}) =="
+  mods_code="$(curl_json /tmp/ecomae-vehicle-mods.json "/api/v1/catalog/modifications?section=${SECTION}&ms_id=${candidate}")"
+  mods_rows="$(python3 -c 'import json; d=json.load(open("/tmp/ecomae-vehicle-mods.json")); print(int(d.get("rows") or len(d.get("data") or [])))' 2>/dev/null || echo 0)"
+  say "HTTP ${mods_code} rows=${mods_rows}"
+  if [[ "$mods_code" == "200" && "$mods_rows" -gt 0 ]]; then
+    CHOSEN_MS="$candidate"
+    break
+  fi
+done
+
+say "chosen MS_ID=${CHOSEN_MS} (tried ${MS_TRIED})"
+if [[ "$CHOSEN_MS" -gt 0 ]]; then
+  python3 -m json.tool /tmp/ecomae-vehicle-mods.json | head -30
+else
+  say "WARN: modifications auth works but no warm ms_id among candidates (database-empty)." >&2
+  say "Hint: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh modifications" >&2
+fi
 say "OK: vehicle-chain probe finished (PHP remains)."
