@@ -1,10 +1,10 @@
 {
-  "capturedAtUtc": "2026-08-02T18:06:18Z",
-  "passed": 12,
+  "capturedAtUtc": "2026-08-03T05:45:34Z",
+  "passed": 20,
   "failed": 0,
-  "blocked": 4,
+  "blocked": 3,
   "readyToRemovePhp": false,
-  "note": "PHP decommission blocked until authenticated smoke + RELEASE_OWNER_APPROVAL.md exist on CloudPanel.",
+  "note": "PHP must remain. Loopback staging smoke is attached; public CP/ERP/BOS chrome is still PHP; surface/presentation parity not reached; RELEASE_OWNER_APPROVAL.md absent.",
   "results": [
     {
       "area": "unit-tests",
@@ -38,11 +38,16 @@
     },
     {
       "area": "live/migration/live-surface-links",
-      "status": "blocked",
-      "detail": "HTTP 404 until CloudPanel redeploy of main includes live-surface-links"
+      "status": "pass",
+      "detail": "HTTP 200"
     },
     {
       "area": "live/migration/surface-parity",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "live/migration/surface-field-parity",
       "status": "pass",
       "detail": "HTTP 200"
     },
@@ -52,19 +57,34 @@
       "detail": "ASP.NET JSON auth gate"
     },
     {
-      "area": "staging-smoke-price",
-      "status": "blocked",
-      "detail": "ECOMAE_PRICE_LOOKUP_API_KEY missing in this environment"
+      "area": "attached-staging-smoke",
+      "status": "pass",
+      "detail": "price/catalog/surface artifacts validate (digest200=30)"
     },
     {
-      "area": "staging-smoke-catalog",
+      "area": "live-restage-price",
       "status": "blocked",
-      "detail": "ECOMAE_CATALOG_API_KEY missing in this environment"
+      "detail": "ECOMAE_PRICE_LOOKUP_API_KEY missing here (attached artifact used instead)"
     },
     {
-      "area": "staging-smoke-surfaces",
+      "area": "live-restage-catalog",
       "status": "blocked",
-      "detail": "admin cookie missing in this environment"
+      "detail": "ECOMAE_CATALOG_API_KEY missing here (attached artifact used instead)"
+    },
+    {
+      "area": "live-restage-surfaces",
+      "status": "blocked",
+      "detail": "admin cookie missing here (attached artifact used instead)"
+    },
+    {
+      "area": "live-surface-parity-status",
+      "status": "pass",
+      "detail": "parity-not-yet-reached"
+    },
+    {
+      "area": "live-presentation-status",
+      "status": "pass",
+      "detail": "presentation-shell-scaffolded (not cut over)"
     },
     {
       "area": "php-chrome/CP/",
@@ -82,9 +102,24 @@
       "detail": "still PHP HTML (expected pre-decommission)"
     },
     {
+      "area": "public/cp/dashboard-summary-not-cutover",
+      "status": "pass",
+      "detail": "not publicly cut over (HTTP 404; PHP remains authority)"
+    },
+    {
+      "area": "public/api/v1/catalog/status-not-cutover",
+      "status": "pass",
+      "detail": "not publicly cut over (HTTP 404; PHP remains authority)"
+    },
+    {
       "area": "decommission-refuses-without-confirm",
       "status": "pass",
       "detail": "gated script refused"
+    },
+    {
+      "area": "decommission-refuses-while-not-ready",
+      "status": "pass",
+      "detail": "refused with CONFIRM=YES because readyToRemovePhp=false"
     }
   ]
 }

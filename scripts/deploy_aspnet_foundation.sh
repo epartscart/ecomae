@@ -70,6 +70,8 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" \
   "$ROOT/scripts/cloudpanel_push_final_gate_smoke.sh" \
   "$ROOT/scripts/cloudpanel_export_final_gate_smoke_bundle.sh" \
+  "$ROOT/scripts/verify_pre_php_removal_parity.sh" \
+  "$ROOT/scripts/run_php_decommission_area_tests.sh" \
   "$ROOT/scripts/cloudpanel_issue_smoke_credentials.sh" \
   "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh" \
   "$ROOT/scripts/cloudpanel_print_epc_api_clients_ddl.sh" \

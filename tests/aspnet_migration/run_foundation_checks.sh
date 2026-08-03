@@ -419,6 +419,11 @@ check 'smoke commit recovers failed push auth' contains "$ROOT/scripts/cloudpane
 check 'smoke commit prefers token push helper' contains "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" 'cloudpanel_push_final_gate_smoke.sh'
 check 'redeploy prints live readiness snapshot' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'Live readiness snapshot'
 check 'redeploy reminds not to invent approval at 8/9' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'do NOT invent RELEASE_OWNER_APPROVAL.md'
+check 'pre-PHP-removal parity verdict helper exists' test -x "$ROOT/scripts/verify_pre_php_removal_parity.sh"
+check 'pre-PHP-removal verdict never removes PHP' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'NEVER removes PHP'
+check 'area tests validate attached staging smoke' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'attached-staging-smoke'
+check 'area tests assert public digests not cut over' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'not-cutover'
+check 'deploy packs pre-PHP-removal parity verdict helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'verify_pre_php_removal_parity.sh'
 check 'deploy packs smoke token push helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_push_final_gate_smoke.sh'
 check 'deploy packs print epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_print_epc_api_clients_ddl.sh'
 check 'deploy packs apply epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_apply_epc_api_clients_ddl.sh'

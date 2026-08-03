@@ -71,8 +71,9 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 ## Next execution order
 
-- Redeploy main so ContentRoot packs smoke: `bash scripts/cloudpanel_redeploy_final_gate_branch.sh`
-- Confirm readiness: `curl -sS http://127.0.0.1:5100/migration/php-decommission-readiness` (smoke present; approval missing).
+- Run fail-closed parity verdict (must keep PHP): `bash scripts/verify_pre_php_removal_parity.sh`
+- Confirm readiness: `curl -sS http://127.0.0.1:5100/migration/php-decommission-readiness` (8/9; approval missing).
+- Public CP/ERP/BOS chrome is still PHP; do **not** remove PHP until exact-route shadows + dual samples exist.
 - Optional storefront: set `ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits>` (not required for ReadyToRemovePhp).
 - Extract one approved path: `bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status` (enable only with operator intent).
 - Attach dual PHP↔ASP.NET parity samples; promote shadows one `location =` at a time.

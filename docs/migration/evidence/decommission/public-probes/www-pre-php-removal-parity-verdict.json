@@ -1,0 +1,73 @@
+{
+  "capturedAtUtc": "2026-08-03T05:45:57Z",
+  "verdict": "blocked-parity-incomplete-php-must-remain",
+  "readyToRemovePhp": false,
+  "passed": 11,
+  "failed": 0,
+  "warnings": 0,
+  "summary": [
+    "Authenticated loopback staging smoke is attached for price/catalog/surface digests.",
+    "Public CP/ERP/BOS chrome remains PHP HTML \u2014 frontend cutover has not happened.",
+    "Public digest/catalog routes are not broadly proxied to ASP.NET yet.",
+    "Live surface-parity reports parity-not-yet-reached; presentation shells are scaffolded only.",
+    "RELEASE_OWNER_APPROVAL.md is absent; inventing it is forbidden.",
+    "PHP must remain until exact-route shadows + dual-sample parity + human approval exist."
+  ],
+  "results": [
+    {
+      "area": "foundation-checks",
+      "status": "pass",
+      "detail": "foundation checks green"
+    },
+    {
+      "area": "unit-tests",
+      "status": "pass",
+      "detail": "EcomAE.Platform.Tests green"
+    },
+    {
+      "area": "final-gate-checklist",
+      "status": "pass",
+      "detail": "checklist exited 0"
+    },
+    {
+      "area": "area-tests",
+      "status": "pass",
+      "detail": "area tests exited 0"
+    },
+    {
+      "area": "attached-staging-smoke",
+      "status": "pass",
+      "detail": "price/catalog/surface artifacts validate (digest200=30)"
+    },
+    {
+      "area": "release-owner-approval",
+      "status": "pass",
+      "detail": "APPROVAL absent (correct; do not invent it)"
+    },
+    {
+      "area": "live-readiness",
+      "status": "pass",
+      "detail": "blocked as required (8/9 ready=False)"
+    },
+    {
+      "area": "live-surface-parity",
+      "status": "pass",
+      "detail": "status parity-not-yet-reached (honest)"
+    },
+    {
+      "area": "live-presentation-parity",
+      "status": "pass",
+      "detail": "presentation shells scaffolded, not live cutover"
+    },
+    {
+      "area": "public-surface-authority",
+      "status": "pass",
+      "detail": "CP/ERP/BOS chrome still PHP; digests/catalog not publicly cut over; health/price ASP.NET"
+    },
+    {
+      "area": "decommission-refuses",
+      "status": "pass",
+      "detail": "gated decommission refused while readyToRemovePhp=false"
+    }
+  ]
+}

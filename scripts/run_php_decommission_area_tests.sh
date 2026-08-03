@@ -63,39 +63,96 @@ else
   record "live-price-lookup-unauth" fail "expected ASP.NET 401 missing_api_key"
 fi
 
-# Authenticated smokes — blocked without secrets
-if [[ -z "${ECOMAE_PRICE_LOOKUP_API_KEY:-}" ]]; then
-  record "staging-smoke-price" blocked "ECOMAE_PRICE_LOOKUP_API_KEY missing in this environment"
+# Validate attached staging-smoke artifacts (no secrets required).
+SMOKE_DIR="$ROOT/docs/migration/evidence/decommission/staging-smoke"
+if python3 - "$SMOKE_DIR" <<'PY'
+import json, sys
+from pathlib import Path
+root = Path(sys.argv[1])
+price = json.loads((root / "price-lookup-aspnet.json").read_text(encoding="utf-8"))
+if isinstance(price.get("error"), dict) and price["error"].get("code") in {
+    "missing_api_key", "unauthorized", "invalid_api_key"
+}:
+    raise SystemExit("price unauthenticated")
+if price.get("ok") is False:
+    raise SystemExit("price ok=false")
+catalog = json.loads((root / "catalog-status-aspnet.json").read_text(encoding="utf-8"))
+if catalog.get("connected") is not True:
+    raise SystemExit("catalog not connected")
+surface = json.loads((root / "surface-digests-aspnet.json").read_text(encoding="utf-8"))
+if surface.get("ok") is not True:
+    raise SystemExit("surface ok!=true")
+routes = [
+    r for r in (surface.get("routes") or [])
+    if isinstance(r, dict) and int(r.get("status") or 0) == 200
+    and not str(r.get("route") or "").startswith("/migration/")
+]
+if not routes:
+    raise SystemExit("no digest 200")
+print(len(routes))
+PY
+then
+  digest_n="$(python3 - "$SMOKE_DIR" <<'PY'
+import json,sys
+from pathlib import Path
+surface=json.loads((Path(sys.argv[1])/"surface-digests-aspnet.json").read_text())
+print(sum(1 for r in surface.get("routes") or [] if isinstance(r,dict) and int(r.get("status") or 0)==200 and not str(r.get("route") or "").startswith("/migration/")))
+PY
+)"
+  record "attached-staging-smoke" pass "price/catalog/surface artifacts validate (digest200=${digest_n})"
 else
+  record "attached-staging-smoke" fail "attached staging-smoke artifacts missing or invalid"
+fi
+
+# Optional live re-smoke when secrets exist in this environment.
+if [[ -n "${ECOMAE_PRICE_LOOKUP_API_KEY:-}" ]]; then
   if RUN_PRICE_LOOKUP_SMOKE=1 ECOMAE_ASPNET_BASE_URL="${ECOMAE_ASPNET_BASE_URL:-https://www.ecomae.com}" \
       bash "$ROOT/tests/live_smoke/run_price_lookup_exact_route_smoke.sh"; then
-    record "staging-smoke-price" pass "authenticated price lookup smoke"
+    record "live-restage-price" pass "authenticated price lookup re-smoke"
   else
-    record "staging-smoke-price" fail "authenticated price lookup smoke failed"
+    record "live-restage-price" fail "authenticated price lookup re-smoke failed"
   fi
+else
+  record "live-restage-price" blocked "ECOMAE_PRICE_LOOKUP_API_KEY missing here (attached artifact used instead)"
 fi
 
-if [[ -z "${ECOMAE_CATALOG_API_KEY:-}" ]]; then
-  record "staging-smoke-catalog" blocked "ECOMAE_CATALOG_API_KEY missing in this environment"
-else
+if [[ -n "${ECOMAE_CATALOG_API_KEY:-}" ]]; then
   if RUN_CATALOG_STATUS_SMOKE=1 ECOMAE_ASPNET_BASE_URL="${ECOMAE_ASPNET_BASE_URL:-https://www.ecomae.com}" \
       bash "$ROOT/tests/live_smoke/run_catalog_status_exact_route_smoke.sh"; then
-    record "staging-smoke-catalog" pass "authenticated catalog status smoke"
+    record "live-restage-catalog" pass "authenticated catalog status re-smoke"
   else
-    record "staging-smoke-catalog" fail "authenticated catalog status smoke failed"
+    record "live-restage-catalog" fail "authenticated catalog status re-smoke failed"
   fi
+else
+  record "live-restage-catalog" blocked "ECOMAE_CATALOG_API_KEY missing here (attached artifact used instead)"
 fi
 
-if [[ -z "${ECOMAE_ADMIN_COOKIE_HEADER:-}" && -z "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
-  record "staging-smoke-surfaces" blocked "admin cookie missing in this environment"
-else
+if [[ -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" || -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
   if RUN_SURFACE_DIGEST_SMOKE=1 ECOMAE_ASPNET_BASE_URL="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:5100}" \
       bash "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh"; then
-    record "staging-smoke-surfaces" pass "surface digest smoke"
+    record "live-restage-surfaces" pass "surface digest re-smoke"
   else
-    record "staging-smoke-surfaces" fail "surface digest smoke failed"
+    record "live-restage-surfaces" fail "surface digest re-smoke failed"
   fi
+else
+  record "live-restage-surfaces" blocked "admin cookie missing here (attached artifact used instead)"
 fi
+
+# Live reporters must stay honest about incomplete parity.
+body="$(mktemp)"
+code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o "$body" -w '%{http_code}' https://www.ecomae.com/migration/surface-parity || echo 000)"
+if [[ "$code" == "200" ]] && grep -q 'parity-not-yet-reached' "$body"; then
+  record "live-surface-parity-status" pass "parity-not-yet-reached"
+else
+  record "live-surface-parity-status" fail "expected parity-not-yet-reached (HTTP $code)"
+fi
+code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o "$body" -w '%{http_code}' https://www.ecomae.com/migration/presentation-parity || echo 000)"
+if [[ "$code" == "200" ]] && grep -q 'presentation-shell-scaffolded' "$body"; then
+  record "live-presentation-status" pass "presentation-shell-scaffolded (not cut over)"
+else
+  record "live-presentation-status" fail "unexpected presentation status (HTTP $code)"
+fi
+rm -f "$body"
 
 # Operator chrome still PHP (expected until exact-route shadows)
 for path in /CP/ /ERP/ /BOS/; do
@@ -107,11 +164,27 @@ for path in /CP/ /ERP/ /BOS/; do
   fi
 done
 
+# Public digests/catalog must not be silently cut over yet.
+for path in /cp/dashboard-summary /api/v1/catalog/status; do
+  code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"
+  ctype="$(file -b --mime-type /tmp/area.body 2>/dev/null || true)"
+  if [[ "$code" == "200" ]] && grep -qi 'application/json\|^{' /tmp/area.body; then
+    record "public${path}-not-cutover" fail "unexpected public ASP.NET JSON cutover before approval"
+  else
+    record "public${path}-not-cutover" pass "not publicly cut over (HTTP $code; PHP remains authority)"
+  fi
+done
+
 # Decommission script must refuse without confirmation/ready
 if ! ECOMAE_CONFIRM_PHP_DECOMMISSION= bash "$ROOT/scripts/cloudpanel_php_decommission.sh" >/tmp/decom.out 2>&1; then
   record "decommission-refuses-without-confirm" pass "gated script refused"
 else
   record "decommission-refuses-without-confirm" fail "gated script should refuse"
+fi
+if ! ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash "$ROOT/scripts/cloudpanel_php_decommission.sh" >/tmp/decom2.out 2>&1; then
+  record "decommission-refuses-while-not-ready" pass "refused with CONFIRM=YES because readyToRemovePhp=false"
+else
+  record "decommission-refuses-while-not-ready" fail "should refuse while readiness blocked"
 fi
 
 python3 - "$REPORT" "$results_tmp" "$pass" "$fail" "$block" <<'PY'
@@ -128,7 +201,7 @@ payload={
   "failed": f,
   "blocked": b,
   "readyToRemovePhp": False,
-  "note": "PHP decommission blocked until authenticated smoke + RELEASE_OWNER_APPROVAL.md exist on CloudPanel.",
+  "note": "PHP must remain. Loopback staging smoke is attached; public CP/ERP/BOS chrome is still PHP; surface/presentation parity not reached; RELEASE_OWNER_APPROVAL.md absent.",
   "results": rows,
 }
 with open(out,'w',encoding='utf-8') as fh:
