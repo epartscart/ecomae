@@ -45,18 +45,26 @@ flowchart TD
 - Match fonts (Open Sans / PT Sans / Fraunces+Sora / Inter+JetBrains) and storefront GA4 (+ Clarity hook).
 - **Outcome:** nothing is missing from navigation; every module reachable via PHP deeplink under ASP.NET chrome.
 
-### Batch 1 — Presentation chrome parity (login + shell assets) ← current
+### Batch 1 — Presentation chrome parity (login + shell assets) ✅ (merged #658)
 - `PhpSurfaceHead` injects PHP webfonts/CSS/analytics into `<head>` (HeadOutlet) for all login/shell routes.
 - Enrich `/cp|/erp|/bos|/storefront/login` with PHP login CSS + module cards/deeplinks.
 - Probe compares chrome-asset markers (fonts/CSS/gtag); soft size warnings until Batch 2 desktops.
 - Operator: redeploy + presentation shadows + `bash scripts/cloudpanel_probe_php_presentation_parity.sh`.
 - Keep product `/CP/ /ERP/ /BOS/ /` on PHP.
 
-### Batch 2 — Authenticated chrome structure
-- CP: approach `desktop.php` header/mega-nav/sidebar using ACL + digests.
-- ERP: category bar + left area/tab chrome matching `erp_desktop.php` (bodies still PHP iframe/deeplink).
-- BOS: topnav mega-panels; resolve `$_SESSION` vs admin-cookie model before claiming module UX.
-- Storefront: modex topbar/header/search tabs depth; cart/checkout stay PHP.
+### Batch 2 — Authenticated chrome structure ← current (this PR)
+| Surface | PHP source | ASP.NET desktop chrome | Status |
+| --- | --- | --- | --- |
+| CP | `desktop.php` `#header` + `epc-cp-topnav` mega | `PhpCpDesktopChrome` + `CpCommandCentreApp` | ⬜ PR |
+| ERP | `erp_desktop` topbar + `epc-erp-topnav` | `PhpErpDesktopChrome` + `ErpBosDashboardApp` | ⬜ PR |
+| BOS | `bos/index.php` `bos-topnav` + `bos-main` | `PhpBosDesktopChrome` + `BosFleetApp` | ⬜ PR |
+| Storefront | Modex header/search/nav | `PhpStorefrontDesktopChrome` + `StorefrontPreviewApp` | ⬜ PR |
+
+- Mega-panel groupings: `LegacyDesktopChromeCatalog` (CP brochure groups, ERP category→area tabs, BOS keyword sections).
+- Authenticated shells wrap hybrid directory + `?php=` iframe inside PHP-class desktop chrome.
+- Module bodies remain PHP deeplinks until Batch 4 vertical slices.
+- Probes may lift structural selectors (`#header`, `.epc-cp-topnav`, `.bos-topnav`, `.epc-erp-topnav`) but must **not** claim `readyForPhpRemoval`.
+- BOS: admin-cookie digests ≠ PHP `$_SESSION` — full tenant module UX stays on `/BOS/`.
 
 ### Batch 3 — Login bridge hardening
 - `EcomAE__SecretSuccession` on host; dual-sample cookie compare.

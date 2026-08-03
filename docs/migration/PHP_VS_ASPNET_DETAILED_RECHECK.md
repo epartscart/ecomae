@@ -4,7 +4,9 @@
 
 This recheck covers fonts, analytics, full-page presentation, and module functionality. Weighted Zero-PHP meter (~95%) is **not** chrome/module parity.
 
-**Batch 1 (in progress):** `PhpSurfaceHead` puts PHP webfonts/CSS/GA4 into `<head>` for login/shell routes; probe uses chrome-asset markers (`scripts/compare_php_aspnet_presentation.py`). Requires CloudPanel redeploy + presentation shadows before live evidence can show `chrome-pass-functionality-pending`. Full desktop pixel parity remains Batch 2.
+**Batch 1 ✅ (#658):** `PhpSurfaceHead` puts PHP webfonts/CSS/GA4 into `<head>` for login/shell routes; probe uses chrome-asset markers.
+
+**Batch 2 (in progress):** Authenticated desktop chrome (`PhpCpDesktopChrome`, `PhpErpDesktopChrome`, `PhpBosDesktopChrome`, `PhpStorefrontDesktopChrome`) emits PHP structural selectors (`#header`, `.epc-cp-topnav`, `.epc-erp-topnav`, `.bos-topnav`, modex header). Module bodies remain PHP via hybrid workspace. Requires CloudPanel redeploy + presentation shadows before live evidence can show structural chrome lift; still never `readyForPhpRemoval`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

@@ -17,15 +17,15 @@ Authoritative product chrome remains **PHP** until intentional exact-route cutov
 
 | Surface | PHP URL | ASP.NET preview / bridge | Presentation | Functionality | Gap notes |
 | --- | --- | --- | --- | --- | --- |
-| Platform CP chrome | `/CP/` (login when unauth) | `/cp/login` → `/cp/app` (auth) | Hybrid; blank PhpChromeLayout | Digests ASP.NET; modules PHP via nav | Full desktop widgets / ACL menu cache still PHP |
-| Tenant CP chrome | `tenant/CP/` | same `/cp/app` when shadowed on tenant vhost | Hybrid | Tenant DB via registry | Per-tenant shadow install still operator-driven |
-| CP login | `/CP/` auth plugin | `/cp/login` + `POST /auth/login/admin` | Bridge UI | Writes PHP-compatible `sessions` + `admin_*` cookies when `SecretSuccession` set | Rate-limit / social / demo / shared-ERP picker still PHP |
-| Platform ERP | `/ERP/` | `/erp/app` | Hybrid | Digests ASP.NET; areas PHP | Full ERP desktop + writes PHP |
+| Platform CP chrome | `/CP/` (login when unauth) | `/cp/login` → `/cp/app` (auth) | Hybrid Batch 2: `PhpCpDesktopChrome` (`#header`, `.epc-cp-topnav` mega) | Digests ASP.NET; modules PHP via mega-nav / directory | ACL menu cache + desktop widgets still PHP; not cut over |
+| Tenant CP chrome | `tenant/CP/` | same `/cp/app` when shadowed on tenant vhost | Hybrid | Tenant DB via registry | Per-tenant shadow install still operator-driven; keep PHP chrome |
+| CP login | `/CP/` auth plugin | `/cp/login` + `POST /auth/login/admin` | Bridge UI (+ Batch 1 HeadOutlet) | Writes PHP-compatible `sessions` + `admin_*` cookies when `SecretSuccession` set | Rate-limit / social / demo / shared-ERP picker still PHP |
+| Platform ERP | `/ERP/` | `/erp/app` | Hybrid Batch 2: `PhpErpDesktopChrome` (`.epc-erp-topbar`, `.epc-erp-topnav`) | Digests ASP.NET; tab bodies PHP | Writes / ajax_erp still PHP |
 | Client / platform ERP routers | `/cp/client-erp/…`, `/cp/platform-erp/` | link via PHP | PHP-live | PHP | Not cut over |
 | ERP login | ERP routers / CP plugin | `/erp/login` | Bridge UI | Same admin session mint | Shared-tenant picker still PHP |
-| Super BOS | `/BOS/` | `/bos/app` | Hybrid | Digests ASP.NET | **BOS `$_SESSION` ≠ MySQL admin cookies** — use `/BOS/` for full fleet UX |
+| Super BOS | `/BOS/` | `/bos/app` | Hybrid Batch 2: `PhpBosDesktopChrome` (`.bos-topnav`, `.bos-main`) | Digests ASP.NET | **BOS `$_SESSION` ≠ MySQL admin cookies** — use `/BOS/` for full fleet UX |
 | BOS login | `POST /bos/?action=login` | `/bos/login` (admin bridge) | Bridge + PHP link | Admin cookies for digests only | Native BOS PHP session login remains required for modules |
-| Storefront home | `epartscart.com/` | `/storefront/app` | Preview | Digests ASP.NET | Marketing/cart/checkout PHP |
+| Storefront home | `epartscart.com/` | `/storefront/app` | Hybrid Batch 2: `PhpStorefrontDesktopChrome` (modex header/search/nav) | Digests ASP.NET | Marketing/cart/checkout PHP |
 | Storefront login | PHP customer login | `/storefront/login` | Bridge UI | Customer `session`/`u_id` cookies | Full account UX PHP |
 | Digests CP/ERP/BOS | n/a (JSON) | 30/30 exact-routes | n/a | Live | Contract dual-sample recorded |
 | Storefront digests | n/a | 4/4 exact-routes | n/a | Live | Customer cookie for 200 |

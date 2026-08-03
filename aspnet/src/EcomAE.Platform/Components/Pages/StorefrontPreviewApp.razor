@@ -5,123 +5,68 @@
 
 <PageTitle>eParts Cart (Autoparts)</PageTitle>
 <PhpChromeStyles Surface="storefront" />
-@* GA4 is also injected via PhpSurfaceHead for <head> parity; keep body tag for older caches. *@
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<style>
-    .epc-sf { --red:#dc2626; --ink:#111; font-family: @(LegacyPhpFontAssets.StackFor("storefront")); color:var(--ink); background:#fff; min-height:100vh; }
-    .epc-sf a { color:inherit; text-decoration:none; }
-    .epc-sf-topbar { background:#111; color:#fff; display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; padding:.4rem 1rem; font-size:.78rem; }
-    .epc-sf-topbar a { color:#fff; margin-right:.7rem; }
-    .epc-sf-head { background:#fff; border-bottom:1px solid #e5e7eb; padding:.75rem 1rem; display:grid; grid-template-columns:auto 1fr auto; gap:1rem; align-items:center; }
-    .epc-sf-head img { height:40px; }
-    .epc-sf-contact { color:#64748b; font-size:.82rem; line-height:1.35; }
-    .epc-sf-cta-row { display:flex; gap:.4rem; flex-wrap:wrap; }
-    .epc-sf-btn { display:inline-flex; align-items:center; gap:.35rem; padding:.55rem .8rem; border-radius:.4rem; font-weight:700; font-size:.85rem; border:1px solid transparent; }
-    .epc-sf-btn-red { background:var(--red); color:#fff; }
-    .epc-sf-btn-green { background:#16a34a; color:#fff; }
-    .epc-sf-btn-blue { background:#2563eb; color:#fff; }
-    .epc-sf-btn-ghost { background:transparent; border-color:rgba(255,255,255,.35); color:#fff; }
-    .epc-sf-search { background:#f3f4f6; border-bottom:1px solid #e5e7eb; padding:.7rem 1rem; display:flex; gap:.55rem; flex-wrap:wrap; align-items:center; }
-    .epc-sf-search .tabs { display:flex; gap:.35rem; flex-wrap:wrap; }
-    .epc-sf-search .tab { padding:.35rem .55rem; border-radius:.35rem; background:#fff; border:1px solid #d1d5db; font-size:.78rem; font-weight:600; }
-    .epc-sf-search .tab.on { background:#e5e7eb; }
-    .epc-sf-search input { flex:1; min-width:180px; padding:.55rem .7rem; border:1px solid #d1d5db; border-radius:.4rem; }
-    .epc-sf-hero {
-        display:grid; grid-template-columns:1.2fr .9fr; gap:1.2rem; align-items:center;
-        padding:1.6rem 1rem 2rem; color:#f8fafc;
-        background:radial-gradient(900px 500px at 20% 0%,rgba(220,38,38,.25),transparent 55%), linear-gradient(180deg,#0b1220,#111827);
-    }
-    .epc-sf-hero-inner { width:min(1100px, 100%); margin:0 auto; display:grid; grid-template-columns:1.2fr .9fr; gap:1.2rem; align-items:center; }
-    .epc-sf-pill { display:inline-block; padding:.25rem .55rem; border-radius:999px; background:rgba(220,38,38,.2); color:#fecaca; font-size:.72rem; font-weight:700; }
-    .epc-sf h1 { margin:.45rem 0 .7rem; font-size:clamp(1.6rem,3.6vw,2.4rem); line-height:1.12; }
-    .epc-sf .lede { color:#cbd5e1; max-width:34rem; line-height:1.5; margin:0 0 1rem; }
-    .epc-sf-media { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:.8rem; min-height:220px; padding:1rem; display:flex; flex-direction:column; justify-content:flex-end; }
-    .epc-sf-feats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.55rem; margin-top:1rem; }
-    .epc-sf-feat { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:.5rem; padding:.7rem .75rem; font-size:.78rem; font-weight:700; }
-    .epc-sf-note { margin:1rem; padding:.8rem; background:#fff8e8; color:#7a4e00; border-radius:.45rem; font-size:.88rem; }
-    @@media (max-width:900px){
-        .epc-sf-head,.epc-sf-hero-inner{grid-template-columns:1fr;}
-        .epc-sf-feats{grid-template-columns:1fr;}
-    }
-</style>
-
-<div class="epc-sf">
-    <div class="epc-sf-topbar">
-        <div>
-            <a href="https://epartscart.com/">Home</a>
-            <a href="https://epartscart.com/">Product</a>
-            <a href="https://epartscart.com/">Selection catalogs</a>
-            <a href="https://epartscart.com/">Original catalog</a>
-            <a href="https://epartscart.com/">Vehicle Parts intelligence AI</a>
-        </div>
-        <div>
-            <a href="https://epartscart.com/">Garage Manager</a>
-            <a href="/ERP/">ERP Login</a>
-            <a href="/storefront/login">Customer login</a>
-        </div>
-    </div>
-    <div class="epc-sf-head">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" />
-        <div class="epc-sf-contact">
-            <div><strong>Dubai</strong> · +971-567607011</div>
-            <div>Mon-Fri 9:00–18:00 · Sat 9:00–16:00 · Sun off</div>
-        </div>
-        <div class="epc-sf-cta-row">
-            <a class="epc-sf-btn epc-sf-btn-red" href="https://epartscart.com/">Request a call back</a>
-            <a class="epc-sf-btn epc-sf-btn-green" href="https://epartscart.com/">WhatsApp contact</a>
-            <a class="epc-sf-btn epc-sf-btn-blue" href="https://epartscart.com/">Excel bulk upload</a>
-        </div>
-    </div>
-    <div class="epc-sf-search">
-        <a class="epc-sf-btn epc-sf-btn-red" href="https://epartscart.com/">Catalog of products</a>
-        <div class="tabs">
-            <span class="tab on">Part number</span>
-            <span class="tab">VIN</span>
-            <span class="tab">Engine</span>
-            <span class="tab">By car</span>
-            <span class="tab">More info</span>
-        </div>
-        <input type="search" placeholder="Part number or OE code" aria-label="Part number search" />
-        <a class="epc-sf-btn epc-sf-btn-red" href="https://epartscart.com/shop/part_search">Search</a>
-    </div>
-    <section class="epc-sf-hero">
-        <div class="epc-sf-hero-inner">
-            <div>
-                <span class="epc-sf-pill">PROFESSIONAL AUTO SPARE PARTS STORE</span>
-                <h1>Find genuine and aftermarket spare parts faster, cleaner, and with confidence.</h1>
-                <p class="lede">Search by article number, browse brands, open the electronic catalog, or send a VIN request. Everything is arranged for workshops, garages, fleet buyers, and retail customers.</p>
-                <div class="epc-sf-cta-row">
-                    <a class="epc-sf-btn epc-sf-btn-red" href="https://epartscart.com/shop/part_search">Search parts</a>
-                    <a class="epc-sf-btn epc-sf-btn-ghost" href="https://epartscart.com/">Open catalog</a>
-                    <a class="epc-sf-btn epc-sf-btn-ghost" href="https://epartscart.com/">View brands</a>
-                </div>
-                <div class="epc-sf-feats">
-                    <div class="epc-sf-feat">FAST ARTICLE SEARCH</div>
-                    <div class="epc-sf-feat">VIN REQUEST SUPPORT</div>
-                    <div class="epc-sf-feat">AED</div>
-                </div>
-            </div>
-            <div class="epc-sf-media">
-                <strong>Piston power animation</strong>
-                <p style="margin:.4rem 0 0;color:#cbd5e1;font-size:.9rem">Live media remains on PHP storefront. This ASP.NET preview mirrors chrome/search/hero structure for side-by-side parity.</p>
-            </div>
-        </div>
-    </section>
+<PhpStorefrontDesktopChrome>
     <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/storefront/app" />
 
-    <div style="padding:0 1rem 1rem">
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <style>
+            .epc-sf-hero {
+                display:grid; grid-template-columns:1.2fr .9fr; gap:1.2rem; align-items:center;
+                padding:1.4rem 0 1.8rem; color:#f8fafc; border-radius:.7rem; margin-bottom:1rem;
+                background:radial-gradient(900px 500px at 20% 0%,rgba(220,38,38,.25),transparent 55%), linear-gradient(180deg,#0b1220,#111827);
+            }
+            .epc-sf-hero-inner { display:grid; grid-template-columns:1.2fr .9fr; gap:1.2rem; padding:0 1rem; }
+            .epc-sf-pill { display:inline-block; padding:.25rem .55rem; border-radius:999px; background:rgba(220,38,38,.2); color:#fecaca; font-size:.72rem; font-weight:700; }
+            .epc-sf-hero h1 { margin:.45rem 0 .7rem; font-size:clamp(1.5rem,3.2vw,2.2rem); line-height:1.12; }
+            .epc-sf-hero .lede { color:#cbd5e1; max-width:34rem; line-height:1.5; margin:0 0 1rem; }
+            .epc-sf-cta-row { display:flex; gap:.4rem; flex-wrap:wrap; }
+            .epc-sf-btn { display:inline-flex; padding:.55rem .8rem; border-radius:.4rem; font-weight:700; font-size:.85rem; border:1px solid transparent; text-decoration:none; }
+            .epc-sf-btn-red { background:#dc2626; color:#fff; }
+            .epc-sf-btn-ghost { background:transparent; border-color:rgba(255,255,255,.35); color:#fff; }
+            .epc-sf-feats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.55rem; margin-top:1rem; }
+            .epc-sf-feat { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:.5rem; padding:.7rem .75rem; font-size:.78rem; font-weight:700; }
+            .epc-sf-media { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:.8rem; min-height:200px; padding:1rem; display:flex; flex-direction:column; justify-content:flex-end; }
+            .epc-sf-note { margin:1rem 0; padding:.8rem; background:#fff8e8; color:#7a4e00; border-radius:.45rem; font-size:.88rem; }
+            @@media (max-width:900px){ .epc-sf-hero-inner,.epc-sf-feats{grid-template-columns:1fr;} }
+        </style>
+
+        <section class="epc-sf-hero">
+            <div class="epc-sf-hero-inner">
+                <div>
+                    <span class="epc-sf-pill">PROFESSIONAL AUTO SPARE PARTS STORE</span>
+                    <h1>Find genuine and aftermarket spare parts faster, cleaner, and with confidence.</h1>
+                    <p class="lede">Batch 2 modex chrome: header-top-line, header-full-top search, navbar. Cart/checkout remain on live PHP storefront.</p>
+                    <div class="epc-sf-cta-row">
+                        <a class="epc-sf-btn epc-sf-btn-red" href="https://epartscart.com/shop/part_search">Search parts</a>
+                        <a class="epc-sf-btn epc-sf-btn-ghost" href="https://epartscart.com/">Open catalog</a>
+                    </div>
+                    <div class="epc-sf-feats">
+                        <div class="epc-sf-feat">FAST ARTICLE SEARCH</div>
+                        <div class="epc-sf-feat">VIN REQUEST SUPPORT</div>
+                        <div class="epc-sf-feat">AED</div>
+                    </div>
+                </div>
+                <div class="epc-sf-media">
+                    <strong>Piston power animation</strong>
+                    <p style="margin:.4rem 0 0;color:#cbd5e1;font-size:.9rem">Live media remains on PHP storefront.</p>
+                </div>
+            </div>
+        </section>
+
         <PhpHybridModuleDirectory
             Title="Storefront surface directory"
             Subtitle="Commerce UX remains on live PHP storefront hosts — every surface linked"
             Links="@PhpModuleCatalog.StorefrontSurfaces"
             PhpWorkspaceBase="/storefront/app" />
-    </div>
 
-    <div class="epc-sf-note">
-        Live homepage remains <a href="https://epartscart.com/">epartscart.com</a>. Digests: <a href="/storefront/account-summary">account-summary</a>. Login bridge: <a href="/storefront/login">/storefront/login</a>. Not a broad `/` cutover.
-    </div>
-</div>
+        <div class="epc-sf-note">
+            Live homepage remains <a href="https://epartscart.com/">epartscart.com</a>. Digests: <a href="/storefront/account-summary">account-summary</a>. Not a broad `/` cutover.
+        </div>
+    }
+</PhpStorefrontDesktopChrome>
 
 @code {
     private string? _phpHref;

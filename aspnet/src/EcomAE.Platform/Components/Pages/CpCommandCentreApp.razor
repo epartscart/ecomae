@@ -11,73 +11,31 @@
 <PageTitle>Control Command Centre · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 
-<style>
-    .epc-cc { --red:#dc2626; --ink:#111; --muted:#64748b; --line:#e5e7eb; --bg:#f5f5f7; font-family: @(LegacyPhpFontAssets.StackFor("cp")); color:var(--ink); background:var(--bg); min-height:100vh; }
-    .epc-cc a { color:inherit; text-decoration:none; }
-    .epc-cc-top { background:#fff; border-bottom:1px solid var(--line); padding:.65rem 1.1rem; display:flex; flex-wrap:wrap; gap:.75rem; align-items:center; justify-content:space-between; }
-    .epc-cc-brand { display:flex; align-items:center; gap:.75rem; }
-    .epc-cc-brand img { height:36px; }
-    .epc-cc-actions { display:flex; gap:.45rem; flex-wrap:wrap; }
-    .epc-cc-btn { display:inline-flex; align-items:center; gap:.35rem; padding:.45rem .8rem; border-radius:.35rem; font-weight:700; font-size:.85rem; border:1px solid transparent; }
-    .epc-cc-btn-red { background:var(--red); color:#fff; }
-    .epc-cc-btn-ghost { background:#fff; border-color:var(--line); }
-    .epc-cc-nav { display:flex; gap:.85rem; flex-wrap:wrap; padding:.55rem 1.1rem; background:#111; color:#fff; font-size:.78rem; font-weight:600; letter-spacing:.02em; overflow:auto; }
-    .epc-cc-nav a { opacity:.85; white-space:nowrap; }
-    .epc-cc-nav a:hover { opacity:1; text-decoration:underline; }
-    .epc-cc-main { width:min(1200px, calc(100% - 2rem)); margin:0 auto; padding:1.25rem 0 3rem; }
-    .epc-cc-hero { display:grid; grid-template-columns:1.1fr 1.4fr; gap:1rem; margin-bottom:1.1rem; }
-    .epc-cc-panel { background:linear-gradient(135deg,#111 0%,#1f1f1f 60%,#3f0d0d 100%); color:#fff; border-radius:.7rem; padding:1.2rem 1.3rem; }
-    .epc-cc-panel h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.85rem); letter-spacing:.02em; }
-    .epc-cc-panel p { margin:0 0 .9rem; color:#d4d4d4; max-width:28rem; font-size:.92rem; line-height:1.45; }
-    .epc-cc-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; }
-    .epc-cc-kpi { background:#fff; border:1px solid var(--line); border-radius:.55rem; padding:.85rem .9rem; }
-    .epc-cc-kpi strong { display:block; font-size:1.35rem; font-variant-numeric:tabular-nums; }
-    .epc-cc-kpi span { color:var(--muted); font-size:.78rem; }
-    .epc-cc-section { margin:1.25rem 0; }
-    .epc-cc-section h2 { margin:0 0 .7rem; font-size:1.05rem; }
-    .epc-cc-tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:.55rem; }
-    .epc-cc-tile { border-radius:.5rem; padding:.9rem .7rem; color:#fff; font-weight:700; font-size:.85rem; min-height:72px; display:flex; align-items:flex-end; }
-    .epc-cc-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
-    @@media (max-width:900px){ .epc-cc-hero{grid-template-columns:1fr;} .epc-cc-kpis{grid-template-columns:1fr 1fr;} }
-</style>
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/cp/app" />
 
-<div class="epc-cc">
-    <div class="epc-cc-top">
-        <div class="epc-cc-brand">
-            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" />
-            <div class="epc-cc-actions">
-                <a class="epc-cc-btn epc-cc-btn-red" href="/ERP/">ERP Operations</a>
-                <a class="epc-cc-btn epc-cc-btn-red" href="https://epartscart.com/">STOREFRONT epartscart.com</a>
-            </div>
-        </div>
-        <div class="epc-cc-actions">
-            @if (!_isAdmin)
-            {
-                <a class="epc-cc-btn epc-cc-btn-red" href="/cp/login">Sign in</a>
-            }
-            <a class="epc-cc-btn epc-cc-btn-ghost" href="/CP/">PHP Control Panel</a>
-            <a class="epc-cc-btn epc-cc-btn-ghost" href="/migration/console">Zero-PHP console</a>
-        </div>
-    </div>
-    <div class="epc-cc-nav">
-        @foreach (var item in LegacyChromeNavCatalog.ControlPanel)
-        {
-            <a href="@item.Href" title="@(item.Hint ?? item.Label)">@item.Label</a>
-        }
-    </div>
-    <div class="epc-cc-main">
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <style>
+            .epc-cc-hero { display:grid; grid-template-columns:1.1fr 1.4fr; gap:1rem; margin-bottom:1.1rem; }
+            .epc-cc-panel { background:linear-gradient(135deg,#111 0%,#1f1f1f 60%,#3f0d0d 100%); color:#fff; border-radius:.7rem; padding:1.2rem 1.3rem; }
+            .epc-cc-panel h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.85rem); }
+            .epc-cc-panel p { margin:0 0 .9rem; color:#d4d4d4; max-width:28rem; font-size:.92rem; line-height:1.45; }
+            .epc-cc-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; }
+            .epc-cc-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+            .epc-cc-kpi strong { display:block; font-size:1.35rem; font-variant-numeric:tabular-nums; }
+            .epc-cc-kpi span { color:#64748b; font-size:.78rem; }
+            .epc-cc-tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:.55rem; margin:1rem 0; }
+            .epc-cc-tile { border-radius:.5rem; padding:.9rem .7rem; color:#fff; font-weight:700; font-size:.85rem; min-height:72px; display:flex; align-items:flex-end; text-decoration:none; }
+            .epc-cc-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
+            @@media (max-width:900px){ .epc-cc-hero,.epc-cc-kpis{grid-template-columns:1fr 1fr;} .epc-cc-hero{grid-template-columns:1fr;} }
+        </style>
+
         <div class="epc-cc-hero">
             <section class="epc-cc-panel">
                 <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
                 <h1>CONTROL COMMAND CENTRE</h1>
-                <p>eParts Cart — live commerce pulse. Hybrid shell: ASP.NET chrome + digests; nav opens live PHP modules so nothing is missing.</p>
-                <div class="epc-cc-actions">
-                    <span class="epc-cc-btn epc-cc-btn-red">Auto spare parts</span>
-                    <span class="epc-cc-btn epc-cc-btn-ghost" style="color:#111">@DateOnly.FromDateTime(DateTime.UtcNow)</span>
-                    <span class="epc-cc-btn epc-cc-btn-ghost" style="color:#111">AED</span>
-                    <a class="epc-cc-btn epc-cc-btn-ghost" style="color:#111" href="/ERP/">Open ERP</a>
-                    <a class="epc-cc-btn epc-cc-btn-ghost" style="color:#111" href="https://epartscart.com/">View site</a>
-                </div>
+                <p>Batch 2 desktop chrome: PHP <code>desktop.php</code> header + topnav mega-panels. Module bodies open via hybrid workspace or live PHP.</p>
             </section>
             <section class="epc-cc-kpis">
                 <div class="epc-cc-kpi"><strong>@_users</strong><span>Admin users (digest)</span></div>
@@ -85,26 +43,22 @@
                 <div class="epc-cc-kpi"><strong>@_tenants</strong><span>Portal tenants</span></div>
                 <div class="epc-cc-kpi"><strong>@_active</strong><span>Active portal tenants</span></div>
                 <div class="epc-cc-kpi"><strong>@_source</strong><span>Digest source</span></div>
-                <div class="epc-cc-kpi"><strong>ASP.NET</strong><span>Presentation shell /cp/app</span></div>
+                <div class="epc-cc-kpi"><strong>TOPNAV</strong><span>epc-cp-topnav mega</span></div>
             </section>
         </div>
 
-        <section class="epc-cc-section">
-            <h2>Quick actions</h2>
-            <div class="epc-cc-tiles">
-                @{
-                    var colors = new[] { "#dc2626", "#0f766e", "#2563eb", "#7c3aed", "#db2777", "#991b1b", "#166534", "#9f1239", "#9a3412" };
-                    var i = 0;
-                }
-                @foreach (var item in LegacyChromeNavCatalog.ControlPanelQuickActions)
-                {
-                    var color = colors[i++ % colors.Length];
-                    <a class="epc-cc-tile" style="background:@color" href="@item.Href">@item.Label</a>
-                }
-            </div>
-        </section>
-
-        <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/cp/app" />
+        <h2 style="font-size:1.05rem;margin:0 0 .7rem">Quick actions</h2>
+        <div class="epc-cc-tiles">
+            @{
+                var colors = new[] { "#dc2626", "#0f766e", "#2563eb", "#7c3aed", "#db2777", "#991b1b", "#166534", "#9f1239", "#9a3412" };
+                var i = 0;
+            }
+            @foreach (var item in LegacyChromeNavCatalog.ControlPanelQuickActions)
+            {
+                var color = colors[i++ % colors.Length];
+                <a class="epc-cc-tile" style="background:@color" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", item.Href)">@item.Label</a>
+            }
+        </div>
 
         <PhpHybridModuleDirectory
             Title="Complete Control Panel module directory"
@@ -113,10 +67,10 @@
             PhpWorkspaceBase="/cp/app" />
 
         <div class="epc-cc-note">
-            @_note Live PHP UI remains at <a href="/CP/">/CP/</a>. Full module directory below opens every PHP feature (hybrid). Login bridge: <a href="/cp/login">/cp/login</a>. Not a broad /cp cutover.
+            @_note Live PHP UI remains at <a href="/CP/">/CP/</a>. Topnav uses PHP class names from desktop.php. Not a broad /cp cutover.
         </div>
-    </div>
-</div>
+    }
+</PhpCpDesktopChrome>
 
 @code {
     private int _users;
@@ -144,7 +98,6 @@
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Admin)
         {
-            // Match PHP /CP/: unauthenticated users see login, not a dashboard shell.
             Nav.NavigateTo("/cp/login", forceLoad: true);
             return;
         }
