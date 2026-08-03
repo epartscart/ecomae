@@ -69,6 +69,7 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.BosQuickActions, item => item.Label == "Fleet tenants list" && item.Href == "/bos/tenants-app");
         Assert.Contains(LegacyChromeNavCatalog.BosQuickActions, item => item.Label == "Tenant control PHP" && item.Href == "/CP/control/portal/epc_tenant_control_center");
         Assert.Contains(LegacyChromeNavCatalog.BosQuickActions, item => item.Label == "Fleet health KPIs" && item.Href == "/bos/fleet-health-app");
+        Assert.Contains(LegacyChromeNavCatalog.BosQuickActions, item => item.Label == "Fleet readiness KPIs" && item.Href == "/bos/fleet-readiness-app");
         Assert.Contains(LegacyChromeNavCatalog.BosQuickActions, item => item.Label == "Platform health PHP" && item.Href == "/CP/control/portal/epc_platform_health_checkup");
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Search parts" && item.Href == "/storefront/search-app");
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Search PHP" && item.Href.Contains("part_search", StringComparison.Ordinal));

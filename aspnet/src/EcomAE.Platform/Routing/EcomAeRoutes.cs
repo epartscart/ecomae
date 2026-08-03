@@ -120,6 +120,8 @@ public static class EcomAeRoutes
     /// <summary>BOS fleet health Blazor KPI UI (JSON digest remains <see cref="BosFleetHealth"/>).</summary>
     public const string BosFleetHealthApp = "/bos/fleet-health-app";
     public const string BosFleetReadiness = "/bos/fleet-readiness";
+    /// <summary>BOS fleet readiness Blazor KPI UI (JSON digest remains <see cref="BosFleetReadiness"/>).</summary>
+    public const string BosFleetReadinessApp = "/bos/fleet-readiness-app";
     public const string BosAuditLog = "/bos/audit-log";
     /// <summary>BOS audit log Blazor list (JSON digest remains <see cref="BosAuditLog"/>).</summary>
     public const string BosAuditLogApp = "/bos/audit-log-app";
