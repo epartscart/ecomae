@@ -152,6 +152,8 @@ public static class EcomAeRoutes
     /// <summary>Storefront customer orders Blazor list (JSON digest remains <see cref="StorefrontOrders"/>).</summary>
     public const string StorefrontOrdersApp = "/storefront/orders-app";
     public const string StorefrontGarage = "/storefront/garage";
+    /// <summary>Storefront garage Blazor list (JSON digest remains <see cref="StorefrontGarage"/>).</summary>
+    public const string StorefrontGarageApp = "/storefront/garage-app";
     public const string StorefrontProfile = "/storefront/profile";
 
     public static readonly string[] ControlPanelAliases = [ControlPanel, "/cp/", "/CP", "/CP/"];

@@ -132,6 +132,8 @@ public static class LegacyChromeNavCatalog
         new("Cart PHP", "https://epartscart.com/shop/cart"),
         new("My orders", "/storefront/orders-app"),
         new("Orders PHP", "https://epartscart.com/shop/orders"),
+        new("Garage", "/storefront/garage-app"),
+        new("Garage PHP", "https://epartscart.com/shop/part_search"),
         new("Checkout PHP", "https://epartscart.com/shop/checkout/how_get")
     ];
 }

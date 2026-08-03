@@ -1,0 +1,153 @@
+@page "/storefront/garage-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Garage · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <style>
+        .epc-sf-gar-hero {
+            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#1c1917 0%,#44403c 50%,#57534e 100%);
+        }
+        .epc-sf-gar-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
+        .epc-sf-gar-hero p { margin:0; color:#e7e5e4; max-width:40rem; font-size:.92rem; line-height:1.45; }
+        .epc-sf-gar-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-sf-gar-cta a {
+            display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#1c1917; background:#fbbf24;
+        }
+        .epc-sf-gar-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-sf-gar-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-sf-gar-kpi { background:#fff; border:1px solid #e7e5e4; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-sf-gar-kpi strong { display:block; font-size:1.35rem; font-variant-numeric:tabular-nums; }
+        .epc-sf-gar-kpi span { color:#78716c; font-size:.78rem; }
+        .epc-sf-gar-table-wrap { background:#fff; border:1px solid #e7e5e4; border-radius:.55rem; overflow:auto; }
+        .epc-sf-gar-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-sf-gar-table th, .epc-sf-gar-table td { padding:.55rem .7rem; border-bottom:1px solid #f5f5f4; text-align:left; white-space:nowrap; }
+        .epc-sf-gar-table th { background:#fafaf9; color:#57534e; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-sf-gar-table a { color:#a16207; font-weight:700; text-decoration:none; }
+        .epc-sf-gar-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-sf-gar-badge--ok { background:#fef3c7; color:#78350f; }
+        .epc-sf-gar-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-sf-gar-note { margin-top:1rem; padding:.75rem .9rem; background:#fafaf9; border:1px solid #d6d3d1; border-radius:.45rem; color:#44403c; font-size:.86rem; }
+        .epc-sf-gar-gate { padding:1.25rem; background:#fff; border:1px solid #e7e5e4; border-radius:.55rem; }
+        @@media (max-width:900px){ .epc-sf-gar-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-sf-gar-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
+        <h1>Garage</h1>
+        <p>Read-only <code>shop_docpart_garage</code> vehicles for authenticated customers from <code>/storefront/garage</code> digest. Add/edit/select vehicles stay on live PHP part search / garage UX.</p>
+        <div class="epc-sf-gar-cta">
+            <a href="@_phpGarage">Open PHP part search</a>
+            <a class="ghost" href="@_phpGarageLogin">Garage manager login</a>
+            <a class="ghost" href="/storefront/orders-app">My orders</a>
+            <a class="ghost" href="/storefront/login">Customer login</a>
+        </div>
+    </section>
+
+    @if (!_isCustomer)
+    {
+        <div class="epc-sf-gar-gate">
+            <p style="margin:0 0 .75rem;color:#334155">Sign in with a customer session to load your garage vehicles. Add/edit remains on PHP.</p>
+            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#d97706;color:#fff;font-weight:700;text-decoration:none">Customer login bridge</a>
+            <a href="@_phpGarage" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">PHP part search</a>
+        </div>
+    }
+    else
+    {
+        <div class="epc-sf-gar-kpis" aria-label="Garage KPIs">
+            <div class="epc-sf-gar-kpi"><strong>@_vehicles.Count</strong><span>Shown (limit @_limit)</span></div>
+            <div class="epc-sf-gar-kpi"><strong>@_active</strong><span>Active</span></div>
+            <div class="epc-sf-gar-kpi"><strong>@_withVin</strong><span>With VIN</span></div>
+        </div>
+
+        <div class="epc-sf-gar-table-wrap">
+            <table class="epc-sf-gar-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Caption</th>
+                        <th>Make</th>
+                        <th>Model</th>
+                        <th>Year</th>
+                        <th>VIN</th>
+                        <th>Active</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_vehicles.Count == 0)
+                    {
+                        <tr><td colspan="8">No vehicles in digest (@_source). @_message</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var v in _vehicles)
+                        {
+                            <tr>
+                                <td><strong>@v.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                                <td>@(string.IsNullOrWhiteSpace(v.Caption) ? "—" : v.Caption)</td>
+                                <td>@(string.IsNullOrWhiteSpace(v.Marka) ? "—" : v.Marka)</td>
+                                <td>@(string.IsNullOrWhiteSpace(v.Model) ? "—" : v.Model)</td>
+                                <td>@(string.IsNullOrWhiteSpace(v.Year) ? "—" : v.Year)</td>
+                                <td>@(string.IsNullOrWhiteSpace(v.Vin) ? "—" : v.Vin)</td>
+                                <td><span class="epc-sf-gar-badge @(v.Active != 0 ? "epc-sf-gar-badge--ok" : "epc-sf-gar-badge--off")">@(v.Active != 0 ? "yes" : "no")</span></td>
+                                <td><a href="@_phpGarage">Open in PHP</a></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div class="epc-sf-gar-note">
+        Read-only preview · JSON digest <a href="/storefront/garage?limit=50">/storefront/garage</a> (customer session required).
+        PHP part search garage / garage manager remain authoritative for add/edit/select.
+        Not a broad storefront or <code>/</code> cutover · live epartscart.com stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpStorefrontDesktopChrome>
+
+@code {
+    private const string _phpGarage = "https://epartscart.com/shop/part_search";
+    private const string _phpGarageLogin = "https://epartscart.com/garage/login";
+    private bool _isCustomer;
+    private IReadOnlyList<StorefrontGarageVehicleDigest> _vehicles = [];
+    private int _active;
+    private int _withVin;
+    private int _limit = 50;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+        {
+            _isCustomer = false;
+            return;
+        }
+
+        _isCustomer = true;
+        var result = await Dashboards.ListStorefrontGarageAsync(session.UserId, _limit, ctx.RequestAborted);
+        _vehicles = result.Vehicles;
+        _active = _vehicles.Count(v => v.Active != 0);
+        _withVin = _vehicles.Count(v => !string.IsNullOrWhiteSpace(v.Vin));
+        _source = result.Source;
+        _message = result.Message;
+    }
+}
