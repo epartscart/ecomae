@@ -27,30 +27,36 @@ record() {
   esac
 }
 
-# 1) Local automated suite
+# 1) Local automated suite (progress lines — CloudPanel can sit on unit tests for ~30–90s)
+printf -- '-- foundation checks --\n'
 if bash "$ROOT/tests/aspnet_migration/run_foundation_checks.sh" >/tmp/pre-removal-foundation.out 2>&1; then
   record "foundation-checks" pass "foundation checks green"
 else
   record "foundation-checks" fail "foundation checks failed (see /tmp/pre-removal-foundation.out)"
 fi
 
+printf -- '-- unit tests (may take ~1 min; not stuck) --\n'
 if (cd "$ROOT/aspnet" && dotnet test tests/EcomAE.Platform.Tests/EcomAE.Platform.Tests.csproj --nologo -v q >/tmp/pre-removal-dotnet.out 2>&1); then
   record "unit-tests" pass "EcomAE.Platform.Tests green"
 else
   record "unit-tests" fail "unit tests failed"
 fi
 
+printf -- '-- final-gate checklist --\n'
 if bash "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" >/tmp/pre-removal-checklist.out 2>&1; then
   record "final-gate-checklist" pass "checklist exited 0"
 else
   record "final-gate-checklist" fail "checklist failed"
 fi
 
-if bash "$ROOT/scripts/run_php_decommission_area_tests.sh" >/tmp/pre-removal-area.out 2>&1; then
+printf -- '-- area tests (live probes; skips duplicate unit/checklist) --\n'
+if ECOMAE_AREA_SKIP_HEAVY=1 bash "$ROOT/scripts/run_php_decommission_area_tests.sh" >/tmp/pre-removal-area.out 2>&1; then
   record "area-tests" pass "area tests exited 0"
 else
-  record "area-tests" fail "area tests failed"
+  record "area-tests" fail "area tests failed (see /tmp/pre-removal-area.out)"
 fi
+
+printf -- '-- attached smoke + live authority checks --\n'
 
 # 2) Attached smoke contract validation (no live secrets required)
 python3 - "$ROOT/docs/migration/evidence/decommission" <<'PY' >"/tmp/pre-removal-smoke-validate.out" 2>&1 || true

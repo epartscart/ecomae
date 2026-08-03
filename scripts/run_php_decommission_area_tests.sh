@@ -24,17 +24,22 @@ record() {
 
 echo "== Final-gate area tests (no PHP removal) =="
 
-# Unit/foundation
-if (cd "$ROOT/aspnet" && dotnet test tests/EcomAE.Platform.Tests/EcomAE.Platform.Tests.csproj --nologo -v q); then
-  record "unit-tests" pass "EcomAE.Platform.Tests green"
+# Unit/checklist — skippable when parent verifier already ran them (ECOMAE_AREA_SKIP_HEAVY=1).
+if [[ "${ECOMAE_AREA_SKIP_HEAVY:-}" == "1" ]]; then
+  record "unit-tests" pass "skipped here (parent already ran unit tests)"
+  record "final-gate-checklist" pass "skipped here (parent already ran checklist)"
 else
-  record "unit-tests" fail "EcomAE.Platform.Tests failed"
-fi
+  if (cd "$ROOT/aspnet" && dotnet test tests/EcomAE.Platform.Tests/EcomAE.Platform.Tests.csproj --nologo -v q); then
+    record "unit-tests" pass "EcomAE.Platform.Tests green"
+  else
+    record "unit-tests" fail "EcomAE.Platform.Tests failed"
+  fi
 
-if bash "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" >/tmp/final-gate-checklist.out 2>&1; then
-  record "final-gate-checklist" pass "checklist script exited 0"
-else
-  record "final-gate-checklist" fail "checklist script failed"
+  if bash "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" >/tmp/final-gate-checklist.out 2>&1; then
+    record "final-gate-checklist" pass "checklist script exited 0"
+  else
+    record "final-gate-checklist" fail "checklist script failed"
+  fi
 fi
 
 # Live public diagnostics
