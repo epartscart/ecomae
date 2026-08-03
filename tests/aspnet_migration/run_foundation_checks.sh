@@ -445,7 +445,9 @@ check 'stack probe includes manufacturers' contains "$ROOT/scripts/probe_live_su
 check 'stack probe includes models' contains "$ROOT/scripts/probe_live_surface_stack.sh" '/api/v1/catalog/models'
 check 'stack probe includes modifications' contains "$ROOT/scripts/probe_live_surface_stack.sh" '/api/v1/catalog/modifications'
 check 'catalog vehicle chain probe exists' test -x "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh"
-check 'catalog vehicle chain probe reads MFA_ID' contains "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" 'MFA_ID mfa_id'
+check 'catalog vehicle chain probe reads MFA_ID' contains "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" '("MFA_ID", "mfa_id")'
+check 'catalog vehicle chain probe walks MFA_IDs' contains "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" 'ECOMAE_VEHICLE_CHAIN_MAX_MFA'
+check 'catalog vehicle chain probe hints epc_umapi_models' contains "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" 'epc_umapi_models'
 check 'exact-route installer accepts public ASP.NET when local SNI HTML' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'public URL serves ASP.NET JSON gate'
 check 'deploy packs catalog vehicle chain probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_catalog_vehicle_chain.sh'
 check 'deploy packs pre-PHP-removal parity verdict helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'verify_pre_php_removal_parity.sh'
