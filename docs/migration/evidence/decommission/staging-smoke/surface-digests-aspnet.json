@@ -1,0 +1,178 @@
+{
+  "ok": true,
+  "surface": "migration-smoke",
+  "authenticatedDigest200Count": 30,
+  "routes": [
+    {
+      "route": "/migration/php-decommission-readiness",
+      "status": 200,
+      "bytes": 3746
+    },
+    {
+      "route": "/migration/zero-php-completion",
+      "status": 200,
+      "bytes": 4061
+    },
+    {
+      "route": "/migration/presentation-parity",
+      "status": 200,
+      "bytes": 3639
+    },
+    {
+      "route": "/migration/live-surface-links",
+      "status": 200,
+      "bytes": 26355
+    },
+    {
+      "route": "/cp/dashboard-summary",
+      "status": 200,
+      "bytes": 2564
+    },
+    {
+      "route": "/cp/tenants?limit=5",
+      "status": 200,
+      "bytes": 2718
+    },
+    {
+      "route": "/cp/users?limit=5",
+      "status": 200,
+      "bytes": 3095
+    },
+    {
+      "route": "/cp/groups?limit=5",
+      "status": 200,
+      "bytes": 3131
+    },
+    {
+      "route": "/cp/modules?limit=5",
+      "status": 200,
+      "bytes": 3027
+    },
+    {
+      "route": "/cp/menus?limit=5",
+      "status": 200,
+      "bytes": 2971
+    },
+    {
+      "route": "/cp/pages?limit=5",
+      "status": 200,
+      "bytes": 3180
+    },
+    {
+      "route": "/cp/currencies?limit=5",
+      "status": 200,
+      "bytes": 3037
+    },
+    {
+      "route": "/cp/api-clients?limit=5",
+      "status": 200,
+      "bytes": 2967
+    },
+    {
+      "route": "/cp/config-items?limit=5",
+      "status": 200,
+      "bytes": 3057
+    },
+    {
+      "route": "/cp/admin-sessions?limit=5",
+      "status": 200,
+      "bytes": 2843
+    },
+    {
+      "route": "/cp/storages?limit=5",
+      "status": 200,
+      "bytes": 2810
+    },
+    {
+      "route": "/erp/dashboard-summary",
+      "status": 200,
+      "bytes": 2639
+    },
+    {
+      "route": "/erp/accounts-summary",
+      "status": 200,
+      "bytes": 2692
+    },
+    {
+      "route": "/erp/suppliers?limit=5",
+      "status": 200,
+      "bytes": 2682
+    },
+    {
+      "route": "/erp/purchases?limit=5",
+      "status": 200,
+      "bytes": 2918
+    },
+    {
+      "route": "/erp/cash-accounts?limit=5",
+      "status": 200,
+      "bytes": 2769
+    },
+    {
+      "route": "/erp/cash-entries?limit=5",
+      "status": 200,
+      "bytes": 3591
+    },
+    {
+      "route": "/erp/coa-accounts?limit=5",
+      "status": 200,
+      "bytes": 3214
+    },
+    {
+      "route": "/erp/warehouses?limit=5",
+      "status": 200,
+      "bytes": 2974
+    },
+    {
+      "route": "/erp/sales-orders?limit=5",
+      "status": 200,
+      "bytes": 2570
+    },
+    {
+      "route": "/erp/purchase-orders?limit=5",
+      "status": 200,
+      "bytes": 2786
+    },
+    {
+      "route": "/erp/inventory-stock",
+      "status": 200,
+      "bytes": 2598
+    },
+    {
+      "route": "/erp/invoices?limit=5",
+      "status": 200,
+      "bytes": 2667
+    },
+    {
+      "route": "/erp/gl-journals?limit=5",
+      "status": 200,
+      "bytes": 2565
+    },
+    {
+      "route": "/bos/fleet-summary",
+      "status": 200,
+      "bytes": 2589
+    },
+    {
+      "route": "/bos/tenants?limit=5",
+      "status": 200,
+      "bytes": 2724
+    },
+    {
+      "route": "/bos/fleet-health",
+      "status": 200,
+      "bytes": 2856
+    },
+    {
+      "route": "/bos/fleet-readiness",
+      "status": 200,
+      "bytes": 2614
+    },
+    {
+      "route": "/bos/audit-log?limit=5",
+      "status": 200,
+      "bytes": 2576
+    }
+  ],
+  "note": "ok=true only when at least one CP/ERP/BOS digest returns HTTP 200 and no route failed"
+}

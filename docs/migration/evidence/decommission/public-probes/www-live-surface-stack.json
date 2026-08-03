@@ -1,5 +1,5 @@
 {
-  "capturedAtUtc": "2026-08-02T18:35:53Z",
+  "capturedAtUtc": "2026-08-03T03:37:22Z",
   "note": "Public probe only. Does not authorize PHP removal or broad cutover.",
   "routes": [
     {
@@ -63,28 +63,49 @@
       "status": 200,
       "stack": "aspnet-json",
       "contentType": "application/json; charset=utf-8",
-      "bytes": 3494
+      "bytes": 4061
     },
     {
       "url": "https://www.ecomae.com/migration/php-decommission-readiness",
       "status": 200,
       "stack": "aspnet-json",
       "contentType": "application/json; charset=utf-8",
-      "bytes": 3394
+      "bytes": 3746
     },
     {
       "url": "https://www.ecomae.com/migration/presentation-parity",
       "status": 200,
       "stack": "aspnet-json",
       "contentType": "application/json; charset=utf-8",
-      "bytes": 3540
+      "bytes": 3639
     },
     {
       "url": "https://www.ecomae.com/migration/live-surface-links",
       "status": 200,
       "stack": "aspnet-json",
       "contentType": "application/json; charset=utf-8",
-      "bytes": 10151
+      "bytes": 26355
+    },
+    {
+      "url": "https://www.ecomae.com/migration/surface-field-parity",
+      "status": 200,
+      "stack": "aspnet-json",
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 30750
+    },
+    {
+      "url": "https://www.ecomae.com/migration/surface-parity",
+      "status": 200,
+      "stack": "aspnet-json",
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 3430
+    },
+    {
+      "url": "https://www.ecomae.com/migration/data-parity",
+      "status": 200,
+      "stack": "aspnet-json",
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 1280
     },
     {
       "url": "https://www.ecomae.com/api/v1/price/lookup",
@@ -122,11 +143,39 @@
       "bytes": 304285
     },
     {
+      "url": "https://www.ecomae.com/cp/parity",
+      "status": 404,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 30031
+    },
+    {
+      "url": "https://www.ecomae.com/erp/parity",
+      "status": 404,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 304159
+    },
+    {
+      "url": "https://www.ecomae.com/bos/parity",
+      "status": 200,
+      "stack": "php-html",
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 142660
+    },
+    {
+      "url": "https://www.ecomae.com/storefront/parity",
+      "status": 404,
+      "stack": "php-html",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 304180
+    },
+    {
       "url": "https://healthcare.ecomae.com/",
       "status": 200,
       "stack": "php-html",
       "contentType": "text/html; charset=utf-8",
-      "bytes": 173787
+      "bytes": 173792
     },
     {
       "url": "https://healthcare.ecomae.com/CP/",
@@ -140,7 +189,7 @@
       "status": 200,
       "stack": "php-html",
       "contentType": "text/html; charset=UTF-8",
-      "bytes": 173781
+      "bytes": 173791
     },
     {
       "url": "https://www.electronicae.com/",
