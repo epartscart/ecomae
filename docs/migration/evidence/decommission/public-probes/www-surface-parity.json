@@ -1,5 +1,7 @@
 {
   "status": "parity-not-yet-reached",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "items": [
     {
       "surface": "Login",
@@ -63,7 +65,7 @@
       "legacyRoute": "/api/v1/catalog.php and /api/v1/price/lookup.php",
       "aspNetRoute": "/api/v1/catalog/status and /api/v1/price/lookup",
       "status": "catalog-cache-routes-wired-awaiting-staging",
-      "requiredEvidence": "Catalog/price DB/cache readers \u002B API-key auth are wired; dual-sample compare_*_parity.py \u002B authenticated smoke still required before shadows."
+      "requiredEvidence": "Catalog/price DB/cache readers + API-key auth are wired; dual-sample compare_*_parity.py + authenticated smoke still required before shadows."
     },
     {
       "surface": "Workers",
@@ -75,7 +77,7 @@
     }
   ],
   "requiredBeforeFiftyPercent": [
-    "On CloudPanel: ensure_epc_api_clients_table.sh \u2192 issue_smoke_credentials.sh \u2192 validate_final_gate_env.sh \u2192 capture/commit.",
+    "On CloudPanel: ensure_epc_api_clients_table.sh → issue_smoke_credentials.sh → validate_final_gate_env.sh → capture/commit.",
     "Run scripts/run_surface_parity_harness.sh and attach field-by-field dual samples under docs/migration/evidence/surface-parity/samples/.",
     "Use /migration/surface-field-parity contracts before any exact-route shadow promotion.",
     "Validate legacy session bridge against real CP/ERP/BOS login cookies and permissions.",

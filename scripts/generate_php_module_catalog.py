@@ -270,6 +270,8 @@ def main() -> int:
             "content/general_pages/epc_cp_brochure_inventory.php",
         ],
         "policy": "hybrid-deeplink-to-php-until-aspnet-module-complete",
+        "cutoverAllowed": False,
+        "readyForPhpRemoval": False,
         "counts": {
             "erpAreas": len(areas),
             "erpTabs": sum(len(a["tabs"]) for a in areas),
@@ -290,7 +292,16 @@ def main() -> int:
     json_path = out_dir / "php_module_catalog.json"
     json_path.write_text(json.dumps(catalog, indent=2) + "\n", encoding="utf-8")
     (ev_dir / "php_module_catalog_counts.json").write_text(
-        json.dumps({"counts": catalog["counts"], "policy": catalog["policy"]}, indent=2) + "\n",
+        json.dumps(
+            {
+                "counts": catalog["counts"],
+                "policy": catalog["policy"],
+                "cutoverAllowed": False,
+                "readyForPhpRemoval": False,
+            },
+            indent=2,
+        )
+        + "\n",
         encoding="utf-8",
     )
     cs_path = out_dir / "PhpModuleCatalog.g.cs"

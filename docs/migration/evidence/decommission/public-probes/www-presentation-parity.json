@@ -1,5 +1,7 @@
 {
   "status": "presentation-shell-scaffolded",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "contract": "ASP.NET Core surface shells must reuse PHP chrome CSS/asset URLs and keep JSON digests unchanged for tooling.",
   "surfaces": [
     {
@@ -37,7 +39,7 @@
     {
       "surfaceKey": "bos",
       "aspNetShellRoute": "/bos?format=html",
-      "legacyChromeSource": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "legacyChromeSource": "bos/index.php + bos/epc_bos_shell.css",
       "stylesheets": [
         "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
         "/epc-static.php?f=bos/epc_bos_shell.css"
@@ -66,12 +68,12 @@
     "HTML shells link the same epc-static.php / content/general_pages / templates/modex stylesheets as PHP.",
     "Brand mark uses /content/general_pages/epc_ecomae_logo_svg.php so operator chrome stays ECOM AE-branded.",
     "Unauthorized responses remain JSON 401 so API clients are not surprised by HTML login pages.",
-    "PHP remains authoritative for full interactive UX until staging smoke \u002B release-owner approval."
+    "PHP remains authoritative for full interactive UX until staging smoke + release-owner approval."
   ],
   "remainingGaps": [
-    "On CloudPanel: ensure\u2192issue\u2192capture authenticated digests before judging HTML chrome parity.",
+    "On CloudPanel: ensure→issue→capture authenticated digests before judging HTML chrome parity.",
     "Pixel/DOM parity against live PHP desktop.php / erp_desktop.php / bos/index.php / modex desktop still required before traffic cutover.",
     "Login forms, menu writes, widget interactivity, and storefront cart/checkout HTML are not claimed by this scaffold.",
-    "Do not enable broad /cp /erp /bos /storefront cutover until presentation \u002B data parity evidence is attached."
+    "Do not enable broad /cp /erp /bos /storefront cutover until presentation + data parity evidence is attached."
   ]
 }

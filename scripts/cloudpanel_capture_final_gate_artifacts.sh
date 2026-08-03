@@ -144,6 +144,8 @@ payload = {
     "legacyPhpEntry": "api/v1/catalog.php?action=status",
     "aspNetRoute": "/api/v1/catalog/status",
     "capturedAtUtc": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+    "cutoverAllowed": False,
+    "readyForPhpRemoval": False,
     "comparison": "loopback-unauthenticated",
     "aspnet": {"status": code, "contentType": "application/json", "bodyMarker": marker},
     "phpExpectation": "Public host may still return PHP HTML until exact-route shadow; loopback ASP.NET returns structured JSON auth gate.",

@@ -1,4 +1,6 @@
 {
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "counts": {
     "erpAreas": 0,
     "erpTabs": 0,

@@ -5,4 +5,6 @@ public sealed record ZeroPhpCompletionReport(
     int OverallPendingPercent,
     string Status,
     IReadOnlyCollection<ZeroPhpCompletionArea> Areas,
-    IReadOnlyCollection<string> NextActions);
+    IReadOnlyCollection<string> NextActions,
+    bool CutoverAllowed = false,
+    bool ReadyForPhpRemoval = false);

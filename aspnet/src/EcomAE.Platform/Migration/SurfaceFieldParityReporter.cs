@@ -46,6 +46,7 @@ public sealed class SurfaceFieldParityReporter : ISurfaceFieldParityReporter
                 "Then capture/commit staging-smoke and bash scripts/run_surface_parity_harness.sh with real cookies/keys.",
                 "Optional customer digests: ECOMAE_CUSTOMER_COOKIE_HEADER (not required for ReadyToRemovePhp).",
                 "Only after dual samples match: promote exact-route shadows one location= at a time."
-            ]);
+            ],
+            ReadyForPhpRemoval: false);
     }
 }

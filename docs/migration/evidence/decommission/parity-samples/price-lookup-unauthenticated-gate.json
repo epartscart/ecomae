@@ -1,8 +1,10 @@
 {
+  "capturedAtUtc": "2026-08-02T17:58:00Z",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "route": "/api/v1/price/lookup",
   "legacyPhpEntry": "api/v1/price/lookup.php",
   "aspNetRoute": "/api/v1/price/lookup",
-  "capturedAtUtc": "2026-08-02T17:58:00Z",
   "comparison": "public-unauthenticated",
   "aspnet": {
     "status": 401,

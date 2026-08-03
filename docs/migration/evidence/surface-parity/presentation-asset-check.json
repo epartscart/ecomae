@@ -1,5 +1,7 @@
 {
   "capturedAtUtc": "2026-08-02T18:21:04Z",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "baseUrl": "https://www.ecomae.com",
   "assets": [
     {

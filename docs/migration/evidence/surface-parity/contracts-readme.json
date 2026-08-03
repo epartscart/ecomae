@@ -1,7 +1,8 @@
 {
   "capturedAtUtc": "2026-08-02T18:14:22Z",
-  "source": "SurfacePayloadContractCatalog.All + /migration/surface-field-parity",
   "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "source": "SurfacePayloadContractCatalog.All + /migration/surface-field-parity",
   "harness": "scripts/run_surface_parity_harness.sh",
   "compare": "scripts/compare_surface_payload_parity.py",
   "note": "Dual authenticated samples still required before exact-route shadow promotion."

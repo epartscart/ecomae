@@ -437,6 +437,12 @@ check 'scaffold options example validator passes' python3 "$ROOT/scripts/validat
 check 'migration evidence cutover locks validator exists' test -f "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"
 check 'migration evidence cutover locks validator is executable' test -x "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"
 check 'migration evidence cutover locks pass' python3 "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"
+check 'cutover locks require decommission public-probe tree' contains "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" 'decommission/public-probes/*.json'
+check 'cutover locks require decommission parity-sample tree' contains "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" 'decommission/parity-samples/*.json'
+check 'php decommission probe blocks cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" '"cutoverAllowed": false'
+check 'php decommission probe blocks PHP removal' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" '"readyForPhpRemoval": false'
+check 'zero-php completion probe blocks cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" '"cutoverAllowed": false'
+check 'live surface links probe blocks cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '"cutoverAllowed": false'
 check 'migration golden cutover locks validator exists' test -f "$ROOT/scripts/validate_migration_golden_cutover_locks.py"
 check 'migration golden cutover locks validator is executable' test -x "$ROOT/scripts/validate_migration_golden_cutover_locks.py"
 check 'migration golden cutover locks pass' python3 "$ROOT/scripts/validate_migration_golden_cutover_locks.py"

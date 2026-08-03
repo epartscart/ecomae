@@ -1,13 +1,15 @@
 {
-  "capturedAtUtc": "2026-08-03T05:45:57Z",
   "verdict": "blocked-parity-incomplete-php-must-remain",
+  "capturedAtUtc": "2026-08-03T05:45:57Z",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "readyToRemovePhp": false,
   "passed": 11,
   "failed": 0,
   "warnings": 0,
   "summary": [
     "Authenticated loopback staging smoke is attached for price/catalog/surface digests.",
-    "Public CP/ERP/BOS chrome remains PHP HTML \u2014 frontend cutover has not happened.",
+    "Public CP/ERP/BOS chrome remains PHP HTML — frontend cutover has not happened.",
     "Public digest/catalog routes are not broadly proxied to ASP.NET yet.",
     "Live surface-parity reports parity-not-yet-reached; presentation shells are scaffolded only.",
     "RELEASE_OWNER_APPROVAL.md is absent; inventing it is forbidden.",

@@ -184,7 +184,8 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Broad /, /api, /cp, /erp, /bos, storefront nginx cutover remains forbidden.",
                 "Only approved location = exact-route shadows may be enabled after staging smoke.",
                 "Keep MigrationRouteCutover StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final gate.",
-                "ReadyToRemovePhp stays false without staging-smoke artifacts + RELEASE_OWNER_APPROVAL.md."
+                "ReadyToRemovePhp stays false without staging-smoke artifacts + RELEASE_OWNER_APPROVAL.md.",
+                "cutoverAllowed=false and readyForPhpRemoval=false until exact-route shadows + dual-sample parity + human RELEASE_OWNER_APPROVAL.md."
             ],
             [
                 "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh — then apply DDL (clpctl) or use_php_dp_config_as_tenant_registry.sh if CREATE denied.",
@@ -217,7 +218,9 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "PHP-level parity plan: docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md — regenerate catalogs via python3 scripts/generate_php_module_catalog.py.",
                 "Hybrid module directories on /cp|/erp|/bos|/storefront/app; counts at GET /migration/php-module-catalog.",
                 "Human RELEASE_OWNER_APPROVAL.md is the final ReadyToRemovePhp blocker — do not remove PHP while chrome is PHP-authoritative."
-            ]);
+            ],
+            CutoverAllowed: false,
+            ReadyForPhpRemoval: false);
 
     }
 

@@ -22,11 +22,30 @@ MUST_DECLARE_CUTOVER_FALSE = (
     "tenant-safety/live-tenant-php-chrome.json",
     "tenant-safety/same-to-same-verify.json",
     "presentation/php-vs-aspnet-recheck.json",
+    "presentation/php_module_catalog.json",
+    "presentation/php_module_catalog_counts.json",
     "module-function-parity/compare-result.json",
     "catalog-api/compare-result.json",
     "price-lookup/compare-result.json",
     "surface-parity/www-surface-field-parity.json",
     "surface-parity/surface-field-offline-result.json",
+    "surface-parity/contracts-readme.json",
+    "surface-parity/digest-dual-sample-contract-result.json",
+    "surface-parity/harness-report.json",
+    "surface-parity/presentation-asset-check.json",
+    "decommission/public-probes/www-php-decommission-readiness.json",
+    "decommission/public-probes/www-zero-php-completion.json",
+    "decommission/public-probes/www-live-surface-links.json",
+    "decommission/public-probes/www-surface-field-parity.json",
+    "decommission/public-probes/www-pre-php-removal-parity-verdict.json",
+    "decommission/public-probes/www-final-gate-area-tests.json",
+    "decommission/public-probes/www-live-surface-stack.json",
+)
+
+# Entire report-style trees (raw staging-smoke API dumps are excluded).
+MUST_DECLARE_TREE_GLOBS = (
+    "decommission/public-probes/*.json",
+    "decommission/parity-samples/*.json",
 )
 
 
@@ -85,8 +104,13 @@ def main() -> int:
         for hit in hits:
             errors.append(f"forbidden approval/pass artifact present: {hit}")
 
+    required_paths: set[Path] = set()
     for rel in MUST_DECLARE_CUTOVER_FALSE:
-        path = args.evidence_root / rel
+        required_paths.add(args.evidence_root / rel)
+    for pattern in MUST_DECLARE_TREE_GLOBS:
+        required_paths.update(sorted(args.evidence_root.glob(pattern)))
+
+    for path in sorted(required_paths):
         if not path.is_file():
             errors.append(f"missing required cutover-lock evidence: {path}")
             continue
