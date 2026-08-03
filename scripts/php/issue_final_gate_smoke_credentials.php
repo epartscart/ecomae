@@ -4,8 +4,9 @@
  * Issue/rotate final-gate smoke API keys and bind an active admin session into platform.env.
  * CLI only. Never prints plaintext keys/cookies. Requires ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES.
  *
- * Connects with PHP DP_Config credentials (write-capable) into the ASP.NET TenantRegistry
- * database when possible, so keys land where DbLegacyApiClientStore reads them.
+ * Writes keys into the ASP.NET TenantRegistry database (ConnectionStrings__TenantRegistry)
+ * so DbLegacyApiClientStore can authenticate. Cookie values are bash-quoted so
+ * `source platform.env` does not truncate at ';' before admin_u_id=.
  * Creates epc_api_clients only when ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES.
  *
  * Usage:
@@ -41,6 +42,12 @@ $env = smoke_parse_env_file($envFile);
 [$pdo, $dbSource] = smoke_open_pdo($env);
 fwrite(STDERR, "DB source: {$dbSource}\n");
 
+$dotnet = smoke_parse_dotnet_conn($env['ConnectionStrings__TenantRegistry'] ?? '');
+$primaryDb = (string) ($dotnet['db'] ?? '');
+if (preg_match('/\bdb=([^\s)]+)/', $dbSource, $mDb)) {
+	$primaryDb = $mDb[1];
+}
+
 ensure_api_clients_table($pdo);
 
 $catalogActions = json_encode(
@@ -59,21 +66,28 @@ try {
 	exit(1);
 }
 
-[$sessionToken, $userId] = find_admin_session($pdo);
+[$sessionToken, $userId, $sessionSource] = find_admin_session($pdo, $env, $primaryDb);
 if ($sessionToken === null) {
 	fwrite(STDERR, "BLOCKED: no active admin session (sessions.type=1). Log into https://www.ecomae.com/CP/ once, then re-run.\n");
-	write_env_keys($envFile, $priceKey, $catalogKey, null);
+	write_env_keys($envFile, $priceKey, $catalogKey, null, null);
 	fwrite(STDOUT, "Wrote API keys into {$envFile}. Admin cookie still missing — login to Super CP, then re-run this script.\n");
 	exit(3);
 }
 
+if ($sessionSource === 'php-app-db-mismatch') {
+	fwrite(STDERR, "WARN: admin session found in PHP app DB, not TenantRegistry db={$primaryDb}.\n");
+	fwrite(STDERR, "ASP.NET /auth/session/probe reads TenantRegistry — login may still fail until sessions exist there\n");
+	fwrite(STDERR, "or ConnectionStrings__TenantRegistry Database= matches the PHP sessions database.\n");
+}
+
 $cookie = 'admin_session=' . $sessionToken . '; admin_u_id=' . $userId;
-write_env_keys($envFile, $priceKey, $catalogKey, $cookie);
+write_env_keys($envFile, $priceKey, $catalogKey, $cookie, $userId);
 
 fwrite(STDOUT, "OK wrote smoke credentials into {$envFile} (values not printed).\n");
 fwrite(STDOUT, "price_key_prefix=" . substr($priceKey, 0, 24) . "…\n");
 fwrite(STDOUT, "catalog_key_prefix=" . substr($catalogKey, 0, 24) . "…\n");
 fwrite(STDOUT, "admin_u_id={$userId}\n");
+fwrite(STDOUT, "session_source={$sessionSource}\n");
 fwrite(STDOUT, "Next: source {$envFile} && bash scripts/cloudpanel_validate_final_gate_env.sh\n");
 exit(0);
 
@@ -159,14 +173,37 @@ function upsert_key(PDO $pdo, string $product, string $label, string $email, int
 	return $plain;
 }
 
-/** @return array{0:?string,1:int} */
-function find_admin_session(PDO $pdo): array
+/**
+ * @param array<string,string> $env
+ * @return array{0:?string,1:int,2:string}
+ */
+function find_admin_session(PDO $pdo, array $env, string $primaryDb): array
 {
 	$forced = trim((string) (getenv('ECOMAE_FORCE_ADMIN_COOKIE_HEADER') ?: ''));
 	if ($forced !== '' && preg_match('/admin_session=([^;]+)/', $forced, $mSid) && preg_match('/admin_u_id=(\d+)/', $forced, $mUid)) {
-		return [$mSid[1], (int) $mUid[1]];
+		return [$mSid[1], (int) $mUid[1], 'forced-env'];
 	}
 
+	$row = query_admin_session($pdo);
+	if ($row !== null) {
+		return [$row[0], $row[1], 'tenant-registry'];
+	}
+
+	// Session may live only on the PHP app DB when TenantRegistry Database= differs.
+	$phpPdo = smoke_open_php_sessions_pdo($env, $primaryDb);
+	if ($phpPdo !== null) {
+		$row = query_admin_session($phpPdo);
+		if ($row !== null) {
+			return [$row[0], $row[1], 'php-app-db-mismatch'];
+		}
+	}
+
+	return [null, 0, 'none'];
+}
+
+/** @return array{0:string,1:int}|null */
+function query_admin_session(PDO $pdo): ?array
+{
 	$candidates = [
 		'SELECT `session`, `user_id` FROM `sessions` WHERE `type` = 1 AND `user_id` > 0 ORDER BY `id` DESC LIMIT 1',
 		'SELECT `session`, `user_id` FROM `sessions` WHERE `type` = 1 AND `user_id` > 0 ORDER BY `time` DESC LIMIT 1',
@@ -182,10 +219,10 @@ function find_admin_session(PDO $pdo): array
 			// try next shape
 		}
 	}
-	return [null, 0];
+	return null;
 }
 
-function write_env_keys(string $path, string $priceKey, string $catalogKey, ?string $cookie): void
+function write_env_keys(string $path, string $priceKey, string $catalogKey, ?string $cookie, ?int $userId): void
 {
 	$lines = file($path, FILE_IGNORE_NEW_LINES);
 	if ($lines === false) {
@@ -193,11 +230,15 @@ function write_env_keys(string $path, string $priceKey, string $catalogKey, ?str
 	}
 
 	$set = [
-		'ECOMAE_PRICE_LOOKUP_API_KEY' => $priceKey,
-		'ECOMAE_CATALOG_API_KEY' => $catalogKey,
+		'ECOMAE_PRICE_LOOKUP_API_KEY' => smoke_bash_quote($priceKey),
+		'ECOMAE_CATALOG_API_KEY' => smoke_bash_quote($catalogKey),
 	];
 	if ($cookie !== null && $cookie !== '') {
-		$set['ECOMAE_ADMIN_COOKIE_HEADER'] = $cookie;
+		// Must be quoted: unquoted `admin_session=x; admin_u_id=5` truncates at ';' under bash source.
+		$set['ECOMAE_ADMIN_COOKIE_HEADER'] = smoke_bash_quote($cookie);
+	}
+	if ($userId !== null && $userId > 0) {
+		$set['ECOMAE_ADMIN_U_ID'] = smoke_bash_quote((string) $userId);
 	}
 
 	$seen = [];

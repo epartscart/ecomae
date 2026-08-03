@@ -64,7 +64,7 @@ Common CloudPanel failures:
 - `Table '….epc_api_clients' doesn't exist` → run `cloudpanel_ensure_epc_api_clients_table.sh` with confirm, then re-issue.
 - `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (`wait_for_aspnet_health.sh`).
 - `ECOMAE_*_API_KEY: MISSING` → keys empty; issue/copy plaintext `epc_pricepro_` / `epc_catalog_` keys (DB stores hashes only).
-- `ECOMAE_ADMIN_COOKIE_HEADER/JAR: BAD_FORMAT` or probe `kind:0` → cookie missing both `admin_session` + numeric `admin_u_id`, or not logged in as Super CP.
+- `ECOMAE_ADMIN_COOKIE_HEADER/JAR: BAD_FORMAT` or probe `kind:0` → cookie missing both `admin_session` + numeric `admin_u_id`, or not logged in as Super CP. Quote the env value (`ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=123'`) so bash `source` does not truncate at `;`. If issuer warns PHP db≠TenantRegistry, fix `ConnectionStrings__TenantRegistry` / GRANTs so keys land in the DB ASP.NET reads (otherwise price/catalog smoke returns HTTP 500).
 - Probe success is `kind:2` (or `"Admin"`) with `isAuthenticated:true`.
 
 Exact-route promotion (after smoke only): `docs/migration/EXACT_ROUTE_PROMOTION_PRICE_CATALOG.md`

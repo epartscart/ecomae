@@ -33,9 +33,10 @@ printf 'DB only stores hashes — you cannot recover a lost plaintext key from M
 printf '\n-- How to get admin cookie --\n'
 printf '1) Browser: log into https://www.ecomae.com/CP/ (or https://cp.ecomae.com/CP/) as Super CP admin.\n'
 printf '2) DevTools → Network → any /CP/ request → Request Headers → Cookie.\n'
-printf '3) Copy BOTH cookies into one line (no surrounding quotes in the env value):\n'
-printf '     ECOMAE_ADMIN_COOKIE_HEADER=admin_session=PASTE; admin_u_id=123\n'
+printf '3) Copy BOTH cookies into one line; quote the whole value so bash source keeps admin_u_id:\n'
+printf '     ECOMAE_ADMIN_COOKIE_HEADER='\''admin_session=PASTE; admin_u_id=123'\''\n'
 printf '4) admin_u_id must be digits. Do not paste only PHPSESSID or Cloudflare cookies.\n'
+printf '   Unquoted values truncate at semicolon and validate shows BAD_FORMAT (admin_u_id has=0).\n'
 printf '5) Test (must show kind=2 or Kind=Admin, isAuthenticated=true):\n'
 printf '     source %s\n' "$ENV_FILE"
 printf '     curl -sS -H "Cookie: \$ECOMAE_ADMIN_COOKIE_HEADER" http://127.0.0.1:5100/auth/session/probe; echo\n'

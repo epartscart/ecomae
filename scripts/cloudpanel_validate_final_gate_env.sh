@@ -7,11 +7,15 @@ ECOMAE_ASPNET_ENV_DIR="${ECOMAE_ASPNET_ENV_DIR:-/etc/ecomae-aspnet}"
 ENV_FILE="${ECOMAE_ASPNET_ENV_DIR}/platform.env"
 STRICT="${ECOMAE_SMOKE_ENV_STRICT:-0}"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 if [[ -f "$ENV_FILE" ]]; then
   set -a
   # shellcheck disable=SC1090
   source "$ENV_FILE"
   set +a
+  # shellcheck disable=SC1091
+  source "$SCRIPT_DIR/cloudpanel_repair_smoke_cookie_env.sh"
   printf 'Env file: %s (values redacted)\n' "$ENV_FILE"
 else
   printf 'Env file: MISSING (%s)\n' "$ENV_FILE"
@@ -43,6 +47,13 @@ status_price="$(classify_key "$ECOMAE_PRICE_LOOKUP_API_KEY" "epc_pricepro_")"
 status_catalog="$(classify_key "$ECOMAE_CATALOG_API_KEY" "epc_catalog_")"
 
 cookie_hint=""
+# Hint when repair helper assembled admin_u_id from a side-effect / ECOMAE_ADMIN_U_ID.
+if [[ -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" && "${ECOMAE_ADMIN_COOKIE_HEADER}" == *"admin_u_id="* ]]; then
+  if grep -Eq "^ECOMAE_ADMIN_COOKIE_HEADER=['\"]?admin_session=[^;'\"]+['\"]?$" "$ENV_FILE" 2>/dev/null; then
+    cookie_hint="repaired from ECOMAE_ADMIN_U_ID/admin_u_id (re-issue to persist quoted cookie)"
+  fi
+fi
+
 if [[ -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
   if [[ -r "${ECOMAE_ADMIN_COOKIE_JAR}" ]]; then
     status_cookie="PRESENT_JAR"
@@ -74,7 +85,7 @@ elif [[ -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" ]]; then
     has_uid=0
     [[ "$hdr" == *"admin_session="* ]] && has_session=1
     [[ "$hdr" == *"admin_u_id="* ]] && has_uid=1
-    cookie_hint="need both admin_session= (has=${has_session}) and admin_u_id= (has=${has_uid}); length=${#hdr}"
+    cookie_hint="need both admin_session= (has=${has_session}) and admin_u_id= (has=${has_uid}); length=${#hdr}; re-run issue script after pull (quoted cookie write)"
   fi
 fi
 

@@ -42,6 +42,8 @@ if [[ -f "$ENV_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$ENV_FILE"
   set +a
+  # shellcheck disable=SC1091
+  source "$REPO/scripts/cloudpanel_repair_smoke_cookie_env.sh"
   printf 'Loaded env file: %s (values redacted)\n' "$ENV_FILE"
 else
   printf 'WARN: %s missing; public probes only.\n' "$ENV_FILE"
