@@ -49,6 +49,7 @@ MUST_DECLARE_TREE_GLOBS = (
     "hybrid-ui-dual-samples/*.json",
     "login-session-bridge/*.json",
     "catalog-miss-umapi/*.json",
+    "price-lookup/*.json",
 )
 
 
