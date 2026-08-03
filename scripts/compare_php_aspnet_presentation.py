@@ -204,6 +204,7 @@ def main() -> int:
 
     out = {
         "status": status,
+        "cutoverAllowed": False,
         "readyForPhpRemoval": False,
         "failureCount": len(failures),
         "warningCount": len(warnings),
@@ -212,7 +213,8 @@ def main() -> int:
         "pages": results,
         "note": (
             "Do not remove PHP. Batch 1 targets chrome asset/font/analytics parity for login/shell bridges. "
-            "Full desktop presentation + interactive modules remain Batch 2+."
+            "Full desktop presentation + interactive modules remain Batch 2+. "
+            "Never invent RELEASE_OWNER_APPROVAL.md."
         ),
     }
 

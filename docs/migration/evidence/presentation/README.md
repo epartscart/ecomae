@@ -1,5 +1,8 @@
 # Presentation parity evidence
 
+Operator: `docs/migration/evidence/presentation/OPERATOR_VERIFY.md`  
+Checked-in recheck: `php-vs-aspnet-recheck.json` (`status=fail`, `cutoverAllowed=false`).
+
 Attach CloudPanel HTML samples here after redeploy:
 
 - `cp-shell.html` from `/cp?format=html` (admin cookie)

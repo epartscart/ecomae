@@ -1,5 +1,6 @@
 {
   "status": "fail",
+  "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "failureCount": 6,
   "failures": [
