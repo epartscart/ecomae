@@ -38,15 +38,15 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 | `/api/v1/catalog/products` | Live; same warm-key pattern |
 | `/api/v1/catalog/engine-search` | Live unauth 401; auth may **403 `action_not_allowed`** until smoke key allowlist includes `engine_search` |
 | `/api/v1/catalog/article-links` | Live unauth 401 (PR #636 install; installer public FAIL can be CDN lag — re-probe). Auth uses action=`article` |
+| `/api/v1/catalog/article` | Live unauth 401 (PR #638 exact-match install; public OK; local SNI may HTML) |
 
-**Catalog exact-route progress:** **14 / 18** wired catalog API paths shadowed on www.
+**Catalog exact-route progress:** **15 / 18** wired catalog API paths shadowed on www.
 
 ### Catalog exact-routes still pending nginx `location =`
 
-1. `/api/v1/catalog/article` ← **next**
-2. `/api/v1/catalog/articles`
-3. `/api/v1/catalog/engine`
-4. `/api/v1/catalog/brand-parts`
+1. `/api/v1/catalog/articles` ← **next**
+2. `/api/v1/catalog/engine`
+3. `/api/v1/catalog/brand-parts`
 
 ### Still 100% PHP on public www (blocks Zero-PHP)
 
@@ -113,7 +113,7 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 - MigrationParity / ApiModule / auth-session reporters aligned to ensure→issue.
 - **Authenticated staging smoke attached on main (PR #612)** — price/catalog/surfaces; checklist 40 pass / approval skip.
 - PHP decommission readiness: smoke present; removal blocked only on human `RELEASE_OWNER_APPROVAL.md`.
-- **Public exact-route catalog/price shadows through article-links** (engine-search + article-links live; article…brand-parts pending).
+- **Public exact-route catalog/price shadows through article** (**15/18**; articles→brand-parts pending).
 - No broad PHP cutover; route/job parity/shadow metrics remain 0%.
 
 ## Path to 100% / Remaining 5% (PHP runtime decommission only)
@@ -122,17 +122,15 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 
 **Practically still pending before approval is honest:**
 
-1. Finish remaining **4** catalog exact-routes (`article` → `articles` → `engine` → `brand-parts`).
+1. Finish remaining **3** catalog exact-routes (`articles` → `engine` → `brand-parts`).
 2. Promote CP/ERP/BOS digest exact-routes one `location =` at a time after dual samples.
-3. Re-issue smoke catalog ACL (`engine_search`, `article`) so auth probes are not false 403s.
+3. Smoke catalog ACL includes `engine_search` + `article` after re-issue (done on CloudPanel post-#637).
 4. Attach dual PHP↔ASP.NET parity samples for promoted routes.
 5. Human `RELEASE_OWNER_APPROVAL.md` — then gated PHP decommission only.
 
 ## Next execution order
 
-- Confirm article-links public 401 after any installer CDN FAIL: `curl -sS -w 'al %{http_code}\n' -o /tmp/al.json 'https://www.ecomae.com/api/v1/catalog/article-links'`
-- Re-issue smoke creds after deploy so `engine_search` + `article` are allowed.
-- Next install: `ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /api/v1/catalog/article`
+- Next install: `ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /api/v1/catalog/articles`
 - Run fail-closed parity verdict (must keep PHP): `bash scripts/verify_pre_php_removal_parity.sh`
 - Confirm readiness: `curl -sS http://127.0.0.1:5100/migration/php-decommission-readiness` (8/9; approval missing).
 - Do **not** remove PHP until more exact-route shadows + dual samples + human approval exist.

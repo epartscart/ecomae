@@ -65,16 +65,16 @@ Tenant BOS is generally Super-CP-only; tenant hosts may still answer `/BOS/` via
 
 ## Catalog exact-route shadows (www)
 
-**Live (public unauth ASP.NET JSON 401):** price lookup + catalog status, manufacturers, models, modifications, brands, suppliers, vin, engines, analogs, article-brands, categories, products, engine-search, article-links (**14/18**).
+**Live (public unauth ASP.NET JSON 401):** price lookup + catalog status, manufacturers, models, modifications, brands, suppliers, vin, engines, analogs, article-brands, categories, products, engine-search, article-links, article (**15/18**).
 
-**Pending next:** `/api/v1/catalog/article` → `articles` → `engine` → `brand-parts`.
+**Pending next:** `/api/v1/catalog/articles` → `engine` → `brand-parts`.
 
 ## Exact-route digests pending nginx shadow
 
 These exist in ASP.NET on loopback (`127.0.0.1:5100`) but are **not** cut over on the public host yet:
 
 - Full CP/ERP/BOS digest set in `nginx-surface-digests-shadow-example.conf` (dashboard, tenants/users/groups/menus/pages, cash/COA/warehouses/orders/invoices/GL, fleet/audit, …)
-- Remaining catalog paths above (`article`…`brand-parts`)
+- Remaining catalog paths above (`articles`…`brand-parts`)
 - `/storefront/account-summary`, `/storefront/orders`, `/storefront/garage`, `/storefront/profile` (optional; needs customer cookie)
 
 Enable only via `deploy/aspnet/nginx-surface-digests-shadow-example.conf` / catalog / storefront shadow examples after smoke. Never broad `/api|/cp|/erp|/bos|/storefront`.
