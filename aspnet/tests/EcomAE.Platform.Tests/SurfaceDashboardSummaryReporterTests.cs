@@ -43,7 +43,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var inventoryStock = await reporter.BuildErpInventoryStockSummaryAsync();
         var currencies = await reporter.ListCpCurrenciesAsync(10);
         var apiClients = await reporter.ListCpApiClientsMetaAsync(10);
+        var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
+        var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
 
+        Assert.Equal("empty", partSearchEmpty.Source);
+        Assert.Equal("migration", partSearch.Source);
         Assert.Equal("migration", cp.Source);
         Assert.Equal("migration", erp.Source);
         Assert.Equal("migration", bos.Source);
@@ -118,6 +122,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SelectErpInventoryStockSummary, StringComparison.Ordinal);
         Assert.Contains("shop_currencies", LegacySurfaceDashboardSql.SelectCpCurrencies, StringComparison.Ordinal);
         Assert.Contains("epc_api_clients", LegacySurfaceDashboardSql.SelectCpApiClientsMeta, StringComparison.Ordinal);
+        Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        Assert.Contains("article_search", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.DoesNotContain("client_key_hash", LegacySurfaceDashboardSql.SelectCpApiClientsMeta, StringComparison.Ordinal);
         Assert.DoesNotContain("`session`", LegacySurfaceDashboardSql.SelectCpAdminSessions, StringComparison.Ordinal);
         Assert.DoesNotContain("INSERT", LegacySurfaceDashboardSql.SumSupplierCredit, StringComparison.OrdinalIgnoreCase);
