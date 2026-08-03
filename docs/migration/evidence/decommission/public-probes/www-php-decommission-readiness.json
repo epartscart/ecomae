@@ -1,10 +1,10 @@
 {
   "status": "blocked-not-ready-for-php-removal",
   "readyToRemovePhp": false,
-  "blockerCount": 7,
-  "checklistCompleteCount": 5,
+  "blockerCount": 4,
+  "checklistCompleteCount": 8,
   "checklistTotalCount": 9,
-  "checklistCompletePercent": 55.6,
+  "checklistCompletePercent": 88.9,
   "checklist": [
     {
       "id": "public-probes",
@@ -15,20 +15,20 @@
     {
       "id": "staging-smoke-price",
       "description": "Price lookup exact-route staging smoke artifact (authenticated 200)",
-      "status": "missing",
-      "detail": "attach authenticated 200 smoke under staging-smoke/price-lookup-aspnet.json"
+      "status": "present",
+      "detail": "validated authenticated smoke JSON"
     },
     {
       "id": "staging-smoke-catalog",
       "description": "Catalog status exact-route staging smoke artifact",
-      "status": "missing",
-      "detail": "attach authenticated smoke under staging-smoke/catalog-status-aspnet.json"
+      "status": "present",
+      "detail": "validated catalog smoke JSON"
     },
     {
       "id": "staging-smoke-surfaces",
       "description": "CP/ERP/BOS digest staging smoke artifact",
-      "status": "missing",
-      "detail": "attach surface-digests-aspnet.json with ok=true and at least one non-migration digest HTTP 200"
+      "status": "present",
+      "detail": "validated surface digest smoke JSON with authenticated digest HTTP 200"
     },
     {
       "id": "parity-samples-attached",
@@ -62,11 +62,8 @@
     }
   ],
   "blockers": [
-    "staging-smoke-price: Price lookup exact-route staging smoke artifact (authenticated 200)",
-    "staging-smoke-catalog: Catalog status exact-route staging smoke artifact",
-    "staging-smoke-surfaces: CP/ERP/BOS digest staging smoke artifact",
     "release-owner-approval: Release-owner written approval artifact",
-    "Authenticated CloudPanel smoke keys/cookies are required; this agent cannot invent them.",
+    "Human RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK is required; do not invent approval.",
     "Broad /, /api, /cp, /erp, /bos, and storefront nginx cutovers remain forbidden.",
     "PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies must remain until ReadyToRemovePhp is true."
   ],
@@ -77,15 +74,11 @@
     "Release-owner APPROVED_TO_REMOVE_PHP_FALLBACK artifact"
   ],
   "nextActions": [
-    "Keep PHP authoritative for all production traffic.",
-    "Run bash scripts/run_zero_php_final_gate_checklist.sh.",
-    "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh",
-    "If CREATE denied: apply_epc_api_clients_ddl.sh (clpctl) or use_php_dp_config_as_tenant_registry.sh when PHP db already has the table.",
-    "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
-    "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
-    "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
-    "Capture/commit: source /etc/ecomae-aspnet/platform.env \u0026\u0026 bash scripts/cloudpanel_capture_final_gate_artifacts.sh \u0026\u0026 bash scripts/cloudpanel_commit_final_gate_smoke.sh",
-    "Promote only approved exact-route shadows one path at a time (cloudpanel_extract_exact_route_shadow.sh).",
-    "Do not remove PHP-FPM/cron/rewrites until ReadyToRemovePhp is true with release-owner approval."
+    "Staging smoke artifacts are attached (price lookup, catalog status, surface digests).",
+    "Redeploy main so ContentRoot packs smoke evidence: bash scripts/cloudpanel_redeploy_final_gate_branch.sh",
+    "Confirm /migration/php-decommission-readiness shows smoke checklist items present (approval still missing).",
+    "Optional: promote one approved location= shadow via bash scripts/cloudpanel_extract_exact_route_shadow.sh (never broad cutover).",
+    "Obtain human release-owner approval; create RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after that approval.",
+    "Do not remove PHP-FPM/cron/rewrites until ReadyToRemovePhp is true."
   ]
 }

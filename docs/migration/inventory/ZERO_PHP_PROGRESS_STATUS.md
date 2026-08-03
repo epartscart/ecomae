@@ -60,25 +60,23 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - Final-gate public probes regenerated: field contracts=53, php-decommission checklist 5/9 (shadows present; smoke/approval missing), surface Public API/Workers statuses honest.
 - Redeploy helper defaults to **main** (PR #603 ensure→issue merged).
 - Live-surface pending-shadow inventory covers full digest + catalog shadow set; harness capture matches smoke/nginx routes.
-- MigrationParity / ApiModule / auth-session reporters aligned to ensure→issue (scaffolding saturated pending CloudPanel smoke).
-- PHP decommission readiness reporter documents blockers; removal remains blocked.
+- MigrationParity / ApiModule / auth-session reporters aligned to ensure→issue.
+- **Authenticated staging smoke attached on main (PR #612)** — price/catalog/surfaces; checklist 40 pass / approval skip.
+- PHP decommission readiness: smoke present; removal blocked only on human `RELEASE_OWNER_APPROVAL.md`.
 - No broad PHP cutover; parity/shadow remain 0%.
 
 ## Path to 100% / Remaining 5% (PHP runtime decommission only)
 
-100% requires green parity evidence for every tracked route/job, staging smoke, approved exact-route shadows, and release-owner approval to remove PHP-FPM/cron/rewrites/source. Dry-run scaffolding does **not** authorize PHP removal. See `/migration/php-decommission-readiness` and `bash scripts/run_zero_php_final_gate_checklist.sh`. Remaining batches still need promotion from dry-run scaffolding to shadow/live.
+100% requires approved exact-route shadows where promoted, and **human** release-owner approval to remove PHP-FPM/cron/rewrites/source. Staging smoke for the final-gate digest/API set is attached. Dry-run scaffolding does **not** authorize PHP removal. See `/migration/php-decommission-readiness` and `bash scripts/run_zero_php_final_gate_checklist.sh`. Remaining batches still need promotion from dry-run scaffolding to shadow/live.
 
 ## Next execution order
 
-- Redeploy main: `bash scripts/cloudpanel_redeploy_final_gate_branch.sh` (or `git reset --hard origin/main && bash scripts/cloudpanel_find_and_redeploy.sh`).
-- Ensure API clients table: `ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh`
-- Issue smoke creds: `ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh` (login Super CP if admin cookie missing).
-- Validate (redacted): `bash scripts/cloudpanel_validate_final_gate_env.sh` (or `bash scripts/cloudpanel_prepare_smoke_secrets.sh`).
+- Redeploy main so ContentRoot packs smoke: `bash scripts/cloudpanel_redeploy_final_gate_branch.sh`
+- Confirm readiness: `curl -sS http://127.0.0.1:5100/migration/php-decommission-readiness` (smoke present; approval missing).
 - Optional storefront: set `ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits>` (not required for ReadyToRemovePhp).
-- Capture + commit: `source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh`
-- Extract one approved path: `bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status` (enable only after smoke).
+- Extract one approved path: `bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status` (enable only with operator intent).
 - Attach dual PHP↔ASP.NET parity samples; promote shadows one `location =` at a time.
-- Create `RELEASE_OWNER_APPROVAL.md` only after human approval; then remove PHP.
+- Create `RELEASE_OWNER_APPROVAL.md` **only after human approval**; then gated PHP decommission.
 
 ## Guardrail
 

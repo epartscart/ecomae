@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Hosting;
 
 namespace EcomAE.Platform.Migration;
@@ -87,13 +89,68 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
             .ToArray();
 
         var ready = complete == checklist.Length && missing.Length == 0;
+        var smokePresent = PhpDecommissionEvidence.HasAuthenticatedPriceLookupSmoke(root)
+            && PhpDecommissionEvidence.HasCatalogStatusSmoke(root)
+            && PhpDecommissionEvidence.HasSurfaceDigestSmoke(root);
+        var approvalPresent = PhpDecommissionEvidence.HasReleaseOwnerApproval(root);
+
+        var extraBlockers = new List<string>
+        {
+            "Broad /, /api, /cp, /erp, /bos, and storefront nginx cutovers remain forbidden.",
+            "PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies must remain until ReadyToRemovePhp is true."
+        };
+        if (!smokePresent)
+        {
+            extraBlockers.Insert(0, "Authenticated CloudPanel smoke keys/cookies are required; this agent cannot invent them.");
+        }
+        else if (!approvalPresent)
+        {
+            extraBlockers.Insert(0, "Human RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK is required; do not invent approval.");
+        }
+
         var blockers = ready
             ? Array.Empty<string>()
-            : missing.Concat([
-                "Authenticated CloudPanel smoke keys/cookies are required; this agent cannot invent them.",
-                "Broad /, /api, /cp, /erp, /bos, and storefront nginx cutovers remain forbidden.",
-                "PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies must remain until ReadyToRemovePhp is true."
-            ]).ToArray();
+            : missing.Concat(extraBlockers).ToArray();
+
+        string[] nextActions;
+        if (ready)
+        {
+            nextActions =
+            [
+                "ReadyToRemovePhp is true for exact-route fallback removal only.",
+                "On CloudPanel run: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh",
+                "Keep rollback available: bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback",
+                "Do not enable broad /api /cp /erp /bos /storefront cutover."
+            ];
+        }
+        else if (smokePresent && !approvalPresent)
+        {
+            nextActions =
+            [
+                "Staging smoke artifacts are attached (price lookup, catalog status, surface digests).",
+                "Redeploy main so ContentRoot packs smoke evidence: bash scripts/cloudpanel_redeploy_final_gate_branch.sh",
+                "Confirm /migration/php-decommission-readiness shows smoke checklist items present (approval still missing).",
+                "Optional: promote one approved location= shadow via bash scripts/cloudpanel_extract_exact_route_shadow.sh (never broad cutover).",
+                "Obtain human release-owner approval; create RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after that approval.",
+                "Do not remove PHP-FPM/cron/rewrites until ReadyToRemovePhp is true."
+            ];
+        }
+        else
+        {
+            nextActions =
+            [
+                "Keep PHP authoritative for all production traffic.",
+                "Run bash scripts/run_zero_php_final_gate_checklist.sh.",
+                "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh",
+                "If CREATE denied: apply_epc_api_clients_ddl.sh (clpctl) or use_php_dp_config_as_tenant_registry.sh when PHP db already has the table.",
+                "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
+                "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
+                "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
+                "Capture/commit: source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh",
+                "Promote only approved exact-route shadows one path at a time (cloudpanel_extract_exact_route_shadow.sh).",
+                "Do not remove PHP-FPM/cron/rewrites until ReadyToRemovePhp is true with release-owner approval."
+            ];
+        }
 
         return new PhpDecommissionReadinessReport(
             ready ? "ready-for-php-removal" : "blocked-not-ready-for-php-removal",
@@ -110,27 +167,7 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
                 "Operator rollback command validation",
                 "Release-owner APPROVED_TO_REMOVE_PHP_FALLBACK artifact"
             ],
-            ready
-                ?
-                [
-                    "ReadyToRemovePhp is true for exact-route fallback removal only.",
-                    "On CloudPanel run: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh",
-                    "Keep rollback available: bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback",
-                    "Do not enable broad /api /cp /erp /bos /storefront cutover."
-                ]
-                :
-                [
-                    "Keep PHP authoritative for all production traffic.",
-                    "Run bash scripts/run_zero_php_final_gate_checklist.sh.",
-                    "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh",
-                    "If CREATE denied: apply_epc_api_clients_ddl.sh (clpctl) or use_php_dp_config_as_tenant_registry.sh when PHP db already has the table.",
-                    "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
-                    "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
-                    "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
-                    "Capture/commit: source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh",
-                    "Promote only approved exact-route shadows one path at a time (cloudpanel_extract_exact_route_shadow.sh).",
-                    "Do not remove PHP-FPM/cron/rewrites until ReadyToRemovePhp is true with release-owner approval."
-                ]);
+            nextActions);
     }
 
     private static PhpDecommissionChecklistItem Item(string id, string description, bool present, string? detail = null)
