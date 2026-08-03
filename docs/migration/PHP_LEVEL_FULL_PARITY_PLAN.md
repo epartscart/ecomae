@@ -96,10 +96,13 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - Miss-fill worker dry-run ✅ (#667): `catalog-miss-fill` / `CatalogMissFillDryRunExecutor` — outbound/writes blocked.
 - Live UMAPI outbound fill remains **PHP-authoritative**.
 
-### Same-to-same tenant lock ← current
-- Codify invisible migration law + operator verify (`cloudpanel_verify_tenant_hosts_still_php.sh`).
+### Same-to-same tenant lock ✅ (#668)
+- Invisible migration law + operator verify (`cloudpanel_verify_tenant_hosts_still_php.sh`).
 - Digests/Blazor previews never replace live tenant product chrome.
-- Continues hybrid parity work without chrome cutover.
+
+### Hybrid ERP tab family continue ← current
+- **This PR:** `/erp/purchase-orders-app` over `/erp/purchase-orders` digest; PHP `erp_tabs_purchase_orders.php` authoritative for writes.
+- Exact-route www preview only — tenant `/ERP/` chrome stays PHP (same-to-same).
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
 Do **not** start Batch 6 cutover while interactive `aspnet-complete` is still 0 and tenants must remain same-to-same on PHP chrome.

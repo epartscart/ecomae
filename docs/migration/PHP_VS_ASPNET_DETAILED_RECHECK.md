@@ -14,7 +14,9 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Batch 5 ✅ (#666–#667):** Miss harness + outbound-blocked miss-fill dry-run. Live UMAPI fills stay PHP.
 
-**Same-to-same law:** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`.
+**Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
+
+**Continuing:** ERP purchase orders Blazor read UI (`/erp/purchase-orders-app`) on www preview only; PHP tab remains authoritative. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 
