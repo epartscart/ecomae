@@ -82,8 +82,8 @@ flowchart TD
 ### Batch 4 — Vertical module slices (one family → exact-route) ← current
 Priority order:
 1. **CP Orders/OMS (read UI first; writes PHP)** ✅ (#661): `/cp/orders` + `/cp/orders-digest`
-2. **CP Users/Groups (digest → Blazor list)** — this PR: `/cp/users-app` + `/cp/groups-app` over existing JSON digests `/cp/users` + `/cp/groups`; PHP `/CP/control/users` + `/CP/users/usergroups` authoritative for writes
-3. ERP one tab family at a time (`erp_tabs_*.php`)
+2. **CP Users/Groups** ✅ (#662): digests stay `/cp/users` + `/cp/groups`; Blazor UI at `/cp/users-app` + `/cp/groups-app`
+3. **ERP sales orders tab family** — this PR: `/erp/sales-orders-app` over existing `/erp/sales-orders` digest; PHP `erp_tabs_sales_orders.php` authoritative for writes
 4. Storefront search results page
 5. Cart/checkout last
 
