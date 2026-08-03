@@ -419,6 +419,11 @@ check 'smoke commit recovers failed push auth' contains "$ROOT/scripts/cloudpane
 check 'smoke commit prefers token push helper' contains "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" 'cloudpanel_push_final_gate_smoke.sh'
 check 'redeploy prints live readiness snapshot' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'Live readiness snapshot'
 check 'redeploy reminds not to invent approval at 8/9' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'do NOT invent RELEASE_OWNER_APPROVAL.md'
+check 'pre-PHP-removal parity verdict helper exists' test -x "$ROOT/scripts/verify_pre_php_removal_parity.sh"
+check 'pre-PHP-removal verdict never removes PHP' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'NEVER removes PHP'
+check 'area tests validate attached staging smoke' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'attached-staging-smoke'
+check 'area tests assert public digests not cut over' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'not-cutover'
+check 'deploy packs pre-PHP-removal parity verdict helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'verify_pre_php_removal_parity.sh'
 check 'deploy packs smoke token push helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_push_final_gate_smoke.sh'
 check 'deploy packs print epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_print_epc_api_clients_ddl.sh'
 check 'deploy packs apply epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_apply_epc_api_clients_ddl.sh'
@@ -497,7 +502,7 @@ check 'harness catalog capture includes brand-parts' contains "$ROOT/scripts/run
 check 'harness admin capture includes bos audit-log' contains "$ROOT/scripts/run_surface_parity_harness.sh" '/bos/audit-log'
 check 'CloudPanel quick start points to main redeploy' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'ecomae/main/scripts/cloudpanel_redeploy_final_gate_branch.sh'
 check 'zero php progress JSON next order mentions release-owner approval' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'RELEASE_OWNER_APPROVAL.md'
-check 'zero php progress JSON next order mentions redeploy packs smoke' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'cloudpanel_redeploy_final_gate_branch.sh'
+check 'zero php progress JSON next order mentions pre-removal parity verdict' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'verify_pre_php_removal_parity.sh'
 check 'php decommission probe marks exact-route shadows present' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); i=next(c for c in d["checklist"] if c["id"]=="exact-route-shadows-only"); assert i["status"]=="present"' "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
 check 'surface parity probe public API status is wired' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-parity.json" 'catalog-cache-routes-wired-awaiting-staging'
 check 'redeploy final-gate defaults to main' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"'

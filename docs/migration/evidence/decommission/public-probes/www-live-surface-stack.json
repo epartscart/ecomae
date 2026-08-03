@@ -1,5 +1,5 @@
 {
-  "capturedAtUtc": "2026-08-03T03:37:22Z",
+  "capturedAtUtc": "2026-08-03T05:45:57Z",
   "note": "Public probe only. Does not authorize PHP removal or broad cutover.",
   "routes": [
     {
@@ -63,14 +63,14 @@
       "status": 200,
       "stack": "aspnet-json",
       "contentType": "application/json; charset=utf-8",
-      "bytes": 4061
+      "bytes": 3503
     },
     {
       "url": "https://www.ecomae.com/migration/php-decommission-readiness",
       "status": 200,
       "stack": "aspnet-json",
       "contentType": "application/json; charset=utf-8",
-      "bytes": 3746
+      "bytes": 3019
     },
     {
       "url": "https://www.ecomae.com/migration/presentation-parity",
@@ -175,7 +175,7 @@
       "status": 200,
       "stack": "php-html",
       "contentType": "text/html; charset=utf-8",
-      "bytes": 173792
+      "bytes": 173780
     },
     {
       "url": "https://healthcare.ecomae.com/CP/",
@@ -189,7 +189,7 @@
       "status": 200,
       "stack": "php-html",
       "contentType": "text/html; charset=UTF-8",
-      "bytes": 173791
+      "bytes": 173783
     },
     {
       "url": "https://www.electronicae.com/",

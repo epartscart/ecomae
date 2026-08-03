@@ -6,23 +6,31 @@ Request: complete remaining 5%, test all areas, decommission PHP now.
 
 ## Gate outcome
 
-**Blocked on human approval only.** This file is intentionally **not** `RELEASE_OWNER_APPROVAL.md` and does **not** contain `APPROVED_TO_REMOVE_PHP_FALLBACK`.
+**Blocked — do not remove PHP.** This file is intentionally **not** `RELEASE_OWNER_APPROVAL.md` and does **not** contain `APPROVED_TO_REMOVE_PHP_FALLBACK`.
 
-Authenticated CloudPanel staging smoke is attached on `main` (PR #612):
+Authenticated **loopback** CloudPanel staging smoke is attached on `main` (PR #612):
 
 - `staging-smoke/price-lookup-aspnet.json` — authenticated price lookup
 - `staging-smoke/catalog-status-aspnet.json` — catalog status (`connected=true`)
 - `staging-smoke/surface-digests-aspnet.json` — `ok=true`, 30 non-migration digest HTTP 200s
-- Final-gate checklist on CloudPanel: **40 pass / 4 skip / 0 fail** (skips = approval + optional live smoke flags)
+- Readiness: **8/9** (`readyToRemovePhp=false`; only approval marker missing)
 
-PHP remains authoritative. Broad `/api` `/cp` `/erp` `/bos` /storefront cutover remains forbidden.
+Public frontend/backend authority is **still PHP** for product chrome:
+
+- `https://www.ecomae.com/`, `/CP/`, `/ERP/`, `/BOS/` → PHP HTML
+- Public `/cp/dashboard-summary` and `/api/v1/catalog/status` are **not** cut over to ASP.NET JSON yet
+- Live `/migration/surface-parity` → `parity-not-yet-reached`
+- Live `/migration/presentation-parity` → `presentation-shell-scaffolded` only
+
+Approval must **not** be written until public exact-route shadows + dual-sample PHP↔ASP.NET parity exist for promoted routes. Loopback smoke alone is insufficient for PHP removal.
 
 ## Required before approval can be written
 
-1. Redeploy `main` so ContentRoot packs smoke evidence: `bash scripts/cloudpanel_redeploy_final_gate_branch.sh`
-2. Confirm `/migration/php-decommission-readiness` shows smoke checklist items **present** (approval still missing)
-3. Confirm only exact-route nginx shadows (never broad `/cp` `/erp` `/bos` `/api`)
-4. A human release owner replaces this request with `RELEASE_OWNER_APPROVAL.md` containing:
+1. Redeploy `main` and confirm readiness smoke items **present** (approval still missing)
+2. Run `bash scripts/verify_pre_php_removal_parity.sh` (must stay fail-closed / PHP remains)
+3. Promote only approved `location =` nginx shadows one path at a time; attach dual PHP↔ASP.NET samples
+4. Confirm only exact-route nginx shadows (never broad `/cp` `/erp` `/bos` `/api`)
+5. A human release owner replaces this request with `RELEASE_OWNER_APPROVAL.md` containing:
 
 ```text
 APPROVED_TO_REMOVE_PHP_FALLBACK

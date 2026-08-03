@@ -54,11 +54,11 @@
     "Human RELEASE_OWNER_APPROVAL.md before PHP decommission (remaining 5%)"
   ],
   "nextExecutionOrder": [
-    "Redeploy main so ContentRoot packs smoke: bash scripts/cloudpanel_redeploy_final_gate_branch.sh",
-    "Confirm /migration/php-decommission-readiness shows smoke checklist items present; approval still missing.",
+    "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP must remain while public chrome is PHP HTML).",
+    "Confirm /migration/php-decommission-readiness is 8/9 with approval missing; surface-parity=parity-not-yet-reached.",
     "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
     "Promote one location= shadow at a time; attach dual PHP↔ASP.NET samples.",
-    "Human creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK (do not invent).",
+    "Human creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after public exact-route parity (do not invent).",
     "When readyToRemovePhp=true: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh",
     "Do not claim 100% or stop PHP-FPM until that gated script accepts the green readiness endpoint."
   ]
