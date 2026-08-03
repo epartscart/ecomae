@@ -52,8 +52,24 @@ if (preg_match('/\bdb=([^\s)]+)/', $dbSource, $mDb)) {
 
 ensure_api_clients_table($pdo, $env);
 
+// Keep aligned with ApiModule AuthorizeCatalogAsync / RequireAsync action names.
 $catalogActions = json_encode(
-	['manufacturers', 'models', 'modifications', 'categories', 'articles', 'vin', 'status', 'engines', 'analogs', 'brands', 'products', 'suppliers'],
+	[
+		'manufacturers',
+		'models',
+		'modifications',
+		'categories',
+		'articles',
+		'article',
+		'vin',
+		'status',
+		'engines',
+		'analogs',
+		'brands',
+		'products',
+		'suppliers',
+		'engine_search',
+	],
 	JSON_UNESCAPED_UNICODE
 );
 

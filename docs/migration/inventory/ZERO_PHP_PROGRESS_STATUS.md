@@ -1,18 +1,67 @@
 # Zero-PHP Progress Status
 
-This status is generated from the tracked inventory, ownership plan, and exact-route cutover batches. It reports true production progress separately from planning progress so we do not overstate 0% PHP readiness.
+This status is generated from the tracked inventory, ownership plan, and exact-route cutover batches. It reports **true production cutover** separately from the weighted completion meter so we do not overstate 0% PHP readiness.
 
 Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md` and must not be confused with Zero-PHP completion.
 
-## Current percentage
+## Current percentage (weighted meter)
 
-- True zero-PHP completion: 95.0%.
-- Pending to 100%: 5.0%.
+- True zero-PHP completion meter: **95.0%**.
+- Pending to 100% (PHP runtime decommission residual): **5.0%**.
 - Final-gate unlock path is wired (`ReadyToRemovePhp` becomes true only with validated smoke + approval). PHP is **not** removed yet.
 - Foundation/planning floor: 35.0%.
 - Route/job implementation started (not parity-ready): digests + nested ACL + worker dry-run layer + all 61 batches dry-run scaffolding.
 - Route/job parity-ready: 0.0%.
 - Route/job shadow-or-better: 0.0%.
+
+The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + gate wiring + attached loopback smoke). It is **not** “95% of public routes cut over to ASP.NET.”
+
+## Live cutover scorecard (www.ecomae.com) — 2026-08-03
+
+### Exact-route ASP.NET shadows live (public unauth → ASP.NET JSON 401)
+
+| Path | Auth / warm notes |
+| --- | --- |
+| `/health`, `/migration/*` | ASP.NET diagnostics |
+| `/api/v1/price/lookup` | Live |
+| `/api/v1/catalog/status` | Live |
+| `/api/v1/catalog/manufacturers` | Live; `section=passenger` |
+| `/api/v1/catalog/models` | Live; needs `mfa_id>0`; warm e.g. `111` |
+| `/api/v1/catalog/modifications` | Live; needs `ms_id>0`; warm e.g. `8541` |
+| `/api/v1/catalog/brands` | Live; ~1314 rows |
+| `/api/v1/catalog/suppliers` | Live; brands-table alias |
+| `/api/v1/catalog/vin` | Live; warm `WBAXG1103CDW29096` → 200 |
+| `/api/v1/catalog/engines` | Live; auth often `404 cache_miss` |
+| `/api/v1/catalog/analogs` | Live; needs `article`+`brand` |
+| `/api/v1/catalog/article-brands` | Live; UMAPI action=`brands` |
+| `/api/v1/catalog/categories` | Live; warm-key / param mismatch common |
+| `/api/v1/catalog/products` | Live; same warm-key pattern |
+| `/api/v1/catalog/engine-search` | Live unauth 401; auth may **403 `action_not_allowed`** until smoke key allowlist includes `engine_search` |
+| `/api/v1/catalog/article-links` | Live unauth 401 (PR #636 install; installer public FAIL can be CDN lag — re-probe). Auth uses action=`article` |
+
+**Catalog exact-route progress:** **14 / 18** wired catalog API paths shadowed on www.
+
+### Catalog exact-routes still pending nginx `location =`
+
+1. `/api/v1/catalog/article` ← **next**
+2. `/api/v1/catalog/articles`
+3. `/api/v1/catalog/engine`
+4. `/api/v1/catalog/brand-parts`
+
+### Still 100% PHP on public www (blocks Zero-PHP)
+
+- Product chrome: `/`, `/CP/`, `/ERP/`, `/BOS/` (and aliases)
+- All CP / ERP / BOS digest exact-routes (dashboard, tenants, users, cash, fleet, …) — loopback ASP.NET only
+- Storefront digests (`/storefront/*`) — optional; not required for `ReadyToRemovePhp`
+- Dual-sample PHP↔ASP.NET parity attachments for promoted routes
+- Human `RELEASE_OWNER_APPROVAL.md` with `APPROVED_TO_REMOVE_PHP_FALLBACK`
+- PHP-FPM / cron / rewrite removal (gated script only)
+
+### Known ops gaps (not missing nginx locations)
+
+- Smoke catalog key ACL missing `engine_search` / `article` until re-issue after updated `issue_final_gate_smoke_credentials.php`
+- Offline-cache routes return ASP.NET `404 cache_miss` when probe params ≠ warm `epc_umapi_cache` key (PHP/UMAPI still fills live)
+- Local nginx `--resolve` probes may hit wrong `default_server` HTML while public URL returns ASP.NET JSON
 
 ## Inventory
 
@@ -63,21 +112,30 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - MigrationParity / ApiModule / auth-session reporters aligned to ensure→issue.
 - **Authenticated staging smoke attached on main (PR #612)** — price/catalog/surfaces; checklist 40 pass / approval skip.
 - PHP decommission readiness: smoke present; removal blocked only on human `RELEASE_OWNER_APPROVAL.md`.
-- No broad PHP cutover; parity/shadow remain 0%.
+- **Public exact-route catalog/price shadows through article-links** (engine-search + article-links live; article…brand-parts pending).
+- No broad PHP cutover; route/job parity/shadow metrics remain 0%.
 
 ## Path to 100% / Remaining 5% (PHP runtime decommission only)
 
-100% requires approved exact-route shadows where promoted, and **human** release-owner approval to remove PHP-FPM/cron/rewrites/source. Staging smoke for the final-gate digest/API set is attached. Dry-run scaffolding does **not** authorize PHP removal. See `/migration/php-decommission-readiness` and `bash scripts/run_zero_php_final_gate_checklist.sh`. Remaining batches still need promotion from dry-run scaffolding to shadow/live.
+100% on the weighted meter requires approved exact-route shadows where promoted, and **human** release-owner approval to remove PHP-FPM/cron/rewrites/source. Staging smoke for the final-gate digest/API set is attached. Dry-run scaffolding does **not** authorize PHP removal. See `/migration/php-decommission-readiness` and `bash scripts/run_zero_php_final_gate_checklist.sh`.
+
+**Practically still pending before approval is honest:**
+
+1. Finish remaining **4** catalog exact-routes (`article` → `articles` → `engine` → `brand-parts`).
+2. Promote CP/ERP/BOS digest exact-routes one `location =` at a time after dual samples.
+3. Re-issue smoke catalog ACL (`engine_search`, `article`) so auth probes are not false 403s.
+4. Attach dual PHP↔ASP.NET parity samples for promoted routes.
+5. Human `RELEASE_OWNER_APPROVAL.md` — then gated PHP decommission only.
 
 ## Next execution order
 
+- Confirm article-links public 401 after any installer CDN FAIL: `curl -sS -w 'al %{http_code}\n' -o /tmp/al.json 'https://www.ecomae.com/api/v1/catalog/article-links'`
+- Re-issue smoke creds after deploy so `engine_search` + `article` are allowed.
+- Next install: `ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /api/v1/catalog/article`
 - Run fail-closed parity verdict (must keep PHP): `bash scripts/verify_pre_php_removal_parity.sh`
 - Confirm readiness: `curl -sS http://127.0.0.1:5100/migration/php-decommission-readiness` (8/9; approval missing).
-- Public exact-route API shadows live: price lookup + catalog status through engine-search (+ vin warm hit); CP/ERP/BOS chrome still PHP.
 - Do **not** remove PHP until more exact-route shadows + dual samples + human approval exist.
 - Optional storefront: set `ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits>` (not required for ReadyToRemovePhp).
-- Extract one approved path: `bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status` (enable only with operator intent).
-- Attach dual PHP↔ASP.NET parity samples; promote shadows one `location =` at a time.
 - Create `RELEASE_OWNER_APPROVAL.md` **only after human approval**; then gated PHP decommission.
 
 ## Guardrail

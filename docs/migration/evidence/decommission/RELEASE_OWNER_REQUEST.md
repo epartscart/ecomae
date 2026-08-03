@@ -19,11 +19,12 @@ Public frontend/backend authority is **still PHP** for product chrome:
 
 - `https://www.ecomae.com/`, `/CP/`, `/ERP/`, `/BOS/` → PHP HTML
 - Public `/cp/dashboard-summary` is **not** cut over yet
-- Approved exact-route API shadows on www: `/health`, `/migration/*`, `/api/v1/price/lookup`, catalog status→suppliers, vin, engines, analogs, article-brands, categories, products, engine-search (unauth 401 ASP.NET JSON; VIN warm 200; offline-cache routes may 404 cache_miss when probe params ≠ warm key)
+- Approved exact-route API shadows on www: `/health`, `/migration/*`, `/api/v1/price/lookup`, catalog **14/18** through `article-links` (status, manufacturers, models, modifications, brands, suppliers, vin, engines, analogs, article-brands, categories, products, engine-search, article-links). Unauth 401 ASP.NET JSON; VIN warm 200; offline-cache routes may 404 `cache_miss` when probe params ≠ warm key. `engine-search` auth may 403 until smoke ACL includes `engine_search`.
+- Catalog still pending exact-route: `article`, `articles`, `engine`, `brand-parts`
 - Live `/migration/surface-parity` → `parity-not-yet-reached`
 - Live `/migration/presentation-parity` → `presentation-shell-scaffolded` only
 
-Approval must **not** be written until remaining surfaces have exact-route shadows + dual-sample PHP↔ASP.NET parity where required. Loopback smoke + two API shadows are insufficient for PHP removal.
+Approval must **not** be written until remaining surfaces have exact-route shadows + dual-sample PHP↔ASP.NET parity where required. Loopback smoke + catalog API shadows alone are insufficient for PHP removal (CP/ERP/BOS chrome + digests still PHP).
 
 ## Required before approval can be written
 

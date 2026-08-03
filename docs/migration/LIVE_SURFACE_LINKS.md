@@ -63,16 +63,22 @@ These are industry marketing/showcase hosts (not dedicated client DB tenants).
 
 Tenant BOS is generally Super-CP-only; tenant hosts may still answer `/BOS/` via shared PHP routing, but privileged BOS is intended for `www.ecomae.com` / `cp.ecomae.com`.
 
+## Catalog exact-route shadows (www)
+
+**Live (public unauth ASP.NET JSON 401):** price lookup + catalog status, manufacturers, models, modifications, brands, suppliers, vin, engines, analogs, article-brands, categories, products, engine-search, article-links (**14/18**).
+
+**Pending next:** `/api/v1/catalog/article` → `articles` → `engine` → `brand-parts`.
+
 ## Exact-route digests pending nginx shadow
 
-These exist in ASP.NET on loopback (`127.0.0.1:5100`) but are **not** broadly cut over on the public host yet:
+These exist in ASP.NET on loopback (`127.0.0.1:5100`) but are **not** cut over on the public host yet:
 
 - Full CP/ERP/BOS digest set in `nginx-surface-digests-shadow-example.conf` (dashboard, tenants/users/groups/menus/pages, cash/COA/warehouses/orders/invoices/GL, fleet/audit, …)
-- `/api/v1/catalog/status` plus list/offline/UMAPI catalog paths (`manufacturers`…`brand-parts`, `article`, `engine`, …)
+- Remaining catalog paths above (`article`…`brand-parts`)
 - `/storefront/account-summary`, `/storefront/orders`, `/storefront/garage`, `/storefront/profile` (optional; needs customer cookie)
 
-Enable only via `deploy/aspnet/nginx-surface-digests-shadow-example.conf` / catalog / storefront shadow examples after smoke.
+Enable only via `deploy/aspnet/nginx-surface-digests-shadow-example.conf` / catalog / storefront shadow examples after smoke. Never broad `/api|/cp|/erp|/bos|/storefront`.
 
 ## Final PHP cutover gate
 
-Still **95% / 5%**. Remaining work is authenticated staging smoke + parity samples + human `RELEASE_OWNER_APPROVAL.md`. Do not remove PHP-FPM/cron/rewrites until `/migration/php-decommission-readiness` reports ready with approval attached.
+Weighted meter still **95% / 5%** (PHP runtime decommission residual). That is **not** “95% of routes live.” Public chrome + digests remain PHP; catalog exact-routes are ~14/18. Remaining work: finish catalog shadows, digest exact-routes + dual samples, smoke ACL re-issue (`engine_search`/`article`), human `RELEASE_OWNER_APPROVAL.md`. Do not remove PHP-FPM/cron/rewrites until `/migration/php-decommission-readiness` reports ready with approval attached.
