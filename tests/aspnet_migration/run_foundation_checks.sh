@@ -382,6 +382,16 @@ check 'Helm design chart exists' test -f "$ROOT/deploy/aspnet/helm-ecomae-platfo
 check 'Helm design values block cutover' contains "$ROOT/deploy/aspnet/helm-ecomae-platform-example/values.yaml" 'cutoverAllowed: false'
 check 'Consolidated scaffold options example exists' test -f "$ROOT/deploy/aspnet/ecomae-scaffold-options.example.json"
 check 'Consolidated scaffold options block cutover' contains "$ROOT/deploy/aspnet/ecomae-scaffold-options.example.json" '"cutoverAllowed": false'
+check 'YARP surface digests design example exists' test -f "$ROOT/deploy/aspnet/yarp-surface-digests-example.json"
+check 'YARP surface digests design blocks cutover' contains "$ROOT/deploy/aspnet/yarp-surface-digests-example.json" '"cutoverAllowed": false'
+check 'YARP surface digests routeCount is 30' contains "$ROOT/deploy/aspnet/yarp-surface-digests-example.json" '"routeCount": 30'
+check 'RabbitMQ scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Messaging/EcomAeRabbitMqScaffoldOptions.cs"
+check 'RabbitMQ scaffold defaults disallow publish' contains "$ROOT/aspnet/src/EcomAE.Platform/Messaging/EcomAeRabbitMqScaffoldOptions.cs" 'AllowPublish'
+check 'Polly scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Resilience/EcomAePollyScaffoldOptions.cs"
+check 'Polly scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Resilience/IResiliencePipelineScaffold.cs"
+check 'Polly scaffold defaults do not register pipelines' contains "$ROOT/aspnet/src/EcomAE.Platform/Resilience/EcomAePollyScaffoldOptions.cs" 'RegisterPipelines'
+check 'hybrid UI dual-sample operator helper exists' test -f "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh"
+check 'hybrid UI dual-sample operator asserts cutover false' contains "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh" 'cutoverAllowed'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
 check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 47'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"

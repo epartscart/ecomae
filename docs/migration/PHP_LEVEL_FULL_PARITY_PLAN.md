@@ -130,8 +130,9 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ ERP cash EF stubs + Redis options + YARP nginx sync + Auth/Surfaces activities (#702)
 - ✅ Kafka/OpenSearch/Serilog options + Workers ActivitySource (#703)
 - ✅ Object storage + Vault options (#704)
-- **This PR:** PostgreSQL 17 options + Helm/K8s design chart + OAuth/SPA scaffold options + consolidated options example
-- Still not live: PG SoR cutover, Helm apply, OAuth replace of PHP cookies, SPA replace of Blazor hybrid
+- ✅ Postgres/Helm/OAuth/SPA options + consolidated options example (#705)
+- **This PR:** YARP surface-digests design JSON + RabbitMQ/Polly scaffolds + hybrid UI dual-sample operator helper
+- Still not live: YARP process, RabbitMQ/Polly registration, PG/Helm/OAuth/SPA cutovers
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
 Do **not** start Batch 6 cutover while interactive `aspnet-complete` is still 0 and tenants must remain same-to-same on PHP chrome.

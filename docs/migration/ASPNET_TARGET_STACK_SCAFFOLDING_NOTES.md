@@ -24,7 +24,8 @@ Scaffolding-only guidance for Enterprise BOS target components. **Nothing here e
 
 - Nginx remains the production edge during Zero-PHP.
 - Design example: `deploy/aspnet/yarp-exact-routes-example.json` (not loaded by `Program.cs`; `cutoverAllowed=false`).
-- Regenerate: `python3 scripts/generate_yarp_exact_routes_example.py` (reads presentation nginx allowlist).
+- Regenerate: `python3 scripts/generate_yarp_exact_routes_example.py` (presentation + surface digests allowlists).
+- Outputs: `yarp-exact-routes-example.json`, `yarp-surface-digests-example.json`.
 - Future YARP cluster should only proxy **exact** approved routes already shadowed in `deploy/aspnet/nginx-*-shadow-example.conf`.
 - Forbidden: catch-all `/api`, `/cp`, `/erp`, `/bos`, `/` locations.
 
@@ -50,7 +51,8 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 
 ## Messaging / search / storage (future)
 
-- Kafka 4 primary (RabbitMQ alternative): `EcomAeKafkaScaffoldOptions` + `IDomainEventPublisherScaffold` (`Enabled=false`, `AllowPublish=false`).
+- Kafka 4 primary: `EcomAeKafkaScaffoldOptions` + `IDomainEventPublisherScaffold` (`Enabled=false`, `AllowPublish=false`).
+- RabbitMQ 4 alternative: `EcomAeRabbitMqScaffoldOptions` (`AllowPublish=false`).
 - OpenSearch 3: `EcomAeOpenSearchScaffoldOptions` + `IEnterpriseSearchScaffold` (`ReplacePhpSearch=false`).
 - Azure Blob / S3 / MinIO: `EcomAeObjectStorageScaffoldOptions` + `IObjectStorageScaffold` (`ReplaceLocalFilePaths=false`).
 - Do not register producers/clients in `Program.cs` until dry-run parity evidence exists.
@@ -83,3 +85,13 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 - OAuth/MFA: `EcomAeOAuthScaffoldOptions` + `IModernIdentityScaffold` (`ReplacePhpCookieBridge=false`).
 - SPA: `EcomAeSpaScaffoldOptions` (`ReplaceBlazorHybridPresentation=false`; APIs via ASP.NET Core only).
 - Consolidated example: `deploy/aspnet/ecomae-scaffold-options.example.json`.
+
+## Polly resilience (not registered)
+
+- Scaffold types: `EcomAePollyScaffoldOptions`, `IResiliencePipelineScaffold` (`RegisterPipelines=false`).
+- Do not register pipelines in `Program.cs` until staging policy composition is approved.
+
+## Hybrid UI dual-sample operator helper
+
+- `bash scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh`
+- Asserts compare-result keeps `cutoverAllowed=false`.

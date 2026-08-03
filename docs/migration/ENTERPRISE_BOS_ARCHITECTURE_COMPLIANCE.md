@@ -37,11 +37,12 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | EF Core 10 primary ORM | 🔶 package + bounded-context stubs | `Microsoft.EntityFrameworkCore` 10.0.0 referenced; Catalog/TenantRegistry/Identity/ERP stubs on `EcomAeScaffoldDbContext` (not registered in `Program.cs`); production still uses `MySqlConnector` ADO |
 | PostgreSQL 17 primary SoR | 🔶 options scaffold | `EcomAePostgresScaffoldOptions` + `IPostgresMigrationScaffold` unwired (`ReplaceMysqlBridge=false`); MySQL/MariaDB remains bridge SoR |
 | Redis 8 | 🔶 options scaffold | `EcomAeRedisScaffoldOptions` + `IDistributedCacheScaffold` unwired; PHP cookies remain authoritative (`ReplacePhpSessionCookies=false`) |
-| Kafka 4 (or RabbitMQ) | 🔶 options scaffold | `EcomAeKafkaScaffoldOptions` + `IDomainEventPublisherScaffold` unwired (`AllowPublish=false`); dry-run workers only |
+| Kafka 4 (or RabbitMQ) | 🔶 options scaffold | Kafka + RabbitMQ options unwired (`AllowPublish=false`); dry-run workers only |
 | OpenSearch 3 | 🔶 options scaffold | `EcomAeOpenSearchScaffoldOptions` + `IEnterpriseSearchScaffold` unwired (`ReplacePhpSearch=false`) |
 | Object storage (Blob/S3/MinIO) | 🔶 options scaffold | `EcomAeObjectStorageScaffoldOptions` + `IObjectStorageScaffold` unwired (`ReplaceLocalFilePaths=false`) |
-| YARP / Kong gateway | 🔶 design example | Nginx edge today; YARP JSON generated from presentation nginx allowlist (`generate_yarp_exact_routes_example.py`); not loaded; never catch-all |
+| YARP / Kong gateway | 🔶 design example | Nginx edge today; YARP JSON for presentation + surface digests (`generate_yarp_exact_routes_example.py`); not loaded; never catch-all |
 | OpenTelemetry / Serilog | 🔶 scaffolding | ActivitySources + `EcomAeSerilogScaffoldOptions` (`RegisterExporters=false`); Workers ActivitySource mirror; exporters/sinks not registered |
+| Polly resilience pipelines | 🔶 options scaffold | `EcomAePollyScaffoldOptions` + `IResiliencePipelineScaffold` unwired (`RegisterPipelines=false`) |
 | Vault / Key Vault | 🔶 options scaffold | `EcomAeVaultScaffoldOptions` + `ISecretStoreScaffold` unwired (`ReplaceEnvFileSecrets=false`); CloudPanel env files remain current |
 | K8s / Helm / GitOps | 🔶 design chart | `deploy/aspnet/helm-ecomae-platform-example/` design-only (`cutoverAllowed=false`); CloudPanel VM is current host |
 | Angular 20 / React 19 | 🔶 options scaffold | `EcomAeSpaScaffoldOptions` unwired (`ReplaceBlazorHybridPresentation=false`); interim UI remains Blazor SSR hybrid |
