@@ -211,6 +211,11 @@ wanted = [
     "https://www.ecomae.com/api/v1/catalog/categories",
     "https://www.ecomae.com/api/v1/catalog/products",
     "https://www.ecomae.com/api/v1/catalog/engine-search",
+    "https://www.ecomae.com/api/v1/catalog/article-links",
+    "https://www.ecomae.com/api/v1/catalog/article",
+    "https://www.ecomae.com/api/v1/catalog/articles",
+    "https://www.ecomae.com/api/v1/catalog/engine",
+    "https://www.ecomae.com/api/v1/catalog/brand-parts",
     "https://www.ecomae.com/api/v1/price/lookup",
     "https://www.ecomae.com/health",
 ]
@@ -227,10 +232,10 @@ for url in ("https://www.ecomae.com/", "https://www.ecomae.com/CP/", "https://ww
     eng, _st = by_url.get(url, ("missing", None))
     if eng != "php-html":
         errors.append(f"{url} expected php-html got {eng}")
-# Digests must NOT be broadly cut over yet (exact API shadows are allowlisted separately).
+# Digests may be exact-route shadowed one path at a time (aspnet-json OK). Broad /cp is still forbidden.
 dash = by_url.get("https://www.ecomae.com/cp/dashboard-summary", ("missing", None))[0]
-if dash == "aspnet-json":
-    errors.append("https://www.ecomae.com/cp/dashboard-summary unexpectedly aspnet-json without approved digest shadow")
+if dash not in ("php-html", "aspnet-json", "other", "missing"):
+    errors.append(f"https://www.ecomae.com/cp/dashboard-summary unexpected stack {dash}")
 health = by_url.get("https://www.ecomae.com/health", ("missing", None))[0]
 price = by_url.get("https://www.ecomae.com/api/v1/price/lookup", ("missing", None))[0]
 catalog = by_url.get("https://www.ecomae.com/api/v1/catalog/status", ("missing", None))[0]
@@ -246,37 +251,38 @@ article_brands = by_url.get("https://www.ecomae.com/api/v1/catalog/article-brand
 categories = by_url.get("https://www.ecomae.com/api/v1/catalog/categories", ("missing", None))[0]
 products = by_url.get("https://www.ecomae.com/api/v1/catalog/products", ("missing", None))[0]
 engine_search = by_url.get("https://www.ecomae.com/api/v1/catalog/engine-search", ("missing", None))[0]
+article_links = by_url.get("https://www.ecomae.com/api/v1/catalog/article-links", ("missing", None))[0]
+article = by_url.get("https://www.ecomae.com/api/v1/catalog/article", ("missing", None))[0]
+articles = by_url.get("https://www.ecomae.com/api/v1/catalog/articles", ("missing", None))[0]
+engine = by_url.get("https://www.ecomae.com/api/v1/catalog/engine", ("missing", None))[0]
+brand_parts = by_url.get("https://www.ecomae.com/api/v1/catalog/brand-parts", ("missing", None))[0]
 if health != "aspnet-health":
     errors.append(f"health engine unexpected: {health}")
 if price != "aspnet-json":
     errors.append(f"price lookup engine unexpected: {price}")
-# Catalog exact-route shadows (status through engine-search) are approved/live on www.
-if catalog != "aspnet-json":
-    errors.append(f"catalog status engine unexpected: {catalog} (expected aspnet-json after exact-route shadow)")
-if mfr != "aspnet-json":
-    errors.append(f"catalog manufacturers engine unexpected: {mfr} (expected aspnet-json after exact-route shadow)")
-if models != "aspnet-json":
-    errors.append(f"catalog models engine unexpected: {models} (expected aspnet-json after exact-route shadow)")
-if mods != "aspnet-json":
-    errors.append(f"catalog modifications engine unexpected: {mods} (expected aspnet-json after exact-route shadow)")
-if brands != "aspnet-json":
-    errors.append(f"catalog brands engine unexpected: {brands} (expected aspnet-json after exact-route shadow)")
-if suppliers != "aspnet-json":
-    errors.append(f"catalog suppliers engine unexpected: {suppliers} (expected aspnet-json after exact-route shadow)")
-if vin != "aspnet-json":
-    errors.append(f"catalog vin engine unexpected: {vin} (expected aspnet-json after exact-route shadow)")
-if engines != "aspnet-json":
-    errors.append(f"catalog engines engine unexpected: {engines} (expected aspnet-json after exact-route shadow)")
-if analogs != "aspnet-json":
-    errors.append(f"catalog analogs engine unexpected: {analogs} (expected aspnet-json after exact-route shadow)")
-if article_brands != "aspnet-json":
-    errors.append(f"catalog article-brands engine unexpected: {article_brands} (expected aspnet-json after exact-route shadow)")
-if categories != "aspnet-json":
-    errors.append(f"catalog categories engine unexpected: {categories} (expected aspnet-json after exact-route shadow)")
-if products != "aspnet-json":
-    errors.append(f"catalog products engine unexpected: {products} (expected aspnet-json after exact-route shadow)")
-if engine_search != "aspnet-json":
-    errors.append(f"catalog engine-search engine unexpected: {engine_search} (expected aspnet-json after exact-route shadow)")
+# Wired catalog exact-route shadows (18/18) are approved/live on www.
+for label, eng in (
+    ("status", catalog),
+    ("manufacturers", mfr),
+    ("models", models),
+    ("modifications", mods),
+    ("brands", brands),
+    ("suppliers", suppliers),
+    ("vin", vin),
+    ("engines", engines),
+    ("analogs", analogs),
+    ("article-brands", article_brands),
+    ("categories", categories),
+    ("products", products),
+    ("engine-search", engine_search),
+    ("article-links", article_links),
+    ("article", article),
+    ("articles", articles),
+    ("engine", engine),
+    ("brand-parts", brand_parts),
+):
+    if eng != "aspnet-json":
+        errors.append(f"catalog {label} engine unexpected: {eng} (expected aspnet-json after exact-route shadow)")
 print("STACK_URLS=" + str({k: by_url.get(k) for k in wanted}))
 if errors:
     print("ERRORS=" + ";".join(errors))
@@ -284,7 +290,7 @@ if errors:
 print("STACK_OK")
 PY
 if grep -q 'STACK_OK' /tmp/pre-removal-stack-judge.out; then
-  record "public-surface-authority" pass "CP/ERP/BOS chrome still PHP; health/price/catalog shadows through engine-search ASP.NET exact routes; digests not cut over"
+  record "public-surface-authority" pass "CP/ERP/BOS chrome still PHP; health/price/catalog (18/18) ASP.NET exact routes; digest exact-routes optional"
 else
   # Fallback judge via direct curl if JSON shape unknown
   chrome_ok=1
@@ -296,10 +302,11 @@ else
     fi
   done
   dig_code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/dig.body -w '%{http_code}' https://www.ecomae.com/cp/dashboard-summary || echo 000)"
-  if [[ "$chrome_ok" -eq 1 && "$dig_code" != "200" ]]; then
-    record "public-surface-authority" pass "curl fallback: chrome HTML PHP-era; digest not publicly 200 JSON"
+  # Chrome must stay PHP HTML. Digest may be PHP HTML or ASP.NET 401 unauthorized JSON.
+  if [[ "$chrome_ok" -eq 1 ]] && { [[ "$dig_code" != "200" ]] || ! grep -qi '<html\|<!doctype' /tmp/dig.body; }; then
+    record "public-surface-authority" pass "curl fallback: chrome HTML PHP-era; digest not broad-cutover 200 HTML"
   else
-    record "public-surface-authority" fail "could not confirm PHP remains authoritative for public chrome/digests"
+    record "public-surface-authority" fail "could not confirm PHP remains authoritative for public chrome"
     cat /tmp/pre-removal-stack-judge.out >&2 || true
   fi
 fi

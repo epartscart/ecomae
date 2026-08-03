@@ -120,7 +120,7 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("aspnet-exact-route-shadow-live", "Catalog article", "https://www.ecomae.com/api/v1/catalog/article?section=passenger&id=123", "aspnet", "/api/v1/catalog/article", "Live exact-route nginx shadow on www (unauth 401; auth needs id + action=article; offline-cache miss 404 remains PHP/UMAPI). Exact-match installer fix required so article is not confused with article-links."),
             Link("aspnet-exact-route-shadow-live", "Catalog articles", "https://www.ecomae.com/api/v1/catalog/articles?section=passenger&CATEGORY_ID=1", "aspnet", "/api/v1/catalog/articles", "Live exact-route nginx shadow on www (unauth 401; auth action=articles; opportunistic cache, miss 404 remains PHP/UMAPI)."),
             Link("aspnet-exact-route-shadow-live", "Catalog engine", "https://www.ecomae.com/api/v1/catalog/engine?section=passenger&id=1", "aspnet", "/api/v1/catalog/engine", "Live exact-route nginx shadow on www (unauth 401; auth uses engines action; offline-cache miss 404 remains PHP/UMAPI). Exact-match installer avoids false hit on engines/engine-search."),
-            Link("aspnet-digest-pending-shadow", "Catalog brand-parts", "https://www.ecomae.com/api/v1/catalog/brand-parts", "php-fallback", "/api/v1/catalog/brand-parts", "compare_catalog_brand_parts_parity.py + nginx-catalog-brand-parts-shadow-example.conf."),
+            Link("aspnet-exact-route-shadow-live", "Catalog brand-parts", "https://www.ecomae.com/api/v1/catalog/brand-parts?section=passenger&brand=BOSCH", "aspnet", "/api/v1/catalog/brand-parts", "Live exact-route nginx shadow on www (unauth 401; auth needs brand/params; miss 404 remains PHP). Completes wired catalog API exact-route set (18/18)."),
             Link("aspnet-digest-pending-shadow", "Storefront account summary", "https://www.ecomae.com/storefront/account-summary", "php-fallback", "/storefront/account-summary", "Optional customer digest; needs ECOMAE_CUSTOMER_COOKIE_* + nginx-storefront-digests-shadow-example.conf."),
             Link("aspnet-digest-pending-shadow", "Storefront orders", "https://www.ecomae.com/storefront/orders", "php-fallback", "/storefront/orders", "Optional customer digest; not required for ReadyToRemovePhp."),
             Link("aspnet-digest-pending-shadow", "Storefront garage", "https://www.ecomae.com/storefront/garage", "php-fallback", "/storefront/garage", "Optional customer digest after smoke."),
@@ -150,8 +150,9 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article_links",
                 "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article",
                 "If engine-search/article auth 403 action_not_allowed: re-issue smoke creds (allowlist now includes engine_search+article) via ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
-                "Next exact-route: ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /api/v1/catalog/brand-parts",
-                "Last wired catalog exact-route after brand-parts; then CP/ERP/BOS digest shadows + dual samples (not broad cutover).",
+                "Wired catalog exact-routes complete (18/18). Next: CP/ERP/BOS digests one location= at a time (Cookie proxy; not broad /cp).",
+                "Next exact-route: ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /cp/dashboard-summary",
+                "Then continue digests from deploy/aspnet/nginx-surface-digests-shadow-example.conf (tenants, users, …) after dual samples.",
                 "Dual-sample: python3 scripts/compare_catalog_list_parity.py manufacturers|models|modifications|brands|suppliers php.json aspnet.json — PHP chrome stays until human APPROVED_TO_REMOVE_PHP_FALLBACK."
             ]);
     }

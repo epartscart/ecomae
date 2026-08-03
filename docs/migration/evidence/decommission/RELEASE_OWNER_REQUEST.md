@@ -18,9 +18,9 @@ Authenticated **loopback** CloudPanel staging smoke is attached on `main` (PR #6
 Public frontend/backend authority is **still PHP** for product chrome:
 
 - `https://www.ecomae.com/`, `/CP/`, `/ERP/`, `/BOS/` → PHP HTML
-- Public `/cp/dashboard-summary` is **not** cut over yet
-- Approved exact-route API shadows on www: `/health`, `/migration/*`, `/api/v1/price/lookup`, catalog **17/18** through `engine` (status, manufacturers, models, modifications, brands, suppliers, vin, engines, analogs, article-brands, categories, products, engine-search, article-links, article, articles, engine). Unauth 401 ASP.NET JSON; VIN warm 200; offline-cache routes may 404 `cache_miss` when probe params ≠ warm key.
-- Catalog still pending exact-route: `brand-parts`
+- Public `/cp/dashboard-summary` is **not** cut over yet (next exact-route candidate)
+- Approved exact-route API shadows on www: `/health`, `/migration/*`, `/api/v1/price/lookup`, catalog **18/18** complete through `brand-parts`. Unauth 401 ASP.NET JSON; VIN warm 200; offline-cache routes may 404 `cache_miss` when probe params ≠ warm key.
+- Next class: CP/ERP/BOS digest exact-routes (start `/cp/dashboard-summary`)
 - Live `/migration/surface-parity` → `parity-not-yet-reached`
 - Live `/migration/presentation-parity` → `presentation-shell-scaffolded` only
 

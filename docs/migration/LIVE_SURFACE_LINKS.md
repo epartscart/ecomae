@@ -65,20 +65,19 @@ Tenant BOS is generally Super-CP-only; tenant hosts may still answer `/BOS/` via
 
 ## Catalog exact-route shadows (www)
 
-**Live (public unauth ASP.NET JSON 401):** price lookup + catalog status, manufacturers, models, modifications, brands, suppliers, vin, engines, analogs, article-brands, categories, products, engine-search, article-links, article, articles, engine (**17/18**).
+**Live (public unauth ASP.NET JSON 401):** price lookup + **all wired catalog API paths (18/18)** through `brand-parts`.
 
-**Pending next:** `/api/v1/catalog/brand-parts` (last wired catalog API shadow).
+**Pending next:** CP/ERP/BOS digests — start `/cp/dashboard-summary` (Cookie proxy; unauth `401 unauthorized`).
 
 ## Exact-route digests pending nginx shadow
 
 These exist in ASP.NET on loopback (`127.0.0.1:5100`) but are **not** cut over on the public host yet:
 
 - Full CP/ERP/BOS digest set in `nginx-surface-digests-shadow-example.conf` (dashboard, tenants/users/groups/menus/pages, cash/COA/warehouses/orders/invoices/GL, fleet/audit, …)
-- Remaining catalog path above (`brand-parts`)
 - `/storefront/account-summary`, `/storefront/orders`, `/storefront/garage`, `/storefront/profile` (optional; needs customer cookie)
 
 Enable only via `deploy/aspnet/nginx-surface-digests-shadow-example.conf` / catalog / storefront shadow examples after smoke. Never broad `/api|/cp|/erp|/bos|/storefront`.
 
 ## Final PHP cutover gate
 
-Weighted meter still **95% / 5%** (PHP runtime decommission residual). That is **not** “95% of routes live.” Public chrome + digests remain PHP; catalog exact-routes are ~14/18. Remaining work: finish catalog shadows, digest exact-routes + dual samples, smoke ACL re-issue (`engine_search`/`article`), human `RELEASE_OWNER_APPROVAL.md`. Do not remove PHP-FPM/cron/rewrites until `/migration/php-decommission-readiness` reports ready with approval attached.
+Weighted meter still **95% / 5%** (PHP runtime decommission residual). That is **not** “95% of routes live.” Wired catalog exact-routes are **18/18**; public chrome + digests remain PHP. Remaining work: digest exact-routes + dual samples, human `RELEASE_OWNER_APPROVAL.md`. Do not remove PHP-FPM/cron/rewrites until `/migration/php-decommission-readiness` reports ready with approval attached.
