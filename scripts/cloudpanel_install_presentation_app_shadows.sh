@@ -39,7 +39,7 @@ for m in re.finditer(r"(?m)^(location = (/[^\s{]+)\s*\{.*?\n\})", example, flags
         raise SystemExit(f"ERROR: refusing broad path {route}")
     indented="\n".join(("  "+line if line.strip() else line) for line in block_raw.splitlines())
     blocks.append((route, indented.rstrip()+"\n"))
-expected = 15  # 4 apps + 4 logins + auth/login/admin + orders×2 + users-app + groups-app + sales-orders-app + search-app
+expected = 16  # 4 apps + 4 logins + auth/login/admin + orders×2 + users-app + groups-app + sales-orders-app + search-app + cart-app
 if len(blocks) != expected:
     raise SystemExit(f"ERROR: expected {expected} presentation/login routes, found {len(blocks)}")
 inserted=[]; already=[]

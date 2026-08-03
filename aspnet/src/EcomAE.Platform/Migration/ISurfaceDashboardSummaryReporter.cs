@@ -73,4 +73,7 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Batch 4: read-only authenticated customer cart (qty/checkout writes remain PHP).</summary>
+    Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default);
 }

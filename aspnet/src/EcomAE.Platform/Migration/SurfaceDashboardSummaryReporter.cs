@@ -942,6 +942,68 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        var emptySummary = new StorefrontCartSummary(0, 0m, "migration", "TenantRegistry DB is not configured.");
+        if (userId <= 0)
+        {
+            return new(0, new(0, 0m, "rejected", "Valid customer user id is required."), [], 0, "rejected", "Valid customer user id is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, emptySummary, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var count = 0;
+            var sum = 0m;
+            await using (var summaryCmd = connection.CreateCommand())
+            {
+                summaryCmd.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCartSummary;
+                AddParameter(summaryCmd, "@userId", userId);
+                await using var summaryReader = await summaryCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await summaryReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    count = Convert.ToInt32(summaryReader["count"] is DBNull ? 0 : summaryReader["count"], CultureInfo.InvariantCulture);
+                    sum = Convert.ToDecimal(summaryReader["sum"] is DBNull ? 0m : summaryReader["sum"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCartLines;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<StorefrontCartLineDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontCartLineDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["price"] is DBNull ? 0m : reader["price"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["count_need"] is DBNull ? 0m : reader["count_need"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["checked_for_order"] is DBNull ? 0 : reader["checked_for_order"], CultureInfo.InvariantCulture) != 0,
+                    Convert.ToInt32(reader["product_type"] is DBNull ? 0 : reader["product_type"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["time_to_exe"] is DBNull ? string.Empty : reader["time_to_exe"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["time_to_exe_guaranteed"] is DBNull ? string.Empty : reader["time_to_exe_guaranteed"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToDecimal(reader["min_order"] is DBNull ? 0m : reader["min_order"], CultureInfo.InvariantCulture)));
+            }
+
+            var summary = new StorefrontCartSummary(count, sum, "database", string.Empty);
+            return new(userId, summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, new(0, 0m, "database-error", ex.Message), [], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpMenuListResult> ListCpMenusAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

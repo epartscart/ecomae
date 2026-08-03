@@ -45,9 +45,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var apiClients = await reporter.ListCpApiClientsMetaAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
+        var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
+        var cart = await reporter.ListStorefrontCartAsync(9, 10);
 
         Assert.Equal("empty", partSearchEmpty.Source);
         Assert.Equal("migration", partSearch.Source);
+        Assert.Equal("rejected", cartRejected.Source);
+        Assert.Equal("migration", cart.Source);
         Assert.Equal("migration", cp.Source);
         Assert.Equal("migration", erp.Source);
         Assert.Equal("migration", bos.Source);
@@ -124,6 +128,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_api_clients", LegacySurfaceDashboardSql.SelectCpApiClientsMeta, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("article_search", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        Assert.Contains("shop_carts", LegacySurfaceDashboardSql.SelectStorefrontCartSummary, StringComparison.Ordinal);
+        Assert.Contains("shop_carts", LegacySurfaceDashboardSql.SelectStorefrontCartLines, StringComparison.Ordinal);
+        Assert.DoesNotContain("DELETE", LegacySurfaceDashboardSql.SelectStorefrontCartLines, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("client_key_hash", LegacySurfaceDashboardSql.SelectCpApiClientsMeta, StringComparison.Ordinal);
         Assert.DoesNotContain("`session`", LegacySurfaceDashboardSql.SelectCpAdminSessions, StringComparison.Ordinal);
         Assert.DoesNotContain("INSERT", LegacySurfaceDashboardSql.SumSupplierCredit, StringComparison.OrdinalIgnoreCase);
