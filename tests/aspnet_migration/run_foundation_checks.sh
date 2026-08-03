@@ -343,8 +343,8 @@ check 'Enterprise BOS instructions are canonical project law' contains "$ROOT/do
 check 'Enterprise BOS forbids Java Node Go PHP backends' contains "$ROOT/docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md" 'Do not introduce Java Spring Boot, Node.js backend, Go backend, PHP'
 check 'Enterprise BOS requires PostgreSQL 17' contains "$ROOT/docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md" 'PostgreSQL 17'
 check 'Enterprise BOS requires Python AI-only' contains "$ROOT/docs/migration/PROJECT_ARCHITECTURE_INSTRUCTIONS.md" 'Use Python only for AI-related workloads'
-check 'Enterprise BOS compliance marks PG17 not migrated' contains "$ROOT/docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md" '❌ not migrated'
-check 'Enterprise BOS compliance marks Redis not wired' contains "$ROOT/docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md" 'Redis 8'
+check 'Enterprise BOS compliance keeps MySQL bridge for PG17' contains "$ROOT/docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md" 'ReplaceMysqlBridge=false'
+check 'Enterprise BOS compliance marks Redis scaffold unwired' contains "$ROOT/docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md" 'ReplacePhpSessionCookies=false'
 check 'EF Core 10 package referenced by platform' contains "$ROOT/aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj" 'Microsoft.EntityFrameworkCore'
 check 'EF Core scaffold DbContext exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/EcomAeScaffoldDbContext.cs"
 check 'EF tenant registry stub exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/TenantRegistryStub.cs"
@@ -370,6 +370,18 @@ check 'Object storage scaffold defaults keep local paths' contains "$ROOT/aspnet
 check 'Vault scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/EcomAeVaultScaffoldOptions.cs"
 check 'Vault secret store scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/ISecretStoreScaffold.cs"
 check 'Vault scaffold defaults keep env-file secrets' contains "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/EcomAeVaultScaffoldOptions.cs" 'ReplaceEnvFileSecrets'
+check 'Postgres scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/EcomAePostgresScaffoldOptions.cs"
+check 'Postgres migration scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/IPostgresMigrationScaffold.cs"
+check 'Postgres scaffold defaults keep MySQL bridge' contains "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/EcomAePostgresScaffoldOptions.cs" 'ReplaceMysqlBridge'
+check 'OAuth scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/Scaffolding/EcomAeOAuthScaffoldOptions.cs"
+check 'OAuth modern identity scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/Scaffolding/IModernIdentityScaffold.cs"
+check 'OAuth scaffold defaults keep PHP cookie bridge' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/Scaffolding/EcomAeOAuthScaffoldOptions.cs" 'ReplacePhpCookieBridge'
+check 'SPA scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Presentation/Scaffolding/EcomAeSpaScaffoldOptions.cs"
+check 'SPA scaffold defaults keep Blazor hybrid' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/Scaffolding/EcomAeSpaScaffoldOptions.cs" 'ReplaceBlazorHybridPresentation'
+check 'Helm design chart exists' test -f "$ROOT/deploy/aspnet/helm-ecomae-platform-example/Chart.yaml"
+check 'Helm design values block cutover' contains "$ROOT/deploy/aspnet/helm-ecomae-platform-example/values.yaml" 'cutoverAllowed: false'
+check 'Consolidated scaffold options example exists' test -f "$ROOT/deploy/aspnet/ecomae-scaffold-options.example.json"
+check 'Consolidated scaffold options block cutover' contains "$ROOT/deploy/aspnet/ecomae-scaffold-options.example.json" '"cutoverAllowed": false'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
 check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 47'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"

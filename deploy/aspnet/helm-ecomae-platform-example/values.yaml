@@ -1,0 +1,60 @@
+# DESIGN ONLY — not applied by CloudPanel deploy scripts.
+# cutoverAllowed=false; PHP product chrome remains authoritative.
+cutoverAllowed: false
+readyForPhpRemoval: false
+phpFallbackRequired: true
+
+replicaCount: 1
+
+image:
+  repository: ecomae/platform
+  tag: "scaffold"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 5100
+
+# Exact-route edge remains Nginx (or future YARP behind Nginx). Never catch-all /api /cp /erp /bos /.
+ingress:
+  enabled: false
+  className: ""
+  hosts: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+# Scaffold option sections — all disabled; never paste secrets here.
+ecomae:
+  postgres:
+    enabled: false
+    replaceMysqlBridge: false
+  redis:
+    enabled: false
+    replacePhpSessionCookies: false
+  kafka:
+    enabled: false
+    allowPublish: false
+  openSearch:
+    enabled: false
+    replacePhpSearch: false
+  objectStorage:
+    enabled: false
+    replaceLocalFilePaths: false
+  vault:
+    enabled: false
+    replaceEnvFileSecrets: false
+  oauth:
+    enabled: false
+    replacePhpCookieBridge: false
+  spa:
+    enabled: false
+    replaceBlazorHybridPresentation: false
+  serilog:
+    enabled: false
+    registerExporters: false

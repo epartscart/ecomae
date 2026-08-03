@@ -16,7 +16,8 @@ Scaffolding-only guidance for Enterprise BOS target components. **Nothing here e
 - Unwired contracts: `ICatalogScaffoldRepository`, `ITenantRegistryScaffoldRepository`, `IErpScaffoldRepository` (no DI registration).
 - **Not wired:** `Program.cs` must not call `AddDbContext` until repository cutover is approved.
 - Bridge phase: keep read-only SQL digests via `MySqlConnector`; introduce DbContext per bounded context (Catalog, Identity, ERP, TenantRegistry) without dual-write.
-- PostgreSQL 17 is the long-term primary SoR; do not claim PG live until migration + parity evidence exist.
+- PostgreSQL 17 is the long-term primary SoR: `EcomAePostgresScaffoldOptions` + `IPostgresMigrationScaffold` (`ReplaceMysqlBridge=false`).
+- Do not claim PG live until migration + parity evidence exist.
 - SQL Server 2025 remains the documented alternative, not the current path.
 
 ## YARP gateway design (not enabled)
@@ -71,3 +72,14 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 - Scaffold types: `EcomAeVaultScaffoldOptions`, `ISecretStoreScaffold` (`ReplaceEnvFileSecrets=false`).
 - CloudPanel env files remain the current secret source.
 - Never commit credentials or paste secrets into PR comments.
+
+## Helm / K8s (design only)
+
+- Example chart: `deploy/aspnet/helm-ecomae-platform-example/` (`cutoverAllowed=false`, CloudPanel VM remains current).
+- Do not apply this chart for production cutover or PHP removal.
+
+## OAuth / SPA targets (not bound)
+
+- OAuth/MFA: `EcomAeOAuthScaffoldOptions` + `IModernIdentityScaffold` (`ReplacePhpCookieBridge=false`).
+- SPA: `EcomAeSpaScaffoldOptions` (`ReplaceBlazorHybridPresentation=false`; APIs via ASP.NET Core only).
+- Consolidated example: `deploy/aspnet/ecomae-scaffold-options.example.json`.

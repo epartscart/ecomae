@@ -129,8 +129,9 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ TenantRegistry/Identity stubs + YARP design example + ActivitySource Data (#701)
 - ✅ ERP cash EF stubs + Redis options + YARP nginx sync + Auth/Surfaces activities (#702)
 - ✅ Kafka/OpenSearch/Serilog options + Workers ActivitySource (#703)
-- **This PR:** Object storage + Vault/Key Vault scaffold options/contracts (unwired)
-- Still not live: clients for Redis/Kafka/OpenSearch/Blob/Vault, `AddDbContext`, OTLP sinks, PG17
+- ✅ Object storage + Vault options (#704)
+- **This PR:** PostgreSQL 17 options + Helm/K8s design chart + OAuth/SPA scaffold options + consolidated options example
+- Still not live: PG SoR cutover, Helm apply, OAuth replace of PHP cookies, SPA replace of Blazor hybrid
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
 Do **not** start Batch 6 cutover while interactive `aspnet-complete` is still 0 and tenants must remain same-to-same on PHP chrome.

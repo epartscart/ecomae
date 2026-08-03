@@ -1,0 +1,10 @@
+apiVersion: v2
+name: ecomae-platform-example
+description: DESIGN ONLY Helm chart for future K8s/GitOps. CloudPanel VM remains the current host. Not for production cutover.
+type: application
+version: 0.0.1
+appVersion: "10.0"
+annotations:
+  ecomae.cutoverAllowed: "false"
+  ecomae.readyForPhpRemoval: "false"
+  ecomae.hosting: "cloudpanel-vm-current"
