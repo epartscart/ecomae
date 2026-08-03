@@ -1,7 +1,10 @@
 <?php
 /**
  * Shared DB bootstrap for final-gate smoke issuer / ensure-table helpers.
- * Prefer PHP DP_Config credentials into ASP.NET TenantRegistry database.
+ *
+ * Prefer ConnectionStrings__TenantRegistry (same DB ASP.NET reads), then PHP
+ * DP_Config user into that TenantRegistry database. Never silently write API
+ * keys into a PHP DB that differs from TenantRegistry unless explicitly allowed.
  */
 declare(strict_types=1);
 
@@ -28,6 +31,15 @@ function smoke_parse_env_file(string $path): array
 		$out[$k] = $v;
 	}
 	return $out;
+}
+
+/**
+ * Quote a value for bash `source` / EnvironmentFile-safe KEY='value' lines.
+ * Critical for cookies that contain ';' — unquoted values truncate at semicolon.
+ */
+function smoke_bash_quote(string $value): string
+{
+	return "'" . str_replace("'", "'\\''", $value) . "'";
 }
 
 /**
@@ -140,6 +152,15 @@ function smoke_pdo_connect(string $host, string $db, string $user, string $pass)
 }
 
 /**
+ * Open the DB ASP.NET TenantRegistry uses (required for API key / session smokes).
+ *
+ * Order:
+ * 1) ECOMAE_SMOKE_DB_* override
+ * 2) ConnectionStrings__TenantRegistry user/password/database (same as platform)
+ * 3) PHP DP_Config user → TenantRegistry database
+ * 4) PHP DP_Config database only when it matches TenantRegistry db, or
+ *    ECOMAE_SMOKE_ALLOW_PHP_DB_MISMATCH=YES (discouraged)
+ *
  * @param array<string,string> $env
  * @return array{0: PDO, 1: string}
  */
@@ -158,7 +179,25 @@ function smoke_open_pdo(array $env): array
 	$dotnet = smoke_parse_dotnet_conn($env['ConnectionStrings__TenantRegistry'] ?? '');
 	$docroot = smoke_resolve_php_docroot();
 	$phpCfg = $docroot !== '' ? smoke_load_php_dp_config($docroot) : null;
+	$errors = [];
 
+	// 1) Prefer full TenantRegistry DSN — ASP.NET reads this DB for keys + sessions.
+	if (($dotnet['db'] ?? '') !== '' && ($dotnet['user'] ?? '') !== '') {
+		try {
+			$pdo = smoke_pdo_connect(
+				(string) ($dotnet['host'] ?: '127.0.0.1'),
+				(string) $dotnet['db'],
+				(string) $dotnet['user'],
+				(string) ($dotnet['password'] ?? '')
+			);
+			return [$pdo, "ConnectionStrings__TenantRegistry user={$dotnet['user']} db={$dotnet['db']}"];
+		} catch (Throwable $e) {
+			$errors[] = 'TenantRegistry DSN: ' . $e->getMessage();
+			fwrite(STDERR, "WARN: ConnectionStrings__TenantRegistry PDO failed: " . $e->getMessage() . "\n");
+		}
+	}
+
+	// 2) PHP app user into TenantRegistry database (common when DSN user is read-only).
 	if ($phpCfg !== null && ($dotnet['db'] ?? '') !== '') {
 		try {
 			$pdo = smoke_pdo_connect(
@@ -169,23 +208,44 @@ function smoke_open_pdo(array $env): array
 			);
 			return [$pdo, "php-DP_Config user → TenantRegistry db={$dotnet['db']} (docroot={$docroot})"];
 		} catch (Throwable $e) {
+			$errors[] = 'PHP→TenantRegistry: ' . $e->getMessage();
 			fwrite(STDERR, "WARN: PHP user → TenantRegistry db failed: " . $e->getMessage() . "\n");
 		}
 	}
 
+	// 3) PHP DP_Config DB — only when it matches TenantRegistry, or explicit mismatch allow.
 	if ($phpCfg !== null) {
+		$tenantDb = (string) ($dotnet['db'] ?? '');
+		$phpDb = (string) $phpCfg['db'];
+		$mismatch = $tenantDb !== '' && $tenantDb !== $phpDb;
+		$allowMismatch = getenv('ECOMAE_SMOKE_ALLOW_PHP_DB_MISMATCH') === 'YES';
+
+		if ($mismatch && !$allowMismatch) {
+			fwrite(STDERR, "BLOCKED: refusing to use PHP db={$phpDb} because ASP.NET TenantRegistry db={$tenantDb}.\n");
+			fwrite(STDERR, "Keys written to the PHP DB are invisible to ASP.NET (price/catalog HTTP 500).\n");
+			fwrite(STDERR, "Fix one of:\n");
+			fwrite(STDERR, "  1) Ensure ConnectionStrings__TenantRegistry user can CONNECT/INSERT on db={$tenantDb}\n");
+			fwrite(STDERR, "  2) GRANT the PHP DB user access to {$tenantDb}, then re-run\n");
+			fwrite(STDERR, "  3) Align Database= in ConnectionStrings__TenantRegistry with PHP DP_Config db\n");
+			fwrite(STDERR, "  4) Or set ECOMAE_SMOKE_DB_USER/NAME/PASSWORD to a writable TenantRegistry login\n");
+			fwrite(STDERR, "Discouraged escape hatch: ECOMAE_SMOKE_ALLOW_PHP_DB_MISMATCH=YES (ASP.NET still will not see keys)\n");
+			if ($errors !== []) {
+				fwrite(STDERR, "Prior connect errors:\n  - " . implode("\n  - ", $errors) . "\n");
+			}
+			exit(2);
+		}
+
 		try {
 			$pdo = smoke_pdo_connect(
 				(string) $phpCfg['host'],
-				(string) $phpCfg['db'],
+				$phpDb,
 				(string) $phpCfg['user'],
 				(string) $phpCfg['password']
 			);
-			$note = '';
-			if (($dotnet['db'] ?? '') !== '' && $dotnet['db'] !== $phpCfg['db']) {
-				$note = " WARN: PHP db={$phpCfg['db']} differs from TenantRegistry db={$dotnet['db']} — ASP.NET may not see keys";
-			}
-			return [$pdo, "php-DP_Config db={$phpCfg['db']} (docroot={$docroot}){$note}"];
+			$note = $mismatch
+				? " WARN: PHP db={$phpDb} differs from TenantRegistry db={$tenantDb} — ASP.NET may not see keys (ECOMAE_SMOKE_ALLOW_PHP_DB_MISMATCH=YES)"
+				: '';
+			return [$pdo, "php-DP_Config db={$phpDb} (docroot={$docroot}){$note}"];
 		} catch (Throwable $e) {
 			fwrite(STDERR, "WARN: PHP DP_Config PDO failed: " . $e->getMessage() . "\n");
 		}
@@ -193,16 +253,41 @@ function smoke_open_pdo(array $env): array
 		fwrite(STDERR, "WARN: could not load DP_Config from {$docroot}/config.php\n");
 	}
 
-	if (($dotnet['db'] ?? '') === '' || ($dotnet['user'] ?? '') === '') {
-		fwrite(STDERR, "No usable DB credentials.\n");
-		exit(2);
+	fwrite(STDERR, "No usable DB credentials for TenantRegistry.\n");
+	if ($errors !== []) {
+		fwrite(STDERR, "Tried:\n  - " . implode("\n  - ", $errors) . "\n");
 	}
+	exit(2);
+}
 
-	$pdo = smoke_pdo_connect(
-		(string) ($dotnet['host'] ?: '127.0.0.1'),
-		(string) $dotnet['db'],
-		(string) $dotnet['user'],
-		(string) ($dotnet['password'] ?? '')
-	);
-	return [$pdo, "ConnectionStrings__TenantRegistry user={$dotnet['user']} db={$dotnet['db']}"];
+/**
+ * Optional second PDO for reading admin sessions when PHP app DB differs from TenantRegistry.
+ * Returns null when PHP DB is unavailable or identical to the primary DB name.
+ *
+ * @param array<string,string> $env
+ */
+function smoke_open_php_sessions_pdo(array $env, string $primaryDbName): ?PDO
+{
+	$docroot = smoke_resolve_php_docroot();
+	if ($docroot === '') {
+		return null;
+	}
+	$phpCfg = smoke_load_php_dp_config($docroot);
+	if ($phpCfg === null) {
+		return null;
+	}
+	if ($phpCfg['db'] === $primaryDbName) {
+		return null;
+	}
+	try {
+		return smoke_pdo_connect(
+			(string) $phpCfg['host'],
+			(string) $phpCfg['db'],
+			(string) $phpCfg['user'],
+			(string) $phpCfg['password']
+		);
+	} catch (Throwable $e) {
+		fwrite(STDERR, "WARN: PHP sessions DB PDO failed: " . $e->getMessage() . "\n");
+		return null;
+	}
 }

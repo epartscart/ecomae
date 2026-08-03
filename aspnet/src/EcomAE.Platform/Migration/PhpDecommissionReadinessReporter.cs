@@ -122,8 +122,9 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
                 [
                     "Keep PHP authoritative for all production traffic.",
                     "Run bash scripts/run_zero_php_final_gate_checklist.sh.",
-                    "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
-                    "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh (login Super CP if cookie missing).",
+                    "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh (TenantRegistry DB).",
+                    "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh (quoted admin_session+admin_u_id; login Super CP if cookie missing).",
+                    "If issuer blocks PHP db≠TenantRegistry: align ConnectionStrings__TenantRegistry or GRANT/ECOMAE_SMOKE_DB_*.",
                     "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
                     "Capture/commit: source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh",
                     "Promote only approved exact-route shadows one path at a time (cloudpanel_extract_exact_route_shadow.sh).",

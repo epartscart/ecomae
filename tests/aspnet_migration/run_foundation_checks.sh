@@ -382,10 +382,20 @@ check 'deploy packs storefront digests gate shadow' contains "$ROOT/scripts/depl
 check 'deploy packs exact-route extract helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_extract_exact_route_shadow.sh'
 check 'deploy packs ensure epc_api_clients helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_ensure_epc_api_clients_table.sh'
 check 'deploy packs smoke secrets prepare helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_prepare_smoke_secrets.sh'
+check 'deploy packs smoke cookie repair helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_repair_smoke_cookie_env.sh'
 check 'deploy packs smoke commit helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_commit_final_gate_smoke.sh'
 check 'deploy packs smoke credential issuer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_issue_smoke_credentials.sh'
 check 'smoke credential issuer exists' test -x "$ROOT/scripts/cloudpanel_issue_smoke_credentials.sh"
 check 'smoke issuer uses PHP DP_Config bootstrap' contains "$ROOT/scripts/php/_smoke_db_bootstrap.php" 'DP_Config'
+check 'smoke bootstrap prefers TenantRegistry DSN' contains "$ROOT/scripts/php/_smoke_db_bootstrap.php" 'ConnectionStrings__TenantRegistry user='
+check 'smoke bootstrap refuses PHP DB mismatch' contains "$ROOT/scripts/php/_smoke_db_bootstrap.php" 'ECOMAE_SMOKE_ALLOW_PHP_DB_MISMATCH'
+check 'smoke bootstrap bash-quotes env values' contains "$ROOT/scripts/php/_smoke_db_bootstrap.php" 'function smoke_bash_quote'
+check 'smoke issuer writes bash-quoted cookie' contains "$ROOT/scripts/php/issue_final_gate_smoke_credentials.php" 'smoke_bash_quote($cookie)'
+check 'smoke issuer persists ECOMAE_ADMIN_U_ID' contains "$ROOT/scripts/php/issue_final_gate_smoke_credentials.php" 'ECOMAE_ADMIN_U_ID'
+check 'smoke cookie repair helper exists' test -f "$ROOT/scripts/cloudpanel_repair_smoke_cookie_env.sh"
+check 'smoke env validator sources cookie repair helper' contains "$ROOT/scripts/cloudpanel_validate_final_gate_env.sh" 'cloudpanel_repair_smoke_cookie_env.sh'
+check 'smoke capture sources cookie repair helper' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'cloudpanel_repair_smoke_cookie_env.sh'
+check 'smoke env validator repairs truncated cookie' contains "$ROOT/scripts/cloudpanel_validate_final_gate_env.sh" 'repaired from ECOMAE_ADMIN_U_ID'
 check 'deploy packs smoke DB bootstrap PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" '_smoke_db_bootstrap.php'
 check 'deploy packs ensure table PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ensure_epc_api_clients_table.php'
 check 'ensure epc_api_clients helper exists' test -x "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh"

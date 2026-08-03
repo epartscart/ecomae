@@ -65,6 +65,7 @@ shopt -u nullglob
 install -m 0755 \
   "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" \
   "$ROOT/scripts/cloudpanel_validate_final_gate_env.sh" \
+  "$ROOT/scripts/cloudpanel_repair_smoke_cookie_env.sh" \
   "$ROOT/scripts/cloudpanel_prepare_smoke_secrets.sh" \
   "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" \
   "$ROOT/scripts/cloudpanel_issue_smoke_credentials.sh" \

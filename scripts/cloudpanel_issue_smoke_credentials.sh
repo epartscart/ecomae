@@ -15,7 +15,8 @@ PHP_BIN="${ECOMAE_PHP_BIN:-php}"
 
 printf '%s\n' '== Issue final-gate smoke credentials =='
 printf 'Env file: %s\n' "$ENV_FILE"
-printf 'Note: uses PHP DP_Config credentials → TenantRegistry DB. CREATE only with ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES.\n'
+printf 'Note: prefers ConnectionStrings__TenantRegistry DB (same as ASP.NET), then PHP→TenantRegistry. CREATE only with ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES.\n'
+printf 'Refuses PHP db≠TenantRegistry mismatch (keys would be invisible to ASP.NET). Escape: ECOMAE_SMOKE_DB_* or ECOMAE_SMOKE_ALLOW_PHP_DB_MISMATCH=YES.\n'
 
 if [[ "${ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS:-}" != "YES" ]]; then
   printf 'Refusing without confirmation.\n' >&2
@@ -75,6 +76,8 @@ fi
 
 # shellcheck disable=SC1090
 set -a; source "$ENV_FILE"; set +a
+# shellcheck disable=SC1091
+source "$ROOT/scripts/cloudpanel_repair_smoke_cookie_env.sh"
 bash "$ROOT/scripts/cloudpanel_validate_final_gate_env.sh"
 
 printf '\n-- Probe admin session (loopback) --\n'

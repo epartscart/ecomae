@@ -2,7 +2,7 @@
 <?php
 /**
  * Create epc_api_clients once in the ASP.NET TenantRegistry database.
- * Prefers PHP DP_Config credentials → TenantRegistry DB name.
+ * Prefers ConnectionStrings__TenantRegistry, then PHP DP_Config user → that DB.
  * Requires ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES.
  * Never prints secrets.
  */

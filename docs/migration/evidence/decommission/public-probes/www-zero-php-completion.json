@@ -82,7 +82,8 @@
   ],
   "nextActions": [
     "Redeploy main: bash scripts/cloudpanel_redeploy_final_gate_branch.sh (or git reset --hard origin/main \u0026\u0026 bash scripts/cloudpanel_find_and_redeploy.sh).",
-    "Ensure table \u002B issue smoke creds: cloudpanel_ensure_epc_api_clients_table.sh \u2192 cloudpanel_issue_smoke_credentials.sh (never invent keys).",
+    "Ensure table \u002B issue smoke creds into TenantRegistry DB: cloudpanel_ensure_epc_api_clients_table.sh \u2192 cloudpanel_issue_smoke_credentials.sh (never invent keys; quoted admin cookie).",
+    "If issuer blocks PHP db\u2260TenantRegistry: fix ConnectionStrings__TenantRegistry / GRANTs (or ECOMAE_SMOKE_DB_*), then re-issue.",
     "Validate env (redacted): cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
     "Capture/commit staging-smoke for price lookup, catalog status, and surface digests.",
     "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
