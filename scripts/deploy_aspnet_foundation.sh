@@ -95,13 +95,21 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_probe_catalog_miss_path.sh" \
   "$ROOT/scripts/cloudpanel_capture_catalog_miss_dual_samples.sh" \
   "$ROOT/scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh" \
+  "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh" \
   "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh" \
   "$ROOT/scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh" \
   "$ROOT/scripts/wait_for_aspnet_health.sh" \
   "$ROOT/scripts/rollback_aspnet_foundation.sh" \
   "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" \
   "$ROOT/scripts/run_surface_parity_harness.sh" \
+  "$ROOT/scripts/validate_scaffold_options_example.py" \
+  "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh" \
+  "$ROOT/scripts/generate_all_yarp_design_examples.sh" \
+  "$ROOT/scripts/generate_yarp_exact_routes_example.py" \
   "$PLATFORM_DIR/scripts/"
+if [[ -f "$ROOT/deploy/aspnet/ecomae-scaffold-options.example.json" ]]; then
+  install -m 0644 "$ROOT/deploy/aspnet/ecomae-scaffold-options.example.json" "$PLATFORM_DIR/deploy/aspnet/"
+fi
 install -d "$PLATFORM_DIR/scripts/sql"
 if [[ -f "$ROOT/scripts/sql/epc_api_clients.sql" ]]; then
   install -m 0644 "$ROOT/scripts/sql/epc_api_clients.sql" "$PLATFORM_DIR/scripts/sql/"

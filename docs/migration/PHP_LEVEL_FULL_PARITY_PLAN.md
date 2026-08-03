@@ -133,7 +133,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Postgres/Helm/OAuth/SPA options + consolidated options example (#705)
 - ✅ YARP surface-digests + RabbitMQ/Polly + dual-sample operator helper (#706)
 - ✅ YARP storefront/catalog-api + GraphQL/gRPC/blockchain/rate-limit (#707)
-- **This PR:** GitOps/ArgoCD design + workers Helm example + Native AOT + AI-sidecar scaffolds (unwired)
+- ✅ GitOps/ArgoCD design + workers Helm example + Native AOT + AI-sidecar scaffolds (unwired) (#708)
+- **This PR:** Enterprise BOS scaffold guardrails (options validator + Program.cs/YARP/Helm unwired checks + platform.env.example disabled keys)
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)

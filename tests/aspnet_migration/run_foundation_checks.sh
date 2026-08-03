@@ -413,6 +413,15 @@ check 'Native AOT scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platf
 check 'Native AOT scaffold does not require platform host' contains "$ROOT/aspnet/src/EcomAE.Platform/Hosting/Scaffolding/EcomAeNativeAotScaffoldOptions.cs" 'RequireForPlatformHost'
 check 'AI sidecar scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Integrations/Scaffolding/EcomAeAiSidecarScaffoldOptions.cs"
 check 'AI sidecar scaffold forbids business writes' contains "$ROOT/aspnet/src/EcomAE.Platform/Integrations/Scaffolding/EcomAeAiSidecarScaffoldOptions.cs" 'AllowBusinessWrites'
+check 'scaffold options example validator exists' test -f "$ROOT/scripts/validate_scaffold_options_example.py"
+check 'scaffold options example validator is executable' test -x "$ROOT/scripts/validate_scaffold_options_example.py"
+check 'scaffold options example validator passes' python3 "$ROOT/scripts/validate_scaffold_options_example.py"
+check 'enterprise BOS scaffold guardrails script exists' test -f "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
+check 'enterprise BOS scaffold guardrails is executable' test -x "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
+check 'enterprise BOS scaffold guardrails pass' bash "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
+check 'platform.env.example documents disabled scaffold env keys' contains "$ROOT/deploy/aspnet/platform.env.example" 'EcomAe__AiSidecar__AllowBusinessWrites=false'
+check 'platform.env.example documents Postgres ReplaceMysqlBridge false' contains "$ROOT/deploy/aspnet/platform.env.example" 'EcomAe__Postgres__ReplaceMysqlBridge=false'
+check 'platform.env.example documents dual-sample operator helper' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
 check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 47'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
@@ -576,6 +585,11 @@ check 'hybrid UI compare result blocks cutover' contains "$ROOT/docs/migration/e
 check 'hybrid UI inventory blocks tenant chrome cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-hybrid-authoritative-inventory.json" '"tenantChromePhp": true'
 check 'deploy packs hybrid UI compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_hybrid_ui_dual_samples.py'
 check 'deploy packs hybrid UI capture' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_capture_hybrid_ui_dual_samples.sh'
+check 'deploy packs hybrid UI dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
+check 'deploy packs scaffold options example' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ecomae-scaffold-options.example.json'
+check 'deploy packs scaffold options validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_scaffold_options_example.py'
+check 'deploy packs enterprise BOS scaffold guardrails' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_enterprise_bos_scaffold_guardrails.sh'
+check 'deploy packs YARP all-packs generator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'generate_all_yarp_design_examples.sh'
 check 'parity plan documents hybrid UI dual-sample packs' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'dual-sample evidence packs for hybrid UIs'
 check 'tenant safety law documents same-to-same' contains "$ROOT/docs/migration/TENANT_MIGRATION_SAFETY.md" 'Same-to-same / invisible migration'
 check 'tenant safety law digests never replace UX' contains "$ROOT/docs/migration/TENANT_MIGRATION_SAFETY.md" 'never** replace tenant product chrome'

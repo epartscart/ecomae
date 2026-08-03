@@ -125,3 +125,10 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 
 - `EcomAeAiSidecarScaffoldOptions` + `IAiSidecarClientScaffold` (`AllowBusinessWrites=false`).
 - ASP.NET Core calls AI over REST/gRPC; Python must not own permissions or SoR writes.
+
+## Guardrails (must stay green)
+
+- Consolidated options: `deploy/aspnet/ecomae-scaffold-options.example.json` — validate with `python3 scripts/validate_scaffold_options_example.py`.
+- Full suite: `bash scripts/validate_enterprise_bos_scaffold_guardrails.sh` (Program.cs omits production wiring; YARP/Helm/Argo keep `cutoverAllowed=false`; regenerates YARP design packs).
+- Disabled env key comments: `deploy/aspnet/platform.env.example` (`EcomAe__*` Replace/Allow/Register flags stay false).
+- Never invent `RELEASE_OWNER_APPROVAL.md`.
