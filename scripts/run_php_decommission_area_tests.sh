@@ -185,6 +185,30 @@ for path in "${DIGEST_ROUTES[@]}"; do
   fi
 done
 
+# Storefront digest exact-routes (4/4) expect ASP.NET 401 unauthorized JSON (customer cookie for 200).
+mapfile -t SF_ROUTES < <(grep -E '^location = /storefront/' "$ROOT/deploy/aspnet/nginx-storefront-digests-shadow-example.conf" | sed -E 's/^location = ([^ {]+).*/\1/')
+if [[ "${#SF_ROUTES[@]}" -ne 4 ]]; then
+  record "storefront-digest-route-inventory" fail "expected 4 storefront digest routes, found ${#SF_ROUTES[@]}"
+else
+  record "storefront-digest-route-inventory" pass "4 storefront digest exact-routes in shadow example"
+fi
+for path in "${SF_ROUTES[@]}"; do
+  code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"
+  if [[ "$code" == "401" ]] && grep -qE '"unauthorized"|unauthorized' /tmp/area.body && ! grep -qi '<html\|<!doctype' /tmp/area.body; then
+    record "public${path}-exact-route" pass "ASP.NET storefront digest exact-route shadow (401 unauthorized without customer cookie)"
+  else
+    record "public${path}-exact-route" fail "expected ASP.NET 401 unauthorized (HTTP $code)"
+  fi
+done
+
+# Blazor SSR Zero-PHP console (served under existing /migration proxy after redeploy)
+code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' https://www.ecomae.com/migration/console || echo 000)"
+if [[ "$code" == "200" ]] && grep -qi 'EcomAE\|Zero-PHP' /tmp/area.body; then
+  record "public-migration-console" pass "Blazor SSR Zero-PHP console live"
+else
+  record "public-migration-console" fail "expected Blazor console HTML 200 (redeploy ASP.NET if missing)"
+fi
+
 # Catalog exact-route shadows live (18/18 wired): unauth must be ASP.NET JSON gate (not PHP HTML).
 for path in /api/v1/catalog/status /api/v1/catalog/manufacturers /api/v1/catalog/models /api/v1/catalog/modifications /api/v1/catalog/brands /api/v1/catalog/suppliers /api/v1/catalog/vin /api/v1/catalog/engines /api/v1/catalog/analogs /api/v1/catalog/article-brands /api/v1/catalog/categories /api/v1/catalog/products /api/v1/catalog/engine-search /api/v1/catalog/article-links /api/v1/catalog/article /api/v1/catalog/articles /api/v1/catalog/engine /api/v1/catalog/brand-parts; do
   code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"

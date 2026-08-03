@@ -1,0 +1,156 @@
+@page "/migration/console"
+@inject IZeroPhpCompletionReporter Completion
+@inject IPhpDecommissionReadinessReporter Readiness
+@inject ILiveSurfaceLinkReporter LiveLinks
+
+@{
+    var completion = Completion.BuildReport();
+    var readiness = Readiness.BuildReport();
+    var links = LiveLinks.BuildReport();
+    var digestLive = links.Links.Count(l =>
+        l.HostClass == "aspnet-exact-route-shadow-live"
+        && (l.AspNetRouteHint.StartsWith("/cp/", StringComparison.Ordinal)
+            || l.AspNetRouteHint.StartsWith("/erp/", StringComparison.Ordinal)
+            || l.AspNetRouteHint.StartsWith("/bos/", StringComparison.Ordinal)));
+    var storefrontLive = links.Links.Count(l =>
+        l.HostClass == "aspnet-exact-route-shadow-live"
+        && l.AspNetRouteHint.StartsWith("/storefront/", StringComparison.Ordinal));
+    var catalogLive = links.Links.Count(l =>
+        l.HostClass == "aspnet-exact-route-shadow-live"
+        && l.AspNetRouteHint.StartsWith("/api/v1/catalog/", StringComparison.Ordinal));
+}
+
+<style>
+    h1 {
+        margin: 0 0 0.65rem;
+        font-size: clamp(1.35rem, 3vw, 1.85rem);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.25rem 0 2rem; }
+    .cta {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.7rem 1.05rem;
+        border-radius: 0.55rem;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .cta:hover { transform: translateY(-2px); }
+    .cta-primary { background: var(--accent); color: #062016; }
+    .cta-ghost { background: var(--panel); color: var(--ink); border: 1px solid var(--line); }
+    .meter {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.85rem;
+        margin: 1.5rem 0 2rem;
+    }
+    .metric {
+        padding: 1rem 1.1rem;
+        border: 1px solid var(--line);
+        border-radius: 0.7rem;
+        background: var(--panel);
+        backdrop-filter: blur(8px);
+        animation: rise 0.7s ease both;
+    }
+    .metric:nth-child(2) { animation-delay: 0.08s; }
+    .metric:nth-child(3) { animation-delay: 0.16s; }
+    .metric:nth-child(4) { animation-delay: 0.24s; }
+    .metric strong {
+        display: block;
+        font-size: 1.55rem;
+        font-family: "IBM Plex Mono", monospace;
+        margin-bottom: 0.2rem;
+    }
+    .metric span { color: var(--muted); font-size: 0.86rem; }
+    .section h2 {
+        margin: 0 0 0.55rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    .section p { color: var(--muted); margin: 0 0 0.85rem; line-height: 1.5; }
+    .pill {
+        display: inline-block;
+        padding: 0.2rem 0.55rem;
+        border-radius: 0.35rem;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.78rem;
+        margin-right: 0.4rem;
+        margin-bottom: 0.35rem;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.03);
+    }
+    .pill.ok { color: var(--accent); border-color: rgba(62,207,142,0.35); }
+    .pill.blocked { color: var(--warn); border-color: rgba(230,179,92,0.4); }
+    ul.actions {
+        margin: 0;
+        padding-left: 1.1rem;
+        color: var(--muted);
+        line-height: 1.55;
+    }
+    ul.actions li { margin-bottom: 0.4rem; }
+    code { font-family: "IBM Plex Mono", monospace; font-size: 0.86em; color: #d5ebe8; }
+</style>
+
+<p class="lede">
+    Operator console for Zero-PHP cutover. Exact-route digests and catalog APIs are live;
+    product chrome stays on PHP until dual samples and human approval.
+</p>
+
+<h1>Zero-PHP cutover board</h1>
+
+<div class="cta-row">
+    <a class="cta cta-primary" href="/migration/php-decommission-readiness">Readiness JSON</a>
+    <a class="cta cta-ghost" href="/migration/live-surface-links">Live surface links</a>
+    <a class="cta cta-ghost" href="/migration/zero-php-completion">Completion meter</a>
+</div>
+
+<div class="meter">
+    <div class="metric">
+        <strong>@(completion.OverallCompletePercent)%</strong>
+        <span>Weighted meter</span>
+    </div>
+    <div class="metric">
+        <strong>@digestLive/30</strong>
+        <span>Surface digests</span>
+    </div>
+    <div class="metric">
+        <strong>@catalogLive/18</strong>
+        <span>Catalog APIs</span>
+    </div>
+    <div class="metric">
+        <strong>@storefrontLive/4</strong>
+        <span>Storefront digests</span>
+    </div>
+</div>
+
+<section class="section">
+    <h2>Decommission gate</h2>
+    <p>
+        Status <span class="pill @(readiness.ReadyToRemovePhp ? "ok" : "blocked")">@readiness.Status</span>
+        ReadyToRemovePhp
+        <span class="pill @(readiness.ReadyToRemovePhp ? "ok" : "blocked")">@readiness.ReadyToRemovePhp</span>
+        Checklist @readiness.ChecklistCompleteCount/@readiness.ChecklistTotalCount
+    </p>
+    @if (!readiness.ReadyToRemovePhp)
+    {
+        <ul class="actions">
+            @foreach (var action in readiness.NextActions.Take(5))
+            {
+                <li>@action</li>
+            }
+        </ul>
+    }
+</section>
+
+<section class="section" style="margin-top:1.75rem">
+    <h2>Operator next</h2>
+    <p>One-command remaining installs and dual-sample capture (never broad cutover; do not invent approval).</p>
+    <ul class="actions">
+        <li><code>ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh</code></li>
+        <li><code>bash scripts/cloudpanel_capture_digest_dual_samples.sh</code> then <code>python3 scripts/compare_digest_dual_samples.py</code></li>
+        <li>Human creates <code>RELEASE_OWNER_APPROVAL.md</code> with <code>APPROVED_TO_REMOVE_PHP_FALLBACK</code> only after chrome plan + dual samples</li>
+    </ul>
+</section>

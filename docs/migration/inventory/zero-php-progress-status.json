@@ -13,6 +13,9 @@
     "catalogExactRoutesPending": [],
     "surfaceDigestExactRoutesLive": 30,
     "surfaceDigestExactRoutesWired": 30,
+    "storefrontDigestExactRoutesLive": 4,
+    "storefrontDigestExactRoutesWired": 4,
+    "blazorMigrationConsole": "/migration/console",
     "nextExactRoute": null,
     "publicChromeStillPhp": true,
     "cpErpBosDigestsStillPhp": false,
@@ -21,8 +24,9 @@
     "notes": [
       "Weighted 95%/5% meter is not percent of public routes cut over.",
       "Wired catalog API exact-routes complete (18/18).",
-      "Surface digests 30/30 live via batch exact-route installer (never broad /cp|/erp|/bos).",
-      "Product chrome still PHP; storefront digests optional; dual samples + human approval still required."
+      "Surface digests 30/30 and storefront digests 4/4 via batch exact-route installers.",
+      "Blazor SSR Zero-PHP console at /migration/console (ops UI; not product chrome).",
+      "Product chrome still PHP; dual samples + human approval still required."
     ]
   },
   "inventory": {
@@ -53,37 +57,34 @@
   "concreteStarted": [
     "catalog/price DB+auth routes",
     "nested modules_access ACL + surface capabilities",
-    "CP digests: tenants/users/groups/modules/config/menus/pages/sessions/storages/currencies/api-clients",
-    "ERP digests: accounts/suppliers/purchases/cash/invoices/gl/coa/warehouses/sales-orders/purchase-orders/inventory-stock",
-    "BOS digests: fleet summary/health/readiness/audit-log",
-    "storefront account/orders/garage/profile digests",
+    "CP/ERP/BOS/storefront digests wired + public exact-route shadows",
+    "Blazor SSR Zero-PHP operator console",
     "tracked worker dry-run validator layer + all 61 batches dry-run scaffolding",
     "presentation-preserving CP/ERP/BOS/storefront HTML shells (PHP CSS reuse; JSON default)",
     "live Super CP/tenant/ERP/frontend link catalog + public stack probe",
     "field/function/presentation parity contracts + harness (cutover blocked)",
     "migration-mode digest contract validator + golden samples (no secrets)",
     "PHP decommission readiness reporter + final-gate checklist/smoke kit (blocked)",
-    "public exact-route catalog shadows complete (18/18); surface digests 30/30 (batch installer)",
+    "public exact-route catalog 18/18; surface digests 30/30; storefront digests 4/4",
     "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],
   "architectureComplianceDoc": "docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md",
   "pathTo100Percent": [
     "Authenticated staging smoke attached (PR #612) for price/catalog/surface digests",
     "Wired catalog exact-routes complete (18/18)",
-    "Surface digests exact-routes complete (30/30) via batch installer",
-    "Attach dual PHP↔ASP.NET parity samples; optional storefront digests",
-    "Promote all 61 batches from dry-run scaffolding to shadow/live with parity evidence",
-    "Human RELEASE_OWNER_APPROVAL.md before PHP decommission (remaining 5% meter)"
+    "Surface digests 30/30 + storefront digests 4/4",
+    "Attach dual PHP↔ASP.NET parity samples",
+    "Human RELEASE_OWNER_APPROVAL.md before PHP decommission (remaining 5% meter)",
+    "Product chrome cutover remains a separate intentional step (Blazor console is not chrome)"
   ],
   "nextExecutionOrder": [
-    "ECOMAE_CONFIRM_INSTALL_SURFACE_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_surface_digest_shadows.sh",
-    "bash scripts/cloudpanel_probe_surface_digest_shadows.sh (expect PASS=30 unauthorized)",
+    "Redeploy ASP.NET so /migration/console (Blazor SSR) is live",
+    "ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh",
+    "bash scripts/cloudpanel_probe_storefront_digest_shadows.sh (expect PASS=4)",
+    "bash scripts/cloudpanel_capture_digest_dual_samples.sh && python3 scripts/compare_digest_dual_samples.py",
     "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP chrome must remain).",
-    "Confirm /migration/php-decommission-readiness is 8/9 with approval missing; surface-parity=parity-not-yet-reached.",
-    "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
-    "Attach dual PHP↔ASP.NET samples for promoted digests.",
+    "Confirm /migration/php-decommission-readiness is 8/9 with approval missing.",
     "Human creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after public exact-route parity (do not invent).",
-    "When readyToRemovePhp=true: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh",
-    "Do not claim 100% or stop PHP-FPM until that gated script accepts the green readiness endpoint."
+    "When readyToRemovePhp=true: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh"
   ]
 }

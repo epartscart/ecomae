@@ -1,0 +1,80 @@
+@inherits LayoutComponentBase
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+    :root {
+        --bg0: #0b1f24;
+        --bg1: #12343c;
+        --ink: #e8f2f4;
+        --muted: #9bb4bb;
+        --accent: #3ecf8e;
+        --warn: #e6b35c;
+        --line: rgba(232, 242, 244, 0.14);
+        --panel: rgba(8, 28, 33, 0.55);
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Sora", sans-serif;
+        color: var(--ink);
+        background:
+            radial-gradient(1200px 600px at 10% -10%, rgba(62, 207, 142, 0.18), transparent 55%),
+            radial-gradient(900px 500px at 90% 0%, rgba(56, 148, 180, 0.22), transparent 50%),
+            linear-gradient(160deg, var(--bg0), var(--bg1) 55%, #0a181c);
+    }
+    .shell {
+        width: min(1100px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 2.5rem 0 4rem;
+    }
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        text-decoration: none;
+        color: inherit;
+        margin-bottom: 1.25rem;
+    }
+    .brand img { width: 44px; height: 44px; }
+    .brand span {
+        font-size: clamp(2rem, 5vw, 3.1rem);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1;
+    }
+    .lede {
+        max-width: 38rem;
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.55;
+        margin: 0 0 1.75rem;
+    }
+    main { animation: rise 0.55s ease both; }
+    @@keyframes rise {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: none; }
+    }
+    footer {
+        margin-top: 2.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 0.85rem;
+        font-family: "IBM Plex Mono", monospace;
+    }
+</style>
+
+<div class="shell">
+    <a class="brand" href="/migration/console">
+        <img src="/assets/media/logos/ecomae_mark.svg" alt="EcomAE" width="44" height="44" />
+        <span>EcomAE</span>
+    </a>
+    <main>
+        @Body
+    </main>
+    <footer>Blazor SSR migration console · exact-route /migration · PHP chrome remains authoritative</footer>
+</div>

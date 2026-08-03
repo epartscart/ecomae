@@ -1,0 +1,11 @@
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MigrationConsoleLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(Layout.MigrationConsoleLayout)">
+            <p class="lede">Page not found in the EcomAE migration console.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
