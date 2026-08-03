@@ -508,7 +508,7 @@ check 'tenant safety operator verify note exists' test -f "$ROOT/docs/migration/
 check 'presentation parity states digests not tenant UX' contains "$ROOT/docs/migration/PRESENTATION_PARITY.md" 'not** tenant product chrome'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS+users/groups+ERP SO/PO/INV+search+cart routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 18'
+check 'presentation installer expects login+OMS+users/groups+ERP SO/PO/INV/CASH+search+cart routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 19'
 check 'presentation installer treats example conf as allowlist' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'Example conf is the allowlist'
 check 'presentation nginx includes /storefront/search-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /storefront/search-app'
 check 'presentation nginx includes /storefront/cart-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /storefront/cart-app'
@@ -531,11 +531,14 @@ check 'presentation nginx includes /cp/orders' contains "$ROOT/deploy/aspnet/ngi
 check 'presentation nginx includes /erp/sales-orders-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/sales-orders-app'
 check 'presentation nginx includes /erp/purchase-orders-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/purchase-orders-app'
 check 'presentation nginx includes /erp/invoices-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/invoices-app'
+check 'presentation nginx includes /erp/cash-accounts-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/cash-accounts-app'
 check 'ERP sales-orders-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpSalesOrdersApp'
 check 'ERP purchase-orders-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpPurchaseOrdersApp'
 check 'ERP invoices-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpInvoicesApp'
+check 'ERP cash-accounts-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpCashAccountsApp'
 check 'ERP purchase-orders Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpPurchaseOrdersApp.razor"
 check 'ERP invoices Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpInvoicesApp.razor"
+check 'ERP cash-accounts Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpCashAccountsApp.razor"
 check 'ERP sales-orders Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesOrdersApp.razor"
 check 'orders digest contract catalogued' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" '/cp/orders-digest'
 check 'orders digest migration golden exists' test -f "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-orders-digest.json"

@@ -101,8 +101,9 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - Digests/Blazor previews never replace live tenant product chrome.
 
 ### Hybrid ERP tab family continue ← current
-- ✅ `/erp/purchase-orders-app` (#669) over `/erp/purchase-orders` digest; PHP `erp_tabs_purchase_orders.php` authoritative for writes.
-- **This PR:** `/erp/invoices-app` over `/erp/invoices` digest; PHP `erp_tabs_invoices.php` authoritative for writes.
+- ✅ `/erp/purchase-orders-app` (#669) · `/erp/invoices-app` (#670)
+- **This PR:** `/erp/cash-accounts-app` over `/erp/cash-accounts` + `/erp/cash-entries` digests; PHP `erp_tabs_cash_bank.php` authoritative for writes.
+- Next: COA / GL journals hybrid read UIs.
 - Exact-route www preview only — tenant `/ERP/` chrome stays PHP (same-to-same).
 - Destination: ASP.NET Core 10 Enterprise BOS owns finance modules; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 

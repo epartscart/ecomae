@@ -63,6 +63,8 @@ public static class EcomAeRoutes
     public const string ErpSuppliers = "/erp/suppliers";
     public const string ErpPurchases = "/erp/purchases";
     public const string ErpCashAccounts = "/erp/cash-accounts";
+    /// <summary>Cash &amp; bank Blazor list (JSON digests remain <see cref="ErpCashAccounts"/> / <see cref="ErpCashEntries"/>).</summary>
+    public const string ErpCashAccountsApp = "/erp/cash-accounts-app";
     public const string ErpCashEntries = "/erp/cash-entries";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
