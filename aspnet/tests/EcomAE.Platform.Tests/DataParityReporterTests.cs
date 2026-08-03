@@ -12,6 +12,8 @@ public sealed class DataParityReporterTests
 
         Assert.Equal("contracts-ready-production-data-pending", report.Status);
         Assert.Contains(report.ProductionDataSources, source => source.Contains("shop_docpart_prices_data", StringComparison.Ordinal));
+        Assert.Contains(report.RequiredBeforeCutover, gate => gate.Contains("ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
+        Assert.Contains(report.RequiredBeforeCutover, gate => gate.Contains("compare_", StringComparison.Ordinal));
         Assert.Contains(report.RequiredBeforeCutover, gate => gate.Contains("shadow queries", StringComparison.OrdinalIgnoreCase));
     }
 }

@@ -122,9 +122,11 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
                 [
                     "Keep PHP authoritative for all production traffic.",
                     "Run bash scripts/run_zero_php_final_gate_checklist.sh.",
-                    "On CloudPanel: add ECOMAE_PRICE_LOOKUP_API_KEY / ECOMAE_CATALOG_API_KEY / ECOMAE_ADMIN_COOKIE_HEADER to platform.env, then bash scripts/cloudpanel_capture_final_gate_artifacts.sh.",
-                    "Copy generated smoke JSON into docs/migration/evidence/decommission/staging-smoke/ after staging runs.",
-                    "Promote only approved exact-route shadows one path at a time.",
+                    "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
+                    "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh (login Super CP if cookie missing).",
+                    "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
+                    "Capture/commit: source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh",
+                    "Promote only approved exact-route shadows one path at a time (cloudpanel_extract_exact_route_shadow.sh).",
                     "Do not remove PHP-FPM/cron/rewrites until ReadyToRemovePhp is true with release-owner approval."
                 ]);
     }

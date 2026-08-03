@@ -15,6 +15,8 @@ public sealed class ControlPanelParityReporterTests
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("backend-group session", StringComparison.OrdinalIgnoreCase));
         Assert.Equal("presentation-shell-scaffolded-awaiting-staging", report.Status);
         Assert.Contains(report.VerifiedCapabilities, capability => capability.Contains("presentation-preserving HTML", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("user management", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("never broad /cp", StringComparison.Ordinal));
     }
 }

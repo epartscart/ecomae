@@ -48,6 +48,7 @@ public sealed class PresentationParityReporter : IPresentationParityReporter
                 "PHP remains authoritative for full interactive UX until staging smoke + release-owner approval."
             ],
             [
+                "On CloudPanel: ensure→issue→capture authenticated digests before judging HTML chrome parity.",
                 "Pixel/DOM parity against live PHP desktop.php / erp_desktop.php / bos/index.php / modex desktop still required before traffic cutover.",
                 "Login forms, menu writes, widget interactivity, and storefront cart/checkout HTML are not claimed by this scaffold.",
                 "Do not enable broad /cp /erp /bos /storefront cutover until presentation + data parity evidence is attached."

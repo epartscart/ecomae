@@ -126,31 +126,102 @@ if [[ -n "$ASPNET_BASE" && ( -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" || -n "${ECOMA
   else
     auth_args+=(-H "Cookie: ${ECOMAE_ADMIN_COOKIE_HEADER}")
   fi
-  for route in /cp/dashboard-summary /erp/dashboard-summary /bos/fleet-summary; do
-    name="$(echo "$route" | tr '/?' '__')"
+  for route in \
+    /cp/dashboard-summary \
+    /cp/tenants?limit=5 \
+    /cp/users?limit=5 \
+    /cp/groups?limit=5 \
+    /cp/modules?limit=5 \
+    /cp/menus?limit=5 \
+    /cp/pages?limit=5 \
+    /cp/currencies?limit=5 \
+    /cp/api-clients?limit=5 \
+    /cp/config-items?limit=5 \
+    /cp/admin-sessions?limit=5 \
+    /cp/storages?limit=5 \
+    /erp/dashboard-summary \
+    /erp/accounts-summary \
+    /erp/suppliers?limit=5 \
+    /erp/purchases?limit=5 \
+    /erp/cash-accounts?limit=5 \
+    /erp/cash-entries?limit=5 \
+    /erp/coa-accounts?limit=5 \
+    /erp/warehouses?limit=5 \
+    /erp/sales-orders?limit=5 \
+    /erp/purchase-orders?limit=5 \
+    /erp/inventory-stock \
+    /erp/invoices?limit=5 \
+    /erp/gl-journals?limit=5 \
+    /bos/fleet-summary \
+    /bos/tenants?limit=5 \
+    /bos/fleet-health \
+    /bos/fleet-readiness \
+    /bos/audit-log?limit=5
+  do
+    path_only="${route%%\?*}"
+    name="$(echo "$path_only" | tr '/' '_')"
     out="$SAMPLES/aspnet${name}.json"
     code="$(curl -sS -m 30 -o "$out" -w '%{http_code}' "${auth_args[@]}" "${ASPNET_BASE}${route}" || echo 000)"
     if [[ "$code" == "200" ]]; then
-      record "aspnet$route" pass "captured $out"
-      req=""
-      case "$route" in
-        /cp/dashboard-summary) req="users,adminSessions,portalTenants,activePortalTenants,source,message" ;;
-        /erp/dashboard-summary) req="cashPosition,supplierCredit,supplierDebit,supplierNet,cashAccounts,activeSuppliers,activePurchases,source,message" ;;
-        /bos/fleet-summary) req="portalTenants,activePortalTenants,adminSessions,withDatabase,erpOnly,source,message" ;;
+      record "aspnet$path_only" pass "captured $out"
+      case "$path_only" in
+        /cp/dashboard-summary)
+          req="users,adminSessions,portalTenants,activePortalTenants,source,message"
+          path_arg="summary"
+          ;;
+        /erp/dashboard-summary|/erp/accounts-summary)
+          req="cashPosition,supplierCredit,supplierDebit,supplierNet,cashAccounts,activeSuppliers,activePurchases,source,message"
+          path_arg="summary"
+          ;;
+        /bos/fleet-summary|/bos/fleet-health)
+          req="portalTenants,activePortalTenants,adminSessions,withDatabase,erpOnly,source,message"
+          path_arg="summary"
+          ;;
+        *)
+          req=""
+          path_arg=""
+          ;;
       esac
-      if python3 "$ROOT/scripts/compare_surface_payload_parity.py" --left "$out" --right "$out" --path summary --contract-only --require "$req"; then
-        record "contract$route" pass "summary field contract satisfied"
-      else
-        record "contract$route" fail "summary field contract failed"
+      if [[ -n "$req" ]]; then
+        if python3 "$ROOT/scripts/compare_surface_payload_parity.py" --left "$out" --right "$out" --path "$path_arg" --contract-only --require "$req"; then
+          record "contract$path_only" pass "summary field contract satisfied"
+        else
+          record "contract$path_only" fail "summary field contract failed"
+        fi
       fi
     elif [[ "$code" == "401" ]]; then
-      record "aspnet$route" blocked "HTTP 401 with provided cookie"
+      record "aspnet$path_only" blocked "HTTP 401 with provided cookie"
     else
-      record "aspnet$route" fail "HTTP $code"
+      record "aspnet$path_only" fail "HTTP $code"
     fi
   done
 else
   record "authenticated-digest-capture" blocked "set ECOMAE_ASPNET_BASE_URL and admin cookie to capture dual samples"
+fi
+
+# Optional customer-session storefront digest capture
+if [[ -n "$ASPNET_BASE" && ( -n "${ECOMAE_CUSTOMER_COOKIE_HEADER:-}" || -n "${ECOMAE_CUSTOMER_COOKIE_JAR:-}" ) ]]; then
+  cust_args=()
+  if [[ -n "${ECOMAE_CUSTOMER_COOKIE_JAR:-}" ]]; then
+    cust_args+=(-b "$ECOMAE_CUSTOMER_COOKIE_JAR")
+  else
+    cust_args+=(-H "Cookie: ${ECOMAE_CUSTOMER_COOKIE_HEADER}")
+  fi
+  for route in /storefront/account-summary /storefront/orders?limit=5 /storefront/garage?limit=5 /storefront/profile; do
+    path_only="${route%%\?*}"
+    name="$(echo "$path_only" | tr '/' '_')"
+    out="$SAMPLES/aspnet${name}.json"
+    code="$(curl -sS -m 30 -o "$out" -w '%{http_code}' "${cust_args[@]}" "${ASPNET_BASE}${route}" || echo 000)"
+    if [[ "$code" == "200" ]]; then
+      record "aspnet$path_only" pass "captured $out"
+    elif [[ "$code" == "401" ]]; then
+      record "aspnet$path_only" blocked "HTTP 401 with customer cookie"
+    else
+      record "aspnet$path_only" fail "HTTP $code"
+    fi
+  done
+else
+  record "storefront-digest-capture" blocked "set ECOMAE_CUSTOMER_COOKIE_HEADER/JAR (session=...; u_id=...) for storefront digests"
 fi
 
 # Migration-mode contract samples (no secrets) must satisfy locked field contracts.
@@ -158,7 +229,9 @@ python3 "$ROOT/scripts/generate_migration_digest_contract_samples.py" >/dev/null
 declare -A CONTRACT_REQUIREMENTS=(
   [cp-dashboard-summary.json]="users,adminSessions,portalTenants,activePortalTenants,source,message"
   [erp-dashboard-summary.json]="cashPosition,supplierCredit,supplierDebit,supplierNet,cashAccounts,activeSuppliers,activePurchases,source,message"
+  [erp-accounts-summary.json]="cashPosition,supplierCredit,supplierDebit,supplierNet,cashAccounts,activeSuppliers,activePurchases,source,message"
   [bos-fleet-summary.json]="portalTenants,activePortalTenants,adminSessions,withDatabase,erpOnly,source,message"
+  [bos-fleet-health.json]="portalTenants,activePortalTenants,adminSessions,withDatabase,erpOnly,source,message"
   [storefront-account-summary.json]="userId,orders,sessions,garageVehicles,source,message"
   [erp-inventory-stock.json]="rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message"
 )
@@ -191,14 +264,20 @@ declare -A LIST_CONTRACTS=(
   [cp-pages.json]=pages
   [cp-currencies.json]=currencies
   [cp-api-clients.json]=clients
+  [cp-config-items.json]=items
+  [cp-admin-sessions.json]=sessions
+  [cp-storages.json]=storages
   [erp-suppliers.json]=suppliers
   [erp-purchases.json]=purchases
+  [erp-cash-accounts.json]=accounts
+  [erp-cash-entries.json]=entries
   [erp-coa-accounts.json]=accounts
   [erp-warehouses.json]=warehouses
   [erp-sales-orders.json]=orders
   [erp-purchase-orders.json]=orders
   [erp-invoices.json]=invoices
   [erp-gl-journals.json]=journals
+  [bos-tenants.json]=tenants
   [bos-audit-log.json]=entries
   [storefront-orders.json]=orders
   [storefront-garage.json]=vehicles
@@ -238,6 +317,121 @@ then
 else
   record "migration-contract/api-catalog-status.json" fail "catalog status contract failed"
   mig_fail=$((mig_fail + 1))
+fi
+
+# Catalog list / offline-cache / vin / brand-parts migration samples via compare scripts.
+for kind in manufacturers models modifications brands suppliers; do
+  sample="$SAMPLES/migration/api-catalog-${kind}.json"
+  if [[ -f "$sample" ]] && python3 "$ROOT/scripts/compare_catalog_list_parity.py" "$kind" "$sample" "$sample" --contract-only; then
+    record "migration-catalog-list/$kind" pass "envelope contract via compare_catalog_list_parity.py"
+  else
+    record "migration-catalog-list/$kind" fail "catalog list contract failed for $kind"
+    mig_fail=$((mig_fail + 1))
+  fi
+done
+for kind in engines analogs article-brands categories products engine-search article-links article articles engine; do
+  sample="$SAMPLES/migration/api-catalog-${kind}.json"
+  if [[ -f "$sample" ]] && python3 "$ROOT/scripts/compare_catalog_offline_cache_parity.py" "$kind" "$sample" "$sample" --contract-only; then
+    record "migration-catalog-offline/$kind" pass "offline-cache envelope contract"
+  else
+    record "migration-catalog-offline/$kind" fail "offline-cache contract failed for $kind"
+    mig_fail=$((mig_fail + 1))
+  fi
+done
+if [[ -f "$SAMPLES/migration/api-catalog-vin.json" ]] \
+  && python3 "$ROOT/scripts/compare_catalog_vin_parity.py" \
+    "$SAMPLES/migration/api-catalog-vin.json" "$SAMPLES/migration/api-catalog-vin.json" --contract-only; then
+  record "migration-catalog-vin" pass "VIN envelope contract"
+else
+  record "migration-catalog-vin" fail "VIN contract failed"
+  mig_fail=$((mig_fail + 1))
+fi
+if [[ -f "$SAMPLES/migration/api-catalog-brand-parts.json" ]] \
+  && python3 "$ROOT/scripts/compare_catalog_brand_parts_parity.py" \
+    "$SAMPLES/migration/api-catalog-brand-parts.json" "$SAMPLES/migration/api-catalog-brand-parts.json" --contract-only; then
+  record "migration-catalog-brand-parts" pass "brand-parts envelope contract"
+else
+  record "migration-catalog-brand-parts" fail "brand-parts contract failed"
+  mig_fail=$((mig_fail + 1))
+fi
+
+# Optional API-key dual-sample capture against ASP.NET (never invents keys).
+if [[ -n "$ASPNET_BASE" && -n "${ECOMAE_CATALOG_API_KEY:-}" ]]; then
+  for route in \
+    /api/v1/catalog/status \
+    /api/v1/catalog/manufacturers?section=passenger \
+    /api/v1/catalog/models \
+    /api/v1/catalog/modifications \
+    /api/v1/catalog/brands \
+    /api/v1/catalog/suppliers \
+    /api/v1/catalog/engines \
+    /api/v1/catalog/analogs \
+    /api/v1/catalog/article-brands \
+    /api/v1/catalog/categories \
+    /api/v1/catalog/products \
+    /api/v1/catalog/engine-search \
+    /api/v1/catalog/article-links \
+    /api/v1/catalog/brand-parts
+  do
+    path_only="${route%%\?*}"
+    name="$(echo "$path_only" | tr '/' '_')"
+    out="$SAMPLES/aspnet${name}.json"
+    code="$(curl -sS -m 30 -o "$out" -w '%{http_code}' \
+      -H "X-API-Key: ${ECOMAE_CATALOG_API_KEY}" \
+      "${ASPNET_BASE}${route}" || echo 000)"
+    if [[ "$code" == "200" ]]; then
+      record "aspnet-catalog$path_only" pass "captured $out"
+    elif [[ "$code" == "401" ]]; then
+      record "aspnet-catalog$path_only" blocked "HTTP 401 — check ECOMAE_CATALOG_API_KEY"
+    else
+      record "aspnet-catalog$path_only" fail "HTTP $code"
+    fi
+  done
+else
+  record "catalog-api-key-capture" blocked "set ECOMAE_ASPNET_BASE_URL and ECOMAE_CATALOG_API_KEY to capture catalog dual samples"
+fi
+
+# Price lookup contract sample + optional live capture
+price_sample="$ROOT/docs/migration/evidence/price-lookup/aspnet-output-sample.json"
+if [[ -f "$price_sample" ]] \
+  && python3 "$ROOT/scripts/compare_price_lookup_parity.py" "$price_sample" "$price_sample" --contract-only; then
+  record "migration-price-lookup-contract" pass "offer envelope contract via compare_price_lookup_parity.py"
+else
+  record "migration-price-lookup-contract" fail "price lookup contract sample failed"
+fi
+if [[ -n "$ASPNET_BASE" && -n "${ECOMAE_PRICE_LOOKUP_API_KEY:-}" ]]; then
+  out="$SAMPLES/aspnet_api_v1_price_lookup.json"
+  code="$(curl -sS -m 30 -o "$out" -w '%{http_code}' \
+    -H "X-API-Key: ${ECOMAE_PRICE_LOOKUP_API_KEY}" \
+    "${ASPNET_BASE}/api/v1/price/lookup?brand=TOYOTA&article=04465-0K020" || echo 000)"
+  if [[ "$code" == "200" ]]; then
+    record "aspnet-price-lookup" pass "captured $out"
+    if python3 "$ROOT/scripts/compare_price_lookup_parity.py" "$out" "$out" --contract-only; then
+      record "contract-price-lookup" pass "live offer envelope contract"
+    else
+      record "contract-price-lookup" fail "live offer envelope contract failed"
+    fi
+  elif [[ "$code" == "401" ]]; then
+    record "aspnet-price-lookup" blocked "HTTP 401 — check ECOMAE_PRICE_LOOKUP_API_KEY"
+  else
+    record "aspnet-price-lookup" fail "HTTP $code"
+  fi
+else
+  record "price-api-key-capture" blocked "set ECOMAE_ASPNET_BASE_URL and ECOMAE_PRICE_LOOKUP_API_KEY to capture price dual samples"
+fi
+
+# Storefront profile envelope (not a list digest)
+if python3 - "$SAMPLES/migration/storefront-profile.json" <<'PY'
+import json, sys
+doc = json.load(open(sys.argv[1], encoding="utf-8"))
+for key in ("ok", "surface", "user_id", "email", "source", "message", "session", "note"):
+    if key not in doc:
+        raise SystemExit(1)
+PY
+then
+  record "migration-contract/storefront-profile.json" pass "profile envelope present"
+else
+  record "migration-contract/storefront-profile.json" fail "profile envelope missing fields"
 fi
 
 # Fixture self-test for compare script

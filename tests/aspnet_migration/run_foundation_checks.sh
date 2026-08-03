@@ -380,6 +380,39 @@ check 'deploy packs catalog/api gate shadow' contains "$ROOT/scripts/deploy_aspn
 check 'deploy packs surface digests gate shadow' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'nginx-surface-digests-shadow-example.conf'
 check 'deploy packs storefront digests gate shadow' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'nginx-storefront-digests-shadow-example.conf'
 check 'deploy packs exact-route extract helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_extract_exact_route_shadow.sh'
+check 'deploy packs ensure epc_api_clients helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_ensure_epc_api_clients_table.sh'
+check 'deploy packs smoke secrets prepare helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_prepare_smoke_secrets.sh'
+check 'deploy packs smoke commit helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_commit_final_gate_smoke.sh'
+check 'deploy packs smoke credential issuer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_issue_smoke_credentials.sh'
+check 'smoke credential issuer exists' test -x "$ROOT/scripts/cloudpanel_issue_smoke_credentials.sh"
+check 'smoke issuer uses PHP DP_Config bootstrap' contains "$ROOT/scripts/php/_smoke_db_bootstrap.php" 'DP_Config'
+check 'deploy packs smoke DB bootstrap PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" '_smoke_db_bootstrap.php'
+check 'deploy packs ensure table PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ensure_epc_api_clients_table.php'
+check 'ensure epc_api_clients helper exists' test -x "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh"
+check 'catalog list parity compare script exists' test -f "$ROOT/scripts/compare_catalog_list_parity.py"
+check 'catalog offline-cache parity compare script exists' test -f "$ROOT/scripts/compare_catalog_offline_cache_parity.py"
+check 'catalog vin parity compare script exists' test -f "$ROOT/scripts/compare_catalog_vin_parity.py"
+check 'catalog brand-parts parity compare script exists' test -f "$ROOT/scripts/compare_catalog_brand_parts_parity.py"
+check 'deploy packs catalog list compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_list_parity.py'
+check 'deploy packs catalog offline-cache compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_offline_cache_parity.py'
+check 'deploy packs catalog status compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_status_parity.py'
+check 'deploy packs catalog vin compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_vin_parity.py'
+check 'deploy packs catalog brand-parts compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_brand_parts_parity.py'
+check 'deploy packs price lookup compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_price_lookup_parity.py'
+check 'deploy packs digest dual-sample compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_digest_dual_samples.py'
+check 'deploy packs surface payload compare script' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_surface_payload_parity.py'
+check 'deploy packs surface parity harness' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'run_surface_parity_harness.sh'
+check 'live surface stack probe exists' test -x "$ROOT/scripts/probe_live_surface_stack.sh"
+check 'live surface stack probe covers data-parity' contains "$ROOT/scripts/probe_live_surface_stack.sh" '/migration/data-parity'
+check 'live surface stack probe covers cp parity' contains "$ROOT/scripts/probe_live_surface_stack.sh" '/cp/parity'
+check 'api client parity reporter mentions ensure' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyApiClientParityReporter.cs" 'ensure_epc_api_clients_table.sh'
+check 'session parity reporter mentions issue smoke' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'issue_smoke_credentials.sh'
+check 'storefront digest exact-route smoke exists' test -x "$ROOT/tests/live_smoke/run_storefront_digest_exact_route_smoke.sh"
+check 'price lookup compare supports contract-only' contains "$ROOT/scripts/compare_price_lookup_parity.py" '--contract-only'
+check 'harness lists cp-config-items contract' contains "$ROOT/scripts/run_surface_parity_harness.sh" 'cp-config-items.json'
+check 'harness lists bos-tenants contract' contains "$ROOT/scripts/run_surface_parity_harness.sh" 'bos-tenants.json'
+check 'harness supports customer cookie capture' contains "$ROOT/scripts/run_surface_parity_harness.sh" 'ECOMAE_CUSTOMER_COOKIE_HEADER'
+check 'capture wires optional storefront smoke' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'run_storefront_digest_exact_route_smoke.sh'
 check 'exact-route extract helper exists' test -x "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh"
 check 'exact-route extract helper refuses broad /api' contains "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" 'refusing broad surface cutover'
 check 'surface digests shadow covers config-items' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /cp/config-items'
@@ -392,6 +425,34 @@ check 'surface digests shadow covers bos tenants' contains "$ROOT/deploy/aspnet/
 check 'CloudPanel final-gate capture never removes PHP' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'never removes PHP'
 check 'public decommission probes attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json"
 check 'public decommission readiness probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
+check 'surface field parity public probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json"
+check 'surface field parity probe tracks catalog vin contract' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '/api/v1/catalog/vin'
+check 'surface field parity probe contractCount is current' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"contractCount": 53'
+check 'live surface links probe includes field parity route' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/migration/surface-field-parity'
+check 'live surface links probe includes catalog brand-parts' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/api/v1/catalog/brand-parts'
+check 'zero php probe next actions mention ensure table' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'ensure_epc_api_clients_table'
+check 'zero php probe next actions mention issue smoke creds' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'issue_smoke_credentials'
+check 'zero php probe next actions mention smoke-issuer redeploy' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'cloudpanel_redeploy_final_gate_branch.sh'
+check 'php decommission probe next actions mention ensure table' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" 'ensure_epc_api_clients_table'
+check 'php decommission probe next actions mention issue smoke' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" 'issue_smoke_credentials'
+check 'live surface links probe includes cp parity board' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/cp/parity'
+check 'surface digest smoke covers erp gl-journals' contains "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh" '/erp/gl-journals'
+check 'surface digest smoke covers cp groups' contains "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh" '/cp/groups'
+check 'capture incomplete footer mentions ensure table' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'cloudpanel_ensure_epc_api_clients_table.sh'
+check 'redeploy BLOCKED footer mentions ensure table' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'cloudpanel_ensure_epc_api_clients_table.sh'
+check 'API migration status is post-scaffold honest' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" 'catalog-cache-routes-wired-awaiting-staging'
+check 'migration parity milestones mention ensure' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/MigrationParityReporter.cs" 'ensure'
+check 'live surface links probe includes catalog article-brands' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/api/v1/catalog/article-brands'
+check 'live surface links probe includes bos audit-log' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/bos/audit-log'
+check 'live surface links probe includes session parity' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/auth/session/parity'
+check 'presentation parity probe mentions ensure path' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-presentation-parity.json" 'ensure'
+check 'harness catalog capture includes brand-parts' contains "$ROOT/scripts/run_surface_parity_harness.sh" '/api/v1/catalog/brand-parts'
+check 'harness admin capture includes bos audit-log' contains "$ROOT/scripts/run_surface_parity_harness.sh" '/bos/audit-log'
+check 'CloudPanel quick start points to smoke-issuer redeploy' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'cloudpanel_redeploy_final_gate_branch.sh'
+check 'zero php progress JSON next order mentions ensure table' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'cloudpanel_ensure_epc_api_clients_table.sh'
+check 'php decommission probe marks exact-route shadows present' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); i=next(c for c in d["checklist"] if c["id"]=="exact-route-shadows-only"); assert i["status"]=="present"' "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
+check 'surface parity probe public API status is wired' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-parity.json" 'catalog-cache-routes-wired-awaiting-staging'
+check 'redeploy final-gate defaults to smoke-issuer branch' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'cursor/smoke-issuer-php-platform-pdo-7b3b'
 check 'final gate checklist never removes PHP' contains "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" 'never removes PHP'
 check 'catalog status smoke runner exists' test -x "$ROOT/tests/live_smoke/run_catalog_status_exact_route_smoke.sh"
 check 'surface digest smoke runner exists' test -x "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh"
@@ -420,6 +481,9 @@ check 'program registers catalog manufacturers service' contains "$ROOT/aspnet/s
 check 'API module gates manufacturers with catalog auth' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ApiModule.cs" '"catalog", "manufacturers"'
 check 'catalog manufacturers evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-manufacturers/README.md"
 check 'catalog manufacturers nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-manufacturers-shadow-example.conf"
+check 'catalog models nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-models-shadow-example.conf"
+check 'catalog modifications nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-modifications-shadow-example.conf"
+check 'catalog brands nginx shadow example exists' test -f "$ROOT/deploy/aspnet/nginx-catalog-brands-shadow-example.conf"
 check 'catalog models route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/models'
 check 'catalog modifications route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/modifications'
 check 'catalog brands route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/brands'

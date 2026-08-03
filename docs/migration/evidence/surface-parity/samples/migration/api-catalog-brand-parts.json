@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "brand": "BOSCH",
+  "rows": 0,
+  "source": "migration",
+  "data": [],
+  "message": "TenantRegistry DB is not configured."
+}

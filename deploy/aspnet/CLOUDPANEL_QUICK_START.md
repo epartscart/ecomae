@@ -4,10 +4,16 @@ The command `bash scripts/preflight_aspnet_production.sh` must be run from the r
 
 **Do not use `/var/www/ecomae`.** That path is usually missing. Source checkouts live under `/root/ecomae` or `/opt/ecomae-aspnet-source`. Published releases live under `/var/www/ecomae-aspnet`.
 
-After a merged PR, use this paste-safe bootstrap (works even when local scripts are missing/stale):
+For final-gate smoke unlock (ensure table + issuer), prefer the smoke-issuer branch until it merges:
 
 ```bash
-# Preferred: always refresh /opt/ecomae-aspnet-source to latest main, then deploy.
+# Preferred while PR #603 is open: paste-safe redeploy of smoke-issuer branch.
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-issuer-php-platform-pdo-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
+```
+
+After that PR merges, refresh `/opt/ecomae-aspnet-source` to latest main, then deploy:
+
+```bash
 mkdir -p /opt
 cd /opt
 if [ ! -d ecomae-aspnet-source/.git ]; then
@@ -97,12 +103,17 @@ cd /opt/ecomae-aspnet-source   # or /root/ecomae — your real repo path
 bash scripts/cloudpanel_continue_after_env.sh
 ```
 
-After deploy succeeds, capture final-gate artifacts (still does not remove PHP):
+After deploy succeeds, issue smoke secrets then capture (still does not remove PHP):
 
 ```bash
 cd /opt/ecomae-aspnet-source
-git fetch origin main && git checkout -f main && git reset --hard origin/main
+# While smoke-issuer PR is open, stay on that branch; after merge use origin/main.
+ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh
+ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh
+source /etc/ecomae-aspnet/platform.env
+bash scripts/cloudpanel_validate_final_gate_env.sh
 bash scripts/cloudpanel_capture_final_gate_artifacts.sh
+bash scripts/cloudpanel_commit_final_gate_smoke.sh
 ```
 
 Replace placeholders in `/etc/ecomae-aspnet/platform.env`. Never commit production secrets. Never flip broad storefront/admin ASP.NET flags from this file until exact-route smoke + release-owner approval exist.

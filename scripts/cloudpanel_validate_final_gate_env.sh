@@ -78,16 +78,52 @@ elif [[ -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" ]]; then
   fi
 fi
 
+# Optional customer cookie for storefront digest promotion (not required for ReadyToRemovePhp).
+status_customer="MISSING"
+customer_hint=""
+if [[ -n "${ECOMAE_CUSTOMER_COOKIE_JAR:-}" ]]; then
+  if [[ -r "${ECOMAE_CUSTOMER_COOKIE_JAR}" ]]; then
+    status_customer="PRESENT_JAR"
+  else
+    status_customer="BAD_FORMAT"
+    customer_hint="customer cookie jar path not readable"
+  fi
+elif [[ -n "${ECOMAE_CUSTOMER_COOKIE_HEADER:-}" ]]; then
+  chdr="${ECOMAE_CUSTOMER_COOKIE_HEADER}"
+  if [[ "${chdr:0:1}" == "'" && "${chdr: -1}" == "'" ]]; then
+    chdr="${chdr:1:${#chdr}-2}"
+  elif [[ "${chdr:0:1}" == '"' && "${chdr: -1}" == '"' ]]; then
+    chdr="${chdr:1:${#chdr}-2}"
+  fi
+  ECOMAE_CUSTOMER_COOKIE_HEADER="$chdr"
+  export ECOMAE_CUSTOMER_COOKIE_HEADER
+  if [[ "$chdr" == *"session="* && "$chdr" == *"u_id="* ]]; then
+    if printf '%s' "$chdr" | grep -Eq '(^|[; ])u_id=[0-9]+'; then
+      status_customer="PRESENT"
+    else
+      status_customer="BAD_FORMAT"
+      customer_hint="u_id must be digits (u_id=123); do not use admin_u_id here"
+    fi
+  else
+    status_customer="BAD_FORMAT"
+    customer_hint="need both session= and u_id=<digits> (customer cookies, not admin_session)"
+  fi
+fi
+
 printf 'ECOMAE_PRICE_LOOKUP_API_KEY: %s (expect prefix epc_pricepro_)\n' "$status_price"
 printf 'ECOMAE_CATALOG_API_KEY: %s (expect prefix epc_catalog_)\n' "$status_catalog"
 printf 'ECOMAE_ADMIN_COOKIE_HEADER/JAR: %s (expect admin_session=...; admin_u_id=<digits>)\n' "$status_cookie"
 if [[ -n "${cookie_hint:-}" ]]; then
   printf '  cookie detail: %s\n' "$cookie_hint"
 fi
+printf 'ECOMAE_CUSTOMER_COOKIE_HEADER/JAR: %s (optional; expect session=...; u_id=<digits>)\n' "$status_customer"
+if [[ -n "${customer_hint:-}" ]]; then
+  printf '  customer cookie detail: %s\n' "$customer_hint"
+fi
 printf 'Never prints secret values. Does not remove PHP.\n'
 printf 'Next if anything MISSING/BAD_FORMAT: bash scripts/cloudpanel_prepare_smoke_secrets.sh\n'
 
-for s in "$status_price" "$status_catalog" "$status_cookie"; do
+for s in "$status_price" "$status_catalog" "$status_cookie" "$status_customer"; do
   if [[ "$s" == "BAD_FORMAT" ]]; then
     bad=1
   fi
@@ -99,6 +135,11 @@ if [[ "$STRICT" == "1" ]]; then
   fi
   if [[ "$status_cookie" != "PRESENT" && "$status_cookie" != "PRESENT_JAR" ]]; then
     exit 1
+  fi
+  if [[ "${ECOMAE_SMOKE_REQUIRE_CUSTOMER:-0}" == "1" ]]; then
+    if [[ "$status_customer" != "PRESENT" && "$status_customer" != "PRESENT_JAR" ]]; then
+      exit 1
+    fi
   fi
   if [[ "$bad" -ne 0 ]]; then
     exit 1

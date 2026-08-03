@@ -29,6 +29,9 @@ Live JSON catalog after deploy: `https://www.ecomae.com/migration/live-surface-l
 | Presentation parity | https://www.ecomae.com/migration/presentation-parity |
 | Live surface links | https://www.ecomae.com/migration/live-surface-links |
 | Surface parity | https://www.ecomae.com/migration/surface-parity |
+| Surface field parity | https://www.ecomae.com/migration/surface-field-parity |
+| CP / ERP / BOS / storefront parity boards | /cp/parity · /erp/parity · /bos/parity · /storefront/parity (loopback) |
+| Auth / data / catalog / price parity | /auth/session/parity · /auth/api-client/parity · /migration/data-parity · /api/v1/catalog/parity · /api/v1/price/parity |
 | Price lookup API | https://www.ecomae.com/api/v1/price/lookup |
 
 ## Industry showcase frontends (`*.ecomae.com`)
@@ -64,12 +67,11 @@ Tenant BOS is generally Super-CP-only; tenant hosts may still answer `/BOS/` via
 
 These exist in ASP.NET on loopback (`127.0.0.1:5100`) but are **not** broadly cut over on the public host yet:
 
-- `/cp/dashboard-summary`
-- `/erp/dashboard-summary`
-- `/bos/fleet-summary`
-- `/api/v1/catalog/status`
+- Full CP/ERP/BOS digest set in `nginx-surface-digests-shadow-example.conf` (dashboard, tenants/users/groups/menus/pages, cash/COA/warehouses/orders/invoices/GL, fleet/audit, …)
+- `/api/v1/catalog/status` plus list/offline/UMAPI catalog paths (`manufacturers`…`brand-parts`, `article`, `engine`, …)
+- `/storefront/account-summary`, `/storefront/orders`, `/storefront/garage`, `/storefront/profile` (optional; needs customer cookie)
 
-Enable only via `deploy/aspnet/nginx-surface-digests-shadow-example.conf` / catalog shadow examples after smoke.
+Enable only via `deploy/aspnet/nginx-surface-digests-shadow-example.conf` / catalog / storefront shadow examples after smoke.
 
 ## Final PHP cutover gate
 

@@ -84,6 +84,23 @@ digest_200 = [
 if not digest_200:
     raise SystemExit("FAIL surface-digests-aspnet.json: need at least one non-migration digest HTTP 200")
 print(f"OK surface smoke: {len(digest_200)} authenticated digest 200 route(s)")
+
+# Optional storefront digests — validate when present; never invent.
+sf = root / "storefront-digests-aspnet.json"
+if sf.exists() and sf.stat().st_size > 0:
+    sdoc = json.loads(sf.read_text(encoding="utf-8"))
+    if sdoc.get("ok") is not True:
+        raise SystemExit("FAIL storefront-digests-aspnet.json: ok must be true when present")
+    sroutes = sdoc.get("routes") or []
+    sf_200 = [
+        r for r in sroutes
+        if isinstance(r, dict) and int(r.get("status") or 0) == 200
+    ]
+    if not sf_200:
+        raise SystemExit("FAIL storefront-digests-aspnet.json: need at least one digest HTTP 200")
+    print(f"OK storefront smoke (optional): {len(sf_200)} customer digest 200 route(s)")
+else:
+    print("SKIP storefront-digests-aspnet.json (optional — set ECOMAE_CUSTOMER_COOKIE_* to capture)")
 PY
 
 git fetch origin main
@@ -98,12 +115,17 @@ if git diff --cached --quiet; then
   exit 0
 fi
 
+storefront_note=""
+if [[ -s "$SMOKE/storefront-digests-aspnet.json" ]]; then
+  storefront_note=" Includes optional storefront customer digests."
+fi
+
 git -c user.name="${GIT_AUTHOR_NAME:-ecomae-cloudpanel}" \
     -c user.email="${GIT_AUTHOR_EMAIL:-ops@ecomae.local}" \
-    commit -m "$(cat <<'EOF'
+    commit -m "$(cat <<EOF
 Attach CloudPanel final-gate staging smoke artifacts
 
-Authenticated price/catalog/surface smoke only. PHP remains authoritative.
+Authenticated price/catalog/surface smoke only.${storefront_note} PHP remains authoritative.
 EOF
 )"
 

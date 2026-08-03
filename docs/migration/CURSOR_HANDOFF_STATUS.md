@@ -27,8 +27,8 @@ ASP.NET Core migration foundation and diagnostics-only deploy tooling are in pla
 1. Keep ASP.NET Core as sole enterprise backend; Python AI-only; no Java/Node/Go/PHP backends.
 2. Continue exact-route Zero-PHP digests/parity with PHP fallback required.
 3. Advance EF Core / observability / YARP scaffolding without claiming infra live.
-4. Redeploy with `git reset --hard origin/main` then `scripts/cloudpanel_find_and_redeploy.sh`.
-5. Run staging smoke with real API keys before any `location =` nginx shadows.
+4. Redeploy smoke-issuer via `bash scripts/cloudpanel_redeploy_final_gate_branch.sh` (or `origin/main` after merge).
+5. Ensure table → issue smoke creds → validate → capture/commit before any `location =` nginx shadows.
 
 ## Do not do yet
 

@@ -18,9 +18,11 @@ public sealed class ControlPanelParityReporter : IControlPanelParityReporter
                 "Surface parity report tracks CP login, dashboard shell, tenant selector, and access-denial evidence."
             ],
             [
+                "On CloudPanel: ensure_epc_api_clients_table.sh → issue_smoke_credentials.sh → validate_final_gate_env.sh → capture surface digests.",
                 "Replay PHP Super CP login and dashboard fixtures against ASP.NET Core HTML/JSON shell output.",
                 "Port tenant administration, user management writes, settings, and dashboard widgets.",
-                "Validate permission-denied UX and audit logging with production role fixtures."
+                "Validate permission-denied UX and audit logging with production role fixtures.",
+                "Promote only location = digests via nginx-surface-digests-shadow-example.conf (never broad /cp)."
             ]);
     }
 }

@@ -4,13 +4,19 @@ PHP remains authoritative until each step below is green. Never enable broad `/a
 
 ## Preconditions
 
-1. Authenticated smoke attached:
+1. On CloudPanel: ensure table → issue creds → validate env (redacted):
+   - `ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh`
+   - `ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh`
+   - `bash scripts/cloudpanel_validate_final_gate_env.sh`
+2. Authenticated smoke attached:
    - `docs/migration/evidence/decommission/staging-smoke/price-lookup-aspnet.json`
    - `docs/migration/evidence/decommission/staging-smoke/catalog-status-aspnet.json`
-2. Optional dual PHP↔ASP.NET compare green:
+   - `docs/migration/evidence/decommission/staging-smoke/surface-digests-aspnet.json`
+3. Optional dual PHP↔ASP.NET compare green:
    - `python3 scripts/compare_price_lookup_parity.py <php.json> <aspnet.json>`
    - `python3 scripts/compare_catalog_status_parity.py <php.json> <aspnet.json>`
-3. `GET /migration/php-decommission-readiness` does not need to be fully green for a single shadow, but smoke artifacts must exist for that route.
+4. `GET /migration/php-decommission-readiness` does not need to be fully green for a single shadow, but smoke artifacts must exist for that route.
+5. Optional storefront digests (not required for ReadyToRemovePhp): set `ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits>` before capture.
 
 ## Promote one path at a time
 
@@ -59,6 +65,46 @@ curl -sS -o /tmp/catalog.json -w '%{http_code}\n' \
 ```
 
 Expect HTTP 200 JSON with `connected` / `counts` / `source` (not PHP HTML 404).
+
+### Catalog manufacturers (wave 1 after status)
+
+```bash
+bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/manufacturers
+# review disabled snippet, then enable + reload
+curl -sS -o /tmp/mfr-aspnet.json -w '%{http_code}\n' \
+  -H "X-API-Key: $ECOMAE_CATALOG_API_KEY" \
+  "https://www.ecomae.com/api/v1/catalog/manufacturers?section=passenger"
+# Capture PHP twin, then:
+python3 scripts/compare_catalog_list_parity.py manufacturers /tmp/mfr-php.json /tmp/mfr-aspnet.json
+```
+
+Same pattern for `/api/v1/catalog/models`, `/modifications`, `/brands`, `/suppliers` using `nginx-catalog-*-shadow-example.conf`.
+
+### Catalog offline-cache / VIN / brand-parts (wave 2)
+
+```bash
+bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/engines
+# … dual sample …
+python3 scripts/compare_catalog_offline_cache_parity.py engines /tmp/engines-php.json /tmp/engines-aspnet.json
+
+python3 scripts/compare_catalog_vin_parity.py /tmp/vin-php.json /tmp/vin-aspnet.json
+python3 scripts/compare_catalog_brand_parts_parity.py /tmp/bp-php.json /tmp/bp-aspnet.json
+```
+
+Promote only after smoke + compare green. Never broad `/api`.
+
+### Optional storefront digests (not required for ReadyToRemovePhp)
+
+```bash
+# Customer cookies (not admin_session):
+# ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=123
+RUN_STOREFRONT_DIGEST_SMOKE=1 bash tests/live_smoke/run_storefront_digest_exact_route_smoke.sh
+# or capture via cloudpanel_capture_final_gate_artifacts.sh when customer cookie is set
+bash scripts/cloudpanel_extract_exact_route_shadow.sh /storefront/account-summary
+# Review disabled snippet; enable via nginx-storefront-digests-shadow-example.conf one location= at a time.
+```
+
+Keep `StorefrontAspNetEnabled=false` until dual-sample match for each promoted path.
 
 ## Rollback
 

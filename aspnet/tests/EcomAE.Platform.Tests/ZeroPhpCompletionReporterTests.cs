@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using EcomAE.Platform.Migration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
@@ -23,9 +25,38 @@ public sealed class ZeroPhpCompletionReporterTests
         Assert.Contains(report.Areas, area => area.Name == "Storefront and public API parity" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "Background jobs and scheduled work" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "Data, auth, observability, and rollback evidence" && area.CompletePercent == 100);
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_bootstrap_from_github.sh", StringComparison.Ordinal)
-            || action.Contains("cloudpanel_find_and_redeploy.sh", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_redeploy_final_gate_branch.sh", StringComparison.Ordinal)
+            || action.Contains("smoke-issuer-php-platform-pdo-7b3b", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("ensure_epc_api_clients_table", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("issue_smoke_credentials", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("ECOMAE_CUSTOMER_COOKIE_HEADER", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void WriteZeroPhpCompletionProbeSnapshotWhenRequested()
+    {
+        // ECOMAE_WRITE_ZERO_PHP_COMPLETION_PROBE=1 dotnet test --filter WriteZeroPhpCompletionProbeSnapshotWhenRequested
+        if (!string.Equals(Environment.GetEnvironmentVariable("ECOMAE_WRITE_ZERO_PHP_COMPLETION_PROBE"), "1", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var report = new ZeroPhpCompletionReporter(new PhpDecommissionReadinessReporter(new RepoHostEnvironment())).BuildReport();
+        Assert.Equal(95, report.OverallCompletePercent);
+        Assert.Equal("not-ready-for-php-removal", report.Status);
+
+        var json = JsonSerializer.Serialize(report, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        }) + "\n";
+
+        var root = RepoHostEnvironment.FindRepoRoot();
+        var path = Path.Combine(root, "docs", "migration", "evidence", "decommission", "public-probes", "www-zero-php-completion.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, json);
     }
 
     private sealed class RepoHostEnvironment : IHostEnvironment

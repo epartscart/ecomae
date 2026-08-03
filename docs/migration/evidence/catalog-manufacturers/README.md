@@ -21,4 +21,13 @@ curl -sS -H "X-API-Key: epc_catalog_REAL_STAGING_KEY" \
   "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/manufacturers?section=passenger" | python3 -m json.tool
 ```
 
+## Dual-sample compare
+
+```bash
+python3 scripts/compare_catalog_list_parity.py manufacturers php.json aspnet.json
+python3 scripts/compare_catalog_list_parity.py manufacturers php.json aspnet.json --contract-only
+```
+
+Envelope contract: `SurfacePayloadContractCatalog` route `/api/v1/catalog/manufacturers`.
+
 Keep PHP fallback until artifacts are attached and approved.

@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# Paste-safe: deploy the final-gate smoke-preflight branch (PR #599), NOT stale main.
+# Paste-safe: deploy the current smoke-issuer / final-gate branch (or main after merge).
 #
 # On CloudPanel as root, copy this ENTIRE block:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-preflight-public-probes-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-issuer-php-platform-pdo-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
 #
 # Or from an existing checkout:
 #   bash scripts/cloudpanel_redeploy_final_gate_branch.sh
+#   ECOMAE_BRANCH=main bash scripts/cloudpanel_redeploy_final_gate_branch.sh
 #
 # Never removes PHP. Never invents API keys/cookies — you must set them in platform.env.
 set -euo pipefail
 
 ECOMAE_GIT_URL="${ECOMAE_GIT_URL:-https://github.com/epartscart/ecomae.git}"
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/smoke-preflight-public-probes-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/smoke-issuer-php-platform-pdo-7b3b}"
 REPO="${ECOMAE_REPO:-/opt/ecomae-aspnet-source}"
 ECOMAE_ASPNET_ENV_DIR="${ECOMAE_ASPNET_ENV_DIR:-/etc/ecomae-aspnet}"
 ENV_FILE="${ECOMAE_ASPNET_ENV_DIR}/platform.env"
@@ -19,7 +20,7 @@ ENV_FILE="${ECOMAE_ASPNET_ENV_DIR}/platform.env"
 printf '== CloudPanel redeploy FINAL-GATE branch ==\n'
 printf 'Branch: %s\n' "$ECOMAE_BRANCH"
 printf 'Repo:   %s\n' "$REPO"
-printf 'This is NOT main until PR #599 merges. Stale main lacks validate/wait scripts.\n'
+printf 'Defaults to smoke-issuer branch (ensure→issue). Use ECOMAE_BRANCH=main after PR merge.\n'
 
 mkdir -p "$(dirname "$REPO")"
 if [[ ! -d "$REPO/.git" ]]; then
@@ -72,9 +73,10 @@ if [[ -z "${ECOMAE_ADMIN_COOKIE_HEADER:-}" && -z "${ECOMAE_ADMIN_COOKIE_JAR:-}" 
 fi
 
 if [[ "$missing" -ne 0 ]]; then
-  printf '\nBLOCKED: smoke secrets incomplete. Run:\n'
-  printf '  bash scripts/cloudpanel_prepare_smoke_secrets.sh\n'
-  printf '  nano %s\n' "$ENV_FILE"
+  printf '\nBLOCKED: smoke secrets incomplete. Preferred path:\n'
+  printf '  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
+  printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+  printf '  (optional manual guidance: bash scripts/cloudpanel_prepare_smoke_secrets.sh)\n'
   printf '  source %s\n' "$ENV_FILE"
   printf '  bash scripts/cloudpanel_validate_final_gate_env.sh\n'
   printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
@@ -106,8 +108,9 @@ print("Admin session OK")
 PY
 then
   rm -f "$probe_tmp"
-  printf 'BLOCKED: Admin session probe failed — refresh ECOMAE_ADMIN_COOKIE_HEADER from a live Super CP login.\n'
-  printf '  bash scripts/cloudpanel_prepare_smoke_secrets.sh\n'
+  printf 'BLOCKED: Admin session probe failed — login https://www.ecomae.com/CP/ then re-issue cookie:\n'
+  printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+  printf '  (optional: bash scripts/cloudpanel_prepare_smoke_secrets.sh)\n'
   exit 2
 fi
 rm -f "$probe_tmp"

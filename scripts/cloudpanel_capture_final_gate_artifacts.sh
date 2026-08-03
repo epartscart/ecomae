@@ -57,11 +57,14 @@ bash "$REPO/scripts/cloudpanel_validate_final_gate_env.sh" || true
 if [[ -z "${ECOMAE_PRICE_LOOKUP_API_KEY:-}" || -z "${ECOMAE_CATALOG_API_KEY:-}" || ( -z "${ECOMAE_ADMIN_COOKIE_HEADER:-}" && -z "${ECOMAE_ADMIN_COOKIE_JAR:-}" ) ]]; then
   if [[ "${ECOMAE_ALLOW_PUBLIC_ONLY_CAPTURE:-0}" != "1" ]]; then
     printf '\nBLOCKED: smoke secrets still MISSING in %s\n' "$ENV_FILE"
-    printf 'Issue them on this server (does not print secrets):\n'
+    printf 'Preferred path on this server (does not print secrets):\n'
+    printf '  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
     printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
     printf 'If that reports no admin session: log into https://www.ecomae.com/CP/ once, then re-run issue.\n'
+    printf 'Or: bash scripts/cloudpanel_prepare_smoke_secrets.sh\n'
     printf 'Then:\n'
     printf '  source %s\n' "$ENV_FILE"
+    printf '  bash scripts/cloudpanel_validate_final_gate_env.sh\n'
     printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
     printf 'Or set ECOMAE_ALLOW_PUBLIC_ONLY_CAPTURE=1 to capture public probes only.\n'
     exit 2
@@ -257,8 +260,26 @@ elif [[ "$health_ready" -eq 1 ]]; then
   printf 'SKIP surface digest smoke: set ECOMAE_ADMIN_COOKIE_HEADER or ECOMAE_ADMIN_COOKIE_JAR.\n'
 fi
 
+# Optional storefront customer digests (promotion aid; not required for ReadyToRemovePhp).
+smoke_storefront=0
+if [[ "$health_ready" -eq 1 && ( -n "${ECOMAE_CUSTOMER_COOKIE_HEADER:-}" || -n "${ECOMAE_CUSTOMER_COOKIE_JAR:-}" ) ]]; then
+  printf '\n-- Optional storefront customer digest smoke --\n'
+  export RUN_STOREFRONT_DIGEST_SMOKE=1
+  export ECOMAE_REQUIRE_AUTHENTICATED_DIGEST_200=1
+  export ECOMAE_ASPNET_BASE_URL="$ASPNET_BASE"
+  export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
+  if bash tests/live_smoke/run_storefront_digest_exact_route_smoke.sh; then
+    smoke_storefront=1
+  else
+    rm -f "$SMOKE_DIR/storefront-digests-aspnet.json" "$SMOKE_DIR/ecomae-aspnet-storefront-digests.json"
+    printf 'WARN storefront digest smoke failed (optional — admin/surface smoke can still proceed)\n'
+  fi
+elif [[ "$health_ready" -eq 1 ]]; then
+  printf 'SKIP storefront digest smoke: set ECOMAE_CUSTOMER_COOKIE_HEADER or ECOMAE_CUSTOMER_COOKIE_JAR (session=...; u_id=...).\n'
+fi
+
 printf '\n-- Smoke artifact summary --\n'
-for name in price-lookup-aspnet.json catalog-status-aspnet.json surface-digests-aspnet.json; do
+for name in price-lookup-aspnet.json catalog-status-aspnet.json surface-digests-aspnet.json storefront-digests-aspnet.json; do
   path="$SMOKE_DIR/$name"
   if [[ -s "$path" ]]; then
     printf 'OK   %s (%s bytes)\n' "$path" "$(wc -c <"$path" | tr -d ' ')"
@@ -266,10 +287,11 @@ for name in price-lookup-aspnet.json catalog-status-aspnet.json surface-digests-
     printf 'MISS %s\n' "$path"
   fi
 done
-printf 'Captured this run: price=%s catalog=%s surfaces=%s\n' "$smoke_price" "$smoke_catalog" "$smoke_surfaces"
+printf 'Captured this run: price=%s catalog=%s surfaces=%s storefront=%s\n' \
+  "$smoke_price" "$smoke_catalog" "$smoke_surfaces" "$smoke_storefront"
 
 # Prevent capture's RUN_* exports from re-running failing live smoke inside the checklist.
-unset RUN_PRICE_LOOKUP_SMOKE RUN_CATALOG_STATUS_SMOKE RUN_SURFACE_DIGEST_SMOKE || true
+unset RUN_PRICE_LOOKUP_SMOKE RUN_CATALOG_STATUS_SMOKE RUN_SURFACE_DIGEST_SMOKE RUN_STOREFRONT_DIGEST_SMOKE || true
 
 printf '\n-- Final gate checklist --\n'
 bash scripts/run_zero_php_final_gate_checklist.sh || true
@@ -278,16 +300,16 @@ if [[ "$smoke_price" -eq 1 && "$smoke_catalog" -eq 1 && "$smoke_surfaces" -eq 1 
   printf '\nAll three smoke artifacts written. Commit + push from the server:\n'
   printf '  bash scripts/cloudpanel_commit_final_gate_smoke.sh\n'
 else
-  printf '\nSmoke incomplete (from your last CloudPanel run pattern):\n'
+  printf '\nSmoke incomplete — preferred CloudPanel recovery:\n'
   printf '  1) Wait for health: bash scripts/wait_for_aspnet_health.sh\n'
-  printf '  2) Set REAL keys in %s (empty values skip smoke):\n' "$ENV_FILE"
-  printf '       ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...\n'
-  printf '       ECOMAE_CATALOG_API_KEY=epc_catalog_...\n'
-  printf '  3) Fresh admin cookie (401 digests = expired/invalid cookie):\n'
-  printf '       ECOMAE_ADMIN_COOKIE_HEADER='\''admin_session=...; admin_u_id=123'\''\n'
-  printf '       Test: curl -sS -H "Cookie: $ECOMAE_ADMIN_COOKIE_HEADER" http://127.0.0.1:5100/auth/session/probe\n'
-  printf '  4) Re-run:\n'
+  printf '  2) Ensure table + issue keys/cookie (never invent secrets):\n'
+  printf '       ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
+  printf '       ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+  printf '       (or bash scripts/cloudpanel_prepare_smoke_secrets.sh for manual guidance)\n'
+  printf '  3) If admin cookie still missing/401: login https://www.ecomae.com/CP/ then re-issue; probe:\n'
   printf '       source %s\n' "$ENV_FILE"
+  printf '       curl -sS -H "Cookie: \$ECOMAE_ADMIN_COOKIE_HEADER" http://127.0.0.1:5100/auth/session/probe; echo\n'
+  printf '  4) Re-run:\n'
   printf '       bash scripts/cloudpanel_validate_final_gate_env.sh\n'
   printf '       bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n'
   printf '       bash scripts/cloudpanel_commit_final_gate_smoke.sh\n'

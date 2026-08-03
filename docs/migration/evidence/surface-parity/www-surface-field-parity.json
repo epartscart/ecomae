@@ -1,1 +1,1566 @@
-{"status":"field-function-presentation-contracts-locked-cutover-blocked","cutoverAllowed":false,"contractCount":29,"presentationAssetsChecked":22,"presentationAssetsOk":22,"contracts":[{"surface":"cp","aspNetRoute":"/cp/dashboard-summary","legacyPhpAuthority":"cp/index.php dashboard widgets","authRequired":"admin","requiredEnvelopeFields":["ok","surface","summary","session","note"],"requiredSummaryOrItemFields":["users","adminSessions","portalTenants","activePortalTenants","source","message"],"functionsCovered":["CP dashboard KPI read","tenant/user/session counts"],"presentationChrome":"cp/templates/bootstrap_admin/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"cp","aspNetRoute":"/cp/tenants","legacyPhpAuthority":"cp/content/control/portal/","authRequired":"admin-cp","requiredEnvelopeFields":["ok","surface","tenants","count","source","message","session","note"],"requiredSummaryOrItemFields":["siteKey","hostname","industryCode","status","tradeName","hubName","hostedOn","erpOnly","isActive","hasDb"],"functionsCovered":["portal tenant registry list"],"presentationChrome":"cp/templates/bootstrap_admin/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"cp","aspNetRoute":"/cp/users","legacyPhpAuthority":"cp/content/users/","authRequired":"admin-cp","requiredEnvelopeFields":["ok","surface","users","count","source","message","session","note"],"requiredSummaryOrItemFields":["userId","email","phone","unlocked","timeRegistered","timeLastVisit"],"functionsCovered":["user_manager read digest"],"presentationChrome":"cp/templates/bootstrap_admin/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"cp","aspNetRoute":"/cp/groups","legacyPhpAuthority":"cp/content/users/ groups","authRequired":"admin-cp","requiredEnvelopeFields":["ok","surface","groups","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","value","forBackend","forGuests","forRegistrated","unblocked","parent","level"],"functionsCovered":["groups ACL digest"],"presentationChrome":"cp/templates/bootstrap_admin/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"cp","aspNetRoute":"/cp/modules","legacyPhpAuthority":"cp modules registry","authRequired":"admin-cp","requiredEnvelopeFields":["ok","surface","modules","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","caption","activated","isFrontend","isPrototype","controlAvailable"],"functionsCovered":["modules list digest"],"presentationChrome":"cp/templates/bootstrap_admin/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"cp","aspNetRoute":"/cp/menus","legacyPhpAuthority":"cp menus","authRequired":"admin-cp","requiredEnvelopeFields":["ok","surface","menus","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","caption","isFrontend","menuUlClass","menuUlId"],"functionsCovered":["menu metadata digest"],"presentationChrome":"cp/templates/bootstrap_admin/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"cp","aspNetRoute":"/cp/pages","legacyPhpAuthority":"cp content pages","authRequired":"admin-cp","requiredEnvelopeFields":["ok","surface","pages","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","caption","url","alias","isFrontend","published","level","sortOrder"],"functionsCovered":["pages metadata digest"],"presentationChrome":"cp/templates/bootstrap_admin/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"cp","aspNetRoute":"/cp/currencies","legacyPhpAuthority":"shop_currencies manager","authRequired":"admin-cp","requiredEnvelopeFields":["ok","surface","currencies","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","isoCode","isoName","captionShort","rate","available","sortOrder"],"functionsCovered":["currency list digest"],"presentationChrome":"cp/templates/bootstrap_admin/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"cp","aspNetRoute":"/cp/api-clients","legacyPhpAuthority":"epc_api_clients metadata","authRequired":"admin-cp","requiredEnvelopeFields":["ok","surface","clients","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","clientKeyPrefix","product","label","contactEmail","active","dailyLimit","callsToday","timeCreated"],"functionsCovered":["API client metadata (no key hashes)"],"presentationChrome":"cp/templates/bootstrap_admin/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"erp","aspNetRoute":"/erp/dashboard-summary","legacyPhpAuthority":"cp/content/shop/finance/erp/erp_dashboard.php","authRequired":"admin","requiredEnvelopeFields":["ok","surface","summary","session","note"],"requiredSummaryOrItemFields":["cashPosition","supplierCredit","supplierDebit","supplierNet","cashAccounts","activeSuppliers","activePurchases","source","message"],"functionsCovered":["ERP finance KPI read"],"presentationChrome":"cp/templates/bootstrap_admin/erp_desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"erp","aspNetRoute":"/erp/suppliers","legacyPhpAuthority":"ERP suppliers","authRequired":"admin-erp","requiredEnvelopeFields":["ok","surface","suppliers","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","name","storageId","balance"],"functionsCovered":["supplier balances digest"],"presentationChrome":"cp/templates/bootstrap_admin/erp_desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"erp","aspNetRoute":"/erp/purchases","legacyPhpAuthority":"ERP purchases","authRequired":"admin-erp","requiredEnvelopeFields":["ok","surface","purchases","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","supplierId","supplierName","purchaseDate","invoiceNumber","totalAmount","status","orderId"],"functionsCovered":["purchase list digest"],"presentationChrome":"cp/templates/bootstrap_admin/erp_desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"erp","aspNetRoute":"/erp/coa-accounts","legacyPhpAuthority":"content/shop/finance/epc_erp_gl.php COA","authRequired":"admin-erp","requiredEnvelopeFields":["ok","surface","accounts","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","code","name","accountType","normalSide","parentId","openingBalance","active"],"functionsCovered":["chart of accounts digest"],"presentationChrome":"cp/templates/bootstrap_admin/erp_desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"erp","aspNetRoute":"/erp/warehouses","legacyPhpAuthority":"ERP warehouses","authRequired":"admin-erp","requiredEnvelopeFields":["ok","surface","warehouses","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","storageId","code","name","active","timeCreated"],"functionsCovered":["warehouse digest"],"presentationChrome":"cp/templates/bootstrap_admin/erp_desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"erp","aspNetRoute":"/erp/sales-orders","legacyPhpAuthority":"ERP sales orders","authRequired":"admin-erp","requiredEnvelopeFields":["ok","surface","orders","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","soNo","customerUserId","totalAmount","status","timeCreated"],"functionsCovered":["sales order digest"],"presentationChrome":"cp/templates/bootstrap_admin/erp_desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"erp","aspNetRoute":"/erp/purchase-orders","legacyPhpAuthority":"ERP purchase orders","authRequired":"admin-erp","requiredEnvelopeFields":["ok","surface","orders","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","poNo","supplierId","title","totalAmount","status","timeCreated"],"functionsCovered":["purchase order digest"],"presentationChrome":"cp/templates/bootstrap_admin/erp_desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"erp","aspNetRoute":"/erp/inventory-stock","legacyPhpAuthority":"ERP inventory stock KPIs","authRequired":"admin-erp","requiredEnvelopeFields":["ok","surface","summary","session","note"],"requiredSummaryOrItemFields":["rowCount","qtyOnHand","stockValue","warehouseCount","itemCount","source","message"],"functionsCovered":["inventory stock KPI digest"],"presentationChrome":"cp/templates/bootstrap_admin/erp_desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"erp","aspNetRoute":"/erp/invoices","legacyPhpAuthority":"ERP e-invoices","authRequired":"admin-erp","requiredEnvelopeFields":["ok","surface","invoices","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","invoiceNumber","orderId","userId","customerEmail","issueDate","status","totalInclVat"],"functionsCovered":["invoice digest"],"presentationChrome":"cp/templates/bootstrap_admin/erp_desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"erp","aspNetRoute":"/erp/gl-journals","legacyPhpAuthority":"ERP GL journals","authRequired":"admin-erp","requiredEnvelopeFields":["ok","surface","journals","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","journalNo","journalDate","sourceType","sourceId","status","totalDebit"],"functionsCovered":["GL journal digest"],"presentationChrome":"cp/templates/bootstrap_admin/erp_desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"bos","aspNetRoute":"/bos/fleet-summary","legacyPhpAuthority":"bos/index.php command center","authRequired":"admin","requiredEnvelopeFields":["ok","surface","summary","session","note"],"requiredSummaryOrItemFields":["portalTenants","activePortalTenants","adminSessions","withDatabase","erpOnly","source","message"],"functionsCovered":["BOS fleet KPI read"],"presentationChrome":"bos/index.php + bos/epc_bos_shell.css","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"bos","aspNetRoute":"/bos/fleet-health","legacyPhpAuthority":"BOS fleet health","authRequired":"admin-bos","requiredEnvelopeFields":["ok","surface","summary","sampleTenants","source","message","session","note"],"requiredSummaryOrItemFields":["portalTenants","activePortalTenants","adminSessions","withDatabase","erpOnly","source","message"],"functionsCovered":["fleet health sample tenants"],"presentationChrome":"bos/index.php + bos/epc_bos_shell.css","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"bos","aspNetRoute":"/bos/fleet-readiness","legacyPhpAuthority":"BOS fleet readiness scoring","authRequired":"admin-bos","requiredEnvelopeFields":["ok","surface","readiness","session","note"],"requiredSummaryOrItemFields":["tenants","pass","warn","fail","active","withDatabase","erpOnly","source","message"],"functionsCovered":["platform-DB readiness scoring"],"presentationChrome":"bos/index.php + bos/epc_bos_shell.css","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"bos","aspNetRoute":"/bos/audit-log","legacyPhpAuthority":"epc_boc_audit","authRequired":"admin-bos","requiredEnvelopeFields":["ok","surface","entries","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","ts","userId","actor","area","action","target","ip"],"functionsCovered":["audit log digest"],"presentationChrome":"bos/index.php + bos/epc_bos_shell.css","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"storefront","aspNetRoute":"/storefront/account-summary","legacyPhpAuthority":"content/users/ account","authRequired":"customer","requiredEnvelopeFields":["ok","surface","summary","session","note"],"requiredSummaryOrItemFields":["userId","orders","sessions","garageVehicles","source","message"],"functionsCovered":["customer account KPI read"],"presentationChrome":"templates/modex/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"storefront","aspNetRoute":"/storefront/orders","legacyPhpAuthority":"shop_orders customer","authRequired":"customer","requiredEnvelopeFields":["ok","surface","user_id","orders","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","timeUnix","paid","successfullyCreated","status"],"functionsCovered":["customer orders digest"],"presentationChrome":"templates/modex/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"storefront","aspNetRoute":"/storefront/garage","legacyPhpAuthority":"shop_docpart_garage","authRequired":"customer","requiredEnvelopeFields":["ok","surface","user_id","vehicles","count","source","message","session","note"],"requiredSummaryOrItemFields":["id","caption","marka","model","year","vin","active"],"functionsCovered":["customer garage digest"],"presentationChrome":"templates/modex/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"storefront","aspNetRoute":"/storefront/profile","legacyPhpAuthority":"DP_User::getUserProfile","authRequired":"customer","requiredEnvelopeFields":["ok","surface","user_id","email","email_confirmed","phone","phone_confirmed","reg_variant","profile_fields","source","message","session","note"],"requiredSummaryOrItemFields":["userId","email","emailConfirmed","phone","phoneConfirmed","regVariant","profileFields","source","message"],"functionsCovered":["customer profile digest"],"presentationChrome":"templates/modex/desktop.php","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"api","aspNetRoute":"/api/v1/price/lookup","legacyPhpAuthority":"api/v1/price/lookup.php","authRequired":"api-key","requiredEnvelopeFields":["status","brand","article","offers"],"requiredSummaryOrItemFields":["supplier","brand","article","name","price","currency","stockHint","leadTime"],"functionsCovered":["price lookup offers"],"presentationChrome":"n/a-json-api","parityStatus":"contract-locked-awaiting-live-dual-sample"},{"surface":"api","aspNetRoute":"/api/v1/catalog/status","legacyPhpAuthority":"api/v1/catalog.php status","authRequired":"api-key","requiredEnvelopeFields":["ok","status"],"requiredSummaryOrItemFields":["status"],"functionsCovered":["catalog status"],"presentationChrome":"n/a-json-api","parityStatus":"contract-locked-awaiting-live-dual-sample"}],"functions":[{"surface":"cp","phpFunctionOrEntry":"cp/templates/bootstrap_admin/desktop.php chrome","aspNetRouteOrCapability":"/cp?format=html","status":"presentation-shell-scaffolded","notes":"Must reuse PHP CSS asset URLs; interactive widgets still PHP."},{"surface":"cp","phpFunctionOrEntry":"CP dashboard KPI widgets","aspNetRouteOrCapability":"/cp/dashboard-summary","status":"digest-wired-awaiting-dual-sample","notes":"Field contract locked; needs authenticated dual sample vs PHP KPIs."},{"surface":"cp","phpFunctionOrEntry":"user_manager / groups / menus / pages","aspNetRouteOrCapability":"/cp/users|/cp/groups|/cp/menus|/cp/pages","status":"digest-wired-awaiting-dual-sample","notes":"Read digests only; writes remain PHP."},{"surface":"erp","phpFunctionOrEntry":"erp_desktop.php + erp_dashboard.php","aspNetRouteOrCapability":"/erp?format=html + /erp/dashboard-summary","status":"presentation-and-digest-scaffolded","notes":"Chrome CSS + KPI fields contracted; full voucher/posting UX still PHP."},{"surface":"erp","phpFunctionOrEntry":"COA / PO / SO / inventory / invoices / GL","aspNetRouteOrCapability":"/erp/coa-accounts|/erp/purchase-orders|/erp/sales-orders|/erp/inventory-stock|/erp/invoices|/erp/gl-journals","status":"digest-wired-awaiting-dual-sample","notes":"Field contracts present; no write/posting cutover."},{"surface":"bos","phpFunctionOrEntry":"bos/index.php + epc_bos_shell.css","aspNetRouteOrCapability":"/bos?format=html + /bos/fleet-summary","status":"presentation-and-digest-scaffolded","notes":"BOS shell CSS must match; privileged ops remain PHP."},{"surface":"bos","phpFunctionOrEntry":"fleet health/readiness/audit","aspNetRouteOrCapability":"/bos/fleet-health|/bos/fleet-readiness|/bos/audit-log","status":"digest-wired-awaiting-dual-sample","notes":"Read-only scoring/audit digests."},{"surface":"storefront","phpFunctionOrEntry":"templates/modex/desktop.php","aspNetRouteOrCapability":"/storefront/account?format=html","status":"presentation-shell-scaffolded","notes":"Must reuse modex CSS; cart/checkout/SEO still PHP."},{"surface":"storefront","phpFunctionOrEntry":"account/orders/garage/profile","aspNetRouteOrCapability":"/storefront/account-summary|/storefront/orders|/storefront/garage|/storefront/profile","status":"digest-wired-awaiting-dual-sample","notes":"Customer session digests; PHP account remains authoritative."},{"surface":"frontend","phpFunctionOrEntry":"tenant/industry storefront HTML","aspNetRouteOrCapability":"/","status":"php-authoritative","notes":"No broad storefront cutover until HTML/SEO/cart parity samples match."},{"surface":"api","phpFunctionOrEntry":"price lookup","aspNetRouteOrCapability":"/api/v1/price/lookup","status":"aspnet-live-exact-route","notes":"Already on ASP.NET with JSON auth gate; authenticated offer parity still required."},{"surface":"api","phpFunctionOrEntry":"catalog status","aspNetRouteOrCapability":"/api/v1/catalog/status","status":"awaiting-exact-route-shadow","notes":"Contract ready; public host still PHP until shadow + smoke."}],"guarantees":["Every CP/ERP/BOS/storefront digest route has an explicit required-field contract (camelCase summary/item fields).","Presentation shells must reuse PHP chrome CSS URLs from LegacyPresentationAssets for cp/erp/bos/storefront.","Function map ties PHP entries to ASP.NET digests/shells without claiming write/posting/cart parity.","scripts/compare_surface_payload_parity.py performs recursive field-by-field JSON compare for dual samples.","CutoverAllowed is false; AdminAspNetEnabled/StorefrontAspNetEnabled must remain false; RequirePhpFallback must remain true."],"remainingGaps":["Capture authenticated ASP.NET + PHP (or shared-DB fixture) dual samples for each contracted digest route.","Run scripts/run_surface_parity_harness.sh and attach match=true samples under docs/migration/evidence/surface-parity/samples/.","Do not enable broad /cp /erp /bos / storefront nginx cutover until every contract has match=true evidence.","Storefront cart/checkout/SEO HTML and ERP voucher posting UX are still PHP-authoritative gaps."],"nextActions":["Keep PHP authoritative for operator chrome and storefront HTML.","Use /migration/surface-field-parity as the operator contract board.","On CloudPanel with cookies/keys: bash scripts/run_surface_parity_harness.sh","Only after all dual samples match: promote exact-route shadows one location= at a time."]}
+{
+  "status": "field-function-presentation-contracts-locked-cutover-blocked",
+  "cutoverAllowed": false,
+  "contractCount": 53,
+  "presentationAssetsChecked": 22,
+  "presentationAssetsOk": 22,
+  "contracts": [
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/dashboard-summary",
+      "legacyPhpAuthority": "cp/index.php dashboard widgets",
+      "authRequired": "admin",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "users",
+        "adminSessions",
+        "portalTenants",
+        "activePortalTenants",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "CP dashboard KPI read",
+        "tenant/user/session counts"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/tenants",
+      "legacyPhpAuthority": "cp/content/control/portal/",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "tenants",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "siteKey",
+        "hostname",
+        "industryCode",
+        "status",
+        "tradeName",
+        "hubName",
+        "hostedOn",
+        "erpOnly",
+        "isActive",
+        "hasDb"
+      ],
+      "functionsCovered": [
+        "portal tenant registry list"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/users",
+      "legacyPhpAuthority": "cp/content/users/",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "users",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "userId",
+        "email",
+        "phone",
+        "unlocked",
+        "timeRegistered",
+        "timeLastVisit"
+      ],
+      "functionsCovered": [
+        "user_manager read digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/groups",
+      "legacyPhpAuthority": "cp/content/users/ groups",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "groups",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "value",
+        "forBackend",
+        "forGuests",
+        "forRegistrated",
+        "unblocked",
+        "parent",
+        "level"
+      ],
+      "functionsCovered": [
+        "groups ACL digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/modules",
+      "legacyPhpAuthority": "cp modules registry",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "modules",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "caption",
+        "activated",
+        "isFrontend",
+        "isPrototype",
+        "controlAvailable"
+      ],
+      "functionsCovered": [
+        "modules list digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/menus",
+      "legacyPhpAuthority": "cp menus",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "menus",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "caption",
+        "isFrontend",
+        "menuUlClass",
+        "menuUlId"
+      ],
+      "functionsCovered": [
+        "menu metadata digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/pages",
+      "legacyPhpAuthority": "cp content pages",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "pages",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "caption",
+        "url",
+        "alias",
+        "isFrontend",
+        "published",
+        "level",
+        "sortOrder"
+      ],
+      "functionsCovered": [
+        "pages metadata digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/currencies",
+      "legacyPhpAuthority": "shop_currencies manager",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "currencies",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "isoCode",
+        "isoName",
+        "captionShort",
+        "rate",
+        "available",
+        "sortOrder"
+      ],
+      "functionsCovered": [
+        "currency list digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/api-clients",
+      "legacyPhpAuthority": "epc_api_clients metadata",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "clients",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "clientKeyPrefix",
+        "product",
+        "label",
+        "contactEmail",
+        "active",
+        "dailyLimit",
+        "callsToday",
+        "timeCreated"
+      ],
+      "functionsCovered": [
+        "API client metadata (no key hashes)"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/config-items",
+      "legacyPhpAuthority": "config_items metadata",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "items",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "name",
+        "caption",
+        "type",
+        "configGroup",
+        "visible",
+        "order"
+      ],
+      "functionsCovered": [
+        "config_items metadata (no secret values)"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/admin-sessions",
+      "legacyPhpAuthority": "admin sessions by user",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "sessions",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "userId",
+        "email",
+        "type",
+        "sessionCount"
+      ],
+      "functionsCovered": [
+        "admin session counts (tokens never returned)"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/storages",
+      "legacyPhpAuthority": "shop_storages",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "storages",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "name",
+        "shortName",
+        "hidden"
+      ],
+      "functionsCovered": [
+        "shop storages digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/dashboard-summary",
+      "legacyPhpAuthority": "cp/content/shop/finance/erp/erp_dashboard.php",
+      "authRequired": "admin",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "cashPosition",
+        "supplierCredit",
+        "supplierDebit",
+        "supplierNet",
+        "cashAccounts",
+        "activeSuppliers",
+        "activePurchases",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "ERP finance KPI read"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/accounts-summary",
+      "legacyPhpAuthority": "ERP cash/supplier KPI digest",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "cashPosition",
+        "supplierCredit",
+        "supplierDebit",
+        "supplierNet",
+        "cashAccounts",
+        "activeSuppliers",
+        "activePurchases",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "ERP accounts KPI digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/suppliers",
+      "legacyPhpAuthority": "ERP suppliers",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "suppliers",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "name",
+        "storageId",
+        "balance"
+      ],
+      "functionsCovered": [
+        "supplier balances digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/purchases",
+      "legacyPhpAuthority": "ERP purchases",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "purchases",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "supplierId",
+        "supplierName",
+        "purchaseDate",
+        "invoiceNumber",
+        "totalAmount",
+        "status",
+        "orderId"
+      ],
+      "functionsCovered": [
+        "purchase list digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/cash-accounts",
+      "legacyPhpAuthority": "ERP cash/bank accounts",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "accounts",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "name",
+        "accountType",
+        "currencyCode",
+        "openingBalance",
+        "balance"
+      ],
+      "functionsCovered": [
+        "cash/bank accounts digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/cash-entries",
+      "legacyPhpAuthority": "ERP cash ledger entries",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "entries",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "accountId",
+        "accountName",
+        "accountType",
+        "timeUnix",
+        "direction",
+        "amount",
+        "reference",
+        "note"
+      ],
+      "functionsCovered": [
+        "cash entries digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/coa-accounts",
+      "legacyPhpAuthority": "content/shop/finance/epc_erp_gl.php COA",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "accounts",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "code",
+        "name",
+        "accountType",
+        "normalSide",
+        "parentId",
+        "openingBalance",
+        "active"
+      ],
+      "functionsCovered": [
+        "chart of accounts digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/warehouses",
+      "legacyPhpAuthority": "ERP warehouses",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "warehouses",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "storageId",
+        "code",
+        "name",
+        "active",
+        "timeCreated"
+      ],
+      "functionsCovered": [
+        "warehouse digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/sales-orders",
+      "legacyPhpAuthority": "ERP sales orders",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "orders",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "soNo",
+        "customerUserId",
+        "totalAmount",
+        "status",
+        "timeCreated"
+      ],
+      "functionsCovered": [
+        "sales order digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/purchase-orders",
+      "legacyPhpAuthority": "ERP purchase orders",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "orders",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "poNo",
+        "supplierId",
+        "title",
+        "totalAmount",
+        "status",
+        "timeCreated"
+      ],
+      "functionsCovered": [
+        "purchase order digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/inventory-stock",
+      "legacyPhpAuthority": "ERP inventory stock KPIs",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "rowCount",
+        "qtyOnHand",
+        "stockValue",
+        "warehouseCount",
+        "itemCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "inventory stock KPI digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/invoices",
+      "legacyPhpAuthority": "ERP e-invoices",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "invoices",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "invoiceNumber",
+        "orderId",
+        "userId",
+        "customerEmail",
+        "issueDate",
+        "status",
+        "totalInclVat"
+      ],
+      "functionsCovered": [
+        "invoice digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/gl-journals",
+      "legacyPhpAuthority": "ERP GL journals",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "journals",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "journalNo",
+        "journalDate",
+        "sourceType",
+        "sourceId",
+        "status",
+        "totalDebit"
+      ],
+      "functionsCovered": [
+        "GL journal digest"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "bos",
+      "aspNetRoute": "/bos/fleet-summary",
+      "legacyPhpAuthority": "bos/index.php command center",
+      "authRequired": "admin",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "portalTenants",
+        "activePortalTenants",
+        "adminSessions",
+        "withDatabase",
+        "erpOnly",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "BOS fleet KPI read"
+      ],
+      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "bos",
+      "aspNetRoute": "/bos/tenants",
+      "legacyPhpAuthority": "BOS portal tenant digest",
+      "authRequired": "admin-bos",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "tenants",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "siteKey",
+        "hostname",
+        "industryCode",
+        "status",
+        "tradeName",
+        "hubName",
+        "hostedOn",
+        "erpOnly",
+        "isActive",
+        "hasDb"
+      ],
+      "functionsCovered": [
+        "portal tenant registry list"
+      ],
+      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "bos",
+      "aspNetRoute": "/bos/fleet-health",
+      "legacyPhpAuthority": "BOS fleet health",
+      "authRequired": "admin-bos",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "sampleTenants",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "portalTenants",
+        "activePortalTenants",
+        "adminSessions",
+        "withDatabase",
+        "erpOnly",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "fleet health sample tenants"
+      ],
+      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "bos",
+      "aspNetRoute": "/bos/fleet-readiness",
+      "legacyPhpAuthority": "BOS fleet readiness scoring",
+      "authRequired": "admin-bos",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "readiness",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "tenants",
+        "pass",
+        "warn",
+        "fail",
+        "active",
+        "withDatabase",
+        "erpOnly",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "platform-DB readiness scoring"
+      ],
+      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "bos",
+      "aspNetRoute": "/bos/audit-log",
+      "legacyPhpAuthority": "epc_boc_audit",
+      "authRequired": "admin-bos",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "entries",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "ts",
+        "userId",
+        "actor",
+        "area",
+        "action",
+        "target",
+        "ip"
+      ],
+      "functionsCovered": [
+        "audit log digest"
+      ],
+      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "storefront",
+      "aspNetRoute": "/storefront/account-summary",
+      "legacyPhpAuthority": "content/users/ account",
+      "authRequired": "customer",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "userId",
+        "orders",
+        "sessions",
+        "garageVehicles",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "customer account KPI read"
+      ],
+      "presentationChrome": "templates/modex/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "storefront",
+      "aspNetRoute": "/storefront/orders",
+      "legacyPhpAuthority": "shop_orders customer",
+      "authRequired": "customer",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "user_id",
+        "orders",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "timeUnix",
+        "paid",
+        "successfullyCreated",
+        "status"
+      ],
+      "functionsCovered": [
+        "customer orders digest"
+      ],
+      "presentationChrome": "templates/modex/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "storefront",
+      "aspNetRoute": "/storefront/garage",
+      "legacyPhpAuthority": "shop_docpart_garage",
+      "authRequired": "customer",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "user_id",
+        "vehicles",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "id",
+        "caption",
+        "marka",
+        "model",
+        "year",
+        "vin",
+        "active"
+      ],
+      "functionsCovered": [
+        "customer garage digest"
+      ],
+      "presentationChrome": "templates/modex/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "storefront",
+      "aspNetRoute": "/storefront/profile",
+      "legacyPhpAuthority": "DP_User::getUserProfile",
+      "authRequired": "customer",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "user_id",
+        "email",
+        "email_confirmed",
+        "phone",
+        "phone_confirmed",
+        "reg_variant",
+        "profile_fields",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "userId",
+        "email",
+        "emailConfirmed",
+        "phone",
+        "phoneConfirmed",
+        "regVariant",
+        "profileFields",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "customer profile digest"
+      ],
+      "presentationChrome": "templates/modex/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/price/lookup",
+      "legacyPhpAuthority": "api/v1/price/lookup.php",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "status",
+        "brand",
+        "article",
+        "offers"
+      ],
+      "requiredSummaryOrItemFields": [
+        "supplier",
+        "brand",
+        "article",
+        "name",
+        "price",
+        "currency",
+        "stockHint",
+        "leadTime"
+      ],
+      "functionsCovered": [
+        "price lookup offers"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/status",
+      "legacyPhpAuthority": "api/v1/catalog.php status",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "connected",
+        "message",
+        "status_code",
+        "counts",
+        "source"
+      ],
+      "requiredSummaryOrItemFields": [
+        "manufacturers",
+        "models",
+        "modifications",
+        "brands",
+        "vins"
+      ],
+      "functionsCovered": [
+        "catalog status"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/manufacturers",
+      "legacyPhpAuthority": "api/v1/catalog.php manufacturers",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "section",
+        "rows",
+        "source",
+        "data",
+        "message"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "cached manufacturers list"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/models",
+      "legacyPhpAuthority": "api/v1/catalog.php models",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "data",
+        "message"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "cached models list"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/modifications",
+      "legacyPhpAuthority": "api/v1/catalog.php modifications",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "data",
+        "message"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "cached modifications list"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/brands",
+      "legacyPhpAuthority": "api/v1/catalog.php brands",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "data",
+        "message"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "cached brands list"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/suppliers",
+      "legacyPhpAuthority": "api/v1/catalog.php suppliers",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "data",
+        "message"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "cached suppliers list (brand suppliers)"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/engines",
+      "legacyPhpAuthority": "api/v1/catalog.php engines",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "stale",
+        "data"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline-cache engines"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/analogs",
+      "legacyPhpAuthority": "api/v1/catalog.php analogs",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "stale",
+        "data"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline-cache analogs"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/article-brands",
+      "legacyPhpAuthority": "api/v1/catalog.php article brands",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "stale",
+        "data"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline-cache article brands"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/categories",
+      "legacyPhpAuthority": "api/v1/catalog.php categories",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "stale",
+        "data"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline-cache categories"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/products",
+      "legacyPhpAuthority": "api/v1/catalog.php products",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "stale",
+        "data"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline-cache products"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/engine-search",
+      "legacyPhpAuthority": "api/v1/catalog.php engine-search",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "stale",
+        "data"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline-cache engine-search"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/article-links",
+      "legacyPhpAuthority": "api/v1/catalog.php article-links",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "stale",
+        "data"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline-cache article-links"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/article",
+      "legacyPhpAuthority": "api/v1/catalog.php article",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "stale",
+        "data"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline-cache article"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/articles",
+      "legacyPhpAuthority": "api/v1/catalog.php articles",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "stale",
+        "data"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline-cache articles"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/engine",
+      "legacyPhpAuthority": "api/v1/catalog.php engine",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "action",
+        "section",
+        "rows",
+        "source",
+        "stale",
+        "data"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline-cache engine by id"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/vin",
+      "legacyPhpAuthority": "api/v1/catalog.php vin",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "source",
+        "stale",
+        "vin",
+        "language",
+        "region",
+        "vehicle_count",
+        "payload"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "offline VIN decode envelope"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "api",
+      "aspNetRoute": "/api/v1/catalog/brand-parts",
+      "legacyPhpAuthority": "api/v1/catalog.php brand-parts",
+      "authRequired": "api-key",
+      "requiredEnvelopeFields": [
+        "ok",
+        "brand",
+        "rows",
+        "source",
+        "data",
+        "message"
+      ],
+      "requiredSummaryOrItemFields": [],
+      "functionsCovered": [
+        "brand parts page"
+      ],
+      "presentationChrome": "n/a-json-api",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    }
+  ],
+  "functions": [
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "cp/templates/bootstrap_admin/desktop.php chrome",
+      "aspNetRouteOrCapability": "/cp?format=html",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Must reuse PHP CSS asset URLs; interactive widgets still PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "CP dashboard KPI widgets",
+      "aspNetRouteOrCapability": "/cp/dashboard-summary",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Field contract locked; needs authenticated dual sample vs PHP KPIs."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "user_manager / groups / menus / pages",
+      "aspNetRouteOrCapability": "/cp/users|/cp/groups|/cp/menus|/cp/pages",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read digests only; writes remain PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "config-items / admin-sessions / storages",
+      "aspNetRouteOrCapability": "/cp/config-items|/cp/admin-sessions|/cp/storages",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read digests only; config secrets and session tokens never returned."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "erp_desktop.php \u002B erp_dashboard.php",
+      "aspNetRouteOrCapability": "/erp?format=html \u002B /erp/dashboard-summary",
+      "status": "presentation-and-digest-scaffolded",
+      "notes": "Chrome CSS \u002B KPI fields contracted; full voucher/posting UX still PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "COA / PO / SO / inventory / invoices / GL",
+      "aspNetRouteOrCapability": "/erp/coa-accounts|/erp/purchase-orders|/erp/sales-orders|/erp/inventory-stock|/erp/invoices|/erp/gl-journals",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Field contracts present; no write/posting cutover."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "accounts-summary / cash accounts\u002Bentries",
+      "aspNetRouteOrCapability": "/erp/accounts-summary|/erp/cash-accounts|/erp/cash-entries",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Cash KPI/ledger digests; posting remains PHP."
+    },
+    {
+      "surface": "bos",
+      "phpFunctionOrEntry": "bos/index.php \u002B epc_bos_shell.css",
+      "aspNetRouteOrCapability": "/bos?format=html \u002B /bos/fleet-summary",
+      "status": "presentation-and-digest-scaffolded",
+      "notes": "BOS shell CSS must match; privileged ops remain PHP."
+    },
+    {
+      "surface": "bos",
+      "phpFunctionOrEntry": "fleet health/readiness/audit/tenants",
+      "aspNetRouteOrCapability": "/bos/fleet-health|/bos/fleet-readiness|/bos/audit-log|/bos/tenants",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read-only scoring/audit/tenant digests."
+    },
+    {
+      "surface": "storefront",
+      "phpFunctionOrEntry": "templates/modex/desktop.php",
+      "aspNetRouteOrCapability": "/storefront/account?format=html",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Must reuse modex CSS; cart/checkout/SEO still PHP."
+    },
+    {
+      "surface": "storefront",
+      "phpFunctionOrEntry": "account/orders/garage/profile",
+      "aspNetRouteOrCapability": "/storefront/account-summary|/storefront/orders|/storefront/garage|/storefront/profile",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Customer session digests; PHP account remains authoritative."
+    },
+    {
+      "surface": "frontend",
+      "phpFunctionOrEntry": "tenant/industry storefront HTML",
+      "aspNetRouteOrCapability": "/",
+      "status": "php-authoritative",
+      "notes": "No broad storefront cutover until HTML/SEO/cart parity samples match."
+    },
+    {
+      "surface": "api",
+      "phpFunctionOrEntry": "price lookup",
+      "aspNetRouteOrCapability": "/api/v1/price/lookup",
+      "status": "aspnet-live-exact-route",
+      "notes": "Already on ASP.NET with JSON auth gate; authenticated offer parity still required."
+    },
+    {
+      "surface": "api",
+      "phpFunctionOrEntry": "catalog status",
+      "aspNetRouteOrCapability": "/api/v1/catalog/status",
+      "status": "awaiting-exact-route-shadow",
+      "notes": "Contract ready; public host still PHP until shadow \u002B smoke."
+    },
+    {
+      "surface": "api",
+      "phpFunctionOrEntry": "catalog manufacturers/models/modifications/brands/suppliers",
+      "aspNetRouteOrCapability": "/api/v1/catalog/manufacturers|\u2026|/suppliers",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Envelope contracts \u002B compare_catalog_list_parity.py; one-path nginx-catalog-*-shadow after smoke."
+    },
+    {
+      "surface": "api",
+      "phpFunctionOrEntry": "catalog offline-cache \u002B vin \u002B brand-parts",
+      "aspNetRouteOrCapability": "/api/v1/catalog/engines|analogs|\u2026|vin|brand-parts",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Offline-cache envelopes \u002B compare_catalog_offline_cache_parity.py / compare_catalog_vin_parity.py."
+    }
+  ],
+  "guarantees": [
+    "Every CP/ERP/BOS/storefront digest route has an explicit required-field contract (camelCase summary/item fields).",
+    "Presentation shells must reuse PHP chrome CSS URLs from LegacyPresentationAssets for cp/erp/bos/storefront.",
+    "Function map ties PHP entries to ASP.NET digests/shells without claiming write/posting/cart parity.",
+    "scripts/compare_surface_payload_parity.py performs recursive field-by-field JSON compare for dual samples.",
+    "SurfaceDigestContractValidator locks migration-mode digest envelopes in unit tests before cutover.",
+    "CutoverAllowed is false; AdminAspNetEnabled/StorefrontAspNetEnabled must remain false; RequirePhpFallback must remain true."
+  ],
+  "remainingGaps": [
+    "Capture authenticated ASP.NET \u002B PHP (or shared-DB fixture) dual samples for each contracted digest route.",
+    "Run scripts/run_surface_parity_harness.sh and attach match=true samples under docs/migration/evidence/surface-parity/samples/.",
+    "Do not enable broad /cp /erp /bos / storefront nginx cutover until every contract has match=true evidence.",
+    "Storefront cart/checkout/SEO HTML and ERP voucher posting UX are still PHP-authoritative gaps.",
+    "Authenticated CloudPanel cookies/API keys are still required for live dual-sample promotion."
+  ],
+  "nextActions": [
+    "Keep PHP authoritative for operator chrome and storefront HTML.",
+    "Use /migration/surface-field-parity as the operator contract board.",
+    "On CloudPanel: ensure_epc_api_clients_table.sh \u2192 issue_smoke_credentials.sh \u2192 validate_final_gate_env.sh.",
+    "Then capture/commit staging-smoke and bash scripts/run_surface_parity_harness.sh with real cookies/keys.",
+    "Optional customer digests: ECOMAE_CUSTOMER_COOKIE_HEADER (not required for ReadyToRemovePhp).",
+    "Only after dual samples match: promote exact-route shadows one location= at a time."
+  ]
+}

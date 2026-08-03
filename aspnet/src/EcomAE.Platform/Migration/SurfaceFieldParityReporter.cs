@@ -42,8 +42,10 @@ public sealed class SurfaceFieldParityReporter : ISurfaceFieldParityReporter
             [
                 "Keep PHP authoritative for operator chrome and storefront HTML.",
                 "Use /migration/surface-field-parity as the operator contract board.",
-                "On CloudPanel with cookies/keys: bash scripts/run_surface_parity_harness.sh",
-                "Only after all dual samples match: promote exact-route shadows one location= at a time."
+                "On CloudPanel: ensure_epc_api_clients_table.sh → issue_smoke_credentials.sh → validate_final_gate_env.sh.",
+                "Then capture/commit staging-smoke and bash scripts/run_surface_parity_harness.sh with real cookies/keys.",
+                "Optional customer digests: ECOMAE_CUSTOMER_COOKIE_HEADER (not required for ReadyToRemovePhp).",
+                "Only after dual samples match: promote exact-route shadows one location= at a time."
             ]);
     }
 }

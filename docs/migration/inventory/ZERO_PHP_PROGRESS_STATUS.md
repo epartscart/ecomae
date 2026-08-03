@@ -54,6 +54,13 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - Deploy packs all four gate shadow examples (price/api/surface/storefront) into ContentRoot so live `exact-route-shadows-only` is not a false negative.
 - Exact-route extract helper emits one disabled `location =` snippet; refuses broad `/cp|/erp|/bos|/api|/storefront`.
 - Field contracts + shadow stubs cover remaining wired digests (config-items, admin-sessions, storages, accounts-summary, cash-*, bos/tenants).
+- Catalog list + offline-cache + VIN + brand-parts envelope contracts and compare scripts for all wired catalog routes.
+- Surface harness + dual-sample compare cover smoke-wired CP/ERP/BOS digests; optional storefront customer smoke + price `--contract-only`.
+- Smoke issuer uses PHP `DP_Config` → TenantRegistry DB; ensure-table helper packed into ContentRoot.
+- Final-gate public probes regenerated: field contracts=53, php-decommission checklist 5/9 (shadows present; smoke/approval missing), surface Public API/Workers statuses honest.
+- Redeploy helper defaults to smoke-issuer branch until merged; PR #599-era branch pointers removed.
+- Live-surface pending-shadow inventory covers full digest + catalog shadow set; harness capture matches smoke/nginx routes.
+- MigrationParity / ApiModule / auth-session reporters aligned to ensure→issue (scaffolding saturated pending CloudPanel smoke).
 - PHP decommission readiness reporter documents blockers; removal remains blocked.
 - No broad PHP cutover; parity/shadow remain 0%.
 
@@ -63,8 +70,11 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 ## Next execution order
 
-- Redeploy by refreshing `/opt/ecomae-aspnet-source` to `origin/main` first.
-- Issue smoke creds: `ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh`
+- Redeploy smoke-issuer: `bash scripts/cloudpanel_redeploy_final_gate_branch.sh` (use `origin/main` after PR merge).
+- Ensure API clients table: `ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh`
+- Issue smoke creds: `ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh` (login Super CP if admin cookie missing).
+- Validate (redacted): `bash scripts/cloudpanel_validate_final_gate_env.sh` (or `bash scripts/cloudpanel_prepare_smoke_secrets.sh`).
+- Optional storefront: set `ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits>` (not required for ReadyToRemovePhp).
 - Capture + commit: `source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh`
 - Extract one approved path: `bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status` (enable only after smoke).
 - Attach dual PHP↔ASP.NET parity samples; promote shadows one `location =` at a time.
