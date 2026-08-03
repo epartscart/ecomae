@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
-# Paste-safe: deploy the current smoke-issuer / final-gate branch (or main after merge).
+# Paste-safe: deploy main (PR #603 smoke unlock is merged) then capture final-gate artifacts.
 #
 # On CloudPanel as root, copy this ENTIRE block:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-issuer-php-platform-pdo-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
 #
 # Or from an existing checkout:
 #   bash scripts/cloudpanel_redeploy_final_gate_branch.sh
-#   ECOMAE_BRANCH=main bash scripts/cloudpanel_redeploy_final_gate_branch.sh
 #
 # Never removes PHP. Never invents API keys/cookies — you must set them in platform.env.
 set -euo pipefail
 
 ECOMAE_GIT_URL="${ECOMAE_GIT_URL:-https://github.com/epartscart/ecomae.git}"
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/smoke-issuer-php-platform-pdo-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
 REPO="${ECOMAE_REPO:-/opt/ecomae-aspnet-source}"
 ECOMAE_ASPNET_ENV_DIR="${ECOMAE_ASPNET_ENV_DIR:-/etc/ecomae-aspnet}"
 ENV_FILE="${ECOMAE_ASPNET_ENV_DIR}/platform.env"
@@ -20,7 +19,7 @@ ENV_FILE="${ECOMAE_ASPNET_ENV_DIR}/platform.env"
 printf '== CloudPanel redeploy FINAL-GATE branch ==\n'
 printf 'Branch: %s\n' "$ECOMAE_BRANCH"
 printf 'Repo:   %s\n' "$REPO"
-printf 'Defaults to smoke-issuer branch (ensure→issue). Use ECOMAE_BRANCH=main after PR merge.\n'
+printf 'Defaults to main (PR #603 ensure→issue merged).\n'
 
 mkdir -p "$(dirname "$REPO")"
 if [[ ! -d "$REPO/.git" ]]; then
@@ -49,16 +48,18 @@ printf '\n-- Env preflight (values redacted) --\n'
 bash scripts/cloudpanel_validate_final_gate_env.sh || true
 
 if [[ ! -f "$ENV_FILE" ]]; then
-  printf 'ERROR: %s missing\n' "$ENV_FILE" >&2
-  exit 2
+  printf 'ERROR: %s missing after deploy.\n' "$ENV_FILE" >&2
+  exit 1
 fi
 
 # shellcheck disable=SC1090
-set -a; source "$ENV_FILE"; set +a
-ECOMAE_PRICE_LOOKUP_API_KEY="${ECOMAE_PRICE_LOOKUP_API_KEY:-${PRICE_LOOKUP_API_KEY:-}}"
-ECOMAE_CATALOG_API_KEY="${ECOMAE_CATALOG_API_KEY:-${CATALOG_API_KEY:-}}"
+set -a
+source "$ENV_FILE"
+set +a
 
 missing=0
+ECOMAE_PRICE_LOOKUP_API_KEY="${ECOMAE_PRICE_LOOKUP_API_KEY:-${PRICE_LOOKUP_API_KEY:-}}"
+ECOMAE_CATALOG_API_KEY="${ECOMAE_CATALOG_API_KEY:-${CATALOG_API_KEY:-}}"
 if [[ -z "$ECOMAE_PRICE_LOOKUP_API_KEY" || "$ECOMAE_PRICE_LOOKUP_API_KEY" != epc_pricepro_* ]]; then
   printf 'BLOCKED: set ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_... in %s\n' "$ENV_FILE"
   missing=1

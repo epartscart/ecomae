@@ -4,14 +4,13 @@ The command `bash scripts/preflight_aspnet_production.sh` must be run from the r
 
 **Do not use `/var/www/ecomae`.** That path is usually missing. Source checkouts live under `/root/ecomae` or `/opt/ecomae-aspnet-source`. Published releases live under `/var/www/ecomae-aspnet`.
 
-For final-gate smoke unlock (ensure table + issuer), prefer the smoke-issuer branch until it merges:
+PR #603 (ensure→issue smoke unlock) is on **main**. Preferred paste-safe redeploy + capture:
 
 ```bash
-# Preferred while PR #603 is open: paste-safe redeploy of smoke-issuer branch.
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-issuer-php-platform-pdo-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_redeploy_final_gate_branch.sh)"
 ```
 
-After that PR merges, refresh `/opt/ecomae-aspnet-source` to latest main, then deploy:
+Or refresh `/opt/ecomae-aspnet-source` to latest main, then deploy:
 
 ```bash
 mkdir -p /opt
@@ -107,7 +106,7 @@ After deploy succeeds, issue smoke secrets then capture (still does not remove P
 
 ```bash
 cd /opt/ecomae-aspnet-source
-# While smoke-issuer PR is open, stay on that branch; after merge use origin/main.
+git fetch origin main && git checkout -f main && git reset --hard origin/main
 ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh
 ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh
 source /etc/ecomae-aspnet/platform.env

@@ -28,7 +28,7 @@ Live operator URL catalog: `docs/migration/LIVE_SURFACE_LINKS.md` and `GET /migr
 
 On CloudPanel after deploy (loads keys from `/etc/ecomae-aspnet/platform.env` when present):
 
-Prefer refreshing `/opt/ecomae-aspnet-source` to `origin/main` (PRs #599–#602 merged; smoke-issuer branch if table/issuer fixes are not on main yet), then:
+Prefer refreshing `/opt/ecomae-aspnet-source` to `origin/main` (PRs #599–#603 merged — ensure→issue on main), then:
 
 ```bash
 bash scripts/cloudpanel_find_and_redeploy.sh
@@ -60,7 +60,7 @@ bash scripts/cloudpanel_validate_final_gate_env.sh
 ```
 
 Common CloudPanel failures:
-- `cloudpanel_validate_final_gate_env.sh: No such file` → stale checkout; `git fetch` + `git reset --hard origin/main` (or the open smoke-issuer branch) then redeploy.
+- `cloudpanel_validate_final_gate_env.sh: No such file` → stale checkout; `git fetch` + `git reset --hard origin/main` then redeploy.
 - `Table '….epc_api_clients' doesn't exist` → run `cloudpanel_ensure_epc_api_clients_table.sh` with confirm, then re-issue.
 - `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (`wait_for_aspnet_health.sh`).
 - `ECOMAE_*_API_KEY: MISSING` → keys empty; issue/copy plaintext `epc_pricepro_` / `epc_catalog_` keys (DB stores hashes only).

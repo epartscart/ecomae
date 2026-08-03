@@ -58,7 +58,7 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 - Surface harness + dual-sample compare cover smoke-wired CP/ERP/BOS digests; optional storefront customer smoke + price `--contract-only`.
 - Smoke issuer uses PHP `DP_Config` → TenantRegistry DB; ensure-table helper packed into ContentRoot.
 - Final-gate public probes regenerated: field contracts=53, php-decommission checklist 5/9 (shadows present; smoke/approval missing), surface Public API/Workers statuses honest.
-- Redeploy helper defaults to smoke-issuer branch until merged; PR #599-era branch pointers removed.
+- Redeploy helper defaults to **main** (PR #603 ensure→issue merged).
 - Live-surface pending-shadow inventory covers full digest + catalog shadow set; harness capture matches smoke/nginx routes.
 - MigrationParity / ApiModule / auth-session reporters aligned to ensure→issue (scaffolding saturated pending CloudPanel smoke).
 - PHP decommission readiness reporter documents blockers; removal remains blocked.
@@ -70,7 +70,7 @@ Enterprise BOS target stack tracking lives in `docs/migration/ENTERPRISE_BOS_ARC
 
 ## Next execution order
 
-- Redeploy smoke-issuer: `bash scripts/cloudpanel_redeploy_final_gate_branch.sh` (use `origin/main` after PR merge).
+- Redeploy main: `bash scripts/cloudpanel_redeploy_final_gate_branch.sh` (or `git reset --hard origin/main && bash scripts/cloudpanel_find_and_redeploy.sh`).
 - Ensure API clients table: `ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh`
 - Issue smoke creds: `ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh` (login Super CP if admin cookie missing).
 - Validate (redacted): `bash scripts/cloudpanel_validate_final_gate_env.sh` (or `bash scripts/cloudpanel_prepare_smoke_secrets.sh`).

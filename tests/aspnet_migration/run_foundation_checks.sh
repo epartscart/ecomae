@@ -432,7 +432,8 @@ check 'live surface links probe includes field parity route' contains "$ROOT/doc
 check 'live surface links probe includes catalog brand-parts' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/api/v1/catalog/brand-parts'
 check 'zero php probe next actions mention ensure table' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'ensure_epc_api_clients_table'
 check 'zero php probe next actions mention issue smoke creds' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'issue_smoke_credentials'
-check 'zero php probe next actions mention smoke-issuer redeploy' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'cloudpanel_redeploy_final_gate_branch.sh'
+check 'zero php probe next actions mention main redeploy' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'cloudpanel_redeploy_final_gate_branch.sh'
+check 'zero php probe next actions mention origin/main' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" 'origin/main'
 check 'php decommission probe next actions mention ensure table' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" 'ensure_epc_api_clients_table'
 check 'php decommission probe next actions mention issue smoke' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" 'issue_smoke_credentials'
 check 'live surface links probe includes cp parity board' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/cp/parity'
@@ -448,11 +449,11 @@ check 'live surface links probe includes session parity' contains "$ROOT/docs/mi
 check 'presentation parity probe mentions ensure path' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-presentation-parity.json" 'ensure'
 check 'harness catalog capture includes brand-parts' contains "$ROOT/scripts/run_surface_parity_harness.sh" '/api/v1/catalog/brand-parts'
 check 'harness admin capture includes bos audit-log' contains "$ROOT/scripts/run_surface_parity_harness.sh" '/bos/audit-log'
-check 'CloudPanel quick start points to smoke-issuer redeploy' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'cloudpanel_redeploy_final_gate_branch.sh'
+check 'CloudPanel quick start points to main redeploy' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'ecomae/main/scripts/cloudpanel_redeploy_final_gate_branch.sh'
 check 'zero php progress JSON next order mentions ensure table' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'cloudpanel_ensure_epc_api_clients_table.sh'
 check 'php decommission probe marks exact-route shadows present' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); i=next(c for c in d["checklist"] if c["id"]=="exact-route-shadows-only"); assert i["status"]=="present"' "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
 check 'surface parity probe public API status is wired' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-parity.json" 'catalog-cache-routes-wired-awaiting-staging'
-check 'redeploy final-gate defaults to smoke-issuer branch' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'cursor/smoke-issuer-php-platform-pdo-7b3b'
+check 'redeploy final-gate defaults to main' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"'
 check 'final gate checklist never removes PHP' contains "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" 'never removes PHP'
 check 'catalog status smoke runner exists' test -x "$ROOT/tests/live_smoke/run_catalog_status_exact_route_smoke.sh"
 check 'surface digest smoke runner exists' test -x "$ROOT/tests/live_smoke/run_surface_digest_exact_route_smoke.sh"

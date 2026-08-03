@@ -18,9 +18,9 @@ printf 'Note: /var/www/ecomae is NOT a required path.\n'
 printf 'Release root: %s\n' "$ECOMAE_ASPNET_RELEASE_ROOT"
 printf 'Env dir:      %s\n' "$ECOMAE_ASPNET_ENV_DIR"
 if [[ "$ECOMAE_BRANCH" == "main" ]]; then
-  printf 'NOTE: if ensure-table / smoke-issuer fixes are not on main yet, prefer:\n'
-  printf '      ECOMAE_BRANCH=cursor/smoke-issuer-php-platform-pdo-7b3b bash scripts/cloudpanel_find_and_redeploy.sh\n'
-  printf '      or: bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/smoke-issuer-php-platform-pdo-7b3b/scripts/cloudpanel_redeploy_final_gate_branch.sh)"\n'
+  printf 'NOTE: PR #603 ensure→issue tooling is on main. After deploy:\n'
+  printf '      ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
+  printf '      ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
 fi
 
 find_repo() {
