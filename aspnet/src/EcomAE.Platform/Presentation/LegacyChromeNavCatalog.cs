@@ -69,6 +69,8 @@ public static class LegacyChromeNavCatalog
         new("Chart of accounts PHP", "/ERP/?epc_erp_shell=1&area=finance&tab=coa"),
         new("GL journals list", "/erp/gl-journals-app"),
         new("General ledger PHP", "/ERP/?epc_erp_shell=1&area=finance&tab=gl"),
+        new("Warehouses list", "/erp/warehouses-app"),
+        new("Inventory PHP", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory"),
         new("Staff", "/ERP/?epc_erp_shell=1&area=people"),
         new("Income Statement", "/ERP/?epc_erp_shell=1&area=finance&tab=pl"),
         new("Balance Sheet", "/ERP/?epc_erp_shell=1&area=finance&tab=balance_sheet")

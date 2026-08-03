@@ -1,0 +1,142 @@
+@page "/erp/warehouses-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Warehouses · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Warehouses" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Inventory">
+    <style>
+        .epc-wh-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#082f49 0%,#0c4a6e 45%,#155e75 100%);
+        }
+        .epc-wh-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-wh-hero p { margin:0; color:#a5f3fc; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-wh-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-wh-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#0891b2;
+        }
+        .epc-wh-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-wh-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-wh-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-wh-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-wh-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-wh-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-wh-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-wh-table th, .epc-wh-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-wh-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-wh-table a { color:#0e7490; font-weight:700; text-decoration:none; }
+        .epc-wh-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#cffafe; color:#155e75; }
+        .epc-wh-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #a5f3fc; border-radius:.45rem; color:#164e63; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-wh-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-wh-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Warehouses</h1>
+        <p>Read-only inventory warehouses from <code>/erp/warehouses</code> digest under PHP ERP desktop chrome. Full tab UI (<code>erp_tabs_inventory.php</code>), stock moves, and writes stay on live PHP — same-to-same for tenants.</p>
+        <div class="epc-wh-cta">
+            <a href="@_phpTab">Open PHP inventory</a>
+            <a class="ghost" href="@_phpWms">Open PHP WMS</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/erp/gl-journals-app">GL journals</a>
+            <a class="ghost" href="/erp/app">ERP dashboard</a>
+        </div>
+    </section>
+
+    <div class="epc-wh-kpis" aria-label="Warehouse KPIs">
+        <div class="epc-wh-kpi"><strong>@_warehouses.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-wh-kpi"><strong>@_active</strong><span>Active in page</span></div>
+        <div class="epc-wh-kpi"><strong>@_linkedStorage</strong><span>Linked to shop storage</span></div>
+    </div>
+
+    <div class="epc-wh-table-wrap">
+        <table class="epc-wh-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Storage ID</th>
+                    <th>Created</th>
+                    <th>Active</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_warehouses.Count == 0)
+                {
+                    <tr><td colspan="6">No warehouses in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var w in _warehouses)
+                    {
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(w.Code) ? $"#{w.Id}" : w.Code)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(w.Name) ? "—" : w.Name)</td>
+                            <td>@(w.StorageId > 0 ? w.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@FormatTime(w.TimeCreated)</td>
+                            <td><span class="epc-wh-badge">@(w.Active ? "active" : "inactive")</span></td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-wh-note">
+        Read-only preview · JSON digest <a href="/erp/warehouses?limit=200">/erp/warehouses</a>.
+        PHP tab <code>erp_tabs_inventory.php</code> remains authoritative for warehouse create/sync/stock moves.
+        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory";
+    private const string _phpWms = "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms";
+    private bool _isAdmin;
+    private IReadOnlyList<ErpWarehouseDigest> _warehouses = [];
+    private int _active;
+    private int _linkedStorage;
+    private int _limit = 100;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListErpWarehousesAsync(_limit, ctx.RequestAborted);
+        _warehouses = result.Warehouses;
+        _active = _warehouses.Count(w => w.Active);
+        _linkedStorage = _warehouses.Count(w => w.StorageId > 0);
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
+}
