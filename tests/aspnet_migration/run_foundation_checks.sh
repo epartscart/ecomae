@@ -435,6 +435,13 @@ check 'migration evidence cutover locks pass' python3 "$ROOT/scripts/validate_mi
 check 'presentation/hybrid allowlist sync validator exists' test -f "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"
 check 'presentation/hybrid allowlist sync validator is executable' test -x "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"
 check 'presentation/hybrid allowlist sync passes' python3 "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"
+check 'surface/storefront digest allowlist sync validator exists' test -f "$ROOT/scripts/validate_surface_digest_allowlist_sync.py"
+check 'surface/storefront digest allowlist sync validator is executable' test -x "$ROOT/scripts/validate_surface_digest_allowlist_sync.py"
+check 'surface/storefront digest allowlist sync passes' python3 "$ROOT/scripts/validate_surface_digest_allowlist_sync.py"
+check 'digest dual-sample contracts cover full allowlist' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'storefront-profile'
+check 'digest dual-sample capture covers cp-users' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'cp-users'
+check 'digest dual-sample capture covers storefront-profile' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'storefront-profile'
+check 'digest compare-result reports 35 contracts' contains "$ROOT/docs/migration/evidence/surface-parity/digest-compare-result.json" '"contractsRegistered": 35'
 check 'enterprise BOS scaffold guardrails script exists' test -f "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
 check 'enterprise BOS scaffold guardrails is executable' test -x "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
 check 'enterprise BOS scaffold guardrails pass' bash "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
@@ -626,6 +633,7 @@ check 'deploy packs scaffold options validator' contains "$ROOT/scripts/deploy_a
 check 'deploy packs enterprise BOS scaffold guardrails' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_enterprise_bos_scaffold_guardrails.sh'
 check 'deploy packs evidence cutover locks validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_migration_evidence_cutover_locks.py'
 check 'deploy packs presentation/hybrid allowlist sync validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_presentation_hybrid_allowlist_sync.py'
+check 'deploy packs surface digest allowlist sync validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_surface_digest_allowlist_sync.py'
 check 'deploy packs YARP all-packs generator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'generate_all_yarp_design_examples.sh'
 check 'parity plan documents hybrid UI dual-sample packs' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'dual-sample evidence packs for hybrid UIs'
 check 'tenant safety law documents same-to-same' contains "$ROOT/docs/migration/TENANT_MIGRATION_SAFETY.md" 'Same-to-same / invisible migration'

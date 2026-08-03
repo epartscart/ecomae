@@ -135,7 +135,9 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 
 - Consolidated options: `deploy/aspnet/ecomae-scaffold-options.example.json` — validate with `python3 scripts/validate_scaffold_options_example.py`.
 - Evidence locks: `python3 scripts/validate_migration_evidence_cutover_locks.py` (no true cutover flags; no invented approval/pass files).
-- Allowlist sync: `python3 scripts/validate_presentation_hybrid_allowlist_sync.py` (nginx 47 ↔ hybrid 37 + shells/logins/auth ↔ installer expected ↔ YARP routeCount).
+- Allowlist sync: `python3 scripts/validate_presentation_hybrid_allowlist_sync.py` (nginx 47 ↔ hybrid 37 + shells/logins/auth ↔ installer expected ↔ YARP routeCount; hybrid digestRoute cross-lock).
+- Digest allowlist sync: `python3 scripts/validate_surface_digest_allowlist_sync.py` (surface 30 + storefront 4 + orders-digest ↔ capture/compare/migration goldens ↔ YARP).
+- Digest dual-sample contracts: 35 stems via `python3 scripts/compare_digest_dual_samples.py --contract-only`.
 - Full suite: `bash scripts/validate_enterprise_bos_scaffold_guardrails.sh` (Program.cs omits production wiring; YARP/Helm/Argo keep `cutoverAllowed=false`; regenerates YARP design packs).
 - Disabled env key comments: `deploy/aspnet/platform.env.example` (`EcomAe__*` Replace/Allow/Register flags stay false).
 - Never invent `RELEASE_OWNER_APPROVAL.md`.

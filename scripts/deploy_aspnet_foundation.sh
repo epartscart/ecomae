@@ -113,6 +113,7 @@ install -m 0755 \
   "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh" \
   "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" \
   "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" \
+  "$ROOT/scripts/validate_surface_digest_allowlist_sync.py" \
   "$ROOT/scripts/generate_all_yarp_design_examples.sh" \
   "$ROOT/scripts/generate_yarp_exact_routes_example.py" \
   "$PLATFORM_DIR/scripts/"

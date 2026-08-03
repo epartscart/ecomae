@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 COMPARE = ROOT / "scripts" / "compare_surface_payload_parity.py"
 
 # route -> (summary path key, required summary fields)
+# Covers every surface/storefront digest KPI + /cp/orders-digest (presentation shadow).
 SUMMARY_CONTRACTS = {
     "cp-dashboard-summary": (
         "summary",
@@ -59,12 +60,50 @@ SUMMARY_CONTRACTS = {
 
 # List digests: stem -> collection key (envelope ok/surface/key/count/source/message)
 LIST_CONTRACTS = {
+    "cp-tenants": "tenants",
+    "cp-users": "users",
+    "cp-groups": "groups",
+    "cp-modules": "modules",
+    "cp-menus": "menus",
+    "cp-pages": "pages",
+    "cp-currencies": "currencies",
+    "cp-api-clients": "clients",
     "cp-config-items": "items",
     "cp-admin-sessions": "sessions",
     "cp-storages": "storages",
+    "erp-suppliers": "suppliers",
+    "erp-purchases": "purchases",
     "erp-cash-accounts": "accounts",
     "erp-cash-entries": "entries",
+    "erp-coa-accounts": "accounts",
+    "erp-warehouses": "warehouses",
+    "erp-sales-orders": "orders",
+    "erp-purchase-orders": "orders",
+    "erp-invoices": "invoices",
+    "erp-gl-journals": "journals",
     "bos-tenants": "tenants",
+    "bos-audit-log": "entries",
+    "storefront-orders": "orders",
+    "storefront-garage": "vehicles",
+}
+
+# Object digests without a collection array (top-level envelope fields).
+OBJECT_CONTRACTS = {
+    "storefront-profile": [
+        "ok",
+        "surface",
+        "user_id",
+        "email",
+        "email_confirmed",
+        "phone",
+        "phone_confirmed",
+        "reg_variant",
+        "profile_fields",
+        "source",
+        "message",
+        "session",
+        "note",
+    ],
 }
 
 
@@ -126,6 +165,40 @@ def main() -> int:
     pairs = 0
     failed = 0
     used_migration = 0
+    checked_stems: set[str] = set()
+
+    def check_list_envelope(path: Path, key: str, label: str) -> None:
+        nonlocal pairs, failed
+        pairs += 1
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as ex:  # noqa: BLE001
+            failed += 1
+            print(f"FAIL {label}: {ex}")
+            return
+        required = ["ok", "surface", key, "count", "source", "message", "session", "note"]
+        missing = [k for k in required if k not in doc]
+        if missing:
+            failed += 1
+            print(f"FAIL {label}: missing {missing}")
+        else:
+            print(f"PASS {label}")
+
+    def check_object_envelope(path: Path, required: list[str], label: str) -> None:
+        nonlocal pairs, failed
+        pairs += 1
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as ex:  # noqa: BLE001
+            failed += 1
+            print(f"FAIL {label}: {ex}")
+            return
+        missing = [k for k in required if k not in doc]
+        if missing:
+            failed += 1
+            print(f"FAIL {label}: missing {missing}")
+        else:
+            print(f"PASS {label}")
 
     for stem, (path_key, require) in SUMMARY_CONTRACTS.items():
         left, from_mig = resolve_left(samples, stem)
@@ -133,6 +206,7 @@ def main() -> int:
         if left is None or not asp.exists():
             continue
         pairs += 1
+        checked_stems.add(stem)
         if from_mig:
             used_migration += 1
         contract_only = args.contract_only or from_mig
@@ -159,23 +233,6 @@ def main() -> int:
             print(f"FAIL {label}")
             print(proc.stdout or proc.stderr)
 
-    def check_list_envelope(path: Path, key: str, label: str) -> None:
-        nonlocal pairs, failed
-        pairs += 1
-        try:
-            doc = json.loads(path.read_text(encoding="utf-8"))
-        except Exception as ex:  # noqa: BLE001
-            failed += 1
-            print(f"FAIL {label}: {ex}")
-            return
-        required = ["ok", "surface", key, "count", "source", "message", "session", "note"]
-        missing = [k for k in required if k not in doc]
-        if missing:
-            failed += 1
-            print(f"FAIL {label}: missing {missing}")
-        else:
-            print(f"PASS {label}")
-
     for stem, key in LIST_CONTRACTS.items():
         left, from_mig = resolve_left(samples, stem)
         asp = samples / f"aspnet-{stem}.json"
@@ -184,15 +241,29 @@ def main() -> int:
                 used_migration += 1
             check_list_envelope(left, key, f"{'migration' if from_mig else 'php'}-{stem}")
             check_list_envelope(asp, key, f"aspnet-{stem}")
+            checked_stems.add(stem)
 
-    # Self-check migration goldens when explicitly requested and no aspnet pairs ran.
+    for stem, required in OBJECT_CONTRACTS.items():
+        left, from_mig = resolve_left(samples, stem)
+        asp = samples / f"aspnet-{stem}.json"
+        if left is not None and asp.exists():
+            if from_mig:
+                used_migration += 1
+            check_object_envelope(left, required, f"{'migration' if from_mig else 'php'}-{stem}")
+            check_object_envelope(asp, required, f"aspnet-{stem}")
+            checked_stems.add(stem)
+
+    # Contract-only floor: validate every registered migration golden that lacked an aspnet pair.
     mig = samples / "migration"
-    if args.contract_only and mig.is_dir() and pairs == 0:
+    if args.contract_only and mig.is_dir():
         for stem, (path_key, require) in SUMMARY_CONTRACTS.items():
+            if stem in checked_stems:
+                continue
             path = mig / f"{stem}.json"
             if not path.exists():
                 continue
             pairs += 1
+            checked_stems.add(stem)
             cmd = [
                 sys.executable,
                 str(COMPARE),
@@ -214,14 +285,28 @@ def main() -> int:
                 print(f"FAIL migration/{stem}")
                 print(proc.stdout or proc.stderr)
         for stem, key in LIST_CONTRACTS.items():
+            if stem in checked_stems:
+                continue
             path = mig / f"{stem}.json"
             if path.exists():
                 check_list_envelope(path, key, f"migration/{stem}")
+                checked_stems.add(stem)
+        for stem, required in OBJECT_CONTRACTS.items():
+            if stem in checked_stems:
+                continue
+            path = mig / f"{stem}.json"
+            if path.exists():
+                check_object_envelope(path, required, f"migration/{stem}")
+                checked_stems.add(stem)
 
     report = {
         "pairsChecked": pairs,
         "failed": failed,
         "migrationBaselinePairs": used_migration,
+        "contractsRegistered": (
+            len(SUMMARY_CONTRACTS) + len(LIST_CONTRACTS) + len(OBJECT_CONTRACTS)
+        ),
+        "stemsChecked": len(checked_stems),
         "cutoverAllowed": False,
         "readyForPhpRemoval": False,
         "contractOnly": bool(args.contract_only) or used_migration > 0,

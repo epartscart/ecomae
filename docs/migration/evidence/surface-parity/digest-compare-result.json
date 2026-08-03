@@ -1,7 +1,9 @@
 {
-  "pairsChecked": 15,
+  "pairsChecked": 35,
   "failed": 0,
   "migrationBaselinePairs": 0,
+  "contractsRegistered": 35,
+  "stemsChecked": 35,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "contractOnly": true,
