@@ -64,14 +64,38 @@ LIST_CONTRACTS = {
 }
 
 
+def is_migration_baseline(path: Path) -> bool:
+    """True for migration/ goldens or php-* seeded from those goldens after cutover."""
+    if path.parent.name == "migration":
+        return True
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return False
+    if not isinstance(doc, dict):
+        return False
+    if doc.get("dualSampleBaseline") == "migration-contract-golden":
+        return True
+    # Captured migration-mode payloads use source=migration (not live DB).
+    summary = doc.get("summary") if isinstance(doc.get("summary"), dict) else {}
+    readiness = doc.get("readiness") if isinstance(doc.get("readiness"), dict) else {}
+    return summary.get("source") == "migration" or readiness.get("source") == "migration"
+
+
 def resolve_left(samples: Path, stem: str) -> tuple[Path | None, bool]:
-    """Return (left_path, used_migration_baseline)."""
+    """Return (left_path, used_migration_baseline).
+
+    Prefer a real php-* capture when present and not a seeded migration baseline.
+    Otherwise use migration/{stem}.json (or a seeded php-* baseline) for contract-only.
+    """
     php = samples / f"php-{stem}.json"
-    if php.exists():
+    if php.exists() and not is_migration_baseline(php):
         return php, False
     mig = samples / "migration" / f"{stem}.json"
     if mig.exists():
         return mig, True
+    if php.exists() and is_migration_baseline(php):
+        return php, True
     return None, False
 
 

@@ -448,7 +448,8 @@ check 'Program maps Blazor Razor components' contains "$ROOT/aspnet/src/EcomAE.P
 check 'Program enables antiforgery for Blazor SSR' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'UseAntiforgery'
 check 'Blazor Zero-PHP console page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ZeroPhpConsole.razor"
 check 'digest dual compare accepts migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migrationBaselinePairs'
-check 'digest dual capture seeds migration php baseline' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'migration-contract-golden'
+check 'digest dual compare detects seeded migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migration-contract-golden'
+check 'digest dual capture cleans seeded php baselines' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'CLEAN seeded baseline'
 check 'progress status reports storefront digests 4/4' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" '4 / 4'
 check 'progress json reports storefrontDigestExactRoutesLive 4' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" '"storefrontDigestExactRoutesLive": 4'
 check 'pre-PHP-removal parity verdict helper exists' test -x "$ROOT/scripts/verify_pre_php_removal_parity.sh"
