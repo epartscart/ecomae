@@ -43,6 +43,8 @@ public static class LegacyChromeNavCatalog
         new("Content manager PHP", "/CP/content/content_manager"),
         new("Menus list", "/cp/menus-app"),
         new("Menu manager PHP", "/CP/menu/menu_manager"),
+        new("Tenants list", "/cp/tenants-app"),
+        new("Tenant control PHP", "/CP/control/portal/epc_tenant_control_center"),
         new("Users PHP", "/CP/control/users"),
         new("Groups PHP", "/CP/users/usergroups"),
         new("Multivendor", "/CP/control/shop/multivendor"),

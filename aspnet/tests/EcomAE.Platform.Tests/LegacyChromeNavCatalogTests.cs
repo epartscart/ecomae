@@ -19,6 +19,8 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Content manager PHP" && item.Href == "/CP/content/content_manager");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Menus list" && item.Href == "/cp/menus-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Menu manager PHP" && item.Href == "/CP/menu/menu_manager");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Tenants list" && item.Href == "/cp/tenants-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Tenant control PHP" && item.Href == "/CP/control/portal/epc_tenant_control_center");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Groups PHP" && item.Href == "/CP/users/usergroups");
         Assert.All(LegacyChromeNavCatalog.ControlPanelQuickActions, item => Assert.False(string.IsNullOrWhiteSpace(item.Href)));
     }
