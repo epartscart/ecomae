@@ -33,4 +33,11 @@ curl -sS -H "X-API-Key: epc_catalog_REAL_KEY" \
   "$ECOMAE_ASPNET_BASE_URL/api/v1/catalog/brands"
 ```
 
+Live www chain (after exact-route shadows; uses `MFA_ID`/`MS_ID` keys from cached rows):
+
+```bash
+source /etc/ecomae-aspnet/platform.env
+bash scripts/cloudpanel_probe_catalog_vehicle_chain.sh
+```
+
 Keep PHP fallback until artifacts are attached.
