@@ -2,6 +2,8 @@
 
 Operator chrome and storefronts remain on **PHP** until exact-route staging smoke + release-owner approval. ASP.NET Core already serves allowlisted diagnostics and price lookup.
 
+**Live tenants:** frontend, CP, and ERP presentation/functionality must not change because of ASP.NET migration. Shadows default to `www.ecomae.com` only — see `docs/migration/TENANT_MIGRATION_SAFETY.md` and `bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh`.
+
 Live JSON catalog after deploy: `https://www.ecomae.com/migration/live-surface-links`
 
 ## Super CP / platform operator

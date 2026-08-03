@@ -13,6 +13,9 @@ ROUTE="${1:-}"
 CONF="${ECOMAE_NGINX_SITE_CONF:-/etc/nginx/sites-enabled/www.ecomae.com.conf}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
+# shellcheck source=scripts/lib/ecomae_nginx_site_safety.sh
+source "$ROOT/scripts/lib/ecomae_nginx_site_safety.sh"
+
 if [[ "${ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW:-}" != "YES" ]]; then
   printf 'Refusing without ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES\n' >&2
   exit 2
@@ -31,6 +34,8 @@ if [[ ! -f "$CONF" ]]; then
   printf 'ERROR: missing nginx site conf %s\n' "$CONF" >&2
   exit 1
 fi
+# Live tenants stay PHP unless ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES for an approved exact-route.
+ecomae_assert_nginx_shadow_target_allowed "$CONF" exact-route
 
 # Build location block from extracted snippet or known templates.
 SNIPPET="/tmp/ecomae-exact-route-${ROUTE//\//-}.conf.disabled"

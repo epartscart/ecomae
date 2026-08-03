@@ -81,6 +81,11 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
                 && File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-api-shadow-example.conf"))
                 && File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-surface-digests-shadow-example.conf"))
                 && File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-storefront-digests-shadow-example.conf"))),
+            Item("tenant-php-chrome-safe", "Live tenant/industry hosts remain PHP for frontend/CP/ERP (installer guards + probe)",
+                HasTenantPhpChromeSafetyControls(),
+                HasTenantPhpChromeSafetyControls()
+                    ? "nginx site safety guards + tenant chrome probe present; run cloudpanel_probe_live_tenant_php_chrome.sh after any shadow change"
+                    : "add scripts/ecomae_nginx_site_safety.py + cloudpanel_probe_live_tenant_php_chrome.sh; see docs/migration/TENANT_MIGRATION_SAFETY.md"),
             Item("cloudpanel-capture-script", "CloudPanel final-gate capture script exists",
                 File.Exists(Path.Combine(FindRepoRoot(), "scripts", "cloudpanel_capture_final_gate_artifacts.sh"))),
             Item("rollback-validated", "Operator rollback script exists and keeps PHP fallback",
@@ -106,6 +111,7 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
 
         var extraBlockers = new List<string>
         {
+            "Live tenant and industry hosts must keep PHP frontend/CP/ERP presentation and functionality; ASP.NET shadows default to www.ecomae.com only.",
             "Full-page presentation (fonts, layout, analytics) and interactive module UX are not PHP-parity on ASP.NET — keep PHP authoritative.",
             "Broad /, /api, /cp, /erp, /bos, and storefront nginx cutovers remain forbidden.",
             "PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies must remain until ReadyToRemovePhp is true."
@@ -177,10 +183,20 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
                 "Presentation recheck pass: docs/migration/evidence/presentation/php-vs-aspnet-recheck.json",
                 "Module function evidence for CP/ERP/BOS/storefront (digests alone are insufficient)",
                 "Staging smoke artifacts for exact-route proxies under docs/migration/evidence/decommission/staging-smoke/",
+                "Tenant chrome probe pass under docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json (operator-run)",
                 "Operator rollback command validation",
                 "Release-owner APPROVED_TO_REMOVE_PHP_FALLBACK artifact"
             ],
             nextActions);
+    }
+
+    private bool HasTenantPhpChromeSafetyControls()
+    {
+        var repo = FindRepoRoot();
+        return File.Exists(Path.Combine(repo, "scripts", "ecomae_nginx_site_safety.py"))
+            && File.Exists(Path.Combine(repo, "scripts", "lib", "ecomae_nginx_site_safety.sh"))
+            && File.Exists(Path.Combine(repo, "scripts", "cloudpanel_probe_live_tenant_php_chrome.sh"))
+            && File.Exists(Path.Combine(repo, "docs", "migration", "TENANT_MIGRATION_SAFETY.md"));
     }
 
     private bool HasPresentationRecheckPass()

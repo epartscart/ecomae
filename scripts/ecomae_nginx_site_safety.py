@@ -1,0 +1,199 @@
+#!/usr/bin/env python3
+"""Classify CloudPanel nginx site conf targets for ASP.NET shadow installs.
+
+Live tenant / industry presentation (frontend, CP, ERP, BOS) must remain PHP.
+Only the platform www host is the default exact-route shadow target.
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+from pathlib import Path
+
+PLATFORM_BASENAMES = frozenset(
+    {
+        "www.ecomae.com.conf",
+        "www.ecomae.com",
+    }
+)
+
+# Dedicated Super CP host may receive diagnostics/API exact-routes only when
+# explicitly pointed — never product chrome / presentation apps by default.
+PLATFORM_OPTIONAL_BASENAMES = frozenset(
+    {
+        "cp.ecomae.com.conf",
+        "cp.ecomae.com",
+    }
+)
+
+TENANT_BASENAME_MARKERS = (
+    "epartscart",
+    "electronicae",
+    "stylenlook",
+    "thejewellerytrend",
+    "taxofinca",
+)
+
+INDUSTRY_ECOMAE_MARKERS = (
+    "healthcare.ecomae.com",
+    "homeliving.ecomae.com",
+    "retail.ecomae.com",
+    "fashion.ecomae.com",
+    "jewellery.ecomae.com",
+    "food.ecomae.com",
+    "beauty.ecomae.com",
+    "sports.ecomae.com",
+    "pet.ecomae.com",
+)
+
+BROAD_LOCATION_PATTERNS = (
+    r"(?m)^[ \t]*location\s+/cp\s*\{",
+    r"(?m)^[ \t]*location\s+/erp\s*\{",
+    r"(?m)^[ \t]*location\s+/bos\s*\{",
+    r"(?m)^[ \t]*location\s+/storefront\s*\{",
+    r"(?m)^[ \t]*location\s+/api\s*\{",
+    r"(?m)^[ \t]*location\s+/CP\s*\{",
+    r"(?m)^[ \t]*location\s+/ERP\s*\{",
+    r"(?m)^[ \t]*location\s+/BOS\s*\{",
+)
+
+
+def classify_site_conf(conf_path: str | Path) -> str:
+    """Return platform | platform-optional | tenant | industry | unknown."""
+    name = Path(conf_path).name.lower()
+    if name in {n.lower() for n in PLATFORM_BASENAMES}:
+        return "platform"
+    if name in {n.lower() for n in PLATFORM_OPTIONAL_BASENAMES}:
+        return "platform-optional"
+    for marker in TENANT_BASENAME_MARKERS:
+        if marker in name:
+            return "tenant"
+    for marker in INDUSTRY_ECOMAE_MARKERS:
+        if marker in name:
+            return "industry"
+    # Any other *.ecomae.com site that is not www/cp is treated as industry/showcase.
+    if name.endswith(".ecomae.com.conf") or name.endswith(".ecomae.com"):
+        return "industry"
+    return "unknown"
+
+
+def assert_shadow_target_allowed(
+    conf_path: str | Path,
+    *,
+    purpose: str = "exact-route",
+    confirm_tenant: str | None = None,
+    confirm_tenant_presentation: str | None = None,
+) -> None:
+    """Raise SystemExit if the nginx site conf must not receive this shadow.
+
+    purpose:
+      - exact-route: digests / catalog / price / health (tenant requires confirm)
+      - presentation: Blazor /app|/login (tenant/industry HARD refuse unless special flag)
+    """
+    kind = classify_site_conf(conf_path)
+    confirm_tenant = confirm_tenant if confirm_tenant is not None else os.environ.get(
+        "ECOMAE_CONFIRM_TENANT_HOST_SHADOW", ""
+    )
+    confirm_tenant_presentation = (
+        confirm_tenant_presentation
+        if confirm_tenant_presentation is not None
+        else os.environ.get("ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW", "")
+    )
+
+    if kind == "platform":
+        return
+
+    if purpose == "presentation":
+        if kind in {"tenant", "industry", "unknown", "platform-optional"}:
+            if confirm_tenant_presentation == "YES" and kind in {"tenant", "industry"}:
+                print(
+                    f"WARNING: presentation shadow on {kind} host {conf_path} "
+                    "(ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW=YES). "
+                    "Live tenant UI may change — prefer platform www only.",
+                    file=sys.stderr,
+                )
+                return
+            raise SystemExit(
+                f"ERROR: refusing presentation/login shadow on {kind} site conf {conf_path}. "
+                "Live tenant/industry frontend, CP, ERP must stay PHP. "
+                "Use default ECOMAE_NGINX_SITE_CONF=/etc/nginx/sites-enabled/www.ecomae.com.conf. "
+                "Override only with ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW=YES (not recommended)."
+            )
+        return
+
+    # exact-route purpose
+    if kind == "platform-optional":
+        if confirm_tenant == "YES":
+            print(
+                f"WARNING: exact-route shadow on optional platform host {conf_path}",
+                file=sys.stderr,
+            )
+            return
+        raise SystemExit(
+            f"ERROR: refusing exact-route shadow on {conf_path} without "
+            "ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES. Default target is www.ecomae.com only."
+        )
+
+    if kind in {"tenant", "industry", "unknown"}:
+        if confirm_tenant == "YES":
+            print(
+                f"WARNING: exact-route shadow on {kind} host {conf_path}. "
+                "Product chrome (/ /CP/ /ERP/ /BOS/) must remain PHP — never broad locations.",
+                file=sys.stderr,
+            )
+            return
+        raise SystemExit(
+            f"ERROR: refusing ASP.NET shadow install on {kind} site conf {conf_path}. "
+            "Live tenants must keep PHP presentation/functionality. "
+            "Shadows default to www.ecomae.com only. "
+            "Set ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES only for an approved exact-route on that host."
+        )
+
+
+def scan_broad_cutovers(conf_text: str) -> list[str]:
+    import re
+
+    hits: list[str] = []
+    for pattern in BROAD_LOCATION_PATTERNS:
+        for m in re.finditer(pattern, conf_text):
+            hits.append(m.group(0).strip())
+    return hits
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("conf", help="Path to nginx site conf")
+    parser.add_argument(
+        "--purpose",
+        choices=("exact-route", "presentation"),
+        default="exact-route",
+    )
+    parser.add_argument("--classify-only", action="store_true")
+    parser.add_argument("--scan-broad", action="store_true", help="Scan conf for broad location cutovers")
+    args = parser.parse_args(argv)
+
+    kind = classify_site_conf(args.conf)
+    print(f"class={kind}")
+    print(f"conf={args.conf}")
+    if args.classify_only:
+        return 0
+
+    if args.scan_broad:
+        text = Path(args.conf).read_text(encoding="utf-8", errors="replace")
+        hits = scan_broad_cutovers(text)
+        if hits:
+            print("BROAD_CUTOVER_HITS:")
+            for h in hits:
+                print(f"  {h}")
+            return 1
+        print("BROAD_CUTOVER_HITS: none")
+        return 0
+
+    assert_shadow_target_allowed(args.conf, purpose=args.purpose)
+    print("allowed=yes")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
