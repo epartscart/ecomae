@@ -177,13 +177,15 @@ else
   record "public/cp/dashboard-summary-not-cutover" pass "digest not publicly cut over (HTTP $code; PHP remains authority)"
 fi
 
-# Catalog status exact-route shadow is live: unauth must be ASP.NET JSON gate (not PHP HTML).
-code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' https://www.ecomae.com/api/v1/catalog/status || echo 000)"
-if [[ "$code" == "401" ]] && grep -q 'missing_api_key' /tmp/area.body; then
-  record "public/api/v1/catalog/status-exact-route" pass "ASP.NET JSON auth gate on exact-route shadow"
-else
-  record "public/api/v1/catalog/status-exact-route" fail "expected ASP.NET 401 missing_api_key (HTTP $code)"
-fi
+# Catalog exact-route shadows live: unauth must be ASP.NET JSON gate (not PHP HTML).
+for path in /api/v1/catalog/status /api/v1/catalog/manufacturers; do
+  code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"
+  if [[ "$code" == "401" ]] && grep -q 'missing_api_key' /tmp/area.body; then
+    record "public${path}-exact-route" pass "ASP.NET JSON auth gate on exact-route shadow"
+  else
+    record "public${path}-exact-route" fail "expected ASP.NET 401 missing_api_key (HTTP $code)"
+  fi
+done
 
 # Decommission script must refuse without confirmation/ready
 if ! ECOMAE_CONFIRM_PHP_DECOMMISSION= bash "$ROOT/scripts/cloudpanel_php_decommission.sh" >/tmp/decom.out 2>&1; then

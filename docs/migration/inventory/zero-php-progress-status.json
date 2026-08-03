@@ -55,7 +55,7 @@
   ],
   "nextExecutionOrder": [
     "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP must remain while public chrome is PHP HTML).",
-    "Public exact-route API shadows live: /api/v1/price/lookup + /api/v1/catalog/status; promote next location= one at a time.",
+    "Public exact-route API shadows live: price/lookup + catalog/status + catalog/manufacturers; next: catalog/models via cloudpanel_install_exact_route_shadow.sh.",
     "Confirm /migration/php-decommission-readiness is 8/9 with approval missing; surface-parity=parity-not-yet-reached.",
     "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
     "Promote one location= shadow at a time; attach dual PHP↔ASP.NET samples.",

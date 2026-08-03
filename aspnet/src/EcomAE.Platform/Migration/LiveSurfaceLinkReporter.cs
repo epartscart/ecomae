@@ -103,8 +103,8 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("aspnet-digest-pending-shadow", "BOS fleet-health digest", "https://www.ecomae.com/bos/fleet-health", "php-fallback", "/bos/fleet-health", "Covered by nginx-surface-digests-shadow-example.conf after smoke."),
             Link("aspnet-digest-pending-shadow", "BOS fleet-readiness digest", "https://www.ecomae.com/bos/fleet-readiness", "php-fallback", "/bos/fleet-readiness", "Covered by nginx-surface-digests-shadow-example.conf after smoke."),
             Link("aspnet-digest-pending-shadow", "BOS audit-log digest", "https://www.ecomae.com/bos/audit-log", "php-fallback", "/bos/audit-log", "Covered by nginx-surface-digests-shadow-example.conf after smoke."),
-            Link("aspnet-digest-pending-shadow", "Catalog status", "https://www.ecomae.com/api/v1/catalog/status", "php-fallback", "/api/v1/catalog/status", "Needs exact-route nginx shadow + API key smoke."),
-            Link("aspnet-digest-pending-shadow", "Catalog manufacturers", "https://www.ecomae.com/api/v1/catalog/manufacturers?section=passenger", "php-fallback", "/api/v1/catalog/manufacturers", "Wave-1 after status; compare_catalog_list_parity.py + nginx-catalog-manufacturers-shadow-example.conf."),
+            Link("aspnet-exact-route-shadow-live", "Catalog status", "https://www.ecomae.com/api/v1/catalog/status", "aspnet", "/api/v1/catalog/status", "Live exact-route nginx shadow on www (401/200 ASP.NET JSON). PHP remains for chrome/digests."),
+            Link("aspnet-exact-route-shadow-live", "Catalog manufacturers", "https://www.ecomae.com/api/v1/catalog/manufacturers?section=passenger", "aspnet", "/api/v1/catalog/manufacturers", "Live exact-route nginx shadow on www (401/200; section=passenger). Dual-sample compare still recommended before more list routes."),
             Link("aspnet-digest-pending-shadow", "Catalog models", "https://www.ecomae.com/api/v1/catalog/models", "php-fallback", "/api/v1/catalog/models", "List envelope; nginx-catalog-models-shadow-example.conf."),
             Link("aspnet-digest-pending-shadow", "Catalog modifications", "https://www.ecomae.com/api/v1/catalog/modifications", "php-fallback", "/api/v1/catalog/modifications", "List envelope; nginx-catalog-modifications-shadow-example.conf."),
             Link("aspnet-digest-pending-shadow", "Catalog brands", "https://www.ecomae.com/api/v1/catalog/brands", "php-fallback", "/api/v1/catalog/brands", "List envelope contracted; promote one path after smoke."),
@@ -144,8 +144,8 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh (or bash scripts/cloudpanel_prepare_smoke_secrets.sh).",
                 "source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh",
                 "Optional storefront digests: set ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits> (not required for ReadyToRemovePhp).",
-                "Extract one path: bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status (then manufacturers via nginx-catalog-*-shadow-example.conf).",
-                "Dual-sample: python3 scripts/compare_catalog_list_parity.py manufacturers php.json aspnet.json — then human APPROVED_TO_REMOVE_PHP_FALLBACK."
+                "Next exact-route: ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /api/v1/catalog/models",
+                "Dual-sample: python3 scripts/compare_catalog_list_parity.py manufacturers|models php.json aspnet.json — PHP chrome stays until human APPROVED_TO_REMOVE_PHP_FALLBACK."
             ]);
     }
 

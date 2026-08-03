@@ -199,6 +199,7 @@ wanted = [
     "https://www.ecomae.com/BOS/",
     "https://www.ecomae.com/cp/dashboard-summary",
     "https://www.ecomae.com/api/v1/catalog/status",
+    "https://www.ecomae.com/api/v1/catalog/manufacturers",
     "https://www.ecomae.com/api/v1/price/lookup",
     "https://www.ecomae.com/health",
 ]
@@ -222,13 +223,16 @@ if dash == "aspnet-json":
 health = by_url.get("https://www.ecomae.com/health", ("missing", None))[0]
 price = by_url.get("https://www.ecomae.com/api/v1/price/lookup", ("missing", None))[0]
 catalog = by_url.get("https://www.ecomae.com/api/v1/catalog/status", ("missing", None))[0]
+mfr = by_url.get("https://www.ecomae.com/api/v1/catalog/manufacturers", ("missing", None))[0]
 if health != "aspnet-health":
     errors.append(f"health engine unexpected: {health}")
 if price != "aspnet-json":
     errors.append(f"price lookup engine unexpected: {price}")
-# Catalog status exact-route shadow is approved/live on www (401/200 ASP.NET JSON).
+# Catalog status + manufacturers exact-route shadows are approved/live on www.
 if catalog != "aspnet-json":
     errors.append(f"catalog status engine unexpected: {catalog} (expected aspnet-json after exact-route shadow)")
+if mfr != "aspnet-json":
+    errors.append(f"catalog manufacturers engine unexpected: {mfr} (expected aspnet-json after exact-route shadow)")
 print("STACK_URLS=" + str({k: by_url.get(k) for k in wanted}))
 if errors:
     print("ERRORS=" + ";".join(errors))
@@ -236,7 +240,7 @@ if errors:
 print("STACK_OK")
 PY
 if grep -q 'STACK_OK' /tmp/pre-removal-stack-judge.out; then
-  record "public-surface-authority" pass "CP/ERP/BOS chrome still PHP; health/price/catalog-status ASP.NET exact routes; digests not cut over"
+  record "public-surface-authority" pass "CP/ERP/BOS chrome still PHP; health/price/catalog-status/manufacturers ASP.NET exact routes; digests not cut over"
 else
   # Fallback judge via direct curl if JSON shape unknown
   chrome_ok=1
