@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-catalog-miss-sample",
+  "action": "engines",
+  "route": "/api/v1/catalog/engines",
+  "query": "section=passenger&mfa_id=999999001",
+  "httpStatus": 404,
+  "ok": false,
+  "error": {
+    "code": "cache_miss",
+    "message": "No epc_umapi_cache row for engines; PHP/UMAPI remains authoritative for live fills."
+  },
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "Contract stub. Re-capture with ECOMAE_CATALOG_API_KEY against a cold cache key after redeploy."
+}

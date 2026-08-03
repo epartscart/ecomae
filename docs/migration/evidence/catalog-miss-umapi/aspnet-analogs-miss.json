@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-catalog-miss-sample",
+  "action": "analogs",
+  "route": "/api/v1/catalog/analogs",
+  "query": "section=passenger&article=ZZZMISSNOFILL001&brand=ZZZ",
+  "httpStatus": 404,
+  "ok": false,
+  "error": {
+    "code": "cache_miss",
+    "message": "No epc_umapi_cache row for analogs; PHP/UMAPI remains authoritative for live fills."
+  },
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "Contract stub. Re-capture with ECOMAE_CATALOG_API_KEY against a cold cache key after redeploy."
+}

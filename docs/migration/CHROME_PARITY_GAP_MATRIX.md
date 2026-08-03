@@ -29,7 +29,7 @@ Authoritative product chrome remains **PHP** until intentional exact-route cutov
 | Storefront login | PHP customer login | `/storefront/login` | Bridge UI | Batch 3: customer token `md5(contact+userId+time+secret)` + `last_activiti_time` | Full account UX PHP |
 | Digests CP/ERP/BOS | n/a (JSON) | 30/30 exact-routes | n/a | Live | Contract dual-sample recorded |
 | Storefront digests | n/a | 4/4 exact-routes | n/a | Live | Customer cookie for 200 |
-| Catalog API | PHP UMAPI fill | 18/18 exact-routes | n/a | Live cache readers | Misses remain PHP/UMAPI |
+| Catalog API | PHP UMAPI fill | 18/18 exact-routes | n/a | Live cache readers | Miss → ASP.NET 404 `cache_miss`; live fill PHP (Batch 5 harness) |
 
 ## Strengthen rules (do not violate)
 

@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-catalog-miss-sample",
+  "action": "vin",
+  "route": "/api/v1/catalog/vin",
+  "query": "vin=ZZZMISSNOFILLVIN01",
+  "httpStatus": 404,
+  "ok": false,
+  "error": {
+    "code": "vin_cache_miss",
+    "message": "No saved VIN decode for this key; PHP/UMAPI remains authoritative."
+  },
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "Contract stub. Re-capture with ECOMAE_CATALOG_API_KEY against a cold VIN after redeploy."
+}

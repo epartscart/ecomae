@@ -478,6 +478,16 @@ check 'login cookie dual-sample capture exists' test -x "$ROOT/scripts/cloudpane
 check 'secret succession verify helper exists' test -x "$ROOT/scripts/cloudpanel_verify_secret_succession_configured.sh"
 check 'login session bridge evidence dir exists' test -d "$ROOT/docs/migration/evidence/login-session-bridge"
 check 'login bridge keeps BOS PHP-authoritative' contains "$ROOT/docs/migration/evidence/login-session-bridge/README.md" 'PHP-authoritative'
+check 'catalog miss dual-sample compare exists' test -x "$ROOT/scripts/compare_catalog_miss_dual_samples.py"
+check 'catalog miss dual-sample capture exists' test -x "$ROOT/scripts/cloudpanel_capture_catalog_miss_dual_samples.sh"
+check 'catalog miss path probe exists' test -x "$ROOT/scripts/cloudpanel_probe_catalog_miss_path.sh"
+check 'catalog miss evidence dir exists' test -d "$ROOT/docs/migration/evidence/catalog-miss-umapi"
+check 'catalog miss evidence keeps PHP fill authoritative' contains "$ROOT/docs/migration/evidence/catalog-miss-umapi/README.md" 'Live fills remain PHP'
+check 'catalog miss compare refuses cutover' contains "$ROOT/scripts/compare_catalog_miss_dual_samples.py" 'cutoverAllowed=false'
+check 'catalog miss probe refuses cutover claim' contains "$ROOT/scripts/cloudpanel_probe_catalog_miss_path.sh" 'cutoverAllowed=false'
+check 'deploy packs catalog miss compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_miss_dual_samples.py'
+check 'deploy packs catalog miss probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_catalog_miss_path.sh'
+check 'Batch 5 plan documents miss harness' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'miss-path probe'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
 check 'presentation installer expects login+OMS+users/groups+ERP SO+search+cart routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 16'

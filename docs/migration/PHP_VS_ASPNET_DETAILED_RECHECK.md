@@ -10,7 +10,9 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Batch 3 ✅ (#660):** Login bridge hardening + graphical login/hero parity (hub orbit, BOS particles, piston banner).
 
-**Batch 4 (in progress):** OMS ✅ (#661). Users/Groups ✅ (#662). ERP SO ✅ (#663). Search ✅ (#664). Cart Blazor summary (`/storefront/cart-app`) read-only; qty/guest cart/checkout remain PHP. Still never `readyForPhpRemoval`.
+**Batch 4 ✅ (#661–#665):** OMS · Users/Groups · ERP SO · Search · Cart hybrid read UIs. Checkout/qty/guest cart remain PHP.
+
+**Batch 5 (in progress):** Catalog miss / UMAPI harness — ASP.NET cache readers return 404 `cache_miss`/`vin_cache_miss`; live fills stay PHP. Still never `readyForPhpRemoval`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

@@ -18,9 +18,12 @@ public sealed class CatalogParityReporterTests
         Assert.Contains("articles", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("brand-parts", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("suppliers", report.AspNetSource, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal("catalog-cache-routes-wired-awaiting-staging", report.Status);
+        Assert.Equal("catalog-cache-routes-live-miss-fill-php", report.Status);
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("--contract-only", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("UMAPI", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("cloudpanel_probe_catalog_miss_path.sh", StringComparison.Ordinal));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("compare_catalog_miss_dual_samples", StringComparison.Ordinal));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("cutoverAllowed=false", StringComparison.Ordinal));
     }
 }
