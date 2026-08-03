@@ -126,8 +126,9 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - Stubs are CI floor only — never invent live pass results or `RELEASE_OWNER_APPROVAL.md`.
 
 ### Enterprise BOS scaffolding continue ← current
-- **This PR:** expand EF Core bounded-context stubs (TenantRegistry/Identity) + YARP exact-route design example + ActivitySource `EcomAE.Platform.Data` (exporters still unwired).
-- Still not live: `AddDbContext`, OTLP exporters, YARP process, PG17/Redis/Kafka.
+- ✅ TenantRegistry/Identity stubs + YARP design example + ActivitySource Data (#701)
+- **This PR:** ERP cash EF stubs + Redis scaffold options/contract (unwired) + YARP generator synced to presentation nginx allowlist + Auth/Surfaces activities
+- Still not live: `AddDbContext`, OTLP exporters, YARP process, Redis client, PG17/Kafka
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
 Do **not** start Batch 6 cutover while interactive `aspnet-complete` is still 0 and tenants must remain same-to-same on PHP chrome.

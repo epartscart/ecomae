@@ -12,8 +12,8 @@ Scaffolding-only guidance for Enterprise BOS target components. **Nothing here e
 ## EF Core 10 readiness
 
 - Package: `Microsoft.EntityFrameworkCore` 10.0.0 is referenced by `EcomAE.Platform`.
-- Scaffold type: `EcomAE.Platform.Data.Scaffolding.EcomAeScaffoldDbContext` with Catalog, TenantRegistry, and Identity stub entities.
-- Unwired contracts: `ICatalogScaffoldRepository`, `ITenantRegistryScaffoldRepository` (no DI registration).
+- Scaffold type: `EcomAE.Platform.Data.Scaffolding.EcomAeScaffoldDbContext` with Catalog, TenantRegistry, Identity, and ERP cash stub entities.
+- Unwired contracts: `ICatalogScaffoldRepository`, `ITenantRegistryScaffoldRepository`, `IErpScaffoldRepository` (no DI registration).
 - **Not wired:** `Program.cs` must not call `AddDbContext` until repository cutover is approved.
 - Bridge phase: keep read-only SQL digests via `MySqlConnector`; introduce DbContext per bounded context (Catalog, Identity, ERP, TenantRegistry) without dual-write.
 - PostgreSQL 17 is the long-term primary SoR; do not claim PG live until migration + parity evidence exist.
@@ -23,13 +23,15 @@ Scaffolding-only guidance for Enterprise BOS target components. **Nothing here e
 
 - Nginx remains the production edge during Zero-PHP.
 - Design example: `deploy/aspnet/yarp-exact-routes-example.json` (not loaded by `Program.cs`; `cutoverAllowed=false`).
+- Regenerate: `python3 scripts/generate_yarp_exact_routes_example.py` (reads presentation nginx allowlist).
 - Future YARP cluster should only proxy **exact** approved routes already shadowed in `deploy/aspnet/nginx-*-shadow-example.conf`.
 - Forbidden: catch-all `/api`, `/cp`, `/erp`, `/bos`, `/` locations.
 
 ## Redis 8 notes
 
+- Scaffold types: `EcomAE.Platform.Caching.EcomAeRedisScaffoldOptions`, `IDistributedCacheScaffold` (no DI registration; `Enabled=false` by default).
 - Intended for distributed cache, rate limits, and eventually session materialization.
-- Until staging proves cookie parity, PHP `sessions` cookies remain authoritative.
+- Until staging proves cookie parity, PHP `sessions` cookies remain authoritative (`ReplacePhpSessionCookies` must stay false).
 - Do not store secrets in Redis; use Vault/Key Vault when introduced.
 
 ## OpenTelemetry ActivitySource names
@@ -42,7 +44,7 @@ Reserved in `EcomAE.Platform.Observability.EcomAeActivitySources`:
 - `EcomAE.Platform.Data`
 - `EcomAE.Workers` (workers package may mirror later)
 
-Surfaces activity is started on selected digests (e.g. cash-entries) for future OTEL wiring.
+Auth activity starts on DB-backed session validate; Surfaces activity starts on selected digests (cash-entries, ERP/BOS dashboard summaries).
 Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffolding step.
 
 ## Messaging / search / storage (future)

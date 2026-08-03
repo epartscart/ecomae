@@ -19,9 +19,13 @@ public sealed class EcomAeScaffoldDbContextTests
         Assert.Contains(context.Model.GetEntityTypes(), type => type.ClrType == typeof(CatalogProductStub));
         Assert.Contains(context.Model.GetEntityTypes(), type => type.ClrType == typeof(TenantRegistryStub));
         Assert.Contains(context.Model.GetEntityTypes(), type => type.ClrType == typeof(IdentityAdminStub));
+        Assert.Contains(context.Model.GetEntityTypes(), type => type.ClrType == typeof(ErpCashAccountStub));
+        Assert.Contains(context.Model.GetEntityTypes(), type => type.ClrType == typeof(ErpCashEntryStub));
         Assert.NotNull(context.CatalogBrands);
         Assert.NotNull(context.CatalogProducts);
         Assert.NotNull(context.TenantRegistry);
         Assert.NotNull(context.IdentityAdmins);
+        Assert.NotNull(context.ErpCashAccounts);
+        Assert.NotNull(context.ErpCashEntries);
     }
 }
