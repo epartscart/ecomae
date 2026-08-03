@@ -1,0 +1,64 @@
+@page "/cp/login"
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@inject NavigationManager Nav
+
+<PageTitle>Control Panel login · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+@foreach (var href in LegacyPresentationAssets.LoginStylesheets)
+{
+    <link rel="stylesheet" href="@href" />
+}
+
+<style>
+    .epc-login-page { --red:#dc2626; --ink:#111; --muted:#64748b; font-family:"Segoe UI",Tahoma,sans-serif; min-height:100vh; background:radial-gradient(900px 420px at 15% 0%,rgba(220,38,38,.18),transparent 55%), linear-gradient(160deg,#0f172a,#1e293b 45%,#111); color:#f8fafc; }
+    .epc-login-wrap { width:min(960px, calc(100% - 2rem)); margin:0 auto; padding:2rem 0 3rem; display:grid; grid-template-columns:1.1fr .9fr; gap:1.25rem; align-items:stretch; }
+    .epc-login-brand, .epc-login-panel { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:.75rem; padding:1.35rem 1.4rem; }
+    .epc-login-brand h1 { margin:.35rem 0 .5rem; font-size:clamp(1.5rem,3vw,2rem); }
+    .epc-login-brand p { color:#cbd5e1; line-height:1.45; margin:0 0 .75rem; }
+    .epc-login-badge { display:inline-block; padding:.2rem .55rem; border-radius:.35rem; background:rgba(220,38,38,.25); color:#fecaca; font-size:.75rem; font-weight:700; }
+    .epc-login-panel { background:#fff; color:var(--ink); }
+    .epc-login-panel h2 { margin:.1rem 0 .85rem; font-size:1.2rem; }
+    .epc-login-field { margin:0 0 .75rem; }
+    .epc-login-field label { display:block; font-size:.85rem; font-weight:600; margin-bottom:.25rem; }
+    .epc-login-field input, .epc-login-field select { width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; }
+    .epc-login-row { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
+    .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:var(--red); color:#fff; font-weight:700; cursor:pointer; }
+    .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; font-size:.9rem; }
+    .epc-login-bridge-note { color:var(--muted); font-size:.82rem; line-height:1.4; margin:1rem 0 .5rem; }
+    .epc-login-php { color:var(--red); font-weight:700; }
+    .epc-login-features { list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.45rem; color:#e2e8f0; font-size:.9rem; }
+    @@media (max-width:800px){ .epc-login-wrap{grid-template-columns:1fr;} }
+</style>
+
+<div class="epc-login-page">
+    <div class="epc-login-wrap">
+        <section class="epc-login-brand">
+            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:36px;background:#fff;border-radius:4px;padding:2px" />
+            <span class="epc-login-badge">CONTROL PANEL</span>
+            <h1>Control Command Centre</h1>
+            <p>Sign in with the same credentials as PHP /CP/. ASP.NET mints compatible admin cookies; menus and modules stay on PHP until cutover.</p>
+            <ul class="epc-login-features">
+                <li>Same users / sessions table as PHP</li>
+                <li>Tenant + platform CP hosts supported via DB</li>
+                <li>Fallback: live PHP login always available</li>
+            </ul>
+        </section>
+        <section class="epc-login-panel">
+            <h2>Sign in</h2>
+            <LegacyAdminLoginForm Surface="LegacyLoginSurface.ControlPanel" SurfaceLabel="CP" PhpLoginHref="/CP/" ErrorMessage="@_error" />
+            <p style="margin-top:1rem;font-size:.85rem;color:#64748b">
+                Preview shell after login: <a href="/cp/app">/cp/app</a> · Live PHP: <a href="/CP/">/CP/</a>
+            </p>
+        </section>
+    </div>
+</div>
+
+@code {
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        _error = LoginErrorHelper.FromUri(Nav.Uri);
+    }
+}

@@ -1,0 +1,29 @@
+using EcomAE.Platform.Presentation;
+using Xunit;
+
+namespace EcomAE.Platform.Tests;
+
+public sealed class LegacyChromeNavCatalogTests
+{
+    [Fact]
+    public void ControlPanelNavLinksPhpModules()
+    {
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanel, item => item.Label == "Commerce" && item.Href.StartsWith("/CP/", StringComparison.Ordinal));
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanel, item => item.Label == "ERP" && item.Href.Contains("/ERP", StringComparison.Ordinal));
+        Assert.All(LegacyChromeNavCatalog.ControlPanelQuickActions, item => Assert.False(string.IsNullOrWhiteSpace(item.Href)));
+    }
+
+    [Fact]
+    public void ErpNavLinksPhpShellAreas()
+    {
+        Assert.Contains(LegacyChromeNavCatalog.Erp, item => item.Label == "Record to Report" && item.Href.Contains("area=finance", StringComparison.Ordinal));
+        Assert.Contains(LegacyChromeNavCatalog.Erp, item => item.Label == "Order to Cash" && item.Href.Contains("area=sales", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void BosNavLinksPhpBosEntry()
+    {
+        Assert.Contains(LegacyChromeNavCatalog.Bos, item => item.Href.StartsWith("/BOS", StringComparison.Ordinal));
+        Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Search parts");
+    }
+}

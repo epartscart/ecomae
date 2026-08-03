@@ -13,12 +13,13 @@ public sealed class SurfaceParityReporterTests
         var report = new SurfaceParityReporter().BuildReport();
 
         Assert.Equal("parity-not-yet-reached", report.Status);
-        Assert.Contains(report.Items, item => item.Surface == "Login" && item.Status == "bridge-started");
-        Assert.Contains(report.Items, item => item.Surface == "Super CP" && item.AspNetRoute == "/CP");
-        Assert.Contains(report.Items, item => item.Surface == "Platform ERP" && item.RequiredEvidence.Contains("ERP chrome", StringComparison.Ordinal));
+        Assert.Contains(report.Items, item => item.Surface == "Login" && item.Status == "login-bridge-hybrid");
+        Assert.Contains(report.Items, item => item.Surface == "Super CP" && item.Status == "hybrid-chrome-nav-login-bridge");
+        Assert.Contains(report.Items, item => item.Surface == "Super CP" && item.AspNetRoute.Contains("/cp/app", StringComparison.Ordinal));
+        Assert.Contains(report.Items, item => item.Surface == "Platform ERP" && item.RequiredEvidence.Contains("PHP ERP", StringComparison.Ordinal));
         Assert.Contains(report.Items, item => item.Surface == "Super BOS" && item.LegacyRoute == "ecomae.com/BOS");
         Assert.Contains(report.Items, item => item.Surface == "Tenant ERP" && item.RequiredEvidence.Contains("ERP-only tenant", StringComparison.Ordinal));
-        Assert.Contains(report.Items, item => item.Surface == "Super CP" && item.Status == "presentation-shell-scaffolded");
+        Assert.Contains(report.Items, item => item.Surface == "Platform ERP" && item.Status == "hybrid-chrome-nav-login-bridge");
         Assert.Contains(report.Items, item => item.Surface == "Public API" && item.Status == "catalog-cache-routes-wired-awaiting-staging");
         Assert.Contains(report.Items, item => item.Surface == "Workers" && item.Status == "dry-run-validator-layer-complete");
         Assert.Contains(report.RequiredBeforeFiftyPercent, gate => gate.Contains("ensure_epc_api_clients_table.sh", StringComparison.Ordinal));

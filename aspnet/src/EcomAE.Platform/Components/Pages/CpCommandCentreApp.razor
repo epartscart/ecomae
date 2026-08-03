@@ -20,7 +20,8 @@
     .epc-cc-btn-red { background:var(--red); color:#fff; }
     .epc-cc-btn-ghost { background:#fff; border-color:var(--line); }
     .epc-cc-nav { display:flex; gap:.85rem; flex-wrap:wrap; padding:.55rem 1.1rem; background:#111; color:#fff; font-size:.78rem; font-weight:600; letter-spacing:.02em; overflow:auto; }
-    .epc-cc-nav span { opacity:.85; white-space:nowrap; }
+    .epc-cc-nav a { opacity:.85; white-space:nowrap; }
+    .epc-cc-nav a:hover { opacity:1; text-decoration:underline; }
     .epc-cc-main { width:min(1200px, calc(100% - 2rem)); margin:0 auto; padding:1.25rem 0 3rem; }
     .epc-cc-hero { display:grid; grid-template-columns:1.1fr 1.4fr; gap:1rem; margin-bottom:1.1rem; }
     .epc-cc-panel { background:linear-gradient(135deg,#111 0%,#1f1f1f 60%,#3f0d0d 100%); color:#fff; border-radius:.7rem; padding:1.2rem 1.3rem; }
@@ -48,14 +49,18 @@
             </div>
         </div>
         <div class="epc-cc-actions">
+            @if (!_isAdmin)
+            {
+                <a class="epc-cc-btn epc-cc-btn-red" href="/cp/login">Sign in</a>
+            }
             <a class="epc-cc-btn epc-cc-btn-ghost" href="/CP/">PHP Control Panel</a>
             <a class="epc-cc-btn epc-cc-btn-ghost" href="/migration/console">Zero-PHP console</a>
         </div>
     </div>
     <div class="epc-cc-nav">
-        @foreach (var item in Nav)
+        @foreach (var item in LegacyChromeNavCatalog.ControlPanel)
         {
-            <span>@item</span>
+            <a href="@item.Href" title="@(item.Hint ?? item.Label)">@item.Label</a>
         }
     </div>
     <div class="epc-cc-main">
@@ -63,7 +68,7 @@
             <section class="epc-cc-panel">
                 <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
                 <h1>CONTROL COMMAND CENTRE</h1>
-                <p>eParts Cart — live commerce pulse. ASP.NET Blazor presentation shell reusing PHP CP CSS; digests hydrate KPIs when an admin session is present.</p>
+                <p>eParts Cart — live commerce pulse. Hybrid shell: ASP.NET chrome + digests; nav opens live PHP modules so nothing is missing.</p>
                 <div class="epc-cc-actions">
                     <span class="epc-cc-btn epc-cc-btn-red">Auto spare parts</span>
                     <span class="epc-cc-btn epc-cc-btn-ghost" style="color:#111">@DateOnly.FromDateTime(DateTime.UtcNow)</span>
@@ -85,46 +90,32 @@
         <section class="epc-cc-section">
             <h2>Quick actions</h2>
             <div class="epc-cc-tiles">
-                @foreach (var (label, color) in Tiles)
+                @{
+                    var colors = new[] { "#dc2626", "#0f766e", "#2563eb", "#7c3aed", "#db2777", "#991b1b", "#166534", "#9f1239", "#9a3412" };
+                    var i = 0;
+                }
+                @foreach (var item in LegacyChromeNavCatalog.ControlPanelQuickActions)
                 {
-                    <div class="epc-cc-tile" style="background:@color">@label</div>
+                    var color = colors[i++ % colors.Length];
+                    <a class="epc-cc-tile" style="background:@color" href="@item.Href">@item.Label</a>
                 }
             </div>
         </section>
 
         <div class="epc-cc-note">
-            @_note Live PHP UI remains at <a href="/CP/">/CP/</a> until intentional chrome cutover. This page is an ASP.NET Blazor parity preview — not a broad /cp cutover.
+            @_note Live PHP UI remains at <a href="/CP/">/CP/</a>. Nav/quick actions open PHP modules (hybrid). Login bridge: <a href="/cp/login">/cp/login</a>. Not a broad /cp cutover.
         </div>
     </div>
 </div>
 
 @code {
-    private static readonly string[] Nav =
-    [
-        "CONTROL", "Commerce", "Customers", "Documents", "ERP", "Purchase", "Channels",
-        "Logistics", "System", "Workshop", "Catalog", "Content", "Extensions", "AI",
-        "Marketing", "Payments", "Integrations", "Portal"
-    ];
-
-    private static readonly (string Label, string Color)[] Tiles =
-    [
-        ("Orders (OMS)", "#dc2626"),
-        ("Multivendor", "#0f766e"),
-        ("Crosses", "#2563eb"),
-        ("Procurement", "#7c3aed"),
-        ("POS terminal", "#db2777"),
-        ("ERP finance", "#991b1b"),
-        ("Stock", "#166534"),
-        ("Prices", "#9f1239"),
-        ("Web tracker", "#9a3412")
-    ];
-
     private int _users;
     private int _sessions;
     private int _tenants;
     private int _active;
     private string _source = "n/a";
-    private string _note = "Unauthenticated preview (KPI digests need admin cookie).";
+    private string _note = "Unauthenticated preview (KPI digests need admin cookie). ";
+    private bool _isAdmin;
 
     protected override async Task OnInitializedAsync()
     {
@@ -140,6 +131,7 @@
             return;
         }
 
+        _isAdmin = true;
         var summary = await Dashboards.BuildControlPanelAsync(ctx.RequestAborted);
         _users = summary.Users;
         _sessions = summary.AdminSessions;

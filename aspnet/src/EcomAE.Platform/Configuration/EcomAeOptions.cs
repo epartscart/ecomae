@@ -14,5 +14,11 @@ public sealed class EcomAeOptions
 
     public string TenantRegistryConnectionStringName { get; set; } = "TenantRegistry";
 
+    /// <summary>
+    /// PHP <c>$DP_Config->secret_succession</c>. Required for ASP.NET login-bridge session minting.
+    /// Prefer env <c>ECOMAE_SECRET_SUCCESSION</c> / <c>EcomAE__SecretSuccession</c> — never commit secrets.
+    /// </summary>
+    public string SecretSuccession { get; set; } = "";
+
     public List<TenantSeedOptions> SeedTenants { get; set; } = [];
 }

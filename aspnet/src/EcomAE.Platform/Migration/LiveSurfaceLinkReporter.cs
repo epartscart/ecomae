@@ -27,10 +27,14 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("aspnet-diagnostics", "Zero-PHP completion", "https://www.ecomae.com/migration/zero-php-completion", "aspnet", "/migration/zero-php-completion", "Weighted completion (95%/5%)."),
             Link("aspnet-diagnostics", "PHP decommission readiness", "https://www.ecomae.com/migration/php-decommission-readiness", "aspnet", "/migration/php-decommission-readiness", "Final-gate checklist; ReadyToRemovePhp=false."),
             Link("aspnet-diagnostics", "Zero-PHP Blazor console", "https://www.ecomae.com/migration/console", "aspnet", "/migration/console", "Blazor SSR operator console (interim improvement UI). Not product chrome cutover."),
-            Link("aspnet-presentation-preview", "CP Command Centre (Blazor preview)", "https://www.ecomae.com/cp/app", "aspnet", "/cp/app", "Presentation-parity preview reusing PHP CP CSS. Live UI remains https://www.ecomae.com/CP/ (PHP)."),
-            Link("aspnet-presentation-preview", "ERP Ecom BOS (Blazor preview)", "https://www.ecomae.com/erp/app", "aspnet", "/erp/app", "Presentation-parity preview reusing PHP ERP CSS. Live UI remains https://www.ecomae.com/ERP/ (PHP)."),
-            Link("aspnet-presentation-preview", "BOS fleet (Blazor preview)", "https://www.ecomae.com/bos/app", "aspnet", "/bos/app", "Presentation-parity preview. Live UI remains https://www.ecomae.com/BOS/ (PHP)."),
-            Link("aspnet-presentation-preview", "Storefront (Blazor preview)", "https://www.ecomae.com/storefront/app", "aspnet", "/storefront/app", "Presentation-parity preview. Live storefront remains https://epartscart.com/ (PHP)."),
+            Link("aspnet-presentation-preview", "CP Command Centre (Blazor preview)", "https://www.ecomae.com/cp/app", "aspnet", "/cp/app", "Hybrid chrome preview (PHP CSS + PHP-linked nav). Live UI remains https://www.ecomae.com/CP/ (PHP)."),
+            Link("aspnet-presentation-preview", "ERP Ecom BOS (Blazor preview)", "https://www.ecomae.com/erp/app", "aspnet", "/erp/app", "Hybrid chrome preview (PHP CSS + PHP ERP areas). Live UI remains https://www.ecomae.com/ERP/ (PHP)."),
+            Link("aspnet-presentation-preview", "BOS fleet (Blazor preview)", "https://www.ecomae.com/bos/app", "aspnet", "/bos/app", "Hybrid chrome preview. Live UI remains https://www.ecomae.com/BOS/ (PHP)."),
+            Link("aspnet-presentation-preview", "Storefront (Blazor preview)", "https://www.ecomae.com/storefront/app", "aspnet", "/storefront/app", "Hybrid chrome preview. Live storefront remains https://epartscart.com/ (PHP)."),
+            Link("aspnet-login-bridge", "CP login bridge", "https://www.ecomae.com/cp/login", "aspnet", "/cp/login", "Opt-in PHP-compatible admin session mint when EcomAE__SecretSuccession set. PHP /CP/ login remains authoritative."),
+            Link("aspnet-login-bridge", "ERP login bridge", "https://www.ecomae.com/erp/login", "aspnet", "/erp/login", "Opt-in admin session mint for ERP digests/shell. PHP ERP routers remain authoritative."),
+            Link("aspnet-login-bridge", "BOS login bridge", "https://www.ecomae.com/bos/login", "aspnet", "/bos/login", "Admin cookie bridge for digests; native BOS $_SESSION login remains on /BOS/."),
+            Link("aspnet-login-bridge", "Storefront login bridge", "https://www.ecomae.com/storefront/login", "aspnet", "/storefront/login", "Customer session/u_id mint for digests. Cart/checkout remain PHP."),
             Link("aspnet-diagnostics", "Presentation parity", "https://www.ecomae.com/migration/presentation-parity", "aspnet", "/migration/presentation-parity", "PHP chrome asset contract for ASP.NET shells."),
             Link("aspnet-diagnostics", "Live surface links", "https://www.ecomae.com/migration/live-surface-links", "aspnet", "/migration/live-surface-links", "This catalog."),
             Link("aspnet-diagnostics", "Surface parity", "https://www.ecomae.com/migration/surface-parity", "aspnet", "/migration/surface-parity", "Surface-by-surface parity statuses."),
@@ -158,10 +162,12 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Storefront batch: ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh",
                 "Storefront probe: bash scripts/cloudpanel_probe_storefront_digest_shadows.sh",
                 "Blazor SSR console live: /migration/console. Digest dual-sample contract compare: pairsChecked=19 failed=0 (cutoverAllowed=false).",
-                "Presentation previews (PHP CSS reuse): /cp/app /erp/app /bos/app /storefront/app — install via ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES bash scripts/cloudpanel_install_presentation_app_shadows.sh",
-                "Product chrome (/ /CP/ /ERP/ /BOS/ and epartscart.com) remains PHP. Side-by-side compare PHP vs /cp/app+/erp/app before any chrome cutover.",
+                "Presentation + login exact-routes: /cp|/erp|/bos|/storefront/{app,login} + POST /auth/login/admin — ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES bash scripts/cloudpanel_install_presentation_app_shadows.sh",
+                "Login bridge needs EcomAE__SecretSuccession (= PHP secret_succession) in platform.env; without it UI falls back to PHP login.",
+                "Hybrid chrome: ASP.NET shells link PHP modules (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /CP/ /ERP/ /BOS/ remain PHP.",
                 "Human RELEASE_OWNER_APPROVAL.md is the final ReadyToRemovePhp blocker — do not remove PHP while chrome is PHP-authoritative."
             ]);
+
     }
 
     private static LiveSurfaceLink Link(
