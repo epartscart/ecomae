@@ -29,11 +29,14 @@ php "$ROOT/scripts/php/diagnose_smoke_db.php"
 rc=$?
 
 printf '\nRecovery chooser:\n'
-printf '  A) Apply DDL on TenantRegistry DB (needs elevated MySQL):\n'
+printf '  A) Apply DDL on TenantRegistry DB (clpctl master / elevated MySQL):\n'
 printf '       ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh\n'
-printf '  B) Align ConnectionStrings__TenantRegistry Database= to PHP app DB (when A blocked and PHP DB already has table/sessions):\n'
+printf '  B) Align Database= only (needs GRANT platform user → PHP db):\n'
 printf '       ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh\n'
-printf '       systemctl restart ecomae-platform.service\n'
+printf '  C) Use full PHP DP_Config as TenantRegistry (when platform user cannot access PHP db):\n'
+printf '       ECOMAE_CONFIRM_USE_PHP_DP_CONFIG_AS_TENANT_REGISTRY=YES \\\n'
+printf '         ECOMAE_CONFIRM_RESTART_PLATFORM=YES \\\n'
+printf '         bash scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh\n'
 printf '  Then issue + capture:\n'
 printf '       ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
 printf '         bash scripts/cloudpanel_issue_smoke_credentials.sh\n'

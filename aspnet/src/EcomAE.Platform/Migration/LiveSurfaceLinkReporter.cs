@@ -138,7 +138,7 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "ReadyToRemovePhp stays false without staging-smoke artifacts + RELEASE_OWNER_APPROVAL.md."
             ],
             [
-                "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh — then apply DDL or align TenantRegistry to PHP db if CREATE denied.",
+                "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh — then apply DDL (clpctl) or use_php_dp_config_as_tenant_registry.sh if CREATE denied.",
                 "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
                 "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
                 "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh (or bash scripts/cloudpanel_prepare_smoke_secrets.sh).",

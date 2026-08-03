@@ -126,9 +126,10 @@ function ensure_api_clients_table(PDO $pdo, array $env): void
 		fwrite(STDERR, "  bash scripts/cloudpanel_diagnose_smoke_db.sh\n");
 		fwrite(STDERR, "  A) ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh\n");
 		fwrite(STDERR, "  B) ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh\n");
-		fwrite(STDERR, "  Then: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n");
-		fwrite(STDERR, "        ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n");
-		fwrite(STDERR, "          bash scripts/cloudpanel_issue_smoke_credentials.sh\n");
+		fwrite(STDERR, "  C) ECOMAE_CONFIRM_USE_PHP_DP_CONFIG_AS_TENANT_REGISTRY=YES \\\n");
+		fwrite(STDERR, "       ECOMAE_CONFIRM_RESTART_PLATFORM=YES \\\n");
+		fwrite(STDERR, "       bash scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh\n");
+		fwrite(STDERR, "  Then re-issue with ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES\n");
 		exit(1);
 	}
 

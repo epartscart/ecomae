@@ -65,9 +65,10 @@ Common CloudPanel failures:
 - `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (`wait_for_aspnet_health.sh`).
 - `ECOMAE_*_API_KEY: MISSING` → keys empty; issue/copy plaintext `epc_pricepro_` / `epc_catalog_` keys (DB stores hashes only).
 - `ECOMAE_ADMIN_COOKIE_HEADER/JAR: BAD_FORMAT` or probe `kind:0` → cookie missing both `admin_session` + numeric `admin_u_id`, or not logged in as Super CP. Quote the env value (`ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=123'`) so bash `source` does not truncate at `;`. If issuer warns PHP db≠TenantRegistry, fix `ConnectionStrings__TenantRegistry` / GRANTs so keys land in the DB ASP.NET reads (otherwise price/catalog smoke returns HTTP 500).
-- `CREATE command denied` for `ecomae_aspnet` on `asap.epc_api_clients` → run `bash scripts/cloudpanel_diagnose_smoke_db.sh`, then either:
-  - **A)** `ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh` (uses `/etc/mysql/debian.cnf` when readable, else paste `cloudpanel_print_epc_api_clients_ddl.sh`), or
-  - **B)** if PHP app DB already has `epc_api_clients` and the platform user can connect: `ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh` then restart `ecomae-platform`.
+- `CREATE command denied` for `ecomae_aspnet` on `asap.epc_api_clients` → run `bash scripts/cloudpanel_diagnose_smoke_db.sh`, then:
+  - **A)** `ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh` (uses CloudPanel `clpctl db:show:master-credentials`, never prints the password), or
+  - **B)** align `Database=` only if platform user can CONNECT to PHP db, or
+  - **C)** when PHP db already has `epc_api_clients` but `ecomae_aspnet` cannot access it: `ECOMAE_CONFIRM_USE_PHP_DP_CONFIG_AS_TENANT_REGISTRY=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES bash scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh`.
   Then issue with `ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES`.
 - Probe success is `kind:2` (or `"Admin"`) with `isAuthenticated:true`.
 

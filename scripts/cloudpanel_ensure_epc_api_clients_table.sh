@@ -139,10 +139,11 @@ if [[ "$rc" -ne 0 ]]; then
   bash "$ROOT/scripts/cloudpanel_diagnose_smoke_db.sh" >&2 || true
   printf '\nChoose one recovery:\n' >&2
   printf '  A) ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh\n' >&2
-  printf '     (or paste: bash scripts/cloudpanel_print_epc_api_clients_ddl.sh)\n' >&2
-  printf '  B) ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES \\\n' >&2
-  printf '       bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh\n' >&2
-  printf '     systemctl restart ecomae-platform.service\n' >&2
+  printf '     (uses clpctl db:show:master-credentials; or paste print_epc_api_clients_ddl.sh)\n' >&2
+  printf '  B) ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh\n' >&2
+  printf '  C) ECOMAE_CONFIRM_USE_PHP_DP_CONFIG_AS_TENANT_REGISTRY=YES \\\n' >&2
+  printf '       ECOMAE_CONFIRM_RESTART_PLATFORM=YES \\\n' >&2
+  printf '       bash scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh\n' >&2
   exit "$rc"
 fi
 
