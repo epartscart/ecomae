@@ -100,6 +100,9 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh" \
   "$ROOT/scripts/cloudpanel_run_digest_dual_sample_operator.sh" \
   "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh" \
+  "$ROOT/scripts/cloudpanel_capture_module_function_parity.sh" \
+  "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh" \
+  "$ROOT/scripts/compare_module_function_parity.py" \
   "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh" \
   "$ROOT/scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh" \
   "$ROOT/scripts/wait_for_aspnet_health.sh" \

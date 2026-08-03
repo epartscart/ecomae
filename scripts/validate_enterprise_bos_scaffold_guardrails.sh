@@ -120,6 +120,10 @@ check_file "digest dual-sample operator helper" \
   "$ROOT/scripts/cloudpanel_run_digest_dual_sample_operator.sh"
 check_file "all dual-sample operators helper" \
   "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh"
+check_file "module-function parity operator helper" \
+  "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh"
+check_file "module-function parity compare helper" \
+  "$ROOT/scripts/compare_module_function_parity.py"
 check_file "YARP all-packs generator helper" \
   "$ROOT/scripts/generate_all_yarp_design_examples.sh"
 

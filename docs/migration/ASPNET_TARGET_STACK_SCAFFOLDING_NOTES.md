@@ -98,6 +98,7 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 - Login cookie (Batch 3): `bash scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh`
 - Catalog miss (Batch 5): `bash scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh`
 - Digest (cookie capture or migration contract-only): `bash scripts/cloudpanel_run_digest_dual_sample_operator.sh`
+- Module-function inventory (`aspnetCompleteCount=0`): `bash scripts/cloudpanel_run_module_function_parity_operator.sh`
 - Asserts compare-result keeps `cutoverAllowed=false`.
 
 ## GraphQL / gRPC (not exposed)

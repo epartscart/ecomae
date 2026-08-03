@@ -94,6 +94,10 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 
 Contract stubs + compare under `docs/migration/evidence/hybrid-ui-dual-samples/` (capture: `cloudpanel_capture_hybrid_ui_dual_samples.sh`). Covers CP/ERP/BOS/storefront `*-app` (+ `/cp/orders`) www previews. Live cookie captures are operator-only; `cutoverAllowed=false`. Digests keep their separate `surface-parity/` dual-sample family.
 
+## Module-function parity contract harness
+
+Inventory + compare under `docs/migration/evidence/module-function-parity/` (`bash scripts/cloudpanel_run_module_function_parity_operator.sh`). Derived from hybrid UI TARGETS (37). **`aspnetCompleteCount=0`** until a human attaches `docs/migration/evidence/presentation/MODULE_FUNCTION_TEST_PASS.md` containing `MODULE_FUNCTION_PARITY_PASS`. Never invent that file. `cutoverAllowed=false`.
+
 ## Required before PHP removal
 
-For each family still not `aspnet-complete`: human functional test (create/read/update where applicable) with evidence under `docs/migration/evidence/surface-parity/`. Digests and hybrid deeplinks alone are insufficient for PHP removal.
+For each family still not `aspnet-complete`: human functional test (create/read/update where applicable) with evidence under `docs/migration/evidence/surface-parity/` plus the human pass marker above. Digests and hybrid deeplinks alone are insufficient for PHP removal.

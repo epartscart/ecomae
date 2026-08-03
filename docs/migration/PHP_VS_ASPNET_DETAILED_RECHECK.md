@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** Evidence cutover locks + presentation/hybrid allowlist sync (`validate_migration_evidence_cutover_locks.py`, `validate_presentation_hybrid_allowlist_sync.py`). Dual-sample operator suite remains the offline floor. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** Module-function parity contract harness (`docs/migration/evidence/module-function-parity/`, `aspnetCompleteCount=0`). Dual-sample operators + evidence/allowlist guardrails remain the offline floor. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 
