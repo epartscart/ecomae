@@ -61,6 +61,8 @@ public static class EcomAeRoutes
     /// <summary>CP currencies Blazor list (JSON digest remains <see cref="ControlPanelCurrencies"/>).</summary>
     public const string ControlPanelCurrenciesApp = "/cp/currencies-app";
     public const string ControlPanelApiClients = "/cp/api-clients";
+    /// <summary>CP API clients Blazor list (JSON digest remains <see cref="ControlPanelApiClients"/>; key hashes never returned).</summary>
+    public const string ControlPanelApiClientsApp = "/cp/api-clients-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

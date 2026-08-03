@@ -1,0 +1,158 @@
+@page "/cp/api-clients-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>API Clients · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-ac-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0a1628 0%,#0f2744 50%,#164e63 100%);
+        }
+        .epc-ac-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-ac-hero p { margin:0; color:#a5f3fc; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-ac-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-ac-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0a1628; background:#22d3ee;
+        }
+        .epc-ac-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-ac-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-ac-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-ac-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-ac-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-ac-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-ac-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-ac-table th, .epc-ac-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-ac-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-ac-table a { color:#0e7490; font-weight:700; text-decoration:none; }
+        .epc-ac-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-ac-badge--ok { background:#cffafe; color:#155e75; }
+        .epc-ac-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-ac-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #a5f3fc; border-radius:.45rem; color:#155e75; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-ac-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-ac-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>API Clients</h1>
+        <p>Read-only <code>epc_api_clients</code> metadata from <code>/cp/api-clients</code> digest under PHP CP desktop chrome. Key hashes never returned. Create/edit stay on live PHP API client manager — same-to-same for tenants.</p>
+        <div class="epc-ac-cta">
+            <a href="@_phpTab">Open PHP API clients</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/admin-sessions-app">Admin sessions</a>
+            <a class="ghost" href="/cp/tenants-app">Tenants list</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-ac-kpis" aria-label="API clients KPIs">
+        <div class="epc-ac-kpi"><strong>@_clients.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-ac-kpi"><strong>@_active</strong><span>Active</span></div>
+        <div class="epc-ac-kpi"><strong>@_callsToday</strong><span>Calls today (sum)</span></div>
+    </div>
+
+    <div class="epc-ac-table-wrap">
+        <table class="epc-ac-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Key prefix</th>
+                    <th>Product</th>
+                    <th>Label</th>
+                    <th>Contact</th>
+                    <th>Active</th>
+                    <th>Daily limit</th>
+                    <th>Calls today</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_clients.Count == 0)
+                {
+                    <tr><td colspan="10">No API clients in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var c in _clients)
+                    {
+                        <tr>
+                            <td><strong>@c.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(c.ClientKeyPrefix) ? "—" : c.ClientKeyPrefix)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.Product) ? "—" : c.Product)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.Label) ? "—" : c.Label)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.ContactEmail) ? "—" : c.ContactEmail)</td>
+                            <td><span class="epc-ac-badge @(c.Active ? "epc-ac-badge--ok" : "epc-ac-badge--off")">@(c.Active ? "yes" : "no")</span></td>
+                            <td>@c.DailyLimit.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@c.CallsToday.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@FormatTs(c.TimeCreated)</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-ac-note">
+        Read-only preview · JSON digest <a href="/cp/api-clients?limit=200">/cp/api-clients</a> (<code>client_key_hash</code> never returned).
+        PHP <code>epc_api_clients_manage</code> remains authoritative for create/edit.
+        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/portal/epc_api_clients_manage";
+    private bool _isAdmin;
+    private IReadOnlyList<CpApiClientMetaDigest> _clients = [];
+    private int _active;
+    private int _callsToday;
+    private int _limit = 200;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListCpApiClientsMetaAsync(_limit, ctx.RequestAborted);
+        _clients = result.Clients;
+        _active = _clients.Count(c => c.Active);
+        _callsToday = _clients.Sum(c => c.CallsToday);
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string FormatTs(long ts)
+    {
+        if (ts <= 0) return "—";
+        try
+        {
+            return DateTimeOffset.FromUnixTimeSeconds(ts).UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return ts.ToString(CultureInfo.InvariantCulture);
+        }
+    }
+}
