@@ -2,6 +2,8 @@
 
 Authoritative product chrome remains **PHP** until intentional exact-route cutover + dual-sample evidence + human `RELEASE_OWNER_APPROVAL.md`. This matrix tracks hybrid strengthen work so CP (platform + tenants), ERP, BOS, and login present/work without removing PHP.
 
+**Same-to-same:** tenants must not feel PHP→ASP.NET. Digests/Blazor previews on www never replace live tenant frontend/CP/ERP/BOS UX. Verify: `bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh`.
+
 **Full parity plan:** `docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md` — Batch 0 ships complete PHP-sourced module directories on `/cp|/erp|/bos|/storefront/app` (`GET /migration/php-module-catalog`).
 
 ## Status legend

@@ -209,7 +209,9 @@ public sealed class LiveSurfaceLinkReporterTests
             || action.Contains("secret_succession", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("CHROME_PARITY_GAP_MATRIX", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_verify_tenant_hosts_still_php.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_live_tenant_php_chrome.sh", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("TENANT_MIGRATION_SAFETY.md", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("ECOMAE_CONFIRM_TENANT_HOST_SHADOW", StringComparison.Ordinal));
     }
 

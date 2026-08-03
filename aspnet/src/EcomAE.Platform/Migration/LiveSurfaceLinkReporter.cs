@@ -178,8 +178,10 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Login bridge needs EcomAE__SecretSuccession (= PHP secret_succession) in platform.env; verify with scripts/cloudpanel_verify_secret_succession_configured.sh (never prints secret); without it UI falls back to PHP login.",
                 "Login cookie dual-sample: scripts/cloudpanel_capture_login_cookie_dual_samples.sh + compare_login_cookie_dual_samples.py (cutoverAllowed=false).",
                 "Hybrid chrome: ASP.NET shells link PHP modules (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /CP/ /ERP/ /BOS/ remain PHP.",
+                "Same-to-same tenant verify: bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh (PHP chrome on tenant / /CP/ /ERP/ + BOS spot-check; cutoverAllowed=false).",
                 "Tenant safety probe: bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh (expect PHP HTML on tenant / /CP/ /ERP/).",
                 "Shadow installers refuse tenant vhosts unless ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES; presentation shadows refuse tenants by default.",
+                "Invisible migration law: docs/migration/TENANT_MIGRATION_SAFETY.md — digests/previews never replace tenant UX.",
                 "PHP-level parity plan: docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md — regenerate catalogs via python3 scripts/generate_php_module_catalog.py.",
                 "Hybrid module directories on /cp|/erp|/bos|/storefront/app; counts at GET /migration/php-module-catalog.",
                 "Human RELEASE_OWNER_APPROVAL.md is the final ReadyToRemovePhp blocker — do not remove PHP while chrome is PHP-authoritative."

@@ -2,6 +2,18 @@
 
 **Policy:** Migration to ASP.NET Core must not change live tenant (or industry showcase) presentation or functionality for frontend, Control Panel, or ERP. PHP remains authoritative for product chrome on those hosts until an intentional, evidence-backed, per-host exact-route promotion with release-owner approval.
 
+## Same-to-same / invisible migration (hard law)
+
+**Operator mandate:** None of our tenants may feel there is a change from PHP to ASP.NET Core. UI/UX for frontend, backend, Control Panel, ERP, BOS, and storefront must be **same-to-same** and work the same way — no one should be able to identify or feel any change.
+
+| Rule | Meaning |
+| --- | --- |
+| Product chrome stays PHP | Live `/`, `/CP/`, `/ERP/`, `/BOS/`, cart/checkout/search on tenant hosts remain PHP until dual-sample + human `RELEASE_OWNER_APPROVAL.md`. |
+| Digests ≠ UX | JSON digests and Blazor `/cp|/erp|/bos|/storefront/*-app` previews on **www.ecomae.com** are migration scaffolding only. They must **never** replace tenant product chrome. |
+| Exact-route only | Never broad `location /`, `/cp`, `/erp`, `/bos`, `/api`, `/storefront` on tenant vhosts. |
+| Look & feel | Fonts, CSS/JS class trees, heroes, animations, menus, and interactive flows must match live PHP (or stay on PHP). |
+| Meter ≠ cutover | Weighted Zero-PHP % does **not** mean tenants are cut over. |
+
 ## What stays PHP on every live tenant
 
 | Surface | Paths | Stack |
@@ -40,11 +52,16 @@ Never enable broad `location /cp`, `/erp`, `/bos`, `/api`, `/storefront`, or `/`
 On CloudPanel (or any host with outbound HTTPS to the tenants):
 
 ```bash
+# Preferred operator entry (tenant chrome + BOS spot-check + same-to-same summary):
+bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh
+# -> docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json
+# -> docs/migration/evidence/tenant-safety/same-to-same-verify.json
+
+# Lower-level chrome probe only:
 bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh
-# writes docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json
 ```
 
-Expect `status=pass`: `/`, `/CP/`, `/ERP/` on ePartsCart + dedicated tenants + platform www return PHP HTML (or PHP runtime plain text), not Blazor scaffolds or digest JSON.
+Expect `status=pass`: `/`, `/CP/`, `/ERP/` on ePartsCart + dedicated tenants + platform www return PHP HTML (or PHP runtime plain text), not Blazor scaffolds or digest JSON. BOS spot-check on selected hosts must also stay non-ASP.NET.
 
 Optional industry showcase hosts: `ECOMAE_INCLUDE_INDUSTRY_PROBE=1 bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh` (some industry CP pages return PHP license/`domain_path` text — not an ASP.NET cutover).
 

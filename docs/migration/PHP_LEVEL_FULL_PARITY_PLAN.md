@@ -7,6 +7,7 @@
 - Exact-route shadows only (`location =`). Never broad `/`, `/cp`, `/erp`, `/bos`, `/api`, `/storefront`.
 - Tenant/industry vhosts stay PHP (see `TENANT_MIGRATION_SAFETY.md`).
 - Digests ≠ interactive module parity. Weighted Zero-PHP meter ≠ chrome readiness.
+- **Same-to-same / invisible migration:** tenants must not feel PHP→ASP.NET. Frontend, backend, CP, ERP, BOS, storefront UI/UX must look and work the same — digests/Blazor previews never replace live tenant product chrome.
 - **Graphical presentation is in scope every batch:** hero banners, orbit/hub logos, particle/matrix backgrounds, piston/engine animations, glow/rings, and PHP CSS/JS that drive them — not structure-only shells. Prefer reusing live PHP CSS/JS class trees over inventing replacements.
 
 ## Inventory (source of truth)
@@ -89,19 +90,23 @@ Priority order:
 
 Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location =` only. Keep PHP hero/animation/graphical class trees when the surface has them.
 
-### Batch 5 — Catalog miss / UMAPI ← current
+### Batch 5 — Catalog miss / UMAPI ✅ (#666–#667)
 - Cache-hit paths already live (18/18 exact-routes).
-- Miss-path probe + dual-sample harness ✅ (#666): `docs/migration/evidence/catalog-miss-umapi/` (`cutoverAllowed=false`).
-- **This PR:** worker dry-run `catalog-miss-fill` (`CatalogMissFillDryRunExecutor`) — simulates fill intents only; outbound/writes blocked.
-- Operator path still uses miss-path probe (`cloudpanel_probe_catalog_miss_path.sh`) before any future live-fill attempt.
-- Live UMAPI outbound fill / cache write-on-miss / always-live `articles`+`engine` remain **PHP-authoritative**.
-- Never invent `RELEASE_OWNER_APPROVAL.md`.
+- miss-path probe + dual-sample harness ✅ (#666): `cloudpanel_probe_catalog_miss_path.sh` + evidence under `catalog-miss-umapi/`.
+- Miss-fill worker dry-run ✅ (#667): `catalog-miss-fill` / `CatalogMissFillDryRunExecutor` — outbound/writes blocked.
+- Live UMAPI outbound fill remains **PHP-authoritative**.
 
-### Batch 6 — Decommission gate
-- Presentation recheck `status=pass`
-- Module function evidence (`MODULE_FUNCTION_PARITY_PASS`)
-- Tenant chrome probe pass
-- Staging smoke + human approval
+### Same-to-same tenant lock ← current
+- Codify invisible migration law + operator verify (`cloudpanel_verify_tenant_hosts_still_php.sh`).
+- Digests/Blazor previews never replace live tenant product chrome.
+- Continues hybrid parity work without chrome cutover.
+
+### Batch 6 — Decommission gate (**blocked / premature**)
+Do **not** start Batch 6 cutover while interactive `aspnet-complete` is still 0 and tenants must remain same-to-same on PHP chrome.
+- Presentation recheck `status=pass` (not yet)
+- Module function evidence (`MODULE_FUNCTION_PARITY_PASS`) (not yet)
+- `bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh` → `status=pass`
+- Staging smoke + human `RELEASE_OWNER_APPROVAL.md`
 - Never invent `RELEASE_OWNER_APPROVAL.md`
 
 ## Operator verify (CloudPanel)
@@ -116,7 +121,7 @@ ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES \
   bash scripts/cloudpanel_install_presentation_app_shadows.sh
 curl -sS https://www.ecomae.com/migration/php-module-catalog | head
 bash scripts/cloudpanel_probe_php_presentation_parity.sh
-bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh
+bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh
 ```
 
 ## Definition of done (PHP-level)

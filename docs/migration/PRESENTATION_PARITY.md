@@ -34,3 +34,5 @@ Capture HTML samples under `docs/migration/evidence/presentation/` after CloudPa
 ## Guardrail
 
 Do not enable broad `/cp`, `/erp`, `/bos`, or storefront cutover from this scaffold alone. Presentation scaffolding does not change Zero-PHP completion (still 95% / remaining 5% = PHP decommission gate).
+
+**Same-to-same:** Blazor `/…/app` previews and digests on www are **not** tenant product chrome. Live tenants must continue to see PHP frontend/CP/ERP/BOS UX with no perceptible change (see `TENANT_MIGRATION_SAFETY.md`). Presentation probes never authorize tenant cutover.
