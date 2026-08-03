@@ -45,6 +45,8 @@ public static class EcomAeRoutes
     public const string ControlPanelConfigItems = "/cp/config-items";
     public const string ControlPanelMenus = "/cp/menus";
     public const string ControlPanelPages = "/cp/pages";
+    /// <summary>CP content pages Blazor list (JSON digest remains <see cref="ControlPanelPages"/>).</summary>
+    public const string ControlPanelPagesApp = "/cp/pages-app";
     public const string ControlPanelAdminSessions = "/cp/admin-sessions";
     public const string ControlPanelStorages = "/cp/storages";
     public const string ControlPanelCurrencies = "/cp/currencies";
