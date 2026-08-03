@@ -1,0 +1,136 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Mirrors erp_desktop.php outer topbar + erp_main.php topnav-only mega chrome.
+*@
+
+<div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root">
+    <header class="epc-erp-topbar epc-erp-topbar--cp">
+        <div class="epc-erp-topbar__inner">
+            <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="/ERP/">
+                <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" />
+                <span>Ecom BOS</span>
+            </a>
+            <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
+                <a href="/ERP/">Guide</a>
+                <a href="/CP/control/portal">Tenants</a>
+                <a href="/CP/">E-commerce CP</a>
+            </nav>
+            <div class="epc-erp-topbar__user">
+                @if (!IsAdmin)
+                {
+                    <a href="/erp/login">Sign in</a>
+                }
+                else
+                {
+                    <span>Admin session</span>
+                }
+                <a href="/ERP/">PHP ERP</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="epc-erp-main epc-erp-main--cp">
+        <div class="epc-erp-shell epc-erp-shell--layout epc-erp-shell--topnav epc-erp-shell--topnav-only">
+            <nav class="epc-erp-topnav" id="epc_erp_topnav" aria-label="ERP categories">
+                <div class="epc-erp-topnav-inner">
+                    <a class="epc-erp-topnav-brand" href="/ERP/?epc_erp_shell=1&amp;area=overview&amp;tab=dashboard">ERP</a>
+                    <ul class="epc-erp-topnav-list">
+                        @foreach (var group in LegacyDesktopChromeCatalog.ErpTopnav())
+                        {
+                            <li class="epc-erp-topnav-item" data-category="@group.Id">
+                                <button type="button" class="epc-erp-topnav-btn">@group.Label</button>
+                                <div class="epc-erp-topnav-panel" data-topnav-panel="@group.Id">
+                                    <div class="epc-erp-topnav-panel-hd">@group.Label</div>
+                                    <div class="epc-erp-topnav-cols">
+                                        <div class="epc-erp-topnav-col is-active-col">
+                                            <div class="epc-erp-topnav-col-hd">Areas / tabs</div>
+                                            <ul class="epc-erp-topnav-links">
+                                                @foreach (var link in group.Links)
+                                                {
+                                                    <li>
+                                                        <a href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", link.Href)">
+                                                            @if (!string.IsNullOrWhiteSpace(link.Icon))
+                                                            {
+                                                                <i class="fa @link.Icon"></i>
+                                                            }
+                                                            @link.Label
+                                                        </a>
+                                                        <a class="epc-erp-topnav-php" href="@link.Href">PHP</a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="epc-erp-layout epc-erp-layout--topnav epc-erp-layout--full">
+                <div class="epc-erp-content">
+                    <div class="epc-erp-content-toolbar">
+                        <div class="epc-erp-content-toolbar-main">
+                            <div class="epc-erp-content-header">
+                                <nav class="epc-erp-breadcrumb" aria-label="Breadcrumb">
+                                    <a href="/ERP/">ERP</a>
+                                    <span class="sep">/</span>
+                                    <span>@BreadcrumbArea</span>
+                                    <span class="sep">/</span>
+                                    <span class="epc-erp-breadcrumb-current">@BreadcrumbTab</span>
+                                </nav>
+                                <h1 class="epc-erp-content-title">@Title</h1>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="epc-erp-content-body">
+                        <!--epc-cp-main-begin-->
+                        @ChildContent
+                        <!--epc-cp-main-end-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="epc-erp-foot">Hybrid ERP chrome · PHP tab bodies authoritative · <a href="/ERP/">/ERP/</a></footer>
+</div>
+
+<style>
+    .epc-erp-cp-shell { --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; background:var(--bg); color:var(--ink); min-height:100vh; font-family: @(LegacyPhpFontAssets.StackFor("erp")); }
+    .epc-erp-cp-shell a { color:inherit; text-decoration:none; }
+    .epc-erp-topbar { background:#fff; border-bottom:1px solid var(--line); }
+    .epc-erp-topbar__inner { display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between; padding:.65rem 1rem; }
+    .epc-erp-topbar__brand { display:flex; align-items:center; gap:.55rem; font-weight:800; }
+    .epc-erp-topbar__brand img { height:30px; }
+    .epc-erp-topbar__nav, .epc-erp-topbar__user { display:flex; gap:.85rem; font-size:.85rem; font-weight:600; color:#334155; }
+    .epc-erp-topnav { background:#fff; border-bottom:1px solid var(--line); }
+    .epc-erp-topnav-inner { display:flex; gap:.35rem; overflow:auto; padding:0 .4rem; }
+    .epc-erp-topnav-brand { display:flex; align-items:center; padding:.65rem .7rem; font-weight:800; color:#1d4ed8; }
+    .epc-erp-topnav-list { list-style:none; margin:0; padding:0; display:flex; }
+    .epc-erp-topnav-item { position:relative; }
+    .epc-erp-topnav-btn { appearance:none; border:0; background:transparent; font:inherit; font-size:.8rem; font-weight:700; color:#334155; padding:.7rem .65rem; cursor:pointer; white-space:nowrap; }
+    .epc-erp-topnav-item:hover .epc-erp-topnav-btn, .epc-erp-topnav-item:focus-within .epc-erp-topnav-btn { color:#1d4ed8; background:#eff6ff; }
+    .epc-erp-topnav-panel { display:none; position:absolute; left:0; top:100%; z-index:40; min-width:300px; max-width:min(560px,92vw); background:#fff; border:1px solid var(--line); border-radius:0 0 .5rem .5rem; box-shadow:0 14px 32px rgba(15,23,42,.12); }
+    .epc-erp-topnav-item:hover .epc-erp-topnav-panel, .epc-erp-topnav-item:focus-within .epc-erp-topnav-panel { display:block; }
+    .epc-erp-topnav-panel-hd, .epc-erp-topnav-col-hd { padding:.5rem .75rem; font-size:.78rem; font-weight:700; background:#f8fafc; border-bottom:1px solid var(--line); }
+    .epc-erp-topnav-links { list-style:none; margin:0; padding:.3rem 0; max-height:340px; overflow:auto; }
+    .epc-erp-topnav-links li { display:flex; gap:.4rem; align-items:center; padding:.35rem .75rem; font-size:.8rem; }
+    .epc-erp-topnav-links a { flex:1; font-weight:600; }
+    .epc-erp-topnav-links a:hover { color:#1d4ed8; text-decoration:underline; }
+    .epc-erp-topnav-php { flex:0; color:#b45309; font-size:.7rem; font-weight:700; }
+    .epc-erp-content { width:min(1180px, calc(100% - 2rem)); margin:0 auto; padding:1rem 0 2.5rem; }
+    .epc-erp-breadcrumb { color:var(--muted); font-size:.8rem; margin-bottom:.35rem; }
+    .epc-erp-breadcrumb .sep { margin:0 .25rem; }
+    .epc-erp-content-title { margin:0 0 .85rem; font-size:1.45rem; }
+    .epc-erp-foot { padding:.85rem 1rem; border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:.8rem; }
+</style>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool IsAdmin { get; set; }
+    [Parameter] public string Title { get; set; } = "Dashboard";
+    [Parameter] public string BreadcrumbArea { get; set; } = "Home";
+    [Parameter] public string BreadcrumbTab { get; set; } = "Dashboard";
+}

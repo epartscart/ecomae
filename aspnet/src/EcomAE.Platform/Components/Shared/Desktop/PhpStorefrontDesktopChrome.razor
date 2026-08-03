@@ -1,0 +1,100 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Mirrors templates/modex/desktop.php high-level chrome: top line, header-full-top, search, navbar.
+  Commerce bodies remain on live PHP storefront hosts.
+*@
+
+<div class="epc-modex-shell epc-php-font-root">
+    <div class="header-top-line">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-6">Dubai · Mon–Sat</div>
+                <div class="col-xs-6 text-right">
+                    <a href="tel:+971567607011">+971-567607011</a>
+                    ·
+                    <a href="/storefront/login">Customer login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="header-box">
+        <header id="header-full-top" class="header-full-top">
+            <div class="container table-group">
+                <div class="table-control">
+                    <a class="header-logo" href="https://epartscart.com/">
+                        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" />
+                    </a>
+                </div>
+                <div class="table-control header-search-box">
+                    <form class="header_search_form_1" action="https://epartscart.com/shop/part_search" method="get">
+                        <input type="search" name="article" placeholder="Part number or OE code" aria-label="Part number" />
+                        <button type="submit">Search</button>
+                    </form>
+                </div>
+                <div class="table-control header-user-box">
+                    <a class="header-cart-box" href="https://epartscart.com/">Cart</a>
+                    <a href="/storefront/login">Account</a>
+                    <a href="/ERP/">ERP</a>
+                </div>
+            </div>
+        </header>
+
+        <nav class="navbar navbar-default navbar-header-full yamm" id="header" aria-label="Storefront menu">
+            <div class="container">
+                <ul class="nav navbar-nav">
+                    @foreach (var item in PhpModuleCatalog.StorefrontSurfaces)
+                    {
+                        <li><a href="@item.Href">@item.Label</a></li>
+                    }
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <div id="sb-site" class="boxed">
+        <div class="container">
+            <div class="row">
+                <div id="right_col">
+                    <div id="Container">
+                        @ChildContent
+                    </div>
+                </div>
+            </div>
+        </div>
+        <aside id="footer-widgets">
+            <div class="container">
+                Live storefront remains on PHP hosts · Hybrid preview only · Cart/checkout not cut over
+            </div>
+        </aside>
+        <footer id="footer">
+            <div class="container">eParts Cart · modex chrome hybrid</div>
+        </footer>
+    </div>
+</div>
+
+<style>
+    .epc-modex-shell { --red:#dc2626; font-family: @(LegacyPhpFontAssets.StackFor("storefront")); color:#111; background:#fff; min-height:100vh; }
+    .epc-modex-shell a { color:inherit; text-decoration:none; }
+    .epc-modex-shell .container { width:min(1100px, calc(100% - 2rem)); margin:0 auto; }
+    .header-top-line { background:#111; color:#fff; font-size:.78rem; padding:.4rem 0; }
+    .header-top-line .row { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+    .header-top-line a { color:#fff; }
+    #header-full-top { border-bottom:1px solid #e5e7eb; padding:.75rem 0; }
+    .table-group { display:grid; grid-template-columns:auto 1fr auto; gap:1rem; align-items:center; }
+    .header-logo img { height:40px; }
+    .header_search_form_1 { display:flex; gap:.4rem; }
+    .header_search_form_1 input { flex:1; min-width:140px; padding:.55rem .7rem; border:1px solid #d1d5db; border-radius:.4rem; }
+    .header_search_form_1 button { padding:.55rem .85rem; border:0; border-radius:.4rem; background:var(--red); color:#fff; font-weight:700; cursor:pointer; }
+    .header-user-box { display:flex; gap:.65rem; font-weight:700; font-size:.85rem; }
+    .navbar-header-full { background:#f3f4f6; border-bottom:1px solid #e5e7eb; }
+    .navbar-header-full .nav { list-style:none; margin:0; padding:.45rem 0; display:flex; gap:.85rem; flex-wrap:wrap; font-size:.82rem; font-weight:700; }
+    #Container { padding:1rem 0 2rem; }
+    #footer-widgets, #footer { padding:.85rem 0; border-top:1px solid #e5e7eb; color:#64748b; font-size:.8rem; }
+    @@media (max-width:900px){ .table-group{grid-template-columns:1fr;} }
+</style>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

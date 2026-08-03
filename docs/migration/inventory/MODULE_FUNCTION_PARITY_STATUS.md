@@ -20,7 +20,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Module family | PHP route family | ASP.NET | Status |
 | --- | --- | --- | --- |
 | Login / session | `/CP/` auth plugin | `/cp/login` bridge (opt-in) | hybrid-deeplink |
-| Command centre chrome | `desktop.php` widgets | `/cp/app` KPIs + full 405 directory | digest-only + hybrid-deeplink |
+| Command centre chrome | `desktop.php` widgets | `/cp/app` + `PhpCpDesktopChrome` mega-nav + 405 directory | digest-only + hybrid-deeplink (Batch 2 desktop) |
 | Orders / OMS | `/CP/control/shop/orders*` | directory → PHP | hybrid-deeplink |
 | Customers / users / groups | `/CP/control/users*` | digests + directory → PHP | digest-only + hybrid-deeplink |
 | Documents / crosses | `/CP/control/shop/docpart*` | directory → PHP | hybrid-deeplink |
@@ -35,7 +35,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Module family | PHP | ASP.NET | Status |
 | --- | --- | --- | --- |
 | Login landing | `/ERP/` | `/erp/login` | hybrid-deeplink |
-| Dashboard chrome | ERP desktop | `/erp/app` KPIs + categories | digest-only + hybrid-deeplink |
+| Dashboard chrome | ERP desktop | `/erp/app` + `PhpErpDesktopChrome` topnav + categories/tabs | digest-only + hybrid-deeplink (Batch 2 desktop) |
 | Areas (35 with tabs) | `erp_nav_areas.php` | directory → PHP | hybrid-deeplink |
 | Tab UIs (154) | `erp_tabs_*.php` + nav tabs | directory → PHP | hybrid-deeplink |
 | Writes / ajax_erp / print | PHP | — | php-only |
@@ -46,14 +46,14 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Module family | PHP | ASP.NET | Status |
 | --- | --- | --- | --- |
 | Login (`$_SESSION`) | `/BOS/?action=login` | `/bos/login` admin-cookie bridge | hybrid-deeplink (model mismatch) |
-| Fleet / tenant ops / commerce / catalogue / … | ~99–116 module IDs | `/bos/app` directory → PHP | hybrid-deeplink |
+| Fleet / tenant ops / commerce / catalogue / … | ~99–116 module IDs | `/bos/app` + `PhpBosDesktopChrome` topnav + directory → PHP | hybrid-deeplink (Batch 2 desktop; session model still PHP) |
 | Digests | — | fleet-summary/tenants/health/… | digest-only |
 
 ## Storefront (epartscart + tenants)
 
 | Module family | PHP | ASP.NET | Status |
 | --- | --- | --- | --- |
-| Homepage / SEO / analytics | modex desktop + gtag/Clarity | `/storefront/app` preview + GA4 (+ Clarity hook) | hybrid-deeplink (preview) |
+| Homepage / SEO / analytics | modex desktop + gtag/Clarity | `/storefront/app` + `PhpStorefrontDesktopChrome` + GA4 (+ Clarity hook) | hybrid-deeplink (Batch 2 preview; cart/checkout PHP) |
 | Search / VIN / catalog browse | PHP + Laximo/UMAPI | directory → PHP | hybrid-deeplink |
 | Cart / checkout / payments | PHP | directory → PHP | hybrid-deeplink |
 | Account digests | PHP | `/storefront/account-summary|orders|garage|profile` | digest-only |

@@ -11,44 +11,20 @@
 <PageTitle>Super BOS · Fleet Command</PageTitle>
 <PhpChromeStyles Surface="bos" />
 
-<style>
-    .epc-bosapp { --bg:#0b0b0b; --panel:#151515; --line:#2a2a2a; --ink:#f5f5f5; --muted:#a3a3a3; --accent:#facc15; font-family: @(LegacyPhpFontAssets.StackFor("bos")); background:var(--bg); color:var(--ink); min-height:100vh; }
-    .epc-bosapp a { color:var(--accent); }
-    .epc-bosapp-wrap { width:min(1100px, calc(100% - 2rem)); margin:0 auto; padding:1.5rem 0 3rem; }
-    .epc-bosapp h1 { margin:.2rem 0 .5rem; font-size:clamp(1.6rem,3vw,2.2rem); }
-    .epc-bosapp-nav { display:flex; flex-wrap:wrap; gap:.65rem; margin:1rem 0; }
-    .epc-bosapp-nav a { display:inline-flex; padding:.4rem .7rem; border:1px solid #333; border-radius:.4rem; text-decoration:none; color:#f5f5f5; font-size:.8rem; font-weight:600; }
-    .epc-bosapp-nav a:hover { border-color:var(--accent); color:var(--accent); }
-    .epc-bosapp-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.65rem; margin:1.1rem 0; }
-    .epc-bosapp-card { background:var(--panel); border:1px solid var(--line); border-radius:.55rem; padding:.9rem; }
-    .epc-bosapp-card strong { display:block; font-size:1.4rem; }
-    .epc-bosapp-card span { color:var(--muted); font-size:.8rem; }
-    .epc-bosapp-note { margin-top:1rem; padding:.8rem; border:1px solid #444; border-radius:.45rem; color:var(--muted); font-size:.88rem; }
-</style>
+<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Command Center">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/bos/app" />
 
-<div class="epc-bosapp">
-    <div class="epc-bosapp-wrap">
-        <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center">
-            <div>
-                <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:36px;background:#fff;border-radius:4px;padding:2px" />
-                <h1>Super BOS · Fleet command</h1>
-                <p style="color:var(--muted);max-width:36rem">Hybrid presentation: ASP.NET digests + PHP /BOS/ modules for full fleet ops. Live PHP BOS remains authoritative.</p>
-            </div>
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                @if (!_isAdmin)
-                {
-                    <a href="/bos/login" style="color:#111;background:var(--accent);padding:.5rem .8rem;border-radius:.4rem;text-decoration:none;font-weight:700">Sign in</a>
-                }
-                <a href="/BOS/" style="color:#fff;border:1px solid #444;padding:.5rem .8rem;border-radius:.4rem;text-decoration:none">PHP BOS</a>
-                <a href="/migration/console" style="color:#fff;border:1px solid #444;padding:.5rem .8rem;border-radius:.4rem;text-decoration:none">Zero-PHP console</a>
-            </div>
-        </div>
-        <div class="epc-bosapp-nav">
-            @foreach (var item in LegacyChromeNavCatalog.Bos)
-            {
-                <a href="@item.Href">@item.Label</a>
-            }
-        </div>
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <style>
+            .epc-bosapp-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.65rem; margin:1.1rem 0; }
+            .epc-bosapp-card { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; padding:.9rem; }
+            .epc-bosapp-card strong { display:block; font-size:1.4rem; }
+            .epc-bosapp-card span { color:#71717a; font-size:.8rem; }
+            .epc-bosapp-note { margin-top:1rem; padding:.8rem; border:1px solid #e4e4e7; border-radius:.45rem; background:#fff; color:#52525b; font-size:.88rem; }
+        </style>
+
+        <p style="color:#52525b;max-width:40rem">Batch 2: <code>bos-topnav</code> mega panels matching <code>bos/index.php</code>. Fleet digests below; full module UX still needs PHP <code>$_SESSION</code> on <a href="/BOS/">/BOS/</a>.</p>
         <div class="epc-bosapp-grid">
             <div class="epc-bosapp-card"><strong>@_tenants</strong><span>Portal tenants</span></div>
             <div class="epc-bosapp-card"><strong>@_active</strong><span>Active tenants</span></div>
@@ -57,19 +33,16 @@
             <div class="epc-bosapp-card"><strong>@_erpOnly</strong><span>ERP-only</span></div>
             <div class="epc-bosapp-card"><strong>@_source</strong><span>Digest source</span></div>
         </div>
-        <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/bos/app" />
 
-        <div style="background:#111;border-radius:.55rem;padding:.5rem 1rem 1rem;margin-top:1rem">
-            <PhpHybridModuleDirectory
-                Title="Complete BOS module directory"
-                Subtitle="@($"{PhpModuleCatalog.BosModuleCount} modules from PHP epc_bos_unified.php")"
-                Links="@PhpModuleCatalog.BosModules"
-                PhpWorkspaceBase="/bos/app" />
-        </div>
+        <PhpHybridModuleDirectory
+            Title="Complete BOS module directory"
+            Subtitle="@($"{PhpModuleCatalog.BosModuleCount} modules from PHP epc_bos_unified.php")"
+            Links="@PhpModuleCatalog.BosModules"
+            PhpWorkspaceBase="/bos/app" />
 
-        <div class="epc-bosapp-note">@_note Exact-route preview only. Full module directory above deeplinks to PHP. BOS PHP <code>$_SESSION</code> vs MySQL admin cookies remains a documented gap — use /BOS/ for full tenant module UX.</div>
-    </div>
-</div>
+        <div class="epc-bosapp-note">@_note Topnav uses bos-topnav class tree. Cookie bridge ≠ PHP BOS session — use /BOS/ for full tenant module UX.</div>
+    }
+</PhpBosDesktopChrome>
 
 @code {
     private int _tenants, _active, _sessions, _withDb, _erpOnly;
@@ -89,7 +62,6 @@
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Admin)
         {
-            // Match PHP /BOS/: unauthenticated users see login.
             Nav.NavigateTo("/bos/login", forceLoad: true);
             return;
         }

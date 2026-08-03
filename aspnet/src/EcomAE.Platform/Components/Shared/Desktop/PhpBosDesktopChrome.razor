@@ -1,0 +1,106 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Mirrors bos/index.php topnav mega + main content region (bos-body--topnav).
+  Full module UX still requires PHP $_SESSION on /BOS/.
+*@
+
+<div class="bos-body bos-body--topnav epc-php-font-root">
+    <nav class="bos-topnav" id="bosTopnav" aria-label="BOS top navigation">
+        <div class="bos-topnav__inner">
+            <a class="bos-topnav__brand" href="/BOS/">
+                <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" />
+                <span>BOS</span>
+            </a>
+            <ul class="bos-topnav__list" role="menubar">
+                @foreach (var group in LegacyDesktopChromeCatalog.BosTopnav())
+                {
+                    <li class="bos-topnav__item" data-bos-group="@group.Id" role="none">
+                        <button type="button" class="bos-topnav__btn" data-bos-topnav-toggle role="menuitem">@group.Label</button>
+                        <div class="bos-topnav__panel" data-bos-topnav-panel="@group.Id">
+                            <div class="bos-topnav__panel-hd">@group.Label</div>
+                            <div class="bos-topnav__cols">
+                                <div class="bos-topnav__col">
+                                    <ul class="bos-topnav__links">
+                                        @foreach (var link in group.Links)
+                                        {
+                                            <li>
+                                                <a class="bos-topnav__link" data-module="@link.Id" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", link.Href)">
+                                                    @if (!string.IsNullOrWhiteSpace(link.Icon))
+                                                    {
+                                                        <i class="fa @link.Icon"></i>
+                                                    }
+                                                    @link.Label
+                                                </a>
+                                                <a class="bos-topnav__php" href="@link.Href">PHP</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                }
+            </ul>
+            <div class="bos-topnav__right">
+                @if (!IsAdmin)
+                {
+                    <a class="bos-topnav__login" href="/bos/login">Sign in</a>
+                }
+                else
+                {
+                    <span class="bos-topnav__user">Admin session</span>
+                }
+                <a class="bos-topnav__logout" href="/BOS/">PHP BOS</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="bos-main" id="bosMain">
+        <div class="bos-main__header" id="bosMainHeader">
+            <div class="bos-main__breadcrumb">BOS / Fleet / @Title</div>
+            <div class="bos-main__tenant-bar">
+                <span class="bos-tag">Hybrid chrome</span>
+                <span class="bos-tag bos-tag--warn">PHP $_SESSION modules on /BOS/</span>
+            </div>
+        </div>
+        <div class="bos-main__content" id="bosContent">
+            @ChildContent
+        </div>
+    </main>
+</div>
+
+<style>
+    .bos-body--topnav { --bos-topbar-height:52px; --bos-bg:#f4f4f5; --bos-ink:#111; min-height:100vh; background:var(--bos-bg); color:var(--bos-ink); font-family: @(LegacyPhpFontAssets.StackFor("bos")); }
+    .bos-body--topnav a { color:inherit; text-decoration:none; }
+    .bos-topnav { position:sticky; top:0; z-index:50; height:var(--bos-topbar-height); background:#0b0b0b; color:#f5f5f5; }
+    .bos-topnav__inner { display:flex; align-items:stretch; gap:.35rem; height:100%; padding:0 .5rem; overflow:auto; }
+    .bos-topnav__brand { display:flex; align-items:center; gap:.45rem; padding:0 .65rem; font-weight:800; letter-spacing:.04em; white-space:nowrap; }
+    .bos-topnav__brand img { height:26px; background:#fff; border-radius:4px; padding:1px; }
+    .bos-topnav__list { list-style:none; margin:0; padding:0; display:flex; }
+    .bos-topnav__item { position:relative; }
+    .bos-topnav__btn { appearance:none; border:0; background:transparent; color:#f5f5f5; font:inherit; font-size:.78rem; font-weight:700; padding:0 .7rem; height:100%; cursor:pointer; white-space:nowrap; opacity:.9; }
+    .bos-topnav__item:hover .bos-topnav__btn, .bos-topnav__item:focus-within .bos-topnav__btn { opacity:1; background:#1a1a1a; }
+    .bos-topnav__panel { display:none; position:absolute; left:0; top:100%; z-index:60; min-width:280px; max-width:min(520px,92vw); background:#151515; color:#f5f5f5; border:1px solid #2a2a2a; border-radius:0 0 .45rem .45rem; box-shadow:0 16px 36px rgba(0,0,0,.45); }
+    .bos-topnav__item:hover .bos-topnav__panel, .bos-topnav__item:focus-within .bos-topnav__panel { display:block; }
+    .bos-topnav__panel-hd { padding:.5rem .75rem; font-size:.75rem; font-weight:700; color:#a3a3a3; border-bottom:1px solid #2a2a2a; }
+    .bos-topnav__links { list-style:none; margin:0; padding:.3rem 0; max-height:340px; overflow:auto; }
+    .bos-topnav__links li { display:flex; gap:.4rem; align-items:center; padding:.35rem .75rem; font-size:.8rem; }
+    .bos-topnav__link { flex:1; font-weight:600; }
+    .bos-topnav__link:hover { color:#facc15; }
+    .bos-topnav__php { flex:0; color:#fbbf24; font-size:.7rem; font-weight:700; }
+    .bos-topnav__right { margin-left:auto; display:flex; align-items:center; gap:.75rem; padding:0 .65rem; font-size:.8rem; font-weight:600; white-space:nowrap; }
+    .bos-topnav__login { color:#facc15 !important; }
+    .bos-main { margin-top:0; width:min(1100px, calc(100% - 2rem)); margin-left:auto; margin-right:auto; padding:1.1rem 0 2.5rem; }
+    .bos-main__header { margin-bottom:.85rem; }
+    .bos-main__breadcrumb { font-size:.8rem; color:#52525b; margin-bottom:.35rem; }
+    .bos-main__tenant-bar { display:flex; gap:.4rem; flex-wrap:wrap; }
+    .bos-tag { display:inline-flex; padding:.2rem .5rem; border-radius:.3rem; background:#e4e4e7; font-size:.72rem; font-weight:700; }
+    .bos-tag--warn { background:#fef3c7; color:#92400e; }
+</style>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool IsAdmin { get; set; }
+    [Parameter] public string Title { get; set; } = "Command Center";
+}

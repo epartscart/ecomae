@@ -11,60 +11,28 @@
 <PageTitle>Ecom BOS Dashboard · ERP</PageTitle>
 <PhpChromeStyles Surface="erp" />
 
-<style>
-    .epc-erp { --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; font-family: @(LegacyPhpFontAssets.StackFor("erp")); color:var(--ink); background:var(--bg); min-height:100vh; }
-    .epc-erp a { color:inherit; text-decoration:none; }
-    .epc-erp-top { background:#fff; border-bottom:1px solid var(--line); padding:.7rem 1.1rem; display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:center; }
-    .epc-erp-brand { display:flex; align-items:center; gap:.65rem; font-weight:800; }
-    .epc-erp-brand img { height:32px; }
-    .epc-erp-nav { display:flex; gap:.8rem; flex-wrap:wrap; padding:.55rem 1.1rem; background:#fff; border-bottom:1px solid var(--line); font-size:.82rem; font-weight:600; color:#334155; }
-    .epc-erp-nav a:hover { color:#1d4ed8; text-decoration:underline; }
-    .epc-erp-main { width:min(1180px, calc(100% - 2rem)); margin:0 auto; padding:1.1rem 0 3rem; }
-    .epc-erp-crumb { color:var(--muted); font-size:.8rem; margin-bottom:.35rem; }
-    .epc-erp-title { margin:0 0 1rem; font-size:1.55rem; }
-    .epc-erp-grid { display:grid; grid-template-columns:1.2fr 1fr; gap:.85rem; margin-bottom:1rem; }
-    .epc-erp-card { background:#fff; border:1px solid var(--line); border-radius:.65rem; padding:1rem 1.1rem; }
-    .epc-erp-metrics { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; }
-    .epc-erp-metric strong { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; }
-    .epc-erp-metric span { color:var(--muted); font-size:.75rem; }
-    .epc-erp-banners { display:grid; gap:.55rem; margin:1rem 0; }
-    .epc-erp-banner { border-radius:.65rem; padding:1rem 1.15rem; color:#fff; font-weight:700; display:flex; justify-content:space-between; align-items:center; }
-    .epc-erp-tiles { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.55rem; }
-    .epc-erp-tile { background:#fff; border:1px solid var(--line); border-radius:.55rem; padding:1rem .8rem; font-weight:700; min-height:84px; display:flex; align-items:flex-end; }
-    .epc-erp-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.55rem; }
-    .epc-erp-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
-    @@media (max-width:900px){ .epc-erp-grid,.epc-erp-tiles,.epc-erp-kpis{grid-template-columns:1fr 1fr;} }
-</style>
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/erp/app" />
 
-<div class="epc-erp">
-    <div class="epc-erp-top">
-        <div class="epc-erp-brand">
-            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" />
-            <span>Ecom BOS</span>
-        </div>
-        <div>
-            @if (!_isAdmin)
-            {
-                <a href="/erp/login" style="margin-right:.75rem;font-weight:700;color:#1d4ed8">Sign in</a>
-            }
-            <a href="/CP/" style="margin-right:.75rem">E-commerce CP</a>
-            <a href="/ERP/">PHP ERP</a>
-        </div>
-    </div>
-    <div class="epc-erp-nav">
-        <a href="/ERP/">Ecom BOS</a>
-        @foreach (var item in PhpModuleCatalog.ErpCategories)
-        {
-            <a href="@item.Href" title="@item.Label"><i class="fa @item.Icon"></i> @item.Label</a>
-        }
-    </div>
-    <div class="epc-erp-main">
-        <div class="epc-erp-crumb">ERP / Home / Dashboard</div>
-        <h1 class="epc-erp-title">Dashboard</h1>
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <style>
+            .epc-erp-grid { display:grid; grid-template-columns:1.2fr 1fr; gap:.85rem; margin-bottom:1rem; }
+            .epc-erp-card { background:#fff; border:1px solid #e2e8f0; border-radius:.65rem; padding:1rem 1.1rem; }
+            .epc-erp-metrics { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; }
+            .epc-erp-metric strong { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; }
+            .epc-erp-metric span { color:#64748b; font-size:.75rem; }
+            .epc-erp-banners { display:grid; gap:.55rem; margin:1rem 0; }
+            .epc-erp-banner { border-radius:.65rem; padding:1rem 1.15rem; color:#fff; font-weight:700; display:flex; justify-content:space-between; align-items:center; text-decoration:none; }
+            .epc-erp-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.55rem; }
+            .epc-erp-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
+            @@media (max-width:900px){ .epc-erp-grid,.epc-erp-kpis{grid-template-columns:1fr 1fr;} }
+        </style>
+
         <div class="epc-erp-grid">
             <section class="epc-erp-card">
                 <h2 style="margin:.1rem 0 .4rem;font-size:1.05rem">ADMINISTRATION CENTRE — Operations</h2>
-                <p style="margin:0;color:var(--muted);font-size:.9rem">Hybrid shell: ASP.NET KPIs + PHP ERP areas for every nav category so finance workflows stay complete.</p>
+                <p style="margin:0;color:#64748b;font-size:.9rem">Batch 2: <code>epc-erp-topbar</code> + <code>epc-erp-topnav</code> mega panels (erp_desktop / erp_main). Tab bodies stay PHP.</p>
             </section>
             <section class="epc-erp-metrics">
                 <div class="epc-erp-card epc-erp-metric"><strong>@_cash.ToString("N2")</strong><span>CASH &amp; BANK</span></div>
@@ -75,21 +43,11 @@
         </div>
 
         <div class="epc-erp-banners">
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#ea580c,#f97316)" href="/ERP/?epc_erp_shell=1&area=finance">Income Statement</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="/ERP/?epc_erp_shell=1&area=finance">Balance Sheet</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#115e59,#0d9488)" href="/ERP/?epc_erp_shell=1&area=finance">General Journal</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#3b82f6)" href="/ERP/?epc_erp_shell=1&area=sales">New Sales Order</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#ea580c,#f97316)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">Income Statement</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">Balance Sheet</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#115e59,#0d9488)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">General Journal</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#3b82f6)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=sales")">New Sales Order</a>
         </div>
-
-        <section style="margin:1rem 0">
-            <h2 style="font-size:1.05rem">Quick actions</h2>
-            <div class="epc-erp-tiles">
-                @foreach (var item in LegacyChromeNavCatalog.ErpQuickActions.Take(4))
-                {
-                    <a class="epc-erp-tile" href="@item.Href">@item.Label</a>
-                }
-            </div>
-        </section>
 
         <section>
             <h2 style="font-size:1.05rem">Operational KPIs — @_source</h2>
@@ -98,11 +56,9 @@
                 <div class="epc-erp-card epc-erp-metric"><strong>@_credit.ToString("N2")</strong><span>Supplier credit</span></div>
                 <div class="epc-erp-card epc-erp-metric"><strong>@_debit.ToString("N2")</strong><span>Supplier debit</span></div>
                 <div class="epc-erp-card epc-erp-metric"><strong>@_net.ToString("N2")</strong><span>Supplier net</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>ASP.NET</strong><span>/erp/app shell</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>TOPNAV</strong><span>epc-erp-topnav</span></div>
             </div>
         </section>
-
-        <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/erp/app" />
 
         <PhpHybridModuleDirectory
             Title="Complete ERP area directory"
@@ -117,10 +73,10 @@
             PhpWorkspaceBase="/erp/app" />
 
         <div class="epc-erp-note">
-            @_note Live PHP ERP UI remains at <a href="/ERP/">/ERP/</a>. Full area/tab directories below. Login bridge: <a href="/erp/login">/erp/login</a>.
+            @_note Live PHP ERP UI remains at <a href="/ERP/">/ERP/</a>. Desktop chrome classes match erp_desktop.php / erp_main.php.
         </div>
-    </div>
-</div>
+    }
+</PhpErpDesktopChrome>
 
 @code {
     private decimal _cash;
@@ -146,7 +102,6 @@
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Admin)
         {
-            // Match PHP /ERP/: unauthenticated users see login landing.
             Nav.NavigateTo("/erp/login", forceLoad: true);
             return;
         }
