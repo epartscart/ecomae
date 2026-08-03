@@ -47,6 +47,8 @@ public static class LegacyChromeNavCatalog
         new("Tenant control PHP", "/CP/control/portal/epc_tenant_control_center"),
         new("Currencies list", "/cp/currencies-app"),
         new("Currency rates PHP", "/CP/shop/finance/nastrojka-kursov-valyut"),
+        new("Storages list", "/cp/storages-app"),
+        new("Storages PHP", "/CP/shop/logistics/storages"),
         new("Users PHP", "/CP/control/users"),
         new("Groups PHP", "/CP/users/usergroups"),
         new("Multivendor", "/CP/control/shop/multivendor"),
