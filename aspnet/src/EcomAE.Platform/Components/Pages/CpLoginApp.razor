@@ -5,18 +5,7 @@
 @inject NavigationManager Nav
 
 <PageTitle>Log in form - ECOM AE · BOS</PageTitle>
-
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="@LegacyPhpFontAssets.OpenSans" />
-<link rel="stylesheet" href="@LegacyPhpFontAssets.FontAwesomeCdn" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" />
-<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css" />
-<link rel="stylesheet" href="/content/general_pages/epc_cp_ui_css.php" />
-<link rel="stylesheet" href="/content/general_pages/epc_cp_professional_css.php" />
-<link rel="stylesheet" href="/content/general_pages/epc_ecomae_hub_logo_css.php" />
-<link rel="stylesheet" href="/content/general_pages/epc_cp_login_hero_css.php" />
-<link rel="stylesheet" href="/content/general_pages/epc_cp_login_css.php" />
+<PhpSurfaceHead Surface="cp" IncludeLoginCss="true" />
 
 <style>
     .epc-asp-login-cp {
@@ -84,9 +73,16 @@
                 <li><i class="fa fa-globe"></i> Fleet command — commerce, ERP-only &amp; demo</li>
                 <li><i class="fa fa-rocket"></i> Tenant onboarding, templates &amp; module packs</li>
                 <li><i class="fa fa-shield"></i> Platform health, governance &amp; failover</li>
+                <li><i class="fa fa-th-large"></i> @PhpModuleCatalog.CpBrochureFeatureCount CP features catalogued (hybrid directory after login)</li>
             </ul>
+            <div style="margin-top:.75rem;display:grid;gap:.35rem;text-align:left">
+                @foreach (var item in LegacyChromeNavCatalog.ControlPanel.Take(8))
+                {
+                    <a href="@item.Href" style="color:#1d4ed8;font-size:.8rem;font-weight:600;text-decoration:none">@item.Label → PHP</a>
+                }
+            </div>
         </div>
-        <div class="login-footer">Multi-industry commerce platform / Designed by ecomae</div>
+        <div class="login-footer">Multi-industry commerce platform / Designed by ecomae · authentication · epc-cp-login</div>
     </div>
 </div>
 

@@ -39,15 +39,17 @@ flowchart TD
   G --> H[Release-owner approval before PHP removal]
 ```
 
-### Batch 0 — Directory completeness (this PR)
+### Batch 0 — Directory completeness ✅ (merged #657)
 - Generate full PHP module catalogs (CP/ERP/BOS/SF).
 - Surface them on `/cp/app`, `/erp/app`, `/bos/app`, `/storefront/app` (searchable directory + hybrid workspace iframe).
 - Match fonts (Open Sans / PT Sans / Fraunces+Sora / Inter+JetBrains) and storefront GA4 (+ Clarity hook).
 - **Outcome:** nothing is missing from navigation; every module reachable via PHP deeplink under ASP.NET chrome.
 
-### Batch 1 — Presentation pixel parity (login + shell chrome)
-- Side-by-side `/CP/`↔`/cp/login`, `/ERP/`↔`/erp/login`, `/BOS/`↔`/bos/login`, storefront↔`/storefront/app`.
-- Pass `scripts/cloudpanel_probe_php_presentation_parity.sh` (fonts, CSS bytes, analytics, layout markers).
+### Batch 1 — Presentation chrome parity (login + shell assets) ← current
+- `PhpSurfaceHead` injects PHP webfonts/CSS/analytics into `<head>` (HeadOutlet) for all login/shell routes.
+- Enrich `/cp|/erp|/bos|/storefront/login` with PHP login CSS + module cards/deeplinks.
+- Probe compares chrome-asset markers (fonts/CSS/gtag); soft size warnings until Batch 2 desktops.
+- Operator: redeploy + presentation shadows + `bash scripts/cloudpanel_probe_php_presentation_parity.sh`.
 - Keep product `/CP/ /ERP/ /BOS/ /` on PHP.
 
 ### Batch 2 — Authenticated chrome structure

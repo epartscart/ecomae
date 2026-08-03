@@ -4,6 +4,8 @@
 
 This recheck covers fonts, analytics, full-page presentation, and module functionality. Weighted Zero-PHP meter (~95%) is **not** chrome/module parity.
 
+**Batch 1 (in progress):** `PhpSurfaceHead` puts PHP webfonts/CSS/GA4 into `<head>` for login/shell routes; probe uses chrome-asset markers (`scripts/compare_php_aspnet_presentation.py`). Requires CloudPanel redeploy + presentation shadows before live evidence can show `chrome-pass-functionality-pending`. Full desktop pixel parity remains Batch 2.
+
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 
 | Surface | PHP URL | PHP bytes | ASP.NET URL | ASP.NET bytes | Live title (ASP.NET) |
