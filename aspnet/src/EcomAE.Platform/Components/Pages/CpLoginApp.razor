@@ -6,7 +6,10 @@
 
 <PageTitle>Log in form - ECOM AE · BOS</PageTitle>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.OpenSans" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.FontAwesomeCdn" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" />
 <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css" />
 <link rel="stylesheet" href="/content/general_pages/epc_cp_ui_css.php" />
@@ -21,7 +24,7 @@
         margin: 0;
         background: radial-gradient(1200px 700px at 50% -10%, rgba(56,189,248,.22), transparent 50%),
                     linear-gradient(165deg, #0b1b33 0%, #0f2a4a 42%, #0a1628 100%);
-        font-family: "Segoe UI", Tahoma, sans-serif;
+        font-family: @(LegacyPhpFontAssets.StackFor("cp"));
         color: #f8fafc;
     }
     .epc-asp-login-cp .epc-cp-login-centered {

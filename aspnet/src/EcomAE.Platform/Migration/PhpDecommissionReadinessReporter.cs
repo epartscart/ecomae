@@ -66,6 +66,16 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
                     : "attach surface-digests-aspnet.json with ok=true and at least one non-migration digest HTTP 200"),
             Item("parity-samples-attached", "At least one attached PHP-vs-ASP.NET parity sample under evidence",
                 PhpDecommissionEvidence.HasParitySamples(root)),
+            Item("chrome-presentation-parity", "Live PHP vs ASP.NET full-page presentation recheck passed (fonts/layout/analytics)",
+                HasPresentationRecheckPass(),
+                HasPresentationRecheckPass()
+                    ? "php-vs-aspnet-recheck.json status=pass"
+                    : "run bash scripts/cloudpanel_probe_php_presentation_parity.sh until status=pass; see docs/migration/PHP_VS_ASPNET_DETAILED_RECHECK.md"),
+            Item("module-function-parity", "Interactive CP/ERP/BOS/storefront module function parity evidence attached",
+                HasModuleFunctionParityEvidence(),
+                HasModuleFunctionParityEvidence()
+                    ? "MODULE_FUNCTION_PARITY evidence present"
+                    : "405 CP features + ~160 ERP tabs + ~116 BOS modules still PHP-only — attach functional test evidence; digests are not enough"),
             Item("exact-route-shadows-only", "Exact-route nginx shadow examples present; broad cutover still forbidden",
                 File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"))
                 && File.Exists(Path.Combine(FindRepoRoot(), "deploy", "aspnet", "nginx-api-shadow-example.conf"))
@@ -96,6 +106,7 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
 
         var extraBlockers = new List<string>
         {
+            "Full-page presentation (fonts, layout, analytics) and interactive module UX are not PHP-parity on ASP.NET — keep PHP authoritative.",
             "Broad /, /api, /cp, /erp, /bos, and storefront nginx cutovers remain forbidden.",
             "PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies must remain until ReadyToRemovePhp is true."
         };
@@ -163,11 +174,52 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
             blockers,
             [
                 "Green PHP-vs-ASP.NET parity samples for tracked routes under evidence/parity-samples/",
+                "Presentation recheck pass: docs/migration/evidence/presentation/php-vs-aspnet-recheck.json",
+                "Module function evidence for CP/ERP/BOS/storefront (digests alone are insufficient)",
                 "Staging smoke artifacts for exact-route proxies under docs/migration/evidence/decommission/staging-smoke/",
                 "Operator rollback command validation",
                 "Release-owner APPROVED_TO_REMOVE_PHP_FALLBACK artifact"
             ],
             nextActions);
+    }
+
+    private bool HasPresentationRecheckPass()
+    {
+        var path = Path.Combine(FindRepoRoot(), "docs", "migration", "evidence", "presentation", "php-vs-aspnet-recheck.json");
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            var json = File.ReadAllText(path);
+            return json.Contains("\"status\": \"pass\"", StringComparison.Ordinal)
+                || json.Contains("\"status\":\"pass\"", StringComparison.Ordinal);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private bool HasModuleFunctionParityEvidence()
+    {
+        var path = Path.Combine(FindRepoRoot(), "docs", "migration", "evidence", "presentation", "MODULE_FUNCTION_TEST_PASS.md");
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            var text = File.ReadAllText(path);
+            return text.Contains("MODULE_FUNCTION_PARITY_PASS", StringComparison.Ordinal);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static PhpDecommissionChecklistItem Item(string id, string description, bool present, string? detail = null)

@@ -457,6 +457,10 @@ check 'CP stylesheets include command dashboard CSS' contains "$ROOT/aspnet/src/
 check 'presentation parity mentions /cp/app preview' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PresentationParityReporter.cs" '/cp/app'
 check 'presentation parity mentions login bridge' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PresentationParityReporter.cs" '/cp/login'
 check 'chrome parity gap matrix exists' test -f "$ROOT/docs/migration/CHROME_PARITY_GAP_MATRIX.md"
+check 'detailed PHP vs ASP.NET recheck doc exists' test -f "$ROOT/docs/migration/PHP_VS_ASPNET_DETAILED_RECHECK.md"
+check 'module function parity inventory exists' test -f "$ROOT/docs/migration/inventory/MODULE_FUNCTION_PARITY_STATUS.md"
+check 'presentation parity probe script exists' test -x "$ROOT/scripts/cloudpanel_probe_php_presentation_parity.sh"
+check 'presentation compare helper exists' test -f "$ROOT/scripts/compare_php_aspnet_presentation.py"
 check 'login bridge service exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbLegacyAdminLoginService.cs"
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
 check 'presentation installer expects login routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 9'
