@@ -260,7 +260,7 @@ check 'catalog status evidence exists' test -f "$ROOT/docs/migration/evidence/ca
 check 'CloudPanel production deploy script exists' test -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
 check 'CloudPanel production deploy refuses price-lookup auto-shadow' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'refusing automatic price-lookup shadow enable'
 check 'CloudPanel production deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" 'PHP remains authoritative'
-check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion: 95.0%'
+check 'zero PHP progress status remains below one hundred' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'True zero-PHP completion meter: **95.0%**.'
 check 'legacy session SQL checks customer sessions without type filter' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionSql.cs" 'CountCustomerSession'
 check 'legacy session DB evidence exists' test -f "$ROOT/docs/migration/evidence/legacy-session-db/README.md"
 check 'catalog article route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/api/v1/catalog/article'
@@ -423,6 +423,9 @@ check 'exact-route shadow installer exists' test -x "$ROOT/scripts/cloudpanel_in
 check 'exact-route shadow installer refuses broad paths' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'refusing broad path'
 check 'exact-route shadow installer inserts before location /' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'immediately before location /'
 check 'exact-route shadow installer probes local nginx bypassing CDN' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" '--resolve www.ecomae.com:443:127.0.0.1'
+check 'exact-route installer uses re.escape exact location match' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 're.escape(route)'
+check 'exact-route location match regression test exists' test -x "$ROOT/tests/aspnet_migration/test_exact_route_location_match.sh"
+check 'exact-route location match regression passes' bash "$ROOT/tests/aspnet_migration/test_exact_route_location_match.sh"
 check 'deploy packs exact-route shadow installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_exact_route_shadow.sh'
 check 'pre-PHP-removal parity verdict helper exists' test -x "$ROOT/scripts/verify_pre_php_removal_parity.sh"
 check 'pre-PHP-removal verdict never removes PHP' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'NEVER removes PHP'
