@@ -297,6 +297,7 @@ public static class SurfacePayloadContractCatalog
         new("cp", "pages Blazor list", "/cp/pages-app", "digest-wired-awaiting-dual-sample", "Read UI over /cp/pages digest (body omitted); PHP content_manager writes remain authoritative; tenant chrome stays PHP."),
         new("cp", "menus Blazor list", "/cp/menus-app", "digest-wired-awaiting-dual-sample", "Read UI over /cp/menus digest (structure JSON omitted); PHP menu_manager writes remain authoritative; tenant chrome stays PHP."),
         new("cp", "tenants Blazor list", "/cp/tenants-app", "digest-wired-awaiting-dual-sample", "Read UI over /cp/tenants digest; PHP epc_tenant_control_center / portal remain authoritative; tenant product chrome stays PHP."),
+        new("cp", "currencies Blazor list", "/cp/currencies-app", "digest-wired-awaiting-dual-sample", "Read UI over /cp/currencies digest; PHP nastrojka-kursov-valyut writes remain authoritative; tenant chrome stays PHP."),
         new("cp", "user_manager / groups / menus / pages", "/cp/users|/cp/groups|/cp/menus|/cp/pages", "digest-wired-awaiting-dual-sample", "Read digests only; writes remain PHP."),
         new("cp", "config-items / admin-sessions / storages", "/cp/config-items|/cp/admin-sessions|/cp/storages", "digest-wired-awaiting-dual-sample", "Read digests only; config secrets and session tokens never returned."),
         new("erp", "erp_desktop.php + erp_dashboard.php", "/erp?format=html + /erp/dashboard-summary", "presentation-and-digest-scaffolded", "Chrome CSS + KPI fields contracted; full voucher/posting UX still PHP."),
