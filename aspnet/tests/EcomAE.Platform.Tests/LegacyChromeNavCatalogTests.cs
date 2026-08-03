@@ -52,6 +52,8 @@ public sealed class LegacyChromeNavCatalogTests
     public void BosNavLinksPhpBosEntry()
     {
         Assert.Contains(LegacyChromeNavCatalog.Bos, item => item.Href.StartsWith("/BOS", StringComparison.Ordinal));
+        Assert.Contains(LegacyChromeNavCatalog.BosQuickActions, item => item.Label == "Audit log list" && item.Href == "/bos/audit-log-app");
+        Assert.Contains(LegacyChromeNavCatalog.BosQuickActions, item => item.Label == "Audit log PHP" && item.Href == "/CP/control/portal/epc_boc_audit_log");
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Search parts" && item.Href == "/storefront/search-app");
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Search PHP" && item.Href.Contains("part_search", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Cart" && item.Href == "/storefront/cart-app");
