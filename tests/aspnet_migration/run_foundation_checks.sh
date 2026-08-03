@@ -408,8 +408,13 @@ check 'use PHP DP_Config as TenantRegistry helper exists' test -x "$ROOT/scripts
 check 'apply DDL uses clpctl master credentials' contains "$ROOT/scripts/cloudpanel_apply_epc_api_clients_ddl.sh" 'db:show:master-credentials'
 check 'apply DDL grants only existing mysql.user hosts' contains "$ROOT/scripts/cloudpanel_apply_epc_api_clients_ddl.sh" 'grant_existing_hosts'
 check 'smoke export bundle helper exists' test -x "$ROOT/scripts/cloudpanel_export_final_gate_smoke_bundle.sh"
+check 'smoke token push helper exists' test -x "$ROOT/scripts/cloudpanel_push_final_gate_smoke.sh"
+check 'smoke token push requires GH_TOKEN' contains "$ROOT/scripts/cloudpanel_push_final_gate_smoke.sh" 'GH_TOKEN'
+check 'smoke token push disables terminal prompt' contains "$ROOT/scripts/cloudpanel_push_final_gate_smoke.sh" 'GIT_TERMINAL_PROMPT=0'
 check 'smoke commit preserves unpushed commit' contains "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" 'pushing without reset'
 check 'smoke commit recovers failed push auth' contains "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" 'cloudpanel_export_final_gate_smoke_bundle.sh'
+check 'smoke commit prefers token push helper' contains "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" 'cloudpanel_push_final_gate_smoke.sh'
+check 'deploy packs smoke token push helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_push_final_gate_smoke.sh'
 check 'deploy packs print epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_print_epc_api_clients_ddl.sh'
 check 'deploy packs apply epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_apply_epc_api_clients_ddl.sh'
 check 'deploy packs smoke export bundle helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_export_final_gate_smoke_bundle.sh'

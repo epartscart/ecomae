@@ -113,10 +113,11 @@ source /etc/ecomae-aspnet/platform.env
 bash scripts/cloudpanel_validate_final_gate_env.sh
 bash scripts/cloudpanel_capture_final_gate_artifacts.sh
 bash scripts/cloudpanel_commit_final_gate_smoke.sh
-# If push fails (GitHub auth on the server):
-#   gh auth login   # or set GH_TOKEN with repo scope
-#   gh auth setup-git
-#   git checkout cursor/final-gate-staging-smoke-7b3b && git push -u origin cursor/final-gate-staging-smoke-7b3b
+# GitHub rejects account passwords. If push prompts for Username, use a PAT:
+#   https://github.com/settings/tokens  (classic, scope: repo)
+#   export GH_TOKEN='ghp_...'
+#   bash scripts/cloudpanel_push_final_gate_smoke.sh
+#   unset GH_TOKEN
 # Or export for offline push (no secrets in the tarball):
 #   bash scripts/cloudpanel_export_final_gate_smoke_bundle.sh
 ```
