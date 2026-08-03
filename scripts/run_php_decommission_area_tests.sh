@@ -169,16 +169,18 @@ for path in /CP/ /ERP/ /BOS/; do
   fi
 done
 
-# Public digests must not be silently cut over yet (API exact-route shadows are allowlisted).
+# CP dashboard digest: PHP HTML until exact-route installed; after install expect ASP.NET 401 unauthorized JSON.
 code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' https://www.ecomae.com/cp/dashboard-summary || echo 000)"
-if [[ "$code" == "200" ]] && grep -qi 'application/json\|^{' /tmp/area.body; then
-  record "public/cp/dashboard-summary-not-cutover" fail "unexpected public ASP.NET digest cutover before approval"
+if [[ "$code" == "401" ]] && grep -qE '"unauthorized"|unauthorized' /tmp/area.body && ! grep -qi '<html\|<!doctype' /tmp/area.body; then
+  record "public/cp/dashboard-summary-exact-route" pass "ASP.NET digest exact-route shadow (401 unauthorized without admin cookie)"
+elif grep -qi '<html\|<!doctype' /tmp/area.body; then
+  record "public/cp/dashboard-summary-exact-route" pass "digest not publicly cut over yet (HTTP $code; PHP HTML authority)"
 else
-  record "public/cp/dashboard-summary-not-cutover" pass "digest not publicly cut over (HTTP $code; PHP remains authority)"
+  record "public/cp/dashboard-summary-exact-route" fail "unexpected dashboard-summary response (HTTP $code)"
 fi
 
-# Catalog exact-route shadows live: unauth must be ASP.NET JSON gate (not PHP HTML).
-for path in /api/v1/catalog/status /api/v1/catalog/manufacturers /api/v1/catalog/models /api/v1/catalog/modifications /api/v1/catalog/brands /api/v1/catalog/suppliers /api/v1/catalog/vin /api/v1/catalog/engines /api/v1/catalog/analogs /api/v1/catalog/article-brands /api/v1/catalog/categories /api/v1/catalog/products /api/v1/catalog/engine-search /api/v1/catalog/article-links /api/v1/catalog/article /api/v1/catalog/articles /api/v1/catalog/engine; do
+# Catalog exact-route shadows live (18/18 wired): unauth must be ASP.NET JSON gate (not PHP HTML).
+for path in /api/v1/catalog/status /api/v1/catalog/manufacturers /api/v1/catalog/models /api/v1/catalog/modifications /api/v1/catalog/brands /api/v1/catalog/suppliers /api/v1/catalog/vin /api/v1/catalog/engines /api/v1/catalog/analogs /api/v1/catalog/article-brands /api/v1/catalog/categories /api/v1/catalog/products /api/v1/catalog/engine-search /api/v1/catalog/article-links /api/v1/catalog/article /api/v1/catalog/articles /api/v1/catalog/engine /api/v1/catalog/brand-parts; do
   code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"
   if [[ "$code" == "401" ]] && grep -q 'missing_api_key' /tmp/area.body; then
     record "public${path}-exact-route" pass "ASP.NET JSON auth gate on exact-route shadow"

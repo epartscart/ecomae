@@ -8,19 +8,18 @@
   "routeJobShadowOrBetterPercent": 0.0,
   "liveCutoverScorecard": {
     "asOfUtc": "2026-08-03",
-    "catalogExactRoutesLive": 17,
+    "catalogExactRoutesLive": 18,
     "catalogExactRoutesWired": 18,
-    "catalogExactRoutesPending": [
-      "/api/v1/catalog/brand-parts"
-    ],
+    "catalogExactRoutesPending": [],
+    "nextExactRoute": "/cp/dashboard-summary",
     "publicChromeStillPhp": true,
     "cpErpBosDigestsStillPhp": true,
     "readyToRemovePhp": false,
     "approvalPresent": false,
     "notes": [
       "Weighted 95%/5% meter is not percent of public routes cut over.",
-      "engine live unauth 401 ASP.NET JSON (exact-match install).",
-      "Remaining catalog exact-route: brand-parts."
+      "Wired catalog API exact-routes complete (18/18) including brand-parts.",
+      "Next cutover class: CP/ERP/BOS digests one location= at a time."
     ]
   },
   "inventory": {
@@ -61,23 +60,24 @@
     "field/function/presentation parity contracts + harness (cutover blocked)",
     "migration-mode digest contract validator + golden samples (no secrets)",
     "PHP decommission readiness reporter + final-gate checklist/smoke kit (blocked)",
-    "public exact-route catalog shadows through engine (17/18); brand-parts pending",
+    "public exact-route catalog shadows complete (18/18); next CP/ERP/BOS digests",
     "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],
   "architectureComplianceDoc": "docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md",
   "pathTo100Percent": [
     "Authenticated staging smoke attached (PR #612) for price/catalog/surface digests",
-    "Finish last catalog exact-route: brand-parts",
+    "Wired catalog exact-routes complete (18/18)",
     "Enable only approved location= nginx shadows for CP/ERP/BOS digests after dual samples",
     "Promote all 61 batches from dry-run scaffolding to shadow/live with parity evidence",
     "Human RELEASE_OWNER_APPROVAL.md before PHP decommission (remaining 5% meter)"
   ],
   "nextExecutionOrder": [
-    "ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /api/v1/catalog/brand-parts",
-    "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP must remain while public chrome is PHP HTML).",
+    "ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /cp/dashboard-summary",
+    "Expect public 401 unauthorized ASP.NET JSON (Cookie proxied); never broad /cp.",
+    "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP chrome must remain).",
     "Confirm /migration/php-decommission-readiness is 8/9 with approval missing; surface-parity=parity-not-yet-reached.",
     "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
-    "Promote one location= shadow at a time; attach dual PHP↔ASP.NET samples.",
+    "Promote one location= digest shadow at a time; attach dual PHP↔ASP.NET samples.",
     "Human creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after public exact-route parity (do not invent).",
     "When readyToRemovePhp=true: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh",
     "Do not claim 100% or stop PHP-FPM until that gated script accepts the green readiness endpoint."

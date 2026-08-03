@@ -54,6 +54,7 @@ elif [[ -x "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" ]]; then
 fi
 if [[ -z "$block" ]]; then
   # Fallback for catalog status / price lookup headers.
+  # Fallback when no shadow-example block found. Include Cookie for digest routes.
   block="$(cat <<EOF
 location = ${ROUTE} {
     proxy_pass http://127.0.0.1:5100;
@@ -63,7 +64,8 @@ location = ${ROUTE} {
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
     proxy_set_header X-API-Key \$http_x_api_key;
     proxy_set_header Authorization \$http_authorization;
-    proxy_set_header X-EcomAE-Route-Cutover api-shadow-approved;
+    proxy_set_header Cookie \$http_cookie;
+    proxy_set_header X-EcomAE-Route-Cutover exact-route-shadow-approved;
 }
 EOF
 )"
@@ -130,10 +132,11 @@ is_aspnet_json_gate() {
   if grep -qi '<!DOCTYPE\|<html' "$body" 2>/dev/null; then
     return 1
   fi
-  if [[ "$code" == "401" ]] && grep -q 'missing_api_key' "$body" 2>/dev/null; then
+  # Catalog/price: missing_api_key. Digests: unauthorized (admin cookie).
+  if [[ "$code" == "401" ]] && grep -qE 'missing_api_key|"unauthorized"|unauthorized' "$body" 2>/dev/null; then
     return 0
   fi
-  grep -q 'missing_api_key\|"ok":false' "$body" 2>/dev/null
+  grep -qE 'missing_api_key|"unauthorized"|"ok"[[:space:]]*:[[:space:]]*false' "$body" 2>/dev/null
 }
 
 # 1) App loopback — proves the ASP.NET route exists (expect 401 JSON without key).
