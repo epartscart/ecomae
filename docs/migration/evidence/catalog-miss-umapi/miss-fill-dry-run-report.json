@@ -1,0 +1,41 @@
+{
+  "role": "aspnet-catalog-miss-fill-dry-run",
+  "jobKey": "catalog-miss-fill",
+  "status": "dry-run-validated",
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "writesBlocked": true,
+  "outboundBlocked": true,
+  "confirmOutbound": false,
+  "confirmWrites": false,
+  "simulatedFills": [
+    {
+      "action": "engines",
+      "aspnetRoute": "/api/v1/catalog/engines",
+      "phpFillPath": "api/umapi_proxy.php",
+      "expectedMissCode": "cache_miss",
+      "cacheTable": "epc_umapi_cache",
+      "wouldCallUmapi": true,
+      "executed": false
+    },
+    {
+      "action": "vin",
+      "aspnetRoute": "/api/v1/catalog/vin",
+      "phpFillPath": "api/umapi_proxy.php",
+      "expectedMissCode": "vin_cache_miss",
+      "cacheTable": "epc_umapi_vin_cache",
+      "wouldCallUmapi": true,
+      "executed": false
+    }
+  ],
+  "metrics": {
+    "valid_actions": "2",
+    "invalid_actions": "0",
+    "always_live_rejected": "0",
+    "outbound": "0",
+    "writes": "0",
+    "fills": "0"
+  },
+  "note": "Batch 5 dry-run stub. Live UMAPI miss-fill remains PHP-authoritative."
+}

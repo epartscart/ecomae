@@ -91,8 +91,10 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 
 ### Batch 5 — Catalog miss / UMAPI ← current
 - Cache-hit paths already live (18/18 exact-routes).
-- **This PR:** miss-path probe + dual-sample harness (`cloudpanel_probe_catalog_miss_path.sh`, capture/compare under `docs/migration/evidence/catalog-miss-umapi/`). Always `cutoverAllowed=false`.
-- Live UMAPI outbound fill / cache write-on-miss / always-live `articles`+`engine` remain **PHP-authoritative** until a future fill PR proves parity.
+- Miss-path probe + dual-sample harness ✅ (#666): `docs/migration/evidence/catalog-miss-umapi/` (`cutoverAllowed=false`).
+- **This PR:** worker dry-run `catalog-miss-fill` (`CatalogMissFillDryRunExecutor`) — simulates fill intents only; outbound/writes blocked.
+- Operator path still uses miss-path probe (`cloudpanel_probe_catalog_miss_path.sh`) before any future live-fill attempt.
+- Live UMAPI outbound fill / cache write-on-miss / always-live `articles`+`engine` remain **PHP-authoritative**.
 - Never invent `RELEASE_OWNER_APPROVAL.md`.
 
 ### Batch 6 — Decommission gate

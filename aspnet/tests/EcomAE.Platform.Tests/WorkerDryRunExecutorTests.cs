@@ -354,6 +354,52 @@ public sealed class WorkerDryRunExecutorTests
     }
 
     [Fact]
+    public void CatalogMissFillDryRunSimulatesWithoutOutboundOrWrites()
+    {
+        var executor = new CatalogMissFillDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "catalog-miss-fill");
+        var request = new MigrationWorkerJobRunRequest(
+            "catalog-miss-fill",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_actions"] = "engines,section=passenger&mfa_id=999999001\nvin,vin=ZZZMISS\narticles\nnot-an-action"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-validated", output.Status);
+        Assert.True(output.WritesBlocked);
+        Assert.Equal("0", output.Metrics["outbound"]);
+        Assert.Equal("0", output.Metrics["writes"]);
+        Assert.Equal("0", output.Metrics["fills"]);
+        Assert.Equal("2", output.Metrics["valid_actions"]);
+        Assert.Equal("1", output.Metrics["invalid_actions"]);
+        Assert.Equal("1", output.Metrics["always_live_rejected"]);
+        Assert.Equal("false", output.Metrics["cutover_allowed"]);
+    }
+
+    [Fact]
+    public void CatalogMissFillDryRunRefusesConfirmFlagsWithoutOutbound()
+    {
+        var executor = new CatalogMissFillDryRunExecutor();
+        var job = new MigrationWorkerJobCatalog().Jobs.First(item => item.Key == "catalog-miss-fill");
+        var request = new MigrationWorkerJobRunRequest(
+            "catalog-miss-fill",
+            DateTimeOffset.UnixEpoch,
+            "test",
+            Parameters: new Dictionary<string, string>
+            {
+                ["sample_actions"] = "engines",
+                ["confirm_outbound"] = "true"
+            });
+        var output = executor.Execute(job, request);
+        Assert.Equal("dry-run-confirm-refused", output.Status);
+        Assert.True(output.WritesBlocked);
+        Assert.Equal("0", output.Metrics["outbound"]);
+        Assert.Equal("0", output.Metrics["fills"]);
+    }
+
+    [Fact]
     public void ImportOrchestratorDryRunValidatesSampleWithoutWrites()
     {
         var executor = new ImportOrchestratorDryRunExecutor();

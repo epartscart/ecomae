@@ -39,3 +39,20 @@ Without credentials the capture script writes **contract stubs** so foundation c
 - Samples must not claim `cutoverAllowed` / `readyForPhpRemoval`
 - Compare result always `"cutoverAllowed": false`
 - PHP remaining authoritative for live fills is recorded as inventory, not a cutover signal
+
+## Miss-fill dry-run (write-/outbound-blocked)
+
+Worker job key: `catalog-miss-fill` (`CatalogMissFillDryRunExecutor`).
+
+```text
+# In-process / unit tests — parameters.sample_actions (one action per line; optional action,query)
+engines,section=passenger&mfa_id=999999001
+vin,vin=ZZZMISSNOFILLVIN01
+```
+
+- Always `WritesBlocked=true`, metrics `outbound=0` / `writes=0` / `fills=0`
+- `confirm_outbound=true` or `confirm_writes=true` → `dry-run-confirm-refused` (still no outbound)
+- Always-live `articles` / `engine` rejected as non-cacheable
+- Evidence stub: `miss-fill-dry-run-report.json` (`cutoverAllowed=false`)
+
+Live UMAPI fill is **not** implemented in ASP.NET by this dry-run.
