@@ -24,8 +24,8 @@ Scaffolding-only guidance for Enterprise BOS target components. **Nothing here e
 
 - Nginx remains the production edge during Zero-PHP.
 - Design example: `deploy/aspnet/yarp-exact-routes-example.json` (not loaded by `Program.cs`; `cutoverAllowed=false`).
-- Regenerate: `python3 scripts/generate_yarp_exact_routes_example.py` (presentation + surface digests allowlists).
-- Outputs: `yarp-exact-routes-example.json`, `yarp-surface-digests-example.json`.
+- Regenerate: `bash scripts/generate_all_yarp_design_examples.sh` (presentation + surface + storefront + catalog/api).
+- Outputs: `yarp-exact-routes-example.json`, `yarp-surface-digests-example.json`, `yarp-storefront-digests-example.json`, `yarp-catalog-api-example.json`.
 - Future YARP cluster should only proxy **exact** approved routes already shadowed in `deploy/aspnet/nginx-*-shadow-example.conf`.
 - Forbidden: catch-all `/api`, `/cp`, `/erp`, `/bos`, `/` locations.
 
@@ -95,3 +95,17 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 
 - `bash scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh`
 - Asserts compare-result keeps `cutoverAllowed=false`.
+
+## GraphQL / gRPC (not exposed)
+
+- GraphQL: `EcomAeGraphQlScaffoldOptions` + `IGraphQlScaffold` (`ExposePublicEndpoint=false`; REST default).
+- gRPC: `EcomAeGrpcScaffoldOptions` + `IGrpcScaffold` (`ExposePublicEndpoint=false`).
+
+## Blockchain integration (proof only)
+
+- `EcomAeBlockchainScaffoldOptions` + `IBlockchainIntegrationScaffold` (`UseAsBusinessSourceOfRecord=false`).
+- Business SoR remains app DB.
+
+## Rate limiting (not registered)
+
+- `EcomAeRateLimitScaffoldOptions` (`ReplaceLegacyApiClientThrottle=false`).

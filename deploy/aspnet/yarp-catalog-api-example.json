@@ -1,0 +1,268 @@
+{
+  "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "routeCount": 19,
+  "generatedFrom": [
+    "deploy/aspnet/nginx-catalog-analogs-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-article-brands-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-article-links-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-article-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-articles-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-brand-parts-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-brands-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-categories-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-engine-search-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-engine-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-engines-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-manufacturers-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-models-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-modifications-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-products-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-suppliers-shadow-example.conf",
+    "deploy/aspnet/nginx-catalog-vin-shadow-example.conf",
+    "deploy/aspnet/nginx-api-shadow-example.conf",
+    "deploy/aspnet/nginx-price-lookup-shadow-example.conf"
+  ],
+  "ReverseProxy": {
+    "Routes": {
+      "api-v1-catalog-analogs": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/analogs"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-article-brands": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/article-brands"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-article-links": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/article-links"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-article": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/article"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-articles": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/articles"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-brand-parts": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/brand-parts"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-brands": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/brands"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-categories": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/categories"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-engine-search": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/engine-search"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-engine": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/engine"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-engines": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/engines"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-manufacturers": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/manufacturers"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-models": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/models"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-modifications": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/modifications"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-products": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/products"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-suppliers": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/suppliers"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-vin": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/vin"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-catalog-status": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/catalog/status"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      },
+      "api-v1-price-lookup": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/api/v1/price/lookup"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "api-shadow-approved"
+          }
+        ]
+      }
+    },
+    "Clusters": {
+      "ecomae-platform": {
+        "Destinations": {
+          "loopback": {
+            "Address": "http://127.0.0.1:5100/"
+          }
+        }
+      }
+    }
+  }
+}

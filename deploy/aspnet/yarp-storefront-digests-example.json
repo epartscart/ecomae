@@ -1,0 +1,70 @@
+{
+  "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "routeCount": 4,
+  "generatedFrom": [
+    "deploy/aspnet/nginx-storefront-digests-shadow-example.conf"
+  ],
+  "ReverseProxy": {
+    "Routes": {
+      "storefront-account-summary": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/storefront/account-summary"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "storefront-account-summary-shadow-approved"
+          }
+        ]
+      },
+      "storefront-orders": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/storefront/orders"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "storefront-orders-shadow-approved"
+          }
+        ]
+      },
+      "storefront-garage": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/storefront/garage"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "storefront-garage-shadow-approved"
+          }
+        ]
+      },
+      "storefront-profile": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/storefront/profile"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "storefront-profile-shadow-approved"
+          }
+        ]
+      }
+    },
+    "Clusters": {
+      "ecomae-platform": {
+        "Destinations": {
+          "loopback": {
+            "Address": "http://127.0.0.1:5100/"
+          }
+        }
+      }
+    }
+  }
+}
