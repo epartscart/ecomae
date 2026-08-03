@@ -25,13 +25,24 @@ TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
 if [[ -z "$TOKEN" ]]; then
   printf 'BLOCKED: set GH_TOKEN (or GITHUB_TOKEN) with repo scope. GitHub no longer accepts account passwords.\n' >&2
   printf '\nCreate a classic PAT: https://github.com/settings/tokens (scope: repo)\n' >&2
-  printf 'Then on this server (token is not printed by this script):\n' >&2
-  printf '  export GH_TOKEN='\''ghp_...'\''\n' >&2
+  printf 'Then on this server (paste the REAL token value — not the literal ghp_... placeholder):\n' >&2
+  printf '  export GH_TOKEN='\''ghp_YOUR_REAL_TOKEN'\''\n' >&2
   printf '  bash scripts/cloudpanel_push_final_gate_smoke.sh\n' >&2
   printf '  unset GH_TOKEN\n' >&2
   printf '\nOr export a bundle for a machine that already has auth:\n' >&2
   printf '  bash scripts/cloudpanel_export_final_gate_smoke_bundle.sh\n' >&2
   exit 2
+fi
+# Reject docs placeholders that operators sometimes paste literally.
+if [[ "$TOKEN" == "ghp_..." || "$TOKEN" == "github_pat_..." || "$TOKEN" == *'...' || "$TOKEN" == *YOUR_REAL* ]]; then
+  printf 'BLOCKED: GH_TOKEN looks like a documentation placeholder, not a real PAT.\n' >&2
+  printf 'Create one at https://github.com/settings/tokens (classic, scope: repo),\n' >&2
+  printf 'then: export GH_TOKEN='\''ghp_<paste the full token here>'\''\n' >&2
+  printf 'Do not paste the token into chat logs.\n' >&2
+  exit 2
+fi
+if [[ ! "$TOKEN" =~ ^(ghp_|github_pat_) ]]; then
+  printf 'WARN: GH_TOKEN does not start with ghp_ or github_pat_ — push may fail.\n' >&2
 fi
 
 REPO="$(find_repo || true)"
