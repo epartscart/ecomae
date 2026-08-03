@@ -69,6 +69,7 @@ ASPNET_BAD_MARKERS=(
   "ErpCoaAccountsApp"
   "ErpGlJournalsApp"
   "ErpWarehousesApp"
+  "ErpSuppliersApp"
   '"error":"unauthorized"'
   '"title":"Unauthorized"'
   "X-EcomAE-Route-Cutover"
