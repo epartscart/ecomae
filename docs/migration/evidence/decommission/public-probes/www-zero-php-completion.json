@@ -83,7 +83,7 @@
   "nextActions": [
     "Redeploy main: bash scripts/cloudpanel_redeploy_final_gate_branch.sh (or git reset --hard origin/main \u0026\u0026 bash scripts/cloudpanel_find_and_redeploy.sh).",
     "Diagnose smoke DB: cloudpanel_diagnose_smoke_db.sh (TenantRegistry vs PHP app db, redacted).",
-    "If CREATE denied: cloudpanel_apply_epc_api_clients_ddl.sh (debian.cnf) or align TenantRegistry Database= via cloudpanel_align_tenant_registry_to_php_db.sh.",
+    "If CREATE denied: cloudpanel_apply_epc_api_clients_ddl.sh (clpctl master) or cloudpanel_use_php_dp_config_as_tenant_registry.sh when PHP db already has epc_api_clients.",
     "Ensure table \u002B issue smoke creds: cloudpanel_ensure_epc_api_clients_table.sh \u2192 ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES cloudpanel_issue_smoke_credentials.sh (never invent keys).",
     "Validate env (redacted): cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
     "Capture/commit staging-smoke for price lookup, catalog status, and surface digests.",

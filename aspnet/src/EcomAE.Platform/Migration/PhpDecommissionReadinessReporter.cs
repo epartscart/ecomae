@@ -123,7 +123,7 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
                     "Keep PHP authoritative for all production traffic.",
                     "Run bash scripts/run_zero_php_final_gate_checklist.sh.",
                     "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh",
-                    "If CREATE denied: ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh (or align TenantRegistry to PHP db).",
+                    "If CREATE denied: apply_epc_api_clients_ddl.sh (clpctl) or use_php_dp_config_as_tenant_registry.sh when PHP db already has the table.",
                     "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
                     "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
                     "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",

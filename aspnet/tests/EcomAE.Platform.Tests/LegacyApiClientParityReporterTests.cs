@@ -18,7 +18,7 @@ public sealed class LegacyApiClientParityReporterTests
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("diagnose_smoke_db.sh", StringComparison.Ordinal)
             || gap.Contains("ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("apply_epc_api_clients_ddl.sh", StringComparison.Ordinal)
-            || gap.Contains("align_tenant_registry_to_php_db.sh", StringComparison.Ordinal));
+            || gap.Contains("use_php_dp_config_as_tenant_registry.sh", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("epc_api_clients", StringComparison.Ordinal));
     }
 }

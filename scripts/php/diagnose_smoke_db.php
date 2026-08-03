@@ -141,11 +141,19 @@ fwrite(STDOUT, "Platform user → PHP db connect: {$platformOnPhp}\n");
 $exit = 0;
 if (($tenantProbe['table'] ?? '') !== 'present') {
 	$exit = 3;
-	fwrite(STDOUT, "STATUS: TenantRegistry missing epc_api_clients — smoke price/catalog will HTTP 500 until CREATE/GRANT or Database= align.\n");
+	fwrite(STDOUT, "STATUS: TenantRegistry missing epc_api_clients — smoke price/catalog will HTTP 500 until CREATE/GRANT or TenantRegistry points at PHP db.\n");
 	if (($phpProbe['table'] ?? '') === 'present' && str_starts_with($platformOnPhp, 'yes')) {
-		fwrite(STDOUT, "HINT: PHP db already has epc_api_clients and platform user can connect — prefer align path B.\n");
+		fwrite(STDOUT, "HINT: PHP db has epc_api_clients + platform user can connect — prefer align Database= path B.\n");
+	} elseif (($phpProbe['table'] ?? '') === 'present') {
+		fwrite(STDOUT, "HINT: PHP db has epc_api_clients but platform user cannot connect — prefer path C:\n");
+		fwrite(STDOUT, "  ECOMAE_CONFIRM_USE_PHP_DP_CONFIG_AS_TENANT_REGISTRY=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES \\\n");
+		fwrite(STDOUT, "    bash scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh\n");
+		fwrite(STDOUT, "Or path A: ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh (uses clpctl master creds).\n");
+		if (($tenantProbe['adminSessions'] ?? 0) > 0) {
+			fwrite(STDOUT, "NOTE: TenantRegistry already has admin sessions — CREATE epc_api_clients on asap is enough if path A works.\n");
+		}
 	} else {
-		fwrite(STDOUT, "HINT: prefer apply DDL path A (debian.cnf / paste as MySQL admin).\n");
+		fwrite(STDOUT, "HINT: prefer apply DDL path A (clpctl master / paste as MySQL admin).\n");
 	}
 } else {
 	fwrite(STDOUT, "STATUS: TenantRegistry epc_api_clients present — proceed to issue smoke credentials.\n");

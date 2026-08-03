@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Apply scripts/sql/epc_api_clients.sql + GRANTs to TenantRegistry DB using elevated MySQL auth.
 # Tries (never prints passwords):
-#   --defaults-file=/etc/mysql/debian.cnf (debian-sys-maint)
-#   other local defaults-files, socket, sudo mysql, ECOMAE_MYSQL_ADMIN_*
+#   clpctl db:show:master-credentials (CloudPanel root@127.0.0.1)
+#   --defaults-file=/etc/mysql/debian.cnf and other local defaults-files
+#   socket / sudo mysql / ECOMAE_MYSQL_ADMIN_*
 # Requires ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES.
 # Never removes PHP.
 set -euo pipefail
@@ -78,7 +79,6 @@ apply_sql() {
     printf 'GRANT SELECT, INSERT ON `%s`.`sessions` TO '\''%s'\''@'\''localhost'\'';\n' "$DB_NAME" "$DB_USER"
     printf 'FLUSH PRIVILEGES;\n'
   } | "$@" --force
-  # Verify platform-shaped SELECT via same admin (table exists).
   if "$@" -N -e "SELECT 1 FROM \`${DB_NAME}\`.epc_api_clients LIMIT 1" >/dev/null 2>&1; then
     printf 'OK table present in %s.epc_api_clients\n' "$DB_NAME"
     return 0
@@ -87,9 +87,87 @@ apply_sql() {
   return 1
 }
 
+finish_ok() {
+  printf '\nNext:\n'
+  printf '  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
+  printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
+  printf '    bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+  exit 0
+}
+
 if ! command -v mysql >/dev/null 2>&1; then
   printf 'mysql client not found\n' >&2
   exit 1
+fi
+
+# CloudPanel: master credentials are root@127.0.0.1 (TCP), not unix_socket/debian.cnf.
+if command -v clpctl >/dev/null 2>&1; then
+  printf 'Trying clpctl db:show:master-credentials (password not printed)\n'
+  set +e
+  clp_out="$(clpctl db:show:master-credentials 2>/dev/null)"
+  clp_rc=$?
+  set -e
+  if [[ "$clp_rc" -eq 0 && -n "$clp_out" ]]; then
+    set +e
+    mapfile -t clp_vars < <(
+      ECOMAE_CLPCTL_MASTER_TEXT="$clp_out" python3 <<'PY'
+import os, re, sys
+text = os.environ.get("ECOMAE_CLPCTL_MASTER_TEXT", "")
+host, user, password, port = "127.0.0.1", "root", "", "3306"
+
+def grab(label: str) -> str:
+    m = re.search(rf"(?im)^\s*\|?\s*{re.escape(label)}\s*\|?\s*[|:]\s*\|?\s*([^\s|]+)", text)
+    if m:
+        return m.group(1).strip()
+    m = re.search(rf"(?i){re.escape(label)}\s*[:=]\s*(\S+)", text)
+    return m.group(1).strip() if m else ""
+
+h = grab("Host")
+u = grab("User Name") or grab("Username") or grab("User")
+p = grab("Password")
+po = grab("Port")
+if h:
+    host = h
+if u:
+    user = u
+if p:
+    password = p
+if po and po.isdigit():
+    port = po
+m5 = re.search(r"-p'([^']+)'", text) or re.search(r'-p"([^"]+)"', text)
+m3 = re.search(r"-h['\"]?([^'\"\s]+)", text)
+m4 = re.search(r"-u['\"]?([^'\"\s]+)", text)
+if m3:
+    host = m3.group(1)
+if m4:
+    user = m4.group(1)
+if m5:
+    password = m5.group(1)
+if not password:
+    sys.exit(1)
+print(host)
+print(user)
+print(port)
+print(password)
+PY
+    )
+    parse_rc=$?
+    set -e
+    if [[ "$parse_rc" -eq 0 && "${#clp_vars[@]}" -ge 4 && -n "${clp_vars[3]:-}" ]]; then
+      export MYSQL_PWD="${clp_vars[3]}"
+      if apply_sql "clpctl master (${clp_vars[1]}@${clp_vars[0]})" \
+        mysql -h"${clp_vars[0]}" -P"${clp_vars[2]}" -u"${clp_vars[1]}"; then
+        unset MYSQL_PWD
+        finish_ok
+      fi
+      unset MYSQL_PWD
+      printf 'WARN: clpctl master credentials did not authenticate for DDL\n'
+    else
+      printf 'WARN: could not parse clpctl db:show:master-credentials\n'
+    fi
+  else
+    printf 'WARN: clpctl db:show:master-credentials failed\n'
+  fi
 fi
 
 tried=0
@@ -102,46 +180,49 @@ do
   if [[ -r "$defaults" ]]; then
     tried=1
     if apply_sql "mysql --defaults-file=${defaults}" mysql --defaults-file="$defaults"; then
-      printf '\nNext:\n'
-      printf '  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
-      printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
-      printf '    bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
-      exit 0
+      finish_ok
     fi
     printf 'WARN: defaults-file auth failed for %s\n' "$defaults"
   fi
 done
 
 if apply_sql 'mysql socket' mysql --protocol=socket; then
-  exit 0
+  finish_ok
+fi
+if apply_sql 'mysql -uroot -h127.0.0.1' mysql -uroot -h127.0.0.1; then
+  finish_ok
 fi
 if apply_sql 'mysql -uroot' mysql -uroot; then
-  exit 0
+  finish_ok
 fi
 if command -v sudo >/dev/null 2>&1 && apply_sql 'sudo mysql' sudo -n mysql; then
-  exit 0
+  finish_ok
 fi
 if [[ -n "${ECOMAE_MYSQL_ADMIN_USER:-}" ]]; then
   export MYSQL_PWD="${ECOMAE_MYSQL_ADMIN_PASSWORD:-${ECOMAE_MYSQL_ROOT_PASSWORD:-}}"
   if apply_sql "mysql -u${ECOMAE_MYSQL_ADMIN_USER}" mysql -u"${ECOMAE_MYSQL_ADMIN_USER}" -h127.0.0.1; then
     unset MYSQL_PWD
-    exit 0
+    finish_ok
   fi
   unset MYSQL_PWD
 elif [[ -n "${ECOMAE_MYSQL_ROOT_PASSWORD:-}" ]]; then
   export MYSQL_PWD="${ECOMAE_MYSQL_ROOT_PASSWORD}"
   if apply_sql 'mysql -uroot (env password)' mysql -uroot -h127.0.0.1; then
     unset MYSQL_PWD
-    exit 0
+    finish_ok
   fi
   unset MYSQL_PWD
 fi
 
-printf 'BLOCKED: no elevated MySQL auth could apply DDL (tried=%s).\n' "$tried" >&2
+printf 'BLOCKED: no elevated MySQL auth could apply DDL (defaults_tried=%s).\n' "$tried" >&2
+printf 'On CloudPanel, ensure `clpctl db:show:master-credentials` works as root.\n' >&2
 printf 'Alternatives:\n' >&2
 printf '  1) Paste: bash scripts/cloudpanel_print_epc_api_clients_ddl.sh\n' >&2
-printf '  2) Or align TenantRegistry to PHP app DB (when epc_api_clients already exists there):\n' >&2
-printf '       bash scripts/cloudpanel_diagnose_smoke_db.sh\n' >&2
+printf '  2) Use PHP DP_Config as TenantRegistry (table already on PHP db):\n' >&2
+printf '       ECOMAE_CONFIRM_USE_PHP_DP_CONFIG_AS_TENANT_REGISTRY=YES \\\n' >&2
+printf '         ECOMAE_CONFIRM_RESTART_PLATFORM=YES \\\n' >&2
+printf '         bash scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh\n' >&2
+printf '  3) Align Database= only (needs GRANT ecomae_aspnet → PHP db):\n' >&2
 printf '       ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES \\\n' >&2
 printf '         bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh\n' >&2
 exit 1

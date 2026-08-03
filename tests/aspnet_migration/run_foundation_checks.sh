@@ -404,10 +404,14 @@ check 'print epc_api_clients DDL helper exists' test -x "$ROOT/scripts/cloudpane
 check 'apply epc_api_clients DDL helper exists' test -x "$ROOT/scripts/cloudpanel_apply_epc_api_clients_ddl.sh"
 check 'smoke DB diagnose helper exists' test -x "$ROOT/scripts/cloudpanel_diagnose_smoke_db.sh"
 check 'align TenantRegistry to PHP db helper exists' test -x "$ROOT/scripts/cloudpanel_align_tenant_registry_to_php_db.sh"
+check 'use PHP DP_Config as TenantRegistry helper exists' test -x "$ROOT/scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh"
+check 'apply DDL uses clpctl master credentials' contains "$ROOT/scripts/cloudpanel_apply_epc_api_clients_ddl.sh" 'db:show:master-credentials'
 check 'deploy packs print epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_print_epc_api_clients_ddl.sh'
 check 'deploy packs apply epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_apply_epc_api_clients_ddl.sh'
 check 'deploy packs smoke DB diagnose helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_diagnose_smoke_db.sh'
 check 'deploy packs align TenantRegistry helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_align_tenant_registry_to_php_db.sh'
+check 'deploy packs use PHP DP_Config TenantRegistry helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_use_php_dp_config_as_tenant_registry.sh'
+check 'deploy packs use_php_dp_config PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'use_php_dp_config_as_tenant_registry.php'
 check 'deploy packs epc_api_clients SQL' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'epc_api_clients.sql'
 check 'deploy packs diagnose_smoke_db PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'diagnose_smoke_db.php'
 check 'deploy packs align_tenant_registry PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'align_tenant_registry_to_php_db.php'
