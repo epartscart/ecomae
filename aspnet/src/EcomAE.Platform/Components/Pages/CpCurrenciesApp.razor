@@ -1,0 +1,141 @@
+@page "/cp/currencies-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Currencies · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-cu-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%);
+        }
+        .epc-cu-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-cu-hero p { margin:0; color:#cbd5e1; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-cu-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-cu-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0f172a; background:#facc15;
+        }
+        .epc-cu-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-cu-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-cu-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-cu-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-cu-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-cu-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-cu-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-cu-table th, .epc-cu-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-cu-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-cu-table a { color:#a16207; font-weight:700; text-decoration:none; }
+        .epc-cu-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-cu-badge--ok { background:#fef9c3; color:#713f12; }
+        .epc-cu-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-cu-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-cu-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-cu-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Currencies</h1>
+        <p>Read-only <code>shop_currencies</code> rates from <code>/cp/currencies</code> digest under PHP CP desktop chrome. Rate edits stay on live PHP currency manager — same-to-same for tenants.</p>
+        <div class="epc-cu-cta">
+            <a href="@_phpTab">Open PHP currency rates</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/tenants-app">Tenants list</a>
+            <a class="ghost" href="/cp/menus-app">Menus list</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-cu-kpis" aria-label="Currencies KPIs">
+        <div class="epc-cu-kpi"><strong>@_currencies.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-cu-kpi"><strong>@_available</strong><span>Available</span></div>
+        <div class="epc-cu-kpi"><strong>@_unavailable</strong><span>Unavailable</span></div>
+    </div>
+
+    <div class="epc-cu-table-wrap">
+        <table class="epc-cu-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>ISO</th>
+                    <th>Name</th>
+                    <th>Short</th>
+                    <th>Rate</th>
+                    <th>Available</th>
+                    <th>Sort</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_currencies.Count == 0)
+                {
+                    <tr><td colspan="8">No currencies in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var c in _currencies)
+                    {
+                        <tr>
+                            <td><strong>@c.Id</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(c.IsoCode) ? "—" : c.IsoCode)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.IsoName) ? "—" : c.IsoName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.CaptionShort) ? "—" : c.CaptionShort)</td>
+                            <td>@c.Rate.ToString("0.####", CultureInfo.InvariantCulture)</td>
+                            <td><span class="epc-cu-badge @(c.Available ? "epc-cu-badge--ok" : "epc-cu-badge--off")">@(c.Available ? "yes" : "no")</span></td>
+                            <td>@c.SortOrder</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-cu-note">
+        Read-only preview · JSON digest <a href="/cp/currencies?limit=200">/cp/currencies</a>.
+        PHP currency rates (<code>nastrojka-kursov-valyut</code>) remain authoritative for create/edit.
+        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/finance/nastrojka-kursov-valyut";
+    private bool _isAdmin;
+    private IReadOnlyList<CpCurrencyDigest> _currencies = [];
+    private int _available;
+    private int _unavailable;
+    private int _limit = 200;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListCpCurrenciesAsync(_limit, ctx.RequestAborted);
+        _currencies = result.Currencies;
+        _available = _currencies.Count(c => c.Available);
+        _unavailable = _currencies.Count(c => !c.Available);
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

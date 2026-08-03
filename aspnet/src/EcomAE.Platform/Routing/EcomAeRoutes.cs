@@ -54,6 +54,8 @@ public static class EcomAeRoutes
     public const string ControlPanelAdminSessions = "/cp/admin-sessions";
     public const string ControlPanelStorages = "/cp/storages";
     public const string ControlPanelCurrencies = "/cp/currencies";
+    /// <summary>CP currencies Blazor list (JSON digest remains <see cref="ControlPanelCurrencies"/>).</summary>
+    public const string ControlPanelCurrenciesApp = "/cp/currencies-app";
     public const string ControlPanelApiClients = "/cp/api-clients";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
