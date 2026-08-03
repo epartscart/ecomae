@@ -46,6 +46,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | General ledger | `erp_tabs_accounting.php` (`tab=gl`) | `/erp/gl-journals-app` over `/erp/gl-journals` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Warehouses / inventory | `erp_tabs_inventory.php` | `/erp/warehouses-app` over `/erp/warehouses` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Suppliers / AP payables | `erp_main.php` payables / `epc_erp_list_suppliers` | `/erp/suppliers-app` over `/erp/suppliers` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
+| Purchases | `erp_main.php` purchases / `epc_erp_list_purchases` | `/erp/purchases-app` over `/erp/purchases` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Writes / ajax_erp / print | PHP | — | php-only |
 | Digests | — | cash/suppliers/SO/PO/GL/… | digest-only |
 

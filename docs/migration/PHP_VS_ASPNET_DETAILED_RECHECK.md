@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** ERP suppliers Blazor read UI (`/erp/suppliers-app`) on www preview only; PHP AP payables remains authoritative. Warehouses #674 / GL #673 / COA #672 / cash #671 / invoices #670 / PO #669 shipped. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** ERP purchases Blazor read UI (`/erp/purchases-app`) on www preview only; PHP purchasing tab remains authoritative. Suppliers #675 / warehouses #674 / GL #673 / COA #672 / cash #671 / invoices #670 / PO #669 shipped. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 
