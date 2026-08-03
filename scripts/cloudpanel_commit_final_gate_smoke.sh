@@ -104,22 +104,28 @@ head_has_smoke() {
 
 print_push_recovery() {
   printf '\nPush failed (GitHub auth). Smoke commit is still local — do NOT reset the branch.\n' >&2
-  printf 'Option 1 — auth then push (preferred):\n' >&2
-  printf '  # PAT with repo scope, or: gh auth login\n' >&2
-  printf '  gh auth login --with-token <<<\"$GH_TOKEN\"   # if using gh\n' >&2
-  printf '  gh auth setup-git\n' >&2
-  printf '  cd %s && git checkout %s && git push -u origin %s\n' "$REPO" "$BRANCH" "$BRANCH" >&2
-  printf 'Option 2 — one-shot HTTPS with PAT (token not stored):\n' >&2
-  printf '  cd %s && git push -u \"https://x-access-token:${GH_TOKEN}@github.com/epartscart/ecomae.git\" %s\n' "$REPO" "$BRANCH" >&2
-  printf 'Option 3 — export bundle for a machine that already has auth:\n' >&2
+  printf 'GitHub rejects account passwords. Use a PAT (repo scope):\n' >&2
+  printf '  https://github.com/settings/tokens\n' >&2
+  printf 'Then non-interactive push (preferred):\n' >&2
+  printf '  export GH_TOKEN='\''ghp_...'\''\n' >&2
+  printf '  bash scripts/cloudpanel_push_final_gate_smoke.sh\n' >&2
+  printf '  unset GH_TOKEN\n' >&2
+  printf 'Or export a bundle for a machine that already has auth:\n' >&2
   printf '  bash scripts/cloudpanel_export_final_gate_smoke_bundle.sh\n' >&2
   printf 'Do NOT invent RELEASE_OWNER_APPROVAL.md. Do NOT remove PHP.\n' >&2
 }
 
 push_branch() {
+  # Prefer explicit token helper (no interactive username/password prompt).
+  if [[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" && -x "$REPO/scripts/cloudpanel_push_final_gate_smoke.sh" ]]; then
+    bash "$REPO/scripts/cloudpanel_push_final_gate_smoke.sh"
+    return $?
+  fi
   if command -v gh >/dev/null 2>&1; then
     gh auth setup-git >/dev/null 2>&1 || true
   fi
+  # Refuse hanging on Username/Password when no credential helper is configured.
+  export GIT_TERMINAL_PROMPT=0
   set +e
   git push -u origin "$BRANCH"
   local rc=$?
