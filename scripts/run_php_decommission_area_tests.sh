@@ -169,16 +169,21 @@ for path in /CP/ /ERP/ /BOS/; do
   fi
 done
 
-# Public digests/catalog must not be silently cut over yet.
-for path in /cp/dashboard-summary /api/v1/catalog/status; do
-  code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"
-  ctype="$(file -b --mime-type /tmp/area.body 2>/dev/null || true)"
-  if [[ "$code" == "200" ]] && grep -qi 'application/json\|^{' /tmp/area.body; then
-    record "public${path}-not-cutover" fail "unexpected public ASP.NET JSON cutover before approval"
-  else
-    record "public${path}-not-cutover" pass "not publicly cut over (HTTP $code; PHP remains authority)"
-  fi
-done
+# Public digests must not be silently cut over yet (API exact-route shadows are allowlisted).
+code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' https://www.ecomae.com/cp/dashboard-summary || echo 000)"
+if [[ "$code" == "200" ]] && grep -qi 'application/json\|^{' /tmp/area.body; then
+  record "public/cp/dashboard-summary-not-cutover" fail "unexpected public ASP.NET digest cutover before approval"
+else
+  record "public/cp/dashboard-summary-not-cutover" pass "digest not publicly cut over (HTTP $code; PHP remains authority)"
+fi
+
+# Catalog status exact-route shadow is live: unauth must be ASP.NET JSON gate (not PHP HTML).
+code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' https://www.ecomae.com/api/v1/catalog/status || echo 000)"
+if [[ "$code" == "401" ]] && grep -q 'missing_api_key' /tmp/area.body; then
+  record "public/api/v1/catalog/status-exact-route" pass "ASP.NET JSON auth gate on exact-route shadow"
+else
+  record "public/api/v1/catalog/status-exact-route" fail "expected ASP.NET 401 missing_api_key (HTTP $code)"
+fi
 
 # Decommission script must refuse without confirmation/ready
 if ! ECOMAE_CONFIRM_PHP_DECOMMISSION= bash "$ROOT/scripts/cloudpanel_php_decommission.sh" >/tmp/decom.out 2>&1; then

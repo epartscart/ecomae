@@ -215,16 +215,20 @@ for url in ("https://www.ecomae.com/", "https://www.ecomae.com/CP/", "https://ww
     eng, _st = by_url.get(url, ("missing", None))
     if eng != "php-html":
         errors.append(f"{url} expected php-html got {eng}")
-for url in ("https://www.ecomae.com/cp/dashboard-summary", "https://www.ecomae.com/api/v1/catalog/status"):
-    eng, _st = by_url.get(url, ("missing", None))
-    if eng == "aspnet-json":
-        errors.append(f"{url} unexpectedly aspnet-json without approved public exact-route cutover")
+# Digests must NOT be broadly cut over yet (exact API shadows are allowlisted separately).
+dash = by_url.get("https://www.ecomae.com/cp/dashboard-summary", ("missing", None))[0]
+if dash == "aspnet-json":
+    errors.append("https://www.ecomae.com/cp/dashboard-summary unexpectedly aspnet-json without approved digest shadow")
 health = by_url.get("https://www.ecomae.com/health", ("missing", None))[0]
 price = by_url.get("https://www.ecomae.com/api/v1/price/lookup", ("missing", None))[0]
+catalog = by_url.get("https://www.ecomae.com/api/v1/catalog/status", ("missing", None))[0]
 if health != "aspnet-health":
     errors.append(f"health engine unexpected: {health}")
 if price != "aspnet-json":
     errors.append(f"price lookup engine unexpected: {price}")
+# Catalog status exact-route shadow is approved/live on www (401/200 ASP.NET JSON).
+if catalog != "aspnet-json":
+    errors.append(f"catalog status engine unexpected: {catalog} (expected aspnet-json after exact-route shadow)")
 print("STACK_URLS=" + str({k: by_url.get(k) for k in wanted}))
 if errors:
     print("ERRORS=" + ";".join(errors))
@@ -232,7 +236,7 @@ if errors:
 print("STACK_OK")
 PY
 if grep -q 'STACK_OK' /tmp/pre-removal-stack-judge.out; then
-  record "public-surface-authority" pass "CP/ERP/BOS chrome still PHP; digests/catalog not publicly cut over; health/price ASP.NET"
+  record "public-surface-authority" pass "CP/ERP/BOS chrome still PHP; health/price/catalog-status ASP.NET exact routes; digests not cut over"
 else
   # Fallback judge via direct curl if JSON shape unknown
   chrome_ok=1
