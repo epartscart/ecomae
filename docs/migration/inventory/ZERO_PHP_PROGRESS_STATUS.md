@@ -25,17 +25,20 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 | `/health`, `/migration/*` | ASP.NET diagnostics |
 | `/api/v1/price/lookup` | Live |
 | `/api/v1/catalog/status` … `/brand-parts` | **All 18/18 wired catalog API paths live** |
+| `/cp/dashboard-summary` | Live unauth **401 unauthorized** (admin cookie for 200) |
 
 **Catalog exact-route progress:** **18 / 18** — wired catalog API exact-route set complete on www.
 
-### Catalog exact-routes still pending nginx `location =`
+**Surface digest exact-route progress:** **1 / 30** (from `nginx-surface-digests-shadow-example.conf`).
 
-None (wired set complete). Next cutover class: **CP/ERP/BOS digests**.
+### Surface digest exact-routes still pending
+
+Next: `/cp/tenants` → `/cp/users` → … → ERP/BOS digests (one `location =` at a time). Never broad `/cp|/erp|/bos`.
 
 ### Still 100% PHP on public www (blocks Zero-PHP)
 
 - Product chrome: `/`, `/CP/`, `/ERP/`, `/BOS/` (and aliases)
-- All CP / ERP / BOS digest exact-routes (dashboard, tenants, users, cash, fleet, …) — loopback ASP.NET only until each `location =` is installed
+- Remaining CP / ERP / BOS digest exact-routes (29/30) — loopback ASP.NET only until each `location =` is installed
 - Storefront digests (`/storefront/*`) — optional; not required for `ReadyToRemovePhp`
 - Dual-sample PHP↔ASP.NET parity attachments for promoted routes
 - Human `RELEASE_OWNER_APPROVAL.md` with `APPROVED_TO_REMOVE_PHP_FALLBACK`
@@ -75,8 +78,9 @@ None (wired set complete). Next cutover class: **CP/ERP/BOS digests**.
 - Admin nested modules_access ACL + surface capabilities.
 - CP/ERP/BOS/storefront digests scaffolded on loopback + staging smoke attached (PR #612).
 - **Public exact-route catalog/price shadows complete (18/18 catalog + price + health/migration).**
+- **First surface digest live:** `/cp/dashboard-summary` (1/30).
 - No broad PHP cutover; route/job parity/shadow metrics remain 0%.
-- PHP decommission readiness: smoke present; removal blocked on human `RELEASE_OWNER_APPROVAL.md` after digest shadows + dual samples.
+- PHP decommission readiness: smoke present; removal blocked on human `RELEASE_OWNER_APPROVAL.md` after more digest shadows + dual samples.
 
 ## Path to 100% / Remaining 5% (PHP runtime decommission only)
 
@@ -84,14 +88,14 @@ None (wired set complete). Next cutover class: **CP/ERP/BOS digests**.
 
 **Practically still pending before approval is honest:**
 
-1. Promote CP/ERP/BOS digest exact-routes one `location =` at a time (start `/cp/dashboard-summary`).
+1. Promote remaining CP/ERP/BOS digest exact-routes one `location =` at a time (next `/cp/tenants`).
 2. Attach dual PHP↔ASP.NET parity samples for promoted routes.
 3. Keep product chrome on PHP until intentional shell cutover.
 4. Human `RELEASE_OWNER_APPROVAL.md` — then gated PHP decommission only.
 
 ## Next execution order
 
-- Next install: `ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /cp/dashboard-summary`
+- Next install: `ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /cp/tenants`
 - Expect public **401** ASP.NET JSON `unauthorized` (admin cookie required); Cookie header must be proxied.
 - Continue digests from `deploy/aspnet/nginx-surface-digests-shadow-example.conf` one path at a time.
 - Run fail-closed parity verdict (chrome must keep PHP): `bash scripts/verify_pre_php_removal_parity.sh`
