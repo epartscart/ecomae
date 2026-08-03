@@ -8,10 +8,9 @@
   "routeJobShadowOrBetterPercent": 0.0,
   "liveCutoverScorecard": {
     "asOfUtc": "2026-08-03",
-    "catalogExactRoutesLive": 16,
+    "catalogExactRoutesLive": 17,
     "catalogExactRoutesWired": 18,
     "catalogExactRoutesPending": [
-      "/api/v1/catalog/engine",
       "/api/v1/catalog/brand-parts"
     ],
     "publicChromeStillPhp": true,
@@ -20,8 +19,8 @@
     "approvalPresent": false,
     "notes": [
       "Weighted 95%/5% meter is not percent of public routes cut over.",
-      "articles live unauth 401 ASP.NET JSON.",
-      "Remaining catalog exact-routes: engine, brand-parts."
+      "engine live unauth 401 ASP.NET JSON (exact-match install).",
+      "Remaining catalog exact-route: brand-parts."
     ]
   },
   "inventory": {
@@ -62,19 +61,19 @@
     "field/function/presentation parity contracts + harness (cutover blocked)",
     "migration-mode digest contract validator + golden samples (no secrets)",
     "PHP decommission readiness reporter + final-gate checklist/smoke kit (blocked)",
-    "public exact-route catalog shadows through articles (16/18); engine→brand-parts pending",
+    "public exact-route catalog shadows through engine (17/18); brand-parts pending",
     "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],
   "architectureComplianceDoc": "docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md",
   "pathTo100Percent": [
     "Authenticated staging smoke attached (PR #612) for price/catalog/surface digests",
-    "Finish remaining catalog exact-routes: engine, brand-parts",
+    "Finish last catalog exact-route: brand-parts",
     "Enable only approved location= nginx shadows for CP/ERP/BOS digests after dual samples",
     "Promote all 61 batches from dry-run scaffolding to shadow/live with parity evidence",
     "Human RELEASE_OWNER_APPROVAL.md before PHP decommission (remaining 5% meter)"
   ],
   "nextExecutionOrder": [
-    "ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /api/v1/catalog/engine",
+    "ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /api/v1/catalog/brand-parts",
     "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP must remain while public chrome is PHP HTML).",
     "Confirm /migration/php-decommission-readiness is 8/9 with approval missing; surface-parity=parity-not-yet-reached.",
     "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
