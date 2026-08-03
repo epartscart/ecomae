@@ -1,10 +1,11 @@
 @page "/storefront/app"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
 
 <PageTitle>eParts Cart (Autoparts)</PageTitle>
 <PhpChromeStyles Surface="storefront" />
-<StorefrontAnalytics />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
 <style>
     .epc-sf { --red:#dc2626; --ink:#111; font-family: @(LegacyPhpFontAssets.StackFor("storefront")); color:var(--ink); background:#fff; min-height:100vh; }
@@ -106,7 +107,30 @@
             </div>
         </div>
     </section>
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/storefront/app" />
+
+    <div style="padding:0 1rem 1rem">
+        <PhpHybridModuleDirectory
+            Title="Storefront surface directory"
+            Subtitle="Commerce UX remains on live PHP storefront hosts — every surface linked"
+            Links="@PhpModuleCatalog.StorefrontSurfaces"
+            PhpWorkspaceBase="/storefront/app" />
+    </div>
+
     <div class="epc-sf-note">
         Live homepage remains <a href="https://epartscart.com/">epartscart.com</a>. Digests: <a href="/storefront/account-summary">account-summary</a>. Login bridge: <a href="/storefront/login">/storefront/login</a>. Not a broad `/` cutover.
     </div>
 </div>
+
+@code {
+    private string? _phpHref;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
+    }
+}

@@ -57,7 +57,17 @@
             <div class="epc-bosapp-card"><strong>@_erpOnly</strong><span>ERP-only</span></div>
             <div class="epc-bosapp-card"><strong>@_source</strong><span>Digest source</span></div>
         </div>
-        <div class="epc-bosapp-note">@_note Exact-route preview only. BOS PHP <code>$_SESSION</code> vs MySQL admin cookies remains a documented gap — use /BOS/ for full tenant module UX.</div>
+        <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/bos/app" />
+
+        <div style="background:#111;border-radius:.55rem;padding:.5rem 1rem 1rem;margin-top:1rem">
+            <PhpHybridModuleDirectory
+                Title="Complete BOS module directory"
+                Subtitle="@($"{PhpModuleCatalog.BosModuleCount} modules from PHP epc_bos_unified.php")"
+                Links="@PhpModuleCatalog.BosModules"
+                PhpWorkspaceBase="/bos/app" />
+        </div>
+
+        <div class="epc-bosapp-note">@_note Exact-route preview only. Full module directory above deeplinks to PHP. BOS PHP <code>$_SESSION</code> vs MySQL admin cookies remains a documented gap — use /BOS/ for full tenant module UX.</div>
     </div>
 </div>
 
@@ -66,11 +76,16 @@
     private string _source = "n/a";
     private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
+    private string? _phpHref;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        if (ctx.Request.Query.TryGetValue("php", out var php) && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Admin)
         {

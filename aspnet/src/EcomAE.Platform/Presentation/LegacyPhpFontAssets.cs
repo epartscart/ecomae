@@ -12,6 +12,10 @@ public static class LegacyPhpFontAssets
     public const string FrauncesSora =
         "https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Sora:wght@400;600;700&display=swap";
 
+    /// <summary>Matches bos/epc_bos_shell.css --bos-font / --bos-font-mono.</summary>
+    public const string InterJetBrains =
+        "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap";
+
     public const string FontAwesomeCdn =
         "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css";
 

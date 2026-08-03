@@ -212,6 +212,8 @@ app.MapGet(EcomAeRoutes.SurfaceParity, (ISurfaceParityReporter reporter) => Resu
 
 app.MapGet(EcomAeRoutes.PresentationParity, (IPresentationParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
+app.MapGet(EcomAeRoutes.PhpModuleCatalog, () => Results.Ok(PhpModuleCatalog.BuildSummary()));
+
 app.MapGet(EcomAeRoutes.LiveSurfaceLinks, (ILiveSurfaceLinkReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.SurfaceFieldParity, (ISurfaceFieldParityReporter reporter) => Results.Ok(reporter.BuildReport()));

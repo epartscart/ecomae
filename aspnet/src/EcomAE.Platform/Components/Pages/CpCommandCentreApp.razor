@@ -104,8 +104,16 @@
             </div>
         </section>
 
+        <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/cp/app" />
+
+        <PhpHybridModuleDirectory
+            Title="Complete Control Panel module directory"
+            Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} brochure features from PHP inventory")"
+            Links="@PhpModuleCatalog.CpBrochureFeatures"
+            PhpWorkspaceBase="/cp/app" />
+
         <div class="epc-cc-note">
-            @_note Live PHP UI remains at <a href="/CP/">/CP/</a>. Nav/quick actions open PHP modules (hybrid). Login bridge: <a href="/cp/login">/cp/login</a>. Not a broad /cp cutover.
+            @_note Live PHP UI remains at <a href="/CP/">/CP/</a>. Full module directory below opens every PHP feature (hybrid). Login bridge: <a href="/cp/login">/cp/login</a>. Not a broad /cp cutover.
         </div>
     </div>
 </div>
@@ -118,6 +126,7 @@
     private string _source = "n/a";
     private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
+    private string? _phpHref;
 
     protected override async Task OnInitializedAsync()
     {
@@ -125,6 +134,11 @@
         if (ctx is null)
         {
             return;
+        }
+
+        if (ctx.Request.Query.TryGetValue("php", out var php) && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);

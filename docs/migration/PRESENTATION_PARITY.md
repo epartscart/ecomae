@@ -2,6 +2,8 @@
 
 Frontend and backend presentation must stay the same during conversion. ASP.NET Core surface shells reuse the live PHP chrome assets; digests stay JSON for tooling.
 
+Full plan: `docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md`. Batch 0 lists every PHP CP/ERP/BOS/storefront module on hybrid shells (`GET /migration/php-module-catalog`) so nothing is omitted from navigation while interactive ports are completed family-by-family.
+
 ## Contract
 
 1. **Same assets** — HTML shells link PHP CSS/JS paths (`/epc-static.php?f=...`, `/content/general_pages/epc_cp_*_css.php`, `bos/epc_bos_shell.css`, `templates/modex/...`).

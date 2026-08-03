@@ -17,6 +17,7 @@ public static class EcomAeRoutes
     public const string MigrationPlatformJobs = "/migration/platform-jobs";
     public const string SurfaceParity = "/migration/surface-parity";
     public const string PresentationParity = "/migration/presentation-parity";
+    public const string PhpModuleCatalog = "/migration/php-module-catalog";
     public const string LiveSurfaceLinks = "/migration/live-surface-links";
     public const string MigrationConsole = "/migration/console";
     public const string SurfaceFieldParity = "/migration/surface-field-parity";

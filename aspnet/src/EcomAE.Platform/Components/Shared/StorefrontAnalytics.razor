@@ -8,9 +8,22 @@
         gtag('js', new Date());
         gtag('config', '@MeasurementId');
     </script>
+    @if (IncludeClarity && !string.IsNullOrWhiteSpace(ClarityId))
+    {
+        <script type="text/javascript">
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "@ClarityId");
+        </script>
+    }
 }
 
 @code {
     [Parameter] public bool Enabled { get; set; } = true;
     [Parameter] public string MeasurementId { get; set; } = "G-J19D1KHXCG";
+    [Parameter] public bool IncludeClarity { get; set; }
+    /// <summary>Optional Clarity project id — leave empty until operator supplies the live PHP Clarity id.</summary>
+    [Parameter] public string ClarityId { get; set; } = "";
 }

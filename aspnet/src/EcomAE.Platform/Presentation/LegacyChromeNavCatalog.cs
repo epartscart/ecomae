@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
@@ -42,20 +44,11 @@ public static class LegacyChromeNavCatalog
         new("Web tracker", "/CP/control/shop/web_tracker")
     ];
 
-    /// <summary>ERP category bar → PHP ERP shell areas (epc_erp_nav_categories_config).</summary>
-    public static readonly IReadOnlyList<NavItem> Erp =
-    [
-        new("Ecom BOS", "/ERP/", "ERP home"),
-        new("Home & workspace", "/ERP/?epc_erp_shell=1&area=overview"),
-        new("Record to Report", "/ERP/?epc_erp_shell=1&area=finance"),
-        new("Procure to Pay", "/ERP/?epc_erp_shell=1&area=purchasing"),
-        new("Order to Cash", "/ERP/?epc_erp_shell=1&area=sales"),
-        new("Cash & Treasury", "/ERP/?epc_erp_shell=1&area=banking"),
-        new("Inventory & Fulfilment", "/ERP/?epc_erp_shell=1&area=inventory_mgmt"),
-        new("HR & Payroll", "/ERP/?epc_erp_shell=1&area=people"),
-        new("Compliance & Tax", "/ERP/?epc_erp_shell=1&area=tax"),
-        new("Setup & Administration", "/ERP/?epc_erp_shell=1&area=setup")
-    ];
+    /// <summary>ERP category bar → PHP ERP shell areas (epc_erp_nav_categories_config via PhpModuleCatalog).</summary>
+    public static IReadOnlyList<NavItem> Erp =>
+        new NavItem[] { new("Ecom BOS", "/ERP/", "ERP home") }
+            .Concat(PhpModuleCatalog.ErpCategories.Select(c => new NavItem(c.Label, c.Href, c.Id)))
+            .ToArray();
 
     public static readonly IReadOnlyList<NavItem> ErpQuickActions =
     [
