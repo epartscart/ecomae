@@ -49,6 +49,7 @@ public static class LegacyChromeNavCatalog
         new("Currency rates PHP", "/CP/shop/finance/nastrojka-kursov-valyut"),
         new("Storages list", "/cp/storages-app"),
         new("Storages PHP", "/CP/shop/logistics/storages"),
+        new("Admin sessions list", "/cp/admin-sessions-app"),
         new("Users PHP", "/CP/control/users"),
         new("Groups PHP", "/CP/users/usergroups"),
         new("Multivendor", "/CP/control/shop/multivendor"),

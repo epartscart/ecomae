@@ -1,0 +1,134 @@
+@page "/cp/admin-sessions-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Admin Sessions · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-as-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c0a09 0%,#1c1917 45%,#44403c 100%);
+        }
+        .epc-as-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-as-hero p { margin:0; color:#d6d3d1; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-as-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-as-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#e11d48;
+        }
+        .epc-as-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-as-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-as-kpi { background:#fff; border:1px solid #e7e5e4; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-as-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-as-kpi span { color:#78716c; font-size:.78rem; }
+        .epc-as-table-wrap { background:#fff; border:1px solid #e7e5e4; border-radius:.55rem; overflow:auto; }
+        .epc-as-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-as-table th, .epc-as-table td { padding:.55rem .7rem; border-bottom:1px solid #f5f5f4; text-align:left; white-space:nowrap; }
+        .epc-as-table th { background:#fafaf9; color:#57534e; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-as-table a { color:#be123c; font-weight:700; text-decoration:none; }
+        .epc-as-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#ffe4e6; color:#9f1239; }
+        .epc-as-note { margin-top:1rem; padding:.75rem .9rem; background:#fafaf9; border:1px solid #d6d3d1; border-radius:.45rem; color:#44403c; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-as-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-as-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Admin Sessions</h1>
+        <p>Read-only admin session counts from <code>/cp/admin-sessions</code> digest under PHP CP desktop chrome. Session tokens are never returned. User/session management stays on live PHP — same-to-same for tenants.</p>
+        <div class="epc-as-cta">
+            <a href="@_phpTab">Open PHP user manager</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/users-app">Users list</a>
+            <a class="ghost" href="/cp/storages-app">Storages list</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-as-kpis" aria-label="Admin sessions KPIs">
+        <div class="epc-as-kpi"><strong>@_sessions.Count</strong><span>Users shown (limit @_limit)</span></div>
+        <div class="epc-as-kpi"><strong>@_totalSessions</strong><span>Total sessions</span></div>
+        <div class="epc-as-kpi"><strong>@_maxSessions</strong><span>Max per user</span></div>
+    </div>
+
+    <div class="epc-as-table-wrap">
+        <table class="epc-as-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Email</th>
+                    <th>Type</th>
+                    <th>Sessions</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_sessions.Count == 0)
+                {
+                    <tr><td colspan="5">No admin sessions in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var s in _sessions)
+                    {
+                        var phpHref = $"{_phpTab}?user_id={s.UserId.ToString(CultureInfo.InvariantCulture)}";
+                        <tr>
+                            <td><strong>@s.UserId.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(s.Email) ? "—" : s.Email)</td>
+                            <td><span class="epc-as-badge">@s.Type.ToString(CultureInfo.InvariantCulture)</span></td>
+                            <td>@s.SessionCount.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><a href="@phpHref">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-as-note">
+        Read-only preview · JSON digest <a href="/cp/admin-sessions?limit=200">/cp/admin-sessions</a> (tokens never returned).
+        PHP user manager remains authoritative for session/user administration.
+        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/users";
+    private bool _isAdmin;
+    private IReadOnlyList<CpAdminSessionDigest> _sessions = [];
+    private int _totalSessions;
+    private int _maxSessions;
+    private int _limit = 200;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListCpAdminSessionsAsync(_limit, ctx.RequestAborted);
+        _sessions = result.Sessions;
+        _totalSessions = _sessions.Sum(s => s.SessionCount);
+        _maxSessions = _sessions.Count == 0 ? 0 : _sessions.Max(s => s.SessionCount);
+        _source = result.Source;
+        _message = result.Message;
+    }
+}
