@@ -65,6 +65,7 @@ Common CloudPanel failures:
 - `Failed to connect to 127.0.0.1 port 5100` right after restart → wait for health (`wait_for_aspnet_health.sh`).
 - `ECOMAE_*_API_KEY: MISSING` → keys empty; issue/copy plaintext `epc_pricepro_` / `epc_catalog_` keys (DB stores hashes only).
 - `ECOMAE_ADMIN_COOKIE_HEADER/JAR: BAD_FORMAT` or probe `kind:0` → cookie missing both `admin_session` + numeric `admin_u_id`, or not logged in as Super CP. Quote the env value (`ECOMAE_ADMIN_COOKIE_HEADER='admin_session=...; admin_u_id=123'`) so bash `source` does not truncate at `;`. If issuer warns PHP db≠TenantRegistry, fix `ConnectionStrings__TenantRegistry` / GRANTs so keys land in the DB ASP.NET reads (otherwise price/catalog smoke returns HTTP 500).
+- `CREATE command denied` for `ecomae_aspnet` on `asap.epc_api_clients` → paste DDL as MySQL admin: `bash scripts/cloudpanel_print_epc_api_clients_ddl.sh`, then re-ensure + issue with `ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES` (copies admin session into TenantRegistry when PHP sessions DB differs). Probe also needs `users`/`groups`/`users_groups_bind` for that admin in TenantRegistry (or point `Database=` at the PHP app DB).
 - Probe success is `kind:2` (or `"Admin"`) with `isAuthenticated:true`.
 
 Exact-route promotion (after smoke only): `docs/migration/EXACT_ROUTE_PROMOTION_PRICE_CATALOG.md`

@@ -70,12 +70,17 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" \
   "$ROOT/scripts/cloudpanel_issue_smoke_credentials.sh" \
   "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh" \
+  "$ROOT/scripts/cloudpanel_print_epc_api_clients_ddl.sh" \
   "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" \
   "$ROOT/scripts/wait_for_aspnet_health.sh" \
   "$ROOT/scripts/rollback_aspnet_foundation.sh" \
   "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" \
   "$ROOT/scripts/run_surface_parity_harness.sh" \
   "$PLATFORM_DIR/scripts/"
+install -d "$PLATFORM_DIR/scripts/sql"
+if [[ -f "$ROOT/scripts/sql/epc_api_clients.sql" ]]; then
+  install -m 0644 "$ROOT/scripts/sql/epc_api_clients.sql" "$PLATFORM_DIR/scripts/sql/"
+fi
 # Parity compare helpers used after dual-sample capture (post-smoke promotion).
 for compare in \
   compare_catalog_status_parity.py \

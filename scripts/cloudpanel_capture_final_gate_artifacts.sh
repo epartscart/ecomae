@@ -60,8 +60,10 @@ if [[ -z "${ECOMAE_PRICE_LOOKUP_API_KEY:-}" || -z "${ECOMAE_CATALOG_API_KEY:-}" 
   if [[ "${ECOMAE_ALLOW_PUBLIC_ONLY_CAPTURE:-0}" != "1" ]]; then
     printf '\nBLOCKED: smoke secrets still MISSING in %s\n' "$ENV_FILE"
     printf 'Preferred path on this server (does not print secrets):\n'
+    printf '  bash scripts/cloudpanel_print_epc_api_clients_ddl.sh   # if CREATE denied for ecomae_aspnet\n'
     printf '  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
-    printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+    printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
+    printf '    bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
     printf 'If that reports no admin session: log into https://www.ecomae.com/CP/ once, then re-run issue.\n'
     printf 'Or: bash scripts/cloudpanel_prepare_smoke_secrets.sh\n'
     printf 'Then:\n'
@@ -305,8 +307,10 @@ else
   printf '\nSmoke incomplete — preferred CloudPanel recovery:\n'
   printf '  1) Wait for health: bash scripts/wait_for_aspnet_health.sh\n'
   printf '  2) Ensure table + issue keys/cookie (never invent secrets):\n'
+  printf '       bash scripts/cloudpanel_print_epc_api_clients_ddl.sh   # if CREATE denied\n'
   printf '       ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
-  printf '       ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+  printf '       ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
+  printf '         bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
   printf '       (or bash scripts/cloudpanel_prepare_smoke_secrets.sh for manual guidance)\n'
   printf '  3) If admin cookie still missing/401: login https://www.ecomae.com/CP/ then re-issue; probe:\n'
   printf '       source %s\n' "$ENV_FILE"

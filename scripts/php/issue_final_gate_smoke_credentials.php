@@ -8,11 +8,13 @@
  * so DbLegacyApiClientStore can authenticate. Cookie values are bash-quoted so
  * `source platform.env` does not truncate at ';' before admin_u_id=.
  * Creates epc_api_clients only when ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES.
+ * When PHP sessions DB differs, set ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES to copy
+ * the admin session row into TenantRegistry.
  *
  * Usage:
  *   ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES php scripts/php/issue_final_gate_smoke_credentials.php
  *   ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES \
- *     php scripts/php/issue_final_gate_smoke_credentials.php
+ *     ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES php scripts/php/issue_final_gate_smoke_credentials.php
  */
 declare(strict_types=1);
 
@@ -48,7 +50,7 @@ if (preg_match('/\bdb=([^\s)]+)/', $dbSource, $mDb)) {
 	$primaryDb = $mDb[1];
 }
 
-ensure_api_clients_table($pdo);
+ensure_api_clients_table($pdo, $env);
 
 $catalogActions = json_encode(
 	['manufacturers', 'models', 'modifications', 'categories', 'articles', 'vin', 'status', 'engines', 'analogs', 'brands', 'products', 'suppliers'],
@@ -60,9 +62,12 @@ try {
 	$catalogKey = upsert_key($pdo, 'catalog', 'Final-gate smoke Catalog', 'smoke-final-gate@ecomae.local', 5000, $catalogActions);
 } catch (Throwable $e) {
 	fwrite(STDERR, "Failed to INSERT/UPDATE epc_api_clients: " . $e->getMessage() . "\n");
-	fwrite(STDERR, "Create the table once, then re-issue:\n");
+	fwrite(STDERR, "Create/GRANT the table once, then re-issue:\n");
+	fwrite(STDERR, "  bash scripts/cloudpanel_print_epc_api_clients_ddl.sh\n");
 	fwrite(STDERR, "  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n");
-	fwrite(STDERR, "  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n");
+	fwrite(STDERR, "  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n");
+	fwrite(STDERR, "    bash scripts/cloudpanel_issue_smoke_credentials.sh\n");
+	smoke_print_epc_api_clients_recovery($dotnet, 'INSERT/UPDATE failed after ensure');
 	exit(1);
 }
 
@@ -76,8 +81,24 @@ if ($sessionToken === null) {
 
 if ($sessionSource === 'php-app-db-mismatch') {
 	fwrite(STDERR, "WARN: admin session found in PHP app DB, not TenantRegistry db={$primaryDb}.\n");
-	fwrite(STDERR, "ASP.NET /auth/session/probe reads TenantRegistry — login may still fail until sessions exist there\n");
-	fwrite(STDERR, "or ConnectionStrings__TenantRegistry Database= matches the PHP sessions database.\n");
+	$phpPdo = smoke_open_php_sessions_pdo($env, $primaryDb);
+	if ($phpPdo !== null) {
+		[$synced, $syncDetail] = smoke_sync_admin_session_to_tenant($pdo, $phpPdo, $sessionToken, $userId);
+		fwrite(STDERR, ($synced ? 'OK' : 'WARN') . " session sync: {$syncDetail}\n");
+		if ($synced) {
+			$sessionSource = 'synced-from-php-app-db';
+		} else {
+			fwrite(STDERR, "ASP.NET /auth/session/probe reads TenantRegistry — re-run with:\n");
+			fwrite(STDERR, "  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n");
+			fwrite(STDERR, "    bash scripts/cloudpanel_issue_smoke_credentials.sh\n");
+			fwrite(STDERR, "Or align ConnectionStrings__TenantRegistry Database= with the PHP sessions DB.\n");
+		}
+	}
+	if (!smoke_tenant_admin_backend_ok($pdo, $userId)) {
+		fwrite(STDERR, "WARN: TenantRegistry has no backend group bind for admin_u_id={$userId}.\n");
+		fwrite(STDERR, "Probe stays anonymous until users/groups/users_groups_bind exist in db={$primaryDb},\n");
+		fwrite(STDERR, "or Database= is pointed at the PHP app DB that holds Super CP identity.\n");
+	}
 }
 
 $cookie = 'admin_session=' . $sessionToken . '; admin_u_id=' . $userId;
@@ -91,7 +112,10 @@ fwrite(STDOUT, "session_source={$sessionSource}\n");
 fwrite(STDOUT, "Next: source {$envFile} && bash scripts/cloudpanel_validate_final_gate_env.sh\n");
 exit(0);
 
-function ensure_api_clients_table(PDO $pdo): void
+/**
+ * @param array<string,string> $env
+ */
+function ensure_api_clients_table(PDO $pdo, array $env): void
 {
 	try {
 		$pdo->query('SELECT 1 FROM `epc_api_clients` LIMIT 1');
@@ -103,41 +127,24 @@ function ensure_api_clients_table(PDO $pdo): void
 	if (getenv('ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE') !== 'YES') {
 		fwrite(STDERR, "Create it once, then re-run issue:\n");
 		fwrite(STDERR, "  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n");
+		fwrite(STDERR, "  bash scripts/cloudpanel_print_epc_api_clients_ddl.sh\n");
 		fwrite(STDERR, "Or combine:\n");
 		fwrite(STDERR, "  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES \\\n");
-		fwrite(STDERR, "    bash scripts/cloudpanel_issue_smoke_credentials.sh\n");
+		fwrite(STDERR, "    ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n");
+		$dotnet = smoke_parse_dotnet_conn($env['ConnectionStrings__TenantRegistry'] ?? '');
+		smoke_print_epc_api_clients_recovery($dotnet, 'table missing and CREATE not confirmed');
 		exit(1);
 	}
 
-	$sql = <<<'SQL'
-CREATE TABLE IF NOT EXISTS `epc_api_clients` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `client_key_hash` CHAR(64) NOT NULL,
-  `client_key_prefix` VARCHAR(32) NOT NULL DEFAULT '',
-  `product` ENUM('catalog','price_pro','both') NOT NULL DEFAULT 'catalog',
-  `label` VARCHAR(120) NOT NULL DEFAULT '',
-  `contact_email` VARCHAR(190) NOT NULL DEFAULT '',
-  `active` TINYINT(1) NOT NULL DEFAULT 1,
-  `daily_limit` INT NOT NULL DEFAULT 1000,
-  `calls_today` INT NOT NULL DEFAULT 0,
-  `calls_reset_date` DATE NULL,
-  `allowed_actions_json` TEXT NOT NULL,
-  `time_created` INT NOT NULL DEFAULT 0,
-  `time_updated` INT NOT NULL DEFAULT 0,
-  UNIQUE KEY `client_key_hash` (`client_key_hash`),
-  KEY `product_active` (`product`, `active`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
-SQL;
-
-	try {
-		$pdo->exec($sql);
-		fwrite(STDERR, "Created epc_api_clients (ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES)\n");
-	} catch (Throwable $e) {
-		fwrite(STDERR, "CREATE TABLE failed: " . $e->getMessage() . "\n");
-		fwrite(STDERR, "Try MySQL root path:\n");
-		fwrite(STDERR, "  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n");
-		exit(1);
+	[$ok, $detail] = smoke_try_create_epc_api_clients($env, $pdo);
+	if ($ok) {
+		fwrite(STDERR, "Created epc_api_clients ({$detail})\n");
+		return;
 	}
+
+	$dotnet = smoke_parse_dotnet_conn($env['ConnectionStrings__TenantRegistry'] ?? '');
+	smoke_print_epc_api_clients_recovery($dotnet, $detail);
+	exit(1);
 }
 
 function make_key(string $product): string
@@ -189,7 +196,6 @@ function find_admin_session(PDO $pdo, array $env, string $primaryDb): array
 		return [$row[0], $row[1], 'tenant-registry'];
 	}
 
-	// Session may live only on the PHP app DB when TenantRegistry Database= differs.
 	$phpPdo = smoke_open_php_sessions_pdo($env, $primaryDb);
 	if ($phpPdo !== null) {
 		$row = query_admin_session($phpPdo);
@@ -234,7 +240,6 @@ function write_env_keys(string $path, string $priceKey, string $catalogKey, ?str
 		'ECOMAE_CATALOG_API_KEY' => smoke_bash_quote($catalogKey),
 	];
 	if ($cookie !== null && $cookie !== '') {
-		// Must be quoted: unquoted `admin_session=x; admin_u_id=5` truncates at ';' under bash source.
 		$set['ECOMAE_ADMIN_COOKIE_HEADER'] = smoke_bash_quote($cookie);
 	}
 	if ($userId !== null && $userId > 0) {
