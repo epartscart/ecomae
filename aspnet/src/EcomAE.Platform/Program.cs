@@ -30,7 +30,16 @@ builder.Services.AddSingleton<ILegacySessionStore>(sp =>
 });
 builder.Services.AddSingleton<ILegacySessionValidator, DbBackedLegacySessionValidator>();
 builder.Services.AddSingleton<ILegacySessionParityReporter, LegacySessionParityReporter>();
+builder.Services.AddSingleton<ILegacyAdminLoginService>(sp =>
+{
+    var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<EcomAeOptions>>();
+    return connections.IsConfigured && !string.IsNullOrWhiteSpace(options.Value.SecretSuccession)
+        ? ActivatorUtilities.CreateInstance<DbLegacyAdminLoginService>(sp)
+        : new UnconfiguredLegacyAdminLoginService();
+});
 builder.Services.AddSingleton<ITenantDbConnectionFactory, MySqlTenantDbConnectionFactory>();
+
 builder.Services.AddSingleton<ILegacyApiClientStore, DbLegacyApiClientStore>();
 builder.Services.AddSingleton<ILegacyApiUsageLogger, DbLegacyApiUsageLogger>();
 builder.Services.AddSingleton<ILegacyApiClientAuthenticator, LegacyApiClientAuthenticator>();
@@ -236,7 +245,109 @@ app.MapGet(EcomAeRoutes.LegacyApiClientParity, (ILegacyApiClientParityReporter r
 
 app.MapGet(EcomAeRoutes.LegacySessionParity, (ILegacySessionParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
+// PHP-compatible admin/customer login bridge (exact-route). Sets cookies; does not cut over /CP/ /ERP/ /BOS/.
+// Accepts JSON or application/x-www-form-urlencoded (HTML login forms).
+app.MapPost(EcomAeRoutes.LegacyAdminLogin, async (HttpContext context, ILegacyAdminLoginService login) =>
+{
+    var wantsHtml = context.Request.HasFormContentType
+        || (context.Request.Headers.Accept.ToString().Contains("text/html", StringComparison.OrdinalIgnoreCase)
+            && !context.Request.Headers.Accept.ToString().Contains("application/json", StringComparison.OrdinalIgnoreCase));
+
+    if (!login.IsConfigured)
+    {
+        if (wantsHtml)
+        {
+            var surfaceFail = context.Request.HasFormContentType
+                ? context.Request.Form["surface"].ToString()
+                : "cp";
+            return Results.Redirect($"/{LegacyLoginSurfaceParser.Key(surfaceFail)}/login?error=bridge_not_configured");
+        }
+
+        return Results.Json(new { ok = false, code = "bridge_not_configured", message = "Set EcomAE__SecretSuccession and DB. Use PHP login." }, statusCode: 503);
+    }
+
+    string contact = "", password = "", contactType = "email", surface = "cp", redirect = "";
+    var remember = false;
+
+    if (context.Request.HasFormContentType)
+    {
+        var form = await context.Request.ReadFormAsync(context.RequestAborted);
+        contact = form["contact"].ToString();
+        password = form["password"].ToString();
+        contactType = string.IsNullOrWhiteSpace(form["contact_type"]) ? "email" : form["contact_type"].ToString();
+        surface = string.IsNullOrWhiteSpace(form["surface"]) ? "cp" : form["surface"].ToString();
+        redirect = form["redirect"].ToString();
+        remember = form["remember_me"].Count > 0;
+        wantsHtml = true;
+    }
+    else
+    {
+        using var reader = new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync(context.RequestAborted);
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(string.IsNullOrWhiteSpace(body) ? "{}" : body);
+            var root = doc.RootElement;
+            contact = root.TryGetProperty("contact", out var c) ? c.GetString() ?? "" : "";
+            password = root.TryGetProperty("password", out var p) ? p.GetString() ?? "" : "";
+            contactType = root.TryGetProperty("contact_type", out var t) ? t.GetString() ?? "email" : "email";
+            surface = root.TryGetProperty("surface", out var s) ? s.GetString() ?? "cp" : "cp";
+            redirect = root.TryGetProperty("redirect", out var rd) ? rd.GetString() ?? "" : "";
+            remember = root.TryGetProperty("remember_me", out var r) && r.ValueKind == System.Text.Json.JsonValueKind.True;
+        }
+        catch
+        {
+            return Results.Json(new { ok = false, code = "bad_json", message = "Expected JSON body." }, statusCode: 400);
+        }
+    }
+
+    var loginSurface = LegacyLoginSurfaceParser.Parse(surface);
+    var outcome = await login.LoginAsync(
+        new LegacyLoginRequest(contact, password, contactType, remember, loginSurface),
+        context.Connection.RemoteIpAddress?.ToString(),
+        context.Request.Headers.UserAgent.ToString(),
+        context.RequestAborted);
+
+    if (!outcome.Ok || outcome.Success is null)
+    {
+        if (wantsHtml)
+        {
+            return Results.Redirect($"/{LegacyLoginSurfaceParser.Key(surface)}/login?error={Uri.EscapeDataString(outcome.Failure?.Code ?? "invalid_credentials")}");
+        }
+
+        return Results.Json(new
+        {
+            ok = false,
+            code = outcome.Failure?.Code ?? "invalid_credentials",
+            message = outcome.Failure?.Message ?? "Incorrect login or password."
+        }, statusCode: 401);
+    }
+
+    LegacyLoginCookieWriter.Apply(context.Response, outcome.Success, remember);
+    var dest = string.IsNullOrWhiteSpace(redirect) ? outcome.Success.RedirectPath : redirect;
+    if (!dest.StartsWith('/') || dest.StartsWith("//", StringComparison.Ordinal))
+    {
+        dest = outcome.Success.RedirectPath;
+    }
+
+    if (wantsHtml)
+    {
+        return Results.Redirect(dest);
+    }
+
+    return Results.Ok(new
+    {
+        ok = true,
+        user_id = outcome.Success.UserId,
+        email = outcome.Success.Email,
+        admin_session = outcome.Success.AdminSession,
+        redirect = dest,
+        note = "PHP-compatible session row created. Product chrome remains PHP-authoritative."
+    });
+}).DisableAntiforgery();
+
 app.MapEcomAeSurfaceModules();
+
 
 // Blazor SSR ops console (exact /migration/console). Interim improvement UI — not product chrome cutover.
 app.MapRazorComponents<App>();

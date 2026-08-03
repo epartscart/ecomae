@@ -1,0 +1,82 @@
+@using EcomAE.Platform.Auth
+@inject ILegacyAdminLoginService LoginService
+
+<div class="epc-login-form">
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="epc-login-error" id="wrong_authentication">@ErrorMessage</div>
+    }
+    else
+    {
+        <div class="epc-login-error" id="wrong_authentication" style="display:none"></div>
+    }
+
+    @if (!LoginService.IsConfigured)
+    {
+        <p class="epc-login-bridge-note">
+            ASP.NET login bridge needs <code>EcomAE__SecretSuccession</code> (PHP <code>secret_succession</code>) on the host.
+            Until then, use the live PHP login — presentation and credentials stay identical.
+        </p>
+        <p>
+            <a class="epc-login-php" href="@PhpLoginHref">Open PHP @SurfaceLabel login</a>
+        </p>
+    }
+    else
+    {
+        <form method="post" action="@EcomAE.Platform.Routing.EcomAeRoutes.LegacyAdminLogin" class="epc-login-html-form">
+            <input type="hidden" name="surface" value="@SurfaceKey" />
+            <input type="hidden" name="redirect" value="@RedirectPath" />
+            <div class="epc-login-field">
+                <label for="auth_contact_@SurfaceKey">Email or phone</label>
+                <input id="auth_contact_@SurfaceKey" class="form-control" name="contact" type="text" autocomplete="username" required />
+            </div>
+            <div class="epc-login-field">
+                <label for="password_@SurfaceKey">Password</label>
+                <input id="password_@SurfaceKey" class="form-control" name="password" type="password" autocomplete="current-password" required />
+            </div>
+            <div class="epc-login-field epc-login-row">
+                <label>
+                    <input type="checkbox" name="remember_me" value="1" /> Remember me
+                </label>
+                <label>
+                    Contact type
+                    <select name="contact_type">
+                        <option value="email">Email</option>
+                        <option value="phone">Phone</option>
+                    </select>
+                </label>
+            </div>
+            <button type="submit" class="epc-login-submit">Sign in</button>
+        </form>
+        <p class="epc-login-bridge-note">
+            Bridge writes PHP-compatible <code>sessions</code> + cookies (admin or customer).
+            Full menus and modules remain on PHP until intentional cutover.
+        </p>
+        <p>
+            <a class="epc-login-php" href="@PhpLoginHref">Prefer PHP login</a>
+        </p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public LegacyLoginSurface Surface { get; set; }
+    [Parameter, EditorRequired] public string SurfaceLabel { get; set; } = "CP";
+    [Parameter, EditorRequired] public string PhpLoginHref { get; set; } = "/CP/";
+    [Parameter] public string? ErrorMessage { get; set; }
+
+    private string SurfaceKey => Surface switch
+    {
+        LegacyLoginSurface.Erp => "erp",
+        LegacyLoginSurface.Bos => "bos",
+        LegacyLoginSurface.Storefront => "storefront",
+        _ => "cp"
+    };
+
+    private string RedirectPath => Surface switch
+    {
+        LegacyLoginSurface.Erp => "/erp/app",
+        LegacyLoginSurface.Bos => "/bos/app",
+        LegacyLoginSurface.Storefront => "/storefront/app",
+        _ => "/cp/app"
+    };
+}

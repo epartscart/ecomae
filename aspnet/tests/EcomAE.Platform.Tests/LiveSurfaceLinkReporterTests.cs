@@ -161,7 +161,9 @@ public sealed class LiveSurfaceLinkReporterTests
             link.HostClass == "aspnet-exact-route-shadow-live"
             && link.AspNetRouteHint.StartsWith("/storefront/", StringComparison.Ordinal)));
         Assert.Equal(4, report.Links.Count(link => link.HostClass == "aspnet-presentation-preview"));
+        Assert.Equal(4, report.Links.Count(link => link.HostClass == "aspnet-login-bridge"));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
+
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_capture_final_gate_artifacts.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_catalog_vehicle_chain.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_list_warm_catalog_vehicle_ids.sh vin", StringComparison.Ordinal));
@@ -176,8 +178,12 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_storefront_digest_shadows.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("/migration/console", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("pairsChecked=19", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("/cp/app", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("/cp/login", StringComparison.Ordinal)
+            || action.Contains("/cp|/erp|/bos|/storefront/{app,login}", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_presentation_app_shadows.sh", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("SecretSuccession", StringComparison.Ordinal)
+            || action.Contains("secret_succession", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("CHROME_PARITY_GAP_MATRIX", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal));
     }
 

@@ -455,6 +455,11 @@ check 'presentation app shadow example exists' test -f "$ROOT/deploy/aspnet/ngin
 check 'presentation app installer exists' test -x "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh"
 check 'CP stylesheets include command dashboard CSS' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs" 'epc_cp_command_dashboard_css.php'
 check 'presentation parity mentions /cp/app preview' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PresentationParityReporter.cs" '/cp/app'
+check 'presentation parity mentions login bridge' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PresentationParityReporter.cs" '/cp/login'
+check 'chrome parity gap matrix exists' test -f "$ROOT/docs/migration/CHROME_PARITY_GAP_MATRIX.md"
+check 'login bridge service exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbLegacyAdminLoginService.cs"
+check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
+check 'presentation installer expects login routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 9'
 check 'digest dual compare accepts migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migrationBaselinePairs'
 check 'digest dual compare detects seeded migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migration-contract-golden'
 check 'digest dual capture cleans seeded php baselines' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'CLEAN seeded baseline'

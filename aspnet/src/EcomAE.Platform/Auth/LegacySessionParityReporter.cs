@@ -7,12 +7,13 @@ public sealed class LegacySessionParityReporter : ILegacySessionParityReporter
         return new LegacySessionParityReport(
             "PHP CP/ERP/BOS session cookies and API authorization headers",
             "ASP.NET Core DbBackedLegacySessionValidator (admin+customer sessions + backend group claims + nested module ACL) + diagnostic probe",
-            "nested-module-acl-wired-awaiting-staging",
-            ["admin_session/admin_u_id cookies", "session/u_id cookies", "sessions.type=1", "users_groups_bind∩groups.for_backend", "modules_access with groups.parent ancestry", "X-API-Key header", "Bearer API key header"],
+            "login-bridge-hybrid-awaiting-secret-and-staging",
+            ["admin_session/admin_u_id cookies", "session/u_id cookies", "sessions.type=1", "users_groups_bind∩groups.for_backend", "modules_access with groups.parent ancestry", "X-API-Key header", "Bearer API key header", "POST /auth/login/admin (opt-in write)"],
             [
                 "On CloudPanel: issue_smoke_credentials.sh with ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES binds quoted cookie and syncs session into TenantRegistry; validate via /auth/session/probe (kind=Admin).",
+                "Login bridge writes: set EcomAE__SecretSuccession (= PHP secret_succession), redeploy, use /cp/login|/erp/login|/bos/login|/storefront/login or POST /auth/login/admin.",
                 "Optional storefront digests: ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits> (not required for ReadyToRemovePhp).",
-                "Replay CP, ERP, BOS, and storefront login flows in staging before traffic cutover.",
+                "Replay CP, ERP, BOS, and storefront login flows in staging before traffic cutover. BOS native $_SESSION remains PHP-authoritative.",
                 "Replace legacy cookie bridge with Enterprise BOS identity (OAuth 2.1 / OIDC / JWT) after parity evidence."
             ]);
     }

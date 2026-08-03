@@ -46,6 +46,8 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 - Blazor SSR Zero-PHP operator console at `/migration/console` (interim ops UI; Enterprise BOS still targets Angular/React for product chrome)
 - Batch installers for surface + storefront digests (one nginx reload each)
 - Digest dual-sample capture helper: `scripts/cloudpanel_capture_digest_dual_samples.sh`
+- Hybrid chrome strengthen: `/cp|/erp|/bos|/storefront/{app,login}` with PHP-linked nav + opt-in PHP-compatible login bridge (`EcomAE__SecretSuccession`); gap matrix `docs/migration/CHROME_PARITY_GAP_MATRIX.md`
+
 
 ## Inventory
 

@@ -8,16 +8,18 @@ Frontend and backend presentation must stay the same during conversion. ASP.NET 
 2. **JSON preserved** — Default response for `/cp`, `/erp`, `/bos`, `/storefront/account` remains JSON. Use `?format=json` to force JSON.
 3. **HTML for browsers** — `Accept: text/html` (without `application/json`) or `?format=html` returns the presentation-preserving chrome shell.
 4. **Auth errors stay JSON** — Unauthorized shell probes remain `401` JSON so API clients are not surprised.
-5. **PHP remains authoritative** — Full interactive UX (login writes, menus, widgets, cart/checkout) stays on PHP until staging smoke + release-owner approval.
+5. **PHP remains authoritative** — Full interactive UX (menus, widgets, cart/checkout, BOS `$_SESSION` modules) stays on PHP until staging smoke + release-owner approval.
+6. **Hybrid chrome** — Blazor `/…/app` shells link PHP module URLs so functionality is not orphaned (see `CHROME_PARITY_GAP_MATRIX.md`).
+7. **Login bridge (opt-in)** — `/cp|/erp|/bos|/storefront/login` + `POST /auth/login/admin` mint PHP-compatible cookies when `EcomAE__SecretSuccession` is set; otherwise UI points to PHP login.
 
 ## Routes
 
-| Surface | Shell | Presentation reporter |
-| --- | --- | --- |
-| CP | `/cp?format=html` | `/migration/presentation-parity` |
-| ERP | `/erp?format=html` | same |
-| BOS | `/bos?format=html` | same |
-| Storefront | `/storefront/account?format=html` (customer session) or `/storefront/migration-placeholder?format=html` | same |
+| Surface | Shell / preview | Login bridge | Presentation reporter |
+| --- | --- | --- | --- |
+| CP | `/cp/app` (+ `/cp?format=html`) | `/cp/login` | `/migration/presentation-parity` |
+| ERP | `/erp/app` | `/erp/login` | same |
+| BOS | `/bos/app` | `/bos/login` | same |
+| Storefront | `/storefront/app` | `/storefront/login` | same |
 
 ## Evidence
 

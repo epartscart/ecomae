@@ -1,0 +1,53 @@
+@page "/bos/login"
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@inject NavigationManager Nav
+
+<PageTitle>BOS login · Super BOS</PageTitle>
+<PhpChromeStyles Surface="bos" />
+
+<style>
+    .epc-login-page { --accent:#facc15; --ink:#f5f5f5; --muted:#a3a3a3; font-family:"Segoe UI",Tahoma,sans-serif; min-height:100vh; background:#0b0b0b; color:var(--ink); }
+    .epc-login-wrap { width:min(960px, calc(100% - 2rem)); margin:0 auto; padding:2rem 0 3rem; display:grid; grid-template-columns:1.1fr .9fr; gap:1.25rem; }
+    .epc-login-brand, .epc-login-panel { background:#151515; border:1px solid #2a2a2a; border-radius:.75rem; padding:1.35rem 1.4rem; }
+    .epc-login-panel { background:#f8fafc; color:#111; }
+    .epc-login-brand h1 { margin:.35rem 0 .5rem; font-size:clamp(1.45rem,3vw,1.9rem); }
+    .epc-login-brand p { color:var(--muted); line-height:1.45; }
+    .epc-login-badge { display:inline-block; padding:.2rem .55rem; border-radius:.35rem; background:rgba(250,204,21,.15); color:var(--accent); font-size:.75rem; font-weight:700; }
+    .epc-login-field { margin:0 0 .75rem; }
+    .epc-login-field label { display:block; font-size:.85rem; font-weight:600; margin-bottom:.25rem; }
+    .epc-login-field input, .epc-login-field select { width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; }
+    .epc-login-row { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
+    .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:#111; color:#facc15; font-weight:700; cursor:pointer; }
+    .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
+    .epc-login-bridge-note { color:#64748b; font-size:.82rem; line-height:1.4; margin:1rem 0 .5rem; }
+    .epc-login-php { color:#b45309; font-weight:700; }
+    .epc-login-warn { margin-top:1rem; padding:.7rem .8rem; border:1px solid #444; border-radius:.45rem; color:var(--muted); font-size:.85rem; }
+    @@media (max-width:800px){ .epc-login-wrap{grid-template-columns:1fr;} }
+</style>
+
+<div class="epc-login-page">
+    <div class="epc-login-wrap">
+        <section class="epc-login-brand">
+            <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:36px;background:#fff;border-radius:4px;padding:2px" />
+            <span class="epc-login-badge">SUPER BOS</span>
+            <h1>Fleet command login</h1>
+            <p>Admin cookie bridge unlocks ASP.NET BOS digests and /bos/app KPIs. Full Super BOS PHP UI still uses the native /BOS/ session — keep that for tenant module work.</p>
+            <div class="epc-login-warn">
+                Gap retained on purpose: PHP BOS uses <code>$_SESSION</code>; ASP.NET validates MySQL admin cookies. Both paths stay available.
+            </div>
+        </section>
+        <section class="epc-login-panel">
+            <h2>Sign in (admin bridge)</h2>
+            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/BOS/" ErrorMessage="@_error" />
+            <p style="margin-top:1rem;font-size:.85rem;color:#64748b">
+                After login: <a href="/bos/app">/bos/app</a> · Live PHP BOS: <a href="/BOS/">/BOS/</a>
+            </p>
+        </section>
+    </div>
+</div>
+
+@code {
+    private string? _error;
+    protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
+}

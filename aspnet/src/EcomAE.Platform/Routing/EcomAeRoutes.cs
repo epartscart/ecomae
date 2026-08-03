@@ -24,9 +24,15 @@ public static class EcomAeRoutes
     public const string TenantWorkspaceParity = "/tenant/workspace/parity";
     public const string LegacySessionProbe = "/auth/session/probe";
     public const string LegacySessionParity = "/auth/session/parity";
+    public const string LegacyAdminLogin = "/auth/login/admin";
     public const string LegacyApiClientParity = "/auth/api-client/parity";
     public const string ControlPanel = "/cp";
     public const string ControlPanelApp = "/cp/app";
+    public const string ControlPanelLogin = "/cp/login";
+    public const string ErpLogin = "/erp/login";
+    public const string BosLogin = "/bos/login";
+    public const string StorefrontLogin = "/storefront/login";
+
     public const string ControlPanelParity = "/cp/parity";
     public const string ControlPanelDashboardSummary = "/cp/dashboard-summary";
     public const string ControlPanelTenants = "/cp/tenants";

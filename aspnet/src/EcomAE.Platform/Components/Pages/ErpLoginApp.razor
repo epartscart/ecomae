@@ -1,0 +1,52 @@
+@page "/erp/login"
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@inject NavigationManager Nav
+
+<PageTitle>ERP login · Ecom BOS</PageTitle>
+<PhpChromeStyles Surface="erp" />
+@foreach (var href in LegacyPresentationAssets.LoginStylesheets)
+{
+    <link rel="stylesheet" href="@href" />
+}
+
+<style>
+    .epc-login-page { --ink:#0f172a; --muted:#64748b; --accent:#1d4ed8; font-family:"Segoe UI",Tahoma,sans-serif; min-height:100vh; background:linear-gradient(160deg,#eff6ff,#f8fafc 40%,#e2e8f0); color:var(--ink); }
+    .epc-login-wrap { width:min(960px, calc(100% - 2rem)); margin:0 auto; padding:2rem 0 3rem; display:grid; grid-template-columns:1.1fr .9fr; gap:1.25rem; }
+    .epc-login-brand, .epc-login-panel { background:#fff; border:1px solid #e2e8f0; border-radius:.75rem; padding:1.35rem 1.4rem; }
+    .epc-login-brand h1 { margin:.35rem 0 .5rem; font-size:clamp(1.45rem,3vw,1.9rem); }
+    .epc-login-brand p { color:var(--muted); line-height:1.45; }
+    .epc-login-badge { display:inline-block; padding:.2rem .55rem; border-radius:.35rem; background:#dbeafe; color:#1e3a8a; font-size:.75rem; font-weight:700; }
+    .epc-login-field { margin:0 0 .75rem; }
+    .epc-login-field label { display:block; font-size:.85rem; font-weight:600; margin-bottom:.25rem; }
+    .epc-login-field input, .epc-login-field select { width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; }
+    .epc-login-row { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
+    .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:var(--accent); color:#fff; font-weight:700; cursor:pointer; }
+    .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
+    .epc-login-bridge-note { color:var(--muted); font-size:.82rem; line-height:1.4; margin:1rem 0 .5rem; }
+    .epc-login-php { color:var(--accent); font-weight:700; }
+    @@media (max-width:800px){ .epc-login-wrap{grid-template-columns:1fr;} }
+</style>
+
+<div class="epc-login-page">
+    <div class="epc-login-wrap">
+        <section class="epc-login-brand">
+            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:34px" />
+            <span class="epc-login-badge">ECOM BOS · ERP</span>
+            <h1>ERP Operations login</h1>
+            <p>Same backend credentials as PHP /ERP/ and platform/client ERP routers. ASP.NET sets admin cookies; finance modules stay on PHP ERP shell.</p>
+        </section>
+        <section class="epc-login-panel">
+            <h2>Sign in</h2>
+            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Erp" SurfaceLabel="ERP" PhpLoginHref="/ERP/" ErrorMessage="@_error" />
+            <p style="margin-top:1rem;font-size:.85rem;color:#64748b">
+                After login: <a href="/erp/app">/erp/app</a> · Live PHP: <a href="/ERP/">/ERP/</a>
+            </p>
+        </section>
+    </div>
+</div>
+
+@code {
+    private string? _error;
+    protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
+}

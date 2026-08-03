@@ -6,10 +6,11 @@ public sealed class SurfaceParityReporter : ISurfaceParityReporter
     {
         SurfaceParityItem[] items =
         [
-            new("Login", "legacy session and permission bridge", "/cp/login.php", "/auth/session/probe", "bridge-started", "Validated PHP cookie, user id, role, tenant, and permission parity for CP/ERP/BOS users."),
-            new("Super CP", "dashboard shell", "ecomae.com/CP", "/CP", "presentation-shell-scaffolded", "ASP.NET Core route renders presentation-preserving shell using PHP CP CSS assets; menu, tenant selector, and access denial still need full parity evidence."),
-            new("Platform ERP", "finance dashboard", "ecomae.com/ERP", "/ERP", "presentation-shell-scaffolded", "ASP.NET Core route renders presentation-preserving ERP chrome using PHP ERP theme CSS; finance KPIs/workflows still need full parity evidence."),
-            new("Super BOS", "operations command center", "ecomae.com/BOS", "/BOS", "presentation-shell-scaffolded", "ASP.NET Core route renders presentation-preserving BOS chrome using bos/epc_bos_shell.css; privileged ops still need full parity evidence."),
+            new("Login", "legacy session and permission bridge", "/CP/ auth plugin + /BOS/?action=login", "/cp/login|/erp/login|/bos/login|/storefront/login + POST /auth/login/admin + /auth/session/probe", "login-bridge-hybrid", "ASP.NET can mint PHP-compatible sessions when SecretSuccession is set; PHP login remains authoritative for social/demo/shared-ERP picker/BOS $_SESSION."),
+            new("Super CP", "dashboard shell", "ecomae.com/CP", "/cp/app (hybrid nav→PHP)", "hybrid-chrome-nav-login-bridge", "ASP.NET Blazor CP shell reuses PHP CSS; nav/quick actions open live PHP modules; full desktop widgets still need parity evidence."),
+            new("Platform ERP", "finance dashboard", "ecomae.com/ERP", "/erp/app (hybrid nav→PHP areas)", "hybrid-chrome-nav-login-bridge", "ASP.NET Blazor ERP shell reuses PHP ERP theme CSS; category nav opens PHP ERP areas; finance writes still PHP."),
+            new("Super BOS", "operations command center", "ecomae.com/BOS", "/bos/app (hybrid; digests+PHP /BOS/)", "hybrid-chrome-nav-login-bridge", "ASP.NET BOS shell + digests; native BOS $_SESSION modules remain on /BOS/."),
+
             new("Tenant CP", "tenant administration", "tenant.com/CP", "/CP", "tenant-routing-started", "Live tenant CP login, menus, user scopes, settings, and order/pricing modules pass parity tests."),
             new("Tenant ERP", "tenant finance operations", "tenant.com/ERP", "/ERP", "tenant-routing-started", "Live-tenant and ERP-only tenant ERP workflows pass parity tests against production fixtures."),
             new("Storefront", "customer-facing commerce", "tenant storefront", "/", "presentation-shell-scaffolded", "Account shell can negotiate HTML chrome using templates/modex CSS; catalog/cart/checkout/SEO still need full parity evidence."),

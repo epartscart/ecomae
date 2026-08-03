@@ -34,6 +34,13 @@ public static class LegacyPresentationAssets
     /// <summary>Animated eParts Cart mark used on tenant CP / storefront chrome.</summary>
     public const string EpartsCartMarkUrl = "/content/general_pages/epc_animated_epartscart_logo.php";
 
+    /// <summary>PHP CP login hero/panel CSS reused by ASP.NET /cp/login /erp/login.</summary>
+    public static readonly IReadOnlyList<string> LoginStylesheets =
+    [
+        "/content/general_pages/epc_cp_login_css.php",
+        "/content/general_pages/epc_cp_login_hero_css.php"
+    ];
+
     public static readonly IReadOnlyList<string> ErpStylesheets =
     [
         "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css",

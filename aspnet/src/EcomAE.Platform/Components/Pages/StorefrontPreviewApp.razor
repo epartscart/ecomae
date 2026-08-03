@@ -28,9 +28,16 @@
                 <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" />
             </div>
             <div>
+                <a class="epc-sf-btn epc-sf-btn-red" href="/storefront/login">Sign in</a>
                 <a class="epc-sf-btn epc-sf-btn-ghost" href="https://epartscart.com/">Live PHP storefront</a>
                 <a class="epc-sf-btn epc-sf-btn-ghost" href="/storefront/account-summary">Account digest</a>
             </div>
+        </div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin:0 0 1.1rem">
+            @foreach (var item in LegacyChromeNavCatalog.Storefront)
+            {
+                <a class="epc-sf-btn epc-sf-btn-ghost" href="@item.Href">@item.Label</a>
+            }
         </div>
         <div class="epc-sf-hero">
             <section>
@@ -40,7 +47,7 @@
                 <div class="epc-sf-cta">
                     <a class="epc-sf-btn epc-sf-btn-red" href="https://epartscart.com/shop/part_search">Search parts</a>
                     <a class="epc-sf-btn epc-sf-btn-ghost" href="https://epartscart.com/">Open catalog</a>
-                    <a class="epc-sf-btn epc-sf-btn-ghost" href="https://epartscart.com/">View brands</a>
+                    <a class="epc-sf-btn epc-sf-btn-ghost" href="/storefront/login">Account login</a>
                 </div>
             </section>
             <section class="epc-sf-card">

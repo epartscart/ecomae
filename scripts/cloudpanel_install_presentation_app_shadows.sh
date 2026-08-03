@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Install Blazor presentation-parity preview exact-routes (/cp/app /erp/app /bos/app /storefront/app).
+# Install Blazor presentation-parity preview + login-bridge exact-routes.
+# Routes: /cp|erp|bos|storefront/{app,login} and /auth/login/admin.
 # Never broad /cp|/erp|/bos|/storefront|/. Never removes PHP product chrome.
 set -euo pipefail
 
@@ -24,17 +25,20 @@ import re, sys
 conf_path, example_path = Path(sys.argv[1]), Path(sys.argv[2])
 text = conf_path.read_text(encoding="utf-8")
 example = example_path.read_text(encoding="utf-8")
+allowed_suffixes = ("/app", "/login")
+allowed_exact = {"/auth/login/admin"}
 blocks=[]
 for m in re.finditer(r"(?m)^(location = (/[^\s{]+)\s*\{.*?\n\})", example, flags=re.S):
     block_raw, route = m.group(1), m.group(2)
     if route in {"/cp","/erp","/bos","/storefront","/"}:
         raise SystemExit(f"ERROR: refusing broad path {route}")
-    if not route.endswith("/app"):
+    if route not in allowed_exact and not any(route.endswith(suf) for suf in allowed_suffixes):
         continue
     indented="\n".join(("  "+line if line.strip() else line) for line in block_raw.splitlines())
     blocks.append((route, indented.rstrip()+"\n"))
-if len(blocks)!=4:
-    raise SystemExit(f"ERROR: expected 4 presentation app routes, found {len(blocks)}")
+expected = 9  # 4 apps + 4 logins + auth/login/admin
+if len(blocks) != expected:
+    raise SystemExit(f"ERROR: expected {expected} presentation/login routes, found {len(blocks)}")
 inserted=[]; already=[]
 for route, block in blocks:
     if re.search(rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{", text):
@@ -53,10 +57,12 @@ PY
 
 nginx -t
 systemctl reload nginx
-printf 'Reloaded nginx. Preview URLs:\n'
-printf '  https://www.ecomae.com/cp/app\n'
-printf '  https://www.ecomae.com/erp/app\n'
-printf '  https://www.ecomae.com/bos/app\n'
-printf '  https://www.ecomae.com/storefront/app\n'
+printf 'Reloaded nginx. Preview + login URLs:\n'
+printf '  https://www.ecomae.com/cp/app  https://www.ecomae.com/cp/login\n'
+printf '  https://www.ecomae.com/erp/app https://www.ecomae.com/erp/login\n'
+printf '  https://www.ecomae.com/bos/app https://www.ecomae.com/bos/login\n'
+printf '  https://www.ecomae.com/storefront/app https://www.ecomae.com/storefront/login\n'
+printf '  POST https://www.ecomae.com/auth/login/admin\n'
 printf 'Product chrome /CP/ /ERP/ /BOS/ / remain PHP. Do NOT remove PHP.\n'
+printf 'Set EcomAE__SecretSuccession (PHP secret_succession) in platform.env for login bridge writes.\n'
 printf 'Rollback: cp -a %s %s && nginx -t && systemctl reload nginx\n' "$bak" "$CONF"
