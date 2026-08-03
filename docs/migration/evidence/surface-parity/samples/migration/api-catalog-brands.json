@@ -6,5 +6,8 @@
   "source": "migration",
   "stale": true,
   "data": [],
-  "message": "TenantRegistry DB is not configured."
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
 }

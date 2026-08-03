@@ -437,6 +437,14 @@ check 'scaffold options example validator passes' python3 "$ROOT/scripts/validat
 check 'migration evidence cutover locks validator exists' test -f "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"
 check 'migration evidence cutover locks validator is executable' test -x "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"
 check 'migration evidence cutover locks pass' python3 "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"
+check 'migration golden cutover locks validator exists' test -f "$ROOT/scripts/validate_migration_golden_cutover_locks.py"
+check 'migration golden cutover locks validator is executable' test -x "$ROOT/scripts/validate_migration_golden_cutover_locks.py"
+check 'migration golden cutover locks pass' python3 "$ROOT/scripts/validate_migration_golden_cutover_locks.py"
+check 'migration digest generator stamps cutoverAllowed false' contains "$ROOT/scripts/generate_migration_digest_contract_samples.py" 'payload["cutoverAllowed"] = False'
+check 'deploy packs YARP exact-routes design example' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'yarp-exact-routes-example.json'
+check 'deploy packs YARP catalog-api design example' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'yarp-catalog-api-example.json'
+check 'deploy packs OPERATOR_VERIFY docs' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'OPERATOR_VERIFY.md'
+check 'deploy packs migration golden cutover locks validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_migration_golden_cutover_locks.py'
 check 'presentation/hybrid allowlist sync validator exists' test -f "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"
 check 'presentation/hybrid allowlist sync validator is executable' test -x "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"
 check 'presentation/hybrid allowlist sync passes' python3 "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"

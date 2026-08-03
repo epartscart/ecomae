@@ -111,6 +111,11 @@ if python3 "$ROOT/scripts/validate_catalog_api_allowlist_sync.py"; then
 else
   fail "catalog/API allowlist sync"
 fi
+if python3 "$ROOT/scripts/validate_migration_golden_cutover_locks.py"; then
+  pass "migration golden cutover locks"
+else
+  fail "migration golden cutover locks"
+fi
 
 # YARP regenerator still green.
 if bash "$ROOT/scripts/generate_all_yarp_design_examples.sh" >/tmp/ecomae-yarp-guardrails.log 2>&1; then

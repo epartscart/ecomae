@@ -391,9 +391,16 @@ def main() -> None:
     }
 
     for name, payload in samples.items():
+        if not isinstance(payload, dict):
+            raise SystemExit(f"{name}: payload must be object")
+        # Every golden must explicitly refuse cutover/PHP removal.
+        payload.setdefault("dualSampleBaseline", "migration-contract-golden")
+        payload["cutoverAllowed"] = False
+        payload["readyForPhpRemoval"] = False
         path = OUT / name
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         print(path)
+    print(f"generated={len(samples)} cutoverAllowed=false readyForPhpRemoval=false")
 
 
 if __name__ == "__main__":

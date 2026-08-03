@@ -17,5 +17,8 @@
   "offline_ready": false,
   "action_required": "Configure TenantRegistry MySQL",
   "source": "migration",
-  "note": "migration-mode contract sample; PHP remains authoritative"
+  "note": "migration-mode contract sample; PHP remains authoritative",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
 }

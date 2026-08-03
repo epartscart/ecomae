@@ -49,6 +49,18 @@ install -d \
   "$PLATFORM_DIR/deploy/aspnet" \
   "$PLATFORM_DIR/scripts"
 cp -a "$ROOT/docs/migration/evidence/decommission" "$PLATFORM_DIR/docs/migration/evidence/"
+# Pack OPERATOR_VERIFY docs so CloudPanel ContentRoot has the offline operator index.
+if [[ -f "$ROOT/docs/migration/evidence/OPERATOR_VERIFY.md" ]]; then
+  install -m 0644 "$ROOT/docs/migration/evidence/OPERATOR_VERIFY.md" \
+    "$PLATFORM_DIR/docs/migration/evidence/OPERATOR_VERIFY.md"
+fi
+shopt -s nullglob
+for ov in "$ROOT"/docs/migration/evidence/*/OPERATOR_VERIFY.md; do
+  rel="${ov#"$ROOT/docs/migration/evidence/"}"
+  install -d "$PLATFORM_DIR/docs/migration/evidence/$(dirname "$rel")"
+  install -m 0644 "$ov" "$PLATFORM_DIR/docs/migration/evidence/$rel"
+done
+shopt -u nullglob
 install -m 0644 "$ROOT/docs/migration/PHP_DECOMMISSION_READINESS.md" "$PLATFORM_DIR/docs/migration/PHP_DECOMMISSION_READINESS.md"
 install -m 0644 \
   "$ROOT/deploy/aspnet/nginx-price-lookup-shadow-example.conf" \
@@ -60,6 +72,17 @@ install -m 0644 \
 shopt -s nullglob
 for shadow in "$ROOT"/deploy/aspnet/nginx-*-shadow-example.conf; do
   install -m 0644 "$shadow" "$PLATFORM_DIR/deploy/aspnet/"
+done
+# Design-only YARP packs (never loaded by Program.cs).
+for yarp in \
+  yarp-exact-routes-example.json \
+  yarp-surface-digests-example.json \
+  yarp-storefront-digests-example.json \
+  yarp-catalog-api-example.json
+do
+  if [[ -f "$ROOT/deploy/aspnet/$yarp" ]]; then
+    install -m 0644 "$ROOT/deploy/aspnet/$yarp" "$PLATFORM_DIR/deploy/aspnet/"
+  fi
 done
 shopt -u nullglob
 install -m 0755 \
@@ -120,6 +143,8 @@ install -m 0755 \
   "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" \
   "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" \
   "$ROOT/scripts/validate_surface_digest_allowlist_sync.py" \
+  "$ROOT/scripts/validate_migration_golden_cutover_locks.py" \
+  "$ROOT/scripts/generate_migration_digest_contract_samples.py" \
   "$ROOT/scripts/generate_all_yarp_design_examples.sh" \
   "$ROOT/scripts/generate_yarp_exact_routes_example.py" \
   "$PLATFORM_DIR/scripts/"

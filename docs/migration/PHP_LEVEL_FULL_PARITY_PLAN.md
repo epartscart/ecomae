@@ -142,7 +142,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Presentation recheck operator + OPERATOR_VERIFY pack (#714)
 - ✅ Price-lookup dual-sample operator + compare-result cutover lock (#715)
 - ✅ Catalog/API allowlist sync (19) + contract-floor operator (#716)
-- **This PR:** Tenant-safety cached operator + explicit cutover locks on tenant evidence
+- ✅ Tenant-safety cached operator + explicit cutover locks (#717)
+- **This PR:** Migration golden cutover locks (53) + pack YARP/OPERATOR_VERIFY into deploy
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)

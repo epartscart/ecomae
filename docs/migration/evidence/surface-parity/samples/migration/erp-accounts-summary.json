@@ -18,5 +18,8 @@
   },
   "note": "migration-mode contract sample; PHP remains authoritative",
   "source": "migration",
-  "message": "TenantRegistry DB is not configured."
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
 }

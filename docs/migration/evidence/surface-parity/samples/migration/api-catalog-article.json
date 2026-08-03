@@ -5,5 +5,8 @@
   "rows": 0,
   "source": "migration",
   "stale": true,
-  "data": {}
+  "data": {},
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
 }
