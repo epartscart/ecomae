@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-03T19:11:53Z",
+  "capturedAt": "2026-08-03T19:17:05Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -174,6 +174,12 @@
       "appRoute": "/storefront/profile-app",
       "digestRoute": "/storefront/profile",
       "phpAuthoritativePath": "https://epartscart.com/users/profile"
+    },
+    {
+      "stem": "sf-account-summary",
+      "appRoute": "/storefront/account-summary-app",
+      "digestRoute": "/storefront/account-summary",
+      "phpAuthoritativePath": "https://epartscart.com/users/"
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

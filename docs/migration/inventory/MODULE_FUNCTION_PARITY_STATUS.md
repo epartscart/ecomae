@@ -75,10 +75,11 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Homepage / SEO / analytics | modex desktop + gtag/Clarity | `/storefront/app` + `PhpStorefrontDesktopChrome` + GA4 (+ Clarity hook) | hybrid-deeplink (Batch 2 preview; cart/checkout PHP) |
 | Search / VIN / catalog browse | PHP + Laximo/UMAPI | `/storefront/search-app` read-only offers; VIN/tabs → PHP | digest-only + hybrid-deeplink (Batch 4 search; cart/tabs PHP) |
 | Cart / checkout / payments | PHP `/shop/cart` + checkout | `/storefront/cart-app` read summary; checkout → PHP | digest-only + hybrid-deeplink (Batch 4 cart; writes/checkout PHP) |
-| Account digests | PHP | `/storefront/account-summary|orders|garage|profile` | digest-only (+ orders/garage/profile Blazor read UIs) |
+| Account digests | PHP | `/storefront/account-summary|orders|garage|profile` | digest-only (+ Blazor KPI/list/read UIs) |
 | Customer orders | PHP `/shop/orders` | `/storefront/orders-app` over `/storefront/orders` digest | digest-only + hybrid-deeplink (detail PHP; live storefront PHP) |
 | Customer garage | PHP part_search garage | `/storefront/garage-app` over `/storefront/garage` digest | digest-only + hybrid-deeplink (add/edit PHP; live storefront PHP) |
 | Customer profile | PHP `/users/profile` | `/storefront/profile-app` over `/storefront/profile` digest | digest-only + hybrid-deeplink (edits PHP; live storefront PHP) |
+| Customer account summary | PHP `/users/` | `/storefront/account-summary-app` over `/storefront/account-summary` digest | digest-only + hybrid-deeplink (account tools PHP; live storefront PHP) |
 | Customer login | PHP | `/storefront/login` bridge (Batch 3 PHP token formula) | hybrid-deeplink |
 
 ## Catalog / API

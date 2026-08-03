@@ -88,6 +88,7 @@ TARGETS = [
     ("sf-orders", "storefront", "/storefront/orders-app", "/storefront/orders", "https://epartscart.com/shop/orders", "StorefrontOrdersApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-garage", "storefront", "/storefront/garage-app", "/storefront/garage", "https://epartscart.com/shop/part_search", "StorefrontGarageApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-profile", "storefront", "/storefront/profile-app", "/storefront/profile", "https://epartscart.com/users/profile", "StorefrontProfileApp", "PhpStorefrontDesktopChrome", "customer"),
+    ("sf-account-summary", "storefront", "/storefront/account-summary-app", "/storefront/account-summary", "https://epartscart.com/users/", "StorefrontAccountSummaryApp", "PhpStorefrontDesktopChrome", "customer"),
 ]
 
 def base_doc(stem, surface, app_route, digest_route, php_path, marker, chrome, auth):

@@ -62,6 +62,7 @@ ASPNET_BAD_MARKERS=(
   "StorefrontOrdersApp"
   "StorefrontGarageApp"
   "StorefrontProfileApp"
+  "StorefrontAccountSummaryApp"
   "CpOrdersApp"
   "CpUsersApp"
   "CpGroupsApp"

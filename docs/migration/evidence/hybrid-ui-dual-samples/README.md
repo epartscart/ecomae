@@ -51,4 +51,4 @@ bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh   # expect status=pass,
 - Live mode (non-stub): HTTP 200 + Blazor marker present; PHP deeplink is advisory
 - Contract stubs do **not** authorize exact-route product cutover
 
-`sf-profile` may be a contract stub until `/storefront/profile-app` lands on the deployed branch; that does not unlock Batch 6.
+Contract stubs (including `sf-account-summary`) are the CI floor; live cookie captures do not unlock Batch 6.
