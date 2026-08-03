@@ -170,7 +170,7 @@ for path in /CP/ /ERP/ /BOS/; do
 done
 
 # Live CP digest exact-routes expect ASP.NET 401 unauthorized JSON (admin cookie for 200).
-for path in /cp/dashboard-summary /cp/tenants; do
+for path in /cp/dashboard-summary /cp/tenants /cp/users; do
   code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"
   if [[ "$code" == "401" ]] && grep -qE '"unauthorized"|unauthorized' /tmp/area.body && ! grep -qi '<html\|<!doctype' /tmp/area.body; then
     record "public${path}-exact-route" pass "ASP.NET digest exact-route shadow (401 unauthorized without admin cookie)"

@@ -74,8 +74,8 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
 
             // Exact-route ASP.NET digests (enable one location= at a time; Cookie proxy)
             Link("aspnet-exact-route-shadow-live", "CP dashboard digest", "https://www.ecomae.com/cp/dashboard-summary", "aspnet", "/cp/dashboard-summary", "Live exact-route nginx shadow on www (unauth 401 unauthorized; admin cookie for 200)."),
-            Link("aspnet-exact-route-shadow-live", "CP tenants digest", "https://www.ecomae.com/cp/tenants", "aspnet", "/cp/tenants", "Live exact-route nginx shadow on www (unauth 401 unauthorized; admin CP capability for 200). Surface digests 2/30."),
-            Link("aspnet-digest-pending-shadow", "CP users digest", "https://www.ecomae.com/cp/users", "php-fallback", "/cp/users", "Covered by nginx-surface-digests-shadow-example.conf after smoke."),
+            Link("aspnet-exact-route-shadow-live", "CP tenants digest", "https://www.ecomae.com/cp/tenants", "aspnet", "/cp/tenants", "Live exact-route nginx shadow on www (unauth 401 unauthorized; admin CP capability for 200)."),
+            Link("aspnet-exact-route-shadow-live", "CP users digest", "https://www.ecomae.com/cp/users", "aspnet", "/cp/users", "Live exact-route nginx shadow on www (unauth 401 unauthorized). Installer may briefly see CDN-cached PHP HTML 200 — re-probe public. Surface digests 3/30."),
             Link("aspnet-digest-pending-shadow", "CP groups digest", "https://www.ecomae.com/cp/groups", "php-fallback", "/cp/groups", "Covered by nginx-surface-digests-shadow-example.conf after smoke."),
             Link("aspnet-digest-pending-shadow", "CP modules digest", "https://www.ecomae.com/cp/modules", "php-fallback", "/cp/modules", "Covered by nginx-surface-digests-shadow-example.conf after smoke."),
             Link("aspnet-digest-pending-shadow", "CP menus digest", "https://www.ecomae.com/cp/menus", "php-fallback", "/cp/menus", "Covered by nginx-surface-digests-shadow-example.conf after smoke."),
@@ -150,9 +150,9 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article_links",
                 "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article",
                 "If engine-search/article auth 403 action_not_allowed: re-issue smoke creds (allowlist now includes engine_search+article) via ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
-                "Wired catalog exact-routes complete (18/18). Surface digests: 2/30 live (cp/dashboard-summary, cp/tenants).",
-                "Next exact-route: ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /cp/users",
-                "Then continue digests from deploy/aspnet/nginx-surface-digests-shadow-example.conf (groups, modules, …) one location= at a time. Never broad /cp|/erp|/bos.",
+                "Wired catalog exact-routes complete (18/18). Surface digests: 3/30 live (cp/dashboard-summary, cp/tenants, cp/users).",
+                "Next exact-route: ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /cp/groups",
+                "Then continue digests from deploy/aspnet/nginx-surface-digests-shadow-example.conf (modules, menus, …) one location= at a time. Never broad /cp|/erp|/bos.",
                 "Dual-sample: python3 scripts/compare_catalog_list_parity.py manufacturers|models|modifications|brands|suppliers php.json aspnet.json — PHP chrome stays until human APPROVED_TO_REMOVE_PHP_FALLBACK."
             ]);
     }

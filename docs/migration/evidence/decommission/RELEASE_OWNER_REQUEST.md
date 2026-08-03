@@ -20,7 +20,7 @@ Public frontend/backend authority is **still PHP** for product chrome:
 - `https://www.ecomae.com/`, `/CP/`, `/ERP/`, `/BOS/` → PHP HTML
 - Public `/cp/dashboard-summary` is **cut over** (exact-route; unauth 401 `unauthorized` ASP.NET JSON)
 - Approved exact-route API shadows on www: `/health`, `/migration/*`, `/api/v1/price/lookup`, catalog **18/18** complete through `brand-parts`. Unauth 401 ASP.NET JSON; VIN warm 200; offline-cache routes may 404 `cache_miss` when probe params ≠ warm key.
-- Surface digests: **2/30** live (`/cp/dashboard-summary`, `/cp/tenants`); next `/cp/users` (never broad `/cp`)
+- Surface digests: **3/30** live (`/cp/dashboard-summary`, `/cp/tenants`, `/cp/users`); next `/cp/groups` (never broad `/cp`)
 - Live `/migration/surface-parity` → `parity-not-yet-reached`
 - Live `/migration/presentation-parity` → `presentation-shell-scaffolded` only
 
