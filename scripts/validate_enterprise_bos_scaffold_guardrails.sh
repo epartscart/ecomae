@@ -39,29 +39,43 @@ printf '== Enterprise BOS scaffold guardrails ==\n'
 # Program.cs must not wire scaffolding clients/exporters.
 PLATFORM_PROGRAM="$ROOT/aspnet/src/EcomAE.Platform/Program.cs"
 WORKERS_PROGRAM="$ROOT/aspnet/src/EcomAE.Workers/Program.cs"
-for needle in \
-  AddDbContext \
-  AddDbContextPool \
-  AddNpgsql \
-  AddReverseProxy \
-  MapReverseProxy \
-  UseSerilog \
-  AddOpenTelemetry \
-  AddStackExchangeRedis \
-  MapGraphQL \
-  AddGrpc \
-  MapGrpcService \
-  AddRateLimiter \
-  EnableRateLimiting \
-  PublishAot \
-  EcomAeRedisScaffoldOptions \
-  EcomAeKafkaScaffoldOptions \
+PROGRAM_FORBIDDEN_NEEDLES=(
+  AddDbContext
+  AddDbContextPool
+  AddNpgsql
+  AddReverseProxy
+  MapReverseProxy
+  Yarp.ReverseProxy
+  UseSerilog
+  AddSerilog
+  AddOpenTelemetry
+  UseOpenTelemetry
+  AddOtlpExporter
+  UseOtlpExporter
+  AddMeterProvider
+  AddTracerProvider
+  AddStackExchangeRedis
+  AddStackExchangeRedisCache
+  AddDistributedCache
+  AddKafka
+  Confluent
+  MapGraphQL
+  AddGrpc
+  MapGrpcService
+  AddRateLimiter
+  EnableRateLimiting
+  PublishAot
+  EcomAeRedisScaffoldOptions
+  EcomAeKafkaScaffoldOptions
   EcomAePostgresScaffoldOptions
-do
-  check_not_contains "platform Program.cs omits $needle" "$PLATFORM_PROGRAM" "$needle"
+)
+for program_label in "platform:$PLATFORM_PROGRAM" "workers:$WORKERS_PROGRAM"; do
+  label="${program_label%%:*}"
+  program_path="${program_label#*:}"
+  for needle in "${PROGRAM_FORBIDDEN_NEEDLES[@]}"; do
+    check_not_contains "$label Program.cs omits $needle" "$program_path" "$needle"
+  done
 done
-check_not_contains "workers Program.cs omits AddDbContext" "$WORKERS_PROGRAM" "AddDbContext"
-check_not_contains "workers Program.cs omits UseSerilog" "$WORKERS_PROGRAM" "UseSerilog"
 
 # Design packs keep cutover false.
 for path in \

@@ -144,7 +144,7 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 - Digest dual-sample contracts: 35 stems via `python3 scripts/compare_digest_dual_samples.py --contract-only`.
 - Catalog/API allowlist sync: `python3 scripts/validate_catalog_api_allowlist_sync.py` (19 exact routes).
 - Catalog/API contract floor: `bash scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh`.
-- Full suite: `bash scripts/validate_enterprise_bos_scaffold_guardrails.sh` (Program.cs omits production wiring; YARP/Helm/Argo keep `cutoverAllowed=false`; regenerates YARP design packs).
+- Full suite: `bash scripts/validate_enterprise_bos_scaffold_guardrails.sh` (platform + workers `Program.cs` omit production wiring including Kafka/OTLP/Serilog/Redis/YARP aliases; YARP/Helm/Argo keep `cutoverAllowed=false`; regenerates YARP design packs).
 - Env ↔ options key parity: `python3 scripts/validate_platform_env_scaffold_key_parity.py`.
 - Offline migration gate: `bash scripts/cloudpanel_run_offline_migration_gate.sh`.
 - Disabled env key comments: `deploy/aspnet/platform.env.example` (`EcomAe__*` Replace/Allow/Register flags stay false; `RequireMfa=false`; `AllowIsolatedServiceEvaluation=true` only).

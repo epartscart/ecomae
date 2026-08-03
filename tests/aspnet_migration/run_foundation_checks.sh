@@ -484,6 +484,12 @@ check 'digest compare-result reports 35 contracts' contains "$ROOT/docs/migratio
 check 'enterprise BOS scaffold guardrails script exists' test -f "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
 check 'enterprise BOS scaffold guardrails is executable' test -x "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
 check 'enterprise BOS scaffold guardrails pass' bash "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
+check 'scaffold guardrails forbid AddKafka in Program.cs' contains "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh" 'AddKafka'
+check 'scaffold guardrails forbid AddOtlpExporter in Program.cs' contains "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh" 'AddOtlpExporter'
+check 'scaffold guardrails forbid AddSerilog in Program.cs' contains "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh" 'AddSerilog'
+check 'scaffold guardrails forbid AddDistributedCache in Program.cs' contains "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh" 'AddDistributedCache'
+check 'scaffold guardrails forbid Yarp.ReverseProxy in Program.cs' contains "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh" 'Yarp.ReverseProxy'
+check 'scaffold guardrails check workers Program.cs needle loop' contains "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh" 'workers:$WORKERS_PROGRAM'
 check 'platform.env.example documents disabled scaffold env keys' contains "$ROOT/deploy/aspnet/platform.env.example" 'EcomAe__AiSidecar__AllowBusinessWrites=false'
 check 'platform.env.example documents Postgres ReplaceMysqlBridge false' contains "$ROOT/deploy/aspnet/platform.env.example" 'EcomAe__Postgres__ReplaceMysqlBridge=false'
 check 'platform.env.example documents OAuth RequireMfa false' contains "$ROOT/deploy/aspnet/platform.env.example" 'EcomAe__OAuth__RequireMfa=false'
