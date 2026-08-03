@@ -20,6 +20,7 @@ public sealed class LegacySessionParityReporterTests
         Assert.Contains(report.SupportedInputs, item => item.Contains("modules_access", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.SupportedInputs, item => item.Contains("parent", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("issue_smoke_credentials.sh", StringComparison.Ordinal));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("ECOMAE_CONFIRM_SYNC_ADMIN_SESSION", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("ECOMAE_CUSTOMER_COOKIE_HEADER", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("login", StringComparison.OrdinalIgnoreCase)
             || gap.Contains("OAuth", StringComparison.OrdinalIgnoreCase)

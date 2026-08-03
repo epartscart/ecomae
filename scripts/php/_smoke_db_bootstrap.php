@@ -291,3 +291,196 @@ function smoke_open_php_sessions_pdo(array $env, string $primaryDbName): ?PDO
 		return null;
 	}
 }
+
+function smoke_epc_api_clients_ddl(): string
+{
+	return <<<'SQL'
+CREATE TABLE IF NOT EXISTS `epc_api_clients` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `client_key_hash` CHAR(64) NOT NULL,
+  `client_key_prefix` VARCHAR(32) NOT NULL DEFAULT '',
+  `product` ENUM('catalog','price_pro','both') NOT NULL DEFAULT 'catalog',
+  `label` VARCHAR(120) NOT NULL DEFAULT '',
+  `contact_email` VARCHAR(190) NOT NULL DEFAULT '',
+  `active` TINYINT(1) NOT NULL DEFAULT 1,
+  `daily_limit` INT NOT NULL DEFAULT 1000,
+  `calls_today` INT NOT NULL DEFAULT 0,
+  `calls_reset_date` DATE NULL,
+  `allowed_actions_json` TEXT NOT NULL,
+  `time_created` INT NOT NULL DEFAULT 0,
+  `time_updated` INT NOT NULL DEFAULT 0,
+  UNIQUE KEY `client_key_hash` (`client_key_hash`),
+  KEY `product_active` (`product`, `active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+SQL;
+}
+
+/**
+ * Print paste-ready DDL + GRANT block for CloudPanel MySQL admin (no secrets).
+ *
+ * @param array{host?:string,db?:string,user?:string,password?:string} $dotnet
+ */
+function smoke_print_epc_api_clients_recovery(array $dotnet, string $reason = ''): void
+{
+	$db = (string) ($dotnet['db'] ?? '<TenantRegistry_db>');
+	$user = (string) ($dotnet['user'] ?? 'ecomae_aspnet');
+	if ($reason !== '') {
+		fwrite(STDERR, "CREATE recovery needed: {$reason}\n");
+	}
+	fwrite(STDERR, "\n======== Paste as MySQL admin (CloudPanel phpMyAdmin / sudo mysql) ========\n");
+	fwrite(STDERR, "USE `{$db}`;\n");
+	fwrite(STDERR, smoke_epc_api_clients_ddl() . "\n");
+	fwrite(STDERR, "GRANT SELECT, INSERT, UPDATE ON `{$db}`.`epc_api_clients` TO '{$user}'@'localhost';\n");
+	fwrite(STDERR, "GRANT SELECT, INSERT, UPDATE ON `{$db}`.`epc_api_clients` TO '{$user}'@'%';\n");
+	fwrite(STDERR, "-- Optional: allow smoke session sync from PHP app DB into TenantRegistry:\n");
+	fwrite(STDERR, "GRANT SELECT, INSERT ON `{$db}`.`sessions` TO '{$user}'@'localhost';\n");
+	fwrite(STDERR, "GRANT SELECT ON `{$db}`.`users` TO '{$user}'@'localhost';\n");
+	fwrite(STDERR, "GRANT SELECT ON `{$db}`.`users_groups_bind` TO '{$user}'@'localhost';\n");
+	fwrite(STDERR, "GRANT SELECT ON `{$db}`.`groups` TO '{$user}'@'localhost';\n");
+	fwrite(STDERR, "FLUSH PRIVILEGES;\n");
+	fwrite(STDERR, "=========================================================================\n");
+	fwrite(STDERR, "Or: bash scripts/cloudpanel_print_epc_api_clients_ddl.sh\n");
+	fwrite(STDERR, "Then: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n");
+	fwrite(STDERR, "      ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n");
+	fwrite(STDERR, "        bash scripts/cloudpanel_issue_smoke_credentials.sh\n");
+}
+
+/**
+ * Try CREATE with alternate logins that may hold DDL rights on TenantRegistry DB.
+ *
+ * @param array<string,string> $env
+ * @return array{0:bool,1:string} created?, detail
+ */
+function smoke_try_create_epc_api_clients(array $env, PDO $primaryPdo): array
+{
+	$sql = rtrim(smoke_epc_api_clients_ddl());
+	try {
+		$primaryPdo->exec($sql);
+		return [true, 'created via primary PDO'];
+	} catch (Throwable $e) {
+		fwrite(STDERR, "WARN: primary CREATE failed: " . $e->getMessage() . "\n");
+	}
+
+	$dotnet = smoke_parse_dotnet_conn($env['ConnectionStrings__TenantRegistry'] ?? '');
+	$docroot = smoke_resolve_php_docroot();
+	$phpCfg = $docroot !== '' ? smoke_load_php_dp_config($docroot) : null;
+	$db = (string) ($dotnet['db'] ?? '');
+	if ($db === '') {
+		return [false, 'no TenantRegistry database name'];
+	}
+
+	// PHP app user may have DDL on TenantRegistry even when platform user does not.
+	if ($phpCfg !== null) {
+		try {
+			$pdo = smoke_pdo_connect(
+				(string) ($dotnet['host'] ?: $phpCfg['host']),
+				$db,
+				(string) $phpCfg['user'],
+				(string) $phpCfg['password']
+			);
+			$pdo->exec($sql);
+			return [true, "created via php-DP_Config user → TenantRegistry db={$db}"];
+		} catch (Throwable $e) {
+			fwrite(STDERR, "WARN: PHP user CREATE on TenantRegistry failed: " . $e->getMessage() . "\n");
+		}
+	}
+
+	// Optional elevated login (never printed).
+	$rootUser = getenv('ECOMAE_MYSQL_ADMIN_USER') ?: '';
+	$rootPass = getenv('ECOMAE_MYSQL_ADMIN_PASSWORD') ?: (getenv('ECOMAE_MYSQL_ROOT_PASSWORD') ?: '');
+	if ($rootUser !== '') {
+		try {
+			$host = (string) ($dotnet['host'] ?: '127.0.0.1');
+			$pdo = smoke_pdo_connect($host, $db, $rootUser, $rootPass);
+			$pdo->exec($sql);
+			return [true, "created via ECOMAE_MYSQL_ADMIN_USER={$rootUser} db={$db}"];
+		} catch (Throwable $e) {
+			fwrite(STDERR, "WARN: ECOMAE_MYSQL_ADMIN_USER CREATE failed: " . $e->getMessage() . "\n");
+		}
+	}
+
+	return [false, 'all CREATE attempts failed'];
+}
+
+/**
+ * Copy one admin session row from PHP app DB into TenantRegistry so ASP.NET probe can validate.
+ * Requires ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES. Never prints session tokens.
+ *
+ * @return array{0:bool,1:string}
+ */
+function smoke_sync_admin_session_to_tenant(PDO $tenantPdo, PDO $phpPdo, string $sessionToken, int $userId): array
+{
+	if (getenv('ECOMAE_CONFIRM_SYNC_ADMIN_SESSION') !== 'YES') {
+		return [false, 'set ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES to copy admin session into TenantRegistry'];
+	}
+
+	try {
+		$st = $tenantPdo->prepare('SELECT COUNT(*) FROM `sessions` WHERE `session` = ? AND `type` = 1 AND `user_id` = ?');
+		$st->execute([$sessionToken, $userId]);
+		if ((int) $st->fetchColumn() > 0) {
+			return [true, 'admin session already present in TenantRegistry'];
+		}
+	} catch (Throwable $e) {
+		return [false, 'TenantRegistry sessions check failed: ' . $e->getMessage()];
+	}
+
+	$row = null;
+	foreach ([
+		'SELECT * FROM `sessions` WHERE `session` = ? AND `type` = 1 AND `user_id` = ? LIMIT 1',
+		'SELECT `session`, `user_id`, `type`, `time`, `id` FROM `sessions` WHERE `session` = ? AND `type` = 1 AND `user_id` = ? LIMIT 1',
+	] as $sql) {
+		try {
+			$st = $phpPdo->prepare($sql);
+			$st->execute([$sessionToken, $userId]);
+			$fetched = $st->fetch();
+			if (is_array($fetched) && !empty($fetched['session'])) {
+				$row = $fetched;
+				break;
+			}
+		} catch (Throwable) {
+			// try narrower shape
+		}
+	}
+	if ($row === null) {
+		return [false, 'could not read admin session row from PHP DB'];
+	}
+
+	$now = time();
+	$time = isset($row['time']) ? (int) $row['time'] : $now;
+	try {
+		// Prefer insert without relying on auto-id collision.
+		$tenantPdo->prepare(
+			'INSERT INTO `sessions` (`session`, `user_id`, `type`, `time`) VALUES (?, ?, 1, ?)'
+		)->execute([$sessionToken, $userId, $time > 0 ? $time : $now]);
+		return [true, 'copied admin session into TenantRegistry.sessions'];
+	} catch (Throwable $e) {
+		// Some schemas use different column sets; try minimal upsert-like replace.
+		try {
+			$tenantPdo->prepare(
+				'INSERT INTO `sessions` (`session`, `user_id`, `type`) VALUES (?, ?, 1)'
+			)->execute([$sessionToken, $userId]);
+			return [true, 'copied admin session (minimal columns) into TenantRegistry.sessions'];
+		} catch (Throwable $e2) {
+			return [false, 'INSERT into TenantRegistry.sessions failed: ' . $e2->getMessage()];
+		}
+	}
+}
+
+/**
+ * Best-effort check that admin user has backend group membership in TenantRegistry.
+ */
+function smoke_tenant_admin_backend_ok(PDO $tenantPdo, int $userId): bool
+{
+	try {
+		$sql = <<<'SQL'
+SELECT COUNT(*) FROM `users_groups_bind` ugb
+INNER JOIN `groups` g ON g.`id` = ugb.`group_id` AND g.`for_backend` = 1
+WHERE ugb.`user_id` = ?
+SQL;
+		$st = $tenantPdo->prepare($sql);
+		$st->execute([$userId]);
+		return (int) $st->fetchColumn() > 0;
+	} catch (Throwable) {
+		return false;
+	}
+}

@@ -76,7 +76,8 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 :
                 [
                     "Redeploy main: bash scripts/cloudpanel_redeploy_final_gate_branch.sh (or git reset --hard origin/main && bash scripts/cloudpanel_find_and_redeploy.sh).",
-                    "Ensure table + issue smoke creds into TenantRegistry DB: cloudpanel_ensure_epc_api_clients_table.sh → cloudpanel_issue_smoke_credentials.sh (never invent keys; quoted admin cookie).",
+                    "If CREATE denied: cloudpanel_print_epc_api_clients_ddl.sh → paste as MySQL admin on TenantRegistry DB.",
+                    "Ensure table + issue smoke creds into TenantRegistry DB: cloudpanel_ensure_epc_api_clients_table.sh → ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES cloudpanel_issue_smoke_credentials.sh (never invent keys; quoted admin cookie).",
                     "If issuer blocks PHP db≠TenantRegistry: fix ConnectionStrings__TenantRegistry / GRANTs (or ECOMAE_SMOKE_DB_*), then re-issue.",
                     "Validate env (redacted): cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
                     "Capture/commit staging-smoke for price lookup, catalog status, and surface digests.",

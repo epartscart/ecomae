@@ -16,6 +16,7 @@ public sealed class LegacyApiClientParityReporterTests
         Assert.Equal("auth-wired-awaiting-staging-keys", report.Status);
         Assert.Contains("catalog exact-route gate", report.EnforcedRules);
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("print_epc_api_clients_ddl.sh", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("epc_api_clients", StringComparison.Ordinal));
     }
 }

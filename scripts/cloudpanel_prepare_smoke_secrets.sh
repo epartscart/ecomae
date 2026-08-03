@@ -19,7 +19,10 @@ fi
 bash "$ROOT/cloudpanel_validate_final_gate_env.sh" || true
 
 printf '\n-- Recommended (server issues keys + binds active admin session) --\n'
-printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+printf 'If CREATE denied for ecomae_aspnet: bash scripts/cloudpanel_print_epc_api_clients_ddl.sh (paste as MySQL admin).\n'
+printf '  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n'
+printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
+printf '    bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
 printf 'If admin cookie still missing: log into https://www.ecomae.com/CP/ once, then re-run the issue script.\n'
 
 printf '\n-- Manual alternative --\n'

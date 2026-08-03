@@ -399,6 +399,13 @@ check 'smoke env validator repairs truncated cookie' contains "$ROOT/scripts/clo
 check 'deploy packs smoke DB bootstrap PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" '_smoke_db_bootstrap.php'
 check 'deploy packs ensure table PHP' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ensure_epc_api_clients_table.php'
 check 'ensure epc_api_clients helper exists' test -x "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh"
+check 'epc_api_clients DDL SQL exists' test -f "$ROOT/scripts/sql/epc_api_clients.sql"
+check 'print epc_api_clients DDL helper exists' test -x "$ROOT/scripts/cloudpanel_print_epc_api_clients_ddl.sh"
+check 'deploy packs print epc_api_clients DDL helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_print_epc_api_clients_ddl.sh'
+check 'deploy packs epc_api_clients SQL' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'epc_api_clients.sql'
+check 'smoke bootstrap prints CREATE recovery DDL' contains "$ROOT/scripts/php/_smoke_db_bootstrap.php" 'smoke_print_epc_api_clients_recovery'
+check 'smoke bootstrap can sync admin session' contains "$ROOT/scripts/php/_smoke_db_bootstrap.php" 'smoke_sync_admin_session_to_tenant'
+check 'smoke issuer supports SYNC_ADMIN_SESSION' contains "$ROOT/scripts/php/issue_final_gate_smoke_credentials.php" 'ECOMAE_CONFIRM_SYNC_ADMIN_SESSION'
 check 'catalog list parity compare script exists' test -f "$ROOT/scripts/compare_catalog_list_parity.py"
 check 'catalog offline-cache parity compare script exists' test -f "$ROOT/scripts/compare_catalog_offline_cache_parity.py"
 check 'catalog vin parity compare script exists' test -f "$ROOT/scripts/compare_catalog_vin_parity.py"

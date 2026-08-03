@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Create epc_api_clients once in the ASP.NET TenantRegistry database (e.g. asap).
-# Prefers mysql root/socket; falls back to PHP DP_Config credentials.
+# Tries: mysql socket/root/sudo, ECOMAE_MYSQL_ADMIN_*, then PHP (platform → PHP user → admin).
+# On CREATE denial, prints paste-ready DDL+GRANT (also: cloudpanel_print_epc_api_clients_ddl.sh).
 # Never prints secrets. Never removes PHP.
 #
 # Usage:
@@ -69,50 +70,75 @@ fi
 
 printf 'Target database: %s\n' "$DB_NAME"
 
-SQL="$(cat <<'SQL'
-CREATE TABLE IF NOT EXISTS `epc_api_clients` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `client_key_hash` CHAR(64) NOT NULL,
-  `client_key_prefix` VARCHAR(32) NOT NULL DEFAULT '',
-  `product` ENUM('catalog','price_pro','both') NOT NULL DEFAULT 'catalog',
-  `label` VARCHAR(120) NOT NULL DEFAULT '',
-  `contact_email` VARCHAR(190) NOT NULL DEFAULT '',
-  `active` TINYINT(1) NOT NULL DEFAULT 1,
-  `daily_limit` INT NOT NULL DEFAULT 1000,
-  `calls_today` INT NOT NULL DEFAULT 0,
-  `calls_reset_date` DATE NULL,
-  `allowed_actions_json` TEXT NOT NULL,
-  `time_created` INT NOT NULL DEFAULT 0,
-  `time_updated` INT NOT NULL DEFAULT 0,
-  UNIQUE KEY `client_key_hash` (`client_key_hash`),
-  KEY `product_active` (`product`, `active`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-SQL
-)"
+SQL_FILE="$ROOT/scripts/sql/epc_api_clients.sql"
+if [[ ! -f "$SQL_FILE" ]]; then
+  printf 'Missing %s\n' "$SQL_FILE" >&2
+  exit 1
+fi
+
+run_mysql_admin() {
+  local label="$1"
+  shift
+  if "$@" -N -e "SELECT 1" >/dev/null 2>&1; then
+    printf 'Using %s\n' "$label"
+    {
+      printf 'USE `%s`;\n' "$DB_NAME"
+      cat "$SQL_FILE"
+    } | "$@"
+    printf 'OK created/verified via %s\n' "$label"
+    printf '\nNext:\n'
+    printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
+    printf '    bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+    return 0
+  fi
+  return 1
+}
 
 if command -v mysql >/dev/null 2>&1; then
-  if mysql --protocol=socket -N -e "SELECT 1" >/dev/null 2>&1; then
-    printf 'Using mysql socket (local auth)\n'
-    mysql --protocol=socket -e "USE \`${DB_NAME}\`; ${SQL}"
-    printf 'OK created/verified via mysql socket\n'
-    printf '\nNext:\n'
-    printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+  if run_mysql_admin 'mysql socket' mysql --protocol=socket; then
     exit 0
   fi
-  if mysql -uroot -N -e "SELECT 1" >/dev/null 2>&1; then
-    printf 'Using mysql -uroot\n'
-    mysql -uroot -e "USE \`${DB_NAME}\`; ${SQL}"
-    printf 'OK created/verified via mysql -uroot\n'
-    printf '\nNext:\n'
-    printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+  if run_mysql_admin 'mysql -uroot' mysql -uroot; then
     exit 0
   fi
-  printf 'mysql present but root/socket auth unavailable — falling back to PHP DP_Config\n'
+  if command -v sudo >/dev/null 2>&1 && run_mysql_admin 'sudo mysql' sudo mysql; then
+    exit 0
+  fi
+  if [[ -n "${ECOMAE_MYSQL_ADMIN_USER:-}" ]]; then
+    # Password from env only; never printed.
+    export MYSQL_PWD="${ECOMAE_MYSQL_ADMIN_PASSWORD:-${ECOMAE_MYSQL_ROOT_PASSWORD:-}}"
+    if run_mysql_admin "mysql -u${ECOMAE_MYSQL_ADMIN_USER}" mysql -u"${ECOMAE_MYSQL_ADMIN_USER}" -h127.0.0.1; then
+      unset MYSQL_PWD
+      exit 0
+    fi
+    unset MYSQL_PWD
+  elif [[ -n "${ECOMAE_MYSQL_ROOT_PASSWORD:-}" ]]; then
+    export MYSQL_PWD="${ECOMAE_MYSQL_ROOT_PASSWORD}"
+    if run_mysql_admin 'mysql -uroot (ECOMAE_MYSQL_ROOT_PASSWORD)' mysql -uroot -h127.0.0.1; then
+      unset MYSQL_PWD
+      exit 0
+    fi
+    unset MYSQL_PWD
+  fi
+  printf 'mysql present but elevated auth unavailable — trying PHP CREATE paths\n'
 fi
 
 export ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES
 export ECOMAE_ASPNET_ENV_FILE="$ENV_FILE"
+set +e
 php "$ROOT/scripts/php/ensure_epc_api_clients_table.php"
+rc=$?
+set -e
+
+if [[ "$rc" -ne 0 ]]; then
+  printf '\nIf CREATE is denied for ecomae_aspnet, paste DDL as MySQL admin:\n' >&2
+  bash "$ROOT/scripts/cloudpanel_print_epc_api_clients_ddl.sh" >&2 || true
+  printf '\nOptional elevated env (not printed):\n' >&2
+  printf '  ECOMAE_MYSQL_ADMIN_USER=root ECOMAE_MYSQL_ADMIN_PASSWORD=... \\\n' >&2
+  printf '    ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n' >&2
+  exit "$rc"
+fi
 
 printf '\nNext:\n'
-printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n'
+printf '  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n'
+printf '    bash scripts/cloudpanel_issue_smoke_credentials.sh\n'

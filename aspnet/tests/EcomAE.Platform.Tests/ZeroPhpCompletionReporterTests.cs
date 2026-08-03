@@ -30,6 +30,8 @@ public sealed class ZeroPhpCompletionReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("ensure_epc_api_clients_table", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("issue_smoke_credentials", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("TenantRegistry", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("print_epc_api_clients_ddl", StringComparison.Ordinal)
+            || action.Contains("CREATE denied", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("ECOMAE_CUSTOMER_COOKIE_HEADER", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md", StringComparison.Ordinal));
     }

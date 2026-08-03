@@ -17,6 +17,8 @@ printf '%s\n' '== Issue final-gate smoke credentials =='
 printf 'Env file: %s\n' "$ENV_FILE"
 printf 'Note: prefers ConnectionStrings__TenantRegistry DB (same as ASP.NET), then PHP→TenantRegistry. CREATE only with ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES.\n'
 printf 'Refuses PHP db≠TenantRegistry mismatch (keys would be invisible to ASP.NET). Escape: ECOMAE_SMOKE_DB_* or ECOMAE_SMOKE_ALLOW_PHP_DB_MISMATCH=YES.\n'
+printf 'If PHP sessions DB differs: set ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES to copy admin session into TenantRegistry.\n'
+printf 'If CREATE denied: bash scripts/cloudpanel_print_epc_api_clients_ddl.sh (paste as MySQL admin).\n'
 
 if [[ "${ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS:-}" != "YES" ]]; then
   printf 'Refusing without confirmation.\n' >&2
