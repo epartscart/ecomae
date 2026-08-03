@@ -22,10 +22,11 @@ Public frontend/backend authority is **still PHP** for product chrome:
 - Approved exact-route API shadows on www: `/health`, `/migration/*`, `/api/v1/price/lookup`, catalog **18/18** complete through `brand-parts`. Unauth 401 ASP.NET JSON; VIN warm 200; offline-cache routes may 404 `cache_miss` when probe params ≠ warm key.
 - Surface digests: **30/30** live; storefront digests: **4/4** live (batch exact-route installers; never broad cutover)
 - Blazor SSR ops console: `/migration/console` (not chrome cutover)
+- Digest dual-sample contract compare: **pairsChecked=19 failed=0** (migration baseline + live ASP.NET; see `surface-parity/digest-dual-sample-contract-result.json`)
 - Live `/migration/surface-parity` → `parity-not-yet-reached`
 - Live `/migration/presentation-parity` → `presentation-shell-scaffolded` only
 
-Approval must **not** be written until dual-sample PHP↔ASP.NET parity where required + human approval. Exact-route digests alone are insufficient for PHP removal (CP/ERP/BOS chrome still PHP).
+Exact-route digests + contract dual samples are present. **CP/ERP/BOS chrome is still PHP** — approval must not be written until a human release owner accepts that risk (or chrome cutover is intentional). Do not invent approval.
 
 ## Required before approval can be written
 

@@ -26,7 +26,8 @@
       "Wired catalog API exact-routes complete (18/18).",
       "Surface digests 30/30 and storefront digests 4/4 via batch exact-route installers.",
       "Blazor SSR Zero-PHP console at /migration/console (ops UI; not product chrome).",
-      "Product chrome still PHP; dual samples + human approval still required."
+      "Digest dual-sample contract compare pairsChecked=19 failed=0 (migration baseline + live ASP.NET).",
+      "Product chrome still PHP; human RELEASE_OWNER_APPROVAL.md still required for PHP removal."
     ]
   },
   "inventory": {
@@ -73,18 +74,14 @@
     "Authenticated staging smoke attached (PR #612) for price/catalog/surface digests",
     "Wired catalog exact-routes complete (18/18)",
     "Surface digests 30/30 + storefront digests 4/4",
-    "Attach dual PHP↔ASP.NET parity samples",
+    "Digest dual-sample contract parity attached (19/19 pass; cutoverAllowed=false)",
     "Human RELEASE_OWNER_APPROVAL.md before PHP decommission (remaining 5% meter)",
     "Product chrome cutover remains a separate intentional step (Blazor console is not chrome)"
   ],
   "nextExecutionOrder": [
-    "Redeploy ASP.NET so /migration/console (Blazor SSR) is live",
-    "ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh",
-    "bash scripts/cloudpanel_probe_storefront_digest_shadows.sh (expect PASS=4)",
-    "bash scripts/cloudpanel_capture_digest_dual_samples.sh && python3 scripts/compare_digest_dual_samples.py",
     "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP chrome must remain).",
     "Confirm /migration/php-decommission-readiness is 8/9 with approval missing.",
-    "Human creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after public exact-route parity (do not invent).",
+    "Human creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after accepting chrome-still-PHP risk (do not invent).",
     "When readyToRemovePhp=true: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh"
   ]
 }

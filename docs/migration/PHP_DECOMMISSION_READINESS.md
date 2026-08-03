@@ -8,7 +8,7 @@ This document tracks the final Zero-PHP gate. It does **not** authorize PHP remo
 
 Live diagnostic: `GET /migration/php-decommission-readiness`
 
-Weighted completion remains **95% / 5% pending**. The residual 5% is PHP runtime decommission only (not “5% of routes left”). Live www: catalog **18/18**, surface digests **30/30**, storefront digests **4/4**. Blazor SSR ops console at `/migration/console`. CP/ERP/BOS **chrome** remains PHP. Authenticated staging smoke is attached on `main` (PR #612); remaining blockers are dual samples + human `RELEASE_OWNER_APPROVAL.md`.
+Weighted completion remains **95% / 5% pending**. The residual 5% is PHP runtime decommission only (not “5% of routes left”). Live www: catalog **18/18**, surface digests **30/30**, storefront digests **4/4**, Blazor `/migration/console`, digest dual-sample contract compare **19/19 pass** (`cutoverAllowed=false`). CP/ERP/BOS **chrome** remains PHP. Authenticated staging smoke is attached on `main` (PR #612); remaining final-gate blocker is human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Operator kit
 
