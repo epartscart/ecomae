@@ -17,7 +17,7 @@ Authoritative product chrome remains **PHP** until intentional exact-route cutov
 
 | Surface | PHP URL | ASP.NET preview / bridge | Presentation | Functionality | Gap notes |
 | --- | --- | --- | --- | --- | --- |
-| Platform CP chrome | `/CP/` (login when unauth) | `/cp/login` → `/cp/app` (auth) | Hybrid Batch 2: `PhpCpDesktopChrome` (`#header`, `.epc-cp-topnav` mega) | Digests ASP.NET; modules PHP via mega-nav / directory | ACL menu cache + desktop widgets still PHP; not cut over |
+| Platform CP chrome | `/CP/` (login when unauth) | `/cp/login` → `/cp/app` (auth) · `/cp/orders` (Batch 4 OMS read) | Hybrid Batch 2/4: `PhpCpDesktopChrome` + OMS read UI | Digests ASP.NET; OMS writes PHP | ACL menu cache + full OMS console still PHP; not cut over |
 | Tenant CP chrome | `tenant/CP/` | same `/cp/app` when shadowed on tenant vhost | Hybrid | Tenant DB via registry | Per-tenant shadow install still operator-driven; keep PHP chrome |
 | CP login | `/CP/` auth plugin | `/cp/login` + `POST /auth/login/admin` | Bridge UI + hub orbit (`.ech-hub`) + particles + login hero CSS | Batch 3: PHP-compatible `sessions` + `admin_*` when `SecretSuccession` set; cookie dual-sample harness | Rate-limit / social / demo / shared-ERP picker still PHP |
 | Platform ERP | `/ERP/` | `/erp/app` | Hybrid Batch 2: `PhpErpDesktopChrome` (`.epc-erp-topbar`, `.epc-erp-topnav`) | Digests ASP.NET; tab bodies PHP | Writes / ajax_erp still PHP |

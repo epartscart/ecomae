@@ -1,0 +1,154 @@
+@page "/cp/orders"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Orders · OMS · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+    <link rel="stylesheet" href="/epc-static.php?f=cp/content/shop/order_process/epc_orders_cp.css" />
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-oms-hero {
+            display:grid; grid-template-columns:1.2fr auto; gap:1rem; align-items:center;
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#111 0%,#1f1f1f 55%,#3f0d0d 100%);
+        }
+        .epc-oms-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-oms-hero p { margin:0; color:#d4d4d4; max-width:36rem; font-size:.92rem; line-height:1.45; }
+        .epc-oms-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-oms-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#dc2626;
+        }
+        .epc-oms-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-oms-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-oms-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-oms-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-oms-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-oms-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-oms-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-oms-table th, .epc-oms-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-oms-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-oms-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
+        .epc-oms-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-oms-hero,.epc-oms-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-orders-page epc-oms-hero">
+        <div>
+            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
+            <h1>Orders · OMS</h1>
+            <p>Batch 4 read-only shop_orders digest under PHP CP desktop chrome. Full OMS console, filters, and writes stay on live PHP.</p>
+            <div class="epc-oms-cta">
+                <a href="/CP/shop/orders/orders">Open full PHP OMS</a>
+                <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", "/CP/shop/orders/orders")">Hybrid workspace</a>
+                <a class="ghost" href="/cp/app">Command centre</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="epc-scp-orders-kpi epc-oms-kpis" aria-label="OMS KPIs">
+        <div class="epc-oms-kpi"><strong>@_summary.Open</strong><span>Open orders</span></div>
+        <div class="epc-oms-kpi"><strong>@_summary.Today</strong><span>Orders today</span></div>
+        <div class="epc-oms-kpi"><strong>@_summary.PendingShip</strong><span>Pending ship (paid)</span></div>
+    </div>
+
+    <div class="epc-oms-table-wrap">
+        <table class="epc-oms-table">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>When</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Paid</th>
+                    <th>Office</th>
+                    <th>Items</th>
+                    <th>Sum</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_orders.Count == 0)
+                {
+                    <tr><td colspan="9">No orders in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var o in _orders)
+                    {
+                        var phpHref = $"/CP/shop/orders/orders?order_id={o.Id.ToString(CultureInfo.InvariantCulture)}";
+                        <tr>
+                            <td><strong>#@o.Id</strong></td>
+                            <td>@FormatTime(o.TimeUnix)</td>
+                            <td>@o.UserId</td>
+                            <td>@o.Status</td>
+                            <td>@o.Paid</td>
+                            <td>@o.OfficeId</td>
+                            <td>@o.CountItems</td>
+                            <td>@o.OrderSum.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td><a href="@phpHref">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-oms-note">
+        Read-only preview · source <code>@_source</code> · count @_orders.Count.
+        PHP OMS remains authoritative for status changes, payments, messages, and office ACL.
+        Digest JSON: <a href="/cp/orders-digest?limit=50">/cp/orders-digest</a>.
+        Not a broad /cp cutover.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private CpOrdersSummary _summary = new(0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpShopOrderDigest> _orders = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListCpOrdersAsync(50, ctx.RequestAborted);
+        _summary = result.Summary;
+        _orders = result.Orders;
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0)
+        {
+            return "—";
+        }
+
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
+}

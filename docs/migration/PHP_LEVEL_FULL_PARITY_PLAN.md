@@ -67,7 +67,7 @@ flowchart TD
 - Probes may lift structural selectors (`#header`, `.epc-cp-topnav`, `.bos-topnav`, `.epc-erp-topnav`) but must **not** claim `readyForPhpRemoval`.
 - BOS: admin-cookie digests ≠ PHP `$_SESSION` — full tenant module UX stays on `/BOS/`.
 
-### Batch 3 — Login bridge hardening + graphical login/hero parity ← current (this PR)
+### Batch 3 — Login bridge hardening + graphical login/hero parity ✅ (merged #660)
 - Host: `EcomAE__SecretSuccession` (= PHP `secret_succession`); verify with `scripts/cloudpanel_verify_secret_succession_configured.sh` (never prints value).
 - Customer mint formula fixed to PHP `md5(contact+userId+time+secret)` + `last_activiti_time`; CSRF IP prefers `X-Forwarded-For`.
 - Dual-sample cookie harness: `scripts/cloudpanel_capture_login_cookie_dual_samples.sh` + `scripts/compare_login_cookie_dual_samples.py` → `docs/migration/evidence/login-session-bridge/` (`cutoverAllowed=false`).
@@ -79,15 +79,15 @@ flowchart TD
   - Storefront `/storefront/app`: `PhpAspPistonBanner` (`.epc-engine-animation`) + `epc_automotive_spareparts.css` + `data-epc-industry` / `data-epc-storefront` attrs
   - Live homepage slider media remains PHP-authoritative on epartscart.com
 
-### Batch 4 — Vertical module slices (one family → exact-route)
+### Batch 4 — Vertical module slices (one family → exact-route) ← current
 Priority order:
-1. CP Orders/OMS (read UI first; writes PHP)
+1. **CP Orders/OMS (read UI first; writes PHP)** — this PR: `/cp/orders` + `/cp/orders-digest` under `PhpCpDesktopChrome`; PHP `/CP/shop/orders/orders` authoritative for writes/console
 2. CP Users/Groups (digest → Blazor list)
 3. ERP one tab family at a time (`erp_tabs_*.php`)
 4. Storefront search results page
 5. Cart/checkout last
 
-Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location =` only.
+Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location =` only. Keep PHP hero/animation/graphical class trees when the surface has them.
 
 ### Batch 5 — Catalog miss / UMAPI
 - Cache-hit paths already live; miss fill remains PHP until proven.

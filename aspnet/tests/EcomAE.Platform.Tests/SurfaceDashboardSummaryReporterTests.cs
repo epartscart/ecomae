@@ -17,6 +17,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var health = await reporter.BuildBosFleetHealthAsync(5);
         var accounts = await reporter.BuildErpAccountsAsync();
         var orders = await reporter.ListStorefrontOrdersAsync(9, 10);
+        var cpOrders = await reporter.ListCpOrdersAsync(10);
         var users = await reporter.ListCpUsersAsync(10);
         var groups = await reporter.ListCpGroupsAsync(10);
         var suppliers = await reporter.ListErpSuppliersAsync(10);
@@ -50,6 +51,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", health.Source);
         Assert.Equal("migration", accounts.Source);
         Assert.Equal("migration", orders.Source);
+        Assert.Equal("migration", cpOrders.Source);
+        Assert.Equal(0, cpOrders.Summary.Open);
+        Assert.Empty(cpOrders.Orders);
         Assert.Equal("migration", users.Source);
         Assert.Equal("migration", groups.Source);
         Assert.Equal("migration", suppliers.Source);

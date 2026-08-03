@@ -43,6 +43,10 @@ SUMMARY_CONTRACTS = {
         "summary",
         "userId,orders,sessions,garageVehicles,source,message",
     ),
+    "cp-orders-digest": (
+        "summary",
+        "open,today,pendingShip,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",

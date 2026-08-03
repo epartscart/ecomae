@@ -78,6 +78,45 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// CP OMS recent orders (platform-wide read digest).
+    /// Office-manager ACL filtering remains PHP-authoritative.
+    /// </summary>
+    public const string SelectCpShopOrders = """
+        SELECT o.`id`, o.`time`, o.`user_id`, o.`status`, o.`paid`,
+               IFNULL(o.`paid_type`, 0) AS paid_type,
+               IFNULL(o.`office_id`, 0) AS office_id,
+               IFNULL(o.`successfully_created`, 0) AS successfully_created,
+               IFNULL((SELECT COUNT(*) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0) AS count_items,
+               IFNULL((SELECT SUM(i.`price` * i.`count_need`) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0) AS order_sum
+        FROM `shop_orders` o
+        ORDER BY o.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Open = statuses that are not finished and not canceled (PHP epc_orders_ws_open_status_ids).</summary>
+    public const string CountCpOrdersOpen = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `status` IN (
+            SELECT `id` FROM `shop_orders_statuses_ref`
+            WHERE `for_inverse` != 1 AND `for_finish` != 1
+        )
+        """;
+
+    public const string CountCpOrdersToday = """
+        SELECT COUNT(*) FROM `shop_orders` WHERE `time` >= @todayStart
+        """;
+
+    /// <summary>Pending ship ≈ open-ish statuses with paid IN (1,2) — PHP epc_orders_ws_kpi pending_ship (all offices).</summary>
+    public const string CountCpOrdersPendingShip = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `paid` IN (1, 2)
+          AND `status` IN (
+              SELECT `id` FROM `shop_orders_statuses_ref`
+              WHERE `for_finish` != 1 AND `for_inverse` != 1
+          )
+        """;
+
     public const string SelectCpUsers = """
         SELECT `user_id`, `email`, `phone`, `unlocked`, `time_registered`, `time_last_visit`
         FROM `users`

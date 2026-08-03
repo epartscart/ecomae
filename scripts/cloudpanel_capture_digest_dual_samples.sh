@@ -42,6 +42,7 @@ declare -A ROUTES=(
   [cp-config-items]="/cp/config-items?limit=5"
   [cp-admin-sessions]="/cp/admin-sessions?limit=5"
   [cp-storages]="/cp/storages?limit=5"
+  [cp-orders-digest]="/cp/orders-digest?limit=5"
   [erp-cash-accounts]="/erp/cash-accounts?limit=5"
   [erp-cash-entries]="/erp/cash-entries?limit=5"
   [bos-tenants]="/bos/tenants?limit=5"

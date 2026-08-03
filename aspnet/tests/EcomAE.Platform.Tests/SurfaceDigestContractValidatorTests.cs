@@ -103,6 +103,18 @@ public sealed class SurfaceDigestContractValidatorTests
         var listPayloads = new Dictionary<string, object>
         {
             ["/cp/tenants"] = Envelope("cp", "tenants", await reporter.ListPortalTenantsAsync(10), session),
+            ["/cp/orders-digest"] = new
+            {
+                ok = true,
+                surface = "cp",
+                summary = (await reporter.ListCpOrdersAsync(10)).Summary,
+                orders = (await reporter.ListCpOrdersAsync(10)).Orders,
+                count = 0,
+                source = "migration",
+                message = "x",
+                session,
+                note = "contract validation"
+            },
             ["/cp/users"] = Envelope("cp", "users", await reporter.ListCpUsersAsync(10), session),
             ["/cp/groups"] = Envelope("cp", "groups", await reporter.ListCpGroupsAsync(10), session),
             ["/cp/modules"] = Envelope("cp", "modules", await reporter.ListCpModulesAsync(10), session),

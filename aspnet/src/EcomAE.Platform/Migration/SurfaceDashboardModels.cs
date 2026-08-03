@@ -79,6 +79,32 @@ public sealed record StorefrontOrdersResult(
     string Source,
     string Message);
 
+public sealed record CpShopOrderDigest(
+    long Id,
+    long TimeUnix,
+    int UserId,
+    int Status,
+    int Paid,
+    int PaidType,
+    int OfficeId,
+    int SuccessfullyCreated,
+    int CountItems,
+    decimal OrderSum);
+
+public sealed record CpOrdersSummary(
+    int Open,
+    int Today,
+    int PendingShip,
+    string Source,
+    string Message);
+
+public sealed record CpOrdersListResult(
+    CpOrdersSummary Summary,
+    IReadOnlyList<CpShopOrderDigest> Orders,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record CpUserDigest(
     int UserId,
     string Email,
