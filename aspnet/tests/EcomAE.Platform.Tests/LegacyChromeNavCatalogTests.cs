@@ -32,6 +32,8 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Cash & bank PHP" && item.Href.Contains("tab=cash_bank", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Chart of accounts list" && item.Href == "/erp/coa-accounts-app");
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Chart of accounts PHP" && item.Href.Contains("tab=coa", StringComparison.Ordinal));
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "GL journals list" && item.Href == "/erp/gl-journals-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "General ledger PHP" && item.Href.Contains("tab=gl", StringComparison.Ordinal));
     }
 
     [Fact]

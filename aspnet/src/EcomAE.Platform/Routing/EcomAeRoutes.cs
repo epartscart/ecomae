@@ -70,6 +70,8 @@ public static class EcomAeRoutes
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
     public const string ErpGlJournals = "/erp/gl-journals";
+    /// <summary>GL journals Blazor list (JSON digest remains <see cref="ErpGlJournals"/>).</summary>
+    public const string ErpGlJournalsApp = "/erp/gl-journals-app";
     public const string ErpCoaAccounts = "/erp/coa-accounts";
     /// <summary>Chart of accounts Blazor list (JSON digest remains <see cref="ErpCoaAccounts"/>).</summary>
     public const string ErpCoaAccountsApp = "/erp/coa-accounts-app";
