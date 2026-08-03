@@ -57,7 +57,8 @@ public static class LegacyChromeNavCatalog
 
     public static readonly IReadOnlyList<NavItem> ErpQuickActions =
     [
-        new("Sales orders", "/ERP/?epc_erp_shell=1&area=sales"),
+        new("Sales orders list", "/erp/sales-orders-app"),
+        new("Sales orders PHP", "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders"),
         new("Purchase orders", "/ERP/?epc_erp_shell=1&area=purchasing"),
         new("General ledger", "/ERP/?epc_erp_shell=1&area=finance"),
         new("Staff", "/ERP/?epc_erp_shell=1&area=people"),

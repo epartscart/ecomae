@@ -20,7 +20,7 @@ Authoritative product chrome remains **PHP** until intentional exact-route cutov
 | Platform CP chrome | `/CP/` (login when unauth) | `/cp/login` → `/cp/app` · `/cp/orders` · `/cp/users-app` · `/cp/groups-app` | Hybrid Batch 2/4: `PhpCpDesktopChrome` + OMS/users/groups read UIs | Digests ASP.NET; writes PHP | Full user/group managers + OMS console still PHP; not cut over |
 | Tenant CP chrome | `tenant/CP/` | same `/cp/app` when shadowed on tenant vhost | Hybrid | Tenant DB via registry | Per-tenant shadow install still operator-driven; keep PHP chrome |
 | CP login | `/CP/` auth plugin | `/cp/login` + `POST /auth/login/admin` | Bridge UI + hub orbit (`.ech-hub`) + particles + login hero CSS | Batch 3: PHP-compatible `sessions` + `admin_*` when `SecretSuccession` set; cookie dual-sample harness | Rate-limit / social / demo / shared-ERP picker still PHP |
-| Platform ERP | `/ERP/` | `/erp/app` | Hybrid Batch 2: `PhpErpDesktopChrome` (`.epc-erp-topbar`, `.epc-erp-topnav`) | Digests ASP.NET; tab bodies PHP | Writes / ajax_erp still PHP |
+| Platform ERP | `/ERP/` | `/erp/app` · `/erp/sales-orders-app` | Hybrid Batch 2/4: `PhpErpDesktopChrome` + sales orders read UI | Digests ASP.NET; SO writes PHP | Full tab UIs / ajax_erp still PHP; not cut over |
 | Client / platform ERP routers | `/cp/client-erp/…`, `/cp/platform-erp/` | link via PHP | PHP-live | PHP | Not cut over |
 | ERP login | ERP routers / CP plugin | `/erp/login` | Bridge UI | Same admin session mint (Batch 3 dual-sample) | Shared-tenant picker still PHP |
 | Super BOS | `/BOS/` | `/bos/app` | Hybrid Batch 2: `PhpBosDesktopChrome` (`.bos-topnav`, `.bos-main`) | Digests ASP.NET | **DECISION:** `/BOS/` PHP-authoritative — admin cookies ≠ `$_SESSION` |
