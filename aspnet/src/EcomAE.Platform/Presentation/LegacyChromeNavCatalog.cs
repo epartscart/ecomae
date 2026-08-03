@@ -118,6 +118,8 @@ public static class LegacyChromeNavCatalog
     [
         new("Audit log list", "/bos/audit-log-app"),
         new("Audit log PHP", "/CP/control/portal/epc_boc_audit_log"),
+        new("Fleet tenants list", "/bos/tenants-app"),
+        new("Tenant control PHP", "/CP/control/portal/epc_tenant_control_center"),
         new("Fleet command", "/bos/app"),
         new("Native BOS", "/BOS/")
     ];

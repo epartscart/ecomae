@@ -522,11 +522,15 @@ check 'tenant safety operator verify note exists' test -f "$ROOT/docs/migration/
 check 'presentation parity states digests not tenant UX' contains "$ROOT/docs/migration/PRESENTATION_PARITY.md" 'not** tenant product chrome'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+search+cart+sf-orders+garage+profile+account-summary+inventory-stock routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 39'
+check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+search+cart+sf+inventory-stock+bos-tenants routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 40'
 check 'tenant chrome probe rejects erp inventory-stock-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'ErpInventoryStockApp'
+check 'tenant chrome probe rejects bos tenants-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'BosTenantsApp'
 check 'presentation nginx includes /erp/inventory-stock-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/inventory-stock-app'
+check 'presentation nginx includes /bos/tenants-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /bos/tenants-app'
 check 'erp inventory-stock-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpInventoryStockApp'
+check 'bos tenants-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'BosTenantsApp'
 check 'erp inventory-stock Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpInventoryStockApp.razor"
+check 'bos tenants Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosTenantsApp.razor"
 check 'presentation installer treats example conf as allowlist' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'Example conf is the allowlist'
 check 'presentation nginx includes /storefront/search-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /storefront/search-app'
 check 'presentation nginx includes /storefront/cart-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /storefront/cart-app'

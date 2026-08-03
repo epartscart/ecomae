@@ -114,6 +114,8 @@ public static class EcomAeRoutes
     public const string BosParity = "/bos/parity";
     public const string BosFleetSummary = "/bos/fleet-summary";
     public const string BosTenants = "/bos/tenants";
+    /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
+    public const string BosTenantsApp = "/bos/tenants-app";
     public const string BosFleetHealth = "/bos/fleet-health";
     public const string BosFleetReadiness = "/bos/fleet-readiness";
     public const string BosAuditLog = "/bos/audit-log";
