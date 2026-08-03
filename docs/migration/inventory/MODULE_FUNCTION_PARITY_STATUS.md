@@ -45,7 +45,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Module family | PHP | ASP.NET | Status |
 | --- | --- | --- | --- |
 | Login landing | `/ERP/` | `/erp/login` (Batch 3 admin cookie bridge) | hybrid-deeplink |
-| Dashboard chrome | ERP desktop | `/erp/app` + `PhpErpDesktopChrome` topnav + categories/tabs | digest-only + hybrid-deeplink (Batch 2 desktop) |
+| Dashboard chrome | ERP desktop | `/erp/app` + `/erp/dashboard-summary-app` + topnav categories/tabs | digest-only + hybrid-deeplink (Batch 2 desktop) |
 | Areas (35 with tabs) | `erp_nav_areas.php` | directory → PHP | hybrid-deeplink |
 | Tab UIs (154) | `erp_tabs_*.php` + nav tabs | directory → PHP; SO list at `/erp/sales-orders-app` | hybrid-deeplink (+ Batch 4 SO read UI) |
 | Sales orders tab | `erp_tabs_sales_orders.php` | `/erp/sales-orders-app` over `/erp/sales-orders` digest | digest-only + hybrid-deeplink (Batch 4; writes PHP) |

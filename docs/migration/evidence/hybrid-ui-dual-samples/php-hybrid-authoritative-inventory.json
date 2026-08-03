@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-03T19:27:14Z",
+  "capturedAt": "2026-08-03T19:30:28Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -156,6 +156,12 @@
       "appRoute": "/erp/accounts-summary-app",
       "digestRoute": "/erp/accounts-summary",
       "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
+    },
+    {
+      "stem": "erp-dashboard-summary",
+      "appRoute": "/erp/dashboard-summary-app",
+      "digestRoute": "/erp/dashboard-summary",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=overview"
     },
     {
       "stem": "bos-audit-log",
