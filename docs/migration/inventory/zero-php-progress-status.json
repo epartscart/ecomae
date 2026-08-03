@@ -54,7 +54,7 @@
     "Release-owner approval before PHP decommission (remaining 5%)"
   ],
   "nextExecutionOrder": [
-    "Redeploy smoke-issuer: bash scripts/cloudpanel_redeploy_final_gate_branch.sh (or ECOMAE_BRANCH=cursor/smoke-issuer-php-platform-pdo-7b3b). Use origin/main after PR merge.",
+    "Redeploy main: bash scripts/cloudpanel_redeploy_final_gate_branch.sh (or git reset --hard origin/main && bash scripts/cloudpanel_find_and_redeploy.sh).",
     "Confirm /migration/php-decommission-readiness shows public-probes/scripts/shadows present after redeploy.",
     "ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
     "ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh (login Super CP if cookie missing).",
