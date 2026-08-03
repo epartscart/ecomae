@@ -24,13 +24,18 @@ public sealed class PhpDecommissionReadinessReporterTests
         Assert.Contains(report.Checklist, item => item.Id == "public-probes" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "cloudpanel-capture-script" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "parity-samples-attached" && item.Status == "present");
-        Assert.Contains(report.NextActions, action => action.Contains("run_zero_php_final_gate_checklist.sh", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_issue_smoke_credentials.sh", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_capture_final_gate_artifacts.sh", StringComparison.Ordinal));
         Assert.True(report.ChecklistCompletePercent < 100);
-        Assert.False(string.Equals(report.Checklist.First(item => item.Id == "staging-smoke-price").Status, "present", StringComparison.Ordinal));
-        Assert.Contains(report.Blockers, blocker => blocker.Contains("Authenticated CloudPanel smoke keys", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "missing");
+        // After #612, authenticated staging smoke is attached on main; remaining blocker is human approval.
+        Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-price").Status);
+        Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-catalog").Status);
+        Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-surfaces").Status);
+        Assert.Contains(report.NextActions, action => action.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("do not invent", StringComparison.OrdinalIgnoreCase)
+            || action.Contains("APPROVED_TO_REMOVE_PHP_FALLBACK", StringComparison.Ordinal));
+        Assert.Contains(report.Blockers, blocker => blocker.Contains("RELEASE_OWNER_APPROVAL", StringComparison.OrdinalIgnoreCase)
+            || blocker.Contains("release-owner-approval", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(report.NextActions, action => action.Contains("cloudpanel_issue_smoke_credentials.sh", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -132,7 +137,11 @@ public sealed class PhpDecommissionReadinessReporterTests
             Assert.Contains(report.Checklist, item => item.Id == "exact-route-shadows-only" && item.Status == "present");
             Assert.Contains(report.Checklist, item => item.Id == "cloudpanel-capture-script" && item.Status == "present");
             Assert.Contains(report.Checklist, item => item.Id == "rollback-validated" && item.Status == "present");
-            Assert.True(report.ChecklistCompleteCount >= 4);
+            Assert.Contains(report.Checklist, item => item.Id == "staging-smoke-price" && item.Status == "present");
+            Assert.Contains(report.Checklist, item => item.Id == "staging-smoke-catalog" && item.Status == "present");
+            Assert.Contains(report.Checklist, item => item.Id == "staging-smoke-surfaces" && item.Status == "present");
+            Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "missing");
+            Assert.True(report.ChecklistCompleteCount >= 8);
         }
         finally
         {

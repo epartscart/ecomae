@@ -8,7 +8,7 @@ This document tracks the final Zero-PHP gate. It does **not** authorize PHP remo
 
 Live diagnostic: `GET /migration/php-decommission-readiness`
 
-Weighted completion remains **95% / 5% pending**. The residual 5% is PHP runtime decommission only.
+Weighted completion remains **95% / 5% pending**. The residual 5% is PHP runtime decommission only. Authenticated staging smoke for price/catalog/surface digests is attached on `main` (PR #612); the remaining final-gate blocker is human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Operator kit
 

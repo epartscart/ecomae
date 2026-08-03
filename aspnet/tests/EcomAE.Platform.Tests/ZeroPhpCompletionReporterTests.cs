@@ -25,16 +25,16 @@ public sealed class ZeroPhpCompletionReporterTests
         Assert.Contains(report.Areas, area => area.Name == "Storefront and public API parity" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "Background jobs and scheduled work" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "Data, auth, observability, and rollback evidence" && area.CompletePercent == 100);
+        // Smoke attached (#612): next actions focus on redeploy + human approval, not re-issuing keys.
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_redeploy_final_gate_branch.sh", StringComparison.Ordinal)
             || action.Contains("origin/main", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("ensure_epc_api_clients_table", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("issue_smoke_credentials", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("TenantRegistry", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("diagnose_smoke_db", StringComparison.Ordinal)
-            || action.Contains("apply_epc_api_clients_ddl", StringComparison.Ordinal)
-            || action.Contains("use_php_dp_config_as_tenant_registry", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("RELEASE_OWNER_APPROVAL", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.NextActions, action => action.Contains("ECOMAE_CUSTOMER_COOKIE_HEADER", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md", StringComparison.Ordinal));
+        Assert.DoesNotContain(report.NextActions, action => action.Contains("issue_smoke_credentials", StringComparison.Ordinal));
+        Assert.Contains(
+            report.Areas.First(area => area.Name == "PHP runtime decommission").PendingWork,
+            work => work.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal));
     }
 
     [Fact]

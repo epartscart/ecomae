@@ -12,7 +12,7 @@ Do not use this handoff table as the source of truth for completion percentages.
 
 ## Handoff summary
 
-ASP.NET Core migration foundation and diagnostics-only deploy tooling are in place. Remaining work is exact-route Zero-PHP parity, Enterprise BOS stack scaffolding (EF Core/PG17/YARP/OTel/Redis/Kafka), CloudPanel operations, and staging smoke — without broad PHP cutover.
+ASP.NET Core migration foundation and diagnostics-only deploy tooling are in place. Authenticated final-gate staging smoke is attached on `main` (PR #612). Remaining Zero-PHP 5% is human `RELEASE_OWNER_APPROVAL.md` plus exact-route shadow promotion / Enterprise BOS scaffolding — without broad PHP cutover.
 
 ## Completion percentages (pointers)
 
@@ -27,8 +27,8 @@ ASP.NET Core migration foundation and diagnostics-only deploy tooling are in pla
 1. Keep ASP.NET Core as sole enterprise backend; Python AI-only; no Java/Node/Go/PHP backends.
 2. Continue exact-route Zero-PHP digests/parity with PHP fallback required.
 3. Advance EF Core / observability / YARP scaffolding without claiming infra live.
-4. Redeploy main via `bash scripts/cloudpanel_redeploy_final_gate_branch.sh` (defaults to `origin/main`).
-5. Ensure table → issue smoke creds → validate → capture/commit before any `location =` nginx shadows.
+4. Redeploy main via `bash scripts/cloudpanel_redeploy_final_gate_branch.sh` so ContentRoot packs smoke evidence.
+5. Confirm readiness smoke items present; promote only approved `location =` shadows; never invent `RELEASE_OWNER_APPROVAL.md`.
 
 ## Do not do yet
 

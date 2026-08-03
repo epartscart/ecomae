@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace EcomAE.Platform.Migration;
 
 public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
@@ -14,6 +16,15 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
         var gate = _decommission.BuildReport();
         var decommissionComplete = gate.ReadyToRemovePhp ? 100 : 0;
         var decommissionStatus = gate.ReadyToRemovePhp ? "ready-for-php-removal" : "blocked";
+        var smokeAttached = gate.Checklist.Any(item =>
+                string.Equals(item.Id, "staging-smoke-price", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(item.Status, "present", StringComparison.OrdinalIgnoreCase))
+            && gate.Checklist.Any(item =>
+                string.Equals(item.Id, "staging-smoke-catalog", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(item.Status, "present", StringComparison.OrdinalIgnoreCase))
+            && gate.Checklist.Any(item =>
+                string.Equals(item.Id, "staging-smoke-surfaces", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(item.Status, "present", StringComparison.OrdinalIgnoreCase));
 
         ZeroPhpCompletionArea[] areas =
         [
@@ -44,7 +55,9 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
             new("Data, auth, observability, and rollback evidence", 15, 100, "nested-acl-otel-scaffold-wired", [
                 "Admin sessions expose capabilities plus nested modules_access ACL; ActivitySource names are reserved.",
                 "EF Core stub entities exist but DbContext is not registered; PG17/YARP/Redis/Kafka remain not live.",
-                "Staging smoke artifacts and live rollback approvals remain pending before PHP removal."
+                smokeAttached
+                    ? "Authenticated staging smoke is attached; release-owner approval remains before PHP removal."
+                    : "Staging smoke artifacts and live rollback approvals remain pending before PHP removal."
             ]),
             new("PHP runtime decommission", 5, decommissionComplete, decommissionStatus, gate.ReadyToRemovePhp
                 ?
@@ -56,35 +69,57 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
                 :
                 [
                     $"Final-gate checklist {gate.ChecklistCompleteCount}/{gate.ChecklistTotalCount} ({gate.ChecklistCompletePercent}%).",
-                    "Authenticated staging smoke + RELEASE_OWNER_APPROVAL.md are still required.",
+                    smokeAttached
+                        ? "Staging smoke is attached; RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK is the remaining gate blocker."
+                        : "Authenticated staging smoke + RELEASE_OWNER_APPROVAL.md are still required.",
                     "See /migration/php-decommission-readiness for the explicit blocker list."
                 ])
         ];
 
         var complete = areas.Sum(area => area.WeightPercent * area.CompletePercent) / 100;
+        string[] nextActions;
+        if (gate.ReadyToRemovePhp)
+        {
+            nextActions =
+            [
+                "ReadyToRemovePhp is true — run the gated CloudPanel decommission script with explicit confirmation.",
+                "Keep rollback available and avoid broad /api /cp /erp /bos /storefront cutover."
+            ];
+        }
+        else if (smokeAttached)
+        {
+            nextActions =
+            [
+                "Redeploy main so ContentRoot packs attached smoke: bash scripts/cloudpanel_redeploy_final_gate_branch.sh",
+                "Confirm /migration/php-decommission-readiness shows smoke items present (approval still missing).",
+                "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
+                "Promote one location = shadow at a time; compare_catalog_status_parity.py / compare_catalog_list_parity.py before more catalog paths.",
+                "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
+                "The remaining 5% is PHP runtime decommission only — obtain human RELEASE_OWNER_APPROVAL.md (APPROVED_TO_REMOVE_PHP_FALLBACK); do not invent approval or remove PHP."
+            ];
+        }
+        else
+        {
+            nextActions =
+            [
+                "Redeploy main: bash scripts/cloudpanel_redeploy_final_gate_branch.sh (or git reset --hard origin/main && bash scripts/cloudpanel_find_and_redeploy.sh).",
+                "Diagnose smoke DB: cloudpanel_diagnose_smoke_db.sh (TenantRegistry vs PHP app db, redacted).",
+                "If CREATE denied: cloudpanel_apply_epc_api_clients_ddl.sh (clpctl master) or cloudpanel_use_php_dp_config_as_tenant_registry.sh when PHP db already has epc_api_clients.",
+                "Ensure table + issue smoke creds: cloudpanel_ensure_epc_api_clients_table.sh → ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES cloudpanel_issue_smoke_credentials.sh (never invent keys).",
+                "Validate env (redacted): cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
+                "Capture/commit staging-smoke for price lookup, catalog status, and surface digests.",
+                "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
+                "Promote one location = shadow at a time; compare_catalog_status_parity.py / compare_catalog_list_parity.py before more catalog paths.",
+                "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
+                "The remaining 5% is PHP runtime decommission only — run scripts/run_zero_php_final_gate_checklist.sh, attach staging smoke/parity artifacts, then release-owner approval before PHP removal."
+            ];
+        }
+
         return new ZeroPhpCompletionReport(
             complete,
             100 - complete,
             gate.ReadyToRemovePhp ? "ready-for-php-removal" : "not-ready-for-php-removal",
             areas,
-            gate.ReadyToRemovePhp
-                ?
-                [
-                    "ReadyToRemovePhp is true — run the gated CloudPanel decommission script with explicit confirmation.",
-                    "Keep rollback available and avoid broad /api /cp /erp /bos /storefront cutover."
-                ]
-                :
-                [
-                    "Redeploy main: bash scripts/cloudpanel_redeploy_final_gate_branch.sh (or git reset --hard origin/main && bash scripts/cloudpanel_find_and_redeploy.sh).",
-                    "Diagnose smoke DB: cloudpanel_diagnose_smoke_db.sh (TenantRegistry vs PHP app db, redacted).",
-                    "If CREATE denied: cloudpanel_apply_epc_api_clients_ddl.sh (clpctl master) or cloudpanel_use_php_dp_config_as_tenant_registry.sh when PHP db already has epc_api_clients.",
-                    "Ensure table + issue smoke creds: cloudpanel_ensure_epc_api_clients_table.sh → ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES cloudpanel_issue_smoke_credentials.sh (never invent keys).",
-                    "Validate env (redacted): cloudpanel_validate_final_gate_env.sh / cloudpanel_prepare_smoke_secrets.sh.",
-                    "Capture/commit staging-smoke for price lookup, catalog status, and surface digests.",
-                    "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
-                    "Promote one location = shadow at a time; compare_catalog_status_parity.py / compare_catalog_list_parity.py before more catalog paths.",
-                    "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
-                    "The remaining 5% is PHP runtime decommission only — run scripts/run_zero_php_final_gate_checklist.sh, attach staging smoke/parity artifacts, then release-owner approval before PHP removal."
-                ]);
+            nextActions);
     }
 }
