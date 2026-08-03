@@ -107,8 +107,7 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Users/Groups · Orders · Modules · Pages · Menus · Tenants · Currencies · Storages · Admin-sessions · API clients · Config-items (#686)
 
 ### Hybrid storefront continue
-- ✅ Search · Cart · Orders (#687) · Garage (#688)
-- Profile Blazor (`/storefront/profile-app`) tracked on www preview branch; PHP `/users/profile` authoritative.
+- ✅ Search · Cart · Orders (#687) · Garage (#688) · Profile (#689)
 - Exact-route www preview only — live epartscart.com / tenant storefronts stay PHP (same-to-same).
 - Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 
