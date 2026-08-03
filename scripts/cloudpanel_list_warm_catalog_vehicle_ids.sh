@@ -3,6 +3,7 @@
 #   models         → mfa_id counts from epc_umapi_models
 #   modifications  → ms_id counts from epc_umapi_modifications
 #   vin            → warm rows from epc_umapi_vin_cache (vehicle_count>0)
+#   umapi <action> → warm epc_umapi_cache rows for action (engines|analogs|…)
 # Never prints DB passwords. Never removes PHP.
 #
 # Usage:
@@ -10,9 +11,11 @@
 #   bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh models
 #   bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh modifications
 #   bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh vin
+#   bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi analogs
 set -euo pipefail
 
 KIND="${1:-models}"
+UMAPI_ACTION="${2:-}"
 ENV_FILE="${ECOMAE_ASPNET_ENV_FILE:-/etc/ecomae-aspnet/platform.env}"
 SECTION="${ECOMAE_CATALOG_SECTION:-passenger}"
 LIMIT="${ECOMAE_WARM_ID_LIMIT:-${ECOMAE_WARM_MFA_LIMIT:-10}}"
@@ -44,8 +47,18 @@ case "$KIND" in
     SQL="$(printf "SELECT \`vin\`, \`language\`, \`region\`, \`vehicle_count\` FROM \`%s\` WHERE \`vehicle_count\` > 0 ORDER BY \`updated_at\` DESC LIMIT %s;" \
       "$TABLE" "$LIMIT")"
     ;;
+  umapi|cache|umapi_cache)
+    if [[ -z "$UMAPI_ACTION" || ! "$UMAPI_ACTION" =~ ^[a-z0-9_-]+$ ]]; then
+      printf 'Usage: %s umapi <action>   # e.g. umapi analogs|engines|article-brands\n' "$(basename "$0")" >&2
+      exit 2
+    fi
+    TABLE="epc_umapi_cache"
+    COL="cache_key"
+    SQL="$(printf "SELECT \`cache_key\`, \`action\`, \`section\`, \`rows_count\`, \`last_sync\` FROM \`%s\` WHERE \`action\`='%s' ORDER BY \`last_sync\` DESC LIMIT %s;" \
+      "$TABLE" "$UMAPI_ACTION" "$LIMIT")"
+    ;;
   *)
-    printf 'Usage: %s models|modifications|vin\n' "$(basename "$0")" >&2
+    printf 'Usage: %s models|modifications|vin|umapi <action>\n' "$(basename "$0")" >&2
     exit 2
     ;;
 esac
