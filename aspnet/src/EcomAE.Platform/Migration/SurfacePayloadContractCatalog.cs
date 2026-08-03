@@ -292,6 +292,7 @@ public static class SurfacePayloadContractCatalog
         new("cp", "cp/templates/bootstrap_admin/desktop.php chrome", "/cp?format=html", "presentation-shell-scaffolded", "Must reuse PHP CSS asset URLs; interactive widgets still PHP."),
         new("cp", "CP dashboard KPI widgets", "/cp/dashboard-summary", "digest-wired-awaiting-dual-sample", "Field contract locked; needs authenticated dual sample vs PHP KPIs."),
         new("cp", "Orders/OMS shop_orders read", "/cp/orders + /cp/orders-digest", "digest-wired-awaiting-dual-sample", "Batch 4 read UI + KPI digest; PHP OMS console and writes remain authoritative."),
+        new("cp", "user_manager / groups Blazor lists", "/cp/users-app|/cp/groups-app", "digest-wired-awaiting-dual-sample", "Batch 4 read UI over existing /cp/users|/cp/groups digests; writes remain PHP."),
         new("cp", "user_manager / groups / menus / pages", "/cp/users|/cp/groups|/cp/menus|/cp/pages", "digest-wired-awaiting-dual-sample", "Read digests only; writes remain PHP."),
         new("cp", "config-items / admin-sessions / storages", "/cp/config-items|/cp/admin-sessions|/cp/storages", "digest-wired-awaiting-dual-sample", "Read digests only; config secrets and session tokens never returned."),
         new("erp", "erp_desktop.php + erp_dashboard.php", "/erp?format=html + /erp/dashboard-summary", "presentation-and-digest-scaffolded", "Chrome CSS + KPI fields contracted; full voucher/posting UX still PHP."),

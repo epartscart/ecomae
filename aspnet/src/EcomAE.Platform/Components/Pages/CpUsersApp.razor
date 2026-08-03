@@ -1,0 +1,149 @@
+@page "/cp/users-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Users · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-users-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 55%,#0c4a6e 100%);
+        }
+        .epc-users-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-users-hero p { margin:0; color:#cbd5e1; max-width:36rem; font-size:.92rem; line-height:1.45; }
+        .epc-users-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-users-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#2563eb;
+        }
+        .epc-users-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-users-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-users-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-users-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-users-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-users-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-users-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-users-table th, .epc-users-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-users-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-users-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
+        .epc-users-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-users-badge--ok { background:#dcfce7; color:#166534; }
+        .epc-users-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-users-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-users-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-users-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Users</h1>
+        <p>Batch 4 read-only users list from <code>/cp/users</code> digest under PHP CP desktop chrome. Create/edit/lock and full user manager stay on live PHP.</p>
+        <div class="epc-users-cta">
+            <a href="/CP/control/users">Open PHP user manager</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", "/CP/control/users")">Hybrid workspace</a>
+            <a class="ghost" href="/cp/groups-app">Groups list</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-users-kpis" aria-label="Users KPIs">
+        <div class="epc-users-kpi"><strong>@_users.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-users-kpi"><strong>@_unlocked</strong><span>Unlocked in page</span></div>
+        <div class="epc-users-kpi"><strong>@_source</strong><span>Digest source</span></div>
+    </div>
+
+    <div class="epc-users-table-wrap">
+        <table class="epc-users-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Unlocked</th>
+                    <th>Registered</th>
+                    <th>Last visit</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_users.Count == 0)
+                {
+                    <tr><td colspan="7">No users in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var u in _users)
+                    {
+                        var phpHref = $"/CP/control/users?user_id={u.UserId.ToString(CultureInfo.InvariantCulture)}";
+                        <tr>
+                            <td><strong>@u.UserId</strong></td>
+                            <td>@u.Email</td>
+                            <td>@(string.IsNullOrWhiteSpace(u.Phone) ? "—" : u.Phone)</td>
+                            <td>
+                                @if (u.Unlocked == 1)
+                                {
+                                    <span class="epc-users-badge epc-users-badge--ok">Yes</span>
+                                }
+                                else
+                                {
+                                    <span class="epc-users-badge epc-users-badge--off">No</span>
+                                }
+                            </td>
+                            <td>@FormatTime(u.TimeRegistered)</td>
+                            <td>@FormatTime(u.TimeLastVisit)</td>
+                            <td><a href="@phpHref">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-users-note">
+        Read-only preview · JSON digest <a href="/cp/users?limit=100">/cp/users</a> (live exact-route).
+        PHP user manager remains authoritative for writes. Not a broad /cp cutover.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private IReadOnlyList<CpUserDigest> _users = [];
+    private int _unlocked;
+    private int _limit = 100;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListCpUsersAsync(_limit, ctx.RequestAborted);
+        _users = result.Users;
+        _unlocked = _users.Count(u => u.Unlocked == 1);
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
+}

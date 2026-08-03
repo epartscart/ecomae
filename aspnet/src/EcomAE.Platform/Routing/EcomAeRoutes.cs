@@ -51,6 +51,10 @@ public static class EcomAeRoutes
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>
     public const string ControlPanelOrdersDigest = "/cp/orders-digest";
+    /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
+    public const string ControlPanelUsersApp = "/cp/users-app";
+    /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>
+    public const string ControlPanelGroupsApp = "/cp/groups-app";
     public const string Erp = "/erp";
     public const string ErpApp = "/erp/app";
     public const string ErpParity = "/erp/parity";

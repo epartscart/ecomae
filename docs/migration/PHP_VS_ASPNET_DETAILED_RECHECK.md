@@ -10,7 +10,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Batch 3 ✅ (#660):** Login bridge hardening + graphical login/hero parity (hub orbit, BOS particles, piston banner).
 
-**Batch 4 (in progress):** CP Orders/OMS read UI (`/cp/orders` + `/cp/orders-digest`). Writes and full OMS console remain PHP `/CP/shop/orders/orders`. Still never `readyForPhpRemoval`.
+**Batch 4 (in progress):** OMS ✅ (#661). Next: Users/Groups Blazor lists (`/cp/users-app`, `/cp/groups-app`) over existing digests. Writes remain PHP. Still never `readyForPhpRemoval`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

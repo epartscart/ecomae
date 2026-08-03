@@ -41,7 +41,7 @@ for m in re.finditer(r"(?m)^(location = (/[^\s{]+)\s*\{.*?\n\})", example, flags
         continue
     indented="\n".join(("  "+line if line.strip() else line) for line in block_raw.splitlines())
     blocks.append((route, indented.rstrip()+"\n"))
-expected = 11  # 4 apps + 4 logins + auth/login/admin + /cp/orders + /cp/orders-digest
+expected = 13  # 4 apps + 4 logins + auth/login/admin + orders×2 + users-app + groups-app
 if len(blocks) != expected:
     raise SystemExit(f"ERROR: expected {expected} presentation/login routes, found {len(blocks)}")
 inserted=[]; already=[]
