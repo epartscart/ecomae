@@ -355,6 +355,15 @@ check 'EF ERP scaffold repository interface exists' test -f "$ROOT/aspnet/src/Ec
 check 'Redis scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Caching/EcomAeRedisScaffoldOptions.cs"
 check 'Redis scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Caching/IDistributedCacheScaffold.cs"
 check 'Redis scaffold defaults do not replace PHP cookies' contains "$ROOT/aspnet/src/EcomAE.Platform/Caching/EcomAeRedisScaffoldOptions.cs" 'ReplacePhpSessionCookies'
+check 'Kafka scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Messaging/EcomAeKafkaScaffoldOptions.cs"
+check 'Kafka publisher scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Messaging/IDomainEventPublisherScaffold.cs"
+check 'Kafka scaffold defaults disallow publish' contains "$ROOT/aspnet/src/EcomAE.Platform/Messaging/EcomAeKafkaScaffoldOptions.cs" 'AllowPublish'
+check 'OpenSearch scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Search/EcomAeOpenSearchScaffoldOptions.cs"
+check 'OpenSearch scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Search/IEnterpriseSearchScaffold.cs"
+check 'OpenSearch scaffold defaults do not replace PHP search' contains "$ROOT/aspnet/src/EcomAE.Platform/Search/EcomAeOpenSearchScaffoldOptions.cs" 'ReplacePhpSearch'
+check 'Serilog scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Observability/EcomAeSerilogScaffoldOptions.cs"
+check 'Serilog scaffold defaults do not register exporters' contains "$ROOT/aspnet/src/EcomAE.Platform/Observability/EcomAeSerilogScaffoldOptions.cs" 'RegisterExporters'
+check 'Workers ActivitySource scaffolding exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/Observability/EcomAeWorkerActivitySources.cs"
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
 check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 47'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
