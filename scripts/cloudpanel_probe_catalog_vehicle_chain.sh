@@ -121,7 +121,18 @@ if [[ -x "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh" ]]; then
   say "== warm MFA_IDs from epc_umapi_models =="
   if warm_out="$(bash "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh" 2>/dev/null)"; then
     printf '%s\n' "$warm_out"
-    WARM_MFA="$(printf '%s\n' "$warm_out" | awk '/^[0-9]+\t/ {print $1}' | head -n "$MAX_MFA" | tr '\n' ' ')"
+    WARM_MFA="$(printf '%s\n' "$warm_out" | python3 -c '
+import re,sys
+ids=[]
+for line in sys.stdin:
+    line=line.strip()
+    m=re.match(r"^(\d+)\s+(\d+)$", line)
+    if not m:
+        m=re.search(r"\|\s*(\d+)\s*\|\s*(\d+)\s*\|", line)
+    if m:
+        ids.append(m.group(1))
+print(" ".join(ids))
+')"
   else
     say "WARN: warm MFA list helper failed (continuing with manufacturers walk)"
   fi

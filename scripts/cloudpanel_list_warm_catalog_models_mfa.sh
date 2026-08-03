@@ -66,7 +66,8 @@ SQL="$(printf "SELECT mfa_id, COUNT(*) AS c FROM epc_umapi_models WHERE section=
 
 # Prefer mysql client; fall back to PHP PDO via a tiny inline script if needed.
 if command -v mysql >/dev/null 2>&1; then
-  MYSQL_PWD="$DB_PASS" mysql -h "$HOST" -P "$PORT" -u "$DB_USER" "$DB_NAME" -N -e "$SQL"
+  # -B -N: batch + no column names (parseable tabs; avoids fancy table borders)
+  MYSQL_PWD="$DB_PASS" mysql -h "$HOST" -P "$PORT" -u "$DB_USER" "$DB_NAME" -B -N -e "$SQL"
   exit 0
 fi
 
