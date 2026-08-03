@@ -36,10 +36,15 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 
 ### Still 100% PHP on public www (blocks Zero-PHP)
 
-- Product chrome: `/`, `/CP/`, `/ERP/`, `/BOS/` (and aliases)
+- Product chrome: `/`, `/CP/`, `/ERP/`, `/BOS/` (and aliases) — **full page presentation, fonts, analytics**
+- Interactive modules: ~405 CP features, ~160 ERP tabs, ~116 BOS modules, storefront cart/checkout/search
 - Dual-sample PHP↔ASP.NET parity attachments for promoted digests
+- Presentation recheck pass (`scripts/cloudpanel_probe_php_presentation_parity.sh`)
+- Module function test evidence (`MODULE_FUNCTION_TEST_PASS.md`)
 - Human `RELEASE_OWNER_APPROVAL.md` with `APPROVED_TO_REMOVE_PHP_FALLBACK`
 - PHP-FPM / cron / rewrite removal (gated script only)
+
+**Honest recheck:** `docs/migration/PHP_VS_ASPNET_DETAILED_RECHECK.md` — live ASP.NET shells are not PHP-like; do not remove PHP.
 
 ### Improvements shipped
 

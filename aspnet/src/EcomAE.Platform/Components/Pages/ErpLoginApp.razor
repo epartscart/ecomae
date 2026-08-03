@@ -6,13 +6,18 @@
 
 <PageTitle>ERP Finance — ECOM AE</PageTitle>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.OpenSans" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.FrauncesSora" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.FontAwesomeCdn" />
 <link rel="stylesheet" href="/content/general_pages/epc_ecomae_hub_logo_css.php" />
 
 <style>
     .epc-asp-login-erp {
         --accent:#2563eb; min-height:100vh; margin:0; color:#f8fafc;
-        font-family:"Segoe UI",Tahoma,sans-serif;
+        font-family: @(LegacyPhpFontAssets.StackFor("erp"));
+
         background: radial-gradient(900px 500px at 20% 0%, rgba(37,99,235,.28), transparent 55%),
                     radial-gradient(700px 400px at 80% 20%, rgba(56,189,248,.18), transparent 50%),
                     linear-gradient(180deg,#050b16,#0a1628 55%,#07101c);

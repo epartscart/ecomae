@@ -86,6 +86,8 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh" \
   "$ROOT/scripts/cloudpanel_probe_storefront_digest_shadows.sh" \
   "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" \
+  "$ROOT/scripts/cloudpanel_probe_php_presentation_parity.sh" \
+  "$ROOT/scripts/compare_php_aspnet_presentation.py" \
   "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" \
   "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" \
   "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh" \

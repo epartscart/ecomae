@@ -1,8 +1,28 @@
-@* Links the same PHP chrome stylesheets used by live /CP/ /ERP/ /BOS/ /storefront. *@
+@* Links the same PHP chrome stylesheets + webfonts used by live /CP/ /ERP/ /BOS/ /storefront. *@
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+@if (Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))
+{
+    <link rel="stylesheet" href="@LegacyPhpFontAssets.PtSans" />
+    <link rel="stylesheet" href="@LegacyPhpFontAssets.OpenSans" />
+}
+else if (Surface.Equals("erp", StringComparison.OrdinalIgnoreCase))
+{
+    <link rel="stylesheet" href="@LegacyPhpFontAssets.OpenSans" />
+    <link rel="stylesheet" href="@LegacyPhpFontAssets.FrauncesSora" />
+}
+else
+{
+    <link rel="stylesheet" href="@LegacyPhpFontAssets.OpenSans" />
+}
+<link rel="stylesheet" href="@LegacyPhpFontAssets.FontAwesomeCdn" />
 @foreach (var href in LegacyPresentationAssets.StylesheetsFor(Surface))
 {
     <link rel="stylesheet" href="@href" />
 }
+<style>
+    .epc-php-font-root { font-family: @(LegacyPhpFontAssets.StackFor(Surface)); }
+</style>
 
 @code {
     [Parameter, EditorRequired] public string Surface { get; set; } = "cp";

@@ -5,11 +5,14 @@
 @inject NavigationManager Nav
 
 <PageTitle>BOS — Business Operating System</PageTitle>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.OpenSans" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.FontAwesomeCdn" />
 <link rel="stylesheet" href="/epc-static.php?f=bos/epc_bos_shell.css" />
 
 <style>
-    .epc-asp-login-bos { min-height:100vh; margin:0; display:grid; grid-template-columns:1.15fr .85fr; background:#050505; color:#f5f5f5; font-family:"Segoe UI",Tahoma,sans-serif; }
+    .epc-asp-login-bos { min-height:100vh; margin:0; display:grid; grid-template-columns:1.15fr .85fr; background:#050505; color:#f5f5f5; font-family: @(LegacyPhpFontAssets.StackFor("bos")); }
     .epc-asp-login-bos .left {
         padding:2.2rem 2rem; background:
             radial-gradient(700px 400px at 30% 20%, rgba(37,99,235,.25), transparent 55%),
