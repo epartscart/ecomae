@@ -1,0 +1,151 @@
+@page "/cp/tenants-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Tenants · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-tn-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#166534 100%);
+        }
+        .epc-tn-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-tn-hero p { margin:0; color:#bbf7d0; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-tn-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-tn-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#052e16; background:#86efac;
+        }
+        .epc-tn-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-tn-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-tn-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-tn-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-tn-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-tn-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-tn-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-tn-table th, .epc-tn-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-tn-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-tn-table a { color:#15803d; font-weight:700; text-decoration:none; }
+        .epc-tn-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-tn-badge--ok { background:#dcfce7; color:#14532d; }
+        .epc-tn-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-tn-badge--info { background:#e2e8f0; color:#334155; }
+        .epc-tn-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:.45rem; color:#14532d; font-size:.86rem; }
+        @@media (max-width:1100px){ .epc-tn-kpis{grid-template-columns:1fr 1fr;} }
+        @@media (max-width:700px){ .epc-tn-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-tn-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Portal Tenants</h1>
+        <p>Read-only portal tenant registry from <code>/cp/tenants</code> digest under PHP CP desktop chrome. Provisioning and control stay on live PHP tenant control — same-to-same for tenant product chrome.</p>
+        <div class="epc-tn-cta">
+            <a href="@_phpTab">Open PHP tenant control</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/menus-app">Menus list</a>
+            <a class="ghost" href="/bos/app">BOS fleet</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-tn-kpis" aria-label="Tenants KPIs">
+        <div class="epc-tn-kpi"><strong>@_tenants.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-tn-kpi"><strong>@_active</strong><span>Active</span></div>
+        <div class="epc-tn-kpi"><strong>@_withDb</strong><span>With database</span></div>
+        <div class="epc-tn-kpi"><strong>@_erpOnly</strong><span>ERP-only</span></div>
+    </div>
+
+    <div class="epc-tn-table-wrap">
+        <table class="epc-tn-table">
+            <thead>
+                <tr>
+                    <th>Site key</th>
+                    <th>Hostname</th>
+                    <th>Trade name</th>
+                    <th>Industry</th>
+                    <th>Status</th>
+                    <th>Hub</th>
+                    <th>Hosted</th>
+                    <th>Active</th>
+                    <th>DB</th>
+                    <th>ERP-only</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_tenants.Count == 0)
+                {
+                    <tr><td colspan="11">No tenants in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var t in _tenants)
+                    {
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(t.SiteKey) ? "—" : t.SiteKey)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(t.Hostname) ? "—" : t.Hostname)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.TradeName) ? "—" : t.TradeName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.IndustryCode) ? "—" : t.IndustryCode)</td>
+                            <td><span class="epc-tn-badge epc-tn-badge--info">@(string.IsNullOrWhiteSpace(t.Status) ? "—" : t.Status)</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(t.HubName) ? "—" : t.HubName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.HostedOn) ? "—" : t.HostedOn)</td>
+                            <td><span class="epc-tn-badge @(t.IsActive ? "epc-tn-badge--ok" : "epc-tn-badge--off")">@(t.IsActive ? "yes" : "no")</span></td>
+                            <td><span class="epc-tn-badge @(t.HasDb ? "epc-tn-badge--ok" : "epc-tn-badge--off")">@(t.HasDb ? "yes" : "no")</span></td>
+                            <td><span class="epc-tn-badge epc-tn-badge--info">@(t.ErpOnly ? "yes" : "no")</span></td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-tn-note">
+        Read-only preview · JSON digest <a href="/cp/tenants?limit=100">/cp/tenants</a>.
+        PHP <code>epc_tenant_control_center</code> / portal remain authoritative for provisioning and control.
+        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/portal/epc_tenant_control_center";
+    private bool _isAdmin;
+    private IReadOnlyList<PortalTenantDigest> _tenants = [];
+    private int _active;
+    private int _withDb;
+    private int _erpOnly;
+    private int _limit = 100;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListPortalTenantsAsync(_limit, ctx.RequestAborted);
+        _tenants = result.Tenants;
+        _active = _tenants.Count(t => t.IsActive);
+        _withDb = _tenants.Count(t => t.HasDb);
+        _erpOnly = _tenants.Count(t => t.ErpOnly);
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

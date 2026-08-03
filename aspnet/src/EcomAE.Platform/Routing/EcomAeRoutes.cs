@@ -37,6 +37,8 @@ public static class EcomAeRoutes
     public const string ControlPanelParity = "/cp/parity";
     public const string ControlPanelDashboardSummary = "/cp/dashboard-summary";
     public const string ControlPanelTenants = "/cp/tenants";
+    /// <summary>CP portal tenants Blazor list (JSON digest remains <see cref="ControlPanelTenants"/>).</summary>
+    public const string ControlPanelTenantsApp = "/cp/tenants-app";
     public const string ControlPanelUsers = "/cp/users";
     public const string ControlPanelGroups = "/cp/groups";
     public const string ControlPanelModules = "/cp/modules";
