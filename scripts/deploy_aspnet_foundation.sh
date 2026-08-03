@@ -71,6 +71,9 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_issue_smoke_credentials.sh" \
   "$ROOT/scripts/cloudpanel_ensure_epc_api_clients_table.sh" \
   "$ROOT/scripts/cloudpanel_print_epc_api_clients_ddl.sh" \
+  "$ROOT/scripts/cloudpanel_apply_epc_api_clients_ddl.sh" \
+  "$ROOT/scripts/cloudpanel_diagnose_smoke_db.sh" \
+  "$ROOT/scripts/cloudpanel_align_tenant_registry_to_php_db.sh" \
   "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" \
   "$ROOT/scripts/wait_for_aspnet_health.sh" \
   "$ROOT/scripts/rollback_aspnet_foundation.sh" \
@@ -102,6 +105,8 @@ install -d "$PLATFORM_DIR/scripts/php"
 for php_helper in \
   issue_final_gate_smoke_credentials.php \
   ensure_epc_api_clients_table.php \
+  diagnose_smoke_db.php \
+  align_tenant_registry_to_php_db.php \
   _smoke_db_bootstrap.php
 do
   if [[ -f "$ROOT/scripts/php/$php_helper" ]]; then

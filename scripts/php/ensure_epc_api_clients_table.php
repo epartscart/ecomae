@@ -55,5 +55,9 @@ if ($ok) {
 	exit(0);
 }
 
-smoke_print_epc_api_clients_recovery($dotnet, $detail);
+fwrite(STDERR, "CREATE recovery needed: {$detail}\n");
+fwrite(STDERR, "See: bash scripts/cloudpanel_diagnose_smoke_db.sh\n");
+fwrite(STDERR, "  A) ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh\n");
+fwrite(STDERR, "  B) ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh\n");
+fwrite(STDERR, "  Or paste: bash scripts/cloudpanel_print_epc_api_clients_ddl.sh\n");
 exit(1);

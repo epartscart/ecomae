@@ -62,12 +62,9 @@ try {
 	$catalogKey = upsert_key($pdo, 'catalog', 'Final-gate smoke Catalog', 'smoke-final-gate@ecomae.local', 5000, $catalogActions);
 } catch (Throwable $e) {
 	fwrite(STDERR, "Failed to INSERT/UPDATE epc_api_clients: " . $e->getMessage() . "\n");
-	fwrite(STDERR, "Create/GRANT the table once, then re-issue:\n");
-	fwrite(STDERR, "  bash scripts/cloudpanel_print_epc_api_clients_ddl.sh\n");
-	fwrite(STDERR, "  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n");
-	fwrite(STDERR, "  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n");
-	fwrite(STDERR, "    bash scripts/cloudpanel_issue_smoke_credentials.sh\n");
-	smoke_print_epc_api_clients_recovery($dotnet, 'INSERT/UPDATE failed after ensure');
+	fwrite(STDERR, "  bash scripts/cloudpanel_diagnose_smoke_db.sh\n");
+	fwrite(STDERR, "  ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh\n");
+	fwrite(STDERR, "  # or align TenantRegistry Database= to PHP db, restart platform, then re-issue\n");
 	exit(1);
 }
 
@@ -125,14 +122,13 @@ function ensure_api_clients_table(PDO $pdo, array $env): void
 	}
 
 	if (getenv('ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE') !== 'YES') {
-		fwrite(STDERR, "Create it once, then re-run issue:\n");
-		fwrite(STDERR, "  ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n");
-		fwrite(STDERR, "  bash scripts/cloudpanel_print_epc_api_clients_ddl.sh\n");
-		fwrite(STDERR, "Or combine:\n");
-		fwrite(STDERR, "  ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES \\\n");
-		fwrite(STDERR, "    ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES bash scripts/cloudpanel_issue_smoke_credentials.sh\n");
-		$dotnet = smoke_parse_dotnet_conn($env['ConnectionStrings__TenantRegistry'] ?? '');
-		smoke_print_epc_api_clients_recovery($dotnet, 'table missing and CREATE not confirmed');
+		fwrite(STDERR, "BLOCKED: epc_api_clients missing on TenantRegistry — do not re-issue until table exists.\n");
+		fwrite(STDERR, "  bash scripts/cloudpanel_diagnose_smoke_db.sh\n");
+		fwrite(STDERR, "  A) ECOMAE_CONFIRM_APPLY_EPC_API_CLIENTS_DDL=YES bash scripts/cloudpanel_apply_epc_api_clients_ddl.sh\n");
+		fwrite(STDERR, "  B) ECOMAE_CONFIRM_ALIGN_TENANT_REGISTRY_TO_PHP_DB=YES bash scripts/cloudpanel_align_tenant_registry_to_php_db.sh\n");
+		fwrite(STDERR, "  Then: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh\n");
+		fwrite(STDERR, "        ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n");
+		fwrite(STDERR, "          bash scripts/cloudpanel_issue_smoke_credentials.sh\n");
 		exit(1);
 	}
 
