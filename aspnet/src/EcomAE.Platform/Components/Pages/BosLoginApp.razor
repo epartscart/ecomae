@@ -5,11 +5,7 @@
 @inject NavigationManager Nav
 
 <PageTitle>BOS — Business Operating System</PageTitle>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="@LegacyPhpFontAssets.OpenSans" />
-<link rel="stylesheet" href="@LegacyPhpFontAssets.FontAwesomeCdn" />
-<link rel="stylesheet" href="/epc-static.php?f=bos/epc_bos_shell.css" />
+<PhpSurfaceHead Surface="bos" />
 
 <style>
     .epc-asp-login-bos { min-height:100vh; margin:0; display:grid; grid-template-columns:1.15fr .85fr; background:#050505; color:#f5f5f5; font-family: @(LegacyPhpFontAssets.StackFor("bos")); }
@@ -59,7 +55,15 @@
             <div class="card"><strong>Enterprise ERP</strong><span>Finance, HR, Inventory, Production</span></div>
             <div class="card"><strong>eCommerce Platform</strong><span>Multi-tenant, Multi-industry</span></div>
             <div class="card"><strong>Worldwide Compliance</strong><span>Auto-localized per country</span></div>
+            @foreach (var mod in PhpModuleCatalog.BosModules.Take(12))
+            {
+                <a class="card" href="@mod.Href" style="color:inherit;text-decoration:none">
+                    <strong><i class="fa @mod.Icon"></i> @mod.Label</strong>
+                    <span>PHP module @mod.Id</span>
+                </a>
+            }
         </div>
+        <p style="color:#94a3b8;font-size:.8rem;margin:0">@PhpModuleCatalog.BosModuleCount BOS modules catalogued — full directory on <a href="/bos/app" style="color:#93c5fd">/bos/app</a> after sign-in.</p>
     </section>
     <section class="right">
         <div class="role">

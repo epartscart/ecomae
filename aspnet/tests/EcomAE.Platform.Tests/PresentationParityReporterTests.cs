@@ -17,13 +17,17 @@ public sealed class PresentationParityReporterTests
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "erp");
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "bos" && surface.LegacyChromeSource.Contains("epc_bos_shell", StringComparison.Ordinal));
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "storefront");
-        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("NOT full PHP", StringComparison.OrdinalIgnoreCase)
-            || guarantee.Contains("Digests/APIs only", StringComparison.Ordinal));
+        Assert.Equal("scaffold-not-full-php-parity", report.Status);
+        Assert.Contains("PHP remains authoritative", report.Contract, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("PhpSurfaceHead", StringComparison.Ordinal)
+            || guarantee.Contains("HeadOutlet", StringComparison.Ordinal)
+            || guarantee.Contains("Open Sans", StringComparison.Ordinal));
         Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("cloudpanel_probe_php_presentation_parity.sh", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("MODULE_FUNCTION_PARITY", StringComparison.Ordinal)
-            || gap.Contains("functional test", StringComparison.OrdinalIgnoreCase));
+            || gap.Contains("Module inventory", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("PHP_VS_ASPNET_DETAILED_RECHECK", StringComparison.Ordinal));
-        Assert.Contains(report.RemainingGaps, gap => gap.Contains("Pixel/DOM parity", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("Batch 2", StringComparison.OrdinalIgnoreCase)
+            || gap.Contains("desktop", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

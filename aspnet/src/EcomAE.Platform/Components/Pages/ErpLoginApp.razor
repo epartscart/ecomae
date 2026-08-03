@@ -5,13 +5,7 @@
 @inject NavigationManager Nav
 
 <PageTitle>ERP Finance — ECOM AE</PageTitle>
-
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="@LegacyPhpFontAssets.OpenSans" />
-<link rel="stylesheet" href="@LegacyPhpFontAssets.FrauncesSora" />
-<link rel="stylesheet" href="@LegacyPhpFontAssets.FontAwesomeCdn" />
-<link rel="stylesheet" href="/content/general_pages/epc_ecomae_hub_logo_css.php" />
+<PhpSurfaceHead Surface="erp" IncludeLoginCss="true" />
 
 <style>
     .epc-asp-login-erp {
@@ -86,13 +80,28 @@
         </section>
 
         <div class="modules">
-            <div class="mod"><strong>Financial Accounting</strong><span>GL, AP, AR, Bank, Fixed Assets</span></div>
-            <div class="mod"><strong>Sales &amp; Purchase</strong><span>Orders, Invoices, Quotations</span></div>
-            <div class="mod"><strong>Inventory &amp; Logistics</strong><span>WMS, Barcode, Stock, Shipping</span></div>
-            <div class="mod"><strong>Compliance &amp; AI</strong><span>VAT, AML, E-invoice, AI Advisor</span></div>
+            @foreach (var cat in PhpModuleCatalog.ErpCategories)
+            {
+                <a class="mod" href="@cat.Href" style="color:inherit;text-decoration:none">
+                    <strong><i class="fa @cat.Icon"></i> @cat.Label</strong>
+                    <span>Open live PHP ERP · @cat.Id</span>
+                </a>
+            }
         </div>
         <div class="stats">
-            <span>95+ MODULES</span><span>11+ INDUSTRIES</span><span>65+ COUNTRIES</span><span>225+ TENANTS</span>
+            <span>@PhpModuleCatalog.ErpAreaCount AREAS</span>
+            <span>@PhpModuleCatalog.ErpTabCount TABS</span>
+            <span>@PhpModuleCatalog.ErpCategoryCount CATEGORIES</span>
+            <span>PHP AUTHORITATIVE</span>
+        </div>
+        <div class="modules" style="margin-top:.75rem;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+            @foreach (var area in PhpModuleCatalog.ErpAreas.Take(16))
+            {
+                <a class="mod" href="@area.Href" style="color:inherit;text-decoration:none">
+                    <strong><i class="fa @area.Icon"></i> @area.Label</strong>
+                    <span>PHP area @area.Id</span>
+                </a>
+            }
         </div>
 
         <div class="panel">

@@ -1,0 +1,68 @@
+@using EcomAE.Platform.Presentation
+@*
+  Puts PHP-matching webfonts + stylesheets into <head> via HeadOutlet.
+  Body-scoped <link> tags were unreliable for presentation parity probes.
+*@
+<HeadContent>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    @foreach (var href in FontHrefs)
+    {
+        <link rel="stylesheet" href="@href" />
+    }
+    <link rel="stylesheet" href="@LegacyPhpFontAssets.FontAwesomeCdn" />
+    @foreach (var href in StylesheetHrefs)
+    {
+        <link rel="stylesheet" href="@href" />
+    }
+    @if (IncludeStorefrontAnalytics)
+    {
+        <script async src="https://www.googletagmanager.com/gtag/js?id=@GaMeasurementId"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){ dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', '@GaMeasurementId');
+        </script>
+    }
+    <meta name="ecomae-php-chrome-surface" content="@Surface" />
+    <meta name="ecomae-php-chrome-source" content="@LegacyPresentationAssets.LegacyChromeSourceFor(Surface)" />
+</HeadContent>
+
+@code {
+    [Parameter, EditorRequired] public string Surface { get; set; } = "cp";
+    [Parameter] public bool IncludeLoginCss { get; set; }
+    [Parameter] public bool IncludeStorefrontAnalytics { get; set; }
+    [Parameter] public string GaMeasurementId { get; set; } = "G-J19D1KHXCG";
+
+    private IEnumerable<string> FontHrefs => Surface.Trim().ToLowerInvariant() switch
+    {
+        "storefront" => new[] { LegacyPhpFontAssets.PtSans, LegacyPhpFontAssets.OpenSans },
+        "erp" => new[] { LegacyPhpFontAssets.OpenSans, LegacyPhpFontAssets.FrauncesSora },
+        "bos" => new[] { LegacyPhpFontAssets.InterJetBrains, LegacyPhpFontAssets.OpenSans },
+        _ => new[] { LegacyPhpFontAssets.OpenSans }
+    };
+
+    private IEnumerable<string> StylesheetHrefs
+    {
+        get
+        {
+            var list = new List<string>(LegacyPresentationAssets.StylesheetsFor(Surface));
+            if (IncludeLoginCss)
+            {
+                foreach (var href in LegacyPresentationAssets.LoginStylesheets)
+                {
+                    if (!list.Contains(href, StringComparer.OrdinalIgnoreCase))
+                    {
+                        list.Add(href);
+                    }
+                }
+
+                // Super-CP hub logo polish used on PHP login landings.
+                list.Add("/content/general_pages/epc_ecomae_hub_logo_css.php");
+            }
+
+            return list;
+        }
+    }
+}

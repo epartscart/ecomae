@@ -5,10 +5,10 @@
 @inject NavigationManager Nav
 
 <PageTitle>Customer login · eParts Cart</PageTitle>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" />
 
 <style>
-    .epc-asp-login-sf { --red:#dc2626; min-height:100vh; margin:0; font-family:"PT Sans","Segoe UI",sans-serif; color:#111; background:#f5f5f7; }
+    .epc-asp-login-sf { --red:#dc2626; min-height:100vh; margin:0; font-family: @(LegacyPhpFontAssets.StackFor("storefront")); color:#111; background:#f5f5f7; }
     .epc-asp-login-sf .topbar { background:#111; color:#fff; display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; padding:.45rem 1rem; font-size:.78rem; }
     .epc-asp-login-sf .topbar a { color:#fff; text-decoration:none; margin-right:.75rem; }
     .epc-asp-login-sf .head { background:#fff; border-bottom:1px solid #e5e7eb; padding:.85rem 1rem; display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
