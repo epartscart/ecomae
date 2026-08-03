@@ -1,10 +1,12 @@
 @page "/bos/app"
+@layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject NavigationManager Nav
 
 <PageTitle>Super BOS · Fleet Command</PageTitle>
 <PhpChromeStyles Surface="bos" />
@@ -62,7 +64,7 @@
 @code {
     private int _tenants, _active, _sessions, _withDb, _erpOnly;
     private string _source = "n/a";
-    private string _note = "Unauthenticated preview (BOS digests need admin cookie). ";
+    private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
 
     protected override async Task OnInitializedAsync()
@@ -70,7 +72,12 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin) return;
+        if (session.Kind != LegacySessionKind.Admin)
+        {
+            // Match PHP /BOS/: unauthenticated users see login.
+            Nav.NavigateTo("/bos/login", forceLoad: true);
+            return;
+        }
         _isAdmin = true;
         var summary = await Dashboards.BuildBosAsync(ctx.RequestAborted);
         _tenants = summary.PortalTenants;

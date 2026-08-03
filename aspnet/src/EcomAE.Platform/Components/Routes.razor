@@ -1,11 +1,11 @@
 <Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MigrationConsoleLayout)" />
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.PhpChromeLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
     <NotFound>
-        <LayoutView Layout="typeof(Layout.MigrationConsoleLayout)">
-            <p class="lede">Page not found in the EcomAE migration console.</p>
+        <LayoutView Layout="typeof(Layout.PhpChromeLayout)">
+            <p style="padding:2rem;font-family:sans-serif">Page not found.</p>
         </LayoutView>
     </NotFound>
 </Router>

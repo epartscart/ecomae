@@ -1,43 +1,50 @@
 @page "/storefront/login"
+@layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
 @inject NavigationManager Nav
 
-<PageTitle>Storefront login · eparts</PageTitle>
-<PhpChromeStyles Surface="storefront" />
+<PageTitle>Customer login · eParts Cart</PageTitle>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
 <style>
-    .epc-login-page { --red:#dc2626; font-family:"PT Sans","Segoe UI",sans-serif; min-height:100vh; background:radial-gradient(900px 500px at 20% 0%,rgba(220,38,38,.25),transparent 55%), linear-gradient(180deg,#0b1220,#111827); color:#f8fafc; }
-    .epc-login-wrap { width:min(960px, calc(100% - 2rem)); margin:0 auto; padding:2rem 0 3rem; display:grid; grid-template-columns:1.1fr .9fr; gap:1.25rem; }
-    .epc-login-brand { padding:1.2rem; }
-    .epc-login-panel { background:#fff; color:#111; border-radius:.8rem; padding:1.35rem 1.4rem; }
-    .epc-login-brand h1 { margin:.4rem 0 .7rem; font-size:clamp(1.5rem,3vw,2.1rem); }
-    .epc-login-brand p { color:#cbd5e1; line-height:1.45; max-width:32rem; }
-    .epc-login-field { margin:0 0 .75rem; }
-    .epc-login-field label { display:block; font-size:.85rem; font-weight:600; margin-bottom:.25rem; }
-    .epc-login-field input, .epc-login-field select { width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; }
-    .epc-login-row { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
-    .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:var(--red); color:#fff; font-weight:700; cursor:pointer; }
-    .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
-    .epc-login-bridge-note { color:#64748b; font-size:.82rem; line-height:1.4; margin:1rem 0 .5rem; }
-    .epc-login-php { color:var(--red); font-weight:700; }
-    @@media (max-width:800px){ .epc-login-wrap{grid-template-columns:1fr;} }
+    .epc-asp-login-sf { --red:#dc2626; min-height:100vh; margin:0; font-family:"PT Sans","Segoe UI",sans-serif; color:#111; background:#f5f5f7; }
+    .epc-asp-login-sf .topbar { background:#111; color:#fff; display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; padding:.45rem 1rem; font-size:.78rem; }
+    .epc-asp-login-sf .topbar a { color:#fff; text-decoration:none; margin-right:.75rem; }
+    .epc-asp-login-sf .head { background:#fff; border-bottom:1px solid #e5e7eb; padding:.85rem 1rem; display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
+    .epc-asp-login-sf .head img { height:40px; }
+    .epc-asp-login-sf .wrap { width:min(480px, calc(100% - 2rem)); margin:1.5rem auto 3rem; background:#fff; border:1px solid #e5e7eb; border-radius:.7rem; padding:1.25rem 1.3rem; }
+    .epc-asp-login-sf h1 { margin:.1rem 0 .35rem; font-size:1.4rem; }
+    .epc-asp-login-sf p { color:#64748b; font-size:.9rem; }
+    .epc-asp-login-sf .epc-login-field { margin:0 0 .75rem; }
+    .epc-asp-login-sf .epc-login-field label { display:block; font-size:.82rem; font-weight:600; margin-bottom:.25rem; }
+    .epc-asp-login-sf .epc-login-field input, .epc-asp-login-sf .epc-login-field select { width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; }
+    .epc-asp-login-sf .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:var(--red); color:#fff; font-weight:700; cursor:pointer; }
+    .epc-asp-login-sf .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
+    .epc-asp-login-sf .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
+    .epc-asp-login-sf .epc-login-php { color:var(--red); font-weight:700; }
 </style>
 
-<div class="epc-login-page">
-    <div class="epc-login-wrap">
-        <section class="epc-login-brand">
-            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:40px" />
-            <h1>Customer account login</h1>
-            <p>Mints PHP-compatible <code>session</code> / <code>u_id</code> cookies for storefront digests. Cart, checkout, and marketing homepage remain on the live PHP storefront.</p>
-        </section>
-        <section class="epc-login-panel">
-            <h2>Sign in</h2>
-            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="https://epartscart.com/" ErrorMessage="@_error" />
-            <p style="margin-top:1rem;font-size:.85rem;color:#64748b">
-                Digests: <a href="/storefront/account-summary">account-summary</a> · Preview: <a href="/storefront/app">/storefront/app</a>
-            </p>
-        </section>
+<div class="epc-asp-login-sf">
+    <div class="topbar">
+        <div>
+            <a href="https://epartscart.com/">Home</a>
+            <a href="https://epartscart.com/">Product</a>
+            <a href="https://epartscart.com/">Catalogs</a>
+        </div>
+        <div>
+            <a href="/ERP/">ERP Login</a>
+            <a href="https://epartscart.com/">Customer login</a>
+        </div>
+    </div>
+    <div class="head">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" />
+        <a href="https://epartscart.com/" style="color:#64748b;text-decoration:none;font-weight:600">Back to storefront</a>
+    </div>
+    <div class="wrap">
+        <h1>Customer login</h1>
+        <p>Same account cookies as PHP storefront digests. Cart and checkout stay on the live PHP site.</p>
+        <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="https://epartscart.com/" ErrorMessage="@_error" SubmitLabel="Log in" Accent="red" />
     </div>
 </div>
 

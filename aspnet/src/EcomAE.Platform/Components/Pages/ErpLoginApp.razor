@@ -1,48 +1,111 @@
 @page "/erp/login"
+@layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
 @inject NavigationManager Nav
 
-<PageTitle>ERP login · Ecom BOS</PageTitle>
-<PhpChromeStyles Surface="erp" />
-@foreach (var href in LegacyPresentationAssets.LoginStylesheets)
-{
-    <link rel="stylesheet" href="@href" />
-}
+<PageTitle>ERP Finance — ECOM AE</PageTitle>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<link rel="stylesheet" href="/content/general_pages/epc_ecomae_hub_logo_css.php" />
 
 <style>
-    .epc-login-page { --ink:#0f172a; --muted:#64748b; --accent:#1d4ed8; font-family:"Segoe UI",Tahoma,sans-serif; min-height:100vh; background:linear-gradient(160deg,#eff6ff,#f8fafc 40%,#e2e8f0); color:var(--ink); }
-    .epc-login-wrap { width:min(960px, calc(100% - 2rem)); margin:0 auto; padding:2rem 0 3rem; display:grid; grid-template-columns:1.1fr .9fr; gap:1.25rem; }
-    .epc-login-brand, .epc-login-panel { background:#fff; border:1px solid #e2e8f0; border-radius:.75rem; padding:1.35rem 1.4rem; }
-    .epc-login-brand h1 { margin:.35rem 0 .5rem; font-size:clamp(1.45rem,3vw,1.9rem); }
-    .epc-login-brand p { color:var(--muted); line-height:1.45; }
-    .epc-login-badge { display:inline-block; padding:.2rem .55rem; border-radius:.35rem; background:#dbeafe; color:#1e3a8a; font-size:.75rem; font-weight:700; }
-    .epc-login-field { margin:0 0 .75rem; }
-    .epc-login-field label { display:block; font-size:.85rem; font-weight:600; margin-bottom:.25rem; }
-    .epc-login-field input, .epc-login-field select { width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; }
-    .epc-login-row { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
-    .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:var(--accent); color:#fff; font-weight:700; cursor:pointer; }
-    .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
-    .epc-login-bridge-note { color:var(--muted); font-size:.82rem; line-height:1.4; margin:1rem 0 .5rem; }
-    .epc-login-php { color:var(--accent); font-weight:700; }
-    @@media (max-width:800px){ .epc-login-wrap{grid-template-columns:1fr;} }
+    .epc-asp-login-erp {
+        --accent:#2563eb; min-height:100vh; margin:0; color:#f8fafc;
+        font-family:"Segoe UI",Tahoma,sans-serif;
+        background: radial-gradient(900px 500px at 20% 0%, rgba(37,99,235,.28), transparent 55%),
+                    radial-gradient(700px 400px at 80% 20%, rgba(56,189,248,.18), transparent 50%),
+                    linear-gradient(180deg,#050b16,#0a1628 55%,#07101c);
+    }
+    .epc-asp-login-erp .wrap { width:min(980px, calc(100% - 2rem)); margin:0 auto; padding:1.5rem 0 3rem; }
+    .epc-asp-login-erp .top { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.5rem; }
+    .epc-asp-login-erp .brand { display:flex; align-items:center; gap:.65rem; font-weight:800; }
+    .epc-asp-login-erp .brand img { height:36px; background:#fff; border-radius:6px; padding:2px; }
+    .epc-asp-login-erp .hero { text-align:center; margin:1rem 0 1.4rem; }
+    .epc-asp-login-erp .hero-icon {
+        width:64px; height:64px; margin:0 auto .75rem; border-radius:1rem;
+        background:linear-gradient(135deg,#2563eb,#38bdf8); display:flex; align-items:center; justify-content:center;
+        font-size:1.6rem; box-shadow:0 10px 30px rgba(37,99,235,.35);
+    }
+    .epc-asp-login-erp h1 { margin:.2rem 0 .35rem; font-size:clamp(1.8rem,4vw,2.4rem); }
+    .epc-asp-login-erp .sub { color:#94a3b8; margin:0 0 1.1rem; }
+    .epc-asp-login-erp .modules { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin:0 0 1.1rem; }
+    .epc-asp-login-erp .mod { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:.7rem; padding:.85rem .75rem; text-align:left; }
+    .epc-asp-login-erp .mod strong { display:block; font-size:.9rem; margin-bottom:.2rem; }
+    .epc-asp-login-erp .mod span { color:#94a3b8; font-size:.75rem; line-height:1.35; }
+    .epc-asp-login-erp .stats { display:flex; flex-wrap:wrap; justify-content:center; gap:1.25rem; margin:0 0 1.25rem; font-weight:800; letter-spacing:.02em; }
+    .epc-asp-login-erp .stats span { color:#e2e8f0; font-size:.85rem; }
+    .epc-asp-login-erp .panel {
+        display:grid; grid-template-columns:1.1fr .9fr; gap:1rem;
+        background:rgba(15,23,42,.72); border:1px solid rgba(148,163,184,.2); border-radius:1rem; padding:1.2rem;
+    }
+    .epc-asp-login-erp .panel h2 { margin:.2rem 0 .45rem; font-size:1.2rem; }
+    .epc-asp-login-erp .panel p { color:#94a3b8; font-size:.9rem; line-height:1.45; }
+    .epc-asp-login-erp .checks { list-style:none; padding:0; margin:.8rem 0 0; display:grid; gap:.35rem; color:#cbd5e1; font-size:.85rem; }
+    .epc-asp-login-erp .checks li::before { content:"✓ "; color:#38bdf8; font-weight:700; }
+    .epc-asp-login-erp .login-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:.8rem; padding:1rem 1.05rem; }
+    .epc-asp-login-erp .epc-login-field { margin:0 0 .7rem; }
+    .epc-asp-login-erp .epc-login-field label { display:block; font-size:.8rem; font-weight:600; margin-bottom:.25rem; color:#cbd5e1; }
+    .epc-asp-login-erp .epc-login-field input, .epc-asp-login-erp .epc-login-field select {
+        width:100%; padding:.6rem .7rem; border:0; border-radius:.45rem; background:#fff; color:#111;
+    }
+    .epc-asp-login-erp .epc-login-row { color:#94a3b8; font-size:.85rem; }
+    .epc-asp-login-erp .epc-login-submit { width:100%; margin-top:.35rem; padding:.75rem 1rem; border:0; border-radius:.45rem; background:var(--accent); color:#fff; font-weight:700; cursor:pointer; }
+    .epc-asp-login-erp .epc-login-error { background:#450a0a; color:#fecaca; border:1px solid #7f1d1d; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
+    .epc-asp-login-erp .epc-login-bridge-note { color:#94a3b8; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
+    .epc-asp-login-erp .epc-login-php { color:#93c5fd; font-weight:700; }
+    @@media (max-width:900px){ .epc-asp-login-erp .modules,.epc-asp-login-erp .panel{grid-template-columns:1fr 1fr;} }
+    @@media (max-width:640px){ .epc-asp-login-erp .modules,.epc-asp-login-erp .panel{grid-template-columns:1fr;} }
 </style>
 
-<div class="epc-login-page">
-    <div class="epc-login-wrap">
-        <section class="epc-login-brand">
-            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:34px" />
-            <span class="epc-login-badge">ECOM BOS · ERP</span>
-            <h1>ERP Operations login</h1>
-            <p>Same backend credentials as PHP /ERP/ and platform/client ERP routers. ASP.NET sets admin cookies; finance modules stay on PHP ERP shell.</p>
+<div class="epc-asp-login-erp">
+    <div class="wrap">
+        <div class="top">
+            <div class="brand">
+                <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" />
+                <div>
+                    <div>ECOM AE</div>
+                    <div style="font-size:.75rem;color:#94a3b8;font-weight:500">Finance &amp; operations · ecomae.com</div>
+                </div>
+            </div>
+            <div style="display:flex;gap:1rem;font-size:.9rem">
+                <a href="/ERP/" style="color:#93c5fd">ERP</a>
+                <a href="/CP/" style="color:#93c5fd">Guide</a>
+            </div>
+        </div>
+
+        <section class="hero">
+            <div class="hero-icon"><i class="fa fa-line-chart"></i></div>
+            <h1>ERP Finance</h1>
+            <p class="sub">Unified Blockchain BOS Enterprise System</p>
         </section>
-        <section class="epc-login-panel">
-            <h2>Sign in</h2>
-            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Erp" SurfaceLabel="ERP" PhpLoginHref="/ERP/" ErrorMessage="@_error" />
-            <p style="margin-top:1rem;font-size:.85rem;color:#64748b">
-                After login: <a href="/erp/app">/erp/app</a> · Live PHP: <a href="/ERP/">/ERP/</a>
-            </p>
-        </section>
+
+        <div class="modules">
+            <div class="mod"><strong>Financial Accounting</strong><span>GL, AP, AR, Bank, Fixed Assets</span></div>
+            <div class="mod"><strong>Sales &amp; Purchase</strong><span>Orders, Invoices, Quotations</span></div>
+            <div class="mod"><strong>Inventory &amp; Logistics</strong><span>WMS, Barcode, Stock, Shipping</span></div>
+            <div class="mod"><strong>Compliance &amp; AI</strong><span>VAT, AML, E-invoice, AI Advisor</span></div>
+        </div>
+        <div class="stats">
+            <span>95+ MODULES</span><span>11+ INDUSTRIES</span><span>65+ COUNTRIES</span><span>225+ TENANTS</span>
+        </div>
+
+        <div class="panel">
+            <section>
+                <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+                <div style="color:#94a3b8;font-size:.8rem;margin:.35rem 0">ECOM AE / Unified ERP &amp; Commerce Cloud</div>
+                <h2><i class="fa fa-line-chart"></i> ERP Finance</h2>
+                <p>Department sign-in for finance, sales, logistics, purchase, HR, and operations. No storefront account required — this area is separate from the public website.</p>
+                <ul class="checks">
+                    <li>Role-based tabs per department</li>
+                    <li>GL, VAT, inventory &amp; payables</li>
+                </ul>
+            </section>
+            <section class="login-card">
+                <h2 style="margin-top:0">Sign in</h2>
+                <LegacyAdminLoginForm Surface="LegacyLoginSurface.Erp" SurfaceLabel="ERP" PhpLoginHref="/ERP/" ErrorMessage="@_error" SubmitLabel="Log in" Accent="blue" />
+            </section>
+        </div>
     </div>
 </div>
 

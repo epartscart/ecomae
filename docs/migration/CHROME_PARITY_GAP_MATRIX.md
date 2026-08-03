@@ -15,7 +15,7 @@ Authoritative product chrome remains **PHP** until intentional exact-route cutov
 
 | Surface | PHP URL | ASP.NET preview / bridge | Presentation | Functionality | Gap notes |
 | --- | --- | --- | --- | --- | --- |
-| Platform CP chrome | `/CP/` | `/cp/app` | Hybrid (PHP CSS + linked nav) | Digests ASP.NET; modules PHP via nav | Full desktop widgets / ACL menu cache still PHP |
+| Platform CP chrome | `/CP/` (login when unauth) | `/cp/login` → `/cp/app` (auth) | Hybrid; blank PhpChromeLayout | Digests ASP.NET; modules PHP via nav | Full desktop widgets / ACL menu cache still PHP |
 | Tenant CP chrome | `tenant/CP/` | same `/cp/app` when shadowed on tenant vhost | Hybrid | Tenant DB via registry | Per-tenant shadow install still operator-driven |
 | CP login | `/CP/` auth plugin | `/cp/login` + `POST /auth/login/admin` | Bridge UI | Writes PHP-compatible `sessions` + `admin_*` cookies when `SecretSuccession` set | Rate-limit / social / demo / shared-ERP picker still PHP |
 | Platform ERP | `/ERP/` | `/erp/app` | Hybrid | Digests ASP.NET; areas PHP | Full ERP desktop + writes PHP |

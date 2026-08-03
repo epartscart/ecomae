@@ -1,10 +1,12 @@
 @page "/cp/app"
+@layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject NavigationManager Nav
 
 <PageTitle>Control Command Centre · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
@@ -114,7 +116,7 @@
     private int _tenants;
     private int _active;
     private string _source = "n/a";
-    private string _note = "Unauthenticated preview (KPI digests need admin cookie). ";
+    private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
 
     protected override async Task OnInitializedAsync()
@@ -128,6 +130,8 @@
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Admin)
         {
+            // Match PHP /CP/: unauthenticated users see login, not a dashboard shell.
+            Nav.NavigateTo("/cp/login", forceLoad: true);
             return;
         }
 
