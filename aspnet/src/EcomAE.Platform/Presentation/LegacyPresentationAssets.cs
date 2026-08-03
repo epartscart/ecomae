@@ -26,8 +26,13 @@ public static class LegacyPresentationAssets
         "/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css",
         "/epc-static.php?f=cp/templates/bootstrap_admin/css/astself.css",
         "/content/general_pages/epc_cp_ui_css.php",
-        "/content/general_pages/epc_cp_professional_css.php"
+        "/content/general_pages/epc_cp_professional_css.php",
+        // Tenant Control Command Centre (matches live PHP /CP/ dashboard presentation)
+        "/content/general_pages/epc_cp_command_dashboard_css.php"
     ];
+
+    /// <summary>Animated eParts Cart mark used on tenant CP / storefront chrome.</summary>
+    public const string EpartsCartMarkUrl = "/content/general_pages/epc_animated_epartscart_logo.php";
 
     public static readonly IReadOnlyList<string> ErpStylesheets =
     [

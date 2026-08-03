@@ -37,21 +37,21 @@ public sealed class PresentationParityReporter : IPresentationParityReporter
         ];
 
         return new PresentationParityReport(
-            "presentation-shell-scaffolded",
-            "ASP.NET Core surface shells must reuse PHP chrome CSS/asset URLs and keep JSON digests unchanged for tooling.",
+            "presentation-app-preview-scaffolded",
+            "ASP.NET Blazor /cp/app /erp/app /bos/app /storefront/app previews reuse PHP chrome CSS; public / /CP/ /ERP/ /BOS/ remain PHP-authoritative.",
             surfaces,
             [
-                "CP/ERP/BOS/storefront shell routes negotiate HTML vs JSON without changing digest JSON schemas.",
-                "HTML shells link the same epc-static.php / content/general_pages / templates/modex stylesheets as PHP.",
-                "Brand mark uses /content/general_pages/epc_ecomae_logo_svg.php so operator chrome stays ECOM AE-branded.",
-                "Unauthorized responses remain JSON 401 so API clients are not surprised by HTML login pages.",
-                "PHP remains authoritative for full interactive UX until staging smoke + release-owner approval."
+                "Blazor presentation apps: /cp/app (Control Command Centre), /erp/app (Ecom BOS), /bos/app (fleet), /storefront/app (storefront preview).",
+                "Apps link the same epc-static.php / content/general_pages / templates/modex / command-dashboard CSS as PHP.",
+                "KPI tiles hydrate from ASP.NET digests when an admin cookie is present; unauth still shows chrome layout.",
+                "Legacy ?format=html shells remain for /cp /erp /bos aliases (admin session).",
+                "PHP remains authoritative for full interactive UX (login, menus, cart/checkout, marketing home) until intentional cutover + approval."
             ],
             [
-                "On CloudPanel: ensure→issue→capture authenticated digests before judging HTML chrome parity.",
-                "Pixel/DOM parity against live PHP desktop.php / erp_desktop.php / bos/index.php / modex desktop still required before traffic cutover.",
-                "Login forms, menu writes, widget interactivity, and storefront cart/checkout HTML are not claimed by this scaffold.",
-                "Do not enable broad /cp /erp /bos /storefront cutover until presentation + data parity evidence is attached."
+                "Install previews: ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES bash scripts/cloudpanel_install_presentation_app_shadows.sh",
+                "Compare side-by-side: PHP /CP/ vs ASP.NET /cp/app; PHP /ERP/ vs /erp/app; PHP storefront vs /storefront/app.",
+                "Pixel/DOM parity against desktop.php / erp_desktop.php / bos/index.php / modex desktop + ecomae marketing layout still required before chrome cutover.",
+                "Do not enable broad /cp /erp /bos /storefront / cutover and do not remove PHP until presentation + data parity evidence is attached."
             ]);
     }
 }
