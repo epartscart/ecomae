@@ -87,14 +87,18 @@ public sealed class LiveSurfaceLinkReporterTests
             link.HostClass == "aspnet-exact-route-shadow-live"
             && link.AspNetRouteHint == "/api/v1/catalog/products"
             && link.StackToday == "aspnet");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/api/v1/catalog/engine-search"
+            && link.StackToday == "aspnet");
         Assert.Contains(report.CutoverRules, rule => rule.Contains("Broad", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_capture_final_gate_artifacts.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("ECOMAE_CUSTOMER_COOKIE_HEADER", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_catalog_vehicle_chain.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_list_warm_catalog_vehicle_ids.sh vin", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("umapi products", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_exact_route_shadow.sh /api/v1/catalog/engine-search", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("umapi engine_search", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_exact_route_shadow.sh /api/v1/catalog/article-links", StringComparison.Ordinal));
     }
 
     [Fact]

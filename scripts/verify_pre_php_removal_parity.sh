@@ -210,6 +210,7 @@ wanted = [
     "https://www.ecomae.com/api/v1/catalog/article-brands",
     "https://www.ecomae.com/api/v1/catalog/categories",
     "https://www.ecomae.com/api/v1/catalog/products",
+    "https://www.ecomae.com/api/v1/catalog/engine-search",
     "https://www.ecomae.com/api/v1/price/lookup",
     "https://www.ecomae.com/health",
 ]
@@ -244,11 +245,12 @@ analogs = by_url.get("https://www.ecomae.com/api/v1/catalog/analogs", ("missing"
 article_brands = by_url.get("https://www.ecomae.com/api/v1/catalog/article-brands", ("missing", None))[0]
 categories = by_url.get("https://www.ecomae.com/api/v1/catalog/categories", ("missing", None))[0]
 products = by_url.get("https://www.ecomae.com/api/v1/catalog/products", ("missing", None))[0]
+engine_search = by_url.get("https://www.ecomae.com/api/v1/catalog/engine-search", ("missing", None))[0]
 if health != "aspnet-health":
     errors.append(f"health engine unexpected: {health}")
 if price != "aspnet-json":
     errors.append(f"price lookup engine unexpected: {price}")
-# Catalog exact-route shadows (status through products) are approved/live on www.
+# Catalog exact-route shadows (status through engine-search) are approved/live on www.
 if catalog != "aspnet-json":
     errors.append(f"catalog status engine unexpected: {catalog} (expected aspnet-json after exact-route shadow)")
 if mfr != "aspnet-json":
@@ -273,6 +275,8 @@ if categories != "aspnet-json":
     errors.append(f"catalog categories engine unexpected: {categories} (expected aspnet-json after exact-route shadow)")
 if products != "aspnet-json":
     errors.append(f"catalog products engine unexpected: {products} (expected aspnet-json after exact-route shadow)")
+if engine_search != "aspnet-json":
+    errors.append(f"catalog engine-search engine unexpected: {engine_search} (expected aspnet-json after exact-route shadow)")
 print("STACK_URLS=" + str({k: by_url.get(k) for k in wanted}))
 if errors:
     print("ERRORS=" + ";".join(errors))
@@ -280,7 +284,7 @@ if errors:
 print("STACK_OK")
 PY
 if grep -q 'STACK_OK' /tmp/pre-removal-stack-judge.out; then
-  record "public-surface-authority" pass "CP/ERP/BOS chrome still PHP; health/price/catalog shadows through products ASP.NET exact routes; digests not cut over"
+  record "public-surface-authority" pass "CP/ERP/BOS chrome still PHP; health/price/catalog shadows through engine-search ASP.NET exact routes; digests not cut over"
 else
   # Fallback judge via direct curl if JSON shape unknown
   chrome_ok=1
