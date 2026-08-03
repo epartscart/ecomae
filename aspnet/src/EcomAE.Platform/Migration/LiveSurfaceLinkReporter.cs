@@ -36,6 +36,7 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("aspnet-login-bridge", "BOS login bridge", "https://www.ecomae.com/bos/login", "aspnet", "/bos/login", "Admin cookie bridge for digests; native BOS $_SESSION login remains on /BOS/."),
             Link("aspnet-login-bridge", "Storefront login bridge", "https://www.ecomae.com/storefront/login", "aspnet", "/storefront/login", "Customer session/u_id mint for digests. Cart/checkout remain PHP."),
             Link("aspnet-diagnostics", "Presentation parity", "https://www.ecomae.com/migration/presentation-parity", "aspnet", "/migration/presentation-parity", "PHP chrome asset contract for ASP.NET shells."),
+            Link("aspnet-diagnostics", "PHP module catalog", "https://www.ecomae.com/migration/php-module-catalog", "aspnet", "/migration/php-module-catalog", "Full CP/ERP/BOS/storefront module directory counts (hybrid deeplink inventory)."),
             Link("aspnet-diagnostics", "Live surface links", "https://www.ecomae.com/migration/live-surface-links", "aspnet", "/migration/live-surface-links", "This catalog."),
             Link("aspnet-diagnostics", "Surface parity", "https://www.ecomae.com/migration/surface-parity", "aspnet", "/migration/surface-parity", "Surface-by-surface parity statuses."),
             Link("aspnet-diagnostics", "Surface field parity", "https://www.ecomae.com/migration/surface-field-parity", "aspnet", "/migration/surface-field-parity", "Field/function contracts for all wired digests + catalog routes."),
@@ -168,6 +169,8 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Hybrid chrome: ASP.NET shells link PHP modules (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /CP/ /ERP/ /BOS/ remain PHP.",
                 "Tenant safety probe: bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh (expect PHP HTML on tenant / /CP/ /ERP/).",
                 "Shadow installers refuse tenant vhosts unless ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES; presentation shadows refuse tenants by default.",
+                "PHP-level parity plan: docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md — regenerate catalogs via python3 scripts/generate_php_module_catalog.py.",
+                "Hybrid module directories on /cp|/erp|/bos|/storefront/app; counts at GET /migration/php-module-catalog.",
                 "Human RELEASE_OWNER_APPROVAL.md is the final ReadyToRemovePhp blocker — do not remove PHP while chrome is PHP-authoritative."
             ]);
 

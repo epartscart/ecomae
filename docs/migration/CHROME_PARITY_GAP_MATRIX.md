@@ -2,6 +2,8 @@
 
 Authoritative product chrome remains **PHP** until intentional exact-route cutover + dual-sample evidence + human `RELEASE_OWNER_APPROVAL.md`. This matrix tracks hybrid strengthen work so CP (platform + tenants), ERP, BOS, and login present/work without removing PHP.
 
+**Full parity plan:** `docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md` — Batch 0 ships complete PHP-sourced module directories on `/cp|/erp|/bos|/storefront/app` (`GET /migration/php-module-catalog`).
+
 ## Status legend
 
 | Status | Meaning |

@@ -52,9 +52,10 @@
         </div>
     </div>
     <div class="epc-erp-nav">
-        @foreach (var item in LegacyChromeNavCatalog.Erp)
+        <a href="/ERP/">Ecom BOS</a>
+        @foreach (var item in PhpModuleCatalog.ErpCategories)
         {
-            <a href="@item.Href" title="@(item.Hint ?? item.Label)">@item.Label</a>
+            <a href="@item.Href" title="@item.Label"><i class="fa @item.Icon"></i> @item.Label</a>
         }
     </div>
     <div class="epc-erp-main">
@@ -101,8 +102,22 @@
             </div>
         </section>
 
+        <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/erp/app" />
+
+        <PhpHybridModuleDirectory
+            Title="Complete ERP area directory"
+            Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} areas · {PhpModuleCatalog.ErpTabCount} tabs from PHP erp_nav_areas.php")"
+            Links="@PhpModuleCatalog.ErpAreas"
+            PhpWorkspaceBase="/erp/app" />
+
+        <PhpHybridModuleDirectory
+            Title="Complete ERP tab directory"
+            Subtitle="Every tab deeplinks to live PHP ERP shell"
+            Links="@PhpModuleCatalog.ErpTabs"
+            PhpWorkspaceBase="/erp/app" />
+
         <div class="epc-erp-note">
-            @_note Live PHP ERP UI remains at <a href="/ERP/">/ERP/</a>. Login bridge: <a href="/erp/login">/erp/login</a>. Nav opens PHP ERP areas.
+            @_note Live PHP ERP UI remains at <a href="/ERP/">/ERP/</a>. Full area/tab directories below. Login bridge: <a href="/erp/login">/erp/login</a>.
         </div>
     </div>
 </div>
@@ -118,11 +133,16 @@
     private string _source = "n/a";
     private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
+    private string? _phpHref;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        if (ctx.Request.Query.TryGetValue("php", out var php) && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Admin)
         {

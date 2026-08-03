@@ -1,0 +1,12 @@
+{
+  "counts": {
+    "erpAreas": 35,
+    "erpTabs": 154,
+    "erpCategories": 9,
+    "bosModules": 99,
+    "bosSections": 11,
+    "cpBrochureFeatures": 405,
+    "storefrontSurfaces": 12
+  },
+  "policy": "hybrid-deeplink-to-php-until-aspnet-module-complete"
+}

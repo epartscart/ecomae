@@ -1,0 +1,65 @@
+@*
+  Optional iframe that loads a live PHP module inside ASP.NET product chrome.
+  Activated via ?php=/CP/... (or /ERP/ /BOS/) on /cp/app|/erp/app|/bos/app|/storefront/app.
+  PHP remains authoritative for the module body; this is presentation scaffolding only.
+*@
+
+@if (!string.IsNullOrWhiteSpace(SafePhpHref))
+{
+    <section class="epc-hybrid-frame">
+        <div class="epc-hybrid-frame-bar">
+            <span>Hybrid workspace · PHP module</span>
+            <a href="@SafePhpHref" target="_blank" rel="noopener">Open PHP full page</a>
+            <a href="@ClearHref">Close workspace</a>
+        </div>
+        <iframe class="epc-hybrid-iframe" src="@SafePhpHref" title="PHP module workspace" loading="lazy"></iframe>
+    </section>
+}
+
+<style>
+    .epc-hybrid-frame { margin:1rem 0 1.5rem; border:1px solid #e2e8f0; border-radius:.55rem; overflow:hidden; background:#fff; }
+    .epc-hybrid-frame-bar { display:flex; gap:.85rem; flex-wrap:wrap; align-items:center; padding:.5rem .75rem; background:#0f172a; color:#e2e8f0; font-size:.8rem; font-weight:600; }
+    .epc-hybrid-frame-bar a { color:#93c5fd; text-decoration:none; }
+    .epc-hybrid-frame-bar a:hover { text-decoration:underline; }
+    .epc-hybrid-iframe { width:100%; min-height:70vh; border:0; background:#fff; }
+</style>
+
+@code {
+    [Parameter] public string? PhpHref { get; set; }
+    [Parameter] public string ClearHref { get; set; } = "?";
+
+    private string? SafePhpHref => Sanitize(PhpHref);
+
+    private static string? Sanitize(string? href)
+    {
+        if (string.IsNullOrWhiteSpace(href))
+        {
+            return null;
+        }
+
+        // Allow same-origin PHP chrome paths and known live tenant storefront absolute URLs.
+        if (href.StartsWith("/CP/", StringComparison.OrdinalIgnoreCase)
+            || href.StartsWith("/ERP/", StringComparison.OrdinalIgnoreCase)
+            || href.StartsWith("/BOS/", StringComparison.OrdinalIgnoreCase)
+            || href.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
+            || href.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
+            || href.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase)
+            || href.StartsWith("/content/", StringComparison.OrdinalIgnoreCase)
+            || href.Equals("/CP/", StringComparison.OrdinalIgnoreCase)
+            || href.Equals("/ERP/", StringComparison.OrdinalIgnoreCase)
+            || href.Equals("/BOS/", StringComparison.OrdinalIgnoreCase))
+        {
+            return href;
+        }
+
+        if (Uri.TryCreate(href, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)
+            && (uri.Host.EndsWith("epartscart.com", StringComparison.OrdinalIgnoreCase)
+                || uri.Host.EndsWith("ecomae.com", StringComparison.OrdinalIgnoreCase)))
+        {
+            return href;
+        }
+
+        return null;
+    }
+}

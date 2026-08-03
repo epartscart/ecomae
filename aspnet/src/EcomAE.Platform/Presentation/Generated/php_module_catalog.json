@@ -1,0 +1,5397 @@
+{
+  "generatedFrom": [
+    "cp/content/shop/finance/erp/erp_nav_areas.php",
+    "content/general_pages/epc_bos_unified.php",
+    "content/general_pages/epc_cp_brochure_inventory.php"
+  ],
+  "policy": "hybrid-deeplink-to-php-until-aspnet-module-complete",
+  "counts": {
+    "erpAreas": 35,
+    "erpTabs": 154,
+    "erpCategories": 9,
+    "bosModules": 99,
+    "bosSections": 11,
+    "cpBrochureFeatures": 405,
+    "storefrontSurfaces": 12
+  },
+  "erpAreas": [
+    {
+      "id": "overview",
+      "label": "Home",
+      "icon": "fa-th-large",
+      "href": "/ERP/?epc_erp_shell=1&area=overview",
+      "tabs": [
+        {
+          "id": "dashboard",
+          "label": "Dashboard",
+          "icon": "fa-dashboard",
+          "href": "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard"
+        },
+        {
+          "id": "workflow",
+          "label": "Workflow",
+          "icon": "fa-tasks",
+          "href": "/ERP/?epc_erp_shell=1&area=overview&tab=workflow"
+        },
+        {
+          "id": "processflow",
+          "label": "Process flow",
+          "icon": "fa-sitemap",
+          "href": "/ERP/?epc_erp_shell=1&area=overview&tab=processflow"
+        },
+        {
+          "id": "approvals",
+          "label": "Approvals",
+          "icon": "fa-check-square-o",
+          "href": "/ERP/?epc_erp_shell=1&area=overview&tab=approvals"
+        },
+        {
+          "id": "workflow_automation",
+          "label": "Automation Centre",
+          "icon": "fa-magic",
+          "href": "/ERP/?epc_erp_shell=1&area=overview&tab=workflow_automation"
+        }
+      ]
+    },
+    {
+      "id": "ap",
+      "label": "Accounts payable",
+      "icon": "fa-credit-card",
+      "href": "/ERP/?epc_erp_shell=1&area=ap",
+      "tabs": [
+        {
+          "id": "payables",
+          "label": "Payables",
+          "icon": "fa-truck",
+          "href": "/ERP/?epc_erp_shell=1&area=ap&tab=payables"
+        },
+        {
+          "id": "ap_setup",
+          "label": "Vendor setup",
+          "icon": "fa-credit-card",
+          "href": "/ERP/?epc_erp_shell=1&area=ap&tab=ap_setup"
+        }
+      ]
+    },
+    {
+      "id": "ar",
+      "label": "Accounts receivable",
+      "icon": "fa-users",
+      "href": "/ERP/?epc_erp_shell=1&area=ar",
+      "tabs": [
+        {
+          "id": "receivables",
+          "label": "Receivables",
+          "icon": "fa-users",
+          "href": "/ERP/?epc_erp_shell=1&area=ar&tab=receivables"
+        },
+        {
+          "id": "ar_setup",
+          "label": "Customer setup",
+          "icon": "fa-handshake-o",
+          "href": "/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup"
+        }
+      ]
+    },
+    {
+      "id": "asset_mgmt",
+      "label": "Asset management",
+      "icon": "fa-wrench",
+      "href": "/ERP/?epc_erp_shell=1&area=asset_mgmt",
+      "tabs": [
+        {
+          "id": "fixed_assets",
+          "label": "Fixed assets",
+          "icon": "fa-building",
+          "href": "/ERP/?epc_erp_shell=1&area=asset_mgmt&tab=fixed_assets"
+        }
+      ]
+    },
+    {
+      "id": "audit_wb",
+      "label": "Audit workbench",
+      "icon": "fa-history",
+      "href": "/ERP/?epc_erp_shell=1&area=audit_wb",
+      "tabs": [
+        {
+          "id": "audit",
+          "label": "Audit trail",
+          "icon": "fa-history",
+          "href": "/ERP/?epc_erp_shell=1&area=audit_wb&tab=audit"
+        },
+        {
+          "id": "blockchain_proofs",
+          "label": "Blockchain proofs",
+          "icon": "fa-link",
+          "href": "/ERP/?epc_erp_shell=1&area=audit_wb&tab=blockchain_proofs"
+        }
+      ]
+    },
+    {
+      "id": "budgeting",
+      "label": "Budgeting",
+      "icon": "fa-pie-chart",
+      "href": "/ERP/?epc_erp_shell=1&area=budgeting",
+      "tabs": [
+        {
+          "id": "budgeting",
+          "label": "Budgeting",
+          "icon": "fa-pie-chart",
+          "href": "/ERP/?epc_erp_shell=1&area=budgeting&tab=budgeting"
+        },
+        {
+          "id": "budget_planning",
+          "label": "Budget planning",
+          "icon": "fa-line-chart",
+          "href": "/ERP/?epc_erp_shell=1&area=budgeting&tab=budget_planning"
+        }
+      ]
+    },
+    {
+      "id": "banking",
+      "label": "Cash and bank management",
+      "icon": "fa-money",
+      "href": "/ERP/?epc_erp_shell=1&area=banking",
+      "tabs": [
+        {
+          "id": "cash_bank",
+          "label": "Cash & bank",
+          "icon": "fa-university",
+          "href": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
+        },
+        {
+          "id": "petty_cash",
+          "label": "Petty cash",
+          "icon": "fa-money",
+          "href": "/ERP/?epc_erp_shell=1&area=banking&tab=petty_cash"
+        },
+        {
+          "id": "payment_batches",
+          "label": "Payment batches",
+          "icon": "fa-send",
+          "href": "/ERP/?epc_erp_shell=1&area=banking&tab=payment_batches"
+        },
+        {
+          "id": "bank_recon",
+          "label": "Bank recon",
+          "icon": "fa-check-square",
+          "href": "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon"
+        },
+        {
+          "id": "cash_forecast",
+          "label": "Cash flow forecast",
+          "icon": "fa-area-chart",
+          "href": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_forecast"
+        },
+        {
+          "id": "bank_instruments",
+          "label": "Bank instruments",
+          "icon": "fa-certificate",
+          "href": "/ERP/?epc_erp_shell=1&area=banking&tab=bank_instruments"
+        },
+        {
+          "id": "bank_setup",
+          "label": "Bank accounts",
+          "icon": "fa-university",
+          "href": "/ERP/?epc_erp_shell=1&area=banking&tab=bank_setup"
+        }
+      ]
+    },
+    {
+      "id": "common",
+      "label": "Common",
+      "icon": "fa-th",
+      "href": "/ERP/?epc_erp_shell=1&area=common",
+      "tabs": [
+        {
+          "id": "agenda",
+          "label": "Agenda",
+          "icon": "fa-calendar",
+          "href": "/ERP/?epc_erp_shell=1&area=common&tab=agenda"
+        },
+        {
+          "id": "contacts",
+          "label": "Contacts",
+          "icon": "fa-address-book-o",
+          "href": "/ERP/?epc_erp_shell=1&area=common&tab=contacts"
+        },
+        {
+          "id": "documents",
+          "label": "Documents",
+          "icon": "fa-folder-open-o",
+          "href": "/ERP/?epc_erp_shell=1&area=common&tab=documents"
+        },
+        {
+          "id": "knowledge_base",
+          "label": "Knowledge base",
+          "icon": "fa-book",
+          "href": "/ERP/?epc_erp_shell=1&area=common&tab=knowledge_base"
+        },
+        {
+          "id": "ai_advisor",
+          "label": "AI advisor",
+          "icon": "fa-magic",
+          "href": "/ERP/?epc_erp_shell=1&area=common&tab=ai_advisor"
+        }
+      ]
+    },
+    {
+      "id": "risk",
+      "label": "Compliance",
+      "icon": "fa-shield",
+      "href": "/ERP/?epc_erp_shell=1&area=risk",
+      "tabs": [
+        {
+          "id": "insurance",
+          "label": "Insurance",
+          "icon": "fa-shield",
+          "href": "/ERP/?epc_erp_shell=1&area=risk&tab=insurance"
+        },
+        {
+          "id": "doc_expiry",
+          "label": "Document expiry",
+          "icon": "fa-calendar-times-o",
+          "href": "/ERP/?epc_erp_shell=1&area=risk&tab=doc_expiry"
+        }
+      ]
+    },
+    {
+      "id": "consolidations",
+      "label": "Consolidations",
+      "icon": "fa-sitemap",
+      "href": "/ERP/?epc_erp_shell=1&area=consolidations",
+      "tabs": [
+        {
+          "id": "consolidation_bu",
+          "label": "Consolidation",
+          "icon": "fa-sitemap",
+          "href": "/ERP/?epc_erp_shell=1&area=consolidations&tab=consolidation_bu"
+        },
+        {
+          "id": "multi_entity",
+          "label": "Multi-entity",
+          "icon": "fa-sitemap",
+          "href": "/ERP/?epc_erp_shell=1&area=consolidations&tab=multi_entity"
+        }
+      ]
+    },
+    {
+      "id": "cost_acct",
+      "label": "Cost accounting",
+      "icon": "fa-calculator",
+      "href": "/ERP/?epc_erp_shell=1&area=cost_acct",
+      "tabs": [
+        {
+          "id": "fin_advanced",
+          "label": "Financial depth",
+          "icon": "fa-sliders",
+          "href": "/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced"
+        }
+      ]
+    },
+    {
+      "id": "cost_mgmt",
+      "label": "Cost management",
+      "icon": "fa-balance-scale",
+      "href": "/ERP/?epc_erp_shell=1&area=cost_mgmt",
+      "tabs": [
+        {
+          "id": "cost_models",
+          "label": "Costing value-models",
+          "icon": "fa-balance-scale",
+          "href": "/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models"
+        }
+      ]
+    },
+    {
+      "id": "credit_coll",
+      "label": "Credit and collections",
+      "icon": "fa-gavel",
+      "href": "/ERP/?epc_erp_shell=1&area=credit_coll",
+      "tabs": [
+        {
+          "id": "collections",
+          "label": "Collections",
+          "icon": "fa-gavel",
+          "href": "/ERP/?epc_erp_shell=1&area=credit_coll&tab=collections"
+        }
+      ]
+    },
+    {
+      "id": "expense",
+      "label": "Expense management",
+      "icon": "fa-credit-card",
+      "href": "/ERP/?epc_erp_shell=1&area=expense",
+      "tabs": [
+        {
+          "id": "expense_reports",
+          "label": "Expense reports",
+          "icon": "fa-credit-card",
+          "href": "/ERP/?epc_erp_shell=1&area=expense&tab=expense_reports"
+        }
+      ]
+    },
+    {
+      "id": "fixed_assets",
+      "label": "Fixed assets",
+      "icon": "fa-building",
+      "href": "/ERP/?epc_erp_shell=1&area=fixed_assets",
+      "tabs": [
+        {
+          "id": "fixed_assets",
+          "label": "Fixed assets",
+          "icon": "fa-building",
+          "href": "/ERP/?epc_erp_shell=1&area=fixed_assets&tab=fixed_assets"
+        }
+      ]
+    },
+    {
+      "id": "finance",
+      "label": "General ledger",
+      "icon": "fa-university",
+      "href": "/ERP/?epc_erp_shell=1&area=finance",
+      "tabs": [
+        {
+          "id": "gl",
+          "label": "General ledger",
+          "icon": "fa-book",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=gl"
+        },
+        {
+          "id": "opening_balances",
+          "label": "Opening balances",
+          "icon": "fa-flag-o",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=opening_balances"
+        },
+        {
+          "id": "aging",
+          "label": "Aging (AR/AP/Inv)",
+          "icon": "fa-hourglass-half",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=aging"
+        },
+        {
+          "id": "pl",
+          "label": "Profit & loss",
+          "icon": "fa-bar-chart",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=pl"
+        },
+        {
+          "id": "balance_sheet",
+          "label": "Balance sheet",
+          "icon": "fa-balance-scale",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=balance_sheet"
+        },
+        {
+          "id": "reports",
+          "label": "Reports",
+          "icon": "fa-table",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=reports"
+        },
+        {
+          "id": "enterprise_reports",
+          "label": "Trial balance / reports",
+          "icon": "fa-table",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=enterprise_reports"
+        },
+        {
+          "id": "fin_advanced",
+          "label": "Financial depth",
+          "icon": "fa-sliders",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=fin_advanced"
+        },
+        {
+          "id": "year_end",
+          "label": "Year-end closing",
+          "icon": "fa-calendar-check-o",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=year_end"
+        },
+        {
+          "id": "accounting_automation",
+          "label": "Accounting automation",
+          "icon": "fa-magic",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=accounting_automation"
+        },
+        {
+          "id": "coa",
+          "label": "Chart of accounts",
+          "icon": "fa-list",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=coa"
+        },
+        {
+          "id": "jw_trial_balance",
+          "label": "Dual trial balance (wt+val)",
+          "icon": "fa-balance-scale",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=jw_trial_balance"
+        },
+        {
+          "id": "jw_journal_voucher",
+          "label": "Journal voucher (jewellery)",
+          "icon": "fa-book",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=jw_journal_voucher"
+        },
+        {
+          "id": "jw_petty_cash",
+          "label": "Petty cash (jewellery)",
+          "icon": "fa-money",
+          "href": "/ERP/?epc_erp_shell=1&area=finance&tab=jw_petty_cash"
+        }
+      ]
+    },
+    {
+      "id": "people",
+      "label": "Human resources",
+      "icon": "fa-users",
+      "href": "/ERP/?epc_erp_shell=1&area=people",
+      "tabs": [
+        {
+          "id": "staff",
+          "label": "Workers",
+          "icon": "fa-id-badge",
+          "href": "/ERP/?epc_erp_shell=1&area=people&tab=staff"
+        },
+        {
+          "id": "hr",
+          "label": "HR",
+          "icon": "fa-user-circle",
+          "href": "/ERP/?epc_erp_shell=1&area=people&tab=hr"
+        },
+        {
+          "id": "hr_ops",
+          "label": "HR operations",
+          "icon": "fa-users",
+          "href": "/ERP/?epc_erp_shell=1&area=people&tab=hr_ops"
+        },
+        {
+          "id": "recruitment",
+          "label": "Recruitment",
+          "icon": "fa-user-plus",
+          "href": "/ERP/?epc_erp_shell=1&area=people&tab=recruitment"
+        },
+        {
+          "id": "performance",
+          "label": "Performance management",
+          "icon": "fa-star-half-o",
+          "href": "/ERP/?epc_erp_shell=1&area=people&tab=performance"
+        },
+        {
+          "id": "hr_law",
+          "label": "Labour law & compliance",
+          "icon": "fa-gavel",
+          "href": "/ERP/?epc_erp_shell=1&area=people&tab=hr_law"
+        }
+      ]
+    },
+    {
+      "id": "inventory_mgmt",
+      "label": "Inventory management",
+      "icon": "fa-cubes",
+      "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt",
+      "tabs": [
+        {
+          "id": "inventory",
+          "label": "Inventory",
+          "icon": "fa-cubes",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory"
+        },
+        {
+          "id": "inv_groups",
+          "label": "Inventory (stock/groups)",
+          "icon": "fa-object-group",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inv_groups"
+        },
+        {
+          "id": "order_planning",
+          "label": "Order planning",
+          "icon": "fa-cubes",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=order_planning"
+        },
+        {
+          "id": "retail_barcode",
+          "label": "Retail barcode",
+          "icon": "fa-barcode",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=retail_barcode"
+        },
+        {
+          "id": "jw_karat",
+          "label": "Karat master",
+          "icon": "fa-tachometer",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_karat"
+        },
+        {
+          "id": "jw_rate_type",
+          "label": "Rate type master",
+          "icon": "fa-line-chart",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_rate_type"
+        },
+        {
+          "id": "jw_metal_stock",
+          "label": "Metal stock master",
+          "icon": "fa-cubes",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_metal_stock"
+        },
+        {
+          "id": "jw_design",
+          "label": "Design master",
+          "icon": "fa-paint-brush",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_design"
+        },
+        {
+          "id": "jw_diamond",
+          "label": "Diamond master",
+          "icon": "fa-diamond",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_diamond"
+        },
+        {
+          "id": "jw_pearl",
+          "label": "Pearl master",
+          "icon": "fa-circle-o",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_pearl"
+        },
+        {
+          "id": "jw_color_stone",
+          "label": "Colour stone master",
+          "icon": "fa-star",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_color_stone"
+        },
+        {
+          "id": "jw_stock_verification",
+          "label": "Stock verification",
+          "icon": "fa-check-square-o",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification"
+        },
+        {
+          "id": "jw_stock_balance",
+          "label": "Stock balance (weight)",
+          "icon": "fa-bar-chart",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_balance"
+        },
+        {
+          "id": "jw_barcode",
+          "label": "Barcode (jewellery)",
+          "icon": "fa-barcode",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_barcode"
+        },
+        {
+          "id": "gold_rate",
+          "label": "Gold rate board",
+          "icon": "fa-line-chart",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=gold_rate"
+        },
+        {
+          "id": "jewellery_tag",
+          "label": "Jewellery tags / labels",
+          "icon": "fa-tags",
+          "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jewellery_tag"
+        }
+      ]
+    },
+    {
+      "id": "landed_cost_area",
+      "label": "Landed cost",
+      "icon": "fa-ship",
+      "href": "/ERP/?epc_erp_shell=1&area=landed_cost_area",
+      "tabs": [
+        {
+          "id": "landed_cost",
+          "label": "Landed cost",
+          "icon": "fa-ship",
+          "href": "/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost"
+        }
+      ]
+    },
+    {
+      "id": "leave_abs",
+      "label": "Leave and absence",
+      "icon": "fa-calendar-minus-o",
+      "href": "/ERP/?epc_erp_shell=1&area=leave_abs",
+      "tabs": [
+        {
+          "id": "hr_ops",
+          "label": "HR operations",
+          "icon": "fa-users",
+          "href": "/ERP/?epc_erp_shell=1&area=leave_abs&tab=hr_ops"
+        }
+      ]
+    },
+    {
+      "id": "logistics",
+      "label": "Logistics",
+      "icon": "fa-truck",
+      "href": "/ERP/?epc_erp_shell=1&area=logistics",
+      "tabs": [
+        {
+          "id": "custom_shipping",
+          "label": "Customs & shipping",
+          "icon": "fa-ship",
+          "href": "/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping"
+        },
+        {
+          "id": "procurement_link",
+          "label": "Procurement CP",
+          "icon": "fa-external-link",
+          "href": "/ERP/?epc_erp_shell=1&area=logistics&tab=procurement_link"
+        }
+      ]
+    },
+    {
+      "id": "master_planning_area",
+      "label": "Master planning",
+      "icon": "fa-random",
+      "href": "/ERP/?epc_erp_shell=1&area=master_planning_area",
+      "tabs": [
+        {
+          "id": "master_planning",
+          "label": "Master planning",
+          "icon": "fa-random",
+          "href": "/ERP/?epc_erp_shell=1&area=master_planning_area&tab=master_planning"
+        }
+      ]
+    },
+    {
+      "id": "mhei",
+      "label": "Material handling equipment interface",
+      "icon": "fa-cubes",
+      "href": "/ERP/?epc_erp_shell=1&area=mhei",
+      "tabs": [
+        {
+          "id": "wms",
+          "label": "Warehouse management",
+          "icon": "fa-cubes",
+          "href": "/ERP/?epc_erp_shell=1&area=mhei&tab=wms"
+        }
+      ]
+    },
+    {
+      "id": "enterprise",
+      "label": "Organization administration",
+      "icon": "fa-building-o",
+      "href": "/ERP/?epc_erp_shell=1&area=enterprise",
+      "tabs": [
+        {
+          "id": "business_units",
+          "label": "Business unit",
+          "icon": "fa-sitemap",
+          "href": "/ERP/?epc_erp_shell=1&area=enterprise&tab=business_units"
+        },
+        {
+          "id": "org_admin",
+          "label": "Organization administration",
+          "icon": "fa-sitemap",
+          "href": "/ERP/?epc_erp_shell=1&area=enterprise&tab=org_admin"
+        },
+        {
+          "id": "contracts",
+          "label": "Contracts & e-sign",
+          "icon": "fa-file-text-o",
+          "href": "/ERP/?epc_erp_shell=1&area=enterprise&tab=contracts"
+        },
+        {
+          "id": "doc_formats",
+          "label": "Document formats",
+          "icon": "fa-files-o",
+          "href": "/ERP/?epc_erp_shell=1&area=enterprise&tab=doc_formats"
+        },
+        {
+          "id": "listing",
+          "label": "Listing",
+          "icon": "fa-list-alt",
+          "href": "/ERP/?epc_erp_shell=1&area=enterprise&tab=listing"
+        }
+      ]
+    },
+    {
+      "id": "payroll_area",
+      "label": "Payroll",
+      "icon": "fa-money",
+      "href": "/ERP/?epc_erp_shell=1&area=payroll_area",
+      "tabs": [
+        {
+          "id": "payroll",
+          "label": "Payroll",
+          "icon": "fa-money",
+          "href": "/ERP/?epc_erp_shell=1&area=payroll_area&tab=payroll"
+        }
+      ]
+    },
+    {
+      "id": "purchasing",
+      "label": "Procurement and sourcing",
+      "icon": "fa-shopping-basket",
+      "href": "/ERP/?epc_erp_shell=1&area=purchasing",
+      "tabs": [
+        {
+          "id": "supplier_portal",
+          "label": "Supplier portal",
+          "icon": "fa-handshake-o",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=supplier_portal"
+        },
+        {
+          "id": "purchase_requisitions",
+          "label": "Purchase requisitions",
+          "icon": "fa-list-alt",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions"
+        },
+        {
+          "id": "rfq",
+          "label": "RFQ",
+          "icon": "fa-envelope-o",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=rfq"
+        },
+        {
+          "id": "purchase_orders",
+          "label": "Purchase orders",
+          "icon": "fa-clipboard",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders"
+        },
+        {
+          "id": "purchases",
+          "label": "Purchases",
+          "icon": "fa-file-text-o",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchases"
+        },
+        {
+          "id": "three_way_match",
+          "label": "3-way match",
+          "icon": "fa-check-square-o",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=three_way_match"
+        },
+        {
+          "id": "procurement_categories",
+          "label": "Categories & policies",
+          "icon": "fa-sitemap",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=procurement_categories"
+        },
+        {
+          "id": "jw_metal_purchase",
+          "label": "Metal purchase",
+          "icon": "fa-arrow-down",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_metal_purchase"
+        },
+        {
+          "id": "jw_diamond_purchase",
+          "label": "Diamond purchase",
+          "icon": "fa-diamond",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_diamond_purchase"
+        },
+        {
+          "id": "jw_purchase_fixing",
+          "label": "Purchase fixing",
+          "icon": "fa-lock",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing"
+        },
+        {
+          "id": "jw_purchase_window",
+          "label": "Purchase window",
+          "icon": "fa-binoculars",
+          "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_window"
+        }
+      ]
+    },
+    {
+      "id": "pim",
+      "label": "Product information management",
+      "icon": "fa-cube",
+      "href": "/ERP/?epc_erp_shell=1&area=pim",
+      "tabs": [
+        {
+          "id": "product_info",
+          "label": "Product information",
+          "icon": "fa-cube",
+          "href": "/ERP/?epc_erp_shell=1&area=pim&tab=product_info"
+        }
+      ]
+    },
+    {
+      "id": "production",
+      "label": "Production control",
+      "icon": "fa-cogs",
+      "href": "/ERP/?epc_erp_shell=1&area=production",
+      "tabs": [
+        {
+          "id": "manufacturing",
+          "label": "Production",
+          "icon": "fa-cogs",
+          "href": "/ERP/?epc_erp_shell=1&area=production&tab=manufacturing"
+        },
+        {
+          "id": "mfg_planning",
+          "label": "Production planning",
+          "icon": "fa-cogs",
+          "href": "/ERP/?epc_erp_shell=1&area=production&tab=mfg_planning"
+        },
+        {
+          "id": "quality",
+          "label": "Quality management",
+          "icon": "fa-check-circle",
+          "href": "/ERP/?epc_erp_shell=1&area=production&tab=quality"
+        }
+      ]
+    },
+    {
+      "id": "projects",
+      "label": "Project management and accounting",
+      "icon": "fa-tasks",
+      "href": "/ERP/?epc_erp_shell=1&area=projects",
+      "tabs": [
+        {
+          "id": "projects",
+          "label": "Projects",
+          "icon": "fa-tasks",
+          "href": "/ERP/?epc_erp_shell=1&area=projects&tab=projects"
+        },
+        {
+          "id": "project_accounting",
+          "label": "Project accounting",
+          "icon": "fa-pie-chart",
+          "href": "/ERP/?epc_erp_shell=1&area=projects&tab=project_accounting"
+        }
+      ]
+    },
+    {
+      "id": "retail",
+      "label": "Retail and commerce",
+      "icon": "fa-shopping-cart",
+      "href": "/ERP/?epc_erp_shell=1&area=retail",
+      "tabs": [
+        {
+          "id": "retail_commerce",
+          "label": "Retail & commerce",
+          "icon": "fa-shopping-cart",
+          "href": "/ERP/?epc_erp_shell=1&area=retail&tab=retail_commerce"
+        }
+      ]
+    },
+    {
+      "id": "sales",
+      "label": "Sales and marketing",
+      "icon": "fa-line-chart",
+      "href": "/ERP/?epc_erp_shell=1&area=sales",
+      "tabs": [
+        {
+          "id": "crm",
+          "label": "CRM",
+          "icon": "fa-handshake-o",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=crm"
+        },
+        {
+          "id": "marketing",
+          "label": "Marketing",
+          "icon": "fa-bullhorn",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=marketing"
+        },
+        {
+          "id": "leads",
+          "label": "Prospects & leads",
+          "icon": "fa-user-plus",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=leads"
+        },
+        {
+          "id": "opportunities",
+          "label": "Opportunities",
+          "icon": "fa-filter",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=opportunities"
+        },
+        {
+          "id": "proposals",
+          "label": "Sales quotations",
+          "icon": "fa-file-text",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=proposals"
+        },
+        {
+          "id": "sales_orders",
+          "label": "Sales orders",
+          "icon": "fa-shopping-cart",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders"
+        },
+        {
+          "id": "subscriptions",
+          "label": "Subscriptions",
+          "icon": "fa-refresh",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=subscriptions"
+        },
+        {
+          "id": "delivery_notes",
+          "label": "Delivery notes",
+          "icon": "fa-truck",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=delivery_notes"
+        },
+        {
+          "id": "invoices",
+          "label": "Invoices (e-invoice)",
+          "icon": "fa-file-text-o",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=invoices"
+        },
+        {
+          "id": "revenue",
+          "label": "Revenue",
+          "icon": "fa-money",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=revenue"
+        },
+        {
+          "id": "fulfilment",
+          "label": "Fulfilment",
+          "icon": "fa-random",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=fulfilment"
+        },
+        {
+          "id": "jw_retail_sales",
+          "label": "Retail sales (POS)",
+          "icon": "fa-shopping-cart",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_retail_sales"
+        },
+        {
+          "id": "jw_metal_sales",
+          "label": "Metal sales",
+          "icon": "fa-arrow-up",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_metal_sales"
+        },
+        {
+          "id": "jw_sales_fixing",
+          "label": "Sales fixing",
+          "icon": "fa-lock",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_sales_fixing"
+        },
+        {
+          "id": "jw_sales_return",
+          "label": "Sales return",
+          "icon": "fa-reply",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_sales_return"
+        },
+        {
+          "id": "jw_pos_advance",
+          "label": "POS advance",
+          "icon": "fa-money",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_pos_advance"
+        },
+        {
+          "id": "jw_sales_analysis",
+          "label": "Sales analysis (weight)",
+          "icon": "fa-area-chart",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_sales_analysis"
+        },
+        {
+          "id": "gold_scheme",
+          "label": "Gold savings scheme",
+          "icon": "fa-gift",
+          "href": "/ERP/?epc_erp_shell=1&area=sales&tab=gold_scheme"
+        }
+      ]
+    },
+    {
+      "id": "service_mgmt",
+      "label": "Service management",
+      "icon": "fa-life-ring",
+      "href": "/ERP/?epc_erp_shell=1&area=service_mgmt",
+      "tabs": [
+        {
+          "id": "contracts",
+          "label": "Contracts & e-sign",
+          "icon": "fa-file-text-o",
+          "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=contracts"
+        },
+        {
+          "id": "aftersales",
+          "label": "After-sales RMA",
+          "icon": "fa-undo",
+          "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=aftersales"
+        },
+        {
+          "id": "jw_repairs",
+          "label": "Repair jobs",
+          "icon": "fa-wrench",
+          "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repairs"
+        },
+        {
+          "id": "jw_repair_receipt",
+          "label": "Repair receipt",
+          "icon": "fa-wrench",
+          "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_receipt"
+        },
+        {
+          "id": "jw_repair_transfer",
+          "label": "Repair transfer",
+          "icon": "fa-truck",
+          "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_transfer"
+        },
+        {
+          "id": "jw_workshop_receive",
+          "label": "Workshop receive",
+          "icon": "fa-inbox",
+          "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_workshop_receive"
+        },
+        {
+          "id": "jw_repair_delivery",
+          "label": "Repair delivery",
+          "icon": "fa-gift",
+          "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_delivery"
+        },
+        {
+          "id": "jw_repair_sale",
+          "label": "Repair sale",
+          "icon": "fa-file-text-o",
+          "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_sale"
+        },
+        {
+          "id": "jw_repair_register",
+          "label": "Repair register",
+          "icon": "fa-list-alt",
+          "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_register"
+        },
+        {
+          "id": "jw_repair_search",
+          "label": "Repair search",
+          "icon": "fa-search",
+          "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_search"
+        }
+      ]
+    },
+    {
+      "id": "setup",
+      "label": "System administration",
+      "icon": "fa-sliders",
+      "href": "/ERP/?epc_erp_shell=1&area=setup",
+      "tabs": [
+        {
+          "id": "erp_setup",
+          "label": "Accounting setup",
+          "icon": "fa-cogs",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=erp_setup"
+        },
+        {
+          "id": "security_roles",
+          "label": "Security roles",
+          "icon": "fa-shield",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=security_roles"
+        },
+        {
+          "id": "platform",
+          "label": "Platform services",
+          "icon": "fa-cogs",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=platform"
+        },
+        {
+          "id": "data_import",
+          "label": "Data import",
+          "icon": "fa-upload",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=data_import"
+        },
+        {
+          "id": "integration",
+          "label": "Data & integration",
+          "icon": "fa-plug",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=integration"
+        },
+        {
+          "id": "jw_seed_data",
+          "label": "Sample data (jewellery)",
+          "icon": "fa-database",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=jw_seed_data"
+        },
+        {
+          "id": "jw_currency",
+          "label": "Currency master (jewellery)",
+          "icon": "fa-money",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=jw_currency"
+        },
+        {
+          "id": "ai_assistant",
+          "label": "Devin AI assistant",
+          "icon": "fa-robot",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=ai_assistant"
+        },
+        {
+          "id": "tenant_config",
+          "label": "Tenant configuration",
+          "icon": "fa-sliders",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=tenant_config"
+        },
+        {
+          "id": "print_designer",
+          "label": "Print designer",
+          "icon": "fa-paint-brush",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=print_designer"
+        },
+        {
+          "id": "workflow_automation",
+          "label": "Automation Centre",
+          "icon": "fa-magic",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=workflow_automation"
+        },
+        {
+          "id": "accounting_automation",
+          "label": "Accounting automation",
+          "icon": "fa-university",
+          "href": "/ERP/?epc_erp_shell=1&area=setup&tab=accounting_automation"
+        }
+      ]
+    },
+    {
+      "id": "tax",
+      "label": "Tax",
+      "icon": "fa-percent",
+      "href": "/ERP/?epc_erp_shell=1&area=tax",
+      "tabs": [
+        {
+          "id": "vat_return",
+          "label": "VAT return",
+          "icon": "fa-percent",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=vat_return"
+        },
+        {
+          "id": "tax_compliance",
+          "label": "Tax compliance",
+          "icon": "fa-gavel",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance"
+        },
+        {
+          "id": "vat_refund",
+          "label": "Tourist VAT refunds",
+          "icon": "fa-plane",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=vat_refund"
+        },
+        {
+          "id": "einvoice",
+          "label": "E-invoicing",
+          "icon": "fa-file-code-o",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=einvoice"
+        },
+        {
+          "id": "blockchain_proofs",
+          "label": "Blockchain proofs",
+          "icon": "fa-link",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs"
+        },
+        {
+          "id": "withholding",
+          "label": "Withholding tax",
+          "icon": "fa-scissors",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=withholding"
+        },
+        {
+          "id": "compliance",
+          "label": "Compliance center",
+          "icon": "fa-shield",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=compliance"
+        },
+        {
+          "id": "ext_reports",
+          "label": "External reporting",
+          "icon": "fa-file-text-o",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=ext_reports"
+        },
+        {
+          "id": "elec_reporting",
+          "label": "Electronic reporting",
+          "icon": "fa-file-code-o",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting"
+        },
+        {
+          "id": "document_control",
+          "label": "Document control",
+          "icon": "fa-print",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=document_control"
+        },
+        {
+          "id": "jw_tourist_vat",
+          "label": "Tourist VAT refund (jewellery)",
+          "icon": "fa-plane",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=jw_tourist_vat"
+        },
+        {
+          "id": "aml_compliance",
+          "label": "AML Compliance",
+          "icon": "fa-shield",
+          "href": "/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance"
+        }
+      ]
+    },
+    {
+      "id": "warehouse",
+      "label": "Warehouse management",
+      "icon": "fa-cubes",
+      "href": "/ERP/?epc_erp_shell=1&area=warehouse",
+      "tabs": [
+        {
+          "id": "wms",
+          "label": "Warehouse management",
+          "icon": "fa-cubes",
+          "href": "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms"
+        }
+      ]
+    }
+  ],
+  "erpCategories": [
+    {
+      "id": "home",
+      "label": "Home & workspace",
+      "short": "Home",
+      "icon": "fa-th-large",
+      "areas": [
+        "overview"
+      ],
+      "href": "/ERP/?epc_erp_shell=1&area=overview"
+    },
+    {
+      "id": "record_to_report",
+      "label": "Record to Report",
+      "short": "R2R",
+      "icon": "fa-university",
+      "areas": [
+        "finance",
+        "budgeting",
+        "consolidations",
+        "cost_acct",
+        "audit_wb",
+        "fixed_assets"
+      ],
+      "href": "/ERP/?epc_erp_shell=1&area=finance"
+    },
+    {
+      "id": "procure_to_pay",
+      "label": "Procure to Pay",
+      "short": "P2P",
+      "icon": "fa-shopping-basket",
+      "areas": [
+        "purchasing",
+        "ap",
+        "landed_cost_area",
+        "expense"
+      ],
+      "href": "/ERP/?epc_erp_shell=1&area=purchasing"
+    },
+    {
+      "id": "order_to_cash",
+      "label": "Order to Cash",
+      "short": "O2C",
+      "icon": "fa-line-chart",
+      "areas": [
+        "sales",
+        "ar",
+        "credit_coll",
+        "retail",
+        "service_mgmt"
+      ],
+      "href": "/ERP/?epc_erp_shell=1&area=sales"
+    },
+    {
+      "id": "cash_treasury",
+      "label": "Cash & Treasury",
+      "short": "Cash",
+      "icon": "fa-money",
+      "areas": [
+        "banking"
+      ],
+      "href": "/ERP/?epc_erp_shell=1&area=banking"
+    },
+    {
+      "id": "inventory_fulfilment",
+      "label": "Inventory & Fulfilment",
+      "short": "Stock",
+      "icon": "fa-cubes",
+      "areas": [
+        "inventory_mgmt",
+        "pim",
+        "cost_mgmt",
+        "production",
+        "warehouse",
+        "mhei",
+        "logistics",
+        "master_planning_area",
+        "asset_mgmt"
+      ],
+      "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt"
+    },
+    {
+      "id": "hr_payroll",
+      "label": "HR & Payroll",
+      "short": "HR",
+      "icon": "fa-users",
+      "areas": [
+        "people",
+        "payroll_area",
+        "leave_abs",
+        "projects"
+      ],
+      "href": "/ERP/?epc_erp_shell=1&area=people"
+    },
+    {
+      "id": "compliance_tax",
+      "label": "Compliance & Tax",
+      "short": "Tax",
+      "icon": "fa-shield",
+      "areas": [
+        "tax",
+        "risk"
+      ],
+      "href": "/ERP/?epc_erp_shell=1&area=tax"
+    },
+    {
+      "id": "setup_admin",
+      "label": "Setup & Administration",
+      "short": "Setup",
+      "icon": "fa-sliders",
+      "areas": [
+        "setup",
+        "enterprise",
+        "common"
+      ],
+      "href": "/ERP/?epc_erp_shell=1&area=setup"
+    }
+  ],
+  "bosSections": [
+    {
+      "key": "fleet",
+      "id": "fleet",
+      "label": "Fleet Command"
+    },
+    {
+      "key": "tenants",
+      "id": "tenants",
+      "label": "Tenant Operations"
+    },
+    {
+      "key": "commerce",
+      "id": "commerce",
+      "label": "Commerce"
+    },
+    {
+      "key": "catalogue",
+      "id": "catalogue",
+      "label": "Catalogue"
+    },
+    {
+      "key": "logistics",
+      "id": "logistics",
+      "label": "Logistics"
+    },
+    {
+      "key": "marketing_cp",
+      "id": "marketing_cp",
+      "label": "Marketing"
+    },
+    {
+      "key": "professional",
+      "id": "professional",
+      "label": "Professional"
+    },
+    {
+      "key": "erp",
+      "id": "erp",
+      "label": "ERP Finance"
+    },
+    {
+      "key": "auto_parts",
+      "id": "auto_parts",
+      "label": "Auto Parts"
+    },
+    {
+      "key": "tax_advisory",
+      "id": "tax_advisory",
+      "label": "Tax & Advisory"
+    },
+    {
+      "key": "platform",
+      "id": "platform",
+      "label": "Platform"
+    }
+  ],
+  "bosModules": [
+    {
+      "id": "command_center",
+      "label": "Command Center",
+      "icon": "fa-tachometer",
+      "path": "control/portal/epc_boc_command_center",
+      "href": "/CP/control/portal/epc_boc_command_center"
+    },
+    {
+      "id": "fleet_cp",
+      "label": "CP Fleet Dashboard",
+      "icon": "fa-th",
+      "path": "control/portal/epc_super_cp_fleet_dashboard",
+      "href": "/CP/control/portal/epc_super_cp_fleet_dashboard"
+    },
+    {
+      "id": "fleet_erp",
+      "label": "ERP Fleet Dashboard",
+      "icon": "fa-university",
+      "path": "control/portal/epc_super_erp_fleet_dashboard",
+      "href": "/CP/control/portal/epc_super_erp_fleet_dashboard"
+    },
+    {
+      "id": "platform_health",
+      "label": "Platform Health",
+      "icon": "fa-heartbeat",
+      "path": "control/portal/epc_platform_health_checkup",
+      "href": "/CP/control/portal/epc_platform_health_checkup"
+    },
+    {
+      "id": "governance",
+      "label": "Governance",
+      "icon": "fa-gavel",
+      "path": "control/portal/epc_platform_governance",
+      "href": "/CP/control/portal/epc_platform_governance"
+    },
+    {
+      "id": "audit_log",
+      "label": "Audit Log",
+      "icon": "fa-history",
+      "path": "control/portal/epc_boc_audit_log",
+      "href": "/CP/control/portal/epc_boc_audit_log"
+    },
+    {
+      "id": "failover",
+      "label": "Failover Runbook",
+      "icon": "fa-life-ring",
+      "path": "control/portal/epc_platform_failover_guide",
+      "href": "/CP/control/portal/epc_platform_failover_guide"
+    },
+    {
+      "id": "isolation_audit",
+      "label": "Isolation Audit",
+      "icon": "fa-shield",
+      "path": "control/portal/epc_commerce_isolation_audit",
+      "href": "/CP/control/portal/epc_commerce_isolation_audit"
+    },
+    {
+      "id": "modern_auth",
+      "label": "Modern Auth / MFA",
+      "icon": "fa-lock",
+      "path": "control/portal/epc_cp_auth_settings",
+      "href": "/CP/control/portal/epc_cp_auth_settings"
+    },
+    {
+      "id": "tenant_email",
+      "label": "Tenant Email SMTP",
+      "icon": "fa-envelope",
+      "path": "control/portal/epc_tenant_email_settings",
+      "href": "/CP/control/portal/epc_tenant_email_settings"
+    },
+    {
+      "id": "integrations",
+      "label": "Integrations Hub",
+      "icon": "fa-plug",
+      "path": "control/portal/epc_integrations_hub",
+      "href": "/CP/control/portal/epc_integrations_hub"
+    },
+    {
+      "id": "credit_limit",
+      "label": "Credit Limits",
+      "icon": "fa-credit-card",
+      "path": "shop/finance/epc_credit_limit",
+      "href": "/CP/shop/finance/epc_credit_limit"
+    },
+    {
+      "id": "order_erp_pipeline",
+      "label": "Order\u2192ERP",
+      "icon": "fa-exchange",
+      "path": "shop/finance/epc_order_erp_pipeline",
+      "href": "/CP/shop/finance/epc_order_erp_pipeline"
+    },
+    {
+      "id": "po_approval",
+      "label": "PO Approval",
+      "icon": "fa-check-square-o",
+      "path": "shop/finance/epc_po_approval",
+      "href": "/CP/shop/finance/epc_po_approval"
+    },
+    {
+      "id": "api_clients",
+      "label": "API Clients",
+      "icon": "fa-key",
+      "path": "control/portal/epc_api_clients_manage",
+      "href": "/CP/control/portal/epc_api_clients_manage"
+    },
+    {
+      "id": "fulfillment_queue",
+      "label": "Fulfillment",
+      "icon": "fa-truck",
+      "path": "shop/finance/epc_fulfillment_queue",
+      "href": "/CP/shop/finance/epc_fulfillment_queue"
+    },
+    {
+      "id": "power_bi",
+      "label": "Power BI",
+      "icon": "fa-bar-chart",
+      "path": "control/portal/epc_power_bi",
+      "href": "/CP/control/portal/epc_power_bi"
+    },
+    {
+      "id": "auto_price",
+      "label": "Auto Price AI",
+      "icon": "fa-chart-line",
+      "path": "control/portal/epc_auto_price_engine",
+      "href": "/CP/control/portal/epc_auto_price_engine"
+    },
+    {
+      "id": "industry_consol",
+      "label": "Industry Consolidation",
+      "icon": "fa-sitemap",
+      "path": "control/portal/industry_consolidation",
+      "href": "/CP/control/portal/industry_consolidation"
+    },
+    {
+      "id": "license_trends",
+      "label": "License Trends",
+      "icon": "fa-line-chart",
+      "path": "control/portal/epc_industry_license_trends",
+      "href": "/CP/control/portal/epc_industry_license_trends"
+    },
+    {
+      "id": "inventory_forecast",
+      "label": "Forecasting",
+      "icon": "fa-line-chart",
+      "path": "shop/finance/epc_inventory_forecast",
+      "href": "/CP/shop/finance/epc_inventory_forecast"
+    },
+    {
+      "id": "multi_currency_gl",
+      "label": "Multi-Currency",
+      "icon": "fa-money",
+      "path": "shop/finance/epc_multi_currency_gl",
+      "href": "/CP/shop/finance/epc_multi_currency_gl"
+    },
+    {
+      "id": "wps_payroll",
+      "label": "Payroll",
+      "icon": "fa-money",
+      "path": "shop/finance/epc_wps_payroll",
+      "href": "/CP/shop/finance/epc_wps_payroll"
+    },
+    {
+      "id": "collections_dunning",
+      "label": "Collections",
+      "icon": "fa-bell",
+      "path": "shop/finance/epc_collections_dunning",
+      "href": "/CP/shop/finance/epc_collections_dunning"
+    },
+    {
+      "id": "warranty_rma",
+      "label": "Warranty/RMA",
+      "icon": "fa-shield",
+      "path": "shop/finance/epc_warranty_rma",
+      "href": "/CP/shop/finance/epc_warranty_rma"
+    },
+    {
+      "id": "customer_board",
+      "label": "Customer Board",
+      "icon": "fa-users",
+      "path": "control/portal/epc_super_cp_customer_board",
+      "href": "/CP/control/portal/epc_super_cp_customer_board"
+    },
+    {
+      "id": "config_edit",
+      "label": "Site Config",
+      "icon": "fa-wrench",
+      "path": "control/config_edit",
+      "href": "/CP/control/config_edit"
+    },
+    {
+      "id": "sms_turning",
+      "label": "SMS Settings",
+      "icon": "fa-mobile",
+      "path": "control/sms_turning",
+      "href": "/CP/control/sms_turning"
+    },
+    {
+      "id": "ai_copilot",
+      "label": "AI Copilot",
+      "icon": "fa-commenting",
+      "path": "control/portal/epc_ai_copilot",
+      "href": "/CP/control/portal/epc_ai_copilot"
+    },
+    {
+      "id": "nl_reporting",
+      "label": "NL Reports",
+      "icon": "fa-file-text",
+      "path": "control/portal/epc_nl_reporting",
+      "href": "/CP/control/portal/epc_nl_reporting"
+    },
+    {
+      "id": "industry_packs",
+      "label": "Industry Packs",
+      "icon": "fa-industry",
+      "path": "control/portal/epc_industry_packs",
+      "href": "/CP/control/portal/epc_industry_packs"
+    },
+    {
+      "id": "multi_entity",
+      "label": "Multi-Entity",
+      "icon": "fa-building",
+      "path": "shop/finance/epc_multi_entity",
+      "href": "/CP/shop/finance/epc_multi_entity"
+    },
+    {
+      "id": "promotions_engine",
+      "label": "Promotions",
+      "icon": "fa-tags",
+      "path": "control/portal/epc_promotions_engine",
+      "href": "/CP/control/portal/epc_promotions_engine"
+    },
+    {
+      "id": "config_sandbox",
+      "label": "Sandbox",
+      "icon": "fa-flask",
+      "path": "control/portal/epc_config_sandbox",
+      "href": "/CP/control/portal/epc_config_sandbox"
+    },
+    {
+      "id": "import_orchestrator",
+      "label": "Imports",
+      "icon": "fa-upload",
+      "path": "control/portal/epc_import_orchestrator",
+      "href": "/CP/control/portal/epc_import_orchestrator"
+    },
+    {
+      "id": "document_vault",
+      "label": "Doc Vault",
+      "icon": "fa-archive",
+      "path": "control/portal/epc_document_vault",
+      "href": "/CP/control/portal/epc_document_vault"
+    },
+    {
+      "id": "subscription_billing",
+      "label": "Billing",
+      "icon": "fa-credit-card",
+      "path": "shop/finance/epc_subscription_billing",
+      "href": "/CP/shop/finance/epc_subscription_billing"
+    },
+    {
+      "id": "soc2_compliance",
+      "label": "SOC 2",
+      "icon": "fa-certificate",
+      "path": "control/portal/epc_soc2_compliance",
+      "href": "/CP/control/portal/epc_soc2_compliance"
+    },
+    {
+      "id": "marketplace",
+      "label": "Marketplace",
+      "icon": "fa-shopping-cart",
+      "path": "control/portal/epc_marketplace",
+      "href": "/CP/control/portal/epc_marketplace"
+    },
+    {
+      "id": "ai_service",
+      "label": "AI Service",
+      "icon": "fa-brain",
+      "path": "general_pages/epc_ai_service",
+      "href": "/CP/general_pages/epc_ai_service"
+    },
+    {
+      "id": "metabase_embed",
+      "label": "Metabase BI",
+      "icon": "fa-chart-area",
+      "path": "general_pages/epc_metabase_embed",
+      "href": "/CP/general_pages/epc_metabase_embed"
+    },
+    {
+      "id": "power_bi_guide",
+      "label": "Power BI guide",
+      "icon": "fa-book",
+      "path": "control/portal/epc_power_bi_guide",
+      "href": "/CP/control/portal/epc_power_bi_guide"
+    },
+    {
+      "id": "isolation_anomaly",
+      "label": "Anomaly AI",
+      "icon": "fa-shield",
+      "path": "general_pages/epc_isolation_anomaly",
+      "href": "/CP/general_pages/epc_isolation_anomaly"
+    },
+    {
+      "id": "tenant_hub",
+      "label": "Tenant Hub",
+      "icon": "fa-sitemap",
+      "path": "shop/tenant_hub/tenant_hub",
+      "href": "/CP/shop/tenant_hub/tenant_hub"
+    },
+    {
+      "id": "tenant_control",
+      "label": "Tenant Control",
+      "icon": "fa-sliders",
+      "path": "control/portal/epc_tenant_control_center",
+      "href": "/CP/control/portal/epc_tenant_control_center"
+    },
+    {
+      "id": "tenant_features",
+      "label": "Feature Matrix",
+      "icon": "fa-th",
+      "path": "control/portal/epc_tenant_features",
+      "href": "/CP/control/portal/epc_tenant_features"
+    },
+    {
+      "id": "demo_tenants",
+      "label": "Demo Tenants",
+      "icon": "fa-flask",
+      "path": "control/portal/epc_demo_tenants_manage",
+      "href": "/CP/control/portal/epc_demo_tenants_manage"
+    },
+    {
+      "id": "design_tokens",
+      "label": "Design Tokens",
+      "icon": "fa-paint-brush",
+      "path": "control/portal/epc_design_tokens",
+      "href": "/CP/control/portal/epc_design_tokens"
+    },
+    {
+      "id": "orders",
+      "label": "Orders",
+      "icon": "fa-shopping-cart",
+      "path": "shop/sao/robot",
+      "href": "/CP/shop/sao/robot"
+    },
+    {
+      "id": "customers",
+      "label": "Customers",
+      "icon": "fa-users",
+      "path": "shop/customer_mgmt/customer_mgmt",
+      "href": "/CP/shop/customer_mgmt/customer_mgmt"
+    },
+    {
+      "id": "payments",
+      "label": "Payments",
+      "icon": "fa-credit-card",
+      "path": "shop/payments/payments_main",
+      "href": "/CP/shop/payments/payments_main"
+    },
+    {
+      "id": "returns",
+      "label": "Returns",
+      "icon": "fa-undo",
+      "path": "shop/returns/returns_main",
+      "href": "/CP/shop/returns/returns_main"
+    },
+    {
+      "id": "quotes",
+      "label": "Quote Requests",
+      "icon": "fa-file-text",
+      "path": "shop/quote_requests/quote_requests_main",
+      "href": "/CP/shop/quote_requests/quote_requests_main"
+    },
+    {
+      "id": "channels",
+      "label": "Channels",
+      "icon": "fa-share-alt",
+      "path": "shop/channels/channels_main",
+      "href": "/CP/shop/channels/channels_main"
+    },
+    {
+      "id": "pos",
+      "label": "POS Terminal",
+      "icon": "fa-calculator",
+      "path": "shop/pos/epc_pos_hub_page",
+      "href": "/CP/shop/pos/epc_pos_hub_page"
+    },
+    {
+      "id": "statistics",
+      "label": "Statistics",
+      "icon": "fa-bar-chart",
+      "path": "shop/statistics/statistics",
+      "href": "/CP/shop/statistics/statistics"
+    },
+    {
+      "id": "products",
+      "label": "Products",
+      "icon": "fa-cube",
+      "path": "shop/catalogue/catalogue",
+      "href": "/CP/shop/catalogue/catalogue"
+    },
+    {
+      "id": "sku_media",
+      "label": "SKU photos & specs",
+      "icon": "fa-picture-o",
+      "path": "shop/catalogue/sku_media",
+      "href": "/CP/shop/catalogue/sku_media"
+    },
+    {
+      "id": "prices_edit",
+      "label": "Prices Edit",
+      "icon": "fa-tag",
+      "path": "shop/prices/prices_edit",
+      "href": "/CP/shop/prices/prices_edit"
+    },
+    {
+      "id": "prices_upload",
+      "label": "Prices Upload",
+      "icon": "fa-upload",
+      "path": "shop/prices",
+      "href": "/CP/shop/prices"
+    },
+    {
+      "id": "multivendor",
+      "label": "Multivendor upload",
+      "icon": "fa-handshake-o",
+      "path": "shop/prices/multivendor",
+      "href": "/CP/shop/prices/multivendor"
+    },
+    {
+      "id": "prices_guide",
+      "label": "Price upload guide",
+      "icon": "fa-book",
+      "path": "shop/prices/guide",
+      "href": "/CP/shop/prices/guide"
+    },
+    {
+      "id": "prices_send",
+      "label": "Prices Send",
+      "icon": "fa-paper-plane",
+      "path": "shop/prices_send/prices_send",
+      "href": "/CP/shop/prices_send/prices_send"
+    },
+    {
+      "id": "pricing",
+      "label": "Pricing Rules",
+      "icon": "fa-percent",
+      "path": "shop/price-management",
+      "href": "/CP/shop/price-management"
+    },
+    {
+      "id": "logistics",
+      "label": "Delivery & Shipping",
+      "icon": "fa-truck",
+      "path": "shop/logistics/logistics",
+      "href": "/CP/shop/logistics/logistics"
+    },
+    {
+      "id": "procurement",
+      "label": "Procurement",
+      "icon": "fa-shopping-basket",
+      "path": "shop/procurement/procurement_main",
+      "href": "/CP/shop/procurement/procurement_main"
+    },
+    {
+      "id": "marketing",
+      "label": "Campaigns",
+      "icon": "fa-bullhorn",
+      "path": "shop/marketing/marketing_main",
+      "href": "/CP/shop/marketing/marketing_main"
+    },
+    {
+      "id": "broadcast",
+      "label": "Broadcast",
+      "icon": "fa-envelope",
+      "path": "control/portal/epc_marketing_broadcast",
+      "href": "/CP/control/portal/epc_marketing_broadcast"
+    },
+    {
+      "id": "social",
+      "label": "Social Media",
+      "icon": "fa-share-alt",
+      "path": "control/portal/epc_social_media_hub",
+      "href": "/CP/control/portal/epc_social_media_hub"
+    },
+    {
+      "id": "seo",
+      "label": "SEO",
+      "icon": "fa-search",
+      "path": "shop/marketing/seo_main",
+      "href": "/CP/shop/marketing/seo_main"
+    },
+    {
+      "id": "crm",
+      "label": "CRM",
+      "icon": "fa-handshake-o",
+      "path": "shop/crm/crm_main",
+      "href": "/CP/shop/crm/crm_main"
+    },
+    {
+      "id": "documents",
+      "label": "Documents",
+      "icon": "fa-folder-open",
+      "path": "shop/document_control/document_control",
+      "href": "/CP/shop/document_control/document_control"
+    },
+    {
+      "id": "parts_agent",
+      "label": "Parts Agent",
+      "icon": "fa-comments",
+      "path": "shop/parts_agent/parts_agent_chats",
+      "href": "/CP/shop/parts_agent/parts_agent_chats"
+    },
+    {
+      "id": "erp_home",
+      "label": "ERP Home",
+      "icon": "fa-th-large",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=overview",
+      "href": "/ERP/?epc_erp_shell=1&area=overview"
+    },
+    {
+      "id": "erp_gl",
+      "label": "General Ledger",
+      "icon": "fa-book",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=gl",
+      "href": "/ERP/?epc_erp_shell=1&area=gl"
+    },
+    {
+      "id": "erp_ap",
+      "label": "Accounts Payable",
+      "icon": "fa-credit-card",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=ap",
+      "href": "/ERP/?epc_erp_shell=1&area=ap"
+    },
+    {
+      "id": "erp_ar",
+      "label": "Accounts Receivable",
+      "icon": "fa-users",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=ar",
+      "href": "/ERP/?epc_erp_shell=1&area=ar"
+    },
+    {
+      "id": "erp_cash",
+      "label": "Cash & Bank",
+      "icon": "fa-university",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=cash_bank",
+      "href": "/ERP/?epc_erp_shell=1&area=cash_bank"
+    },
+    {
+      "id": "erp_tax",
+      "label": "Tax & Compliance",
+      "icon": "fa-balance-scale",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=tax",
+      "href": "/ERP/?epc_erp_shell=1&area=tax"
+    },
+    {
+      "id": "erp_sales",
+      "label": "Sales & CRM",
+      "icon": "fa-line-chart",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=sales",
+      "href": "/ERP/?epc_erp_shell=1&area=sales"
+    },
+    {
+      "id": "erp_purchasing",
+      "label": "Purchasing",
+      "icon": "fa-shopping-basket",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=purchasing",
+      "href": "/ERP/?epc_erp_shell=1&area=purchasing"
+    },
+    {
+      "id": "erp_inventory",
+      "label": "Inventory",
+      "icon": "fa-cubes",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=inventory_mgmt",
+      "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt"
+    },
+    {
+      "id": "erp_hr",
+      "label": "Human Resources",
+      "icon": "fa-id-card",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=people",
+      "href": "/ERP/?epc_erp_shell=1&area=people"
+    },
+    {
+      "id": "erp_payroll",
+      "label": "Payroll",
+      "icon": "fa-money",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=payroll",
+      "href": "/ERP/?epc_erp_shell=1&area=payroll"
+    },
+    {
+      "id": "erp_production",
+      "label": "Production",
+      "icon": "fa-industry",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=production",
+      "href": "/ERP/?epc_erp_shell=1&area=production"
+    },
+    {
+      "id": "erp_projects",
+      "label": "Projects",
+      "icon": "fa-tasks",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=projects",
+      "href": "/ERP/?epc_erp_shell=1&area=projects"
+    },
+    {
+      "id": "erp_warehouse",
+      "label": "Warehouse",
+      "icon": "fa-building-o",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=warehouse",
+      "href": "/ERP/?epc_erp_shell=1&area=warehouse"
+    },
+    {
+      "id": "erp_fixed_assets",
+      "label": "Fixed Assets",
+      "icon": "fa-building",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=fixed_assets",
+      "href": "/ERP/?epc_erp_shell=1&area=fixed_assets"
+    },
+    {
+      "id": "erp_budgeting",
+      "label": "Budgeting",
+      "icon": "fa-pie-chart",
+      "path": "shop/finance/erp?epc_erp_shell=1&area=budgeting",
+      "href": "/ERP/?epc_erp_shell=1&area=budgeting"
+    },
+    {
+      "id": "crosses",
+      "label": "Crosses",
+      "icon": "fa-exchange",
+      "path": "shop/crosses/crosses",
+      "href": "/CP/shop/crosses/crosses"
+    },
+    {
+      "id": "demand",
+      "label": "Demand Countries",
+      "icon": "fa-globe",
+      "path": "shop/demand_countries/demand_countries",
+      "href": "/CP/shop/demand_countries/demand_countries"
+    },
+    {
+      "id": "synonyms",
+      "label": "Brand Synonyms",
+      "icon": "fa-random",
+      "path": "shop/manufacturers_synonyms/manufacturers_synonyms",
+      "href": "/CP/shop/manufacturers_synonyms/manufacturers_synonyms"
+    },
+    {
+      "id": "tax_toolkit",
+      "label": "Tax Toolkit",
+      "icon": "fa-calculator",
+      "path": "control/portal/epc_tax_toolkit_manage",
+      "href": "/CP/control/portal/epc_tax_toolkit_manage"
+    },
+    {
+      "id": "free_tools",
+      "label": "Free Tools Admin",
+      "icon": "fa-wrench",
+      "path": "control/portal/epc_free_tools_admin",
+      "href": "/CP/control/portal/epc_free_tools_admin"
+    },
+    {
+      "id": "portal_settings",
+      "label": "Portal Settings",
+      "icon": "fa-cog",
+      "path": "control/portal/portal",
+      "href": "/CP/control/portal/portal"
+    },
+    {
+      "id": "communication",
+      "label": "Communication",
+      "icon": "fa-comments",
+      "path": "control/portal/epc_super_cp_communication",
+      "href": "/CP/control/portal/epc_super_cp_communication"
+    },
+    {
+      "id": "data_policy",
+      "label": "Data Policy",
+      "icon": "fa-lock",
+      "path": "control/portal/epc_tenant_data_policy",
+      "href": "/CP/control/portal/epc_tenant_data_policy"
+    },
+    {
+      "id": "api_docs",
+      "label": "API Docs",
+      "icon": "fa-file-code-o",
+      "path": "control/portal/epc_api_documentation_guide",
+      "href": "/CP/control/portal/epc_api_documentation_guide"
+    },
+    {
+      "id": "operator_guide",
+      "label": "Operator Guide",
+      "icon": "fa-book",
+      "path": "control/portal/epc_super_cp_operator_guide",
+      "href": "/CP/control/portal/epc_super_cp_operator_guide"
+    }
+  ],
+  "cpBrochureFeatures": [
+    {
+      "id": "api-clients",
+      "name": "API clients",
+      "does": "Tenant-scoped API keys, scopes, and quotas for /epc-api/v1/.",
+      "href": "/CP/control/portal/epc_api_clients_manage",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "api-documentation-guide",
+      "name": "API documentation guide",
+      "does": "OpenAPI and key-management guide.",
+      "href": "/CP/control/portal/epc_api_documentation_guide",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "demo-tenants",
+      "name": "Demo tenants",
+      "does": "Sandbox extend / convert / delete for demo sites.",
+      "href": "/CP/control/portal/epc_demo_tenants_manage",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "epc-api-clients-manage",
+      "name": "Epc Api Clients Manage",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_api_clients_manage",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "epc-demo-tenants-manage",
+      "name": "Epc Demo Tenants Manage",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_demo_tenants_manage",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "epc-erp-only-onboard-guide",
+      "name": "Epc Erp Only Onboard Guide",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_erp_only_onboard_guide",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "epc-platform-failover-guide",
+      "name": "Epc Platform Failover Guide",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_platform_failover_guide",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "epc-platform-governance",
+      "name": "Epc Platform Governance",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_platform_governance",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "epc-platform-health-checkup",
+      "name": "Epc Platform Health Checkup",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_platform_health_checkup",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "epc-pos-tenant-manage",
+      "name": "Epc Pos Tenant Manage",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_pos_tenant_manage",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "epc-tenant-control-center",
+      "name": "Epc Tenant Control Center",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_tenant_control_center",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "erp-only-onboard-guide",
+      "name": "ERP-only onboard guide",
+      "does": "Launch finance-only tenants without a storefront.",
+      "href": "/CP/control/portal/epc_erp_only_onboard_guide",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "failover-runbook",
+      "name": "Failover runbook",
+      "does": "Business continuity splash screens and backup origin steps.",
+      "href": "/CP/control/portal/epc_platform_failover_guide",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "free-tools-admin",
+      "name": "Free Tools admin",
+      "does": "Activate/deactivate free tools; usage stats.",
+      "href": "/CP/control/portal/epc_free_tools_admin",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "industry-settings-deploy",
+      "name": "Industry settings & deploy",
+      "does": "Vertical packs, branding, sidebar; deploy packages to tenants.",
+      "href": "/CP/control/portal/industry_settings",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "modular-erp-access",
+      "name": "Modular ERP access",
+      "does": "Toggle ERP packs per client: full, C&S only, People, Finance+e-invoice.",
+      "href": "/CP/control/portal/industry_settings",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "multi-tenant-hostname-routing",
+      "name": "Multi-tenant hostname routing",
+      "does": "One nginx stack; hostname selects isolated tenant DB and branding.",
+      "href": "/CP/",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "platform-governance",
+      "name": "Platform governance",
+      "does": "Cross-tenant policies and platform rules.",
+      "href": "/CP/control/portal/epc_platform_governance",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "platform-health-checkup",
+      "name": "Platform health checkup",
+      "does": "Probe storefronts, SSL, ERP DB, nginx, backups, sitemaps; CSV export.",
+      "href": "/CP/control/portal/epc_platform_health_checkup",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "pos-tenant-overview",
+      "name": "POS tenant overview",
+      "does": "POS status and settings across all tenants.",
+      "href": "/CP/control/portal/epc_pos_tenant_manage",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "super-cp-operator-console",
+      "name": "Super CP operator console",
+      "does": "Hosted console at ecomae.com/cp to run every tenant.",
+      "href": "/CP/",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "tenant-control-center",
+      "name": "Tenant control center",
+      "does": "Credentials, on/off, and per-tenant operator controls.",
+      "href": "/CP/control/portal/epc_tenant_control_center",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "tenant-features",
+      "name": "Tenant features",
+      "does": "Per-tenant feature flag matrix.",
+      "href": "/CP/control/portal/epc_tenant_features",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "tenant-hub",
+      "name": "Tenant hub",
+      "does": "Client registry, onboard form, DNS checklist, go-live probes.",
+      "href": "/CP/shop/tenant_hub/tenant_hub",
+      "scope": "super",
+      "category": "Super CP / Platform"
+    },
+    {
+      "id": "communication",
+      "name": "Communication",
+      "does": "Platform e-mail policy and operator tasks.",
+      "href": "/CP/control/portal/epc_super_cp_communication",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "customer-board",
+      "name": "Customer board",
+      "does": "Cross-tenant CRM/ERP customer search.",
+      "href": "/CP/control/portal/epc_super_cp_customer_board",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "epc-super-cp-communication",
+      "name": "Epc Super Cp Communication",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_super_cp_communication",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "epc-super-cp-customer-board",
+      "name": "Epc Super Cp Customer Board",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_super_cp_customer_board",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "epc-super-cp-info-blocks",
+      "name": "Epc Super Cp Info Blocks",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_super_cp_info_blocks",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "epc-super-cp-operator-guide",
+      "name": "Epc Super Cp Operator Guide",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_super_cp_operator_guide",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "epc-super-cp-price-configs",
+      "name": "Epc Super Cp Price Configs",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_super_cp_price_configs",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "epc-visual-page-editor",
+      "name": "Epc Visual Page Editor",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_visual_page_editor",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "info-blocks-cms",
+      "name": "Info blocks (CMS)",
+      "does": "Cross-tenant storefront & CP info blocks.",
+      "href": "/CP/control/portal/epc_super_cp_info_blocks",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "operator-guide",
+      "name": "Operator guide",
+      "does": "Who uses what across Super CP operator tools.",
+      "href": "/CP/control/portal/epc_super_cp_operator_guide",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "price-configs",
+      "name": "Price configs",
+      "does": "Platform markup / price generation configs.",
+      "href": "/CP/control/portal/epc_super_cp_price_configs",
+      "scope": "super",
+      "category": "Super CP / Operator"
+    },
+    {
+      "id": "audit-log",
+      "name": "Audit log",
+      "does": "Who did what, when \u2014 operator audit trail.",
+      "href": "/CP/control/portal/epc_boc_audit_log",
+      "scope": "super",
+      "category": "Super CP / BOC"
+    },
+    {
+      "id": "channels-orders-fleet-oms",
+      "name": "Channels & orders (fleet OMS)",
+      "does": "Web / POS / API / marketplace surfaces fleet-wide.",
+      "href": "/CP/control/portal/epc_boc_channel_control",
+      "scope": "super",
+      "category": "Super CP / BOC"
+    },
+    {
+      "id": "command-center",
+      "name": "Command Center",
+      "does": "Live fleet health, KPIs, and alerts across all tenant types.",
+      "href": "/CP/control/portal/epc_boc_command_center",
+      "scope": "super",
+      "category": "Super CP / BOC"
+    },
+    {
+      "id": "vendor-sourcing-fleet",
+      "name": "Vendor & sourcing (fleet)",
+      "does": "Fleet-wide suppliers, RFQs, and spend.",
+      "href": "/CP/control/portal/epc_boc_vendor_control",
+      "scope": "super",
+      "category": "Super CP / BOC"
+    },
+    {
+      "id": "warehouse-inventory-fleet",
+      "name": "Warehouse & inventory (fleet)",
+      "does": "Stock value, locations, replenishment risk across tenants.",
+      "href": "/CP/control/portal/epc_boc_warehouse_control",
+      "scope": "super",
+      "category": "Super CP / BOC"
+    },
+    {
+      "id": "epc-api-documentation-guide",
+      "name": "Epc Api Documentation Guide",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_api_documentation_guide",
+      "scope": "client",
+      "category": "Portal"
+    },
+    {
+      "id": "epc-auto-price-engine",
+      "name": "Epc Auto Price Engine",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_auto_price_engine",
+      "scope": "client",
+      "category": "Portal"
+    },
+    {
+      "id": "epc-cp-auth-settings",
+      "name": "Epc Cp Auth Settings",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_cp_auth_settings",
+      "scope": "client",
+      "category": "Portal"
+    },
+    {
+      "id": "epc-custom-shipping-guide",
+      "name": "Epc Custom Shipping Guide",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_custom_shipping_guide",
+      "scope": "client",
+      "category": "Portal"
+    },
+    {
+      "id": "epc-marketing-broadcast",
+      "name": "Epc Marketing Broadcast",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_marketing_broadcast",
+      "scope": "client",
+      "category": "Portal"
+    },
+    {
+      "id": "epc-social-media-hub",
+      "name": "Epc Social Media Hub",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_social_media_hub",
+      "scope": "client",
+      "category": "Portal"
+    },
+    {
+      "id": "epc-tax-toolkit-manage",
+      "name": "Epc Tax Toolkit Manage",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_tax_toolkit_manage",
+      "scope": "client",
+      "category": "Portal"
+    },
+    {
+      "id": "epc-visual-page-editor",
+      "name": "Epc Visual Page Editor",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_visual_page_editor",
+      "scope": "client",
+      "category": "Portal"
+    },
+    {
+      "id": "industry-settings",
+      "name": "Industry settings",
+      "does": "Branding, industry packs, module visibility (client view; no deploy).",
+      "href": "/CP/control/portal/industry_settings",
+      "scope": "client",
+      "category": "Portal"
+    },
+    {
+      "id": "pos-terminal",
+      "name": "POS Terminal",
+      "does": "In-store checkout.",
+      "href": "/CP/shop/pos/terminal",
+      "scope": "client",
+      "category": "Portal"
+    },
+    {
+      "id": "auto-price-ai",
+      "name": "Auto Price AI",
+      "does": "Discover, compare, and import products across market sources.",
+      "href": "/CP/control/portal/epc_auto_price_engine",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "autoworkshop-guide",
+      "name": "Autoworkshop guide",
+      "does": "Workshop vertical setup guide.",
+      "href": "/CP/control/portal/epc_autoworkshop_guide",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "cp-auth-settings",
+      "name": "CP auth settings",
+      "does": "Password, e-mail OTP, Google OAuth, operator MFA.",
+      "href": "/CP/control/portal/epc_cp_auth_settings",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "custom-shipping-guide",
+      "name": "Custom & Shipping guide",
+      "does": "How-to for UAE customs declarations module.",
+      "href": "/CP/control/portal/epc_custom_shipping_guide",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "marketing-broadcast",
+      "name": "Marketing broadcast",
+      "does": "Bulk e-mail / WhatsApp marketing broadcasts.",
+      "href": "/CP/control/portal/epc_marketing_broadcast",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "power-bi",
+      "name": "Power BI",
+      "does": "Power BI embed / connector settings.",
+      "href": "/CP/control/portal/epc_power_bi",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "power-bi-guide",
+      "name": "Power BI guide",
+      "does": "How to connect Power BI to tenant data.",
+      "href": "/CP/control/portal/epc_power_bi_guide",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "social-media-hub",
+      "name": "Social media hub",
+      "does": "Captions, accounts, and AI social advisor.",
+      "href": "/CP/control/portal/epc_social_media_hub",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "tax-toolkit",
+      "name": "Tax Toolkit",
+      "does": "Worldwide VAT/GST/CIT kits; one-click rate refresh.",
+      "href": "/CP/control/portal/epc_tax_toolkit_manage",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "visual-page-editor",
+      "name": "Visual page editor",
+      "does": "Block layout editor for storefront pages with live preview.",
+      "href": "/CP/control/portal/epc_visual_page_editor",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "web-tracker",
+      "name": "Web tracker",
+      "does": "Site analytics / visitor tracking admin.",
+      "href": "/CP/control/portal/epc_web_tracker",
+      "scope": "both",
+      "category": "Portal"
+    },
+    {
+      "id": "epc-integrations-hub",
+      "name": "Epc Integrations Hub",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_integrations_hub",
+      "scope": "client",
+      "category": "Integrations"
+    },
+    {
+      "id": "epc-mobile-apps",
+      "name": "Epc Mobile Apps",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_mobile_apps",
+      "scope": "client",
+      "category": "Integrations"
+    },
+    {
+      "id": "epc-tenant-email-settings",
+      "name": "Epc Tenant Email Settings",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_tenant_email_settings",
+      "scope": "client",
+      "category": "Integrations"
+    },
+    {
+      "id": "tenant-e-mail-smtp",
+      "name": "Tenant e-mail / SMTP",
+      "does": "Per-tenant SMTP mailbox settings (client CP only).",
+      "href": "/CP/control/portal/epc_tenant_email_settings",
+      "scope": "client",
+      "category": "Integrations"
+    },
+    {
+      "id": "integrations-hub",
+      "name": "Integrations hub",
+      "does": "Connection health for e-mail, payments, mobile, and more.",
+      "href": "/CP/control/portal/epc_integrations_hub",
+      "scope": "both",
+      "category": "Integrations"
+    },
+    {
+      "id": "mobile-apps",
+      "name": "Mobile apps",
+      "does": "Android / iOS / PWA app settings and packaging.",
+      "href": "/CP/control/portal/epc_mobile_apps",
+      "scope": "both",
+      "category": "Integrations"
+    },
+    {
+      "id": "epc-tenant-features",
+      "name": "Epc Tenant Features",
+      "does": "Open from left CP menu.",
+      "href": "/CP/control/portal/epc_tenant_features",
+      "scope": "super",
+      "category": "Integrations"
+    },
+    {
+      "id": "abandoned-carts",
+      "name": "Abandoned carts",
+      "does": "View customer carts that have not checked out.",
+      "href": "/CP/shop/orders/carts",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "accessories-marketplace",
+      "name": "Accessories marketplace",
+      "does": "Marketplace-style accessories listings.",
+      "href": "/CP/shop/accessories",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "account-operations",
+      "name": "Account operations",
+      "does": "Customer balance top-ups, charges, ledger ops.",
+      "href": "/CP/shop/finance/account_operations",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "b2b-trade-accounts",
+      "name": "B2B trade accounts",
+      "does": "Logged-in trade buyers get fixed currency, credit limits, balance view, and re-order from history. Auto-parts and wholesale\u2026",
+      "href": "/CP/users/customer_approvals",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "branch-offices",
+      "name": "Branch offices",
+      "does": "Pickup points and branch office list.",
+      "href": "/CP/shop/logistics/offices",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "cash-book",
+      "name": "Cash book",
+      "does": "Petty cash / cash register book.",
+      "href": "/CP/shop/cash",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "cross-references",
+      "name": "Cross-references",
+      "does": "OEM / aftermarket interchange management.",
+      "href": "/CP/shop/crosses",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "currency-rates",
+      "name": "Currency rates",
+      "does": "Exchange rates for multi-currency display.",
+      "href": "/CP/shop/finance/nastrojka-kursov-valyut",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "delivery-notes-pick-lists",
+      "name": "Delivery notes & pick lists",
+      "does": "Generate delivery notes and pick lists from confirmed orders \u2014 print-ready documents with line items, weights, and customer\u2026",
+      "href": "/CP/shop/document_control/document_control",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "demand-countries",
+      "name": "Demand countries",
+      "does": "Demand intel export.",
+      "href": "/CP/shop/demand_countries",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "downloadable-price-lists",
+      "name": "Downloadable price lists",
+      "does": "Publish price lists customers can download.",
+      "href": "/CP/shop/prices/prajs-listy-dlya-skachivaniya",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "geo-regions",
+      "name": "Geo / regions",
+      "does": "Geographic nodes for delivery and localization.",
+      "href": "/CP/shop/geo/nodes",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "manufacturer-synonyms",
+      "name": "Manufacturer synonyms",
+      "does": "Normalize brand name aliases for search and pricing.",
+      "href": "/CP/shop/manufacturers_synonyms",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "oms-daily-guide",
+      "name": "OMS daily guide",
+      "does": "Daily OMS workflow for staff.",
+      "href": "/CP/shop/orders/oms-guide",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "oms-orders",
+      "name": "OMS \u00b7 Orders",
+      "does": "Order desk console.",
+      "href": "/CP/shop/orders/orders",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "online-cash-registers",
+      "name": "Online cash registers",
+      "does": "Fiscal online cash register integration.",
+      "href": "/CP/shop/onlajn-kassy",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "order-desk-statuses",
+      "name": "Order desk & statuses",
+      "does": "Staff manage order lifecycle from new through packed, shipped, and completed. Status updates trigger customer emails and feed\u2026",
+      "href": "/CP/shop/orders/orders",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "order-fulfilment-guide",
+      "name": "Order fulfilment guide",
+      "does": "Checkout \u2192 LPO \u2192 processing.",
+      "href": "/CP/shop/orders/guide",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "order-fulfilment-workflows",
+      "name": "Order fulfilment workflows",
+      "does": "Pick, pack, and ship with warehouse-aware fulfilment hooks tied to stock. Returns and partial shipments stay traceable in CP\u2026",
+      "href": "/CP/shop/orders/orders",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "order-items",
+      "name": "Order items",
+      "does": "Browse order line items across all orders.",
+      "href": "/CP/shop/orders/items",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "order-statuses",
+      "name": "Order statuses",
+      "does": "Configure order lifecycle statuses.",
+      "href": "/CP/shop/orders/statuses",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "price-lists",
+      "name": "Price lists",
+      "does": "Upload, schedule, and monitor supplier price files.",
+      "href": "/CP/shop/prices",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "price-management",
+      "name": "Price management",
+      "does": "Profiles, margins, brand/article rules.",
+      "href": "/CP/shop/price-management",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "product-filters",
+      "name": "Product filters",
+      "does": "Configure catalogue filter facets.",
+      "href": "/CP/shop/filter",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "promos-discount-rules",
+      "name": "Promos & discount rules",
+      "does": "Campaign promo codes, cart rules, and tiered discounts drive conversion on the storefront. Link promotions to marketing\u2026",
+      "href": "/CP/shop/marketing/marketing",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "quote-requests",
+      "name": "Quote requests",
+      "does": "Manage customer RFQ / quote request submissions.",
+      "href": "/CP/shop/quote-requests",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "returns-rma-handling",
+      "name": "Returns & RMA handling",
+      "does": "Process returns and warranty claims with status tracking and stock put-back. Electronics and medical verticals get serial and\u2026",
+      "href": "/CP/shop/returns-manager",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "returns-manager",
+      "name": "Returns manager",
+      "does": "Process returns and RMA claims.",
+      "href": "/CP/shop/returns-manager",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "sao-status-links",
+      "name": "SAO status links",
+      "does": "Map supplier API states to local order statuses.",
+      "href": "/CP/shop/orders/sao_states_statuses_link",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "search-tabs",
+      "name": "Search tabs",
+      "does": "Configure storefront search tab layout.",
+      "href": "/CP/shop/taby-poiska",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "send-price-lists",
+      "name": "Send price lists",
+      "does": "Email price lists to customers or partners.",
+      "href": "/CP/shop/prices_send",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "shop-statistics",
+      "name": "Shop statistics",
+      "does": "Sales and storefront analytics charts.",
+      "href": "/CP/shop/statistika",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "shopping-cart-checkout",
+      "name": "Shopping cart & checkout",
+      "does": "Guest and logged-in checkout with delivery choice, promo codes, and payment at checkout. Orders flow straight into CP order\u2026",
+      "href": "/CP/shop/orders/orders",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "system-requests",
+      "name": "System requests",
+      "does": "Background/async request queue.",
+      "href": "/CP/requests",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "warehouses",
+      "name": "Warehouses",
+      "does": "Warehouse master data and LPO e-mail for suppliers.",
+      "href": "/CP/shop/logistics/storages",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "whatsapp-order-sharing",
+      "name": "WhatsApp order sharing",
+      "does": "Share cart or order summaries via WhatsApp for quick B2B confirmation. Popular with UAE and GCC traders who close deals on\u2026",
+      "href": "/CP/shop/orders/whatsapp-guide",
+      "scope": "client",
+      "category": "Shop / OMS"
+    },
+    {
+      "id": "bulk-csv-import-export",
+      "name": "Bulk CSV import & export",
+      "does": "Upload seasonal collections or thousands of SKUs via CSV \u2014 map columns, preview, and commit in minutes. Export for backup,\u2026",
+      "href": "/CP/shop/prices",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "catalogue-tree",
+      "name": "Catalogue tree",
+      "does": "Edit nested category tree.",
+      "href": "/CP/shop/catalogue/catalogue_editor",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "categories-attributes",
+      "name": "Categories & attributes",
+      "does": "Merchandise with nested categories, spec filters, and custom attribute fields. Electronics get datasheet filters; fashion gets\u2026",
+      "href": "/CP/shop/catalogue/catalogue_editor",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "cross-reference-lookup",
+      "name": "Cross-reference lookup",
+      "does": "OEM and aftermarket cross tables help customers find interchangeable parts. Cross matches against in-stock SKUs display price\u2026",
+      "href": "/CP/shop/crosses",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "customer-reviews",
+      "name": "Customer reviews",
+      "does": "Moderate storefront product reviews.",
+      "href": "/CP/shop/catalogue/otzyvy-pokupatelej",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "data-migration",
+      "name": "Data migration",
+      "does": "Import/export catalogue and related data.",
+      "href": "/CP/shop/perenos-dannyx",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "edit-price-rows",
+      "name": "Edit price rows",
+      "does": "Browse imported rows; preview per profile.",
+      "href": "/CP/shop/prices/prices_edit",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "homepage-products",
+      "name": "Homepage products",
+      "does": "Featured products on storefront home.",
+      "href": "/CP/shop/catalogue/tovary-na-glavnoj",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "line-lists",
+      "name": "Line lists",
+      "does": "Flat product lists for merchandising.",
+      "href": "/CP/shop/catalogue/line_lists",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "live-supplier-price-search",
+      "name": "Live supplier price search",
+      "does": "Search pulls prices from connected suppliers at order time \u2014 customers see current trade rates on the storefront. Ideal for\u2026",
+      "href": "/CP/shop/prices",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "multivendor-prices",
+      "name": "Multivendor prices",
+      "does": "Supplier price pipelines.",
+      "href": "/CP/shop/prices/multivendor",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "price-lists-customer-margins",
+      "name": "Price lists & customer margins",
+      "does": "Customer groups and profiles drive margin rules, fixed currency, and visibility show/hide by brand. B2B clients see contract\u2026",
+      "href": "/CP/shop/price-management",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "price-upload-guide",
+      "name": "Price upload guide",
+      "does": "CSV price list import walkthrough.",
+      "href": "/CP/shop/prices/guide",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "product-catalogue",
+      "name": "Product catalogue",
+      "does": "Full SKU management with rich product pages, media, and category trees for fashion, electronics, medical, and general retail.\u2026",
+      "href": "/CP/shop/catalogue/products",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "products",
+      "name": "Products",
+      "does": "SKU management: publish, media, attributes, variants.",
+      "href": "/CP/shop/catalogue/products",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "related-products",
+      "name": "Related products",
+      "does": "Cross-sell / accessory product links.",
+      "href": "/CP/shop/catalogue/soputstvuyushhie-tovary",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "special-searches",
+      "name": "Special searches",
+      "does": "Custom search widgets (VIN, OEM, etc.).",
+      "href": "/CP/shop/catalogue/specialnye-poiski",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "stock-levels",
+      "name": "Stock levels",
+      "does": "Stock quantities by category and product.",
+      "href": "/CP/shop/logistics/stock",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "supplier-price-upload",
+      "name": "Supplier price upload",
+      "does": "Import supplier price files and keep trade pricing current without manual re-keying. Built for auto-parts distributors and B2B\u2026",
+      "href": "/CP/shop/prices",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "tree-lists",
+      "name": "Tree lists",
+      "does": "Hierarchical product list structures.",
+      "href": "/CP/shop/catalogue/tree_lists",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "variant-skus-size-colour-spec",
+      "name": "Variant SKUs (size, colour, spec)",
+      "does": "Sell products with multiple variants \u2014 each with its own SKU, stock, and price. Storefront variant selectors and CP\u2026",
+      "href": "/CP/shop/catalogue/products",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "vehicle-fitment-catalogue",
+      "name": "Vehicle-fitment catalogue",
+      "does": "Browse by make, model, and modification \u2014 Epart catalog integration for passenger, commercial, and motorbike segments. Product\u2026",
+      "href": "/CP/shop/catalogue/specialnye-poiski",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "vin-oem-number-search",
+      "name": "VIN & OEM number search",
+      "does": "Vehicle-aware search widgets decode VIN or accept OEM numbers for precise fitment. Reduces wrong-part orders and builds trust\u2026",
+      "href": "/CP/shop/catalogue/specialnye-poiski",
+      "scope": "client",
+      "category": "Prices & Catalogue"
+    },
+    {
+      "id": "customer-balance-credit-limits",
+      "name": "Customer balance & credit limits",
+      "does": "Track trade account balances and enforce credit limits at checkout. B2B clients see running balance in client CP; staff\u2026",
+      "href": "/CP/shop/finance/account_operations",
+      "scope": "client",
+      "category": "Payments"
+    },
+    {
+      "id": "multi-currency-display-checkout",
+      "name": "Multi-currency display & checkout",
+      "does": "Show prices and accept payment in multiple currencies for cross-border and tourist retail. Exchange display rules configurable\u2026",
+      "href": "/CP/shop/finance/nastrojka-kursov-valyut",
+      "scope": "client",
+      "category": "Payments"
+    },
+    {
+      "id": "payment-batches-erp-treasury",
+      "name": "Payment batches (ERP treasury)",
+      "does": "Batch outgoing supplier and expense payments from ERP treasury \u2014 approve, schedule, and audit payment runs from finance roles.",
+      "href": "/CP/shop/finance/erp?area=banking&tab=payment_batches&epc_erp_shell=1",
+      "scope": "client",
+      "category": "Payments"
+    },
+    {
+      "id": "payment-gateway-setup",
+      "name": "Payment gateway setup",
+      "does": "Configure card and local payment gateways for UAE and GCC checkout. Gateway settings live in CP \u2014 test mode and live\u2026",
+      "href": "/CP/shop/payments/payments",
+      "scope": "client",
+      "category": "Payments"
+    },
+    {
+      "id": "payment-gateways",
+      "name": "Payment gateways",
+      "does": "Card and local gateways.",
+      "href": "/CP/shop/payments/payments",
+      "scope": "client",
+      "category": "Payments"
+    },
+    {
+      "id": "payment-reconciliation",
+      "name": "Payment reconciliation",
+      "does": "Match gateway settlements to orders and ERP receipts \u2014 reduce manual spreadsheet work for finance teams. Discrepancies surface\u2026",
+      "href": "/CP/shop/payments/payments",
+      "scope": "client",
+      "category": "Payments"
+    },
+    {
+      "id": "payments-guide",
+      "name": "Payments guide",
+      "does": "Gateway setup walkthrough.",
+      "href": "/CP/shop/payments/payments/guide",
+      "scope": "client",
+      "category": "Payments"
+    },
+    {
+      "id": "branch-office-list",
+      "name": "Branch & office list",
+      "does": "Maintain branch offices and pickup points shown on storefront and delivery notes. Useful for multi-location retailers and\u2026",
+      "href": "/CP/shop/logistics/offices",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "carriers-shipments",
+      "name": "Carriers & shipments",
+      "does": "Manage carrier accounts, shipment creation, and tracking references. Logistics hub ties customer orders to outbound shipments\u2026",
+      "href": "/CP/shop/logistics/carriers",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "custom-shipping-declarations",
+      "name": "Custom & shipping declarations",
+      "does": "UAE customs declaration registry \u2014 import, export, transit, temporary admission, transfer, and LGP entries with dashboard\u2026",
+      "href": "/CP/shop/finance/erp?area=logistics&tab=custom_shipping&epc_erp_shell=1",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "delivery-methods",
+      "name": "Delivery methods",
+      "does": "Courier, pickup, service-area rules.",
+      "href": "/CP/shop/logistics/sposoby-polucheniya",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "delivery-methods-pickup",
+      "name": "Delivery methods & pickup",
+      "does": "Configure courier, branch pickup, and service-area rules on the storefront. Customers choose delivery at checkout; lead times\u2026",
+      "href": "/CP/shop/logistics/sposoby-polucheniya",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "logistics-guide",
+      "name": "Logistics guide",
+      "does": "Logistics how-to.",
+      "href": "/CP/shop/logistics/guide",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "logistics-hub",
+      "name": "Logistics hub",
+      "does": "Warehouses, carriers, delivery.",
+      "href": "/CP/shop/logistics",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "logistics-reports",
+      "name": "Logistics reports",
+      "does": "Operational reports on fulfilment throughput, carrier performance, and stock by location. Export-friendly views for warehouse\u2026",
+      "href": "/CP/shop/logistics",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "oms-orders",
+      "name": "OMS \u00b7 Orders",
+      "does": "Customer orders shortcut from Logistics.",
+      "href": "/CP/shop/orders/orders",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "warehouses-storages",
+      "name": "Warehouses & storages",
+      "does": "Master warehouse and storage locations with stock allocation per site. Multi-warehouse inventory feeds catalogue availability\u2026",
+      "href": "/CP/shop/logistics/storages",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "whatsapp-sharing-guide",
+      "name": "WhatsApp sharing guide",
+      "does": "WhatsApp order sharing.",
+      "href": "/CP/shop/orders/whatsapp-guide",
+      "scope": "client",
+      "category": "Logistics"
+    },
+    {
+      "id": "channel-integrations-pack",
+      "name": "Channel integrations pack",
+      "does": "Enable marketplace and aggregator integrations per industry pack. Fashion, electronics, and auto-parts tenants extend reach\u2026",
+      "href": "/CP/shop/channels/channels",
+      "scope": "client",
+      "category": "Channels / Marketplace"
+    },
+    {
+      "id": "channel-order-routing",
+      "name": "Channel order routing",
+      "does": "External channel orders route into the same fulfilment and ERP pipeline as web orders. One pick/pack workflow regardless of\u2026",
+      "href": "/CP/shop/channels/channels",
+      "scope": "client",
+      "category": "Channels / Marketplace"
+    },
+    {
+      "id": "channels-guide",
+      "name": "Channels guide",
+      "does": "Marketplace setup help.",
+      "href": "/CP/shop/channels/guide",
+      "scope": "client",
+      "category": "Channels / Marketplace"
+    },
+    {
+      "id": "marketplace-listing-sync",
+      "name": "Marketplace listing sync",
+      "does": "Push catalogue and stock updates to connected channels \u2014 reduce overselling with shared inventory truth. Listing errors\u2026",
+      "href": "/CP/shop/channels/channels",
+      "scope": "client",
+      "category": "Channels / Marketplace"
+    },
+    {
+      "id": "omnichannel-hub",
+      "name": "Omnichannel hub",
+      "does": "Central hub for selling beyond your own storefront \u2014 connect marketplaces and sales channels from one CP screen. Orders from\u2026",
+      "href": "/CP/shop/channels/channels",
+      "scope": "client",
+      "category": "Channels / Marketplace"
+    },
+    {
+      "id": "3-way-match-po-grn-invoice",
+      "name": "3-way match (PO / GRN / invoice)",
+      "does": "Match purchase order, goods receipt, and supplier invoice before payment approval. Reduces duplicate payments and catches\u2026",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=three_way_match&epc_erp_shell=1",
+      "scope": "client",
+      "category": "Procurement"
+    },
+    {
+      "id": "procurement-suppliers",
+      "name": "Procurement & suppliers",
+      "does": "Purchasing hub.",
+      "href": "/CP/shop/procurement/procurement",
+      "scope": "client",
+      "category": "Procurement"
+    },
+    {
+      "id": "procurement-workflows",
+      "name": "Procurement workflows",
+      "does": "End-to-end buy-side process from demand signal through PO, receipt, and invoice. Integrated with auto-parts SAO and ERP\u2026",
+      "href": "/CP/shop/procurement/procurement",
+      "scope": "client",
+      "category": "Procurement"
+    },
+    {
+      "id": "purchase-orders",
+      "name": "Purchase orders",
+      "does": "Create and track POs from requisition through receipt. PO lines link to ERP payables and three-way match when finance pack is\u2026",
+      "href": "/CP/shop/procurement/procurement",
+      "scope": "client",
+      "category": "Procurement"
+    },
+    {
+      "id": "rfq-supplier-quotes",
+      "name": "RFQ & supplier quotes",
+      "does": "Request quotes from multiple suppliers and compare responses before committing to a PO. Built for project-based and MRO\u2026",
+      "href": "/CP/shop/procurement/procurement",
+      "scope": "client",
+      "category": "Procurement"
+    },
+    {
+      "id": "supplier-directory",
+      "name": "Supplier directory",
+      "does": "Maintain supplier master data \u2014 contacts, terms, and linked price files. Auto-parts and wholesale tenants manage dozens of\u2026",
+      "href": "/CP/shop/procurement/procurement",
+      "scope": "client",
+      "category": "Procurement"
+    },
+    {
+      "id": "supplier-payables",
+      "name": "Supplier payables",
+      "does": "Track amounts owed to suppliers and schedule settlement from ERP payables tab. Aging reports help finance prioritise cash\u2026",
+      "href": "/CP/shop/procurement/procurement",
+      "scope": "client",
+      "category": "Procurement"
+    },
+    {
+      "id": "accounts-receivable",
+      "name": "Accounts receivable",
+      "does": "Track customer invoices, receipts, and aging from sales orders through collection. B2B trade balances sync with storefront\u2026",
+      "href": "/CP/shop/finance/erp?area=ar&tab=receivables&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "aging-statements-of-account",
+      "name": "Aging & statements of account",
+      "does": "Config-driven AR / AP / inventory aging with per-bucket totals and distribution bars, plus customer and vendor statements of\u2026",
+      "href": "/CP/shop/finance/erp?area=finance&tab=aging&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "bank-reconciliation",
+      "name": "Bank reconciliation",
+      "does": "Match bank statement lines to ERP receipts and payments \u2014 flag unmatched items for review. Monthly recon workflow keeps books\u2026",
+      "href": "/CP/shop/finance/erp?area=banking&tab=bank_recon&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "business-unit-financial-dimensions",
+      "name": "Business unit & financial dimensions",
+      "does": "D365-style financial dimensions \u2014 business unit, cost centre, department, project and custom tenant dimensions \u2014 selectable on\u2026",
+      "href": "/CP/shop/finance/erp?area=enterprise&tab=business_units&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "cash-bank-treasury",
+      "name": "Cash & bank treasury",
+      "does": "Manage bank accounts, petty cash, and treasury movements in one finance area. Payment batches and reconciliation tie back to\u2026",
+      "href": "/CP/shop/finance/erp?area=banking&tab=cash_bank&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "chart-of-accounts",
+      "name": "Chart of accounts",
+      "does": "Configure COA structure for UAE trading, services, and multi-department businesses. Opening balances migration supported for\u2026",
+      "href": "/CP/shop/finance/erp?area=finance&tab=coa&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "cross-department-workflow",
+      "name": "Cross-department workflow",
+      "does": "Visual workflow across sales, purchasing, finance, and operations \u2014 see bottlenecks before month-end. Native ERP tabs replace\u2026",
+      "href": "/CP/shop/finance/erp?area=overview&tab=workflow&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "custom-shipping",
+      "name": "Custom & Shipping",
+      "does": "UAE customs declarations in ERP.",
+      "href": "/CP/shop/finance/erp?epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "custom-shipping-guide",
+      "name": "Custom & Shipping guide",
+      "does": "Customs how-to.",
+      "href": "/CP/shop/finance/erp/custom-shipping-guide?epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "enterprise-modules-d365-style",
+      "name": "Enterprise modules (D365-style)",
+      "does": "Fourteen config-driven enterprise modules with sub-modules \u2014 Business unit, Listing, Product information, Inventory, AP, AR,\u2026",
+      "href": "/CP/shop/finance/erp?epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "erp-dashboard-kpis",
+      "name": "ERP dashboard & KPIs",
+      "does": "Live KPIs across sales, stock, and finance on one dashboard \u2014 plus cross-department workflow view. Standalone /erp portal\u2026",
+      "href": "/CP/shop/finance/erp?epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "erp-guide",
+      "name": "ERP guide",
+      "does": "ERP how-to for finance teams.",
+      "href": "/CP/shop/finance/erp/guide?epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "fixed-assets-depreciation",
+      "name": "Fixed assets & depreciation",
+      "does": "Asset register with straight-line and declining depreciation, monthly runs, and net book value reports. Tracking IDs and\u2026",
+      "href": "/CP/shop/finance/erp?area=fixed_assets&tab=fixed_assets&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "general-ledger",
+      "name": "General ledger",
+      "does": "Double-entry GL with journal entries, period close, and audit-friendly posting history. Commerce and ERP share customer and\u2026",
+      "href": "/CP/shop/finance/erp?area=finance&tab=gl&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "inventory-weighted-average-cost",
+      "name": "Inventory & weighted average cost",
+      "does": "Multi-warehouse stock with purchase receipts, sales issues, and weighted average costing. Perishable expiry and batch fields\u2026",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=inventory&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "multi-company-erp-access",
+      "name": "Multi-company ERP access",
+      "does": "Username/password sign-in per department user with company-scoped customs declarations, cost summaries, and entity fields \u2014\u2026",
+      "href": "/CP/shop/finance/erp?epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "netsuite-dashboard-d365-forms",
+      "name": "NetSuite dashboard + D365 forms",
+      "does": "NetSuite-style role dashboard (tiles, KPI gauge, aging chart, quick actions) with Dynamics 365 Finance & Operations inner\u2026",
+      "href": "/CP/shop/finance/erp?epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "p-l-balance-sheet",
+      "name": "P&L & balance sheet",
+      "does": "Standard financial statements from posted GL \u2014 filter by period and export for advisors. Tax firms use this alongside VAT\u2026",
+      "href": "/CP/shop/finance/erp?area=finance&tab=pl&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "period-as-of-date-reporting",
+      "name": "Period & as-of-date reporting",
+      "does": "True point-in-time ERP reporting \u2014 inventory on hand, stock value and balances reconstructed as at any date or fiscal period\u2026",
+      "href": "/CP/shop/finance/erp?area=finance&tab=reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "uae-tax-compliance",
+      "name": "UAE tax compliance",
+      "does": "FTA VAT / CT workspace.",
+      "href": "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "worldwide-tax-toolkit",
+      "name": "Worldwide Tax Toolkit",
+      "does": "Complete business taxation for 195+ countries \u2014 VAT/GST, corporate income tax (CIT), import/export customs duty, withholding,\u2026",
+      "href": "/CP/control/portal/epc_tax_toolkit_manage",
+      "scope": "client",
+      "category": "ERP / Finance"
+    },
+    {
+      "id": "accounts-payable-payables",
+      "name": "Accounts payable: Payables",
+      "does": "Vendor invoices, payments and AP setup",
+      "href": "/CP/shop/finance/erp?area=ap&tab=payables&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "accounts-payable-vendor-setup",
+      "name": "Accounts payable: Vendor setup",
+      "does": "Vendor invoices, payments and AP setup",
+      "href": "/CP/shop/finance/erp?area=ap&tab=ap_setup&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "accounts-receivable-customer-setup",
+      "name": "Accounts receivable: Customer setup",
+      "does": "Customer invoices, settlements and AR setup",
+      "href": "/CP/shop/finance/erp?area=ar&tab=ar_setup&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "accounts-receivable-receivables",
+      "name": "Accounts receivable: Receivables",
+      "does": "Customer invoices, settlements and AR setup",
+      "href": "/CP/shop/finance/erp?area=ar&tab=receivables&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "asset-management-fixed-assets",
+      "name": "Asset management: Fixed assets",
+      "does": "Asset register, maintenance and lifecycle",
+      "href": "/CP/shop/finance/erp?area=asset_mgmt&tab=fixed_assets&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "audit-workbench-audit-trail",
+      "name": "Audit workbench: Audit trail",
+      "does": "Audit policies, cases and audit trail",
+      "href": "/CP/shop/finance/erp?area=audit_wb&tab=audit&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "audit-workbench-blockchain-proofs",
+      "name": "Audit workbench: Blockchain proofs",
+      "does": "Audit policies, cases and audit trail",
+      "href": "/CP/shop/finance/erp?area=audit_wb&tab=blockchain_proofs&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "budgeting-budget-planning",
+      "name": "Budgeting: Budget planning",
+      "does": "Budget registers, control and budget vs actual",
+      "href": "/CP/shop/finance/erp?area=budgeting&tab=budget_planning&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "budgeting-budgeting",
+      "name": "Budgeting: Budgeting",
+      "does": "Budget registers, control and budget vs actual",
+      "href": "/CP/shop/finance/erp?area=budgeting&tab=budgeting&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "cash-and-bank-management-bank-accounts",
+      "name": "Cash and bank management: Bank accounts",
+      "does": "Bank accounts, cash, payments and reconciliation",
+      "href": "/CP/shop/finance/erp?area=banking&tab=bank_setup&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "cash-and-bank-management-bank-instruments",
+      "name": "Cash and bank management: Bank instruments",
+      "does": "Bank accounts, cash, payments and reconciliation",
+      "href": "/CP/shop/finance/erp?area=banking&tab=bank_instruments&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "cash-and-bank-management-bank-recon",
+      "name": "Cash and bank management: Bank recon",
+      "does": "Bank accounts, cash, payments and reconciliation",
+      "href": "/CP/shop/finance/erp?area=banking&tab=bank_recon&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "cash-and-bank-management-cash-bank",
+      "name": "Cash and bank management: Cash & bank",
+      "does": "Bank accounts, cash, payments and reconciliation",
+      "href": "/CP/shop/finance/erp?area=banking&tab=cash_bank&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "cash-and-bank-management-cash-flow-forecast",
+      "name": "Cash and bank management: Cash flow forecast",
+      "does": "Bank accounts, cash, payments and reconciliation",
+      "href": "/CP/shop/finance/erp?area=banking&tab=cash_forecast&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "cash-and-bank-management-payment-batches",
+      "name": "Cash and bank management: Payment batches",
+      "does": "Bank accounts, cash, payments and reconciliation",
+      "href": "/CP/shop/finance/erp?area=banking&tab=payment_batches&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "cash-and-bank-management-petty-cash",
+      "name": "Cash and bank management: Petty cash",
+      "does": "Bank accounts, cash, payments and reconciliation",
+      "href": "/CP/shop/finance/erp?area=banking&tab=petty_cash&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "common-agenda",
+      "name": "Common: Agenda",
+      "does": "Shared agenda, contacts, documents and knowledge",
+      "href": "/CP/shop/finance/erp?area=common&tab=agenda&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "common-ai-advisor",
+      "name": "Common: AI advisor",
+      "does": "Shared agenda, contacts, documents and knowledge",
+      "href": "/CP/shop/finance/erp?area=common&tab=ai_advisor&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "common-contacts",
+      "name": "Common: Contacts",
+      "does": "Shared agenda, contacts, documents and knowledge",
+      "href": "/CP/shop/finance/erp?area=common&tab=contacts&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "common-documents",
+      "name": "Common: Documents",
+      "does": "Shared agenda, contacts, documents and knowledge",
+      "href": "/CP/shop/finance/erp?area=common&tab=documents&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "common-knowledge-base",
+      "name": "Common: Knowledge base",
+      "does": "Shared agenda, contacts, documents and knowledge",
+      "href": "/CP/shop/finance/erp?area=common&tab=knowledge_base&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "compliance-document-expiry",
+      "name": "Compliance: Document expiry",
+      "does": "Insurance policies, claims and document expiry tracking",
+      "href": "/CP/shop/finance/erp?area=risk&tab=doc_expiry&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "compliance-insurance",
+      "name": "Compliance: Insurance",
+      "does": "Insurance policies, claims and document expiry tracking",
+      "href": "/CP/shop/finance/erp?area=risk&tab=insurance&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "consolidations-consolidation",
+      "name": "Consolidations: Consolidation",
+      "does": "Multi-entity consolidation and eliminations",
+      "href": "/CP/shop/finance/erp?area=consolidations&tab=consolidation_bu&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "consolidations-multi-entity",
+      "name": "Consolidations: Multi-entity",
+      "does": "Multi-entity consolidation and eliminations",
+      "href": "/CP/shop/finance/erp?area=consolidations&tab=multi_entity&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "cost-accounting-financial-depth",
+      "name": "Cost accounting: Financial depth",
+      "does": "Cost allocations, accruals and cost analysis",
+      "href": "/CP/shop/finance/erp?area=cost_acct&tab=fin_advanced&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "cost-management-costing-value-models",
+      "name": "Cost management: Costing value-models",
+      "does": "Inventory costing value models and analysis",
+      "href": "/CP/shop/finance/erp?area=cost_mgmt&tab=cost_models&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "credit-and-collections-collections",
+      "name": "Credit and collections: Collections",
+      "does": "Collection cases, dunning and credit holds",
+      "href": "/CP/shop/finance/erp?area=credit_coll&tab=collections&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "expense-management-expense-reports",
+      "name": "Expense management: Expense reports",
+      "does": "Employee expense reports and reimbursements",
+      "href": "/CP/shop/finance/erp?area=expense&tab=expense_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "fixed-assets-fixed-assets",
+      "name": "Fixed assets: Fixed assets",
+      "does": "Asset register, depreciation and disposals",
+      "href": "/CP/shop/finance/erp?area=fixed_assets&tab=fixed_assets&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-aging-ar-ap-inv",
+      "name": "General ledger: Aging (AR/AP/Inv)",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=aging&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-balance-sheet",
+      "name": "General ledger: Balance sheet",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=balance_sheet&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-chart-of-accounts",
+      "name": "General ledger: Chart of accounts",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=coa&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-dual-trial-balance-wt-val-jw",
+      "name": "General ledger: Dual trial balance (wt+val) [JW]",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=jw_trial_balance&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-financial-depth",
+      "name": "General ledger: Financial depth",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=fin_advanced&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-general-ledger",
+      "name": "General ledger: General ledger",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=gl&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-journal-voucher-jewellery-jw",
+      "name": "General ledger: Journal voucher (jewellery) [JW]",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=jw_journal_voucher&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-opening-balances",
+      "name": "General ledger: Opening balances",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=opening_balances&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-petty-cash-jewellery-jw",
+      "name": "General ledger: Petty cash (jewellery) [JW]",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=jw_petty_cash&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-profit-loss",
+      "name": "General ledger: Profit & loss",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=pl&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-reports",
+      "name": "General ledger: Reports",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-trial-balance-reports",
+      "name": "General ledger: Trial balance / reports",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=enterprise_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "general-ledger-year-end-closing",
+      "name": "General ledger: Year-end closing",
+      "does": "Chart of accounts, journals, period close and financial statements",
+      "href": "/CP/shop/finance/erp?area=finance&tab=year_end&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "home-approvals",
+      "name": "Home: Approvals",
+      "does": "Dashboards, workflow and approvals",
+      "href": "/CP/shop/finance/erp?area=overview&tab=approvals&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "home-dashboard",
+      "name": "Home: Dashboard",
+      "does": "Dashboards, workflow and approvals",
+      "href": "/CP/shop/finance/erp?area=overview&tab=dashboard&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "home-process-flow",
+      "name": "Home: Process flow",
+      "does": "Dashboards, workflow and approvals",
+      "href": "/CP/shop/finance/erp?area=overview&tab=processflow&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "home-workflow",
+      "name": "Home: Workflow",
+      "does": "Dashboards, workflow and approvals",
+      "href": "/CP/shop/finance/erp?area=overview&tab=workflow&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "human-resources-hr",
+      "name": "Human resources: HR",
+      "does": "Workers, organization and labour-law compliance",
+      "href": "/CP/shop/finance/erp?area=people&tab=hr&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "human-resources-hr-operations",
+      "name": "Human resources: HR operations",
+      "does": "Workers, organization and labour-law compliance",
+      "href": "/CP/shop/finance/erp?area=people&tab=hr_ops&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "human-resources-labour-law-compliance",
+      "name": "Human resources: Labour law & compliance",
+      "does": "Workers, organization and labour-law compliance",
+      "href": "/CP/shop/finance/erp?area=people&tab=hr_law&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "human-resources-performance-management",
+      "name": "Human resources: Performance management",
+      "does": "Workers, organization and labour-law compliance",
+      "href": "/CP/shop/finance/erp?area=people&tab=performance&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "human-resources-recruitment",
+      "name": "Human resources: Recruitment",
+      "does": "Workers, organization and labour-law compliance",
+      "href": "/CP/shop/finance/erp?area=people&tab=recruitment&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "human-resources-workers",
+      "name": "Human resources: Workers",
+      "does": "Workers, organization and labour-law compliance",
+      "href": "/CP/shop/finance/erp?area=people&tab=staff&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-barcode-jewellery-jw",
+      "name": "Inventory management: Barcode (jewellery) [JW]",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_barcode&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-colour-stone-master-jw",
+      "name": "Inventory management: Colour stone master [JW]",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_color_stone&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-design-master-jw",
+      "name": "Inventory management: Design master [JW]",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_design&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-diamond-master-jw",
+      "name": "Inventory management: Diamond master [JW]",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_diamond&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-inventory",
+      "name": "Inventory management: Inventory",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=inventory&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-inventory-stock-groups",
+      "name": "Inventory management: Inventory (stock/groups)",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=inv_groups&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-karat-master-jw",
+      "name": "Inventory management: Karat master [JW]",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_karat&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-metal-stock-master-jw",
+      "name": "Inventory management: Metal stock master [JW]",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_metal_stock&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-order-planning",
+      "name": "Inventory management: Order planning",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=order_planning&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-pearl-master-jw",
+      "name": "Inventory management: Pearl master [JW]",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_pearl&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-rate-type-master-jw",
+      "name": "Inventory management: Rate type master [JW]",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_rate_type&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-retail-barcode",
+      "name": "Inventory management: Retail barcode",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=retail_barcode&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-stock-balance-weight-jw",
+      "name": "Inventory management: Stock balance (weight) [JW]",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_stock_balance&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "inventory-management-stock-verification-jw",
+      "name": "Inventory management: Stock verification [JW]",
+      "does": "Stock, item groups, order planning and barcodes",
+      "href": "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_stock_verification&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "landed-cost-landed-cost",
+      "name": "Landed cost: Landed cost",
+      "does": "Voyages, landed cost allocation and apportionment",
+      "href": "/CP/shop/finance/erp?area=landed_cost_area&tab=landed_cost&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "leave-and-absence-hr-operations",
+      "name": "Leave and absence: HR operations",
+      "does": "Leave plans, requests and absence tracking",
+      "href": "/CP/shop/finance/erp?area=leave_abs&tab=hr_ops&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "logistics-customs-shipping",
+      "name": "Logistics: Customs & shipping",
+      "does": "Customs, shipping and inbound/outbound logistics",
+      "href": "/CP/shop/finance/erp?area=logistics&tab=custom_shipping&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "logistics-procurement-cp",
+      "name": "Logistics: Procurement CP",
+      "does": "Customs, shipping and inbound/outbound logistics",
+      "href": "/CP/shop/finance/erp?area=logistics&tab=procurement_link&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "master-planning-master-planning",
+      "name": "Master planning: Master planning",
+      "does": "Master scheduling and material requirements planning",
+      "href": "/CP/shop/finance/erp?area=master_planning_area&tab=master_planning&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "material-handling-equipment-interface-warehouse-management",
+      "name": "Material handling equipment interface: Warehouse management",
+      "does": "Material handling and warehouse equipment integration",
+      "href": "/CP/shop/finance/erp?area=mhei&tab=wms&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "organization-administration-business-unit",
+      "name": "Organization administration: Business unit",
+      "does": "Legal entities, business units, contracts and documents",
+      "href": "/CP/shop/finance/erp?area=enterprise&tab=business_units&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "organization-administration-contracts-e-sign",
+      "name": "Organization administration: Contracts & e-sign",
+      "does": "Legal entities, business units, contracts and documents",
+      "href": "/CP/shop/finance/erp?area=enterprise&tab=contracts&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "organization-administration-document-formats",
+      "name": "Organization administration: Document formats",
+      "does": "Legal entities, business units, contracts and documents",
+      "href": "/CP/shop/finance/erp?area=enterprise&tab=doc_formats&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "organization-administration-listing",
+      "name": "Organization administration: Listing",
+      "does": "Legal entities, business units, contracts and documents",
+      "href": "/CP/shop/finance/erp?area=enterprise&tab=listing&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "organization-administration-organization-administration",
+      "name": "Organization administration: Organization administration",
+      "does": "Legal entities, business units, contracts and documents",
+      "href": "/CP/shop/finance/erp?area=enterprise&tab=org_admin&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "payroll-payroll",
+      "name": "Payroll: Payroll",
+      "does": "Payroll runs, earnings and statutory deductions",
+      "href": "/CP/shop/finance/erp?area=payroll_area&tab=payroll&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-3-way-match",
+      "name": "Procurement and sourcing: 3-way match",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=three_way_match&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-categories-policies",
+      "name": "Procurement and sourcing: Categories & policies",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=procurement_categories&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-diamond-purchase-jw",
+      "name": "Procurement and sourcing: Diamond purchase [JW]",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=jw_diamond_purchase&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-metal-purchase-jw",
+      "name": "Procurement and sourcing: Metal purchase [JW]",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=jw_metal_purchase&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-purchase-fixing-jw",
+      "name": "Procurement and sourcing: Purchase fixing [JW]",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=jw_purchase_fixing&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-purchase-orders",
+      "name": "Procurement and sourcing: Purchase orders",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=purchase_orders&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-purchase-requisitions",
+      "name": "Procurement and sourcing: Purchase requisitions",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=purchase_requisitions&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-purchase-window-jw",
+      "name": "Procurement and sourcing: Purchase window [JW]",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=jw_purchase_window&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-purchases",
+      "name": "Procurement and sourcing: Purchases",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=purchases&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-rfq",
+      "name": "Procurement and sourcing: RFQ",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=rfq&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "procurement-and-sourcing-supplier-portal",
+      "name": "Procurement and sourcing: Supplier portal",
+      "does": "Suppliers, RFQ, purchase orders and matching",
+      "href": "/CP/shop/finance/erp?area=purchasing&tab=supplier_portal&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "product-information-management-product-information",
+      "name": "Product information management: Product information",
+      "does": "Products, dimensions and variant structures",
+      "href": "/CP/shop/finance/erp?area=pim&tab=product_info&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "production-control-production",
+      "name": "Production control: Production",
+      "does": "Production orders, routes, operations and quality",
+      "href": "/CP/shop/finance/erp?area=production&tab=manufacturing&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "production-control-production-planning",
+      "name": "Production control: Production planning",
+      "does": "Production orders, routes, operations and quality",
+      "href": "/CP/shop/finance/erp?area=production&tab=mfg_planning&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "production-control-quality-management",
+      "name": "Production control: Quality management",
+      "does": "Production orders, routes, operations and quality",
+      "href": "/CP/shop/finance/erp?area=production&tab=quality&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "project-management-and-accounting-project-accounting",
+      "name": "Project management and accounting: Project accounting",
+      "does": "Projects, budgets, WIP and revenue recognition",
+      "href": "/CP/shop/finance/erp?area=projects&tab=project_accounting&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "project-management-and-accounting-projects",
+      "name": "Project management and accounting: Projects",
+      "does": "Projects, budgets, WIP and revenue recognition",
+      "href": "/CP/shop/finance/erp?area=projects&tab=projects&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "retail-and-commerce-retail-commerce",
+      "name": "Retail and commerce: Retail & commerce",
+      "does": "Channels, assortments, retail pricing, POS and statements",
+      "href": "/CP/shop/finance/erp?area=retail&tab=retail_commerce&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-crm",
+      "name": "Sales and marketing: CRM",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=crm&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-delivery-notes",
+      "name": "Sales and marketing: Delivery notes",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=delivery_notes&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-fulfilment",
+      "name": "Sales and marketing: Fulfilment",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=fulfilment&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-invoices-e-invoice",
+      "name": "Sales and marketing: Invoices (e-invoice)",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=invoices&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-marketing",
+      "name": "Sales and marketing: Marketing",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=marketing&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-metal-sales-jw",
+      "name": "Sales and marketing: Metal sales [JW]",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=jw_metal_sales&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-opportunities",
+      "name": "Sales and marketing: Opportunities",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=opportunities&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-pos-advance-jw",
+      "name": "Sales and marketing: POS advance [JW]",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=jw_pos_advance&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-prospects-leads",
+      "name": "Sales and marketing: Prospects & leads",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=leads&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-retail-sales-pos-jw",
+      "name": "Sales and marketing: Retail sales (POS) [JW]",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=jw_retail_sales&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-revenue",
+      "name": "Sales and marketing: Revenue",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=revenue&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-sales-analysis-weight-jw",
+      "name": "Sales and marketing: Sales analysis (weight) [JW]",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=jw_sales_analysis&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-sales-fixing-jw",
+      "name": "Sales and marketing: Sales fixing [JW]",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=jw_sales_fixing&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-sales-orders",
+      "name": "Sales and marketing: Sales orders",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=sales_orders&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-sales-quotations",
+      "name": "Sales and marketing: Sales quotations",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=proposals&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-sales-return-jw",
+      "name": "Sales and marketing: Sales return [JW]",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=jw_sales_return&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "sales-and-marketing-subscriptions",
+      "name": "Sales and marketing: Subscriptions",
+      "does": "CRM, prospects, quotations, sales orders, delivery and invoicing",
+      "href": "/CP/shop/finance/erp?area=sales&tab=subscriptions&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "service-management-after-sales-rma",
+      "name": "Service management: After-sales RMA",
+      "does": "Service agreements, contracts and service delivery",
+      "href": "/CP/shop/finance/erp?area=service_mgmt&tab=aftersales&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "service-management-contracts-e-sign",
+      "name": "Service management: Contracts & e-sign",
+      "does": "Service agreements, contracts and service delivery",
+      "href": "/CP/shop/finance/erp?area=service_mgmt&tab=contracts&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "service-management-repair-delivery-jw",
+      "name": "Service management: Repair delivery [JW]",
+      "does": "Service agreements, contracts and service delivery",
+      "href": "/CP/shop/finance/erp?area=service_mgmt&tab=jw_repair_delivery&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "service-management-repair-jobs-jw",
+      "name": "Service management: Repair jobs [JW]",
+      "does": "Service agreements, contracts and service delivery",
+      "href": "/CP/shop/finance/erp?area=service_mgmt&tab=jw_repairs&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "service-management-repair-receipt-jw",
+      "name": "Service management: Repair receipt [JW]",
+      "does": "Service agreements, contracts and service delivery",
+      "href": "/CP/shop/finance/erp?area=service_mgmt&tab=jw_repair_receipt&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "service-management-repair-register-jw",
+      "name": "Service management: Repair register [JW]",
+      "does": "Service agreements, contracts and service delivery",
+      "href": "/CP/shop/finance/erp?area=service_mgmt&tab=jw_repair_register&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "service-management-repair-sale-jw",
+      "name": "Service management: Repair sale [JW]",
+      "does": "Service agreements, contracts and service delivery",
+      "href": "/CP/shop/finance/erp?area=service_mgmt&tab=jw_repair_sale&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "service-management-repair-search-jw",
+      "name": "Service management: Repair search [JW]",
+      "does": "Service agreements, contracts and service delivery",
+      "href": "/CP/shop/finance/erp?area=service_mgmt&tab=jw_repair_search&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "service-management-repair-transfer-jw",
+      "name": "Service management: Repair transfer [JW]",
+      "does": "Service agreements, contracts and service delivery",
+      "href": "/CP/shop/finance/erp?area=service_mgmt&tab=jw_repair_transfer&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "service-management-workshop-receive-jw",
+      "name": "Service management: Workshop receive [JW]",
+      "does": "Service agreements, contracts and service delivery",
+      "href": "/CP/shop/finance/erp?area=service_mgmt&tab=jw_workshop_receive&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-accounting-setup",
+      "name": "System administration: Accounting setup",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=erp_setup&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-currency-master-jewellery-jw",
+      "name": "System administration: Currency master (jewellery) [JW]",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=jw_currency&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-data-integration",
+      "name": "System administration: Data & integration",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=integration&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-data-import",
+      "name": "System administration: Data import",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=data_import&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-devin-ai-assistant",
+      "name": "System administration: Devin AI assistant",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=ai_assistant&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-platform-services",
+      "name": "System administration: Platform services",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=platform&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-print-designer",
+      "name": "System administration: Print designer",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=print_designer&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-sample-data-jewellery-jw",
+      "name": "System administration: Sample data (jewellery) [JW]",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=jw_seed_data&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-security-roles",
+      "name": "System administration: Security roles",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=security_roles&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-tenant-configuration",
+      "name": "System administration: Tenant configuration",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=tenant_config&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "system-administration-workflow-automation",
+      "name": "System administration: Workflow automation",
+      "does": "Company setup, security, batch/platform services, data and integration",
+      "href": "/CP/shop/finance/erp?area=setup&tab=workflow_automation&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-blockchain-proofs",
+      "name": "Tax: Blockchain proofs",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=blockchain_proofs&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-compliance-center",
+      "name": "Tax: Compliance center",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=compliance&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-document-control",
+      "name": "Tax: Document control",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=document_control&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-e-invoicing",
+      "name": "Tax: E-invoicing",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=einvoice&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-electronic-reporting",
+      "name": "Tax: Electronic reporting",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=elec_reporting&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-external-reporting",
+      "name": "Tax: External reporting",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-tax-compliance",
+      "name": "Tax: Tax compliance",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=tax_compliance&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-tourist-vat-refund-jewellery-jw",
+      "name": "Tax: Tourist VAT refund (jewellery) [JW]",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=jw_tourist_vat&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-tourist-vat-refunds",
+      "name": "Tax: Tourist VAT refunds",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=vat_refund&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-vat-return",
+      "name": "Tax: VAT return",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=vat_return&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "tax-withholding-tax",
+      "name": "Tax: Withholding tax",
+      "does": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
+      "href": "/CP/shop/finance/erp?area=tax&tab=withholding&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "warehouse-management-warehouse-management",
+      "name": "Warehouse management: Warehouse management",
+      "does": "Locations, license plates, waves, work and mobile RF",
+      "href": "/CP/shop/finance/erp?area=warehouse&tab=wms&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Modules"
+    },
+    {
+      "id": "credit-notes-adjustments",
+      "name": "Credit notes & adjustments",
+      "does": "Issue credit notes linked to original tax invoices for returns and billing corrections. Maintains audit trail required for VAT\u2026",
+      "href": "/CP/shop/finance/erp?area=ar&tab=receivables&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Tax & VAT"
+    },
+    {
+      "id": "fta-xml-json-export",
+      "name": "FTA XML / JSON export",
+      "does": "Export e-invoice payloads in formats suitable for Peppol endpoints and FTA compliance workflows. Operators configure seller\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=einvoice&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Tax & VAT"
+    },
+    {
+      "id": "peppol-pint-ae-e-invoice",
+      "name": "Peppol / PINT-AE e-invoice",
+      "does": "Generate Peppol-ready e-invoices aligned with UAE PINT-AE requirements \u2014 validate, print, and export XML/JSON for FTA\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=einvoice&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Tax & VAT"
+    },
+    {
+      "id": "tax-invoices-with-trn",
+      "name": "Tax invoices with TRN",
+      "does": "Tax-inclusive pricing on storefront with seller TRN on invoices visible to clients. Create invoices from orders with legal\u2026",
+      "href": "/CP/shop/document_control/document_control",
+      "scope": "client",
+      "category": "ERP / Tax & VAT"
+    },
+    {
+      "id": "uae-vat-201-return-full-format",
+      "name": "UAE VAT 201 return (full format)",
+      "does": "The complete FTA VAT 201 built from posted sales & purchases \u2014 Boxes 1a\u20131g standard-rated per Emirate, tourist refunds,\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=vat_return&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / Tax & VAT"
+    },
+    {
+      "id": "built-in-compliance-engine",
+      "name": "Built-in compliance engine",
+      "does": "Each return is validated against the law with PASS / REVIEW / FAIL flags \u2014 VAT special schemes (24kt investment gold 0%, B2B\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "business-valuation-report",
+      "name": "Business valuation report",
+      "does": "Values the business by three methods on the same model \u2014 discounted cash flow (WACC + Gordon terminal value), market multiples\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "corporate-tax-return-full-computation",
+      "name": "Corporate Tax return (full computation)",
+      "does": "The complete UAE Corporate Tax return under Federal Decree-Law 47/2022 \u2014 taxpayer & period, elections/reliefs (Small Business\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "drill-down-to-transaction-level",
+      "name": "Drill-down to transaction level",
+      "does": "Every figure on a return is clickable in place: a box or computation line expands to its breakdown, a line expands to its\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "external-audit-report-isa-700-ifrs",
+      "name": "External Audit Report (ISA 700 / IFRS)",
+      "does": "A complete IFRS assurance pack with a professional cover page and table of contents: the Independent Auditor\\\\",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "financial-model-5-year-forecast",
+      "name": "Financial model & 5-year forecast",
+      "does": "A five-year financial model built from the live GL actuals \u2014 an explicit assumptions block (growth, margins, capex, working\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "flexible-reporting-periods",
+      "name": "Flexible reporting periods",
+      "does": "Each report carries its own statutory period model \u2014 VAT monthly or quarterly, Corporate Tax by financial year (including\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "fta-style-audit-file-schedules",
+      "name": "FTA-style audit-file schedules",
+      "does": "One-click Excel/CSV supporting schedules in the FTA layout \u2014 VAT invoice-wise, customer TRN-wise, supplier-wise and\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "off-system-excel-import-return",
+      "name": "Off-system Excel import \u2192 return",
+      "does": "Check or file other clients without touching the ERP: download a multi-sheet Excel template (company & TRN, boxes/lines,\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "professional-pdf-commentary",
+      "name": "Professional PDF + commentary",
+      "does": "A colour, MIS-style filing pack with cover page, section numbering, the summary schedules and a plain-language \"report\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "statutory-reporting-centre",
+      "name": "Statutory reporting centre",
+      "does": "A country-driven report centre that auto-builds filing-ready statutory returns from your ERP data, localized to your\u2026",
+      "href": "/CP/shop/finance/erp?area=tax&tab=ext_reports&epc_erp_shell=1",
+      "scope": "client",
+      "category": "ERP / External Reporting"
+    },
+    {
+      "id": "document-control",
+      "name": "Document Control",
+      "does": "Invoices, PDFs, templates.",
+      "href": "/CP/shop/document_control/document_control",
+      "scope": "client",
+      "category": "Documents"
+    },
+    {
+      "id": "document-library-archive",
+      "name": "Document library & archive",
+      "does": "Store signed contracts, compliance files, and client deliverables per customer or order. Tax and consultancy verticals give\u2026",
+      "href": "/CP/shop/document_control/document_control",
+      "scope": "client",
+      "category": "Documents"
+    },
+    {
+      "id": "document-templates",
+      "name": "Document templates",
+      "does": "Branded invoice, delivery note, quote, and contract templates with merge fields from orders and customers. Tax advisory\u2026",
+      "href": "/CP/shop/document_control/document_control",
+      "scope": "client",
+      "category": "Documents"
+    },
+    {
+      "id": "legal-footers-trn-blocks",
+      "name": "Legal footers & TRN blocks",
+      "does": "Configurable legal text, bank details, and TRN footer on all customer-facing documents. Reduces manual edits when onboarding\u2026",
+      "href": "/CP/shop/document_control/document_control",
+      "scope": "client",
+      "category": "Documents"
+    },
+    {
+      "id": "print-documents-pdfs",
+      "name": "Print documents & PDFs",
+      "does": "Print or PDF from CP for any operational document \u2014 orders, deliveries, statements. Consistent branding across storefront\u2026",
+      "href": "/CP/shop/document_control/document_control",
+      "scope": "client",
+      "category": "Documents"
+    },
+    {
+      "id": "activities-follow-ups",
+      "name": "Activities & follow-ups",
+      "does": "Log calls, meetings, and tasks against leads and customers \u2014 nothing falls through after a showroom visit or advisory intake form.",
+      "href": "/CP/shop/customer_mgmt/customer_mgmt",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "add-user",
+      "name": "Add user",
+      "does": "Create a new storefront or staff user.",
+      "href": "/CP/users/usermanager/user",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "crm-pipeline-kanban",
+      "name": "CRM pipeline & kanban",
+      "does": "Native CRM kanban pipeline inside ERP \u2014 leads, opportunities, and won deals without a separate CRM subscription. Consultancies\u2026",
+      "href": "/CP/shop/finance/erp?area=sales&tab=crm&epc_erp_shell=1",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "customer-approval-workflows",
+      "name": "Customer approval workflows",
+      "does": "Approve new B2B accounts, medical institutions, or advisory clients before they can order. Tax and regulated catalogue\u2026",
+      "href": "/CP/users/customer_approvals",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "customer-approvals",
+      "name": "Customer approvals",
+      "does": "Approve trade registrations.",
+      "href": "/CP/users/customer_approvals",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "customer-groups-profiles",
+      "name": "Customer groups & profiles",
+      "does": "Segment customers for pricing, catalog visibility, and marketing. Profiles drive margin rules and which brands or categories\u2026",
+      "href": "/CP/shop/price-management",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "customer-management",
+      "name": "Customer management",
+      "does": "Customer hub & CRM.",
+      "href": "/CP/shop/customer_mgmt/customer_mgmt",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "customer-management-hub",
+      "name": "Customer management hub",
+      "does": "360\u00b0 customer view: contacts, orders, balance, documents, and notes in one CP screen. Staff answer client calls without\u2026",
+      "href": "/CP/shop/customer_mgmt/customer_mgmt",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "leads-opportunities",
+      "name": "Leads & opportunities",
+      "does": "Capture website enquiries as leads and convert to opportunities with value and stage tracking. Won opportunities hint order\u2026",
+      "href": "/CP/shop/finance/erp?area=sales&tab=leads&epc_erp_shell=1",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "registration-fields",
+      "name": "Registration fields",
+      "does": "Custom fields on registration forms.",
+      "href": "/CP/users/polya-registracii",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "registration-options",
+      "name": "Registration options",
+      "does": "Registration paths on storefront.",
+      "href": "/CP/users/registracionnye-varianty",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "user-groups-roles",
+      "name": "User groups & roles",
+      "does": "Backend groups and privilege templates.",
+      "href": "/CP/users/usergroups",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "user-manager",
+      "name": "User manager",
+      "does": "Search/edit customers and staff; assign price profile.",
+      "href": "/CP/users/usermanager",
+      "scope": "client",
+      "category": "Customers / CRM"
+    },
+    {
+      "id": "ai-parts-agent-chat",
+      "name": "AI parts agent chat",
+      "does": "Conversational parts expert on the storefront \u2014 search by part number, decode VIN, and get guided recommendations. Reduces\u2026",
+      "href": "/CP/shop/parts_agent_chats",
+      "scope": "client",
+      "category": "AI"
+    },
+    {
+      "id": "ai-parts-expert-chats",
+      "name": "AI Parts Expert chats",
+      "does": "Review AI agent conversations.",
+      "href": "/CP/shop/parts_agent_chats",
+      "scope": "client",
+      "category": "AI"
+    },
+    {
+      "id": "ai-vin-decode-assistance",
+      "name": "AI VIN decode assistance",
+      "does": "AI-assisted VIN decode narrows vehicle context before catalogue browse \u2014 fewer wrong-fit orders and faster workshop self-service.",
+      "href": "/CP/shop/parts_agent_chats",
+      "scope": "client",
+      "category": "AI"
+    },
+    {
+      "id": "auto-price-ai",
+      "name": "Auto Price AI",
+      "does": "Discover, compare, and import products across market sources \u2014 buy from retailers or wholesalers, sell on Noon, Amazon, and\u2026",
+      "href": "/CP/control/portal/epc_auto_price_engine",
+      "scope": "client",
+      "category": "AI"
+    },
+    {
+      "id": "automation-integration-hooks",
+      "name": "Automation & integration hooks",
+      "does": "Event hooks for order placed, stock low, and lead captured \u2014 wire email, WhatsApp, or external systems. Foundation for\u2026",
+      "href": "/CP/control/portal/epc_integrations_hub",
+      "scope": "client",
+      "category": "AI"
+    },
+    {
+      "id": "demand-intelligence",
+      "name": "Demand intelligence",
+      "does": "Signals from search, crosses, and order history highlight what to stock and promote. Professional services pack includes\u2026",
+      "href": "/CP/shop/demand_countries",
+      "scope": "client",
+      "category": "AI"
+    },
+    {
+      "id": "featured-collections-banners",
+      "name": "Featured collections & banners",
+      "does": "Curate lookbooks and collection grids \u2014 Namshi-style fashion and jewellery gallery layouts ship with industry themes.\u2026",
+      "href": "/CP/shop/catalogue/tovary-na-glavnoj",
+      "scope": "client",
+      "category": "Marketing"
+    },
+    {
+      "id": "marketing-growth",
+      "name": "Marketing & growth",
+      "does": "Growth strategies hub.",
+      "href": "/CP/shop/marketing/marketing",
+      "scope": "client",
+      "category": "Marketing"
+    },
+    {
+      "id": "marketing-campaigns-hub",
+      "name": "Marketing campaigns hub",
+      "does": "Plan and track campaigns linked to storefront landing pages and promo codes. Merchandising teams launch seasonal pushes\u2026",
+      "href": "/CP/shop/marketing/marketing",
+      "scope": "client",
+      "category": "Marketing"
+    },
+    {
+      "id": "promo-merchandising",
+      "name": "Promo & merchandising",
+      "does": "Hero banners, featured collections, and campaign-driven catalogue highlights on the storefront. UTM-ready URLs for measuring\u2026",
+      "href": "/CP/content/slider",
+      "scope": "client",
+      "category": "Marketing"
+    },
+    {
+      "id": "ten-growth-strategies",
+      "name": "Ten growth strategies",
+      "does": "Built-in playbook of ten proven growth tactics \u2014 from basket recovery to B2B outreach \u2014 with CP guidance per strategy.\u2026",
+      "href": "/CP/shop/marketing/marketing",
+      "scope": "client",
+      "category": "Marketing"
+    },
+    {
+      "id": "additional-texts",
+      "name": "Additional texts",
+      "does": "Reusable text snippets / legal blocks.",
+      "href": "/CP/content/dopolnitelnye-teksty",
+      "scope": "client",
+      "category": "Content / CMS"
+    },
+    {
+      "id": "content-manager",
+      "name": "Content manager",
+      "does": "Edit CMS page bodies and metadata.",
+      "href": "/CP/content/content_manager",
+      "scope": "client",
+      "category": "Content / CMS"
+    },
+    {
+      "id": "content-tree",
+      "name": "Content tree",
+      "does": "CMS page tree for storefront pages.",
+      "href": "/CP/content/content_tree",
+      "scope": "client",
+      "category": "Content / CMS"
+    },
+    {
+      "id": "file-manager",
+      "name": "File manager",
+      "does": "Upload and organize media files.",
+      "href": "/CP/filemanager",
+      "scope": "client",
+      "category": "Content / CMS"
+    },
+    {
+      "id": "menu-manager",
+      "name": "Menu manager",
+      "does": "Storefront navigation menus.",
+      "href": "/CP/menu/menu_manager",
+      "scope": "client",
+      "category": "Content / CMS"
+    },
+    {
+      "id": "sitemap",
+      "name": "Sitemap",
+      "does": "Generate and review XML sitemap.",
+      "href": "/CP/content/sitemap",
+      "scope": "client",
+      "category": "Content / CMS"
+    },
+    {
+      "id": "slider-banners",
+      "name": "Slider / banners",
+      "does": "Homepage and campaign image sliders.",
+      "href": "/CP/content/slider",
+      "scope": "client",
+      "category": "Content / CMS"
+    },
+    {
+      "id": "structure-dumps",
+      "name": "Structure dumps",
+      "does": "Export/import content structure dumps.",
+      "href": "/CP/content/structure_dumps",
+      "scope": "client",
+      "category": "Content / CMS"
+    },
+    {
+      "id": "api-key-settings",
+      "name": "API key settings",
+      "does": "External API keys.",
+      "href": "/CP/control/config?need_config_group=13",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "communications-test",
+      "name": "Communications test",
+      "does": "Send test e-mail / SMS from CP.",
+      "href": "/CP/control/communications",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "configuration",
+      "name": "Configuration",
+      "does": "Shop, e-mail, SMS, payment, agent toggle, contacts.",
+      "href": "/CP/control/config",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "cp-guideline",
+      "name": "CP guideline",
+      "does": "Complete CP map, daily workflows, menu hints.",
+      "href": "/CP/control/cp-guideline",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "debug-console",
+      "name": "Debug console",
+      "does": "Developer debug tools.",
+      "href": "/CP/system/debug",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "languages",
+      "name": "Languages",
+      "does": "UI language strings and locales.",
+      "href": "/CP/lang",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "modules-manager",
+      "name": "Modules manager",
+      "does": "Enable/configure site modules.",
+      "href": "/CP/modules/modules_manager",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "notification-settings",
+      "name": "Notification settings",
+      "does": "Order and system e-mail/SMS templates.",
+      "href": "/CP/control/notifications_settings",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "packs-manager",
+      "name": "Packs manager",
+      "does": "Feature packs and module bundles.",
+      "href": "/CP/packs/packs_manager",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "packs-setup-upload",
+      "name": "Packs setup / upload",
+      "does": "Upload and install pack archives.",
+      "href": "/CP/packs/setup",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "plugins-manager",
+      "name": "Plugins manager",
+      "does": "Install and configure plugins.",
+      "href": "/CP/plugins/plugins_manager",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "server-ip",
+      "name": "Server IP",
+      "does": "Show server public IP (utility).",
+      "href": "/content/usefull/ip.php",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "sms-operators",
+      "name": "SMS operators",
+      "does": "SMS gateway operator credentials.",
+      "href": "/CP/control/sms-operatory",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "templates-manager",
+      "name": "Templates manager",
+      "does": "Storefront theme/template packages.",
+      "href": "/CP/templates/templates_manager",
+      "scope": "client",
+      "category": "System & Admin"
+    },
+    {
+      "id": "cp-module-packs-per-industry",
+      "name": "CP module packs per industry",
+      "does": "Enable or hide entire module packs \u2014 commerce, ERP, auto parts, logistics \u2014 per tenant. Sidebar groups stay clean; clients\u2026",
+      "href": "/CP/control/portal/industry_settings",
+      "scope": "both",
+      "category": "System & Admin"
+    },
+    {
+      "id": "storefront-theme-packages",
+      "name": "Storefront theme packages",
+      "does": "Five production retail and services layouts \u2014 automotive, electronics, fashion, jewellery, advisory \u2014 with industry-tuned CP\u2026",
+      "href": "/CP/templates/templates_manager",
+      "scope": "both",
+      "category": "System & Admin"
+    },
+    {
+      "id": "users-groups-roles",
+      "name": "Users, groups & roles",
+      "does": "Role-based CP access for admin, warehouse, finance, and counter staff. Super CP operators stay on platform DB; client staff\u2026",
+      "href": "/CP/users/usergroups",
+      "scope": "both",
+      "category": "System & Admin"
+    },
+    {
+      "id": "operator-audit-platform-settings",
+      "name": "Operator audit & platform settings",
+      "does": "Platform branding, contact JSON presets, and deploy audit for operators. Super CP settings never leak to client hostnames \u2014\u2026",
+      "href": "/CP/control/portal/epc_boc_audit_log",
+      "scope": "super",
+      "category": "System & Admin"
+    },
+    {
+      "id": "ssl-dns-onboarding-assist",
+      "name": "SSL & DNS onboarding assist",
+      "does": "Let\\\\",
+      "href": "/CP/shop/tenant_hub/tenant_hub",
+      "scope": "super",
+      "category": "System & Admin"
+    },
+    {
+      "id": "auto-spare-parts-template",
+      "name": "Auto spare parts template",
+      "does": "VIN-aware catalogue, supplier prices, crosses, procurement, and B2B balances \u2014 the full eParts-style stack pre-loaded for\u2026",
+      "href": "/CP/",
+      "scope": "client",
+      "category": "Industry Templates"
+    },
+    {
+      "id": "consultancy-services-template",
+      "name": "Consultancy & services template",
+      "does": "Proposal-to-delivery: CRM, projects, billing, and client-facing hub for management consultancies and professional service firms.",
+      "href": "/CP/",
+      "scope": "client",
+      "category": "Industry Templates"
+    },
+    {
+      "id": "electronics-retail-template",
+      "name": "Electronics retail template",
+      "does": "Virgin-style mega navigation, spec-heavy homepage, and SKU pagination for IT and consumer electronics. RMA and warranty hooks\u2026",
+      "href": "/CP/",
+      "scope": "client",
+      "category": "Industry Templates"
+    },
+    {
+      "id": "fashion-beauty-template",
+      "name": "Fashion & beauty template",
+      "does": "Lookbook collections, variant catalogue, and campaign-ready Namshi-style storefront. Order fulfilment and returns modules\u2026",
+      "href": "/CP/",
+      "scope": "client",
+      "category": "Industry Templates"
+    },
+    {
+      "id": "jewellery-luxury-template",
+      "name": "Jewellery & luxury template",
+      "does": "Kiyasha-style gold and diamond aesthetic, gallery product cards, certificate metadata, and premium enquiry flows for fine\u2026",
+      "href": "/CP/",
+      "scope": "client",
+      "category": "Industry Templates"
+    },
+    {
+      "id": "medical-supplies-template",
+      "name": "Medical supplies template",
+      "does": "Regulated catalogue, institutional login, batch and expiry fields, and audit-friendly delivery documentation for clinic\u2026",
+      "href": "/CP/",
+      "scope": "client",
+      "category": "Industry Templates"
+    },
+    {
+      "id": "rental-operations-template",
+      "name": "Rental operations template",
+      "does": "Rental SKU with daily/monthly periods, deposits, contracts, and monthly billing hooks for fleet, equipment, and commercial\u2026",
+      "href": "/CP/",
+      "scope": "client",
+      "category": "Industry Templates"
+    },
+    {
+      "id": "tax-advisory-template",
+      "name": "Tax & advisory template",
+      "does": "Client portal, VAT workflows, document control, and advisory CRM on one hosted domain \u2014 Prime Invest-style layout for tax\u2026",
+      "href": "/CP/",
+      "scope": "client",
+      "category": "Industry Templates"
+    }
+  ],
+  "storefrontSurfaces": [
+    {
+      "id": "home",
+      "label": "Home",
+      "href": "https://epartscart.com/"
+    },
+    {
+      "id": "part_search",
+      "label": "Part search",
+      "href": "https://epartscart.com/shop/part_search"
+    },
+    {
+      "id": "vin_search",
+      "label": "VIN / vehicle search",
+      "href": "https://epartscart.com/shop/part_search"
+    },
+    {
+      "id": "catalog",
+      "label": "Catalogue",
+      "href": "https://epartscart.com/"
+    },
+    {
+      "id": "cart",
+      "label": "Cart",
+      "href": "https://epartscart.com/"
+    },
+    {
+      "id": "checkout",
+      "label": "Checkout",
+      "href": "https://epartscart.com/"
+    },
+    {
+      "id": "account",
+      "label": "Account",
+      "href": "https://epartscart.com/"
+    },
+    {
+      "id": "garage",
+      "label": "Garage",
+      "href": "https://epartscart.com/"
+    },
+    {
+      "id": "orders",
+      "label": "Orders",
+      "href": "https://epartscart.com/"
+    },
+    {
+      "id": "returns",
+      "label": "Returns",
+      "href": "https://epartscart.com/"
+    },
+    {
+      "id": "payments",
+      "label": "Payments",
+      "href": "https://epartscart.com/"
+    },
+    {
+      "id": "support",
+      "label": "Support",
+      "href": "https://epartscart.com/"
+    }
+  ]
+}
