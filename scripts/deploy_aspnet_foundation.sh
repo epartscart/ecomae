@@ -81,6 +81,8 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh" \
   "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" \
   "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" \
+  "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" \
+  "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh" \
   "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" \
   "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh" \
   "$ROOT/scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh" \

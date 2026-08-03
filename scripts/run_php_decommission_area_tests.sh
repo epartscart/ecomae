@@ -169,8 +169,14 @@ for path in /CP/ /ERP/ /BOS/; do
   fi
 done
 
-# Live CP digest exact-routes expect ASP.NET 401 unauthorized JSON (admin cookie for 200).
-for path in /cp/dashboard-summary /cp/tenants /cp/users /cp/groups; do
+# Live surface digest exact-routes (30/30) expect ASP.NET 401 unauthorized JSON (admin cookie for 200).
+mapfile -t DIGEST_ROUTES < <(grep -E '^location = /(cp|erp|bos)/' "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" | sed -E 's/^location = ([^ {]+).*/\1/')
+if [[ "${#DIGEST_ROUTES[@]}" -ne 30 ]]; then
+  record "surface-digest-route-inventory" fail "expected 30 digest routes, found ${#DIGEST_ROUTES[@]}"
+else
+  record "surface-digest-route-inventory" pass "30 CP/ERP/BOS digest exact-routes in shadow example"
+fi
+for path in "${DIGEST_ROUTES[@]}"; do
   code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"
   if [[ "$code" == "401" ]] && grep -qE '"unauthorized"|unauthorized' /tmp/area.body && ! grep -qi '<html\|<!doctype' /tmp/area.body; then
     record "public${path}-exact-route" pass "ASP.NET digest exact-route shadow (401 unauthorized without admin cookie)"

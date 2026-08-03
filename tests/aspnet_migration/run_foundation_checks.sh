@@ -427,16 +427,30 @@ check 'exact-route installer uses re.escape exact location match' contains "$ROO
 check 'exact-route location match regression test exists' test -x "$ROOT/tests/aspnet_migration/test_exact_route_location_match.sh"
 check 'exact-route location match regression passes' bash "$ROOT/tests/aspnet_migration/test_exact_route_location_match.sh"
 check 'deploy packs exact-route shadow installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_exact_route_shadow.sh'
+check 'surface digest batch installer exists' test -x "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh"
+check 'surface digest batch probe exists' test -x "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh"
+check 'surface digest batch installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'ECOMAE_CONFIRM_INSTALL_SURFACE_DIGEST_SHADOWS'
+check 'surface digest batch installer refuses broad paths' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'refusing broad path'
+check 'surface digest batch installer expects 30 routes' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'expected 30 digest locations'
+check 'surface digest batch probe expects PASS=30' contains "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh" 'expected 30 digest routes'
+check 'deploy packs surface digest batch installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_surface_digest_shadows.sh'
+check 'deploy packs surface digest batch probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_surface_digest_shadows.sh'
 check 'pre-PHP-removal parity verdict helper exists' test -x "$ROOT/scripts/verify_pre_php_removal_parity.sh"
 check 'pre-PHP-removal verdict never removes PHP' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'NEVER removes PHP'
 check 'pre-PHP-removal verdict skips nested heavy area suite' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'ECOMAE_AREA_SKIP_HEAVY=1'
 check 'area tests honor ECOMAE_AREA_SKIP_HEAVY' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'ECOMAE_AREA_SKIP_HEAVY'
 check 'area tests validate attached staging smoke' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'attached-staging-smoke'
-check 'area tests require live CP digests exact-route' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" '/cp/dashboard-summary /cp/tenants /cp/users /cp/groups'
+check 'area tests require live surface digests from example' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'nginx-surface-digests-shadow-example.conf'
+check 'area tests require 30 digest inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'expected 30 digest routes'
 check 'live surface links mark CP dashboard digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP dashboard digest"'
 check 'live surface links mark CP tenants digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP tenants digest"'
 check 'live surface links mark CP users digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP users digest"'
 check 'live surface links mark CP groups digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP groups digest"'
+check 'live surface links mark CP modules digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP modules digest"'
+check 'live surface links mark ERP dashboard digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "ERP dashboard digest"'
+check 'live surface links mark BOS audit-log digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "BOS audit-log digest"'
+check 'progress status reports surface digests 30/30' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" '30 / 30'
+check 'progress json reports surfaceDigestExactRoutesLive 30' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" '"surfaceDigestExactRoutesLive": 30'
 check 'exact-route installer retries CDN-cached PHP HTML' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'cache-bust'
 check 'exact-route installer soft-OK when loopback ASP.NET' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'treating as soft-OK'
 check 'area tests probe catalog status exact-route' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" '/api/v1/catalog/status'
