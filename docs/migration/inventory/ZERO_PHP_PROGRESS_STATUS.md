@@ -83,18 +83,20 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 
 100% on the weighted meter requires approved exact-route shadows where promoted, and **human** release-owner approval to remove PHP-FPM/cron/rewrites/source.
 
+**Confirmed live (2026-08-03 ops):** storefront digests public probe **PASS=4**; surface digests **PASS=30**; catalog **18/18**. Blazor console needs antiforgery fix redeploy (`UseAntiforgery`).
+
 **Practically still pending before approval is honest:**
 
-1. Redeploy ASP.NET so `/migration/console` is live; confirm storefront probe PASS=4.
-2. Capture dual PHP↔ASP.NET digest samples (`cloudpanel_capture_digest_dual_samples.sh`).
+1. Redeploy antiforgery fix so `/migration/console` returns 200 (not 500).
+2. Re-run dual-sample capture+compare (seeds migration contract baselines when PHP JSON is no longer public).
 3. Keep product chrome on PHP until intentional shell cutover (Blazor console is **not** chrome cutover).
 4. Human `RELEASE_OWNER_APPROVAL.md` — then gated PHP decommission only.
 
 ## Next execution order
 
-- Redeploy: `bash scripts/cloudpanel_find_and_redeploy.sh` (or foundation deploy) so Blazor console ships.
-- Storefront batch: `ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh`
-- Dual samples: `bash scripts/cloudpanel_capture_digest_dual_samples.sh` then `python3 scripts/compare_digest_dual_samples.py`
+- Pull + redeploy: `bash scripts/cloudpanel_find_and_redeploy.sh` (ships Blazor `UseAntiforgery` fix).
+- Confirm console: `curl -sS https://www.ecomae.com/migration/console | head`
+- Dual samples: `bash scripts/cloudpanel_capture_digest_dual_samples.sh` (auto-compares; migration baseline + live ASP.NET).
 - Fail-closed parity: `bash scripts/verify_pre_php_removal_parity.sh`
 - Confirm readiness: `curl -sS https://www.ecomae.com/migration/php-decommission-readiness` (8/9; approval missing).
 - Human creates `RELEASE_OWNER_APPROVAL.md` with `APPROVED_TO_REMOVE_PHP_FALLBACK` only after that approval.

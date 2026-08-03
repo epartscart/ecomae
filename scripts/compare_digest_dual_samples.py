@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Walk dual PHP/ASP.NET digest samples and compare against locked field contracts."""
+"""Walk dual PHP/ASP.NET digest samples and compare against locked field contracts.
+
+Pair resolution order per stem:
+  1) php-{stem}.json + aspnet-{stem}.json (full dual, unless --contract-only)
+  2) migration/{stem}.json + aspnet-{stem}.json (contract-only baseline; used when
+     public digests are already exact-route shadowed so PHP JSON is unavailable)
+"""
 from __future__ import annotations
 
 import argparse
@@ -58,12 +64,23 @@ LIST_CONTRACTS = {
 }
 
 
+def resolve_left(samples: Path, stem: str) -> tuple[Path | None, bool]:
+    """Return (left_path, used_migration_baseline)."""
+    php = samples / f"php-{stem}.json"
+    if php.exists():
+        return php, False
+    mig = samples / "migration" / f"{stem}.json"
+    if mig.exists():
+        return mig, True
+    return None, False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--samples-dir",
         default=str(ROOT / "docs/migration/evidence/surface-parity/samples"),
-        help="Directory containing php-*.json and aspnet-*.json pairs",
+        help="Directory containing php-*.json / aspnet-*.json / migration/",
     )
     parser.add_argument("--contract-only", action="store_true", help="Compare field presence only")
     args = parser.parse_args()
@@ -74,17 +91,22 @@ def main() -> int:
 
     pairs = 0
     failed = 0
+    used_migration = 0
+
     for stem, (path_key, require) in SUMMARY_CONTRACTS.items():
-        php = samples / f"php-{stem}.json"
+        left, from_mig = resolve_left(samples, stem)
         asp = samples / f"aspnet-{stem}.json"
-        if not php.exists() or not asp.exists():
+        if left is None or not asp.exists():
             continue
         pairs += 1
+        if from_mig:
+            used_migration += 1
+        contract_only = args.contract_only or from_mig
         cmd = [
             sys.executable,
             str(COMPARE),
             "--left",
-            str(php),
+            str(left),
             "--right",
             str(asp),
             "--path",
@@ -92,14 +114,15 @@ def main() -> int:
             "--require",
             require,
         ]
-        if args.contract_only:
+        if contract_only:
             cmd.append("--contract-only")
         proc = subprocess.run(cmd, capture_output=True, text=True)
+        label = f"migration+aspnet/{stem}" if from_mig else stem
         if proc.returncode == 0:
-            print(f"PASS {stem}")
+            print(f"PASS {label}")
         else:
             failed += 1
-            print(f"FAIL {stem}")
+            print(f"FAIL {label}")
             print(proc.stdout or proc.stderr)
 
     def check_list_envelope(path: Path, key: str, label: str) -> None:
@@ -120,15 +143,17 @@ def main() -> int:
             print(f"PASS {label}")
 
     for stem, key in LIST_CONTRACTS.items():
-        php = samples / f"php-{stem}.json"
+        left, from_mig = resolve_left(samples, stem)
         asp = samples / f"aspnet-{stem}.json"
-        if php.exists() and asp.exists():
-            check_list_envelope(php, key, f"php-{stem}")
+        if left is not None and asp.exists():
+            if from_mig:
+                used_migration += 1
+            check_list_envelope(left, key, f"{'migration' if from_mig else 'php'}-{stem}")
             check_list_envelope(asp, key, f"aspnet-{stem}")
 
-    # Also accept migration-mode goldens for contract-only self-check.
+    # Self-check migration goldens when explicitly requested and no aspnet pairs ran.
     mig = samples / "migration"
-    if args.contract_only and mig.is_dir():
+    if args.contract_only and mig.is_dir() and pairs == 0:
         for stem, (path_key, require) in SUMMARY_CONTRACTS.items():
             path = mig / f"{stem}.json"
             if not path.exists():
@@ -159,10 +184,16 @@ def main() -> int:
             if path.exists():
                 check_list_envelope(path, key, f"migration/{stem}")
 
-    report = {"pairsChecked": pairs, "failed": failed, "cutoverAllowed": False}
+    report = {
+        "pairsChecked": pairs,
+        "failed": failed,
+        "migrationBaselinePairs": used_migration,
+        "cutoverAllowed": False,
+    }
     print(json.dumps(report))
     if pairs == 0:
         print("No dual php-/aspnet- digest sample pairs found (not a failure).")
+        print("Capture ASP.NET samples: bash scripts/cloudpanel_capture_digest_dual_samples.sh")
         return 0
     return 1 if failed else 0
 

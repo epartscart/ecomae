@@ -129,6 +129,8 @@ var app = builder.Build();
 
 app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseMiddleware<RouteCutoverDecisionMiddleware>();
+// Required for Blazor SSR endpoints (MapRazorComponents adds antiforgery metadata).
+app.UseAntiforgery();
 
 app.MapHealthChecks(EcomAeRoutes.Health);
 
