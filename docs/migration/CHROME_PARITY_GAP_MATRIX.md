@@ -26,7 +26,7 @@ Authoritative product chrome remains **PHP** until intentional exact-route cutov
 | Platform CP | `/CP/` | `/cp/app` · orders · users/groups/modules/pages/menus `*-app` | Hybrid: `PhpCpDesktopChrome` + registry/OMS/CMS read UIs | Digests ASP.NET; writes PHP | Content/menu managers still PHP; tenant chrome PHP |
 | Client / platform ERP routers | `/cp/client-erp/…`, `/cp/platform-erp/` | link via PHP | PHP-live | PHP | Not cut over |
 | ERP login | ERP routers / CP plugin | `/erp/login` | Bridge UI | Same admin session mint (Batch 3 dual-sample) | Shared-tenant picker still PHP |
-| Super BOS | `/BOS/` | `/bos/app` | Hybrid Batch 2: `PhpBosDesktopChrome` (`.bos-topnav`, `.bos-main`) | Digests ASP.NET | **DECISION:** `/BOS/` PHP-authoritative — admin cookies ≠ `$_SESSION` |
+| Super BOS | `/BOS/` | `/bos/app` · `/bos/audit-log-app` | Hybrid: `PhpBosDesktopChrome` + audit read UI | Digests ASP.NET; audit append PHP | **DECISION:** `/BOS/` PHP-authoritative — admin cookies ≠ `$_SESSION` |
 | BOS login | `POST /bos/?action=login` | `/bos/login` (admin bridge) | PHP `.bos-login` graphical shell (particles/glows/rings) + Batch 3 warning | Admin cookies for digests/`/bos/app` only | Native BOS PHP session login remains required for modules |
 | Storefront home | `epartscart.com/` | `/storefront/app` · `/storefront/search-app` · `/storefront/cart-app` | Hybrid: modex chrome + piston + Batch 4 search/cart read UIs | Digests ASP.NET; search/cart read | Live slider/media + qty/guest cart/checkout + full part_search tabs stay PHP |
 | Storefront login | PHP customer login | `/storefront/login` | Bridge UI | Batch 3: customer token `md5(contact+userId+time+secret)` + `last_activiti_time` | Full account UX PHP |

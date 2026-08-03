@@ -103,6 +103,8 @@ public static class EcomAeRoutes
     public const string BosFleetHealth = "/bos/fleet-health";
     public const string BosFleetReadiness = "/bos/fleet-readiness";
     public const string BosAuditLog = "/bos/audit-log";
+    /// <summary>BOS audit log Blazor list (JSON digest remains <see cref="BosAuditLog"/>).</summary>
+    public const string BosAuditLogApp = "/bos/audit-log-app";
     public const string ApiPrefix = "/api";
     public const string ApiMigrationStatus = "/api/migration/status";
     public const string CatalogStatus = "/api/v1/catalog/status";

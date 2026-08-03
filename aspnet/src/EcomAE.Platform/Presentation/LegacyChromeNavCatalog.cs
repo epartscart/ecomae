@@ -102,6 +102,14 @@ public static class LegacyChromeNavCatalog
         new("Platform", "/CP/control/portal")
     ];
 
+    public static readonly IReadOnlyList<NavItem> BosQuickActions =
+    [
+        new("Audit log list", "/bos/audit-log-app"),
+        new("Audit log PHP", "/CP/control/portal/epc_boc_audit_log"),
+        new("Fleet command", "/bos/app"),
+        new("Native BOS", "/BOS/")
+    ];
+
     public static readonly IReadOnlyList<NavItem> Storefront =
     [
         new("Home", "https://epartscart.com/"),

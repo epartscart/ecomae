@@ -103,11 +103,13 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 ### Hybrid ERP tab family continue
 - ✅ Core ERP list digests have Blazor `*-app` through purchases (#676).
 
-### Hybrid CP continue ← current
-- ✅ Users/Groups (#662) · Orders (#661) · Modules (#677) · Pages (#678)
-- **This PR:** `/cp/menus-app` over `/cp/menus` digest; PHP `menu_manager` authoritative for writes.
-- Next: `/bos/audit-log-app` · dual-sample evidence · remaining CP meta digests.
-- Exact-route www preview only — tenant `/CP/` chrome stays PHP (same-to-same).
+### Hybrid CP continue
+- ✅ Users/Groups (#662) · Orders (#661) · Modules (#677) · Pages (#678) · Menus (#679)
+
+### Hybrid BOS continue ← current
+- **This PR:** `/bos/audit-log-app` over `/bos/audit-log` digest; PHP `epc_boc_audit_log` authoritative (append-only).
+- Next: dual-sample evidence · remaining CP meta digests (tenants/currencies/storages/admin-sessions).
+- Exact-route www preview only — `/BOS/` PHP session remains authoritative for native modules (same-to-same).
 - Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 
 ### Batch 6 — Decommission gate (**blocked / premature**)

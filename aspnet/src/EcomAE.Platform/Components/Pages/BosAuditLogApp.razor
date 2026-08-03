@@ -1,0 +1,159 @@
+@page "/bos/audit-log-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Audit Log · Super BOS · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="bos" />
+
+<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Audit Log">
+    <style>
+        .epc-al-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c0a09 0%,#1c1917 45%,#3f3f46 100%);
+        }
+        .epc-al-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-al-hero p { margin:0; color:#d4d4d8; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-al-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-al-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0c0a09; background:#f59e0b;
+        }
+        .epc-al-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-al-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-al-kpi { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-al-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-al-kpi span { color:#71717a; font-size:.78rem; }
+        .epc-al-table-wrap { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; overflow:auto; }
+        .epc-al-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-al-table th, .epc-al-table td { padding:.55rem .7rem; border-bottom:1px solid #f4f4f5; text-align:left; white-space:nowrap; }
+        .epc-al-table th { background:#fafafa; color:#52525b; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-al-table a { color:#b45309; font-weight:700; text-decoration:none; }
+        .epc-al-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#fef3c7; color:#78350f; }
+        .epc-al-note { margin-top:1rem; padding:.75rem .9rem; background:#fafaf9; border:1px solid #d6d3d1; border-radius:.45rem; color:#44403c; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-al-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-al-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Audit Log</h1>
+        <p>Read-only Super BOS audit entries from <code>/bos/audit-log</code> digest under PHP BOS desktop chrome. Meta omitted. Append-only PHP log remains authoritative — native <code>/BOS/</code> session still required for full module UX.</p>
+        <div class="epc-al-cta">
+            <a href="@_phpTab">Open PHP audit log</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/bos/app">Fleet command</a>
+            <a class="ghost" href="/BOS/?m=audit_log">Native BOS module</a>
+        </div>
+    </section>
+
+    <div class="epc-al-kpis" aria-label="Audit log KPIs">
+        <div class="epc-al-kpi"><strong>@_entries.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-al-kpi"><strong>@_areas</strong><span>Distinct areas</span></div>
+        <div class="epc-al-kpi"><strong>@(string.IsNullOrWhiteSpace(_areaFilter) ? "all" : _areaFilter)</strong><span>Area filter</span></div>
+    </div>
+
+    <div class="epc-al-table-wrap">
+        <table class="epc-al-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>When</th>
+                    <th>Actor</th>
+                    <th>Area</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>IP</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_entries.Count == 0)
+                {
+                    <tr><td colspan="8">No audit entries in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var e in _entries)
+                    {
+                        var areaHref = string.IsNullOrWhiteSpace(e.Area)
+                            ? _phpTab
+                            : $"{_phpTab}?area={Uri.EscapeDataString(e.Area)}";
+                        <tr>
+                            <td><strong>@e.Id</strong></td>
+                            <td>@FormatTs(e.Ts)</td>
+                            <td>@(string.IsNullOrWhiteSpace(e.Actor) ? $"#{e.UserId.ToString(CultureInfo.InvariantCulture)}" : e.Actor)</td>
+                            <td><span class="epc-al-badge">@(string.IsNullOrWhiteSpace(e.Area) ? "—" : e.Area)</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(e.Action) ? "—" : e.Action)</td>
+                            <td>@(string.IsNullOrWhiteSpace(e.Target) ? "—" : e.Target)</td>
+                            <td>@(string.IsNullOrWhiteSpace(e.Ip) ? "—" : e.Ip)</td>
+                            <td><a href="@areaHref">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-al-note">
+        Read-only preview · JSON digest <a href="/bos/audit-log?limit=100">/bos/audit-log</a> (meta omitted).
+        PHP <code>epc_boc_audit_log</code> / <code>epc_boc_audit_recent</code> remain authoritative (append-only).
+        Not a broad /bos cutover · <code>/BOS/</code> PHP session remains required for native modules.
+        Source: <code>@_source</code>.
+    </div>
+</PhpBosDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/portal/epc_boc_audit_log";
+    private bool _isAdmin;
+    private IReadOnlyList<BosAuditLogDigest> _entries = [];
+    private int _areas;
+    private int _limit = 100;
+    private string? _areaFilter;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        if (ctx.Request.Query.TryGetValue("area", out var areaQ) && !string.IsNullOrWhiteSpace(areaQ))
+        {
+            _areaFilter = areaQ.ToString().Trim();
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+        {
+            Nav.NavigateTo("/bos/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListBosAuditLogAsync(_areaFilter, _limit, ctx.RequestAborted);
+        _entries = result.Entries;
+        _areas = _entries.Select(e => e.Area).Where(a => !string.IsNullOrWhiteSpace(a)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string FormatTs(long ts)
+    {
+        if (ts <= 0) return "—";
+        try
+        {
+            var dto = DateTimeOffset.FromUnixTimeSeconds(ts);
+            return dto.UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + " UTC";
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return ts.ToString(CultureInfo.InvariantCulture);
+        }
+    }
+}
