@@ -199,6 +199,65 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpOrdersListResult> ListCpOrdersAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        var emptySummary = new CpOrdersSummary(0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(emptySummary, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var todayStart = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero).ToUnixTimeSeconds();
+            var open = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpOrdersOpen, cancellationToken).ConfigureAwait(false);
+            var pendingShip = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpOrdersPendingShip, cancellationToken).ConfigureAwait(false);
+            var today = 0;
+            try
+            {
+                await using var todayCmd = connection.CreateCommand();
+                todayCmd.CommandText = LegacySurfaceDashboardSql.CountCpOrdersToday;
+                AddParameter(todayCmd, "@todayStart", todayStart);
+                var todayVal = await todayCmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                today = Convert.ToInt32(todayVal ?? 0, CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                today = 0;
+            }
+
+            var summary = new CpOrdersSummary(open, today, pendingShip, "database", string.Empty);
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCpShopOrders;
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<CpShopOrderDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpShopOrderDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["time"] is DBNull ? 0 : reader["time"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["status"] is DBNull ? 0 : reader["status"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["paid"] is DBNull ? 0 : reader["paid"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["paid_type"] is DBNull ? 0 : reader["paid_type"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["office_id"] is DBNull ? 0 : reader["office_id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["successfully_created"] is DBNull ? 0 : reader["successfully_created"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["count_items"] is DBNull ? 0 : reader["count_items"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["order_sum"] is DBNull ? 0m : reader["order_sum"], CultureInfo.InvariantCulture)));
+            }
+
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(new CpOrdersSummary(0, 0, 0, "database-error", ex.Message), [], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpUserListResult> ListCpUsersAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

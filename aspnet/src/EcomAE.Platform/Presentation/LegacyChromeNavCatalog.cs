@@ -15,7 +15,7 @@ public static class LegacyChromeNavCatalog
     public static readonly IReadOnlyList<NavItem> ControlPanel =
     [
         new("CONTROL", "/CP/", "Command centre home"),
-        new("Commerce", "/CP/control/shop/orders", "OMS / orders"),
+        new("Commerce", "/CP/shop/orders/orders", "OMS / orders (PHP console)"),
         new("Customers", "/CP/control/users", "Users & customers"),
         new("Documents", "/CP/control/shop/docpart", "Documents"),
         new("ERP", "/ERP/", "ERP shell"),
@@ -33,7 +33,8 @@ public static class LegacyChromeNavCatalog
 
     public static readonly IReadOnlyList<NavItem> ControlPanelQuickActions =
     [
-        new("Orders (OMS)", "/CP/control/shop/orders"),
+        new("Orders (OMS)", "/cp/orders"),
+        new("Orders PHP OMS", "/CP/shop/orders/orders"),
         new("Multivendor", "/CP/control/shop/multivendor"),
         new("Crosses", "/CP/control/shop/docpart/crosses"),
         new("Procurement", "/CP/control/shop/procurement"),

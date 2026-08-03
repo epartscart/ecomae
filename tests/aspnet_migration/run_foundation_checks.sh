@@ -480,7 +480,13 @@ check 'login session bridge evidence dir exists' test -d "$ROOT/docs/migration/e
 check 'login bridge keeps BOS PHP-authoritative' contains "$ROOT/docs/migration/evidence/login-session-bridge/README.md" 'PHP-authoritative'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 9'
+check 'presentation installer expects login+OMS routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 11'
+check 'CP orders route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ControlPanelOrders'
+check 'CP orders digest SQL selects shop_orders' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs" 'SelectCpShopOrders'
+check 'CP orders Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpOrdersApp.razor"
+check 'presentation nginx includes /cp/orders' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/orders'
+check 'orders digest contract catalogued' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" '/cp/orders-digest'
+check 'orders digest migration golden exists' test -f "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-orders-digest.json"
 check 'digest dual compare accepts migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migrationBaselinePairs'
 check 'digest dual compare detects seeded migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migration-contract-golden'
 check 'digest dual capture cleans seeded php baselines' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'CLEAN seeded baseline'

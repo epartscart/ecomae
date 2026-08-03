@@ -8,7 +8,9 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Batch 2 ✅ (#659):** Authenticated desktop chrome (`Php*DesktopChrome`) emits PHP structural selectors. Module bodies remain PHP via hybrid workspace.
 
-**Batch 3 (in progress):** Login bridge hardening — PHP-compatible customer token formula, SecretSuccession verify helper, cookie dual-sample harness, **decision: `/BOS/` stays PHP-authoritative** for `$_SESSION` modules. Also graphical login/hero parity: hub orbit (CP/ERP), BOS matrix/particles/glows, storefront piston banner (`.epc-engine-animation`). Still never `readyForPhpRemoval`.
+**Batch 3 ✅ (#660):** Login bridge hardening + graphical login/hero parity (hub orbit, BOS particles, piston banner).
+
+**Batch 4 (in progress):** CP Orders/OMS read UI (`/cp/orders` + `/cp/orders-digest`). Writes and full OMS console remain PHP `/CP/shop/orders/orders`. Still never `readyForPhpRemoval`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

@@ -47,6 +47,10 @@ public static class EcomAeRoutes
     public const string ControlPanelStorages = "/cp/storages";
     public const string ControlPanelCurrencies = "/cp/currencies";
     public const string ControlPanelApiClients = "/cp/api-clients";
+    /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
+    public const string ControlPanelOrders = "/cp/orders";
+    /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>
+    public const string ControlPanelOrdersDigest = "/cp/orders-digest";
     public const string Erp = "/erp";
     public const string ErpApp = "/erp/app";
     public const string ErpParity = "/erp/parity";
