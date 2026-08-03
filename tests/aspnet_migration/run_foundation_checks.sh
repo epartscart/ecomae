@@ -442,6 +442,9 @@ check 'migration evidence cutover locks validator is executable' test -x "$ROOT/
 check 'migration evidence cutover locks pass' python3 "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"
 check 'cutover locks require decommission public-probe tree' contains "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" 'decommission/public-probes/*.json'
 check 'cutover locks require decommission parity-sample tree' contains "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" 'decommission/parity-samples/*.json'
+check 'cutover locks require hybrid-ui dual-sample tree' contains "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" 'hybrid-ui-dual-samples/*.json'
+check 'cutover locks require login-session-bridge tree' contains "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" 'login-session-bridge/*.json'
+check 'cutover locks require catalog-miss-umapi tree' contains "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" 'catalog-miss-umapi/*.json'
 check 'php decommission probe blocks cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" '"cutoverAllowed": false'
 check 'php decommission probe blocks PHP removal' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" '"readyForPhpRemoval": false'
 check 'zero-php completion probe blocks cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" '"cutoverAllowed": false'

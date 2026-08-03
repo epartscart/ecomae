@@ -46,6 +46,9 @@ MUST_DECLARE_CUTOVER_FALSE = (
 MUST_DECLARE_TREE_GLOBS = (
     "decommission/public-probes/*.json",
     "decommission/parity-samples/*.json",
+    "hybrid-ui-dual-samples/*.json",
+    "login-session-bridge/*.json",
+    "catalog-miss-umapi/*.json",
 )
 
 

@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** Catalog/API YARP design pack hard-floored at `routeCount=19` (aligned with nginx allowlist sync). Decommission probes + dual-sample/offline floors remain cutover-blocked. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** Evidence cutover-lock validator now requires explicit false locks across hybrid-ui / login-session / catalog-miss dual-sample trees (plus decommission probes). Catalog YARP design pack stays at `routeCount=19`. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 
