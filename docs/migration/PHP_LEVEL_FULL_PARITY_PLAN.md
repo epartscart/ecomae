@@ -135,7 +135,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ YARP storefront/catalog-api + GraphQL/gRPC/blockchain/rate-limit (#707)
 - ✅ GitOps/ArgoCD design + workers Helm example + Native AOT + AI-sidecar scaffolds (unwired) (#708)
 - ✅ Enterprise BOS scaffold guardrails (options validator + Program.cs/YARP/Helm unwired checks) (#709)
-- **This PR:** Dual-sample operator suite (login + catalog-miss + digest contract-only + all-runner); catalog-miss compare skips dry-run report
+- ✅ Dual-sample operator suite (login + catalog-miss + digest + all-runner) (#710)
+- **This PR:** Evidence cutover locks + presentation/hybrid/YARP allowlist sync validators
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)

@@ -41,13 +41,18 @@ PLATFORM_PROGRAM="$ROOT/aspnet/src/EcomAE.Platform/Program.cs"
 WORKERS_PROGRAM="$ROOT/aspnet/src/EcomAE.Workers/Program.cs"
 for needle in \
   AddDbContext \
+  AddDbContextPool \
+  AddNpgsql \
   AddReverseProxy \
+  MapReverseProxy \
   UseSerilog \
   AddOpenTelemetry \
   AddStackExchangeRedis \
   MapGraphQL \
   AddGrpc \
+  MapGrpcService \
   AddRateLimiter \
+  EnableRateLimiting \
   PublishAot \
   EcomAeRedisScaffoldOptions \
   EcomAeKafkaScaffoldOptions \
@@ -83,6 +88,18 @@ if python3 "$ROOT/scripts/validate_scaffold_options_example.py" \
   pass "scaffold options example validator"
 else
   fail "scaffold options example validator"
+fi
+
+# Evidence + allowlist sync validators.
+if python3 "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"; then
+  pass "migration evidence cutover locks"
+else
+  fail "migration evidence cutover locks"
+fi
+if python3 "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"; then
+  pass "presentation/hybrid allowlist sync"
+else
+  fail "presentation/hybrid allowlist sync"
 fi
 
 # YARP regenerator still green.
