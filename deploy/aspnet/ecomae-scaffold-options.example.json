@@ -97,6 +97,16 @@
       "WindowSeconds": 60,
       "Enabled": false,
       "ReplaceLegacyApiClientThrottle": false
+    },
+    "NativeAot": {
+      "Enabled": false,
+      "RequireForPlatformHost": false,
+      "AllowIsolatedServiceEvaluation": true
+    },
+    "AiSidecar": {
+      "BaseUrl": "http://127.0.0.1:8100",
+      "Enabled": false,
+      "AllowBusinessWrites": false
     }
   }
 }

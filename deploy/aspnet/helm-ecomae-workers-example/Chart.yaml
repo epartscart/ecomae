@@ -1,0 +1,10 @@
+apiVersion: v2
+name: ecomae-workers-example
+description: DESIGN ONLY Helm chart for future workers GitOps. Workers remain write-blocked dry-run. CloudPanel VM remains current host.
+type: application
+version: 0.0.1
+appVersion: "10.0"
+annotations:
+  ecomae.cutoverAllowed: "false"
+  ecomae.readyForPhpRemoval: "false"
+  ecomae.workers.mode: "dry-run"

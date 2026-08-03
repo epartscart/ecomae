@@ -109,3 +109,19 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 ## Rate limiting (not registered)
 
 - `EcomAeRateLimitScaffoldOptions` (`ReplaceLegacyApiClientThrottle=false`).
+
+## GitOps / Argo CD (design only)
+
+- Example Application: `deploy/aspnet/gitops-example/argocd-application.example.yaml` (`cutoverAllowed=false`).
+- Workers chart: `deploy/aspnet/helm-ecomae-workers-example/` (`allowWorkerWrites=false`, dry-run).
+- CloudPanel VM remains the current host; do not apply for production cutover.
+
+## Native AOT (not required for platform host)
+
+- `EcomAeNativeAotScaffoldOptions` (`RequireForPlatformHost=false`).
+- Evaluate only for isolated services after trimming/reflection evidence.
+
+## AI sidecar (Python FastAPI, AI-only)
+
+- `EcomAeAiSidecarScaffoldOptions` + `IAiSidecarClientScaffold` (`AllowBusinessWrites=false`).
+- ASP.NET Core calls AI over REST/gRPC; Python must not own permissions or SoR writes.

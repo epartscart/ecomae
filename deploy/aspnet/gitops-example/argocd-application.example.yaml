@@ -1,0 +1,28 @@
+# DESIGN ONLY — Argo CD Application example. Not applied by CloudPanel scripts.
+# cutoverAllowed=false; CloudPanel VM remains the current host.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ecomae-platform-scaffold
+  namespace: argocd
+  annotations:
+    ecomae.cutoverAllowed: "false"
+    ecomae.readyForPhpRemoval: "false"
+    ecomae.hosting: "cloudpanel-vm-current"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/epartscart/ecomae.git
+    targetRevision: main
+    path: deploy/aspnet/helm-ecomae-platform-example
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ecomae-scaffold
+  syncPolicy:
+    automated: null
+    syncOptions:
+      - CreateNamespace=true
+  ignoreDifferences: []

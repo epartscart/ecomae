@@ -132,8 +132,9 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Object storage + Vault options (#704)
 - ✅ Postgres/Helm/OAuth/SPA options + consolidated options example (#705)
 - ✅ YARP surface-digests + RabbitMQ/Polly + dual-sample operator helper (#706)
-- **This PR:** YARP storefront/catalog-api design packs + GraphQL/gRPC/blockchain/rate-limit scaffolds (unwired)
-- Still not live: YARP process, GraphQL/gRPC endpoints, blockchain SoR (forbidden), rate-limit replace
+- ✅ YARP storefront/catalog-api + GraphQL/gRPC/blockchain/rate-limit (#707)
+- **This PR:** GitOps/ArgoCD design + workers Helm example + Native AOT + AI-sidecar scaffolds (unwired)
+- Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
 Do **not** start Batch 6 cutover while interactive `aspnet-complete` is still 0 and tenants must remain same-to-same on PHP chrome.

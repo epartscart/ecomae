@@ -1,0 +1,32 @@
+{{- /*
+DESIGN ONLY scaffold Deployment for dry-run workers. Not applied by CloudPanel scripts.
+*/ -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    ecomae.cutoverAllowed: "{{ .Values.cutoverAllowed }}"
+    ecomae.workers.mode: "dry-run"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+    spec:
+      containers:
+        - name: workers
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ECOMAE_WORKERS_ALLOW_WRITES
+              value: "{{ .Values.allowWorkerWrites }}"
+            - name: MigrationRouteCutover__RequirePhpFallback
+              value: "{{ .Values.phpFallbackRequired }}"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
