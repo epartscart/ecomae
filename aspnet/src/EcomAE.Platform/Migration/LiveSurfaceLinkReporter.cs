@@ -198,6 +198,7 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Presentation + login exact-routes: /cp|/erp|/bos|/storefront/{app,login} + POST /auth/login/admin — ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES bash scripts/cloudpanel_install_presentation_app_shadows.sh",
                 "Login bridge needs EcomAE__SecretSuccession (= PHP secret_succession) in platform.env; verify with scripts/cloudpanel_verify_secret_succession_configured.sh (never prints secret); without it UI falls back to PHP login.",
                 "Login cookie dual-sample: scripts/cloudpanel_capture_login_cookie_dual_samples.sh + compare_login_cookie_dual_samples.py (cutoverAllowed=false).",
+                "Hybrid UI dual-sample: bash scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh && python3 scripts/compare_hybrid_ui_dual_samples.py (www previews only; cutoverAllowed=false; see docs/migration/evidence/hybrid-ui-dual-samples/).",
                 "Hybrid chrome: ASP.NET shells link PHP modules (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /CP/ /ERP/ /BOS/ remain PHP.",
                 "Same-to-same tenant verify: bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh (PHP chrome on tenant / /CP/ /ERP/ + BOS spot-check; cutoverAllowed=false).",
                 "Tenant safety probe: bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh (expect PHP HTML on tenant / /CP/ /ERP/).",

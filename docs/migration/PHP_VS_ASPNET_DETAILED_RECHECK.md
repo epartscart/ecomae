@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** Storefront profile Blazor read UI (`/storefront/profile-app`) on www preview only; PHP `/users/profile` remains authoritative. Garage #688 and prior account-family slices shipped. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** Hybrid UI dual-sample evidence pack (contract stubs under `docs/migration/evidence/hybrid-ui-dual-samples/`; capture/compare scripts; `cutoverAllowed=false`). Live CloudPanel cookie captures remain operator work. Profile #689 and prior account-family slices shipped. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

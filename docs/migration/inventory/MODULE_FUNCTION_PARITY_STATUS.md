@@ -89,6 +89,10 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Price lookup | aspnet exact-route live |
 | UMAPI live fill | php-only (Batch 5 miss harness + `catalog-miss-fill` dry-run; outbound/writes blocked; fill stays PHP) |
 
+## Hybrid UI dual-sample harness
+
+Contract stubs + compare under `docs/migration/evidence/hybrid-ui-dual-samples/` (capture: `cloudpanel_capture_hybrid_ui_dual_samples.sh`). Covers CP/ERP/BOS/storefront `*-app` (+ `/cp/orders`) www previews. Live cookie captures are operator-only; `cutoverAllowed=false`. Digests keep their separate `surface-parity/` dual-sample family.
+
 ## Required before PHP removal
 
 For each family still not `aspnet-complete`: human functional test (create/read/update where applicable) with evidence under `docs/migration/evidence/surface-parity/`. Digests and hybrid deeplinks alone are insufficient for PHP removal.

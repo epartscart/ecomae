@@ -1,0 +1,289 @@
+{
+  "pairsChecked": 28,
+  "hybridUiSamplesOk": 27,
+  "phpInventoryOk": true,
+  "failed": 0,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "contractOnly": true,
+  "note": "Hybrid UI dual-sample harness. www exact-route Blazor previews only; live tenant/product chrome and writes remain PHP-authoritative.",
+  "results": [
+    {
+      "file": "aspnet-bos-audit-log-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "bos-audit-log",
+      "appRoute": "/bos/audit-log-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-admin-sessions-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-admin-sessions",
+      "appRoute": "/cp/admin-sessions-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-api-clients-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-api-clients",
+      "appRoute": "/cp/api-clients-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-config-items-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-config-items",
+      "appRoute": "/cp/config-items-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-currencies-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-currencies",
+      "appRoute": "/cp/currencies-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-groups-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-groups",
+      "appRoute": "/cp/groups-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-menus-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-menus",
+      "appRoute": "/cp/menus-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-modules-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-modules",
+      "appRoute": "/cp/modules-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-orders-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-orders",
+      "appRoute": "/cp/orders",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-pages-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-pages",
+      "appRoute": "/cp/pages-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-storages-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-storages",
+      "appRoute": "/cp/storages-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-tenants-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-tenants",
+      "appRoute": "/cp/tenants-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-users-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-users",
+      "appRoute": "/cp/users-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-cash-accounts-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-cash-accounts",
+      "appRoute": "/erp/cash-accounts-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-coa-accounts-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-coa-accounts",
+      "appRoute": "/erp/coa-accounts-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-gl-journals-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-gl-journals",
+      "appRoute": "/erp/gl-journals-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-invoices-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-invoices",
+      "appRoute": "/erp/invoices-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-purchase-orders-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-purchase-orders",
+      "appRoute": "/erp/purchase-orders-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-purchases-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-purchases",
+      "appRoute": "/erp/purchases-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-sales-orders-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-sales-orders",
+      "appRoute": "/erp/sales-orders-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-suppliers-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-suppliers",
+      "appRoute": "/erp/suppliers-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-warehouses-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-warehouses",
+      "appRoute": "/erp/warehouses-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-sf-cart-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "sf-cart",
+      "appRoute": "/storefront/cart-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-sf-garage-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "sf-garage",
+      "appRoute": "/storefront/garage-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-sf-orders-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "sf-orders",
+      "appRoute": "/storefront/orders-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-sf-profile-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "sf-profile",
+      "appRoute": "/storefront/profile-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-sf-search-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "sf-search",
+      "appRoute": "/storefront/search-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "php-hybrid-authoritative-inventory.json",
+      "role": "php-hybrid-authoritative-inventory",
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}
