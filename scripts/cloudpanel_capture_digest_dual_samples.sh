@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Capture authenticated ASP.NET digest JSON samples for dual-sample parity.
 # Writes docs/migration/evidence/surface-parity/samples/aspnet-*.json
-# Optionally captures PHP-side JSON when ECOMAE_PHP_DIGEST_BASE_URL responds with JSON.
+#
+# When ECOMAE_PHP_DIGEST_BASE_URL is unset (typical after exact-route shadows),
+# seeds php-*.json from migration/ contract goldens so compare can run
+# contract-only baseline pairs (migration left + live ASP.NET right).
 #
 # Requires admin cookie (CP/ERP/BOS digests):
 #   set -a; source /etc/ecomae-aspnet/platform.env; set +a
@@ -13,9 +16,11 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="${ECOMAE_DIGEST_SAMPLES_DIR:-$ROOT/docs/migration/evidence/surface-parity/samples}"
+MIG="$OUT/migration"
 ASPNET_BASE="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:5100}"
 PHP_BASE="${ECOMAE_PHP_DIGEST_BASE_URL:-}"
 COOKIE="${ECOMAE_ADMIN_COOKIE_HEADER:-}"
+RUN_COMPARE="${ECOMAE_DIGEST_DUAL_COMPARE:-1}"
 
 if [[ -z "$COOKIE" ]]; then
   printf 'ERROR: set ECOMAE_ADMIN_COOKIE_HEADER (admin session cookie)\n' >&2
@@ -74,6 +79,7 @@ PY
 
 ok=0
 fail=0
+seeded=0
 for stem in "${!ROUTES[@]}"; do
   path="${ROUTES[$stem]}"
   if capture aspnet "$ASPNET_BASE" "$path" "$OUT/aspnet-${stem}.json"; then
@@ -85,14 +91,32 @@ for stem in "${!ROUTES[@]}"; do
     if capture php "$PHP_BASE" "$path" "$OUT/php-${stem}.json"; then
       ok=$((ok + 1))
     else
-      printf 'WARN: PHP sample missing for %s (set ECOMAE_PHP_DIGEST_BASE_URL only if PHP exposes JSON)\n' "$stem" >&2
+      printf 'WARN: PHP sample missing for %s\n' "$stem" >&2
     fi
+  elif [[ -f "$MIG/${stem}.json" && ! -f "$OUT/php-${stem}.json" ]]; then
+    # Seed contract baseline from migration golden (not a live PHP capture).
+    python3 - "$MIG/${stem}.json" "$OUT/php-${stem}.json" <<'PY'
+import json, sys
+from pathlib import Path
+src, dst = Path(sys.argv[1]), Path(sys.argv[2])
+doc = json.loads(src.read_text(encoding="utf-8"))
+if isinstance(doc, dict):
+    doc["dualSampleBaseline"] = "migration-contract-golden"
+    doc["note"] = (doc.get("note") or "") + " | seeded as php-* baseline after exact-route shadow (PHP JSON no longer public)."
+dst.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+PY
+    printf 'SEED php-%s.json from migration/%s.json (contract baseline)\n' "$stem" "$stem"
+    seeded=$((seeded + 1))
   fi
 done
 
-printf '\nCaptured ASP.NET samples under %s (ok_writes≈%s fails=%s)\n' "$OUT" "$ok" "$fail"
+printf '\nCaptured ASP.NET samples under %s (ok=%s fails=%s seeded_php_baselines=%s)\n' "$OUT" "$ok" "$fail" "$seeded"
 printf 'Next: python3 scripts/compare_digest_dual_samples.py --samples-dir %s\n' "$OUT"
-printf 'Pairs need both php-*.json and aspnet-*.json for full dual compare.\n'
 if [[ "$fail" -gt 0 ]]; then
   exit 1
+fi
+
+if [[ "$RUN_COMPARE" == "1" ]]; then
+  printf '\n-- Running compare_digest_dual_samples.py --\n'
+  python3 "$ROOT/scripts/compare_digest_dual_samples.py" --samples-dir "$OUT"
 fi

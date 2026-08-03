@@ -69,7 +69,7 @@ Tenant BOS is generally Super-CP-only; tenant hosts may still answer `/BOS/` via
 
 **Surface digests:** **30 / 30** live. **Storefront digests:** **4 / 4** live (`cloudpanel_install_storefront_digest_shadows.sh`; never broad `/storefront`).
 
-**Blazor SSR console:** `/migration/console` — Zero-PHP operator board (redeploy ASP.NET to ship). Not product chrome cutover.
+**Blazor SSR console:** `/migration/console` — Zero-PHP operator board (requires `UseAntiforgery` redeploy). Not product chrome cutover.
 
 ## Exact-route digests pending nginx shadow
 
