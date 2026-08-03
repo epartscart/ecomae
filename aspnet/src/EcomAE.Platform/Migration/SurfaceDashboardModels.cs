@@ -459,3 +459,21 @@ public sealed record CpApiClientMetaListResult(
     int Count,
     string Source,
     string Message);
+
+public sealed record StorefrontPartOfferDigest(
+    int PriceId,
+    string PriceList,
+    string Manufacturer,
+    string Article,
+    string ArticleShow,
+    string Name,
+    decimal Price,
+    int Exist,
+    string Storage);
+
+public sealed record StorefrontPartSearchResult(
+    string Article,
+    IReadOnlyList<StorefrontPartOfferDigest> Rows,
+    int Count,
+    string Source,
+    string Message);

@@ -10,7 +10,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Batch 3 ✅ (#660):** Login bridge hardening + graphical login/hero parity (hub orbit, BOS particles, piston banner).
 
-**Batch 4 (in progress):** OMS ✅ (#661). Users/Groups ✅ (#662). ERP sales orders Blazor list (`/erp/sales-orders-app`) over digest; writes remain PHP `erp_tabs_sales_orders`. Still never `readyForPhpRemoval`.
+**Batch 4 (in progress):** OMS ✅ (#661). Users/Groups ✅ (#662). ERP SO 🔄 (#663). Storefront search Blazor (`/storefront/search-app`) read-only; full PHP `part_search`/cart remain authoritative. Still never `readyForPhpRemoval`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

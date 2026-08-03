@@ -87,7 +87,8 @@ public static class LegacyChromeNavCatalog
     public static readonly IReadOnlyList<NavItem> Storefront =
     [
         new("Home", "https://epartscart.com/"),
-        new("Search parts", "https://epartscart.com/shop/part_search"),
+        new("Search parts", "/storefront/search-app"),
+        new("Search PHP", "https://epartscart.com/shop/part_search"),
         new("Catalog", "https://epartscart.com/"),
         new("Account", "https://epartscart.com/"),
         new("Cart", "https://epartscart.com/")

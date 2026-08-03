@@ -381,4 +381,26 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// Batch 4 storefront part search (mirrors pyapi <c>part_search</c> / warehouse offers).
+    /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.
+    /// </summary>
+    public const string SelectStorefrontPartSearch = """
+        SELECT d.`price_id`, IFNULL(p.`name`, '') AS price_list,
+               IFNULL(d.`manufacturer`, '') AS manufacturer,
+               IFNULL(d.`article`, '') AS article,
+               IFNULL(d.`article_show`, '') AS article_show,
+               IFNULL(d.`name`, '') AS name,
+               IFNULL(d.`price`, 0) AS price,
+               IFNULL(d.`exist`, 0) AS exist,
+               IFNULL(d.`storage`, '') AS storage
+        FROM `shop_docpart_prices_data` d
+        INNER JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
+        WHERE d.`article_search` = @article
+          AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
+          AND IFNULL(d.`price`, 0) > 0
+        ORDER BY d.`price` ASC
+        LIMIT @limit
+        """;
+
 }

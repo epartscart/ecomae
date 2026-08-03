@@ -25,7 +25,7 @@ Authoritative product chrome remains **PHP** until intentional exact-route cutov
 | ERP login | ERP routers / CP plugin | `/erp/login` | Bridge UI | Same admin session mint (Batch 3 dual-sample) | Shared-tenant picker still PHP |
 | Super BOS | `/BOS/` | `/bos/app` | Hybrid Batch 2: `PhpBosDesktopChrome` (`.bos-topnav`, `.bos-main`) | Digests ASP.NET | **DECISION:** `/BOS/` PHP-authoritative — admin cookies ≠ `$_SESSION` |
 | BOS login | `POST /bos/?action=login` | `/bos/login` (admin bridge) | PHP `.bos-login` graphical shell (particles/glows/rings) + Batch 3 warning | Admin cookies for digests/`/bos/app` only | Native BOS PHP session login remains required for modules |
-| Storefront home | `epartscart.com/` | `/storefront/app` | Hybrid: modex chrome + `PhpAspPistonBanner` (`.epc-engine-animation`) + PHP spareparts CSS | Digests ASP.NET | Live slider/media/cart/checkout stay PHP on epartscart.com |
+| Storefront home | `epartscart.com/` | `/storefront/app` · `/storefront/search-app` | Hybrid: modex chrome + piston banner + Batch 4 search results | Digests ASP.NET; search read UI | Live slider/media/cart/checkout + full part_search tabs stay PHP |
 | Storefront login | PHP customer login | `/storefront/login` | Bridge UI | Batch 3: customer token `md5(contact+userId+time+secret)` + `last_activiti_time` | Full account UX PHP |
 | Digests CP/ERP/BOS | n/a (JSON) | 30/30 exact-routes | n/a | Live | Contract dual-sample recorded |
 | Storefront digests | n/a | 4/4 exact-routes | n/a | Live | Customer cookie for 200 |

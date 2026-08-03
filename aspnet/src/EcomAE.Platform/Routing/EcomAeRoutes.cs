@@ -106,6 +106,8 @@ public static class EcomAeRoutes
     public const string PriceLookupParity = "/api/v1/price/parity";
     public const string StorefrontParity = "/storefront/parity";
     public const string StorefrontApp = "/storefront/app";
+    /// <summary>Batch 4: storefront part search Blazor results (PHP part_search remains authoritative for cart/tabs).</summary>
+    public const string StorefrontSearchApp = "/storefront/search-app";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     public const string StorefrontOrders = "/storefront/orders";

@@ -55,7 +55,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Module family | PHP | ASP.NET | Status |
 | --- | --- | --- | --- |
 | Homepage / SEO / analytics | modex desktop + gtag/Clarity | `/storefront/app` + `PhpStorefrontDesktopChrome` + GA4 (+ Clarity hook) | hybrid-deeplink (Batch 2 preview; cart/checkout PHP) |
-| Search / VIN / catalog browse | PHP + Laximo/UMAPI | directory → PHP | hybrid-deeplink |
+| Search / VIN / catalog browse | PHP + Laximo/UMAPI | `/storefront/search-app` read-only offers; VIN/tabs → PHP | digest-only + hybrid-deeplink (Batch 4 search; cart/tabs PHP) |
 | Cart / checkout / payments | PHP | directory → PHP | hybrid-deeplink |
 | Account digests | PHP | `/storefront/account-summary|orders|garage|profile` | digest-only |
 | Customer login | PHP | `/storefront/login` bridge (Batch 3 PHP token formula) | hybrid-deeplink |

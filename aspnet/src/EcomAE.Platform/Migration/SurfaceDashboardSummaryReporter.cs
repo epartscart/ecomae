@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Globalization;
+using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Data;
 
 namespace EcomAE.Platform.Migration;
@@ -893,6 +894,51 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         catch (Exception ex)
         {
             return new([], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var normalized = PriceLookupRequest.NormalizeArticle(article ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return new(string.Empty, [], 0, "empty", "Enter a part number or OE code.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(normalized, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontPartSearch;
+            AddParameter(command, "@article", normalized);
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<StorefrontPartOfferDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontPartOfferDigest(
+                    Convert.ToInt32(reader["price_id"] is DBNull ? 0 : reader["price_id"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["price_list"] is DBNull ? string.Empty : reader["price_list"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["article_show"] is DBNull ? string.Empty : reader["article_show"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToDecimal(reader["price"] is DBNull ? 0m : reader["price"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["exist"] is DBNull ? 0 : reader["exist"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["storage"] is DBNull ? string.Empty : reader["storage"], CultureInfo.InvariantCulture) ?? string.Empty));
+            }
+
+            return new(normalized, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(normalized, [], 0, "database-error", ex.Message);
         }
     }
 
