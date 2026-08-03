@@ -462,6 +462,23 @@ check 'module function parity inventory exists' test -f "$ROOT/docs/migration/in
 check 'presentation parity probe script exists' test -x "$ROOT/scripts/cloudpanel_probe_php_presentation_parity.sh"
 check 'presentation compare helper exists' test -f "$ROOT/scripts/compare_php_aspnet_presentation.py"
 check 'login bridge service exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbLegacyAdminLoginService.cs"
+check 'login session token factory exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionTokenFactory.cs"
+check 'storefront piston CSS wired in presentation assets' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs" 'epc_automotive_spareparts.css'
+check 'hub logo CSS wired in login stylesheets' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs" 'epc_ecomae_hub_logo_css.php'
+check 'BOS login shell JS wired' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs" 'epc_bos_shell.js'
+check 'piston banner component exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpAspPistonBanner.razor"
+check 'hub logo component exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeHubLogo.razor"
+check 'storefront app uses piston banner' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor" 'PhpAspPistonBanner'
+check 'BOS login emits particle host' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosLoginApp.razor" 'bosParticles'
+check 'plan requires graphical hero/animation parity' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'Graphical presentation is in scope'
+check 'customer session insert includes last_activiti_time' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyAdminLoginSql.cs" 'last_activiti_time'
+check 'customer token formula uses userId' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionTokenFactory.cs" 'CustomerSessionToken'
+check 'login cookie dual-sample compare exists' test -x "$ROOT/scripts/compare_login_cookie_dual_samples.py"
+check 'login cookie dual-sample capture exists' test -x "$ROOT/scripts/cloudpanel_capture_login_cookie_dual_samples.sh"
+check 'secret succession verify helper exists' test -x "$ROOT/scripts/cloudpanel_verify_secret_succession_configured.sh"
+check 'login session bridge evidence dir exists' test -d "$ROOT/docs/migration/evidence/login-session-bridge"
+check 'login bridge keeps BOS PHP-authoritative' contains "$ROOT/docs/migration/evidence/login-session-bridge/README.md" 'PHP-authoritative'
+check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
 check 'presentation installer expects login routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 9'
 check 'digest dual compare accepts migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migrationBaselinePairs'

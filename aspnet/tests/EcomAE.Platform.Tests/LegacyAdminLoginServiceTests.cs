@@ -26,6 +26,7 @@ public sealed class LegacyAdminLoginServiceTests
         Assert.Contains("INSERT INTO `sessions`", LegacyAdminLoginSql.InsertAdminSession, StringComparison.Ordinal);
         Assert.Contains("`type`", LegacyAdminLoginSql.InsertAdminSession, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `sessions`", LegacyAdminLoginSql.InsertCustomerSession, StringComparison.Ordinal);
+        Assert.Contains("`last_activiti_time`", LegacyAdminLoginSql.InsertCustomerSession, StringComparison.Ordinal);
         Assert.DoesNotContain("INSERT", LegacySessionSql.CountAdminSession, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE", LegacySessionSql.CountAdminSession, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("DELETE", LegacySessionSql.CountAdminSession, StringComparison.OrdinalIgnoreCase);

@@ -12,49 +12,23 @@
 
     @if (string.IsNullOrWhiteSpace(_phpHref))
     {
-        <style>
-            .epc-sf-hero {
-                display:grid; grid-template-columns:1.2fr .9fr; gap:1.2rem; align-items:center;
-                padding:1.4rem 0 1.8rem; color:#f8fafc; border-radius:.7rem; margin-bottom:1rem;
-                background:radial-gradient(900px 500px at 20% 0%,rgba(220,38,38,.25),transparent 55%), linear-gradient(180deg,#0b1220,#111827);
-            }
-            .epc-sf-hero-inner { display:grid; grid-template-columns:1.2fr .9fr; gap:1.2rem; padding:0 1rem; }
-            .epc-sf-pill { display:inline-block; padding:.25rem .55rem; border-radius:999px; background:rgba(220,38,38,.2); color:#fecaca; font-size:.72rem; font-weight:700; }
-            .epc-sf-hero h1 { margin:.45rem 0 .7rem; font-size:clamp(1.5rem,3.2vw,2.2rem); line-height:1.12; }
-            .epc-sf-hero .lede { color:#cbd5e1; max-width:34rem; line-height:1.5; margin:0 0 1rem; }
-            .epc-sf-cta-row { display:flex; gap:.4rem; flex-wrap:wrap; }
-            .epc-sf-btn { display:inline-flex; padding:.55rem .8rem; border-radius:.4rem; font-weight:700; font-size:.85rem; border:1px solid transparent; text-decoration:none; }
-            .epc-sf-btn-red { background:#dc2626; color:#fff; }
-            .epc-sf-btn-ghost { background:transparent; border-color:rgba(255,255,255,.35); color:#fff; }
-            .epc-sf-feats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.55rem; margin-top:1rem; }
-            .epc-sf-feat { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:.5rem; padding:.7rem .75rem; font-size:.78rem; font-weight:700; }
-            .epc-sf-media { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:.8rem; min-height:200px; padding:1rem; display:flex; flex-direction:column; justify-content:flex-end; }
-            .epc-sf-note { margin:1rem 0; padding:.8rem; background:#fff8e8; color:#7a4e00; border-radius:.45rem; font-size:.88rem; }
-            @@media (max-width:900px){ .epc-sf-hero-inner,.epc-sf-feats{grid-template-columns:1fr;} }
-        </style>
+        @* PHP piston hero banner + engine animation (epc_automotive_spareparts_piston_banner.php) *@
+        <PhpAspPistonBanner />
 
-        <section class="epc-sf-hero">
-            <div class="epc-sf-hero-inner">
-                <div>
-                    <span class="epc-sf-pill">PROFESSIONAL AUTO SPARE PARTS STORE</span>
-                    <h1>Find genuine and aftermarket spare parts faster, cleaner, and with confidence.</h1>
-                    <p class="lede">Batch 2 modex chrome: header-top-line, header-full-top search, navbar. Cart/checkout remain on live PHP storefront.</p>
-                    <div class="epc-sf-cta-row">
-                        <a class="epc-sf-btn epc-sf-btn-red" href="https://epartscart.com/shop/part_search">Search parts</a>
-                        <a class="epc-sf-btn epc-sf-btn-ghost" href="https://epartscart.com/">Open catalog</a>
-                    </div>
-                    <div class="epc-sf-feats">
-                        <div class="epc-sf-feat">FAST ARTICLE SEARCH</div>
-                        <div class="epc-sf-feat">VIN REQUEST SUPPORT</div>
-                        <div class="epc-sf-feat">AED</div>
-                    </div>
-                </div>
-                <div class="epc-sf-media">
-                    <strong>Piston power animation</strong>
-                    <p style="margin:.4rem 0 0;color:#cbd5e1;font-size:.9rem">Live media remains on PHP storefront.</p>
-                </div>
-            </div>
-        </section>
+        <div class="epc-asp-home-banners" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin:1rem 0 1.25rem">
+            <a href="https://epartscart.com/shop/part_search" style="display:block;padding:1rem;border-radius:.7rem;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;text-decoration:none">
+                <strong style="display:block;margin-bottom:.25rem"><i class="fa fa-barcode"></i> Search by part number</strong>
+                <span style="font-size:.85rem;opacity:.9">Quickly check price, availability and delivery time.</span>
+            </a>
+            <a href="https://epartscart.com/" style="display:block;padding:1rem;border-radius:.7rem;background:linear-gradient(135deg,#2563eb,#1e3a8a);color:#fff;text-decoration:none">
+                <strong style="display:block;margin-bottom:.25rem"><i class="fa fa-shield"></i> Trusted brands</strong>
+                <span style="font-size:.85rem;opacity:.9">Browse available manufacturers and product lines.</span>
+            </a>
+            <a href="https://epartscart.com/" style="display:block;padding:1rem;border-radius:.7rem;background:linear-gradient(135deg,#059669,#065f46);color:#fff;text-decoration:none">
+                <strong style="display:block;margin-bottom:.25rem"><i class="fa fa-sitemap"></i> Electronic catalog</strong>
+                <span style="font-size:.85rem;opacity:.9">Find parts through vehicle catalog navigation.</span>
+            </a>
+        </div>
 
         <PhpHybridModuleDirectory
             Title="Storefront surface directory"
@@ -62,8 +36,9 @@
             Links="@PhpModuleCatalog.StorefrontSurfaces"
             PhpWorkspaceBase="/storefront/app" />
 
-        <div class="epc-sf-note">
-            Live homepage remains <a href="https://epartscart.com/">epartscart.com</a>. Digests: <a href="/storefront/account-summary">account-summary</a>. Not a broad `/` cutover.
+        <div class="epc-sf-note" style="margin:1rem 0;padding:.8rem;background:#fff8e8;color:#7a4e00;border-radius:.45rem;font-size:.88rem">
+            Live homepage remains <a href="https://epartscart.com/">epartscart.com</a> (authoritative hero/slider media).
+            ASP.NET preview reuses PHP piston CSS classes + industry attrs — not a broad `/` cutover.
         </div>
     }
 </PhpStorefrontDesktopChrome>

@@ -90,6 +90,12 @@ public sealed class SurfaceFieldParityReporterTests
         Assert.Contains(LegacyPresentationAssets.ControlPanelStylesheets, href => href.Contains("epc_cp_professional_css.php", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.BosStylesheets, href => href.Contains("epc_bos_shell.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.StorefrontStylesheets, href => href.Contains("templates/modex/", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.StorefrontStylesheets, href => href.Contains("epc_automotive_spareparts.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("epc_ecomae_hub_logo_css.php", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.BosLoginScripts, src => src.Contains("epc_bos_shell.js", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("storefront"), m => m.Contains("epc-engine-animation", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("bos"), m => m.Contains("bosParticles", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("cp"), m => m.Contains("ech-hub", StringComparison.Ordinal));
     }
 
     [Fact]

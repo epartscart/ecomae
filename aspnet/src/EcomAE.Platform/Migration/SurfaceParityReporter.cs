@@ -6,7 +6,7 @@ public sealed class SurfaceParityReporter : ISurfaceParityReporter
     {
         SurfaceParityItem[] items =
         [
-            new("Login", "legacy session and permission bridge", "/CP/ auth plugin + /BOS/?action=login", "/cp/login|/erp/login|/bos/login|/storefront/login + POST /auth/login/admin + /auth/session/probe", "login-bridge-hybrid", "ASP.NET can mint PHP-compatible sessions when SecretSuccession is set; PHP login remains authoritative for social/demo/shared-ERP picker/BOS $_SESSION."),
+            new("Login", "legacy session and permission bridge", "/CP/ auth plugin + /BOS/?action=login", "/cp/login|/erp/login|/bos/login|/storefront/login + POST /auth/login/admin + /auth/session/probe", "login-bridge-hybrid", "Batch 3: PHP-compatible admin/customer mint when SecretSuccession set + cookie dual-sample harness. Social/demo/shared-ERP picker stay PHP. DECISION: /BOS/ remains PHP-authoritative for $_SESSION modules."),
             new("Super CP", "dashboard shell", "ecomae.com/CP", "/cp/app (hybrid nav→PHP)", "hybrid-chrome-nav-login-bridge", "ASP.NET Blazor CP shell reuses PHP CSS; nav/quick actions open live PHP modules; full desktop widgets still need parity evidence."),
             new("Platform ERP", "finance dashboard", "ecomae.com/ERP", "/erp/app (hybrid nav→PHP areas)", "hybrid-chrome-nav-login-bridge", "ASP.NET Blazor ERP shell reuses PHP ERP theme CSS; category nav opens PHP ERP areas; finance writes still PHP."),
             new("Super BOS", "operations command center", "ecomae.com/BOS", "/bos/app (hybrid; digests+PHP /BOS/)", "hybrid-chrome-nav-login-bridge", "ASP.NET BOS shell + digests; native BOS $_SESSION modules remain on /BOS/."),

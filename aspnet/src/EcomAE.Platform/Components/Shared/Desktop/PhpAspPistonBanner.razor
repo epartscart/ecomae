@@ -1,0 +1,64 @@
+@namespace EcomAE.Platform.Components.Shared
+@*
+  Port of content/general_pages/epc_automotive_spareparts_piston_banner.php.
+  Requires epc_automotive_spareparts.css + html[data-epc-industry=auto_parts][data-epc-storefront=automotive_spareparts_pro].
+*@
+
+<section class="epc-home-pro epc-asp-piston-banner">
+    <div class="container">
+        <div class="epc-home-pro__grid">
+            <div>
+                <div class="epc-home-pro__eyebrow"><i class="fa fa-bolt"></i>&nbsp; @Eyebrow</div>
+                <h2>@Title</h2>
+                <p class="epc-home-pro__copy">@Copy</p>
+                <div class="epc-home-pro__actions">
+                    <a class="epc-home-pro__btn epc-home-pro__btn--primary" href="@SearchHref">
+                        <i class="fa fa-search"></i> Search parts
+                    </a>
+                    <a class="epc-home-pro__btn epc-home-pro__btn--ghost" href="@CatalogHref">
+                        <i class="fa fa-cubes"></i> Open catalog
+                    </a>
+                    <a class="epc-home-pro__btn epc-home-pro__btn--ghost" href="@BrandsHref">
+                        <i class="fa fa-tags"></i> View brands
+                    </a>
+                </div>
+                <div class="epc-home-pro__stats">
+                    <div class="epc-home-pro__stat"><strong>Fast</strong><span>article search</span></div>
+                    <div class="epc-home-pro__stat"><strong>VIN</strong><span>request support</span></div>
+                    <div class="epc-home-pro__stat"><strong>AED</strong><span>clear pricing</span></div>
+                </div>
+            </div>
+            <div class="epc-home-pro__visual" aria-label="Animated piston moving inside an engine">
+                <div class="epc-engine-animation" role="img" aria-label="Animated piston moving inside an engine">
+                    <div class="epc-engine-block">
+                        <div class="epc-engine-cylinder epc-engine-cylinder--one"><span class="epc-engine-piston"></span></div>
+                        <div class="epc-engine-cylinder epc-engine-cylinder--two"><span class="epc-engine-piston"></span></div>
+                        <div class="epc-engine-cylinder epc-engine-cylinder--three"><span class="epc-engine-piston"></span></div>
+                        <div class="epc-engine-crank"></div>
+                    </div>
+                    <div class="epc-engine-exhaust"></div>
+                    <div class="epc-engine-spark"></div>
+                    <div class="epc-engine-part epc-engine-ring" aria-hidden="true"></div>
+                    <div class="epc-engine-part epc-engine-gasket" aria-hidden="true"></div>
+                    <div class="epc-engine-part epc-engine-liner" aria-hidden="true"></div>
+                    <div class="epc-engine-part epc-engine-suspension" aria-hidden="true"></div>
+                    <div class="epc-engine-label">Engine + parts power loop</div>
+                </div>
+                <div class="epc-home-pro__video-card">
+                    <span class="epc-home-pro__play"><i class="fa fa-play"></i></span>
+                    <strong>Piston power animation</strong>
+                    <p>A moving piston and crankshaft loop shows engine power in a professional workshop style.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter] public string Eyebrow { get; set; } = "Professional auto spare parts store";
+    [Parameter] public string Title { get; set; } = "Find genuine and aftermarket spare parts faster, cleaner, and with confidence.";
+    [Parameter] public string Copy { get; set; } = "Search by article number, browse brands, open the electronic catalog, or send a VIN request. Everything is arranged for workshops, garages, fleet buyers, and retail customers.";
+    [Parameter] public string SearchHref { get; set; } = "https://epartscart.com/shop/part_search";
+    [Parameter] public string CatalogHref { get; set; } = "https://epartscart.com/";
+    [Parameter] public string BrandsHref { get; set; } = "https://epartscart.com/";
+}

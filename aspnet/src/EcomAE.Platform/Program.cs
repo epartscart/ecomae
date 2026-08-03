@@ -306,7 +306,7 @@ app.MapPost(EcomAeRoutes.LegacyAdminLogin, async (HttpContext context, ILegacyAd
     var loginSurface = LegacyLoginSurfaceParser.Parse(surface);
     var outcome = await login.LoginAsync(
         new LegacyLoginRequest(contact, password, contactType, remember, loginSurface),
-        context.Connection.RemoteIpAddress?.ToString(),
+        LegacySessionTokenFactory.ResolveClientIp(context.Request),
         context.Request.Headers.UserAgent.ToString(),
         context.RequestAborted);
 

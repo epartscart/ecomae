@@ -76,10 +76,13 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
         }
 
         var time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        // PHP: md5($auth_contact . $time . $secret) using the posted contact, not htmlentities.
-        var sessionToken = LegacyPasswordVerifier.Md5Hex(contactRaw + time.ToString(CultureInfo.InvariantCulture) + _options.SecretSuccession);
-        var csrf = LegacyPasswordVerifier.Sha1Hex(
-            _options.SecretSuccession + sessionToken + (remoteIp ?? string.Empty) + (userAgent ?? string.Empty));
+        // Admin PHP: md5($auth_contact.$time.$secret). Customer PHP: md5($auth_contact.$user_id.$time.$secret).
+        // Always use the posted contact (not htmlentities) for the token — matches PHP plugins.
+        var sessionToken = adminSession
+            ? LegacySessionTokenFactory.AdminSessionToken(contactRaw, time, _options.SecretSuccession)
+            : LegacySessionTokenFactory.CustomerSessionToken(contactRaw, user.UserId, time, _options.SecretSuccession);
+        var csrf = LegacySessionTokenFactory.CsrfGuardKey(
+            _options.SecretSuccession, sessionToken, remoteIp, userAgent);
 
         await using (var command = connection.CreateCommand())
         {
