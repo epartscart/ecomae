@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 33,
-  "hybridUiSamplesOk": 32,
+  "pairsChecked": 34,
+  "hybridUiSamplesOk": 33,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -163,6 +163,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-users",
       "appRoute": "/cp/users-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-accounts-summary-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-accounts-summary",
+      "appRoute": "/erp/accounts-summary-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

@@ -522,7 +522,11 @@ check 'tenant safety operator verify note exists' test -f "$ROOT/docs/migration/
 check 'presentation parity states digests not tenant UX' contains "$ROOT/docs/migration/PRESENTATION_PARITY.md" 'not** tenant product chrome'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 42'
+check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 43'
+check 'tenant chrome probe rejects erp accounts-summary-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'ErpAccountsSummaryApp'
+check 'presentation nginx includes /erp/accounts-summary-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/accounts-summary-app'
+check 'erp accounts-summary-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpAccountsSummaryApp'
+check 'erp accounts-summary Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpAccountsSummaryApp.razor"
 check 'tenant chrome probe rejects erp inventory-stock-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'ErpInventoryStockApp'
 check 'tenant chrome probe rejects bos tenants-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'BosTenantsApp'
 check 'tenant chrome probe rejects bos fleet-health-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'BosFleetHealthApp'

@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-03T19:24:39Z",
+  "capturedAt": "2026-08-03T19:25:46Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -144,6 +144,12 @@
       "appRoute": "/erp/inventory-stock-app",
       "digestRoute": "/erp/inventory-stock",
       "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory"
+    },
+    {
+      "stem": "erp-accounts-summary",
+      "appRoute": "/erp/accounts-summary-app",
+      "digestRoute": "/erp/accounts-summary",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
     },
     {
       "stem": "bos-audit-log",
