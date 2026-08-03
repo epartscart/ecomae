@@ -23,6 +23,8 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Tenant control PHP" && item.Href == "/CP/control/portal/epc_tenant_control_center");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Currencies list" && item.Href == "/cp/currencies-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Currency rates PHP" && item.Href == "/CP/shop/finance/nastrojka-kursov-valyut");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Storages list" && item.Href == "/cp/storages-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Storages PHP" && item.Href == "/CP/shop/logistics/storages");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Groups PHP" && item.Href == "/CP/users/usergroups");
         Assert.All(LegacyChromeNavCatalog.ControlPanelQuickActions, item => Assert.False(string.IsNullOrWhiteSpace(item.Href)));
     }

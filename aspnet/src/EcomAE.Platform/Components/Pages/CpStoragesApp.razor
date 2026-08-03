@@ -1,0 +1,135 @@
+@page "/cp/storages-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Storages · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-st-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#18181b 0%,#3f3f46 50%,#52525b 100%);
+        }
+        .epc-st-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-st-hero p { margin:0; color:#d4d4d8; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-st-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-st-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#18181b; background:#fb923c;
+        }
+        .epc-st-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-st-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-st-kpi { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-st-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-st-kpi span { color:#71717a; font-size:.78rem; }
+        .epc-st-table-wrap { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; overflow:auto; }
+        .epc-st-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-st-table th, .epc-st-table td { padding:.55rem .7rem; border-bottom:1px solid #f4f4f5; text-align:left; white-space:nowrap; }
+        .epc-st-table th { background:#fafafa; color:#52525b; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-st-table a { color:#c2410c; font-weight:700; text-decoration:none; }
+        .epc-st-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-st-badge--ok { background:#ffedd5; color:#9a3412; }
+        .epc-st-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-st-note { margin-top:1rem; padding:.75rem .9rem; background:#fafafa; border:1px solid #d4d4d8; border-radius:.45rem; color:#3f3f46; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-st-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-st-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Storages</h1>
+        <p>Read-only <code>shop_storages</code> from <code>/cp/storages</code> digest under PHP CP desktop chrome. Create/edit stay on live PHP warehouses &amp; storages — same-to-same for tenants.</p>
+        <div class="epc-st-cta">
+            <a href="@_phpTab">Open PHP storages</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/currencies-app">Currencies list</a>
+            <a class="ghost" href="/erp/warehouses-app">ERP warehouses</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-st-kpis" aria-label="Storages KPIs">
+        <div class="epc-st-kpi"><strong>@_storages.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-st-kpi"><strong>@_visible</strong><span>Visible</span></div>
+        <div class="epc-st-kpi"><strong>@_hidden</strong><span>Hidden</span></div>
+    </div>
+
+    <div class="epc-st-table-wrap">
+        <table class="epc-st-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Short name</th>
+                    <th>Hidden</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_storages.Count == 0)
+                {
+                    <tr><td colspan="5">No storages in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var s in _storages)
+                    {
+                        <tr>
+                            <td><strong>@s.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(s.Name) ? "—" : s.Name)</td>
+                            <td>@(string.IsNullOrWhiteSpace(s.ShortName) ? "—" : s.ShortName)</td>
+                            <td><span class="epc-st-badge @(s.Hidden ? "epc-st-badge--off" : "epc-st-badge--ok")">@(s.Hidden ? "yes" : "no")</span></td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-st-note">
+        Read-only preview · JSON digest <a href="/cp/storages?limit=200">/cp/storages</a>.
+        PHP warehouses &amp; storages (<code>/CP/shop/logistics/storages</code>) remain authoritative for create/edit.
+        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/logistics/storages";
+    private bool _isAdmin;
+    private IReadOnlyList<CpStorageDigest> _storages = [];
+    private int _visible;
+    private int _hidden;
+    private int _limit = 200;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListCpStoragesAsync(_limit, ctx.RequestAborted);
+        _storages = result.Storages;
+        _hidden = _storages.Count(s => s.Hidden);
+        _visible = _storages.Count - _hidden;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}
