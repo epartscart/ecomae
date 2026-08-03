@@ -12,7 +12,9 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Batch 4 ✅ (#661–#665):** OMS · Users/Groups · ERP SO · Search · Cart hybrid read UIs. Checkout/qty/guest cart remain PHP.
 
-**Batch 5 (in progress):** Miss harness ✅ (#666). Miss-fill worker dry-run (`catalog-miss-fill`) write-/outbound-blocked; live UMAPI fills stay PHP. Still never `readyForPhpRemoval`.
+**Batch 5 ✅ (#666–#667):** Miss harness + outbound-blocked miss-fill dry-run. Live UMAPI fills stay PHP.
+
+**Same-to-same law:** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

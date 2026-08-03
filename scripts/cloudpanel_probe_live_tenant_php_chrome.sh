@@ -57,6 +57,12 @@ ASPNET_BAD_MARKERS=(
   "ErpBosDashboard"
   "BosFleetApp"
   "StorefrontPreview"
+  "StorefrontSearchApp"
+  "StorefrontCartApp"
+  "CpOrdersApp"
+  "CpUsersApp"
+  "CpGroupsApp"
+  "ErpSalesOrdersApp"
   '"error":"unauthorized"'
   '"title":"Unauthorized"'
   "X-EcomAE-Route-Cutover"

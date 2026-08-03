@@ -495,6 +495,17 @@ check 'deploy packs catalog miss compare' contains "$ROOT/scripts/deploy_aspnet_
 check 'deploy packs catalog miss probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_catalog_miss_path.sh'
 check 'Batch 5 plan documents miss harness' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'miss-path probe'
 check 'Batch 5 plan documents miss-fill dry-run' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'catalog-miss-fill'
+check 'tenant safety law documents same-to-same' contains "$ROOT/docs/migration/TENANT_MIGRATION_SAFETY.md" 'Same-to-same / invisible migration'
+check 'tenant safety law digests never replace UX' contains "$ROOT/docs/migration/TENANT_MIGRATION_SAFETY.md" 'never** replace tenant product chrome'
+check 'parity plan hard rule same-to-same' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'Same-to-same / invisible migration'
+check 'parity plan blocks Batch 6 premature cutover' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'blocked / premature'
+check 'same-to-same tenant verify script exists' test -x "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh"
+check 'same-to-same verify refuses cutover' contains "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh" 'cutoverAllowed=false'
+check 'tenant chrome probe rejects Batch 4 Blazor markers' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'StorefrontCartApp'
+check 'deploy packs same-to-same tenant verify' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_verify_tenant_hosts_still_php.sh'
+check 'deploy packs live tenant chrome probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_live_tenant_php_chrome.sh'
+check 'tenant safety operator verify note exists' test -f "$ROOT/docs/migration/evidence/tenant-safety/OPERATOR_VERIFY.md"
+check 'presentation parity states digests not tenant UX' contains "$ROOT/docs/migration/PRESENTATION_PARITY.md" 'not** tenant product chrome'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
 check 'presentation installer expects login+OMS+users/groups+ERP SO+search+cart routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 16'
