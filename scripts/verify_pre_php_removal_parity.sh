@@ -204,6 +204,7 @@ wanted = [
     "https://www.ecomae.com/api/v1/catalog/modifications",
     "https://www.ecomae.com/api/v1/catalog/brands",
     "https://www.ecomae.com/api/v1/catalog/suppliers",
+    "https://www.ecomae.com/api/v1/catalog/vin",
     "https://www.ecomae.com/api/v1/price/lookup",
     "https://www.ecomae.com/health",
 ]
@@ -232,11 +233,12 @@ models = by_url.get("https://www.ecomae.com/api/v1/catalog/models", ("missing", 
 mods = by_url.get("https://www.ecomae.com/api/v1/catalog/modifications", ("missing", None))[0]
 brands = by_url.get("https://www.ecomae.com/api/v1/catalog/brands", ("missing", None))[0]
 suppliers = by_url.get("https://www.ecomae.com/api/v1/catalog/suppliers", ("missing", None))[0]
+vin = by_url.get("https://www.ecomae.com/api/v1/catalog/vin", ("missing", None))[0]
 if health != "aspnet-health":
     errors.append(f"health engine unexpected: {health}")
 if price != "aspnet-json":
     errors.append(f"price lookup engine unexpected: {price}")
-# Catalog list exact-route shadows (status through suppliers) are approved/live on www.
+# Catalog exact-route shadows (status through vin) are approved/live on www.
 if catalog != "aspnet-json":
     errors.append(f"catalog status engine unexpected: {catalog} (expected aspnet-json after exact-route shadow)")
 if mfr != "aspnet-json":
@@ -249,6 +251,8 @@ if brands != "aspnet-json":
     errors.append(f"catalog brands engine unexpected: {brands} (expected aspnet-json after exact-route shadow)")
 if suppliers != "aspnet-json":
     errors.append(f"catalog suppliers engine unexpected: {suppliers} (expected aspnet-json after exact-route shadow)")
+if vin != "aspnet-json":
+    errors.append(f"catalog vin engine unexpected: {vin} (expected aspnet-json after exact-route shadow)")
 print("STACK_URLS=" + str({k: by_url.get(k) for k in wanted}))
 if errors:
     print("ERRORS=" + ";".join(errors))
@@ -256,7 +260,7 @@ if errors:
 print("STACK_OK")
 PY
 if grep -q 'STACK_OK' /tmp/pre-removal-stack-judge.out; then
-  record "public-surface-authority" pass "CP/ERP/BOS chrome still PHP; health/price/catalog list shadows through suppliers ASP.NET exact routes; digests not cut over"
+  record "public-surface-authority" pass "CP/ERP/BOS chrome still PHP; health/price/catalog shadows through vin ASP.NET exact routes; digests not cut over"
 else
   # Fallback judge via direct curl if JSON shape unknown
   chrome_ok=1

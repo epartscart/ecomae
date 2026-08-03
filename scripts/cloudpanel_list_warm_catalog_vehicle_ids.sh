@@ -2,12 +2,14 @@
 # List warm vehicle-cache IDs from TenantRegistry DB.
 #   models         → mfa_id counts from epc_umapi_models
 #   modifications  → ms_id counts from epc_umapi_modifications
+#   vin            → warm rows from epc_umapi_vin_cache (vehicle_count>0)
 # Never prints DB passwords. Never removes PHP.
 #
 # Usage:
 #   set -a; source /etc/ecomae-aspnet/platform.env; set +a
 #   bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh models
 #   bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh modifications
+#   bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh vin
 set -euo pipefail
 
 KIND="${1:-models}"
@@ -22,17 +24,28 @@ if [[ -f "$ENV_FILE" ]]; then
   set +a
 fi
 
+SQL=""
 case "$KIND" in
   models|mfa|mfa_id)
     COL="mfa_id"
     TABLE="epc_umapi_models"
+    SQL="$(printf "SELECT \`%s\`, COUNT(*) AS c FROM \`%s\` WHERE section='%s' GROUP BY \`%s\` ORDER BY c DESC LIMIT %s;" \
+      "$COL" "$TABLE" "$SECTION" "$COL" "$LIMIT")"
     ;;
   modifications|mods|ms|ms_id)
     COL="ms_id"
     TABLE="epc_umapi_modifications"
+    SQL="$(printf "SELECT \`%s\`, COUNT(*) AS c FROM \`%s\` WHERE section='%s' GROUP BY \`%s\` ORDER BY c DESC LIMIT %s;" \
+      "$COL" "$TABLE" "$SECTION" "$COL" "$LIMIT")"
+    ;;
+  vin|vins|vin_cache)
+    TABLE="epc_umapi_vin_cache"
+    COL="vin"
+    SQL="$(printf "SELECT \`vin\`, \`language\`, \`region\`, \`vehicle_count\` FROM \`%s\` WHERE \`vehicle_count\` > 0 ORDER BY \`updated_at\` DESC LIMIT %s;" \
+      "$TABLE" "$LIMIT")"
     ;;
   *)
-    printf 'Usage: %s models|modifications\n' "$(basename "$0")" >&2
+    printf 'Usage: %s models|modifications|vin\n' "$(basename "$0")" >&2
     exit 2
     ;;
 esac
@@ -79,9 +92,7 @@ if [[ -z "$DB_NAME" || -z "$DB_USER" ]]; then
   exit 1
 fi
 
-printf 'DB=%s table=%s section=%s col=%s (host/user redacted)\n' "$DB_NAME" "$TABLE" "$SECTION" "$COL"
-SQL="$(printf "SELECT \`%s\`, COUNT(*) AS c FROM \`%s\` WHERE section='%s' GROUP BY \`%s\` ORDER BY c DESC LIMIT %s;" \
-  "$COL" "$TABLE" "$SECTION" "$COL" "$LIMIT")"
+printf 'DB=%s table=%s kind=%s (host/user redacted)\n' "$DB_NAME" "$TABLE" "$KIND"
 
 if command -v mysql >/dev/null 2>&1; then
   MYSQL_PWD="$DB_PASS" mysql -h "$HOST" -P "$PORT" -u "$DB_USER" "$DB_NAME" -B -N -e "$SQL"
@@ -91,5 +102,5 @@ fi
 php -r '
 $h=$argv[1]; $p=$argv[2]; $d=$argv[3]; $u=$argv[4]; $w=$argv[5]; $sql=$argv[6];
 $pdo=new PDO("mysql:host=$h;port=$p;dbname=$d;charset=utf8mb4",$u,$w,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
-foreach($pdo->query($sql) as $row){ echo $row[0],"\t",$row[1],"\n"; }
+foreach($pdo->query($sql, PDO::FETCH_NUM) as $row){ echo implode("\t", $row), "\n"; }
 ' "$HOST" "$PORT" "$DB_NAME" "$DB_USER" "$DB_PASS" "$SQL"
