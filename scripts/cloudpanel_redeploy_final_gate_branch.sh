@@ -122,9 +122,40 @@ then
 fi
 rm -f "$probe_tmp"
 
+printf '\n-- Live readiness snapshot --\n'
+ready_tmp="$(mktemp)"
+ready_code="$(curl -sS -m 20 -o "$ready_tmp" -w '%{http_code}' http://127.0.0.1:5100/migration/php-decommission-readiness || true)"
+if [[ "$ready_code" == "200" ]]; then
+  python3 - "$ready_tmp" <<'PY' || true
+import json, sys
+doc = json.load(open(sys.argv[1], encoding="utf-8"))
+print(
+    "readyToRemovePhp=%s checklist=%s/%s (%s%%)"
+    % (
+        doc.get("readyToRemovePhp"),
+        doc.get("checklistCompleteCount"),
+        doc.get("checklistTotalCount"),
+        doc.get("checklistCompletePercent"),
+    )
+)
+missing = [
+    i.get("id")
+    for i in (doc.get("checklist") or [])
+    if str(i.get("status") or "").lower() == "missing"
+]
+if missing:
+    print("missing:", ", ".join(missing))
+PY
+else
+  printf 'WARN /migration/php-decommission-readiness HTTP %s\n' "$ready_code"
+fi
+rm -f "$ready_tmp"
+
 printf '\n-- Capture final-gate artifacts --\n'
 bash scripts/cloudpanel_capture_final_gate_artifacts.sh
 
 printf '\n-- Commit smoke if complete --\n'
 bash scripts/cloudpanel_commit_final_gate_smoke.sh || true
 printf 'Done. PHP remains authoritative until ReadyToRemovePhp + release-owner approval.\n'
+printf 'If checklist is 8/9 with only release-owner-approval missing: do NOT invent RELEASE_OWNER_APPROVAL.md.\n'
+printf 'Optional next: bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status\n'

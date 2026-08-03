@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # On CloudPanel after capture: commit only real staging-smoke / parity artifacts and push a PR branch.
 # Never invents JSON. Never writes RELEASE_OWNER_APPROVAL.md. Never removes PHP.
+# Preserves uncommitted capture files (does not wipe them with git checkout HEAD --).
 # Preserves an existing unpushed smoke commit (does not reset away a failed push).
 set -euo pipefail
 
@@ -26,6 +27,11 @@ fi
 cd "$REPO"
 
 SMOKE="$REPO/docs/migration/evidence/decommission/staging-smoke"
+EVIDENCE_PATHS=(
+  docs/migration/evidence/decommission/staging-smoke
+  docs/migration/evidence/decommission/public-probes
+  docs/migration/evidence/decommission/parity-samples
+)
 required=(
   "$SMOKE/price-lookup-aspnet.json"
   "$SMOKE/catalog-status-aspnet.json"
@@ -102,12 +108,57 @@ head_has_smoke() {
     && git cat-file -e "HEAD:docs/migration/evidence/decommission/staging-smoke/surface-digests-aspnet.json" 2>/dev/null
 }
 
+evidence_worktree_dirty() {
+  # Unstaged or staged changes under decommission evidence paths.
+  ! git diff --quiet -- "${EVIDENCE_PATHS[@]}" 2>/dev/null \
+    || ! git diff --cached --quiet -- "${EVIDENCE_PATHS[@]}" 2>/dev/null \
+    || [[ -n "$(git ls-files --others --exclude-standard -- "${EVIDENCE_PATHS[@]}")" ]]
+}
+
+preserve_evidence() {
+  local dest="$1"
+  mkdir -p "$dest"
+  for sub in staging-smoke public-probes parity-samples; do
+    src="$REPO/docs/migration/evidence/decommission/$sub"
+    if [[ -d "$src" ]]; then
+      cp -a "$src" "$dest/"
+    fi
+  done
+}
+
+restore_evidence() {
+  local src="$1"
+  mkdir -p "$REPO/docs/migration/evidence/decommission"
+  cp -a "$src/." "$REPO/docs/migration/evidence/decommission/"
+}
+
+commit_evidence_if_needed() {
+  git add -- "${EVIDENCE_PATHS[@]}"
+  if git diff --cached --quiet; then
+    printf 'Nothing new to commit under decommission evidence.\n'
+    return 1
+  fi
+  local storefront_note=""
+  if [[ -s "$SMOKE/storefront-digests-aspnet.json" ]]; then
+    storefront_note=" Includes optional storefront customer digests."
+  fi
+  git -c user.name="${GIT_AUTHOR_NAME:-ecomae-cloudpanel}" \
+      -c user.email="${GIT_AUTHOR_EMAIL:-ops@ecomae.local}" \
+      commit -m "$(cat <<EOF
+Attach CloudPanel final-gate staging smoke artifacts
+
+Authenticated price/catalog/surface smoke only.${storefront_note} PHP remains authoritative.
+EOF
+)"
+  return 0
+}
+
 print_push_recovery() {
   printf '\nPush failed (GitHub auth). Smoke commit is still local — do NOT reset the branch.\n' >&2
   printf 'GitHub rejects account passwords. Use a PAT (repo scope):\n' >&2
   printf '  https://github.com/settings/tokens\n' >&2
   printf 'Then non-interactive push (preferred):\n' >&2
-  printf '  export GH_TOKEN='\''ghp_...'\''\n' >&2
+  printf '  export GH_TOKEN='\''ghp_YOUR_REAL_TOKEN'\''\n' >&2
   printf '  bash scripts/cloudpanel_push_final_gate_smoke.sh\n' >&2
   printf '  unset GH_TOKEN\n' >&2
   printf 'Or export a bundle for a machine that already has auth:\n' >&2
@@ -116,7 +167,6 @@ print_push_recovery() {
 }
 
 push_branch() {
-  # Prefer explicit token helper (no interactive username/password prompt).
   if [[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" && -x "$REPO/scripts/cloudpanel_push_final_gate_smoke.sh" ]]; then
     bash "$REPO/scripts/cloudpanel_push_final_gate_smoke.sh"
     return $?
@@ -124,7 +174,6 @@ push_branch() {
   if command -v gh >/dev/null 2>&1; then
     gh auth setup-git >/dev/null 2>&1 || true
   fi
-  # Refuse hanging on Username/Password when no credential helper is configured.
   export GIT_TERMINAL_PROMPT=0
   set +e
   git push -u origin "$BRANCH"
@@ -142,31 +191,50 @@ push_branch() {
   return 0
 }
 
-# --- Prefer re-push of existing unpushed smoke commit (failed auth recovery) ---
 git fetch origin main
 
+PRESERVE="$(mktemp -d /tmp/ecomae-smoke-preserve.XXXXXX)"
+cleanup_preserve() { rm -rf "$PRESERVE"; }
+trap cleanup_preserve EXIT
+
+# --- Existing smoke branch: preserve dirty capture, rebase, commit updates, push ---
 if git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
   git checkout "$BRANCH"
-  if head_has_smoke; then
-    # Materialize HEAD smoke into worktree for validation helper paths.
-    git checkout HEAD -- \
-      docs/migration/evidence/decommission/staging-smoke \
-      docs/migration/evidence/decommission/public-probes \
-      docs/migration/evidence/decommission/parity-samples 2>/dev/null || true
-    if smoke_files_present && validate_smoke_files "$SMOKE"; then
-      printf 'Found existing smoke commit on %s (%s) — pushing without reset.\n' \
-        "$BRANCH" "$(git rev-parse --short HEAD)"
-      if ! git merge-base --is-ancestor origin/main HEAD; then
-        printf 'WARN: %s is not based on current origin/main; rebasing onto origin/main.\n' "$BRANCH"
-        git rebase origin/main
-      fi
-      push_branch
-      exit $?
+
+  # Always snapshot worktree evidence first (capture may have just refreshed probes).
+  preserve_evidence "$PRESERVE"
+
+  # Only materialize from HEAD when required smoke files are missing on disk.
+  if ! smoke_files_present && head_has_smoke; then
+    printf 'Worktree missing smoke files — restoring required smoke from HEAD (probes preserved separately).\n'
+    git checkout HEAD -- docs/migration/evidence/decommission/staging-smoke 2>/dev/null || true
+    # Re-apply preserved probes/parity (and smoke if capture had fresher copies).
+    restore_evidence "$PRESERVE"
+  fi
+
+  if smoke_files_present && validate_smoke_files "$SMOKE"; then
+    if ! git merge-base --is-ancestor origin/main HEAD; then
+      printf 'WARN: %s is not based on current origin/main; rebasing onto origin/main.\n' "$BRANCH"
+      # Rebase can touch the worktree — restore capture afterward.
+      git rebase origin/main
+      restore_evidence "$PRESERVE"
+      validate_smoke_files "$SMOKE"
     fi
+
+    if evidence_worktree_dirty; then
+      printf 'Committing refreshed capture/probe artifacts on %s.\n' "$BRANCH"
+      commit_evidence_if_needed || true
+    else
+      printf 'Found existing smoke commit on %s (%s) — no new evidence changes.\n' \
+        "$BRANCH" "$(git rev-parse --short HEAD)"
+    fi
+
+    push_branch
+    exit $?
   fi
 fi
 
-# --- Fresh commit from working-tree capture artifacts ---
+# --- Fresh branch from origin/main using preserved/current worktree capture ---
 missing=0
 for f in "${required[@]}"; do
   if [[ ! -s "$f" ]]; then
@@ -182,55 +250,24 @@ if [[ "$missing" -ne 0 ]]; then
   printf '  source /etc/ecomae-aspnet/platform.env\n' >&2
   printf '  bash scripts/cloudpanel_capture_final_gate_artifacts.sh\n' >&2
   printf 'If you already committed and only push failed:\n' >&2
-  printf '  git checkout %s && git push -u origin %s\n' "$BRANCH" "$BRANCH" >&2
-  printf '  # or: bash scripts/cloudpanel_export_final_gate_smoke_bundle.sh\n' >&2
+  printf '  export GH_TOKEN='\''ghp_YOUR_REAL_TOKEN'\''\n' >&2
+  printf '  bash scripts/cloudpanel_push_final_gate_smoke.sh && unset GH_TOKEN\n' >&2
   exit 1
 fi
 
 validate_smoke_files "$SMOKE"
-
-# Preserve capture artifacts across branch reset (checkout -B replaces worktree).
-PRESERVE="$(mktemp -d /tmp/ecomae-smoke-preserve.XXXXXX)"
-cleanup_preserve() { rm -rf "$PRESERVE"; }
-trap cleanup_preserve EXIT
-mkdir -p "$PRESERVE/decommission"
-for sub in staging-smoke public-probes parity-samples; do
-  src="$REPO/docs/migration/evidence/decommission/$sub"
-  if [[ -d "$src" ]]; then
-    cp -a "$src" "$PRESERVE/decommission/"
-  fi
-done
+preserve_evidence "$PRESERVE"
 
 git checkout -B "$BRANCH" origin/main
-cp -a "$PRESERVE/decommission/." "$REPO/docs/migration/evidence/decommission/"
+restore_evidence "$PRESERVE"
 
-git add \
-  docs/migration/evidence/decommission/staging-smoke \
-  docs/migration/evidence/decommission/public-probes \
-  docs/migration/evidence/decommission/parity-samples
-
-if git diff --cached --quiet; then
-  printf 'Nothing new to commit under decommission evidence.\n'
+if ! commit_evidence_if_needed; then
   if head_has_smoke; then
     push_branch
     exit $?
   fi
   exit 0
 fi
-
-storefront_note=""
-if [[ -s "$SMOKE/storefront-digests-aspnet.json" ]]; then
-  storefront_note=" Includes optional storefront customer digests."
-fi
-
-git -c user.name="${GIT_AUTHOR_NAME:-ecomae-cloudpanel}" \
-    -c user.email="${GIT_AUTHOR_EMAIL:-ops@ecomae.local}" \
-    commit -m "$(cat <<EOF
-Attach CloudPanel final-gate staging smoke artifacts
-
-Authenticated price/catalog/surface smoke only.${storefront_note} PHP remains authoritative.
-EOF
-)"
 
 push_branch
 exit $?
