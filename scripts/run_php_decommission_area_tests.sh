@@ -169,14 +169,12 @@ for path in /CP/ /ERP/ /BOS/; do
   fi
 done
 
-# CP dashboard digest: PHP HTML until exact-route installed; after install expect ASP.NET 401 unauthorized JSON.
+# CP dashboard digest: live exact-route expects ASP.NET 401 unauthorized JSON (admin cookie for 200).
 code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' https://www.ecomae.com/cp/dashboard-summary || echo 000)"
 if [[ "$code" == "401" ]] && grep -qE '"unauthorized"|unauthorized' /tmp/area.body && ! grep -qi '<html\|<!doctype' /tmp/area.body; then
   record "public/cp/dashboard-summary-exact-route" pass "ASP.NET digest exact-route shadow (401 unauthorized without admin cookie)"
-elif grep -qi '<html\|<!doctype' /tmp/area.body; then
-  record "public/cp/dashboard-summary-exact-route" pass "digest not publicly cut over yet (HTTP $code; PHP HTML authority)"
 else
-  record "public/cp/dashboard-summary-exact-route" fail "unexpected dashboard-summary response (HTTP $code)"
+  record "public/cp/dashboard-summary-exact-route" fail "expected ASP.NET 401 unauthorized (HTTP $code)"
 fi
 
 # Catalog exact-route shadows live (18/18 wired): unauth must be ASP.NET JSON gate (not PHP HTML).

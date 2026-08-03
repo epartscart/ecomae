@@ -18,13 +18,13 @@ Authenticated **loopback** CloudPanel staging smoke is attached on `main` (PR #6
 Public frontend/backend authority is **still PHP** for product chrome:
 
 - `https://www.ecomae.com/`, `/CP/`, `/ERP/`, `/BOS/` → PHP HTML
-- Public `/cp/dashboard-summary` is **not** cut over yet (next exact-route candidate)
+- Public `/cp/dashboard-summary` is **cut over** (exact-route; unauth 401 `unauthorized` ASP.NET JSON)
 - Approved exact-route API shadows on www: `/health`, `/migration/*`, `/api/v1/price/lookup`, catalog **18/18** complete through `brand-parts`. Unauth 401 ASP.NET JSON; VIN warm 200; offline-cache routes may 404 `cache_miss` when probe params ≠ warm key.
-- Next class: CP/ERP/BOS digest exact-routes (start `/cp/dashboard-summary`)
+- Surface digests: **1/30** live; next `/cp/tenants` (never broad `/cp`)
 - Live `/migration/surface-parity` → `parity-not-yet-reached`
 - Live `/migration/presentation-parity` → `presentation-shell-scaffolded` only
 
-Approval must **not** be written until remaining surfaces have exact-route shadows + dual-sample PHP↔ASP.NET parity where required. Loopback smoke + catalog API shadows alone are insufficient for PHP removal (CP/ERP/BOS chrome + digests still PHP).
+Approval must **not** be written until remaining surfaces have exact-route shadows + dual-sample PHP↔ASP.NET parity where required. Loopback smoke + catalog API shadows + one digest are insufficient for PHP removal (CP/ERP/BOS chrome + most digests still PHP).
 
 ## Required before approval can be written
 

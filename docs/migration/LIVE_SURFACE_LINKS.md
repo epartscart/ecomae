@@ -65,19 +65,19 @@ Tenant BOS is generally Super-CP-only; tenant hosts may still answer `/BOS/` via
 
 ## Catalog exact-route shadows (www)
 
-**Live (public unauth ASP.NET JSON 401):** price lookup + **all wired catalog API paths (18/18)** through `brand-parts`.
+**Live (public unauth ASP.NET JSON 401):** price lookup + **all wired catalog API paths (18/18)** through `brand-parts` + **`/cp/dashboard-summary`** (digest gate: `unauthorized`).
 
-**Pending next:** CP/ERP/BOS digests — start `/cp/dashboard-summary` (Cookie proxy; unauth `401 unauthorized`).
+**Surface digests:** **1 / 30** live. **Pending next:** `/cp/tenants` (Cookie proxy; unauth `401 unauthorized`).
 
 ## Exact-route digests pending nginx shadow
 
-These exist in ASP.NET on loopback (`127.0.0.1:5100`) but are **not** cut over on the public host yet:
+These exist in ASP.NET on loopback (`127.0.0.1:5100`) but most are **not** cut over on the public host yet:
 
-- Full CP/ERP/BOS digest set in `nginx-surface-digests-shadow-example.conf` (dashboard, tenants/users/groups/menus/pages, cash/COA/warehouses/orders/invoices/GL, fleet/audit, …)
+- Remaining CP/ERP/BOS digests in `nginx-surface-digests-shadow-example.conf` (tenants/users/groups/menus/pages, cash/COA/warehouses/orders/invoices/GL, fleet/audit, …) — **29/30**
 - `/storefront/account-summary`, `/storefront/orders`, `/storefront/garage`, `/storefront/profile` (optional; needs customer cookie)
 
 Enable only via `deploy/aspnet/nginx-surface-digests-shadow-example.conf` / catalog / storefront shadow examples after smoke. Never broad `/api|/cp|/erp|/bos|/storefront`.
 
 ## Final PHP cutover gate
 
-Weighted meter still **95% / 5%** (PHP runtime decommission residual). That is **not** “95% of routes live.” Wired catalog exact-routes are **18/18**; public chrome + digests remain PHP. Remaining work: digest exact-routes + dual samples, human `RELEASE_OWNER_APPROVAL.md`. Do not remove PHP-FPM/cron/rewrites until `/migration/php-decommission-readiness` reports ready with approval attached.
+Weighted meter still **95% / 5%** (PHP runtime decommission residual). That is **not** “95% of routes live.” Wired catalog exact-routes are **18/18**; first digest (`/cp/dashboard-summary`) is live; chrome + remaining digests still PHP. Remaining work: digest exact-routes + dual samples, human `RELEASE_OWNER_APPROVAL.md`. Do not remove PHP-FPM/cron/rewrites until `/migration/php-decommission-readiness` reports ready with approval attached.

@@ -11,15 +11,17 @@
     "catalogExactRoutesLive": 18,
     "catalogExactRoutesWired": 18,
     "catalogExactRoutesPending": [],
-    "nextExactRoute": "/cp/dashboard-summary",
+    "surfaceDigestExactRoutesLive": 1,
+    "surfaceDigestExactRoutesWired": 30,
+    "nextExactRoute": "/cp/tenants",
     "publicChromeStillPhp": true,
     "cpErpBosDigestsStillPhp": true,
     "readyToRemovePhp": false,
     "approvalPresent": false,
     "notes": [
       "Weighted 95%/5% meter is not percent of public routes cut over.",
-      "Wired catalog API exact-routes complete (18/18) including brand-parts.",
-      "Next cutover class: CP/ERP/BOS digests one location= at a time."
+      "Wired catalog API exact-routes complete (18/18).",
+      "Surface digests 1/30 live: /cp/dashboard-summary (401 unauthorized unauth)."
     ]
   },
   "inventory": {
@@ -60,19 +62,19 @@
     "field/function/presentation parity contracts + harness (cutover blocked)",
     "migration-mode digest contract validator + golden samples (no secrets)",
     "PHP decommission readiness reporter + final-gate checklist/smoke kit (blocked)",
-    "public exact-route catalog shadows complete (18/18); next CP/ERP/BOS digests",
+    "public exact-route catalog shadows complete (18/18); surface digests 1/30 (cp/dashboard-summary)",
     "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],
   "architectureComplianceDoc": "docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md",
   "pathTo100Percent": [
     "Authenticated staging smoke attached (PR #612) for price/catalog/surface digests",
     "Wired catalog exact-routes complete (18/18)",
-    "Enable only approved location= nginx shadows for CP/ERP/BOS digests after dual samples",
+    "Promote remaining surface digests (29/30) one location= at a time after dual samples",
     "Promote all 61 batches from dry-run scaffolding to shadow/live with parity evidence",
     "Human RELEASE_OWNER_APPROVAL.md before PHP decommission (remaining 5% meter)"
   ],
   "nextExecutionOrder": [
-    "ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /cp/dashboard-summary",
+    "ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /cp/tenants",
     "Expect public 401 unauthorized ASP.NET JSON (Cookie proxied); never broad /cp.",
     "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP chrome must remain).",
     "Confirm /migration/php-decommission-readiness is 8/9 with approval missing; surface-parity=parity-not-yet-reached.",

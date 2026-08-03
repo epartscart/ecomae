@@ -72,8 +72,8 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("tenant", "ePartsCart ERP", "https://epartscart.com/ERP/", "php", "/erp", "Tenant ERP."),
             Link("tenant", "ePartsCart www frontend", "https://www.epartscart.com/", "php", "/", "www alias for ePartsCart."),
 
-            // Exact-route ASP.NET digests (not yet publicly proxied; enable one location= at a time)
-            Link("aspnet-digest-pending-shadow", "CP dashboard digest", "https://www.ecomae.com/cp/dashboard-summary", "php-fallback", "/cp/dashboard-summary", "Needs exact-route nginx shadow after smoke; currently PHP 404 HTML."),
+            // Exact-route ASP.NET digests (enable one location= at a time; Cookie proxy)
+            Link("aspnet-exact-route-shadow-live", "CP dashboard digest", "https://www.ecomae.com/cp/dashboard-summary", "aspnet", "/cp/dashboard-summary", "Live exact-route nginx shadow on www (unauth 401 unauthorized; admin cookie for 200). First CP/ERP/BOS digest on public www (1/30 surface digests)."),
             Link("aspnet-digest-pending-shadow", "CP tenants digest", "https://www.ecomae.com/cp/tenants", "php-fallback", "/cp/tenants", "Covered by nginx-surface-digests-shadow-example.conf after smoke."),
             Link("aspnet-digest-pending-shadow", "CP users digest", "https://www.ecomae.com/cp/users", "php-fallback", "/cp/users", "Covered by nginx-surface-digests-shadow-example.conf after smoke."),
             Link("aspnet-digest-pending-shadow", "CP groups digest", "https://www.ecomae.com/cp/groups", "php-fallback", "/cp/groups", "Covered by nginx-surface-digests-shadow-example.conf after smoke."),
@@ -150,9 +150,9 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article_links",
                 "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article",
                 "If engine-search/article auth 403 action_not_allowed: re-issue smoke creds (allowlist now includes engine_search+article) via ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
-                "Wired catalog exact-routes complete (18/18). Next: CP/ERP/BOS digests one location= at a time (Cookie proxy; not broad /cp).",
-                "Next exact-route: ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /cp/dashboard-summary",
-                "Then continue digests from deploy/aspnet/nginx-surface-digests-shadow-example.conf (tenants, users, …) after dual samples.",
+                "Wired catalog exact-routes complete (18/18). Surface digests: 1/30 live (cp/dashboard-summary).",
+                "Next exact-route: ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /cp/tenants",
+                "Then continue digests from deploy/aspnet/nginx-surface-digests-shadow-example.conf (users, groups, …) one location= at a time. Never broad /cp|/erp|/bos.",
                 "Dual-sample: python3 scripts/compare_catalog_list_parity.py manufacturers|models|modifications|brands|suppliers php.json aspnet.json — PHP chrome stays until human APPROVED_TO_REMOVE_PHP_FALLBACK."
             ]);
     }
