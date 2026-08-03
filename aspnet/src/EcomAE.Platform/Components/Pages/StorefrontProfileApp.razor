@@ -1,0 +1,161 @@
+@page "/storefront/profile-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Profile · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <style>
+        .epc-sf-pf-hero {
+            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0c4a6e 100%);
+        }
+        .epc-sf-pf-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
+        .epc-sf-pf-hero p { margin:0; color:#bae6fd; max-width:40rem; font-size:.92rem; line-height:1.45; }
+        .epc-sf-pf-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-sf-pf-cta a {
+            display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0f172a; background:#7dd3fc;
+        }
+        .epc-sf-pf-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-sf-pf-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-sf-pf-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-sf-pf-kpi strong { display:block; font-size:1.15rem; font-variant-numeric:tabular-nums; word-break:break-all; }
+        .epc-sf-pf-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-sf-pf-panel { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; margin-bottom:1rem; }
+        .epc-sf-pf-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-sf-pf-table th, .epc-sf-pf-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; }
+        .epc-sf-pf-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; width:12rem; }
+        .epc-sf-pf-table a { color:#0369a1; font-weight:700; text-decoration:none; }
+        .epc-sf-pf-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-sf-pf-badge--ok { background:#e0f2fe; color:#075985; }
+        .epc-sf-pf-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-sf-pf-note { margin-top:1rem; padding:.75rem .9rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:.45rem; color:#0c4a6e; font-size:.86rem; }
+        .epc-sf-pf-gate { padding:1.25rem; background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; }
+        @@media (max-width:900px){ .epc-sf-pf-kpis{grid-template-columns:1fr;} .epc-sf-pf-table th{width:auto;} }
+    </style>
+
+    <section class="epc-sf-pf-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
+        <h1>Profile</h1>
+        <p>Read-only customer profile from <code>/storefront/profile</code> digest under PHP storefront chrome. Edits stay on live PHP <code>/users/profile</code> — same-to-same for tenants.</p>
+        <div class="epc-sf-pf-cta">
+            <a href="@_phpProfile">Open PHP profile</a>
+            <a class="ghost" href="/storefront/garage-app">Garage</a>
+            <a class="ghost" href="/storefront/orders-app">My orders</a>
+            <a class="ghost" href="/storefront/login">Customer login</a>
+        </div>
+    </section>
+
+    @if (!_isCustomer)
+    {
+        <div class="epc-sf-pf-gate">
+            <p style="margin:0 0 .75rem;color:#334155">Sign in with a customer session to load your profile. Edits remain on PHP.</p>
+            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#0284c7;color:#fff;font-weight:700;text-decoration:none">Customer login bridge</a>
+            <a href="@_phpProfile" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">PHP profile</a>
+        </div>
+    }
+    else
+    {
+        <div class="epc-sf-pf-kpis" aria-label="Profile KPIs">
+            <div class="epc-sf-pf-kpi"><strong>@_userId.ToString(CultureInfo.InvariantCulture)</strong><span>User ID</span></div>
+            <div class="epc-sf-pf-kpi"><strong>@(string.IsNullOrWhiteSpace(_email) ? "—" : _email)</strong><span>Email</span></div>
+            <div class="epc-sf-pf-kpi"><strong>@_fields.Count.ToString(CultureInfo.InvariantCulture)</strong><span>Profile fields</span></div>
+        </div>
+
+        <div class="epc-sf-pf-panel">
+            <table class="epc-sf-pf-table">
+                <tbody>
+                    <tr><th>Email</th><td>@(string.IsNullOrWhiteSpace(_email) ? "—" : _email)</td></tr>
+                    <tr><th>Email confirmed</th><td><span class="epc-sf-pf-badge @(_emailConfirmed != 0 ? "epc-sf-pf-badge--ok" : "epc-sf-pf-badge--off")">@(_emailConfirmed != 0 ? "yes" : "no")</span></td></tr>
+                    <tr><th>Phone</th><td>@(string.IsNullOrWhiteSpace(_phone) ? "—" : _phone)</td></tr>
+                    <tr><th>Phone confirmed</th><td><span class="epc-sf-pf-badge @(_phoneConfirmed != 0 ? "epc-sf-pf-badge--ok" : "epc-sf-pf-badge--off")">@(_phoneConfirmed != 0 ? "yes" : "no")</span></td></tr>
+                    <tr><th>Reg variant</th><td>@_regVariant.ToString(CultureInfo.InvariantCulture)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="epc-sf-pf-panel">
+            <table class="epc-sf-pf-table">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_fields.Count == 0)
+                    {
+                        <tr><td colspan="2">No profile fields in digest (@_source). @_message</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var kv in _fields.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
+                        {
+                            <tr>
+                                <th>@kv.Key</th>
+                                <td>@(string.IsNullOrWhiteSpace(kv.Value) ? "—" : kv.Value)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <p style="margin:0 0 1rem"><a href="@_phpProfile" style="color:#0369a1;font-weight:700;text-decoration:none">Edit in PHP profile</a></p>
+    }
+
+    <div class="epc-sf-pf-note">
+        Read-only preview · JSON digest <a href="/storefront/profile">/storefront/profile</a> (customer session required).
+        PHP <code>DP_User::getUserProfile</code> / <code>/users/profile</code> remain authoritative for edits.
+        Not a broad storefront or <code>/</code> cutover · live epartscart.com stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpStorefrontDesktopChrome>
+
+@code {
+    private const string _phpProfile = "https://epartscart.com/users/profile";
+    private bool _isCustomer;
+    private int _userId;
+    private string _email = "";
+    private int _emailConfirmed;
+    private string _phone = "";
+    private int _phoneConfirmed;
+    private int _regVariant;
+    private IReadOnlyDictionary<string, string> _fields = new Dictionary<string, string>();
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+        {
+            _isCustomer = false;
+            return;
+        }
+
+        _isCustomer = true;
+        var result = await Dashboards.BuildStorefrontProfileAsync(session.UserId, ctx.RequestAborted);
+        _userId = result.UserId;
+        _email = result.Email;
+        _emailConfirmed = result.EmailConfirmed;
+        _phone = result.Phone;
+        _phoneConfirmed = result.PhoneConfirmed;
+        _regVariant = result.RegVariant;
+        _fields = result.ProfileFields;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}
