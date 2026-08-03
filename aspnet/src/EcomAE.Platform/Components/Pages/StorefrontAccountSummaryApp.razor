@@ -1,0 +1,122 @@
+@page "/storefront/account-summary-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Account · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <style>
+        .epc-sf-acc-hero {
+            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#1c1917 0%,#78350f 48%,#365314 100%);
+        }
+        .epc-sf-acc-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
+        .epc-sf-acc-hero p { margin:0; color:#fde68a; max-width:40rem; font-size:.92rem; line-height:1.45; }
+        .epc-sf-acc-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-sf-acc-cta a {
+            display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#1c1917; background:#fbbf24;
+        }
+        .epc-sf-acc-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-sf-acc-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-sf-acc-kpi { background:#fff; border:1px solid #e7e5e4; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-sf-acc-kpi strong { display:block; font-size:1.35rem; font-variant-numeric:tabular-nums; }
+        .epc-sf-acc-kpi span { color:#78716c; font-size:.78rem; }
+        .epc-sf-acc-links { display:flex; gap:.45rem; flex-wrap:wrap; margin-bottom:1rem; }
+        .epc-sf-acc-links a {
+            display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#78350f; background:#fff; border:1px solid #e7e5e4;
+        }
+        .epc-sf-acc-note { margin-top:1rem; padding:.75rem .9rem; background:#fffbeb; border:1px solid #fde68a; border-radius:.45rem; color:#713f12; font-size:.86rem; }
+        .epc-sf-acc-gate { padding:1.25rem; background:#fff; border:1px solid #e7e5e4; border-radius:.55rem; }
+        @@media (max-width:900px){ .epc-sf-acc-kpis{grid-template-columns:1fr 1fr;} }
+        @@media (max-width:560px){ .epc-sf-acc-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-sf-acc-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
+        <h1>Account</h1>
+        <p>Read-only account KPIs from <code>/storefront/account-summary</code> digest under PHP storefront chrome. Profile edits and account tools stay on live PHP <code>/users/</code> — same-to-same for tenants.</p>
+        <div class="epc-sf-acc-cta">
+            <a href="@_phpAccount">Open PHP account</a>
+            <a class="ghost" href="/storefront/orders-app">My orders</a>
+            <a class="ghost" href="/storefront/garage-app">Garage</a>
+            <a class="ghost" href="/storefront/profile-app">Profile</a>
+            <a class="ghost" href="/storefront/login">Customer login</a>
+        </div>
+    </section>
+
+    @if (!_isCustomer)
+    {
+        <div class="epc-sf-acc-gate">
+            <p style="margin:0 0 .75rem;color:#44403c">Sign in with a customer session to load account KPIs. Edits remain on PHP.</p>
+            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#b45309;color:#fff;font-weight:700;text-decoration:none">Customer login bridge</a>
+            <a href="@_phpAccount" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d6d3d1;color:#111;font-weight:700;text-decoration:none">PHP account</a>
+        </div>
+    }
+    else
+    {
+        <div class="epc-sf-acc-kpis" aria-label="Account KPIs">
+            <div class="epc-sf-acc-kpi"><strong>@_userId.ToString(CultureInfo.InvariantCulture)</strong><span>User ID</span></div>
+            <div class="epc-sf-acc-kpi"><strong>@_orders.ToString(CultureInfo.InvariantCulture)</strong><span>Orders</span></div>
+            <div class="epc-sf-acc-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Sessions</span></div>
+            <div class="epc-sf-acc-kpi"><strong>@_garage.ToString(CultureInfo.InvariantCulture)</strong><span>Garage vehicles</span></div>
+        </div>
+
+        <div class="epc-sf-acc-links" aria-label="Account shortcuts">
+            <a href="/storefront/orders-app">Orders list</a>
+            <a href="/storefront/garage-app">Garage list</a>
+            <a href="/storefront/profile-app">Profile read</a>
+            <a href="@_phpAccount">PHP account hub</a>
+            <a href="https://epartscart.com/users/profile">PHP profile</a>
+        </div>
+    }
+
+    <div class="epc-sf-acc-note">
+        Read-only preview · JSON digest <a href="/storefront/account-summary">/storefront/account-summary</a> (customer session required).
+        PHP <code>content/users/</code> / <code>/users/</code> remain authoritative for account tools.
+        Not a broad storefront or <code>/</code> cutover · live epartscart.com stays PHP (same-to-same).
+        Source: <code>@_source</code>@(!string.IsNullOrWhiteSpace(_message) ? $" · {_message}" : "").
+    </div>
+</PhpStorefrontDesktopChrome>
+
+@code {
+    private const string _phpAccount = "https://epartscart.com/users/";
+    private bool _isCustomer;
+    private int _userId;
+    private int _orders;
+    private int _sessions;
+    private int _garage;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+        {
+            _isCustomer = false;
+            return;
+        }
+
+        _isCustomer = true;
+        var result = await Dashboards.BuildStorefrontAccountAsync(session.UserId, ctx.RequestAborted);
+        _userId = result.UserId;
+        _orders = result.Orders;
+        _sessions = result.Sessions;
+        _garage = result.GarageVehicles;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

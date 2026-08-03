@@ -106,13 +106,14 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 ### Hybrid CP continue
 - ✅ Users/Groups · Orders · Modules · Pages · Menus · Tenants · Currencies · Storages · Admin-sessions · API clients · Config-items (#686)
 
-### Hybrid storefront continue
+### Hybrid storefront continue ← current
 - ✅ Search · Cart · Orders (#687) · Garage (#688) · Profile (#689)
+- **This PR:** `/storefront/account-summary-app` over `/storefront/account-summary` digest; PHP `/users/` authoritative.
 - Exact-route www preview only — live epartscart.com / tenant storefronts stay PHP (same-to-same).
 - Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 
-### Dual-sample evidence packs for hybrid UIs ← current
-- dual-sample evidence packs for hybrid UIs ✅: `cloudpanel_capture_hybrid_ui_dual_samples.sh` + `compare_hybrid_ui_dual_samples.py` + evidence under `hybrid-ui-dual-samples/` (27 UI stubs + PHP inventory; `cutoverAllowed=false`).
+### Dual-sample evidence packs for hybrid UIs
+- dual-sample evidence packs for hybrid UIs ✅ (#690): `cloudpanel_capture_hybrid_ui_dual_samples.sh` + `compare_hybrid_ui_dual_samples.py` + evidence under `hybrid-ui-dual-samples/` (28 UI stubs + PHP inventory; `cutoverAllowed=false`).
 - Next: CloudPanel operator live captures (admin/customer cookies + `ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1`) after presentation shadows; keep tenant verify `cutoverAllowed=false`.
 - Stubs are CI floor only — never invent live pass results or `RELEASE_OWNER_APPROVAL.md`.
 

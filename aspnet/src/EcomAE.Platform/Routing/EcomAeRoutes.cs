@@ -148,6 +148,8 @@ public static class EcomAeRoutes
     public const string StorefrontCartApp = "/storefront/cart-app";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
+    /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
+    public const string StorefrontAccountSummaryApp = "/storefront/account-summary-app";
     public const string StorefrontOrders = "/storefront/orders";
     /// <summary>Storefront customer orders Blazor list (JSON digest remains <see cref="StorefrontOrders"/>).</summary>
     public const string StorefrontOrdersApp = "/storefront/orders-app";

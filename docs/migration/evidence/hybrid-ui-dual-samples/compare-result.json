@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 28,
-  "hybridUiSamplesOk": 27,
+  "pairsChecked": 29,
+  "hybridUiSamplesOk": 28,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -223,6 +223,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "erp-warehouses",
       "appRoute": "/erp/warehouses-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-sf-account-summary-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "sf-account-summary",
+      "appRoute": "/storefront/account-summary-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
