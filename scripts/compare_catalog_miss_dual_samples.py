@@ -12,7 +12,14 @@ import sys
 from pathlib import Path
 
 MISS_CODES = frozenset({"cache_miss", "vin_cache_miss"})
-SKIP_NAMES = frozenset({"README.md", "compare-result.json"})
+SKIP_NAMES = frozenset(
+    {
+        "README.md",
+        "compare-result.json",
+        # Separate dry-run evidence family (not a dual-sample pair).
+        "miss-fill-dry-run-report.json",
+    }
+)
 
 
 def evaluate(doc: dict, path: Path) -> dict:

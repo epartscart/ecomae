@@ -1,0 +1,9 @@
+{
+  "pairsChecked": 15,
+  "failed": 0,
+  "migrationBaselinePairs": 0,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "contractOnly": true,
+  "note": "Digest dual-sample contract floor. Never invents RELEASE_OWNER_APPROVAL.md."
+}

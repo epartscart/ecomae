@@ -95,6 +95,14 @@ fi
 # Operator helpers exist.
 check_file "hybrid UI dual-sample operator helper" \
   "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh"
+check_file "login-cookie dual-sample operator helper" \
+  "$ROOT/scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh"
+check_file "catalog-miss dual-sample operator helper" \
+  "$ROOT/scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh"
+check_file "digest dual-sample operator helper" \
+  "$ROOT/scripts/cloudpanel_run_digest_dual_sample_operator.sh"
+check_file "all dual-sample operators helper" \
+  "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh"
 check_file "YARP all-packs generator helper" \
   "$ROOT/scripts/generate_all_yarp_design_examples.sh"
 

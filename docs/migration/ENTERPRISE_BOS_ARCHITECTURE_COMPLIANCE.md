@@ -70,7 +70,7 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 
 ## Next architecture tracks (ordered)
 
-1. CloudPanel operator: live hybrid UI dual-sample captures after presentation shadows (`cutoverAllowed=false` always).
+1. CloudPanel operator: live dual-sample captures after presentation shadows (`bash scripts/cloudpanel_run_all_dual_sample_operators.sh`; `cutoverAllowed=false` always).
 2. Introduce EF Core 10 against current DB bridge (register DbContext only after approved repository cutover), then plan PostgreSQL 17 cutover.
 3. Wire OpenTelemetry exporters + Serilog sinks; keep ActivitySource names stable.
 4. Optionally place YARP behind Nginx for approved exact routes only (regenerate design JSON from nginx allowlist; not enabled).
