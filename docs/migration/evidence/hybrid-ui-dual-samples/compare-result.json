@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 34,
-  "hybridUiSamplesOk": 33,
+  "pairsChecked": 35,
+  "hybridUiSamplesOk": 34,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -83,6 +83,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-currencies",
       "appRoute": "/cp/currencies-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-dashboard-summary-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-dashboard-summary",
+      "appRoute": "/cp/dashboard-summary-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** ERP accounts-summary Blazor KPI UI (`/erp/accounts-summary-app`) on www preview only; PHP cash/bank remains authoritative. BOS fleet family + inventory-stock and prior slices shipped/tracked. Live CloudPanel cookie captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** CP dashboard-summary Blazor KPI UI (`/cp/dashboard-summary-app`) on www preview only; PHP `/CP/` widgets remain authoritative. ERP/BOS digest apps and prior slices shipped/tracked. Live CloudPanel cookie captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

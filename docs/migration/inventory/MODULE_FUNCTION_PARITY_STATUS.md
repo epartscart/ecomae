@@ -20,7 +20,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Module family | PHP route family | ASP.NET | Status |
 | --- | --- | --- | --- |
 | Login / session | `/CP/` auth plugin | `/cp/login` bridge (opt-in Batch 3 dual-sample) | hybrid-deeplink |
-| Command centre chrome | `desktop.php` widgets | `/cp/app` + `PhpCpDesktopChrome` mega-nav + 405 directory | digest-only + hybrid-deeplink (Batch 2 desktop) |
+| Command centre chrome | `desktop.php` widgets | `/cp/app` + `/cp/dashboard-summary-app` + mega-nav directory | digest-only + hybrid-deeplink (Batch 2 desktop) |
 | Orders / OMS | `/CP/shop/orders/orders` | `/cp/orders` read UI + `/cp/orders-digest` KPI/list | digest-only + hybrid-deeplink (Batch 4; writes PHP) |
 | Customers / users / groups | `/CP/control/users*` · `/CP/users/usergroups` | `/cp/users-app` + `/cp/groups-app` lists over digests | digest-only + hybrid-deeplink (Batch 4; writes PHP) |
 | Modules manager | `/CP/modules/modules_manager` | `/cp/modules-app` over `/cp/modules` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |

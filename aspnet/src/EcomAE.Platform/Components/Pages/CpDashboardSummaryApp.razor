@@ -1,0 +1,97 @@
+@page "/cp/dashboard-summary-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Dashboard Summary · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-ds-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#111827 0%,#7f1d1d 55%,#991b1b 100%);
+        }
+        .epc-ds-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-ds-hero p { margin:0; color:#fecaca; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-ds-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-ds-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#111827; background:#fca5a5;
+        }
+        .epc-ds-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-ds-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-ds-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-ds-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-ds-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-ds-note { margin-top:1rem; padding:.75rem .9rem; background:#fef2f2; border:1px solid #fecaca; border-radius:.45rem; color:#7f1d1d; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-ds-kpis{grid-template-columns:1fr 1fr;} }
+        @@media (max-width:560px){ .epc-ds-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-ds-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Dashboard Summary</h1>
+        <p>Read-only CP KPI digest from <code>/cp/dashboard-summary</code> under PHP CP desktop chrome. Interactive widgets stay on live PHP <code>/CP/</code> — same-to-same for tenants.</p>
+        <div class="epc-ds-cta">
+            <a href="@_phpTab">Open PHP Control Panel</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/tenants-app">Tenants</a>
+            <a class="ghost" href="/cp/users-app">Users</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-ds-kpis" aria-label="CP dashboard KPIs">
+        <div class="epc-ds-kpi"><strong>@_users.ToString(CultureInfo.InvariantCulture)</strong><span>Admin users</span></div>
+        <div class="epc-ds-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Admin sessions</span></div>
+        <div class="epc-ds-kpi"><strong>@_tenants.ToString(CultureInfo.InvariantCulture)</strong><span>Portal tenants</span></div>
+        <div class="epc-ds-kpi"><strong>@_active.ToString(CultureInfo.InvariantCulture)</strong><span>Active portal tenants</span></div>
+    </div>
+
+    <div class="epc-ds-note">
+        Read-only preview · JSON digest <a href="/cp/dashboard-summary">/cp/dashboard-summary</a>.
+        PHP <code>desktop.php</code> widgets remain authoritative.
+        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>@(!string.IsNullOrWhiteSpace(_message) ? $" · {_message}" : "").
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/";
+    private bool _isAdmin;
+    private int _users;
+    private int _sessions;
+    private int _tenants;
+    private int _active;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildControlPanelAsync(ctx.RequestAborted);
+        _users = result.Users;
+        _sessions = result.AdminSessions;
+        _tenants = result.PortalTenants;
+        _active = result.ActivePortalTenants;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

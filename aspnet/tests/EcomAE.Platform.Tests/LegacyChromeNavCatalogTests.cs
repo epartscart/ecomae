@@ -10,6 +10,7 @@ public sealed class LegacyChromeNavCatalogTests
     {
         Assert.Contains(LegacyChromeNavCatalog.ControlPanel, item => item.Label == "Commerce" && item.Href.StartsWith("/CP/", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.ControlPanel, item => item.Label == "ERP" && item.Href.Contains("/ERP", StringComparison.Ordinal));
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Dashboard summary KPIs" && item.Href == "/cp/dashboard-summary-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Orders (OMS)" && item.Href == "/cp/orders");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Users list" && item.Href == "/cp/users-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Groups list" && item.Href == "/cp/groups-app");

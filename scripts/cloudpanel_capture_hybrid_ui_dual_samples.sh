@@ -62,6 +62,7 @@ now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 # stem, surface, appRoute, digestRoute, phpPath, blazorMarker, chromeShell, authKind
 TARGETS = [
     ("cp-orders", "cp", "/cp/orders", "/cp/orders-digest", "/CP/shop/orders/orders", "CpOrdersApp", "PhpCpDesktopChrome", "admin"),
+    ("cp-dashboard-summary", "cp", "/cp/dashboard-summary-app", "/cp/dashboard-summary", "/CP/", "CpDashboardSummaryApp", "PhpCpDesktopChrome", "admin"),
     ("cp-users", "cp", "/cp/users-app", "/cp/users", "/CP/control/users", "CpUsersApp", "PhpCpDesktopChrome", "admin"),
     ("cp-groups", "cp", "/cp/groups-app", "/cp/groups", "/CP/users/usergroups", "CpGroupsApp", "PhpCpDesktopChrome", "admin"),
     ("cp-modules", "cp", "/cp/modules-app", "/cp/modules", "/CP/modules/modules_manager", "CpModulesApp", "PhpCpDesktopChrome", "admin"),

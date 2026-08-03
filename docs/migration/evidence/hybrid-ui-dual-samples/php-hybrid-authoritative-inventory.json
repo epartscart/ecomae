@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-03T19:25:46Z",
+  "capturedAt": "2026-08-03T19:27:14Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -18,6 +18,12 @@
       "appRoute": "/cp/orders",
       "digestRoute": "/cp/orders-digest",
       "phpAuthoritativePath": "/CP/shop/orders/orders"
+    },
+    {
+      "stem": "cp-dashboard-summary",
+      "appRoute": "/cp/dashboard-summary-app",
+      "digestRoute": "/cp/dashboard-summary",
+      "phpAuthoritativePath": "/CP/"
     },
     {
       "stem": "cp-users",
