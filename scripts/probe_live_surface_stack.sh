@@ -30,6 +30,7 @@ urls=(
   "https://www.ecomae.com/api/v1/catalog/status"
   "https://www.ecomae.com/api/v1/catalog/manufacturers"
   "https://www.ecomae.com/api/v1/catalog/models"
+  "https://www.ecomae.com/api/v1/catalog/modifications"
   # Loopback-oriented parity boards (public host may still be PHP until allowlisted):
   "https://www.ecomae.com/cp/parity"
   "https://www.ecomae.com/erp/parity"
