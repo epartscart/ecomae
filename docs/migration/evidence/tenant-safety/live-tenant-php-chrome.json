@@ -2,6 +2,8 @@
   "generatedAtUtc": "2026-08-03T12:34:45Z",
   "status": "pass",
   "policy": "live-tenant-product-chrome-must-remain-php",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "passCount": 21,
   "failCount": 0,
   "probes": [
@@ -220,6 +222,7 @@
     "ASP.NET exact-route digests/APIs on www.ecomae.com are intentional and out of scope here.",
     "This probe fails if / /CP/ /ERP/ on live tenant hosts look like Blazor scaffolds or JSON digests.",
     "php-plain (e.g. PHP license/domain_path text) is not ASP.NET cutover; industry hosts are optional.",
-    "Do not remove PHP while live tenants depend on PHP chrome."
+    "Do not remove PHP while live tenants depend on PHP chrome.",
+    "Never invent RELEASE_OWNER_APPROVAL.md."
   ]
 }

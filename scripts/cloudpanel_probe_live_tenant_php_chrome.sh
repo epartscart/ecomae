@@ -232,6 +232,8 @@ doc = {
     "generatedAtUtc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     "status": status,
     "policy": "live-tenant-product-chrome-must-remain-php",
+    "cutoverAllowed": False,
+    "readyForPhpRemoval": False,
     "passCount": pass_n,
     "failCount": fail_n,
     "probes": rows,
@@ -240,6 +242,7 @@ doc = {
         "This probe fails if / /CP/ /ERP/ on live tenant hosts look like Blazor scaffolds or JSON digests.",
         "php-plain (e.g. PHP license/domain_path text) is not ASP.NET cutover; industry hosts are optional.",
         "Do not remove PHP while live tenants depend on PHP chrome.",
+        "Never invent RELEASE_OWNER_APPROVAL.md.",
     ],
 }
 with open(out, "w", encoding="utf-8") as fh:

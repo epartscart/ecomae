@@ -17,6 +17,16 @@ FORBIDDEN_FILES = (
     "MODULE_FUNCTION_PARITY_PASS.md",
 )
 
+# Verdict JSON files that must explicitly set cutoverAllowed=false (absence is a drift hole).
+MUST_DECLARE_CUTOVER_FALSE = (
+    "tenant-safety/live-tenant-php-chrome.json",
+    "tenant-safety/same-to-same-verify.json",
+    "presentation/php-vs-aspnet-recheck.json",
+    "module-function-parity/compare-result.json",
+    "catalog-api/compare-result.json",
+    "price-lookup/compare-result.json",
+)
+
 
 def walk_bools(obj, prefix: str = "") -> list[tuple[str, bool]]:
     items: list[tuple[str, bool]] = []
@@ -72,6 +82,27 @@ def main() -> int:
         hits = sorted(args.docs_root.rglob(name))
         for hit in hits:
             errors.append(f"forbidden approval/pass artifact present: {hit}")
+
+    for rel in MUST_DECLARE_CUTOVER_FALSE:
+        path = args.evidence_root / rel
+        if not path.is_file():
+            errors.append(f"missing required cutover-lock evidence: {path}")
+            continue
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as ex:  # noqa: BLE001
+            errors.append(f"{path}: invalid JSON ({ex})")
+            continue
+        if not isinstance(doc, dict):
+            errors.append(f"{path}: root must be object")
+            continue
+        if doc.get("cutoverAllowed") is not False:
+            errors.append(f"{path}: cutoverAllowed must be explicitly false")
+        removal = doc.get("readyForPhpRemoval")
+        if removal is None:
+            removal = doc.get("readyToRemovePhp")
+        if removal is not False:
+            errors.append(f"{path}: readyForPhpRemoval (or readyToRemovePhp) must be explicitly false")
 
     if errors:
         print("FAIL: migration evidence cutover locks", file=sys.stderr)

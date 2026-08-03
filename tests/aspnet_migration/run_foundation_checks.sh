@@ -678,8 +678,16 @@ check 'tenant chrome probe rejects storefront garage-app marker' contains "$ROOT
 check 'tenant chrome probe rejects storefront profile-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'StorefrontProfileApp'
 check 'tenant chrome probe rejects storefront account-summary-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'StorefrontAccountSummaryApp'
 check 'deploy packs same-to-same tenant verify' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_verify_tenant_hosts_still_php.sh'
+check 'deploy packs tenant-safety operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_tenant_safety_operator.sh'
 check 'deploy packs live tenant chrome probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_live_tenant_php_chrome.sh'
 check 'tenant safety operator verify note exists' test -f "$ROOT/docs/migration/evidence/tenant-safety/OPERATOR_VERIFY.md"
+check 'tenant safety operator exists' test -f "$ROOT/scripts/cloudpanel_run_tenant_safety_operator.sh"
+check 'tenant safety operator is executable' test -x "$ROOT/scripts/cloudpanel_run_tenant_safety_operator.sh"
+check 'tenant chrome evidence blocks cutover' contains "$ROOT/docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json" '"cutoverAllowed": false'
+check 'tenant chrome evidence blocks PHP removal' contains "$ROOT/docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json" '"readyForPhpRemoval": false'
+check 'same-to-same verify evidence exists' test -f "$ROOT/docs/migration/evidence/tenant-safety/same-to-same-verify.json"
+check 'same-to-same verify evidence blocks cutover' contains "$ROOT/docs/migration/evidence/tenant-safety/same-to-same-verify.json" '"cutoverAllowed": false'
+check 'live tenant probe writes cutoverAllowed false' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" '"cutoverAllowed": False'
 check 'presentation parity states digests not tenant UX' contains "$ROOT/docs/migration/PRESENTATION_PARITY.md" 'not** tenant product chrome'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'

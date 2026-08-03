@@ -14,7 +14,7 @@ All helpers keep `cutoverAllowed=false` / `readyForPhpRemoval=false`. Never inve
 | Login cookie | `bash scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh` | `login-session-bridge/OPERATOR_VERIFY.md` |
 | Catalog miss | `bash scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh` | `catalog-miss-umapi/OPERATOR_VERIFY.md` |
 | Module-function | `bash scripts/cloudpanel_run_module_function_parity_operator.sh` | `module-function-parity/OPERATOR_VERIFY.md` |
-| Tenant same-to-same PHP chrome | `bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh` | `tenant-safety/OPERATOR_VERIFY.md` |
+| Tenant same-to-same PHP chrome | `bash scripts/cloudpanel_run_tenant_safety_operator.sh` | `tenant-safety/OPERATOR_VERIFY.md` |
 | Scaffold / allowlist guardrails | `bash scripts/validate_enterprise_bos_scaffold_guardrails.sh` | — |
 
 After CloudPanel redeploy + presentation shadows:
