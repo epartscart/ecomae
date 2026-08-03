@@ -26,14 +26,13 @@ Tracked PHP route/job: `api/v1/price/lookup` backed by `shop_docpart_prices_data
 ## Automated parity comparison
 
 ```bash
-python3 scripts/compare_price_lookup_parity.py
+bash scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh
+# or:
+python3 scripts/compare_price_lookup_parity.py --out docs/migration/evidence/price-lookup/compare-result.json
 ```
 
-Expected output:
-
-```text
-PRICE LOOKUP PARITY PASSED: 2 offer(s) matched
-```
+Expected: `PRICE LOOKUP PARITY PASSED: 2 offer(s) matched` and `compare-result.json` with `cutoverAllowed=false`.
+See `OPERATOR_VERIFY.md`.
 
 ## Staging smoke command
 

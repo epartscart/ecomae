@@ -1,0 +1,10 @@
+{
+  "role": "compare-result",
+  "ok": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "contractOnly": false,
+  "offerCount": 2,
+  "errors": [],
+  "note": "Price lookup exact-route parity floor. Never invents RELEASE_OWNER_APPROVAL.md."
+}

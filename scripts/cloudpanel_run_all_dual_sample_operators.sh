@@ -30,6 +30,7 @@ run_one "login-cookie" "$ROOT/scripts/cloudpanel_run_login_cookie_dual_sample_op
 run_one "catalog-miss" "$ROOT/scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh"
 run_one "digest" "$ROOT/scripts/cloudpanel_run_digest_dual_sample_operator.sh"
 run_one "hybrid-ui" "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh"
+run_one "price-lookup" "$ROOT/scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh"
 run_one "module-function" "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh"
 
 echo ""
