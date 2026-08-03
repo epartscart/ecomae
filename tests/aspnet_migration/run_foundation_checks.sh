@@ -502,7 +502,7 @@ check 'harness catalog capture includes brand-parts' contains "$ROOT/scripts/run
 check 'harness admin capture includes bos audit-log' contains "$ROOT/scripts/run_surface_parity_harness.sh" '/bos/audit-log'
 check 'CloudPanel quick start points to main redeploy' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'ecomae/main/scripts/cloudpanel_redeploy_final_gate_branch.sh'
 check 'zero php progress JSON next order mentions release-owner approval' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'RELEASE_OWNER_APPROVAL.md'
-check 'zero php progress JSON next order mentions redeploy packs smoke' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'cloudpanel_redeploy_final_gate_branch.sh'
+check 'zero php progress JSON next order mentions pre-removal parity verdict' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" 'verify_pre_php_removal_parity.sh'
 check 'php decommission probe marks exact-route shadows present' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); i=next(c for c in d["checklist"] if c["id"]=="exact-route-shadows-only"); assert i["status"]=="present"' "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
 check 'surface parity probe public API status is wired' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-parity.json" 'catalog-cache-routes-wired-awaiting-staging'
 check 'redeploy final-gate defaults to main' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"'
