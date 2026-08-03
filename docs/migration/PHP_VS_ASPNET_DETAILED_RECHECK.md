@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** CP admin-sessions Blazor read UI (`/cp/admin-sessions-app`) on www preview only; tokens never returned; PHP user manager remains authoritative. Storages #683 / currencies #682 and prior slices shipped. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** CP API clients Blazor read UI (`/cp/api-clients-app`) on www preview only; key hashes never returned; PHP `epc_api_clients_manage` remains authoritative. Admin-sessions #684 and prior slices shipped. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

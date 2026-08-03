@@ -50,6 +50,8 @@ public static class LegacyChromeNavCatalog
         new("Storages list", "/cp/storages-app"),
         new("Storages PHP", "/CP/shop/logistics/storages"),
         new("Admin sessions list", "/cp/admin-sessions-app"),
+        new("API clients list", "/cp/api-clients-app"),
+        new("API clients PHP", "/CP/control/portal/epc_api_clients_manage"),
         new("Users PHP", "/CP/control/users"),
         new("Groups PHP", "/CP/users/usergroups"),
         new("Multivendor", "/CP/control/shop/multivendor"),

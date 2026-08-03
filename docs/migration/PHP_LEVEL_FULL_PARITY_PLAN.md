@@ -105,9 +105,9 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 
 ### Hybrid CP continue ← current
 - ✅ Users/Groups (#662) · Orders (#661) · Modules (#677) · Pages (#678) · Menus (#679)
-- ✅ BOS audit-log (#680) · Tenants (#681) · Currencies (#682) · Storages (#683)
-- **This PR:** `/cp/admin-sessions-app` over `/cp/admin-sessions` digest (tokens never returned); PHP `/CP/control/users` authoritative.
-- Next: dual-sample evidence packs · remaining weaker digests (config-items / api-clients) if needed.
+- ✅ BOS audit-log (#680) · Tenants (#681) · Currencies (#682) · Storages (#683) · Admin-sessions (#684)
+- **This PR:** `/cp/api-clients-app` over `/cp/api-clients` digest (key hashes never returned); PHP `epc_api_clients_manage` authoritative.
+- Next: `/cp/config-items-app` (secrets never returned) · dual-sample evidence packs.
 - Exact-route www preview only — tenant `/CP/` chrome stays PHP (same-to-same).
 - Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 

@@ -31,6 +31,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Currency rates | `/CP/shop/finance/nastrojka-kursov-valyut` | `/cp/currencies-app` over `/cp/currencies` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Warehouses & storages | `/CP/shop/logistics/storages` | `/cp/storages-app` over `/cp/storages` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Admin sessions | `/CP/control/users` (session admin) | `/cp/admin-sessions-app` over `/cp/admin-sessions` digest | digest-only + hybrid-deeplink (tokens never returned; writes PHP; tenant chrome PHP) |
+| API clients | `/CP/control/portal/epc_api_clients_manage` | `/cp/api-clients-app` over `/cp/api-clients` digest | digest-only + hybrid-deeplink (key hashes never returned; writes PHP; tenant chrome PHP) |
 | Documents / crosses | `/CP/control/shop/docpart*` | directory → PHP | hybrid-deeplink |
 | Procurement / POS | `/CP/control/shop/procurement*`, POS | directory → PHP | hybrid-deeplink |
 | Channels / logistics / AI / marketing / payments / integrations | CP nav groups | directory → PHP | hybrid-deeplink |
