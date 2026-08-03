@@ -154,6 +154,8 @@ check_file "tenant-safety operator helper" \
   "$ROOT/scripts/cloudpanel_run_tenant_safety_operator.sh"
 check_file "offline migration gate helper" \
   "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh"
+check_file "surface-field parity operator helper" \
+  "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh"
 check_file "platform.env scaffold key parity validator" \
   "$ROOT/scripts/validate_platform_env_scaffold_key_parity.py"
 check_file "operator verify index" \

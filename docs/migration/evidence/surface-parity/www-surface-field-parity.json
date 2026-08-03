@@ -1,6 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "contractCount": 53,
   "presentationAssetsChecked": 22,
   "presentationAssetsOk": 22,

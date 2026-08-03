@@ -1,0 +1,10 @@
+{
+  "role": "compare-result",
+  "ok": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "contractCount": 53,
+  "boardStatus": "field-function-presentation-contracts-locked-cutover-blocked",
+  "errors": [],
+  "note": "Offline surface-field floor. Live harness remains optional via ECOMAE_SURFACE_FIELD_LIVE=1. Never invents RELEASE_OWNER_APPROVAL.md."
+}

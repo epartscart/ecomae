@@ -1,21 +1,25 @@
-# Operator verify — digest dual samples
+# Operator verify — surface-field + digest dual samples
 
-Surface/storefront digests (35 stems including `/cp/orders-digest`).
+## Surface-field offline floor
 
 ```bash
-# Offline migration contract floor (no admin cookie)
-bash scripts/cloudpanel_run_digest_dual_sample_operator.sh
-
-# Allowlist sync
-python3 scripts/validate_surface_digest_allowlist_sync.py
+bash scripts/cloudpanel_run_surface_field_parity_operator.sh
 ```
 
-Live capture (CloudPanel, admin cookie required):
+Validates `www-surface-field-parity.json` (`cutoverAllowed=false`, `readyForPhpRemoval=false`, ≥53 contracts)
+and re-runs digest + catalog-api migration contract floors.
+
+Optional live harness (needs network / cookies for full capture):
 
 ```bash
-set -a; source /etc/ecomae-aspnet/platform.env; set +a
-# ECOMAE_ADMIN_COOKIE_HEADER set by smoke issuer / platform.env
+ECOMAE_SURFACE_FIELD_LIVE=1 bash scripts/cloudpanel_run_surface_field_parity_operator.sh
+```
+
+## Digest dual samples
+
+```bash
 bash scripts/cloudpanel_run_digest_dual_sample_operator.sh
+python3 scripts/validate_surface_digest_allowlist_sync.py
 ```
 
 Expect `cutoverAllowed=false`. Never invent `RELEASE_OWNER_APPROVAL.md`.

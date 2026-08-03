@@ -25,6 +25,8 @@ MUST_DECLARE_CUTOVER_FALSE = (
     "module-function-parity/compare-result.json",
     "catalog-api/compare-result.json",
     "price-lookup/compare-result.json",
+    "surface-parity/www-surface-field-parity.json",
+    "surface-parity/surface-field-offline-result.json",
 )
 
 
