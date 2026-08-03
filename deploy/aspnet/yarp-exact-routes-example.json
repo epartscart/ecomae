@@ -1,0 +1,39 @@
+{
+  "note": "DESIGN ONLY — not loaded by Program.cs. Nginx remains the CloudPanel edge. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "ReverseProxy": {
+    "Routes": {
+      "erp-cash-entries-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": { "Path": "/erp/cash-entries-app" },
+        "Transforms": [
+          { "RequestHeader": "X-EcomAE-Route-Cutover", "Set": "erp-cash-entries-app-read-ui-preview" }
+        ]
+      },
+      "bos-fleet-summary-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": { "Path": "/bos/fleet-summary-app" },
+        "Transforms": [
+          { "RequestHeader": "X-EcomAE-Route-Cutover", "Set": "bos-fleet-summary-app-read-ui-preview" }
+        ]
+      },
+      "cp-dashboard-summary-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": { "Path": "/cp/dashboard-summary-app" },
+        "Transforms": [
+          { "RequestHeader": "X-EcomAE-Route-Cutover", "Set": "cp-dashboard-summary-app-read-ui-preview" }
+        ]
+      }
+    },
+    "Clusters": {
+      "ecomae-platform": {
+        "Destinations": {
+          "loopback": {
+            "Address": "http://127.0.0.1:5100/"
+          }
+        }
+      }
+    }
+  }
+}

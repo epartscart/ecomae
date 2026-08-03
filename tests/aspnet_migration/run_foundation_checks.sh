@@ -347,6 +347,12 @@ check 'Enterprise BOS compliance marks PG17 not migrated' contains "$ROOT/docs/m
 check 'Enterprise BOS compliance marks Redis not wired' contains "$ROOT/docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md" 'Redis 8'
 check 'EF Core 10 package referenced by platform' contains "$ROOT/aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj" 'Microsoft.EntityFrameworkCore'
 check 'EF Core scaffold DbContext exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/EcomAeScaffoldDbContext.cs"
+check 'EF tenant registry stub exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/TenantRegistryStub.cs"
+check 'EF identity admin stub exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/IdentityAdminStub.cs"
+check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
+check 'YARP exact-routes design example exists' test -f "$ROOT/deploy/aspnet/yarp-exact-routes-example.json"
+check 'YARP design example blocks cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": false'
+check 'ActivitySource Data name reserved' contains "$ROOT/aspnet/src/EcomAE.Platform/Observability/EcomAeActivitySources.cs" 'EcomAE.Platform.Data'
 check 'EF Core scaffold is not registered in Program' bash -c '! grep -q "AddDbContext" "$ROOT/aspnet/src/EcomAE.Platform/Program.cs"'
 check 'no Go module backend at repo root' bash -c '! test -f "$ROOT/go.mod"'
 check 'no Maven pom Spring backend at repo root' bash -c '! test -f "$ROOT/pom.xml"'

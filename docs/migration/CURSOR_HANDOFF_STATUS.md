@@ -25,8 +25,8 @@ ASP.NET Core migration foundation and diagnostics-only deploy tooling are in pla
 ## Cursor's standing tasks
 
 1. Keep ASP.NET Core as sole enterprise backend; Python AI-only; no Java/Node/Go/PHP backends.
-2. Continue exact-route Zero-PHP digests/parity with PHP fallback required.
-3. Advance EF Core / observability / YARP scaffolding without claiming infra live.
+2. Continue exact-route Zero-PHP digests/parity with PHP fallback required (hybrid digest `*-app` wave complete on tip; operator live dual-sample captures next).
+3. Advance EF Core / observability / YARP scaffolding without claiming infra live (bounded-context stubs + YARP design example landed; still no AddDbContext/OTLP/YARP process).
 4. Redeploy main via `bash scripts/cloudpanel_redeploy_final_gate_branch.sh` so ContentRoot packs smoke evidence.
 5. Confirm readiness smoke items present; promote only approved `location =` shadows; never invent `RELEASE_OWNER_APPROVAL.md`.
 

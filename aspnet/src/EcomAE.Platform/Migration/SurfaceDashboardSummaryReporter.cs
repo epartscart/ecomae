@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Observability;
 
 namespace EcomAE.Platform.Migration;
 
@@ -550,6 +551,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     public async Task<ErpCashEntryListResult> ListErpCashEntriesAsync(int? accountId, int limit, CancellationToken cancellationToken = default)
     {
+        using var activity = EcomAeActivitySources.Surfaces.StartActivity("surface.erp.cash-entries");
+        activity?.SetTag("ecomae.surface", "erp");
+        activity?.SetTag("ecomae.digest", "/erp/cash-entries");
+
         var safeLimit = Math.Clamp(limit, 1, 500);
         if (!_connections.IsConfigured)
         {
@@ -587,6 +592,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     Convert.ToString(reader["note"] is DBNull ? string.Empty : reader["note"], CultureInfo.InvariantCulture) ?? string.Empty));
             }
 
+            activity?.SetTag("ecomae.row_count", rows.Count);
             return new(rows, rows.Count, "database", string.Empty);
         }
         catch (Exception ex)
