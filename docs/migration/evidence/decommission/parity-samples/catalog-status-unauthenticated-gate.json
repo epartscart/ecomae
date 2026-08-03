@@ -1,0 +1,15 @@
+{
+  "route": "/api/v1/catalog/status",
+  "legacyPhpEntry": "api/v1/catalog.php?action=status",
+  "aspNetRoute": "/api/v1/catalog/status",
+  "capturedAtUtc": "2026-08-03T03:37:22Z",
+  "comparison": "loopback-unauthenticated",
+  "aspnet": {
+    "status": 401,
+    "contentType": "application/json",
+    "bodyMarker": "missing_api_key"
+  },
+  "phpExpectation": "Public host may still return PHP HTML until exact-route shadow; loopback ASP.NET returns structured JSON auth gate.",
+  "result": "aspnet-loopback-unauthenticated-gate",
+  "note": "Does not authorize PHP removal. Authenticated 200 smoke still required under staging-smoke/."
+}
