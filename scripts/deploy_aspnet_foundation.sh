@@ -80,6 +80,7 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_align_tenant_registry_to_php_db.sh" \
   "$ROOT/scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh" \
   "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" \
+  "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" \
   "$ROOT/scripts/wait_for_aspnet_health.sh" \
   "$ROOT/scripts/rollback_aspnet_foundation.sh" \
   "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" \

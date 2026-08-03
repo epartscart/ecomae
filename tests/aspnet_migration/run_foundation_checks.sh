@@ -419,6 +419,10 @@ check 'smoke commit recovers failed push auth' contains "$ROOT/scripts/cloudpane
 check 'smoke commit prefers token push helper' contains "$ROOT/scripts/cloudpanel_commit_final_gate_smoke.sh" 'cloudpanel_push_final_gate_smoke.sh'
 check 'redeploy prints live readiness snapshot' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'Live readiness snapshot'
 check 'redeploy reminds not to invent approval at 8/9' contains "$ROOT/scripts/cloudpanel_redeploy_final_gate_branch.sh" 'do NOT invent RELEASE_OWNER_APPROVAL.md'
+check 'exact-route shadow installer exists' test -x "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh"
+check 'exact-route shadow installer refuses broad paths' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'refusing broad path'
+check 'exact-route shadow installer inserts before location /' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'immediately before location /'
+check 'deploy packs exact-route shadow installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_exact_route_shadow.sh'
 check 'pre-PHP-removal parity verdict helper exists' test -x "$ROOT/scripts/verify_pre_php_removal_parity.sh"
 check 'pre-PHP-removal verdict never removes PHP' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'NEVER removes PHP'
 check 'pre-PHP-removal verdict skips nested heavy area suite' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'ECOMAE_AREA_SKIP_HEAVY=1'
