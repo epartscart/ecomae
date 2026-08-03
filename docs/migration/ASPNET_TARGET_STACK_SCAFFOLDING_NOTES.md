@@ -140,6 +140,8 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 - Allowlist sync: `python3 scripts/validate_presentation_hybrid_allowlist_sync.py` (nginx 47 ↔ hybrid 37 + shells/logins/auth ↔ installer expected ↔ YARP routeCount; hybrid digestRoute cross-lock).
 - Digest allowlist sync: `python3 scripts/validate_surface_digest_allowlist_sync.py` (surface 30 + storefront 4 + orders-digest ↔ capture/compare/migration goldens ↔ YARP).
 - Digest dual-sample contracts: 35 stems via `python3 scripts/compare_digest_dual_samples.py --contract-only`.
+- Catalog/API allowlist sync: `python3 scripts/validate_catalog_api_allowlist_sync.py` (19 exact routes).
+- Catalog/API contract floor: `bash scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh`.
 - Full suite: `bash scripts/validate_enterprise_bos_scaffold_guardrails.sh` (Program.cs omits production wiring; YARP/Helm/Argo keep `cutoverAllowed=false`; regenerates YARP design packs).
 - Disabled env key comments: `deploy/aspnet/platform.env.example` (`EcomAe__*` Replace/Allow/Register flags stay false).
 - Never invent `RELEASE_OWNER_APPROVAL.md`.

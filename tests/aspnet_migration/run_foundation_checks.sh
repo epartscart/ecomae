@@ -443,6 +443,17 @@ check 'presentation/hybrid allowlist sync passes' python3 "$ROOT/scripts/validat
 check 'surface/storefront digest allowlist sync validator exists' test -f "$ROOT/scripts/validate_surface_digest_allowlist_sync.py"
 check 'surface/storefront digest allowlist sync validator is executable' test -x "$ROOT/scripts/validate_surface_digest_allowlist_sync.py"
 check 'surface/storefront digest allowlist sync passes' python3 "$ROOT/scripts/validate_surface_digest_allowlist_sync.py"
+check 'catalog/API allowlist sync validator exists' test -f "$ROOT/scripts/validate_catalog_api_allowlist_sync.py"
+check 'catalog/API allowlist sync validator is executable' test -x "$ROOT/scripts/validate_catalog_api_allowlist_sync.py"
+check 'catalog/API allowlist sync passes' python3 "$ROOT/scripts/validate_catalog_api_allowlist_sync.py"
+check 'catalog/API contract floor helper exists' test -f "$ROOT/scripts/compare_catalog_api_contract_floor.py"
+check 'catalog/API dual-sample operator exists' test -f "$ROOT/scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh"
+check 'catalog/API dual-sample operator is executable' test -x "$ROOT/scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh"
+check 'catalog/API OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/catalog-api/OPERATOR_VERIFY.md"
+check 'catalog/API compare-result blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-api/compare-result.json" '"cutoverAllowed": false'
+check 'login-session OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/login-session-bridge/OPERATOR_VERIFY.md"
+check 'catalog-miss OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/catalog-miss-umapi/OPERATOR_VERIFY.md"
+check 'migration digest generator includes cp-orders-digest' contains "$ROOT/scripts/generate_migration_digest_contract_samples.py" 'cp-orders-digest.json'
 check 'digest dual-sample contracts cover full allowlist' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'storefront-profile'
 check 'digest dual-sample capture covers cp-users' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'cp-users'
 check 'digest dual-sample capture covers storefront-profile' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'storefront-profile'
@@ -645,6 +656,8 @@ check 'deploy packs module-function parity operator' contains "$ROOT/scripts/dep
 check 'deploy packs module-function parity compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_module_function_parity.py'
 check 'deploy packs presentation recheck operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_presentation_recheck_operator.sh'
 check 'deploy packs price-lookup dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_price_lookup_dual_sample_operator.sh'
+check 'deploy packs catalog-api dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_catalog_api_dual_sample_operator.sh'
+check 'deploy packs catalog/API allowlist sync validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_catalog_api_allowlist_sync.py'
 check 'deploy packs scaffold options example' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ecomae-scaffold-options.example.json'
 check 'deploy packs scaffold options validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_scaffold_options_example.py'
 check 'deploy packs enterprise BOS scaffold guardrails' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_enterprise_bos_scaffold_guardrails.sh'

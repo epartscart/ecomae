@@ -140,7 +140,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Module-function parity contract harness (`aspnetCompleteCount=0`) (#712)
 - ✅ Digest dual-sample full coverage (35 contracts) + digest allowlist sync (#713)
 - ✅ Presentation recheck operator + OPERATOR_VERIFY pack (#714)
-- **This PR:** Price-lookup dual-sample operator + compare-result cutover lock
+- ✅ Price-lookup dual-sample operator + compare-result cutover lock (#715)
+- **This PR:** Catalog/API allowlist sync (19) + contract-floor operator; generator emits cp-orders-digest
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)

@@ -68,6 +68,7 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 - `scripts/validate_migration_evidence_cutover_locks.py` — evidence JSON cannot claim cutover/PHP removal; approval/pass files must stay absent.
 - `scripts/validate_presentation_hybrid_allowlist_sync.py` — presentation nginx, hybrid TARGETS, installer expected, and YARP routeCount stay aligned (plus digestRoute cross-lock).
 - `scripts/validate_surface_digest_allowlist_sync.py` — surface/storefront digest nginx, capture ROUTES, compare contracts, migration goldens, and YARP routeCounts stay aligned (35 stems).
+- `scripts/validate_catalog_api_allowlist_sync.py` — catalog/API nginx + YARP (19) ↔ migration goldens ↔ compare helpers.
 - `scripts/validate_enterprise_bos_scaffold_guardrails.sh` — Program.cs must omit production clients; YARP/Helm/Argo stay `cutoverAllowed=false`.
 - `deploy/aspnet/platform.env.example` documents disabled `EcomAe__*` scaffold keys only.
 

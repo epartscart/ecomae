@@ -1,0 +1,120 @@
+{
+  "role": "compare-result",
+  "ok": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "catalogGoldensChecked": 18,
+  "failed": 0,
+  "priceLookupOk": true,
+  "results": [
+    {
+      "stem": "api-catalog-status",
+      "file": "api-catalog-status.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-manufacturers",
+      "file": "api-catalog-manufacturers.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-models",
+      "file": "api-catalog-models.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-modifications",
+      "file": "api-catalog-modifications.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-brands",
+      "file": "api-catalog-brands.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-suppliers",
+      "file": "api-catalog-suppliers.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-engines",
+      "file": "api-catalog-engines.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-analogs",
+      "file": "api-catalog-analogs.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-article-brands",
+      "file": "api-catalog-article-brands.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-categories",
+      "file": "api-catalog-categories.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-products",
+      "file": "api-catalog-products.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-engine-search",
+      "file": "api-catalog-engine-search.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-article-links",
+      "file": "api-catalog-article-links.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-article",
+      "file": "api-catalog-article.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-articles",
+      "file": "api-catalog-articles.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-engine",
+      "file": "api-catalog-engine.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-vin",
+      "file": "api-catalog-vin.json",
+      "ok": true,
+      "errors": []
+    },
+    {
+      "stem": "api-catalog-brand-parts",
+      "file": "api-catalog-brand-parts.json",
+      "ok": true,
+      "errors": []
+    }
+  ],
+  "note": "Catalog/API contract floor only. Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
+}
