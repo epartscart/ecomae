@@ -26,6 +26,11 @@ bash scripts/cloudpanel_validate_final_gate_env.sh   # PRESENT/MISSING/BAD_FORMA
 bash scripts/cloudpanel_capture_final_gate_artifacts.sh
 # When all three smoke JSON files exist:
 bash scripts/cloudpanel_commit_final_gate_smoke.sh
+# Push needs a GitHub PAT on the server (account passwords are rejected).
+# On auth failure the local smoke commit is kept. Then:
+#   export GH_TOKEN='ghp_...'   # https://github.com/settings/tokens (repo scope)
+#   bash scripts/cloudpanel_push_final_gate_smoke.sh && unset GH_TOKEN
+#   bash scripts/cloudpanel_export_final_gate_smoke_bundle.sh   # offline tarball / git bundle
 ```
 
 Surface smoke is accepted only when `ok=true` **and** at least one non-migration digest returns HTTP 200.  

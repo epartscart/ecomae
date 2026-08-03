@@ -63,6 +63,38 @@ if [[ -z "$DB_NAME" ]]; then
 fi
 printf 'Target database: %s (GRANT to %s)\n' "$DB_NAME" "$DB_USER"
 
+# GRANT only to existing mysql.user Host rows for DB_USER.
+# Avoids ERROR 1410 (create user via GRANT) when e.g. user@'%' does not exist.
+grant_existing_hosts() {
+  local host grant_sql
+  local -a hosts=()
+  mapfile -t hosts < <(
+    "$@" -N -e "SELECT Host FROM mysql.user WHERE User='${DB_USER}' ORDER BY Host" 2>/dev/null || true
+  )
+  if [[ "${#hosts[@]}" -eq 0 ]]; then
+    printf 'WARN: no mysql.user rows for %s — table created; GRANT skipped\n' "$DB_USER" >&2
+    printf 'HINT: issue smoke may still work if %s already has DB-level rights on %s\n' "$DB_USER" "$DB_NAME" >&2
+    return 0
+  fi
+  for host in "${hosts[@]}"; do
+    [[ -z "$host" ]] && continue
+    # Host from mysql.user; allow only safe patterns (localhost, IPs, %, hostname chars).
+    if [[ ! "$host" =~ ^[A-Za-z0-9._%-]+$ ]]; then
+      printf 'WARN: skipping unexpected Host value for GRANT\n' >&2
+      continue
+    fi
+    grant_sql="$(printf \
+      'GRANT SELECT, INSERT, UPDATE ON `%s`.`epc_api_clients` TO '\''%s'\''@'\''%s'\''; GRANT SELECT, INSERT ON `%s`.`sessions` TO '\''%s'\''@'\''%s'\'';' \
+      "$DB_NAME" "$DB_USER" "$host" "$DB_NAME" "$DB_USER" "$host")"
+    if "$@" -e "$grant_sql" >/dev/null 2>&1; then
+      printf 'OK GRANT to %s@%s\n' "$DB_USER" "$host"
+    else
+      printf 'WARN: GRANT failed for %s@%s (non-fatal if platform user can INSERT)\n' "$DB_USER" "$host" >&2
+    fi
+  done
+  "$@" -e 'FLUSH PRIVILEGES;' >/dev/null 2>&1 || true
+}
+
 apply_sql() {
   local label="$1"
   shift
@@ -70,15 +102,11 @@ apply_sql() {
     return 1
   fi
   printf 'Using %s\n' "$label"
-  # --force: continue if optional GRANT host patterns are absent.
   {
     printf 'USE `%s`;\n' "$DB_NAME"
     cat "$SQL_FILE"
-    printf 'GRANT SELECT, INSERT, UPDATE ON `%s`.`epc_api_clients` TO '\''%s'\''@'\''localhost'\'';\n' "$DB_NAME" "$DB_USER"
-    printf 'GRANT SELECT, INSERT, UPDATE ON `%s`.`epc_api_clients` TO '\''%s'\''@'\''%%'\'';\n' "$DB_NAME" "$DB_USER"
-    printf 'GRANT SELECT, INSERT ON `%s`.`sessions` TO '\''%s'\''@'\''localhost'\'';\n' "$DB_NAME" "$DB_USER"
-    printf 'FLUSH PRIVILEGES;\n'
   } | "$@" --force
+  grant_existing_hosts "$@"
   if "$@" -N -e "SELECT 1 FROM \`${DB_NAME}\`.epc_api_clients LIMIT 1" >/dev/null 2>&1; then
     printf 'OK table present in %s.epc_api_clients\n' "$DB_NAME"
     return 0
