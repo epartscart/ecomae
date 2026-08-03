@@ -30,15 +30,13 @@ import re, sys
 conf_path, example_path = Path(sys.argv[1]), Path(sys.argv[2])
 text = conf_path.read_text(encoding="utf-8")
 example = example_path.read_text(encoding="utf-8")
-allowed_suffixes = ("/app", "/login")
-allowed_exact = {"/auth/login/admin"}
+# Example conf is the allowlist. Accept every exact location except broad product chrome.
+broad = {"/cp", "/erp", "/bos", "/storefront", "/"}
 blocks=[]
 for m in re.finditer(r"(?m)^(location = (/[^\s{]+)\s*\{.*?\n\})", example, flags=re.S):
     block_raw, route = m.group(1), m.group(2)
-    if route in {"/cp","/erp","/bos","/storefront","/"}:
+    if route in broad:
         raise SystemExit(f"ERROR: refusing broad path {route}")
-    if route not in allowed_exact and not any(route.endswith(suf) for suf in allowed_suffixes):
-        continue
     indented="\n".join(("  "+line if line.strip() else line) for line in block_raw.splitlines())
     blocks.append((route, indented.rstrip()+"\n"))
 expected = 14  # 4 apps + 4 logins + auth/login/admin + orders×2 + users-app + groups-app + sales-orders-app
