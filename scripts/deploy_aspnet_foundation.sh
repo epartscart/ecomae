@@ -114,6 +114,7 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" \
   "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh" \
   "$ROOT/scripts/cloudpanel_run_tenant_safety_operator.sh" \
+  "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh" \
   "$ROOT/scripts/compare_php_aspnet_presentation.py" \
   "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" \
   "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" \
@@ -144,6 +145,7 @@ install -m 0755 \
   "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" \
   "$ROOT/scripts/validate_surface_digest_allowlist_sync.py" \
   "$ROOT/scripts/validate_migration_golden_cutover_locks.py" \
+  "$ROOT/scripts/validate_platform_env_scaffold_key_parity.py" \
   "$ROOT/scripts/generate_migration_digest_contract_samples.py" \
   "$ROOT/scripts/generate_all_yarp_design_examples.sh" \
   "$ROOT/scripts/generate_yarp_exact_routes_example.py" \

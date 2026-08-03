@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** Migration golden cutover locks (53 goldens + generator stamp) and deploy packing of YARP/OPERATOR_VERIFY. Tenant-safety + catalog/API + digest floors remain available offline. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** Offline migration gate (`cloudpanel_run_offline_migration_gate.sh`) + `platform.env` ↔ scaffold options key parity. Tenant-safety + catalog/API + digest floors remain available offline. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

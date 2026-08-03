@@ -71,7 +71,8 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 - `scripts/validate_surface_digest_allowlist_sync.py` — surface/storefront digest nginx, capture ROUTES, compare contracts, migration goldens, and YARP routeCounts stay aligned (35 stems).
 - `scripts/validate_catalog_api_allowlist_sync.py` — catalog/API nginx + YARP (19) ↔ migration goldens ↔ compare helpers.
 - `scripts/validate_enterprise_bos_scaffold_guardrails.sh` — Program.cs must omit production clients; YARP/Helm/Argo stay `cutoverAllowed=false`.
-- `deploy/aspnet/platform.env.example` documents disabled `EcomAe__*` scaffold keys only.
+- `deploy/aspnet/platform.env.example` documents disabled `EcomAe__*` scaffold keys only (`validate_platform_env_scaffold_key_parity.py`).
+- Offline gate: `scripts/cloudpanel_run_offline_migration_gate.sh` (operators + guardrails; `cutoverAllowed=false`).
 
 ## Next architecture tracks (ordered)
 

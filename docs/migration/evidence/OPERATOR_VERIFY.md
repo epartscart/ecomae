@@ -5,6 +5,7 @@ All helpers keep `cutoverAllowed=false` / `readyForPhpRemoval=false`. Never inve
 
 | Family | Operator | Doc |
 | --- | --- | --- |
+| **Offline migration gate** | `bash scripts/cloudpanel_run_offline_migration_gate.sh` | this index |
 | All dual-sample + module-function | `bash scripts/cloudpanel_run_all_dual_sample_operators.sh` | — |
 | Presentation recheck | `bash scripts/cloudpanel_run_presentation_recheck_operator.sh` | `presentation/OPERATOR_VERIFY.md` |
 | Hybrid UI | `bash scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh` | `hybrid-ui-dual-samples/OPERATOR_VERIFY.md` |
