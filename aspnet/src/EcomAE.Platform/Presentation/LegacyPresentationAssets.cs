@@ -33,14 +33,27 @@ public static class LegacyPresentationAssets
         "/content/general_pages/epc_cp_command_dashboard_css.php"
     ];
 
-    /// <summary>Animated eParts Cart mark used on tenant CP / storefront chrome.</summary>
+    /// <summary>
+    /// Library entry (requires _ASTEXE_) — do not use as &lt;img src&gt;.
+    /// Prefer <see cref="AnimatedEpartsCartFragmentUrl"/> for HTML/SVG embed.
+    /// </summary>
     public const string EpartsCartMarkUrl = "/content/general_pages/epc_animated_epartscart_logo.php";
+
+    /// <summary>Renderable animated cart logo fragment (HTML/SVG), matches PHP storefront/CP embeds.</summary>
+    public const string AnimatedEpartsCartFragmentUrl = "/content/general_pages/animated_epartscart_logo.php";
 
     /// <summary>PHP CP login hero/panel CSS reused by ASP.NET /cp/login /erp/login.</summary>
     public static readonly IReadOnlyList<string> LoginStylesheets =
     [
         "/content/general_pages/epc_cp_login_css.php",
-        "/content/general_pages/epc_cp_login_hero_css.php"
+        "/content/general_pages/epc_cp_login_hero_css.php",
+        "/content/general_pages/epc_ecomae_hub_logo_css.php"
+    ];
+
+    /// <summary>BOS login matrix/particle JS (PHP bos/epc_bos_shell.js).</summary>
+    public static readonly IReadOnlyList<string> BosLoginScripts =
+    [
+        "/epc-static.php?f=bos/epc_bos_shell.js"
     ];
 
     public static readonly IReadOnlyList<string> ErpStylesheets =
@@ -63,12 +76,27 @@ public static class LegacyPresentationAssets
     public static readonly IReadOnlyList<string> StorefrontStylesheets =
     [
         "/epc-static.php?f=templates/modex/assets/css/preload.css",
+        "/epc-static.php?f=templates/modex/assets/css/vendors.css",
         "/epc-static.php?f=templates/modex/assets/css/style_color.css",
         "/epc-static.php?f=templates/modex/assets/css/width-boxed.css",
         "/epc-static.php?f=templates/modex/css/catalogue/catalogue.css",
         "/epc-static.php?f=templates/modex/css/astself.css",
-        "/epc-static.php?f=templates/modex/css/docpart/style.css"
+        "/epc-static.php?f=templates/modex/css/docpart/style.css",
+        "/modules/slider/css/style.css",
+        // Piston hero + pro banner (requires html data-epc-industry/storefront attrs)
+        "/content/general_pages/epc_automotive_spareparts.css"
     ];
+
+    /// <summary>Structural selectors / class markers for graphical presentation probes.</summary>
+    public static IReadOnlyList<string> RequiredGraphicalMarkers(string surface)
+        => surface.Trim().ToLowerInvariant() switch
+        {
+            "cp" => [".ech-hub", "#epcCpParticles", "epc-cp-login-hero"],
+            "erp" => [".ech-hub", "epc-cp-login-hero"],
+            "bos" => [".bos-login__bg", "#bosParticles", ".bos-login__glow"],
+            "storefront" => [".epc-engine-animation", ".epc-asp-piston-banner", "epc-home-pro"],
+            _ => []
+        };
 
     public static string BodyClassFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {

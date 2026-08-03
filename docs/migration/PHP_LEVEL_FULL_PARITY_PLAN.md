@@ -7,6 +7,7 @@
 - Exact-route shadows only (`location =`). Never broad `/`, `/cp`, `/erp`, `/bos`, `/api`, `/storefront`.
 - Tenant/industry vhosts stay PHP (see `TENANT_MIGRATION_SAFETY.md`).
 - Digests ≠ interactive module parity. Weighted Zero-PHP meter ≠ chrome readiness.
+- **Graphical presentation is in scope every batch:** hero banners, orbit/hub logos, particle/matrix backgrounds, piston/engine animations, glow/rings, and PHP CSS/JS that drive them — not structure-only shells. Prefer reusing live PHP CSS/JS class trees over inventing replacements.
 
 ## Inventory (source of truth)
 
@@ -66,12 +67,17 @@ flowchart TD
 - Probes may lift structural selectors (`#header`, `.epc-cp-topnav`, `.bos-topnav`, `.epc-erp-topnav`) but must **not** claim `readyForPhpRemoval`.
 - BOS: admin-cookie digests ≠ PHP `$_SESSION` — full tenant module UX stays on `/BOS/`.
 
-### Batch 3 — Login bridge hardening ← current (this PR)
+### Batch 3 — Login bridge hardening + graphical login/hero parity ← current (this PR)
 - Host: `EcomAE__SecretSuccession` (= PHP `secret_succession`); verify with `scripts/cloudpanel_verify_secret_succession_configured.sh` (never prints value).
 - Customer mint formula fixed to PHP `md5(contact+userId+time+secret)` + `last_activiti_time`; CSRF IP prefers `X-Forwarded-For`.
 - Dual-sample cookie harness: `scripts/cloudpanel_capture_login_cookie_dual_samples.sh` + `scripts/compare_login_cookie_dual_samples.py` → `docs/migration/evidence/login-session-bridge/` (`cutoverAllowed=false`).
 - Social/demo/shared-ERP picker / rate-limit / password upgrade remain PHP.
 - **Decision locked:** keep `/BOS/` PHP-authoritative for native `$_SESSION` modules; `/bos/login` is admin-cookie bridge for digests/`/bos/app` only.
+- **Graphical (do not skip):**
+  - CP/ERP login: `PhpEcomaeHubLogo` (`.ech-hub` orbit) + login hero CSS/particles
+  - BOS login: PHP `.bos-login__bg` / `#bosParticles` / glows / brand rings + `epc_bos_shell.js`
+  - Storefront `/storefront/app`: `PhpAspPistonBanner` (`.epc-engine-animation`) + `epc_automotive_spareparts.css` + `data-epc-industry` / `data-epc-storefront` attrs
+  - Live homepage slider media remains PHP-authoritative on epartscart.com
 
 ### Batch 4 — Vertical module slices (one family → exact-route)
 Priority order:

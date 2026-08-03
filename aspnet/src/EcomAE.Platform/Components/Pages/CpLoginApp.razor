@@ -22,6 +22,8 @@
         padding: 2.5rem 0 3rem;
         text-align: center;
     }
+    .epc-asp-login-cp .epc-cp-login-mark { display:flex; justify-content:center; margin-bottom:.35rem; }
+    .epc-asp-login-cp .epc-cp-login-mark .ech-hub { transform: scale(.72); transform-origin: center top; }
     .epc-asp-login-cp .epc-cp-login-mark img { height: 56px; }
     .epc-asp-login-cp .epc-cp-login-brand-badge {
         display: inline-block; margin: .85rem 0 .55rem; padding: .2rem .7rem;
@@ -61,7 +63,7 @@
     <div id="epcCpParticles" class="epc-cp-particles" aria-hidden="true"></div>
     <div class="epc-cp-login-centered">
         <div class="epc-cp-login-mark">
-            <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" />
+            <PhpEcomaeHubLogo Variant="login" AriaLabel="ECOM AE hub" OrbitDuration="28s" />
         </div>
         <span class="epc-cp-login-brand-badge">BOS · CONTROL</span>
         <h1>BOS — Business Operation System</h1>

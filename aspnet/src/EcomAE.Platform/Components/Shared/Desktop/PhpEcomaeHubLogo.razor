@@ -1,0 +1,68 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Port of content/general_pages/epc_ecomae_hub_logo.php — CSS orbit hub (no heavy JS).
+  Requires /content/general_pages/epc_ecomae_hub_logo_css.php (LoginStylesheets / PhpSurfaceHead).
+*@
+
+<div class="ech-hub ech-hub--@Variant @(ExtraClass)" role="img" aria-label="@AriaLabel" style="--ech-orbit-duration:@OrbitDuration">
+    <div class="ech-hub__glow" aria-hidden="true"></div>
+    <div class="ech-hub__orbit-spin" aria-hidden="true">
+        @{
+            var i = 0;
+            foreach (var n in Nodes)
+            {
+                var featured = n.Featured ? " ech-hub__node--featured" : "";
+                <div class="ech-hub__node@(featured)" data-node="@n.Data" style="--ech-i:@i">
+                    <div class="ech-hub__node-inner">
+                        <span class="ech-hub__node-tile" title="@n.Title"><i class="fa @n.Icon"></i></span>
+                    </div>
+                </div>
+                i++;
+            }
+        }
+    </div>
+    <div class="ech-hub__core">
+        <div class="ech-hub__core-pulse" aria-hidden="true"></div>
+        @if (ShowGlyph)
+        {
+            <span class="ech-hub__glyph" aria-hidden="true">e</span>
+        }
+        else
+        {
+            <img class="ech-hub__logo" src="@LegacyPresentationAssets.BrandMarkUrl" alt="" width="64" height="64" loading="lazy" />
+        }
+        <p class="ech-hub__title">ECOM <span class="ech-hub__ae">AE</span></p>
+        @if (ShortTagline)
+        {
+            <p class="ech-hub__tagline ech-hub__tagline--short">ERP &amp; Commerce Cloud</p>
+        }
+        else
+        {
+            <p class="ech-hub__tagline">Unified ERP &amp; Commerce Cloud</p>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Variant { get; set; } = "login";
+    [Parameter] public string ExtraClass { get; set; } = "";
+    [Parameter] public string AriaLabel { get; set; } = "ECOM AE hub";
+    [Parameter] public string OrbitDuration { get; set; } = "28s";
+    [Parameter] public bool ShowGlyph { get; set; } = true;
+    [Parameter] public bool ShortTagline { get; set; }
+
+    private static readonly HubNode[] Nodes =
+    [
+        new("fa-shopping-cart", "Commerce", "Orders"),
+        new("fa-cubes", "Inventory", "Stock"),
+        new("fa-users", "CRM", "CRM"),
+        new("fa-line-chart", "Dashboard", "Analytics", Featured: true),
+        new("fa-file-text-o", "Finance", "GL"),
+        new("fa-id-badge", "HR", "HR"),
+        new("fa-truck", "Logistics", "Ship"),
+        new("fa-cloud", "Tenants", "Sync")
+    ];
+
+    private sealed record HubNode(string Icon, string Title, string Data, bool Featured = false);
+}

@@ -3,7 +3,11 @@
   PHP chrome stylesheet/font injection for product shells.
   Delegates to PhpSurfaceHead so assets land in <head> (HeadOutlet).
 *@
-<PhpSurfaceHead Surface="@Surface" IncludeLoginCss="false" IncludeStorefrontAnalytics="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))" />
+<PhpSurfaceHead
+    Surface="@Surface"
+    IncludeLoginCss="false"
+    IncludeStorefrontAnalytics="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))"
+    ApplyStorefrontIndustryAttrs="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))" />
 <style>
     .epc-php-font-root { font-family: @(LegacyPhpFontAssets.StackFor(Surface)); }
     html, body { font-family: @(LegacyPhpFontAssets.StackFor(Surface)); }
