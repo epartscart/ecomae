@@ -8,7 +8,7 @@ This document tracks the final Zero-PHP gate. It does **not** authorize PHP remo
 
 Live diagnostic: `GET /migration/php-decommission-readiness`
 
-Weighted completion remains **95% / 5% pending**. The residual 5% is PHP runtime decommission only (not “5% of routes left”). Live www wired catalog exact-route shadows are **18/18** complete; surface digests **4/30** (`/cp/dashboard-summary`, `/cp/tenants`, `/cp/users`, `/cp/groups`). CP/ERP/BOS chrome + remaining digests remain PHP. Authenticated staging smoke for price/catalog/surface digests is attached on `main` (PR #612); the remaining final-gate blocker is human `RELEASE_OWNER_APPROVAL.md` after more digest shadows + dual samples.
+Weighted completion remains **95% / 5% pending**. The residual 5% is PHP runtime decommission only (not “5% of routes left”). Live www wired catalog exact-route shadows are **18/18** complete; surface digests **30/30** (batch exact-route installer). CP/ERP/BOS **chrome** remains PHP. Authenticated staging smoke for price/catalog/surface digests is attached on `main` (PR #612); the remaining final-gate blocker is human `RELEASE_OWNER_APPROVAL.md` after dual samples.
 
 ## Operator kit
 

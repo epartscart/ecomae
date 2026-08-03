@@ -20,17 +20,17 @@ Public frontend/backend authority is **still PHP** for product chrome:
 - `https://www.ecomae.com/`, `/CP/`, `/ERP/`, `/BOS/` → PHP HTML
 - Public `/cp/dashboard-summary` is **cut over** (exact-route; unauth 401 `unauthorized` ASP.NET JSON)
 - Approved exact-route API shadows on www: `/health`, `/migration/*`, `/api/v1/price/lookup`, catalog **18/18** complete through `brand-parts`. Unauth 401 ASP.NET JSON; VIN warm 200; offline-cache routes may 404 `cache_miss` when probe params ≠ warm key.
-- Surface digests: **4/30** live (`/cp/dashboard-summary`, `/cp/tenants`, `/cp/users`, `/cp/groups`); next `/cp/modules` (never broad `/cp`)
+- Surface digests: **30/30** live (batch exact-route installer; never broad `/cp|/erp|/bos`)
 - Live `/migration/surface-parity` → `parity-not-yet-reached`
 - Live `/migration/presentation-parity` → `presentation-shell-scaffolded` only
 
-Approval must **not** be written until remaining surfaces have exact-route shadows + dual-sample PHP↔ASP.NET parity where required. Loopback smoke + catalog API shadows + early digests are insufficient for PHP removal (CP/ERP/BOS chrome + most digests still PHP).
+Approval must **not** be written until dual-sample PHP↔ASP.NET parity where required + human approval. Loopback smoke + catalog/digest exact-route shadows are insufficient for PHP removal (CP/ERP/BOS chrome still PHP).
 
 ## Required before approval can be written
 
 1. Redeploy `main` and confirm readiness smoke items **present** (approval still missing)
 2. Run `bash scripts/verify_pre_php_removal_parity.sh` (must stay fail-closed / PHP remains)
-3. Promote only approved `location =` nginx shadows one path at a time; attach dual PHP↔ASP.NET samples
+3. Confirm surface digest batch probe PASS=30; attach dual PHP↔ASP.NET samples
 4. Confirm only exact-route nginx shadows (never broad `/cp` `/erp` `/bos` `/api`)
 5. A human release owner replaces this request with `RELEASE_OWNER_APPROVAL.md` containing:
 
