@@ -422,6 +422,7 @@ check 'redeploy reminds not to invent approval at 8/9' contains "$ROOT/scripts/c
 check 'exact-route shadow installer exists' test -x "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh"
 check 'exact-route shadow installer refuses broad paths' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'refusing broad path'
 check 'exact-route shadow installer inserts before location /' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'immediately before location /'
+check 'exact-route shadow installer probes local nginx bypassing CDN' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" '--resolve www.ecomae.com:443:127.0.0.1'
 check 'deploy packs exact-route shadow installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_exact_route_shadow.sh'
 check 'pre-PHP-removal parity verdict helper exists' test -x "$ROOT/scripts/verify_pre_php_removal_parity.sh"
 check 'pre-PHP-removal verdict never removes PHP' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'NEVER removes PHP'
