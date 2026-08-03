@@ -104,9 +104,9 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Core ERP list digests have Blazor `*-app` through purchases (#676).
 
 ### Hybrid CP continue ← current
-- ✅ Users/Groups (#662) · Orders (#661) · Modules (#677)
-- **This PR:** `/cp/pages-app` over `/cp/pages` digest; PHP `content_manager` authoritative for writes.
-- Next: `/cp/menus-app` · `/bos/audit-log-app` · dual-sample evidence.
+- ✅ Users/Groups (#662) · Orders (#661) · Modules (#677) · Pages (#678)
+- **This PR:** `/cp/menus-app` over `/cp/menus` digest; PHP `menu_manager` authoritative for writes.
+- Next: `/bos/audit-log-app` · dual-sample evidence · remaining CP meta digests.
 - Exact-route www preview only — tenant `/CP/` chrome stays PHP (same-to-same).
 - Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 

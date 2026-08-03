@@ -73,6 +73,7 @@ ASPNET_BAD_MARKERS=(
   "ErpPurchasesApp"
   "CpModulesApp"
   "CpPagesApp"
+  "CpMenusApp"
   '"error":"unauthorized"'
   '"title":"Unauthorized"'
   "X-EcomAE-Route-Cutover"
