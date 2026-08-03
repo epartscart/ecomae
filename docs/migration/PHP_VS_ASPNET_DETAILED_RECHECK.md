@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** Storefront orders Blazor read UI (`/storefront/orders-app`) on www preview only; PHP `/shop/orders` remains authoritative. Config-items #686 and prior CP meta slices shipped. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** Storefront garage Blazor read UI (`/storefront/garage-app`) on www preview only; PHP part_search garage remains authoritative. Orders #687 and prior slices shipped. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

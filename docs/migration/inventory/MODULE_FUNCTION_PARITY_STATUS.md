@@ -77,6 +77,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Cart / checkout / payments | PHP `/shop/cart` + checkout | `/storefront/cart-app` read summary; checkout → PHP | digest-only + hybrid-deeplink (Batch 4 cart; writes/checkout PHP) |
 | Account digests | PHP | `/storefront/account-summary|orders|garage|profile` | digest-only (+ orders Blazor list) |
 | Customer orders | PHP `/shop/orders` | `/storefront/orders-app` over `/storefront/orders` digest | digest-only + hybrid-deeplink (detail PHP; live storefront PHP) |
+| Customer garage | PHP part_search garage | `/storefront/garage-app` over `/storefront/garage` digest | digest-only + hybrid-deeplink (add/edit PHP; live storefront PHP) |
 | Customer login | PHP | `/storefront/login` bridge (Batch 3 PHP token formula) | hybrid-deeplink |
 
 ## Catalog / API

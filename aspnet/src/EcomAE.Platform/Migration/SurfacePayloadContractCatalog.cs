@@ -324,6 +324,7 @@ public static class SurfacePayloadContractCatalog
         new("storefront", "part_search Blazor results", "/storefront/search-app", "digest-wired-awaiting-dual-sample", "Batch 4 read-only warehouse offers (pyapi SQL parity); full PHP part_search tabs/cart remain authoritative."),
         new("storefront", "cart Blazor summary", "/storefront/cart-app", "digest-wired-awaiting-dual-sample", "Batch 4 authenticated shop_carts read UI; qty/guest cart/checkout writes remain PHP."),
         new("storefront", "orders Blazor list", "/storefront/orders-app", "digest-wired-awaiting-dual-sample", "Read UI over /storefront/orders digest; PHP /shop/orders remains authoritative for detail/reorder; live storefront stays PHP."),
+        new("storefront", "garage Blazor list", "/storefront/garage-app", "digest-wired-awaiting-dual-sample", "Read UI over /storefront/garage digest; PHP part_search garage remains authoritative for add/edit; live storefront stays PHP."),
         new("frontend", "tenant/industry storefront HTML", "/", "php-authoritative", "No broad storefront cutover until HTML/SEO/cart parity samples match."),
         new("api", "price lookup", "/api/v1/price/lookup", "aspnet-live-exact-route", "Already on ASP.NET with JSON auth gate; authenticated offer parity still required."),
         new("api", "catalog status", "/api/v1/catalog/status", "awaiting-exact-route-shadow", "Contract ready; public host still PHP until shadow + smoke."),
