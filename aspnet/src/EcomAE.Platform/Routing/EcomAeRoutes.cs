@@ -94,6 +94,8 @@ public static class EcomAeRoutes
     /// <summary>Cash &amp; bank Blazor list (JSON digests remain <see cref="ErpCashAccounts"/> / <see cref="ErpCashEntries"/>).</summary>
     public const string ErpCashAccountsApp = "/erp/cash-accounts-app";
     public const string ErpCashEntries = "/erp/cash-entries";
+    /// <summary>ERP cash ledger Blazor list (JSON digest remains <see cref="ErpCashEntries"/>).</summary>
+    public const string ErpCashEntriesApp = "/erp/cash-entries-app";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";

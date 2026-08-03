@@ -71,6 +71,7 @@ ASPNET_BAD_MARKERS=(
   "ErpPurchaseOrdersApp"
   "ErpInvoicesApp"
   "ErpCashAccountsApp"
+  "ErpCashEntriesApp"
   "ErpCoaAccountsApp"
   "ErpGlJournalsApp"
   "ErpWarehousesApp"

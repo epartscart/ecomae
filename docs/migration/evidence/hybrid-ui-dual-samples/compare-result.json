@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 37,
-  "hybridUiSamplesOk": 36,
+  "pairsChecked": 38,
+  "hybridUiSamplesOk": 37,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -203,6 +203,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "erp-cash-accounts",
       "appRoute": "/erp/cash-accounts-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-cash-entries-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-cash-entries",
+      "appRoute": "/erp/cash-entries-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

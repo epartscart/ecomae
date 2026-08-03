@@ -84,6 +84,7 @@ public static class LegacyChromeNavCatalog
         new("Dashboard summary KPIs", "/erp/dashboard-summary-app"),
         new("Accounts summary KPIs", "/erp/accounts-summary-app"),
         new("Cash & bank list", "/erp/cash-accounts-app"),
+        new("Cash ledger entries", "/erp/cash-entries-app"),
         new("Cash & bank PHP", "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"),
         new("Chart of accounts list", "/erp/coa-accounts-app"),
         new("Chart of accounts PHP", "/ERP/?epc_erp_shell=1&area=finance&tab=coa"),

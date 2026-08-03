@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-03T19:32:44Z",
+  "capturedAt": "2026-08-03T19:34:12Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -113,6 +113,12 @@
       "stem": "erp-cash-accounts",
       "appRoute": "/erp/cash-accounts-app",
       "digestRoute": "/erp/cash-accounts",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
+    },
+    {
+      "stem": "erp-cash-entries",
+      "appRoute": "/erp/cash-entries-app",
+      "digestRoute": "/erp/cash-entries",
       "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
     },
     {
