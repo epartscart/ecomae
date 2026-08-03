@@ -1,0 +1,59 @@
+{
+  "pairsChecked": 5,
+  "missSamplesOk": 4,
+  "phpInventoryOk": true,
+  "failed": 0,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "contractOnly": false,
+  "note": "Batch 5 miss harness only. Live UMAPI fill remains PHP-authoritative.",
+  "results": [
+    {
+      "file": "aspnet-analogs-miss.json",
+      "role": "aspnet-catalog-miss-sample",
+      "action": "analogs",
+      "httpStatus": 404,
+      "errorCode": "cache_miss",
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-article-brands-miss.json",
+      "role": "aspnet-catalog-miss-sample",
+      "action": "article-brands",
+      "httpStatus": 404,
+      "errorCode": "cache_miss",
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-engines-miss.json",
+      "role": "aspnet-catalog-miss-sample",
+      "action": "engines",
+      "httpStatus": 404,
+      "errorCode": "cache_miss",
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-vin-miss.json",
+      "role": "aspnet-catalog-miss-sample",
+      "action": "vin",
+      "httpStatus": 404,
+      "errorCode": "vin_cache_miss",
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "php-umapi-fill-inventory.json",
+      "role": "php-umapi-fill-inventory",
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}

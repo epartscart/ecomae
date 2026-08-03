@@ -66,7 +66,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | --- | --- |
 | Wired catalog exact-routes 18/18 | digest-only / cache readers (miss → PHP) |
 | Price lookup | aspnet exact-route live |
-| UMAPI live fill | php-only |
+| UMAPI live fill | php-only (Batch 5 miss harness documents ASP.NET 404 miss envelopes; fill stays PHP) |
 
 ## Required before PHP removal
 

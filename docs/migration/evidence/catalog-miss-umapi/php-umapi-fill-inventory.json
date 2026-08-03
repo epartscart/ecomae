@@ -1,0 +1,27 @@
+{
+  "role": "php-umapi-fill-inventory",
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "liveFillPaths": [
+    "api/umapi_proxy.php",
+    "api/v1/catalog.php"
+  ],
+  "alwaysLiveActions": ["articles", "engine"],
+  "cacheableActionsStillPhpFill": [
+    "manufacturers",
+    "models",
+    "modifications",
+    "categories",
+    "products",
+    "suppliers",
+    "article",
+    "vin",
+    "engines",
+    "engine_search",
+    "brands",
+    "analogs",
+    "article_links"
+  ],
+  "note": "ASP.NET exact-routes read cache only. Miss fill / refresh=1 / outbound UMAPI remain PHP until a future Batch 5 fill PR proves parity."
+}

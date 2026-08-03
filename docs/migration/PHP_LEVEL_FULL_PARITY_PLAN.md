@@ -85,12 +85,15 @@ Priority order:
 2. **CP Users/Groups** ✅ (#662): digests stay `/cp/users` + `/cp/groups`; Blazor UI at `/cp/users-app` + `/cp/groups-app`
 3. **ERP sales orders tab family** ✅ (#663): `/erp/sales-orders-app` over `/erp/sales-orders` digest; PHP writes authoritative
 4. **Storefront search results** ✅ (#664): `/storefront/search-app` read-only warehouse offers; PHP `/shop/part_search` authoritative for tabs
-5. **Cart/checkout** — this PR: `/storefront/cart-app` authenticated cart summary; qty/guest cart/checkout remain PHP `/shop/cart` + `/shop/checkout/*`
+5. **Cart/checkout** ✅ (#665): `/storefront/cart-app` authenticated cart summary; qty/guest cart/checkout remain PHP `/shop/cart` + `/shop/checkout/*`
 
 Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location =` only. Keep PHP hero/animation/graphical class trees when the surface has them.
 
-### Batch 5 — Catalog miss / UMAPI
-- Cache-hit paths already live; miss fill remains PHP until proven.
+### Batch 5 — Catalog miss / UMAPI ← current
+- Cache-hit paths already live (18/18 exact-routes).
+- **This PR:** miss-path probe + dual-sample harness (`cloudpanel_probe_catalog_miss_path.sh`, capture/compare under `docs/migration/evidence/catalog-miss-umapi/`). Always `cutoverAllowed=false`.
+- Live UMAPI outbound fill / cache write-on-miss / always-live `articles`+`engine` remain **PHP-authoritative** until a future fill PR proves parity.
+- Never invent `RELEASE_OWNER_APPROVAL.md`.
 
 ### Batch 6 — Decommission gate
 - Presentation recheck `status=pass`
