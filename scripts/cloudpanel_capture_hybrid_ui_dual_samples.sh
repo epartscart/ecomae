@@ -85,6 +85,7 @@ TARGETS = [
     ("erp-inventory-stock", "erp", "/erp/inventory-stock-app", "/erp/inventory-stock", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory", "ErpInventoryStockApp", "PhpErpDesktopChrome", "admin"),
     ("bos-audit-log", "bos", "/bos/audit-log-app", "/bos/audit-log", "/CP/control/portal/epc_boc_audit_log", "BosAuditLogApp", "PhpBosDesktopChrome", "admin"),
     ("bos-tenants", "bos", "/bos/tenants-app", "/bos/tenants", "/CP/control/portal/epc_tenant_control_center", "BosTenantsApp", "PhpBosDesktopChrome", "admin"),
+    ("bos-fleet-health", "bos", "/bos/fleet-health-app", "/bos/fleet-health", "/CP/control/portal/epc_platform_health_checkup", "BosFleetHealthApp", "PhpBosDesktopChrome", "admin"),
     ("sf-search", "storefront", "/storefront/search-app", "", "https://epartscart.com/shop/part_search", "StorefrontSearchApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-cart", "storefront", "/storefront/cart-app", "", "https://epartscart.com/shop/cart", "StorefrontCartApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-orders", "storefront", "/storefront/orders-app", "/storefront/orders", "https://epartscart.com/shop/orders", "StorefrontOrdersApp", "PhpStorefrontDesktopChrome", "customer"),

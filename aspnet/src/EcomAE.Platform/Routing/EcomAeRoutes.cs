@@ -117,6 +117,8 @@ public static class EcomAeRoutes
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";
     public const string BosFleetHealth = "/bos/fleet-health";
+    /// <summary>BOS fleet health Blazor KPI UI (JSON digest remains <see cref="BosFleetHealth"/>).</summary>
+    public const string BosFleetHealthApp = "/bos/fleet-health-app";
     public const string BosFleetReadiness = "/bos/fleet-readiness";
     public const string BosAuditLog = "/bos/audit-log";
     /// <summary>BOS audit log Blazor list (JSON digest remains <see cref="BosAuditLog"/>).</summary>
