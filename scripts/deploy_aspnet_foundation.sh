@@ -82,6 +82,7 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_extract_exact_route_shadow.sh" \
   "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" \
   "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" \
+  "$ROOT/scripts/cloudpanel_list_warm_catalog_models_mfa.sh" \
   "$ROOT/scripts/wait_for_aspnet_health.sh" \
   "$ROOT/scripts/rollback_aspnet_foundation.sh" \
   "$ROOT/scripts/run_zero_php_final_gate_checklist.sh" \
