@@ -150,7 +150,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Catalog/API YARP design pack hard floor (routeCount=19) (#722)
 - ✅ Dual-sample evidence trees require explicit cutover locks (#723)
 - ✅ Price-lookup evidence tree explicit cutover locks (#724)
-- **This PR:** Tighten Program.cs production-client wiring negative locks
+- ✅ Tighten Program.cs production-client wiring negative locks (#725)
+- **This PR:** Mirror catalog/API allowlist into live/decommission probe scripts
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
