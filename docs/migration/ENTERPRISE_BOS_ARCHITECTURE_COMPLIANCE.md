@@ -44,7 +44,8 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | OpenTelemetry / Serilog | 🔶 scaffolding | `EcomAeActivitySources` names reserved; exporters not registered |
 | Vault / Key Vault | ❌ not wired | Env files used in CloudPanel deploy today |
 | K8s / Helm / GitOps | 🔶 roadmap | Advanced architecture roadmap exists; CloudPanel VM is current host |
-| Angular 20 / React 19 | ❌ not started | Shells are JSON migration surfaces, not new SPA |
+| Angular 20 / React 19 | ❌ not started | Target SPA later; interim UI is Blazor SSR hybrid chrome on exact-routes only |
+| Blazor SSR hybrid presentation | 🔶 in progress | `/cp|erp|bos|storefront/*-app` www previews under PHP chrome shells; not tenant product chrome |
 | Blockchain as integration only | ✅ policy | Business SoR remains app DB; blockchain docs treat it as proof layer |
 | Modular monolith first | ✅ direction | Surface modules under `EcomAE.Platform`; extract microservices later |
 | Zero Trust / MFA / OAuth 2.1 | 🔶 partial | Legacy session + API-key bridges; modern identity pending |
@@ -52,15 +53,17 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 ## Zero-PHP relationship
 
 - ASP.NET Core is the **destination** enterprise platform; PHP is temporary until exact-route/job parity + rollback approval.
+- **Same-to-same tenant law:** live product chrome (`/`, `/CP/`, `/ERP/`, `/BOS/`, tenant hosts) stays PHP until exact-route shadows + dual-sample parity + human `RELEASE_OWNER_APPROVAL.md`. Digests/Blazor previews on www are scaffolding only — tenants must not feel PHP→ASP.NET.
 - Broad `/api`, `/cp`, `/erp`, `/bos`, or storefront nginx cutover remains forbidden.
 - Do not remove PHP-FPM/cron/source until every tracked item is live/removed with evidence.
+- Do not invent `RELEASE_OWNER_APPROVAL.md`.
 
 ## Next architecture tracks (ordered)
 
-1. Finish exact-route Zero-PHP digests/parity with PHP fallback.
+1. Finish exact-route Zero-PHP digests/parity with PHP fallback (continue hybrid ERP Blazor read UIs: invoices → cash → COA/GL).
 2. Introduce EF Core 10 against current DB bridge, then plan PostgreSQL 17 cutover.
 3. Wire OpenTelemetry exporters + Serilog sinks; keep ActivitySource names stable.
 4. Add YARP edge design behind Nginx for approved exact routes only.
 5. Redis session/cache sidecar after cookie parity evidence.
 6. Kafka domain events for workers after dry-run parity samples.
-7. SPA admin/storefront against ASP.NET APIs only.
+7. SPA admin/storefront (Angular 20 or React 19) against ASP.NET Core APIs only — after Blazor hybrid parity evidence.

@@ -1,0 +1,148 @@
+@page "/erp/invoices-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Invoices · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Invoices" BreadcrumbArea="Order to Cash" BreadcrumbTab="Invoices">
+    <style>
+        .epc-inv-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0f172a 0%,#1e293b 45%,#1d4ed8 100%);
+        }
+        .epc-inv-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-inv-hero p { margin:0; color:#bfdbfe; max-width:40rem; font-size:.92rem; line-height:1.45; }
+        .epc-inv-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-inv-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#2563eb;
+        }
+        .epc-inv-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-inv-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-inv-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-inv-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-inv-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-inv-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-inv-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-inv-table th, .epc-inv-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-inv-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-inv-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
+        .epc-inv-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#1e3a8a; }
+        .epc-inv-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-inv-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-inv-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Invoices</h1>
+        <p>Read-only ERP e-invoices from <code>/erp/invoices</code> digest under PHP ERP desktop chrome. Full tab UI (<code>erp_tabs_invoices.php</code>), posting, and writes stay on live PHP — same-to-same for tenants. ASP.NET Core owns this hybrid read surface on the path to Enterprise BOS.</p>
+        <div class="epc-inv-cta">
+            <a href="@_phpTab">Open PHP invoices</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
+            <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
+            <a class="ghost" href="/erp/app">ERP dashboard</a>
+        </div>
+    </section>
+
+    <div class="epc-inv-kpis" aria-label="Invoice KPIs">
+        <div class="epc-inv-kpi"><strong>@_invoices.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-inv-kpi"><strong>@_open</strong><span>Non-closed in page</span></div>
+        <div class="epc-inv-kpi"><strong>@_totalInclVat.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Page total incl. VAT</span></div>
+    </div>
+
+    <div class="epc-inv-table-wrap">
+        <table class="epc-inv-table">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Issued</th>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Total incl. VAT</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_invoices.Count == 0)
+                {
+                    <tr><td colspan="7">No invoices in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var inv in _invoices)
+                    {
+                        var phpHref = $"{_phpTab}&inv_id={inv.Id.ToString(CultureInfo.InvariantCulture)}";
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(inv.InvoiceNumber) ? $"#{inv.Id}" : inv.InvoiceNumber)</strong></td>
+                            <td>@FormatTime(inv.IssueDate)</td>
+                            <td>@(inv.OrderId > 0 ? inv.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@(string.IsNullOrWhiteSpace(inv.CustomerEmail) ? $"user {inv.UserId}" : inv.CustomerEmail)</td>
+                            <td><span class="epc-inv-badge">@inv.Status</span></td>
+                            <td>@inv.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td><a href="@phpHref">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-inv-note">
+        Read-only preview · JSON digest <a href="/erp/invoices?limit=150">/erp/invoices</a>.
+        PHP tab <code>erp_tabs_invoices.php</code> remains authoritative for create/edit/post.
+        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>.
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=sales&tab=invoices";
+    private bool _isAdmin;
+    private IReadOnlyList<ErpInvoiceDigest> _invoices = [];
+    private int _open;
+    private decimal _totalInclVat;
+    private int _limit = 100;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListErpInvoicesAsync(_limit, ctx.RequestAborted);
+        _invoices = result.Invoices;
+        _open = _invoices.Count(i => !string.Equals(i.Status, "closed", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(i.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(i.Status, "canceled", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(i.Status, "void", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(i.Status, "paid", StringComparison.OrdinalIgnoreCase));
+        _totalInclVat = _invoices.Sum(i => i.TotalInclVat);
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
+}
