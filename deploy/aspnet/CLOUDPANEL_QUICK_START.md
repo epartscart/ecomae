@@ -113,6 +113,12 @@ source /etc/ecomae-aspnet/platform.env
 bash scripts/cloudpanel_validate_final_gate_env.sh
 bash scripts/cloudpanel_capture_final_gate_artifacts.sh
 bash scripts/cloudpanel_commit_final_gate_smoke.sh
+# If push fails (GitHub auth on the server):
+#   gh auth login   # or set GH_TOKEN with repo scope
+#   gh auth setup-git
+#   git checkout cursor/final-gate-staging-smoke-7b3b && git push -u origin cursor/final-gate-staging-smoke-7b3b
+# Or export for offline push (no secrets in the tarball):
+#   bash scripts/cloudpanel_export_final_gate_smoke_bundle.sh
 ```
 
 Replace placeholders in `/etc/ecomae-aspnet/platform.env`. Never commit production secrets. Never flip broad storefront/admin ASP.NET flags from this file until exact-route smoke + release-owner approval exist.
