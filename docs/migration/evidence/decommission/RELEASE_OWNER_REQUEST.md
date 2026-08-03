@@ -19,7 +19,7 @@ Public frontend/backend authority is **still PHP** for product chrome:
 
 - `https://www.ecomae.com/`, `/CP/`, `/ERP/`, `/BOS/` → PHP HTML
 - Public `/cp/dashboard-summary` is **not** cut over yet
-- Approved exact-route API shadows on www: `/health`, `/migration/*`, `/api/v1/price/lookup`, `/api/v1/catalog/status`, `/api/v1/catalog/manufacturers`, `/api/v1/catalog/models`, `/api/v1/catalog/modifications`, `/api/v1/catalog/brands` (unauth 401 ASP.NET JSON; models need `mfa_id>0`, modifications need `ms_id>0`; brands needs API key only)
+- Approved exact-route API shadows on www: `/health`, `/migration/*`, `/api/v1/price/lookup`, `/api/v1/catalog/status`, `/api/v1/catalog/manufacturers`, `/api/v1/catalog/models`, `/api/v1/catalog/modifications`, `/api/v1/catalog/brands`, `/api/v1/catalog/suppliers` (unauth 401 ASP.NET JSON; models need `mfa_id>0`, modifications need `ms_id>0`; brands/suppliers need API key only)
 - Live `/migration/surface-parity` → `parity-not-yet-reached`
 - Live `/migration/presentation-parity` → `presentation-shell-scaffolded` only
 
