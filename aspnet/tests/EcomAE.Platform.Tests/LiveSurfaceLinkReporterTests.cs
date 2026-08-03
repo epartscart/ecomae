@@ -119,6 +119,10 @@ public sealed class LiveSurfaceLinkReporterTests
             link.HostClass == "aspnet-exact-route-shadow-live"
             && link.AspNetRouteHint == "/cp/tenants"
             && link.StackToday == "aspnet");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/users"
+            && link.StackToday == "aspnet");
         Assert.Contains(report.CutoverRules, rule => rule.Contains("Broad", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_capture_final_gate_artifacts.sh", StringComparison.Ordinal));
@@ -130,8 +134,8 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("umapi article", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("action_not_allowed", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("Wired catalog exact-routes complete", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("2/30 live", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_exact_route_shadow.sh /cp/users", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("3/30 live", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_exact_route_shadow.sh /cp/groups", StringComparison.Ordinal));
     }
 
     [Fact]

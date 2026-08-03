@@ -154,18 +154,48 @@ printf 'local nginx  %s -> HTTP %s\n' "$ROUTE" "$local_code"
 head -c 140 /tmp/ecomae-exact-route-local.body; echo
 
 # 3) Public URL — proves edge/origin serve the shadow (authoritative when local SNI mismatches).
-pub_code="$(curl -sS -m 20 -o /tmp/ecomae-exact-route-probe.body -w '%{http_code}' \
-  "https://www.ecomae.com${ROUTE}" || echo 000)"
+# Digests like /cp/users were real PHP HTML 200 pages; Cloudflare may cache that briefly after cutover.
+probe_public() {
+  local bust="${1:-}"
+  local url="https://www.ecomae.com${ROUTE}${bust}"
+  curl -sS -m 20 \
+    -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+    -A 'Mozilla/5.0 EcomAE-exact-route-probe' \
+    -o /tmp/ecomae-exact-route-probe.body -w '%{http_code}' \
+    "$url" || echo 000
+}
+
+pub_code="$(probe_public)"
 printf 'public URL   %s -> HTTP %s\n' "$ROUTE" "$pub_code"
 head -c 140 /tmp/ecomae-exact-route-probe.body; echo
 
+loop_ok=0
 local_ok=0
 pub_ok=0
+if is_aspnet_json_gate /tmp/ecomae-exact-route-loop.body "$loop_code"; then
+  loop_ok=1
+fi
 if is_aspnet_json_gate /tmp/ecomae-exact-route-local.body "$local_code"; then
   local_ok=1
 fi
 if is_aspnet_json_gate /tmp/ecomae-exact-route-probe.body "$pub_code"; then
   pub_ok=1
+fi
+
+# Retry public with cache-bust when loopback is ASP.NET but edge still serves PHP HTML.
+if [[ "$pub_ok" -eq 0 && "$loop_ok" -eq 1 ]]; then
+  for delay in 2 3 5; do
+    printf 'WARN: public still not ASP.NET JSON; retrying with cache-bust in %ss (CDN may cache prior PHP HTML 200)...\n' "$delay" >&2
+    sleep "$delay"
+    pub_code="$(probe_public "?_ecomae_shadow_probe=$(date +%s)")"
+    printf 'public retry %s -> HTTP %s\n' "$ROUTE" "$pub_code"
+    head -c 140 /tmp/ecomae-exact-route-probe.body; echo
+    if is_aspnet_json_gate /tmp/ecomae-exact-route-probe.body "$pub_code"; then
+      pub_ok=1
+      printf 'OK: public URL serves ASP.NET JSON gate after CDN retry for %s.\n' "$ROUTE"
+      break
+    fi
+  done
 fi
 
 if [[ "$local_ok" -eq 1 ]]; then
@@ -175,13 +205,15 @@ elif [[ "$pub_ok" -eq 1 ]]; then
   if grep -qi '<!DOCTYPE\|<html' /tmp/ecomae-exact-route-local.body 2>/dev/null; then
     printf 'WARN: local --resolve hit HTML (likely wrong default_server/SNI). Public ASP.NET JSON confirms the location is live.\n' >&2
   fi
+elif [[ "$loop_ok" -eq 1 ]]; then
+  # Location was inserted + app route works; edge may still show cached PHP HTML (seen on /cp/users).
+  printf 'WARN: public/local still HTML but loopback ASP.NET JSON gate OK for %s.\n' "$ROUTE" >&2
+  printf 'WARN: treating as soft-OK (location= inserted). Re-probe public shortly:\n' >&2
+  printf '  curl -sS -H "Cache-Control: no-cache" -o /tmp/p.json -w "%%{http_code}\\n" "https://www.ecomae.com%s?_=$(date +%%s)"\n' "$ROUTE" >&2
+  printf '  # expect ASP.NET JSON 401 missing_api_key or unauthorized\n' >&2
 else
   printf 'FAIL: neither local nginx nor public URL returned ASP.NET JSON for %s.\n' "$ROUTE" >&2
   printf 'Debug: nginx -T 2>/dev/null | grep -n "%s" -A8 | head -40\n' "$ROUTE" >&2
   exit 4
-fi
-if [[ "$pub_ok" -eq 0 ]] && grep -qi '<!DOCTYPE\|<html' /tmp/ecomae-exact-route-probe.body 2>/dev/null; then
-  printf 'WARN: public URL still HTML (Cloudflare edge lag?). Re-check in a few seconds:\n' >&2
-  printf '  curl -sS -o /tmp/p.json -w "%%{http_code}\\n" "https://www.ecomae.com%s"\n' "$ROUTE" >&2
 fi
 printf 'Do NOT remove PHP. Rollback: cp -a %s %s && nginx -t && systemctl reload nginx\n' "$bak" "$CONF"
