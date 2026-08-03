@@ -166,7 +166,9 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_storefront_digest_shadows.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_storefront_digest_shadows.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("/migration/console", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("pairsChecked=19", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_capture_digest_dual_samples.sh", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal));
     }
 
     [Fact]

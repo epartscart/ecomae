@@ -77,29 +77,27 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 - **Surface digests live: 30/30.** Storefront digests: **4/4.**
 - Blazor SSR migration console (ops improvement).
 - No broad PHP cutover; route/job parity/shadow metrics remain 0%.
-- PHP decommission readiness: smoke present; removal blocked on dual samples + human `RELEASE_OWNER_APPROVAL.md`.
+- Digest dual-sample contract parity attached (migration baseline + live ASP.NET; `failed=0`, `cutoverAllowed=false`).
+- PHP decommission readiness: smoke + dual contract samples present; removal blocked on human `RELEASE_OWNER_APPROVAL.md` (chrome still PHP).
 
 ## Path to 100% / Remaining 5% (PHP runtime decommission only)
 
 100% on the weighted meter requires approved exact-route shadows where promoted, and **human** release-owner approval to remove PHP-FPM/cron/rewrites/source.
 
-**Confirmed live (2026-08-03 ops):** storefront digests public probe **PASS=4**; surface digests **PASS=30**; catalog **18/18**. Blazor console needs antiforgery fix redeploy (`UseAntiforgery`).
+**Confirmed live (2026-08-03 ops):** catalog **18/18**; surface digests **30/30**; storefront digests **4/4**; Blazor `/migration/console` **200**; digest dual-sample contract compare **pairsChecked=19 failed=0** (`docs/migration/evidence/surface-parity/digest-dual-sample-contract-result.json`). Chrome still PHP.
 
 **Practically still pending before approval is honest:**
 
-1. Redeploy antiforgery fix so `/migration/console` returns 200 (not 500).
-2. Re-run dual-sample capture+compare (seeds migration contract baselines when PHP JSON is no longer public).
-3. Keep product chrome on PHP until intentional shell cutover (Blazor console is **not** chrome cutover).
-4. Human `RELEASE_OWNER_APPROVAL.md` — then gated PHP decommission only.
+1. Keep product chrome on PHP until intentional shell cutover (Blazor console is **not** chrome cutover).
+2. Optional: commit live `aspnet-*.json` samples from CloudPanel into git for archival.
+3. Human `RELEASE_OWNER_APPROVAL.md` — then gated PHP decommission only.
 
 ## Next execution order
 
-- Pull + redeploy: `bash scripts/cloudpanel_find_and_redeploy.sh` (ships Blazor `UseAntiforgery` fix).
-- Confirm console: `curl -sS https://www.ecomae.com/migration/console | head`
-- Dual samples: `bash scripts/cloudpanel_capture_digest_dual_samples.sh` (auto-compares; migration baseline + live ASP.NET).
 - Fail-closed parity: `bash scripts/verify_pre_php_removal_parity.sh`
 - Confirm readiness: `curl -sS https://www.ecomae.com/migration/php-decommission-readiness` (8/9; approval missing).
 - Human creates `RELEASE_OWNER_APPROVAL.md` with `APPROVED_TO_REMOVE_PHP_FALLBACK` only after that approval.
+- When `readyToRemovePhp=true`: `ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh`
 - Do **not** remove PHP until then.
 
 ## Guardrail

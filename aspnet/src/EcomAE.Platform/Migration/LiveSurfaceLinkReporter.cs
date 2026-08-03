@@ -153,9 +153,9 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Wired catalog exact-routes complete (18/18). Surface digests: 30/30. Storefront digests: 4/4 (batch installer; never broad /storefront).",
                 "Storefront batch: ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh",
                 "Storefront probe: bash scripts/cloudpanel_probe_storefront_digest_shadows.sh",
-                "Blazor SSR console: /migration/console (redeploy ASP.NET). Dual samples: bash scripts/cloudpanel_capture_digest_dual_samples.sh",
-                "Product chrome (/ /CP/ /ERP/ /BOS/) remains PHP. Dual samples + human RELEASE_OWNER_APPROVAL.md before PHP removal.",
-                "Dual-sample compare: python3 scripts/compare_digest_dual_samples.py — PHP chrome stays until human APPROVED_TO_REMOVE_PHP_FALLBACK."
+                "Blazor SSR console live: /migration/console. Digest dual-sample contract compare: pairsChecked=19 failed=0 (cutoverAllowed=false).",
+                "Product chrome (/ /CP/ /ERP/ /BOS/) remains PHP. Human RELEASE_OWNER_APPROVAL.md is the final ReadyToRemovePhp blocker.",
+                "Re-run dual samples anytime: bash scripts/cloudpanel_capture_digest_dual_samples.sh — PHP chrome stays until human APPROVED_TO_REMOVE_PHP_FALLBACK."
             ]);
     }
 

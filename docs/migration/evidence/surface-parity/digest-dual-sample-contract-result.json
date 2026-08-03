@@ -1,0 +1,33 @@
+{
+  "capturedAtUtc": "2026-08-03T11:27:00Z",
+  "host": "www.ecomae.com / CloudPanel loopback 127.0.0.1:5100",
+  "command": "bash scripts/cloudpanel_capture_digest_dual_samples.sh",
+  "aspnetSamplesCaptured": 13,
+  "pairsChecked": 19,
+  "failed": 0,
+  "migrationBaselinePairs": 13,
+  "cutoverAllowed": false,
+  "mode": "migration-contract-golden left + live authenticated ASP.NET right (contract-only)",
+  "summaryPasses": [
+    "migration+aspnet/cp-dashboard-summary",
+    "migration+aspnet/erp-dashboard-summary",
+    "migration+aspnet/erp-accounts-summary",
+    "migration+aspnet/bos-fleet-summary",
+    "migration+aspnet/bos-fleet-health",
+    "migration+aspnet/erp-inventory-stock",
+    "migration+aspnet/bos-fleet-readiness"
+  ],
+  "listEnvelopePasses": [
+    "cp-config-items",
+    "cp-admin-sessions",
+    "cp-storages",
+    "erp-cash-accounts",
+    "erp-cash-entries",
+    "bos-tenants"
+  ],
+  "notes": [
+    "Public digest exact-routes already ASP.NET; live PHP JSON duals are unavailable — migration goldens are the left contract baseline.",
+    "Product chrome (/ /CP/ /ERP/ /BOS/) remains PHP.",
+    "cutoverAllowed remains false; ReadyToRemovePhp still requires human RELEASE_OWNER_APPROVAL.md."
+  ]
+}
