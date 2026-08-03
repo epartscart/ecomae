@@ -82,6 +82,7 @@ TARGETS = [
     ("erp-warehouses", "erp", "/erp/warehouses-app", "/erp/warehouses", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory", "ErpWarehousesApp", "PhpErpDesktopChrome", "admin"),
     ("erp-suppliers", "erp", "/erp/suppliers-app", "/erp/suppliers", "/ERP/?epc_erp_shell=1&area=ap&tab=payables", "ErpSuppliersApp", "PhpErpDesktopChrome", "admin"),
     ("erp-purchases", "erp", "/erp/purchases-app", "/erp/purchases", "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchases", "ErpPurchasesApp", "PhpErpDesktopChrome", "admin"),
+    ("erp-inventory-stock", "erp", "/erp/inventory-stock-app", "/erp/inventory-stock", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory", "ErpInventoryStockApp", "PhpErpDesktopChrome", "admin"),
     ("bos-audit-log", "bos", "/bos/audit-log-app", "/bos/audit-log", "/CP/control/portal/epc_boc_audit_log", "BosAuditLogApp", "PhpBosDesktopChrome", "admin"),
     ("sf-search", "storefront", "/storefront/search-app", "", "https://epartscart.com/shop/part_search", "StorefrontSearchApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-cart", "storefront", "/storefront/cart-app", "", "https://epartscart.com/shop/cart", "StorefrontCartApp", "PhpStorefrontDesktopChrome", "customer"),

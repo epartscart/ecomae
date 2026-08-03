@@ -87,6 +87,7 @@ public static class LegacyChromeNavCatalog
         new("GL journals list", "/erp/gl-journals-app"),
         new("General ledger PHP", "/ERP/?epc_erp_shell=1&area=finance&tab=gl"),
         new("Warehouses list", "/erp/warehouses-app"),
+        new("Inventory stock KPIs", "/erp/inventory-stock-app"),
         new("Inventory PHP", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory"),
         new("Suppliers list", "/erp/suppliers-app"),
         new("Payables PHP", "/ERP/?epc_erp_shell=1&area=ap&tab=payables"),
