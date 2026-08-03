@@ -1,0 +1,40 @@
+@using EcomAE.Platform.Auth
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+@if (_ready)
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter, EditorRequired] public string LoginPath { get; set; } = "/cp/login";
+    [Parameter] public bool RequireAdmin { get; set; } = true;
+
+    private bool _ready;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            _ready = true;
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        var ok = RequireAdmin
+            ? session.Kind == LegacySessionKind.Admin
+            : session.IsAuthenticated;
+
+        if (!ok)
+        {
+            Nav.NavigateTo(LoginPath, forceLoad: true);
+            return;
+        }
+
+        _ready = true;
+    }
+}

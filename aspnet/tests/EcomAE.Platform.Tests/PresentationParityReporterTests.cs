@@ -12,13 +12,14 @@ public sealed class PresentationParityReporterTests
     {
         var report = new PresentationParityReporter().BuildReport();
 
-        Assert.Equal("hybrid-chrome-nav-login-bridge", report.Status);
+        Assert.Equal("hybrid-chrome-php-login-parity", report.Status);
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "cp" && surface.Stylesheets.Count > 0);
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "erp");
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "bos" && surface.LegacyChromeSource.Contains("epc_bos_shell", StringComparison.Ordinal));
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "storefront");
         Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("/cp/app", StringComparison.Ordinal));
-        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("/cp/login", StringComparison.Ordinal));
+        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("PhpChromeLayout", StringComparison.Ordinal));
+        Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("redirect", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("LegacyChromeNavCatalog", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("cloudpanel_install_presentation_app_shadows.sh", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("CHROME_PARITY_GAP_MATRIX", StringComparison.Ordinal));

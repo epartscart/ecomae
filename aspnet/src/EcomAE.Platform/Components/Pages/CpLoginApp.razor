@@ -1,64 +1,109 @@
 @page "/cp/login"
+@layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
 @inject NavigationManager Nav
 
-<PageTitle>Control Panel login · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-@foreach (var href in LegacyPresentationAssets.LoginStylesheets)
-{
-    <link rel="stylesheet" href="@href" />
-}
+<PageTitle>Log in form - ECOM AE · BOS</PageTitle>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" />
+<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css" />
+<link rel="stylesheet" href="/content/general_pages/epc_cp_ui_css.php" />
+<link rel="stylesheet" href="/content/general_pages/epc_cp_professional_css.php" />
+<link rel="stylesheet" href="/content/general_pages/epc_ecomae_hub_logo_css.php" />
+<link rel="stylesheet" href="/content/general_pages/epc_cp_login_hero_css.php" />
+<link rel="stylesheet" href="/content/general_pages/epc_cp_login_css.php" />
 
 <style>
-    .epc-login-page { --red:#dc2626; --ink:#111; --muted:#64748b; font-family:"Segoe UI",Tahoma,sans-serif; min-height:100vh; background:radial-gradient(900px 420px at 15% 0%,rgba(220,38,38,.18),transparent 55%), linear-gradient(160deg,#0f172a,#1e293b 45%,#111); color:#f8fafc; }
-    .epc-login-wrap { width:min(960px, calc(100% - 2rem)); margin:0 auto; padding:2rem 0 3rem; display:grid; grid-template-columns:1.1fr .9fr; gap:1.25rem; align-items:stretch; }
-    .epc-login-brand, .epc-login-panel { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:.75rem; padding:1.35rem 1.4rem; }
-    .epc-login-brand h1 { margin:.35rem 0 .5rem; font-size:clamp(1.5rem,3vw,2rem); }
-    .epc-login-brand p { color:#cbd5e1; line-height:1.45; margin:0 0 .75rem; }
-    .epc-login-badge { display:inline-block; padding:.2rem .55rem; border-radius:.35rem; background:rgba(220,38,38,.25); color:#fecaca; font-size:.75rem; font-weight:700; }
-    .epc-login-panel { background:#fff; color:var(--ink); }
-    .epc-login-panel h2 { margin:.1rem 0 .85rem; font-size:1.2rem; }
-    .epc-login-field { margin:0 0 .75rem; }
-    .epc-login-field label { display:block; font-size:.85rem; font-weight:600; margin-bottom:.25rem; }
-    .epc-login-field input, .epc-login-field select { width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; }
-    .epc-login-row { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
-    .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:var(--red); color:#fff; font-weight:700; cursor:pointer; }
-    .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; font-size:.9rem; }
-    .epc-login-bridge-note { color:var(--muted); font-size:.82rem; line-height:1.4; margin:1rem 0 .5rem; }
-    .epc-login-php { color:var(--red); font-weight:700; }
-    .epc-login-features { list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.45rem; color:#e2e8f0; font-size:.9rem; }
-    @@media (max-width:800px){ .epc-login-wrap{grid-template-columns:1fr;} }
+    .epc-asp-login-cp {
+        min-height: 100vh;
+        margin: 0;
+        background: radial-gradient(1200px 700px at 50% -10%, rgba(56,189,248,.22), transparent 50%),
+                    linear-gradient(165deg, #0b1b33 0%, #0f2a4a 42%, #0a1628 100%);
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        color: #f8fafc;
+    }
+    .epc-asp-login-cp .epc-cp-login-centered {
+        width: min(440px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 2.5rem 0 3rem;
+        text-align: center;
+    }
+    .epc-asp-login-cp .epc-cp-login-mark img { height: 56px; }
+    .epc-asp-login-cp .epc-cp-login-brand-badge {
+        display: inline-block; margin: .85rem 0 .55rem; padding: .2rem .7rem;
+        border-radius: 999px; background: rgba(45,212,191,.18); color: #99f6e4;
+        font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+    }
+    .epc-asp-login-cp h1 { margin: .2rem 0 .45rem; font-size: clamp(1.45rem, 3vw, 1.85rem); font-weight: 700; }
+    .epc-asp-login-cp .epc-cp-login-brand-sub { color: #cbd5e1; font-size: .95rem; line-height: 1.45; margin: 0 0 1.1rem; }
+    .epc-asp-login-cp .login-card {
+        background: #fff; color: #111; border-radius: .85rem; padding: 1.25rem 1.3rem 1.1rem;
+        text-align: left; box-shadow: 0 18px 50px rgba(0,0,0,.28);
+    }
+    .epc-asp-login-cp .epc-login-field { margin: 0 0 .75rem; }
+    .epc-asp-login-cp .epc-login-field label { display:block; font-size:.82rem; font-weight:600; margin-bottom:.25rem; color:#334155; }
+    .epc-asp-login-cp .epc-login-field input, .epc-asp-login-cp .epc-login-field select {
+        width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; background:#fff; color:#111;
+    }
+    .epc-asp-login-cp .epc-login-row { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; color:#475569; font-size:.85rem; }
+    .epc-asp-login-cp .epc-login-submit {
+        width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem;
+        background:#2563eb; color:#fff; font-weight:700; cursor:pointer;
+    }
+    .epc-asp-login-cp .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; font-size:.9rem; }
+    .epc-asp-login-cp .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
+    .epc-asp-login-cp .epc-login-php { color:#1d4ed8; font-weight:700; }
+    .epc-asp-login-cp .epc-cp-login-features { list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.45rem; color:#475569; font-size:.82rem; }
+    .epc-asp-login-cp .epc-cp-login-features li { display:flex; gap:.45rem; align-items:flex-start; }
+    .epc-asp-login-cp .epc-cp-login-features i { color:#2563eb; margin-top:.15rem; }
+    .epc-asp-login-cp .login-footer { margin-top:1.1rem; color:#94a3b8; font-size:.78rem; }
+    .epc-asp-login-cp .epc-cp-particles { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0; }
+    .epc-asp-login-cp .epc-cp-login-centered, .epc-asp-login-cp .login-footer { position:relative; z-index:1; }
+    .epc-asp-login-cp .epc-cp-particle { position:absolute; border-radius:50%; }
+    @@keyframes epcCpFloat { from { transform: translateY(0); } to { transform: translateY(110vh); } }
 </style>
 
-<div class="epc-login-page">
-    <div class="epc-login-wrap">
-        <section class="epc-login-brand">
-            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:36px;background:#fff;border-radius:4px;padding:2px" />
-            <span class="epc-login-badge">CONTROL PANEL</span>
-            <h1>Control Command Centre</h1>
-            <p>Sign in with the same credentials as PHP /CP/. ASP.NET mints compatible admin cookies; menus and modules stay on PHP until cutover.</p>
-            <ul class="epc-login-features">
-                <li>Same users / sessions table as PHP</li>
-                <li>Tenant + platform CP hosts supported via DB</li>
-                <li>Fallback: live PHP login always available</li>
+<div class="epc-asp-login-cp epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super">
+    <div id="epcCpParticles" class="epc-cp-particles" aria-hidden="true"></div>
+    <div class="epc-cp-login-centered">
+        <div class="epc-cp-login-mark">
+            <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" />
+        </div>
+        <span class="epc-cp-login-brand-badge">BOS · CONTROL</span>
+        <h1>BOS — Business Operation System</h1>
+        <p class="epc-cp-login-brand-sub">One login · operators control the whole fleet, tenants see only their own area</p>
+
+        <div class="login-card">
+            <LegacyAdminLoginForm Surface="LegacyLoginSurface.ControlPanel" SurfaceLabel="CP" PhpLoginHref="/CP/" ErrorMessage="@_error" SubmitLabel="Log in" Accent="blue" />
+            <ul class="epc-cp-login-features">
+                <li><i class="fa fa-globe"></i> Fleet command — commerce, ERP-only &amp; demo</li>
+                <li><i class="fa fa-rocket"></i> Tenant onboarding, templates &amp; module packs</li>
+                <li><i class="fa fa-shield"></i> Platform health, governance &amp; failover</li>
             </ul>
-        </section>
-        <section class="epc-login-panel">
-            <h2>Sign in</h2>
-            <LegacyAdminLoginForm Surface="LegacyLoginSurface.ControlPanel" SurfaceLabel="CP" PhpLoginHref="/CP/" ErrorMessage="@_error" />
-            <p style="margin-top:1rem;font-size:.85rem;color:#64748b">
-                Preview shell after login: <a href="/cp/app">/cp/app</a> · Live PHP: <a href="/CP/">/CP/</a>
-            </p>
-        </section>
+        </div>
+        <div class="login-footer">Multi-industry commerce platform / Designed by ecomae</div>
     </div>
 </div>
 
+<script>
+(function(){
+  var c=document.getElementById('epcCpParticles'); if(!c) return;
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){c.style.display='none';return;}
+  var colors=['rgba(14,165,233,.55)','rgba(56,189,248,.45)','rgba(255,255,255,.25)'];
+  var frag=document.createDocumentFragment();
+  for(var i=0;i<28;i++){
+    var d=document.createElement('span'), size=1.5+Math.random()*2.5, speed=8+Math.random()*10, color=colors[Math.floor(Math.random()*colors.length)];
+    d.className='epc-cp-particle';
+    d.style.cssText='width:'+size+'px;height:'+size+'px;left:'+(Math.random()*100)+'%;top:-'+(size+4)+'px;background:'+color+';animation:epcCpFloat '+speed+'s linear '+(-(Math.random()*speed))+'s infinite;opacity:'+(0.35+Math.random()*0.45)+';';
+    frag.appendChild(d);
+  }
+  c.appendChild(frag);
+})();
+</script>
+
 @code {
     private string? _error;
-
-    protected override void OnInitialized()
-    {
-        _error = LoginErrorHelper.FromUri(Nav.Uri);
-    }
+    protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
 }

@@ -20,13 +20,15 @@ public static class LegacyPresentationAssets
 
     public static readonly IReadOnlyList<string> ControlPanelStylesheets =
     [
-        "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css",
-        "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/css/bootstrap.css",
-        "/epc-static.php?f=cp/templates/bootstrap_admin/fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css",
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
+        "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css",
         "/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css",
         "/epc-static.php?f=cp/templates/bootstrap_admin/css/astself.css",
         "/content/general_pages/epc_cp_ui_css.php",
         "/content/general_pages/epc_cp_professional_css.php",
+        "/content/general_pages/epc_cp_density_css.php",
+        "/content/general_pages/epc_cp_tenant_polish_css.php",
+        "/content/general_pages/epc_cp_storefront_topbar_css.php",
         // Tenant Control Command Centre (matches live PHP /CP/ dashboard presentation)
         "/content/general_pages/epc_cp_command_dashboard_css.php"
     ];

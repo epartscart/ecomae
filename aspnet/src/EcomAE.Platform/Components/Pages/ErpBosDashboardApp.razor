@@ -1,10 +1,12 @@
 @page "/erp/app"
+@layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject NavigationManager Nav
 
 <PageTitle>Ecom BOS Dashboard · ERP</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -114,7 +116,7 @@
     private int _suppliers;
     private int _purchases;
     private string _source = "n/a";
-    private string _note = "Unauthenticated preview (ERP digests need admin cookie). ";
+    private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
 
     protected override async Task OnInitializedAsync()
@@ -122,7 +124,12 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin) return;
+        if (session.Kind != LegacySessionKind.Admin)
+        {
+            // Match PHP /ERP/: unauthenticated users see login landing.
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
         _isAdmin = true;
         var summary = await Dashboards.BuildErpAsync(ctx.RequestAborted);
         _cash = summary.CashPosition;

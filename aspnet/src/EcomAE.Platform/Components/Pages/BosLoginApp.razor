@@ -1,50 +1,74 @@
 @page "/bos/login"
+@layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
 @inject NavigationManager Nav
 
-<PageTitle>BOS login · Super BOS</PageTitle>
-<PhpChromeStyles Surface="bos" />
+<PageTitle>BOS — Business Operating System</PageTitle>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<link rel="stylesheet" href="/epc-static.php?f=bos/epc_bos_shell.css" />
 
 <style>
-    .epc-login-page { --accent:#facc15; --ink:#f5f5f5; --muted:#a3a3a3; font-family:"Segoe UI",Tahoma,sans-serif; min-height:100vh; background:#0b0b0b; color:var(--ink); }
-    .epc-login-wrap { width:min(960px, calc(100% - 2rem)); margin:0 auto; padding:2rem 0 3rem; display:grid; grid-template-columns:1.1fr .9fr; gap:1.25rem; }
-    .epc-login-brand, .epc-login-panel { background:#151515; border:1px solid #2a2a2a; border-radius:.75rem; padding:1.35rem 1.4rem; }
-    .epc-login-panel { background:#f8fafc; color:#111; }
-    .epc-login-brand h1 { margin:.35rem 0 .5rem; font-size:clamp(1.45rem,3vw,1.9rem); }
-    .epc-login-brand p { color:var(--muted); line-height:1.45; }
-    .epc-login-badge { display:inline-block; padding:.2rem .55rem; border-radius:.35rem; background:rgba(250,204,21,.15); color:var(--accent); font-size:.75rem; font-weight:700; }
-    .epc-login-field { margin:0 0 .75rem; }
-    .epc-login-field label { display:block; font-size:.85rem; font-weight:600; margin-bottom:.25rem; }
-    .epc-login-field input, .epc-login-field select { width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; }
-    .epc-login-row { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
-    .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:#111; color:#facc15; font-weight:700; cursor:pointer; }
-    .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
-    .epc-login-bridge-note { color:#64748b; font-size:.82rem; line-height:1.4; margin:1rem 0 .5rem; }
-    .epc-login-php { color:#b45309; font-weight:700; }
-    .epc-login-warn { margin-top:1rem; padding:.7rem .8rem; border:1px solid #444; border-radius:.45rem; color:var(--muted); font-size:.85rem; }
-    @@media (max-width:800px){ .epc-login-wrap{grid-template-columns:1fr;} }
+    .epc-asp-login-bos { min-height:100vh; margin:0; display:grid; grid-template-columns:1.15fr .85fr; background:#050505; color:#f5f5f5; font-family:"Segoe UI",Tahoma,sans-serif; }
+    .epc-asp-login-bos .left {
+        padding:2.2rem 2rem; background:
+            radial-gradient(700px 400px at 30% 20%, rgba(37,99,235,.25), transparent 55%),
+            radial-gradient(500px 300px at 70% 70%, rgba(168,85,247,.18), transparent 50%),
+            #0a0a0a;
+        display:flex; flex-direction:column; justify-content:center; gap:1rem;
+    }
+    .epc-asp-login-bos .bos-mark {
+        width:64px; height:64px; border-radius:1rem; background:linear-gradient(135deg,#2563eb,#3b82f6);
+        display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:.4rem;
+    }
+    .epc-asp-login-bos h1 { margin:0; font-size:clamp(2rem,4vw,2.8rem); letter-spacing:.04em; }
+    .epc-asp-login-bos .eyebrow { color:#94a3b8; letter-spacing:.12em; font-size:.78rem; font-weight:700; }
+    .epc-asp-login-bos .cards { display:grid; gap:.65rem; margin-top:1rem; max-width:28rem; }
+    .epc-asp-login-bos .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:.7rem; padding:.85rem .9rem; }
+    .epc-asp-login-bos .card strong { display:block; margin-bottom:.2rem; }
+    .epc-asp-login-bos .card span { color:#94a3b8; font-size:.82rem; }
+    .epc-asp-login-bos .right { background:#0b1220; border-left:1px solid #1f2937; padding:2rem 1.5rem; display:flex; flex-direction:column; justify-content:center; }
+    .epc-asp-login-bos .right h2 { margin:.2rem 0 .35rem; }
+    .epc-asp-login-bos .right p { color:#94a3b8; margin:0 0 1rem; font-size:.9rem; }
+    .epc-asp-login-bos .role { display:flex; gap:.45rem; margin-bottom:1rem; }
+    .epc-asp-login-bos .role span { flex:1; text-align:center; padding:.55rem .4rem; border-radius:.5rem; border:1px solid #334155; font-size:.8rem; font-weight:700; }
+    .epc-asp-login-bos .role .on { background:#1d4ed8; border-color:#1d4ed8; }
+    .epc-asp-login-bos .epc-login-field { margin:0 0 .75rem; }
+    .epc-asp-login-bos .epc-login-field label { display:block; font-size:.75rem; font-weight:700; letter-spacing:.04em; color:#94a3b8; margin-bottom:.25rem; }
+    .epc-asp-login-bos .epc-login-field input, .epc-asp-login-bos .epc-login-field select {
+        width:100%; padding:.65rem .75rem; border:1px solid #334155; border-radius:.5rem; background:#111827; color:#f8fafc;
+    }
+    .epc-asp-login-bos .epc-login-submit { width:100%; margin-top:.4rem; padding:.8rem 1rem; border:0; border-radius:.5rem; background:#2563eb; color:#fff; font-weight:700; cursor:pointer; }
+    .epc-asp-login-bos .epc-login-error { background:#450a0a; color:#fecaca; border:1px solid #7f1d1d; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
+    .epc-asp-login-bos .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
+    .epc-asp-login-bos .epc-login-php { color:#93c5fd; font-weight:700; }
+    .epc-asp-login-bos .secure { margin-top:1rem; color:#86efac; font-size:.78rem; }
+    .epc-asp-login-bos .foot { margin-top:auto; padding-top:1.5rem; color:#64748b; font-size:.75rem; }
+    @@media (max-width:900px){ .epc-asp-login-bos{grid-template-columns:1fr;} .epc-asp-login-bos .right{border-left:0;border-top:1px solid #1f2937;} }
 </style>
 
-<div class="epc-login-page">
-    <div class="epc-login-wrap">
-        <section class="epc-login-brand">
-            <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:36px;background:#fff;border-radius:4px;padding:2px" />
-            <span class="epc-login-badge">SUPER BOS</span>
-            <h1>Fleet command login</h1>
-            <p>Admin cookie bridge unlocks ASP.NET BOS digests and /bos/app KPIs. Full Super BOS PHP UI still uses the native /BOS/ session — keep that for tenant module work.</p>
-            <div class="epc-login-warn">
-                Gap retained on purpose: PHP BOS uses <code>$_SESSION</code>; ASP.NET validates MySQL admin cookies. Both paths stay available.
-            </div>
-        </section>
-        <section class="epc-login-panel">
-            <h2>Sign in (admin bridge)</h2>
-            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/BOS/" ErrorMessage="@_error" />
-            <p style="margin-top:1rem;font-size:.85rem;color:#64748b">
-                After login: <a href="/bos/app">/bos/app</a> · Live PHP BOS: <a href="/BOS/">/BOS/</a>
-            </p>
-        </section>
-    </div>
+<div class="epc-asp-login-bos">
+    <section class="left">
+        <div class="bos-mark"><i class="fa fa-th-large"></i></div>
+        <div class="eyebrow">BUSINESS OPERATING SYSTEM</div>
+        <h1>BOS</h1>
+        <div class="cards">
+            <div class="card"><strong>Enterprise ERP</strong><span>Finance, HR, Inventory, Production</span></div>
+            <div class="card"><strong>eCommerce Platform</strong><span>Multi-tenant, Multi-industry</span></div>
+            <div class="card"><strong>Worldwide Compliance</strong><span>Auto-localized per country</span></div>
+        </div>
+    </section>
+    <section class="right">
+        <div class="role">
+            <span class="on"><i class="fa fa-shield"></i> Platform Operator</span>
+            <span><i class="fa fa-building"></i> ERP Customer</span>
+        </div>
+        <h2>Operator Access</h2>
+        <p>Manage your entire tenant fleet from one dashboard.</p>
+        <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/BOS/" ErrorMessage="@_error" SubmitLabel="Sign In to BOS" Accent="blue" />
+        <div class="secure"><i class="fa fa-lock"></i> 256-bit encrypted · Session isolated · Audit logged</div>
+        <div class="foot">ECOMAE · Business Operating System · admin bridge for digests; native PHP /BOS/ for full $_SESSION modules</div>
+    </section>
 </div>
 
 @code {
