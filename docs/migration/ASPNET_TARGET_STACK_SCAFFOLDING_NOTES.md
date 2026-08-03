@@ -51,7 +51,7 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 
 - Kafka 4 primary (RabbitMQ alternative): `EcomAeKafkaScaffoldOptions` + `IDomainEventPublisherScaffold` (`Enabled=false`, `AllowPublish=false`).
 - OpenSearch 3: `EcomAeOpenSearchScaffoldOptions` + `IEnterpriseSearchScaffold` (`ReplacePhpSearch=false`).
-- Azure Blob / S3 / MinIO for documents and backups (not scaffolded yet).
+- Azure Blob / S3 / MinIO: `EcomAeObjectStorageScaffoldOptions` + `IObjectStorageScaffold` (`ReplaceLocalFilePaths=false`).
 - Do not register producers/clients in `Program.cs` until dry-run parity evidence exists.
 
 ## Serilog / OTLP sinks (not registered)
@@ -65,3 +65,9 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 - Python FastAPI sidecars for AI only.
 - ASP.NET Core calls AI over REST/gRPC.
 - Python must not own business transactions, permissions, or SoR writes.
+
+## Vault / Key Vault (not bound)
+
+- Scaffold types: `EcomAeVaultScaffoldOptions`, `ISecretStoreScaffold` (`ReplaceEnvFileSecrets=false`).
+- CloudPanel env files remain the current secret source.
+- Never commit credentials or paste secrets into PR comments.
