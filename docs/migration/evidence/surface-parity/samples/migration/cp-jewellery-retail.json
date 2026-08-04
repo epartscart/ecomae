@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "voucherCount": 1,
+    "openVouchers": 1,
+    "tagCount": 0,
+    "metalStockRows": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; vouchers[] sentinel; PII/cost omitted; PHP retail/jewellery authoritative; cutoverAllowed=false",
+  "vouchers": [
+    {
+      "id": 1,
+      "vocType": "sales",
+      "vocDate": "2026-01-01",
+      "vocNo": 1,
+      "partyName": "Migration Party",
+      "status": "draft",
+      "netAmount": 100.0,
+      "vatAmount": 5.0,
+      "totalWithVat": 105.0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

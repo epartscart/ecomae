@@ -468,6 +468,58 @@
       "phpAuthoritative": true,
       "wwwPreviewOnly": true,
       "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-jewellery-retail",
+      "surface": "cp",
+      "appRoute": "/cp/jewellery-retail-app",
+      "digestRoute": "/cp/jewellery-retail",
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=retail&tab=retail_commerce&epc_erp_shell=1",
+      "blazorMarker": "CpJewelleryRetailApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-price-lists",
+      "surface": "cp",
+      "appRoute": "/cp/price-lists-app",
+      "digestRoute": "/cp/price-lists",
+      "phpAuthoritativePath": "/CP/shop/prices",
+      "blazorMarker": "CpPriceListsApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-auto-price",
+      "surface": "cp",
+      "appRoute": "/cp/auto-price-app",
+      "digestRoute": "/cp/auto-price",
+      "phpAuthoritativePath": "/CP/control/portal/epc_auto_price_engine",
+      "blazorMarker": "CpAutoPriceApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-uae-tax-compliance",
+      "surface": "cp",
+      "appRoute": "/cp/uae-tax-compliance-app",
+      "digestRoute": "/cp/uae-tax-compliance",
+      "phpAuthoritativePath": "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1",
+      "blazorMarker": "CpUaeTaxComplianceApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

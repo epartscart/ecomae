@@ -898,6 +898,104 @@ public sealed record CpIndustryPacksDigestResult(
     string Source,
     string Message);
 
+public sealed record CpJewelleryRetailSummary(
+    int VoucherCount,
+    int OpenVouchers,
+    int TagCount,
+    int MetalStockRows,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryVoucherDigest(
+    long Id,
+    string VocType,
+    string VocDate,
+    long VocNo,
+    string PartyName,
+    string Status,
+    decimal NetAmount,
+    decimal VatAmount,
+    decimal TotalWithVat);
+
+public sealed record CpJewelleryRetailDigestResult(
+    CpJewelleryRetailSummary Summary,
+    IReadOnlyList<CpJewelleryVoucherDigest> Vouchers,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPriceListsSummary(
+    int ActiveLists,
+    int PriceRows,
+    int UploadCount,
+    string Source,
+    string Message);
+
+public sealed record CpPriceListDigest(
+    long Id,
+    string Code,
+    string Name,
+    string Currency,
+    long CustomerId,
+    int Priority,
+    bool Active);
+
+public sealed record CpPriceListsDigestResult(
+    CpPriceListsSummary Summary,
+    IReadOnlyList<CpPriceListDigest> Lists,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpAutoPriceSummary(
+    int ActiveRules,
+    int ActiveSources,
+    int CompareRuns,
+    string Source,
+    string Message);
+
+public sealed record CpAutoPriceRuleDigest(
+    long Id,
+    string SiteKey,
+    string RuleKey,
+    decimal MinMarginPercent,
+    bool AutoUpdatePrices,
+    int ScheduleHours,
+    bool Active,
+    long UpdatedAt);
+
+public sealed record CpAutoPriceDigestResult(
+    CpAutoPriceSummary Summary,
+    IReadOnlyList<CpAutoPriceRuleDigest> Rules,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpUaeTaxComplianceSummary(
+    int LegislationCount,
+    int VatAdvanceRows,
+    int VatRefundRows,
+    string Source,
+    string Message);
+
+public sealed record CpUaeTaxItemDigest(
+    long Id,
+    string Slug,
+    string Title,
+    string IssueDate,
+    string Category,
+    string TaxCategory,
+    bool IsNew,
+    bool IsUpdated,
+    long TimeSynced);
+
+public sealed record CpUaeTaxComplianceDigestResult(
+    CpUaeTaxComplianceSummary Summary,
+    IReadOnlyList<CpUaeTaxItemDigest> Items,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontPartOfferDigest(
     int PriceId,
     string PriceList,

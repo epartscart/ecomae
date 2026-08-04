@@ -140,6 +140,22 @@ public static class EcomAeRoutes
     public const string ControlPanelIndustryPacks = "/cp/industry-packs";
     /// <summary>CP industry packs Blazor list (JSON digest remains <see cref="ControlPanelIndustryPacks"/>).</summary>
     public const string ControlPanelIndustryPacksApp = "/cp/industry-packs-app";
+    /// <summary>CP jewellery retail KPIs + vouchers (PII/cost omitted).</summary>
+    public const string ControlPanelJewelleryRetail = "/cp/jewellery-retail";
+    /// <summary>CP jewellery Blazor retail (JSON digest remains <see cref="ControlPanelJewelleryRetail"/>).</summary>
+    public const string ControlPanelJewelleryRetailApp = "/cp/jewellery-retail-app";
+    /// <summary>CP price lists metadata (stats_json/error_text/stored_relpath omitted).</summary>
+    public const string ControlPanelPriceLists = "/cp/price-lists";
+    /// <summary>CP price lists Blazor list (JSON digest remains <see cref="ControlPanelPriceLists"/>).</summary>
+    public const string ControlPanelPriceListsApp = "/cp/price-lists-app";
+    /// <summary>CP auto-price rules (config_json/notes/meta omitted).</summary>
+    public const string ControlPanelAutoPrice = "/cp/auto-price";
+    /// <summary>CP auto-price Blazor list (JSON digest remains <see cref="ControlPanelAutoPrice"/>).</summary>
+    public const string ControlPanelAutoPriceApp = "/cp/auto-price-app";
+    /// <summary>CP UAE tax compliance legislation (erp_summary/pdf/passport omitted).</summary>
+    public const string ControlPanelUaeTaxCompliance = "/cp/uae-tax-compliance";
+    /// <summary>CP UAE tax Blazor list (JSON digest remains <see cref="ControlPanelUaeTaxCompliance"/>).</summary>
+    public const string ControlPanelUaeTaxComplianceApp = "/cp/uae-tax-compliance-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

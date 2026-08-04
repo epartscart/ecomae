@@ -1,0 +1,29 @@
+{
+  "role": "cp-uae-tax-compliance-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-uae-tax-compliance",
+  "collectionKey": "items",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "legislationCount",
+    "vatAdvanceRows",
+    "vatRefundRows",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "slug",
+    "title",
+    "issueDate",
+    "category",
+    "taxCategory",
+    "isNew",
+    "isUpdated",
+    "timeSynced"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks UAE tax digest summary+items[] floors. erp_summary/pdf/passport omitted. PHP uae-tax-compliance remains authoritative. cutoverAllowed=false."
+}

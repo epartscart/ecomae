@@ -1,0 +1,30 @@
+{
+  "role": "cp-jewellery-retail-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-jewellery-retail",
+  "collectionKey": "vouchers",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "voucherCount",
+    "openVouchers",
+    "tagCount",
+    "metalStockRows",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "vocType",
+    "vocDate",
+    "vocNo",
+    "partyName",
+    "status",
+    "netAmount",
+    "vatAmount",
+    "totalWithVat"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks jewellery retail digest summary+vouchers[] floors. PII/cost omitted. PHP retail/jewellery shell remains authoritative. cutoverAllowed=false."
+}

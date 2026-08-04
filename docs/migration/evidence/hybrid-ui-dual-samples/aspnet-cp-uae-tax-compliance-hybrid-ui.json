@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-uae-tax-compliance",
+  "surface": "cp",
+  "appRoute": "/cp/uae-tax-compliance-app",
+  "digestRoute": "/cp/uae-tax-compliance",
+  "phpAuthoritativePath": "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1",
+  "blazorComponent": "CpUaeTaxComplianceApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-uae-tax-compliance. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T06:10:00Z"
+}

@@ -787,6 +787,85 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Jewellery retail KPIs — omits mobile/email/tel/passport/remarks/narration/customer PII/cost.</summary>
+    public const string SelectCpJewelleryStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_jewel_voucher`) AS voucher_count,
+            (SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE IFNULL(`status`,'') IN ('draft','posted','authorized')) AS open_vouchers,
+            (SELECT COUNT(*) FROM `epc_jw_tags`) AS tag_count,
+            (SELECT COUNT(*) FROM `epc_jewel_metal_stock`) AS metal_stock_rows
+        """;
+
+    /// <summary>Jewellery vouchers — omits mobile/email/tel/passport/remarks/narration/customer PII/cost.</summary>
+    public const string SelectCpJewelleryVouchers = """
+        SELECT `id`, IFNULL(`voc_type`,'') AS voc_type, IFNULL(`voc_date`,'') AS voc_date,
+               IFNULL(`voc_no`,0) AS voc_no, IFNULL(`party_name`,'') AS party_name,
+               IFNULL(`status`,'') AS status,
+               IFNULL(`net_amount`,0) AS net_amount, IFNULL(`vat_amount`,0) AS vat_amount,
+               IFNULL(`total_with_vat`,0) AS total_with_vat
+        FROM `epc_jewel_voucher`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Price list KPIs — omits stats_json/error_text/stored_relpath.</summary>
+    public const string SelectCpPriceListStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_pl_lists` WHERE IFNULL(`active`,0)=1) AS active_lists,
+            (SELECT COUNT(*) FROM `epc_pl_prices`) AS price_rows,
+            (SELECT COUNT(*) FROM `epc_price_upload_history`) AS upload_count
+        """;
+
+    /// <summary>Price lists — omits stats_json/error_text/stored_relpath.</summary>
+    public const string SelectCpPriceLists = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`currency`,'') AS currency, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`priority`,0) AS priority, IFNULL(`active`,0) AS active
+        FROM `epc_pl_lists`
+        ORDER BY `priority` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Auto-price KPIs — omits config_json/notes/meta.</summary>
+    public const string SelectCpAutoPriceStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_auto_price_rules` WHERE IFNULL(`active`,0)=1) AS active_rules,
+            (SELECT COUNT(*) FROM `epc_price_sources` WHERE IFNULL(`active`,0)=1) AS active_sources,
+            (SELECT COUNT(*) FROM `epc_price_compare_runs`) AS compare_runs
+        """;
+
+    /// <summary>Auto-price rules — omits config_json/notes/meta.</summary>
+    public const string SelectCpAutoPriceRules = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`rule_key`,'') AS rule_key,
+               IFNULL(`min_margin_percent`,0) AS min_margin_percent,
+               IFNULL(`auto_update_prices`,0) AS auto_update_prices,
+               IFNULL(`schedule_hours`,0) AS schedule_hours,
+               IFNULL(`active`,0) AS active, IFNULL(`updated_at`,0) AS updated_at
+        FROM `epc_auto_price_rules`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>UAE tax KPIs — omits erp_summary/compliance_actions_json/pdf_url/passport.</summary>
+    public const string SelectCpUaeTaxStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_uae_tax_legislation_items`) AS legislation_count,
+            (SELECT COUNT(*) FROM `epc_uae_vat_advance`) AS vat_advance_rows,
+            (SELECT COUNT(*) FROM `epc_bos_vat_refunds`) AS vat_refund_rows
+        """;
+
+    /// <summary>UAE tax legislation items — omits erp_summary/compliance_actions_json/pdf_url/passport.</summary>
+    public const string SelectCpUaeTaxItems = """
+        SELECT `id`, IFNULL(`slug`,'') AS slug, IFNULL(`title`,'') AS title,
+               IFNULL(`issue_date`,'') AS issue_date, IFNULL(`category`,'') AS category,
+               IFNULL(`tax_category`,'') AS tax_category,
+               IFNULL(`is_new`,0) AS is_new, IFNULL(`is_updated`,0) AS is_updated,
+               IFNULL(`time_synced`,0) AS time_synced
+        FROM `epc_uae_tax_legislation_items`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>
     /// Batch 4 storefront part search (mirrors pyapi <c>part_search</c> / warehouse offers).
     /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.
