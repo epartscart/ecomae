@@ -1,0 +1,10 @@
+ECOM AE platform Helm example (DESIGN ONLY).
+
+- CloudPanel VM hosting remains current.
+- cutoverAllowed={{ .Values.cutoverAllowed }}
+- readyForPhpRemoval={{ .Values.readyForPhpRemoval }}
+- phpFallbackRequired={{ .Values.phpFallbackRequired }}
+
+Do NOT apply this chart for production cutover.
+Do NOT invent RELEASE_OWNER_APPROVAL.md.
+Keep exact-route Nginx/YARP allowlists only — never catch-all /api /cp /erp /bos /.

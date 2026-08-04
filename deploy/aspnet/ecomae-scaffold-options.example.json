@@ -1,0 +1,67 @@
+{
+  "note": "DESIGN ONLY consolidated scaffold options. Not loaded by Program.cs. All Replace*/Allow*/Register* flags stay false. Never commit secrets.",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "EcomAe": {
+    "Postgres": {
+      "Host": "127.0.0.1",
+      "Port": 5432,
+      "Database": "ecomae",
+      "Username": "",
+      "Password": "",
+      "Enabled": false,
+      "ReplaceMysqlBridge": false
+    },
+    "Redis": {
+      "ConnectionString": "",
+      "KeyPrefix": "ecomae:",
+      "Enabled": false,
+      "ReplacePhpSessionCookies": false
+    },
+    "Kafka": {
+      "BootstrapServers": "",
+      "ClientId": "ecomae-platform",
+      "Enabled": false,
+      "AllowPublish": false
+    },
+    "OpenSearch": {
+      "NodeUri": "",
+      "DefaultIndex": "ecomae",
+      "Enabled": false,
+      "ReplacePhpSearch": false
+    },
+    "ObjectStorage": {
+      "Provider": "minio",
+      "Endpoint": "",
+      "Bucket": "ecomae",
+      "Enabled": false,
+      "ReplaceLocalFilePaths": false
+    },
+    "Vault": {
+      "Provider": "hashicorp-vault",
+      "Address": "",
+      "SecretsMount": "secret",
+      "Enabled": false,
+      "ReplaceEnvFileSecrets": false
+    },
+    "OAuth": {
+      "Authority": "",
+      "Audience": "ecomae-platform",
+      "Enabled": false,
+      "RequireMfa": false,
+      "ReplacePhpCookieBridge": false
+    },
+    "Spa": {
+      "Framework": "angular",
+      "ApiBasePath": "/api/v1",
+      "Enabled": false,
+      "ReplaceBlazorHybridPresentation": false
+    },
+    "Serilog": {
+      "MinimumLevel": "Information",
+      "OtlpEndpoint": "",
+      "Enabled": false,
+      "RegisterExporters": false
+    }
+  }
+}

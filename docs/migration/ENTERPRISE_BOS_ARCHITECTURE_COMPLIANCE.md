@@ -35,7 +35,7 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | No new non-.NET backends | ✅ | No Java/Node/Go introduced |
 | Python AI-only | 🔶 partial | Hybrid roadmap states AI-only; legacy `docs/PYTHON_MIGRATION.md` is superseded for business APIs |
 | EF Core 10 primary ORM | 🔶 package + bounded-context stubs | `Microsoft.EntityFrameworkCore` 10.0.0 referenced; Catalog/TenantRegistry/Identity/ERP stubs on `EcomAeScaffoldDbContext` (not registered in `Program.cs`); production still uses `MySqlConnector` ADO |
-| PostgreSQL 17 primary SoR | ❌ not migrated | Legacy MySQL/MariaDB remains SoR during Zero-PHP; PG17 is target after parity |
+| PostgreSQL 17 primary SoR | 🔶 options scaffold | `EcomAePostgresScaffoldOptions` + `IPostgresMigrationScaffold` unwired (`ReplaceMysqlBridge=false`); MySQL/MariaDB remains bridge SoR |
 | Redis 8 | 🔶 options scaffold | `EcomAeRedisScaffoldOptions` + `IDistributedCacheScaffold` unwired; PHP cookies remain authoritative (`ReplacePhpSessionCookies=false`) |
 | Kafka 4 (or RabbitMQ) | 🔶 options scaffold | `EcomAeKafkaScaffoldOptions` + `IDomainEventPublisherScaffold` unwired (`AllowPublish=false`); dry-run workers only |
 | OpenSearch 3 | 🔶 options scaffold | `EcomAeOpenSearchScaffoldOptions` + `IEnterpriseSearchScaffold` unwired (`ReplacePhpSearch=false`) |
@@ -43,12 +43,12 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | YARP / Kong gateway | 🔶 design example | Nginx edge today; YARP JSON generated from presentation nginx allowlist (`generate_yarp_exact_routes_example.py`); not loaded; never catch-all |
 | OpenTelemetry / Serilog | 🔶 scaffolding | ActivitySources + `EcomAeSerilogScaffoldOptions` (`RegisterExporters=false`); Workers ActivitySource mirror; exporters/sinks not registered |
 | Vault / Key Vault | 🔶 options scaffold | `EcomAeVaultScaffoldOptions` + `ISecretStoreScaffold` unwired (`ReplaceEnvFileSecrets=false`); CloudPanel env files remain current |
-| K8s / Helm / GitOps | 🔶 roadmap | Advanced architecture roadmap exists; CloudPanel VM is current host |
-| Angular 20 / React 19 | ❌ not started | Target SPA later; interim UI is Blazor SSR hybrid chrome on exact-routes only |
+| K8s / Helm / GitOps | 🔶 design chart | `deploy/aspnet/helm-ecomae-platform-example/` design-only (`cutoverAllowed=false`); CloudPanel VM is current host |
+| Angular 20 / React 19 | 🔶 options scaffold | `EcomAeSpaScaffoldOptions` unwired (`ReplaceBlazorHybridPresentation=false`); interim UI remains Blazor SSR hybrid |
 | Blazor SSR hybrid presentation | 🔶 in progress | `/cp|erp|bos|storefront/*-app` www previews under PHP chrome shells; not tenant product chrome |
 | Blockchain as integration only | ✅ policy | Business SoR remains app DB; blockchain docs treat it as proof layer |
 | Modular monolith first | ✅ direction | Surface modules under `EcomAE.Platform`; extract microservices later |
-| Zero Trust / MFA / OAuth 2.1 | 🔶 partial | Legacy session + API-key bridges; modern identity pending |
+| Zero Trust / MFA / OAuth 2.1 | 🔶 options scaffold | `EcomAeOAuthScaffoldOptions` + `IModernIdentityScaffold` unwired (`ReplacePhpCookieBridge=false`); PHP cookies remain authoritative |
 
 ## Zero-PHP relationship
 
