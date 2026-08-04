@@ -172,6 +172,14 @@ builder.Services.AddSingleton<IErpWmsLocationSaveDryRun, ErpWmsLocationSaveDryRu
 builder.Services.AddSingleton<IErpCollectionsCaseSaveDryRun, ErpCollectionsCaseSaveDryRun>();
 builder.Services.AddSingleton<IErpProcReqSaveDryRun, ErpProcReqSaveDryRun>();
 builder.Services.AddSingleton<IErpFinPeriodStatusDryRun, ErpFinPeriodStatusDryRun>();
+builder.Services.AddSingleton<IErpWmsWaveCreateDryRun, ErpWmsWaveCreateDryRun>();
+builder.Services.AddSingleton<IErpWmsWaveReleaseDryRun, ErpWmsWaveReleaseDryRun>();
+builder.Services.AddSingleton<IErpWmsWorkCompleteDryRun, ErpWmsWorkCompleteDryRun>();
+builder.Services.AddSingleton<IErpSubscriptionStatusDryRun, ErpSubscriptionStatusDryRun>();
+builder.Services.AddSingleton<IErpCollectionsCaseStatusDryRun, ErpCollectionsCaseStatusDryRun>();
+builder.Services.AddSingleton<IErpProcReqSubmitDryRun, ErpProcReqSubmitDryRun>();
+builder.Services.AddSingleton<IErpProcReqDecisionDryRun, ErpProcReqDecisionDryRun>();
+builder.Services.AddSingleton<IErpWmsLocationDeleteDryRun, ErpWmsLocationDeleteDryRun>();
 builder.Services.AddSingleton<ICpOmsSetCourierDryRun, CpOmsSetCourierDryRun>();
 builder.Services.AddSingleton<ICpOmsDeleteOrdersDryRun, CpOmsDeleteOrdersDryRun>();
 builder.Services.AddSingleton<IErpCashVoucherAmendDryRun, ErpCashVoucherAmendDryRun>();
