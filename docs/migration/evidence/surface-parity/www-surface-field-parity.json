@@ -1149,7 +1149,13 @@
         "data",
         "message"
       ],
-      "requiredSummaryOrItemFields": [],
+      "requiredSummaryOrItemFields": [
+        "MFA_ID",
+        "MS_ID",
+        "model_series",
+        "year_from",
+        "year_to"
+      ],
       "functionsCovered": [
         "cached models list"
       ],
@@ -1170,7 +1176,16 @@
         "data",
         "message"
       ],
-      "requiredSummaryOrItemFields": [],
+      "requiredSummaryOrItemFields": [
+        "MS_ID",
+        "modification_id",
+        "title",
+        "year_from",
+        "year_to",
+        "power_kw",
+        "capacity_lt",
+        "fuel_type"
+      ],
       "functionsCovered": [
         "cached modifications list"
       ],
@@ -1191,7 +1206,11 @@
         "data",
         "message"
       ],
-      "requiredSummaryOrItemFields": [],
+      "requiredSummaryOrItemFields": [
+        "sup_id",
+        "brand",
+        "full_name"
+      ],
       "functionsCovered": [
         "cached brands list"
       ],
@@ -1212,7 +1231,11 @@
         "data",
         "message"
       ],
-      "requiredSummaryOrItemFields": [],
+      "requiredSummaryOrItemFields": [
+        "sup_id",
+        "brand",
+        "full_name"
+      ],
       "functionsCovered": [
         "cached suppliers list (brand suppliers)"
       ],
@@ -1464,7 +1487,16 @@
         "data",
         "message"
       ],
-      "requiredSummaryOrItemFields": [],
+      "requiredSummaryOrItemFields": [
+        "manufacturer",
+        "article_show",
+        "article",
+        "name",
+        "exist",
+        "price",
+        "time_to_exe",
+        "storage"
+      ],
       "functionsCovered": [
         "brand parts page"
       ],
