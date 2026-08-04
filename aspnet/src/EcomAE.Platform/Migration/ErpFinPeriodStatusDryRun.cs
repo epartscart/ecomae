@@ -1,0 +1,52 @@
+namespace EcomAE.Platform.Migration;
+
+/// <summary>Wave B dry-run for PHP <c>fin_period_status</c>. Never UPDATE. PHP authoritative.</summary>
+public interface IErpFinPeriodStatusDryRun
+{
+    ErpFinPeriodStatusDryRunResult Evaluate(ErpFinPeriodStatusRequest request);
+}
+
+public sealed class ErpFinPeriodStatusDryRun : IErpFinPeriodStatusDryRun
+{
+    public ErpFinPeriodStatusDryRunResult Evaluate(ErpFinPeriodStatusRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (request.ConfirmWrites)
+            return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
+                "confirm_writes requested but live ASP.NET fin_period_status is not implemented; PHP ajax_erp.php remains authoritative.", request);
+
+        if (request.Fy <= 0 || request.PeriodNo <= 0)
+            return Refuse("dry-run-invalid", "invalid_request", "fy and periodNo must be positive.", request);
+
+        var status = (request.Status ?? "open").Trim().ToLowerInvariant();
+        if (status.Length == 0)
+            return Refuse("dry-run-invalid", "status_required", "status is required.", request);
+
+        return new ErpFinPeriodStatusDryRunResult(
+            "dry-run-validated", 0, true, false, true, "ok", true,
+            request.Fy, request.PeriodNo, status,
+            ["epc_fin_period_set_status(@company, @fy, @periodNo, @status) (NOT executed)"],
+            "Advanced finance period status payload validated; UPDATE blocked.",
+            "/CP/content/shop/finance/erp/ajax_erp.php?action=fin_period_status");
+    }
+
+    private static ErpFinPeriodStatusDryRunResult Refuse(string status, string code, string detail, ErpFinPeriodStatusRequest request) =>
+        new(status, 0, true, false, true, code, false, request.Fy, request.PeriodNo, request.Status, [], detail,
+            "/CP/content/shop/finance/erp/ajax_erp.php?action=fin_period_status");
+}
+
+public sealed record ErpFinPeriodStatusRequest(int Fy, int PeriodNo, string? Status = "open", bool ConfirmWrites = false);
+public sealed record ErpFinPeriodStatusDryRunResult(
+    string Status, int Writes, bool WritesBlocked, bool CutoverAllowed, bool PhpAuthoritative,
+    string ValidationCode, bool WouldWrite, int Fy, int PeriodNo, string? PeriodStatus,
+    IReadOnlyList<string> SimulatedSql, string Detail, string PhpAjax)
+{
+    public object ToPayload(object session) => new
+    {
+        ok = true, surface = "erp", status = Status, writes = Writes, writesBlocked = WritesBlocked,
+        cutoverAllowed = CutoverAllowed, phpAuthoritative = PhpAuthoritative,
+        validation_code = ValidationCode, would_write = WouldWrite,
+        intended = new { fy = Fy, period_no = PeriodNo, status = PeriodStatus },
+        simulated = SimulatedSql, php_ajax = PhpAjax, session, note = Detail
+    };
+}

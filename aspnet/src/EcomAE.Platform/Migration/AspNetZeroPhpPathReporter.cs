@@ -23,7 +23,7 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             Status: "building-toward-zero-php",
             CutoverAllowed: false,
             ReadyForPhpRemoval: false,
-            HonestCompletionPct: 78,
+            HonestCompletionPct: 80,
             Phases: phases,
             NextBuilds:
             [
