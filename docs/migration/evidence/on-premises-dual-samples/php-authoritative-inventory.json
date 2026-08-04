@@ -1,6 +1,6 @@
 {
   "role": "php-on-premises-authoritative-inventory",
-  "generatedAtUnix": 1785865996,
+  "generatedAtUnix": 1785869600,
   "phpAuthoritative": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
@@ -9,7 +9,9 @@
     "health",
     "license-activate",
     "setup-wizard",
-    "backup"
+    "backup",
+    "activate-license-cli",
+    "health-check-pack"
   ],
-  "note": "PHP on-premises pack remains authoritative."
+  "note": "PHP on-premises pack remains authoritative. Contract floor covers 6 dry-runs; licenses digest awaiting live dual-sample."
 }

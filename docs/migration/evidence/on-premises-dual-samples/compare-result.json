@@ -1,13 +1,20 @@
 {
   "role": "on-premises-dual-sample-compare",
-  "generatedAtUnix": 1785865996,
+  "generatedAtUnix": 1785869989,
   "ok": true,
-  "samplesChecked": 4,
-  "samplesOk": 4,
+  "samplesChecked": 6,
+  "samplesOk": 6,
+  "contractOnly": true,
+  "contractPairs": 6,
+  "contractPairsOk": 6,
+  "migrationBaselinePairs": 6,
+  "missingPhpSides": [],
+  "missingPhpSideCount": 0,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
   "phpAuthoritative": true,
   "errors": [],
-  "note": "On-premises dry-runs writes=0. Never invent approval."
+  "errorCount": 0,
+  "note": "On-premises dry-runs are writes=0. Contract-only pairs use migration-contract-golden baselines \u2014 not live PHP. PHP deploy/on-premises remains authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
 }

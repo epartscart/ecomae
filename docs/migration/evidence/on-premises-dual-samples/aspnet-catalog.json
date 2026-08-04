@@ -1,9 +1,19 @@
 {
   "role": "on-premises-ajax-write-catalog",
-  "totalActions": 4,
-  "dedicatedDryRuns": 4,
+  "totalActions": 6,
+  "dedicatedDryRuns": 6,
   "coveragePct": 100,
+  "actions": [
+    "health",
+    "license-activate",
+    "setup-wizard",
+    "backup",
+    "activate-license-cli",
+    "health-check-pack"
+  ],
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "phpAuthoritative": true
+  "phpAuthoritative": true,
+  "aspNetInteractiveComplete": 0,
+  "note": "Six on-premises dry-runs (writes=0). Licenses digest is a separate read surface. PHP pack remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md."
 }

@@ -10,5 +10,6 @@
   "readyForPhpRemoval": false,
   "phpAuthoritative": true,
   "dualSampleBaseline": "migration-contract-golden",
-  "note": "On-premises installer dry-run golden. PHP deploy/on-premises remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md."
+  "note": "On-premises installer dry-run golden. PHP deploy/on-premises remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md.",
+  "phpAuthoritativePath": "deploy/on-premises/backup.php"
 }

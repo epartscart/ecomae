@@ -1,0 +1,18 @@
+{
+  "role": "php-on-premises-contract-sample",
+  "ok": true,
+  "surface": "erp-on-premises",
+  "action": "setup-wizard",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "pairedAspNetGolden": "aspnet-setup-wizard.json",
+  "phpAuthoritativePath": "deploy/on-premises/setup-wizard.php",
+  "generatedAtUnix": 1785869989,
+  "note": "Seeded from aspnet on-premises dry-run golden for contract-only compare. PHP deploy/on-premises + license APIs remain authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}
