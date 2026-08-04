@@ -2594,6 +2594,225 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpBudgetsDigestResult> BuildCpBudgetsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpBudgetsSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var budgets = 0; var active = 0; var lines = 0; var dims = 0;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectCpBudgetStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    budgets = Convert.ToInt32(reader["budget_count"] is DBNull ? 0 : reader["budget_count"], CultureInfo.InvariantCulture);
+                    active = Convert.ToInt32(reader["active_budgets"] is DBNull ? 0 : reader["active_budgets"], CultureInfo.InvariantCulture);
+                    lines = Convert.ToInt32(reader["budget_line_count"] is DBNull ? 0 : reader["budget_line_count"], CultureInfo.InvariantCulture);
+                    dims = Convert.ToInt32(reader["dimension_count"] is DBNull ? 0 : reader["dimension_count"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<CpBudgetDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpBudgets;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new CpBudgetDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["fiscal_year"] is DBNull ? string.Empty : reader["fiscal_year"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["business_unit_id"] is DBNull ? 0 : reader["business_unit_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["is_master"] is DBNull ? 0 : reader["is_master"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+
+            var summary = new CpBudgetsSummary(budgets, active, lines, dims, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpCarriersDigestResult> BuildCpCarriersDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpCarriersSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var carriers = 0; var active = 0; var rates = 0; var open = 0;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectCpCarrierStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    carriers = Convert.ToInt32(reader["carrier_count"] is DBNull ? 0 : reader["carrier_count"], CultureInfo.InvariantCulture);
+                    active = Convert.ToInt32(reader["active_carriers"] is DBNull ? 0 : reader["active_carriers"], CultureInfo.InvariantCulture);
+                    rates = Convert.ToInt32(reader["rate_count"] is DBNull ? 0 : reader["rate_count"], CultureInfo.InvariantCulture);
+                    open = Convert.ToInt32(reader["open_shipments"] is DBNull ? 0 : reader["open_shipments"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<CpCarrierDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpCarriers;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new CpCarrierDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["mode"] is DBNull ? string.Empty : reader["mode"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["rating"] is DBNull ? 0 : reader["rating"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+
+            var summary = new CpCarriersSummary(carriers, active, rates, open, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpPaymentGatewaysDigestResult> BuildCpPaymentGatewaysDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpPaymentGatewaysSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var gateways = 0; var active = 0; var selectable = 0; var accounts = 0;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectCpPaymentGatewayStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    gateways = Convert.ToInt32(reader["gateway_count"] is DBNull ? 0 : reader["gateway_count"], CultureInfo.InvariantCulture);
+                    active = Convert.ToInt32(reader["active_gateways"] is DBNull ? 0 : reader["active_gateways"], CultureInfo.InvariantCulture);
+                    selectable = Convert.ToInt32(reader["selectable_gateways"] is DBNull ? 0 : reader["selectable_gateways"], CultureInfo.InvariantCulture);
+                    accounts = Convert.ToInt32(reader["account_count"] is DBNull ? 0 : reader["account_count"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<CpPaymentGatewayDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpPaymentGateways;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new CpPaymentGatewayDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["handler"] is DBNull ? string.Empty : reader["handler"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["is_selectable"] is DBNull ? 0 : reader["is_selectable"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+
+            var summary = new CpPaymentGatewaysSummary(gateways, active, selectable, accounts, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpWorkflowsDigestResult> BuildCpWorkflowsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpWorkflowsSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var workflows = 0; var active = 0; var runs = 0; var failed = 0;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectCpWorkflowStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    workflows = Convert.ToInt32(reader["workflow_count"] is DBNull ? 0 : reader["workflow_count"], CultureInfo.InvariantCulture);
+                    active = Convert.ToInt32(reader["active_workflows"] is DBNull ? 0 : reader["active_workflows"], CultureInfo.InvariantCulture);
+                    runs = Convert.ToInt32(reader["run_count"] is DBNull ? 0 : reader["run_count"], CultureInfo.InvariantCulture);
+                    failed = Convert.ToInt32(reader["failed_runs"] is DBNull ? 0 : reader["failed_runs"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<CpWorkflowDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpWorkflows;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new CpWorkflowDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["trigger_type"] is DBNull ? string.Empty : reader["trigger_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["version"] is DBNull ? 0 : reader["version"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["run_count"] is DBNull ? 0 : reader["run_count"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["last_run_status"] is DBNull ? string.Empty : reader["last_run_status"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            var summary = new CpWorkflowsSummary(workflows, active, runs, failed, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
     private static CpMobileAppsSummary ParseMobileAppsSummary(string integrationsJson, string source, string message)
     {
         var enabled = false;

@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 69,
+  "routeCount": 73,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -437,6 +437,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-uae-tax-compliance-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-budgets-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/budgets-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-budgets-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-carriers-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/carriers-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-carriers-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-payment-gateways-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/payment-gateways-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-payment-gateways-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-workflows-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/workflows-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-workflows-app-read-ui-preview"
           }
         ]
       },

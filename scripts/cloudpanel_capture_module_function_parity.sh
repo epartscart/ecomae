@@ -120,6 +120,9 @@ STOREFRONT_HYBRID_BY_ID = {
     "garage": "sf-garage",
     "account": "sf-account-summary",
     "profile": "sf-profile",
+    # Wave 7 — checkout/payments attach to CP payment-gateways digest (read-only handlers)
+    "checkout": "cp-payment-gateways",
+    "payments": "cp-payment-gateways",
 }
 
 # Explicit catalog-id maps where PHP paths diverge from hybrid TARGET paths.
@@ -234,6 +237,30 @@ CP_FEATURE_HYBRID_BY_ID = {
     "tax-tourist-vat-refund-jewellery-jw": "cp-uae-tax-compliance",
     "tax-withholding-tax": "cp-uae-tax-compliance",
     "uae-vat-201-return-full-format": "cp-uae-tax-compliance",
+    # Wave 7 — budgets / finance-gl
+    "budgeting-budget-planning": "cp-budgets",
+    "budgeting-budgeting": "cp-budgets",
+    "erp_budgeting": "cp-budgets",
+    # Wave 7 — carriers / shipping-logistics
+    "carriers-shipments": "cp-carriers",
+    "custom-shipping": "cp-carriers",
+    "custom-shipping-declarations": "cp-carriers",
+    "custom-shipping-guide": "cp-carriers",
+    "epc-custom-shipping-guide": "cp-carriers",
+    "custom-shipping-guide__cp-shop-finance-erp-custom-shipping-guide-epc-erp-shell-1": "cp-carriers",
+    "logistics-customs-shipping": "cp-carriers",
+    "logistics-guide": "cp-carriers",
+    "logistics-hub": "cp-carriers",
+    "logistics-reports": "cp-carriers",
+    # Wave 7 — payment gateways / storefront-checkout
+    "payment-gateways": "cp-payment-gateways",
+    "payment-gateway-setup": "cp-payment-gateways",
+    "payment-reconciliation": "cp-payment-gateways",
+    "payments-guide": "cp-payment-gateways",
+    # Wave 7 — workflows / ai-automation
+    "system-administration-workflow-automation": "cp-workflows",
+    "home-workflow": "cp-workflows",
+    "cross-department-workflow": "cp-workflows",
 }
 ERP_AREA_HYBRID_BY_ID = {
     "banking": "erp-accounts-summary",
@@ -251,6 +278,8 @@ ERP_AREA_HYBRID_BY_ID = {
     "service_mgmt": "cp-projects-overview",
     "retail": "cp-jewellery-retail",
     "tax": "cp-uae-tax-compliance",
+    "budgeting": "cp-budgets",
+    "logistics": "cp-carriers",
 }
 ERP_TAB_HYBRID_BY_ID = {
     ("overview", "dashboard"): "erp-dashboard-summary",
@@ -307,6 +336,13 @@ ERP_TAB_HYBRID_BY_ID = {
     ("tax", "withholding"): "cp-uae-tax-compliance",
     ("tax", "compliance"): "cp-uae-tax-compliance",
     ("tax", "jw_tourist_vat"): "cp-uae-tax-compliance",
+    ("budgeting", "budgeting"): "cp-budgets",
+    ("budgeting", "budget_planning"): "cp-budgets",
+    ("logistics", "custom_shipping"): "cp-carriers",
+    ("logistics", "procurement_link"): "cp-carriers",
+    ("overview", "workflow"): "cp-workflows",
+    ("overview", "workflow_automation"): "cp-workflows",
+    ("setup", "workflow_automation"): "cp-workflows",
 }
 ERP_CATEGORY_HYBRID_BY_ID = {
     "cash_treasury": "erp-cash-accounts",
@@ -360,6 +396,10 @@ BOS_MODULE_HYBRID_BY_ID = {
     "multivendor": "cp-price-lists",
     "auto_price": "cp-auto-price",
     "erp_tax": "cp-uae-tax-compliance",
+    "erp_budgeting": "cp-budgets",
+    "logistics": "cp-carriers",
+    "fulfillment_queue": "cp-carriers",
+    "payments": "cp-payment-gateways",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}

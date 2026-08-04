@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "budgetCount": 1,
+    "activeBudgets": 1,
+    "budgetLineCount": 0,
+    "dimensionCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; budgets[] sentinel; note omitted; PHP budgeting authoritative; cutoverAllowed=false",
+  "budgets": [
+    {
+      "id": 1,
+      "code": "FY26",
+      "name": "Migration Budget",
+      "fiscalYear": "2026",
+      "businessUnitId": 0,
+      "isMaster": true,
+      "active": true
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

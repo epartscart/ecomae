@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-carriers",
+  "surface": "cp",
+  "appRoute": "/cp/carriers-app",
+  "digestRoute": "/cp/carriers",
+  "phpAuthoritativePath": "/CP/shop/logistics/carriers",
+  "blazorComponent": "CpCarriersApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-carriers. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T06:20:00Z"
+}

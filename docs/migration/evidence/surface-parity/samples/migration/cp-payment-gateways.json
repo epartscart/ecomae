@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "gatewayCount": 1,
+    "activeGateways": 1,
+    "selectableGateways": 1,
+    "accountCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; gateways[] sentinel; parameters/credentials omitted; PHP payments authoritative; cutoverAllowed=false",
+  "gateways": [
+    {
+      "id": 1,
+      "name": "Migration Gateway",
+      "handler": "cash",
+      "active": true,
+      "isSelectable": true
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}
