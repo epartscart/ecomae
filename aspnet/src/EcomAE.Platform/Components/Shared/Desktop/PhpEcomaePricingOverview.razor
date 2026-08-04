@@ -1,0 +1,51 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_pricing() — hero + plan teaser.
+  Full plan grid + benchmark table remain PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-pricing-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#075985 60%,#0a0a0a)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge">Monthly rental</div>
+			<h1>Platform rental — per client tenant</h1>
+			<p class="lead">Predictable AED pricing for hosted storefront + CP + database. Demo is free for @EcomaeMarketingPages.DemoDays days; rental starts when they go live.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/pricing?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/pricing"))">Open full PHP pricing (hybrid)</a>
+				<a class="epm-btn epm-btn--ghost" href="@(EcomaeMarketingPages.LiveBase)platform/demo">Try free demo first</a>
+				<a class="epm-btn epm-btn--outline" href="@(EcomaeMarketingPages.LiveBase)platform/contact">Contact sales</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-building"></i>
+			<strong>Per-tenant flat</strong>
+			<p>Hosted storefront + Client CP + isolated MySQL — unlimited users, no per-seat tax.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-shield"></i>
+			<strong>Compliance included</strong>
+			<p>SSL, country-driven tax packs, Peppol / PINT-AE e-invoice in ERP Finance.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-rocket"></i>
+			<strong>Go live in 24h</strong>
+			<p>DNS A records + Super CP onboarding — demo first, then monthly rental.</p>
+		</div>
+	</div>
+
+	<div class="epm-highlight">
+		<h3>Full plan grid &amp; benchmarks</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">AED plan cards and enterprise comparison table remain on live PHP until dual-sample promotes this route.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/pricing?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/pricing"))">View rental plans</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET pricing overview scaffold — dual-sample against live PHP <code>/platform/pricing</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>
