@@ -1,0 +1,35 @@
+{
+  "role": "cp-abandoned-carts-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-abandoned-carts",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-abandoned-carts digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "lineCount",
+    "guestLineCount",
+    "userLineCount",
+    "guestSessionCount",
+    "userCartCount",
+    "cartSum",
+    "source",
+    "message"
+  ],
+  "collectionKey": "carts",
+  "requiredItemFields": [
+    "id",
+    "userId",
+    "sessionId",
+    "price",
+    "countNeed",
+    "checkedForOrder",
+    "productType",
+    "manufacturer",
+    "article",
+    "name",
+    "timeUnix",
+    "priceSum"
+  ]
+}

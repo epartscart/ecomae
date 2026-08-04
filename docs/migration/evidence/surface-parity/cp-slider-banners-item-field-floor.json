@@ -1,0 +1,25 @@
+{
+  "role": "cp-slider-banners-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-slider-banners",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-slider-banners digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "imageCount",
+    "connected",
+    "cntImg",
+    "cntImgNext",
+    "source",
+    "message"
+  ],
+  "collectionKey": "images",
+  "requiredItemFields": [
+    "id",
+    "sortOrder",
+    "link",
+    "href"
+  ]
+}

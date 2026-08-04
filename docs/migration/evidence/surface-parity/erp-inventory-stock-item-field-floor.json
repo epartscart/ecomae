@@ -1,0 +1,19 @@
+{
+  "role": "erp-inventory-stock-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "erp-inventory-stock",
+  "requireNonemptyMigrationSentinel": false,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks erp-inventory-stock digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "rowCount",
+    "qtyOnHand",
+    "stockValue",
+    "warehouseCount",
+    "itemCount",
+    "source",
+    "message"
+  ]
+}

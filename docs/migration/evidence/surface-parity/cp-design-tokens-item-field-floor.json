@@ -1,0 +1,24 @@
+{
+  "role": "cp-design-tokens-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-design-tokens",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-design-tokens digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "tokenCount",
+    "tenantCount",
+    "whiteLabelCount",
+    "updatedRecentCount",
+    "source",
+    "message"
+  ],
+  "collectionKey": "tokens",
+  "requiredItemFields": [
+    "siteKey",
+    "settingKey",
+    "updatedAt"
+  ]
+}

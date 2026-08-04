@@ -1,0 +1,28 @@
+{
+  "role": "cp-templates-manager-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-templates-manager",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-templates-manager digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "templateCount",
+    "frontendCount",
+    "currentFrontendCount",
+    "currentBackendCount",
+    "source",
+    "message"
+  ],
+  "collectionKey": "templates",
+  "requiredItemFields": [
+    "id",
+    "caption",
+    "name",
+    "current",
+    "isFrontend",
+    "phoneSupport",
+    "tabletSupport"
+  ]
+}

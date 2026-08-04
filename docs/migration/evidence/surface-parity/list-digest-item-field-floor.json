@@ -3,7 +3,7 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "listStemCount": 26,
+  "listStemCount": 28,
   "stems": [
     "bos-audit-log",
     "bos-tenants",
@@ -11,9 +11,11 @@
     "cp-api-clients",
     "cp-config-items",
     "cp-currencies",
+    "cp-demo-tenants",
     "cp-groups",
     "cp-menus",
     "cp-modules",
+    "cp-nl-reporting",
     "cp-pages",
     "cp-storages",
     "cp-tenants",
@@ -33,6 +35,6 @@
     "storefront-search"
   ],
   "requireNonemptyMigrationSentinel": true,
-  "source": "scripts/compare_digest_dual_samples.py LIST_ITEM_FIELDS + generate_migration_digest_contract_samples.py",
-  "note": "Every list digest migration golden ships a non-empty item-field sentinel matching SurfacePayloadContractCatalog. Live empty DB lists remain valid at runtime; interactive aspnet-complete stays 0. Never invents RELEASE_OWNER_APPROVAL.md."
+  "source": "scripts/compare_digest_dual_samples.py LIST_ITEM_FIELDS + generate_missing_item_field_floors.py",
+  "note": "Every list digest migration golden ships a non-empty item-field sentinel matching SurfacePayloadContractCatalog / LIST_ITEM_FIELDS. Live empty DB lists remain valid at runtime; interactive aspnet-complete stays 0. Never invents RELEASE_OWNER_APPROVAL.md."
 }

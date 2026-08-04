@@ -1,0 +1,26 @@
+{
+  "role": "cp-structure-dumps-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-structure-dumps",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-structure-dumps digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "dumpCount",
+    "totalRecords",
+    "latestTimeCreated",
+    "withFileCount",
+    "source",
+    "message"
+  ],
+  "collectionKey": "dumps",
+  "requiredItemFields": [
+    "id",
+    "timeCreated",
+    "fieldsInDump",
+    "fileName",
+    "recordsCount"
+  ]
+}

@@ -1,8 +1,8 @@
 {
   "ok": true,
   "surface": "cp",
-  "module": "procurement",
-  "action": "create_supplier",
+  "module": "bulk_upload",
+  "action": "process_upload",
   "status": "dry-run-validated",
   "writes": 0,
   "writesBlocked": true,

@@ -1,8 +1,8 @@
 {
   "ok": true,
   "surface": "cp",
-  "module": "procurement",
-  "action": "create_supplier",
+  "module": "parts_agent",
+  "action": "save_config",
   "status": "dry-run-validated",
   "writes": 0,
   "writesBlocked": true,

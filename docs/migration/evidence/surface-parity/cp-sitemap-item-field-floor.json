@@ -1,0 +1,26 @@
+{
+  "role": "cp-sitemap-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-sitemap",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-sitemap digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "contentUrlCount",
+    "categoryCount",
+    "productCount",
+    "frontendContentCount",
+    "source",
+    "message"
+  ],
+  "collectionKey": "pages",
+  "requiredItemFields": [
+    "id",
+    "alias",
+    "valueLangId",
+    "isFrontend",
+    "publishedFlag"
+  ]
+}

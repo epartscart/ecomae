@@ -1,8 +1,8 @@
 {
   "ok": true,
   "surface": "cp",
-  "module": "procurement",
-  "action": "create_supplier",
+  "module": "currency_live_rates",
+  "action": "apply",
   "status": "dry-run-validated",
   "writes": 0,
   "writesBlocked": true,

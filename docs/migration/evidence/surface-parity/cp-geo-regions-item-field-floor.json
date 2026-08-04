@@ -1,0 +1,27 @@
+{
+  "role": "cp-geo-regions-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-geo-regions",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-geo-regions digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "nodeCount",
+    "level1Count",
+    "level2Count",
+    "mappedOfficeCount",
+    "source",
+    "message"
+  ],
+  "collectionKey": "nodes",
+  "requiredItemFields": [
+    "id",
+    "level",
+    "parent",
+    "sortOrder",
+    "childCount",
+    "valueLangId"
+  ]
+}

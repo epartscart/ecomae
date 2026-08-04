@@ -1,0 +1,21 @@
+{
+  "role": "bos-fleet-readiness-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "bos-fleet-readiness",
+  "requireNonemptyMigrationSentinel": false,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks bos-fleet-readiness digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "tenants",
+    "pass",
+    "warn",
+    "fail",
+    "active",
+    "withDatabase",
+    "erpOnly",
+    "source",
+    "message"
+  ]
+}
