@@ -26,7 +26,7 @@ ASP.NET Core migration foundation and diagnostics-only deploy tooling are in pla
 
 1. Keep ASP.NET Core as sole enterprise backend; Python AI-only; no Java/Node/Go/PHP backends.
 2. Continue exact-route Zero-PHP digests/parity with PHP fallback required (hybrid digest `*-app` wave complete on tip; operator live dual-sample captures next).
-3. Advance Enterprise BOS scaffolding without claiming infra live; still no production clients or Replace* flags. GitOps/Helm examples are design-only. YARP regenerate: `generate_all_yarp_design_examples.sh`.
+3. Advance Enterprise BOS scaffolding without claiming infra live; still no production clients or Replace* flags. Run `bash scripts/validate_enterprise_bos_scaffold_guardrails.sh` before wiring anything. GitOps/Helm examples are design-only. YARP regenerate: `generate_all_yarp_design_examples.sh`.
 4. Redeploy main via `bash scripts/cloudpanel_redeploy_final_gate_branch.sh` so ContentRoot packs smoke evidence.
 5. Confirm readiness smoke items present; promote only approved `location =` shadows; never invent `RELEASE_OWNER_APPROVAL.md`.
 

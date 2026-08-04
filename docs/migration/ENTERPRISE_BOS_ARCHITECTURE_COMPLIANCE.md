@@ -62,6 +62,12 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 - Do not remove PHP-FPM/cron/source until every tracked item is live/removed with evidence.
 - Do not invent `RELEASE_OWNER_APPROVAL.md`.
 
+## Scaffold guardrails
+
+- `scripts/validate_scaffold_options_example.py` — fails if dangerous Replace/Allow/Register flags are true.
+- `scripts/validate_enterprise_bos_scaffold_guardrails.sh` — Program.cs must omit production clients; YARP/Helm/Argo stay `cutoverAllowed=false`.
+- `deploy/aspnet/platform.env.example` documents disabled `EcomAe__*` scaffold keys only.
+
 ## Next architecture tracks (ordered)
 
 1. CloudPanel operator: live hybrid UI dual-sample captures after presentation shadows (`cutoverAllowed=false` always).
