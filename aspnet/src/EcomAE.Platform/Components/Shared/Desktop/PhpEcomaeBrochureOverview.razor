@@ -1,0 +1,51 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_brochure_render_html('ecomae') — cover + CTA overview.
+  Full printable brochure HTML remains PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-brochure-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#0284c7 0%,#0ea5e9 40%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-book"></i> Product brochure</div>
+			<h1>ECOM AE — Blockchain BOS Enterprise System</h1>
+			<p class="lead">Hosted multi-tenant platform for UAE &amp; GCC businesses: storefronts, Super CP, Client CP, ERP finance, Peppol e-invoice, and industry packs — one database, one operator story.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/demo">Book a demo</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/brochure?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "brochure"))">Open full PHP brochure (hybrid)</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/contact">Contact sales</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-shopping-cart"></i>
+			<strong>Commerce</strong>
+			<p>Storefront, OMS, catalog, and pricing in one tenant story.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-university"></i>
+			<strong>ERP &amp; compliance</strong>
+			<p>Finance, Peppol e-invoice, and UAE/GCC tax toolkits.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-print"></i>
+			<strong>Printable PDF</strong>
+			<p>Browser → Save as PDF stays on the live PHP brochure page.</p>
+		</div>
+	</div>
+
+	<div class="epm-highlight">
+		<h3>Full CP brochure</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">Operator Control Panel deep-dive remains on live PHP <code>/brochure/cp</code>.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/brochure?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "brochure/cp"))">Open CP brochure</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET brochure overview scaffold — dual-sample against live PHP <code>/brochure</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>
