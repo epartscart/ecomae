@@ -1381,6 +1381,12 @@ public static class EcomAeRoutes
     public const string CpPortalDeploySite = "/cp/portal/deploy-site";
     /// <summary>Wave B dry-run for PHP cp/content/shop/crm/ajax_crm.php (writes=0).</summary>
     public const string CpCrmAction = "/cp/crm/action";
+    /// <summary>Wave C catalog of CP module ajax write surfaces (procurement/document_control/customer_mgmt/auto_price/CRM).</summary>
+    public const string CpModuleAjaxWriteCatalog = "/cp/module-ajax/writes/catalog";
+    /// <summary>Wave C registry dry-run for any catalogued CP module ajax action (writes=0).</summary>
+    public const string CpModuleAjaxWriteRegistryDryRun = "/cp/module-ajax/dry-run/{module}/{action}";
+    /// <summary>Wave C dedicated dry-run for classified CP module ajax write actions (writes=0).</summary>
+    public const string CpModuleAjaxWriteDedicatedDryRun = "/cp/module-ajax/{module}/{action}/dry-run";
     /// <summary>Wave B dry-run for PHP deploy/on-premises/activate-license.php (writes=0).</summary>
     public const string OnPremisesActivateLicenseCli = "/erp/on-premises/activate-license-cli-dry-run";
     /// <summary>Wave B dry-run for PHP deploy/on-premises/health-check.php (writes=0).</summary>

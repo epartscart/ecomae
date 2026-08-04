@@ -452,6 +452,39 @@ public sealed class ControlPanelModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPortalDeploySiteBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPortalDeploySiteRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpCrmAction, async (HttpContext context, CpCrmActionBody? body, ILegacySessionValidator validator, ICpCrmActionDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpCrmActionBody(null,false); return Results.Ok(dryRun.Evaluate(new CpCrmActionRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+
+        endpoints.MapGet(EcomAeRoutes.CpModuleAjaxWriteCatalog, (ICpModuleAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
+        endpoints.MapPost(EcomAeRoutes.CpModuleAjaxWriteRegistryDryRun, async (
+            string module,
+            string action,
+            CpModuleAjaxWriteRegistryBody? body,
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpModuleAjaxWriteRegistryDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin)
+                return Unauthorized("Admin session required for CP module ajax registry dry-run.");
+            body ??= new CpModuleAjaxWriteRegistryBody(false);
+            return Results.Ok(dryRun.Evaluate(new CpModuleAjaxWriteRegistryRequest(module, action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+        endpoints.MapPost(EcomAeRoutes.CpModuleAjaxWriteDedicatedDryRun, async (
+            string module,
+            string action,
+            CpModuleAjaxWriteDedicatedBody? body,
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpModuleAjaxWriteDedicatedDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin)
+                return Unauthorized("Admin session required for CP module ajax dedicated dry-run.");
+            body ??= new CpModuleAjaxWriteDedicatedBody(false);
+            return Results.Ok(dryRun.Evaluate(new CpModuleAjaxWriteDedicatedRequest(module, action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapPost(EcomAeRoutes.CpLangSetIsError, async (HttpContext context, CpLangSetIsErrorBody? body, ILegacySessionValidator validator, ICpLangSetIsErrorDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpLangSetIsErrorBody(null,false); return Results.Ok(dryRun.Evaluate(new CpLangSetIsErrorRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpLangSetSame, async (HttpContext context, CpLangSetSameBody? body, ILegacySessionValidator validator, ICpLangSetSameDryRun dryRun, CancellationToken cancellationToken) =>
@@ -3509,6 +3542,8 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpPortalSaveSettingsBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPortalDeploySiteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpCrmActionBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpModuleAjaxWriteRegistryBody(bool ConfirmWrites = false);
+    private sealed record CpModuleAjaxWriteDedicatedBody(bool ConfirmWrites = false);
     private sealed record CpLangSetIsCustomBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpLangSetIsErrorBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpLangSetSameBody(string? Action = null, bool ConfirmWrites = false);

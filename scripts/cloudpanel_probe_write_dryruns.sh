@@ -203,6 +203,9 @@ probe_post "/erp/ajax/opl-autoplan" '{"confirmWrites":false}' "$ADMIN_COOKIE" "e
 probe_post "/cp/content/create-sitemap" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpCreateSitemap"
 probe_post "/cp/lang/save-translation" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangSaveTranslation"
 probe_post "/cp/lang/save-description" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangSaveDescription"
+probe_post "/cp/channels/write" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpChannelsWrite"
+probe_post "/cp/logistics/write" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLogisticsWrite"
+probe_post "/cp/payments/write" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpPaymentsWrite"
 probe_post "/cp/lang/create-string" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangCreateString"
 probe_post "/cp/lang/delete-not-used" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangDeleteNotUsed"
 probe_post "/cp/packs/delete" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpPacksDelete"
@@ -234,6 +237,14 @@ probe_post "/cp/portal/save-settings" '{"action":"save_settings","confirmWrites"
 probe_post "/cp/crm/action" '{"action":"crm_save","confirmWrites":false}' "$ADMIN_COOKIE" "cp crm action"
 probe_post "/erp/on-premises/activate-license-cli-dry-run" '{"action":"activate","confirmWrites":false}' "" "on-premises activate-license cli"
 probe_post "/erp/on-premises/health-check-pack-dry-run" '{"action":"health","confirmWrites":false}' "" "on-premises health-check pack"
+
+# Wave C CP module ajax catalogs
+probe_post "/cp/module-ajax/dry-run/procurement/create_supplier" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax registry create_supplier"
+probe_post "/cp/module-ajax/procurement/create_supplier/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated create_supplier"
+probe_post "/cp/module-ajax/dry-run/crm/crm_save_lead" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax registry crm_save_lead"
+probe_post "/cp/module-ajax/crm/crm_save_lead/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated crm_save_lead"
+probe_post "/cp/module-ajax/document_control/save_company/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated save_company"
+probe_post "/cp/module-ajax/auto_price/bulk_approve/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated bulk_approve"
 
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]

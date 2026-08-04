@@ -191,6 +191,9 @@ builder.Services.AddSingleton<ICpPosSaveSettingsDryRun, CpPosSaveSettingsDryRun>
 builder.Services.AddSingleton<ICpPortalSaveSettingsDryRun, CpPortalSaveSettingsDryRun>();
 builder.Services.AddSingleton<ICpPortalDeploySiteDryRun, CpPortalDeploySiteDryRun>();
 builder.Services.AddSingleton<ICpCrmActionDryRun, CpCrmActionDryRun>();
+builder.Services.AddSingleton<ICpModuleAjaxWriteCatalog, CpModuleAjaxWriteCatalog>();
+builder.Services.AddSingleton<ICpModuleAjaxWriteRegistryDryRun, CpModuleAjaxWriteRegistryDryRun>();
+builder.Services.AddSingleton<ICpModuleAjaxWriteDedicatedDryRun, CpModuleAjaxWriteDedicatedDryRun>();
 builder.Services.AddSingleton<IOnPremisesActivateLicenseCliDryRun, OnPremisesActivateLicenseCliDryRun>();
 builder.Services.AddSingleton<IOnPremisesHealthCheckPackDryRun, OnPremisesHealthCheckPackDryRun>();
 builder.Services.AddSingleton<IOnPremisesHealthDryRun, OnPremisesHealthDryRun>();
