@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 136,
+  "contractCount": 149,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -2724,6 +2724,422 @@
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
+      "surface": "cp",
+      "aspNetRoute": "/cp/geo-regions",
+      "legacyPhpAuthority": "shop_geo + shop_offices_geo_map",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "nodes",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "nodeCount",
+        "level1Count",
+        "level2Count",
+        "mappedOfficeCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Geo / regions KPIs + nodes",
+        "raw lang string bodies; value stored as lang id",
+        "PHP Geo / regions remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/product-filters",
+      "legacyPhpAuthority": "shop_docpart_filter",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "filters",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "filterCount",
+        "withStorageScope",
+        "withPriceBand",
+        "withTimeBand",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Product filters KPIs + filters",
+        "list_storages JSON",
+        "PHP Product filters remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/search-tabs",
+      "legacyPhpAuthority": "shop_docpart_search_tabs",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "tabs",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "tabCount",
+        "enabledCount",
+        "disabledCount",
+        "maxOrder",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Search tabs KPIs + tabs",
+        "parameters_values JSON",
+        "PHP Search tabs remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/system-requests",
+      "legacyPhpAuthority": "users_vin",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "requests",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "requestCount",
+        "unviewedCount",
+        "viewedCount",
+        "withUserCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "System requests KPIs + requests",
+        "VIN request text body (injection-prone PHP cookie filters not ported)",
+        "PHP System requests remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/additional-texts",
+      "legacyPhpAuthority": "text_for_url",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "texts",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "textCount",
+        "beforeMainCount",
+        "withTitleCount",
+        "withDescriptionCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Additional texts KPIs + texts",
+        "content HTML + description_tag bodies in rows (title/keywords only)",
+        "PHP Additional texts remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/slider-banners",
+      "legacyPhpAuthority": "slider_images + slider_setings",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "images",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "imageCount",
+        "connected",
+        "cntImg",
+        "cntImgNext",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Slider / banners KPIs + images",
+        "none critical (paths only)",
+        "PHP Slider / banners remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/structure-dumps",
+      "legacyPhpAuthority": "content_structure_dumps",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "dumps",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "dumpCount",
+        "totalRecords",
+        "latestTimeCreated",
+        "withFileCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Structure dumps KPIs + dumps",
+        "dump file bodies",
+        "PHP Structure dumps remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/communications-test",
+      "legacyPhpAuthority": "debug_results + sms_api",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "channels",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "smsActiveCount",
+        "smsTotalCount",
+        "emailLastStatus",
+        "smsLastStatus",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Communications test KPIs + channels",
+        "debug_result blobs + sms parameters_values secrets",
+        "PHP Communications test remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/languages",
+      "legacyPhpAuthority": "lang_languages",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "languages",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "languageCount",
+        "activeCount",
+        "defaultCount",
+        "inactiveCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Languages KPIs + languages",
+        "translation string bodies",
+        "PHP Languages remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/plugins-manager",
+      "legacyPhpAuthority": "plugins",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "plugins",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "pluginCount",
+        "activatedCount",
+        "frontendCount",
+        "lockedCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Plugins manager KPIs + plugins",
+        "data_value JSON + filesystem delete side-effects",
+        "PHP Plugins manager remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/templates-manager",
+      "legacyPhpAuthority": "templates",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "templates",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "templateCount",
+        "frontendCount",
+        "currentFrontendCount",
+        "currentBackendCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Templates manager KPIs + templates",
+        "data_value JSON + FS delete",
+        "PHP Templates manager remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/design-tokens",
+      "legacyPhpAuthority": "epc_settings (brand_*)",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "tokens",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "tokenCount",
+        "tenantCount",
+        "whiteLabelCount",
+        "updatedRecentCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Design tokens KPIs + tokens",
+        "setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs",
+        "PHP Design tokens remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/sitemap",
+      "legacyPhpAuthority": "content + shop_catalogue_categories + shop_catalogue_products",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "pages",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "contentUrlCount",
+        "categoryCount",
+        "productCount",
+        "frontendContentCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Sitemap KPIs + pages",
+        "sitemap.xml file artifact (generation remains PHP); content HTML omitted",
+        "PHP Sitemap remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
       "surface": "erp",
       "aspNetRoute": "/erp/bank-reconciliation",
       "legacyPhpAuthority": "epc_erp_bank_statement_lines",
@@ -4768,6 +5184,97 @@
       "aspNetRouteOrCapability": "/cp/data-migrations-app",
       "status": "presentation-shell-scaffolded",
       "notes": "Read UI over /cp/data-migrations digest; file_path/mapping/errors/options/raw payloads omitted; PHP data migration remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "geo-regions Blazor list",
+      "aspNetRouteOrCapability": "/cp/geo-regions-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/geo-regions digest; raw lang string bodies; value stored as lang id; PHP Geo / regions remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "product-filters Blazor list",
+      "aspNetRouteOrCapability": "/cp/product-filters-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/product-filters digest; list_storages JSON; PHP Product filters remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "search-tabs Blazor list",
+      "aspNetRouteOrCapability": "/cp/search-tabs-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/search-tabs digest; parameters_values JSON; PHP Search tabs remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "system-requests Blazor list",
+      "aspNetRouteOrCapability": "/cp/system-requests-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/system-requests digest; VIN request text body (injection-prone PHP cookie filters not ported); PHP System requests remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "additional-texts Blazor list",
+      "aspNetRouteOrCapability": "/cp/additional-texts-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/additional-texts digest; content HTML + description_tag bodies in rows (title/keywords only); PHP Additional texts remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "slider-banners Blazor list",
+      "aspNetRouteOrCapability": "/cp/slider-banners-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/slider-banners digest; none critical (paths only); PHP Slider / banners remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "structure-dumps Blazor list",
+      "aspNetRouteOrCapability": "/cp/structure-dumps-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/structure-dumps digest; dump file bodies; PHP Structure dumps remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "communications-test Blazor list",
+      "aspNetRouteOrCapability": "/cp/communications-test-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/communications-test digest; debug_result blobs + sms parameters_values secrets; PHP Communications test remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "languages Blazor list",
+      "aspNetRouteOrCapability": "/cp/languages-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/languages digest; translation string bodies; PHP Languages remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "plugins-manager Blazor list",
+      "aspNetRouteOrCapability": "/cp/plugins-manager-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/plugins-manager digest; data_value JSON + filesystem delete side-effects; PHP Plugins manager remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "templates-manager Blazor list",
+      "aspNetRouteOrCapability": "/cp/templates-manager-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/templates-manager digest; data_value JSON + FS delete; PHP Templates manager remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "design-tokens Blazor list",
+      "aspNetRouteOrCapability": "/cp/design-tokens-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/design-tokens digest; setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs; PHP Design tokens remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "sitemap Blazor list",
+      "aspNetRouteOrCapability": "/cp/sitemap-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/sitemap digest; sitemap.xml file artifact (generation remains PHP); content HTML omitted; PHP Sitemap remains authoritative; tenant chrome stays PHP."
     },
     {
       "surface": "cp",

@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "imageCount": 1,
+    "connected": 1,
+    "cntImg": 1,
+    "cntImgNext": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; images[] sentinel; none critical (paths only); PHP Slider / banners remains authoritative; cutoverAllowed=false",
+  "images": [
+    {
+      "id": 1,
+      "sortOrder": 1,
+      "link": "migration",
+      "href": "migration"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

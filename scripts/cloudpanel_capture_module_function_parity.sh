@@ -534,6 +534,30 @@ CP_FEATURE_HYBRID_BY_ID = {
     # Wave 21a — portal settings / data migrations + brochure aliases
     "data-migration": "cp-data-migrations",
     "erp-guide": "erp-dashboard-summary",
+
+    # Wave 22 — CMS/platform leftovers + config alias
+    "configuration": "cp-config-items",
+    "geo-regions": "cp-geo-regions",
+    "product-filters": "cp-product-filters",
+    "search-tabs": "cp-search-tabs",
+    "system-requests": "cp-system-requests",
+    "additional-texts": "cp-additional-texts",
+    "slider-banners": "cp-slider-banners",
+    "structure-dumps": "cp-structure-dumps",
+    "communications-test": "cp-communications-test",
+    "languages": "cp-languages",
+    "plugins-manager": "cp-plugins-manager",
+    "templates-manager": "cp-templates-manager",
+    "sitemap": "cp-sitemap",
+
+    # Wave 23 — ops/guide leftovers
+    "failover-runbook": "cp-failover-status",
+    "epc-platform-failover-guide": "cp-failover-status",
+    "cp-guideline": "cp-ops-guides",
+    "erp-only-onboard-guide": "cp-ops-guides",
+    "epc-erp-only-onboard-guide": "cp-ops-guides",
+    "file-manager": "cp-file-manager",
+    "server-ip": "cp-server-ip",
 }
 
 ERP_AREA_HYBRID_BY_ID = {
@@ -846,6 +870,8 @@ BOS_MODULE_HYBRID_BY_ID = {
     "statistics": "cp-platform-governance",
     "communication": "cp-platform-communication",
     "portal_settings": "cp-portal-settings",
+    "design_tokens": "cp-design-tokens",
+    "failover": "cp-failover-status",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}

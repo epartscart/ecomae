@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "requestCount": 1,
+    "unviewedCount": 1,
+    "viewedCount": 1,
+    "withUserCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; requests[] sentinel; VIN request text body (injection-prone PHP cookie filters not ported); PHP System requests remains authoritative; cutoverAllowed=false",
+  "requests": [
+    {
+      "id": 1,
+      "timeUnix": 1,
+      "userId": 1,
+      "viewed": 1
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

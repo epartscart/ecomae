@@ -6,8 +6,8 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 703,
-    "php-only-deeplink": 23
+    "digest-contract": 725,
+    "php-only-deeplink": 1
   },
   "families": [
     {
@@ -434,9 +434,9 @@
     {
       "family": "other-unclassified",
       "total": 58,
-      "digestContract": 39,
-      "phpOnlyDeeplink": 19,
-      "digestPercent": 67.2,
+      "digestContract": 57,
+      "phpOnlyDeeplink": 1,
+      "digestPercent": 98.3,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-accessories-marketplace",
@@ -502,9 +502,9 @@
     {
       "family": "platform-ops-bos",
       "total": 68,
-      "digestContract": 67,
-      "phpOnlyDeeplink": 1,
-      "digestPercent": 98.5,
+      "digestContract": 68,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-audit_log",
@@ -927,9 +927,9 @@
     {
       "family": "tax-compliance",
       "total": 62,
-      "digestContract": 59,
-      "phpOnlyDeeplink": 3,
-      "digestPercent": 95.2,
+      "digestContract": 62,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_tax",

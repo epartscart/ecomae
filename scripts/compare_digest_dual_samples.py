@@ -364,6 +364,74 @@ SUMMARY_CONTRACTS = {
         "summary",
         "migrationCount,completedCount,failedCount,rowCount,source,message",
     ),
+    "cp-geo-regions": (
+        "summary",
+        "nodeCount,level1Count,level2Count,mappedOfficeCount,source,message",
+    ),
+    "cp-product-filters": (
+        "summary",
+        "filterCount,withStorageScope,withPriceBand,withTimeBand,source,message",
+    ),
+    "cp-search-tabs": (
+        "summary",
+        "tabCount,enabledCount,disabledCount,maxOrder,source,message",
+    ),
+    "cp-system-requests": (
+        "summary",
+        "requestCount,unviewedCount,viewedCount,withUserCount,source,message",
+    ),
+    "cp-additional-texts": (
+        "summary",
+        "textCount,beforeMainCount,withTitleCount,withDescriptionCount,source,message",
+    ),
+    "cp-slider-banners": (
+        "summary",
+        "imageCount,connected,cntImg,cntImgNext,source,message",
+    ),
+    "cp-structure-dumps": (
+        "summary",
+        "dumpCount,totalRecords,latestTimeCreated,withFileCount,source,message",
+    ),
+    "cp-communications-test": (
+        "summary",
+        "smsActiveCount,smsTotalCount,emailLastStatus,smsLastStatus,source,message",
+    ),
+    "cp-languages": (
+        "summary",
+        "languageCount,activeCount,defaultCount,inactiveCount,source,message",
+    ),
+    "cp-plugins-manager": (
+        "summary",
+        "pluginCount,activatedCount,frontendCount,lockedCount,source,message",
+    ),
+    "cp-templates-manager": (
+        "summary",
+        "templateCount,frontendCount,currentFrontendCount,currentBackendCount,source,message",
+    ),
+    "cp-design-tokens": (
+        "summary",
+        "tokenCount,tenantCount,whiteLabelCount,updatedRecentCount,source,message",
+    ),
+    "cp-failover-status": (
+        "summary",
+        "modeFilePresent,statusJsonPresent,configPresent,backupMode,source,message",
+    ),
+    "cp-ops-guides": (
+        "summary",
+        "groupCount,itemCount,showAnywayCount,urlItemCount,source,message",
+    ),
+    "cp-file-manager": (
+        "summary",
+        "rootPresent,fileCount,dirCount,totalBytes,source,message",
+    ),
+    "cp-server-ip": (
+        "summary",
+        "addressCount,hasIpv4,hasIpv6,loopbackOnly,source,message",
+    ),
+    "cp-sitemap": (
+        "summary",
+        "contentUrlCount,categoryCount,productCount,frontendContentCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -1000,6 +1068,74 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-data-migrations": (
         "migrations",
         ["id", "companyId", "migrationType", "entityType", "fileName", "totalRows", "validRows", "errorRows", "importedRows", "status", "importedByName", "timeCreated", "timeCompleted"],
+    ),
+    "cp-geo-regions": (
+        "nodes",
+        ["id", "level", "parent", "sortOrder", "childCount", "valueLangId"],
+    ),
+    "cp-product-filters": (
+        "filters",
+        ["id", "manufacturer", "article", "name", "minPrice", "maxPrice", "minTime", "maxTime"],
+    ),
+    "cp-search-tabs": (
+        "tabs",
+        ["id", "caption", "sortOrder", "enabled"],
+    ),
+    "cp-system-requests": (
+        "requests",
+        ["id", "timeUnix", "userId", "viewed"],
+    ),
+    "cp-additional-texts": (
+        "texts",
+        ["id", "url", "beforeMain", "titleTag", "keywordsTag"],
+    ),
+    "cp-slider-banners": (
+        "images",
+        ["id", "sortOrder", "link", "href"],
+    ),
+    "cp-structure-dumps": (
+        "dumps",
+        ["id", "timeCreated", "fieldsInDump", "fileName", "recordsCount"],
+    ),
+    "cp-communications-test": (
+        "channels",
+        ["name", "active", "isSelectable", "handler"],
+    ),
+    "cp-languages": (
+        "languages",
+        ["langCode", "active", "isDefault"],
+    ),
+    "cp-plugins-manager": (
+        "plugins",
+        ["id", "caption", "sortOrder", "activated", "isFrontend", "controlLock"],
+    ),
+    "cp-templates-manager": (
+        "templates",
+        ["id", "caption", "name", "current", "isFrontend", "phoneSupport", "tabletSupport"],
+    ),
+    "cp-design-tokens": (
+        "tokens",
+        ["siteKey", "settingKey", "updatedAt"],
+    ),
+    "cp-failover-status": (
+        "signals",
+        ["path", "present", "kind"],
+    ),
+    "cp-ops-guides": (
+        "items",
+        ["id", "itemsGroup", "caption", "url", "showAnyway", "sortOrder"],
+    ),
+    "cp-file-manager": (
+        "entries",
+        ["name", "isDirectory", "sizeBytes", "extension"],
+    ),
+    "cp-server-ip": (
+        "addresses",
+        ["address", "addressFamily", "isLoopback"],
+    ),
+    "cp-sitemap": (
+        "pages",
+        ["id", "alias", "valueLangId", "isFrontend", "publishedFlag"],
     ),
     "cp-orders-digest": (
         "orders",

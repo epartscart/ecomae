@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Exercises every final-gate area that can be tested without inventing secrets.
 # Never removes PHP.
-# Presentation exact-route inventory (127): docs/migration/evidence/presentation/presentation-exact-routes.json
+# Presentation exact-route inventory (140): docs/migration/evidence/presentation/presentation-exact-routes.json
 # Kept in sync by scripts/validate_presentation_hybrid_allowlist_sync.py.
 # Surface-digest exact-route inventory (35): docs/migration/evidence/surface-parity/surface-digest-exact-routes.json
 # Kept in sync by scripts/validate_surface_digest_allowlist_sync.py.

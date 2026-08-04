@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "nodeCount": 1,
+    "level1Count": 1,
+    "level2Count": 1,
+    "mappedOfficeCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; nodes[] sentinel; raw lang string bodies; value stored as lang id; PHP Geo / regions remains authoritative; cutoverAllowed=false",
+  "nodes": [
+    {
+      "id": 1,
+      "level": 1,
+      "parent": 1,
+      "sortOrder": 1,
+      "childCount": 1,
+      "valueLangId": 1
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

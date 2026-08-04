@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "cp-system-requests",
+  "surface": "cp",
+  "appRoute": "/cp/system-requests-app",
+  "digestRoute": "/cp/system-requests",
+  "phpAuthoritativePath": "/CP/requests",
+  "blazorMarker": "CpSystemRequestsApp",
+  "chromeShell": "PhpCpDesktopChrome",
+  "authKind": "admin",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T08:50:57Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Contract stub. Re-run on CloudPanel with cookies + ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1."
+}

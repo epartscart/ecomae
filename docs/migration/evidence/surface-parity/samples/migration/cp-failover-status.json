@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "modeFilePresent": 1,
+    "statusJsonPresent": 1,
+    "configPresent": 1,
+    "backupMode": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "signals": [
+    {
+      "path": "migration",
+      "present": 1,
+      "kind": "migration"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "migration-mode; secrets inside failover config; cutoverAllowed=false"
+}

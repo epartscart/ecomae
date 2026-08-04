@@ -32,20 +32,19 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 703,
-    "php-only-deeplink": 23
+    "digest-contract": 725,
+    "php-only-deeplink": 1
   },
   "coverageByKind": {
     "bos-module": {
-      "digest-contract": 97,
-      "php-only-deeplink": 2
+      "digest-contract": 99
     },
     "bos-section": {
       "digest-contract": 11
     },
     "cp-feature": {
-      "digest-contract": 384,
-      "php-only-deeplink": 21
+      "digest-contract": 404,
+      "php-only-deeplink": 1
     },
     "erp-area": {
       "digest-contract": 35
@@ -60,7 +59,7 @@
       "digest-contract": 13
     }
   },
-  "digestContractRouteCount": 136,
+  "digestContractRouteCount": 153,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -2435,10 +2434,10 @@
       "kind": "bos-module",
       "label": "Failover Runbook",
       "phpPath": "/CP/control/portal/epc_platform_failover_guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/failover-status",
+      "aspnetRoute": "/cp/failover-status-app",
       "aspnetComplete": false
     },
     {
@@ -2886,10 +2885,10 @@
       "kind": "bos-module",
       "label": "Design Tokens",
       "phpPath": "/CP/control/portal/epc_design_tokens",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/design-tokens",
+      "aspnetRoute": "/cp/design-tokens-app",
       "aspnetComplete": false
     },
     {
@@ -3513,10 +3512,10 @@
       "kind": "cp-feature",
       "label": "Epc Erp Only Onboard Guide",
       "phpPath": "/CP/control/portal/epc_erp_only_onboard_guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ops-guides",
+      "aspnetRoute": "/cp/ops-guides-app",
       "aspnetComplete": false
     },
     {
@@ -3524,10 +3523,10 @@
       "kind": "cp-feature",
       "label": "Epc Platform Failover Guide",
       "phpPath": "/CP/control/portal/epc_platform_failover_guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/failover-status",
+      "aspnetRoute": "/cp/failover-status-app",
       "aspnetComplete": false
     },
     {
@@ -3579,10 +3578,10 @@
       "kind": "cp-feature",
       "label": "ERP-only onboard guide",
       "phpPath": "/CP/control/portal/epc_erp_only_onboard_guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ops-guides",
+      "aspnetRoute": "/cp/ops-guides-app",
       "aspnetComplete": false
     },
     {
@@ -3590,10 +3589,10 @@
       "kind": "cp-feature",
       "label": "Failover runbook",
       "phpPath": "/CP/control/portal/epc_platform_failover_guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/failover-status",
+      "aspnetRoute": "/cp/failover-status-app",
       "aspnetComplete": false
     },
     {
@@ -4327,10 +4326,10 @@
       "kind": "cp-feature",
       "label": "Geo / regions",
       "phpPath": "/CP/shop/geo/nodes",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/geo-regions",
+      "aspnetRoute": "/cp/geo-regions-app",
       "aspnetComplete": false
     },
     {
@@ -4459,10 +4458,10 @@
       "kind": "cp-feature",
       "label": "Product filters",
       "phpPath": "/CP/shop/filter",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/product-filters",
+      "aspnetRoute": "/cp/product-filters-app",
       "aspnetComplete": false
     },
     {
@@ -4525,10 +4524,10 @@
       "kind": "cp-feature",
       "label": "Search tabs",
       "phpPath": "/CP/shop/taby-poiska",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/search-tabs",
+      "aspnetRoute": "/cp/search-tabs-app",
       "aspnetComplete": false
     },
     {
@@ -4569,10 +4568,10 @@
       "kind": "cp-feature",
       "label": "System requests",
       "phpPath": "/CP/requests",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/system-requests",
+      "aspnetRoute": "/cp/system-requests-app",
       "aspnetComplete": false
     },
     {
@@ -7528,10 +7527,10 @@
       "kind": "cp-feature",
       "label": "Additional texts",
       "phpPath": "/CP/content/dopolnitelnye-teksty",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/additional-texts",
+      "aspnetRoute": "/cp/additional-texts-app",
       "aspnetComplete": false
     },
     {
@@ -7561,10 +7560,10 @@
       "kind": "cp-feature",
       "label": "File manager",
       "phpPath": "/CP/filemanager",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/file-manager",
+      "aspnetRoute": "/cp/file-manager-app",
       "aspnetComplete": false
     },
     {
@@ -7583,10 +7582,10 @@
       "kind": "cp-feature",
       "label": "Sitemap",
       "phpPath": "/CP/content/sitemap",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/sitemap",
+      "aspnetRoute": "/cp/sitemap-app",
       "aspnetComplete": false
     },
     {
@@ -7594,10 +7593,10 @@
       "kind": "cp-feature",
       "label": "Slider / banners",
       "phpPath": "/CP/content/slider",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/slider-banners",
+      "aspnetRoute": "/cp/slider-banners-app",
       "aspnetComplete": false
     },
     {
@@ -7605,10 +7604,10 @@
       "kind": "cp-feature",
       "label": "Structure dumps",
       "phpPath": "/CP/content/structure_dumps",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/structure-dumps",
+      "aspnetRoute": "/cp/structure-dumps-app",
       "aspnetComplete": false
     },
     {
@@ -7627,10 +7626,10 @@
       "kind": "cp-feature",
       "label": "Communications test",
       "phpPath": "/CP/control/communications",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/communications-test",
+      "aspnetRoute": "/cp/communications-test-app",
       "aspnetComplete": false
     },
     {
@@ -7638,10 +7637,10 @@
       "kind": "cp-feature",
       "label": "Configuration",
       "phpPath": "/CP/control/config",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/config-items",
+      "aspnetRoute": "/cp/config-items-app",
       "aspnetComplete": false
     },
     {
@@ -7649,10 +7648,10 @@
       "kind": "cp-feature",
       "label": "CP guideline",
       "phpPath": "/CP/control/cp-guideline",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ops-guides",
+      "aspnetRoute": "/cp/ops-guides-app",
       "aspnetComplete": false
     },
     {
@@ -7671,10 +7670,10 @@
       "kind": "cp-feature",
       "label": "Languages",
       "phpPath": "/CP/lang",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/languages",
+      "aspnetRoute": "/cp/languages-app",
       "aspnetComplete": false
     },
     {
@@ -7726,10 +7725,10 @@
       "kind": "cp-feature",
       "label": "Plugins manager",
       "phpPath": "/CP/plugins/plugins_manager",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/plugins-manager",
+      "aspnetRoute": "/cp/plugins-manager-app",
       "aspnetComplete": false
     },
     {
@@ -7737,10 +7736,10 @@
       "kind": "cp-feature",
       "label": "Server IP",
       "phpPath": "/content/usefull/ip.php",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/server-ip",
+      "aspnetRoute": "/cp/server-ip-app",
       "aspnetComplete": false
     },
     {
@@ -7759,10 +7758,10 @@
       "kind": "cp-feature",
       "label": "Templates manager",
       "phpPath": "/CP/templates/templates_manager",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/templates-manager",
+      "aspnetRoute": "/cp/templates-manager-app",
       "aspnetComplete": false
     },
     {

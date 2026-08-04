@@ -357,6 +357,61 @@ public static class EcomAeRoutes
     /// <summary>CP Data migrations Blazor list (JSON digest remains <see cref="ControlPanelDataMigrations"/>).</summary>
     public const string ControlPanelDataMigrationsApp = "/cp/data-migrations-app";
 
+    // Wave 22 CMS/platform leftovers
+    public const string ControlPanelGeoRegions = "/cp/geo-regions";
+    /// <summary>CP Geo / regions Blazor list (JSON digest remains <see cref="ControlPanelGeoRegions"/>).</summary>
+    public const string ControlPanelGeoRegionsApp = "/cp/geo-regions-app";
+    public const string ControlPanelProductFilters = "/cp/product-filters";
+    /// <summary>CP Product filters Blazor list (JSON digest remains <see cref="ControlPanelProductFilters"/>).</summary>
+    public const string ControlPanelProductFiltersApp = "/cp/product-filters-app";
+    public const string ControlPanelSearchTabs = "/cp/search-tabs";
+    /// <summary>CP Search tabs Blazor list (JSON digest remains <see cref="ControlPanelSearchTabs"/>).</summary>
+    public const string ControlPanelSearchTabsApp = "/cp/search-tabs-app";
+    public const string ControlPanelSystemRequests = "/cp/system-requests";
+    /// <summary>CP System requests Blazor list (JSON digest remains <see cref="ControlPanelSystemRequests"/>).</summary>
+    public const string ControlPanelSystemRequestsApp = "/cp/system-requests-app";
+    public const string ControlPanelAdditionalTexts = "/cp/additional-texts";
+    /// <summary>CP Additional texts Blazor list (JSON digest remains <see cref="ControlPanelAdditionalTexts"/>).</summary>
+    public const string ControlPanelAdditionalTextsApp = "/cp/additional-texts-app";
+    public const string ControlPanelSliderBanners = "/cp/slider-banners";
+    /// <summary>CP Slider / banners Blazor list (JSON digest remains <see cref="ControlPanelSliderBanners"/>).</summary>
+    public const string ControlPanelSliderBannersApp = "/cp/slider-banners-app";
+    public const string ControlPanelStructureDumps = "/cp/structure-dumps";
+    /// <summary>CP Structure dumps Blazor list (JSON digest remains <see cref="ControlPanelStructureDumps"/>).</summary>
+    public const string ControlPanelStructureDumpsApp = "/cp/structure-dumps-app";
+    public const string ControlPanelCommunicationsTest = "/cp/communications-test";
+    /// <summary>CP Communications test Blazor list (JSON digest remains <see cref="ControlPanelCommunicationsTest"/>).</summary>
+    public const string ControlPanelCommunicationsTestApp = "/cp/communications-test-app";
+    public const string ControlPanelLanguages = "/cp/languages";
+    /// <summary>CP Languages Blazor list (JSON digest remains <see cref="ControlPanelLanguages"/>).</summary>
+    public const string ControlPanelLanguagesApp = "/cp/languages-app";
+    public const string ControlPanelPluginsManager = "/cp/plugins-manager";
+    /// <summary>CP Plugins manager Blazor list (JSON digest remains <see cref="ControlPanelPluginsManager"/>).</summary>
+    public const string ControlPanelPluginsManagerApp = "/cp/plugins-manager-app";
+    public const string ControlPanelTemplatesManager = "/cp/templates-manager";
+    /// <summary>CP Templates manager Blazor list (JSON digest remains <see cref="ControlPanelTemplatesManager"/>).</summary>
+    public const string ControlPanelTemplatesManagerApp = "/cp/templates-manager-app";
+    public const string ControlPanelDesignTokens = "/cp/design-tokens";
+    /// <summary>CP Design tokens Blazor list (JSON digest remains <see cref="ControlPanelDesignTokens"/>).</summary>
+    public const string ControlPanelDesignTokensApp = "/cp/design-tokens-app";
+    public const string ControlPanelSitemap = "/cp/sitemap";
+    /// <summary>CP Sitemap Blazor list (JSON digest remains <see cref="ControlPanelSitemap"/>).</summary>
+    public const string ControlPanelSitemapApp = "/cp/sitemap-app";
+
+    // Wave 23 remaining ops/guide surfaces
+    public const string ControlPanelFailoverStatus = "/cp/failover-status";
+    /// <summary>CP Failover status Blazor list (JSON digest remains <see cref="ControlPanelFailoverStatus"/>).</summary>
+    public const string ControlPanelFailoverStatusApp = "/cp/failover-status-app";
+    public const string ControlPanelOpsGuides = "/cp/ops-guides";
+    /// <summary>CP Ops guides / CP menu map Blazor list (JSON digest remains <see cref="ControlPanelOpsGuides"/>).</summary>
+    public const string ControlPanelOpsGuidesApp = "/cp/ops-guides-app";
+    public const string ControlPanelFileManager = "/cp/file-manager";
+    /// <summary>CP File manager Blazor list (JSON digest remains <see cref="ControlPanelFileManager"/>).</summary>
+    public const string ControlPanelFileManagerApp = "/cp/file-manager-app";
+    public const string ControlPanelServerIp = "/cp/server-ip";
+    /// <summary>CP Server IP Blazor list (JSON digest remains <see cref="ControlPanelServerIp"/>).</summary>
+    public const string ControlPanelServerIpApp = "/cp/server-ip-app";
+
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>
