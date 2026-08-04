@@ -1778,3 +1778,105 @@ public sealed record CpReturnsRmaDigestResult(
     string Source,
     string Message);
 
+public sealed record CpIsolationAuditSummary(
+    int RunCount,
+    int FailedRunCount,
+    int ViolationCount,
+    int SiteCount,
+    string Source,
+    string Message);
+
+public sealed record CpIsolationAuditRunDigest(
+    long Id,
+    string RunAt,
+    int TotalTenants,
+    int Passed,
+    int Failed,
+    int Warnings,
+    string TriggeredBy);
+
+public sealed record CpIsolationAuditDigestResult(
+    CpIsolationAuditSummary Summary,
+    IReadOnlyList<CpIsolationAuditRunDigest> Runs,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpAmlComplianceSummary(
+    int KycCount,
+    int PendingKycCount,
+    int FlaggedTxnCount,
+    int ActiveRuleCount,
+    string Source,
+    string Message);
+
+public sealed record CpAmlComplianceKycDigest(
+    long Id,
+    long CompanyId,
+    long CustomerId,
+    string CustomerName,
+    string IdType,
+    string RiskLevel,
+    int PepStatus,
+    string VerificationStatus,
+    long TimeCreated);
+
+public sealed record CpAmlComplianceDigestResult(
+    CpAmlComplianceSummary Summary,
+    IReadOnlyList<CpAmlComplianceKycDigest> Kyc,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryMastersSummary(
+    int KaratCount,
+    int RateTypeCount,
+    int BarcodeCount,
+    int DiamondCount,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryMastersKaratDigest(
+    long Id,
+    long CompanyId,
+    string KaratCode,
+    decimal StdPurity,
+    decimal RangeFrom,
+    decimal RangeTo,
+    decimal SpGravity,
+    string Division,
+    string CreatedAt);
+
+public sealed record CpJewelleryMastersDigestResult(
+    CpJewelleryMastersSummary Summary,
+    IReadOnlyList<CpJewelleryMastersKaratDigest> Karats,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpConsolidationsSummary(
+    int EntityCount,
+    int FigureCount,
+    int IcCount,
+    int OpenIcCount,
+    string Source,
+    string Message);
+
+public sealed record CpConsolidationsEntityDigest(
+    long Id,
+    string Code,
+    string Name,
+    string CurrencyCode,
+    decimal OwnershipPct,
+    int IsHome,
+    string ParentCode,
+    int Active,
+    long TimeCreated);
+
+public sealed record CpConsolidationsDigestResult(
+    CpConsolidationsSummary Summary,
+    IReadOnlyList<CpConsolidationsEntityDigest> Entities,
+    int Count,
+    string Source,
+    string Message);
+

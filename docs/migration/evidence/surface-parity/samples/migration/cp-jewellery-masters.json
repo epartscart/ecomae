@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "karatCount": 1,
+    "rateTypeCount": 0,
+    "barcodeCount": 0,
+    "diamondCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; karats[] sentinel; description omitted; PHP jewellery masters authoritative; cutoverAllowed=false",
+  "karats": [
+    {
+      "id": 1,
+      "companyId": 0,
+      "karatCode": "22K",
+      "stdPurity": 0.916,
+      "rangeFrom": 0.91,
+      "rangeTo": 0.92,
+      "spGravity": 0.0,
+      "division": "G",
+      "createdAt": ""
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

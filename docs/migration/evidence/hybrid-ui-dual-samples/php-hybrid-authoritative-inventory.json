@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-04T07:30:00Z",
+  "capturedAt": "2026-08-04T07:22:08Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -410,6 +410,78 @@
       "phpAuthoritativePath": "/CP/shop/marketing/marketing"
     },
     {
+      "stem": "cp-soc2-compliance",
+      "appRoute": "/cp/soc2-compliance-app",
+      "digestRoute": "/cp/soc2-compliance",
+      "phpAuthoritativePath": "/CP/control/portal/epc_soc2_compliance"
+    },
+    {
+      "stem": "cp-cost-models",
+      "appRoute": "/cp/cost-models-app",
+      "digestRoute": "/cp/cost-models",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models"
+    },
+    {
+      "stem": "cp-fin-advanced",
+      "appRoute": "/cp/fin-advanced-app",
+      "digestRoute": "/cp/fin-advanced",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced"
+    },
+    {
+      "stem": "cp-blockchain-proofs",
+      "appRoute": "/cp/blockchain-proofs-app",
+      "digestRoute": "/cp/blockchain-proofs",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs"
+    },
+    {
+      "stem": "cp-landed-cost",
+      "appRoute": "/cp/landed-cost-app",
+      "digestRoute": "/cp/landed-cost",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost"
+    },
+    {
+      "stem": "cp-warehouse-wms",
+      "appRoute": "/cp/warehouse-wms-app",
+      "digestRoute": "/cp/warehouse-wms",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms"
+    },
+    {
+      "stem": "cp-ai-service",
+      "appRoute": "/cp/ai-service-app",
+      "digestRoute": "/cp/ai-service",
+      "phpAuthoritativePath": "/CP/general_pages/epc_ai_service"
+    },
+    {
+      "stem": "cp-returns-rma",
+      "appRoute": "/cp/returns-rma-app",
+      "digestRoute": "/cp/returns-rma",
+      "phpAuthoritativePath": "/CP/shop/returns-manager"
+    },
+    {
+      "stem": "cp-isolation-audit",
+      "appRoute": "/cp/isolation-audit-app",
+      "digestRoute": "/cp/isolation-audit",
+      "phpAuthoritativePath": "/CP/control/portal/epc_commerce_isolation_audit"
+    },
+    {
+      "stem": "cp-aml-compliance",
+      "appRoute": "/cp/aml-compliance-app",
+      "digestRoute": "/cp/aml-compliance",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance"
+    },
+    {
+      "stem": "cp-jewellery-masters",
+      "appRoute": "/cp/jewellery-masters-app",
+      "digestRoute": "/cp/jewellery-masters",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_karat"
+    },
+    {
+      "stem": "cp-consolidations",
+      "appRoute": "/cp/consolidations-app",
+      "digestRoute": "/cp/consolidations",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=consolidations&tab=consolidation_bu"
+    },
+    {
       "stem": "erp-accounts-summary",
       "appRoute": "/erp/accounts-summary-app",
       "digestRoute": "/erp/accounts-summary",
@@ -486,54 +558,6 @@
       "appRoute": "/storefront/account-summary-app",
       "digestRoute": "/storefront/account-summary",
       "phpAuthoritativePath": "https://epartscart.com/users/"
-    },
-    {
-      "stem": "cp-soc2-compliance",
-      "appRoute": "/cp/soc2-compliance-app",
-      "digestRoute": "/cp/soc2-compliance",
-      "phpAuthoritativePath": "/CP/control/portal/epc_soc2_compliance"
-    },
-    {
-      "stem": "cp-cost-models",
-      "appRoute": "/cp/cost-models-app",
-      "digestRoute": "/cp/cost-models",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models"
-    },
-    {
-      "stem": "cp-fin-advanced",
-      "appRoute": "/cp/fin-advanced-app",
-      "digestRoute": "/cp/fin-advanced",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced"
-    },
-    {
-      "stem": "cp-blockchain-proofs",
-      "appRoute": "/cp/blockchain-proofs-app",
-      "digestRoute": "/cp/blockchain-proofs",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs"
-    },
-    {
-      "stem": "cp-landed-cost",
-      "appRoute": "/cp/landed-cost-app",
-      "digestRoute": "/cp/landed-cost",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost"
-    },
-    {
-      "stem": "cp-warehouse-wms",
-      "appRoute": "/cp/warehouse-wms-app",
-      "digestRoute": "/cp/warehouse-wms",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms"
-    },
-    {
-      "stem": "cp-ai-service",
-      "appRoute": "/cp/ai-service-app",
-      "digestRoute": "/cp/ai-service",
-      "phpAuthoritativePath": "/CP/general_pages/epc_ai_service"
-    },
-    {
-      "stem": "cp-returns-rma",
-      "appRoute": "/cp/returns-rma-app",
-      "digestRoute": "/cp/returns-rma",
-      "phpAuthoritativePath": "/CP/shop/returns-manager"
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

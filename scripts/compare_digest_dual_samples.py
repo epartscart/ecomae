@@ -244,6 +244,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "rmaCount,openCount,activeWarrantyCount,itemCount,source,message",
     ),
+    "cp-isolation-audit": (
+        "summary",
+        "runCount,failedRunCount,violationCount,siteCount,source,message",
+    ),
+    "cp-aml-compliance": (
+        "summary",
+        "kycCount,pendingKycCount,flaggedTxnCount,activeRuleCount,source,message",
+    ),
+    "cp-jewellery-masters": (
+        "summary",
+        "karatCount,rateTypeCount,barcodeCount,diamondCount,source,message",
+    ),
+    "cp-consolidations": (
+        "summary",
+        "entityCount,figureCount,icCount,openIcCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -760,6 +776,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-returns-rma": (
         "requests",
         ["id", "siteKey", "rmaNumber", "warrantyId", "customerId", "customerName", "reason", "status", "resolutionType", "createdAt"],
+    ),
+    "cp-isolation-audit": (
+        "runs",
+        ["id", "runAt", "totalTenants", "passed", "failed", "warnings", "triggeredBy"],
+    ),
+    "cp-aml-compliance": (
+        "kyc",
+        ["id", "companyId", "customerId", "customerName", "idType", "riskLevel", "pepStatus", "verificationStatus", "timeCreated"],
+    ),
+    "cp-jewellery-masters": (
+        "karats",
+        ["id", "companyId", "karatCode", "stdPurity", "rangeFrom", "rangeTo", "spGravity", "division", "createdAt"],
+    ),
+    "cp-consolidations": (
+        "entities",
+        ["id", "code", "name", "currencyCode", "ownershipPct", "isHome", "parentCode", "active", "timeCreated"],
     ),
     "cp-orders-digest": (
         "orders",
