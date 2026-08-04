@@ -33,6 +33,7 @@ public static class LegacyChromeNavCatalog
 
     public static readonly IReadOnlyList<NavItem> ControlPanelQuickActions =
     [
+        new("Dashboard summary KPIs", "/cp/dashboard-summary-app"),
         new("Orders (OMS)", "/cp/orders"),
         new("Orders PHP OMS", "/CP/shop/orders/orders"),
         new("Users list", "/cp/users-app"),

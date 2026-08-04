@@ -291,6 +291,7 @@ public static class SurfacePayloadContractCatalog
     [
         new("cp", "cp/templates/bootstrap_admin/desktop.php chrome", "/cp?format=html", "presentation-shell-scaffolded", "Must reuse PHP CSS asset URLs; interactive widgets still PHP."),
         new("cp", "CP dashboard KPI widgets", "/cp/dashboard-summary", "digest-wired-awaiting-dual-sample", "Field contract locked; needs authenticated dual sample vs PHP KPIs."),
+        new("cp", "dashboard-summary Blazor KPIs", "/cp/dashboard-summary-app", "digest-wired-awaiting-dual-sample", "Read UI over /cp/dashboard-summary digest; PHP desktop.php widgets remain authoritative; tenant chrome stays PHP."),
         new("cp", "Orders/OMS shop_orders read", "/cp/orders + /cp/orders-digest", "digest-wired-awaiting-dual-sample", "Batch 4 read UI + KPI digest; PHP OMS console and writes remain authoritative."),
         new("cp", "user_manager / groups Blazor lists", "/cp/users-app|/cp/groups-app", "digest-wired-awaiting-dual-sample", "Batch 4 read UI over existing /cp/users|/cp/groups digests; writes remain PHP."),
         new("cp", "modules Blazor list", "/cp/modules-app", "digest-wired-awaiting-dual-sample", "Read UI over /cp/modules digest; PHP modules_manager writes remain authoritative; tenant chrome stays PHP."),

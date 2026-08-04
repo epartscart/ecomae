@@ -103,17 +103,17 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 ### Hybrid ERP tab family continue
 - ✅ Core ERP list digests have Blazor `*-app` through purchases (#676).
 
-### Hybrid CP continue
+### Hybrid CP continue ← current
 - ✅ Users/Groups · Orders · Modules · Pages · Menus · Tenants · Currencies · Storages · Admin-sessions · API clients · Config-items (#686)
+- **This PR:** `/cp/dashboard-summary-app` over `/cp/dashboard-summary` digest; PHP `/CP/` widgets authoritative.
 
 ### Hybrid storefront continue
-- ✅ Search · Cart · Orders (#687) · Garage (#688) · Profile (#689) · Account-summary (#691 track)
+- ✅ Search · Cart · Orders (#687) · Garage (#688) · Profile (#689) · Account-summary (#691)
 - Exact-route www preview only — live epartscart.com / tenant storefronts stay PHP (same-to-same).
 - Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 
-### Hybrid ERP continue ← current
-- ✅ Core ERP list digests through purchases + inventory-stock-app
-- **This PR:** `/erp/accounts-summary-app` over `/erp/accounts-summary` digest; PHP cash/bank authoritative.
+### Hybrid ERP continue
+- ✅ Core ERP list digests through purchases + inventory-stock + accounts-summary apps
 - Exact-route www preview only — tenant ERP stays PHP (same-to-same).
 
 ### Hybrid BOS continue
