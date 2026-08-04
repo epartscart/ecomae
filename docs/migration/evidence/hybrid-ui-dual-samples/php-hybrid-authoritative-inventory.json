@@ -606,6 +606,30 @@
       "appRoute": "/cp/insurance-compliance-app",
       "digestRoute": "/cp/insurance-compliance",
       "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=risk&tab=insurance"
+    },
+    {
+      "stem": "cp-audit-trail",
+      "appRoute": "/cp/audit-trail-app",
+      "digestRoute": "/cp/audit-trail",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=audit_wb&tab=audit"
+    },
+    {
+      "stem": "cp-doc-expiry",
+      "appRoute": "/cp/doc-expiry-app",
+      "digestRoute": "/cp/doc-expiry",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=risk&tab=doc_expiry"
+    },
+    {
+      "stem": "cp-tenant-config",
+      "appRoute": "/cp/tenant-config-app",
+      "digestRoute": "/cp/tenant-config",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=setup&tab=tenant_config"
+    },
+    {
+      "stem": "cp-jewellery-stock-verification",
+      "appRoute": "/cp/jewellery-stock-verification-app",
+      "digestRoute": "/cp/jewellery-stock-verification",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification"
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

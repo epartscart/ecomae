@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 100,
-  "hybridUiSamplesOk": 99,
+  "pairsChecked": 104,
+  "hybridUiSamplesOk": 103,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -93,6 +93,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-api-clients",
       "appRoute": "/cp/api-clients-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-audit-trail-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-audit-trail",
+      "appRoute": "/cp/audit-trail-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -299,6 +309,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-doc-expiry-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-doc-expiry",
+      "appRoute": "/cp/doc-expiry-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-document-control-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-document-control",
@@ -423,6 +443,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-jewellery-retail",
       "appRoute": "/cp/jewellery-retail-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-jewellery-stock-verification-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-jewellery-stock-verification",
+      "appRoute": "/cp/jewellery-stock-verification-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -703,6 +733,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-tax-toolkits",
       "appRoute": "/cp/tax-toolkits-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-tenant-config-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-tenant-config",
+      "appRoute": "/cp/tenant-config-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

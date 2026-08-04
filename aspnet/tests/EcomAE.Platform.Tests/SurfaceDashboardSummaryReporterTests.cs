@@ -105,6 +105,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var demandIntelligence = await reporter.BuildCpDemandIntelligenceDigestAsync(10);
         var creditLimits = await reporter.BuildCpCreditLimitsDigestAsync(10);
         var insuranceCompliance = await reporter.BuildCpInsuranceComplianceDigestAsync(10);
+        var auditTrail = await reporter.BuildCpAuditTrailDigestAsync(10);
+        var docExpiry = await reporter.BuildCpDocExpiryDigestAsync(10);
+        var tenantConfig = await reporter.BuildCpTenantConfigDigestAsync(10);
+        var jewelStockVerification = await reporter.BuildCpJewelleryStockVerificationDigestAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);

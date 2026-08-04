@@ -296,6 +296,22 @@ public static class EcomAeRoutes
     public const string ControlPanelInsuranceCompliance = "/cp/insurance-compliance";
     /// <summary>CP insurance compliance Blazor list (JSON digest remains <see cref="ControlPanelInsuranceCompliance"/>).</summary>
     public const string ControlPanelInsuranceComplianceApp = "/cp/insurance-compliance-app";
+
+    public const string ControlPanelAuditTrail = "/cp/audit-trail";
+    /// <summary>CP ERP audit trail Blazor list (JSON digest remains <see cref="ControlPanelAuditTrail"/>).</summary>
+    public const string ControlPanelAuditTrailApp = "/cp/audit-trail-app";
+
+    public const string ControlPanelDocExpiry = "/cp/doc-expiry";
+    /// <summary>CP document expiry Blazor list (JSON digest remains <see cref="ControlPanelDocExpiry"/>).</summary>
+    public const string ControlPanelDocExpiryApp = "/cp/doc-expiry-app";
+
+    public const string ControlPanelTenantConfig = "/cp/tenant-config";
+    /// <summary>CP tenant config Blazor list (JSON digest remains <see cref="ControlPanelTenantConfig"/>).</summary>
+    public const string ControlPanelTenantConfigApp = "/cp/tenant-config-app";
+
+    public const string ControlPanelJewelleryStockVerification = "/cp/jewellery-stock-verification";
+    /// <summary>CP jewellery stock verification Blazor list (JSON digest remains <see cref="ControlPanelJewelleryStockVerification"/>).</summary>
+    public const string ControlPanelJewelleryStockVerificationApp = "/cp/jewellery-stock-verification-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

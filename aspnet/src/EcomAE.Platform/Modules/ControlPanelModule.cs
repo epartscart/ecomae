@@ -1965,6 +1965,119 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelAuditTrail, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for audit-trail digest.");
+            }
+
+            var result = await dashboards.BuildCpAuditTrailDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                entries = result.Entries,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_erp_audit_log KPIs + entries (detail/old/new JSON omitted). PHP audit workbench remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelDocExpiry, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for doc-expiry digest.");
+            }
+
+            var result = await dashboards.BuildCpDocExpiryDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                documents = result.Documents,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_erp_doc_expiry* KPIs + documents (notes/emails/paths omitted). PHP doc expiry remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelTenantConfig, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for tenant-config digest.");
+            }
+
+            var result = await dashboards.BuildCpTenantConfigDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                entries = result.Entries,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_tenant_config* KPIs + keys (config_value omitted). PHP tenant configuration remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelJewelleryStockVerification, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for jewellery-stock-verification digest.");
+            }
+
+            var result = await dashboards.BuildCpJewelleryStockVerificationDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                verifications = result.Verifications,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_jewel_stock_verification* KPIs + vouchers (remarks omitted). PHP jewellery stock verification remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ControlPanelAliases)
         {
             endpoints.MapGet(route, async (

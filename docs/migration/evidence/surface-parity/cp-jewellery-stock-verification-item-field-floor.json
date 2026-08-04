@@ -1,0 +1,33 @@
+{
+  "role": "cp-jewellery-stock-verification-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-jewellery-stock-verification",
+  "collectionKey": "verifications",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "verificationCount",
+    "inProgressCount",
+    "completeCount",
+    "lineCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "branch",
+    "vocType",
+    "vocDate",
+    "vocNo",
+    "location",
+    "totalPcs",
+    "scannedPcs",
+    "remainingPcs",
+    "status",
+    "createdBy"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-jewellery-stock-verification digest summary+verifications[] floors. remarks omitted. PHP jewellery stock verification remains authoritative. cutoverAllowed=false."
+}

@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "verificationCount": 1,
+    "inProgressCount": 1,
+    "completeCount": 0,
+    "lineCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; verifications[] sentinel; remarks omitted; PHP jewellery stock verification authoritative; cutoverAllowed=false",
+  "verifications": [
+    {
+      "id": 1,
+      "companyId": 0,
+      "branch": "HO",
+      "vocType": "MSV",
+      "vocDate": "2026-08-04",
+      "vocNo": 1,
+      "location": "Vault",
+      "totalPcs": 10,
+      "scannedPcs": 4,
+      "remainingPcs": 6,
+      "status": "in_progress",
+      "createdBy": "demo"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}
