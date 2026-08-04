@@ -29,8 +29,18 @@
   "offlineCacheNestedListItemFieldStems": [
     "api-catalog-analogs",
     "api-catalog-article-brands",
+    "api-catalog-articles",
     "api-catalog-categories",
-    "api-catalog-engines"
+    "api-catalog-engine-search",
+    "api-catalog-engines",
+    "api-catalog-products"
+  ],
+  "offlineCacheObjectItemFieldStems": [
+    "api-catalog-article",
+    "api-catalog-engine"
+  ],
+  "offlineCacheSectionListItemFieldStems": [
+    "api-catalog-article-links"
   ],
   "vinEnvelopeExpanded": true,
   "results": [
@@ -143,5 +153,5 @@
       "errors": []
     }
   ],
-  "note": "Catalog/API contract floor only. Wave-1 list goldens keep non-empty item-field sentinels; VIN envelope requires manufacturer/model_label/cached_at; offline-cache action goldens keep object data blobs; wave-2 nested data.data[] item-field sentinels for engines/analogs/article-brands/categories. Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "Catalog/API contract floor only. Wave-1 list goldens keep non-empty item-field sentinels; VIN envelope requires manufacturer/model_label/cached_at; offline-cache action goldens keep object data blobs with nested/object/section item-field sentinels for all 10 offline-cache stems. Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
 }

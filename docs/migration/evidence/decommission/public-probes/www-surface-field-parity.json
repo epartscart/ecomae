@@ -1409,7 +1409,8 @@
       ],
       "requiredSummaryOrItemFields": [],
       "functionsCovered": [
-        "offline-cache products"
+        "offline-cache products",
+        "nested data.data[] ART_ARTICLE_NR item floor"
       ],
       "presentationChrome": "n/a-json-api",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -1430,7 +1431,8 @@
       ],
       "requiredSummaryOrItemFields": [],
       "functionsCovered": [
-        "offline-cache engine-search"
+        "offline-cache engine-search",
+        "nested data.data[] ENGINE_CODE item floor"
       ],
       "presentationChrome": "n/a-json-api",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -1451,7 +1453,8 @@
       ],
       "requiredSummaryOrItemFields": [],
       "functionsCovered": [
-        "offline-cache article-links"
+        "offline-cache article-links",
+        "PC[] fitment CI_FROM/CI_TO item floor"
       ],
       "presentationChrome": "n/a-json-api",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -1472,7 +1475,8 @@
       ],
       "requiredSummaryOrItemFields": [],
       "functionsCovered": [
-        "offline-cache article"
+        "offline-cache article",
+        "object ART_ID/TITLE item floor"
       ],
       "presentationChrome": "n/a-json-api",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -1493,7 +1497,8 @@
       ],
       "requiredSummaryOrItemFields": [],
       "functionsCovered": [
-        "offline-cache articles"
+        "offline-cache articles",
+        "nested data.data[] ART_ARTICLE_NR item floor"
       ],
       "presentationChrome": "n/a-json-api",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -1514,7 +1519,8 @@
       ],
       "requiredSummaryOrItemFields": [],
       "functionsCovered": [
-        "offline-cache engine by id"
+        "offline-cache engine by id",
+        "object ENG_ID/ENGINE_CODE item floor"
       ],
       "presentationChrome": "n/a-json-api",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"

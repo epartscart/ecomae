@@ -3,14 +3,28 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "nestedStemCount": 4,
-  "stems": [
+  "offlineCacheObjectDataStemCount": 10,
+  "nestedListStemCount": 7,
+  "objectItemStemCount": 2,
+  "sectionListStemCount": 1,
+  "nestedListStems": [
     "api-catalog-engines",
     "api-catalog-analogs",
     "api-catalog-article-brands",
-    "api-catalog-categories"
+    "api-catalog-categories",
+    "api-catalog-products",
+    "api-catalog-articles",
+    "api-catalog-engine-search"
+  ],
+  "objectItemStems": [
+    "api-catalog-article",
+    "api-catalog-engine"
+  ],
+  "sectionListStems": [
+    "api-catalog-article-links"
   ],
   "nestedCollectionPath": "data.data",
+  "sectionCollectionPath": "data.PC",
   "requireNonemptyMigrationSentinel": true,
   "keepObjectBlobEnvelope": true,
   "requiredItemFieldsByStem": {
@@ -26,8 +40,14 @@
       "TITLE",
       "DES"
     ],
-    "api-catalog-categories": ["STR_ID", "CATEGORY_NAME", "ORDER"]
+    "api-catalog-categories": ["STR_ID", "CATEGORY_NAME", "ORDER"],
+    "api-catalog-products": ["ART_ARTICLE_NR", "SUP_BRAND", "ART_PRODUCT_NAME"],
+    "api-catalog-articles": ["ART_ARTICLE_NR", "SUP_BRAND", "ART_PRODUCT_NAME"],
+    "api-catalog-engine-search": ["ENG_ID", "ENGINE_CODE", "POWER_KW", "CAPACITY_LT", "FUEL_TYPE"],
+    "api-catalog-article": ["ART_ID", "TITLE"],
+    "api-catalog-engine": ["ENG_ID", "ENGINE_CODE"],
+    "api-catalog-article-links": ["CI_FROM", "CI_TO", "POWER_KW", "FUEL_TYPE"]
   },
-  "source": "PHP umapi_proxy epc_engines_list_items + epc_umapi_brands_offline_payload + UMAPI wrappers; ASP.NET OfflineCacheOk keeps object blob",
-  "note": "Wave-2 locks nested data.data[] item fields inside offline-cache object blobs without inventing top-level typed DTO unwrap. Remaining offline-cache stems stay empty object blobs. Never invents RELEASE_OWNER_APPROVAL.md."
+  "source": "PHP umapi_proxy list/object/fitment shapes; ASP.NET OfflineCacheOk keeps object blob",
+  "note": "All 10 offline-cache stems keep OfflineCacheOk object blobs while locking nonempty nested/object/section item-field sentinels. Does not invent top-level typed DTO unwrap. Never invents RELEASE_OWNER_APPROVAL.md."
 }
