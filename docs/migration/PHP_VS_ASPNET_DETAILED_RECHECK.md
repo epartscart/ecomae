@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** Price-lookup dual-sample evidence tree now requires explicit `cutoverAllowed=false` / `readyForPhpRemoval=false` (including checked-in payload samples). Hybrid-ui / login / catalog-miss / decommission trees remain locked. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** Scaffold guardrails now forbid additional production-client aliases in platform/workers `Program.cs` (Kafka/OTLP/Serilog/Redis/YARP). Price-lookup + dual-sample evidence trees remain cutover-locked. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 
