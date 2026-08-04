@@ -1,6 +1,6 @@
 {
   "role": "pre-decommission-functional-flow-suite",
-  "generatedAtUnix": 1785865785,
+  "generatedAtUnix": 1785871050,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "readyToRemovePhp": false,
@@ -28,7 +28,13 @@
       "warnings": [
         "3 live smoke item(s) still blocked (stub status=blocked)"
       ],
-      "phpTests": [],
+      "phpTests": [
+        {
+          "test": "tests/erp_advanced/run_warehouse_search_fast_tests.php",
+          "status": "pass",
+          "detail": "tests/erp_advanced/run_warehouse_search_fast_tests.php exited 0"
+        }
+      ],
       "liveSmokeRequiredForPhpRemoval": [
         "Authenticated /storefront/search with non-empty offer rows (storage/exist/price)",
         "epartscart.com warehouse frontend stock result parity vs ASP.NET digest (part_search / ajax_getProductsOfBunch)",
@@ -42,9 +48,16 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
+        "tests/erp_advanced/run_report_center_tests.php exit 255 (needs CloudPanel fixtures)",
         "2 live smoke item(s) still blocked (stub status=blocked)"
       ],
-      "phpTests": [],
+      "phpTests": [
+        {
+          "test": "tests/erp_advanced/run_report_center_tests.php",
+          "status": "blocked",
+          "detail": "tests/erp_advanced/run_report_center_tests.php exit 255 (needs CloudPanel fixtures)"
+        }
+      ],
       "liveSmokeRequiredForPhpRemoval": [
         "Named report fetch (sales|inventory|vat|ar-aging) totals match PHP report-center/export",
         "Worker ErpReportsDryRun remains writes=0 until dual-sample promotes live generation"
@@ -57,9 +70,16 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
+        "tests/erp_advanced/run_finance_tests.php exit 255 (needs CloudPanel fixtures)",
         "2 live smoke item(s) still blocked (stub status=blocked)"
       ],
-      "phpTests": [],
+      "phpTests": [
+        {
+          "test": "tests/erp_advanced/run_finance_tests.php",
+          "status": "blocked",
+          "detail": "tests/erp_advanced/run_finance_tests.php exit 255 (needs CloudPanel fixtures)"
+        }
+      ],
       "liveSmokeRequiredForPhpRemoval": [
         "Authenticated /cp/einvoice-documents digest field parity",
         "Create\u2192validate\u2192submit\u2192poll dry-run sequence paired with PHP (writes=0 until approval)"
@@ -74,7 +94,13 @@
       "warnings": [
         "3 live smoke item(s) still blocked (stub status=blocked)"
       ],
-      "phpTests": [],
+      "phpTests": [
+        {
+          "test": "tests/erp_advanced/run_laximo_catalog_tests.php",
+          "status": "pass",
+          "detail": "tests/erp_advanced/run_laximo_catalog_tests.php exited 0"
+        }
+      ],
       "liveSmokeRequiredForPhpRemoval": [
         "Auth catalog status connected=true (staging-smoke)",
         "Miss \u2192 PHP UMAPI fill \u2192 ASP.NET cache hit dual-sample without inventing cutover",
@@ -88,9 +114,21 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
+        "tests/erp_advanced/run_flow_tests.php exit 255 (needs CloudPanel fixtures)",
         "2 live smoke item(s) still blocked (stub status=blocked)"
       ],
-      "phpTests": [],
+      "phpTests": [
+        {
+          "test": "tests/erp_advanced/run_flow_tests.php",
+          "status": "blocked",
+          "detail": "tests/erp_advanced/run_flow_tests.php exit 255 (needs CloudPanel fixtures)"
+        },
+        {
+          "test": "tests/erp_advanced/run_automation_centre_tests.php",
+          "status": "pass",
+          "detail": "tests/erp_advanced/run_automation_centre_tests.php exited 0"
+        }
+      ],
       "liveSmokeRequiredForPhpRemoval": [
         "Process-flow task digest (open/done/overdue + rows) dual-sample vs PHP epc_erp_processflow_tasks",
         "Industry step-chain posting parity (jewellery/trading/construction/POS)"
@@ -103,9 +141,16 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
+        "tests/erp_advanced/run_ecommerce_tests.php exit 255 (needs CloudPanel fixtures)",
         "3 live smoke item(s) still blocked (stub status=blocked)"
       ],
-      "phpTests": [],
+      "phpTests": [
+        {
+          "test": "tests/erp_advanced/run_ecommerce_tests.php",
+          "status": "blocked",
+          "detail": "tests/erp_advanced/run_ecommerce_tests.php exit 255 (needs CloudPanel fixtures)"
+        }
+      ],
       "liveSmokeRequiredForPhpRemoval": [
         "Authenticated /cp/orders-digest + /storefront/checkout field parity",
         "OMS status/courier dry-runs paired with PHP ajax samples",
@@ -121,7 +166,13 @@
       "warnings": [
         "3 live smoke item(s) still blocked (stub status=blocked)"
       ],
-      "phpTests": [],
+      "phpTests": [
+        {
+          "test": "tests/erp_advanced/run_client_tenant_isolation_tests.php",
+          "status": "pass",
+          "detail": "tests/erp_advanced/run_client_tenant_isolation_tests.php exited 0"
+        }
+      ],
       "liveSmokeRequiredForPhpRemoval": [
         "Super CP tenants list + BOS fleet-health sampleTenants for a live tenant",
         "Onboard/demo tenant provision \u2192 isolated DB \u2192 tenant CP login smoke",

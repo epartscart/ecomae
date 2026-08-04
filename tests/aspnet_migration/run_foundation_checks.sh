@@ -1036,9 +1036,26 @@ check 'marketing installer expects exactly 37 routes' contains "$ROOT/scripts/cl
 check 'marketing probe expects exactly 37 routes' contains "$ROOT/scripts/cloudpanel_probe_marketing_app_shadows.sh" 'expected 37 /marketing/* routes'
 check 'marketing allowlist sync validator exists' test -x "$ROOT/scripts/validate_marketing_app_allowlist_sync.py"
 check 'marketing allowlist sync passes' python3 "$ROOT/scripts/validate_marketing_app_allowlist_sync.py"
+check 'storefront shadow dual-sample floor digestRouteCount is 7' contains "$ROOT/docs/migration/evidence/presentation/storefront-shadow-dual-sample-floor.json" '"digestRouteCount": 7'
+check 'storefront shadow dual-sample floor presentationRouteCount is 9' contains "$ROOT/docs/migration/evidence/presentation/storefront-shadow-dual-sample-floor.json" '"presentationRouteCount": 9'
+check 'storefront shadow dual-sample floor keeps tenant PHP' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert d.get("tenantStorefrontPhp") is True and d.get("cutoverAllowed") is False and d.get("readyForPhpRemoval") is False and int(d.get("hybridTargetCount") or 0)==7 and len(d.get("digestExactRoutes") or [])==7 and len(d.get("presentationExactRoutes") or [])==9' "$ROOT/docs/migration/evidence/presentation/storefront-shadow-dual-sample-floor.json"
+check 'storefront shadow allowlist sync validator exists' test -x "$ROOT/scripts/validate_storefront_shadow_allowlist_sync.py"
+check 'storefront shadow allowlist sync passes' python3 "$ROOT/scripts/validate_storefront_shadow_allowlist_sync.py"
+check 'functional static floors validator exists' test -x "$ROOT/scripts/validate_functional_static_floors.py"
+check 'functional static floors pass' python3 "$ROOT/scripts/validate_functional_static_floors.py"
+check 'www shadow closeout preflight exists' test -x "$ROOT/scripts/cloudpanel_www_shadow_closeout_preflight.sh"
+check 'www shadow closeout preflight passes' bash "$ROOT/scripts/cloudpanel_www_shadow_closeout_preflight.sh"
+check 'www shadow closeout runs offline preflight' contains "$ROOT/scripts/cloudpanel_www_shadow_closeout_operator.sh" 'cloudpanel_www_shadow_closeout_preflight.sh'
+check 'deploy packs storefront shadow allowlist sync validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_storefront_shadow_allowlist_sync.py'
+check 'deploy packs functional static floors validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_functional_static_floors.py'
+check 'deploy packs www shadow closeout preflight' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_www_shadow_closeout_preflight.sh'
 check 'residual board reports marketing routes wired 37' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"marketingExactRoutesWired": 37'
 check 'residual board reports login-cookie pairs 4' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"loginCookieContractPairsOk": 4'
 check 'residual board reports on-premises pairs 7' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"onPremisesContractPairsOk": 7'
+check 'residual board reports storefront digests wired 7' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"storefrontDigestExactRoutesWired": 7'
+check 'residual board reports storefront presentation apps wired 9' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"storefrontPresentationExactRoutesWired": 9'
+check 'residual board reports functional static floors 7' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"functionalStaticFloorsGreen": 7'
+check 'residual board reports functional live-smoke still blocked 7' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"functionalLiveSmokeBlocked": 7'
 check 'ERP ajax dual-sample compare exists' test -x "$ROOT/scripts/compare_erp_ajax_dual_samples.py"
 check 'BOS ajax dual-sample compare exists' test -x "$ROOT/scripts/compare_bos_ajax_dual_samples.py"
 check 'storefront digest install expects 7 routes' contains "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh" 'expected 7 storefront digest locations'

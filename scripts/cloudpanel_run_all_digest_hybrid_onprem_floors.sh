@@ -21,6 +21,7 @@ bash "$ROOT/scripts/cloudpanel_run_on_premises_dual_sample_operator.sh"
 printf '\n-- allowlist sync --\n'
 python3 "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"
 python3 "$ROOT/scripts/validate_surface_digest_allowlist_sync.py"
+python3 "$ROOT/scripts/validate_storefront_shadow_allowlist_sync.py"
 
 printf '\nPASS: digest + hybrid + on-premises contract floors green; cutoverAllowed stays false; PHP remains authoritative.\n'
 printf 'Next (CloudPanel): ECOMAE_CONFIRM_WWW_SHADOW_CLOSEOUT=YES bash scripts/cloudpanel_www_shadow_closeout_operator.sh\n'

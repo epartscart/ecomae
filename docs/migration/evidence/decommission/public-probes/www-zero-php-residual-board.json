@@ -1,6 +1,6 @@
 {
   "role": "www-zero-php-residual-board",
-  "generatedAtUnix": 1785870874,
+  "generatedAtUnix": 1785872400,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
@@ -23,7 +23,13 @@
     "marketingExactRoutesWired": 37,
     "marketingExactRoutesLive": 0,
     "loginCookieContractPairsOk": 4,
-    "onPremisesContractPairsOk": 7
+    "onPremisesContractPairsOk": 7,
+    "storefrontDigestExactRoutesWired": 7,
+    "storefrontPresentationExactRoutesWired": 9,
+    "storefrontHybridTargetsWired": 7,
+    "functionalStaticFloorsGreen": 7,
+    "functionalLiveSmokeBlocked": 7,
+    "functionalLiveSmokeCaptured": 0
   },
   "whatThePercentsMean": {
     "100_scaffold": "Menus 726/726, field floors, ajax dry-run catalogs/goldens (CP 254 + ERP 321 + BOS 231), write-dryrun contract pairs 183/183, tenant/industry gates, security headers + compression are built. This is NOT UX cutover.",
@@ -36,6 +42,12 @@
       "weightOfResidual": "high",
       "status": "blocked-awaiting-cloudpanel",
       "detail": "Install www /marketing/* exact-route shadows (37 routes currently 0/37 live). One-shot: ECOMAE_CONFIRM_WWW_SHADOW_CLOSEOUT=YES bash scripts/cloudpanel_www_shadow_closeout_operator.sh"
+    },
+    {
+      "id": "storefront-checkout-shadow",
+      "weightOfResidual": "high",
+      "status": "blocked-awaiting-cloudpanel",
+      "detail": "Offline floor locks storefront digests 7/7 + presentation apps 9 + hybrid TARGETS 7 (incl checkout + checkout-app). Live still 6/7 digests until www closeout installs checkout."
     },
     {
       "id": "ajax-field-dual-sample",
@@ -92,7 +104,10 @@
     "MarketingPreviewApp cleared of stack-reveal; same-to-same validator includes it",
     "Host-aware storefront industry attrs/titles",
     "Functional suite static floors green",
-    "Marketing install/probe floor ready",
+    "Marketing install/probe floor ready (37/37 allowlist sync)",
+    "Storefront shadow dual-sample floor ready (digests 7 + apps 9 + hybrid 7; tenantStorefrontPhp=true)",
+    "Functional static floors validator (7/7 green; live-smoke 7/7 blocked stubs)",
+    "www shadow closeout offline preflight (storefront + functional + marketing)",
     "www shadow closeout operator (storefront digests + marketing + PHP / guard)",
     "Functional live-smoke capture runbook (LIVE_SMOKE_CAPTURE.md)",
     "Font URL %20 encoding so Open Sans probes pass",
@@ -120,6 +135,7 @@
     "moduleAjaxLivePhpSamples": "0/254 (contract baselines only)"
   },
   "nextActions": [
+    "bash scripts/cloudpanel_www_shadow_closeout_preflight.sh (offline)",
     "ECOMAE_CONFIRM_WWW_SHADOW_CLOSEOUT=YES bash scripts/cloudpanel_www_shadow_closeout_operator.sh",
     "bash scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh (contract floor; ECOMAE_MODULE_AJAX_SKIP_CAPTURE=1 offline)",
     "Authenticated digest/ajax dual-sample with admin+customer cookies",

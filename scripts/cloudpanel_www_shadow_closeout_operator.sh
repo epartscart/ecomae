@@ -37,6 +37,15 @@ step() {
 
 echo "www shadow closeout operator — cutoverAllowed stays false; PHP remains authoritative."
 
+if [[ "${ECOMAE_WWW_SHADOW_SKIP_PREFLIGHT:-}" != "1" ]]; then
+  step "0/5 offline preflight (storefront + functional + marketing floors)" \
+    bash "$ROOT/scripts/cloudpanel_www_shadow_closeout_preflight.sh"
+  if [[ "$FAIL" -ne 0 ]]; then
+    echo "FAIL: offline preflight blocked closeout; cutover still forbidden" >&2
+    exit 1
+  fi
+fi
+
 step "1/5 install storefront digest shadows (7 routes incl checkout)" \
   env ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES \
   bash "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh"
