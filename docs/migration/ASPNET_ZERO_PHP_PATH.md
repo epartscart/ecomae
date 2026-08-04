@@ -36,7 +36,7 @@ Live board: `GET /migration/on-premises-parity`
 
 1. Inventory — done  
 2. Digests + hybrid shells — done on www  
-3. Presentation parity (heroes/fonts/menus) — in progress (`/marketing/app` hub+home; solutions+resources nav largely scaffolded; CP/ERP/BOS/storefront chrome; `/erp/on-premises-app`)  
+3. Presentation parity (heroes/fonts/menus) — in progress (`/marketing/app` hub+home; solutions+resources+legal aliases; CP/ERP/BOS/storefront chrome; `/erp/on-premises-app`)  
 4. Function parity (writes/menus) — in progress (`POST` dry-runs incl. quote/garage/OMS + on-premises health/activate dry-runs + write-dryrun dual-sample operator floor; `aspNetInteractiveComplete=0` until human dual-sample pass)  
 5. Tenant exact-route cutover — blocked on parity  
 6. PHP removal — blocked on approval (SaaS **and** on-premises installer pack)  

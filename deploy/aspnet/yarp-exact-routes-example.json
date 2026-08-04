@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 171,
+  "routeCount": 174,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -812,6 +812,318 @@
           }
         ]
       },
+      "marketing-platform": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/platform"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-platform-presentation-preview"
+          }
+        ]
+      },
+      "marketing-about": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/about"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-about-presentation-preview"
+          }
+        ]
+      },
+      "marketing-faq": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/faq"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-faq-presentation-preview"
+          }
+        ]
+      },
+      "marketing-pricing": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/pricing"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-pricing-presentation-preview"
+          }
+        ]
+      },
+      "marketing-contact": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/contact"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-contact-presentation-preview"
+          }
+        ]
+      },
+      "marketing-industries": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/industries"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-industries-presentation-preview"
+          }
+        ]
+      },
+      "marketing-capabilities": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/capabilities"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-capabilities-presentation-preview"
+          }
+        ]
+      },
+      "marketing-demo": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/demo"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-demo-presentation-preview"
+          }
+        ]
+      },
+      "marketing-free-tools": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/free-tools"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-free-tools-presentation-preview"
+          }
+        ]
+      },
+      "marketing-platform-guides": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/platform-guides"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-platform-guides-presentation-preview"
+          }
+        ]
+      },
+      "marketing-customer-results": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/customer-results"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-customer-results-presentation-preview"
+          }
+        ]
+      },
+      "marketing-business-continuity": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/business-continuity"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-business-continuity-presentation-preview"
+          }
+        ]
+      },
+      "marketing-api-services": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/api-services"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-api-services-presentation-preview"
+          }
+        ]
+      },
+      "marketing-api-documentation": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/api-documentation"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-api-documentation-presentation-preview"
+          }
+        ]
+      },
+      "marketing-auto-price-ai": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/auto-price-ai"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-auto-price-ai-presentation-preview"
+          }
+        ]
+      },
+      "marketing-compare": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/compare"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-compare-presentation-preview"
+          }
+        ]
+      },
+      "marketing-brochure": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/brochure"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-brochure-presentation-preview"
+          }
+        ]
+      },
+      "marketing-legal": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/legal"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-legal-presentation-preview"
+          }
+        ]
+      },
+      "marketing-bos": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/bos"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-bos-presentation-preview"
+          }
+        ]
+      },
+      "marketing-blockchain": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/blockchain"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-blockchain-presentation-preview"
+          }
+        ]
+      },
+      "marketing-documentation": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/documentation"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-documentation-presentation-preview"
+          }
+        ]
+      },
+      "marketing-solutions": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/solutions"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-solutions-presentation-preview"
+          }
+        ]
+      },
+      "marketing-privacy": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/privacy"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-privacy-presentation-preview"
+          }
+        ]
+      },
+      "marketing-terms": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/terms"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-terms-presentation-preview"
+          }
+        ]
+      },
+      "marketing-cookie-policy": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/cookie-policy"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-cookie-policy-presentation-preview"
+          }
+        ]
+      },
+      "marketing-security-policy": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/security-policy"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-security-policy-presentation-preview"
+          }
+        ]
+      },
       "storefront-search-app": {
         "ClusterId": "ecomae-platform",
         "Match": {
@@ -1013,6 +1325,18 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "erp-fixed-assets-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-on-premises-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/on-premises-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-on-premises-app-presentation-preview"
           }
         ]
       },
@@ -1769,294 +2093,6 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-server-ip-app-app-read-ui-preview"
-          }
-        ]
-      },
-      "marketing-platform": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/platform"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-platform-presentation-preview"
-          }
-        ]
-      },
-      "marketing-about": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/about"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-about-presentation-preview"
-          }
-        ]
-      },
-      "marketing-faq": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/faq"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-faq-presentation-preview"
-          }
-        ]
-      },
-      "marketing-pricing": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/pricing"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-pricing-presentation-preview"
-          }
-        ]
-      },
-      "marketing-contact": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/contact"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-contact-presentation-preview"
-          }
-        ]
-      },
-      "marketing-industries": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/industries"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-industries-presentation-preview"
-          }
-        ]
-      },
-      "marketing-capabilities": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/capabilities"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-capabilities-presentation-preview"
-          }
-        ]
-      },
-      "marketing-demo": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/demo"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-demo-presentation-preview"
-          }
-        ]
-      },
-      "marketing-free-tools": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/free-tools"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-free-tools-presentation-preview"
-          }
-        ]
-      },
-      "marketing-platform-guides": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/platform-guides"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-platform-guides-presentation-preview"
-          }
-        ]
-      },
-      "marketing-customer-results": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/customer-results"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-customer-results-presentation-preview"
-          }
-        ]
-      },
-      "marketing-business-continuity": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/business-continuity"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-business-continuity-presentation-preview"
-          }
-        ]
-      },
-      "marketing-api-services": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/api-services"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-api-services-presentation-preview"
-          }
-        ]
-      },
-      "marketing-api-documentation": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/api-documentation"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-api-documentation-presentation-preview"
-          }
-        ]
-      },
-      "marketing-auto-price-ai": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/auto-price-ai"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-auto-price-ai-presentation-preview"
-          }
-        ]
-      },
-      "marketing-compare": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/compare"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-compare-presentation-preview"
-          }
-        ]
-      },
-      "marketing-brochure": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/brochure"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-brochure-presentation-preview"
-          }
-        ]
-      },
-      "marketing-legal": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/legal"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-legal-presentation-preview"
-          }
-        ]
-      },
-      "marketing-bos": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/bos"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-bos-presentation-preview"
-          }
-        ]
-      },
-      "marketing-blockchain": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/blockchain"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-blockchain-presentation-preview"
-          }
-        ]
-      },
-      "marketing-solutions": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/solutions"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-solutions-presentation-preview"
-          }
-        ]
-      },
-      "marketing-privacy": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/privacy"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-privacy-presentation-preview"
-          }
-        ]
-      },
-      "marketing-documentation": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/marketing/documentation"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "marketing-documentation-presentation-preview"
-          }
-        ]
-      },
-      "erp-on-premises-app": {
-        "ClusterId": "ecomae-platform",
-        "Match": {
-          "Path": "/erp/on-premises-app"
-        },
-        "Transforms": [
-          {
-            "RequestHeader": "X-EcomAE-Route-Cutover",
-            "Set": "erp-on-premises-app-presentation-preview"
           }
         ]
       }

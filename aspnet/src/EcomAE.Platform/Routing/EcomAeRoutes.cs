@@ -657,6 +657,12 @@ public static class EcomAeRoutes
     public const string MarketingSolutionsApp = "/marketing/solutions";
     /// <summary>Marketing privacy Blazor scaffold (PHP /privacy remains primary until dual-sample).</summary>
     public const string MarketingPrivacyApp = "/marketing/privacy";
+    /// <summary>Marketing terms Blazor scaffold (PHP /terms remains primary until dual-sample).</summary>
+    public const string MarketingTermsApp = "/marketing/terms";
+    /// <summary>Marketing cookie-policy Blazor scaffold (PHP /cookie-policy remains primary until dual-sample).</summary>
+    public const string MarketingCookiePolicyApp = "/marketing/cookie-policy";
+    /// <summary>Marketing security-policy Blazor scaffold (PHP /security-policy remains primary until dual-sample).</summary>
+    public const string MarketingSecurityPolicyApp = "/marketing/security-policy";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>

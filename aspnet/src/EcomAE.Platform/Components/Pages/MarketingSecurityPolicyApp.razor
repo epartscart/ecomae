@@ -1,0 +1,38 @@
+@page "/marketing/security-policy"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>ECOM AE — Security policy (PHP parity preview)</PageTitle>
+<PhpChromeStyles Surface="marketing" />
+
+<PhpEcomaeMarketingChrome ActiveKey="security_policy">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/security-policy" />
+
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <PhpEcomaeLegalAliasOverview
+            Title="Security policy"
+            Badge="Security"
+            Icon="fa-shield"
+            GradientStart="#14532d"
+            GradientMid="#15803d"
+            PhpSlug="security-policy"
+            AspNetRoute="/marketing/security-policy"
+            Lead="Security controls and trust commitments for the ECOM AE platform. Full policy text remains on live PHP until dual-sample."
+            CardOne="Access boundaries, multi-tenant isolation, and operator security practices." />
+    }
+</PhpEcomaeMarketingChrome>
+
+@code {
+    private string? _phpHref;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
+    }
+}
