@@ -6,8 +6,10 @@
 bash scripts/cloudpanel_run_surface_field_parity_operator.sh
 ```
 
-Validates `www-surface-field-parity.json` (`cutoverAllowed=false`, `readyForPhpRemoval=false`, ≥53 contracts)
-and re-runs digest + catalog-api migration contract floors.
+Validates `www-surface-field-parity.json` (`cutoverAllowed=false`, `readyForPhpRemoval=false`, ≥54 contracts),
+rebuilds `php-catalog-coverage-board.json` (all 714 PHP catalog rows → `digest-contract` /
+`php-only-deeplink` / `hybrid-directory-only` / `missing`, `missingCount=0`,
+`aspNetInteractiveComplete=0`), and re-runs digest + catalog-api migration contract floors.
 
 Optional live harness (needs network / cookies for full capture):
 

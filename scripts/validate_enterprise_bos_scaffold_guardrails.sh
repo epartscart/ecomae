@@ -140,6 +140,11 @@ if python3 "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"; then
 else
   fail "php module catalog deeplink floor"
 fi
+if python3 "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"; then
+  pass "php catalog surface-field coverage board"
+else
+  fail "php catalog surface-field coverage board"
+fi
 
 # YARP regenerator still green.
 if bash "$ROOT/scripts/generate_all_yarp_design_examples.sh" >/tmp/ecomae-yarp-guardrails.log 2>&1; then
@@ -183,6 +188,10 @@ check_file "YARP all-packs generator helper" \
   "$ROOT/scripts/generate_all_yarp_design_examples.sh"
 check_file "php module catalog deeplink floor validator" \
   "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
+check_file "php catalog coverage board builder" \
+  "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
+check_file "php catalog coverage board evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
 
 if [[ "$FAIL" -ne 0 ]]; then
   printf 'FAIL: Enterprise BOS scaffold guardrails\n'

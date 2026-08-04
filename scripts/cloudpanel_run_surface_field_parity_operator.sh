@@ -37,6 +37,10 @@ fi
 if ! bash "$ROOT/scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh"; then
   FAIL=1
 fi
+echo "surface-field parity operator: full PHP catalog coverage board"
+if ! python3 "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"; then
+  FAIL=1
+fi
 
 ECOMAE_SURFACE_FIELD_BOARD="$BOARD" \
 ECOMAE_SURFACE_FIELD_COMPARE_OUT="$COMPARE_OUT" \
@@ -59,13 +63,32 @@ if board.get("cutoverAllowed") is not False:
 if board.get("readyForPhpRemoval") is not False:
     errors.append("board readyForPhpRemoval must be explicitly false")
 contracts = board.get("contracts") or []
-if not isinstance(contracts, list) or len(contracts) < 53:
-    errors.append(f"board contracts expected >=53, got {len(contracts) if isinstance(contracts, list) else type(contracts)}")
+if not isinstance(contracts, list) or len(contracts) < 54:
+    errors.append(f"board contracts expected >=54, got {len(contracts) if isinstance(contracts, list) else type(contracts)}")
 status = str(board.get("status") or "")
 if "cutover-blocked" not in status and status != "field-function-presentation-contracts-locked-cutover-blocked":
     # Keep honest statuses only.
     if "cutover" not in status.lower() and "blocked" not in status.lower():
         errors.append(f"unexpected board status {status!r}")
+
+coverage_board = Path(os.environ.get(
+    "ECOMAE_PHP_CATALOG_COVERAGE_BOARD",
+    str(Path(os.environ["ECOMAE_SURFACE_FIELD_BOARD"]).resolve().parent / "php-catalog-coverage-board.json"),
+))
+coverage_tracked = None
+if not coverage_board.is_file():
+    errors.append(f"missing php catalog coverage board: {coverage_board}")
+else:
+    cov = json.loads(coverage_board.read_text(encoding="utf-8"))
+    coverage_tracked = int(cov.get("totalTracked") or 0)
+    if cov.get("cutoverAllowed") is not False or cov.get("readyForPhpRemoval") is not False:
+        errors.append("coverage board must keep cutoverAllowed/readyForPhpRemoval false")
+    if cov.get("aspNetInteractiveComplete") not in (0, False):
+        errors.append("coverage board aspNetInteractiveComplete must stay 0")
+    if coverage_tracked < 714:
+        errors.append(f"coverage board totalTracked={coverage_tracked} expected >=714")
+    if int(cov.get("missingCount") or 0) != 0:
+        errors.append(f"coverage board missingCount={cov.get('missingCount')} expected 0")
 
 out = {
     "role": "compare-result",
@@ -74,9 +97,11 @@ out = {
     "readyForPhpRemoval": False,
     "contractCount": len(contracts) if isinstance(contracts, list) else 0,
     "boardStatus": status,
+    "phpCatalogCoverageTracked": coverage_tracked,
     "errors": errors,
     "note": (
-        "Offline surface-field floor. Live harness remains optional via ECOMAE_SURFACE_FIELD_LIVE=1. "
+        "Offline surface-field floor + full PHP catalog coverage board. "
+        "Live harness remains optional via ECOMAE_SURFACE_FIELD_LIVE=1. "
         "Never invents RELEASE_OWNER_APPROVAL.md."
     ),
 }
