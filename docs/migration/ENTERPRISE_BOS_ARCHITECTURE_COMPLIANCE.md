@@ -39,10 +39,10 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | Redis 8 | 🔶 options scaffold | `EcomAeRedisScaffoldOptions` + `IDistributedCacheScaffold` unwired; PHP cookies remain authoritative (`ReplacePhpSessionCookies=false`) |
 | Kafka 4 (or RabbitMQ) | 🔶 options scaffold | `EcomAeKafkaScaffoldOptions` + `IDomainEventPublisherScaffold` unwired (`AllowPublish=false`); dry-run workers only |
 | OpenSearch 3 | 🔶 options scaffold | `EcomAeOpenSearchScaffoldOptions` + `IEnterpriseSearchScaffold` unwired (`ReplacePhpSearch=false`) |
-| Object storage (Blob/S3/MinIO) | ❌ not wired | Future file track |
+| Object storage (Blob/S3/MinIO) | 🔶 options scaffold | `EcomAeObjectStorageScaffoldOptions` + `IObjectStorageScaffold` unwired (`ReplaceLocalFilePaths=false`) |
 | YARP / Kong gateway | 🔶 design example | Nginx edge today; YARP JSON generated from presentation nginx allowlist (`generate_yarp_exact_routes_example.py`); not loaded; never catch-all |
 | OpenTelemetry / Serilog | 🔶 scaffolding | ActivitySources + `EcomAeSerilogScaffoldOptions` (`RegisterExporters=false`); Workers ActivitySource mirror; exporters/sinks not registered |
-| Vault / Key Vault | ❌ not wired | Env files used in CloudPanel deploy today |
+| Vault / Key Vault | 🔶 options scaffold | `EcomAeVaultScaffoldOptions` + `ISecretStoreScaffold` unwired (`ReplaceEnvFileSecrets=false`); CloudPanel env files remain current |
 | K8s / Helm / GitOps | 🔶 roadmap | Advanced architecture roadmap exists; CloudPanel VM is current host |
 | Angular 20 / React 19 | ❌ not started | Target SPA later; interim UI is Blazor SSR hybrid chrome on exact-routes only |
 | Blazor SSR hybrid presentation | 🔶 in progress | `/cp|erp|bos|storefront/*-app` www previews under PHP chrome shells; not tenant product chrome |
@@ -66,4 +66,5 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 4. Optionally place YARP behind Nginx for approved exact routes only (regenerate design JSON from nginx allowlist; not enabled).
 5. Redis cache/rate-limit sidecar after cookie parity — keep `ReplacePhpSessionCookies=false` until evidence.
 6. Kafka domain events for workers after dry-run parity samples.
-7. SPA admin/storefront (Angular 20 or React 19) against ASP.NET Core APIs only — after Blazor hybrid parity evidence.
+7. Object storage + Vault secret materialization after staging parity (keep Replace* flags false until evidence).
+8. SPA admin/storefront (Angular 20 or React 19) against ASP.NET Core APIs only — after Blazor hybrid parity evidence.

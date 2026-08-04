@@ -364,6 +364,12 @@ check 'OpenSearch scaffold defaults do not replace PHP search' contains "$ROOT/a
 check 'Serilog scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Observability/EcomAeSerilogScaffoldOptions.cs"
 check 'Serilog scaffold defaults do not register exporters' contains "$ROOT/aspnet/src/EcomAE.Platform/Observability/EcomAeSerilogScaffoldOptions.cs" 'RegisterExporters'
 check 'Workers ActivitySource scaffolding exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/Observability/EcomAeWorkerActivitySources.cs"
+check 'Object storage scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Storage/EcomAeObjectStorageScaffoldOptions.cs"
+check 'Object storage scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Storage/IObjectStorageScaffold.cs"
+check 'Object storage scaffold defaults keep local paths' contains "$ROOT/aspnet/src/EcomAE.Platform/Storage/EcomAeObjectStorageScaffoldOptions.cs" 'ReplaceLocalFilePaths'
+check 'Vault scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/EcomAeVaultScaffoldOptions.cs"
+check 'Vault secret store scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/ISecretStoreScaffold.cs"
+check 'Vault scaffold defaults keep env-file secrets' contains "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/EcomAeVaultScaffoldOptions.cs" 'ReplaceEnvFileSecrets'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
 check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 47'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
