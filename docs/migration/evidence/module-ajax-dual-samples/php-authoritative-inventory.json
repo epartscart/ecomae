@@ -1,6 +1,6 @@
 {
   "role": "php-module-ajax-authoritative-inventory",
-  "generatedAtUnix": 1785860623,
+  "generatedAtUnix": 1785865238,
   "phpAuthoritative": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
@@ -8,8 +8,405 @@
   "surfaces": [
     {
       "module": "procurement",
-      "php": "cp/content/shop/procurement/ajax_procurement.php"
+      "php": "cp/content/.../ajax_procurement.php",
+      "action": "create_supplier"
+    },
+    {
+      "module": "procurement",
+      "php": "cp/content/.../ajax_procurement.php",
+      "action": "update_supplier"
+    },
+    {
+      "module": "procurement",
+      "php": "cp/content/.../ajax_procurement.php",
+      "action": "sync_suppliers"
+    },
+    {
+      "module": "procurement",
+      "php": "cp/content/.../ajax_procurement.php",
+      "action": "create_purchase"
+    },
+    {
+      "module": "procurement",
+      "php": "cp/content/.../ajax_procurement.php",
+      "action": "supplier_payment"
+    },
+    {
+      "module": "procurement",
+      "php": "cp/content/.../ajax_procurement.php",
+      "action": "record_advance"
+    },
+    {
+      "module": "procurement",
+      "php": "cp/content/.../ajax_procurement.php",
+      "action": "purchase_from_order"
+    },
+    {
+      "module": "procurement",
+      "php": "cp/content/.../ajax_procurement.php",
+      "action": "supplier_settlement"
+    },
+    {
+      "module": "procurement",
+      "php": "cp/content/.../ajax_procurement.php",
+      "action": "purchase_adjustment"
+    },
+    {
+      "module": "document_control",
+      "php": "cp/content/.../ajax_document_control.php",
+      "action": "save_company"
+    },
+    {
+      "module": "document_control",
+      "php": "cp/content/.../ajax_document_control.php",
+      "action": "save_template"
+    },
+    {
+      "module": "document_control",
+      "php": "cp/content/.../ajax_document_control.php",
+      "action": "upload_logo"
+    },
+    {
+      "module": "document_control",
+      "php": "cp/content/.../ajax_document_control.php",
+      "action": "upload_attachment"
+    },
+    {
+      "module": "document_control",
+      "php": "cp/content/.../ajax_document_control.php",
+      "action": "delete_attachment"
+    },
+    {
+      "module": "document_control",
+      "php": "cp/content/.../ajax_document_control.php",
+      "action": "sync_einvoice_seller"
+    },
+    {
+      "module": "customer_mgmt",
+      "php": "cp/content/.../ajax_customer_mgmt.php",
+      "action": "save_customer"
+    },
+    {
+      "module": "customer_mgmt",
+      "php": "cp/content/.../ajax_customer_mgmt.php",
+      "action": "customer_advance"
+    },
+    {
+      "module": "customer_mgmt",
+      "php": "cp/content/.../ajax_customer_mgmt.php",
+      "action": "einvoice_create"
+    },
+    {
+      "module": "auto_price",
+      "php": "cp/content/.../ajax_auto_price.php",
+      "action": "add_discovery_source"
+    },
+    {
+      "module": "auto_price",
+      "php": "cp/content/.../ajax_auto_price.php",
+      "action": "delete_discovery_source"
+    },
+    {
+      "module": "auto_price",
+      "php": "cp/content/.../ajax_auto_price.php",
+      "action": "toggle_discovery_source"
+    },
+    {
+      "module": "auto_price",
+      "php": "cp/content/.../ajax_auto_price.php",
+      "action": "start_job"
+    },
+    {
+      "module": "auto_price",
+      "php": "cp/content/.../ajax_auto_price.php",
+      "action": "crawl_sources"
+    },
+    {
+      "module": "auto_price",
+      "php": "cp/content/.../ajax_auto_price.php",
+      "action": "skip_source"
+    },
+    {
+      "module": "auto_price",
+      "php": "cp/content/.../ajax_auto_price.php",
+      "action": "bulk_approve"
+    },
+    {
+      "module": "auto_price",
+      "php": "cp/content/.../ajax_auto_price.php",
+      "action": "dismiss_duplicate"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_save_lead"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "save_lead"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_delete_lead"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "delete_lead"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_save_opportunity"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "save_opportunity"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_update_stage"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "update_stage"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_convert_lead"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "convert_lead"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_save_activity"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "save_activity"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_toggle_activity"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "toggle_activity"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_save_quote"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_accept_quote"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_quote_email"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_save_ticket"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_save_project"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_save_project_task"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_save_contract"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_save_expense"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_approve_expense"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "crm_update_ticket_status"
+    },
+    {
+      "module": "crm",
+      "php": "cp/content/.../ajax_crm.php",
+      "action": "update_ticket_status"
+    },
+    {
+      "module": "bulk_upload",
+      "php": "cp/content/.../ajax_bulk_upload.php",
+      "action": "process_upload"
+    },
+    {
+      "module": "bulk_upload",
+      "php": "cp/content/.../ajax_bulk_upload.php",
+      "action": "mark_reviewed"
+    },
+    {
+      "module": "bulk_upload",
+      "php": "cp/content/.../ajax_bulk_upload.php",
+      "action": "add_to_cart"
+    },
+    {
+      "module": "bulk_upload",
+      "php": "cp/content/.../ajax_bulk_upload.php",
+      "action": "create_shop_quote"
+    },
+    {
+      "module": "bulk_upload",
+      "php": "cp/content/.../ajax_bulk_upload.php",
+      "action": "create_crm_quote"
+    },
+    {
+      "module": "marketing",
+      "php": "cp/content/.../ajax_marketing.php",
+      "action": "toggle_task"
+    },
+    {
+      "module": "marketing",
+      "php": "cp/content/.../ajax_marketing.php",
+      "action": "save_kpi"
+    },
+    {
+      "module": "marketing",
+      "php": "cp/content/.../ajax_marketing.php",
+      "action": "save_review"
+    },
+    {
+      "module": "catalogue_products",
+      "php": "cp/content/.../ajax_catalogue_products.php",
+      "action": "save_product_status_limit"
+    },
+    {
+      "module": "catalogue_products",
+      "php": "cp/content/.../ajax_catalogue_products.php",
+      "action": "save_product_value_limit"
+    },
+    {
+      "module": "manufacturers_synonyms",
+      "php": "cp/content/.../ajax_manufacturers_synonyms.php",
+      "action": "add_manufacturer"
+    },
+    {
+      "module": "manufacturers_synonyms",
+      "php": "cp/content/.../ajax_manufacturers_synonyms.php",
+      "action": "save_manufacturer"
+    },
+    {
+      "module": "manufacturers_synonyms",
+      "php": "cp/content/.../ajax_manufacturers_synonyms.php",
+      "action": "del_manufacturer"
+    },
+    {
+      "module": "manufacturers_synonyms",
+      "php": "cp/content/.../ajax_manufacturers_synonyms.php",
+      "action": "add_synonym"
+    },
+    {
+      "module": "manufacturers_synonyms",
+      "php": "cp/content/.../ajax_manufacturers_synonyms.php",
+      "action": "save_synonym"
+    },
+    {
+      "module": "manufacturers_synonyms",
+      "php": "cp/content/.../ajax_manufacturers_synonyms.php",
+      "action": "del_synonym"
+    },
+    {
+      "module": "crosses_cp",
+      "php": "cp/content/.../ajax_crosses_cp.php",
+      "action": "add_cross_link"
+    },
+    {
+      "module": "crosses_cp",
+      "php": "cp/content/.../ajax_crosses_cp.php",
+      "action": "add_cross_bulk"
+    },
+    {
+      "module": "crosses_cp",
+      "php": "cp/content/.../ajax_crosses_cp.php",
+      "action": "sync_from_crossbase"
+    },
+    {
+      "module": "crosses_cp",
+      "php": "cp/content/.../ajax_crosses_cp.php",
+      "action": "import_full_catalog"
+    },
+    {
+      "module": "crosses_cp",
+      "php": "cp/content/.../ajax_crosses_cp.php",
+      "action": "repair_empty_brands"
+    },
+    {
+      "module": "crosses",
+      "php": "cp/content/.../ajax_crosses.php",
+      "action": "add_crosses"
+    },
+    {
+      "module": "crosses",
+      "php": "cp/content/.../ajax_crosses.php",
+      "action": "save_crosses"
+    },
+    {
+      "module": "crosses",
+      "php": "cp/content/.../ajax_crosses.php",
+      "action": "del_crosses"
+    },
+    {
+      "module": "crosses",
+      "php": "cp/content/.../ajax_crosses.php",
+      "action": "del_search_crosses"
+    },
+    {
+      "module": "prices_edit",
+      "php": "cp/content/.../ajax_prices_edit.php",
+      "action": "add"
+    },
+    {
+      "module": "prices_edit",
+      "php": "cp/content/.../ajax_prices_edit.php",
+      "action": "save"
+    },
+    {
+      "module": "prices_edit",
+      "php": "cp/content/.../ajax_prices_edit.php",
+      "action": "del"
+    },
+    {
+      "module": "prices_edit",
+      "php": "cp/content/.../ajax_prices_edit.php",
+      "action": "del_search"
     }
   ],
-  "note": "fixture"
+  "dedicatedActionCount": 249,
+  "note": "PHP module ajax remains authoritative. ASP.NET dry-run goldens are writes=0 contract stubs until CloudPanel field dual-sample."
 }

@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "module": "classic_form",
+  "action": "shop_prices_upload_upload_file",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Migration-mode dry-run golden; live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

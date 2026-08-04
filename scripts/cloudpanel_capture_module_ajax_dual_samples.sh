@@ -37,12 +37,19 @@ assert int(doc.get("totalActions") or 0) > 0, "catalog totalActions required"
 print(f"OK catalog totalActions={doc.get('totalActions')} dedicated={doc.get('dedicatedDryRuns')} coveragePct={doc.get('coveragePct')}")
 PY
 
-# Curated dedicated dry-runs (representative Wave C–F surfaces).
+# Dedicated dry-runs — keep a representative live-capture set; full contract goldens
+# are maintained under docs/migration/evidence/module-ajax-dual-samples/aspnet-*.json (249).
 SAMPLES=(
   "procurement/create_supplier"
+  "procurement/update_supplier"
+  "procurement/create_purchase"
   "crm/crm_save_lead"
   "document_control/save_company"
+  "document_control/save_template"
+  "customer_mgmt/save_customer"
+  "customer_mgmt/einvoice_create"
   "auto_price/bulk_approve"
+  "auto_price/start_job"
   "bulk_upload/process_upload"
   "classic_form/shop_catalogue_product"
   "parts_agent/save_config"
@@ -54,6 +61,11 @@ SAMPLES=(
   "logistics/create_shipment"
   "garage_manager/create_job"
   "currency_live_rates/apply"
+  "oms/set_item_status"
+  "oms/set_courier"
+  "oms/send_message"
+  "returns/return_action"
+  "users/set_user_comment"
 )
 
 hdr=()

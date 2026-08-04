@@ -58,7 +58,7 @@
   ],
   "ok": true,
   "moduleAjaxDualSamples": {
-    "samplesChecked": 20,
+    "samplesChecked": 254,
     "catalogTotalActions": 394,
     "dedicatedDryRuns": 249,
     "coveragePct": 100
@@ -67,8 +67,9 @@
     "Menu catalog 725/726 digest-contract (1 intentional holdout: cp-debug-console)",
     "Field floors cover 136/136 digest contract stems",
     "CP module-ajax write catalog 394 actions @ 100% dry-run coverage (writes=0)",
-    "Module-ajax dual-sample dry-run goldens: 20 curated actions",
-    "ERP ajax_erp catalog 321 dedicated dry-runs; BOS ajax 231"
+    "Module-ajax dual-sample dry-run goldens: 254 curated dedicated actions",
+    "ERP ajax_erp catalog 321 dedicated dry-runs; BOS ajax 231",
+    "Storefront digest shadows wired 7/7 (incl. checkout)"
   ],
   "pending": [
     "aspNetInteractiveComplete=0 \u2014 no live write cutover",
