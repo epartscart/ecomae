@@ -736,6 +736,95 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ErpMarketingCreate, async (HttpContext context, ErpMarketingCreateBody? body, ILegacySessionValidator validator, IErpMarketingCreateDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for marketing create dry-run.");
+            body ??= new ErpMarketingCreateBody(null, false);
+            return Results.Ok(dryRun.Evaluate(new ErpMarketingCreateRequest(body.Name, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpSubscriptionsSave, async (HttpContext context, ErpSubscriptionSaveBody? body, ILegacySessionValidator validator, IErpSubscriptionSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for subscription save dry-run.");
+            body ??= new ErpSubscriptionSaveBody(null, null, 0, false);
+            return Results.Ok(dryRun.Evaluate(new ErpSubscriptionSaveRequest(body.Code, body.Customer, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpContractsSave, async (HttpContext context, ErpContractSaveBody? body, ILegacySessionValidator validator, IErpContractSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for contract save dry-run.");
+            body ??= new ErpContractSaveBody(null, null, 0, false);
+            return Results.Ok(dryRun.Evaluate(new ErpContractSaveRequest(body.Code, body.Title, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpWmsReceive, async (HttpContext context, ErpWmsReceiveBody? body, ILegacySessionValidator validator, IErpWmsReceiveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for WMS receive dry-run.");
+            body ??= new ErpWmsReceiveBody(null, 0, 0, 0, false);
+            return Results.Ok(dryRun.Evaluate(new ErpWmsReceiveRequest(body.Item, body.Qty, body.ReceiveLocationId, body.PutawayLocationId, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpWmsLocationSave, async (HttpContext context, ErpWmsLocationSaveBody? body, ILegacySessionValidator validator, IErpWmsLocationSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for WMS location save dry-run.");
+            body ??= new ErpWmsLocationSaveBody(null, 0, false);
+            return Results.Ok(dryRun.Evaluate(new ErpWmsLocationSaveRequest(body.Code, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpCollectionsCaseSave, async (HttpContext context, ErpCollectionsCaseSaveBody? body, ILegacySessionValidator validator, IErpCollectionsCaseSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for collections case save dry-run.");
+            body ??= new ErpCollectionsCaseSaveBody(0, 0, false);
+            return Results.Ok(dryRun.Evaluate(new ErpCollectionsCaseSaveRequest(body.CustomerId, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpProcurementReqSave, async (HttpContext context, ErpProcReqSaveBody? body, ILegacySessionValidator validator, IErpProcReqSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for procurement req save dry-run.");
+            body ??= new ErpProcReqSaveBody(null, 0, false);
+            return Results.Ok(dryRun.Evaluate(new ErpProcReqSaveRequest(body.Requester, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpFinPeriodStatus, async (HttpContext context, ErpFinPeriodStatusBody? body, ILegacySessionValidator validator, IErpFinPeriodStatusDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for fin period status dry-run.");
+            body ??= new ErpFinPeriodStatusBody(0, 0, "open", false);
+            return Results.Ok(dryRun.Evaluate(new ErpFinPeriodStatusRequest(body.Fy, body.PeriodNo, body.Status, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpWmsWaveCreate, async (HttpContext context, ErpWmsWaveCreateBody? body, ILegacySessionValidator validator, IErpWmsWaveCreateDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,0,null,false); return Results.Ok(dryRun.Evaluate(new ErpWmsWaveCreateRequest(body.Item, body.Qty, body.Reference, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpWmsWaveRelease, async (HttpContext context, ErpWmsWaveReleaseBody? body, ILegacySessionValidator validator, IErpWmsWaveReleaseDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpWmsWaveReleaseRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpWmsWorkComplete, async (HttpContext context, ErpWmsWorkCompleteBody? body, ILegacySessionValidator validator, IErpWmsWorkCompleteDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpWmsWorkCompleteRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpSubscriptionsStatus, async (HttpContext context, ErpSubscriptionStatusBody? body, ILegacySessionValidator validator, IErpSubscriptionStatusDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,"active",false); return Results.Ok(dryRun.Evaluate(new ErpSubscriptionStatusRequest(body.Id, body.Status, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpCollectionsCaseStatus, async (HttpContext context, ErpCollectionsCaseStatusBody? body, ILegacySessionValidator validator, IErpCollectionsCaseStatusDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,"new",false); return Results.Ok(dryRun.Evaluate(new ErpCollectionsCaseStatusRequest(body.Id, body.Status, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpProcurementReqSubmit, async (HttpContext context, ErpProcReqSubmitBody? body, ILegacySessionValidator validator, IErpProcReqSubmitDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpProcReqSubmitRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpProcurementReqDecision, async (HttpContext context, ErpProcReqDecisionBody? body, ILegacySessionValidator validator, IErpProcReqDecisionDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,true,null,false); return Results.Ok(dryRun.Evaluate(new ErpProcReqDecisionRequest(body.Id, body.Approve, body.Note, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpWmsLocationDelete, async (HttpContext context, ErpWmsLocationDeleteBody? body, ILegacySessionValidator validator, IErpWmsLocationDeleteDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpWmsLocationDeleteRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+
         endpoints.MapPost(EcomAeRoutes.ErpInvoicesDelete, async (
             HttpContext context,
             ErpInvoiceDeleteBody? body,
@@ -1375,6 +1464,22 @@ public sealed class ErpModule : ISurfaceModule
         string? Priority = "normal",
         long OrderId = 0,
         bool ConfirmWrites = false);
+    private sealed record ErpMarketingCreateBody(string? Name, bool ConfirmWrites = false);
+    private sealed record ErpSubscriptionSaveBody(string? Code, string? Customer, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpContractSaveBody(string? Code, string? Title, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpWmsReceiveBody(string? Item, decimal Qty, long ReceiveLocationId = 0, long PutawayLocationId = 0, bool ConfirmWrites = false);
+    private sealed record ErpWmsLocationSaveBody(string? Code, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpCollectionsCaseSaveBody(long CustomerId = 0, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpProcReqSaveBody(string? Requester, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpFinPeriodStatusBody(int Fy, int PeriodNo, string? Status = "open", bool ConfirmWrites = false);
+    private sealed record ErpWmsWaveCreateBody(string? Item, decimal Qty, string? Reference = null, bool ConfirmWrites = false);
+    private sealed record ErpWmsWaveReleaseBody(long Id, bool ConfirmWrites = false);
+    private sealed record ErpWmsWorkCompleteBody(long Id, bool ConfirmWrites = false);
+    private sealed record ErpSubscriptionStatusBody(long Id, string? Status = "active", bool ConfirmWrites = false);
+    private sealed record ErpCollectionsCaseStatusBody(long Id, string? Status = "new", bool ConfirmWrites = false);
+    private sealed record ErpProcReqSubmitBody(long Id, bool ConfirmWrites = false);
+    private sealed record ErpProcReqDecisionBody(long Id, bool Approve = true, string? Note = null, bool ConfirmWrites = false);
+    private sealed record ErpWmsLocationDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
     private sealed record ErpGlManualEntryBody(IReadOnlyList<ErpGlManualLineBody>? Lines, string? Reference, string? Description, bool ConfirmWrites = false);
     private sealed record ErpGlReverseJournalBody(long JournalId, string? Note, bool ConfirmWrites = false);
