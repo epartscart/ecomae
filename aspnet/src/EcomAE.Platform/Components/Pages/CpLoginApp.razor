@@ -7,84 +7,85 @@
 <PageTitle>Log in form - ECOM AE · BOS</PageTitle>
 <PhpSurfaceHead Surface="cp" IncludeLoginCss="true" />
 
+@*
+  Super CP login mirrors PHP authentication plugin template:
+  body.epc-cp-login-hero.epc-cp-login--super → centered card (left brand hidden by PHP CSS).
+  Particles + hub logo + login hero/login CSS from PhpSurfaceHead.
+*@
 <style>
-    .epc-asp-login-cp {
-        min-height: 100vh;
-        margin: 0;
-        background: radial-gradient(1200px 700px at 50% -10%, rgba(56,189,248,.22), transparent 50%),
-                    linear-gradient(165deg, #0b1b33 0%, #0f2a4a 42%, #0a1628 100%);
-        font-family: @(LegacyPhpFontAssets.StackFor("cp"));
-        color: #f8fafc;
+    /* Bridge form controls only — layout/colors come from epc_cp_login*.css */
+    .epc-cp-login .epc-login-field { margin: 0 0 .75rem; }
+    .epc-cp-login .epc-login-field label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: .25rem; color: #334155; }
+    .epc-cp-login .epc-login-field input,
+    .epc-cp-login .epc-login-field select {
+        width: 100%; padding: .55rem .65rem; border: 1px solid #d1d5db; border-radius: .4rem; background: #fff; color: #111;
     }
-    .epc-asp-login-cp .epc-cp-login-centered {
-        width: min(440px, calc(100% - 2rem));
-        margin: 0 auto;
-        padding: 2.5rem 0 3rem;
-        text-align: center;
+    .epc-cp-login .epc-login-row { display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap; color: #475569; font-size: .85rem; }
+    .epc-cp-login .epc-login-submit {
+        width: 100%; margin-top: .35rem; padding: .7rem 1rem; border: 0; border-radius: .45rem;
+        background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: #fff; font-weight: 700; cursor: pointer;
     }
-    .epc-asp-login-cp .epc-cp-login-mark { display:flex; justify-content:center; margin-bottom:.35rem; }
-    .epc-asp-login-cp .epc-cp-login-mark .ech-hub { transform: scale(.72); transform-origin: center top; }
-    .epc-asp-login-cp .epc-cp-login-mark img { height: 56px; }
-    .epc-asp-login-cp .epc-cp-login-brand-badge {
-        display: inline-block; margin: .85rem 0 .55rem; padding: .2rem .7rem;
-        border-radius: 999px; background: rgba(45,212,191,.18); color: #99f6e4;
-        font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+    .epc-cp-login .epc-login-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: .4rem; padding: .55rem .7rem; margin-bottom: .75rem; font-size: .9rem; }
+    .epc-cp-login .epc-login-bridge-note { color: #64748b; font-size: .78rem; line-height: 1.4; margin: .85rem 0 .35rem; }
+    .epc-cp-login .epc-login-php { color: #0369a1; font-weight: 700; }
+    .epc-cp-login .login-container .panel-body {
+        background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(15, 23, 42, .08); padding: 28px 24px;
     }
-    .epc-asp-login-cp h1 { margin: .2rem 0 .45rem; font-size: clamp(1.45rem, 3vw, 1.85rem); font-weight: 700; }
-    .epc-asp-login-cp .epc-cp-login-brand-sub { color: #cbd5e1; font-size: .95rem; line-height: 1.45; margin: 0 0 1.1rem; }
-    .epc-asp-login-cp .login-card {
-        background: #fff; color: #111; border-radius: .85rem; padding: 1.25rem 1.3rem 1.1rem;
-        text-align: left; box-shadow: 0 18px 50px rgba(0,0,0,.28);
-    }
-    .epc-asp-login-cp .epc-login-field { margin: 0 0 .75rem; }
-    .epc-asp-login-cp .epc-login-field label { display:block; font-size:.82rem; font-weight:600; margin-bottom:.25rem; color:#334155; }
-    .epc-asp-login-cp .epc-login-field input, .epc-asp-login-cp .epc-login-field select {
-        width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; background:#fff; color:#111;
-    }
-    .epc-asp-login-cp .epc-login-row { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; color:#475569; font-size:.85rem; }
-    .epc-asp-login-cp .epc-login-submit {
-        width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem;
-        background:#2563eb; color:#fff; font-weight:700; cursor:pointer;
-    }
-    .epc-asp-login-cp .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; font-size:.9rem; }
-    .epc-asp-login-cp .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
-    .epc-asp-login-cp .epc-login-php { color:#1d4ed8; font-weight:700; }
-    .epc-asp-login-cp .epc-cp-login-features { list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.45rem; color:#475569; font-size:.82rem; }
-    .epc-asp-login-cp .epc-cp-login-features li { display:flex; gap:.45rem; align-items:flex-start; }
-    .epc-asp-login-cp .epc-cp-login-features i { color:#2563eb; margin-top:.15rem; }
-    .epc-asp-login-cp .login-footer { margin-top:1.1rem; color:#94a3b8; font-size:.78rem; }
-    .epc-asp-login-cp .epc-cp-particles { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0; }
-    .epc-asp-login-cp .epc-cp-login-centered, .epc-asp-login-cp .login-footer { position:relative; z-index:1; }
-    .epc-asp-login-cp .epc-cp-particle { position:absolute; border-radius:50%; }
+    .epc-cp-login .epc-cp-login-features { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: .45rem; color: #475569; font-size: .82rem; }
+    .epc-cp-login .epc-cp-login-features li { display: flex; gap: .45rem; align-items: flex-start; }
+    .epc-cp-login .epc-cp-login-features i { color: #0ea5e9; margin-top: .15rem; }
+    .epc-cp-login .login-footer { margin-top: 1.1rem; color: rgba(148, 163, 184, .95); font-size: .78rem; text-align: center; }
+    .epc-cp-login .epc-cp-particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+    .epc-cp-login .epc-cp-login-shell { position: relative; z-index: 1; }
+    .epc-cp-login .epc-cp-particle { position: absolute; border-radius: 50%; }
     @@keyframes epcCpFloat { from { transform: translateY(0); } to { transform: translateY(110vh); } }
 </style>
 
-<div class="epc-asp-login-cp epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super">
+<div class="blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super">
+    <div class="color-line"></div>
     <div id="epcCpParticles" class="epc-cp-particles" aria-hidden="true"></div>
-    <div class="epc-cp-login-centered">
-        <div class="epc-cp-login-mark">
-            <PhpEcomaeHubLogo Variant="login" AriaLabel="ECOM AE hub" OrbitDuration="28s" />
-        </div>
-        <span class="epc-cp-login-brand-badge">BOS · CONTROL</span>
-        <h1>BOS — Business Operation System</h1>
-        <p class="epc-cp-login-brand-sub">One login · operators control the whole fleet, tenants see only their own area</p>
 
-        <div class="login-card">
-            <LegacyAdminLoginForm Surface="LegacyLoginSurface.ControlPanel" SurfaceLabel="CP" PhpLoginHref="/CP/" ErrorMessage="@_error" SubmitLabel="Log in" Accent="blue" />
-            <ul class="epc-cp-login-features">
-                <li><i class="fa fa-globe"></i> Fleet command — commerce, ERP-only &amp; demo</li>
-                <li><i class="fa fa-rocket"></i> Tenant onboarding, templates &amp; module packs</li>
-                <li><i class="fa fa-shield"></i> Platform health, governance &amp; failover</li>
-                <li><i class="fa fa-th-large"></i> @PhpModuleCatalog.CpBrochureFeatureCount CP features catalogued (hybrid directory after login)</li>
-            </ul>
-            <div style="margin-top:.75rem;display:grid;gap:.35rem;text-align:left">
-                @foreach (var item in LegacyChromeNavCatalog.ControlPanel.Take(8))
-                {
-                    <a href="@item.Href" style="color:#1d4ed8;font-size:.8rem;font-weight:600;text-decoration:none">@item.Label → PHP</a>
-                }
+    <div class="epc-cp-login-shell">
+        <div class="epc-cp-login-brand" aria-hidden="true">
+            <div class="epc-cp-login-brand-inner">
+                <span class="epc-cp-login-brand-badge">BOS · CONTROL</span>
+                <h1>BOS — Business Operation System</h1>
+                <p class="epc-cp-login-brand-sub">One login · operators control the whole fleet, tenants see only their own area</p>
+                <div class="epc-cp-login-visual">
+                    <PhpEcomaeHubLogo Variant="login-panel" AriaLabel="ECOM AE hub" OrbitDuration="28s" />
+                </div>
             </div>
         </div>
-        <div class="login-footer">Multi-industry commerce platform / Designed by ecomae · authentication · epc-cp-login</div>
+
+        <div class="epc-cp-login-panel">
+            <div class="epc-cp-login-card-head">
+                <div class="epc-cp-login-card-head__logo">
+                    <PhpEcomaeHubLogo Variant="login" AriaLabel="ECOM AE hub" OrbitDuration="28s" />
+                </div>
+                <span class="epc-cp-login-card-head__badge">BOS · CONTROL</span>
+                <h1>BOS — Business Operation System</h1>
+                <p>One login · operators control the whole fleet, tenants see only their own area</p>
+            </div>
+
+            <div class="login-container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="hpanel">
+                            <div class="panel-body">
+                                <LegacyAdminLoginForm Surface="LegacyLoginSurface.ControlPanel" SurfaceLabel="CP" PhpLoginHref="/CP/" ErrorMessage="@_error" SubmitLabel="Log in" Accent="blue" />
+                                <ul class="epc-cp-login-features">
+                                    <li><i class="fa fa-globe"></i> Fleet command — commerce, ERP-only &amp; demo</li>
+                                    <li><i class="fa fa-rocket"></i> Tenant onboarding, templates &amp; module packs</li>
+                                    <li><i class="fa fa-shield"></i> Platform health, governance &amp; failover</li>
+                                    <li><i class="fa fa-th-large"></i> @PhpModuleCatalog.CpBrochureFeatureCount CP features catalogued</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="login-footer">Multi-industry commerce platform / Designed by ecomae · authentication · epc-cp-login</div>
+        </div>
     </div>
 </div>
 

@@ -21,8 +21,8 @@
         l.HostClass == "aspnet-exact-route-shadow-live"
         && l.AspNetRouteHint.StartsWith("/api/v1/catalog/", StringComparison.Ordinal));
     var presentationWired = links.Links.Count(l => l.HostClass == "aspnet-presentation-preview");
-    const int digestLiveProbe = 35;
-    const int presentationLiveProbe = 19;
+    const int digestLiveProbe = 127;
+    const int presentationLiveProbe = 142;
 }
 
 <style>
