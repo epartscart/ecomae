@@ -930,6 +930,18 @@ check 'module ajax dual-sample compare exists' test -x "$ROOT/scripts/compare_mo
 check 'module ajax dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh"
 check 'module ajax dual-sample evidence dir exists' test -d "$ROOT/docs/migration/evidence/module-ajax-dual-samples"
 check 'module ajax dual-sample compare blocks cutover' contains "$ROOT/docs/migration/evidence/module-ajax-dual-samples/compare-result.json" '"cutoverAllowed": false'
+check 'module ajax contract sample generator exists' test -x "$ROOT/scripts/generate_module_ajax_contract_samples.py"
+check 'module ajax compare pairs migration baselines' contains "$ROOT/scripts/compare_module_ajax_dual_samples.py" 'migration-contract-golden'
+check 'module ajax compare supports contract-only' contains "$ROOT/scripts/compare_module_ajax_dual_samples.py" 'contractOnly'
+check 'module ajax operator seeds contract samples' contains "$ROOT/scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh" 'generate_module_ajax_contract_samples.py'
+check 'www shadow closeout operator exists' test -x "$ROOT/scripts/cloudpanel_www_shadow_closeout_operator.sh"
+check 'www shadow closeout refuses without confirm' contains "$ROOT/scripts/cloudpanel_www_shadow_closeout_operator.sh" 'ECOMAE_CONFIRM_WWW_SHADOW_CLOSEOUT=YES'
+check 'www shadow closeout installs storefront digests' contains "$ROOT/scripts/cloudpanel_www_shadow_closeout_operator.sh" 'cloudpanel_install_storefront_digest_shadows.sh'
+check 'www shadow closeout probes marketing php chrome' contains "$ROOT/scripts/cloudpanel_www_shadow_closeout_operator.sh" 'cloudpanel_probe_ecomae_marketing_php_chrome.sh'
+check 'functional live-smoke capture runbook exists' test -f "$ROOT/docs/migration/evidence/decommission/functional-flows/LIVE_SMOKE_CAPTURE.md"
+check 'functional live-smoke runbook lists 7 flows' contains "$ROOT/docs/migration/evidence/decommission/functional-flows/LIVE_SMOKE_CAPTURE.md" 'super-cp-tenant-control'
+check 'deploy packs module ajax contract generator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'generate_module_ajax_contract_samples.py'
+check 'deploy packs www shadow closeout operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_www_shadow_closeout_operator.sh'
 check 'module ajax dual-sample README keeps PHP authoritative' contains "$ROOT/docs/migration/evidence/module-ajax-dual-samples/README.md" 'PHP ajax/forms remain authoritative'
 check 'on-premises ASP.NET install scaffold exists' test -f "$ROOT/deploy/on-premises-aspnet/Install.Scaffold.md"
 check 'on-premises ASP.NET compose scaffold exists' test -f "$ROOT/deploy/on-premises-aspnet/docker-compose.scaffold.yml"

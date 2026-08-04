@@ -1,0 +1,18 @@
+{
+  "role": "php-module-ajax-contract-sample",
+  "ok": true,
+  "surface": "cp",
+  "module": "crm",
+  "action": "crm_save_ticket",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "pairedAspNetGolden": "aspnet-crm-crm_save_ticket.json",
+  "generatedAtUnix": 1785869149,
+  "note": "Seeded from aspnet migration-contract golden for contract-only compare. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

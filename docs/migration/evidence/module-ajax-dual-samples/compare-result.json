@@ -1,14 +1,21 @@
 {
   "role": "module-ajax-dual-sample-compare",
-  "generatedAtUnix": 1785865299,
+  "generatedAtUnix": 1785869149,
   "ok": true,
   "samplesChecked": 254,
   "samplesOk": 254,
+  "contractOnly": true,
+  "contractPairs": 254,
+  "contractPairsOk": 254,
+  "migrationBaselinePairs": 254,
+  "missingPhpSides": [],
+  "missingPhpSideCount": 0,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
   "phpAuthoritative": true,
   "errors": [],
+  "errorCount": 0,
   "warnings": [],
-  "note": "ASP.NET module-ajax dry-runs are writes=0 gates only. Live PHP ajax/forms remain authoritative until field-level dual-sample + human RELEASE_OWNER_APPROVAL.md."
+  "note": "ASP.NET module-ajax dry-runs are writes=0 gates only. Contract-only pairs use migration-contract-golden baselines \u2014 not live PHP. Live PHP ajax/forms remain authoritative until field-level dual-sample + human RELEASE_OWNER_APPROVAL.md."
 }
