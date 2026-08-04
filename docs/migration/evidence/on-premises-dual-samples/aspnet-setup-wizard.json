@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "surface": "erp-on-premises",
+  "action": "setup-wizard",
+  "aspNetRoute": "/erp/on-premises/setup-wizard-dry-run",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "On-premises installer dry-run golden. PHP deploy/on-premises remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

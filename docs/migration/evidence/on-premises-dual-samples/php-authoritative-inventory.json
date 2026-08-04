@@ -1,0 +1,15 @@
+{
+  "role": "php-on-premises-authoritative-inventory",
+  "generatedAtUnix": 1785865996,
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "actions": [
+    "health",
+    "license-activate",
+    "setup-wizard",
+    "backup"
+  ],
+  "note": "PHP on-premises pack remains authoritative."
+}

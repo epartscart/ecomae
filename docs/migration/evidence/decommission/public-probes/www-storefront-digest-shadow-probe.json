@@ -1,0 +1,52 @@
+{
+  "role": "www-storefront-digest-shadow-probe",
+  "generatedAtUnix": 1785866027,
+  "baseUrl": "https://www.ecomae.com",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "routeCount": 7,
+  "passed": 6,
+  "failed": 1,
+  "blocked": 1,
+  "wiredExpected": 7,
+  "ok": true,
+  "results": [
+    {
+      "route": "/storefront/account-summary",
+      "httpStatus": 401,
+      "result": "pass"
+    },
+    {
+      "route": "/storefront/orders",
+      "httpStatus": 401,
+      "result": "pass"
+    },
+    {
+      "route": "/storefront/garage",
+      "httpStatus": 401,
+      "result": "pass"
+    },
+    {
+      "route": "/storefront/profile",
+      "httpStatus": 401,
+      "result": "pass"
+    },
+    {
+      "route": "/storefront/search",
+      "httpStatus": 401,
+      "result": "pass"
+    },
+    {
+      "route": "/storefront/cart",
+      "httpStatus": 401,
+      "result": "pass"
+    },
+    {
+      "route": "/storefront/checkout",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow"
+    }
+  ],
+  "note": "Unauth 401 ASP.NET JSON gate expected. Live lag vs wired 7 is blocked until CloudPanel install. Never invent cutover."
+}

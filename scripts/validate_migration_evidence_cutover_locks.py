@@ -44,6 +44,10 @@ MUST_DECLARE_CUTOVER_FALSE = (
     "decommission/public-probes/www-pre-php-removal-parity-verdict.json",
     "decommission/public-probes/www-final-gate-area-tests.json",
     "decommission/public-probes/www-live-surface-stack.json",
+    "decommission/public-probes/www-zero-php-residual-board.json",
+    "decommission/public-probes/www-storefront-digest-shadow-probe.json",
+    "on-premises-dual-samples/compare-result.json",
+    "surface-parity/digest-live-sample-gaps.json",
     "decommission/functional-flows/required-flows.json",
     "decommission/functional-flows/www-functional-flow-suite.json",
     "presentation/marketing-app-dual-sample-floor.json",
@@ -68,6 +72,7 @@ MUST_DECLARE_TREE_GLOBS = (
     "module-ajax-dual-samples/*.json",
     "erp-ajax-dual-samples/*.json",
     "bos-ajax-dual-samples/*.json",
+    "on-premises-dual-samples/*.json",
     "catalog-api/*.json",
     "tenant-safety/*.json",
     # Top-level surface-parity reports only (sample fixtures/goldens have dedicated validators).

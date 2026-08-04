@@ -1,0 +1,9 @@
+{
+  "role": "on-premises-ajax-write-catalog",
+  "totalActions": 4,
+  "dedicatedDryRuns": 4,
+  "coveragePct": 100,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true
+}
