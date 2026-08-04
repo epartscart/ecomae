@@ -1,0 +1,27 @@
+{
+  "role": "php-full-catalog-deeplink-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "totalTracked": 714,
+  "counts": {
+    "erpAreas": 35,
+    "erpTabs": 154,
+    "erpCategories": 9,
+    "bosModules": 99,
+    "bosSections": 11,
+    "cpBrochureFeatures": 405,
+    "storefrontSurfaces": 12
+  },
+  "floors": {
+    "erpAreas": 35,
+    "erpTabs": 154,
+    "erpCategories": 9,
+    "bosModules": 99,
+    "cpBrochureFeatures": 405,
+    "storefrontSurfaces": 12
+  },
+  "disallowedCount": 0,
+  "ok": true,
+  "note": "Every generated PHP catalog href must be a safe hybrid iframe deeplink (PHP /CP|/ERP|/BOS or storefront host). Never invents RELEASE_OWNER_APPROVAL.md."
+}

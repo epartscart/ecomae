@@ -157,7 +157,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Module-function parity locked to full PHP catalog scope floors (#729)
 - ✅ Surface-digest exact-route inventory (35) + probe script mirror (#730)
 - ✅ Full PHP module-function inventory enumeration (≥714 catalog rows) (#731)
-- **This PR:** CP menu-tree structure summary digest + inventory lock
+- ✅ CP menu-tree structure summary digest + inventory lock (#732)
+- **This PR:** Full PHP catalog hybrid deeplink floor (714 safe hrefs)
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
