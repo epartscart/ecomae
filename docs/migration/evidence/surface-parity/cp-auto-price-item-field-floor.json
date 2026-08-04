@@ -1,0 +1,28 @@
+{
+  "role": "cp-auto-price-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-auto-price",
+  "collectionKey": "rules",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "activeRules",
+    "activeSources",
+    "compareRuns",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "ruleKey",
+    "minMarginPercent",
+    "autoUpdatePrices",
+    "scheduleHours",
+    "active",
+    "updatedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks auto-price digest summary+rules[] floors. config_json/notes/meta omitted. PHP epc_auto_price_engine remains authoritative. cutoverAllowed=false."
+}

@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 74,
+  "contractCount": 78,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -895,6 +895,131 @@
         "Industry packs metadata",
         "JSON blobs omitted",
         "PHP industry_settings remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/jewellery-retail",
+      "legacyPhpAuthority": "epc_jewel KPIs \u002B vouchers",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "vouchers",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "voucherCount",
+        "openVouchers",
+        "tagCount",
+        "metalStockRows",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Jewellery retail KPIs \u002B vouchers",
+        "PII/cost omitted",
+        "PHP retail/jewellery shell remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/price-lists",
+      "legacyPhpAuthority": "epc_pl_lists \u002B prices",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "lists",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "activeLists",
+        "priceRows",
+        "uploadCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Price lists KPIs \u002B lists",
+        "stats_json/error_text/stored_relpath omitted",
+        "PHP /CP/shop/prices remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/auto-price",
+      "legacyPhpAuthority": "epc_auto_price_rules",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "rules",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "activeRules",
+        "activeSources",
+        "compareRuns",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Auto-price KPIs \u002B rules",
+        "config_json/notes/meta omitted",
+        "PHP epc_auto_price_engine remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/uae-tax-compliance",
+      "legacyPhpAuthority": "epc_uae_tax_legislation_items",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "items",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "legislationCount",
+        "vatAdvanceRows",
+        "vatRefundRows",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "UAE tax legislation KPIs \u002B items",
+        "erp_summary/pdf/passport omitted",
+        "PHP uae-tax-compliance remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -2383,6 +2508,34 @@
       "aspNetRouteOrCapability": "/cp/industry-packs-app",
       "status": "digest-wired-awaiting-dual-sample",
       "notes": "Read UI over /cp/industry-packs digest; PHP industry_settings remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "jewellery-retail Blazor list",
+      "aspNetRouteOrCapability": "/cp/jewellery-retail-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/jewellery-retail digest; PHP retail/jewellery shell remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "price-lists Blazor list",
+      "aspNetRouteOrCapability": "/cp/price-lists-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/price-lists digest; PHP /CP/shop/prices remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "auto-price Blazor list",
+      "aspNetRouteOrCapability": "/cp/auto-price-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/auto-price digest; PHP epc_auto_price_engine remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "uae-tax-compliance Blazor list",
+      "aspNetRouteOrCapability": "/cp/uae-tax-compliance-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/uae-tax-compliance digest; PHP uae-tax-compliance remains authoritative; tenant chrome stays PHP."
     },
     {
       "surface": "cp",

@@ -116,6 +116,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "packCount,activePacks,assignments,source,message",
     ),
+    "cp-jewellery-retail": (
+        "summary",
+        "voucherCount,openVouchers,tagCount,metalStockRows,source,message",
+    ),
+    "cp-price-lists": (
+        "summary",
+        "activeLists,priceRows,uploadCount,source,message",
+    ),
+    "cp-auto-price": (
+        "summary",
+        "activeRules,activeSources,compareRuns,source,message",
+    ),
+    "cp-uae-tax-compliance": (
+        "summary",
+        "legislationCount,vatAdvanceRows,vatRefundRows,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -504,6 +520,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-industry-packs": (
         "packs",
         ["id", "packKey", "name", "description", "icon", "active"],
+    ),
+    "cp-jewellery-retail": (
+        "vouchers",
+        ["id", "vocType", "vocDate", "vocNo", "partyName", "status", "netAmount", "vatAmount", "totalWithVat"],
+    ),
+    "cp-price-lists": (
+        "lists",
+        ["id", "code", "name", "currency", "customerId", "priority", "active"],
+    ),
+    "cp-auto-price": (
+        "rules",
+        ["id", "siteKey", "ruleKey", "minMarginPercent", "autoUpdatePrices", "scheduleHours", "active", "updatedAt"],
+    ),
+    "cp-uae-tax-compliance": (
+        "items",
+        ["id", "slug", "title", "issueDate", "category", "taxCategory", "isNew", "isUpdated", "timeSynced"],
     ),
     "cp-orders-digest": (
         "orders",

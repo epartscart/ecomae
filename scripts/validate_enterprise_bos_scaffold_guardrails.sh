@@ -264,6 +264,14 @@ check_file "cp projects-overview item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-projects-overview-item-field-floor.json"
 check_file "cp industry-packs item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-industry-packs-item-field-floor.json"
+check_file "cp jewellery-retail item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-jewellery-retail-item-field-floor.json"
+check_file "cp price-lists item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-price-lists-item-field-floor.json"
+check_file "cp auto-price item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
+check_file "cp uae-tax-compliance item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-uae-tax-compliance-item-field-floor.json"
 check_file "feature family coverage board builder" \
   "$ROOT/scripts/build_feature_family_coverage_board.py"
 check_file "feature family coverage board evidence" \

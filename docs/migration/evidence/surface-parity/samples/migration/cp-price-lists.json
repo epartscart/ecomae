@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "activeLists": 1,
+    "priceRows": 0,
+    "uploadCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; lists[] sentinel; stats_json omitted; PHP /CP/shop/prices authoritative; cutoverAllowed=false",
+  "lists": [
+    {
+      "id": 1,
+      "code": "MAIN",
+      "name": "Migration List",
+      "currency": "AED",
+      "customerId": 0,
+      "priority": 1,
+      "active": true
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

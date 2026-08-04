@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "activeRules": 1,
+    "activeSources": 0,
+    "compareRuns": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; rules[] sentinel; config_json/notes omitted; PHP auto-price authoritative; cutoverAllowed=false",
+  "rules": [
+    {
+      "id": 1,
+      "siteKey": "www",
+      "ruleKey": "default",
+      "minMarginPercent": 15.0,
+      "autoUpdatePrices": false,
+      "scheduleHours": 24,
+      "active": true,
+      "updatedAt": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

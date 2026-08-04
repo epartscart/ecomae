@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "legislationCount": 1,
+    "vatAdvanceRows": 0,
+    "vatRefundRows": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; items[] sentinel; erp_summary/pdf omitted; PHP uae-tax-compliance authoritative; cutoverAllowed=false",
+  "items": [
+    {
+      "id": 1,
+      "slug": "migration-item",
+      "title": "Migration legislation",
+      "issueDate": "2026-01-01",
+      "category": "vat",
+      "taxCategory": "standard",
+      "isNew": true,
+      "isUpdated": false,
+      "timeSynced": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

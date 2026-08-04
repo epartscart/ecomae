@@ -872,6 +872,118 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelJewelleryRetail, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for jewellery-retail digest.");
+            }
+
+            var result = await dashboards.BuildCpJewelleryRetailDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                vouchers = result.Vouchers,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_jewel_* KPIs + vouchers (mobile/email/tel/passport/remarks/narration/customer PII/cost omitted). PHP retail/jewellery shell remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelPriceLists, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for price-lists digest.");
+            }
+
+            var result = await dashboards.BuildCpPriceListsDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                lists = result.Lists,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_pl_lists KPIs + lists (stats_json/error_text/stored_relpath omitted). PHP /CP/shop/prices remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelAutoPrice, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for auto-price digest.");
+            }
+
+            var result = await dashboards.BuildCpAutoPriceDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rules = result.Rules,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_auto_price_rules KPIs + rules (config_json/notes/meta omitted). PHP epc_auto_price_engine remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelUaeTaxCompliance, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for uae-tax-compliance digest.");
+            }
+
+            var result = await dashboards.BuildCpUaeTaxComplianceDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                items = result.Items,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_uae_tax_legislation_items KPIs + items (erp_summary/compliance_actions_json/pdf_url/passport omitted). PHP uae-tax-compliance remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ControlPanelAliases)
         {
             endpoints.MapGet(route, async (

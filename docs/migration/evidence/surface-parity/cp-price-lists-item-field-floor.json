@@ -1,0 +1,27 @@
+{
+  "role": "cp-price-lists-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-price-lists",
+  "collectionKey": "lists",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "activeLists",
+    "priceRows",
+    "uploadCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "code",
+    "name",
+    "currency",
+    "customerId",
+    "priority",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks price lists digest summary+lists[] floors. stats_json/error_text/stored_relpath omitted. PHP /CP/shop/prices remains authoritative. cutoverAllowed=false."
+}

@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 48,
+  "routeCount": 52,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -329,6 +329,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-industry-packs-shadow-approved"
+          }
+        ]
+      },
+      "cp-jewellery-retail": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/jewellery-retail"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-jewellery-retail-shadow-approved"
+          }
+        ]
+      },
+      "cp-price-lists": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/price-lists"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-price-lists-shadow-approved"
+          }
+        ]
+      },
+      "cp-auto-price": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/auto-price"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-auto-price-shadow-approved"
+          }
+        ]
+      },
+      "cp-uae-tax-compliance": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/uae-tax-compliance"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-uae-tax-compliance-shadow-approved"
           }
         ]
       },
