@@ -5,6 +5,9 @@
 > `docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md`. Scaffolding notes live in
 > `docs/migration/ASPNET_TARGET_STACK_SCAFFOLDING_NOTES.md`. Zero-PHP progress is tracked
 > separately and must not be used to claim full Enterprise BOS stack readiness.
+>
+> **Operating SOP (security, confidentiality, multi-tenant isolation, cutover refuse rules):**  
+> `docs/PROJECT_SOP_SECURITY_TENANT_ISOLATION.md` — tenant data must never leak across tenants.
 
 These instructions are mandatory for all migration and feature work.
 

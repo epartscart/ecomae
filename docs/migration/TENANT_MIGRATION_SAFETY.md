@@ -2,6 +2,9 @@
 
 **Target end-state:** 100% ASP.NET Core live traffic. PHP project may remain as a **reference** for previous results / gap-finding (`docs/migration/PHP_AS_REFERENCE_MODE.md`) until a separate deletion approval.
 
+**Master SOP (security, confidentiality, tenant isolation, cutover protocols):**  
+[`docs/PROJECT_SOP_SECURITY_TENANT_ISOLATION.md`](../PROJECT_SOP_SECURITY_TENANT_ISOLATION.md)
+
 **Policy during migration:** Live tenant (and industry showcase) presentation/functionality must stay **same-to-same** with today’s PHP UX — tenants must not feel a stack change. PHP is **primary until ASP.NET parity**, then becomes **reference** (not automatically deleted).
 
 ## Named live tenants (parity gate)
