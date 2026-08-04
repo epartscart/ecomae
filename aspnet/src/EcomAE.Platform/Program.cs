@@ -128,6 +128,9 @@ builder.Services.AddSingleton<IPhpDecommissionReadinessReporter, PhpDecommission
 builder.Services.AddSingleton<ILiveSurfaceLinkReporter, LiveSurfaceLinkReporter>();
 builder.Services.AddSingleton<IMarketingPresentationLockReporter, MarketingPresentationLockReporter>();
 builder.Services.AddSingleton<IAspNetZeroPhpPathReporter, AspNetZeroPhpPathReporter>();
+builder.Services.AddSingleton<IOnPremisesParityReporter, OnPremisesParityReporter>();
+builder.Services.AddSingleton<IOnPremisesHealthDryRun, OnPremisesHealthDryRun>();
+builder.Services.AddSingleton<IOnPremisesLicenseActivateDryRun, OnPremisesLicenseActivateDryRun>();
 builder.Services.AddSingleton<ISurfaceFieldParityReporter, SurfaceFieldParityReporter>();
 builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryReporter>();
 builder.Services.AddSingleton<IPlatformJobsSummaryReporter, PlatformJobsSummaryReporter>();
@@ -247,6 +250,8 @@ app.MapGet(EcomAeRoutes.LiveSurfaceLinks, (ILiveSurfaceLinkReporter reporter) =>
 app.MapGet(EcomAeRoutes.LiveTenantPresentationLock, () => Results.Ok(LiveTenantPresentationLock.BuildSummary()));
 
 app.MapGet(EcomAeRoutes.AspNetZeroPhpPath, (IAspNetZeroPhpPathReporter reporter) => Results.Ok(reporter.BuildReport()));
+
+app.MapGet(EcomAeRoutes.MigrationOnPremisesParity, (IOnPremisesParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.MarketingPresentationLock, (IMarketingPresentationLockReporter reporter) => Results.Ok(reporter.BuildReport()));
 

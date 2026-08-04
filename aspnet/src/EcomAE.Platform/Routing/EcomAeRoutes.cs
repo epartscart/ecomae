@@ -23,6 +23,8 @@ public static class EcomAeRoutes
     public const string LiveTenantPresentationLock = "/migration/live-tenant-presentation-lock";
     /// <summary>Operator board: phases toward 100% ASP.NET Core / 0 PHP (honest; cutoverAllowed=false).</summary>
     public const string AspNetZeroPhpPath = "/migration/aspnet-zero-php-path";
+    /// <summary>On-premises ERP product track board (installer ≠ ERP-only SaaS; cutoverAllowed=false).</summary>
+    public const string MigrationOnPremisesParity = "/migration/on-premises-parity";
     public const string MigrationConsole = "/migration/console";
     public const string MigrationCompare = "/migration/compare";
     public const string SurfaceFieldParity = "/migration/surface-field-parity";
@@ -520,6 +522,12 @@ public static class EcomAeRoutes
     public const string ErpFixedAssets = "/erp/fixed-assets";
     /// <summary>ERP fixed assets Blazor list (JSON digest remains <see cref="ErpFixedAssets"/>).</summary>
     public const string ErpFixedAssetsApp = "/erp/fixed-assets-app";
+    /// <summary>ERP On-Premises deployment Blazor overview (PHP erp_tabs_on_premises.php remains primary until dual-sample).</summary>
+    public const string ErpOnPremisesApp = "/erp/on-premises-app";
+    /// <summary>Wave B dry-run for PHP api/v1/on-premises/health.php (writes=0; PHP authoritative).</summary>
+    public const string ErpOnPremisesHealthDryRun = "/erp/on-premises/health-dry-run";
+    /// <summary>Wave B dry-run for PHP api/v1/licenses/activate.php (writes=0; PHP authoritative).</summary>
+    public const string ErpOnPremisesLicenseActivateDryRun = "/erp/on-premises/license-activate-dry-run";
     public const string Bos = "/bos";
     public const string BosApp = "/bos/app";
     public const string BosParity = "/bos/parity";
