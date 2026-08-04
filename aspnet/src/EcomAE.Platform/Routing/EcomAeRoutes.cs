@@ -469,6 +469,8 @@ public static class EcomAeRoutes
     public const string ErpPurchasesVoid = "/erp/purchases/void";
     /// <summary>Wave B dry-run invoice cancel (PHP invoice_cancel remains authoritative).</summary>
     public const string ErpInvoicesCancel = "/erp/invoices/cancel";
+    /// <summary>Wave B dry-run sales order cancel (PHP so_cancel remains authoritative).</summary>
+    public const string ErpSalesOrdersCancel = "/erp/sales-orders/cancel";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
@@ -581,6 +583,8 @@ public static class EcomAeRoutes
     public const string StorefrontCartAdd = "/storefront/cart/add";
     /// <summary>Wave B dry-run garage notepad add (PHP ajax_add_to_notepad.php remains authoritative).</summary>
     public const string StorefrontGarageNotepadAdd = "/storefront/garage/notepad-add";
+    /// <summary>Wave B dry-run quote submit (PHP ajax_quote_submit.php remains authoritative).</summary>
+    public const string StorefrontQuoteSubmit = "/storefront/quotes/submit";
     /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
     public const string MarketingPlatformApp = "/marketing/platform";
     /// <summary>Marketing about Blazor scaffold (PHP /platform/about remains primary until dual-sample).</summary>
@@ -597,6 +601,10 @@ public static class EcomAeRoutes
     public const string MarketingCapabilitiesApp = "/marketing/capabilities";
     /// <summary>Marketing demo Blazor scaffold (PHP /platform/demo remains primary until dual-sample).</summary>
     public const string MarketingDemoApp = "/marketing/demo";
+    /// <summary>Marketing free-tools Blazor scaffold (PHP /platform/free-tools remains primary until dual-sample).</summary>
+    public const string MarketingFreeToolsApp = "/marketing/free-tools";
+    /// <summary>Marketing platform-guides Blazor scaffold (PHP /platform/platform-guides remains primary until dual-sample).</summary>
+    public const string MarketingPlatformGuidesApp = "/marketing/platform-guides";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>

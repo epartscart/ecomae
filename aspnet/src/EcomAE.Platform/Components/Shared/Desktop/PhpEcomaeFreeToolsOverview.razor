@@ -1,0 +1,51 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_free_tools() hub — hero + tool teasers.
+  Per-tool pages + registration remain PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-free-tools-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#0c4a6e 0%,#075985 45%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-globe"></i> Worldwide · free · no payment</div>
+			<h1>Free business tools for your company</h1>
+			<p class="lead"><strong>Worldwide tools that work to your registered country's rules.</strong> VAT/GST, corporate tax, IFRS, payroll, e-invoicing, customs, valuation and more — localised to your currency and labour law.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/free-tools?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/free-tools"))">Open full PHP free tools (hybrid)</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/demo">Start a demo</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/pricing">See pricing</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-percent"></i>
+			<strong>Tax &amp; VAT</strong>
+			<p>VAT/GST returns, corporate tax kits, country localisation.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-file-text"></i>
+			<strong>E-invoicing</strong>
+			<p>UAE FTA, Saudi ZATCA, EU Peppol sample checks.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-users"></i>
+			<strong>Payroll &amp; gratuity</strong>
+			<p>Labour-law aware calculators for GCC and beyond.</p>
+		</div>
+	</div>
+
+	<div class="epm-highlight">
+		<h3>Register once — unlock every tool</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">Individual tool UIs, CSV uploads, and free-account registration remain on live PHP until dual-sample.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/free-tools?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/free-tools"))">Browse free tools</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET free-tools hub scaffold — dual-sample against live PHP <code>/platform/free-tools</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

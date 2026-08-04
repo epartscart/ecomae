@@ -1,0 +1,51 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_platform_guides() — hero + area teasers.
+  Full area TOC + guide sections remain PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-platform-guides-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407 0%,#5a0f16 42%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-th-large"></i> Super CP capability map</div>
+			<h1>What you get in Super CP — by area</h1>
+			<p class="lead">Every operator guide in Super CP translated into customer-facing benefits. No internal admin URLs or credentials here — just what the platform delivers for you and your clients.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/capabilities">Full capabilities catalog</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/platform-guides?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/platform-guides"))">Open full PHP guides (hybrid)</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/demo">Book @EcomaeMarketingPages.DemoDays-day demo</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-cloud"></i>
+			<strong>Tenant onboarding</strong>
+			<p>DNS, industry templates, go-live checklist from Super CP.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-cubes"></i>
+			<strong>Module packs</strong>
+			<p>ERP, commerce, CRM, compliance — mapped by area.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-industry"></i>
+			<strong>Industry guides</strong>
+			<p>Vertical-specific Super CP benefits without admin URLs.</p>
+		</div>
+	</div>
+
+	<div class="epm-highlight">
+		<h3>Browse guide areas</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">Full TOC and per-area sections remain on live PHP until dual-sample.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/platform-guides?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/platform-guides"))">Open Super CP guides</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET platform-guides overview scaffold — dual-sample against live PHP <code>/platform/platform-guides</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>
