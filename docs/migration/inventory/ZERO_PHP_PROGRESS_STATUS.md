@@ -25,12 +25,12 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 | `/health`, `/migration/*` | ASP.NET diagnostics + Blazor SSR console `/migration/console` |
 | `/api/v1/price/lookup` | Live |
 | `/api/v1/catalog/status` … `/brand-parts` | **All 18/18 wired catalog API paths live** |
-| All 30 CP/ERP/BOS digests | Live unauth **401 unauthorized** |
+| All 127 CP/ERP/BOS digests | Wired; live unauth **401** after ASP.NET republish |
 | Storefront digests | **4 / 6 live** unauth **401** (search/cart wired, awaiting shadow install) |
 
 **Catalog exact-route progress:** **18 / 18**
 
-**Surface digest exact-route progress:** **30 / 30**
+**Surface digest exact-route progress:** **127 / 127** wired (live www until republish ~30/127)
 
 **Storefront digest exact-route progress:** **4 / 6** (wired 6; live shadows still 4)
 
@@ -81,7 +81,7 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 - Admin nested modules_access ACL + surface capabilities.
 - CP/ERP/BOS/storefront digests scaffolded on loopback + staging smoke attached (PR #612).
 - **Public exact-route catalog/price shadows complete (18/18 catalog + price + health/migration).**
-- **Surface digests live: 30/30.** Storefront digests: **4/6 live** (wired 6; search/cart awaiting shadow).
+- **Surface digests wired: 127/127** (live www ~30/127 until ASP.NET republish). Storefront digests: **4/6 live** (wired 6).
 - Blazor SSR migration console (ops improvement).
 - No broad PHP cutover; route/job parity/shadow metrics remain 0%.
 - Digest dual-sample contract parity attached (migration baseline + live ASP.NET; `failed=0`, `cutoverAllowed=false`).
