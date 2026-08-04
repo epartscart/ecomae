@@ -721,6 +721,94 @@ public sealed record CpSmsWhatsappDigestResult(
     string Source,
     string Message);
 
+
+public sealed record CpCrmBoardSummary(
+    int Leads,
+    int Opportunities,
+    int Activities,
+    int TicketsOpen,
+    string Source,
+    string Message);
+
+public sealed record CpCrmLeadDigest(
+    long Id,
+    string Title,
+    string Status,
+    string Source,
+    long OwnerId,
+    decimal Amount,
+    long UpdatedAt);
+
+public sealed record CpCrmBoardDigestResult(
+    CpCrmBoardSummary Summary,
+    IReadOnlyList<CpCrmLeadDigest> Leads,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpDocumentControlSummary(
+    string CompanyName,
+    int TemplateCount,
+    int AttachmentCount,
+    string Source,
+    string Message);
+
+public sealed record CpDocumentTemplateDigest(
+    long Id,
+    string Code,
+    string Title,
+    string Category,
+    bool Active,
+    int SortOrder);
+
+public sealed record CpDocumentControlDigestResult(
+    CpDocumentControlSummary Summary,
+    IReadOnlyList<CpDocumentTemplateDigest> Templates,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpDeliveryMethodsSummary(
+    int Methods,
+    int Available,
+    string Source,
+    string Message);
+
+public sealed record CpDeliveryMethodDigest(
+    long Id,
+    string Caption,
+    string Handler,
+    bool Available,
+    bool ControlAvailable,
+    int SortOrder);
+
+public sealed record CpDeliveryMethodsDigestResult(
+    CpDeliveryMethodsSummary Summary,
+    IReadOnlyList<CpDeliveryMethodDigest> Modes,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpCrossesSummary(
+    int TotalPairs,
+    int Brands,
+    string Source,
+    string Message);
+
+public sealed record CpCrossPairDigest(
+    long Id,
+    string Manufacturer,
+    string Article,
+    string CrossManufacturer,
+    string CrossArticle);
+
+public sealed record CpCrossesDigestResult(
+    CpCrossesSummary Summary,
+    IReadOnlyList<CpCrossPairDigest> Pairs,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontPartOfferDigest(
     int PriceId,
     string PriceList,

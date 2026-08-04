@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "methods": 1,
+    "available": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; modes[] sentinel; PHP obtaining modes authoritative; cutoverAllowed=false",
+  "modes": [
+    {
+      "id": 1,
+      "caption": "Courier",
+      "handler": "epc_carriers",
+      "available": true,
+      "controlAvailable": true,
+      "sortOrder": 1
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

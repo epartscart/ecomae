@@ -248,6 +248,14 @@ check_file "cp tax-toolkits item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-tax-toolkits-item-field-floor.json"
 check_file "cp sms-whatsapp item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-sms-whatsapp-item-field-floor.json"
+check_file "cp crm-board item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-crm-board-item-field-floor.json"
+check_file "cp document-control item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-document-control-item-field-floor.json"
+check_file "cp delivery-methods item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-delivery-methods-item-field-floor.json"
+check_file "cp crosses item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-crosses-item-field-floor.json"
 check_file "feature family coverage board builder" \
   "$ROOT/scripts/build_feature_family_coverage_board.py"
 check_file "feature family coverage board evidence" \

@@ -629,6 +629,91 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+
+    public const string SelectCpCrmStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_crm_leads` WHERE IFNULL(`active`,0)=1) AS leads,
+            (SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE IFNULL(`active`,0)=1) AS opportunities,
+            (SELECT COUNT(*) FROM `epc_crm_activities` WHERE IFNULL(`active`,0)=1) AS activities,
+            (SELECT COUNT(*) FROM `epc_crm_tickets` WHERE IFNULL(`active`,0)=1 AND `status` IN ('open','pending')) AS tickets_open
+        """;
+
+    /// <summary>CRM leads — omits email/phone/notes.</summary>
+    public const string SelectCpCrmLeads = """
+        SELECT `id`,
+               IFNULL(`company`, '') AS title,
+               IFNULL(`status`, '') AS status,
+               IFNULL(`source`, '') AS source,
+               IFNULL(`owner_user_id`, 0) AS owner_id,
+               IFNULL(`expected_value`, 0) AS amount,
+               IFNULL(`time_updated`, 0) AS updated_at
+        FROM `epc_crm_leads`
+        WHERE IFNULL(`active`, 0) = 1
+        ORDER BY `time_updated` DESC, `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpDocumentCompanyName = """
+        SELECT IFNULL(`trade_name`, IFNULL(`legal_name`, '')) AS company_name
+        FROM `epc_document_company`
+        WHERE `id` = 1
+        LIMIT 1
+        """;
+
+    public const string SelectCpDocumentStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_document_templates`) AS template_count,
+            (SELECT COUNT(*) FROM `epc_document_attachments`) AS attachment_count
+        """;
+
+    /// <summary>Document templates — omits HTML bodies / CSS. Id assigned in reporter.</summary>
+    public const string SelectCpDocumentTemplates = """
+        SELECT IFNULL(`code`, '') AS code,
+               IFNULL(`title`, '') AS title,
+               IFNULL(`category`, '') AS category,
+               IFNULL(`active`, 0) AS active,
+               IFNULL(`sort_order`, 0) AS sort_order
+        FROM `epc_document_templates`
+        ORDER BY `sort_order` ASC, `code` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpDeliveryStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_obtaining_modes` WHERE IFNULL(`control_available`,0)=1) AS methods,
+            (SELECT COUNT(*) FROM `shop_obtaining_modes` WHERE IFNULL(`control_available`,0)=1 AND IFNULL(`available`,0)=1) AS available
+        """;
+
+    /// <summary>Delivery modes — omits parameters_values.</summary>
+    public const string SelectCpDeliveryModes = """
+        SELECT `id`, IFNULL(`caption`, '') AS caption,
+               IFNULL(`handler`, '') AS handler,
+               IFNULL(`available`, 0) AS available,
+               IFNULL(`control_available`, 0) AS control_available,
+               IFNULL(`order`, 0) AS sort_order
+        FROM `shop_obtaining_modes`
+        WHERE IFNULL(`control_available`, 0) = 1
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpCrossesStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_docpart_articles_analogs_list`) AS total_pairs,
+            (SELECT COUNT(DISTINCT `manufacturer_article`) FROM `shop_docpart_articles_analogs_list`) AS brands
+        """;
+
+    public const string SelectCpCrossPairs = """
+        SELECT `id`,
+               IFNULL(`manufacturer_article`, '') AS manufacturer,
+               IFNULL(`article`, '') AS article,
+               IFNULL(`manufacturer_analog`, '') AS cross_manufacturer,
+               IFNULL(`analog`, '') AS cross_article
+        FROM `shop_docpart_articles_analogs_list`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>
     /// Batch 4 storefront part search (mirrors pyapi <c>part_search</c> / warehouse offers).
     /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.

@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 66,
+  "contractCount": 70,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -648,6 +648,128 @@
         "SMS operators + WhatsApp log",
         "parameters_values/tokens/raw phone omitted",
         "configure/send remains PHP"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/crm-board",
+      "legacyPhpAuthority": "cp/content/shop/crm/crm_main.php",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "leads",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "leads",
+        "opportunities",
+        "activities",
+        "ticketsOpen",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "CRM board KPIs + leads",
+        "email/phone/notes omitted",
+        "CRM UX remains PHP"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/document-control",
+      "legacyPhpAuthority": "cp/content/shop/document_control/document_control_main.php",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "templates",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "companyName",
+        "templateCount",
+        "attachmentCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Document templates metadata",
+        "HTML/bank secrets omitted",
+        "print remains PHP"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/delivery-methods",
+      "legacyPhpAuthority": "cp/content/shop/logistics/obtaining_modes.php",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "modes",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "methods",
+        "available",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Delivery/obtaining modes",
+        "parameters_values omitted",
+        "configure remains PHP"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/crosses",
+      "legacyPhpAuthority": "cp/content/shop/crosses/crosses.php",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "pairs",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "totalPairs",
+        "brands",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Article cross pairs",
+        "import/edit remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -2339,6 +2461,34 @@
       "aspNetRoute": "/cp/sms-whatsapp-app",
       "status": "digest-wired-awaiting-dual-sample",
       "note": "Read UI over /cp/sms-whatsapp; PHP sms_turning/whatsapp_guide remain authoritative."
+    },
+    {
+      "surface": "cp",
+      "label": "crm-board Blazor list",
+      "aspNetRoute": "/cp/crm-board-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "note": "Read UI over /cp/crm-board; PHP crm_main remains authoritative."
+    },
+    {
+      "surface": "cp",
+      "label": "document-control Blazor list",
+      "aspNetRoute": "/cp/document-control-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "note": "Read UI over /cp/document-control; PHP document_control remains authoritative."
+    },
+    {
+      "surface": "cp",
+      "label": "delivery-methods Blazor list",
+      "aspNetRoute": "/cp/delivery-methods-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "note": "Read UI over /cp/delivery-methods; PHP obtaining modes remain authoritative."
+    },
+    {
+      "surface": "cp",
+      "label": "crosses Blazor list",
+      "aspNetRoute": "/cp/crosses-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "note": "Read UI over /cp/crosses; PHP /CP/shop/crosses remains authoritative."
     },
     {
       "surface": "cp",

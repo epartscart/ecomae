@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-document-control",
+  "surface": "cp",
+  "appRoute": "/cp/document-control-app",
+  "digestRoute": "/cp/document-control",
+  "phpAuthoritativePath": "/CP/shop/document_control/document_control",
+  "blazorComponent": "CpDocumentControlApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-document-control. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T05:45:00Z"
+}

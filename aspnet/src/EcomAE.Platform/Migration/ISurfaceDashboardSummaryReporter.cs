@@ -101,6 +101,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only SMS operators + WhatsApp log (parameters_values / tokens / raw phone omitted).</summary>
     Task<CpSmsWhatsappDigestResult> BuildCpSmsWhatsappDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only CRM KPIs + leads (email/phone/notes omitted).</summary>
+    Task<CpCrmBoardDigestResult> BuildCpCrmBoardDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only document templates (HTML/bank secrets omitted).</summary>
+    Task<CpDocumentControlDigestResult> BuildCpDocumentControlDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only delivery/obtaining modes (parameters_values omitted).</summary>
+    Task<CpDeliveryMethodsDigestResult> BuildCpDeliveryMethodsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only article cross pairs.</summary>
+    Task<CpCrossesDigestResult> BuildCpCrossesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

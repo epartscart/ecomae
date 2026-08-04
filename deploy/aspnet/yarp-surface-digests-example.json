@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 40,
+  "routeCount": 44,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -233,6 +233,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-sms-whatsapp-shadow-approved"
+          }
+        ]
+      },
+      "cp-crm-board": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/crm-board"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-crm-board-shadow-approved"
+          }
+        ]
+      },
+      "cp-document-control": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/document-control"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-document-control-shadow-approved"
+          }
+        ]
+      },
+      "cp-delivery-methods": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/delivery-methods"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-delivery-methods-shadow-approved"
+          }
+        ]
+      },
+      "cp-crosses": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/crosses"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-crosses-shadow-approved"
           }
         ]
       },

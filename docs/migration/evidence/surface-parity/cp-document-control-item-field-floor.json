@@ -1,0 +1,26 @@
+{
+  "role": "cp-document-control-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-document-control",
+  "collectionKey": "templates",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "companyName",
+    "templateCount",
+    "attachmentCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "code",
+    "title",
+    "category",
+    "active",
+    "sortOrder"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks document control digest summary+templates[] floors. Template edit/print remains PHP shop/document_control/document_control. cutoverAllowed=false."
+}

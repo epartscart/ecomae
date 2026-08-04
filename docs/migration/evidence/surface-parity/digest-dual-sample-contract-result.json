@@ -1,9 +1,9 @@
 {
-  "pairsChecked": 57,
+  "pairsChecked": 65,
   "failed": 0,
   "migrationBaselinePairs": 0,
-  "contractsRegistered": 47,
-  "stemsChecked": 47,
+  "contractsRegistered": 51,
+  "stemsChecked": 51,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "contractOnly": true,
@@ -69,6 +69,10 @@
   ],
   "hybridListItemFieldStems": [
     "bos-fleet-health",
+    "cp-crm-board",
+    "cp-crosses",
+    "cp-delivery-methods",
+    "cp-document-control",
     "cp-marketing-broadcast",
     "cp-metabase",
     "cp-orders-digest",

@@ -1,0 +1,128 @@
+@page "/cp/crosses-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Crosses · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-x-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#5b21b6 0%,#7c3aed 50%,#8b5cf6 100%);
+        }
+        .epc-x-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-x-hero p { margin:0; color:#ddd6fe; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-x-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-x-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#5b21b6; background:#c4b5fd;
+        }
+        .epc-x-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-x-kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-x-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-x-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-x-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-x-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-x-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-x-table th, .epc-x-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-x-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-x-note { margin-top:1rem; padding:.75rem .9rem; background:#f5f3ff; border:1px solid #c4b5fd; border-radius:.45rem; color:#5b21b6; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-x-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-x-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Crosses</h1>
+        <p>Read-only cross-reference pairs from <code>/cp/crosses</code>. Import and edit stays on live PHP.</p>
+        <div class="epc-x-cta">
+            <a href="@_phpTab">Open PHP crosses</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/parts-agent-chats-app">Parts agent</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-x-kpis" aria-label="Crosses stats">
+        <div class="epc-x-kpi"><strong>@_summary.TotalPairs.ToString(CultureInfo.InvariantCulture)</strong><span>Total pairs</span></div>
+        <div class="epc-x-kpi"><strong>@_summary.Brands.ToString(CultureInfo.InvariantCulture)</strong><span>Brands</span></div>
+    </div>
+
+    <div class="epc-x-table-wrap">
+        <table class="epc-x-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Manufacturer</th>
+                    <th>Article</th>
+                    <th>Cross mfr</th>
+                    <th>Cross article</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_pairs.Count == 0)
+                {
+                    <tr><td colspan="6">No cross pairs in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var p in _pairs)
+                    {
+                        <tr>
+                            <td><strong>@p.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Manufacturer) ? "—" : p.Manufacturer)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Article) ? "—" : p.Article)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.CrossManufacturer) ? "—" : p.CrossManufacturer)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.CrossArticle) ? "—" : p.CrossArticle)</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-x-note">
+        Read-only preview · JSON digest <a href="/cp/crosses?limit=200">/cp/crosses</a>.
+        PHP <code>shop/crosses</code> remains authoritative for cross import and edit.
+        Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/crosses";
+    private bool _isAdmin;
+    private CpCrossesSummary _summary = new(0, 0, "n/a", "");
+    private IReadOnlyList<CpCrossPairDigest> _pairs = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpCrossesDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _pairs = result.Pairs;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

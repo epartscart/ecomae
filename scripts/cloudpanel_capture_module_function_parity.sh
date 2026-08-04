@@ -156,6 +156,23 @@ CP_FEATURE_HYBRID_BY_ID = {
     "sms-operators": "cp-sms-whatsapp",
     "whatsapp-order-sharing": "cp-sms-whatsapp",
     "whatsapp-sharing-guide": "cp-sms-whatsapp",
+    "crm": "cp-crm-board",
+    "customer-board": "cp-crm-board",
+    "epc-super-cp-customer-board": "cp-crm-board",
+    "customer-management": "cp-crm-board",
+    "customer-management-hub": "cp-crm-board",
+    "crm-pipeline-kanban": "cp-crm-board",
+    "sales-and-marketing-crm": "cp-crm-board",
+    "document-control": "cp-document-control",
+    "document-library-archive": "cp-document-control",
+    "document-templates": "cp-document-control",
+    "print-documents-pdfs": "cp-document-control",
+    "delivery-notes-pick-lists": "cp-document-control",
+    "delivery-methods": "cp-delivery-methods",
+    "delivery-methods-pickup": "cp-delivery-methods",
+    "cross-references": "cp-crosses",
+    "cross-reference-lookup": "cp-crosses",
+    "crosses": "cp-crosses",
 }
 ERP_AREA_HYBRID_BY_ID = {
     "banking": "erp-accounts-summary",
@@ -199,6 +216,12 @@ BOS_MODULE_HYBRID_BY_ID = {
     "pos": "cp-pos-overview",
     "tax_toolkit": "cp-tax-toolkits",
     "sms_turning": "cp-sms-whatsapp",
+    "crm": "cp-crm-board",
+    "customer_board": "cp-crm-board",
+    "customers": "cp-crm-board",
+    "documents": "cp-document-control",
+    "document_vault": "cp-document-control",
+    "crosses": "cp-crosses",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}

@@ -1,0 +1,28 @@
+{
+  "role": "cp-crm-board-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-crm-board",
+  "collectionKey": "leads",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "leads",
+    "opportunities",
+    "activities",
+    "ticketsOpen",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "title",
+    "status",
+    "source",
+    "ownerId",
+    "amount",
+    "updatedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks CRM board digest summary+leads[] floors. CRM workflows remain PHP shop/crm/crm_main. cutoverAllowed=false."
+}

@@ -108,6 +108,22 @@ public static class EcomAeRoutes
     public const string ControlPanelSmsWhatsapp = "/cp/sms-whatsapp";
     /// <summary>CP SMS/WhatsApp Blazor list (JSON digest remains <see cref="ControlPanelSmsWhatsapp"/>).</summary>
     public const string ControlPanelSmsWhatsappApp = "/cp/sms-whatsapp-app";
+    /// <summary>CP CRM board KPIs + leads metadata (email/phone/notes omitted).</summary>
+    public const string ControlPanelCrmBoard = "/cp/crm-board";
+    /// <summary>CP CRM Blazor board (JSON digest remains <see cref="ControlPanelCrmBoard"/>).</summary>
+    public const string ControlPanelCrmBoardApp = "/cp/crm-board-app";
+    /// <summary>CP document control templates (HTML/bank secrets omitted).</summary>
+    public const string ControlPanelDocumentControl = "/cp/document-control";
+    /// <summary>CP document control Blazor list (JSON digest remains <see cref="ControlPanelDocumentControl"/>).</summary>
+    public const string ControlPanelDocumentControlApp = "/cp/document-control-app";
+    /// <summary>CP delivery/obtaining modes (parameters_values omitted).</summary>
+    public const string ControlPanelDeliveryMethods = "/cp/delivery-methods";
+    /// <summary>CP delivery methods Blazor list (JSON digest remains <see cref="ControlPanelDeliveryMethods"/>).</summary>
+    public const string ControlPanelDeliveryMethodsApp = "/cp/delivery-methods-app";
+    /// <summary>CP article crosses pairs (read-only analogs list).</summary>
+    public const string ControlPanelCrosses = "/cp/crosses";
+    /// <summary>CP crosses Blazor list (JSON digest remains <see cref="ControlPanelCrosses"/>).</summary>
+    public const string ControlPanelCrossesApp = "/cp/crosses-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

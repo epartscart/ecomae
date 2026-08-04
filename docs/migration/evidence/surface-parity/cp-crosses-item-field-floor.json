@@ -1,0 +1,24 @@
+{
+  "role": "cp-crosses-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-crosses",
+  "collectionKey": "pairs",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "totalPairs",
+    "brands",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "manufacturer",
+    "article",
+    "crossManufacturer",
+    "crossArticle"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks crosses digest summary+pairs[] floors. Import/edit remains PHP shop/crosses. cutoverAllowed=false."
+}
