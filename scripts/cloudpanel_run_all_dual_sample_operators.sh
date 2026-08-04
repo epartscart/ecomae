@@ -33,6 +33,7 @@ run_one "hybrid-ui" "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator
 run_one "price-lookup" "$ROOT/scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh"
 run_one "catalog-api" "$ROOT/scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh"
 run_one "module-function" "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh"
+run_one "write-dryrun" "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh"
 
 echo ""
 if [[ "$FAIL" -ne 0 ]]; then
