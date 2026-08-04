@@ -290,9 +290,53 @@ public sealed class StorefrontModule : ISurfaceModule
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontCartCheckForOrder, async (
+            HttpContext context,
+            StorefrontCartCheckForOrderBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontCartCheckForOrderDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for cart check-for-order dry-run.");
+            }
+
+            body ??= new StorefrontCartCheckForOrderBody([], false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontCartCheckForOrderRequest(body.Records ?? [], body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontCartDelete, async (
+            HttpContext context,
+            StorefrontCartDeleteBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontCartDeleteDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for cart delete dry-run.");
+            }
+
+            body ??= new StorefrontCartDeleteBody([], false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontCartDeleteRequest(body.RecordsToDel ?? [], body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
     }
 
     private sealed record StorefrontCartChangeCountNeedBody(int Id, decimal CountNeed, bool ConfirmWrites = false);
+    private sealed record StorefrontCartCheckForOrderBody(IReadOnlyList<long>? Records, bool ConfirmWrites = false);
+    private sealed record StorefrontCartDeleteBody(IReadOnlyList<long>? RecordsToDel, bool ConfirmWrites = false);
 
     private static IResult Unauthorized(string message) => Results.Json(
         new { ok = false, error = new { code = "unauthorized", message } },

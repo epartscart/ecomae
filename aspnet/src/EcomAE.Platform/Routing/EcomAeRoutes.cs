@@ -424,6 +424,10 @@ public static class EcomAeRoutes
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>
     public const string ControlPanelOrdersDigest = "/cp/orders-digest";
+    /// <summary>Wave B dry-run OMS set_item_status (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    public const string ControlPanelOmsSetItemStatus = "/cp/orders/set-item-status";
+    /// <summary>Wave B dry-run OMS set_items_status bulk (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    public const string ControlPanelOmsSetItemsStatus = "/cp/orders/set-items-status";
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
     /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>
@@ -553,6 +557,10 @@ public static class EcomAeRoutes
     public const string StorefrontCheckout = "/storefront/checkout";
     /// <summary>Wave B dry-run cart qty write (PHP ajax_change_count_need.php remains authoritative).</summary>
     public const string StorefrontCartChangeCountNeed = "/storefront/cart/change-count-need";
+    /// <summary>Wave B dry-run cart checked_for_order toggle (PHP ajax_check_for_order.php remains authoritative).</summary>
+    public const string StorefrontCartCheckForOrder = "/storefront/cart/check-for-order";
+    /// <summary>Wave B dry-run cart delete (PHP ajax_delete_cart_record.php remains authoritative).</summary>
+    public const string StorefrontCartDelete = "/storefront/cart/delete";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>

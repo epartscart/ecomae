@@ -18,7 +18,7 @@
 | Chrome **look** parity (fonts/color/width/motion) | Hybrid assets + ERP/BOS mega-nav + marketing hub | Improving on www hybrid | **~70–75%** look |
 | Interactive module parity (menus/forms/writes) | Digests read-only | PHP-primary until function dual-sample | **~0%** full interactive |
 | Tenant cutover path (5 live) | Parity-gate refuse-by-default; unlock via `ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW` | PHP-primary today | **Gate open — not permanent PHP** |
-| Zero-PHP end-state readiness | Phases 1–2 done; 3–4 in progress (marketing home sections + checkout readiness); 5–6 blocked | — | **~42%** honest (see path board) |
+| Zero-PHP end-state readiness | Phases 1–2 done; 3–4 in progress (marketing home sections + cart/OMS write dry-runs); 5–6 blocked | — | **~44%** honest (see path board) |
 
 Weighted Zero-PHP meter remains **95% / 5%** (decommission residual) — **not** “95% of UX cut over.”
 

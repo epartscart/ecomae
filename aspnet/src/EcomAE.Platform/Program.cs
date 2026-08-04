@@ -133,6 +133,10 @@ builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryRepor
 builder.Services.AddSingleton<IPlatformJobsSummaryReporter, PlatformJobsSummaryReporter>();
 builder.Services.AddSingleton<ISurfaceDashboardSummaryReporter, SurfaceDashboardSummaryReporter>();
 builder.Services.AddSingleton<IStorefrontCartChangeCountNeedDryRun, StorefrontCartChangeCountNeedDryRun>();
+builder.Services.AddSingleton<IStorefrontCartCheckForOrderDryRun, StorefrontCartCheckForOrderDryRun>();
+builder.Services.AddSingleton<IStorefrontCartDeleteDryRun, StorefrontCartDeleteDryRun>();
+builder.Services.AddSingleton<ICpOmsSetItemStatusDryRun, CpOmsSetItemStatusDryRun>();
+builder.Services.AddSingleton<ICpOmsSetItemsStatusDryRun, CpOmsSetItemsStatusDryRun>();
 builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();
