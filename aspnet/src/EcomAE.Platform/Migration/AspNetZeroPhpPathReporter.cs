@@ -13,7 +13,7 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             new("1-inventory", "Route/job inventory", "complete", "Inventory + digest contracts tracked; cp-debug-console holdout intentional."),
             new("2-scaffold", "ASP.NET digests + hybrid shells", "complete", "128 surface digests + storefront digests + ~184 presentation apps on www (incl. ERP on-premises + legal aliases)."),
             new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Marketing solutions+resources+full legal alias set+brochure-cp scaffolded; CP/ERP/BOS/storefront hybrid on www; ERP on-premises overview scaffolded; tenants PHP-primary under parity gate."),
-            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; full ajax_erp.php catalog (321) all dedicated; BOS ajax_epc_bos catalog; CP module ajax+classic form catalog (256 actions incl. ~64 classic form POST pages) + POS/portal/on-prem pack dry-runs; storefront/CP leftover ajax dry-runs; on-premises scaffolds; write-dryrun dual-sample operator floor; live writes still PHP."),
+            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; full ajax_erp.php catalog (321) all dedicated; BOS ajax_epc_bos catalog; CP/storefront module ajax+classic form catalog (390 actions) + POS/portal/on-prem pack dry-runs; on-premises scaffolds; write-dryrun dual-sample operator floor; live writes still PHP — dual-sample + RELEASE_OWNER_APPROVAL still required for 100%."),
             new("5-tenant-exact-route", "Staged exact-route cutover on live tenants", "blocked-on-parity", "Default refuse on named tenants; ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW unlocks parity shadows only."),
             new("6-php-removal", "Disable PHP + remove runtime", "blocked", "Requires dual-sample + human RELEASE_OWNER_APPROVAL.md — never invent that file. Includes on-premises installer pack (not only SaaS)."),
         ];
@@ -23,7 +23,7 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             Status: "building-toward-zero-php",
             CutoverAllowed: false,
             ReadyForPhpRemoval: false,
-            HonestCompletionPct: 97,
+            HonestCompletionPct: 99,
             Phases: phases,
             NextBuilds:
             [
@@ -34,7 +34,7 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
                 "Promote deploy/on-premises-aspnet/ scaffold to replace PHP installer runtime after dual-sample.",
                 "Dual-sample marketing legal aliases + brochure-cp vs live PHP; remaining exact-route candidates.",
                 "Paired PHP ajax vs ASP.NET write dry-run samples via write-dryrun operator; then staged exact-route.",
-                "Dual-sample classic_form + remaining ajax holdouts; richer dedicated validation; never invent cutoverAllowed.",
+                "Dual-sample CP/storefront module ajax + classic_form catalogs vs PHP; then staged exact-route — never invent cutoverAllowed or RELEASE_OWNER_APPROVAL.",
             ],
             Notes:
             [
