@@ -422,7 +422,7 @@ check 'catalog allowlist sync mirrors live surface probe' contains "$ROOT/script
 check 'catalog allowlist sync mirrors decommission area tests' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'run_php_decommission_area_tests.sh'
 check 'catalog allowlist sync mirrors pre-php-removal parity' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'verify_pre_php_removal_parity.sh'
 check 'presentation exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json"
-check 'presentation exact-route inventory routeCount is 174' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 174'
+check 'presentation exact-route inventory routeCount is 184' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 184'
 check 'presentation exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"cutoverAllowed": false'
 check 'presentation allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" 'presentation-exact-routes.json'
 check 'live surface probe references presentation inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'presentation/presentation-exact-routes.json'
@@ -595,7 +595,7 @@ check 'surface-field board blocks PHP removal' contains "$ROOT/docs/migration/ev
 check 'platform.env.example documents dual-sample operator helper' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'platform.env.example documents offline migration gate' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_offline_migration_gate.sh'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
-check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 174'
+check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 184'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
 check 'YARP exact-routes design example exists' test -f "$ROOT/deploy/aspnet/yarp-exact-routes-example.json"
 check 'YARP design example blocks cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": false'
@@ -797,6 +797,9 @@ check 'Wave B write dry-run probe covers storefront order send-message' contains
 check 'Wave B write dry-run probe covers OMS set-viewed' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/orders/set-viewed'
 check 'Wave B write dry-run probe covers quote add-item' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/quotes/add-item'
 check 'Wave B write dry-run probe covers garage delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/garage/delete'
+check 'Wave B write dry-run probe covers checkout create' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/checkout/create'
+check 'Wave B write dry-run probe covers OMS update-item' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/orders/update-item'
+check 'Wave B write dry-run probe covers OMS pay-refund' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/orders/pay-refund'
 check 'Wave B write dry-run probe covers on-premises health' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/on-premises/health-dry-run'
 check 'Wave B write dry-run probe covers on-premises license activate' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/on-premises/license-activate-dry-run'
 check 'on-premises parity board reporter exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/OnPremisesParityReporter.cs" 'cutoverAllowed'

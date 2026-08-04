@@ -1,0 +1,38 @@
+@page "/marketing/copyright"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>ECOM AE — Copyright (PHP parity preview)</PageTitle>
+<PhpChromeStyles Surface="marketing" />
+
+<PhpEcomaeMarketingChrome ActiveKey="copyright">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/copyright" />
+
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <PhpEcomaeLegalAliasOverview
+            Title="Copyright"
+            Badge="Copyright"
+            Icon="fa-copyright"
+            GradientStart="#1e293b"
+            GradientMid="#475569"
+            PhpSlug="copyright"
+            AspNetRoute="/marketing/copyright"
+            Lead="Copyright notices for platform content and documentation. Full policy text remains on live PHP until dual-sample."
+            CardOne="Ownership of code, content, and marketing materials." />
+    }
+</PhpEcomaeMarketingChrome>
+
+@code {
+    private string? _phpHref;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
+    }
+}

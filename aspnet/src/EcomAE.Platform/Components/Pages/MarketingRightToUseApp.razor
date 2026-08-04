@@ -1,0 +1,38 @@
+@page "/marketing/right-to-use"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>ECOM AE — Right to use (PHP parity preview)</PageTitle>
+<PhpChromeStyles Surface="marketing" />
+
+<PhpEcomaeMarketingChrome ActiveKey="right_to_use">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/right-to-use" />
+
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <PhpEcomaeLegalAliasOverview
+            Title="Right to use"
+            Badge="Right to use"
+            Icon="fa-handshake-o"
+            GradientStart="#0f766e"
+            GradientMid="#14b8a6"
+            PhpSlug="right-to-use"
+            AspNetRoute="/marketing/right-to-use"
+            Lead="Usage rights for the ECOM AE Blockchain BOS Enterprise System. Full policy text remains on live PHP until dual-sample."
+            CardOne="Licensed use boundaries for tenants and operators." />
+    }
+</PhpEcomaeMarketingChrome>
+
+@code {
+    private string? _phpHref;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
+    }
+}

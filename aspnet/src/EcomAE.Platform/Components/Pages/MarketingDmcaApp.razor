@@ -1,0 +1,38 @@
+@page "/marketing/dmca"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>ECOM AE — DMCA (PHP parity preview)</PageTitle>
+<PhpChromeStyles Surface="marketing" />
+
+<PhpEcomaeMarketingChrome ActiveKey="dmca">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/dmca" />
+
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <PhpEcomaeLegalAliasOverview
+            Title="DMCA"
+            Badge="DMCA"
+            Icon="fa-gavel"
+            GradientStart="#450a0a"
+            GradientMid="#b91c1c"
+            PhpSlug="dmca"
+            AspNetRoute="/marketing/dmca"
+            Lead="DMCA notice and takedown process for ECOM AE. Full policy text remains on live PHP until dual-sample."
+            CardOne="Copyright complaint handling on the platform." />
+    }
+</PhpEcomaeMarketingChrome>
+
+@code {
+    private string? _phpHref;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
+    }
+}
