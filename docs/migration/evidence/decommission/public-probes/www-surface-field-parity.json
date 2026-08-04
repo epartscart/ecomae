@@ -1,10 +1,9 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
-  "contractCount": 53,
-  "presentationAssetsChecked": 22,
-  "presentationAssetsOk": 22,
+  "contractCount": 54,
+  "presentationAssetsChecked": 28,
+  "presentationAssetsOk": 28,
   "contracts": [
     {
       "surface": "cp",
@@ -62,6 +61,37 @@
       ],
       "functionsCovered": [
         "portal tenant registry list"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/orders-digest",
+      "legacyPhpAuthority": "cp/content/shop/order_process/orders.php KPI\u002Blist",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "orders",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "open",
+        "today",
+        "pendingShip",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "CP OMS shop_orders read digest",
+        "KPI open/today/pendingShip",
+        "writes remain PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -185,7 +215,7 @@
         "unknownLinkCount"
       ],
       "functionsCovered": [
-        "menu metadata digest"
+        "menu metadata \u002B structure summary digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -776,7 +806,7 @@
       "functionsCovered": [
         "BOS fleet KPI read"
       ],
-      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -809,7 +839,7 @@
       "functionsCovered": [
         "portal tenant registry list"
       ],
-      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -839,7 +869,7 @@
       "functionsCovered": [
         "fleet health sample tenants"
       ],
-      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -868,7 +898,7 @@
       "functionsCovered": [
         "platform-DB readiness scoring"
       ],
-      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -899,7 +929,7 @@
       "functionsCovered": [
         "audit log digest"
       ],
-      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -1451,6 +1481,90 @@
     },
     {
       "surface": "cp",
+      "phpFunctionOrEntry": "dashboard-summary Blazor KPIs",
+      "aspNetRouteOrCapability": "/cp/dashboard-summary-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/dashboard-summary digest; PHP desktop.php widgets remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "Orders/OMS shop_orders read",
+      "aspNetRouteOrCapability": "/cp/orders \u002B /cp/orders-digest",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Batch 4 read UI \u002B KPI digest; PHP OMS console and writes remain authoritative."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "user_manager / groups Blazor lists",
+      "aspNetRouteOrCapability": "/cp/users-app|/cp/groups-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Batch 4 read UI over existing /cp/users|/cp/groups digests; writes remain PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "modules Blazor list",
+      "aspNetRouteOrCapability": "/cp/modules-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/modules digest; PHP modules_manager writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "pages Blazor list",
+      "aspNetRouteOrCapability": "/cp/pages-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/pages digest (body omitted); PHP content_manager writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "menus Blazor list",
+      "aspNetRouteOrCapability": "/cp/menus-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/menus digest (structure summary: nodeCount/link modes; raw tree omitted); PHP menu_manager writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "tenants Blazor list",
+      "aspNetRouteOrCapability": "/cp/tenants-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/tenants digest; PHP epc_tenant_control_center / portal remain authoritative; tenant product chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "currencies Blazor list",
+      "aspNetRouteOrCapability": "/cp/currencies-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/currencies digest; PHP nastrojka-kursov-valyut writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "storages Blazor list",
+      "aspNetRouteOrCapability": "/cp/storages-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/storages digest; PHP /CP/shop/logistics/storages writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "admin-sessions Blazor list",
+      "aspNetRouteOrCapability": "/cp/admin-sessions-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/admin-sessions digest (tokens never returned); PHP /CP/control/users remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "api-clients Blazor list",
+      "aspNetRouteOrCapability": "/cp/api-clients-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/api-clients digest (key hashes never returned); PHP epc_api_clients_manage remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "config-items Blazor list",
+      "aspNetRouteOrCapability": "/cp/config-items-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/config-items digest (secret values never returned); PHP config_edit remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
       "phpFunctionOrEntry": "user_manager / groups / menus / pages",
       "aspNetRouteOrCapability": "/cp/users|/cp/groups|/cp/menus|/cp/pages",
       "status": "digest-wired-awaiting-dual-sample",
@@ -1465,10 +1579,101 @@
     },
     {
       "surface": "erp",
-      "phpFunctionOrEntry": "erp_desktop.php + erp_dashboard.php",
-      "aspNetRouteOrCapability": "/erp?format=html + /erp/dashboard-summary",
+      "phpFunctionOrEntry": "erp_desktop.php \u002B erp_dashboard.php",
+      "aspNetRouteOrCapability": "/erp?format=html \u002B /erp/dashboard-summary",
       "status": "presentation-and-digest-scaffolded",
-      "notes": "Chrome CSS + KPI fields contracted; full voucher/posting UX still PHP."
+      "notes": "Chrome CSS \u002B KPI fields contracted; full voucher/posting UX still PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "sales_orders Blazor list",
+      "aspNetRouteOrCapability": "/erp/sales-orders-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Batch 4 read UI over existing /erp/sales-orders digest; PHP erp_tabs_sales_orders writes remain authoritative."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "purchase_orders Blazor list",
+      "aspNetRouteOrCapability": "/erp/purchase-orders-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over existing /erp/purchase-orders digest; PHP erp_tabs_purchase_orders writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "invoices Blazor list",
+      "aspNetRouteOrCapability": "/erp/invoices-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over existing /erp/invoices digest; PHP erp_tabs_invoices writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "cash_bank Blazor list",
+      "aspNetRouteOrCapability": "/erp/cash-accounts-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/cash-accounts|/erp/cash-entries digests; PHP erp_tabs_cash_bank writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "cash_entries Blazor ledger",
+      "aspNetRouteOrCapability": "/erp/cash-entries-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/cash-entries digest; PHP erp_tabs_cash_bank writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "coa Blazor list",
+      "aspNetRouteOrCapability": "/erp/coa-accounts-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/coa-accounts digest; PHP erp_tabs_accounting (tab=coa) writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "gl Blazor list",
+      "aspNetRouteOrCapability": "/erp/gl-journals-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/gl-journals digest; PHP erp_tabs_accounting (tab=gl) writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "warehouses Blazor list",
+      "aspNetRouteOrCapability": "/erp/warehouses-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/warehouses digest; PHP erp_tabs_inventory writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "suppliers Blazor list",
+      "aspNetRouteOrCapability": "/erp/suppliers-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/suppliers digest; PHP AP payables / epc_erp_list_suppliers writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "purchases Blazor list",
+      "aspNetRouteOrCapability": "/erp/purchases-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/purchases digest; PHP purchasing/purchases / epc_erp_list_purchases writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "inventory-stock Blazor KPIs",
+      "aspNetRouteOrCapability": "/erp/inventory-stock-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/inventory-stock digest; PHP inventory tab / epc_erp_inv_stock writes remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "accounts-summary Blazor KPIs",
+      "aspNetRouteOrCapability": "/erp/accounts-summary-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/accounts-summary digest; PHP cash/bank posting remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "dashboard-summary Blazor KPIs",
+      "aspNetRouteOrCapability": "/erp/dashboard-summary-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/dashboard-summary digest; PHP erp_dashboard.php widgets remain authoritative; tenant chrome stays PHP."
     },
     {
       "surface": "erp",
@@ -1479,17 +1684,52 @@
     },
     {
       "surface": "erp",
-      "phpFunctionOrEntry": "accounts-summary / cash accounts+entries",
+      "phpFunctionOrEntry": "accounts-summary / cash accounts\u002Bentries",
       "aspNetRouteOrCapability": "/erp/accounts-summary|/erp/cash-accounts|/erp/cash-entries",
       "status": "digest-wired-awaiting-dual-sample",
       "notes": "Cash KPI/ledger digests; posting remains PHP."
     },
     {
       "surface": "bos",
-      "phpFunctionOrEntry": "bos/index.php + epc_bos_shell.css",
-      "aspNetRouteOrCapability": "/bos?format=html + /bos/fleet-summary",
+      "phpFunctionOrEntry": "bos/index.php \u002B epc_bos_shell.css",
+      "aspNetRouteOrCapability": "/bos?format=html \u002B /bos/fleet-summary",
       "status": "presentation-and-digest-scaffolded",
       "notes": "BOS shell CSS must match; privileged ops remain PHP."
+    },
+    {
+      "surface": "bos",
+      "phpFunctionOrEntry": "audit-log Blazor list",
+      "aspNetRouteOrCapability": "/bos/audit-log-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /bos/audit-log digest (meta omitted); PHP epc_boc_audit_log append-only remains authoritative; /BOS/ session still required for native modules."
+    },
+    {
+      "surface": "bos",
+      "phpFunctionOrEntry": "tenants Blazor list",
+      "aspNetRouteOrCapability": "/bos/tenants-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /bos/tenants digest; PHP epc_tenant_control_center / /BOS/?m=fleet_cp remain authoritative; /BOS/ session still required for native modules."
+    },
+    {
+      "surface": "bos",
+      "phpFunctionOrEntry": "fleet-health Blazor KPIs",
+      "aspNetRouteOrCapability": "/bos/fleet-health-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /bos/fleet-health digest; PHP epc_bos_health_check / epc_platform_health_checkup remain authoritative; /BOS/ session still required for native modules."
+    },
+    {
+      "surface": "bos",
+      "phpFunctionOrEntry": "fleet-readiness Blazor KPIs",
+      "aspNetRouteOrCapability": "/bos/fleet-readiness-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /bos/fleet-readiness digest; PHP epc_bos_health_check remains authoritative; /BOS/ session still required for native modules."
+    },
+    {
+      "surface": "bos",
+      "phpFunctionOrEntry": "fleet-summary Blazor KPIs",
+      "aspNetRouteOrCapability": "/bos/fleet-summary-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /bos/fleet-summary digest; PHP bos/index.php command center remains authoritative; /BOS/ session still required for native modules."
     },
     {
       "surface": "bos",
@@ -1513,6 +1753,48 @@
       "notes": "Customer session digests; PHP account remains authoritative."
     },
     {
+      "surface": "storefront",
+      "phpFunctionOrEntry": "part_search Blazor results",
+      "aspNetRouteOrCapability": "/storefront/search-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Batch 4 read-only warehouse offers (pyapi SQL parity); full PHP part_search tabs/cart remain authoritative."
+    },
+    {
+      "surface": "storefront",
+      "phpFunctionOrEntry": "cart Blazor summary",
+      "aspNetRouteOrCapability": "/storefront/cart-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Batch 4 authenticated shop_carts read UI; qty/guest cart/checkout writes remain PHP."
+    },
+    {
+      "surface": "storefront",
+      "phpFunctionOrEntry": "orders Blazor list",
+      "aspNetRouteOrCapability": "/storefront/orders-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /storefront/orders digest; PHP /shop/orders remains authoritative for detail/reorder; live storefront stays PHP."
+    },
+    {
+      "surface": "storefront",
+      "phpFunctionOrEntry": "garage Blazor list",
+      "aspNetRouteOrCapability": "/storefront/garage-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /storefront/garage digest; PHP part_search garage remains authoritative for add/edit; live storefront stays PHP."
+    },
+    {
+      "surface": "storefront",
+      "phpFunctionOrEntry": "profile Blazor read",
+      "aspNetRouteOrCapability": "/storefront/profile-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /storefront/profile digest; PHP /users/profile remains authoritative for edits; live storefront stays PHP."
+    },
+    {
+      "surface": "storefront",
+      "phpFunctionOrEntry": "account-summary Blazor KPIs",
+      "aspNetRouteOrCapability": "/storefront/account-summary-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /storefront/account-summary digest; PHP /users/ account tools remain authoritative; live storefront stays PHP."
+    },
+    {
       "surface": "frontend",
       "phpFunctionOrEntry": "tenant/industry storefront HTML",
       "aspNetRouteOrCapability": "/",
@@ -1531,21 +1813,28 @@
       "phpFunctionOrEntry": "catalog status",
       "aspNetRouteOrCapability": "/api/v1/catalog/status",
       "status": "awaiting-exact-route-shadow",
-      "notes": "Contract ready; public host still PHP until shadow + smoke."
+      "notes": "Contract ready; public host still PHP until shadow \u002B smoke."
     },
     {
       "surface": "api",
       "phpFunctionOrEntry": "catalog manufacturers/models/modifications/brands/suppliers",
       "aspNetRouteOrCapability": "/api/v1/catalog/manufacturers|\u2026|/suppliers",
       "status": "digest-wired-awaiting-dual-sample",
-      "notes": "Envelope contracts + compare_catalog_list_parity.py; one-path nginx-catalog-*-shadow after smoke."
+      "notes": "Envelope contracts \u002B compare_catalog_list_parity.py; one-path nginx-catalog-*-shadow after smoke."
     },
     {
       "surface": "api",
-      "phpFunctionOrEntry": "catalog offline-cache + vin + brand-parts",
+      "phpFunctionOrEntry": "catalog offline-cache \u002B vin \u002B brand-parts",
       "aspNetRouteOrCapability": "/api/v1/catalog/engines|analogs|\u2026|vin|brand-parts",
       "status": "digest-wired-awaiting-dual-sample",
-      "notes": "Offline-cache envelopes + compare_catalog_offline_cache_parity.py / compare_catalog_vin_parity.py."
+      "notes": "Offline-cache envelopes \u002B compare_catalog_offline_cache_parity.py / compare_catalog_vin_parity.py."
+    },
+    {
+      "surface": "api",
+      "phpFunctionOrEntry": "catalog miss / UMAPI fill",
+      "aspNetRouteOrCapability": "/api/v1/catalog/* miss \u2192 404",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Batch 5: ASP.NET returns cache_miss/vin_cache_miss; catalog-miss-fill dry-run outbound/writes blocked; live UMAPI fill remains PHP (cutoverAllowed=false)."
     }
   ],
   "guarantees": [
@@ -1557,7 +1846,7 @@
     "CutoverAllowed is false; AdminAspNetEnabled/StorefrontAspNetEnabled must remain false; RequirePhpFallback must remain true."
   ],
   "remainingGaps": [
-    "Capture authenticated ASP.NET + PHP (or shared-DB fixture) dual samples for each contracted digest route.",
+    "Capture authenticated ASP.NET \u002B PHP (or shared-DB fixture) dual samples for each contracted digest route.",
     "Run scripts/run_surface_parity_harness.sh and attach match=true samples under docs/migration/evidence/surface-parity/samples/.",
     "Do not enable broad /cp /erp /bos / storefront nginx cutover until every contract has match=true evidence.",
     "Storefront cart/checkout/SEO HTML and ERP voucher posting UX are still PHP-authoritative gaps.",
@@ -1570,5 +1859,6 @@
     "Then capture/commit staging-smoke and bash scripts/run_surface_parity_harness.sh with real cookies/keys.",
     "Optional customer digests: ECOMAE_CUSTOMER_COOKIE_HEADER (not required for ReadyToRemovePhp).",
     "Only after dual samples match: promote exact-route shadows one location= at a time."
-  ]
+  ],
+  "readyForPhpRemoval": false
 }
