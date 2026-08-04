@@ -125,6 +125,7 @@ public static class LegacyChromeNavCatalog
         new("Tenant control PHP", "/CP/control/portal/epc_tenant_control_center"),
         new("Fleet health KPIs", "/bos/fleet-health-app"),
         new("Fleet readiness KPIs", "/bos/fleet-readiness-app"),
+        new("Fleet summary KPIs", "/bos/fleet-summary-app"),
         new("Platform health PHP", "/CP/control/portal/epc_platform_health_checkup"),
         new("Fleet command", "/bos/app"),
         new("Native BOS", "/BOS/")

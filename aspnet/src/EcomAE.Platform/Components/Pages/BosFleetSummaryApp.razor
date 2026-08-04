@@ -1,0 +1,102 @@
+@page "/bos/fleet-summary-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Fleet Summary · Super BOS · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="bos" />
+
+<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Fleet Summary">
+    <style>
+        .epc-fs-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#14532d 0%,#166534 45%,#0f766e 100%);
+        }
+        .epc-fs-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-fs-hero p { margin:0; color:#bbf7d0; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-fs-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-fs-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#14532d; background:#86efac;
+        }
+        .epc-fs-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-fs-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-fs-kpi { background:#fff; border:1px solid #d1fae5; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-fs-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-fs-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-fs-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:.45rem; color:#14532d; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-fs-kpis{grid-template-columns:1fr 1fr;} }
+        @@media (max-width:560px){ .epc-fs-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-fs-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Fleet Summary</h1>
+        <p>Read-only fleet KPIs from <code>/bos/fleet-summary</code> digest under PHP BOS desktop chrome. Provisioning and live health stay on PHP — native <code>/BOS/</code> session still required for full module UX.</p>
+        <div class="epc-fs-cta">
+            <a href="@_phpTab">Open PHP BOS</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/bos/fleet-health-app">Fleet health</a>
+            <a class="ghost" href="/bos/fleet-readiness-app">Fleet readiness</a>
+            <a class="ghost" href="/bos/tenants-app">Fleet tenants</a>
+            <a class="ghost" href="/bos/app">Fleet command</a>
+        </div>
+    </section>
+
+    <div class="epc-fs-kpis" aria-label="Fleet summary KPIs">
+        <div class="epc-fs-kpi"><strong>@_tenants.ToString(CultureInfo.InvariantCulture)</strong><span>Portal tenants</span></div>
+        <div class="epc-fs-kpi"><strong>@_active.ToString(CultureInfo.InvariantCulture)</strong><span>Active tenants</span></div>
+        <div class="epc-fs-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Admin sessions</span></div>
+        <div class="epc-fs-kpi"><strong>@_withDb.ToString(CultureInfo.InvariantCulture)</strong><span>With database</span></div>
+        <div class="epc-fs-kpi"><strong>@_erpOnly.ToString(CultureInfo.InvariantCulture)</strong><span>ERP-only</span></div>
+        <div class="epc-fs-kpi"><strong>@_source</strong><span>Digest source</span></div>
+    </div>
+
+    <div class="epc-fs-note">
+        Read-only preview · JSON digest <a href="/bos/fleet-summary">/bos/fleet-summary</a>.
+        PHP <code>bos/index.php</code> command center remains authoritative.
+        Not a broad /bos cutover · native BOS <code>$_SESSION</code> modules stay PHP.
+        @(!string.IsNullOrWhiteSpace(_message) ? _message : "")
+    </div>
+</PhpBosDesktopChrome>
+
+@code {
+    private const string _phpTab = "/BOS/";
+    private bool _isAdmin;
+    private int _tenants;
+    private int _active;
+    private int _sessions;
+    private int _withDb;
+    private int _erpOnly;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+        {
+            Nav.NavigateTo("/bos/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var summary = await Dashboards.BuildBosAsync(ctx.RequestAborted);
+        _tenants = summary.PortalTenants;
+        _active = summary.ActivePortalTenants;
+        _sessions = summary.AdminSessions;
+        _withDb = summary.WithDatabase;
+        _erpOnly = summary.ErpOnly;
+        _source = summary.Source;
+        _message = summary.Message;
+    }
+}
