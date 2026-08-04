@@ -435,6 +435,13 @@ check 'cp menus SQL selects structure column' contains "$ROOT/aspnet/src/EcomAE.
 check 'cp menus digest contract requires nodeCount' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'nodeCount'
 check 'cp menus migration golden includes structure summary' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-menus.json" '"structurePresent": true'
 check 'cp menu structure analyzer exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Migration/CpMenuStructureAnalyzer.cs"
+check 'php module catalog deeplink floor validator exists' test -f "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
+check 'php module catalog deeplink floor validator is executable' test -x "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
+check 'php module catalog deeplink floor passes' python3 "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
+check 'php full catalog deeplink floor evidence exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json"
+check 'php full catalog deeplink floor blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"cutoverAllowed": false'
+check 'php full catalog deeplink floor tracks 714' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"totalTracked": 714'
+check 'PhpModuleCatalog rejects aspnet preview deeplinks' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'IsAllowedPhpDeeplink'
 check 'surface-digest exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json"
 check 'surface-digest exact-route inventory routeCount is 35' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"routeCount": 35'
 check 'surface-digest exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"cutoverAllowed": false'

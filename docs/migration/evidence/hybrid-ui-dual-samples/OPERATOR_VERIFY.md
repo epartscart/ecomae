@@ -18,4 +18,11 @@ ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1 \
   bash scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh
 ```
 
-Expect compare `cutoverAllowed=false`. Never invent `RELEASE_OWNER_APPROVAL.md`.
+Full PHP catalog deeplink floor (714 hrefs must be hybrid-iframe safe):
+
+```bash
+python3 scripts/validate_php_module_catalog_deeplink_floor.py
+```
+
+Expect compare `cutoverAllowed=false` and `aspNetInteractiveComplete=0`.
+Never invent `RELEASE_OWNER_APPROVAL.md`.

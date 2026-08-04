@@ -50,4 +50,38 @@ public sealed class PhpModuleCatalogTests
             || m.Href.StartsWith("/CP/", StringComparison.OrdinalIgnoreCase)
             || m.Href.StartsWith("/ERP/", StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void EveryTrackedCatalogHrefIsAllowedPhpDeeplink()
+    {
+        Assert.True(PhpModuleCatalog.TotalTrackedCount >= 714);
+        var bad = PhpModuleCatalog.AllTrackedLinks()
+            .Where(link => !PhpModuleCatalog.IsAllowedPhpDeeplink(link.Href))
+            .Select(link => $"{link.Id}:{link.Href}")
+            .Take(20)
+            .ToArray();
+        Assert.True(bad.Length == 0, "disallowed deeplinks: " + string.Join(", ", bad));
+    }
+
+    [Fact]
+    public void EveryTrackedCatalogHrefBuildsHybridWorkspaceUrl()
+    {
+        foreach (var link in PhpModuleCatalog.AllTrackedLinks())
+        {
+            var href = PhpModuleCatalog.HybridWorkspaceHref("/cp/app", link.Href);
+            Assert.StartsWith("/cp/app?php=", href, StringComparison.Ordinal);
+            Assert.False(string.IsNullOrWhiteSpace(href));
+        }
+    }
+
+    [Fact]
+    public void IsAllowedPhpDeeplinkRejectsAspNetPreviewRoutes()
+    {
+        Assert.False(PhpModuleCatalog.IsAllowedPhpDeeplink("/cp/app"));
+        Assert.False(PhpModuleCatalog.IsAllowedPhpDeeplink("/erp/dashboard-summary-app"));
+        Assert.False(PhpModuleCatalog.IsAllowedPhpDeeplink("/storefront/cart-app"));
+        Assert.False(PhpModuleCatalog.IsAllowedPhpDeeplink("javascript:alert(1)"));
+        Assert.True(PhpModuleCatalog.IsAllowedPhpDeeplink("/CP/menu/menu_manager"));
+        Assert.True(PhpModuleCatalog.IsAllowedPhpDeeplink("https://epartscart.com/shop/part_search"));
+    }
 }

@@ -135,6 +135,11 @@ if python3 "$ROOT/scripts/validate_platform_env_scaffold_key_parity.py"; then
 else
   fail "platform.env scaffold key parity"
 fi
+if python3 "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"; then
+  pass "php module catalog deeplink floor"
+else
+  fail "php module catalog deeplink floor"
+fi
 
 # YARP regenerator still green.
 if bash "$ROOT/scripts/generate_all_yarp_design_examples.sh" >/tmp/ecomae-yarp-guardrails.log 2>&1; then
@@ -176,6 +181,8 @@ check_file "operator verify index" \
   "$ROOT/docs/migration/evidence/OPERATOR_VERIFY.md"
 check_file "YARP all-packs generator helper" \
   "$ROOT/scripts/generate_all_yarp_design_examples.sh"
+check_file "php module catalog deeplink floor validator" \
+  "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
 
 if [[ "$FAIL" -ne 0 ]]; then
   printf 'FAIL: Enterprise BOS scaffold guardrails\n'
