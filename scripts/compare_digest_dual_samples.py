@@ -87,6 +87,26 @@ LIST_CONTRACTS = {
     "storefront-garage": "vehicles",
 }
 
+# Optional item-field contracts. When the collection is non-empty, first item must include fields.
+# Migration goldens listed in LIST_NONEMPTY_MIGRATION must ship a sentinel row (empty fails).
+LIST_ITEM_FIELDS = {
+    "cp-menus": [
+        "id",
+        "caption",
+        "isFrontend",
+        "menuUlClass",
+        "menuUlId",
+        "structurePresent",
+        "structureParseOk",
+        "nodeCount",
+        "maxDepth",
+        "urlLinkCount",
+        "contentLinkCount",
+        "unknownLinkCount",
+    ],
+}
+LIST_NONEMPTY_MIGRATION = frozenset({"cp-menus"})
+
 # Object digests without a collection array (top-level envelope fields).
 OBJECT_CONTRACTS = {
     "storefront-profile": [
@@ -167,7 +187,7 @@ def main() -> int:
     used_migration = 0
     checked_stems: set[str] = set()
 
-    def check_list_envelope(path: Path, key: str, label: str) -> None:
+    def check_list_envelope(path: Path, key: str, label: str, stem: str = "") -> None:
         nonlocal pairs, failed
         pairs += 1
         try:
@@ -181,8 +201,30 @@ def main() -> int:
         if missing:
             failed += 1
             print(f"FAIL {label}: missing {missing}")
-        else:
-            print(f"PASS {label}")
+            return
+
+        rows = doc.get(key)
+        item_fields = LIST_ITEM_FIELDS.get(stem) or []
+        require_nonempty = (
+            stem in LIST_NONEMPTY_MIGRATION
+            and ("migration" in label or path.parent.name == "migration")
+        )
+        if require_nonempty and (not isinstance(rows, list) or len(rows) < 1):
+            failed += 1
+            print(f"FAIL {label}: expected non-empty {key}[] sentinel for item-field floor")
+            return
+        if item_fields and isinstance(rows, list) and rows:
+            first = rows[0]
+            if not isinstance(first, dict):
+                failed += 1
+                print(f"FAIL {label}: {key}[0] must be object")
+                return
+            item_missing = [f for f in item_fields if f not in first]
+            if item_missing:
+                failed += 1
+                print(f"FAIL {label}: missing item fields {item_missing}")
+                return
+        print(f"PASS {label}")
 
     def check_object_envelope(path: Path, required: list[str], label: str) -> None:
         nonlocal pairs, failed
@@ -239,8 +281,10 @@ def main() -> int:
         if left is not None and asp.exists():
             if from_mig:
                 used_migration += 1
-            check_list_envelope(left, key, f"{'migration' if from_mig else 'php'}-{stem}")
-            check_list_envelope(asp, key, f"aspnet-{stem}")
+            check_list_envelope(
+                left, key, f"{'migration' if from_mig else 'php'}-{stem}", stem=stem
+            )
+            check_list_envelope(asp, key, f"aspnet-{stem}", stem=stem)
             checked_stems.add(stem)
 
     for stem, required in OBJECT_CONTRACTS.items():
@@ -289,7 +333,7 @@ def main() -> int:
                 continue
             path = mig / f"{stem}.json"
             if path.exists():
-                check_list_envelope(path, key, f"migration/{stem}")
+                check_list_envelope(path, key, f"migration/{stem}", stem=stem)
                 checked_stems.add(stem)
         for stem, required in OBJECT_CONTRACTS.items():
             if stem in checked_stems:
@@ -310,7 +354,13 @@ def main() -> int:
         "cutoverAllowed": False,
         "readyForPhpRemoval": False,
         "contractOnly": bool(args.contract_only) or used_migration > 0,
-        "note": "Digest dual-sample contract floor. Never invents RELEASE_OWNER_APPROVAL.md.",
+        "listItemFieldStems": sorted(LIST_ITEM_FIELDS),
+        "listNonemptyMigrationStems": sorted(LIST_NONEMPTY_MIGRATION),
+        "note": (
+            "Digest dual-sample contract floor. List item fields enforced when present; "
+            "cp-menus migration golden must keep structure-summary sentinel. "
+            "Never invents RELEASE_OWNER_APPROVAL.md."
+        ),
     }
     text = json.dumps(report, indent=2) + "\n"
     if args.out:

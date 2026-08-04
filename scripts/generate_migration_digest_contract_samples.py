@@ -136,7 +136,32 @@ def main() -> None:
         "cp-users.json": list_digest("cp", "users"),
         "cp-groups.json": list_digest("cp", "groups"),
         "cp-modules.json": list_digest("cp", "modules"),
-        "cp-menus.json": list_digest("cp", "menus"),
+        "cp-menus.json": {
+            **list_digest(
+                "cp",
+                "menus",
+                [
+                    {
+                        "id": 1,
+                        "caption": "Main menu",
+                        "isFrontend": True,
+                        "menuUlClass": "nav",
+                        "menuUlId": "main-menu",
+                        "structurePresent": True,
+                        "structureParseOk": True,
+                        "nodeCount": 3,
+                        "maxDepth": 2,
+                        "urlLinkCount": 2,
+                        "contentLinkCount": 1,
+                        "unknownLinkCount": 0,
+                    }
+                ],
+            ),
+            "note": (
+                "migration-mode contract sample; structure summary fields locked; "
+                "raw structure JSON omitted; PHP remains authoritative"
+            ),
+        },
         "cp-pages.json": list_digest("cp", "pages"),
         "cp-currencies.json": list_digest("cp", "currencies"),
         "cp-api-clients.json": list_digest("cp", "clients"),

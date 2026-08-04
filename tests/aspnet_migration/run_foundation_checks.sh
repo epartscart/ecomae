@@ -434,6 +434,14 @@ check 'cp menu tree inventory omits raw structure' contains "$ROOT/docs/migratio
 check 'cp menus SQL selects structure column' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs" 'AS structure'
 check 'cp menus digest contract requires nodeCount' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'nodeCount'
 check 'cp menus migration golden includes structure summary' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-menus.json" '"structurePresent": true'
+check 'cp menus migration golden includes nodeCount' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-menus.json" '"nodeCount": 3'
+check 'cp menus generator emits structure sentinel' contains "$ROOT/scripts/generate_migration_digest_contract_samples.py" 'structurePresent'
+check 'digest dual-sample locks cp-menus item fields' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'LIST_ITEM_FIELDS'
+check 'digest dual-sample requires nonempty cp-menus migration' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'LIST_NONEMPTY_MIGRATION'
+check 'cp menus item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json"
+check 'cp menus item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"cutoverAllowed": false'
+check 'cp menus item-field floor omits raw structure' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"rawStructureReturned": false'
+check 'cp menus item-field floor requires nodeCount' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"nodeCount"'
 check 'cp menu structure analyzer exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Migration/CpMenuStructureAnalyzer.cs"
 check 'php module catalog deeplink floor validator exists' test -f "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
 check 'php module catalog deeplink floor validator is executable' test -x "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
