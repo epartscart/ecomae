@@ -16,14 +16,14 @@
     <style>
         .epc-fr-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c1929 0%,#1e3a5f 48%,#334155 100%);
+            background:linear-gradient(135deg,#000000 0%,#0c4a6e 55%,#0ea5e9 100%);
         }
         .epc-fr-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-fr-hero p { margin:0; color:#bae6fd; max-width:42rem; font-size:.92rem; line-height:1.45; }
         .epc-fr-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-fr-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0c1929; background:#7dd3fc;
+            text-decoration:none; color:#0c1929; background:#e0f2fe;
         }
         .epc-fr-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-fr-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -44,13 +44,11 @@
     <section class="epc-fr-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Fleet Readiness</h1>
-        <p>Read-only platform-DB readiness scoring from <code>/bos/fleet-readiness</code> digest under PHP BOS desktop chrome. Live health checks stay on PHP — native <code>/BOS/</code> session still required for full module UX.</p>
+        <p>Platform fleet overview across tenants, sessions, and health.</p>
         <div class="epc-fr-cta">
-            <a href="@_phpTab">Open PHP platform health</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open platform health</a>
             <a class="ghost" href="/bos/fleet-health-app">Fleet health</a>
             <a class="ghost" href="/bos/tenants-app">Fleet tenants</a>
-            <a class="ghost" href="/bos/app">Fleet command</a>
         </div>
     </section>
 
@@ -67,12 +65,6 @@
         <div class="epc-fr-kpi"><strong>@_erpOnly.ToString(CultureInfo.InvariantCulture)</strong><span>ERP-only</span></div>
     </div>
 
-    <div class="epc-fr-note">
-        Read-only preview · JSON digest <a href="/bos/fleet-readiness">/bos/fleet-readiness</a>.
-        Platform-DB-only scoring (no per-tenant connects). PHP <code>epc_bos_health_check</code> remains authoritative.
-        Not a broad /bos cutover · native BOS <code>$_SESSION</code> modules stay PHP.
-        Source: <code>@_source</code>@(!string.IsNullOrWhiteSpace(_message) ? $" · {_message}" : "").
-    </div>
 </PhpBosDesktopChrome>
 
 @code {

@@ -16,14 +16,14 @@
     <style>
         .epc-pur-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#1a2e05 0%,#3f6212 45%,#4d7c0f 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
         }
         .epc-pur-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-pur-hero p { margin:0; color:#d9f99d; max-width:42rem; font-size:.92rem; line-height:1.45; }
         .epc-pur-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-pur-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#65a30d;
+            text-decoration:none; color:#fff; background:#2563eb;
         }
         .epc-pur-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
         .epc-pur-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -43,10 +43,9 @@
     <section class="epc-pur-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Purchases</h1>
-        <p>Read-only ERP purchases from <code>/erp/purchases</code> digest under PHP ERP desktop chrome. Full purchases UI in PHP (`area=purchasing&amp;tab=purchases` / <code>epc_erp_list_purchases</code>) remains authoritative for writes — same-to-same for tenants.</p>
+        <p>Purchase documents and supplier intake for this company.</p>
         <div class="epc-pur-cta">
-            <a href="@_phpTab">Open PHP purchases</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
             <a class="ghost" href="/erp/suppliers-app">Suppliers</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -75,7 +74,7 @@
             <tbody>
                 @if (_purchases.Count == 0)
                 {
-                    <tr><td colspan="7">No purchases in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -89,7 +88,7 @@
                             <td><span class="epc-pur-badge">@p.Status</span></td>
                             <td>@p.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(p.OrderId > 0 ? p.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@phpHref">Open in PHP</a></td>
+                            <td><a href="@phpHref">Open</a></td>
                         </tr>
                     }
                 }
@@ -97,12 +96,6 @@
         </table>
     </div>
 
-    <div class="epc-pur-note">
-        Read-only preview · JSON digest <a href="/erp/purchases?limit=200">/erp/purchases</a>.
-        PHP purchases tab (<code>area=purchasing&amp;tab=purchases</code>) / <code>epc_erp_list_purchases</code> remains authoritative for create/edit/post.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

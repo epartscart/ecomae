@@ -3,7 +3,7 @@
 @*
   Mirrors bos/index.php topnav mega + main content region (bos-body--topnav).
   White mega panels, Open first hub, section icons — bos/epc_bos_shell.css.
-  Full module UX still requires PHP $_SESSION on /BOS/.
+  Fleet Command topnav mirrors live BOS mega panels.
 *@
 
 <div class="bos-body bos-body--topnav epc-php-font-root">
@@ -34,7 +34,7 @@
                                     }
                                     @group.Label
                                 </div>
-                                <a class="bos-topnav__panel-hub" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", group.HubHref ?? group.Links[0].Href)">
+                                <a class="bos-topnav__panel-hub" href="@(group.HubHref ?? group.Links[0].Href)">
                                     Open first <i class="fa fa-arrow-right" aria-hidden="true"></i>
                                 </a>
                             </div>
@@ -45,11 +45,10 @@
                                         @foreach (var link in group.Links)
                                         {
                                             <li>
-                                                <a class="bos-topnav__link" data-module="@link.Id" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", link.Href)">
+                                                <a class="bos-topnav__link" data-module="@link.Id" href="@link.Href">
                                                     <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
                                                     @link.Label
                                                 </a>
-                                                <a class="bos-topnav__php" href="@link.Href" title="Open live PHP module">PHP</a>
                                             </li>
                                         }
                                     </ul>
@@ -68,7 +67,7 @@
                 {
                     <span class="bos-topnav__user">Admin session</span>
                 }
-                <a class="bos-topnav__logout" href="/BOS/">PHP BOS</a>
+                <a class="bos-topnav__logout" href="/BOS/">BOS home</a>
             </div>
         </div>
     </nav>
@@ -77,8 +76,7 @@
         <div class="bos-main__header" id="bosMainHeader">
             <div class="bos-main__breadcrumb">BOS / Fleet / @Title</div>
             <div class="bos-main__tenant-bar">
-                <span class="bos-tag">Hybrid chrome</span>
-                <span class="bos-tag bos-tag--warn">PHP $_SESSION modules on /BOS/</span>
+                <span class="bos-tag">Fleet</span>
             </div>
         </div>
         <div class="bos-main__content" id="bosContent">
@@ -88,9 +86,14 @@
 </div>
 
 <style>
-    .bos-body--topnav { --bos-topbar-height:52px; --bos-bg:#f4f4f5; --bos-ink:#111; --bos-topnav-hover:#1a1a1a; --bos-topnav-active:#262626; min-height:100vh; background:var(--bos-bg); color:var(--bos-ink); font-family: @(LegacyPhpFontAssets.StackFor("bos")); }
+    /* Tokens match bos/epc_bos_shell.css */
+    .bos-body--topnav {
+        --bos-topbar-height:52px; --bos-bg:#f0f2f5; --bos-ink:#1e293b; --bos-primary:#0ea5e9; --bos-primary-dark:#0284c7;
+        --bos-topnav-bg:#000000; --bos-topnav-hover:rgba(255,255,255,.12); --bos-topnav-active:rgba(255,255,255,.18);
+        min-height:100vh; background:var(--bos-bg); color:var(--bos-ink); font-family: @(LegacyPhpFontAssets.StackFor("bos"));
+    }
     .bos-body--topnav a { color:inherit; text-decoration:none; }
-    .bos-topnav { position:sticky; top:0; z-index:50; height:var(--bos-topbar-height); background:#0b0b0b; color:#f5f5f5; }
+    .bos-topnav { position:sticky; top:0; z-index:50; height:var(--bos-topbar-height); background:var(--bos-topnav-bg); color:#f5f5f5; }
     .bos-topnav__inner { display:flex; align-items:stretch; gap:.35rem; height:100%; padding:0 .5rem; overflow:visible; }
     .bos-topnav__brand { display:flex; align-items:center; gap:.45rem; padding:0 .65rem; font-weight:800; letter-spacing:.04em; white-space:nowrap; }
     .bos-topnav__brand img { height:26px; background:#fff; border-radius:4px; padding:1px; }
@@ -99,7 +102,7 @@
     .bos-topnav__btn { appearance:none; border:0; background:transparent; color:#f5f5f5; font:inherit; font-size:.78rem; font-weight:700; padding:0 .7rem; height:100%; cursor:pointer; white-space:nowrap; opacity:.9; display:inline-flex; align-items:center; gap:.35rem; border-bottom:3px solid transparent; }
     .bos-topnav__btn .fa { color:#a3a3a3; font-size:13px; }
     .bos-topnav__caret { font-size:11px; opacity:.85; margin-left:2px; }
-    .bos-topnav__item:hover .bos-topnav__btn, .bos-topnav__item:focus-within .bos-topnav__btn { opacity:1; background:var(--bos-topnav-hover); border-bottom-color:#fff; }
+    .bos-topnav__item:hover .bos-topnav__btn, .bos-topnav__item:focus-within .bos-topnav__btn { opacity:1; background:var(--bos-topnav-hover); border-bottom-color:var(--bos-primary); }
     .bos-topnav__panel {
         display:none; position:absolute; left:0; top:100%; z-index:60;
         min-width:300px; max-width:min(880px, calc(100vw - 24px)); max-height:min(70vh, 520px); overflow:auto;
@@ -120,9 +123,8 @@
     .bos-topnav__link { flex:1; display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:8px; color:#262626 !important; font-size:12.5px; font-weight:600; }
     .bos-topnav__link:hover { background:#f5f5f5; color:#0a0a0a !important; }
     .bos-topnav__link .fa { width:16px; text-align:center; color:#525252; }
-    .bos-topnav__php { flex:0; color:#b45309; font-size:.68rem; font-weight:700; padding-right:4px; }
     .bos-topnav__right { margin-left:auto; display:flex; align-items:center; gap:.75rem; padding:0 .65rem; font-size:.8rem; font-weight:600; white-space:nowrap; }
-    .bos-topnav__login { color:#facc15 !important; }
+    .bos-topnav__login { color:var(--bos-primary) !important; }
     .bos-main { margin-top:0; width:min(1400px, calc(100% - 1.5rem)); margin-left:auto; margin-right:auto; padding:1.1rem 0 2.5rem; }
     .bos-topnav__inner { width:min(1400px, 100%); margin:0 auto; }
     .bos-main__header { margin-bottom:.85rem; }

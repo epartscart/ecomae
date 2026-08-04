@@ -16,14 +16,14 @@
     <style>
         .epc-mn-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#1c1917 0%,#44403c 50%,#78716c 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-mn-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-mn-hero p { margin:0; color:#e7e5e4; max-width:40rem; font-size:.92rem; line-height:1.45; }
         .epc-mn-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-mn-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#1c1917; background:#fbbf24;
+            text-decoration:none; color:#1c1917; background:#e0f2fe;
         }
         .epc-mn-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-mn-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -35,7 +35,7 @@
         .epc-mn-table th, .epc-mn-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
         .epc-mn-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-mn-table a { color:#a16207; font-weight:700; text-decoration:none; }
-        .epc-mn-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#fef3c7; color:#78350f; }
+        .epc-mn-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#e0f2fe; color:#78350f; }
         .epc-mn-note { margin-top:1rem; padding:.75rem .9rem; background:#fafaf9; border:1px solid #d6d3d1; border-radius:.45rem; color:#44403c; font-size:.86rem; }
         @@media (max-width:900px){ .epc-mn-kpis{grid-template-columns:1fr;} }
     </style>
@@ -43,13 +43,11 @@
     <section class="epc-mn-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Menus</h1>
-        <p>Read-only CP menu metadata + structure summary from <code>/cp/menus</code> digest under PHP CP desktop chrome. Raw structure JSON omitted. Create/edit stay on live PHP menu manager — same-to-same for tenants.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-mn-cta">
-            <a href="@_phpTab">Open PHP menu manager</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/pages-app">Pages list</a>
             <a class="ghost" href="/cp/modules-app">Modules list</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -75,7 +73,7 @@
             <tbody>
                 @if (_menus.Count == 0)
                 {
-                    <tr><td colspan="7">No menus in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -89,7 +87,7 @@
                             <td>@(m.StructurePresent ? m.NodeCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(m.StructurePresent ? m.MaxDepth.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@m.UrlLinkCount / @m.ContentLinkCount</td>
-                            <td><a href="@phpHref">Open in PHP</a></td>
+                            <td><a href="@phpHref">Open</a></td>
                         </tr>
                     }
                 }
@@ -97,12 +95,6 @@
         </table>
     </div>
 
-    <div class="epc-mn-note">
-        Read-only preview · JSON digest <a href="/cp/menus?limit=200">/cp/menus</a> (structure summary only; raw tree omitted).
-        PHP <code>menu_manager</code> / <code>menu_edit</code> remain authoritative for create/edit.
-        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

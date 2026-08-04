@@ -1,0 +1,23 @@
+{
+  "role": "storefront-garage-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "storefront-garage",
+  "collectionKey": "vehicles",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": ["count", "source", "message"],
+  "requiredItemFields": [
+    "id",
+    "caption",
+    "marka",
+    "model",
+    "year",
+    "vin",
+    "active"
+  ],
+  "phpAuthoritativePath": "https://www.epartscart.com/en/garage/login",
+  "tenant": "epartscart.com",
+  "source": "LIST_ITEM_FIELDS + StorefrontGarageDigest",
+  "note": "Dedicated epartscart garage floor (was list-digest only). Vehicle edits remain PHP. Never invents RELEASE_OWNER_APPROVAL.md."
+}

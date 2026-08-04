@@ -18,7 +18,7 @@
     {
         <style>
             .epc-cc-hero { display:grid; grid-template-columns:1.1fr 1.4fr; gap:1rem; margin-bottom:1.1rem; }
-            .epc-cc-panel { background:linear-gradient(135deg,#111 0%,#1f1f1f 60%,#3f0d0d 100%); color:#fff; border-radius:.7rem; padding:1.2rem 1.3rem; }
+            .epc-cc-panel { background:linear-gradient(135deg,#0c4a6e 0%,#075985 55%,#0ea5e9 100%); color:#fff; border-radius:.7rem; padding:1.2rem 1.3rem; }
             .epc-cc-panel h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.85rem); }
             .epc-cc-panel p { margin:0 0 .9rem; color:#d4d4d4; max-width:28rem; font-size:.92rem; line-height:1.45; }
             .epc-cc-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; }
@@ -35,39 +35,37 @@
             <section class="epc-cc-panel">
                 <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
                 <h1>CONTROL COMMAND CENTRE</h1>
-                <p>Batch 2 desktop chrome: PHP <code>desktop.php</code> header + topnav mega-panels. Module bodies open via hybrid workspace or live PHP.</p>
+                <p>Control panel shortcuts and module directory.</p>
             </section>
             <section class="epc-cc-kpis">
-                <div class="epc-cc-kpi"><strong>@_users</strong><span>Admin users (digest)</span></div>
+                <div class="epc-cc-kpi"><strong>@_users</strong><span>Admin users</span></div>
                 <div class="epc-cc-kpi"><strong>@_sessions</strong><span>Admin sessions</span></div>
                 <div class="epc-cc-kpi"><strong>@_tenants</strong><span>Portal tenants</span></div>
                 <div class="epc-cc-kpi"><strong>@_active</strong><span>Active portal tenants</span></div>
-                <div class="epc-cc-kpi"><strong>@_source</strong><span>Digest source</span></div>
-                <div class="epc-cc-kpi"><strong>TOPNAV</strong><span>epc-cp-topnav mega</span></div>
             </section>
         </div>
 
         <h2 style="font-size:1.05rem;margin:0 0 .7rem">Quick actions</h2>
         <div class="epc-cc-tiles">
             @{
-                var colors = new[] { "#dc2626", "#0f766e", "#2563eb", "#7c3aed", "#db2777", "#991b1b", "#166534", "#9f1239", "#9a3412" };
+                var colors = new[] { "#0c4a6e", "#0369a1", "#2563eb", "#0284c7", "#0ea5e9", "#1d4ed8", "#075985", "#dc2626", "#b91c1c" };
                 var i = 0;
             }
             @foreach (var item in LegacyChromeNavCatalog.ControlPanelQuickActions)
             {
                 var color = colors[i++ % colors.Length];
-                <a class="epc-cc-tile" style="background:@color" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", item.Href)">@item.Label</a>
+                <a class="epc-cc-tile" style="background:@color" href="@item.Href">@item.Label</a>
             }
         </div>
 
         <PhpHybridModuleDirectory
             Title="Complete Control Panel module directory"
-            Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} brochure features from PHP inventory")"
+            Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} control panel modules")"
             Links="@PhpModuleCatalog.CpBrochureFeatures"
             PhpWorkspaceBase="/cp/app" />
 
         <div class="epc-cc-note">
-            @_note Live PHP UI remains at <a href="/CP/">/CP/</a>. Topnav uses PHP class names from desktop.php. Not a broad /cp cutover.
+            Open any module below to continue in the control panel.
         </div>
     }
 </PhpCpDesktopChrome>
@@ -77,8 +75,6 @@
     private int _sessions;
     private int _tenants;
     private int _active;
-    private string _source = "n/a";
-    private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
     private string? _phpHref;
 
@@ -108,7 +104,5 @@
         _sessions = summary.AdminSessions;
         _tenants = summary.PortalTenants;
         _active = summary.ActivePortalTenants;
-        _source = summary.Source;
-        _note = "Admin session detected — KPIs from ASP.NET digest reporter. ";
     }
 }

@@ -16,7 +16,7 @@
     <style>
         .epc-ct-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#1e1b4b 0%,#4338ca 50%,#6366f1 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-ct-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-ct-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
@@ -41,11 +41,9 @@
     <section class="epc-ct-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>CRM tickets</h1>
-        <p>Read-only ticket KPIs + queue from <code>/cp/crm-tickets</code>. Message bodies and assignment writes stay on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-ct-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
+            <a href="@_phpTab">Open module</a>
         </div>
     </section>
 
@@ -73,7 +71,7 @@
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="8">No rows in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -87,7 +85,7 @@
                             <td>@row.CustomerUserId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.AssignedUserId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.OrderId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -95,10 +93,6 @@
         </table>
     </div>
 
-    <div class="epc-ct-note">
-        Read-only preview · JSON digest <a href="/cp/crm-tickets?limit=200">/cp/crm-tickets</a>. PHP CRM shell remains authoritative · message bodies omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

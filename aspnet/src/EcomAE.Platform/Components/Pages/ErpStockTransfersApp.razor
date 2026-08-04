@@ -16,7 +16,7 @@
     <style>
         .epc-st-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#14532d 0%,#166534 45%,#3f6212 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
         }
         .epc-st-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-st-hero p { margin:0; color:#d9f99d; max-width:44rem; font-size:.92rem; line-height:1.45; }
@@ -41,10 +41,9 @@
     <section class="epc-st-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Stock transfers</h1>
-        <p>Read-only inter-warehouse transfer KPIs + headers from <code>/erp/stock-transfers</code>. Ship/receive writes stay on live PHP.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-st-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/inventory-stock-app">Inventory stock</a>
         </div>
     </section>
@@ -75,7 +74,7 @@
             <tbody>
                 @if (_transfers.Count == 0)
                 {
-                    <tr><td colspan="9">No rows in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="9">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -90,7 +89,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@row.TotalItems.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.TotalQty.ToString("0.###", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -98,10 +97,6 @@
         </table>
     </div>
 
-    <div class="epc-st-note">
-        Read-only preview · JSON digest <a href="/erp/stock-transfers?limit=200">/erp/stock-transfers</a>. PHP warehouse transfer UX remains authoritative. notes omitted · Not a broad /erp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

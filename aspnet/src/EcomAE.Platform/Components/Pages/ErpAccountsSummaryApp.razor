@@ -16,14 +16,14 @@
     <style>
         .epc-as-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#1a2e05 0%,#3f6212 45%,#365314 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
         }
         .epc-as-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-as-hero p { margin:0; color:#d9f99d; max-width:42rem; font-size:.92rem; line-height:1.45; }
         .epc-as-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-as-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#1a2e05; background:#bef264;
+            text-decoration:none; color:#1a2e05; background:#dbeafe;
         }
         .epc-as-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-as-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -38,10 +38,9 @@
     <section class="epc-as-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Accounts Summary</h1>
-        <p>Read-only cash/supplier KPIs from <code>/erp/accounts-summary</code> digest under PHP ERP desktop chrome. Posting and cash moves stay on live PHP — same-to-same for tenants.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-as-cta">
-            <a href="@_phpCash">Open PHP cash &amp; bank</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpCash)">Hybrid workspace</a>
+            <a href="@_phpCash">Open module</a>
             <a class="ghost" href="/erp/cash-accounts-app">Cash accounts</a>
             <a class="ghost" href="/erp/suppliers-app">Suppliers</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -56,15 +55,8 @@
         <div class="epc-as-kpi"><strong>@_cashAccounts.ToString(CultureInfo.InvariantCulture)</strong><span>Cash accounts</span></div>
         <div class="epc-as-kpi"><strong>@_activeSuppliers.ToString(CultureInfo.InvariantCulture)</strong><span>Active suppliers</span></div>
         <div class="epc-as-kpi"><strong>@_activePurchases.ToString(CultureInfo.InvariantCulture)</strong><span>Active purchases</span></div>
-        <div class="epc-as-kpi"><strong>@_source</strong><span>Digest source</span></div>
-    </div>
+</div>
 
-    <div class="epc-as-note">
-        Read-only preview · JSON digest <a href="/erp/accounts-summary">/erp/accounts-summary</a>.
-        PHP cash/bank and AP posting remain authoritative.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        @(!string.IsNullOrWhiteSpace(_message) ? _message : "")
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

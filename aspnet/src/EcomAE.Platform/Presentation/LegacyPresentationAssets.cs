@@ -62,6 +62,10 @@ public static class LegacyPresentationAssets
         "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css",
         "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/css/bootstrap.css",
         "/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css",
+        // Match erp_desktop.php stylesheet order (portal + ui + professional + CP blue theme)
+        "/content/shop/finance/epc_erp_portal_css.php",
+        "/content/shop/finance/epc_erp_ui_css.php",
+        "/content/shop/finance/epc_erp_professional_css.php",
         "/epc-static.php?f=cp/content/shop/finance/erp/theme/erp_theme.css",
         "/epc-static.php?f=cp/content/shop/finance/erp/theme/erp_dashboard_premium.css",
         "/content/general_pages/epc_cp_ui_css.php",

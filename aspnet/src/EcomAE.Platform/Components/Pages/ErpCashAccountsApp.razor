@@ -16,14 +16,14 @@
     <style>
         .epc-cash-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#052e16 0%,#14532d 45%,#854d0e 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
         }
         .epc-cash-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-cash-hero p { margin:0; color:#fde68a; max-width:42rem; font-size:.92rem; line-height:1.45; }
         .epc-cash-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-cash-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#ca8a04;
+            text-decoration:none; color:#fff; background:#2563eb;
         }
         .epc-cash-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
         .epc-cash-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -37,7 +37,7 @@
         .epc-cash-table th, .epc-cash-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
         .epc-cash-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-cash-table a { color:#854d0e; font-weight:700; text-decoration:none; }
-        .epc-cash-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#fef3c7; color:#713f12; }
+        .epc-cash-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#713f12; }
         .epc-cash-note { margin-top:1rem; padding:.75rem .9rem; background:#f7fee7; border:1px solid #bef264; border-radius:.45rem; color:#365314; font-size:.86rem; }
         @@media (max-width:900px){ .epc-cash-kpis{grid-template-columns:1fr;} }
     </style>
@@ -45,10 +45,9 @@
     <section class="epc-cash-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Cash &amp; Bank</h1>
-        <p>Read-only cash accounts from <code>/erp/cash-accounts</code> (and recent entries from <code>/erp/cash-entries</code>) under PHP ERP desktop chrome. Full tab UI (<code>erp_tabs_cash_bank.php</code>), transfers, and writes stay on live PHP — same-to-same for tenants.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-cash-cta">
-            <a href="@_phpTab">Open PHP cash &amp; bank</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/cash-entries-app">Cash ledger</a>
             <a class="ghost" href="/erp/invoices-app">Invoices</a>
             <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
@@ -79,7 +78,7 @@
                 <tbody>
                     @if (_accounts.Count == 0)
                     {
-                        <tr><td colspan="6">No cash accounts in digest (@_accountsSource). @_accountsMessage</td></tr>
+                        <tr><td colspan="6">No cash accounts yet.</td></tr>
                     }
                     else
                     {
@@ -92,7 +91,7 @@
                                 <td>@(string.IsNullOrWhiteSpace(a.CurrencyCode) ? "—" : a.CurrencyCode)</td>
                                 <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td><a href="@phpHref">Open in PHP</a></td>
+                                <td><a href="@phpHref">Open</a></td>
                             </tr>
                         }
                     }
@@ -119,7 +118,7 @@
                 <tbody>
                     @if (_entries.Count == 0)
                     {
-                        <tr><td colspan="7">No cash entries in digest (@_entriesSource). @_entriesMessage</td></tr>
+                        <tr><td colspan="7">No cash entries yet.</td></tr>
                     }
                     else
                     {
@@ -133,7 +132,7 @@
                                 <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
-                                <td><a href="@phpHref">Open in PHP</a></td>
+                                <td><a href="@phpHref">Open</a></td>
                             </tr>
                         }
                     }
@@ -142,12 +141,6 @@
         </div>
     </div>
 
-    <div class="epc-cash-note">
-        Read-only preview · JSON digests <a href="/erp/cash-accounts?limit=200">/erp/cash-accounts</a>
-        · <a href="/erp/cash-entries?limit=100">/erp/cash-entries</a>.
-        PHP tab <code>erp_tabs_cash_bank.php</code> remains authoritative for transfers/reconcile/post.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

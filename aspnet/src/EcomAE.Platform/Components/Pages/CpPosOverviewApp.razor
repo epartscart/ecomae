@@ -16,14 +16,14 @@
     <style>
         .epc-pos-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#9a3412 0%,#c2410c 50%,#ea580c 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-pos-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-pos-hero p { margin:0; color:#fed7aa; max-width:44rem; font-size:.92rem; line-height:1.45; }
         .epc-pos-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-pos-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#9a3412; background:#fdba74;
+            text-decoration:none; color:#9a3412; background:#e0f2fe;
         }
         .epc-pos-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-pos-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -41,12 +41,10 @@
     <section class="epc-pos-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>POS Overview</h1>
-        <p>Read-only shop POS sales + session KPIs from <code>/cp/pos-overview</code>. Checkout and register control stays on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pos-cta">
-            <a href="@_phpTab">Open PHP POS</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/tax-toolkits-app">Tax toolkits</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -77,7 +75,7 @@
             <tbody>
                 @if (_sales.Count == 0)
                 {
-                    <tr><td colspan="12">No POS sales in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="12">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -95,7 +93,7 @@
                             <td>@(string.IsNullOrWhiteSpace(s.TaxKitCode) ? "—" : s.TaxKitCode)</td>
                             <td>@(string.IsNullOrWhiteSpace(s.Status) ? "—" : s.Status)</td>
                             <td>@(s.TimeCreated > 0 ? s.TimeCreated.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -103,12 +101,6 @@
         </table>
     </div>
 
-    <div class="epc-pos-note">
-        Read-only preview · JSON digest <a href="/cp/pos-overview?limit=200">/cp/pos-overview</a>.
-        PHP <code>shop/pos</code> remains authoritative for register and checkout.
-        Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

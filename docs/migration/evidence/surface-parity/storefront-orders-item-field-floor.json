@@ -1,0 +1,21 @@
+{
+  "role": "storefront-orders-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "storefront-orders",
+  "collectionKey": "orders",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": ["count", "source", "message"],
+  "requiredItemFields": [
+    "id",
+    "timeUnix",
+    "paid",
+    "successfullyCreated",
+    "status"
+  ],
+  "phpAuthoritativePath": "https://www.epartscart.com/en/shop/orders",
+  "tenant": "epartscart.com",
+  "source": "LIST_ITEM_FIELDS + StorefrontOrdersDigest",
+  "note": "Dedicated epartscart customer-orders floor (was list-digest only). Order detail/writes remain PHP. Never invents RELEASE_OWNER_APPROVAL.md."
+}

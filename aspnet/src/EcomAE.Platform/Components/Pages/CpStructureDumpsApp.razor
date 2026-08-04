@@ -16,7 +16,7 @@
     <style>
         .epc-w22-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 45%,#0ea5e9 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-w22-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-w22-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
@@ -41,11 +41,9 @@
     <section class="epc-w22-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Structure dumps</h1>
-        <p>Read-only content structure dump metadata. File bodies stay on disk/PHP.</p>
+        <p>Manage store operations from the control panel.</p>
         <div class="epc-w22-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
+            <a href="@_phpTab">Open module</a>
         </div>
     </section>
 
@@ -71,7 +69,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="6">No rows in digest (@_source). @_message</td></tr>
+                <tr><td colspan="6">Nothing to show yet.</td></tr>
             }
             else
             {
@@ -83,7 +81,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.FieldsInDump) ? row.FieldsInDump : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.FileName) ? row.FileName : "—")</td>
                             <td>@row.RecordsCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                     </tr>
                 }
             }
@@ -91,10 +89,6 @@
     </table>
     </div>
 
-    <div class="epc-w22-note">
-        Read-only preview · JSON digest <a href="/cp/structure-dumps?limit=200">/cp/structure-dumps</a>. PHP Structure dumps remains authoritative · Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>. Tables: <code>content_structure_dumps</code>. dump file bodies.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

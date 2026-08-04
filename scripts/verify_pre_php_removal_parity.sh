@@ -60,6 +60,13 @@ else
   record "area-tests" fail "area tests failed (see /tmp/pre-removal-area.out)"
 fi
 
+printf -- '-- epartscart.com frontend + CP parity (contract coverage) --\n'
+if bash "$ROOT/scripts/run_epartscart_tenant_parity.sh" >/tmp/pre-removal-epartscart.out 2>&1; then
+  record "epartscart-frontend-cp-parity" pass "epartscart.com storefront+CP contract coverage green (live dual-sample may still block removal)"
+else
+  record "epartscart-frontend-cp-parity" fail "epartscart tenant parity gate failed (see /tmp/pre-removal-epartscart.out)"
+fi
+
 printf -- '-- named functional flows (warehouse/ERP reports/einvoice/CT/OMS/Super CP) --\n'
 if ECOMAE_FUNC_SKIP_PHP=1 bash "$ROOT/scripts/run_pre_decommission_functional_suite.sh" >/tmp/pre-removal-functional.out 2>&1; then
   record "functional-flows-suite" pass "7 named functional flows have required floors/evidence (live smoke may still block removal)"

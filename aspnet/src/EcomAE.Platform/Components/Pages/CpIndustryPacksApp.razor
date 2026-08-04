@@ -16,7 +16,7 @@
     <style>
         .epc-pack-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#166534 0%,#15803d 50%,#22c55e 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-pack-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-pack-hero p { margin:0; color:#dcfce7; max-width:44rem; font-size:.92rem; line-height:1.45; }
@@ -41,12 +41,10 @@
     <section class="epc-pack-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Industry Packs</h1>
-        <p>Read-only industry pack catalog from <code>/cp/industry-packs</code>. Assignments and template deploy stay on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pack-cta">
-            <a href="@_phpTab">Open PHP Industry settings</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/hr-overview-app">HR overview</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -72,7 +70,7 @@
             <tbody>
                 @if (_packs.Count == 0)
                 {
-                    <tr><td colspan="7">No packs in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -85,7 +83,7 @@
                             <td>@(string.IsNullOrWhiteSpace(p.Description) ? "—" : p.Description)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.Icon) ? "—" : p.Icon)</td>
                             <td>@(p.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -93,12 +91,6 @@
         </table>
     </div>
 
-    <div class="epc-pack-note">
-        Read-only preview · JSON digest <a href="/cp/industry-packs?limit=200">/cp/industry-packs</a>.
-        PHP <code>industry_settings</code> remains authoritative for pack deploy/assign.
-        JSON blobs omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

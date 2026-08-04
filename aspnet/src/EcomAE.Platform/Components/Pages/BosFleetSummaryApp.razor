@@ -16,14 +16,14 @@
     <style>
         .epc-fs-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#14532d 0%,#166534 45%,#0f766e 100%);
+            background:linear-gradient(135deg,#000000 0%,#0c4a6e 55%,#0ea5e9 100%);
         }
         .epc-fs-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-fs-hero p { margin:0; color:#bbf7d0; max-width:42rem; font-size:.92rem; line-height:1.45; }
         .epc-fs-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-fs-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#14532d; background:#86efac;
+            text-decoration:none; color:#14532d; background:#e0f2fe;
         }
         .epc-fs-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-fs-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -38,14 +38,12 @@
     <section class="epc-fs-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Fleet Summary</h1>
-        <p>Read-only fleet KPIs from <code>/bos/fleet-summary</code> digest under PHP BOS desktop chrome. Provisioning and live health stay on PHP — native <code>/BOS/</code> session still required for full module UX.</p>
+        <p>Fleet provisioning and live health overview.</p>
         <div class="epc-fs-cta">
-            <a href="@_phpTab">Open PHP BOS</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/bos/fleet-health-app">Fleet health</a>
             <a class="ghost" href="/bos/fleet-readiness-app">Fleet readiness</a>
             <a class="ghost" href="/bos/tenants-app">Fleet tenants</a>
-            <a class="ghost" href="/bos/app">Fleet command</a>
         </div>
     </section>
 
@@ -58,15 +56,8 @@
         <div class="epc-fs-kpi"><strong>@_active.ToString(CultureInfo.InvariantCulture)</strong><span>Active tenants</span></div>
         <div class="epc-fs-kpi"><strong>@_withDb.ToString(CultureInfo.InvariantCulture)</strong><span>With database</span></div>
         <div class="epc-fs-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Admin sessions</span></div>
-        <div class="epc-fs-kpi"><strong>@_source</strong><span>Digest source</span></div>
-    </div>
+</div>
 
-    <div class="epc-fs-note">
-        Read-only preview · JSON digest <a href="/bos/fleet-summary">/bos/fleet-summary</a>.
-        PHP <code>bos/index.php</code> command center remains authoritative.
-        Not a broad /bos cutover · native BOS <code>$_SESSION</code> modules stay PHP.
-        @(!string.IsNullOrWhiteSpace(_message) ? _message : "")
-    </div>
 </PhpBosDesktopChrome>
 
 @code {

@@ -16,14 +16,14 @@
     <style>
         .epc-sup-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#431407 0%,#7c2d12 45%,#9a3412 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
         }
         .epc-sup-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-sup-hero p { margin:0; color:#fed7aa; max-width:42rem; font-size:.92rem; line-height:1.45; }
         .epc-sup-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sup-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#c2410c;
+            text-decoration:none; color:#fff; background:#2563eb;
         }
         .epc-sup-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
         .epc-sup-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -43,10 +43,9 @@
     <section class="epc-sup-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Suppliers</h1>
-        <p>Read-only ERP suppliers from <code>/erp/suppliers</code> digest under PHP ERP desktop chrome. Payables UI, supplier create/sync, and writes stay on live PHP (`epc_erp_list_suppliers` / AP payables) — same-to-same for tenants.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-sup-cta">
-            <a href="@_phpTab">Open PHP payables</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
             <a class="ghost" href="/erp/warehouses-app">Warehouses</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -72,7 +71,7 @@
             <tbody>
                 @if (_suppliers.Count == 0)
                 {
-                    <tr><td colspan="4">No suppliers in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="4">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -83,7 +82,7 @@
                             <td><strong>@(string.IsNullOrWhiteSpace(s.Name) ? $"#{s.Id}" : s.Name)</strong></td>
                             <td>@(s.StorageId > 0 ? s.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td><span class="epc-sup-badge">@s.Balance.ToString("N2", CultureInfo.InvariantCulture)</span></td>
-                            <td><a href="@phpHref">Open in PHP</a></td>
+                            <td><a href="@phpHref">Open</a></td>
                         </tr>
                     }
                 }
@@ -91,12 +90,6 @@
         </table>
     </div>
 
-    <div class="epc-sup-note">
-        Read-only preview · JSON digest <a href="/erp/suppliers?limit=200">/erp/suppliers</a>.
-        PHP AP payables (`area=ap&amp;tab=payables`) / <code>epc_erp_list_suppliers</code> remain authoritative for create/sync/payments.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

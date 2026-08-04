@@ -13,9 +13,9 @@
 		<div class="epm-hero__content">
 			<div class="epm-badge">Industry templates</div>
 			<h1>Industries we run on ECOM AE</h1>
-			<p class="lead">@EcomaeIndustryShowcaseHosts.Count vertical showcase hosts on *.ecomae.com — each with storefront, CP, and ERP chrome matching live PHP.</p>
+			<p class="lead">@EcomaeIndustryShowcaseHosts.Count vertical showcase hosts on *.ecomae.com — each with storefront, CP, and ERP chrome.</p>
 			<div class="epm-cta">
-				<a class="epm-btn epm-btn--primary" href="/marketing/industries?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/industries"))">Open full PHP industries (hybrid)</a>
+				<a class="epm-btn epm-btn--primary" href="/marketing/industries?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/industries"))">Open full industries</a>
 				<a class="epm-btn epm-btn--ghost" href="@(EcomaeMarketingPages.LiveBase)platform/demo">Book @EcomaeMarketingPages.DemoDays-day demo</a>
 			</div>
 		</div>
@@ -26,7 +26,7 @@
 		{
 			<div class="epm-model-card">
 				<strong>@host.Title</strong>
-				<p style="margin:8px 0 12px;color:var(--epm-muted,#6b7280);font-size:.9rem;">@(host.Slug).ecomae.com — PHP live chrome</p>
+				<p style="margin:8px 0 12px;color:var(--epm-muted,#6b7280);font-size:.9rem;">@(host.Slug).ecomae.com — storefront · CP · ERP</p>
 				<p style="margin:0;display:flex;flex-wrap:wrap;gap:8px;">
 					<a class="epm-btn epm-btn--primary" style="font-size:.8rem;padding:.35rem .7rem;" href="@host.HomeUrl" rel="noopener">Frontend</a>
 					<a class="epm-btn epm-btn--ghost" style="font-size:.8rem;padding:.35rem .7rem;" href="@host.CpUrl" rel="noopener">CP</a>
@@ -37,16 +37,8 @@
 	</div>
 
 	<div class="epm-highlight">
-		<h3>Same look as PHP</h3>
-		<p style="color:var(--epm-muted);margin-bottom:14px">
-			Industry hosts stay on PHP product chrome until ASP.NET <code>/marketing/industries</code> dual-samples same-to-same.
-			Do not install Blazor shadows on <code>*.ecomae.com</code> industry vhosts.
-		</p>
-		<a class="epm-btn epm-btn--primary" href="/marketing/industries?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/industries"))">Browse PHP industries</a>
+		<h3>Browse every vertical</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">Full industry cards, consolidation groups, and DED activity mapping are available from the linked pages.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/industries?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/industries"))">Browse industries</a>
 	</div>
-
-	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
-		ASP.NET industries overview — @EcomaeIndustryShowcaseHosts.Count hosts catalogued.
-		Target: 100% ASP.NET / 0 PHP. cutoverAllowed=false until dual-sample + human approval.
-	</p>
 </div>

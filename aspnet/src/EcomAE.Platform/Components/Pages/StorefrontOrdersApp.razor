@@ -16,14 +16,14 @@
     <style>
         .epc-sf-ord-hero {
             margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#155e75 50%,#0f766e 100%);
+            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
         }
         .epc-sf-ord-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
         .epc-sf-ord-hero p { margin:0; color:#a5f3fc; max-width:40rem; font-size:.92rem; line-height:1.45; }
         .epc-sf-ord-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sf-ord-cta a {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0c4a6e; background:#67e8f9;
+            text-decoration:none; color:#0c4a6e; background:#fee2e2;
         }
         .epc-sf-ord-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-sf-ord-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -47,9 +47,9 @@
     <section class="epc-sf-ord-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
         <h1>My Orders</h1>
-        <p>Read-only recent <code>shop_orders</code> for authenticated customers from <code>/storefront/orders</code> digest. Full order detail, reorder, and returns stay on live PHP <code>/shop/orders</code>.</p>
+        <p>Browse parts, manage your garage, and track recent orders.</p>
         <div class="epc-sf-ord-cta">
-            <a href="@_phpOrders">Open PHP orders</a>
+            <a href="@_phpOrders">Open orders</a>
             <a class="ghost" href="/storefront/cart-app">Cart</a>
             <a class="ghost" href="/storefront/search-app">Search parts</a>
             <a class="ghost" href="/storefront/login">Customer login</a>
@@ -59,9 +59,9 @@
     @if (!_isCustomer)
     {
         <div class="epc-sf-ord-gate">
-            <p style="margin:0 0 .75rem;color:#334155">Sign in with a customer session to load your recent orders. Account history remains on PHP.</p>
-            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#0891b2;color:#fff;font-weight:700;text-decoration:none">Customer login bridge</a>
-            <a href="@_phpOrders" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">PHP orders</a>
+            <p style="margin:0 0 .75rem;color:#334155">Sign in with your store account to load recent orders.</p>
+            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
+            <a href="@_phpOrders" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Orders</a>
         </div>
     }
     else
@@ -87,7 +87,7 @@
                 <tbody>
                     @if (_orders.Count == 0)
                     {
-                        <tr><td colspan="6">No orders in digest (@_source). @_message</td></tr>
+                        <tr><td colspan="6">Nothing to show yet.</td></tr>
                     }
                     else
                     {
@@ -99,7 +99,7 @@
                                 <td><span class="epc-sf-ord-badge @(o.Paid != 0 ? "epc-sf-ord-badge--ok" : "epc-sf-ord-badge--off")">@(o.Paid != 0 ? "yes" : "no")</span></td>
                                 <td><span class="epc-sf-ord-badge @(o.SuccessfullyCreated != 0 ? "epc-sf-ord-badge--ok" : "epc-sf-ord-badge--info")">@(o.SuccessfullyCreated != 0 ? "yes" : "no")</span></td>
                                 <td><span class="epc-sf-ord-badge epc-sf-ord-badge--info">@o.Status.ToString(CultureInfo.InvariantCulture)</span></td>
-                                <td><a href="@_phpOrders">Open in PHP</a></td>
+                                <td><a href="@_phpOrders">Open module</a></td>
                             </tr>
                         }
                     }
@@ -108,12 +108,6 @@
         </div>
     }
 
-    <div class="epc-sf-ord-note">
-        Read-only preview · JSON digest <a href="/storefront/orders?limit=25">/storefront/orders</a> (customer session required).
-        PHP <code>/shop/orders</code> remains authoritative for detail, reorder, and returns.
-        Not a broad storefront or <code>/</code> cutover · live epartscart.com stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpStorefrontDesktopChrome>
 
 @code {

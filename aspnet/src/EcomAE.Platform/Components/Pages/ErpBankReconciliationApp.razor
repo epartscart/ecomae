@@ -16,7 +16,7 @@
     <style>
         .epc-br-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#0369a1 50%,#0e7490 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
         }
         .epc-br-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-br-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
@@ -41,10 +41,9 @@
     <section class="epc-br-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Bank reconciliation</h1>
-        <p>Read-only statement-line KPIs + rows from <code>/erp/bank-reconciliation</code>. Matching and imports stay on live PHP.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-br-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
         </div>
     </section>
@@ -75,7 +74,7 @@
             <tbody>
                 @if (_lines.Count == 0)
                 {
-                    <tr><td colspan="9">No rows in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="9">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -90,7 +89,7 @@
                             <td>@(row.Direction == 1 ? "in" : "out")</td>
                             <td>@(row.MatchedEntryId > 0 ? row.MatchedEntryId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.ImportBatch) ? row.ImportBatch : "—")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -98,10 +97,6 @@
         </table>
     </div>
 
-    <div class="epc-br-note">
-        Read-only preview · JSON digest <a href="/erp/bank-reconciliation?limit=200">/erp/bank-reconciliation</a>. PHP bank_recon tab remains authoritative · Not a broad /erp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

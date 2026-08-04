@@ -16,7 +16,7 @@
     <style>
         .epc-st-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#18181b 0%,#3f3f46 50%,#52525b 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-st-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-st-hero p { margin:0; color:#d4d4d8; max-width:42rem; font-size:.92rem; line-height:1.45; }
@@ -45,13 +45,11 @@
     <section class="epc-st-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Storages</h1>
-        <p>Read-only <code>shop_storages</code> from <code>/cp/storages</code> digest under PHP CP desktop chrome. Create/edit stay on live PHP warehouses &amp; storages — same-to-same for tenants.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-st-cta">
-            <a href="@_phpTab">Open PHP storages</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/currencies-app">Currencies list</a>
             <a class="ghost" href="/erp/warehouses-app">ERP warehouses</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -75,7 +73,7 @@
             <tbody>
                 @if (_storages.Count == 0)
                 {
-                    <tr><td colspan="5">No storages in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="5">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -86,7 +84,7 @@
                             <td>@(string.IsNullOrWhiteSpace(s.Name) ? "—" : s.Name)</td>
                             <td>@(string.IsNullOrWhiteSpace(s.ShortName) ? "—" : s.ShortName)</td>
                             <td><span class="epc-st-badge @(s.Hidden ? "epc-st-badge--off" : "epc-st-badge--ok")">@(s.Hidden ? "yes" : "no")</span></td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -94,12 +92,6 @@
         </table>
     </div>
 
-    <div class="epc-st-note">
-        Read-only preview · JSON digest <a href="/cp/storages?limit=200">/cp/storages</a>.
-        PHP warehouses &amp; storages (<code>/CP/shop/logistics/storages</code>) remain authoritative for create/edit.
-        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

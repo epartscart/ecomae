@@ -32,7 +32,7 @@
         <div class="epc-erp-grid">
             <section class="epc-erp-card">
                 <h2 style="margin:.1rem 0 .4rem;font-size:1.05rem">ADMINISTRATION CENTRE — Operations</h2>
-                <p style="margin:0;color:#64748b;font-size:.9rem">PHP-matching <code>epc-erp-topnav</code> area-column mega panels (<code>epc_erp_render_top_nav</code>). Tab bodies stay PHP.</p>
+                <p style="margin:0;color:#64748b;font-size:.9rem">ERP module directory for this company workspace.</p>
             </section>
             <section class="epc-erp-metrics">
                 <div class="epc-erp-card epc-erp-metric"><strong>@_s.CashPosition.ToString("N2")</strong><span>CASH POSITION</span></div>
@@ -43,14 +43,14 @@
         </div>
 
         <div class="epc-erp-banners">
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#ea580c,#f97316)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">Income Statement</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#0c4a6e,#0369a1)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">Income Statement</a>
             <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">Balance Sheet</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#115e59,#0d9488)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">General Journal</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#3b82f6)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=sales")">New Sales Order</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#0ea5e9)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">General Journal</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#2563eb,#38bdf8)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=sales")">New Sales Order</a>
         </div>
 
         <section>
-            <h2 style="font-size:1.05rem">Command center KPIs — @_s.Source</h2>
+            <h2 style="font-size:1.05rem">Command center KPIs</h2>
             <div class="epc-erp-kpis">
                 <div class="epc-erp-card epc-erp-metric"><strong>@_s.RevenueExVat.ToString("N2")</strong><span>Revenue (ex. VAT)</span></div>
                 <div class="epc-erp-card epc-erp-metric"><strong>@_s.OrdersCount</strong><span>Orders</span></div>
@@ -72,24 +72,24 @@
 
         <PhpHybridModuleDirectory
             Title="Complete ERP category directory"
-            Subtitle="@($"{PhpModuleCatalog.ErpCategoryCount} categories from PHP erp_nav_areas.php")"
+            Subtitle="@($"{PhpModuleCatalog.ErpCategoryCount} ERP categories")"
             Links="@PhpModuleCatalog.ErpCategories"
             PhpWorkspaceBase="/erp/app" />
 
         <PhpHybridModuleDirectory
             Title="Complete ERP area directory"
-            Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} areas · {PhpModuleCatalog.ErpTabCount} tabs from PHP erp_nav_areas.php")"
+            Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} areas · {PhpModuleCatalog.ErpTabCount} tabs")"
             Links="@PhpModuleCatalog.ErpAreas"
             PhpWorkspaceBase="/erp/app" />
 
         <PhpHybridModuleDirectory
             Title="Complete ERP tab directory"
-            Subtitle="Every tab deeplinks to live PHP ERP shell"
+            Subtitle="Every ERP module and tab for this company"
             Links="@PhpModuleCatalog.ErpTabs"
             PhpWorkspaceBase="/erp/app" />
 
         <div class="epc-erp-note">
-            @_note Live PHP ERP UI remains at <a href="/ERP/">/ERP/</a>. Desktop chrome classes match erp_desktop.php / erp_main.php.
+            Open any module below to continue in the ERP workspace.
         </div>
     }
 </PhpErpDesktopChrome>
@@ -102,7 +102,6 @@
         0, 0, 0, 0, 0, 0,
         0, 0, 0,
         "n/a", "");
-    private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
     private string? _phpHref;
 
@@ -122,6 +121,6 @@
         }
         _isAdmin = true;
         _s = await Dashboards.BuildErpAsync(ctx.RequestAborted);
-        _note = "Admin session detected — KPIs from ASP.NET ERP digest reporter (PHP erp_dashboard + command center field set). ";
+        // ERP KPIs loaded for admin session.
     }
 }
