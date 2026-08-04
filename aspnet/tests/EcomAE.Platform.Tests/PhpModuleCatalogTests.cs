@@ -23,6 +23,8 @@ public sealed class PhpModuleCatalogTests
         Assert.Equal(PhpModuleCatalog.BosSectionCount, PhpModuleCatalog.BosSections.Count);
         Assert.Equal(PhpModuleCatalog.BosModuleCount, PhpModuleCatalog.BosModules.Count);
         Assert.Equal(PhpModuleCatalog.StorefrontSurfaceCount, PhpModuleCatalog.StorefrontSurfaces.Count);
+        Assert.True(PhpModuleCatalog.MarketingSurfaceCount >= 30);
+        Assert.Equal(PhpModuleCatalog.MarketingSurfaceCount, PhpModuleCatalog.MarketingSurfaces.Count);
     }
 
     [Fact]
@@ -91,6 +93,7 @@ public sealed class PhpModuleCatalogTests
         AssertUnique(PhpModuleCatalog.BosModules, "BosModules");
         AssertUnique(PhpModuleCatalog.CpBrochureFeatures, "CpBrochureFeatures");
         AssertUnique(PhpModuleCatalog.StorefrontSurfaces, "StorefrontSurfaces");
+        AssertUnique(PhpModuleCatalog.MarketingSurfaces, "MarketingSurfaces");
         Assert.True(PhpModuleCatalog.TotalTrackedCount >= 725);
     }
 

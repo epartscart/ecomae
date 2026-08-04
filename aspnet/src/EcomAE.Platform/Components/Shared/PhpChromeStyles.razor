@@ -7,7 +7,8 @@
     Surface="@Surface"
     IncludeLoginCss="false"
     IncludeStorefrontAnalytics="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))"
-    ApplyStorefrontIndustryAttrs="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))" />
+    ApplyStorefrontIndustryAttrs="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))"
+    IncludeMarketingScripts="@(Surface.Equals("marketing", StringComparison.OrdinalIgnoreCase))" />
 <style>
     .epc-php-font-root { font-family: @(LegacyPhpFontAssets.StackFor(Surface)); }
     html, body { font-family: @(LegacyPhpFontAssets.StackFor(Surface)); }

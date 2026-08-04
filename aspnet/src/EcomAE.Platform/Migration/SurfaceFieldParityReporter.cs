@@ -11,7 +11,7 @@ public sealed class SurfaceFieldParityReporter : ISurfaceFieldParityReporter
     public SurfaceFieldParityReport BuildReport()
     {
         var contracts = SurfacePayloadContractCatalog.All;
-        var assets = new[] { "cp", "erp", "bos", "storefront" }
+        var assets = new[] { "cp", "erp", "bos", "storefront", "marketing" }
             .SelectMany(surface => LegacyPresentationAssets.StylesheetsFor(surface)
                 .Select(href => (surface, href)))
             .ToArray();
@@ -26,7 +26,8 @@ public sealed class SurfaceFieldParityReporter : ISurfaceFieldParityReporter
             SurfacePayloadContractCatalog.Functions,
             [
                 "Every CP/ERP/BOS/storefront digest route has an explicit required-field contract (camelCase summary/item fields).",
-                "Presentation shells must reuse PHP chrome CSS URLs from LegacyPresentationAssets for cp/erp/bos/storefront.",
+                "Presentation shells must reuse PHP chrome CSS URLs from LegacyPresentationAssets for cp/erp/bos/storefront/marketing.",
+                "Marketing /marketing/app reuses epm-hub CSS; live www.ecomae.com/ remains PHP.",
                 "Function map ties PHP entries to ASP.NET digests/shells without claiming write/posting/cart parity.",
                 "scripts/compare_surface_payload_parity.py performs recursive field-by-field JSON compare for dual samples.",
                 "SurfaceDigestContractValidator locks migration-mode digest envelopes in unit tests before cutover.",
@@ -35,7 +36,7 @@ public sealed class SurfaceFieldParityReporter : ISurfaceFieldParityReporter
             [
                 "Capture authenticated ASP.NET + PHP (or shared-DB fixture) dual samples for each contracted digest route.",
                 "Run scripts/run_surface_parity_harness.sh and attach match=true samples under docs/migration/evidence/surface-parity/samples/.",
-                "Do not enable broad /cp /erp /bos / storefront nginx cutover until every contract has match=true evidence.",
+                "Do not enable broad /cp /erp /bos / storefront / marketing / nginx cutover until every contract has match=true evidence.",
                 "Storefront cart/checkout/SEO HTML and ERP voucher posting UX are still PHP-authoritative gaps.",
                 "Authenticated CloudPanel cookies/API keys are still required for live dual-sample promotion."
             ],

@@ -6,6 +6,13 @@ namespace EcomAE.Platform.Presentation;
 /// </summary>
 public static partial class PhpModuleCatalog
 {
+    public static int MarketingSurfaceCount => EcomaeMarketingPages.Count;
+
+    public static readonly IReadOnlyList<ModuleLink> MarketingSurfaces =
+        EcomaeMarketingPages.All
+            .Select(p => new ModuleLink(p.Id, p.Label, p.Href, null, p.Group))
+            .ToList();
+
     public static int TotalTrackedCount =>
         ErpCategoryCount
         + ErpAreaCount
@@ -13,7 +20,8 @@ public static partial class PhpModuleCatalog
         + BosSectionCount
         + BosModuleCount
         + CpBrochureFeatureCount
-        + StorefrontSurfaceCount;
+        + StorefrontSurfaceCount
+        + MarketingSurfaceCount;
 
     public static IEnumerable<ModuleLink> AllTrackedLinks()
         => ErpCategories
@@ -22,7 +30,8 @@ public static partial class PhpModuleCatalog
             .Concat(BosSections)
             .Concat(BosModules)
             .Concat(CpBrochureFeatures)
-            .Concat(StorefrontSurfaces);
+            .Concat(StorefrontSurfaces)
+            .Concat(MarketingSurfaces);
 
     public static IReadOnlyDictionary<string, object> BuildSummary() => new Dictionary<string, object>
     {
@@ -34,6 +43,7 @@ public static partial class PhpModuleCatalog
         ["bosModules"] = BosModuleCount,
         ["cpBrochureFeatures"] = CpBrochureFeatureCount,
         ["storefrontSurfaces"] = StorefrontSurfaceCount,
+        ["marketingSurfaces"] = MarketingSurfaceCount,
         ["totalTracked"] = TotalTrackedCount,
         ["directoryCoverage"] = new Dictionary<string, object>
         {
@@ -41,6 +51,7 @@ public static partial class PhpModuleCatalog
             ["erpDashboard"] = "ErpCategories+ErpAreas+ErpTabs",
             ["bosFleet"] = "BosSections+BosModules",
             ["storefrontPreview"] = "StorefrontSurfaces",
+            ["marketingPreview"] = "MarketingSurfaces",
             ["omittedKinds"] = Array.Empty<string>(),
             ["fullCatalogFloor"] = 725,
         },
@@ -51,8 +62,9 @@ public static partial class PhpModuleCatalog
         ["notes"] = new[]
         {
             "Live product chrome remains PHP (/CP/ /ERP/ /BOS/ storefront hosts).",
-            "ASP.NET /cp|/erp|/bos|/storefront/app shells expose this full directory via hybrid deeplinks.",
-            "ERP shells list categories + areas + tabs; CP lists all brochure features; BOS sections + modules; storefront all surfaces.",
+            "Live www.ecomae.com marketing home/pages remain PHP (animated epm-hub).",
+            "ASP.NET /cp|/erp|/bos|/storefront|/marketing/app shells expose this full directory via hybrid deeplinks.",
+            "ERP shells list categories + areas + tabs; CP lists all brochure features; BOS sections + modules; storefront all surfaces; marketing all pages.",
             "Tenant hosts must not receive presentation shadows (see TENANT_MIGRATION_SAFETY.md)."
         }
     };
@@ -111,6 +123,7 @@ public static partial class PhpModuleCatalog
             || value.StartsWith("/erp/", StringComparison.Ordinal)
             || value.StartsWith("/bos/", StringComparison.Ordinal)
             || value.StartsWith("/storefront/", StringComparison.Ordinal)
+            || value.StartsWith("/marketing/", StringComparison.Ordinal)
             || value.StartsWith("/migration/", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/auth/", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/api/", StringComparison.OrdinalIgnoreCase))
@@ -118,13 +131,14 @@ public static partial class PhpModuleCatalog
             return false;
         }
 
-        // PHP product chrome / shell entry points + legacy content/shop PHP paths.
+        // PHP product chrome / shell entry points + legacy content/shop PHP paths + marketing.
         return value.StartsWith("/CP", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/ERP", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/BOS", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/content/", StringComparison.OrdinalIgnoreCase)
             || value.EndsWith(".php", StringComparison.OrdinalIgnoreCase)
-            || value.Equals("/", StringComparison.Ordinal);
+            || value.Equals("/", StringComparison.Ordinal)
+            || EcomaeMarketingPages.IsMarketingPhpPath(value);
     }
 }

@@ -1,0 +1,133 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Port of epc_ecomae_platform_layout_open/close topbar — ecomae.com marketing chrome.
+*@
+
+<div class="epm-body">
+    <header class="epm-topbar">
+        <div class="epm-topbar__inner">
+            <a class="epm-brand" href="@EcomaeMarketingPages.LiveBase">
+                <img class="epm-brand__logo" src="@LegacyPresentationAssets.BrandMarkUrl" alt="" width="48" height="48" />
+                <span class="epm-brand__text">
+                    <strong>ECOM <span class="epm-brand__ae">AE</span></strong>
+                    <small>One cloud: E-commerce + ERP + CRM</small>
+                </span>
+            </a>
+            <button type="button" class="epm-nav-toggle" id="epm_nav_toggle" aria-expanded="false" aria-controls="epm_nav_drawer" aria-label="Open menu" @onclick="ToggleNav">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="epm-nav-drawer @(_navOpen ? "is-open" : null)" id="epm_nav_drawer">
+                <nav class="epm-nav">
+                    @foreach (var item in Nav)
+                    {
+                        var isActive = item.Key == ActiveKey || (ActiveKey == "" && item.Key == "home");
+                        <a class="epm-nav__link @(isActive ? "is-active" : null)" href="@item.Href">@item.Label</a>
+                    }
+                    @foreach (var drop in Dropdowns)
+                    {
+                        var groupActive = drop.Items.Any(s => s.Key == ActiveKey);
+                        <div class="epm-nav__group @(_openGroup == drop.Key ? "is-open" : null)">
+                            <button type="button" class="epm-nav__group-trigger @(groupActive ? "is-active" : null)" aria-expanded="@(_openGroup == drop.Key)" @onclick="() => ToggleGroup(drop.Key)">
+                                @drop.Label<span class="epm-nav__caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="epm-nav__panel">
+                                @foreach (var sub in drop.Items)
+                                {
+                                    var subActive = ActiveKey != "" && sub.Key == ActiveKey;
+                                    <a class="epm-nav__panel-link @(subActive ? "is-active" : null)" href="@sub.Href">@sub.Label</a>
+                                }
+                            </div>
+                        </div>
+                    }
+                </nav>
+                <div class="epm-nav-drawer__cta">
+                    <a class="epm-topbar__cta epm-topbar__cta--ghost" href="@EcomaeMarketingPages.PlatformErpUrl"><i class="fa fa-building"></i> Platform ERP</a>
+                    <a class="epm-topbar__cta epm-topbar__cta--ghost" href="@EcomaeMarketingPages.ClientErpDemoUrl"><i class="fa fa-line-chart"></i> Client ERP</a>
+                    <a class="epm-topbar__cta" href="@EcomaeMarketingPages.SuperCpUrl" title="Super CP — operator control panel"><i class="fa fa-cloud"></i> Super CP</a>
+                </div>
+            </div>
+            <div class="epm-topbar__cta-row">
+                <a class="epm-topbar__cta epm-topbar__cta--ghost" href="@EcomaeMarketingPages.PlatformErpUrl"><i class="fa fa-building"></i> Platform ERP</a>
+                <a class="epm-topbar__cta epm-topbar__cta--ghost" href="@EcomaeMarketingPages.ClientErpDemoUrl"><i class="fa fa-line-chart"></i> Client ERP</a>
+                <a class="epm-topbar__cta" href="@EcomaeMarketingPages.SuperCpUrl" title="Super CP — operator control panel"><i class="fa fa-cloud"></i> Super CP</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="epm-main">
+        @ChildContent
+    </main>
+
+    <footer class="epm-footer">
+        <div class="epm-footer__inner">
+            <div class="epm-footer__brand">
+                <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="" class="epm-footer__logo" />
+                <p><strong>ECOM AE</strong> — storefront, CP, and ERP in one hosted stack.<br />Go live in 24 hours · UAE e-invoice (Peppol / PINT-AE).</p>
+            </div>
+            <div class="epm-footer__links">
+                <a href="@(EcomaeMarketingPages.LiveBase)platform">Platform</a>
+                <a href="@(EcomaeMarketingPages.LiveBase)platform/demo">Demo</a>
+                <a href="@(EcomaeMarketingPages.LiveBase)documentation">Docs</a>
+                <a href="@(EcomaeMarketingPages.LiveBase)legal">Legal</a>
+                <a href="@EcomaeMarketingPages.SuperCpUrl">Super CP</a>
+            </div>
+        </div>
+    </footer>
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string ActiveKey { get; set; } = "home";
+
+    private bool _navOpen;
+    private string? _openGroup;
+
+    private void ToggleNav() => _navOpen = !_navOpen;
+
+    private void ToggleGroup(string key)
+        => _openGroup = _openGroup == key ? null : key;
+
+    private static readonly NavItem[] Nav =
+    [
+        new("home", "Home", EcomaeMarketingPages.LiveBase),
+        new("platform", "Platform", EcomaeMarketingPages.LiveBase + "platform"),
+        new("industries", "Industries", EcomaeMarketingPages.LiveBase + "platform/industries"),
+        new("capabilities", "Capabilities", EcomaeMarketingPages.LiveBase + "platform/capabilities"),
+        new("free_tools", "Free Tools", EcomaeMarketingPages.LiveBase + "platform/free-tools"),
+        new("pricing", "Pricing", EcomaeMarketingPages.LiveBase + "platform/pricing"),
+        new("about", "About", EcomaeMarketingPages.LiveBase + "platform/about"),
+        new("contact", "Contact", EcomaeMarketingPages.LiveBase + "platform/contact"),
+    ];
+
+    private static readonly NavDropdown[] Dropdowns =
+    [
+        new("solutions", "Solutions",
+        [
+            new("platform_guides", "Super CP guides", EcomaeMarketingPages.LiveBase + "platform/platform-guides"),
+            new("api_services", "Catalog & Price API", EcomaeMarketingPages.LiveBase + "platform/api-services"),
+            new("api_documentation", "Tenant ERP API", EcomaeMarketingPages.LiveBase + "platform/api-documentation"),
+            new("auto_price_ai", "Auto Price AI", EcomaeMarketingPages.LiveBase + "platform/auto-price-ai"),
+            new("faq", "FAQ", EcomaeMarketingPages.LiveBase + "platform/faq"),
+            new("customer_results", "Customer results", EcomaeMarketingPages.LiveBase + "platform/customer-results"),
+            new("business_continuity", "Continuity", EcomaeMarketingPages.LiveBase + "platform/business-continuity"),
+            new("demo", "3-day demo", EcomaeMarketingPages.LiveBase + "platform/demo"),
+        ]),
+        new("resources", "Resources",
+        [
+            new("brochure", "Product brochure", EcomaeMarketingPages.LiveBase + "brochure"),
+            new("brochure_cp", "Full CP brochure", EcomaeMarketingPages.LiveBase + "brochure/cp"),
+            new("docs", "Documentation", EcomaeMarketingPages.LiveBase + "documentation"),
+            new("compare", "Compare", EcomaeMarketingPages.LiveBase + "compare"),
+            new("blockchain", "Blockchain BOS", EcomaeMarketingPages.LiveBase + "blockchain"),
+            new("bos", "What is Blockchain BOS", EcomaeMarketingPages.LiveBase + "bos"),
+            new("solution", "Solutions", EcomaeMarketingPages.LiveBase + "solutions"),
+            new("legal", "Legal policies", EcomaeMarketingPages.LiveBase + "legal"),
+            new("privacy", "Privacy", EcomaeMarketingPages.LiveBase + "privacy"),
+            new("security_policy", "Security policy", EcomaeMarketingPages.LiveBase + "security-policy"),
+        ]),
+    ];
+
+    private sealed record NavItem(string Key, string Label, string Href);
+    private sealed record NavDropdown(string Key, string Label, NavItem[] Items);
+}

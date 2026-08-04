@@ -10,7 +10,7 @@
 | Catalog digest-contract | **725 / 726** | Catalog APIs allowlisted | **~99.9%** contract (holdout: `cp-debug-console` php-only) |
 | Surface digests (CP/ERP/BOS) | **127 / 127** | **127 / 127** (`401` auth gate) | **100%** shadow live |
 | Storefront digests | **6 / 6** | **6 / 6** (`401`) | **100%** shadow live |
-| Presentation apps / shells | **144** | **142 / 144** (`200`) | **~99%** shadows live |
+| Presentation apps / shells | **145** | **142 / 145** (`200`; +`/marketing/app` pending shadow install) | **~98%** shadows live |
 | Hybrid TARGETS | **134** | Sample apps + shells live | Digests/UI wired; interactive still PHP |
 | Field contracts | ~153 | Probe attached | Contract floor only |
 | Chrome **look** parity (fonts/color/width/motion) | Hybrid assets + ERP/BOS mega-nav structure | Improving on www hybrid | **~70–75%** look (topnav structure closer; not pixel-identical) |

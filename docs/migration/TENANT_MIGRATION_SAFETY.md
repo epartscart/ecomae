@@ -33,7 +33,7 @@ Classifier / refuse law: `scripts/ecomae_nginx_site_safety.py` (`LIVE_PRODUCTION
 | Rule | Meaning |
 | --- | --- |
 | Product chrome stays PHP | Live `/`, `/CP/`, `/ERP/`, `/BOS/`, cart/checkout/search on tenant hosts remain PHP until dual-sample + human `RELEASE_OWNER_APPROVAL.md`. |
-| Digests ≠ UX | JSON digests and Blazor `/cp|/erp|/bos|/storefront/*-app` previews on **www.ecomae.com** are migration scaffolding only. They must **never** replace tenant product chrome. |
+| Digests ≠ UX | JSON digests and Blazor `/cp|/erp|/bos|/storefront|/marketing/*-app` previews on **www.ecomae.com** are migration scaffolding only. They must **never** replace tenant product chrome or live marketing `/`. |
 | Exact-route only | Never broad `location /`, `/cp`, `/erp`, `/bos`, `/api`, `/storefront` on tenant vhosts. |
 | Look & feel | Fonts, CSS/JS class trees, heroes, animations, menus, and interactive flows must match live PHP (or stay on PHP). |
 | Meter ≠ cutover | Weighted Zero-PHP % does **not** mean tenants are cut over. |

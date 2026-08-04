@@ -5,8 +5,8 @@
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
-  "routeCount": 144,
-  "note": "Design/inventory only for presentation Blazor *-app + login exact-routes. Never invents RELEASE_OWNER_APPROVAL.md.",
+  "routeCount": 145,
+  "note": "Exact-route presentation/app shadows for www.ecomae.com only. Not product cutover. Live marketing / remains PHP.",
   "routes": [
     "/cp/app",
     "/cp/orders",
@@ -74,6 +74,7 @@
     "/bos/fleet-readiness-app",
     "/bos/fleet-summary-app",
     "/storefront/app",
+    "/marketing/app",
     "/storefront/search-app",
     "/storefront/cart-app",
     "/storefront/orders-app",

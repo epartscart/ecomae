@@ -1,0 +1,88 @@
+@namespace EcomAE.Platform.Components.Shared
+@*
+  Port of epc_ecomae_platform_flow_svg('hub') — SVG data-flow rings around the marketing hero core.
+  Rendered as MarkupString so Razor does not treat SVG <text> as the Razor <text> directive.
+*@
+
+@((MarkupString)Svg)
+
+@code {
+    private const string OuterPath = "M 585,350 A 235,178 0 1,1 584.99,350";
+    private const string InnerPath = "M 505,350 A 155,117 0 1,0 504.99,350";
+
+    private static readonly string Svg = BuildSvg();
+
+    private static string BuildSvg()
+    {
+        var sb = new System.Text.StringBuilder(8000);
+        sb.Append("""
+<svg class="epm-flow-svg" viewBox="0 0 700 700" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs>
+        <linearGradient id="epfHGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#0284c7" stop-opacity=".25"/>
+            <stop offset="50%" stop-color="#0ea5e9" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#0284c7" stop-opacity=".25"/>
+        </linearGradient>
+        <radialGradient id="epfHCore" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#0ea5e9" stop-opacity=".45"/>
+            <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="epfHGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <ellipse cx="350" cy="350" rx="129" ry="97" fill="url(#epfHCore)" class="epm-flow-svg__pulse"/>
+""");
+        sb.Append($"""
+    <path id="epfHOuter" d="{OuterPath}" fill="none" stroke="url(#epfHGrad)" stroke-width="3" stroke-linecap="round" class="epm-flow-svg__ring epm-flow-svg__ring--outer"/>
+    <path d="{OuterPath}" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="6 8" class="epm-flow-svg__dash"/>
+    <path id="epfHInner" d="{InnerPath}" fill="none" stroke="rgba(14,165,233,.35)" stroke-width="1" stroke-dasharray="4 6" class="epm-flow-svg__ring epm-flow-svg__ring--inner"/>
+""");
+        for (var s = 0; s < 12; s++)
+        {
+            var rad = (270 + s * 30) * Math.PI / 180.0;
+            var x2 = Math.Round(350 + Math.Cos(rad) * 235, 1);
+            var y2 = Math.Round(350 + Math.Sin(rad) * 178, 1);
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture,
+                $"<line x1=\"350\" y1=\"350\" x2=\"{x2}\" y2=\"{y2}\" class=\"epm-flow-svg__spoke\" style=\"--spoke-delay:{s * 0.35}s\"/>");
+        }
+
+        var labels = new[] { "Orders", "Stock", "VAT", "CRM", "GL", "Payroll", "DNS", "Sync", "Sync", "API", "SKU", "VAT", "GL", "DNS", "ERP", "CRM" };
+        for (var p = 0; p < 16; p++)
+        {
+            var dur = 3.2 + (p % 6) * 0.45;
+            var begin = p * 0.38;
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"""
+    <g filter="url(#epfHGlow)">
+        <circle r="5.5" fill="#0ea5e9" class="epm-flow-svg__packet">
+            <animateMotion dur="{dur}s" repeatCount="indefinite" begin="{begin}s" path="{OuterPath}"/>
+        </circle>
+""");
+            if (p % 2 == 0)
+            {
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"""
+        <text class="epm-flow-svg__label" dy="-11" font-size="9" fill="#fca5a5" text-anchor="middle">
+            <animateMotion dur="{dur}s" repeatCount="indefinite" begin="{begin}s" path="{OuterPath}"/>
+            <tspan>{labels[p]}</tspan>
+        </text>
+""");
+            }
+
+            sb.Append("</g>");
+        }
+
+        for (var p = 0; p < 10; p++)
+        {
+            var dur = 2.8 + p * 0.35;
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"""
+    <circle r="4.5" fill="#0284c7" opacity=".9" class="epm-flow-svg__packet epm-flow-svg__packet--inner">
+        <animateMotion dur="{dur}s" repeatCount="indefinite" begin="{p * 0.32}s" path="{InnerPath}"/>
+    </circle>
+""");
+        }
+
+        sb.Append("""
+    <circle cx="350" cy="350" r="34" fill="none" stroke="#0ea5e9" stroke-width="1" class="epm-flow-svg__core-ring"/>
+</svg>
+""");
+        return sb.ToString();
+    }
+}

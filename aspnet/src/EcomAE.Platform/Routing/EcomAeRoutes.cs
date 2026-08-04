@@ -528,6 +528,12 @@ public static class EcomAeRoutes
     public const string PriceLookupParity = "/api/v1/price/parity";
     public const string StorefrontParity = "/storefront/parity";
     public const string StorefrontApp = "/storefront/app";
+    /// <summary>
+    /// www.ecomae.com marketing Blazor preview (animated epm-hub). Live marketing home/pages remain PHP.
+    /// </summary>
+    public const string MarketingApp = "/marketing/app";
+    /// <summary>JSON lock: live ecomae.com marketing presentation stays PHP until dual-sample + approval.</summary>
+    public const string MarketingPresentationLock = "/migration/marketing-presentation-lock";
     /// <summary>Batch 4: storefront part search Blazor results (PHP part_search remains authoritative for cart/tabs).</summary>
     public const string StorefrontSearchApp = "/storefront/search-app";
     /// <summary>Storefront warehouse-offer search JSON digest (Blazor UI remains <see cref="StorefrontSearchApp"/>).</summary>

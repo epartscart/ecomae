@@ -1,0 +1,48 @@
+@page "/marketing/app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>ECOM AE — Marketing (PHP parity preview)</PageTitle>
+<PhpChromeStyles Surface="marketing" />
+
+<PhpEcomaeMarketingChrome ActiveKey="home">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/app" />
+
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        @* Authoritative animated hero — same markup/classes as PHP epc_ecomae_platform_hub() *@
+        <PhpEcomaeMarketingHub />
+
+        <div class="epm-wrap" style="padding:24px var(--epm-pad-x,20px) 40px;max-width:var(--epm-max-w,1440px);margin:0 auto;box-sizing:border-box">
+            <p style="margin:0 0 12px;font-size:.9rem;color:var(--epm-muted,#b3b3b3)">
+                Live marketing site remains <a href="https://www.ecomae.com/" style="color:var(--epm-cyan,#0ea5e9)">www.ecomae.com</a> (PHP authoritative — animated <code>epm-hub</code> hero + all pages).
+                This route is an ASP.NET hybrid preview only; it is not a <code>location /</code> cutover.
+            </p>
+
+            <PhpHybridModuleDirectory
+                Title="Ecomae.com marketing pages"
+                Subtitle="@($"{EcomaeMarketingPages.Count} PHP marketing routes — open in hybrid workspace (iframe) or full page")"
+                Links="@MarketingModuleLinks"
+                PhpWorkspaceBase="/marketing/app" />
+        </div>
+    }
+</PhpEcomaeMarketingChrome>
+
+@code {
+    private string? _phpHref;
+
+    private static readonly IReadOnlyList<PhpModuleCatalog.ModuleLink> MarketingModuleLinks =
+        EcomaeMarketingPages.All
+            .Select(p => new PhpModuleCatalog.ModuleLink(p.Id, p.Label, p.Href, null, p.Group))
+            .ToList();
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
+    }
+}
