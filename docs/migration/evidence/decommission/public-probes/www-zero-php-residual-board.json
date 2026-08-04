@@ -16,7 +16,7 @@
   },
   "whatThePercentsMean": {
     "100_scaffold": "Menus 726/726, field floors 137/137, ajax dry-run catalogs/goldens, tenant/industry gates, security headers + compression are built. Module-ajax contract floor pairs 254 aspnet goldens with seeded php-* baselines (migration-contract-golden). This is NOT UX cutover.",
-    "95_weighted": "Legacy weighted area board in www-zero-php-completion.json — residual 5% is PHP runtime decommission + approval.",
+    "95_weighted": "Legacy weighted area board in www-zero-php-completion.json \u2014 residual 5% is PHP runtime decommission + approval.",
     "0_interactive": "Live product writes/menus still PHP. aspNetInteractiveComplete stays 0 until CloudPanel dual-sample + human approval. User-facing look must stay same-to-same."
   },
   "remainingWork": [
@@ -30,7 +30,7 @@
       "id": "ajax-field-dual-sample",
       "weightOfResidual": "high",
       "status": "contract-floor-green-live-pending",
-      "detail": "Module-ajax contract-only 254/254 green (seeded php-* baselines). Live PHP ajax field samples still required for CP 254 / ERP 321 / BOS 231 before cutover."
+      "detail": "CP 254 + ERP 321 + BOS 231 contract pairs green (writes=0). Live PHP field dual-sample still needs cookies."
     },
     {
       "id": "digest-auth-dual-sample",
@@ -48,7 +48,7 @@
       "id": "functional-live-smoke",
       "weightOfResidual": "medium",
       "status": "blocked",
-      "detail": "7/7 functional flows have live-smoke stubs still status=blocked. See LIVE_SMOKE_CAPTURE.md — do not flip without artifacts."
+      "detail": "7/7 functional flows have live-smoke stubs still status=blocked. See LIVE_SMOKE_CAPTURE.md \u2014 do not flip without artifacts."
     },
     {
       "id": "tenant-exact-route",
@@ -60,7 +60,7 @@
       "id": "release-owner-approval",
       "weightOfResidual": "blocker",
       "status": "missing",
-      "detail": "Human RELEASE_OWNER_APPROVAL.md — never invent."
+      "detail": "Human RELEASE_OWNER_APPROVAL.md \u2014 never invent."
     },
     {
       "id": "php-runtime-removal",
@@ -73,7 +73,7 @@
     "Menus 726/726 digest-contract (cp-debug-console safe metadata-only, no LFI)",
     "Field floors 137/137",
     "CP ajax goldens 254; ERP 321; BOS 231 (all writes=0)",
-    "Module-ajax contract floor 254/254 aspnet↔php seeded baselines (migration-contract-golden)",
+    "Module-ajax contract floor 254/254 aspnet\u2194php seeded baselines (migration-contract-golden)",
     "Storefront digests wired 7/7",
     "epartscart + industry *.ecomae.com gates",
     "Security headers middleware + response compression (Brotli/Gzip)",
@@ -94,7 +94,11 @@
     "BOS login industry grid + platform deck (epc-asp-login-bos retained)",
     "ERP login portal body: full area + tab directory from PhpModuleCatalog",
     "Deploy packs tenant-safety controls + marketing installers into ContentRoot",
-    "Readiness reporter resolves tenant-php-chrome-safe from ContentRoot pack"
+    "Readiness reporter resolves tenant-php-chrome-safe from ContentRoot pack",
+    "ERP ajax contract pairs 321/321 (writes=0)",
+    "BOS ajax contract pairs 231/231 (writes=0)",
+    "CP module-ajax contract pairs 254/254 (writes=0)",
+    "cloudpanel_run_all_ajax_contract_floors.sh offline CI green"
   ],
   "liveLag": {
     "storefrontDigestsLive": "6/7 (checkout shadow not installed on www yet)",
@@ -107,10 +111,10 @@
     "ECOMAE_CONFIRM_WWW_SHADOW_CLOSEOUT=YES bash scripts/cloudpanel_www_shadow_closeout_operator.sh",
     "bash scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh (contract floor; ECOMAE_MODULE_AJAX_SKIP_CAPTURE=1 offline)",
     "Authenticated digest/ajax dual-sample with admin+customer cookies",
-    "Follow LIVE_SMOKE_CAPTURE.md for each functional flow — flip stubs only with real artifacts",
+    "Follow LIVE_SMOKE_CAPTURE.md for each functional flow \u2014 flip stubs only with real artifacts",
     "Human RELEASE_OWNER_APPROVAL.md only after ReadyToRemovePhp checklist green",
-    "PHP source deletion remains a separate human PR — never agent-invented"
+    "PHP source deletion remains a separate human PR \u2014 never agent-invented"
   ],
-  "honestAnswer": "Scaffold contract 100%. Module-ajax contract-only 254/254 green (seeded baselines, not live PHP). Interactive cutover 0%. Live ReadyToRemovePhp=false. PHP delete refused. Dual-sample + approval before any PHP removal.",
+  "honestAnswer": "Scaffold 100%. Ajax contract floors CP/ERP/BOS complete. Interactive cutover still 0%. Redeploy + www shadow closeout + live dual-sample + approval before PHP removal. Never invent approval.",
   "note": "Never invent cutoverAllowed=true or RELEASE_OWNER_APPROVAL.md."
 }
