@@ -1076,4 +1076,94 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+
+    /// <summary>Bank reconciliation KPIs from statement lines.</summary>
+    public const string SelectErpBankReconciliationStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_bank_statement_lines`) AS line_count,
+            (SELECT COUNT(*) FROM `epc_erp_bank_statement_lines` WHERE IFNULL(`matched_entry_id`,0)=0) AS unmatched_count,
+            (SELECT COUNT(*) FROM `epc_erp_bank_statement_lines` WHERE IFNULL(`matched_entry_id`,0)>0) AS matched_count,
+            (SELECT IFNULL(SUM(`amount`),0) FROM `epc_erp_bank_statement_lines` WHERE IFNULL(`direction`,0)=1) AS credit_total,
+            (SELECT IFNULL(SUM(`amount`),0) FROM `epc_erp_bank_statement_lines` WHERE IFNULL(`direction`,0)=0) AS debit_total
+        """;
+
+    /// <summary>Bank statement lines for reconciliation.</summary>
+    public const string SelectErpBankReconciliationLines = """
+        SELECT `id`, IFNULL(`account_id`,0) AS account_id, IFNULL(`line_date`,0) AS line_date,
+               IFNULL(`description`,'') AS description, IFNULL(`reference`,'') AS reference,
+               IFNULL(`amount`,0) AS amount, IFNULL(`direction`,0) AS direction,
+               IFNULL(`matched_entry_id`,0) AS matched_entry_id, IFNULL(`import_batch`,'') AS import_batch,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_bank_statement_lines`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Stock transfer KPIs — omits notes.</summary>
+    public const string SelectErpStockTransferStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_warehouse_transfers`) AS transfer_count,
+            (SELECT COUNT(*) FROM `epc_warehouse_transfers` WHERE IFNULL(`status`,'')='draft') AS draft_count,
+            (SELECT COUNT(*) FROM `epc_warehouse_transfers` WHERE IFNULL(`status`,'')='in_transit') AS in_transit_count,
+            (SELECT COUNT(*) FROM `epc_warehouse_transfers` WHERE IFNULL(`status`,'')='received') AS received_count,
+            (SELECT IFNULL(SUM(`total_qty`),0) FROM `epc_warehouse_transfers`) AS total_qty
+        """;
+
+    /// <summary>Warehouse stock transfers — omits notes.</summary>
+    public const string SelectErpStockTransfers = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`transfer_no`,'') AS transfer_no,
+               IFNULL(`from_warehouse_id`,0) AS from_warehouse_id, IFNULL(`to_warehouse_id`,0) AS to_warehouse_id,
+               IFNULL(`reason`,'') AS reason, IFNULL(`status`,'') AS status,
+               IFNULL(`total_items`,0) AS total_items, IFNULL(`total_qty`,0) AS total_qty,
+               IFNULL(`shipped_at`,'') AS shipped_at, IFNULL(`received_at`,'') AS received_at,
+               IFNULL(`created_by`,0) AS created_by, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_warehouse_transfers`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Sales quotation KPIs — omits notes.</summary>
+    public const string SelectErpSalesQuotationStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_crm_quotes` WHERE IFNULL(`active`,0)=1) AS quote_count,
+            (SELECT COUNT(*) FROM `epc_crm_quotes` WHERE IFNULL(`active`,0)=1 AND IFNULL(`status`,'')='draft') AS draft_count,
+            (SELECT COUNT(*) FROM `epc_crm_quotes` WHERE IFNULL(`active`,0)=1 AND IFNULL(`status`,'')='sent') AS sent_count,
+            (SELECT COUNT(*) FROM `epc_crm_quotes` WHERE IFNULL(`active`,0)=1 AND IFNULL(`status`,'')='accepted') AS accepted_count,
+            (SELECT IFNULL(SUM(`subtotal`),0) FROM `epc_crm_quotes` WHERE IFNULL(`active`,0)=1) AS subtotal_sum
+        """;
+
+    /// <summary>Sales quotations — omits notes.</summary>
+    public const string SelectErpSalesQuotations = """
+        SELECT `id`, IFNULL(`opportunity_id`,0) AS opportunity_id, IFNULL(`lead_id`,0) AS lead_id,
+               IFNULL(`customer_user_id`,0) AS customer_user_id, IFNULL(`quote_number`,'') AS quote_number,
+               IFNULL(`status`,'') AS status, IFNULL(`currency_code`,'') AS currency_code,
+               IFNULL(`subtotal`,0) AS subtotal, IFNULL(`shop_order_id`,0) AS shop_order_id,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`active`,0) AS active
+        FROM `epc_crm_quotes`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Workspace favorites / shortcut KPIs.</summary>
+    public const string SelectErpWorkspaceFavoriteStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_user_shortcuts`) AS shortcut_count,
+            (SELECT COUNT(*) FROM `epc_user_shortcuts` WHERE IFNULL(`is_pinned`,0)=1) AS pinned_count,
+            (SELECT COUNT(DISTINCT `user_id`) FROM `epc_user_shortcuts`) AS user_count,
+            (SELECT COUNT(*) FROM `epc_user_shortcuts` WHERE IFNULL(`surface`,'') IN ('erp','both','')) AS erp_surface_count
+        """;
+
+    /// <summary>Workspace favorites / shortcuts.</summary>
+    public const string SelectErpWorkspaceFavorites = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`surface`,'') AS surface, IFNULL(`shortcut_key`,'') AS shortcut_key,
+               IFNULL(`label`,'') AS label, IFNULL(`icon_class`,'') AS icon_class,
+               IFNULL(`target_url`,'') AS target_url, IFNULL(`target_tab`,'') AS target_tab,
+               IFNULL(`sort_order`,0) AS sort_order, IFNULL(`is_pinned`,0) AS is_pinned,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_user_shortcuts`
+        ORDER BY `sort_order` ASC, `id` DESC
+        LIMIT @limit
+        """;
+
 }

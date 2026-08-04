@@ -1,0 +1,134 @@
+@page "/erp/stock-transfers-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Stock transfers · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Stock transfers" BreadcrumbArea="Inventory" BreadcrumbTab="Stock groups">
+    <style>
+        .epc-st-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#14532d 0%,#166534 45%,#3f6212 100%);
+        }
+        .epc-st-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-st-hero p { margin:0; color:#d9f99d; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-st-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-st-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#14532d; background:#ecfccb;
+        }
+        .epc-st-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-st-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-st-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-st-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-st-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-st-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-st-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-st-table th, .epc-st-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-st-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-st-note { margin-top:1rem; padding:.75rem .9rem; background:#f7fee7; border:1px solid #bef264; border-radius:.45rem; color:#365314; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-st-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-st-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Stock transfers</h1>
+        <p>Read-only inter-warehouse transfer KPIs + headers from <code>/erp/stock-transfers</code>. Ship/receive writes stay on live PHP.</p>
+        <div class="epc-st-cta">
+            <a href="@_phpTab">Open PHP</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/erp/inventory-stock-app">Inventory stock</a>
+        </div>
+    </section>
+
+    <div class="epc-st-kpis" aria-label="Stock transfer stats">
+        <div class="epc-st-kpi"><strong>@_summary.TransferCount.ToString(CultureInfo.InvariantCulture)</strong><span>Transfers</span></div>
+        <div class="epc-st-kpi"><strong>@_summary.DraftCount.ToString(CultureInfo.InvariantCulture)</strong><span>Draft</span></div>
+        <div class="epc-st-kpi"><strong>@_summary.InTransitCount.ToString(CultureInfo.InvariantCulture)</strong><span>In transit</span></div>
+        <div class="epc-st-kpi"><strong>@_summary.ReceivedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Received</span></div>
+        <div class="epc-st-kpi"><strong>@_summary.TotalQty.ToString("0.###", CultureInfo.InvariantCulture)</strong><span>Total qty</span></div>
+    </div>
+
+    <div class="epc-st-table-wrap">
+        <table class="epc-st-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Transfer #</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Items</th>
+                    <th>Qty</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_transfers.Count == 0)
+                {
+                    <tr><td colspan="9">No rows in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _transfers)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.TransferNo) ? row.TransferNo : "—")</td>
+                            <td>@row.FromWarehouseId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.ToWarehouseId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Reason) ? row.Reason : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
+                            <td>@row.TotalItems.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.TotalQty.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-st-note">
+        Read-only preview · JSON digest <a href="/erp/stock-transfers?limit=200">/erp/stock-transfers</a>. PHP warehouse transfer UX remains authoritative. notes omitted · Not a broad /erp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inv_groups";
+    private bool _isAdmin;
+    private ErpStockTransfersSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<ErpStockTransferDigest> _transfers = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildErpStockTransfersDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _transfers = result.Transfers;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

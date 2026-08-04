@@ -161,6 +161,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only integrations/webhooks (secrets/events omitted).</summary>
     Task<CpIntegrationsDigestResult> BuildCpIntegrationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only bank statement lines for reconciliation.</summary>
+    Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only warehouse stock transfers (notes omitted).</summary>
+    Task<ErpStockTransfersDigestResult> BuildErpStockTransfersDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only CRM/sales quotations (notes omitted).</summary>
+    Task<ErpSalesQuotationsDigestResult> BuildErpSalesQuotationsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only ERP workspace favorites/shortcuts.</summary>
+    Task<ErpWorkspaceFavoritesDigestResult> BuildErpWorkspaceFavoritesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

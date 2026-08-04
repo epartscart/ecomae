@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 60,
+  "routeCount": 64,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -725,6 +725,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "bos-audit-shadow-approved"
+          }
+        ]
+      },
+      "erp-bank-reconciliation": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/bank-reconciliation"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-bank-reconciliation-shadow-approved"
+          }
+        ]
+      },
+      "erp-stock-transfers": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/stock-transfers"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-stock-transfers-shadow-approved"
+          }
+        ]
+      },
+      "erp-sales-quotations": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/sales-quotations"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-sales-quotations-shadow-approved"
+          }
+        ]
+      },
+      "erp-workspace-favorites": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/workspace-favorites"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-workspace-favorites-shadow-approved"
           }
         ]
       }

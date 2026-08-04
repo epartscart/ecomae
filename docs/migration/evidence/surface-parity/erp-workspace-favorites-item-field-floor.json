@@ -1,0 +1,33 @@
+{
+  "role": "erp-workspace-favorites-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "erp-workspace-favorites",
+  "collectionKey": "favorites",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "shortcutCount",
+    "pinnedCount",
+    "userCount",
+    "erpSurfaceCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "userId",
+    "surface",
+    "shortcutKey",
+    "label",
+    "iconClass",
+    "targetUrl",
+    "targetTab",
+    "sortOrder",
+    "isPinned",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks workspace-favorites digest summary+favorites[] floors. PHP dashboard shortcuts remains authoritative. cutoverAllowed=false."
+}
