@@ -222,6 +222,8 @@ check_file "cp orders item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-orders-item-field-floor.json"
 check_file "catalog VIN envelope floor evidence" \
   "$ROOT/docs/migration/evidence/catalog-api/vin-envelope-floor.json"
+check_file "bos fleet-health sampleTenants floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/bos-fleet-health-sample-tenants-floor.json"
 
 if [[ "$FAIL" -ne 0 ]]; then
   printf 'FAIL: Enterprise BOS scaffold guardrails\n'

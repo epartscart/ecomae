@@ -1,5 +1,5 @@
 {
-  "pairsChecked": 36,
+  "pairsChecked": 37,
   "failed": 0,
   "migrationBaselinePairs": 0,
   "contractsRegistered": 35,
@@ -62,6 +62,7 @@
     "storefront-orders"
   ],
   "hybridListItemFieldStems": [
+    "bos-fleet-health",
     "cp-orders-digest"
   ],
   "note": "Digest dual-sample contract floor. All list digests require non-empty migration item-field sentinels; cp-orders-digest also locks orders[] items. Never invents RELEASE_OWNER_APPROVAL.md."

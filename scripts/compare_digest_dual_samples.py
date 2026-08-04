@@ -287,6 +287,21 @@ HYBRID_LIST_ITEM_FIELDS = {
             "orderSum",
         ],
     ),
+    "bos-fleet-health": (
+        "sampleTenants",
+        [
+            "siteKey",
+            "hostname",
+            "industryCode",
+            "status",
+            "tradeName",
+            "hubName",
+            "hostedOn",
+            "erpOnly",
+            "isActive",
+            "hasDb",
+        ],
+    ),
 }
 
 # Object digests without a collection array (top-level envelope fields).
@@ -488,10 +503,10 @@ def main() -> int:
             print(proc.stdout or proc.stderr)
         if stem in HYBRID_LIST_ITEM_FIELDS and left is not None:
             check_hybrid_list_items(
-                left, stem, f"{'migration' if from_mig else 'php'}-{stem}-orders-items"
+                left, stem, f"{'migration' if from_mig else 'php'}-{stem}-list-items"
             )
             if asp.exists():
-                check_hybrid_list_items(asp, stem, f"aspnet-{stem}-orders-items")
+                check_hybrid_list_items(asp, stem, f"aspnet-{stem}-list-items")
 
     for stem, key in LIST_CONTRACTS.items():
         left, from_mig = resolve_left(samples, stem)
@@ -547,7 +562,7 @@ def main() -> int:
                 print(f"FAIL migration/{stem}")
                 print(proc.stdout or proc.stderr)
             if stem in HYBRID_LIST_ITEM_FIELDS:
-                check_hybrid_list_items(path, stem, f"migration/{stem}-orders-items")
+                check_hybrid_list_items(path, stem, f"migration/{stem}-list-items")
         for stem, key in LIST_CONTRACTS.items():
             if stem in checked_stems:
                 continue
@@ -579,7 +594,8 @@ def main() -> int:
         "hybridListItemFieldStems": sorted(HYBRID_LIST_ITEM_FIELDS),
         "note": (
             "Digest dual-sample contract floor. All list digests require non-empty "
-            "migration item-field sentinels; cp-orders-digest also locks orders[] items. "
+            "migration item-field sentinels; hybrid summary digests also lock "
+            "cp-orders-digest orders[] and bos-fleet-health sampleTenants[]. "
             "Never invents RELEASE_OWNER_APPROVAL.md."
         ),
     }
