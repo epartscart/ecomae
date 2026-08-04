@@ -673,18 +673,18 @@ def main() -> None:
             "note": "migration-mode; budgets[] sentinel; note omitted; PHP budgeting authoritative; cutoverAllowed=false",
         },
         "cp-carriers.json": {
-            **summary("cp", {"carrierCount": 1, "activeCarriers": 1, "rateCount": 0, "openShipments": 0}),
-            "carriers": [{"id": 1, "code": "DHL", "name": "Migration Carrier", "mode": "courier", "currency": "AED", "rating": 0.0, "active": True}],
+            **summary("cp", {"carrierCount": 1, "activeCarriers": 1, "shipmentCount": 0, "openShipments": 0}),
+            "carriers": [{"id": 1, "code": "dhl", "name": "DHL Express", "active": True, "demoMode": True, "timeCreated": 0, "region": "Global", "blurb": "Express worldwide via Dubai & European hubs"}],
             "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
-            "note": "migration-mode; carriers[] sentinel; contact PII omitted; PHP carriers authoritative; cutoverAllowed=false",
+            "note": "migration-mode; carriers[] sentinel; epc_carrier_accounts; config_json omitted; PHP carriers authoritative; cutoverAllowed=false",
         },
         "cp-payment-gateways.json": {
-            **summary("cp", {"gatewayCount": 1, "activeGateways": 1, "selectableGateways": 1, "accountCount": 0}),
-            "gateways": [{"id": 1, "name": "Migration Gateway", "handler": "cash", "active": True, "isSelectable": True}],
+            **summary("cp", {"gatewayCount": 1, "enabledGateways": 1, "activeGateways": 1, "selectableGateways": 1, "accountCount": 0}),
+            "gateways": [{"id": 1, "name": "Migration Gateway", "handler": "cash", "anable": True, "active": True, "isSelectable": True}],
             "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
-            "note": "migration-mode; gateways[] sentinel; parameters/credentials omitted; PHP payments authoritative; cutoverAllowed=false",
+            "note": "migration-mode; gateways[] sentinel; anable=Enabled; parameters/credentials omitted; PHP payments authoritative; cutoverAllowed=false",
         },
         "cp-workflows.json": {
             **summary("cp", {"workflowCount": 1, "activeWorkflows": 1, "runCount": 0, "failedRuns": 0}),
@@ -715,11 +715,11 @@ def main() -> None:
             "note": "migration-mode; opportunities[] sentinel; notes omitted; PHP CRM opportunities authoritative; cutoverAllowed=false",
         },
         "cp-integrations.json": {
-            **summary("cp", {"webhookCount": 1, "activeWebhooks": 1, "deliveryCount": 0, "failedDeliveries": 0}),
-            "integrations": [{"id": 1, "tenantKey": "__platform__", "url": "https://example.com/hook", "active": True, "description": "Migration webhook", "createdAt": "2026-01-01T00:00:00"}],
+            **summary("cp", {"catalogCount": 1, "activeCount": 1, "guideCount": 1, "categoryCount": 1}),
+            "integrations": [{"key": "payment_gateways", "label": "Payment gateways", "blurb": "Telr, GCC BNPL, JazzCash/Easypaisa, crypto, and per-account settlements.", "category": "commerce", "active": True, "configureUrl": "/cp/shop/payments/payments", "guide": "/cp/control/portal/epc_integrations_guide#payment_gateways", "icon": "fa-credit-card", "color": "#0369a1"}],
             "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
-            "note": "migration-mode; integrations[] sentinel; secrets/events omitted; PHP integrations hub authoritative; cutoverAllowed=false",
+            "note": "migration-mode; integrations[] hub catalog sentinel; not epc_webhooks; PHP integrations hub authoritative; cutoverAllowed=false",
         },
         "erp-bank-reconciliation.json": {
             **summary("erp", {"lineCount": 1, "unmatchedCount": 1, "matchedCount": 0, "creditTotal": 100.0, "debitTotal": 0.0}),
@@ -905,10 +905,10 @@ def main() -> None:
         },
         "cp-marketplace-channels.json": {
             **summary("cp", {"channelCount": 1, "activeCount": 1, "skuMapCount": 0, "orderCount": 0}),
-            "channels": [{"id": 1, "code": "amazon_ae", "name": "Amazon AE", "marketplaceId": "A2VIGQ35RCS4UG", "active": 1, "demoMode": 1, "lastSyncAt": 0, "timeCreated": 0}],
+            "channels": [{"id": 1, "code": "amazon_ae", "name": "Amazon.ae", "marketplaceId": "A2VIGQ35RCS4UG", "active": 1, "demoMode": 1, "lastSyncAt": 0, "timeCreated": 0, "family": "Amazon", "region": "MENA", "api": "SP-API", "blurb": "Amazon UAE — SP-API listings & FBA/FBM"}],
             "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
-            "note": "migration-mode; channels[] sentinel; config_json omitted; PHP marketplace/channels authoritative; cutoverAllowed=false",
+            "note": "migration-mode; channels[] sentinel; family/region/api/blurb; config_json omitted; PHP marketplace/channels authoritative; cutoverAllowed=false",
         },
         "cp-demand-intelligence.json": {
             **summary("cp", {"countryCount": 1, "articleDemandCount": 0, "priceListDemandCount": 0, "userDemandCount": 0}),

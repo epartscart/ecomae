@@ -7,21 +7,24 @@
   "collectionKey": "integrations",
   "requireNonemptyMigrationSentinel": true,
   "requiredSummaryFields": [
-    "webhookCount",
-    "activeWebhooks",
-    "deliveryCount",
-    "failedDeliveries",
+    "catalogCount",
+    "activeCount",
+    "guideCount",
+    "categoryCount",
     "source",
     "message"
   ],
   "requiredItemFields": [
-    "id",
-    "tenantKey",
-    "url",
+    "key",
+    "label",
+    "blurb",
+    "category",
     "active",
-    "description",
-    "createdAt"
+    "configureUrl",
+    "guide",
+    "icon",
+    "color"
   ],
   "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
-  "note": "Locks integrations digest summary+integrations[] floors. secrets/events omitted. PHP integrations hub remains authoritative. cutoverAllowed=false."
+  "note": "Integrations Hub catalog (epc_integrations_hub_rows shape) — NOT epc_webhooks. cutoverAllowed=false."
 }

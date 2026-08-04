@@ -989,38 +989,40 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>Carrier KPIs — omits contact PII.</summary>
+    /// <summary>Courier KPIs from logistics hub tables — not ERP TMS. Omits config_json.</summary>
     public const string SelectCpCarrierStats = """
         SELECT
-            (SELECT COUNT(*) FROM `epc_erp_carriers`) AS carrier_count,
-            (SELECT COUNT(*) FROM `epc_erp_carriers` WHERE IFNULL(`active`,0)=1) AS active_carriers,
-            (SELECT COUNT(*) FROM `epc_erp_carrier_rates`) AS rate_count,
-            (SELECT COUNT(*) FROM `epc_erp_shipments` WHERE IFNULL(`status`,'') IN ('planned','dispatched','in_transit')) AS open_shipments
+            (SELECT COUNT(*) FROM `epc_carrier_accounts`) AS carrier_count,
+            (SELECT COUNT(*) FROM `epc_carrier_accounts` WHERE IFNULL(`active`,0)=1) AS active_carriers,
+            (SELECT COUNT(*) FROM `epc_carrier_shipments`) AS shipment_count,
+            (SELECT COUNT(*) FROM `epc_carrier_shipments` WHERE IFNULL(`status`,'') NOT IN ('delivered','cancelled','canceled','void')) AS open_shipments
         """;
 
-    /// <summary>Carriers — omits contact_name/phone/email/tax_id.</summary>
+    /// <summary>Courier accounts — omits config_json. Catalog region/blurb enriched in reporter.</summary>
     public const string SelectCpCarriers = """
         SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
-               IFNULL(`mode`,'') AS mode, IFNULL(`currency`,'') AS currency,
-               IFNULL(`rating`,0) AS rating, IFNULL(`active`,0) AS active
-        FROM `epc_erp_carriers`
+               IFNULL(`active`,0) AS active, IFNULL(`demo_mode`,0) AS demo_mode,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_carrier_accounts`
         ORDER BY `id` ASC
         LIMIT @limit
         """;
 
-    /// <summary>Payment gateway KPIs — omits parameters/credentials.</summary>
+    /// <summary>Payment gateway KPIs — omits parameters/credentials. anable=Enabled; active=Default.</summary>
     public const string SelectCpPaymentGatewayStats = """
         SELECT
             (SELECT COUNT(*) FROM `shop_payment_systems`) AS gateway_count,
+            (SELECT COUNT(*) FROM `shop_payment_systems` WHERE IFNULL(`anable`,0)=1) AS enabled_gateways,
             (SELECT COUNT(*) FROM `shop_payment_systems` WHERE IFNULL(`active`,0)=1) AS active_gateways,
             (SELECT COUNT(*) FROM `shop_payment_systems` WHERE IFNULL(`is_selectable`,0)=1) AS selectable_gateways,
             (SELECT COUNT(*) FROM `epc_payment_accounts`) AS account_count
         """;
 
-    /// <summary>Payment gateways — omits parameters/parameters_values/description.</summary>
+    /// <summary>Payment gateways — omits parameters/parameters_values/description/credentials.</summary>
     public const string SelectCpPaymentGateways = """
         SELECT `id`, IFNULL(`name`,'') AS name, IFNULL(`handler`,'') AS handler,
-               IFNULL(`active`,0) AS active, IFNULL(`is_selectable`,0) AS is_selectable
+               IFNULL(`anable`,0) AS anable, IFNULL(`active`,0) AS active,
+               IFNULL(`is_selectable`,0) AS is_selectable
         FROM `shop_payment_systems`
         ORDER BY `id` ASC
         LIMIT @limit
@@ -1108,23 +1110,11 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>Integrations/webhook KPIs — omits secrets/payloads.</summary>
-    public const string SelectCpIntegrationStats = """
-        SELECT
-            (SELECT COUNT(*) FROM `epc_webhooks`) AS webhook_count,
-            (SELECT COUNT(*) FROM `epc_webhooks` WHERE IFNULL(`active`,0)=1) AS active_webhooks,
-            (SELECT COUNT(*) FROM `epc_webhook_deliveries`) AS delivery_count,
-            (SELECT COUNT(*) FROM `epc_webhook_deliveries` WHERE IFNULL(`status`,'') IN ('failed','dlq')) AS failed_deliveries
-        """;
-
-    /// <summary>Integrations/webhooks — omits secret_hash/secret_encrypted/events.</summary>
-    public const string SelectCpIntegrations = """
-        SELECT `id`, IFNULL(`tenant_key`,'') AS tenant_key, IFNULL(`url`,'') AS url,
-               IFNULL(`active`,0) AS active, IFNULL(`description`,'') AS description,
-               IFNULL(`created_at`,'') AS created_at
-        FROM `epc_webhooks`
-        ORDER BY `id` DESC
-        LIMIT @limit
+    /// <summary>Optional tenant feature flags overlay for Integrations Hub (secrets/config_json omitted).</summary>
+    public const string SelectCpIntegrationFeatureFlags = """
+        SELECT IFNULL(`feature_key`,'') AS feature_key, IFNULL(`enabled`,0) AS enabled
+        FROM `epc_tenant_feature_flags`
+        LIMIT 2000
         """;
 
     /// <summary>

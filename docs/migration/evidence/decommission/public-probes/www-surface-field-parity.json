@@ -1059,7 +1059,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/carriers",
-      "legacyPhpAuthority": "epc_erp_carriers + rates/shipments",
+      "legacyPhpAuthority": "epc_carrier_accounts + epc_carrier_shipments",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -1075,14 +1075,14 @@
       "requiredSummaryOrItemFields": [
         "carrierCount",
         "activeCarriers",
-        "rateCount",
+        "shipmentCount",
         "openShipments",
         "source",
         "message"
       ],
       "functionsCovered": [
-        "Carrier KPIs + directory",
-        "contact PII omitted",
+        "Courier KPIs + directory",
+        "config_json omitted; catalog region/blurb",
         "PHP /CP/shop/logistics/carriers remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
@@ -1106,6 +1106,7 @@
       ],
       "requiredSummaryOrItemFields": [
         "gatewayCount",
+        "enabledGateways",
         "activeGateways",
         "selectableGateways",
         "accountCount",
@@ -1114,7 +1115,7 @@
       ],
       "functionsCovered": [
         "Payment gateway KPIs + handlers",
-        "parameters/credentials omitted",
+        "anable=Enabled; active=Default; parameters/credentials omitted",
         "PHP /CP/shop/payments/payments remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
@@ -1251,7 +1252,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/integrations",
-      "legacyPhpAuthority": "epc_webhooks + deliveries",
+      "legacyPhpAuthority": "epc_integrations_hub catalog + feature flags",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -1265,16 +1266,16 @@
         "note"
       ],
       "requiredSummaryOrItemFields": [
-        "webhookCount",
-        "activeWebhooks",
-        "deliveryCount",
-        "failedDeliveries",
+        "catalogCount",
+        "activeCount",
+        "guideCount",
+        "categoryCount",
         "source",
         "message"
       ],
       "functionsCovered": [
-        "Integrations/webhook KPIs + endpoints",
-        "secrets/events omitted",
+        "Integrations Hub catalog rows",
+        "key/label/blurb/category/configure_url; not epc_webhooks",
         "PHP epc_integrations_hub remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
@@ -2040,7 +2041,7 @@
       ],
       "functionsCovered": [
         "Marketplace channel KPIs + rows",
-        "config_json omitted",
+        "config_json omitted; catalog family/region/api/blurb",
         "PHP marketplace/channels remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",

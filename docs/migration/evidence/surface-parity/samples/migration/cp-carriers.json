@@ -4,7 +4,7 @@
   "summary": {
     "carrierCount": 1,
     "activeCarriers": 1,
-    "rateCount": 0,
+    "shipmentCount": 0,
     "openShipments": 0,
     "source": "migration",
     "message": "TenantRegistry DB is not configured."
@@ -13,16 +13,17 @@
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode; carriers[] sentinel; contact PII omitted; PHP carriers authoritative; cutoverAllowed=false",
+  "note": "migration-mode; carriers[] sentinel; epc_carrier_accounts; config_json omitted; PHP carriers authoritative; cutoverAllowed=false",
   "carriers": [
     {
       "id": 1,
-      "code": "DHL",
-      "name": "Migration Carrier",
-      "mode": "courier",
-      "currency": "AED",
-      "rating": 0.0,
-      "active": true
+      "code": "dhl",
+      "name": "DHL Express",
+      "active": true,
+      "demoMode": true,
+      "timeCreated": 0,
+      "region": "Global",
+      "blurb": "Express worldwide via Dubai & European hubs"
     }
   ],
   "count": 1,

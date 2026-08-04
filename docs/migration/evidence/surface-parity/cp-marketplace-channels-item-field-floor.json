@@ -22,8 +22,15 @@
     "active",
     "demoMode",
     "lastSyncAt",
-    "timeCreated"
+    "timeCreated",
+    "family",
+    "region",
+    "api",
+    "blurb"
+  ],
+  "omit": [
+    "config_json"
   ],
   "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
-  "note": "Locks cp-marketplace-channels digest summary+channels[] floors. config_json omitted. PHP marketplace/channels remain authoritative. cutoverAllowed=false."
+  "note": "Locks marketplace channels digest; family/region/api/blurb from catalog by code. config_json omitted. cutoverAllowed=false."
 }

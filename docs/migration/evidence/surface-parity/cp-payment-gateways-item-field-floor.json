@@ -8,6 +8,7 @@
   "requireNonemptyMigrationSentinel": true,
   "requiredSummaryFields": [
     "gatewayCount",
+    "enabledGateways",
     "activeGateways",
     "selectableGateways",
     "accountCount",
@@ -18,9 +19,16 @@
     "id",
     "name",
     "handler",
+    "anable",
     "active",
     "isSelectable"
   ],
+  "omit": [
+    "parameters",
+    "parameters_values",
+    "description",
+    "credentials"
+  ],
   "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
-  "note": "Locks payment-gateways digest summary+gateways[] floors. parameters/credentials omitted. PHP payments remains authoritative. cutoverAllowed=false."
+  "note": "anable=Enabled; active=Default. Secrets omitted. PHP payments remains authoritative. cutoverAllowed=false."
 }

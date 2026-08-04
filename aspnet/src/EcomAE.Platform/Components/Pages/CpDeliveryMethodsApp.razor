@@ -34,19 +34,16 @@
         .epc-del-table { width:100%; border-collapse:collapse; font-size:.86rem; }
         .epc-del-table th, .epc-del-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
         .epc-del-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-del-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdfa; border:1px solid #5eead4; border-radius:.45rem; color:#0f766e; font-size:.86rem; }
         @@media (max-width:900px){ .epc-del-kpis{grid-template-columns:1fr;} }
     </style>
 
     <section class="epc-del-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Delivery Methods</h1>
-        <p>Read-only logistics delivery modes from <code>/cp/delivery-methods</code>. Configure handlers and pickup stays on live PHP.</p>
+        <p>Pickup, courier, and obtaining modes offered at checkout — wire handlers to carrier accounts as needed.</p>
         <div class="epc-del-cta">
-            <a href="@_phpTab">Open PHP delivery methods</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/cp/orders-app">Orders</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
+            <a href="@_configureHref">Manage methods</a>
+            <a class="ghost" href="@_carriersHref">Carriers</a>
         </div>
     </section>
 
@@ -59,7 +56,6 @@
         <table class="epc-del-table">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Caption</th>
                     <th>Handler</th>
                     <th>Available</th>
@@ -71,42 +67,33 @@
             <tbody>
                 @if (_modes.Count == 0)
                 {
-                    <tr><td colspan="7">No delivery methods in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="6">No delivery methods configured yet.</td></tr>
                 }
                 else
                 {
                     @foreach (var m in _modes)
                     {
                         <tr>
-                            <td><strong>@m.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(m.Caption) ? "—" : m.Caption)</td>
                             <td>@(string.IsNullOrWhiteSpace(m.Handler) ? "—" : m.Handler)</td>
                             <td>@(m.Available ? "yes" : "no")</td>
                             <td>@(m.ControlAvailable ? "yes" : "no")</td>
                             <td>@m.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_configureHref">Configure</a></td>
                         </tr>
                     }
                 }
             </tbody>
         </table>
     </div>
-
-    <div class="epc-del-note">
-        Read-only preview · JSON digest <a href="/cp/delivery-methods?limit=200">/cp/delivery-methods</a>.
-        PHP <code>shop/logistics/sposoby-polucheniya</code> remains authoritative for delivery configuration.
-        Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/logistics/sposoby-polucheniya";
+    private const string _configureHref = "/CP/shop/logistics/sposoby-polucheniya";
+    private const string _carriersHref = "/CP/shop/logistics/carriers";
     private bool _isAdmin;
     private CpDeliveryMethodsSummary _summary = new(0, 0, "n/a", "");
     private IReadOnlyList<CpDeliveryMethodDigest> _modes = [];
-    private string _source = "n/a";
-    private string _message = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,7 +111,5 @@
         var result = await Dashboards.BuildCpDeliveryMethodsDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _modes = result.Modes;
-        _source = result.Source;
-        _message = result.Message;
     }
 }

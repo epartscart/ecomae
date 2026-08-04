@@ -34,25 +34,23 @@
         .epc-pay-table { width:100%; border-collapse:collapse; font-size:.86rem; }
         .epc-pay-table th, .epc-pay-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
         .epc-pay-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-pay-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#7c2d12; font-size:.86rem; }
         @@media (max-width:900px){ .epc-pay-kpis{grid-template-columns:1fr 1fr;} }
     </style>
 
     <section class="epc-pay-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Payment Gateways</h1>
-        <p>Read-only payment gateway KPIs + handlers from <code>/cp/payment-gateways</code>. Credentials and checkout writes stay on live PHP.</p>
+        <p>Enable checkout handlers, choose the default rail, and manage settlement accounts for this store.</p>
         <div class="epc-pay-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
+            <a href="@_configureHref">Configure</a>
+            <a class="ghost" href="@_accountsHref">Accounts</a>
         </div>
     </section>
 
     <div class="epc-pay-kpis" aria-label="Payment Gateways stats">
         <div class="epc-pay-kpi"><strong>@_summary.GatewayCount.ToString(CultureInfo.InvariantCulture)</strong><span>Gateways</span></div>
-        <div class="epc-pay-kpi"><strong>@_summary.ActiveGateways.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
-        <div class="epc-pay-kpi"><strong>@_summary.SelectableGateways.ToString(CultureInfo.InvariantCulture)</strong><span>Selectable</span></div>
+        <div class="epc-pay-kpi"><strong>@_summary.EnabledGateways.ToString(CultureInfo.InvariantCulture)</strong><span>Enabled</span></div>
+        <div class="epc-pay-kpi"><strong>@_summary.ActiveGateways.ToString(CultureInfo.InvariantCulture)</strong><span>Default</span></div>
         <div class="epc-pay-kpi"><strong>@_summary.AccountCount.ToString(CultureInfo.InvariantCulture)</strong><span>Accounts</span></div>
     </div>
 
@@ -60,10 +58,10 @@
         <table class="epc-pay-table">
             <thead>
                 <tr>
-                    <th>Id</th>
                     <th>Name</th>
                     <th>Handler</th>
-                    <th>Active</th>
+                    <th>Enabled</th>
+                    <th>Default</th>
                     <th>Selectable</th>
                     <th></th>
                 </tr>
@@ -71,39 +69,33 @@
             <tbody>
                 @if (_gateways.Count == 0)
                 {
-                    <tr><td colspan="6">No rows in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="6">No payment gateways configured yet.</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _gateways)
                     {
                         <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Handler) ? row.Handler : "—")</td>
+                            <td>@(row.Anable ? "yes" : "no")</td>
                             <td>@(row.Active ? "yes" : "no")</td>
                             <td>@(row.IsSelectable ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_configureHref">Configure</a></td>
                         </tr>
                     }
                 }
             </tbody>
         </table>
     </div>
-
-    <div class="epc-pay-note">
-        Read-only preview · JSON digest <a href="/cp/payment-gateways?limit=200">/cp/payment-gateways</a>. PHP /CP/shop/payments/payments remains authoritative. parameters/credentials omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/payments/payments";
+    private const string _configureHref = "/CP/shop/payments/payments";
+    private const string _accountsHref = "/CP/shop/payments/payments?tab=accounts";
     private bool _isAdmin;
-    private CpPaymentGatewaysSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private CpPaymentGatewaysSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPaymentGatewayDigest> _gateways = [];
-    private string _source = "n/a";
-    private string _message = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,7 +113,5 @@
         var result = await Dashboards.BuildCpPaymentGatewaysDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _gateways = result.Gateways;
-        _source = result.Source;
-        _message = result.Message;
     }
 }
