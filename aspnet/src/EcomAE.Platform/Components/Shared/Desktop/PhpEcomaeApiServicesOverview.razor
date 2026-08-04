@@ -1,0 +1,44 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_api_services() — hero + product teasers.
+  Full Catalog/Price PRO docs remain PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-api-services-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#5a0f16 0%,#8a131c 40%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-plug"></i> For your own website — not a tenant</div>
+			<h1>Autoparts Catalog &amp; Price PRO API</h1>
+			<p class="lead">Offer vehicle spare-parts lookup on <strong>your</strong> site without renting a full ECOM AE storefront or ERP. Choose <strong>Catalog API</strong>, <strong>Price PRO API</strong>, or both — we issue client keys for your developers.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/contact">Request API access</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/api-services?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/api-services"))">Open full PHP API page (hybrid)</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-car"></i>
+			<strong>Catalog API</strong>
+			<p>Manufacturers, models, VIN decode, articles, analogs — vehicle &amp; parts data.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-tags"></i>
+			<strong>Price PRO API</strong>
+			<p>Live supplier price &amp; availability for aftermarket parts.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-key"></i>
+			<strong>Partner keys</strong>
+			<p>Issued from Super CP — not the same as a monthly tenant rental.</p>
+		</div>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET API-services overview scaffold — dual-sample against live PHP <code>/platform/api-services</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

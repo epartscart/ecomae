@@ -589,6 +589,8 @@ public static class EcomAeRoutes
     public const string StorefrontGarageNotepadAdd = "/storefront/garage/notepad-add";
     /// <summary>Wave B dry-run quote submit (PHP ajax_quote_submit.php remains authoritative).</summary>
     public const string StorefrontQuoteSubmit = "/storefront/quotes/submit";
+    /// <summary>Wave B dry-run quote accept (PHP ajax_quote_accept.php remains authoritative; cart INSERT stays PHP).</summary>
+    public const string StorefrontQuoteAccept = "/storefront/quotes/accept";
     /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
     public const string MarketingPlatformApp = "/marketing/platform";
     /// <summary>Marketing about Blazor scaffold (PHP /platform/about remains primary until dual-sample).</summary>
@@ -613,6 +615,12 @@ public static class EcomAeRoutes
     public const string MarketingCustomerResultsApp = "/marketing/customer-results";
     /// <summary>Marketing business-continuity Blazor scaffold (PHP /platform/business-continuity remains primary until dual-sample).</summary>
     public const string MarketingBusinessContinuityApp = "/marketing/business-continuity";
+    /// <summary>Marketing API services Blazor scaffold (PHP /platform/api-services remains primary until dual-sample).</summary>
+    public const string MarketingApiServicesApp = "/marketing/api-services";
+    /// <summary>Marketing API documentation Blazor scaffold (PHP /platform/api-documentation remains primary until dual-sample).</summary>
+    public const string MarketingApiDocumentationApp = "/marketing/api-documentation";
+    /// <summary>Marketing Auto Price AI Blazor scaffold (PHP /platform/auto-price-ai remains primary until dual-sample).</summary>
+    public const string MarketingAutoPriceAiApp = "/marketing/auto-price-ai";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
