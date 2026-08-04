@@ -141,6 +141,46 @@ public sealed class ControlPanelModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ControlPanelOmsSendMessage, async (
+            HttpContext context,
+            CpOmsSendMessageBody? body,
+            ILegacySessionValidator validator,
+            ICpOmsSendMessageDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for OMS send-message dry-run.");
+            }
+
+            body ??= new CpOmsSendMessageBody(0, null, null, false);
+            var result = await dryRun.EvaluateAsync(
+                new CpOmsSendMessageRequest(body.OrderId, body.Text, body.ItemId, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ControlPanelOmsSetCourier, async (
+            HttpContext context,
+            CpOmsSetCourierBody? body,
+            ILegacySessionValidator validator,
+            ICpOmsSetCourierDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for OMS set-courier dry-run.");
+            }
+
+            body ??= new CpOmsSetCourierBody(0, 0, null, false);
+            var result = await dryRun.EvaluateAsync(
+                new CpOmsSetCourierRequest(body.OrderId, body.DeliveryPrice, body.Country, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelUsers, async (
             HttpContext context,
             int? limit,
@@ -3062,4 +3102,6 @@ public sealed class ControlPanelModule : ISurfaceModule
 
     private sealed record CpOmsSetItemStatusBody(long OrderId, long ItemId, int Status, bool ConfirmWrites = false);
     private sealed record CpOmsSetItemsStatusBody(long OrderId, int Status, IReadOnlyList<long>? ItemIds, bool ConfirmWrites = false);
+    private sealed record CpOmsSendMessageBody(long OrderId, string? Text, long? ItemId = null, bool ConfirmWrites = false);
+    private sealed record CpOmsSetCourierBody(long OrderId, decimal DeliveryPrice, string? Country = null, bool ConfirmWrites = false);
 }
