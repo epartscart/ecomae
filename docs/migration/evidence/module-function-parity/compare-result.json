@@ -4,8 +4,8 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "moduleCount": 761,
-  "hybridPreviewCount": 77,
-  "phpOnlyCount": 684,
+  "hybridPreviewCount": 121,
+  "phpOnlyCount": 640,
   "aspnetCompleteCount": 0,
   "kindCounts": {
     "erp-area": 35,
@@ -36,9 +36,8 @@
     "storefrontSurfaces": 12
   },
   "statusCounts": {
-    "digest-only+hybrid-deeplink": 75,
-    "php-only": 684,
-    "hybrid-deeplink": 2
+    "digest-only+hybrid-deeplink": 121,
+    "php-only": 640
   },
   "errors": [],
   "note": "Full PHP catalog inventory floor. Hybrid previews upgrade a subset; interactive aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists. Never invents approval."

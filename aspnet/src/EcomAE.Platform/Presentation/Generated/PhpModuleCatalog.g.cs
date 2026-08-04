@@ -14,7 +14,7 @@ public static partial class PhpModuleCatalog
     public const int BosSectionCount = 11;
     public const int BosModuleCount = 99;
     public const int CpBrochureFeatureCount = 405;
-    public const int StorefrontSurfaceCount = 12;
+    public const int StorefrontSurfaceCount = 13;
 
     public static readonly IReadOnlyList<ModuleLink> ErpCategories =
     [
@@ -762,6 +762,7 @@ public static partial class PhpModuleCatalog
         new("cart", "Cart", "https://epartscart.com/shop/cart", null, "storefront"),
         new("checkout", "Checkout", "https://epartscart.com/shop/checkout", null, "storefront"),
         new("account", "Account", "https://epartscart.com/users/", null, "storefront"),
+        new("profile", "Profile", "https://epartscart.com/users/profile", null, "storefront"),
         new("garage", "Garage", "https://epartscart.com/shop/part_search", null, "storefront"),
         new("orders", "Orders", "https://epartscart.com/shop/orders", null, "storefront"),
         new("returns", "Returns", "https://epartscart.com/", null, "storefront"),

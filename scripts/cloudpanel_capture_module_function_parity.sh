@@ -119,21 +119,48 @@ STOREFRONT_HYBRID_BY_ID = {
     "orders": "sf-orders",
     "garage": "sf-garage",
     "account": "sf-account-summary",
+    "profile": "sf-profile",
 }
 
 # Explicit catalog-id maps where PHP paths diverge from hybrid TARGET paths.
 CP_FEATURE_HYBRID_BY_ID = {
     "user-manager": "cp-users",
+    "super-cp-operator-console": "cp-dashboard-summary",
+    # Prefer CP tenants digest for CP brochure rows; BOS module keeps /bos/tenants via path.
+    "tenant-control-center": "cp-tenants",
+    "epc-tenant-control-center": "cp-tenants",
 }
 ERP_AREA_HYBRID_BY_ID = {
     "banking": "erp-accounts-summary",
+    "finance": "erp-coa-accounts",
+    "sales": "erp-sales-orders",
+    "purchasing": "erp-purchase-orders",
+    "inventory_mgmt": "erp-inventory-stock",
+    "warehouse": "erp-warehouses",
+    "ap": "erp-suppliers",
 }
 ERP_TAB_HYBRID_BY_ID = {
     ("overview", "dashboard"): "erp-dashboard-summary",
+    ("banking", "petty_cash"): "erp-cash-entries",
+}
+ERP_CATEGORY_HYBRID_BY_ID = {
+    "cash_treasury": "erp-cash-accounts",
+    "record_to_report": "erp-coa-accounts",
+    "procure_to_pay": "erp-purchase-orders",
+    "order_to_cash": "erp-sales-orders",
+    "inventory_fulfillment": "erp-inventory-stock",
+}
+BOS_SECTION_HYBRID_BY_ID = {
+    "fleet": "bos-fleet-health",
+    "tenants": "bos-tenants",
+    "platform": "bos-fleet-readiness",
+    "erp": "erp-dashboard-summary",
 }
 BOS_MODULE_HYBRID_BY_ID = {
     "fleet_cp": "bos-fleet-summary",
     "fleet_erp": "bos-fleet-summary",
+    "erp_cash": "erp-cash-accounts",
+    "erp_warehouse": "erp-warehouses",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}
@@ -147,6 +174,8 @@ def match_hybrid(
     cp_feature_id: str | None = None,
     erp_area_id: str | None = None,
     erp_tab_id: str | None = None,
+    erp_category_id: str | None = None,
+    bos_section_id: str | None = None,
     bos_module_id: str | None = None,
 ) -> dict | None:
     # Storefront surfaces only match via explicit id → TARGET stem.
@@ -156,6 +185,14 @@ def match_hybrid(
         return hybrid_by_stem.get(stem) if stem else None
     if cp_feature_id is not None and cp_feature_id in CP_FEATURE_HYBRID_BY_ID:
         hit = hybrid_by_stem.get(CP_FEATURE_HYBRID_BY_ID[cp_feature_id])
+        if hit:
+            return hit
+    if erp_category_id is not None and erp_category_id in ERP_CATEGORY_HYBRID_BY_ID:
+        hit = hybrid_by_stem.get(ERP_CATEGORY_HYBRID_BY_ID[erp_category_id])
+        if hit:
+            return hit
+    if bos_section_id is not None and bos_section_id in BOS_SECTION_HYBRID_BY_ID:
+        hit = hybrid_by_stem.get(BOS_SECTION_HYBRID_BY_ID[bos_section_id])
         if hit:
             return hit
     if erp_area_id is not None and erp_tab_id is not None:
@@ -183,7 +220,15 @@ def match_hybrid(
         return hit
     erp_key = to_erp_shell_key(php_href)
     if erp_key:
-        return hybrid_by_php.get(erp_key)
+        hit = hybrid_by_php.get(erp_key)
+        if hit:
+            return hit
+        # Area-only ERP shell URLs (no tab): attach area digest when mapped.
+        qs = parse_qs(urlsplit(erp_key).query, keep_blank_values=True)
+        area = (qs.get("area") or [""])[0].strip()
+        tab = (qs.get("tab") or [""])[0].strip()
+        if area and not tab and area in ERP_AREA_HYBRID_BY_ID:
+            return hybrid_by_stem.get(ERP_AREA_HYBRID_BY_ID[area])
     return None
 
 
@@ -201,6 +246,8 @@ def entry(
     cp_feature_id: str | None = None,
     erp_area_id: str | None = None,
     erp_tab_id: str | None = None,
+    erp_category_id: str | None = None,
+    bos_section_id: str | None = None,
     bos_module_id: str | None = None,
 ) -> dict:
     hybrid = match_hybrid(
@@ -210,6 +257,8 @@ def entry(
         cp_feature_id=cp_feature_id,
         erp_area_id=erp_area_id,
         erp_tab_id=erp_tab_id,
+        erp_category_id=erp_category_id,
+        bos_section_id=bos_section_id,
         bos_module_id=bos_module_id,
     )
     if hybrid:
@@ -295,6 +344,7 @@ for cat in catalog.get("erpCategories") or []:
             kind="erp-category",
             label=str(cat.get("label") or cat_id),
             php_path=str(cat.get("href") or f"/ERP/?epc_erp_shell=1&category={cat_id}"),
+            erp_category_id=cat_id,
             extra={"categoryId": cat_id},
         )
     )
@@ -310,6 +360,7 @@ for sec in catalog.get("bosSections") or []:
             kind="bos-section",
             label=str(sec.get("label") or sec_id),
             php_path=str(sec.get("href") or f"/BOS/?section={sec_id}"),
+            bos_section_id=sec_id,
             extra={"sectionKey": sec.get("key")},
         )
     )

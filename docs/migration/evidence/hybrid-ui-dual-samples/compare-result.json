@@ -1,8 +1,8 @@
 {
-  "pairsChecked": 38,
+  "pairsChecked": 40,
   "hybridUiSamplesOk": 37,
   "phpInventoryOk": true,
-  "failed": 0,
+  "failed": 2,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "contractOnly": true,
@@ -376,6 +376,24 @@
       "httpStatus": null,
       "ok": true,
       "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "hybrid-directory-full-catalog-floor.json",
+      "role": "hybrid-directory-full-catalog-floor",
+      "ok": false,
+      "errors": [
+        "hybrid-directory-full-catalog-floor.json: unknown role 'hybrid-directory-full-catalog-floor'"
+      ],
+      "warnings": []
+    },
+    {
+      "file": "php-full-catalog-deeplink-floor.json",
+      "role": "php-full-catalog-deeplink-floor",
+      "ok": false,
+      "errors": [
+        "php-full-catalog-deeplink-floor.json: unknown role 'php-full-catalog-deeplink-floor'"
+      ],
       "warnings": []
     },
     {

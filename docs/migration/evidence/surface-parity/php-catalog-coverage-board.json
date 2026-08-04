@@ -3,7 +3,7 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "totalTracked": 725,
+  "totalTracked": 726,
   "floors": {
     "erpAreas": 35,
     "erpTabs": 154,
@@ -11,7 +11,7 @@
     "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
-    "storefrontSurfaces": 12
+    "storefrontSurfaces": 13
   },
   "catalogCounts": {
     "erpAreas": 35,
@@ -20,7 +20,7 @@
     "bosModules": 99,
     "bosSections": 11,
     "cpBrochureFeatures": 405,
-    "storefrontSurfaces": 12
+    "storefrontSurfaces": 13
   },
   "kindCounts": {
     "erp-area": 35,
@@ -29,39 +29,40 @@
     "bos-section": 11,
     "bos-module": 99,
     "cp-feature": 405,
-    "storefront-surface": 12
+    "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 62,
-    "php-only-deeplink": 663
+    "digest-contract": 86,
+    "php-only-deeplink": 640
   },
   "coverageByKind": {
     "bos-module": {
-      "php-only-deeplink": 91,
-      "digest-contract": 8
+      "php-only-deeplink": 85,
+      "digest-contract": 14
     },
     "bos-section": {
-      "php-only-deeplink": 11
+      "digest-contract": 4,
+      "php-only-deeplink": 7
     },
     "cp-feature": {
-      "digest-contract": 36,
-      "php-only-deeplink": 369
+      "digest-contract": 37,
+      "php-only-deeplink": 368
     },
     "erp-area": {
-      "digest-contract": 2,
-      "php-only-deeplink": 33
+      "digest-contract": 8,
+      "php-only-deeplink": 27
     },
     "erp-category": {
-      "digest-contract": 1,
-      "php-only-deeplink": 8
+      "digest-contract": 6,
+      "php-only-deeplink": 3
     },
     "erp-tab": {
-      "digest-contract": 10,
-      "php-only-deeplink": 144
+      "digest-contract": 11,
+      "php-only-deeplink": 143
     },
     "storefront-surface": {
       "php-only-deeplink": 7,
-      "digest-contract": 5
+      "digest-contract": 6
     }
   },
   "digestContractRouteCount": 56,
@@ -140,10 +141,10 @@
       "kind": "erp-area",
       "label": "Accounts payable",
       "phpPath": "/ERP/?epc_erp_shell=1&area=ap",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/suppliers",
+      "aspnetRoute": "/erp/suppliers-app",
       "aspnetComplete": false
     },
     {
@@ -316,10 +317,10 @@
       "kind": "erp-tab",
       "label": "Petty cash",
       "phpPath": "/ERP/?epc_erp_shell=1&area=banking&tab=petty_cash",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/cash-entries",
+      "aspnetRoute": "/erp/cash-entries-app",
       "aspnetComplete": false
     },
     {
@@ -624,10 +625,10 @@
       "kind": "erp-area",
       "label": "General ledger",
       "phpPath": "/ERP/?epc_erp_shell=1&area=finance",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/coa-accounts",
+      "aspnetRoute": "/erp/coa-accounts-app",
       "aspnetComplete": false
     },
     {
@@ -866,10 +867,10 @@
       "kind": "erp-area",
       "label": "Inventory management",
       "phpPath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/inventory-stock",
+      "aspnetRoute": "/erp/inventory-stock-app",
       "aspnetComplete": false
     },
     {
@@ -1262,10 +1263,10 @@
       "kind": "erp-area",
       "label": "Procurement and sourcing",
       "phpPath": "/ERP/?epc_erp_shell=1&area=purchasing",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/purchase-orders",
+      "aspnetRoute": "/erp/purchase-orders-app",
       "aspnetComplete": false
     },
     {
@@ -1515,10 +1516,10 @@
       "kind": "erp-area",
       "label": "Sales and marketing",
       "phpPath": "/ERP/?epc_erp_shell=1&area=sales",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/sales-orders",
+      "aspnetRoute": "/erp/sales-orders-app",
       "aspnetComplete": false
     },
     {
@@ -2131,10 +2132,10 @@
       "kind": "erp-area",
       "label": "Warehouse management",
       "phpPath": "/ERP/?epc_erp_shell=1&area=warehouse",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/warehouses",
+      "aspnetRoute": "/erp/warehouses-app",
       "aspnetComplete": false
     },
     {
@@ -2164,10 +2165,10 @@
       "kind": "erp-category",
       "label": "Record to Report",
       "phpPath": "/ERP/?epc_erp_shell=1&area=finance",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/coa-accounts",
+      "aspnetRoute": "/erp/coa-accounts-app",
       "aspnetComplete": false
     },
     {
@@ -2175,10 +2176,10 @@
       "kind": "erp-category",
       "label": "Procure to Pay",
       "phpPath": "/ERP/?epc_erp_shell=1&area=purchasing",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/purchase-orders",
+      "aspnetRoute": "/erp/purchase-orders-app",
       "aspnetComplete": false
     },
     {
@@ -2186,10 +2187,10 @@
       "kind": "erp-category",
       "label": "Order to Cash",
       "phpPath": "/ERP/?epc_erp_shell=1&area=sales",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/sales-orders",
+      "aspnetRoute": "/erp/sales-orders-app",
       "aspnetComplete": false
     },
     {
@@ -2197,10 +2198,10 @@
       "kind": "erp-category",
       "label": "Cash & Treasury",
       "phpPath": "/ERP/?epc_erp_shell=1&area=banking",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/cash-accounts",
+      "aspnetRoute": "/erp/cash-accounts-app",
       "aspnetComplete": false
     },
     {
@@ -2208,10 +2209,10 @@
       "kind": "erp-category",
       "label": "Inventory & Fulfilment",
       "phpPath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/inventory-stock",
+      "aspnetRoute": "/erp/inventory-stock-app",
       "aspnetComplete": false
     },
     {
@@ -2252,10 +2253,10 @@
       "kind": "bos-section",
       "label": "Fleet Command",
       "phpPath": "/BOS/?section=fleet",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/bos/fleet-health",
+      "aspnetRoute": "/bos/fleet-health-app",
       "aspnetComplete": false
     },
     {
@@ -2263,10 +2264,10 @@
       "kind": "bos-section",
       "label": "Tenant Operations",
       "phpPath": "/BOS/?section=tenants",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/bos/tenants",
+      "aspnetRoute": "/bos/tenants-app",
       "aspnetComplete": false
     },
     {
@@ -2329,10 +2330,10 @@
       "kind": "bos-section",
       "label": "ERP Finance",
       "phpPath": "/BOS/?section=erp",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/dashboard-summary",
+      "aspnetRoute": "/erp/dashboard-summary-app",
       "aspnetComplete": false
     },
     {
@@ -2362,10 +2363,10 @@
       "kind": "bos-section",
       "label": "Platform",
       "phpPath": "/BOS/?section=platform",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/bos/fleet-readiness",
+      "aspnetRoute": "/bos/fleet-readiness-app",
       "aspnetComplete": false
     },
     {
@@ -3198,10 +3199,10 @@
       "kind": "bos-module",
       "label": "Accounts Payable",
       "phpPath": "/ERP/?epc_erp_shell=1&area=ap",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/suppliers",
+      "aspnetRoute": "/erp/suppliers-app",
       "aspnetComplete": false
     },
     {
@@ -3220,10 +3221,10 @@
       "kind": "bos-module",
       "label": "Cash & Bank",
       "phpPath": "/ERP/?epc_erp_shell=1&area=cash_bank",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/cash-accounts",
+      "aspnetRoute": "/erp/cash-accounts-app",
       "aspnetComplete": false
     },
     {
@@ -3242,10 +3243,10 @@
       "kind": "bos-module",
       "label": "Sales & CRM",
       "phpPath": "/ERP/?epc_erp_shell=1&area=sales",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/sales-orders",
+      "aspnetRoute": "/erp/sales-orders-app",
       "aspnetComplete": false
     },
     {
@@ -3253,10 +3254,10 @@
       "kind": "bos-module",
       "label": "Purchasing",
       "phpPath": "/ERP/?epc_erp_shell=1&area=purchasing",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/purchase-orders",
+      "aspnetRoute": "/erp/purchase-orders-app",
       "aspnetComplete": false
     },
     {
@@ -3264,10 +3265,10 @@
       "kind": "bos-module",
       "label": "Inventory",
       "phpPath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/inventory-stock",
+      "aspnetRoute": "/erp/inventory-stock-app",
       "aspnetComplete": false
     },
     {
@@ -3319,10 +3320,10 @@
       "kind": "bos-module",
       "label": "Warehouse",
       "phpPath": "/ERP/?epc_erp_shell=1&area=warehouse",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/warehouses",
+      "aspnetRoute": "/erp/warehouses-app",
       "aspnetComplete": false
     },
     {
@@ -3574,8 +3575,8 @@
       "phpPath": "/CP/control/portal/epc_tenant_control_center",
       "coverage": "digest-contract",
       "moduleStatus": "digest-only+hybrid-deeplink",
-      "digestRoute": "/bos/tenants",
-      "aspnetRoute": "/bos/tenants-app",
+      "digestRoute": "/cp/tenants",
+      "aspnetRoute": "/cp/tenants-app",
       "aspnetComplete": false
     },
     {
@@ -3682,10 +3683,10 @@
       "kind": "cp-feature",
       "label": "Super CP operator console",
       "phpPath": "/CP/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/dashboard-summary",
+      "aspnetRoute": "/cp/dashboard-summary-app",
       "aspnetComplete": false
     },
     {
@@ -3695,8 +3696,8 @@
       "phpPath": "/CP/control/portal/epc_tenant_control_center",
       "coverage": "digest-contract",
       "moduleStatus": "digest-only+hybrid-deeplink",
-      "digestRoute": "/bos/tenants",
-      "aspnetRoute": "/bos/tenants-app",
+      "digestRoute": "/cp/tenants",
+      "aspnetRoute": "/cp/tenants-app",
       "aspnetComplete": false
     },
     {
@@ -7987,6 +7988,17 @@
       "moduleStatus": "digest-only+hybrid-deeplink",
       "digestRoute": "/storefront/account-summary",
       "aspnetRoute": "/storefront/account-summary-app",
+      "aspnetComplete": false
+    },
+    {
+      "id": "storefront-profile",
+      "kind": "storefront-surface",
+      "label": "Profile",
+      "phpPath": "https://epartscart.com/users/profile",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/storefront/profile",
+      "aspnetRoute": "/storefront/profile-app",
       "aspnetComplete": false
     },
     {

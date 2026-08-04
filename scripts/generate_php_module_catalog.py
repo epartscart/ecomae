@@ -297,6 +297,7 @@ def main() -> int:
         {"id": "cart", "label": "Cart", "href": "https://epartscart.com/shop/cart"},
         {"id": "checkout", "label": "Checkout", "href": "https://epartscart.com/shop/checkout"},
         {"id": "account", "label": "Account", "href": "https://epartscart.com/users/"},
+        {"id": "profile", "label": "Profile", "href": "https://epartscart.com/users/profile"},
         {"id": "garage", "label": "Garage", "href": "https://epartscart.com/shop/part_search"},
         {"id": "orders", "label": "Orders", "href": "https://epartscart.com/shop/orders"},
         {"id": "returns", "label": "Returns", "href": "https://epartscart.com/"},
