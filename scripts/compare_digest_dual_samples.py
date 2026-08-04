@@ -87,9 +87,47 @@ LIST_CONTRACTS = {
     "storefront-garage": "vehicles",
 }
 
-# Optional item-field contracts. When the collection is non-empty, first item must include fields.
+# Item-field contracts mirrored from SurfacePayloadContractCatalog / www-surface-field-parity.json.
 # Migration goldens listed in LIST_NONEMPTY_MIGRATION must ship a sentinel row (empty fails).
 LIST_ITEM_FIELDS = {
+    "cp-tenants": [
+        "siteKey",
+        "hostname",
+        "industryCode",
+        "status",
+        "tradeName",
+        "hubName",
+        "hostedOn",
+        "erpOnly",
+        "isActive",
+        "hasDb",
+    ],
+    "cp-users": [
+        "userId",
+        "email",
+        "phone",
+        "unlocked",
+        "timeRegistered",
+        "timeLastVisit",
+    ],
+    "cp-groups": [
+        "id",
+        "value",
+        "forBackend",
+        "forGuests",
+        "forRegistrated",
+        "unblocked",
+        "parent",
+        "level",
+    ],
+    "cp-modules": [
+        "id",
+        "caption",
+        "activated",
+        "isFrontend",
+        "isPrototype",
+        "controlAvailable",
+    ],
     "cp-menus": [
         "id",
         "caption",
@@ -104,8 +142,133 @@ LIST_ITEM_FIELDS = {
         "contentLinkCount",
         "unknownLinkCount",
     ],
+    "cp-pages": [
+        "id",
+        "caption",
+        "url",
+        "alias",
+        "isFrontend",
+        "published",
+        "level",
+        "sortOrder",
+    ],
+    "cp-currencies": [
+        "id",
+        "isoCode",
+        "isoName",
+        "captionShort",
+        "rate",
+        "available",
+        "sortOrder",
+    ],
+    "cp-api-clients": [
+        "id",
+        "clientKeyPrefix",
+        "product",
+        "label",
+        "contactEmail",
+        "active",
+        "dailyLimit",
+        "callsToday",
+        "timeCreated",
+    ],
+    "cp-config-items": ["name", "caption", "type", "configGroup", "visible", "order"],
+    "cp-admin-sessions": ["userId", "email", "type", "sessionCount"],
+    "cp-storages": ["id", "name", "shortName", "hidden"],
+    "erp-suppliers": ["id", "name", "storageId", "balance"],
+    "erp-purchases": [
+        "id",
+        "supplierId",
+        "supplierName",
+        "purchaseDate",
+        "invoiceNumber",
+        "totalAmount",
+        "status",
+        "orderId",
+    ],
+    "erp-cash-accounts": [
+        "id",
+        "name",
+        "accountType",
+        "currencyCode",
+        "openingBalance",
+        "balance",
+    ],
+    "erp-cash-entries": [
+        "id",
+        "accountId",
+        "accountName",
+        "accountType",
+        "timeUnix",
+        "direction",
+        "amount",
+        "reference",
+        "note",
+    ],
+    "erp-coa-accounts": [
+        "id",
+        "code",
+        "name",
+        "accountType",
+        "normalSide",
+        "parentId",
+        "openingBalance",
+        "active",
+    ],
+    "erp-warehouses": ["id", "storageId", "code", "name", "active", "timeCreated"],
+    "erp-sales-orders": [
+        "id",
+        "soNo",
+        "customerUserId",
+        "totalAmount",
+        "status",
+        "timeCreated",
+    ],
+    "erp-purchase-orders": [
+        "id",
+        "poNo",
+        "supplierId",
+        "title",
+        "totalAmount",
+        "status",
+        "timeCreated",
+    ],
+    "erp-invoices": [
+        "id",
+        "invoiceNumber",
+        "orderId",
+        "userId",
+        "customerEmail",
+        "issueDate",
+        "status",
+        "totalInclVat",
+    ],
+    "erp-gl-journals": [
+        "id",
+        "journalNo",
+        "journalDate",
+        "sourceType",
+        "sourceId",
+        "status",
+        "totalDebit",
+    ],
+    "bos-tenants": [
+        "siteKey",
+        "hostname",
+        "industryCode",
+        "status",
+        "tradeName",
+        "hubName",
+        "hostedOn",
+        "erpOnly",
+        "isActive",
+        "hasDb",
+    ],
+    "bos-audit-log": ["id", "ts", "userId", "actor", "area", "action", "target", "ip"],
+    "storefront-orders": ["id", "timeUnix", "paid", "successfullyCreated", "status"],
+    "storefront-garage": ["id", "caption", "marka", "model", "year", "vin", "active"],
 }
-LIST_NONEMPTY_MIGRATION = frozenset({"cp-menus"})
+LIST_NONEMPTY_MIGRATION = frozenset(LIST_ITEM_FIELDS)
 
 # Object digests without a collection array (top-level envelope fields).
 OBJECT_CONTRACTS = {
@@ -357,8 +520,8 @@ def main() -> int:
         "listItemFieldStems": sorted(LIST_ITEM_FIELDS),
         "listNonemptyMigrationStems": sorted(LIST_NONEMPTY_MIGRATION),
         "note": (
-            "Digest dual-sample contract floor. List item fields enforced when present; "
-            "cp-menus migration golden must keep structure-summary sentinel. "
+            "Digest dual-sample contract floor. All list digests require non-empty "
+            "migration item-field sentinels matching SurfacePayloadContractCatalog. "
             "Never invents RELEASE_OWNER_APPROVAL.md."
         ),
     }

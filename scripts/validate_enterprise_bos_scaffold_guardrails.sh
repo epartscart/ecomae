@@ -194,6 +194,8 @@ check_file "php catalog coverage board evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
 check_file "cp menus item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json"
+check_file "list digest item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json"
 
 if [[ "$FAIL" -ne 0 ]]; then
   printf 'FAIL: Enterprise BOS scaffold guardrails\n'

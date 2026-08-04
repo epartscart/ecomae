@@ -2,15 +2,25 @@
   "ok": true,
   "surface": "storefront",
   "user_id": 9,
-  "vehicles": [],
-  "count": 0,
+  "vehicles": [
+    {
+      "id": 1,
+      "caption": "Migration vehicle",
+      "marka": "Demo",
+      "model": "Car",
+      "year": 2020,
+      "vin": "MIGRATIONVIN000001",
+      "active": true
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {
     "kind": "Customer",
     "user_id": 9
   },
-  "note": "migration-mode contract sample; PHP remains authoritative",
+  "note": "migration-mode contract sample; item-field sentinel; PHP remains authoritative",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false

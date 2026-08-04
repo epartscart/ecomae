@@ -442,6 +442,14 @@ check 'cp menus item-field floor evidence exists' test -f "$ROOT/docs/migration/
 check 'cp menus item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"cutoverAllowed": false'
 check 'cp menus item-field floor omits raw structure' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"rawStructureReturned": false'
 check 'cp menus item-field floor requires nodeCount' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"nodeCount"'
+check 'list digest item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json"
+check 'list digest item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"cutoverAllowed": false'
+check 'list digest item-field floor tracks 25 stems' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"listStemCount": 25'
+check 'list digest item-field floor requires nonempty sentinels' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"requireNonemptyMigrationSentinel": true'
+check 'digest dual-sample locks all list item fields' python3 -c 'from pathlib import Path; t=Path("scripts/compare_digest_dual_samples.py").read_text(); assert "LIST_NONEMPTY_MIGRATION = frozenset(LIST_ITEM_FIELDS)" in t'
+check 'cp tenants migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-tenants.json" '"siteKey": "www"'
+check 'erp coa migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/erp-coa-accounts.json" '"code": "1000"'
+check 'storefront garage migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/storefront-garage.json" '"vin": "MIGRATIONVIN000001"'
 check 'cp menu structure analyzer exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Migration/CpMenuStructureAnalyzer.cs"
 check 'php module catalog deeplink floor validator exists' test -f "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
 check 'php module catalog deeplink floor validator is executable' test -x "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"

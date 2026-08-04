@@ -1,8 +1,19 @@
 {
   "ok": true,
   "surface": "erp",
-  "invoices": [],
-  "count": 0,
+  "invoices": [
+    {
+      "id": 1,
+      "invoiceNumber": "INV-1",
+      "orderId": 1,
+      "userId": 9,
+      "customerEmail": "migration@example.com",
+      "issueDate": "1970-01-01",
+      "status": "draft",
+      "totalInclVat": 0.0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

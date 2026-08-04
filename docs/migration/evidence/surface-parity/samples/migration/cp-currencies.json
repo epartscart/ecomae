@@ -1,8 +1,18 @@
 {
   "ok": true,
   "surface": "cp",
-  "currencies": [],
-  "count": 0,
+  "currencies": [
+    {
+      "id": 1,
+      "isoCode": "AED",
+      "isoName": "UAE Dirham",
+      "captionShort": "AED",
+      "rate": 1.0,
+      "available": true,
+      "sortOrder": 1
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

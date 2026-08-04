@@ -1,8 +1,17 @@
 {
   "ok": true,
   "surface": "erp",
-  "warehouses": [],
-  "count": 0,
+  "warehouses": [
+    {
+      "id": 1,
+      "storageId": 1,
+      "code": "MAIN",
+      "name": "Main warehouse",
+      "active": true,
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

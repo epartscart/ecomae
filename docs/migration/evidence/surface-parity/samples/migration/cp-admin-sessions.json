@@ -1,8 +1,15 @@
 {
   "ok": true,
   "surface": "cp",
-  "sessions": [],
-  "count": 0,
+  "sessions": [
+    {
+      "userId": 1,
+      "email": "migration@example.com",
+      "type": "admin",
+      "sessionCount": 1
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

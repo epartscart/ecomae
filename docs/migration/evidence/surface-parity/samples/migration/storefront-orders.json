@@ -2,15 +2,23 @@
   "ok": true,
   "surface": "storefront",
   "user_id": 9,
-  "orders": [],
-  "count": 0,
+  "orders": [
+    {
+      "id": 1,
+      "timeUnix": 0,
+      "paid": false,
+      "successfullyCreated": true,
+      "status": "new"
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {
     "kind": "Customer",
     "user_id": 9
   },
-  "note": "migration-mode contract sample; PHP remains authoritative",
+  "note": "migration-mode contract sample; item-field sentinel; PHP remains authoritative",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false

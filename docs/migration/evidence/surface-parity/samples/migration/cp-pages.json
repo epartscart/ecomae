@@ -1,8 +1,19 @@
 {
   "ok": true,
   "surface": "cp",
-  "pages": [],
-  "count": 0,
+  "pages": [
+    {
+      "id": 1,
+      "caption": "Home",
+      "url": "/",
+      "alias": "home",
+      "isFrontend": true,
+      "published": true,
+      "level": 1,
+      "sortOrder": 1
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

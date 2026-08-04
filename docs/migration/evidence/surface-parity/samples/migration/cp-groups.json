@@ -1,8 +1,19 @@
 {
   "ok": true,
   "surface": "cp",
-  "groups": [],
-  "count": 0,
+  "groups": [
+    {
+      "id": 1,
+      "value": "Administrators",
+      "forBackend": true,
+      "forGuests": false,
+      "forRegistrated": true,
+      "unblocked": true,
+      "parent": 0,
+      "level": 1
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

@@ -1,8 +1,17 @@
 {
   "ok": true,
   "surface": "erp",
-  "accounts": [],
-  "count": 0,
+  "accounts": [
+    {
+      "id": 1,
+      "name": "Cash",
+      "accountType": "cash",
+      "currencyCode": "AED",
+      "openingBalance": 0.0,
+      "balance": 0.0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

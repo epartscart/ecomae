@@ -1,8 +1,20 @@
 {
   "ok": true,
   "surface": "cp",
-  "clients": [],
-  "count": 0,
+  "clients": [
+    {
+      "id": 1,
+      "clientKeyPrefix": "mig_",
+      "product": "catalog",
+      "label": "Migration client",
+      "contactEmail": "migration@example.com",
+      "active": true,
+      "dailyLimit": 1000,
+      "callsToday": 0,
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

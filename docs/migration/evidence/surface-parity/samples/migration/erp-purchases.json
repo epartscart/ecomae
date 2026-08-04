@@ -1,8 +1,19 @@
 {
   "ok": true,
   "surface": "erp",
-  "purchases": [],
-  "count": 0,
+  "purchases": [
+    {
+      "id": 1,
+      "supplierId": 1,
+      "supplierName": "Migration supplier",
+      "purchaseDate": "1970-01-01",
+      "invoiceNumber": "MIG-1",
+      "totalAmount": 0.0,
+      "status": "draft",
+      "orderId": 0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

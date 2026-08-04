@@ -35,3 +35,13 @@ Expect `cutoverAllowed=false`. Never invent `RELEASE_OWNER_APPROVAL.md`.
 (`nodeCount` / link-mode counts; raw `structure` omitted). Enforced by
 `scripts/compare_digest_dual_samples.py` (`LIST_ITEM_FIELDS` + `LIST_NONEMPTY_MIGRATION`)
 and documented in `cp-menus-item-field-floor.json`.
+
+## List digest item-field floor (25 stems)
+
+All list digests under `LIST_CONTRACTS` require non-empty migration item-field
+sentinels (`list-digest-item-field-floor.json`). Regenerate with:
+
+```bash
+python3 scripts/generate_migration_digest_contract_samples.py
+bash scripts/cloudpanel_run_digest_dual_sample_operator.sh
+```
