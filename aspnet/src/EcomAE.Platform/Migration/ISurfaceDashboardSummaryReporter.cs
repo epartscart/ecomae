@@ -77,6 +77,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only mobile apps integrations_json.mobile (save_mobile writes remain PHP).</summary>
     Task<CpMobileAppsDigestResult> BuildCpMobileAppsDigestAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only Metabase config + dashboards (secret_key never returned).</summary>
+    Task<CpMetabaseDigestResult> BuildCpMetabaseDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only NL report definitions metadata (query/recipients omitted).</summary>
+    Task<CpNlReportingDigestResult> ListCpNlReportDefinitionsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only marketing broadcast campaigns (bodies omitted; send remains PHP).</summary>
+    Task<CpMarketingBroadcastDigestResult> BuildCpMarketingBroadcastDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only demo tenant registry (passwords never returned).</summary>
+    Task<CpDemoTenantsDigestResult> ListCpDemoTenantsAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

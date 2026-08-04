@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "siteKey": "__platform__",
+    "metabaseUrl": "https://metabase.example.com",
+    "active": true,
+    "dashboardCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode contract sample; dashboards[] item-field sentinel locked; PHP epc_metabase_embed remains authoritative; cutoverAllowed=false",
+  "dashboards": [
+    {
+      "id": 1,
+      "siteKey": "__platform__",
+      "dashboardId": 10,
+      "dashboardName": "Migration Ops",
+      "category": "ops",
+      "active": true
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

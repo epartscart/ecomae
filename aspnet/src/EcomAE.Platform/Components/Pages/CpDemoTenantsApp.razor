@@ -1,0 +1,120 @@
+@page "/cp/demo-tenants-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Demo Tenants · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-demo-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#14532d 0%,#166534 50%,#15803d 100%);
+        }
+        .epc-demo-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-demo-hero p { margin:0; color:#bbf7d0; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-demo-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-demo-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#14532d; background:#86efac;
+        }
+        .epc-demo-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-demo-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-demo-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-demo-table th, .epc-demo-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-demo-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-demo-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:.45rem; color:#166534; font-size:.86rem; }
+    </style>
+
+    <section class="epc-demo-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Demo Tenants</h1>
+        <p>Read-only <code>epc_portal_tenants</code> where <code>is_demo=1</code> from <code>/cp/demo-tenants</code>. Passwords never returned — provision stays on live PHP.</p>
+        <div class="epc-demo-cta">
+            <a href="@_phpTab">Open PHP demo tenants</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/tenants-app">All tenants</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-demo-table-wrap">
+        <table class="epc-demo-table">
+            <thead>
+                <tr>
+                    <th>Site</th>
+                    <th>Hostname</th>
+                    <th>Trade name</th>
+                    <th>Industry</th>
+                    <th>Status</th>
+                    <th>Active</th>
+                    <th>Expires</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_tenants.Count == 0)
+                {
+                    <tr><td colspan="8">No demo tenants in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var t in _tenants)
+                    {
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(t.SiteKey) ? "—" : t.SiteKey)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(t.Hostname) ? "—" : t.Hostname)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.TradeName) ? "—" : t.TradeName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.IndustryCode) ? "—" : t.IndustryCode)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.Status) ? "—" : t.Status)</td>
+                            <td>@(t.IsActive ? "yes" : "no")</td>
+                            <td>@(t.DemoExpiresAt > 0 ? t.DemoExpiresAt.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-demo-note">
+        Read-only preview · JSON digest <a href="/cp/demo-tenants?limit=200">/cp/demo-tenants</a>.
+        PHP <code>epc_demo_tenants_manage</code> remains authoritative for provision/expire.
+        Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>. Count: @_tenants.Count.ToString(CultureInfo.InvariantCulture).
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/portal/epc_demo_tenants_manage";
+    private bool _isAdmin;
+    private IReadOnlyList<CpDemoTenantDigest> _tenants = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListCpDemoTenantsAsync(200, ctx.RequestAborted);
+        _tenants = result.Tenants;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

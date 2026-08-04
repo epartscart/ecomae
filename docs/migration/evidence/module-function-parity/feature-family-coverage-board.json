@@ -6,8 +6,8 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 92,
-    "php-only-deeplink": 634
+    "digest-contract": 101,
+    "php-only-deeplink": 625
   },
   "families": [
     {
@@ -144,9 +144,9 @@
     {
       "family": "demo-tenants",
       "total": 3,
-      "digestContract": 0,
-      "phpOnlyDeeplink": 3,
-      "digestPercent": 0.0,
+      "digestContract": 3,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-demo_tenants",
@@ -377,9 +377,9 @@
     {
       "family": "marketing-growth",
       "total": 35,
-      "digestContract": 3,
-      "phpOnlyDeeplink": 32,
-      "digestPercent": 8.6,
+      "digestContract": 7,
+      "phpOnlyDeeplink": 28,
+      "digestPercent": 20.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-broadcast",
@@ -662,9 +662,9 @@
     {
       "family": "power-bi-analytics",
       "total": 6,
-      "digestContract": 4,
-      "phpOnlyDeeplink": 2,
-      "digestPercent": 66.7,
+      "digestContract": 6,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-metabase_embed",

@@ -75,6 +75,23 @@ public static class EcomAeRoutes
     public const string ControlPanelMobileApps = "/cp/mobile-apps";
     /// <summary>CP mobile apps Blazor summary (JSON digest remains <see cref="ControlPanelMobileApps"/>).</summary>
     public const string ControlPanelMobileAppsApp = "/cp/mobile-apps-app";
+
+    /// <summary>CP Metabase config + dashboards (secret_key never returned; writes remain PHP).</summary>
+    public const string ControlPanelMetabase = "/cp/metabase";
+    /// <summary>CP Metabase Blazor list (JSON digest remains <see cref="ControlPanelMetabase"/>).</summary>
+    public const string ControlPanelMetabaseApp = "/cp/metabase-app";
+    /// <summary>CP NL reporting definitions metadata (query/recipients payloads omitted; writes remain PHP).</summary>
+    public const string ControlPanelNlReporting = "/cp/nl-reporting";
+    /// <summary>CP NL reporting Blazor list (JSON digest remains <see cref="ControlPanelNlReporting"/>).</summary>
+    public const string ControlPanelNlReportingApp = "/cp/nl-reporting-app";
+    /// <summary>CP marketing broadcast campaigns metadata (bodies omitted; send remains PHP).</summary>
+    public const string ControlPanelMarketingBroadcast = "/cp/marketing-broadcast";
+    /// <summary>CP marketing broadcast Blazor list (JSON digest remains <see cref="ControlPanelMarketingBroadcast"/>).</summary>
+    public const string ControlPanelMarketingBroadcastApp = "/cp/marketing-broadcast-app";
+    /// <summary>CP demo tenants registry (passwords never returned; provision remains PHP).</summary>
+    public const string ControlPanelDemoTenants = "/cp/demo-tenants";
+    /// <summary>CP demo tenants Blazor list (JSON digest remains <see cref="ControlPanelDemoTenants"/>).</summary>
+    public const string ControlPanelDemoTenantsApp = "/cp/demo-tenants-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

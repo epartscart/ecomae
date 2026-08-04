@@ -1,0 +1,27 @@
+{
+  "role": "cp-metabase-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-metabase",
+  "collectionKey": "dashboards",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "siteKey",
+    "metabaseUrl",
+    "active",
+    "dashboardCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "dashboardId",
+    "dashboardName",
+    "category",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks Metabase digest summary+dashboards[] floors. secret_key never returned. Writes remain PHP. cutoverAllowed=false."
+}

@@ -30,6 +30,10 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "API clients list" && item.Href == "/cp/api-clients-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Power BI list" && item.Href == "/cp/power-bi-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Mobile apps summary" && item.Href == "/cp/mobile-apps-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Metabase list" && item.Href == "/cp/metabase-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "NL reporting list" && item.Href == "/cp/nl-reporting-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Marketing broadcast list" && item.Href == "/cp/marketing-broadcast-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Demo tenants list" && item.Href == "/cp/demo-tenants-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "API clients PHP" && item.Href == "/CP/control/portal/epc_api_clients_manage");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Config items list" && item.Href == "/cp/config-items-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Site config PHP" && item.Href == "/CP/control/config_edit");

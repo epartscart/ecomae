@@ -232,6 +232,14 @@ check_file "cp power-bi item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-power-bi-item-field-floor.json"
 check_file "cp mobile-apps summary field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-mobile-apps-summary-field-floor.json"
+check_file "cp metabase item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-metabase-item-field-floor.json"
+check_file "cp nl-reporting item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-nl-reporting-item-field-floor.json"
+check_file "cp marketing-broadcast item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-marketing-broadcast-item-field-floor.json"
+check_file "cp demo-tenants item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-demo-tenants-item-field-floor.json"
 check_file "feature family coverage board builder" \
   "$ROOT/scripts/build_feature_family_coverage_board.py"
 check_file "feature family coverage board evidence" \

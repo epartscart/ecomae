@@ -339,6 +339,110 @@ def main() -> None:
                 "pushEnabled": False,
             },
         ),
+        "cp-metabase.json": {
+            **summary(
+                "cp",
+                {
+                    "siteKey": "__platform__",
+                    "metabaseUrl": "https://metabase.example.com",
+                    "active": True,
+                    "dashboardCount": 1,
+                },
+            ),
+            "dashboards": [
+                {
+                    "id": 1,
+                    "siteKey": "__platform__",
+                    "dashboardId": 10,
+                    "dashboardName": "Migration Ops",
+                    "category": "ops",
+                    "active": True,
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": (
+                "migration-mode contract sample; dashboards[] item-field sentinel locked; "
+                "PHP epc_metabase_embed remains authoritative; cutoverAllowed=false"
+            ),
+        },
+        "cp-nl-reporting.json": list_digest(
+            "cp",
+            "definitions",
+            [
+                {
+                    "id": 1,
+                    "siteKey": "__platform__",
+                    "name": "Migration daily sales",
+                    "description": "migration golden",
+                    "reportType": "sales",
+                    "schedule": "daily",
+                    "format": "csv",
+                    "active": True,
+                    "createdBy": 1,
+                }
+            ],
+        ),
+        "cp-marketing-broadcast.json": {
+            **summary(
+                "cp",
+                {
+                    "campaigns": 1,
+                    "emailsSent": 10,
+                    "whatsappSent": 2,
+                },
+            ),
+            "campaigns": [
+                {
+                    "id": 1,
+                    "createdAt": 0,
+                    "channel": "email",
+                    "templateKey": "welcome",
+                    "subject": "Migration campaign",
+                    "preview": "Hello",
+                    "audienceMode": "all",
+                    "audienceMeta": "",
+                    "totalTargets": 10,
+                    "sentOk": 10,
+                    "sentFail": 0,
+                    "status": "sent",
+                    "operatorId": 1,
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": (
+                "migration-mode contract sample; campaigns[] item-field sentinel locked; "
+                "PHP epc_marketing_broadcast remains authoritative; cutoverAllowed=false"
+            ),
+        },
+        "cp-demo-tenants.json": list_digest(
+            "cp",
+            "tenants",
+            [
+                {
+                    "siteKey": "demo-auto",
+                    "hostname": "demo.example.com",
+                    "industryCode": "auto",
+                    "status": "active",
+                    "tradeName": "Demo Auto Parts",
+                    "hubName": "demo-hub",
+                    "hostedOn": "www.ecomae.com",
+                    "erpOnly": False,
+                    "isActive": True,
+                    "demoExpiresAt": 0,
+                    "demoContactEmail": "demo@example.com",
+                }
+            ],
+        ),
         "cp-config-items.json": list_digest(
             "cp",
             "items",

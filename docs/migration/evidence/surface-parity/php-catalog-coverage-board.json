@@ -32,21 +32,21 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 92,
-    "php-only-deeplink": 634
+    "digest-contract": 101,
+    "php-only-deeplink": 625
   },
   "coverageByKind": {
     "bos-module": {
-      "php-only-deeplink": 83,
-      "digest-contract": 16
+      "php-only-deeplink": 78,
+      "digest-contract": 21
     },
     "bos-section": {
       "digest-contract": 4,
       "php-only-deeplink": 7
     },
     "cp-feature": {
-      "digest-contract": 41,
-      "php-only-deeplink": 364
+      "digest-contract": 45,
+      "php-only-deeplink": 360
     },
     "erp-area": {
       "digest-contract": 8,
@@ -65,7 +65,7 @@
       "digest-contract": 6
     }
   },
-  "digestContractRouteCount": 58,
+  "digestContractRouteCount": 62,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -2693,10 +2693,10 @@
       "kind": "bos-module",
       "label": "NL Reports",
       "phpPath": "/CP/control/portal/epc_nl_reporting",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/nl-reporting",
+      "aspnetRoute": "/cp/nl-reporting-app",
       "aspnetComplete": false
     },
     {
@@ -2814,10 +2814,10 @@
       "kind": "bos-module",
       "label": "Metabase BI",
       "phpPath": "/CP/general_pages/epc_metabase_embed",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/metabase",
+      "aspnetRoute": "/cp/metabase-app",
       "aspnetComplete": false
     },
     {
@@ -2880,10 +2880,10 @@
       "kind": "bos-module",
       "label": "Demo Tenants",
       "phpPath": "/CP/control/portal/epc_demo_tenants_manage",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/demo-tenants",
+      "aspnetRoute": "/cp/demo-tenants-app",
       "aspnetComplete": false
     },
     {
@@ -3100,10 +3100,10 @@
       "kind": "bos-module",
       "label": "Campaigns",
       "phpPath": "/CP/shop/marketing/marketing_main",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/marketing-broadcast",
+      "aspnetRoute": "/cp/marketing-broadcast-app",
       "aspnetComplete": false
     },
     {
@@ -3111,10 +3111,10 @@
       "kind": "bos-module",
       "label": "Broadcast",
       "phpPath": "/CP/control/portal/epc_marketing_broadcast",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/marketing-broadcast",
+      "aspnetRoute": "/cp/marketing-broadcast-app",
       "aspnetComplete": false
     },
     {
@@ -3485,10 +3485,10 @@
       "kind": "cp-feature",
       "label": "Demo tenants",
       "phpPath": "/CP/control/portal/epc_demo_tenants_manage",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/demo-tenants",
+      "aspnetRoute": "/cp/demo-tenants-app",
       "aspnetComplete": false
     },
     {
@@ -3507,10 +3507,10 @@
       "kind": "cp-feature",
       "label": "Epc Demo Tenants Manage",
       "phpPath": "/CP/control/portal/epc_demo_tenants_manage",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/demo-tenants",
+      "aspnetRoute": "/cp/demo-tenants-app",
       "aspnetComplete": false
     },
     {
@@ -3947,10 +3947,10 @@
       "kind": "cp-feature",
       "label": "Epc Marketing Broadcast",
       "phpPath": "/CP/control/portal/epc_marketing_broadcast",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/marketing-broadcast",
+      "aspnetRoute": "/cp/marketing-broadcast-app",
       "aspnetComplete": false
     },
     {
@@ -4057,10 +4057,10 @@
       "kind": "cp-feature",
       "label": "Marketing broadcast",
       "phpPath": "/CP/control/portal/epc_marketing_broadcast",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/marketing-broadcast",
+      "aspnetRoute": "/cp/marketing-broadcast-app",
       "aspnetComplete": false
     },
     {

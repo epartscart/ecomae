@@ -45,6 +45,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var apiClients = await reporter.ListCpApiClientsMetaAsync(10);
         var powerBi = await reporter.BuildCpPowerBiDigestAsync(10);
         var mobileApps = await reporter.BuildCpMobileAppsDigestAsync();
+        var metabase = await reporter.BuildCpMetabaseDigestAsync(10);
+        var nlReporting = await reporter.ListCpNlReportDefinitionsAsync(10);
+        var marketing = await reporter.BuildCpMarketingBroadcastDigestAsync(10);
+        var demoTenants = await reporter.ListCpDemoTenantsAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -91,6 +95,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", apiClients.Source);
         Assert.Equal("migration", powerBi.Source);
         Assert.Equal("migration", mobileApps.Source);
+        Assert.Equal("migration", metabase.Source);
+        Assert.Equal("migration", nlReporting.Source);
+        Assert.Equal("migration", marketing.Source);
+        Assert.Equal("migration", demoTenants.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
@@ -133,6 +141,15 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_power_bi_config", LegacySurfaceDashboardSql.SelectCpPowerBiConfig, StringComparison.Ordinal);
         Assert.Contains("epc_power_bi_reports", LegacySurfaceDashboardSql.SelectCpPowerBiReports, StringComparison.Ordinal);
         Assert.Contains("integrations_json", LegacySurfaceDashboardSql.SelectCpMobileAppsIntegrationsJson, StringComparison.Ordinal);
+        Assert.Contains("epc_metabase_config", LegacySurfaceDashboardSql.SelectCpMetabaseConfig, StringComparison.Ordinal);
+        Assert.Contains("epc_metabase_dashboards", LegacySurfaceDashboardSql.SelectCpMetabaseDashboards, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret_key", LegacySurfaceDashboardSql.SelectCpMetabaseConfig, StringComparison.Ordinal);
+        Assert.Contains("epc_report_definitions", LegacySurfaceDashboardSql.SelectCpNlReportDefinitions, StringComparison.Ordinal);
+        Assert.DoesNotContain("query_template", LegacySurfaceDashboardSql.SelectCpNlReportDefinitions, StringComparison.Ordinal);
+        Assert.Contains("epc_marketing_broadcast_campaigns", LegacySurfaceDashboardSql.SelectCpMarketingBroadcastCampaigns, StringComparison.Ordinal);
+        Assert.DoesNotContain("body_html", LegacySurfaceDashboardSql.SelectCpMarketingBroadcastCampaigns, StringComparison.Ordinal);
+        Assert.Contains("is_demo", LegacySurfaceDashboardSql.SelectCpDemoTenants, StringComparison.Ordinal);
+        Assert.DoesNotContain("password", LegacySurfaceDashboardSql.SelectCpDemoTenants, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("article_search", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("shop_carts", LegacySurfaceDashboardSql.SelectStorefrontCartSummary, StringComparison.Ordinal);

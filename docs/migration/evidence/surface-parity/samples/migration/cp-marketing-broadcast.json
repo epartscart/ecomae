@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "campaigns": 1,
+    "emailsSent": 10,
+    "whatsappSent": 2,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode contract sample; campaigns[] item-field sentinel locked; PHP epc_marketing_broadcast remains authoritative; cutoverAllowed=false",
+  "campaigns": [
+    {
+      "id": 1,
+      "createdAt": 0,
+      "channel": "email",
+      "templateKey": "welcome",
+      "subject": "Migration campaign",
+      "preview": "Hello",
+      "audienceMode": "all",
+      "audienceMeta": "",
+      "totalTargets": 10,
+      "sentOk": 10,
+      "sentFail": 0,
+      "status": "sent",
+      "operatorId": 1
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

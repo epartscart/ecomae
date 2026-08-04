@@ -1,0 +1,33 @@
+{
+  "role": "cp-marketing-broadcast-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-marketing-broadcast",
+  "collectionKey": "campaigns",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "campaigns",
+    "emailsSent",
+    "whatsappSent",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "createdAt",
+    "channel",
+    "templateKey",
+    "subject",
+    "preview",
+    "audienceMode",
+    "audienceMeta",
+    "totalTargets",
+    "sentOk",
+    "sentFail",
+    "status",
+    "operatorId"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks marketing broadcast summary+campaigns[] floors. body_html/text omitted. Send remains PHP. cutoverAllowed=false."
+}
