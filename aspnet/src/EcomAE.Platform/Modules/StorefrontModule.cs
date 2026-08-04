@@ -568,6 +568,120 @@ public sealed class StorefrontModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.StorefrontNewsletterSubscribe, async (
+            HttpContext context,
+            StorefrontNewsletterSubscribeBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontNewsletterSubscribeDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            // Public/customer dry-run gate; PHP remains authoritative.
+            body ??= new StorefrontNewsletterSubscribeBody(null,false);
+            return Results.Ok(dryRun.Evaluate(new StorefrontNewsletterSubscribeRequest(body.Email, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+        endpoints.MapPost(EcomAeRoutes.StorefrontAddEvaluation, async (
+            HttpContext context,
+            StorefrontAddEvaluationBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontAddEvaluationDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+                return Unauthorized("Customer session required.");
+            body ??= new StorefrontAddEvaluationBody(0,0,false);
+            return Results.Ok(dryRun.Evaluate(new StorefrontAddEvaluationRequest(body.ProductId, body.Rating, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+        endpoints.MapPost(EcomAeRoutes.StorefrontCreateOperation, async (
+            HttpContext context,
+            StorefrontCreateOperationBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontCreateOperationDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+                return Unauthorized("Customer session required.");
+            body ??= new StorefrontCreateOperationBody(0,null,false);
+            return Results.Ok(dryRun.Evaluate(new StorefrontCreateOperationRequest(body.Amount, body.Kind, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+        endpoints.MapPost(EcomAeRoutes.StorefrontCheckOrderNotAuthorized, async (
+            HttpContext context,
+            StorefrontCheckOrderNotAuthorizedBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontCheckOrderNotAuthorizedDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+                return Unauthorized("Customer session required.");
+            body ??= new StorefrontCheckOrderNotAuthorizedBody(0,false);
+            return Results.Ok(dryRun.Evaluate(new StorefrontCheckOrderNotAuthorizedRequest(body.OrderId, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+        endpoints.MapPost(EcomAeRoutes.StorefrontSetUserOption, async (
+            HttpContext context,
+            StorefrontSetUserOptionBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontSetUserOptionDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+                return Unauthorized("Customer session required.");
+            body ??= new StorefrontSetUserOptionBody(null,null,false);
+            return Results.Ok(dryRun.Evaluate(new StorefrontSetUserOptionRequest(body.OptionKey, body.OptionValue, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+        endpoints.MapPost(EcomAeRoutes.StorefrontSetMyCity, async (
+            HttpContext context,
+            StorefrontSetMyCityBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontSetMyCityDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            // Public/customer dry-run gate; PHP remains authoritative.
+            body ??= new StorefrontSetMyCityBody(0,false);
+            return Results.Ok(dryRun.Evaluate(new StorefrontSetMyCityRequest(body.CityId, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+        endpoints.MapPost(EcomAeRoutes.StorefrontLoginSendCode, async (
+            HttpContext context,
+            StorefrontLoginSendCodeBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontLoginSendCodeDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            // Public/customer dry-run gate; PHP remains authoritative.
+            body ??= new StorefrontLoginSendCodeBody(null,false);
+            return Results.Ok(dryRun.Evaluate(new StorefrontLoginSendCodeRequest(body.Phone, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+        endpoints.MapPost(EcomAeRoutes.StorefrontLoginCheckCode, async (
+            HttpContext context,
+            StorefrontLoginCheckCodeBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontLoginCheckCodeDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            // Public/customer dry-run gate; PHP remains authoritative.
+            body ??= new StorefrontLoginCheckCodeBody(null,false);
+            return Results.Ok(dryRun.Evaluate(new StorefrontLoginCheckCodeRequest(body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontBulkUploadProcess, async (HttpContext context, StorefrontBulkUploadProcessBody? body, ILegacySessionValidator validator, IStorefrontBulkUploadProcessDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0) return Unauthorized("Customer session required.");
+            body ??= new StorefrontBulkUploadProcessBody(null, false);
+            return Results.Ok(dryRun.Evaluate(new StorefrontBulkUploadProcessRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontGetArticleList, async (HttpContext context, StorefrontGetArticleListBody? body, ILegacySessionValidator validator, IStorefrontGetArticleListDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); body ??= new StorefrontGetArticleListBody(null,false); return Results.Ok(dryRun.Evaluate(new StorefrontGetArticleListRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.StorefrontLoadReturnsData, async (HttpContext context, StorefrontLoadReturnsDataBody? body, ILegacySessionValidator validator, IStorefrontLoadReturnsDataDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); body ??= new StorefrontLoadReturnsDataBody(null,false); return Results.Ok(dryRun.Evaluate(new StorefrontLoadReturnsDataRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+
         endpoints.MapPost(EcomAeRoutes.StorefrontOrderSendMessage, async (
             HttpContext context,
             StorefrontOrderSendMessageBody? body,
@@ -633,6 +747,17 @@ public sealed class StorefrontModule : ISurfaceModule
         string? EmailNotAuth = null,
         bool ConfirmWrites = false);
     private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
+    private sealed record StorefrontGetArticleListBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record StorefrontLoadReturnsDataBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record StorefrontBulkUploadProcessBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record StorefrontNewsletterSubscribeBody(string? Email, bool ConfirmWrites = false);
+    private sealed record StorefrontAddEvaluationBody(long ProductId, int Rating = 5, bool ConfirmWrites = false);
+    private sealed record StorefrontCreateOperationBody(decimal Amount, string? Kind, bool ConfirmWrites = false);
+    private sealed record StorefrontCheckOrderNotAuthorizedBody(long OrderId, bool ConfirmWrites = false);
+    private sealed record StorefrontSetUserOptionBody(string? OptionKey, string? OptionValue, bool ConfirmWrites = false);
+    private sealed record StorefrontSetMyCityBody(long CityId, bool ConfirmWrites = false);
+    private sealed record StorefrontLoginSendCodeBody(string? Phone, bool ConfirmWrites = false);
+    private sealed record StorefrontLoginCheckCodeBody(string? Code, bool ConfirmWrites = false);
 
     private static IResult Unauthorized(string message) => Results.Json(
         new { ok = false, error = new { code = "unauthorized", message } },

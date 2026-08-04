@@ -1,0 +1,25 @@
+namespace EcomAE.Platform.Migration;
+
+/// <summary>Wave B dry-run for PHP <c>mfgr_mrp_run</c>. Never UPDATE. PHP authoritative.</summary>
+public interface IErpMfgrMrpRunDryRun { ErpMfgrMrpRunDryRunResult Evaluate(ErpMfgrMrpRunRequest request); }
+public sealed class ErpMfgrMrpRunDryRun : IErpMfgrMrpRunDryRun
+{
+    public ErpMfgrMrpRunDryRunResult Evaluate(ErpMfgrMrpRunRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (request.ConfirmWrites)
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET mfgr_mrp_run is not implemented; PHP ajax_erp.php remains authoritative.", request);
+        
+        return new("dry-run-validated",0,true,false,true,"ok",true,
+            ["ajax_erp.php?action=mfgr_mrp_run (NOT executed)"],
+            "ERP mfgr_mrp_run payload validated; UPDATE blocked.",
+            "/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_mrp_run");
+    }
+    private static ErpMfgrMrpRunDryRunResult Refuse(string s,string c,string d,ErpMfgrMrpRunRequest r)=>
+        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_mrp_run");
+}
+public sealed record ErpMfgrMrpRunRequest(bool ConfirmWrites = false);
+public sealed record ErpMfgrMrpRunDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
+{
+    public object ToPayload(object session)=>new{ok=true,surface="erp",status=Status,writes=Writes,writesBlocked=WritesBlocked,cutoverAllowed=CutoverAllowed,phpAuthoritative=PhpAuthoritative,validation_code=ValidationCode,would_write=WouldWrite,intended=new{action="mfgr_mrp_run"},simulated=SimulatedSql,php_ajax=PhpAjax,session,note=Detail};
+}

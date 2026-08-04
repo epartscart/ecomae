@@ -24,13 +24,13 @@ public sealed class OnPremisesParityReporter : IOnPremisesParityReporter
             new(
                 "on-prem-installer",
                 "Self-hosted installer pack",
-                "php-authoritative",
-                "deploy/on-premises/* (setup-wizard, activate-license, license_manager, health-check, backup, docker-compose) remains PHP until ASP.NET pack + dual-sample."),
+                "scaffold",
+                "PHP deploy/on-premises/* remains authoritative. ASP.NET scaffold under deploy/on-premises-aspnet/ + setup-wizard/backup dry-runs (writes=0). Dual-sample required before replacing PHP runtime."),
             new(
                 "on-prem-license-api",
                 "License activate + health intake APIs",
                 "php-authoritative",
-                "api/v1/licenses/activate.php + api/v1/on-premises/health.php remain PHP. ASP.NET: health/activate dry-runs (writes=0) + read digest /erp/on-premises/licenses (keys masked; notes/fingerprint/ip omitted)."),
+                "api/v1/licenses/activate.php + api/v1/on-premises/health.php remain PHP. ASP.NET: health/activate/setup-wizard/backup/activate-license-CLI/health-check-pack dry-runs (writes=0) + read digest /erp/on-premises/licenses (keys masked; notes/fingerprint/ip omitted)."),
             new(
                 "erp-on-premises-tab",
                 "ERP operator On-Premises tab",
@@ -63,8 +63,8 @@ public sealed class OnPremisesParityReporter : IOnPremisesParityReporter
             NextBuilds:
             [
                 "Dual-sample /erp/on-premises-app + /erp/on-premises/licenses vs PHP on_premises tab / registry.",
-                "Promote health + license-activate dry-runs via write-dryrun operator; PHP remains authoritative.",
-                "ASP.NET Core on-prem installer pack (replace PHP runtime in deploy/on-premises) — separate from SaaS ERP-only tenants.",
+                "Promote health + license-activate + setup-wizard + backup dry-runs via write-dryrun operator; PHP remains authoritative.",
+                "Grow deploy/on-premises-aspnet/ from scaffold to full ASP.NET Core installer host — separate from SaaS ERP-only tenants.",
             ],
             Notes:
             [
