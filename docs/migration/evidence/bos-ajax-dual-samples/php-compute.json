@@ -1,0 +1,18 @@
+{
+  "role": "php-bos-ajax-contract-sample",
+  "ok": true,
+  "surface": "bos",
+  "module": "bos",
+  "action": "compute",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "pairedAspNetGolden": "aspnet-compute.json",
+  "generatedAtUnix": 1785869386,
+  "note": "Seeded from aspnet bos ajax golden for contract-only compare. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

@@ -1,13 +1,20 @@
 {
   "role": "bos-ajax-dual-sample-compare",
-  "generatedAtUnix": 1785865785,
+  "generatedAtUnix": 1785869386,
   "ok": true,
   "samplesChecked": 231,
   "samplesOk": 231,
+  "contractOnly": true,
+  "contractPairs": 231,
+  "contractPairsOk": 231,
+  "migrationBaselinePairs": 231,
+  "missingPhpSides": [],
+  "missingPhpSideCount": 0,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
   "phpAuthoritative": true,
   "errors": [],
-  "note": "BOS ajax dry-runs are writes=0. PHP bos/ajax remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md."
+  "errorCount": 0,
+  "note": "BOS ajax dry-runs are writes=0. Contract-only pairs use migration-contract-golden baselines \u2014 not live PHP. PHP bos/ajax remains authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
 }

@@ -1,13 +1,20 @@
 {
   "role": "erp-ajax-dual-sample-compare",
-  "generatedAtUnix": 1785865785,
+  "generatedAtUnix": 1785869386,
   "ok": true,
   "samplesChecked": 321,
   "samplesOk": 321,
+  "contractOnly": true,
+  "contractPairs": 321,
+  "contractPairsOk": 321,
+  "migrationBaselinePairs": 321,
+  "missingPhpSides": [],
+  "missingPhpSideCount": 0,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
   "phpAuthoritative": true,
   "errors": [],
-  "note": "ERP ajax dry-runs are writes=0. PHP ajax_erp.php remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md."
+  "errorCount": 0,
+  "note": "ERP ajax dry-runs are writes=0. Contract-only pairs use migration-contract-golden baselines \u2014 not live PHP. PHP ajax_erp.php remains authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
 }

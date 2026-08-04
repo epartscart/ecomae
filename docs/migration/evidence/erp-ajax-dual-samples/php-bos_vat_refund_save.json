@@ -1,0 +1,18 @@
+{
+  "role": "php-erp-ajax-contract-sample",
+  "ok": true,
+  "surface": "erp",
+  "module": "erp",
+  "action": "bos_vat_refund_save",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "pairedAspNetGolden": "aspnet-bos_vat_refund_save.json",
+  "generatedAtUnix": 1785869386,
+  "note": "Seeded from aspnet erp ajax golden for contract-only compare. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

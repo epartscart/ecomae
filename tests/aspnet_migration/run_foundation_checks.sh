@@ -1586,3 +1586,7 @@ check 'cp debug console item field floor exists' test -f "$ROOT/docs/migration/e
 echo "----------------------------"
 echo "Passed: $pass  Failed: $fail"
 exit $(( fail > 0 ? 1 : 0 ))
+check 'ajax surface contract sample generator' test -f "$ROOT/scripts/generate_ajax_surface_contract_samples.py"
+check 'all ajax contract floors operator' test -f "$ROOT/scripts/cloudpanel_run_all_ajax_contract_floors.sh"
+check 'erp ajax compare supports contract-only' contains "$ROOT/scripts/compare_erp_ajax_dual_samples.py" '--contract-only'
+check 'bos ajax compare supports contract-only' contains "$ROOT/scripts/compare_bos_ajax_dual_samples.py" '--contract-only'
