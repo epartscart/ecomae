@@ -582,6 +582,16 @@ check 'module function parity operator exists' test -f "$ROOT/scripts/cloudpanel
 check 'module function parity operator is executable' test -x "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh"
 check 'module function parity operator asserts complete zero' contains "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh" 'aspnetCompleteCount'
 check 'module function parity human pass file absent' bash -c '! test -f "$ROOT/docs/migration/evidence/presentation/MODULE_FUNCTION_TEST_PASS.md"'
+check 'presentation recheck operator exists' test -f "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh"
+check 'presentation recheck operator is executable' test -x "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh"
+check 'presentation recheck operator asserts removal false' contains "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh" 'readyForPhpRemoval'
+check 'presentation recheck evidence blocks cutover' contains "$ROOT/docs/migration/evidence/presentation/php-vs-aspnet-recheck.json" '"cutoverAllowed": false'
+check 'presentation recheck evidence keeps honest fail' contains "$ROOT/docs/migration/evidence/presentation/php-vs-aspnet-recheck.json" '"status": "fail"'
+check 'operator verify index exists' test -f "$ROOT/docs/migration/evidence/OPERATOR_VERIFY.md"
+check 'presentation OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/presentation/OPERATOR_VERIFY.md"
+check 'hybrid-ui OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/OPERATOR_VERIFY.md"
+check 'digest OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/surface-parity/OPERATOR_VERIFY.md"
+check 'module-function OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/OPERATOR_VERIFY.md"
 check 'presentation parity probe script exists' test -x "$ROOT/scripts/cloudpanel_probe_php_presentation_parity.sh"
 check 'presentation compare helper exists' test -f "$ROOT/scripts/compare_php_aspnet_presentation.py"
 check 'login bridge service exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbLegacyAdminLoginService.cs"
@@ -628,6 +638,7 @@ check 'deploy packs digest dual-sample operator' contains "$ROOT/scripts/deploy_
 check 'deploy packs all dual-sample operators helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_all_dual_sample_operators.sh'
 check 'deploy packs module-function parity operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_module_function_parity_operator.sh'
 check 'deploy packs module-function parity compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_module_function_parity.py'
+check 'deploy packs presentation recheck operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_presentation_recheck_operator.sh'
 check 'deploy packs scaffold options example' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ecomae-scaffold-options.example.json'
 check 'deploy packs scaffold options validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_scaffold_options_example.py'
 check 'deploy packs enterprise BOS scaffold guardrails' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_enterprise_bos_scaffold_guardrails.sh'

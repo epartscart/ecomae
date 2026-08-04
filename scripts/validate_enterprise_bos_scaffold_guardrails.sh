@@ -129,6 +129,10 @@ check_file "module-function parity operator helper" \
   "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh"
 check_file "module-function parity compare helper" \
   "$ROOT/scripts/compare_module_function_parity.py"
+check_file "presentation recheck operator helper" \
+  "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh"
+check_file "operator verify index" \
+  "$ROOT/docs/migration/evidence/OPERATOR_VERIFY.md"
 check_file "YARP all-packs generator helper" \
   "$ROOT/scripts/generate_all_yarp_design_examples.sh"
 

@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** Digest dual-sample full coverage (35 surface/storefront + orders-digest contracts) + `validate_surface_digest_allowlist_sync.py`. Module-function/`aspnetCompleteCount=0` + dual-sample operators remain the offline floor. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** Presentation recheck operator (`cloudpanel_run_presentation_recheck_operator.sh`) + evidence `OPERATOR_VERIFY.md` index. Checked-in recheck stays honest `status=fail`. Digest 35-contract floor + dual-sample operators remain available offline. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

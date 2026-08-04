@@ -138,7 +138,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Dual-sample operator suite (login + catalog-miss + digest + all-runner) (#710)
 - ✅ Evidence cutover locks + presentation/hybrid/YARP allowlist sync (#711)
 - ✅ Module-function parity contract harness (`aspnetCompleteCount=0`) (#712)
-- **This PR:** Digest dual-sample full coverage (35 contracts) + surface/storefront digest allowlist sync
+- ✅ Digest dual-sample full coverage (35 contracts) + digest allowlist sync (#713)
+- **This PR:** Presentation recheck operator + OPERATOR_VERIFY pack (honest `status=fail`, cutover false)
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)

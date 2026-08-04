@@ -87,6 +87,7 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_probe_storefront_digest_shadows.sh" \
   "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" \
   "$ROOT/scripts/cloudpanel_probe_php_presentation_parity.sh" \
+  "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh" \
   "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" \
   "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh" \
   "$ROOT/scripts/compare_php_aspnet_presentation.py" \
