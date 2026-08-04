@@ -7,12 +7,19 @@ namespace EcomAE.Platform.Presentation;
 public static partial class PhpModuleCatalog
 {
     public static int TotalTrackedCount =>
-        ErpCategoryCount + ErpAreaCount + ErpTabCount + BosModuleCount + CpBrochureFeatureCount + StorefrontSurfaceCount;
+        ErpCategoryCount
+        + ErpAreaCount
+        + ErpTabCount
+        + BosSectionCount
+        + BosModuleCount
+        + CpBrochureFeatureCount
+        + StorefrontSurfaceCount;
 
     public static IEnumerable<ModuleLink> AllTrackedLinks()
         => ErpCategories
             .Concat(ErpAreas)
             .Concat(ErpTabs)
+            .Concat(BosSections)
             .Concat(BosModules)
             .Concat(CpBrochureFeatures)
             .Concat(StorefrontSurfaces);
@@ -23,6 +30,7 @@ public static partial class PhpModuleCatalog
         ["erpCategories"] = ErpCategoryCount,
         ["erpAreas"] = ErpAreaCount,
         ["erpTabs"] = ErpTabCount,
+        ["bosSections"] = BosSectionCount,
         ["bosModules"] = BosModuleCount,
         ["cpBrochureFeatures"] = CpBrochureFeatureCount,
         ["storefrontSurfaces"] = StorefrontSurfaceCount,
@@ -31,10 +39,10 @@ public static partial class PhpModuleCatalog
         {
             ["cpCommandCentre"] = "CpBrochureFeatures",
             ["erpDashboard"] = "ErpCategories+ErpAreas+ErpTabs",
-            ["bosFleet"] = "BosModules",
+            ["bosFleet"] = "BosSections+BosModules",
             ["storefrontPreview"] = "StorefrontSurfaces",
             ["omittedKinds"] = Array.Empty<string>(),
-            ["fullCatalogFloor"] = 714,
+            ["fullCatalogFloor"] = 725,
         },
         ["aspNetInteractiveComplete"] = 0,
         ["cutoverAllowed"] = false,
@@ -44,7 +52,7 @@ public static partial class PhpModuleCatalog
         {
             "Live product chrome remains PHP (/CP/ /ERP/ /BOS/ storefront hosts).",
             "ASP.NET /cp|/erp|/bos|/storefront/app shells expose this full directory via hybrid deeplinks.",
-            "ERP shells list categories + areas + tabs; CP lists all brochure features; BOS all modules; storefront all surfaces.",
+            "ERP shells list categories + areas + tabs; CP lists all brochure features; BOS sections + modules; storefront all surfaces.",
             "Tenant hosts must not receive presentation shadows (see TENANT_MIGRATION_SAFETY.md)."
         }
     };

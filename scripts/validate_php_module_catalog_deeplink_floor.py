@@ -15,6 +15,7 @@ FLOORS = {
     "erpAreas": 35,
     "erpTabs": 154,
     "erpCategories": 9,
+    "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
     "storefrontSurfaces": 12,
@@ -67,6 +68,14 @@ def collect_hrefs(catalog: dict) -> list[tuple[str, str, str]]:
             )
     for cat in catalog.get("erpCategories") or []:
         rows.append(("erp-category", str(cat.get("id")), str(cat.get("href") or "")))
+    for sec in catalog.get("bosSections") or []:
+        rows.append(
+            (
+                "bos-section",
+                str(sec.get("id")),
+                str(sec.get("href") or f"/BOS/?section={sec.get('id')}"),
+            )
+        )
     for bos in catalog.get("bosModules") or []:
         rows.append(("bos-module", str(bos.get("id")), str(bos.get("href") or "")))
     for cp in catalog.get("cpBrochureFeatures") or []:

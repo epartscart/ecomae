@@ -3,14 +3,15 @@
   "ok": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "moduleCount": 750,
+  "moduleCount": 761,
   "hybridPreviewCount": 77,
-  "phpOnlyCount": 673,
+  "phpOnlyCount": 684,
   "aspnetCompleteCount": 0,
   "kindCounts": {
     "erp-area": 35,
     "erp-tab": 154,
     "erp-category": 9,
+    "bos-section": 11,
     "bos-module": 99,
     "cp-feature": 405,
     "storefront-surface": 12,
@@ -30,12 +31,13 @@
     "erpAreas": 35,
     "erpTabs": 154,
     "erpCategories": 9,
+    "bosSections": 11,
     "bosModules": 99,
     "storefrontSurfaces": 12
   },
   "statusCounts": {
     "digest-only+hybrid-deeplink": 75,
-    "php-only": 673,
+    "php-only": 684,
     "hybrid-deeplink": 2
   },
   "errors": [],

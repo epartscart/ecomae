@@ -3,7 +3,7 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "totalTracked": 714,
+  "totalTracked": 725,
   "counts": {
     "erpAreas": 35,
     "erpTabs": 154,
@@ -17,6 +17,7 @@
     "erpAreas": 35,
     "erpTabs": 154,
     "erpCategories": 9,
+    "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
     "storefrontSurfaces": 12

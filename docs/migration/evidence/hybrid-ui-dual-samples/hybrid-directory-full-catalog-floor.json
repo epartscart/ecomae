@@ -3,11 +3,12 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "totalTracked": 714,
+  "totalTracked": 725,
   "floors": {
     "erpCategories": 9,
     "erpAreas": 35,
     "erpTabs": 154,
+    "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
     "storefrontSurfaces": 12
@@ -16,6 +17,7 @@
     "erpCategories": 9,
     "erpAreas": 35,
     "erpTabs": 154,
+    "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
     "storefrontSurfaces": 12
@@ -39,6 +41,7 @@
     },
     "aspnet/src/EcomAE.Platform/Components/Pages/BosFleetApp.razor": {
       "required": [
+        "PhpModuleCatalog.BosSections",
         "PhpModuleCatalog.BosModules",
         "PhpHybridModuleDirectory"
       ],

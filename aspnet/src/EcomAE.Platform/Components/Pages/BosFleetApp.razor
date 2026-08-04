@@ -35,6 +35,12 @@
         </div>
 
         <PhpHybridModuleDirectory
+            Title="Complete BOS section directory"
+            Subtitle="@($"{PhpModuleCatalog.BosSectionCount} topnav sections from PHP epc_bos_unified.php")"
+            Links="@PhpModuleCatalog.BosSections"
+            PhpWorkspaceBase="/bos/app" />
+
+        <PhpHybridModuleDirectory
             Title="Complete BOS module directory"
             Subtitle="@($"{PhpModuleCatalog.BosModuleCount} modules from PHP epc_bos_unified.php")"
             Links="@PhpModuleCatalog.BosModules"

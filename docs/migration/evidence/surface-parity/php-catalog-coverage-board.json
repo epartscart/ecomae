@@ -3,11 +3,12 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "totalTracked": 714,
+  "totalTracked": 725,
   "floors": {
     "erpAreas": 35,
     "erpTabs": 154,
     "erpCategories": 9,
+    "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
     "storefrontSurfaces": 12
@@ -25,18 +26,22 @@
     "erp-area": 35,
     "erp-tab": 154,
     "erp-category": 9,
+    "bos-section": 11,
     "bos-module": 99,
     "cp-feature": 405,
     "storefront-surface": 12
   },
   "coverageCounts": {
     "digest-contract": 41,
-    "php-only-deeplink": 673
+    "php-only-deeplink": 684
   },
   "coverageByKind": {
     "bos-module": {
       "php-only-deeplink": 93,
       "digest-contract": 6
+    },
+    "bos-section": {
+      "php-only-deeplink": 11
     },
     "cp-feature": {
       "digest-contract": 22,
@@ -2236,6 +2241,127 @@
       "kind": "erp-category",
       "label": "Setup & Administration",
       "phpPath": "/ERP/?epc_erp_shell=1&area=setup",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-fleet",
+      "kind": "bos-section",
+      "label": "Fleet Command",
+      "phpPath": "/BOS/?section=fleet",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-tenants",
+      "kind": "bos-section",
+      "label": "Tenant Operations",
+      "phpPath": "/BOS/?section=tenants",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-commerce",
+      "kind": "bos-section",
+      "label": "Commerce",
+      "phpPath": "/BOS/?section=commerce",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-catalogue",
+      "kind": "bos-section",
+      "label": "Catalogue",
+      "phpPath": "/BOS/?section=catalogue",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-logistics",
+      "kind": "bos-section",
+      "label": "Logistics",
+      "phpPath": "/BOS/?section=logistics",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-marketing_cp",
+      "kind": "bos-section",
+      "label": "Marketing",
+      "phpPath": "/BOS/?section=marketing_cp",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-professional",
+      "kind": "bos-section",
+      "label": "Professional",
+      "phpPath": "/BOS/?section=professional",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-erp",
+      "kind": "bos-section",
+      "label": "ERP Finance",
+      "phpPath": "/BOS/?section=erp",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-auto_parts",
+      "kind": "bos-section",
+      "label": "Auto Parts",
+      "phpPath": "/BOS/?section=auto_parts",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-tax_advisory",
+      "kind": "bos-section",
+      "label": "Tax & Advisory",
+      "phpPath": "/BOS/?section=tax_advisory",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
+      "aspnetComplete": false
+    },
+    {
+      "id": "bos-section-platform",
+      "kind": "bos-section",
+      "label": "Platform",
+      "phpPath": "/BOS/?section=platform",
       "coverage": "php-only-deeplink",
       "moduleStatus": "php-only",
       "digestRoute": null,
@@ -7919,5 +8045,5 @@
       "aspnetComplete": false
     }
   ],
-  "note": "Full PHP catalog (714) coverage board. digest-contract means a locked surface-field digest route exists for a hybrid TARGET match. Interactive aspNetInteractiveComplete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "Full PHP catalog (725) coverage board. digest-contract means a locked surface-field digest route exists for a hybrid TARGET match. Interactive aspNetInteractiveComplete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."
 }

@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MIN_TOTAL = 714
+MIN_TOTAL = 725
 
 STATUS_TO_COVERAGE = {
     "digest-only": "digest-contract",
@@ -135,7 +135,7 @@ def main() -> int:
         "ok": not errors,
         "errors": errors,
         "note": (
-            "Inventory and coverage board must enumerate the same 714 PHP catalog ids. "
+            "Inventory and coverage board must enumerate the same 725 PHP catalog ids. "
             "Interactive aspnet-complete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. "
             "Never invents RELEASE_OWNER_APPROVAL.md."
         ),
