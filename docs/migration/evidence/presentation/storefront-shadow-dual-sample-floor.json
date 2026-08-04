@@ -1,0 +1,80 @@
+{
+  "role": "storefront-shadow-dual-sample-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "tenantStorefrontPhp": true,
+  "phpAuthoritativeTenantChrome": "https://epartscart.com/",
+  "digestRouteCount": 7,
+  "presentationRouteCount": 9,
+  "hybridTargetCount": 7,
+  "digestExactRoutes": [
+    "/storefront/account-summary",
+    "/storefront/cart",
+    "/storefront/checkout",
+    "/storefront/garage",
+    "/storefront/orders",
+    "/storefront/profile",
+    "/storefront/search"
+  ],
+  "presentationExactRoutes": [
+    "/storefront/account-summary-app",
+    "/storefront/app",
+    "/storefront/cart-app",
+    "/storefront/checkout-app",
+    "/storefront/garage-app",
+    "/storefront/login",
+    "/storefront/orders-app",
+    "/storefront/profile-app",
+    "/storefront/search-app"
+  ],
+  "hybridTargets": [
+    {
+      "stem": "sf-search",
+      "app": "/storefront/search-app",
+      "digest": "/storefront/search"
+    },
+    {
+      "stem": "sf-cart",
+      "app": "/storefront/cart-app",
+      "digest": "/storefront/cart"
+    },
+    {
+      "stem": "sf-checkout",
+      "app": "/storefront/checkout-app",
+      "digest": "/storefront/checkout"
+    },
+    {
+      "stem": "sf-orders",
+      "app": "/storefront/orders-app",
+      "digest": "/storefront/orders"
+    },
+    {
+      "stem": "sf-garage",
+      "app": "/storefront/garage-app",
+      "digest": "/storefront/garage"
+    },
+    {
+      "stem": "sf-profile",
+      "app": "/storefront/profile-app",
+      "digest": "/storefront/profile"
+    },
+    {
+      "stem": "sf-account-summary",
+      "app": "/storefront/account-summary-app",
+      "digest": "/storefront/account-summary"
+    }
+  ],
+  "installScript": "scripts/cloudpanel_install_storefront_digest_shadows.sh",
+  "probeScript": "scripts/cloudpanel_probe_storefront_digest_shadows.sh",
+  "presentationInstallScript": "scripts/cloudpanel_install_presentation_app_shadows.sh",
+  "closeoutOperator": "scripts/cloudpanel_www_shadow_closeout_operator.sh",
+  "confirmEnv": "ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES",
+  "closeoutConfirmEnv": "ECOMAE_CONFIRM_WWW_SHADOW_CLOSEOUT=YES",
+  "liveTruthAtAuthoring": {
+    "digestsObserved": "6/7 (checkout often 404 until www closeout; cart/search/profile/account may 401 without customer cookie)",
+    "presentationAppsObserved": "search/cart/orders/profile/garage/account-summary apps may 200; checkout-app often 404 until closeout",
+    "nextLiveStep": "ECOMAE_CONFIRM_WWW_SHADOW_CLOSEOUT=YES bash scripts/cloudpanel_www_shadow_closeout_operator.sh after tip deploy, then authenticated storefront dual samples"
+  },
+  "note": "www /storefront/* exact-route digest+app shadows (7 digests + 9 presentation routes + 7 hybrid TARGETS) are ASP.NET compare targets only. Live ePartsCart/tenant storefront chrome stays PHP until dual-sample same-to-same + human RELEASE_OWNER_APPROVAL.md. Never invent cutover."
+}

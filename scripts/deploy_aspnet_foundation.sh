@@ -156,6 +156,9 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh" \
   "$ROOT/scripts/generate_login_cookie_contract_samples.py" \
   "$ROOT/scripts/validate_marketing_app_allowlist_sync.py" \
+  "$ROOT/scripts/validate_storefront_shadow_allowlist_sync.py" \
+  "$ROOT/scripts/validate_functional_static_floors.py" \
+  "$ROOT/scripts/cloudpanel_www_shadow_closeout_preflight.sh" \
   "$ROOT/scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh" \
   "$ROOT/scripts/cloudpanel_run_digest_dual_sample_operator.sh" \
   "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh" \

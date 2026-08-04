@@ -1,0 +1,16 @@
+{
+  "role": "functional-static-floors",
+  "generatedAtUnix": 1785871237,
+  "ok": true,
+  "flowCount": 7,
+  "staticFloorsGreen": 7,
+  "liveSmokeBlocked": 7,
+  "liveSmokeCaptured": 0,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "errors": [],
+  "errorCount": 0,
+  "note": "Offline static floors for all 7 named flows are green. Live-smoke stubs remain blocked until CloudPanel artifacts. Never invent RELEASE_OWNER_APPROVAL.md."
+}
