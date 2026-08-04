@@ -155,7 +155,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Expand evidence cutover-lock tree globs (presentation/module/catalog/tenant/surface) (#727)
 - ✅ Presentation/hybrid exact-route inventory + probe script mirror (#728)
 - ✅ Module-function parity locked to full PHP catalog scope floors (#729)
-- **This PR:** Surface-digest exact-route inventory (35) + probe script mirror
+- ✅ Surface-digest exact-route inventory (35) + probe script mirror (#730)
+- **This PR:** Full PHP module-function inventory enumeration (≥714 catalog rows)
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)

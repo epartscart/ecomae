@@ -290,7 +290,16 @@ def main() -> int:
     }
 
     json_path = out_dir / "php_module_catalog.json"
+    evidence_catalog = {
+        **catalog,
+        "cutoverAllowed": False,
+        "readyForPhpRemoval": False,
+    }
     json_path.write_text(json.dumps(catalog, indent=2) + "\n", encoding="utf-8")
+    evidence_catalog_path = ev_dir / "php_module_catalog.json"
+    evidence_catalog_path.write_text(
+        json.dumps(evidence_catalog, indent=2) + "\n", encoding="utf-8"
+    )
     (ev_dir / "php_module_catalog_counts.json").write_text(
         json.dumps(
             {
@@ -310,6 +319,7 @@ def main() -> int:
     print(json.dumps(catalog["counts"], indent=2))
     print(f"Wrote {cs_path}")
     print(f"Wrote {json_path}")
+    print(f"Wrote {evidence_catalog_path}")
 
     # Hard fail if catalogs are incomplete vs known PHP inventory floors.
     c = catalog["counts"]
