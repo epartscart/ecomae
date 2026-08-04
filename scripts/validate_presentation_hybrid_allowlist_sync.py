@@ -76,8 +76,21 @@ def main() -> int:
         type=Path,
         default=Path("deploy/aspnet/nginx-storefront-digests-shadow-example.conf"),
     )
+    ap.add_argument(
+        "--inventory",
+        type=Path,
+        default=Path("docs/migration/evidence/presentation/presentation-exact-routes.json"),
+    )
+    ap.add_argument("--scripts-dir", type=Path, default=Path("scripts"))
     args = ap.parse_args()
     errors: list[str] = []
+
+    OPERATOR_PROBE_SCRIPTS = (
+        "probe_live_surface_stack.sh",
+        "run_php_decommission_area_tests.sh",
+        "verify_pre_php_removal_parity.sh",
+    )
+    INVENTORY_MARKER = "presentation/presentation-exact-routes.json"
 
     nginx_text = args.nginx.read_text(encoding="utf-8")
     nginx_paths = NGINX_LOC_RE.findall(nginx_text)
@@ -167,6 +180,49 @@ def main() -> int:
             f"hybrid digestRoute missing from surface/storefront/orders-digest nginx: {missing_digest_shadows}"
         )
 
+    # Checked-in inventory must mirror nginx exact-route floor (probe scripts stay linked).
+    if not args.inventory.is_file():
+        errors.append(f"missing presentation exact-route inventory: {args.inventory}")
+    else:
+        try:
+            inventory = json.loads(args.inventory.read_text(encoding="utf-8"))
+        except Exception as ex:  # noqa: BLE001
+            errors.append(f"{args.inventory}: invalid JSON ({ex})")
+            inventory = None
+        if isinstance(inventory, dict):
+            if inventory.get("cutoverAllowed") is not False:
+                errors.append(f"{args.inventory}: cutoverAllowed must be explicitly false")
+            if inventory.get("readyForPhpRemoval") is not False:
+                errors.append(f"{args.inventory}: readyForPhpRemoval must be explicitly false")
+            inv_routes = inventory.get("routes")
+            if not isinstance(inv_routes, list):
+                errors.append(f"{args.inventory}: routes must be a list")
+            else:
+                inv_set = set(inv_routes)
+                if len(inv_routes) != len(inv_set):
+                    errors.append(f"{args.inventory}: duplicate routes")
+                if inv_set != nginx_set:
+                    errors.append(
+                        f"{args.inventory} routes mismatch nginx: "
+                        f"missing={sorted(nginx_set - inv_set)} extra={sorted(inv_set - nginx_set)}"
+                    )
+                if int(inventory.get("routeCount") or 0) != len(nginx_set):
+                    errors.append(
+                        f"{args.inventory} routeCount={inventory.get('routeCount')} != nginx {len(nginx_set)}"
+                    )
+
+    for script_name in OPERATOR_PROBE_SCRIPTS:
+        script_path = args.scripts_dir / script_name
+        if not script_path.is_file():
+            errors.append(f"missing operator probe script: scripts/{script_name}")
+            continue
+        text = script_path.read_text(encoding="utf-8")
+        if INVENTORY_MARKER not in text:
+            errors.append(
+                f"{script_name} must reference presentation exact-route inventory "
+                f"({INVENTORY_MARKER})"
+            )
+
     if errors:
         print("FAIL: presentation/hybrid allowlist sync", file=sys.stderr)
         for err in errors:
@@ -176,7 +232,8 @@ def main() -> int:
     print(
         f"PASS: nginx={len(nginx_set)} hybridTargets={len(hybrid_set)} "
         f"shellsLoginsAuth={len(SHELLS_LOGINS_AUTH)} hybridDigestRoutes={len(hybrid_digest_routes)} "
-        f"expected={expected} yarpRouteCount={route_count}"
+        f"expected={expected} yarpRouteCount={route_count} "
+        f"inventory={len(nginx_set)} operatorProbes={len(OPERATOR_PROBE_SCRIPTS)}"
     )
     return 0
 
