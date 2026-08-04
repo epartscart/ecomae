@@ -1302,7 +1302,7 @@ public static class SurfacePayloadContractCatalog
         new("cp", "POS complete-sale dry-run", "/cp/pos/complete-sale", "write-dry-run-gated", "POST dry-run for ajax_pos.php complete_sale; writes=0; PHP authoritative."),
         new("cp", "Portal save-settings dry-run", "/cp/portal/save-settings", "write-dry-run-gated", "POST dry-run for ajax_portal.php save_settings; writes=0; PHP authoritative."),
         new("cp", "CRM action dry-run", "/cp/crm/action", "write-dry-run-gated", "POST dry-run for ajax_crm.php; writes=0; PHP authoritative."),
-        new("cp", "CP module ajax write catalog", "/cp/module-ajax/writes/catalog", "parity-board", "Wave C/D inventory of CP module ajax (procurement/CRM/bulk/marketing/catalogue/crosses/prices/portal); dedicated+registry; cutoverAllowed=false; PHP authoritative."),
+        new("cp", "CP module ajax write catalog", "/cp/module-ajax/writes/catalog", "parity-board", "Wave C/D/E inventory of CP module ajax + classic form POST pages; dedicated+registry; cutoverAllowed=false; PHP authoritative."),
         new("cp", "CP module ajax registry dry-run", "/cp/module-ajax/dry-run/{module}/{action}", "write-dry-run-gated", "POST dry-run for any catalogued CP module ajax action; writes=0; PHP authoritative."),
         new("cp", "CP module ajax dedicated dry-run", "/cp/module-ajax/{module}/{action}/dry-run", "write-dry-run-gated", "POST dedicated dry-run for classified CP module ajax writes; writes=0; PHP authoritative."),
         new("erp", "on-premises activate-license CLI dry-run", "/erp/on-premises/activate-license-cli-dry-run", "write-dry-run-gated", "POST dry-run for deploy/on-premises/activate-license.php; writes=0; PHP authoritative."),

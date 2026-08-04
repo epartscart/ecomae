@@ -897,6 +897,8 @@ check 'CP module ajax write catalog covers portal integrations' contains "$ROOT/
 check 'Wave C write dry-run probe covers CP module ajax registry' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/module-ajax/dry-run/'
 check 'Wave C write dry-run probe covers CP module ajax dedicated' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/module-ajax/procurement/create_supplier/dry-run'
 check 'Wave C write dry-run probe covers prices_upload ajax_1' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/module-ajax/prices_upload/ajax_1_prepare_tmp_dir/dry-run'
+check 'CP module ajax catalog covers classic form product' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/CpModuleAjaxWriteCatalog.cs" 'shop/catalogue/product.php'
+check 'Wave E write dry-run probe covers classic form product' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/module-ajax/classic_form/shop_catalogue_product/dry-run'
 
 
 check 'Wave B write dry-run dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh"

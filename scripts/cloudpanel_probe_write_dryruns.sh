@@ -250,6 +250,8 @@ probe_post "/cp/module-ajax/marketing/save_kpi/dry-run" '{"confirmWrites":false}
 probe_post "/cp/module-ajax/prices_upload/ajax_1_prepare_tmp_dir/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated prices_upload ajax_1"
 probe_post "/cp/module-ajax/portal_integrations/save_mobile/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated save_mobile"
 probe_post "/cp/module-ajax/sku_media/upload_photo/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated upload_photo"
+probe_post "/cp/module-ajax/classic_form/shop_catalogue_product/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp classic form product.php"
+probe_post "/cp/module-ajax/classic_form/users_user/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp classic form user.php"
 
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]

@@ -1,9 +1,8 @@
 namespace EcomAE.Platform.Migration;
 
 /// <summary>
-/// Wave C/D inventory of CloudPanel module ajax write surfaces
-/// (procurement, document_control, customer_mgmt, auto_price, CRM, bulk/marketing/catalogue/
-/// crosses/prices/portal leftovers). Never invents cutoverAllowed=true; PHP remains authoritative.
+/// Wave C/D/E inventory of CloudPanel module ajax + classic form POST surfaces.
+/// Never invents cutoverAllowed=true; PHP remains authoritative.
 /// </summary>
 public interface ICpModuleAjaxWriteCatalog
 {
@@ -208,6 +207,70 @@ public sealed class CpModuleAjaxWriteCatalog : ICpModuleAjaxWriteCatalog
         new("prices_upload", "ajax_7_enable_keys", "dedicated", "/cp/module-ajax/prices_upload/ajax_7_enable_keys/dry-run", "cp/content/shop/prices_upload/"),
         new("portal_broadcast", "count_recipients", "registry", "/cp/module-ajax/dry-run/portal_broadcast/count_recipients", "cp/content/control/portal/ajax_marketing_broadcast.php"),
         new("portal_broadcast", "template_preview", "registry", "/cp/module-ajax/dry-run/portal_broadcast/template_preview", "cp/content/control/portal/ajax_marketing_broadcast.php"),
+        new("classic_form", "shop_catalogue_product", "dedicated", "/cp/module-ajax/classic_form/shop_catalogue_product/dry-run", "cp/content/shop/catalogue/product.php"),
+        new("classic_form", "shop_catalogue_products", "dedicated", "/cp/module-ajax/classic_form/shop_catalogue_products/dry-run", "cp/content/shop/catalogue/products.php"),
+        new("classic_form", "shop_catalogue_line_list", "dedicated", "/cp/module-ajax/classic_form/shop_catalogue_line_list/dry-run", "cp/content/shop/catalogue/line_list.php"),
+        new("classic_form", "shop_catalogue_tree_list", "dedicated", "/cp/module-ajax/classic_form/shop_catalogue_tree_list/dry-run", "cp/content/shop/catalogue/tree_list.php"),
+        new("classic_form", "shop_catalogue_tree_list_brunch_editor", "dedicated", "/cp/module-ajax/classic_form/shop_catalogue_tree_list_brunch_editor/dry-run", "cp/content/shop/catalogue/tree_list_brunch_editor.php"),
+        new("classic_form", "shop_catalogue_line_lists_manager", "dedicated", "/cp/module-ajax/classic_form/shop_catalogue_line_lists_manager/dry-run", "cp/content/shop/catalogue/line_lists_manager.php"),
+        new("classic_form", "shop_catalogue_tree_lists_manager", "dedicated", "/cp/module-ajax/classic_form/shop_catalogue_tree_lists_manager/dry-run", "cp/content/shop/catalogue/tree_lists_manager.php"),
+        new("classic_form", "shop_catalogue_reviews", "dedicated", "/cp/module-ajax/classic_form/shop_catalogue_reviews/dry-run", "cp/content/shop/catalogue/reviews.php"),
+        new("classic_form", "shop_catalogue_special_search", "dedicated", "/cp/module-ajax/classic_form/shop_catalogue_special_search/dry-run", "cp/content/shop/catalogue/special_search.php"),
+        new("classic_form", "shop_catalogue_special_searches", "dedicated", "/cp/module-ajax/classic_form/shop_catalogue_special_searches/dry-run", "cp/content/shop/catalogue/special_searches.php"),
+        new("classic_form", "shop_prices_upload_price", "dedicated", "/cp/module-ajax/classic_form/shop_prices_upload_price/dry-run", "cp/content/shop/prices_upload/price.php"),
+        new("classic_form", "shop_prices_upload_prices_manager", "dedicated", "/cp/module-ajax/classic_form/shop_prices_upload_prices_manager/dry-run", "cp/content/shop/prices_upload/prices_manager.php"),
+        new("classic_form", "shop_prices_upload_upload_file", "dedicated", "/cp/module-ajax/classic_form/shop_prices_upload_upload_file/dry-run", "cp/content/shop/prices_upload/upload_file.php"),
+        new("classic_form", "shop_logistics_office", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_office/dry-run", "cp/content/shop/logistics/office.php"),
+        new("classic_form", "shop_logistics_offices", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_offices/dry-run", "cp/content/shop/logistics/offices.php"),
+        new("classic_form", "shop_logistics_storage", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_storage/dry-run", "cp/content/shop/logistics/storage.php"),
+        new("classic_form", "shop_logistics_storages", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_storages/dry-run", "cp/content/shop/logistics/storages.php"),
+        new("classic_form", "shop_logistics_obtaining_modes", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_obtaining_modes/dry-run", "cp/content/shop/logistics/obtaining_modes.php"),
+        new("classic_form", "shop_logistics_office_storages_link", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_office_storages_link/dry-run", "cp/content/shop/logistics/office_storages_link.php"),
+        new("classic_form", "shop_logistics_offices_cash", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_offices_cash/dry-run", "cp/content/shop/logistics/offices_cash.php"),
+        new("classic_form", "shop_logistics_offices_cash_editor", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_offices_cash_editor/dry-run", "cp/content/shop/logistics/offices_cash_editor.php"),
+        new("classic_form", "shop_logistics_product_stock", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_product_stock/dry-run", "cp/content/shop/logistics/product_stock.php"),
+        new("classic_form", "users_user", "dedicated", "/cp/module-ajax/classic_form/users_user/dry-run", "cp/content/users/user.php"),
+        new("classic_form", "users_epc_customer_approvals", "dedicated", "/cp/module-ajax/classic_form/users_epc_customer_approvals/dry-run", "cp/content/users/epc_customer_approvals.php"),
+        new("classic_form", "users_epc_vendor_approvals", "dedicated", "/cp/module-ajax/classic_form/users_epc_vendor_approvals/dry-run", "cp/content/users/epc_vendor_approvals.php"),
+        new("classic_form", "menu_menu_edit", "dedicated", "/cp/module-ajax/classic_form/menu_menu_edit/dry-run", "cp/content/menu/menu_edit.php"),
+        new("classic_form", "content_content_manager", "dedicated", "/cp/module-ajax/classic_form/content_content_manager/dry-run", "cp/content/content/content_manager.php"),
+        new("classic_form", "content_content", "dedicated", "/cp/module-ajax/classic_form/content_content/dry-run", "cp/content/content/content.php"),
+        new("classic_form", "content_text_for_url_text_for_url_list", "dedicated", "/cp/module-ajax/classic_form/content_text_for_url_text_for_url_list/dry-run", "cp/content/content/text_for_url/text_for_url_list.php"),
+        new("classic_form", "control_notifications_settings_notifications", "dedicated", "/cp/module-ajax/classic_form/control_notifications_settings_notifications/dry-run", "cp/content/control/notifications_settings/notifications.php"),
+        new("classic_form", "control_notifications_settings_notification", "dedicated", "/cp/module-ajax/classic_form/control_notifications_settings_notification/dry-run", "cp/content/control/notifications_settings/notification.php"),
+        new("classic_form", "plugins_control_plugin_edit", "dedicated", "/cp/module-ajax/classic_form/plugins_control_plugin_edit/dry-run", "cp/content/plugins_control/plugin_edit.php"),
+        new("classic_form", "shop_accessories_accessories_listings", "dedicated", "/cp/module-ajax/classic_form/shop_accessories_accessories_listings/dry-run", "cp/content/shop/accessories/accessories_listings.php"),
+        new("classic_form", "shop_finance_currencies_turning", "dedicated", "/cp/module-ajax/classic_form/shop_finance_currencies_turning/dry-run", "cp/content/shop/finance/currencies_turning.php"),
+        new("classic_form", "shop_finance_create_operation", "dedicated", "/cp/module-ajax/classic_form/shop_finance_create_operation/dry-run", "cp/content/shop/finance/create_operation.php"),
+        new("classic_form", "shop_finance_operations_editor_operation_create_edit", "dedicated", "/cp/module-ajax/classic_form/shop_finance_operations_editor_operation_create_edit/dry-run", "cp/content/shop/finance/operations_editor/operation_create_edit.php"),
+        new("classic_form", "shop_finance_operations_editor_operations_editor", "dedicated", "/cp/module-ajax/classic_form/shop_finance_operations_editor_operations_editor/dry-run", "cp/content/shop/finance/operations_editor/operations_editor.php"),
+        new("classic_form", "shop_geo_geo_tree", "dedicated", "/cp/module-ajax/classic_form/shop_geo_geo_tree/dry-run", "cp/content/shop/geo/geo_tree.php"),
+        new("classic_form", "shop_order_process_order_card", "dedicated", "/cp/module-ajax/classic_form/shop_order_process_order_card/dry-run", "cp/content/shop/order_process/order_card.php"),
+        new("classic_form", "shop_order_process_orders_items_add", "dedicated", "/cp/module-ajax/classic_form/shop_order_process_orders_items_add/dry-run", "cp/content/shop/order_process/orders_items_add.php"),
+        new("classic_form", "shop_order_process_orders_items_edit", "dedicated", "/cp/module-ajax/classic_form/shop_order_process_orders_items_edit/dry-run", "cp/content/shop/order_process/orders_items_edit.php"),
+        new("classic_form", "shop_order_process_statuses", "dedicated", "/cp/module-ajax/classic_form/shop_order_process_statuses/dry-run", "cp/content/shop/order_process/statuses.php"),
+        new("classic_form", "shop_quote_requests_quote_requests", "dedicated", "/cp/module-ajax/classic_form/shop_quote_requests_quote_requests/dry-run", "cp/content/shop/quote_requests/quote_requests.php"),
+        new("classic_form", "shop_pricing_price_management", "dedicated", "/cp/module-ajax/classic_form/shop_pricing_price_management/dry-run", "cp/content/shop/pricing/price_management.php"),
+        new("classic_form", "shop_print_docs_print_doc_tuning", "dedicated", "/cp/module-ajax/classic_form/shop_print_docs_print_doc_tuning/dry-run", "cp/content/shop/print_docs/print_doc_tuning.php"),
+        new("classic_form", "shop_returns_reasons_statuses", "dedicated", "/cp/module-ajax/classic_form/shop_returns_reasons_statuses/dry-run", "cp/content/shop/returns/reasons_statuses.php"),
+        new("classic_form", "shop_search_tabs_search_tabs", "dedicated", "/cp/module-ajax/classic_form/shop_search_tabs_search_tabs/dry-run", "cp/content/shop/search_tabs/search_tabs.php"),
+        new("classic_form", "shop_finance_erp_erp_main", "dedicated", "/cp/module-ajax/classic_form/shop_finance_erp_erp_main/dry-run", "cp/content/shop/finance/erp/erp_main.php"),
+        new("classic_form", "content_structure_dumps_content_structure_dumps", "dedicated", "/cp/module-ajax/classic_form/content_structure_dumps_content_structure_dumps/dry-run", "cp/content/content/structure_dumps/content_structure_dumps.php"),
+        new("classic_form", "shop_prices_upload_for_pyprices_for_cron_cron_tasks_actions", "dedicated", "/cp/module-ajax/classic_form/shop_prices_upload_for_pyprices_for_cron_cron_tasks_actions/dry-run", "cp/content/shop/prices_upload/for_pyprices/for_cron/cron_tasks_actions.php"),
+        new("classic_form", "shop_crosses_crosses", "dedicated", "/cp/module-ajax/classic_form/shop_crosses_crosses/dry-run", "cp/content/shop/crosses/crosses.php"),
+        new("classic_form", "shop_manufacturers_synonyms_manufacturers_synonyms", "dedicated", "/cp/module-ajax/classic_form/shop_manufacturers_synonyms_manufacturers_synonyms/dry-run", "cp/content/shop/manufacturers_synonyms/manufacturers_synonyms.php"),
+        new("classic_form", "shop_bulk_upload_bulk_upload_hub", "dedicated", "/cp/module-ajax/classic_form/shop_bulk_upload_bulk_upload_hub/dry-run", "cp/content/shop/bulk_upload/bulk_upload_hub.php"),
+        new("classic_form", "shop_marketing_marketing_main", "dedicated", "/cp/module-ajax/classic_form/shop_marketing_marketing_main/dry-run", "cp/content/shop/marketing/marketing_main.php"),
+        new("classic_form", "shop_procurement_procurement_main", "dedicated", "/cp/module-ajax/classic_form/shop_procurement_procurement_main/dry-run", "cp/content/shop/procurement/procurement_main.php"),
+        new("classic_form", "shop_document_control_document_control_main", "dedicated", "/cp/module-ajax/classic_form/shop_document_control_document_control_main/dry-run", "cp/content/shop/document_control/document_control_main.php"),
+        new("classic_form", "shop_customer_mgmt_customer_mgmt_main", "dedicated", "/cp/module-ajax/classic_form/shop_customer_mgmt_customer_mgmt_main/dry-run", "cp/content/shop/customer_mgmt/customer_mgmt_main.php"),
+        new("classic_form", "shop_crm_crm_main", "dedicated", "/cp/module-ajax/classic_form/shop_crm_crm_main/dry-run", "cp/content/shop/crm/crm_main.php"),
+        new("classic_form", "shop_pos_epc_pos_terminal", "dedicated", "/cp/module-ajax/classic_form/shop_pos_epc_pos_terminal/dry-run", "cp/content/shop/pos/epc_pos_terminal.php"),
+        new("classic_form", "control_config_edit", "dedicated", "/cp/module-ajax/classic_form/control_config_edit/dry-run", "cp/content/control/config_edit.php"),
+        new("classic_form", "menu_menu_manager", "dedicated", "/cp/module-ajax/classic_form/menu_menu_manager/dry-run", "cp/content/menu/menu_manager.php"),
+        new("classic_form", "packs_control_packs_manager", "dedicated", "/cp/module-ajax/classic_form/packs_control_packs_manager/dry-run", "cp/content/packs_control/packs_manager.php"),
+        new("classic_form", "lang_page_lang_editor", "dedicated", "/cp/module-ajax/classic_form/lang_page_lang_editor/dry-run", "cp/content/lang/page_lang_editor.php"),
+        new("classic_form", "shop_channels_channels_main", "dedicated", "/cp/module-ajax/classic_form/shop_channels_channels_main/dry-run", "cp/content/shop/channels/channels_main.php"),
     ];
 
     private static readonly Dictionary<string, CpModuleAjaxWriteCatalogEntry> ByKey =
@@ -248,8 +311,9 @@ public sealed class CpModuleAjaxWriteCatalog : ICpModuleAjaxWriteCatalog
             Actions: Entries,
             Notes:
             [
-                "Coverage means ASP.NET dry-run gate exists (writes=0); live CP module ajax remains PHP.",
+                "Coverage means ASP.NET dry-run gate exists (writes=0); live CP ajax/forms remain PHP.",
                 "Dedicated routes cover classified write/mutate actions; registry covers reads via POST /cp/module-ajax/dry-run/{module}/{action}.",
+                "classic_form entries gate classic CP form POST pages (not ajax_*.php).",
                 "CRM actions dispatch through ajax_crm.php → epc_crm_handle_ajax_action in epc_crm_helpers.php.",
                 "prices_upload ajax_1..ajax_7 are file-level pipeline steps (ajax_5/ajax_6 also have richer dedicated routes).",
                 "cutoverAllowed stays false until dual-sample + human RELEASE_OWNER_APPROVAL.md.",
