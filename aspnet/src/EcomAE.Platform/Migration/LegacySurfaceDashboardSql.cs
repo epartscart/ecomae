@@ -1921,4 +1921,86 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Web tracker KPIs from epc_web_tracker_* (CREATE TABLE in epc_web_tracker.php).</summary>
+    public const string SelectCpWebTrackerStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_web_tracker_sessions`) AS session_count,
+            (SELECT COUNT(*) FROM `epc_web_tracker_pageviews`) AS pageview_count,
+            (SELECT COUNT(*) FROM `epc_web_tracker_events`) AS event_count,
+            (SELECT COUNT(DISTINCT `country_code`) FROM `epc_web_tracker_sessions` WHERE IFNULL(`country_code`,'')<>'') AS country_count
+        """;
+
+    /// <summary>Web tracker session rows — ip/ua/meta_json omitted.</summary>
+    public const string SelectCpWebTrackerRows = """
+        SELECT `id`, IFNULL(`session_uid`,'') AS session_uid, IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`pageview_count`,0) AS pageview_count, IFNULL(`event_count`,0) AS event_count,
+               IFNULL(`country_code`,'') AS country_code, IFNULL(`device_type`,'') AS device_type,
+               IFNULL(`browser`,'') AS browser, IFNULL(`first_seen_at`,0) AS first_seen_at,
+               IFNULL(`last_seen_at`,0) AS last_seen_at
+        FROM `epc_web_tracker_sessions`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Quote request KPIs from shop_quote_requests/items (CREATE TABLE in install_shop_quotes.sql).</summary>
+    public const string SelectCpQuoteRequestsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_quote_requests`) AS quote_count,
+            (SELECT COUNT(*) FROM `shop_quote_requests` WHERE IFNULL(`status`,'')='draft') AS draft_count,
+            (SELECT COUNT(*) FROM `shop_quote_requests` WHERE IFNULL(`status`,'') IN ('submitted','quoted','accepted')) AS submitted_count,
+            (SELECT COUNT(*) FROM `shop_quote_items`) AS item_count
+        """;
+
+    /// <summary>Quote request rows — admin_note/customer_note omitted.</summary>
+    public const string SelectCpQuoteRequestsRows = """
+        SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`session_id`,0) AS session_id,
+               IFNULL(`status`,'') AS status, IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_updated`,0) AS time_updated, IFNULL(`time_submitted`,0) AS time_submitted,
+               IFNULL(`accepted_order_id`,0) AS accepted_order_id
+        FROM `shop_quote_requests`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Platform communication KPIs from epc_platform_comm_settings + internal_tasks (CREATE TABLE in epc_super_cp_platform.php).</summary>
+    public const string SelectCpPlatformCommunicationStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_platform_comm_settings`) AS setting_count,
+            (SELECT COUNT(*) FROM `epc_platform_internal_tasks`) AS task_count,
+            (SELECT COUNT(*) FROM `epc_platform_internal_tasks` WHERE IFNULL(`status`,'')='open') AS open_task_count,
+            (SELECT COUNT(*) FROM `epc_platform_internal_tasks` WHERE IFNULL(`priority`,'') IN ('high','urgent')) AS high_priority_count
+        """;
+
+    /// <summary>Platform communication task rows — description omitted.</summary>
+    public const string SelectCpPlatformCommunicationRows = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`assigned_to`,0) AS assigned_to,
+               IFNULL(`site_key`,'') AS site_key, IFNULL(`category`,'') AS category,
+               IFNULL(`status`,'') AS status, IFNULL(`priority`,'') AS priority,
+               IFNULL(`due_at`,0) AS due_at, IFNULL(`created_at`,0) AS created_at
+        FROM `epc_platform_internal_tasks`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Info blocks KPIs from epc_platform_info_blocks (CREATE TABLE in epc_super_cp_platform.php).</summary>
+    public const string SelectCpInfoBlocksStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_platform_info_blocks`) AS block_count,
+            (SELECT COUNT(*) FROM `epc_platform_info_blocks` WHERE IFNULL(`active`,0)=1) AS active_count,
+            (SELECT COUNT(DISTINCT `placement`) FROM `epc_platform_info_blocks`) AS placement_count,
+            (SELECT COUNT(DISTINCT `locale`) FROM `epc_platform_info_blocks`) AS locale_count
+        """;
+
+    /// <summary>Info block rows — content_html omitted.</summary>
+    public const string SelectCpInfoBlocksRows = """
+        SELECT `id`, IFNULL(`block_key`,'') AS block_key, IFNULL(`title`,'') AS title,
+               IFNULL(`scope`,'') AS scope, IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`placement`,'') AS placement, IFNULL(`locale`,'') AS locale,
+               IFNULL(`active`,0) AS active, IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`updated_at`,0) AS updated_at
+        FROM `epc_platform_info_blocks`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

@@ -325,6 +325,19 @@ public static class EcomAeRoutes
     /// <summary>CP Jewellery fixing Blazor list (JSON digest remains <see cref="ControlPanelJewelleryFixing"/>).</summary>
     public const string ControlPanelJewelleryFixingApp = "/cp/jewellery-fixing-app";
 
+    public const string ControlPanelWebTracker = "/cp/web-tracker";
+    /// <summary>CP Web tracker Blazor list (JSON digest remains <see cref="ControlPanelWebTracker"/>).</summary>
+    public const string ControlPanelWebTrackerApp = "/cp/web-tracker-app";
+    public const string ControlPanelQuoteRequests = "/cp/quote-requests";
+    /// <summary>CP Quote requests Blazor list (JSON digest remains <see cref="ControlPanelQuoteRequests"/>).</summary>
+    public const string ControlPanelQuoteRequestsApp = "/cp/quote-requests-app";
+    public const string ControlPanelPlatformCommunication = "/cp/platform-communication";
+    /// <summary>CP Platform communication Blazor list (JSON digest remains <see cref="ControlPanelPlatformCommunication"/>).</summary>
+    public const string ControlPanelPlatformCommunicationApp = "/cp/platform-communication-app";
+    public const string ControlPanelInfoBlocks = "/cp/info-blocks";
+    /// <summary>CP Info blocks Blazor list (JSON digest remains <see cref="ControlPanelInfoBlocks"/>).</summary>
+    public const string ControlPanelInfoBlocksApp = "/cp/info-blocks-app";
+
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

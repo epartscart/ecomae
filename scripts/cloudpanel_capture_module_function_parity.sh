@@ -514,6 +514,15 @@ CP_FEATURE_HYBRID_BY_ID = {
     "human-resources-labour-law-compliance": "cp-hr-overview",
     "tax-advisory-template": "cp-uae-tax-compliance",
     "credit-notes-adjustments": "cp-returns-rma",
+
+    # Wave 19 — CMS/platform leftovers (table-backed)
+    "web-tracker": "cp-web-tracker",
+    "shop-statistics": "cp-web-tracker",
+    "quote-requests": "cp-quote-requests",
+    "communication": "cp-platform-communication",
+    "epc-super-cp-communication": "cp-platform-communication",
+    "epc-super-cp-info-blocks": "cp-info-blocks",
+    "info-blocks-cms": "cp-info-blocks",
 }
 
 ERP_AREA_HYBRID_BY_ID = {
@@ -821,7 +830,7 @@ BOS_MODULE_HYBRID_BY_ID = {
     "warranty_rma": "cp-returns-rma",
     "free_tools": "cp-platform-governance",
     "statistics": "cp-platform-governance",
-
+    "communication": "cp-platform-communication",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}

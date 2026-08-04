@@ -1,0 +1,31 @@
+{
+  "role": "cp-web-tracker-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-web-tracker",
+  "collectionKey": "sessions",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "sessionCount",
+    "pageviewCount",
+    "eventCount",
+    "countryCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "sessionUid",
+    "siteKey",
+    "pageviewCount",
+    "eventCount",
+    "countryCode",
+    "deviceType",
+    "browser",
+    "firstSeenAt",
+    "lastSeenAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-web-tracker digest summary+sessions[] floors. ip/ua/meta_json omitted; PHP web tracker remains authoritative. cutoverAllowed=false."
+}

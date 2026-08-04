@@ -170,6 +170,10 @@ public static class LegacyChromeNavCatalog
         new("PO approvals", "/cp/po-approvals-app"),
         new("Finance close", "/cp/finance-close-app"),
         new("Jewellery fixing", "/cp/jewellery-fixing-app"),
+        new("Web tracker", "/cp/web-tracker-app"),
+        new("Quote requests", "/cp/quote-requests-app"),
+        new("Platform communication", "/cp/platform-communication-app"),
+        new("Info blocks", "/cp/info-blocks-app"),
 
         new("Collections dunning PHP", "/CP/shop/finance/epc_collections_dunning"),
         new("Config items list", "/cp/config-items-app"),
@@ -183,7 +187,7 @@ public static class LegacyChromeNavCatalog
         new("ERP finance", "/ERP/?epc_erp_shell=1&area=overview"),
         new("Stock", "/CP/control/shop/catalogue/stock"),
         new("Prices", "/CP/control/shop/prices"),
-        new("Web tracker", "/CP/control/shop/web_tracker")
+        new("Web tracker PHP", "/CP/control/portal/epc_web_tracker")
     ];
 
     /// <summary>ERP category bar → PHP ERP shell areas (epc_erp_nav_categories_config via PhpModuleCatalog).</summary>

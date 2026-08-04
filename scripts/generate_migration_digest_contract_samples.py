@@ -988,6 +988,36 @@ def main() -> None:
             "note": "migration-mode; fixings[] sentinel; remarks/notes omitted; PHP jewellery fixing / purchase window remains authoritative; cutoverAllowed=false",
         },
 
+
+        "cp-web-tracker.json": {
+            **summary("cp", {"sessionCount": 1, "pageviewCount": 1, "eventCount": 0, "countryCount": 1}),
+            "sessions": [{"id": 1, "sessionUid": "sess-1", "siteKey": "demo", "pageviewCount": 3, "eventCount": 1, "countryCode": "AE", "deviceType": "desktop", "browser": "Chrome", "firstSeenAt": 0, "lastSeenAt": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; sessions[] sentinel; ip/ua/meta_json omitted; PHP web tracker remains authoritative; cutoverAllowed=false",
+        },
+        "cp-quote-requests.json": {
+            **summary("cp", {"quoteCount": 1, "draftCount": 1, "submittedCount": 0, "itemCount": 0}),
+            "quotes": [{"id": 1, "userId": 1, "sessionId": 0, "status": "draft", "timeCreated": 0, "timeUpdated": 0, "timeSubmitted": 0, "acceptedOrderId": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; quotes[] sentinel; admin_note/customer_note/product_object_json omitted; PHP quote requests remain authoritative; cutoverAllowed=false",
+        },
+        "cp-platform-communication.json": {
+            **summary("cp", {"settingCount": 1, "taskCount": 1, "openTaskCount": 1, "highPriorityCount": 0}),
+            "tasks": [{"id": 1, "title": "Follow up demo", "assignedTo": 0, "siteKey": "demo", "category": "support", "status": "open", "priority": "normal", "dueAt": 0, "createdAt": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; tasks[] sentinel; description omitted; PHP super CP communication remains authoritative; cutoverAllowed=false",
+        },
+        "cp-info-blocks.json": {
+            **summary("cp", {"blockCount": 1, "activeCount": 1, "placementCount": 1, "localeCount": 1}),
+            "blocks": [{"id": 1, "blockKey": "home_banner", "title": "Welcome", "scope": "platform", "siteKey": "", "placement": "homepage", "locale": "en", "active": 1, "sortOrder": 0, "updatedAt": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; blocks[] sentinel; content_html omitted; PHP info blocks CMS remains authoritative; cutoverAllowed=false",
+        },
+
         "cp-consolidations.json": {
             **summary("cp", {"entityCount": 1, "figureCount": 0, "icCount": 0, "openIcCount": 0}),
             "entities": [{"id": 1, "code": "HOME", "name": "Migration entity", "currencyCode": "AED", "ownershipPct": 100.0, "isHome": 1, "parentCode": "", "active": 1, "timeCreated": 0}],

@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 117,
+  "routeCount": 121,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -1409,6 +1409,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-jewellery-fixing-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-web-tracker-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/web-tracker-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-web-tracker-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-quote-requests-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/quote-requests-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-quote-requests-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-platform-communication-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/platform-communication-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-platform-communication-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-info-blocks-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/info-blocks-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-info-blocks-app-read-ui-preview"
           }
         ]
       }

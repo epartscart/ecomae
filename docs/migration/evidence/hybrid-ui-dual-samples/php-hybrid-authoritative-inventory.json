@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-04T07:56:01Z",
+  "capturedAt": "2026-08-04T08:08:51Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -506,6 +506,102 @@
       "phpAuthoritativePath": "/CP/shop/finance/epc_collections_dunning"
     },
     {
+      "stem": "cp-marketplace-channels",
+      "appRoute": "/cp/marketplace-channels-app",
+      "digestRoute": "/cp/marketplace-channels",
+      "phpAuthoritativePath": "/CP/shop/channels/channels_main"
+    },
+    {
+      "stem": "cp-demand-intelligence",
+      "appRoute": "/cp/demand-intelligence-app",
+      "digestRoute": "/cp/demand-intelligence",
+      "phpAuthoritativePath": "/CP/shop/demand_countries"
+    },
+    {
+      "stem": "cp-credit-limits",
+      "appRoute": "/cp/credit-limits-app",
+      "digestRoute": "/cp/credit-limits",
+      "phpAuthoritativePath": "/CP/shop/finance/epc_credit_limit"
+    },
+    {
+      "stem": "cp-insurance-compliance",
+      "appRoute": "/cp/insurance-compliance-app",
+      "digestRoute": "/cp/insurance-compliance",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=risk&tab=insurance"
+    },
+    {
+      "stem": "cp-audit-trail",
+      "appRoute": "/cp/audit-trail-app",
+      "digestRoute": "/cp/audit-trail",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=audit_wb&tab=audit"
+    },
+    {
+      "stem": "cp-doc-expiry",
+      "appRoute": "/cp/doc-expiry-app",
+      "digestRoute": "/cp/doc-expiry",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=risk&tab=doc_expiry"
+    },
+    {
+      "stem": "cp-tenant-config",
+      "appRoute": "/cp/tenant-config-app",
+      "digestRoute": "/cp/tenant-config",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=setup&tab=tenant_config"
+    },
+    {
+      "stem": "cp-jewellery-stock-verification",
+      "appRoute": "/cp/jewellery-stock-verification-app",
+      "digestRoute": "/cp/jewellery-stock-verification",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification"
+    },
+    {
+      "stem": "cp-tax-external-reporting",
+      "appRoute": "/cp/tax-external-reporting-app",
+      "digestRoute": "/cp/tax-external-reporting",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=tax&tab=ext_reports"
+    },
+    {
+      "stem": "cp-po-approvals",
+      "appRoute": "/cp/po-approvals-app",
+      "digestRoute": "/cp/po-approvals",
+      "phpAuthoritativePath": "/CP/shop/finance/epc_po_approval"
+    },
+    {
+      "stem": "cp-finance-close",
+      "appRoute": "/cp/finance-close-app",
+      "digestRoute": "/cp/finance-close",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=opening_balances"
+    },
+    {
+      "stem": "cp-jewellery-fixing",
+      "appRoute": "/cp/jewellery-fixing-app",
+      "digestRoute": "/cp/jewellery-fixing",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing"
+    },
+    {
+      "stem": "cp-web-tracker",
+      "appRoute": "/cp/web-tracker-app",
+      "digestRoute": "/cp/web-tracker",
+      "phpAuthoritativePath": "/CP/control/portal/epc_web_tracker"
+    },
+    {
+      "stem": "cp-quote-requests",
+      "appRoute": "/cp/quote-requests-app",
+      "digestRoute": "/cp/quote-requests",
+      "phpAuthoritativePath": "/CP/shop/quote-requests"
+    },
+    {
+      "stem": "cp-platform-communication",
+      "appRoute": "/cp/platform-communication-app",
+      "digestRoute": "/cp/platform-communication",
+      "phpAuthoritativePath": "/CP/control/portal/epc_super_cp_communication"
+    },
+    {
+      "stem": "cp-info-blocks",
+      "appRoute": "/cp/info-blocks-app",
+      "digestRoute": "/cp/info-blocks",
+      "phpAuthoritativePath": "/CP/control/portal/epc_super_cp_info_blocks"
+    },
+    {
       "stem": "erp-accounts-summary",
       "appRoute": "/erp/accounts-summary-app",
       "digestRoute": "/erp/accounts-summary",
@@ -582,78 +678,6 @@
       "appRoute": "/storefront/account-summary-app",
       "digestRoute": "/storefront/account-summary",
       "phpAuthoritativePath": "https://epartscart.com/users/"
-    },
-    {
-      "stem": "cp-marketplace-channels",
-      "appRoute": "/cp/marketplace-channels-app",
-      "digestRoute": "/cp/marketplace-channels",
-      "phpAuthoritativePath": "/CP/shop/channels/channels_main"
-    },
-    {
-      "stem": "cp-demand-intelligence",
-      "appRoute": "/cp/demand-intelligence-app",
-      "digestRoute": "/cp/demand-intelligence",
-      "phpAuthoritativePath": "/CP/shop/demand_countries"
-    },
-    {
-      "stem": "cp-credit-limits",
-      "appRoute": "/cp/credit-limits-app",
-      "digestRoute": "/cp/credit-limits",
-      "phpAuthoritativePath": "/CP/shop/finance/epc_credit_limit"
-    },
-    {
-      "stem": "cp-insurance-compliance",
-      "appRoute": "/cp/insurance-compliance-app",
-      "digestRoute": "/cp/insurance-compliance",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=risk&tab=insurance"
-    },
-    {
-      "stem": "cp-audit-trail",
-      "appRoute": "/cp/audit-trail-app",
-      "digestRoute": "/cp/audit-trail",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=audit_wb&tab=audit"
-    },
-    {
-      "stem": "cp-doc-expiry",
-      "appRoute": "/cp/doc-expiry-app",
-      "digestRoute": "/cp/doc-expiry",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=risk&tab=doc_expiry"
-    },
-    {
-      "stem": "cp-tenant-config",
-      "appRoute": "/cp/tenant-config-app",
-      "digestRoute": "/cp/tenant-config",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=setup&tab=tenant_config"
-    },
-    {
-      "stem": "cp-jewellery-stock-verification",
-      "appRoute": "/cp/jewellery-stock-verification-app",
-      "digestRoute": "/cp/jewellery-stock-verification",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification"
-    },
-    {
-      "stem": "cp-tax-external-reporting",
-      "appRoute": "/cp/tax-external-reporting-app",
-      "digestRoute": "/cp/tax-external-reporting",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=tax&tab=ext_reports"
-    },
-    {
-      "stem": "cp-po-approvals",
-      "appRoute": "/cp/po-approvals-app",
-      "digestRoute": "/cp/po-approvals",
-      "phpAuthoritativePath": "/CP/shop/finance/epc_po_approval"
-    },
-    {
-      "stem": "cp-finance-close",
-      "appRoute": "/cp/finance-close-app",
-      "digestRoute": "/cp/finance-close",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=opening_balances"
-    },
-    {
-      "stem": "cp-jewellery-fixing",
-      "appRoute": "/cp/jewellery-fixing-app",
-      "digestRoute": "/cp/jewellery-fixing",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing"
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

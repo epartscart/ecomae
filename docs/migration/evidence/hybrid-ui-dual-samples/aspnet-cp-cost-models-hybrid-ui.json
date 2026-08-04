@@ -16,7 +16,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-04T07:04:23Z",
+  "capturedAt": "2026-08-04T08:08:51Z",
   "baseUrl": "http://127.0.0.1:5100",
   "publicBaseUrl": "https://www.ecomae.com",
   "note": "Contract stub. Re-run on CloudPanel with cookies + ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1."
