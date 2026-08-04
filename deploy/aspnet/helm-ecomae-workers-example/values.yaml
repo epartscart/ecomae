@@ -1,0 +1,28 @@
+# DESIGN ONLY — not applied by CloudPanel deploy scripts.
+cutoverAllowed: false
+readyForPhpRemoval: false
+phpFallbackRequired: true
+allowWorkerWrites: false
+
+replicaCount: 1
+
+image:
+  repository: ecomae/workers
+  tag: "scaffold"
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+ecomae:
+  kafka:
+    enabled: false
+    allowPublish: false
+  rabbitMq:
+    enabled: false
+    allowPublish: false

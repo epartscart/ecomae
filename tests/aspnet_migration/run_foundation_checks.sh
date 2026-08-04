@@ -405,6 +405,14 @@ check 'Blockchain scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platf
 check 'Blockchain scaffold forbids SoR use' contains "$ROOT/aspnet/src/EcomAE.Platform/Integrations/Scaffolding/EcomAeBlockchainScaffoldOptions.cs" 'UseAsBusinessSourceOfRecord'
 check 'Rate-limit scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/EcomAeRateLimitScaffoldOptions.cs"
 check 'Rate-limit scaffold keeps legacy throttle' contains "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/EcomAeRateLimitScaffoldOptions.cs" 'ReplaceLegacyApiClientThrottle'
+check 'GitOps Argo CD example exists' test -f "$ROOT/deploy/aspnet/gitops-example/argocd-application.example.yaml"
+check 'GitOps Argo CD example blocks cutover' contains "$ROOT/deploy/aspnet/gitops-example/argocd-application.example.yaml" 'ecomae.cutoverAllowed: "false"'
+check 'Workers Helm design chart exists' test -f "$ROOT/deploy/aspnet/helm-ecomae-workers-example/Chart.yaml"
+check 'Workers Helm design disables writes' contains "$ROOT/deploy/aspnet/helm-ecomae-workers-example/values.yaml" 'allowWorkerWrites: false'
+check 'Native AOT scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Hosting/Scaffolding/EcomAeNativeAotScaffoldOptions.cs"
+check 'Native AOT scaffold does not require platform host' contains "$ROOT/aspnet/src/EcomAE.Platform/Hosting/Scaffolding/EcomAeNativeAotScaffoldOptions.cs" 'RequireForPlatformHost'
+check 'AI sidecar scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Integrations/Scaffolding/EcomAeAiSidecarScaffoldOptions.cs"
+check 'AI sidecar scaffold forbids business writes' contains "$ROOT/aspnet/src/EcomAE.Platform/Integrations/Scaffolding/EcomAeAiSidecarScaffoldOptions.cs" 'AllowBusinessWrites'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
 check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 47'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"

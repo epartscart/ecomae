@@ -1,0 +1,9 @@
+ECOM AE workers Helm example (DESIGN ONLY).
+
+- mode=dry-run
+- allowWorkerWrites={{ .Values.allowWorkerWrites }}
+- cutoverAllowed={{ .Values.cutoverAllowed }}
+- readyForPhpRemoval={{ .Values.readyForPhpRemoval }}
+
+Do NOT enable worker writes until job parity evidence exists.
+Do NOT invent RELEASE_OWNER_APPROVAL.md.

@@ -33,7 +33,7 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | .NET 10 / ASP.NET Core 10 / C# | ✅ in repo | `net10.0` platform + workers |
 | ASP.NET Core owns enterprise app | 🔶 migration in progress | Exact-route ASP.NET ownership; PHP temporary fallback |
 | No new non-.NET backends | ✅ | No Java/Node/Go introduced |
-| Python AI-only | 🔶 partial | Hybrid roadmap states AI-only; legacy `docs/PYTHON_MIGRATION.md` is superseded for business APIs |
+| Python AI-only | 🔶 options scaffold | `EcomAeAiSidecarScaffoldOptions` (`AllowBusinessWrites=false`); legacy `pyapi` business surface remains temporary |
 | EF Core 10 primary ORM | 🔶 package + bounded-context stubs | `Microsoft.EntityFrameworkCore` 10.0.0 referenced; Catalog/TenantRegistry/Identity/ERP stubs on `EcomAeScaffoldDbContext` (not registered in `Program.cs`); production still uses `MySqlConnector` ADO |
 | PostgreSQL 17 primary SoR | 🔶 options scaffold | `EcomAePostgresScaffoldOptions` + `IPostgresMigrationScaffold` unwired (`ReplaceMysqlBridge=false`); MySQL/MariaDB remains bridge SoR |
 | Redis 8 | 🔶 options scaffold | `EcomAeRedisScaffoldOptions` + `IDistributedCacheScaffold` unwired; PHP cookies remain authoritative (`ReplacePhpSessionCookies=false`) |
@@ -45,8 +45,9 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | Polly resilience pipelines | 🔶 options scaffold | `EcomAePollyScaffoldOptions` + `IResiliencePipelineScaffold` unwired (`RegisterPipelines=false`) |
 | GraphQL / gRPC | 🔶 options scaffold | GraphQL/gRPC options unwired (`ExposePublicEndpoint=false`); REST remains default |
 | Rate limiting | 🔶 options scaffold | `EcomAeRateLimitScaffoldOptions` unwired (`ReplaceLegacyApiClientThrottle=false`) |
+| Native AOT | 🔶 options scaffold | `EcomAeNativeAotScaffoldOptions` (`RequireForPlatformHost=false`; isolated evaluation only) |
 | Vault / Key Vault | 🔶 options scaffold | `EcomAeVaultScaffoldOptions` + `ISecretStoreScaffold` unwired (`ReplaceEnvFileSecrets=false`); CloudPanel env files remain current |
-| K8s / Helm / GitOps | 🔶 design chart | `deploy/aspnet/helm-ecomae-platform-example/` design-only (`cutoverAllowed=false`); CloudPanel VM is current host |
+| K8s / Helm / GitOps | 🔶 design chart | Platform + workers Helm examples + Argo CD Application example (`cutoverAllowed=false`); CloudPanel VM is current host |
 | Angular 20 / React 19 | 🔶 options scaffold | `EcomAeSpaScaffoldOptions` unwired (`ReplaceBlazorHybridPresentation=false`); interim UI remains Blazor SSR hybrid |
 | Blazor SSR hybrid presentation | 🔶 in progress | `/cp|erp|bos|storefront/*-app` www previews under PHP chrome shells; not tenant product chrome |
 | Blockchain as integration only | 🔶 options scaffold | `EcomAeBlockchainScaffoldOptions` (`UseAsBusinessSourceOfRecord=false`); business SoR remains app DB |
