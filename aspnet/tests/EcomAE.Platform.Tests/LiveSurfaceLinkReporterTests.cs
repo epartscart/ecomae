@@ -487,8 +487,8 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("hybrid-ui-dual-samples", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("action_not_allowed", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("Wired catalog exact-routes complete", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("Surface digests: wired 127", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("Storefront digests: 4/6", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("Surface digests: wired+live 127/127", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("Storefront digests: wired+live 6/6", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_storefront_digest_shadows.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_storefront_digest_shadows.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("/migration/console", StringComparison.Ordinal));

@@ -102,8 +102,11 @@
     .epc-cp-topnav-links a { flex:1; font-weight:600; }
     .epc-cp-topnav-links a:hover { color:#2563eb; text-decoration:underline; }
     .epc-cp-topnav-php { flex:0; color:#b45309 !important; font-size:.7rem; font-weight:700; }
-    .epc-cp-main-pane { padding:1rem 1rem 2rem; }
-    .epc-cp-content-inner { width:min(1200px,100%); margin:0 auto; }
+    .epc-cp-main-pane { padding:1rem 1.25rem 2rem; }
+    /* Match PHP desktop fluid content width (not a narrow card column). */
+    .epc-cp-content-inner { width:min(1480px, calc(100% - 0.5rem)); margin:0 auto; }
+    .epc-cp-shell #header, .epc-cp-shell .epc-cp-topnav { width:100%; }
+    .epc-cp-shell .epc-cp-header-bar, .epc-cp-shell .epc-cp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
     .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:.8rem; background:#fff; }
 </style>
 
