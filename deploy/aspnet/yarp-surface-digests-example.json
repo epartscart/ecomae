@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 56,
+  "routeCount": 60,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -425,6 +425,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-workflows-shadow-approved"
+          }
+        ]
+      },
+      "cp-purchase-requests": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/purchase-requests"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-purchase-requests-shadow-approved"
+          }
+        ]
+      },
+      "cp-promotions": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/promotions"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-promotions-shadow-approved"
+          }
+        ]
+      },
+      "cp-crm-opportunities": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/crm-opportunities"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-crm-opportunities-shadow-approved"
+          }
+        ]
+      },
+      "cp-integrations": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/integrations"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-integrations-shadow-approved"
           }
         ]
       },

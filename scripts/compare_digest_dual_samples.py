@@ -148,6 +148,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "workflowCount,activeWorkflows,runCount,failedRuns,source,message",
     ),
+    "cp-purchase-requests": (
+        "summary",
+        "reqCount,draftCount,pendingApproval,lineCount,categoryCount,source,message",
+    ),
+    "cp-promotions": (
+        "summary",
+        "promotionCount,activePromotions,percentPromotions,loyaltyAccounts,source,message",
+    ),
+    "cp-crm-opportunities": (
+        "summary",
+        "opportunityCount,openOpportunities,wonOpportunities,pipelineAmount,source,message",
+    ),
+    "cp-integrations": (
+        "summary",
+        "webhookCount,activeWebhooks,deliveryCount,failedDeliveries,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -568,6 +584,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-workflows": (
         "workflows",
         ["id", "siteKey", "name", "triggerType", "active", "version", "runCount", "lastRunStatus"],
+    ),
+    "cp-purchase-requests": (
+        "requests",
+        ["id", "companyId", "reqNumber", "requester", "businessUnitId", "status", "total", "requiresApproval", "poRef", "timeCreated"],
+    ),
+    "cp-promotions": (
+        "promotions",
+        ["id", "code", "name", "type", "value", "minSpend", "validFrom", "validTo", "active"],
+    ),
+    "cp-crm-opportunities": (
+        "opportunities",
+        ["id", "title", "stage", "amount", "probability", "closeDate", "ownerUserId", "leadId", "active"],
+    ),
+    "cp-integrations": (
+        "integrations",
+        ["id", "tenantKey", "url", "active", "description", "createdAt"],
     ),
     "cp-orders-digest": (
         "orders",

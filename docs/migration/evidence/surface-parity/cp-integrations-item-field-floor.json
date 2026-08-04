@@ -1,0 +1,27 @@
+{
+  "role": "cp-integrations-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-integrations",
+  "collectionKey": "integrations",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "webhookCount",
+    "activeWebhooks",
+    "deliveryCount",
+    "failedDeliveries",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "tenantKey",
+    "url",
+    "active",
+    "description",
+    "createdAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks integrations digest summary+integrations[] floors. secrets/events omitted. PHP integrations hub remains authoritative. cutoverAllowed=false."
+}

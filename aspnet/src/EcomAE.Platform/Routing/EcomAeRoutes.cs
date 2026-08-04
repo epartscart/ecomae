@@ -172,6 +172,22 @@ public static class EcomAeRoutes
     public const string ControlPanelWorkflows = "/cp/workflows";
     /// <summary>CP workflows Blazor list (JSON digest remains <see cref="ControlPanelWorkflows"/>).</summary>
     public const string ControlPanelWorkflowsApp = "/cp/workflows-app";
+    /// <summary>CP purchase requisitions (justification/decision_note omitted).</summary>
+    public const string ControlPanelPurchaseRequests = "/cp/purchase-requests";
+    /// <summary>CP purchase requests Blazor list (JSON digest remains <see cref="ControlPanelPurchaseRequests"/>).</summary>
+    public const string ControlPanelPurchaseRequestsApp = "/cp/purchase-requests-app";
+    /// <summary>CP promotions (campaign codes from epc_promo_promotions).</summary>
+    public const string ControlPanelPromotions = "/cp/promotions";
+    /// <summary>CP promotions Blazor list (JSON digest remains <see cref="ControlPanelPromotions"/>).</summary>
+    public const string ControlPanelPromotionsApp = "/cp/promotions-app";
+    /// <summary>CP CRM opportunities (notes omitted).</summary>
+    public const string ControlPanelCrmOpportunities = "/cp/crm-opportunities";
+    /// <summary>CP CRM opportunities Blazor list (JSON digest remains <see cref="ControlPanelCrmOpportunities"/>).</summary>
+    public const string ControlPanelCrmOpportunitiesApp = "/cp/crm-opportunities-app";
+    /// <summary>CP integrations / webhooks (secrets/events JSON omitted).</summary>
+    public const string ControlPanelIntegrations = "/cp/integrations";
+    /// <summary>CP integrations Blazor list (JSON digest remains <see cref="ControlPanelIntegrations"/>).</summary>
+    public const string ControlPanelIntegrationsApp = "/cp/integrations-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

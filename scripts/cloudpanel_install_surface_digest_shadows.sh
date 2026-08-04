@@ -71,8 +71,8 @@ for m in re.finditer(
     )
     blocks.append((route, indented.rstrip() + "\n"))
 
-if len(blocks) != 56:
-    raise SystemExit(f"ERROR: expected 56 digest locations, found {len(blocks)}")
+if len(blocks) != 60:
+    raise SystemExit(f"ERROR: expected 60 digest locations, found {len(blocks)}")
 
 inserted = []
 already = []

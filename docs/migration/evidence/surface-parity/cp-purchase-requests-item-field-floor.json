@@ -1,0 +1,32 @@
+{
+  "role": "cp-purchase-requests-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-purchase-requests",
+  "collectionKey": "requests",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "reqCount",
+    "draftCount",
+    "pendingApproval",
+    "lineCount",
+    "categoryCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "reqNumber",
+    "requester",
+    "businessUnitId",
+    "status",
+    "total",
+    "requiresApproval",
+    "poRef",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks purchase-requests digest summary+requests[] floors. justification/decision_note omitted. PHP purchase requisitions remains authoritative. cutoverAllowed=false."
+}

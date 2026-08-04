@@ -1,0 +1,30 @@
+{
+  "role": "cp-crm-opportunities-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-crm-opportunities",
+  "collectionKey": "opportunities",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "opportunityCount",
+    "openOpportunities",
+    "wonOpportunities",
+    "pipelineAmount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "title",
+    "stage",
+    "amount",
+    "probability",
+    "closeDate",
+    "ownerUserId",
+    "leadId",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks crm-opportunities digest summary+opportunities[] floors. notes omitted. PHP CRM opportunities remains authoritative. cutoverAllowed=false."
+}

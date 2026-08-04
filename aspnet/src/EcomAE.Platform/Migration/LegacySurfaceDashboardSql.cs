@@ -943,6 +943,87 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Purchase requisition KPIs — omits justification/decision notes.</summary>
+    public const string SelectCpPurchaseRequestStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_proc_req`) AS req_count,
+            (SELECT COUNT(*) FROM `epc_proc_req` WHERE IFNULL(`status`,'')='draft') AS draft_count,
+            (SELECT COUNT(*) FROM `epc_proc_req` WHERE IFNULL(`requires_approval`,0)=1 AND IFNULL(`status`,'') NOT IN ('approved','rejected','converted')) AS pending_approval,
+            (SELECT COUNT(*) FROM `epc_proc_req_line`) AS line_count,
+            (SELECT COUNT(*) FROM `epc_proc_category` WHERE IFNULL(`active`,0)=1) AS category_count
+        """;
+
+    /// <summary>Purchase requisitions — omits justification/decision_note.</summary>
+    public const string SelectCpPurchaseRequests = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`req_number`,'') AS req_number,
+               IFNULL(`requester`,'') AS requester, IFNULL(`business_unit_id`,0) AS business_unit_id,
+               IFNULL(`status`,'') AS status, IFNULL(`total`,0) AS total,
+               IFNULL(`requires_approval`,0) AS requires_approval, IFNULL(`po_ref`,'') AS po_ref,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_proc_req`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Promotion KPIs.</summary>
+    public const string SelectCpPromotionStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_promo_promotions`) AS promotion_count,
+            (SELECT COUNT(*) FROM `epc_promo_promotions` WHERE IFNULL(`active`,0)=1) AS active_promotions,
+            (SELECT COUNT(*) FROM `epc_promo_promotions` WHERE IFNULL(`type`,'')='percent') AS percent_promotions,
+            (SELECT COUNT(*) FROM `epc_loy_accounts`) AS loyalty_accounts
+        """;
+
+    /// <summary>Promotions from epc_promo_promotions.</summary>
+    public const string SelectCpPromotions = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`type`,'') AS type, IFNULL(`value`,0) AS value,
+               IFNULL(`min_spend`,0) AS min_spend, IFNULL(`valid_from`,0) AS valid_from,
+               IFNULL(`valid_to`,0) AS valid_to, IFNULL(`active`,0) AS active
+        FROM `epc_promo_promotions`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>CRM opportunity KPIs — omits notes.</summary>
+    public const string SelectCpCrmOpportunityStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE IFNULL(`active`,0)=1) AS opportunity_count,
+            (SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE IFNULL(`active`,0)=1 AND IFNULL(`stage`,'') NOT IN ('won','lost')) AS open_opportunities,
+            (SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE IFNULL(`active`,0)=1 AND IFNULL(`stage`,'')='won') AS won_opportunities,
+            (SELECT IFNULL(SUM(`amount`),0) FROM `epc_crm_opportunities` WHERE IFNULL(`active`,0)=1 AND IFNULL(`stage`,'') NOT IN ('won','lost')) AS pipeline_amount
+        """;
+
+    /// <summary>CRM opportunities — omits notes.</summary>
+    public const string SelectCpCrmOpportunities = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`stage`,'') AS stage,
+               IFNULL(`amount`,0) AS amount, IFNULL(`probability`,0) AS probability,
+               IFNULL(`close_date`,0) AS close_date, IFNULL(`owner_user_id`,0) AS owner_user_id,
+               IFNULL(`lead_id`,0) AS lead_id, IFNULL(`active`,0) AS active
+        FROM `epc_crm_opportunities`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Integrations/webhook KPIs — omits secrets/payloads.</summary>
+    public const string SelectCpIntegrationStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_webhooks`) AS webhook_count,
+            (SELECT COUNT(*) FROM `epc_webhooks` WHERE IFNULL(`active`,0)=1) AS active_webhooks,
+            (SELECT COUNT(*) FROM `epc_webhook_deliveries`) AS delivery_count,
+            (SELECT COUNT(*) FROM `epc_webhook_deliveries` WHERE IFNULL(`status`,'') IN ('failed','dlq')) AS failed_deliveries
+        """;
+
+    /// <summary>Integrations/webhooks — omits secret_hash/secret_encrypted/events.</summary>
+    public const string SelectCpIntegrations = """
+        SELECT `id`, IFNULL(`tenant_key`,'') AS tenant_key, IFNULL(`url`,'') AS url,
+               IFNULL(`active`,0) AS active, IFNULL(`description`,'') AS description,
+               IFNULL(`created_at`,'') AS created_at
+        FROM `epc_webhooks`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>
     /// Batch 4 storefront part search (mirrors pyapi <c>part_search</c> / warehouse offers).
     /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.

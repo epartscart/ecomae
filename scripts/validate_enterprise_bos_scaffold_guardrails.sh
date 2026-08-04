@@ -276,6 +276,14 @@ check_file "cp payment-gateways item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-payment-gateways-item-field-floor.json"
 check_file "cp workflows item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-workflows-item-field-floor.json"
+check_file "cp purchase-requests item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-purchase-requests-item-field-floor.json"
+check_file "cp promotions item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-promotions-item-field-floor.json"
+check_file "cp crm-opportunities item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-crm-opportunities-item-field-floor.json"
+check_file "cp integrations item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-integrations-item-field-floor.json"
 check_file "cp auto-price item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
 check_file "cp uae-tax-compliance item-field floor evidence" \

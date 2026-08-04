@@ -69,6 +69,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var carriers = await reporter.BuildCpCarriersDigestAsync(10);
         var paymentGateways = await reporter.BuildCpPaymentGatewaysDigestAsync(10);
         var workflows = await reporter.BuildCpWorkflowsDigestAsync(10);
+        var purchaseRequests = await reporter.BuildCpPurchaseRequestsDigestAsync(10);
+        var promotions = await reporter.BuildCpPromotionsDigestAsync(10);
+        var crmOpportunities = await reporter.BuildCpCrmOpportunitiesDigestAsync(10);
+        var integrations = await reporter.BuildCpIntegrationsDigestAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -139,6 +143,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", carriers.Source);
         Assert.Equal("migration", paymentGateways.Source);
         Assert.Equal("migration", workflows.Source);
+        Assert.Equal("migration", purchaseRequests.Source);
+        Assert.Equal("migration", promotions.Source);
+        Assert.Equal("migration", crmOpportunities.Source);
+        Assert.Equal("migration", integrations.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
@@ -223,6 +231,16 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpPaymentGateways, StringComparison.Ordinal);
         Assert.Contains("epc_workflows", LegacySurfaceDashboardSql.SelectCpWorkflows, StringComparison.Ordinal);
         Assert.DoesNotContain("trigger_config", LegacySurfaceDashboardSql.SelectCpWorkflows, StringComparison.Ordinal);
+        Assert.Contains("epc_proc_req", LegacySurfaceDashboardSql.SelectCpPurchaseRequests, StringComparison.Ordinal);
+        Assert.DoesNotContain("justification", LegacySurfaceDashboardSql.SelectCpPurchaseRequests, StringComparison.Ordinal);
+        Assert.DoesNotContain("decision_note", LegacySurfaceDashboardSql.SelectCpPurchaseRequests, StringComparison.Ordinal);
+        Assert.Contains("epc_promo_promotions", LegacySurfaceDashboardSql.SelectCpPromotions, StringComparison.Ordinal);
+        Assert.Contains("epc_crm_opportunities", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
+        Assert.Contains("epc_webhooks", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret_hash", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret_encrypted", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
+        Assert.DoesNotContain("`events`", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
         Assert.Contains("epc_document_templates", LegacySurfaceDashboardSql.SelectCpDocumentTemplates, StringComparison.Ordinal);
         Assert.DoesNotContain("header_html", LegacySurfaceDashboardSql.SelectCpDocumentTemplates, StringComparison.Ordinal);
         Assert.Contains("shop_obtaining_modes", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);

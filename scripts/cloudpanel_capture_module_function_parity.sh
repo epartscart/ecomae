@@ -261,6 +261,25 @@ CP_FEATURE_HYBRID_BY_ID = {
     "system-administration-workflow-automation": "cp-workflows",
     "home-workflow": "cp-workflows",
     "cross-department-workflow": "cp-workflows",
+    # Wave 8 — procurement-ap / purchase requests
+    "procurement-and-sourcing-purchase-requisitions": "cp-purchase-requests",
+    "procurement-and-sourcing-rfq": "cp-purchase-requests",
+    "procurement-and-sourcing-categories-policies": "cp-purchase-requests",
+    "rfq-supplier-quotes": "cp-purchase-requests",
+    "procurement-workflows": "cp-purchase-requests",
+    # Wave 8 — marketing-growth / promotions
+    "promo-merchandising": "cp-promotions",
+    "promos-discount-rules": "cp-promotions",
+    # Wave 8 — crm-customers / opportunities
+    "leads-opportunities": "cp-crm-opportunities",
+    "sales-and-marketing-opportunities": "cp-crm-opportunities",
+    "sales-and-marketing-prospects-leads": "cp-crm-opportunities",
+    "activities-follow-ups": "cp-crm-opportunities",
+    # Wave 8 — integrations-api
+    "epc-integrations-hub": "cp-integrations",
+    "integrations-hub": "cp-integrations",
+    "channel-integrations-pack": "cp-integrations",
+    "system-administration-data-integration": "cp-integrations",
 }
 ERP_AREA_HYBRID_BY_ID = {
     "banking": "erp-accounts-summary",
@@ -343,6 +362,12 @@ ERP_TAB_HYBRID_BY_ID = {
     ("overview", "workflow"): "cp-workflows",
     ("overview", "workflow_automation"): "cp-workflows",
     ("setup", "workflow_automation"): "cp-workflows",
+    ("purchasing", "purchase_requisitions"): "cp-purchase-requests",
+    ("purchasing", "rfq"): "cp-purchase-requests",
+    ("purchasing", "procurement_categories"): "cp-purchase-requests",
+    ("sales", "opportunities"): "cp-crm-opportunities",
+    ("sales", "leads"): "cp-crm-opportunities",
+    ("setup", "integration"): "cp-integrations",
 }
 ERP_CATEGORY_HYBRID_BY_ID = {
     "cash_treasury": "erp-cash-accounts",
@@ -400,6 +425,10 @@ BOS_MODULE_HYBRID_BY_ID = {
     "logistics": "cp-carriers",
     "fulfillment_queue": "cp-carriers",
     "payments": "cp-payment-gateways",
+    "promotions_engine": "cp-promotions",
+    "integrations": "cp-integrations",
+    "erp_ap": "cp-purchase-requests",
+    "procurement": "cp-purchase-requests",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}

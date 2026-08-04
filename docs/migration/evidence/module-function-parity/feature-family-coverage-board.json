@@ -6,16 +6,16 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 310,
-    "php-only-deeplink": 416
+    "digest-contract": 335,
+    "php-only-deeplink": 391
   },
   "families": [
     {
       "family": "ai-automation",
       "total": 21,
-      "digestContract": 9,
-      "phpOnlyDeeplink": 12,
-      "digestPercent": 42.9,
+      "digestContract": 10,
+      "phpOnlyDeeplink": 11,
+      "digestPercent": 47.6,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-ai_copilot",
@@ -101,9 +101,9 @@
     {
       "family": "crm-customers",
       "total": 33,
-      "digestContract": 10,
-      "phpOnlyDeeplink": 23,
-      "digestPercent": 30.3,
+      "digestContract": 13,
+      "phpOnlyDeeplink": 20,
+      "digestPercent": 39.4,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-credit_limit",
@@ -331,9 +331,9 @@
     {
       "family": "integrations-api",
       "total": 10,
-      "digestContract": 3,
-      "phpOnlyDeeplink": 7,
-      "digestPercent": 30.0,
+      "digestContract": 9,
+      "phpOnlyDeeplink": 1,
+      "digestPercent": 90.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-api_clients",
@@ -377,9 +377,9 @@
     {
       "family": "marketing-growth",
       "total": 35,
-      "digestContract": 11,
-      "phpOnlyDeeplink": 24,
-      "digestPercent": 31.4,
+      "digestContract": 16,
+      "phpOnlyDeeplink": 19,
+      "digestPercent": 45.7,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-broadcast",
@@ -730,9 +730,9 @@
     {
       "family": "procurement-ap",
       "total": 34,
-      "digestContract": 9,
-      "phpOnlyDeeplink": 25,
-      "digestPercent": 26.5,
+      "digestContract": 18,
+      "phpOnlyDeeplink": 16,
+      "digestPercent": 52.9,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_ap",
@@ -816,9 +816,9 @@
     {
       "family": "sales-oms",
       "total": 32,
-      "digestContract": 12,
-      "phpOnlyDeeplink": 20,
-      "digestPercent": 37.5,
+      "digestContract": 13,
+      "phpOnlyDeeplink": 19,
+      "digestPercent": 40.6,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-order_erp_pipeline",

@@ -149,6 +149,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only workflows (trigger_config/JSON omitted).</summary>
     Task<CpWorkflowsDigestResult> BuildCpWorkflowsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only purchase requisitions (justification/decision_note omitted).</summary>
+    Task<CpPurchaseRequestsDigestResult> BuildCpPurchaseRequestsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only promotions (epc_promo_promotions).</summary>
+    Task<CpPromotionsDigestResult> BuildCpPromotionsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only CRM opportunities (notes omitted).</summary>
+    Task<CpCrmOpportunitiesDigestResult> BuildCpCrmOpportunitiesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only integrations/webhooks (secrets/events omitted).</summary>
+    Task<CpIntegrationsDigestResult> BuildCpIntegrationsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

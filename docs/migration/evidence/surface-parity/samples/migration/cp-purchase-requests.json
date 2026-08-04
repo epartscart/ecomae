@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "reqCount": 1,
+    "draftCount": 1,
+    "pendingApproval": 0,
+    "lineCount": 0,
+    "categoryCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; requests[] sentinel; justification omitted; PHP purchase requisitions authoritative; cutoverAllowed=false",
+  "requests": [
+    {
+      "id": 1,
+      "companyId": 0,
+      "reqNumber": "PR-1",
+      "requester": "Migration",
+      "businessUnitId": 0,
+      "status": "draft",
+      "total": 0.0,
+      "requiresApproval": false,
+      "poRef": "",
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

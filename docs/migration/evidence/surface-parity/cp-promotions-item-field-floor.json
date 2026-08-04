@@ -1,0 +1,30 @@
+{
+  "role": "cp-promotions-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-promotions",
+  "collectionKey": "promotions",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "promotionCount",
+    "activePromotions",
+    "percentPromotions",
+    "loyaltyAccounts",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "code",
+    "name",
+    "type",
+    "value",
+    "minSpend",
+    "validFrom",
+    "validTo",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks promotions digest summary+promotions[] floors. PHP epc_promotions_engine remains authoritative. cutoverAllowed=false."
+}
