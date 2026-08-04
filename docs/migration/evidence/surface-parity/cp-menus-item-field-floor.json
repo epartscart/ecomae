@@ -1,0 +1,25 @@
+{
+  "role": "cp-menus-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "stem": "cp-menus",
+  "collectionKey": "menus",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredItemFields": [
+    "id",
+    "caption",
+    "isFrontend",
+    "menuUlClass",
+    "menuUlId",
+    "structurePresent",
+    "structureParseOk",
+    "nodeCount",
+    "maxDepth",
+    "urlLinkCount",
+    "contentLinkCount",
+    "unknownLinkCount"
+  ],
+  "rawStructureReturned": false,
+  "aspNetInteractiveComplete": 0,
+  "note": "CP menus digest item-field floor: migration golden must include structure-summary sentinel; raw menu.structure JSON stays omitted; writes remain PHP menu_manager. Never invents RELEASE_OWNER_APPROVAL.md."
+}

@@ -7,5 +7,11 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "contractOnly": true,
-  "note": "Digest dual-sample contract floor. Never invents RELEASE_OWNER_APPROVAL.md."
+  "listItemFieldStems": [
+    "cp-menus"
+  ],
+  "listNonemptyMigrationStems": [
+    "cp-menus"
+  ],
+  "note": "Digest dual-sample contract floor. List item fields enforced when present; cp-menus migration golden must keep structure-summary sentinel. Never invents RELEASE_OWNER_APPROVAL.md."
 }

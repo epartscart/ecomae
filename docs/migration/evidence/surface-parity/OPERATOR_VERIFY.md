@@ -28,3 +28,10 @@ Checked-in digest exact-route inventory (35 = surface 30 + storefront 4 + orders
 `docs/migration/evidence/surface-parity/surface-digest-exact-routes.json`
 
 Expect `cutoverAllowed=false`. Never invent `RELEASE_OWNER_APPROVAL.md`.
+
+## CP menus item-field floor
+
+`cp-menus` migration golden must keep a non-empty structure-summary sentinel
+(`nodeCount` / link-mode counts; raw `structure` omitted). Enforced by
+`scripts/compare_digest_dual_samples.py` (`LIST_ITEM_FIELDS` + `LIST_NONEMPTY_MIGRATION`)
+and documented in `cp-menus-item-field-floor.json`.
