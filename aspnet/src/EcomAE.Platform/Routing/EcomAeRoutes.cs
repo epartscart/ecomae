@@ -426,6 +426,8 @@ public static class EcomAeRoutes
     public const string ControlPanelOrdersDigest = "/cp/orders-digest";
     /// <summary>Wave B dry-run OMS set_item_status (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
     public const string ControlPanelOmsSetItemStatus = "/cp/orders/set-item-status";
+    /// <summary>Wave B dry-run OMS set_items_status bulk (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    public const string ControlPanelOmsSetItemsStatus = "/cp/orders/set-items-status";
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
     /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>

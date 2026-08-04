@@ -121,6 +121,26 @@ public sealed class ControlPanelModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ControlPanelOmsSetItemsStatus, async (
+            HttpContext context,
+            CpOmsSetItemsStatusBody? body,
+            ILegacySessionValidator validator,
+            ICpOmsSetItemsStatusDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for OMS set-items-status dry-run.");
+            }
+
+            body ??= new CpOmsSetItemsStatusBody(0, 0, [], false);
+            var result = await dryRun.EvaluateAsync(
+                new CpOmsSetItemsStatusRequest(body.OrderId, body.Status, body.ItemIds ?? [], body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelUsers, async (
             HttpContext context,
             int? limit,
@@ -3041,4 +3061,5 @@ public sealed class ControlPanelModule : ISurfaceModule
     };
 
     private sealed record CpOmsSetItemStatusBody(long OrderId, long ItemId, int Status, bool ConfirmWrites = false);
+    private sealed record CpOmsSetItemsStatusBody(long OrderId, int Status, IReadOnlyList<long>? ItemIds, bool ConfirmWrites = false);
 }
