@@ -1120,7 +1120,15 @@
         "data",
         "message"
       ],
-      "requiredSummaryOrItemFields": [],
+      "requiredSummaryOrItemFields": [
+        "MFA_ID",
+        "manufacturer",
+        "manufacturer_ru",
+        "type",
+        "country",
+        "popular",
+        "is_logo"
+      ],
       "functionsCovered": [
         "cached manufacturers list"
       ],

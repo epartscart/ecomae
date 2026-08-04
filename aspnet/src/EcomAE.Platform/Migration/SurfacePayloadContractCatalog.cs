@@ -201,7 +201,7 @@ public static class SurfacePayloadContractCatalog
         // when dual samples are attached (empty data[] still satisfies the contract validator).
         Contract("api", "/api/v1/catalog/manufacturers", "api/v1/catalog.php manufacturers", "api-key",
             ["ok", "section", "rows", "source", "data", "message"],
-            [],
+            ["MFA_ID", "manufacturer", "manufacturer_ru", "type", "country", "popular", "is_logo"],
             ["cached manufacturers list"],
             "n/a-json-api"),
         Contract("api", "/api/v1/catalog/models", "api/v1/catalog.php models", "api-key",

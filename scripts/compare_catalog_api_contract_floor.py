@@ -47,6 +47,20 @@ ENVELOPES: dict[str, list[str]] = {
 
 STATUS_COUNT_FIELDS = ["manufacturers", "models", "modifications", "brands", "vins"]
 
+# Non-empty migration item-field sentinels (SurfacePayloadContractCatalog item fields).
+LIST_ITEM_FIELDS: dict[str, list[str]] = {
+    "api-catalog-manufacturers": [
+        "MFA_ID",
+        "manufacturer",
+        "manufacturer_ru",
+        "type",
+        "country",
+        "popular",
+        "is_logo",
+    ],
+}
+LIST_NONEMPTY_DATA = frozenset(LIST_ITEM_FIELDS)
+
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
@@ -95,6 +109,19 @@ def main() -> int:
             for field in STATUS_COUNT_FIELDS:
                 if field not in counts:
                     entry["errors"].append(f"counts missing {field}")
+        item_fields = LIST_ITEM_FIELDS.get(stem) or []
+        if stem in LIST_NONEMPTY_DATA or item_fields:
+            data = doc.get("data")
+            if not isinstance(data, list) or len(data) < 1:
+                entry["errors"].append("expected non-empty data[] item-field sentinel")
+            else:
+                first = data[0]
+                if not isinstance(first, dict):
+                    entry["errors"].append("data[0] must be object")
+                else:
+                    for field in item_fields:
+                        if field not in first:
+                            entry["errors"].append(f"data[0] missing {field}")
         entry["ok"] = not entry["errors"]
         if not entry["ok"]:
             failed += 1
@@ -127,9 +154,11 @@ def main() -> int:
         "catalogGoldensChecked": len(ENVELOPES),
         "failed": failed,
         "priceLookupOk": price_ok if not args.skip_price else None,
+        "listItemFieldStems": sorted(LIST_ITEM_FIELDS),
         "results": results,
         "note": (
-            "Catalog/API contract floor only. Exact-route shadows remain operator-gated. "
+            "Catalog/API contract floor only. Manufacturers migration golden keeps "
+            "non-empty item-field sentinel. Exact-route shadows remain operator-gated. "
             "Never invents RELEASE_OWNER_APPROVAL.md."
         ),
     }

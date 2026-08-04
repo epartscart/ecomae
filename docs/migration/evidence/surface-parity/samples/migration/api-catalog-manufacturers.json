@@ -1,11 +1,21 @@
 {
   "ok": true,
   "section": "passenger",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": [],
-  "message": "TenantRegistry DB is not configured.",
+  "data": [
+    {
+      "MFA_ID": 1,
+      "manufacturer": "Migration Make",
+      "manufacturer_ru": "Migration Make",
+      "type": "passenger",
+      "country": "AE",
+      "popular": 0,
+      "is_logo": 0
+    }
+  ],
+  "message": "migration-mode manufacturers item-field sentinel; PHP/cache remain authoritative",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false
