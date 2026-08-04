@@ -432,6 +432,8 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsSendMessage = "/cp/orders/send-message";
     /// <summary>Wave B dry-run OMS set_courier (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
     public const string ControlPanelOmsSetCourier = "/cp/orders/set-courier";
+    /// <summary>Wave B dry-run OMS delete orders (PHP ajax_delete_orders.php remains authoritative).</summary>
+    public const string ControlPanelOmsDeleteOrders = "/cp/orders/delete";
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
     /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>
@@ -469,6 +471,10 @@ public static class EcomAeRoutes
     public const string ErpPurchasesVoid = "/erp/purchases/void";
     /// <summary>Wave B dry-run invoice cancel (PHP invoice_cancel remains authoritative).</summary>
     public const string ErpInvoicesCancel = "/erp/invoices/cancel";
+    /// <summary>Wave B dry-run sales order cancel (PHP so_cancel remains authoritative).</summary>
+    public const string ErpSalesOrdersCancel = "/erp/sales-orders/cancel";
+    /// <summary>Wave B dry-run draft PO delete (PHP po_delete remains authoritative).</summary>
+    public const string ErpPurchaseOrdersDelete = "/erp/purchase-orders/delete";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
@@ -581,6 +587,8 @@ public static class EcomAeRoutes
     public const string StorefrontCartAdd = "/storefront/cart/add";
     /// <summary>Wave B dry-run garage notepad add (PHP ajax_add_to_notepad.php remains authoritative).</summary>
     public const string StorefrontGarageNotepadAdd = "/storefront/garage/notepad-add";
+    /// <summary>Wave B dry-run quote submit (PHP ajax_quote_submit.php remains authoritative).</summary>
+    public const string StorefrontQuoteSubmit = "/storefront/quotes/submit";
     /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
     public const string MarketingPlatformApp = "/marketing/platform";
     /// <summary>Marketing about Blazor scaffold (PHP /platform/about remains primary until dual-sample).</summary>
@@ -597,6 +605,14 @@ public static class EcomAeRoutes
     public const string MarketingCapabilitiesApp = "/marketing/capabilities";
     /// <summary>Marketing demo Blazor scaffold (PHP /platform/demo remains primary until dual-sample).</summary>
     public const string MarketingDemoApp = "/marketing/demo";
+    /// <summary>Marketing free-tools Blazor scaffold (PHP /platform/free-tools remains primary until dual-sample).</summary>
+    public const string MarketingFreeToolsApp = "/marketing/free-tools";
+    /// <summary>Marketing platform-guides Blazor scaffold (PHP /platform/platform-guides remains primary until dual-sample).</summary>
+    public const string MarketingPlatformGuidesApp = "/marketing/platform-guides";
+    /// <summary>Marketing customer-results Blazor scaffold (PHP /platform/customer-results remains primary until dual-sample).</summary>
+    public const string MarketingCustomerResultsApp = "/marketing/customer-results";
+    /// <summary>Marketing business-continuity Blazor scaffold (PHP /platform/business-continuity remains primary until dual-sample).</summary>
+    public const string MarketingBusinessContinuityApp = "/marketing/business-continuity";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>

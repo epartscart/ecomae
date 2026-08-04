@@ -422,7 +422,7 @@ check 'catalog allowlist sync mirrors live surface probe' contains "$ROOT/script
 check 'catalog allowlist sync mirrors decommission area tests' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'run_php_decommission_area_tests.sh'
 check 'catalog allowlist sync mirrors pre-php-removal parity' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'verify_pre_php_removal_parity.sh'
 check 'presentation exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json"
-check 'presentation exact-route inventory routeCount is 155' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 155'
+check 'presentation exact-route inventory routeCount is 159' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 159'
 check 'presentation exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"cutoverAllowed": false'
 check 'presentation allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" 'presentation-exact-routes.json'
 check 'live surface probe references presentation inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'presentation/presentation-exact-routes.json'
@@ -595,7 +595,7 @@ check 'surface-field board blocks PHP removal' contains "$ROOT/docs/migration/ev
 check 'platform.env.example documents dual-sample operator helper' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'platform.env.example documents offline migration gate' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_offline_migration_gate.sh'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
-check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 155'
+check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 159'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
 check 'YARP exact-routes design example exists' test -f "$ROOT/deploy/aspnet/yarp-exact-routes-example.json"
 check 'YARP design example blocks cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": false'
@@ -789,6 +789,10 @@ check 'Wave B write dry-run probe covers GL reverse' contains "$ROOT/scripts/clo
 check 'Wave B write dry-run probe covers purchase void' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/purchases/void'
 check 'Wave B write dry-run probe covers invoice cancel' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/invoices/cancel'
 check 'Wave B write dry-run probe covers garage notepad-add' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/garage/notepad-add'
+check 'Wave B write dry-run probe covers quote submit' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/quotes/submit'
+check 'Wave B write dry-run probe covers SO cancel' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/sales-orders/cancel'
+check 'Wave B write dry-run probe covers OMS delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/orders/delete'
+check 'Wave B write dry-run probe covers PO delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/purchase-orders/delete'
 check 'catalog miss evidence dir exists' test -d "$ROOT/docs/migration/evidence/catalog-miss-umapi"
 check 'catalog miss evidence keeps PHP fill authoritative' contains "$ROOT/docs/migration/evidence/catalog-miss-umapi/README.md" 'Live fills remain PHP'
 check 'catalog miss compare refuses cutover' contains "$ROOT/scripts/compare_catalog_miss_dual_samples.py" 'cutoverAllowed=false'

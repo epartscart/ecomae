@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 155,
+  "routeCount": 159,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -1865,6 +1865,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "marketing-demo-presentation-preview"
+          }
+        ]
+      },
+      "marketing-free-tools": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/free-tools"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-free-tools-presentation-preview"
+          }
+        ]
+      },
+      "marketing-platform-guides": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/platform-guides"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-platform-guides-presentation-preview"
+          }
+        ]
+      },
+      "marketing-customer-results": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/customer-results"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-customer-results-presentation-preview"
+          }
+        ]
+      },
+      "marketing-business-continuity": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/business-continuity"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-business-continuity-presentation-preview"
           }
         ]
       }

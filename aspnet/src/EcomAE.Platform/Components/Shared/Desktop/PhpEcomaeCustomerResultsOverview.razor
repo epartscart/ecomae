@@ -1,0 +1,33 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_customer_results() — hero + CTA.
+  Tenant showcase section remains PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-customer-results-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#5a0f16 55%,#0a0a0a)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-trophy"></i> Live implementation proof</div>
+			<h1>Customer results across live tenants</h1>
+			<p class="lead">Each tenant shows an industry-themed storefront hero and styled control panel preview — plus direct links to production storefront and <code>/cp/</code>.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/contact">Talk to onboarding</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/demo">Start @EcomaeMarketingPages.DemoDays-day demo</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/customer-results?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/customer-results"))">Open full PHP showcase (hybrid)</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-highlight">
+		<h3>Live tenant showcase</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">Animated storefront/CP previews for eParts Cart, Taxofinca, Electronicae, Stylenlook, and The Jewellery Trend remain on live PHP until dual-sample.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/customer-results?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/customer-results"))">Browse customer results</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET customer-results overview scaffold — dual-sample against live PHP <code>/platform/customer-results</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>
