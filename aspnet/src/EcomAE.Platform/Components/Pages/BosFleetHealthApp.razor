@@ -1,0 +1,151 @@
+@page "/bos/fleet-health-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Fleet Health · Super BOS · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="bos" />
+
+<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Fleet Health">
+    <style>
+        .epc-fh-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#18181b 0%,#3f3f46 40%,#854d0e 100%);
+        }
+        .epc-fh-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-fh-hero p { margin:0; color:#fde68a; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-fh-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-fh-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#18181b; background:#fbbf24;
+        }
+        .epc-fh-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-fh-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-fh-kpi { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-fh-kpi strong { display:block; font-size:1.35rem; font-variant-numeric:tabular-nums; }
+        .epc-fh-kpi span { color:#71717a; font-size:.78rem; }
+        .epc-fh-table-wrap { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; overflow:auto; }
+        .epc-fh-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-fh-table th, .epc-fh-table td { padding:.55rem .7rem; border-bottom:1px solid #f4f4f5; text-align:left; white-space:nowrap; }
+        .epc-fh-table th { background:#fafafa; color:#52525b; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-fh-table a { color:#b45309; font-weight:700; text-decoration:none; }
+        .epc-fh-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
+        .epc-fh-badge--ok { background:#fef3c7; color:#78350f; }
+        .epc-fh-badge--off { background:#fee2e2; color:#991b1b; }
+        .epc-fh-badge--info { background:#e2e8f0; color:#334155; }
+        .epc-fh-note { margin-top:1rem; padding:.75rem .9rem; background:#fffbeb; border:1px solid #fde68a; border-radius:.45rem; color:#713f12; font-size:.86rem; }
+        @@media (max-width:1100px){ .epc-fh-kpis{grid-template-columns:1fr 1fr;} }
+        @@media (max-width:700px){ .epc-fh-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-fh-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Fleet Health</h1>
+        <p>Read-only fleet health KPIs + sample tenants from <code>/bos/fleet-health</code> digest under PHP BOS desktop chrome. Live health checks stay on PHP — native <code>/BOS/</code> session still required for full module UX.</p>
+        <div class="epc-fh-cta">
+            <a href="@_phpTab">Open PHP platform health</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/bos/tenants-app">Fleet tenants</a>
+            <a class="ghost" href="/bos/audit-log-app">Audit log</a>
+            <a class="ghost" href="/bos/app">Fleet command</a>
+        </div>
+    </section>
+
+    <div class="epc-fh-kpis" aria-label="Fleet health KPIs">
+        <div class="epc-fh-kpi"><strong>@_portalTenants.ToString(CultureInfo.InvariantCulture)</strong><span>Portal tenants</span></div>
+        <div class="epc-fh-kpi"><strong>@_active.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
+        <div class="epc-fh-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Admin sessions</span></div>
+        <div class="epc-fh-kpi"><strong>@_withDb.ToString(CultureInfo.InvariantCulture)</strong><span>With database</span></div>
+        <div class="epc-fh-kpi"><strong>@_erpOnly.ToString(CultureInfo.InvariantCulture)</strong><span>ERP-only</span></div>
+    </div>
+
+    <div class="epc-fh-table-wrap">
+        <table class="epc-fh-table">
+            <thead>
+                <tr>
+                    <th>Site key</th>
+                    <th>Hostname</th>
+                    <th>Trade name</th>
+                    <th>Status</th>
+                    <th>Active</th>
+                    <th>DB</th>
+                    <th>ERP-only</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_sample.Count == 0)
+                {
+                    <tr><td colspan="8">No sample tenants in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var t in _sample)
+                    {
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(t.SiteKey) ? "—" : t.SiteKey)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(t.Hostname) ? "—" : t.Hostname)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.TradeName) ? "—" : t.TradeName)</td>
+                            <td><span class="epc-fh-badge epc-fh-badge--info">@(string.IsNullOrWhiteSpace(t.Status) ? "—" : t.Status)</span></td>
+                            <td><span class="epc-fh-badge @(t.IsActive ? "epc-fh-badge--ok" : "epc-fh-badge--off")">@(t.IsActive ? "yes" : "no")</span></td>
+                            <td><span class="epc-fh-badge @(t.HasDb ? "epc-fh-badge--ok" : "epc-fh-badge--off")">@(t.HasDb ? "yes" : "no")</span></td>
+                            <td><span class="epc-fh-badge epc-fh-badge--info">@(t.ErpOnly ? "yes" : "no")</span></td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-fh-note">
+        Read-only preview · JSON digest <a href="/bos/fleet-health?limit=25">/bos/fleet-health</a>.
+        PHP <code>epc_bos_health_check</code> / <code>epc_platform_health_checkup</code> remain authoritative.
+        Not a broad /bos cutover · native BOS <code>$_SESSION</code> modules stay PHP.
+        Source: <code>@_source</code>@(!string.IsNullOrWhiteSpace(_message) ? $" · {_message}" : "").
+    </div>
+</PhpBosDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/portal/epc_platform_health_checkup";
+    private bool _isAdmin;
+    private int _portalTenants;
+    private int _active;
+    private int _sessions;
+    private int _withDb;
+    private int _erpOnly;
+    private IReadOnlyList<PortalTenantDigest> _sample = [];
+    private int _limit = 25;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+        {
+            Nav.NavigateTo("/bos/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildBosFleetHealthAsync(_limit, ctx.RequestAborted);
+        _portalTenants = result.Summary.PortalTenants;
+        _active = result.Summary.ActivePortalTenants;
+        _sessions = result.Summary.AdminSessions;
+        _withDb = result.Summary.WithDatabase;
+        _erpOnly = result.Summary.ErpOnly;
+        _sample = result.SampleTenants;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

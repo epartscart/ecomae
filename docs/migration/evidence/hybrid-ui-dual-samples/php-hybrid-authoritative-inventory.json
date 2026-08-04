@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-03T19:22:34Z",
+  "capturedAt": "2026-08-03T19:23:38Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -156,6 +156,12 @@
       "appRoute": "/bos/tenants-app",
       "digestRoute": "/bos/tenants",
       "phpAuthoritativePath": "/CP/control/portal/epc_tenant_control_center"
+    },
+    {
+      "stem": "bos-fleet-health",
+      "appRoute": "/bos/fleet-health-app",
+      "digestRoute": "/bos/fleet-health",
+      "phpAuthoritativePath": "/CP/control/portal/epc_platform_health_checkup"
     },
     {
       "stem": "sf-search",

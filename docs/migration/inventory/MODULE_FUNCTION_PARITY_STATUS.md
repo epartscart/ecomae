@@ -66,7 +66,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | --- | --- | --- | --- |
 | Login (`$_SESSION`) | `/BOS/?action=login` | `/bos/login` admin-cookie bridge only | hybrid-deeplink (Batch 3 decision: keep `/BOS/` PHP-authoritative) |
 | Fleet / tenant ops / commerce / catalogue / … | ~99–116 module IDs | `/bos/app` + `PhpBosDesktopChrome` topnav + directory → PHP | hybrid-deeplink (Batch 2 desktop; session model still PHP) |
-| Digests | — | fleet-summary/tenants/health/… | digest-only (+ `/bos/tenants-app` Blazor list; audit-log-app) |
+| Digests | — | fleet-summary/tenants/health/… | digest-only (+ tenants-app / fleet-health-app / audit-log-app Blazor) |
 
 ## Storefront (epartscart + tenants)
 
