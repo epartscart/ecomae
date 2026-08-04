@@ -1,0 +1,36 @@
+{
+  "role": "cp-marketplace-apps-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-marketplace-apps",
+  "collectionKey": "apps",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "appCount",
+    "publishedCount",
+    "installCount",
+    "activeInstallCount",
+    "reviewCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "appKey",
+    "name",
+    "shortDesc",
+    "category",
+    "developer",
+    "version",
+    "pricing",
+    "priceMonthly",
+    "downloads",
+    "avgRating",
+    "reviewCount",
+    "status",
+    "publishedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-marketplace-apps digest summary+apps[] floors. description/features/config/review_text omitted; PHP marketplace portal remains authoritative. cutoverAllowed=false."
+}

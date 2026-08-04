@@ -1,0 +1,30 @@
+{
+  "role": "cp-notifications-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-notifications",
+  "collectionKey": "notifications",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "notificationCount",
+    "unreadCount",
+    "prefCount",
+    "channelCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "tenantKey",
+    "userId",
+    "channel",
+    "category",
+    "severity",
+    "title",
+    "isRead",
+    "createdAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-notifications digest summary+notifications[] floors. body/metadata omitted; PHP notification settings remain authoritative. cutoverAllowed=false."
+}

@@ -2,7 +2,7 @@
   "role": "presentation-exact-routes",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 121,
+  "routeCount": 125,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -128,6 +128,10 @@
     "/cp/web-tracker-app",
     "/cp/quote-requests-app",
     "/cp/platform-communication-app",
-    "/cp/info-blocks-app"
+    "/cp/info-blocks-app",
+    "/cp/free-tools-app",
+    "/cp/config-sandbox-app",
+    "/cp/marketplace-apps-app",
+    "/cp/notifications-app"
   ]
 }

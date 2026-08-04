@@ -340,6 +340,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "blockCount,activeCount,placementCount,localeCount,source,message",
     ),
+    "cp-free-tools": (
+        "summary",
+        "accountCount,saveCount,settingCount,activeAccountCount,source,message",
+    ),
+    "cp-config-sandbox": (
+        "summary",
+        "snapshotCount,activeSnapshotCount,promotedSnapshotCount,changeCount,source,message",
+    ),
+    "cp-marketplace-apps": (
+        "summary",
+        "appCount,publishedCount,installCount,activeInstallCount,reviewCount,source,message",
+    ),
+    "cp-notifications": (
+        "summary",
+        "notificationCount,unreadCount,prefCount,channelCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -952,6 +968,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-info-blocks": (
         "blocks",
         ["id", "blockKey", "title", "scope", "siteKey", "placement", "locale", "active", "sortOrder", "updatedAt"],
+    ),
+    "cp-free-tools": (
+        "accounts",
+        ["id", "email", "company", "country", "useCount", "loginCount", "timeCreated", "timeLastSeen"],
+    ),
+    "cp-config-sandbox": (
+        "snapshots",
+        ["id", "siteKey", "snapshotName", "status", "createdBy", "createdAt", "promotedAt"],
+    ),
+    "cp-marketplace-apps": (
+        "apps",
+        ["id", "appKey", "name", "shortDesc", "category", "developer", "version", "pricing", "priceMonthly", "downloads", "avgRating", "reviewCount", "status", "publishedAt"],
+    ),
+    "cp-notifications": (
+        "notifications",
+        ["id", "tenantKey", "userId", "channel", "category", "severity", "title", "isRead", "createdAt"],
     ),
     "cp-orders-digest": (
         "orders",

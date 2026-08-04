@@ -1,0 +1,42 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "appCount": 1,
+    "publishedCount": 1,
+    "installCount": 0,
+    "activeInstallCount": 0,
+    "reviewCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; apps[] sentinel; description/features/config/review_text omitted; PHP marketplace portal remains authoritative; cutoverAllowed=false",
+  "apps": [
+    {
+      "id": 1,
+      "appKey": "advanced_analytics",
+      "name": "Advanced Analytics",
+      "shortDesc": "Deep-dive dashboards",
+      "category": "analytics",
+      "developer": "ECOM AE",
+      "version": "1.0.0",
+      "pricing": "freemium",
+      "priceMonthly": 0.0,
+      "downloads": 10,
+      "avgRating": 4.5,
+      "reviewCount": 0,
+      "status": "published",
+      "publishedAt": "2026-08-04 00:00:00"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

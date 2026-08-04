@@ -523,6 +523,13 @@ CP_FEATURE_HYBRID_BY_ID = {
     "epc-super-cp-communication": "cp-platform-communication",
     "epc-super-cp-info-blocks": "cp-info-blocks",
     "info-blocks-cms": "cp-info-blocks",
+
+    # Wave 20 — free-tools / sandbox / marketplace portal / notifications + ERP brochure aliases
+    "free-tools-admin": "cp-free-tools",
+    "notification-settings": "cp-notifications",
+    "erp-dashboard-kpis": "erp-dashboard-summary",
+    "multi-company-erp-access": "erp-dashboard-summary",
+    "netsuite-dashboard-d365-forms": "erp-dashboard-summary",
 }
 
 ERP_AREA_HYBRID_BY_ID = {
@@ -828,7 +835,9 @@ BOS_MODULE_HYBRID_BY_ID = {
     "quotes": "cp-crm-opportunities",
     "returns": "cp-returns-rma",
     "warranty_rma": "cp-returns-rma",
-    "free_tools": "cp-platform-governance",
+    "free_tools": "cp-free-tools",
+    "config_sandbox": "cp-config-sandbox",
+    "marketplace": "cp-marketplace-apps",
     "statistics": "cp-platform-governance",
     "communication": "cp-platform-communication",
 }

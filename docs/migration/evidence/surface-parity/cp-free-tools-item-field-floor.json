@@ -1,0 +1,29 @@
+{
+  "role": "cp-free-tools-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-free-tools",
+  "collectionKey": "accounts",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "accountCount",
+    "saveCount",
+    "settingCount",
+    "activeAccountCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "email",
+    "company",
+    "country",
+    "useCount",
+    "loginCount",
+    "timeCreated",
+    "timeLastSeen"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-free-tools digest summary+accounts[] floors. token/pass_hash/del_code_hash/payload omitted; PHP free tools admin remains authoritative. cutoverAllowed=false."
+}
