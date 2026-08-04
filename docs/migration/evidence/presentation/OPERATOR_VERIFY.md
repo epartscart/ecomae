@@ -21,6 +21,16 @@ ECOMAE_PRESENTATION_LIVE=1 ECOMAE_PRESENTATION_SOFT=1 \
 
 Soft mode exits 0 so evidence can refresh while still listing failures. Never invents `RELEASE_OWNER_APPROVAL.md` or `MODULE_FUNCTION_TEST_PASS.md`.
 
+## Exact-route inventory
+
+Checked-in floor (47 presentation nginx locations, `cutoverAllowed=false`):
+
+`docs/migration/evidence/presentation/presentation-exact-routes.json`
+
+```bash
+python3 scripts/validate_presentation_hybrid_allowlist_sync.py
+```
+
 ## Related
 
 - Dual-sample suite: `bash scripts/cloudpanel_run_all_dual_sample_operators.sh`
