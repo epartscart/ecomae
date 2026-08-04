@@ -591,6 +591,8 @@ public static class EcomAeRoutes
     public const string StorefrontQuoteSubmit = "/storefront/quotes/submit";
     /// <summary>Wave B dry-run quote accept (PHP ajax_quote_accept.php remains authoritative; cart INSERT stays PHP).</summary>
     public const string StorefrontQuoteAccept = "/storefront/quotes/accept";
+    /// <summary>Wave B dry-run garage set-active (PHP ajax_operations_cars.php action=active_car remains authoritative).</summary>
+    public const string StorefrontGarageSetActive = "/storefront/garage/set-active";
     /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
     public const string MarketingPlatformApp = "/marketing/platform";
     /// <summary>Marketing about Blazor scaffold (PHP /platform/about remains primary until dual-sample).</summary>
@@ -621,6 +623,10 @@ public static class EcomAeRoutes
     public const string MarketingApiDocumentationApp = "/marketing/api-documentation";
     /// <summary>Marketing Auto Price AI Blazor scaffold (PHP /platform/auto-price-ai remains primary until dual-sample).</summary>
     public const string MarketingAutoPriceAiApp = "/marketing/auto-price-ai";
+    /// <summary>Marketing compare Blazor scaffold (PHP /compare remains primary until dual-sample).</summary>
+    public const string MarketingCompareApp = "/marketing/compare";
+    /// <summary>Marketing brochure Blazor scaffold (PHP /brochure remains primary until dual-sample).</summary>
+    public const string MarketingBrochureApp = "/marketing/brochure";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>

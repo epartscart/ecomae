@@ -1,0 +1,29 @@
+@page "/marketing/compare"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>ECOM AE — Compare (PHP parity preview)</PageTitle>
+<PhpChromeStyles Surface="marketing" />
+
+<PhpEcomaeMarketingChrome ActiveKey="compare">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/compare" />
+
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <PhpEcomaeCompareOverview />
+    }
+</PhpEcomaeMarketingChrome>
+
+@code {
+    private string? _phpHref;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
+    }
+}
