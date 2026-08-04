@@ -18,6 +18,9 @@ ROUTE_CONST_RE = re.compile(
 )
 EXPECTED_RE = re.compile(r"^\s*expected\s*=\s*(\d+)\b", re.M)
 HYBRID_ROUTE_RE = re.compile(r'\(\s*"[^"]+"\s*,\s*"[^"]+"\s*,\s*"(/[^"]+)"')
+HYBRID_ROW_RE = re.compile(
+    r'\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]*)"\s*,\s*"([^"]+)"'
+)
 
 # Presentation nginx entries that are not hybrid UI dual-sample TARGETS.
 SHELLS_LOGINS_AUTH = frozenset(
@@ -62,6 +65,16 @@ def main() -> int:
         "--yarp",
         type=Path,
         default=Path("deploy/aspnet/yarp-exact-routes-example.json"),
+    )
+    ap.add_argument(
+        "--surface-nginx",
+        type=Path,
+        default=Path("deploy/aspnet/nginx-surface-digests-shadow-example.conf"),
+    )
+    ap.add_argument(
+        "--storefront-nginx",
+        type=Path,
+        default=Path("deploy/aspnet/nginx-storefront-digests-shadow-example.conf"),
     )
     args = ap.parse_args()
     errors: list[str] = []
@@ -140,6 +153,20 @@ def main() -> int:
     if route_apps_without_nginx:
         errors.append(f"EcomAeRoutes *App paths missing from nginx: {route_apps_without_nginx}")
 
+    # Cross-lock: hybrid digestRoute values must exist on digest nginx (or presentation for orders-digest).
+    digest_nginx = set(NGINX_LOC_RE.findall(args.surface_nginx.read_text(encoding="utf-8")))
+    digest_nginx |= set(NGINX_LOC_RE.findall(args.storefront_nginx.read_text(encoding="utf-8")))
+    digest_nginx |= {"/cp/orders-digest"}
+    hybrid_digest_routes = {
+        digest for _stem, _surface, _app, digest, _php in HYBRID_ROW_RE.findall(targets_block) if digest
+    }
+    # Explicit exceptions: search/cart Blazor previews have no JSON digest exact-route.
+    missing_digest_shadows = sorted(hybrid_digest_routes - digest_nginx)
+    if missing_digest_shadows:
+        errors.append(
+            f"hybrid digestRoute missing from surface/storefront/orders-digest nginx: {missing_digest_shadows}"
+        )
+
     if errors:
         print("FAIL: presentation/hybrid allowlist sync", file=sys.stderr)
         for err in errors:
@@ -148,8 +175,8 @@ def main() -> int:
 
     print(
         f"PASS: nginx={len(nginx_set)} hybridTargets={len(hybrid_set)} "
-        f"shellsLoginsAuth={len(SHELLS_LOGINS_AUTH)} expected={expected} "
-        f"yarpRouteCount={route_count}"
+        f"shellsLoginsAuth={len(SHELLS_LOGINS_AUTH)} hybridDigestRoutes={len(hybrid_digest_routes)} "
+        f"expected={expected} yarpRouteCount={route_count}"
     )
     return 0
 

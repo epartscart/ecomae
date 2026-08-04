@@ -101,6 +101,11 @@ if python3 "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"; then
 else
   fail "presentation/hybrid allowlist sync"
 fi
+if python3 "$ROOT/scripts/validate_surface_digest_allowlist_sync.py"; then
+  pass "surface/storefront digest allowlist sync"
+else
+  fail "surface/storefront digest allowlist sync"
+fi
 
 # YARP regenerator still green.
 if bash "$ROOT/scripts/generate_all_yarp_design_examples.sh" >/tmp/ecomae-yarp-guardrails.log 2>&1; then
