@@ -341,6 +341,26 @@ public sealed class ControlPanelModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ControlPanelOmsRefreshItemCost, async (
+            HttpContext context,
+            CpOmsRefreshItemCostBody? body,
+            ILegacySessionValidator validator,
+            ICpOmsRefreshItemCostDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for OMS refresh-item-cost dry-run.");
+            }
+
+            body ??= new CpOmsRefreshItemCostBody(0, 0, false);
+            var result = await dryRun.EvaluateAsync(
+                new CpOmsRefreshItemCostRequest(body.OrderId, body.ItemId, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelUsers, async (
             HttpContext context,
             int? limit,
@@ -3281,4 +3301,5 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpOmsUpdateItemsBody(long OrderId, IReadOnlyList<CpOmsUpdateItemsItemBody>? Items, bool ConfirmWrites = false);
     private sealed record CpOmsFulfillmentSetStageBody(long OrderId, string? SupplierKey, string? Stage, bool ConfirmWrites = false);
     private sealed record CpOmsFulfillmentAdvanceBody(long OrderId, string? SupplierKey, bool ConfirmWrites = false);
+    private sealed record CpOmsRefreshItemCostBody(long OrderId, long ItemId, bool ConfirmWrites = false);
 }
