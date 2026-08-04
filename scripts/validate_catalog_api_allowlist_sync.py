@@ -46,6 +46,15 @@ REQUIRED_COMPARE_HELPERS = (
     "compare_catalog_api_contract_floor.py",
 )
 
+# Live/decommission operator inventories must stay mirrored to the exact-route floor.
+OPERATOR_PROBE_SCRIPTS = (
+    "probe_live_surface_stack.sh",
+    "run_php_decommission_area_tests.sh",
+    "verify_pre_php_removal_parity.sh",
+)
+
+API_PATH_RE = re.compile(r"/api/v1/(?:catalog/[a-z0-9-]+|price/lookup)")
+
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
@@ -107,6 +116,18 @@ def main() -> int:
         if not (args.scripts_dir / helper).is_file():
             errors.append(f"missing compare helper: scripts/{helper}")
 
+    for script_name in OPERATOR_PROBE_SCRIPTS:
+        script_path = args.scripts_dir / script_name
+        if not script_path.is_file():
+            errors.append(f"missing operator probe script: scripts/{script_name}")
+            continue
+        found = set(API_PATH_RE.findall(script_path.read_text(encoding="utf-8")))
+        if found != expected:
+            errors.append(
+                f"{script_name} API inventory mismatch: "
+                f"missing={sorted(expected - found)} extra={sorted(found - expected)}"
+            )
+
     if errors:
         print("FAIL: catalog/API allowlist sync", file=sys.stderr)
         for err in errors:
@@ -115,7 +136,8 @@ def main() -> int:
 
     print(
         f"PASS: nginx={len(nginx_set)} yarp={route_count} "
-        f"catalogMigrationGoldens={len(PATH_TO_MIGRATION)} priceSamples=2"
+        f"catalogMigrationGoldens={len(PATH_TO_MIGRATION)} priceSamples=2 "
+        f"operatorProbes={len(OPERATOR_PROBE_SCRIPTS)}"
     )
     return 0
 

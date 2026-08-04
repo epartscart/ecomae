@@ -418,6 +418,9 @@ check 'YARP catalog-api design blocks cutover' contains "$ROOT/deploy/aspnet/yar
 check 'YARP catalog-api design blocks PHP removal' contains "$ROOT/deploy/aspnet/yarp-catalog-api-example.json" '"readyForPhpRemoval": false'
 check 'YARP catalog-api routeCount is 19' contains "$ROOT/deploy/aspnet/yarp-catalog-api-example.json" '"routeCount": 19'
 check 'YARP all-packs generator hard-floors catalog routeCount 19' contains "$ROOT/scripts/generate_all_yarp_design_examples.sh" 'yarp-catalog-api-example.json": 19'
+check 'catalog allowlist sync mirrors live surface probe' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'probe_live_surface_stack.sh'
+check 'catalog allowlist sync mirrors decommission area tests' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'run_php_decommission_area_tests.sh'
+check 'catalog allowlist sync mirrors pre-php-removal parity' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'verify_pre_php_removal_parity.sh'
 check 'YARP all-packs generator helper exists' test -f "$ROOT/scripts/generate_all_yarp_design_examples.sh"
 check 'GraphQL scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Scaffolding/EcomAeGraphQlScaffoldOptions.cs"
 check 'GraphQL scaffold defaults not public' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Scaffolding/EcomAeGraphQlScaffoldOptions.cs" 'ExposePublicEndpoint'
