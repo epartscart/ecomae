@@ -28,12 +28,16 @@ Classifier: `scripts/ecomae_nginx_site_safety.py`
 Catalog: `GET /migration/live-tenant-presentation-lock`  
 Path board: `GET /migration/aspnet-zero-php-path` · `docs/migration/ASPNET_ZERO_PHP_PATH.md`
 
+## Same-to-same / invisible migration
+
+**Same-to-same / invisible migration:** tenants must not feel PHP→ASP.NET. Digests/Blazor previews on www **never** replace tenant product chrome until dual-sample + staged exact-route cutover.
+
 ## Same-to-same / invisible cutover (hard law)
 
 | Rule | Meaning |
 | --- | --- |
 | PHP-primary until parity | Live `/`, `/CP/`, `/ERP/`, `/BOS/`, cart/checkout/search stay PHP until dual-sample + staged exact-route cutover. |
-| Digests ≠ premature UX | www Blazor `*-app` / digests are scaffolding until promoted. |
+| Digests ≠ premature UX | www Blazor `*-app` / digests are scaffolding until promoted — they **never** replace tenant product chrome. |
 | Exact-route only | Never broad `location /`, `/cp`, `/erp`, `/bos`, `/api`, `/storefront` on tenant vhosts. |
 | Look & feel | ASP.NET must match PHP fonts/CSS/heroes/menus before traffic moves. |
 | Meter ≠ cutover | Weighted Zero-PHP % does **not** mean tenants are cut over. |
