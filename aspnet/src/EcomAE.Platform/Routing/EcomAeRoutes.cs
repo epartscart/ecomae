@@ -453,6 +453,8 @@ public static class EcomAeRoutes
     public const string ErpCashEntries = "/erp/cash-entries";
     /// <summary>ERP cash ledger Blazor list (JSON digest remains <see cref="ErpCashEntries"/>).</summary>
     public const string ErpCashEntriesApp = "/erp/cash-entries-app";
+    /// <summary>Wave B dry-run cash voucher amend (PHP cash_voucher_amend remains authoritative).</summary>
+    public const string ErpCashEntriesAmend = "/erp/cash-entries/amend";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";

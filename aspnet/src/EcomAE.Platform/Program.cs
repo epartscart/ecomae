@@ -137,6 +137,7 @@ builder.Services.AddSingleton<IStorefrontCartCheckForOrderDryRun, StorefrontCart
 builder.Services.AddSingleton<IStorefrontCartDeleteDryRun, StorefrontCartDeleteDryRun>();
 builder.Services.AddSingleton<ICpOmsSetItemStatusDryRun, CpOmsSetItemStatusDryRun>();
 builder.Services.AddSingleton<ICpOmsSetItemsStatusDryRun, CpOmsSetItemsStatusDryRun>();
+builder.Services.AddSingleton<IErpCashVoucherAmendDryRun, ErpCashVoucherAmendDryRun>();
 builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();
