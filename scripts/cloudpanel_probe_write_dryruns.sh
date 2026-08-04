@@ -61,6 +61,24 @@ PY
 
 echo "Wave B write dry-run probe against ${BASE}"
 
+# Fail fast if ASP.NET is down — avoids 100+ identical HTTP 404 noise.
+health_code="$(curl -sS -m 5 -o /tmp/ecomae-write-dryrun-health.txt -w '%{http_code}' "${BASE}/health" 2>/dev/null || true)"
+if [[ "$health_code" != "200" ]]; then
+  echo "FAIL aspnet /health: HTTP ${health_code:-000} (refusing to run write dry-run probes)" >&2
+  echo "ASP.NET loopback is not ready at ${BASE}." >&2
+  echo "Recover on CloudPanel:" >&2
+  echo "  systemctl status ecomae-platform.service --no-pager" >&2
+  echo "  journalctl -u ecomae-platform.service -n 80 --no-pager" >&2
+  echo "  cd /opt/ecomae-aspnet-source && git fetch origin main && git reset --hard origin/main" >&2
+  echo "  ECOMAE_BRANCH=main ECOMAE_RUN_SYSTEMD=1 bash scripts/cloudpanel_production_deploy_foundation.sh" >&2
+  echo "  bash scripts/wait_for_aspnet_health.sh" >&2
+  echo "  curl -i ${BASE}/health" >&2
+  echo "Public /migration/* JSON needs diagnostics nginx after loopback is healthy:" >&2
+  echo "  ECOMAE_INSTALL_DIAGNOSTICS_NGINX=1 bash scripts/cloudpanel_production_deploy_foundation.sh" >&2
+  exit 1
+fi
+echo "OK   ${BASE}/health HTTP 200 — probing write dry-runs"
+
 probe_post "/storefront/cart/change-count-need" '{"id":1,"countNeed":2,"confirmWrites":false}' "$COOKIE" "cart change-count-need"
 probe_post "/storefront/cart/change-count-need" '{"id":1,"countNeed":2,"confirmWrites":true}' "$COOKIE" "cart change-count-need confirm refuse"
 probe_post "/storefront/cart/check-for-order" '{"records":[1],"confirmWrites":false}' "$COOKIE" "cart check-for-order"
