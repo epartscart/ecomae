@@ -463,6 +463,8 @@ public static class EcomAeRoutes
     public const string ErpGlJournalsManual = "/erp/gl-journals/manual";
     /// <summary>Wave B dry-run GL reverse journal (PHP gl_reverse_journal remains authoritative).</summary>
     public const string ErpGlJournalsReverse = "/erp/gl-journals/reverse";
+    /// <summary>Wave B dry-run purchase void (PHP purchase_void remains authoritative).</summary>
+    public const string ErpPurchasesVoid = "/erp/purchases/void";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
@@ -577,6 +579,8 @@ public static class EcomAeRoutes
     public const string MarketingPlatformApp = "/marketing/platform";
     /// <summary>Marketing about Blazor scaffold (PHP /platform/about remains primary until dual-sample).</summary>
     public const string MarketingAboutApp = "/marketing/about";
+    /// <summary>Marketing FAQ Blazor scaffold (PHP /platform/faq remains primary until dual-sample).</summary>
+    public const string MarketingFaqApp = "/marketing/faq";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
