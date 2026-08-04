@@ -241,6 +241,48 @@ public sealed class ControlPanelModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ControlPanelOmsUpdateItem, async (
+            HttpContext context,
+            CpOmsUpdateItemBody? body,
+            ILegacySessionValidator validator,
+            ICpOmsUpdateItemDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for OMS update-item dry-run.");
+            }
+
+            body ??= new CpOmsUpdateItemBody(0, 0, null, null, null, null, null, false);
+            var result = await dryRun.EvaluateAsync(
+                new CpOmsUpdateItemRequest(
+                    body.OrderId, body.ItemId, body.Price, body.CountNeed,
+                    body.Manufacturer, body.Article, body.StorageId, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ControlPanelOmsPayRefund, async (
+            HttpContext context,
+            CpOmsPayRefundBody? body,
+            ILegacySessionValidator validator,
+            ICpOmsPayRefundDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for OMS pay-refund dry-run.");
+            }
+
+            body ??= new CpOmsPayRefundBody(0, false, null, false);
+            var result = await dryRun.EvaluateAsync(
+                new CpOmsPayRefundRequest(body.OrderId, body.DirectRefund, body.PaidSum, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelUsers, async (
             HttpContext context,
             int? limit,
@@ -3167,4 +3209,14 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpOmsDeleteOrdersBody(IReadOnlyList<long>? OrderIds, bool ConfirmWrites = false);
     private sealed record CpOmsAddCommentBody(long OrderId, string? Text, bool ConfirmWrites = false);
     private sealed record CpOmsSetViewedBody(IReadOnlyList<long>? OrderIds, int ViewedFlag = 1, bool ConfirmWrites = false);
+    private sealed record CpOmsUpdateItemBody(
+        long OrderId,
+        long ItemId,
+        decimal? Price = null,
+        int? CountNeed = null,
+        string? Manufacturer = null,
+        string? Article = null,
+        int? StorageId = null,
+        bool ConfirmWrites = false);
+    private sealed record CpOmsPayRefundBody(long OrderId, bool DirectRefund, decimal? PaidSum = null, bool ConfirmWrites = false);
 }

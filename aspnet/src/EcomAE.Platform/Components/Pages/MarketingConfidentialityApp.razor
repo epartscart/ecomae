@@ -1,0 +1,38 @@
+@page "/marketing/confidentiality"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>ECOM AE — Confidentiality (PHP parity preview)</PageTitle>
+<PhpChromeStyles Surface="marketing" />
+
+<PhpEcomaeMarketingChrome ActiveKey="confidentiality">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/confidentiality" />
+
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <PhpEcomaeLegalAliasOverview
+            Title="Confidentiality"
+            Badge="Confidentiality"
+            Icon="fa-user-secret"
+            GradientStart="#4a044e"
+            GradientMid="#a21caf"
+            PhpSlug="confidentiality"
+            AspNetRoute="/marketing/confidentiality"
+            Lead="Confidentiality obligations for operators and partners. Full policy text remains on live PHP until dual-sample."
+            CardOne="Handling of non-public tenant and platform information." />
+    }
+</PhpEcomaeMarketingChrome>
+
+@code {
+    private string? _phpHref;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
+    }
+}

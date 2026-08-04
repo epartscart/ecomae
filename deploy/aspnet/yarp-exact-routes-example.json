@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 174,
+  "routeCount": 184,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -1121,6 +1121,126 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "marketing-security-policy-presentation-preview"
+          }
+        ]
+      },
+      "marketing-right-to-use": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/right-to-use"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-right-to-use-presentation-preview"
+          }
+        ]
+      },
+      "marketing-trademark": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/trademark"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-trademark-presentation-preview"
+          }
+        ]
+      },
+      "marketing-copyright": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/copyright"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-copyright-presentation-preview"
+          }
+        ]
+      },
+      "marketing-data-protection": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/data-protection"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-data-protection-presentation-preview"
+          }
+        ]
+      },
+      "marketing-acceptable-use": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/acceptable-use"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-acceptable-use-presentation-preview"
+          }
+        ]
+      },
+      "marketing-confidentiality": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/confidentiality"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-confidentiality-presentation-preview"
+          }
+        ]
+      },
+      "marketing-intellectual-property": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/intellectual-property"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-intellectual-property-presentation-preview"
+          }
+        ]
+      },
+      "marketing-blockchain-disclaimer": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/blockchain-disclaimer"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-blockchain-disclaimer-presentation-preview"
+          }
+        ]
+      },
+      "marketing-dmca": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/dmca"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-dmca-presentation-preview"
+          }
+        ]
+      },
+      "marketing-brochure-cp": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/brochure-cp"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-brochure-cp-presentation-preview"
           }
         ]
       },
