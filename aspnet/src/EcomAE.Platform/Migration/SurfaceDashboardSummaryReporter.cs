@@ -1037,12 +1037,23 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
+                var structureJson = Convert.ToString(
+                    reader["structure"] is DBNull ? string.Empty : reader["structure"],
+                    CultureInfo.InvariantCulture) ?? string.Empty;
+                var summary = CpMenuStructureAnalyzer.Analyze(structureJson);
                 rows.Add(new CpMenuDigest(
                     Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture),
                     Convert.ToString(reader["caption"] is DBNull ? string.Empty : reader["caption"], CultureInfo.InvariantCulture) ?? string.Empty,
                     Convert.ToInt32(reader["is_frontend"] is DBNull ? 0 : reader["is_frontend"], CultureInfo.InvariantCulture) != 0,
                     Convert.ToString(reader["menu_ul_class"] is DBNull ? string.Empty : reader["menu_ul_class"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToString(reader["menu_ul_id"] is DBNull ? string.Empty : reader["menu_ul_id"], CultureInfo.InvariantCulture) ?? string.Empty));
+                    Convert.ToString(reader["menu_ul_id"] is DBNull ? string.Empty : reader["menu_ul_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    summary.StructurePresent,
+                    summary.StructureParseOk,
+                    summary.NodeCount,
+                    summary.MaxDepth,
+                    summary.UrlLinkCount,
+                    summary.ContentLinkCount,
+                    summary.UnknownLinkCount));
             }
 
             return new(rows, rows.Count, "database", string.Empty);

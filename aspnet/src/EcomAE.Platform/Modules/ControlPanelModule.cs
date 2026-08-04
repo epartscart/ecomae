@@ -232,7 +232,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only menu metadata (structure JSON omitted). PHP menu_manager remains authoritative."
+                note = "Read-only menu metadata + structure summary (raw structure JSON omitted). PHP menu_manager remains authoritative for create/edit."
             });
         });
 

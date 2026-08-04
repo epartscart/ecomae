@@ -1,0 +1,23 @@
+{
+  "role": "cp-menu-tree-inventory",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "digestRoute": "/cp/menus",
+  "blazorRoute": "/cp/menus-app",
+  "phpAuthoritative": [
+    "/CP/menu/menu_manager",
+    "/CP/menu/menu_edit"
+  ],
+  "structureFields": [
+    "structurePresent",
+    "structureParseOk",
+    "nodeCount",
+    "maxDepth",
+    "urlLinkCount",
+    "contentLinkCount",
+    "unknownLinkCount"
+  ],
+  "rawStructureReturned": false,
+  "writesRemainPhp": true,
+  "note": "ASP.NET digests menu.structure into summary fields only. Raw tree is never returned; create/edit remain PHP. Never invents RELEASE_OWNER_APPROVAL.md."
+}

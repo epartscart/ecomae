@@ -291,7 +291,8 @@ public static class LegacySurfaceDashboardSql
 
     public const string SelectCpMenus = """
         SELECT `id`, IFNULL(`caption`, '') AS caption, `is_frontend`,
-               IFNULL(`menu_ul_class`, '') AS menu_ul_class, IFNULL(`menu_ul_id`, '') AS menu_ul_id
+               IFNULL(`menu_ul_class`, '') AS menu_ul_class, IFNULL(`menu_ul_id`, '') AS menu_ul_id,
+               IFNULL(`structure`, '') AS structure
         FROM `menu`
         ORDER BY `id` ASC
         LIMIT @limit

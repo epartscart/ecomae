@@ -43,7 +43,7 @@
     <section class="epc-mn-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Menus</h1>
-        <p>Read-only CP menu metadata from <code>/cp/menus</code> digest under PHP CP desktop chrome. Structure JSON omitted. Create/edit stay on live PHP menu manager — same-to-same for tenants.</p>
+        <p>Read-only CP menu metadata + structure summary from <code>/cp/menus</code> digest under PHP CP desktop chrome. Raw structure JSON omitted. Create/edit stay on live PHP menu manager — same-to-same for tenants.</p>
         <div class="epc-mn-cta">
             <a href="@_phpTab">Open PHP menu manager</a>
             <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
@@ -56,7 +56,7 @@
     <div class="epc-mn-kpis" aria-label="Menus KPIs">
         <div class="epc-mn-kpi"><strong>@_menus.Count</strong><span>Shown (limit @_limit)</span></div>
         <div class="epc-mn-kpi"><strong>@_frontend</strong><span>Frontend menus</span></div>
-        <div class="epc-mn-kpi"><strong>@_backend</strong><span>Backend menus</span></div>
+        <div class="epc-mn-kpi"><strong>@_nodes</strong><span>Structure nodes (sum)</span></div>
     </div>
 
     <div class="epc-mn-table-wrap">
@@ -66,15 +66,16 @@
                     <th>ID</th>
                     <th>Caption</th>
                     <th>Frontend</th>
-                    <th>UL class</th>
-                    <th>UL id</th>
+                    <th>Nodes</th>
+                    <th>Depth</th>
+                    <th>URL / content</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_menus.Count == 0)
                 {
-                    <tr><td colspan="6">No menus in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">No menus in digest (@_source). @_message</td></tr>
                 }
                 else
                 {
@@ -85,8 +86,9 @@
                             <td><strong>@m.Id</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(m.Caption) ? "—" : m.Caption)</td>
                             <td><span class="epc-mn-badge">@(m.IsFrontend ? "yes" : "no")</span></td>
-                            <td>@(string.IsNullOrWhiteSpace(m.MenuUlClass) ? "—" : m.MenuUlClass)</td>
-                            <td>@(string.IsNullOrWhiteSpace(m.MenuUlId) ? "—" : m.MenuUlId)</td>
+                            <td>@(m.StructurePresent ? m.NodeCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@(m.StructurePresent ? m.MaxDepth.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@m.UrlLinkCount / @m.ContentLinkCount</td>
                             <td><a href="@phpHref">Open in PHP</a></td>
                         </tr>
                     }
@@ -96,7 +98,7 @@
     </div>
 
     <div class="epc-mn-note">
-        Read-only preview · JSON digest <a href="/cp/menus?limit=200">/cp/menus</a> (structure JSON omitted).
+        Read-only preview · JSON digest <a href="/cp/menus?limit=200">/cp/menus</a> (structure summary only; raw tree omitted).
         PHP <code>menu_manager</code> / <code>menu_edit</code> remain authoritative for create/edit.
         Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
         Source: <code>@_source</code>.
@@ -108,7 +110,7 @@
     private bool _isAdmin;
     private IReadOnlyList<CpMenuDigest> _menus = [];
     private int _frontend;
-    private int _backend;
+    private int _nodes;
     private int _limit = 200;
     private string _source = "n/a";
     private string _message = "";
@@ -129,7 +131,7 @@
         var result = await Dashboards.ListCpMenusAsync(_limit, ctx.RequestAborted);
         _menus = result.Menus;
         _frontend = _menus.Count(m => m.IsFrontend);
-        _backend = _menus.Count(m => !m.IsFrontend);
+        _nodes = _menus.Sum(m => m.NodeCount);
         _source = result.Source;
         _message = result.Message;
     }

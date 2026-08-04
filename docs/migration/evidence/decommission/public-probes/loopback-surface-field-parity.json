@@ -175,7 +175,14 @@
         "caption",
         "isFrontend",
         "menuUlClass",
-        "menuUlId"
+        "menuUlId",
+        "structurePresent",
+        "structureParseOk",
+        "nodeCount",
+        "maxDepth",
+        "urlLinkCount",
+        "contentLinkCount",
+        "unknownLinkCount"
       ],
       "functionsCovered": [
         "menu metadata digest"
@@ -1529,14 +1536,14 @@
     {
       "surface": "api",
       "phpFunctionOrEntry": "catalog manufacturers/models/modifications/brands/suppliers",
-      "aspNetRouteOrCapability": "/api/v1/catalog/manufacturers|…|/suppliers",
+      "aspNetRouteOrCapability": "/api/v1/catalog/manufacturers|\u2026|/suppliers",
       "status": "digest-wired-awaiting-dual-sample",
       "notes": "Envelope contracts + compare_catalog_list_parity.py; one-path nginx-catalog-*-shadow after smoke."
     },
     {
       "surface": "api",
       "phpFunctionOrEntry": "catalog offline-cache + vin + brand-parts",
-      "aspNetRouteOrCapability": "/api/v1/catalog/engines|analogs|…|vin|brand-parts",
+      "aspNetRouteOrCapability": "/api/v1/catalog/engines|analogs|\u2026|vin|brand-parts",
       "status": "digest-wired-awaiting-dual-sample",
       "notes": "Offline-cache envelopes + compare_catalog_offline_cache_parity.py / compare_catalog_vin_parity.py."
     }
@@ -1559,7 +1566,7 @@
   "nextActions": [
     "Keep PHP authoritative for operator chrome and storefront HTML.",
     "Use /migration/surface-field-parity as the operator contract board.",
-    "On CloudPanel: ensure_epc_api_clients_table.sh → issue_smoke_credentials.sh → validate_final_gate_env.sh.",
+    "On CloudPanel: ensure_epc_api_clients_table.sh \u2192 issue_smoke_credentials.sh \u2192 validate_final_gate_env.sh.",
     "Then capture/commit staging-smoke and bash scripts/run_surface_parity_harness.sh with real cookies/keys.",
     "Optional customer digests: ECOMAE_CUSTOMER_COOKIE_HEADER (not required for ReadyToRemovePhp).",
     "Only after dual samples match: promote exact-route shadows one location= at a time."

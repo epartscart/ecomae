@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** Module-function inventory now enumerates the full PHP catalog (≥714 CP/ERP/BOS/storefront rows; `aspnetCompleteCount=0`). Presentation evidence catalog restored with full lists. Surface-digest (35) + presentation (47) inventories remain. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** CP `/cp/menus` digest now returns menu.structure summaries (nodeCount / link modes; raw tree omitted). Full module-function catalog inventory (≥714) + surface/presentation route inventories remain. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 
