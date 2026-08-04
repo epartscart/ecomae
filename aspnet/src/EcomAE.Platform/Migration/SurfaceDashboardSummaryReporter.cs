@@ -4861,7 +4861,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["policy_no"] is DBNull ? string.Empty : reader["policy_no"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["class"] is DBNull ? string.Empty : reader["class"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["policy_class"] is DBNull ? string.Empty : reader["policy_class"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["insurer"] is DBNull ? string.Empty : reader["insurer"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToDecimal(reader["sum_insured"] is DBNull ? 0 : reader["sum_insured"], CultureInfo.InvariantCulture),
