@@ -3,7 +3,7 @@
   "stem": "sf-search",
   "surface": "storefront",
   "appRoute": "/storefront/search-app",
-  "digestRoute": null,
+  "digestRoute": "/storefront/search",
   "phpAuthoritativePath": "https://epartscart.com/shop/part_search",
   "blazorMarker": "StorefrontSearchApp",
   "chromeShell": "PhpStorefrontDesktopChrome",

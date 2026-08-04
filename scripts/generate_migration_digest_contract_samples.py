@@ -586,6 +586,69 @@ def main() -> None:
             "session": {"kind": "Customer", "user_id": 9},
             "note": "migration-mode contract sample; PHP remains authoritative",
         },
+        "storefront-search.json": {
+            "ok": True,
+            "surface": "storefront",
+            "article": "0986424590",
+            "rows": [
+                {
+                    "priceId": 1,
+                    "priceList": "migration",
+                    "manufacturer": "BOSCH",
+                    "article": "0986424590",
+                    "articleShow": "0 986 424 590",
+                    "name": "Migration offer",
+                    "price": 0.0,
+                    "exist": 0,
+                    "storage": "MAIN",
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "session": {"kind": "Customer", "user_id": 9},
+            "note": (
+                "migration-mode contract sample; rows[] item-field sentinel locked; "
+                "PHP /shop/part_search remains authoritative; cutoverAllowed=false"
+            ),
+        },
+        "storefront-cart.json": {
+            "ok": True,
+            "surface": "storefront",
+            "user_id": 9,
+            "summary": {
+                "count": 1,
+                "sum": 0.0,
+                "source": "migration",
+                "message": "TenantRegistry DB is not configured.",
+            },
+            "lines": [
+                {
+                    "id": 1,
+                    "price": 0.0,
+                    "countNeed": 1.0,
+                    "checkedForOrder": False,
+                    "productType": 1,
+                    "manufacturer": "BOSCH",
+                    "article": "0986424590",
+                    "name": "Migration cart line",
+                    "timeToExe": "0",
+                    "timeToExeGuaranteed": "0",
+                    "minOrder": 1.0,
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "session": {"kind": "Customer", "user_id": 9},
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": (
+                "migration-mode contract sample; lines[] item-field sentinel locked; "
+                "qty/guest/checkout remain PHP; cutoverAllowed=false"
+            ),
+        },
         "api-catalog-status.json": catalog_status(),
         "api-catalog-manufacturers.json": {
             "ok": True,

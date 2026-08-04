@@ -31,7 +31,7 @@ Authoritative product chrome remains **PHP** until intentional exact-route cutov
 | Storefront home | `epartscart.com/` | `/storefront/app` · search/cart/orders/garage/profile/account-summary `*-app` | Hybrid: modex chrome + piston + account-family read UIs | Digests ASP.NET; search/cart/orders/garage/profile/account-summary read | Live slider/media + qty/guest cart/checkout + order detail + garage/profile edits + part_search tabs stay PHP |
 | Storefront login | PHP customer login | `/storefront/login` | Bridge UI | Batch 3: customer token `md5(contact+userId+time+secret)` + `last_activiti_time` | Full account UX PHP |
 | Digests CP/ERP/BOS | n/a (JSON) | 30/30 exact-routes | n/a | Live | Contract dual-sample recorded |
-| Storefront digests | n/a | 4/4 exact-routes | n/a | Live | Customer cookie for 200 |
+| Storefront digests | n/a | 4/6 live (wired 6) | n/a | Partial live | Customer cookie for 200; search/cart awaiting shadow |
 | Catalog API | PHP UMAPI fill | 18/18 exact-routes | n/a | Live cache readers | Miss → ASP.NET 404 `cache_miss`; live fill PHP (Batch 5 harness) |
 | Hybrid UI dual-sample | PHP product paths | `*-app` + `/cp/orders` www previews | Blazor SSR markers + PHP deeplinks | Contract stubs + compare harness (`hybrid-ui-dual-samples/`) | Live cookie captures pending CloudPanel; cutoverAllowed=false |
 

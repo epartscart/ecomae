@@ -26,13 +26,13 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 | `/api/v1/price/lookup` | Live |
 | `/api/v1/catalog/status` … `/brand-parts` | **All 18/18 wired catalog API paths live** |
 | All 30 CP/ERP/BOS digests | Live unauth **401 unauthorized** |
-| All 4 storefront digests | Live unauth **401 unauthorized** (customer cookie for 200) |
+| Storefront digests | **4 / 6 live** unauth **401** (search/cart wired, awaiting shadow install) |
 
 **Catalog exact-route progress:** **18 / 18**
 
 **Surface digest exact-route progress:** **30 / 30**
 
-**Storefront digest exact-route progress:** **4 / 4**
+**Storefront digest exact-route progress:** **4 / 6** (wired 6; live shadows still 4)
 
 ### Still 100% PHP on public www (blocks Zero-PHP)
 
@@ -81,7 +81,7 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 - Admin nested modules_access ACL + surface capabilities.
 - CP/ERP/BOS/storefront digests scaffolded on loopback + staging smoke attached (PR #612).
 - **Public exact-route catalog/price shadows complete (18/18 catalog + price + health/migration).**
-- **Surface digests live: 30/30.** Storefront digests: **4/4.**
+- **Surface digests live: 30/30.** Storefront digests: **4/6 live** (wired 6; search/cart awaiting shadow).
 - Blazor SSR migration console (ops improvement).
 - No broad PHP cutover; route/job parity/shadow metrics remain 0%.
 - Digest dual-sample contract parity attached (migration baseline + live ASP.NET; `failed=0`, `cutoverAllowed=false`).
@@ -91,7 +91,7 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 
 100% on the weighted meter requires approved exact-route shadows where promoted, and **human** release-owner approval to remove PHP-FPM/cron/rewrites/source.
 
-**Confirmed live (2026-08-03 ops):** catalog **18/18**; surface digests **30/30**; storefront digests **4/4**; Blazor `/migration/console` **200**; digest dual-sample contract compare **pairsChecked=19 failed=0** (`docs/migration/evidence/surface-parity/digest-dual-sample-contract-result.json`). Chrome still PHP.
+**Confirmed live (2026-08-03 ops):** catalog **18/18**; surface digests **30/30**; storefront digests **4/6 live** (wired 6); Blazor `/migration/console` **200**; digest dual-sample contract compare **pairsChecked=19 failed=0** (`docs/migration/evidence/surface-parity/digest-dual-sample-contract-result.json`). Chrome still PHP.
 
 **Practically still pending before approval is honest:**
 

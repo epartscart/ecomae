@@ -3,7 +3,7 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "listStemCount": 25,
+  "listStemCount": 26,
   "stems": [
     "bos-audit-log",
     "bos-tenants",
@@ -29,7 +29,8 @@
     "erp-suppliers",
     "erp-warehouses",
     "storefront-garage",
-    "storefront-orders"
+    "storefront-orders",
+    "storefront-search"
   ],
   "requireNonemptyMigrationSentinel": true,
   "source": "scripts/compare_digest_dual_samples.py LIST_ITEM_FIELDS + generate_migration_digest_contract_samples.py",

@@ -24,10 +24,11 @@ bash scripts/cloudpanel_run_digest_dual_sample_operator.sh
 python3 scripts/validate_surface_digest_allowlist_sync.py
 ```
 
-Checked-in digest exact-route inventory (35 = surface 30 + storefront 4 + orders-digest):
+Checked-in digest exact-route inventory (37 = surface 30 + storefront 6 + orders-digest):
 `docs/migration/evidence/surface-parity/surface-digest-exact-routes.json`
 
 Expect `cutoverAllowed=false`. Never invent `RELEASE_OWNER_APPROVAL.md`.
+Live storefront digest shadows remain **4 / 6** until search/cart nginx install.
 
 ## CP menus item-field floor
 
@@ -42,7 +43,14 @@ and documented in `cp-menus-item-field-floor.json`.
 (`id`/`timeUnix`/`userId`/`status`/`paid`/…/`orderSum`). Documented in
 `cp-orders-item-field-floor.json`. Writes remain PHP OMS.
 
-## List digest item-field floor (25 stems)
+## Storefront search/cart item-field floors
+
+`storefront-search` locks non-empty `rows[]` offer fields; `storefront-cart` locks
+summary (`count`/`sum`) plus non-empty `lines[]`. Documented in
+`storefront-search-item-field-floor.json` and `storefront-cart-item-field-floor.json`.
+PHP part_search tabs/VIN and cart qty/checkout remain authoritative.
+
+## List digest item-field floor (26 stems)
 
 All list digests under `LIST_CONTRACTS` require non-empty migration item-field
 sentinels (`list-digest-item-field-floor.json`). Regenerate with:

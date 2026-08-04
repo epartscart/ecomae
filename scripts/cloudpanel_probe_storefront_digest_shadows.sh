@@ -17,8 +17,8 @@ if [[ ! -f "$EXAMPLE" ]]; then
 fi
 
 mapfile -t ROUTES < <(grep -E '^location = /storefront/' "$EXAMPLE" | sed -E 's/^location = ([^ {]+).*/\1/')
-if [[ "${#ROUTES[@]}" -ne 4 ]]; then
-  printf 'ERROR: expected 4 storefront digest routes, found %s\n' "${#ROUTES[@]}" >&2
+if [[ "${#ROUTES[@]}" -ne 6 ]]; then
+  printf 'ERROR: expected 6 storefront digest routes, found %s\n' "${#ROUTES[@]}" >&2
   exit 1
 fi
 
@@ -76,7 +76,7 @@ for route in "${ROUTES[@]}"; do
 done
 
 printf '\nSummary: PASS=%s FAIL=%s TOTAL=%s\n' "$pass" "$fail" "${#ROUTES[@]}"
-if [[ "$fail" -gt 0 ]] || [[ "$pass" -ne 4 ]]; then
+if [[ "$fail" -gt 0 ]] || [[ "$pass" -ne 6 ]]; then
   exit 1
 fi
 printf 'OK: all %s storefront digest exact-routes return ASP.NET JSON auth gate on %s\n' "$pass" "$BASE"

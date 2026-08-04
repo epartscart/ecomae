@@ -48,6 +48,10 @@ SUMMARY_CONTRACTS = {
         "summary",
         "open,today,pendingShip,source,message",
     ),
+    "storefront-cart": (
+        "summary",
+        "count,sum,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -85,6 +89,7 @@ LIST_CONTRACTS = {
     "bos-audit-log": "entries",
     "storefront-orders": "orders",
     "storefront-garage": "vehicles",
+    "storefront-search": "rows",
 }
 
 # Item-field contracts mirrored from SurfacePayloadContractCatalog / www-surface-field-parity.json.
@@ -267,6 +272,17 @@ LIST_ITEM_FIELDS = {
     "bos-audit-log": ["id", "ts", "userId", "actor", "area", "action", "target", "ip"],
     "storefront-orders": ["id", "timeUnix", "paid", "successfullyCreated", "status"],
     "storefront-garage": ["id", "caption", "marka", "model", "year", "vin", "active"],
+    "storefront-search": [
+        "priceId",
+        "priceList",
+        "manufacturer",
+        "article",
+        "articleShow",
+        "name",
+        "price",
+        "exist",
+        "storage",
+    ],
 }
 LIST_NONEMPTY_MIGRATION = frozenset(LIST_ITEM_FIELDS)
 
@@ -300,6 +316,22 @@ HYBRID_LIST_ITEM_FIELDS = {
             "erpOnly",
             "isActive",
             "hasDb",
+        ],
+    ),
+    "storefront-cart": (
+        "lines",
+        [
+            "id",
+            "price",
+            "countNeed",
+            "checkedForOrder",
+            "productType",
+            "manufacturer",
+            "article",
+            "name",
+            "timeToExe",
+            "timeToExeGuaranteed",
+            "minOrder",
         ],
     ),
 }

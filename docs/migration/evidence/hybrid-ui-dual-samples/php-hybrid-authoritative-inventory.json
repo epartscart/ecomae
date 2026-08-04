@@ -202,13 +202,13 @@
     {
       "stem": "sf-search",
       "appRoute": "/storefront/search-app",
-      "digestRoute": null,
+      "digestRoute": "/storefront/search",
       "phpAuthoritativePath": "https://epartscart.com/shop/part_search"
     },
     {
       "stem": "sf-cart",
       "appRoute": "/storefront/cart-app",
-      "digestRoute": null,
+      "digestRoute": "/storefront/cart",
       "phpAuthoritativePath": "https://epartscart.com/shop/cart"
     },
     {

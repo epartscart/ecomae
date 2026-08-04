@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "surface": "storefront",
+  "article": "0986424590",
+  "rows": [
+    {
+      "priceId": 1,
+      "priceList": "migration",
+      "manufacturer": "BOSCH",
+      "article": "0986424590",
+      "articleShow": "0 986 424 590",
+      "name": "Migration offer",
+      "price": 0.0,
+      "exist": 0,
+      "storage": "MAIN"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "session": {
+    "kind": "Customer",
+    "user_id": 9
+  },
+  "note": "migration-mode contract sample; rows[] item-field sentinel locked; PHP /shop/part_search remains authoritative; cutoverAllowed=false",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

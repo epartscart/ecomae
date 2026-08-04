@@ -1,9 +1,9 @@
 {
-  "pairsChecked": 37,
+  "pairsChecked": 40,
   "failed": 0,
   "migrationBaselinePairs": 0,
-  "contractsRegistered": 35,
-  "stemsChecked": 35,
+  "contractsRegistered": 37,
+  "stemsChecked": 37,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "contractOnly": true,
@@ -32,7 +32,8 @@
     "erp-suppliers",
     "erp-warehouses",
     "storefront-garage",
-    "storefront-orders"
+    "storefront-orders",
+    "storefront-search"
   ],
   "listNonemptyMigrationStems": [
     "bos-audit-log",
@@ -59,11 +60,13 @@
     "erp-suppliers",
     "erp-warehouses",
     "storefront-garage",
-    "storefront-orders"
+    "storefront-orders",
+    "storefront-search"
   ],
   "hybridListItemFieldStems": [
     "bos-fleet-health",
-    "cp-orders-digest"
+    "cp-orders-digest",
+    "storefront-cart"
   ],
-  "note": "Digest dual-sample contract floor. All list digests require non-empty migration item-field sentinels; cp-orders-digest also locks orders[] items. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "Digest dual-sample contract floor. All list digests require non-empty migration item-field sentinels; hybrid summary digests also lock cp-orders-digest orders[] and bos-fleet-health sampleTenants[]. Never invents RELEASE_OWNER_APPROVAL.md."
 }
