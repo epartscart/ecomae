@@ -952,6 +952,7 @@ public static class SurfacePayloadContractCatalog
         new("storefront", "cart Blazor summary", "/storefront/cart-app", "digest-wired-awaiting-dual-sample", "Read UI over /storefront/cart digest; qty/guest cart/checkout writes remain PHP."),
         new("storefront", "cart qty write dry-run", "/storefront/cart/change-count-need", "write-dry-run-gated", "POST dry-run for ajax_change_count_need.php type-2; writes=0; confirm_writes refused; PHP authoritative."),
         new("storefront", "cart check-for-order dry-run", "/storefront/cart/check-for-order", "write-dry-run-gated", "POST dry-run for ajax_check_for_order.php; writes=0; confirm_writes refused; PHP authoritative."),
+        new("storefront", "cart delete dry-run", "/storefront/cart/delete", "write-dry-run-gated", "POST dry-run for ajax_delete_cart_record.php type-2; writes=0; confirm_writes refused; PHP authoritative."),
         new("cp", "OMS set-item-status dry-run", "/cp/orders/set-item-status", "write-dry-run-gated", "POST dry-run for ajax_epc_orders_oms.php set_item_status; writes=0; confirm_writes refused; PHP authoritative."),
         new("storefront", "checkout readiness Blazor", "/storefront/checkout-app", "digest-wired-awaiting-dual-sample", "Wave B read scaffold over /storefront/checkout; how_get/confirm/payment remain PHP."),
         new("storefront", "orders Blazor list", "/storefront/orders-app", "digest-wired-awaiting-dual-sample", "Read UI over /storefront/orders digest; PHP /shop/orders remains authoritative for detail/reorder; live storefront stays PHP."),

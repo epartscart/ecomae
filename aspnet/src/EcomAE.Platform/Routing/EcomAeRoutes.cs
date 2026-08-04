@@ -557,6 +557,8 @@ public static class EcomAeRoutes
     public const string StorefrontCartChangeCountNeed = "/storefront/cart/change-count-need";
     /// <summary>Wave B dry-run cart checked_for_order toggle (PHP ajax_check_for_order.php remains authoritative).</summary>
     public const string StorefrontCartCheckForOrder = "/storefront/cart/check-for-order";
+    /// <summary>Wave B dry-run cart delete (PHP ajax_delete_cart_record.php remains authoritative).</summary>
+    public const string StorefrontCartDelete = "/storefront/cart/delete";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
