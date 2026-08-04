@@ -501,19 +501,35 @@ def main() -> None:
             "ok": True,
             "surface": "bos",
             "summary": {
-                "portalTenants": 0,
-                "activePortalTenants": 0,
+                "portalTenants": 1,
+                "activePortalTenants": 1,
                 "adminSessions": 0,
-                "withDatabase": 0,
+                "withDatabase": 1,
                 "erpOnly": 0,
                 "source": "migration",
                 "message": "TenantRegistry DB is not configured.",
             },
-            "sampleTenants": [],
+            "sampleTenants": [
+                {
+                    "siteKey": "www",
+                    "hostname": "www.ecomae.com",
+                    "industryCode": "auto",
+                    "status": "active",
+                    "tradeName": "EcomAE",
+                    "hubName": "hub",
+                    "hostedOn": "cloudpanel",
+                    "erpOnly": False,
+                    "isActive": True,
+                    "hasDb": True,
+                }
+            ],
             "source": "migration",
             "message": "TenantRegistry DB is not configured.",
             "session": {"kind": "Admin", "user_id": 1},
-            "note": "migration-mode contract sample; PHP remains authoritative",
+            "note": (
+                "migration-mode contract sample; sampleTenants[] item-field sentinel locked; "
+                "PHP remains authoritative"
+            ),
         },
         "storefront-orders.json": {
             "ok": True,

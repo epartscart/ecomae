@@ -1,0 +1,23 @@
+{
+  "role": "bos-fleet-health-sample-tenants-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "bos-fleet-health",
+  "collectionKey": "sampleTenants",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredItemFields": [
+    "siteKey",
+    "hostname",
+    "industryCode",
+    "status",
+    "tradeName",
+    "hubName",
+    "hostedOn",
+    "erpOnly",
+    "isActive",
+    "hasDb"
+  ],
+  "source": "PortalTenantDigest",
+  "note": "BOS fleet-health migration golden keeps a non-empty sampleTenants[] sentinel matching PortalTenantDigest. Live empty samples remain valid at runtime. Never invents RELEASE_OWNER_APPROVAL.md."
+}

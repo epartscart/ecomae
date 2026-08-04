@@ -969,6 +969,10 @@ check 'cp orders item-field floor evidence exists' test -f "$ROOT/docs/migration
 check 'cp orders item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-orders-item-field-floor.json" '"cutoverAllowed": false'
 check 'cp orders migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-orders-digest.json" '"orderSum": 0.0'
 check 'digest dual-sample locks cp-orders hybrid list items' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'HYBRID_LIST_ITEM_FIELDS'
+check 'digest dual-sample locks bos-fleet-health sampleTenants' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'bos-fleet-health'
+check 'bos fleet-health sampleTenants floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/bos-fleet-health-sample-tenants-floor.json"
+check 'bos fleet-health sampleTenants floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/bos-fleet-health-sample-tenants-floor.json" '"cutoverAllowed": false'
+check 'bos fleet-health migration golden has sample tenant sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/bos-fleet-health.json" '"siteKey": "www"'
 check 'catalog manufacturers contract requires MFA_ID' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'MFA_ID'
 check 'catalog manufacturers migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-manufacturers.json" '"MFA_ID": 1'
 check 'catalog api contract floor locks manufacturer item fields' contains "$ROOT/scripts/compare_catalog_api_contract_floor.py" 'LIST_ITEM_FIELDS'
