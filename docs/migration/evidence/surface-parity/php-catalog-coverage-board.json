@@ -32,40 +32,40 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 142,
-    "php-only-deeplink": 584
+    "digest-contract": 194,
+    "php-only-deeplink": 532
   },
   "coverageByKind": {
     "bos-module": {
-      "php-only-deeplink": 68,
-      "digest-contract": 31
+      "php-only-deeplink": 62,
+      "digest-contract": 37
     },
     "bos-section": {
       "digest-contract": 4,
       "php-only-deeplink": 7
     },
     "cp-feature": {
-      "digest-contract": 76,
-      "php-only-deeplink": 329
+      "digest-contract": 101,
+      "php-only-deeplink": 304
     },
     "erp-area": {
-      "digest-contract": 8,
-      "php-only-deeplink": 27
+      "digest-contract": 14,
+      "php-only-deeplink": 21
     },
     "erp-category": {
-      "digest-contract": 6,
-      "php-only-deeplink": 3
+      "digest-contract": 7,
+      "php-only-deeplink": 2
     },
     "erp-tab": {
-      "digest-contract": 11,
-      "php-only-deeplink": 143
+      "digest-contract": 25,
+      "php-only-deeplink": 129
     },
     "storefront-surface": {
       "php-only-deeplink": 7,
       "digest-contract": 6
     }
   },
-  "digestContractRouteCount": 70,
+  "digestContractRouteCount": 74,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -790,10 +790,10 @@
       "kind": "erp-area",
       "label": "Human resources",
       "phpPath": "/ERP/?epc_erp_shell=1&area=people",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -801,10 +801,10 @@
       "kind": "erp-tab",
       "label": "Workers",
       "phpPath": "/ERP/?epc_erp_shell=1&area=people&tab=staff",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -812,10 +812,10 @@
       "kind": "erp-tab",
       "label": "HR",
       "phpPath": "/ERP/?epc_erp_shell=1&area=people&tab=hr",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -823,10 +823,10 @@
       "kind": "erp-tab",
       "label": "HR operations",
       "phpPath": "/ERP/?epc_erp_shell=1&area=people&tab=hr_ops",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -834,10 +834,10 @@
       "kind": "erp-tab",
       "label": "Recruitment",
       "phpPath": "/ERP/?epc_erp_shell=1&area=people&tab=recruitment",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -845,10 +845,10 @@
       "kind": "erp-tab",
       "label": "Performance management",
       "phpPath": "/ERP/?epc_erp_shell=1&area=people&tab=performance",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1076,10 +1076,10 @@
       "kind": "erp-area",
       "label": "Leave and absence",
       "phpPath": "/ERP/?epc_erp_shell=1&area=leave_abs",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1087,10 +1087,10 @@
       "kind": "erp-tab",
       "label": "HR operations",
       "phpPath": "/ERP/?epc_erp_shell=1&area=leave_abs&tab=hr_ops",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1241,10 +1241,10 @@
       "kind": "erp-area",
       "label": "Payroll",
       "phpPath": "/ERP/?epc_erp_shell=1&area=payroll_area",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1252,10 +1252,10 @@
       "kind": "erp-tab",
       "label": "Payroll",
       "phpPath": "/ERP/?epc_erp_shell=1&area=payroll_area&tab=payroll",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1417,10 +1417,10 @@
       "kind": "erp-area",
       "label": "Production control",
       "phpPath": "/ERP/?epc_erp_shell=1&area=production",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/production-overview",
+      "aspnetRoute": "/cp/production-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1428,10 +1428,10 @@
       "kind": "erp-tab",
       "label": "Production",
       "phpPath": "/ERP/?epc_erp_shell=1&area=production&tab=manufacturing",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/production-overview",
+      "aspnetRoute": "/cp/production-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1439,10 +1439,10 @@
       "kind": "erp-tab",
       "label": "Production planning",
       "phpPath": "/ERP/?epc_erp_shell=1&area=production&tab=mfg_planning",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/production-overview",
+      "aspnetRoute": "/cp/production-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1450,10 +1450,10 @@
       "kind": "erp-tab",
       "label": "Quality management",
       "phpPath": "/ERP/?epc_erp_shell=1&area=production&tab=quality",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/production-overview",
+      "aspnetRoute": "/cp/production-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1461,10 +1461,10 @@
       "kind": "erp-area",
       "label": "Project management and accounting",
       "phpPath": "/ERP/?epc_erp_shell=1&area=projects",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1472,10 +1472,10 @@
       "kind": "erp-tab",
       "label": "Projects",
       "phpPath": "/ERP/?epc_erp_shell=1&area=projects&tab=projects",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1483,10 +1483,10 @@
       "kind": "erp-tab",
       "label": "Project accounting",
       "phpPath": "/ERP/?epc_erp_shell=1&area=projects&tab=project_accounting",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1725,10 +1725,10 @@
       "kind": "erp-area",
       "label": "Service management",
       "phpPath": "/ERP/?epc_erp_shell=1&area=service_mgmt",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1736,10 +1736,10 @@
       "kind": "erp-tab",
       "label": "Contracts & e-sign",
       "phpPath": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=contracts",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -1747,10 +1747,10 @@
       "kind": "erp-tab",
       "label": "After-sales RMA",
       "phpPath": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=aftersales",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -2220,10 +2220,10 @@
       "kind": "erp-category",
       "label": "HR & Payroll",
       "phpPath": "/ERP/?epc_erp_shell=1&area=people",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -2616,10 +2616,10 @@
       "kind": "bos-module",
       "label": "Payroll",
       "phpPath": "/CP/shop/finance/epc_wps_payroll",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -2704,10 +2704,10 @@
       "kind": "bos-module",
       "label": "Industry Packs",
       "phpPath": "/CP/control/portal/epc_industry_packs",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/industry-packs",
+      "aspnetRoute": "/cp/industry-packs-app",
       "aspnetComplete": false
     },
     {
@@ -3276,10 +3276,10 @@
       "kind": "bos-module",
       "label": "Human Resources",
       "phpPath": "/ERP/?epc_erp_shell=1&area=people",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -3287,10 +3287,10 @@
       "kind": "bos-module",
       "label": "Payroll",
       "phpPath": "/ERP/?epc_erp_shell=1&area=payroll",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -3298,10 +3298,10 @@
       "kind": "bos-module",
       "label": "Production",
       "phpPath": "/ERP/?epc_erp_shell=1&area=production",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/production-overview",
+      "aspnetRoute": "/cp/production-overview-app",
       "aspnetComplete": false
     },
     {
@@ -3309,10 +3309,10 @@
       "kind": "bos-module",
       "label": "Projects",
       "phpPath": "/ERP/?epc_erp_shell=1&area=projects",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -3617,10 +3617,10 @@
       "kind": "cp-feature",
       "label": "Industry settings & deploy",
       "phpPath": "/CP/control/portal/industry_settings",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/industry-packs",
+      "aspnetRoute": "/cp/industry-packs-app",
       "aspnetComplete": false
     },
     {
@@ -3628,10 +3628,10 @@
       "kind": "cp-feature",
       "label": "Modular ERP access",
       "phpPath": "/CP/control/portal/industry_settings",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/industry-packs",
+      "aspnetRoute": "/cp/industry-packs-app",
       "aspnetComplete": false
     },
     {
@@ -3991,10 +3991,10 @@
       "kind": "cp-feature",
       "label": "Industry settings",
       "phpPath": "/CP/control/portal/industry_settings",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/industry-packs",
+      "aspnetRoute": "/cp/industry-packs-app",
       "aspnetComplete": false
     },
     {
@@ -4024,10 +4024,10 @@
       "kind": "cp-feature",
       "label": "Autoworkshop guide",
       "phpPath": "/CP/control/portal/epc_autoworkshop_guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/industry-packs",
+      "aspnetRoute": "/cp/industry-packs-app",
       "aspnetComplete": false
     },
     {
@@ -5938,10 +5938,10 @@
       "kind": "cp-feature",
       "label": "Human resources: HR",
       "phpPath": "/CP/shop/finance/erp?area=people&tab=hr&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -5949,10 +5949,10 @@
       "kind": "cp-feature",
       "label": "Human resources: HR operations",
       "phpPath": "/CP/shop/finance/erp?area=people&tab=hr_ops&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -5971,10 +5971,10 @@
       "kind": "cp-feature",
       "label": "Human resources: Performance management",
       "phpPath": "/CP/shop/finance/erp?area=people&tab=performance&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -5982,10 +5982,10 @@
       "kind": "cp-feature",
       "label": "Human resources: Recruitment",
       "phpPath": "/CP/shop/finance/erp?area=people&tab=recruitment&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -5993,10 +5993,10 @@
       "kind": "cp-feature",
       "label": "Human resources: Workers",
       "phpPath": "/CP/shop/finance/erp?area=people&tab=staff&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -6169,10 +6169,10 @@
       "kind": "cp-feature",
       "label": "Leave and absence: HR operations",
       "phpPath": "/CP/shop/finance/erp?area=leave_abs&tab=hr_ops&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -6279,10 +6279,10 @@
       "kind": "cp-feature",
       "label": "Payroll: Payroll",
       "phpPath": "/CP/shop/finance/erp?area=payroll_area&tab=payroll&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
       "aspnetComplete": false
     },
     {
@@ -6422,10 +6422,10 @@
       "kind": "cp-feature",
       "label": "Production control: Production",
       "phpPath": "/CP/shop/finance/erp?area=production&tab=manufacturing&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/production-overview",
+      "aspnetRoute": "/cp/production-overview-app",
       "aspnetComplete": false
     },
     {
@@ -6433,10 +6433,10 @@
       "kind": "cp-feature",
       "label": "Production control: Production planning",
       "phpPath": "/CP/shop/finance/erp?area=production&tab=mfg_planning&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/production-overview",
+      "aspnetRoute": "/cp/production-overview-app",
       "aspnetComplete": false
     },
     {
@@ -6444,10 +6444,10 @@
       "kind": "cp-feature",
       "label": "Production control: Quality management",
       "phpPath": "/CP/shop/finance/erp?area=production&tab=quality&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/production-overview",
+      "aspnetRoute": "/cp/production-overview-app",
       "aspnetComplete": false
     },
     {
@@ -6455,10 +6455,10 @@
       "kind": "cp-feature",
       "label": "Project management and accounting: Project accounting",
       "phpPath": "/CP/shop/finance/erp?area=projects&tab=project_accounting&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -6466,10 +6466,10 @@
       "kind": "cp-feature",
       "label": "Project management and accounting: Projects",
       "phpPath": "/CP/shop/finance/erp?area=projects&tab=projects&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -6675,10 +6675,10 @@
       "kind": "cp-feature",
       "label": "Service management: After-sales RMA",
       "phpPath": "/CP/shop/finance/erp?area=service_mgmt&tab=aftersales&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -6686,10 +6686,10 @@
       "kind": "cp-feature",
       "label": "Service management: Contracts & e-sign",
       "phpPath": "/CP/shop/finance/erp?area=service_mgmt&tab=contracts&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -7709,10 +7709,10 @@
       "kind": "cp-feature",
       "label": "Packs manager",
       "phpPath": "/CP/packs/packs_manager",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/industry-packs",
+      "aspnetRoute": "/cp/industry-packs-app",
       "aspnetComplete": false
     },
     {
@@ -7775,10 +7775,10 @@
       "kind": "cp-feature",
       "label": "CP module packs per industry",
       "phpPath": "/CP/control/portal/industry_settings",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/industry-packs",
+      "aspnetRoute": "/cp/industry-packs-app",
       "aspnetComplete": false
     },
     {
@@ -7830,10 +7830,10 @@
       "kind": "cp-feature",
       "label": "Auto spare parts template",
       "phpPath": "/CP/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/industry-packs",
+      "aspnetRoute": "/cp/industry-packs-app",
       "aspnetComplete": false
     },
     {
@@ -7841,10 +7841,10 @@
       "kind": "cp-feature",
       "label": "Consultancy & services template",
       "phpPath": "/CP/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {
@@ -7863,10 +7863,10 @@
       "kind": "cp-feature",
       "label": "Fashion & beauty template",
       "phpPath": "/CP/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/industry-packs",
+      "aspnetRoute": "/cp/industry-packs-app",
       "aspnetComplete": false
     },
     {
@@ -7885,10 +7885,10 @@
       "kind": "cp-feature",
       "label": "Medical supplies template",
       "phpPath": "/CP/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/industry-packs",
+      "aspnetRoute": "/cp/industry-packs-app",
       "aspnetComplete": false
     },
     {
@@ -7896,10 +7896,10 @@
       "kind": "cp-feature",
       "label": "Rental operations template",
       "phpPath": "/CP/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/projects-overview",
+      "aspnetRoute": "/cp/projects-overview-app",
       "aspnetComplete": false
     },
     {

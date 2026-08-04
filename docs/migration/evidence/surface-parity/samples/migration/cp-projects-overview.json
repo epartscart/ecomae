@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "openProjects": 1,
+    "taskCount": 0,
+    "contractCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; projects[] sentinel; timesheet rates omitted; PHP projects authoritative; cutoverAllowed=false",
+  "projects": [
+    {
+      "id": 1,
+      "code": "PRJ-1",
+      "name": "Migration Project",
+      "status": "open",
+      "billingType": "fixed",
+      "contractValue": 1000.0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

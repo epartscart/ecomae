@@ -714,6 +714,79 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>HR overview KPIs — omits salary/allowances/currency/payslip detail.</summary>
+    public const string SelectCpHrStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_hr_employees` WHERE IFNULL(`status`,'')='active') AS active_employees,
+            (SELECT COUNT(*) FROM `epc_hr_leave` WHERE IFNULL(`status`,'')='pending') AS pending_leave,
+            (SELECT COUNT(*) FROM `epc_hr_payroll_runs`) AS payroll_runs,
+            (SELECT COUNT(*) FROM `epc_hr_attendance`) AS attendance_rows
+        """;
+
+    /// <summary>HR employees — omits salary/allowances/currency/payslip detail.</summary>
+    public const string SelectCpHrEmployees = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`department`,'') AS department, IFNULL(`status`,'') AS status,
+               IFNULL(`join_date`,0) AS join_date
+        FROM `epc_hr_employees`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Production overview KPIs — omits cost columns.</summary>
+    public const string SelectCpProductionStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_mfg_bom` WHERE IFNULL(`active`,0)=1) AS bom_count,
+            (SELECT COUNT(*) FROM `epc_mfg_work_orders` WHERE `status` IN ('planned','in_progress')) AS open_work_orders,
+            (SELECT COUNT(*) FROM `epc_mfg_work_orders` WHERE `status`='completed') AS completed_work_orders
+        """;
+
+    /// <summary>Production work orders — omits cost columns.</summary>
+    public const string SelectCpProductionWorkOrders = """
+        SELECT `id`, IFNULL(`wo_no`,'') AS wo_no, IFNULL(`status`,'') AS status,
+               IFNULL(`qty_planned`,0) AS qty_planned, IFNULL(`qty_produced`,0) AS qty_produced,
+               IFNULL(`time_updated`,0) AS updated_at
+        FROM `epc_mfg_work_orders`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Projects overview KPIs — omits timesheet rates; includes contract count.</summary>
+    public const string SelectCpProjectsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_prj_projects` WHERE IFNULL(`status`,'')='open') AS open_projects,
+            (SELECT COUNT(*) FROM `epc_prj_tasks`) AS task_count,
+            (SELECT COUNT(*) FROM `epc_con_contracts`) AS contract_count
+        """;
+
+    /// <summary>Projects list — omits timesheet rates.</summary>
+    public const string SelectCpProjects = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`status`,'') AS status, IFNULL(`billing_type`,'') AS billing_type,
+               IFNULL(`contract_value`,0) AS contract_value
+        FROM `epc_prj_projects`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Industry pack KPIs — omits JSON blobs.</summary>
+    public const string SelectCpIndustryPackStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_industry_packs`) AS pack_count,
+            (SELECT COUNT(*) FROM `epc_industry_packs` WHERE IFNULL(`active`,0)=1) AS active_packs,
+            (SELECT COUNT(*) FROM `epc_tenant_pack_assignments`) AS assignments
+        """;
+
+    /// <summary>Industry packs — omits modules/gl_template/tax_rules/theme/product_attrs JSON.</summary>
+    public const string SelectCpIndustryPacks = """
+        SELECT `id`, IFNULL(`pack_key`,'') AS pack_key, IFNULL(`name`,'') AS name,
+               IFNULL(`description`,'') AS description, IFNULL(`icon`,'') AS icon,
+               IFNULL(`active`,0) AS active
+        FROM `epc_industry_packs`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
     /// <summary>
     /// Batch 4 storefront part search (mirrors pyapi <c>part_search</c> / warehouse offers).
     /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.

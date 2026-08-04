@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "bomCount": 1,
+    "openWorkOrders": 1,
+    "completedWorkOrders": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; workOrders[] sentinel; cost columns omitted; PHP production authoritative; cutoverAllowed=false",
+  "workOrders": [
+    {
+      "id": 1,
+      "woNo": "WO-1",
+      "status": "planned",
+      "qtyPlanned": 10.0,
+      "qtyProduced": 0.0,
+      "updatedAt": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

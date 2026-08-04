@@ -113,6 +113,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only article cross pairs.</summary>
     Task<CpCrossesDigestResult> BuildCpCrossesDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only HR KPIs + employees (salary/allowances/currency/payslip omitted).</summary>
+    Task<CpHrOverviewDigestResult> BuildCpHrOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only production KPIs + work orders (cost columns omitted).</summary>
+    Task<CpProductionOverviewDigestResult> BuildCpProductionOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only projects KPIs + projects (timesheet rates omitted).</summary>
+    Task<CpProjectsOverviewDigestResult> BuildCpProjectsOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only industry packs (JSON blobs omitted).</summary>
+    Task<CpIndustryPacksDigestResult> BuildCpIndustryPacksDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

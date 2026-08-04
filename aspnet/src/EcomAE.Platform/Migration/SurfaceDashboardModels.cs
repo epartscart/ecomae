@@ -809,6 +809,95 @@ public sealed record CpCrossesDigestResult(
     string Source,
     string Message);
 
+public sealed record CpHrOverviewSummary(
+    int ActiveEmployees,
+    int PendingLeave,
+    int PayrollRuns,
+    int AttendanceRows,
+    string Source,
+    string Message);
+
+public sealed record CpHrEmployeeDigest(
+    long Id,
+    string Code,
+    string Name,
+    string Department,
+    string Status,
+    long JoinDate);
+
+public sealed record CpHrOverviewDigestResult(
+    CpHrOverviewSummary Summary,
+    IReadOnlyList<CpHrEmployeeDigest> Employees,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpProductionOverviewSummary(
+    int BomCount,
+    int OpenWorkOrders,
+    int CompletedWorkOrders,
+    string Source,
+    string Message);
+
+public sealed record CpProductionWorkOrderDigest(
+    long Id,
+    string WoNo,
+    string Status,
+    decimal QtyPlanned,
+    decimal QtyProduced,
+    long UpdatedAt);
+
+public sealed record CpProductionOverviewDigestResult(
+    CpProductionOverviewSummary Summary,
+    IReadOnlyList<CpProductionWorkOrderDigest> WorkOrders,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpProjectsOverviewSummary(
+    int OpenProjects,
+    int TaskCount,
+    int ContractCount,
+    string Source,
+    string Message);
+
+public sealed record CpProjectDigest(
+    long Id,
+    string Code,
+    string Name,
+    string Status,
+    string BillingType,
+    decimal ContractValue);
+
+public sealed record CpProjectsOverviewDigestResult(
+    CpProjectsOverviewSummary Summary,
+    IReadOnlyList<CpProjectDigest> Projects,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpIndustryPacksSummary(
+    int PackCount,
+    int ActivePacks,
+    int Assignments,
+    string Source,
+    string Message);
+
+public sealed record CpIndustryPackDigest(
+    long Id,
+    string PackKey,
+    string Name,
+    string Description,
+    string Icon,
+    bool Active);
+
+public sealed record CpIndustryPacksDigestResult(
+    CpIndustryPacksSummary Summary,
+    IReadOnlyList<CpIndustryPackDigest> Packs,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontPartOfferDigest(
     int PriceId,
     string PriceList,

@@ -1,0 +1,26 @@
+{
+  "role": "cp-projects-overview-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-projects-overview",
+  "collectionKey": "projects",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "openProjects",
+    "taskCount",
+    "contractCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "code",
+    "name",
+    "status",
+    "billingType",
+    "contractValue"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks projects overview digest summary+projects[] floors. Timesheet rates omitted. PHP projects shell remains authoritative. cutoverAllowed=false."
+}
