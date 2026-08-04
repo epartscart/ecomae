@@ -28,12 +28,17 @@ public sealed class LiveTenantPresentationLockTests
     }
 
     [Fact]
-    public void SummaryKeepsCutoverClosed()
+    public void SummaryKeepsCutoverClosedButTargetsAspNet()
     {
         var summary = LiveTenantPresentationLock.BuildSummary();
         Assert.Equal(false, summary["cutoverAllowed"]);
         Assert.Equal(false, summary["readyForPhpRemoval"]);
         Assert.Equal(5, summary["tenantCount"]);
+        Assert.Equal("100%-aspnet-core-0-php", summary["targetEndState"]);
+        Assert.Equal("parity-gate-until-aspnet-same-to-same-then-cutover", summary["policy"]);
+        Assert.Contains("100% ASP.NET", summary["mandate"]!.ToString()!, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("same-to-same", summary["mandate"]!.ToString()!, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW", summary["parityShadowConfirmEnv"]);
+        Assert.NotEmpty((IReadOnlyList<string>)summary["unlockCriteria"]!);
     }
 }

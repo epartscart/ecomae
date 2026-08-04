@@ -128,7 +128,8 @@
     <strong>Safety:</strong> Tenant hosts (<code>epartscart.com</code> / <code>www.epartscart.com</code>) must keep PHP chrome.
     ASP.NET <code>/cp/app</code>, <code>/health</code>, digests on tenants should stay <strong>404</strong>.
     Compare ASP.NET only on <code>www.ecomae.com</code>.
-    Locks: <code>cutoverAllowed=false</code>, <code>readyForPhpRemoval=false</code>.
+    Target: <strong>100% ASP.NET / 0 PHP</strong>. Interim locks: <code>cutoverAllowed=false</code>, <code>readyForPhpRemoval=false</code> until dual-sample + approval.
+    Path: <a href="/migration/aspnet-zero-php-path">/migration/aspnet-zero-php-path</a>.
 </div>
 
 <div class="meter">
@@ -167,7 +168,7 @@
                 <td>Marketing</td>
                 <td><a href="https://www.ecomae.com/" target="_blank" rel="noopener">www.ecomae.com/</a></td>
                 <td><span class="stack php">PHP</span></td>
-                <td>Brand hero, motion, first viewport</td>
+                <td>Animated <code>epm-hub</code> (matrix/orbit/flow) + all marketing pages — authoritative</td>
             </tr>
             <tr>
                 <td>CP</td>
@@ -245,13 +246,22 @@
                     <a href="https://www.ecomae.com/storefront/cart-app" target="_blank" rel="noopener">cart-app</a>
                 </td>
             </tr>
+            <tr>
+                <td>Marketing (ecomae.com)</td>
+                <td><a href="https://www.ecomae.com/marketing/app" target="_blank" rel="noopener">/marketing/app</a> <span class="stack aspnet">ASP.NET</span></td>
+                <td>—</td>
+                <td>
+                    Animated <code>epm-hub</code> preview · hybrid page directory ·
+                    live <a href="https://www.ecomae.com/" target="_blank" rel="noopener">www.ecomae.com/</a> stays PHP
+                </td>
+            </tr>
         </tbody>
     </table>
 </section>
 
 <section class="section">
-    <h2>3. Tenant ePartsCart — PHP only (same-to-same)</h2>
-    <p>Tenant product chrome must match PHP look/feel. ASP.NET must not take over these hosts.</p>
+    <h2>3. Tenant ePartsCart — PHP-primary until ASP.NET parity (same-to-same)</h2>
+    <p>Target is ASP.NET cutover. Until dual-sample same-to-same, product chrome stays PHP so tenants feel zero change. Unlock parity shadows with <code>ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES</code>.</p>
     <table class="compare">
         <thead>
             <tr>

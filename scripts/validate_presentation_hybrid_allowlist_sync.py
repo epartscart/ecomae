@@ -14,7 +14,7 @@ from pathlib import Path
 
 NGINX_LOC_RE = re.compile(r"^\s*location\s+=\s+(\S+)\s*\{", re.M)
 ROUTE_CONST_RE = re.compile(
-    r'public const string \w+\s*=\s*"(/(?:cp|erp|bos|storefront)/[^"]+|/(?:auth/login/admin))";'
+    r'public const string \w+\s*=\s*"(/(?:cp|erp|bos|storefront|marketing)/[^"]+|/(?:auth/login/admin))";'
 )
 EXPECTED_RE = re.compile(r"^\s*expected\s*=\s*(\d+)\b", re.M)
 HYBRID_ROUTE_RE = re.compile(r'\(\s*"[^"]+"\s*,\s*"[^"]+"\s*,\s*"(/[^"]+)"')
@@ -29,6 +29,7 @@ SHELLS_LOGINS_AUTH = frozenset(
         "/erp/app",
         "/bos/app",
         "/storefront/app",
+        "/marketing/app",
         "/cp/login",
         "/erp/login",
         "/bos/login",

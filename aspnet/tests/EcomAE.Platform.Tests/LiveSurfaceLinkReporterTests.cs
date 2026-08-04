@@ -164,7 +164,14 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Equal(4, report.Links.Count(link =>
             link.HostClass == "aspnet-exact-route-shadow-live"
             && link.AspNetRouteHint.StartsWith("/storefront/", StringComparison.Ordinal)));
-        Assert.Equal(139, report.Links.Count(link => link.HostClass == "aspnet-presentation-preview"));
+        Assert.Equal(140, report.Links.Count(link => link.HostClass == "aspnet-presentation-preview"));
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/marketing/app"
+            && link.StackToday == "aspnet");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/migration/marketing-presentation-lock");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/cp/audit-trail-app");
@@ -504,12 +511,15 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_live_tenant_php_chrome.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("TENANT_MIGRATION_SAFETY.md", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action =>
-            action.Contains("HARD-REFUSE", StringComparison.OrdinalIgnoreCase)
-            || action.Contains("LIVE LOCK", StringComparison.OrdinalIgnoreCase)
-            || action.Contains("named live tenants", StringComparison.OrdinalIgnoreCase));
+            action.Contains("ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW", StringComparison.Ordinal)
+            || action.Contains("named live tenants", StringComparison.OrdinalIgnoreCase)
+            || action.Contains("aspnet-zero-php-path", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link =>
             link.AspNetRouteHint == "/migration/live-tenant-presentation-lock");
-        Assert.Contains(report.CutoverRules, note => note.Contains("ABSOLUTE PRESENTATION LOCK", StringComparison.Ordinal));
+        Assert.Contains(report.Links, link =>
+            link.AspNetRouteHint == "/migration/aspnet-zero-php-path");
+        Assert.Contains(report.CutoverRules, note => note.Contains("PARITY GATE", StringComparison.Ordinal)
+            && note.Contains("100% ASP.NET", StringComparison.Ordinal));
     }
 
     [Fact]

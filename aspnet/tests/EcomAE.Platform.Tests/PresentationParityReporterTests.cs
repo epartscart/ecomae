@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EcomAE.Platform.Presentation;
@@ -17,6 +18,9 @@ public sealed class PresentationParityReporterTests
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "erp");
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "bos" && surface.LegacyChromeSource.Contains("epc_bos_shell", StringComparison.Ordinal));
         Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "storefront");
+        Assert.Contains(report.Surfaces, surface => surface.SurfaceKey == "marketing"
+            && surface.AspNetShellRoute == "/marketing/app"
+            && surface.Stylesheets.Any(href => href.Contains("epc_ecomae_platform_marketing_css.php", StringComparison.Ordinal)));
         Assert.Equal("scaffold-not-full-php-parity", report.Status);
         Assert.Contains("PHP remains authoritative", report.Contract, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(report.Guarantees, guarantee => guarantee.Contains("PhpSurfaceHead", StringComparison.Ordinal)

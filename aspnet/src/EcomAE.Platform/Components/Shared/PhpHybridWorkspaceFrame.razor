@@ -1,8 +1,10 @@
 @*
   Optional iframe that loads a live PHP module inside ASP.NET product chrome.
-  Activated via ?php=/CP/... (or /ERP/ /BOS/) on /cp/app|/erp/app|/bos/app|/storefront/app.
+  Activated via ?php=/CP/... (or /ERP/ /BOS/ or www.ecomae.com marketing URLs)
+  on /cp/app|/erp/app|/bos/app|/storefront/app|/marketing/app.
   PHP remains authoritative for the module body; this is presentation scaffolding only.
 *@
+@using EcomAE.Platform.Presentation
 
 @if (!string.IsNullOrWhiteSpace(SafePhpHref))
 {
@@ -47,7 +49,8 @@
             || href.StartsWith("/content/", StringComparison.OrdinalIgnoreCase)
             || href.Equals("/CP/", StringComparison.OrdinalIgnoreCase)
             || href.Equals("/ERP/", StringComparison.OrdinalIgnoreCase)
-            || href.Equals("/BOS/", StringComparison.OrdinalIgnoreCase))
+            || href.Equals("/BOS/", StringComparison.OrdinalIgnoreCase)
+            || EcomaeMarketingPages.IsMarketingPhpPath(href))
         {
             return href;
         }

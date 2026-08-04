@@ -82,7 +82,7 @@ public sealed class SurfaceFieldParityReporterTests
     [Fact]
     public void CatalogPresentationChromeMatchesLegacyAssets()
     {
-        foreach (var surface in new[] { "cp", "erp", "bos", "storefront" })
+        foreach (var surface in new[] { "cp", "erp", "bos", "storefront", "marketing" })
         {
             Assert.NotEmpty(LegacyPresentationAssets.StylesheetsFor(surface));
             Assert.False(string.IsNullOrWhiteSpace(LegacyPresentationAssets.LegacyChromeSourceFor(surface)));
@@ -92,11 +92,13 @@ public sealed class SurfaceFieldParityReporterTests
         Assert.Contains(LegacyPresentationAssets.BosStylesheets, href => href.Contains("epc_bos_shell.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.StorefrontStylesheets, href => href.Contains("templates/modex/", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.StorefrontStylesheets, href => href.Contains("epc_automotive_spareparts.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("epc_ecomae_platform_marketing_css.php", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("epc_ecomae_hub_logo_css.php", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.BosLoginScripts, src => src.Contains("epc_bos_shell.js", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("storefront"), m => m.Contains("epc-engine-animation", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("bos"), m => m.Contains("bosParticles", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("cp"), m => m.Contains("ech-hub", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("marketing"), m => m.Contains("epm-hub", StringComparison.Ordinal));
     }
 
     [Fact]

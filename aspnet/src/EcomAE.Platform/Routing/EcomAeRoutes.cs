@@ -21,6 +21,8 @@ public static class EcomAeRoutes
     public const string LiveSurfaceLinks = "/migration/live-surface-links";
     /// <summary>Named live tenants that must keep PHP presentation identical (no ASP.NET hybrid).</summary>
     public const string LiveTenantPresentationLock = "/migration/live-tenant-presentation-lock";
+    /// <summary>Operator board: phases toward 100% ASP.NET Core / 0 PHP (honest; cutoverAllowed=false).</summary>
+    public const string AspNetZeroPhpPath = "/migration/aspnet-zero-php-path";
     public const string MigrationConsole = "/migration/console";
     public const string MigrationCompare = "/migration/compare";
     public const string SurfaceFieldParity = "/migration/surface-field-parity";
@@ -528,6 +530,12 @@ public static class EcomAeRoutes
     public const string PriceLookupParity = "/api/v1/price/parity";
     public const string StorefrontParity = "/storefront/parity";
     public const string StorefrontApp = "/storefront/app";
+    /// <summary>
+    /// www.ecomae.com marketing Blazor preview (animated epm-hub). Live marketing home/pages remain PHP.
+    /// </summary>
+    public const string MarketingApp = "/marketing/app";
+    /// <summary>JSON lock: live ecomae.com marketing presentation stays PHP until dual-sample + approval.</summary>
+    public const string MarketingPresentationLock = "/migration/marketing-presentation-lock";
     /// <summary>Batch 4: storefront part search Blazor results (PHP part_search remains authoritative for cart/tabs).</summary>
     public const string StorefrontSearchApp = "/storefront/search-app";
     /// <summary>Storefront warehouse-offer search JSON digest (Blazor UI remains <see cref="StorefrontSearchApp"/>).</summary>

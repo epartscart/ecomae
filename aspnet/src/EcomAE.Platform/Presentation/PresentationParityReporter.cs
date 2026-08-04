@@ -33,6 +33,13 @@ public sealed class PresentationParityReporter : IPresentationParityReporter
                 LegacyPresentationAssets.LegacyChromeSourceFor("storefront"),
                 LegacyPresentationAssets.StylesheetsFor("storefront"),
                 "Blazor /storefront/app + /storefront/login; cart/checkout remain PHP",
+                "scaffold-not-full-php-parity"),
+            new(
+                "marketing",
+                "/marketing/app",
+                LegacyPresentationAssets.LegacyChromeSourceFor("marketing"),
+                LegacyPresentationAssets.StylesheetsFor("marketing"),
+                "Blazor /marketing/app animated epm-hub preview + hybrid page directory; live www.ecomae.com/ remains PHP",
                 "scaffold-not-full-php-parity")
         ];
 
@@ -41,9 +48,10 @@ public sealed class PresentationParityReporter : IPresentationParityReporter
             "HONEST: Batch 1 puts PHP webfonts/CSS/analytics into <head> via PhpSurfaceHead + hybrid login enrichments. Full desktop pixel parity and interactive modules remain incomplete. PHP remains authoritative. See docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md.",
             surfaces,
             [
-                "PhpSurfaceHead (HeadOutlet) injects Open Sans / PT Sans / Fraunces+Sora / Inter+JetBrains + surface stylesheets + storefront GA4.",
+                "PhpSurfaceHead (HeadOutlet) injects Open Sans / PT Sans / Fraunces+Sora / Inter+JetBrains / Syne+DM Sans + surface stylesheets + storefront GA4.",
                 "Login pages reuse epc_cp_login(_hero) CSS and catalogue PHP module cards/deeplinks.",
-                "Hybrid module directories on /cp|/erp|/bos|/storefront/app (Batch 0).",
+                "Hybrid module directories on /cp|/erp|/bos|/storefront|/marketing/app (Batch 0).",
+                "Marketing preview ports PHP epm-hub (matrix/orbit/flow) via epc_ecomae_platform_marketing.css — live / stays PHP.",
                 "Probe: bash scripts/cloudpanel_probe_php_presentation_parity.sh — chrome-pass possible while functionality still pending.",
                 "PHP remains authoritative until presentation + module function evidence + approval."
             ],
@@ -52,7 +60,7 @@ public sealed class PresentationParityReporter : IPresentationParityReporter
                 "Run bash scripts/cloudpanel_probe_php_presentation_parity.sh and commit php-vs-aspnet-recheck.json.",
                 "Batch 2: deepen authenticated chrome toward desktop.php / erp_desktop.php / bos/index.php / modex.",
                 "Module inventory: docs/migration/inventory/MODULE_FUNCTION_PARITY_STATUS.md",
-                "Do not enable broad /cp /erp /bos /storefront / cutover and do not remove PHP.",
+                "Do not enable broad /cp /erp /bos /storefront / or marketing / cutover and do not remove PHP.",
                 "Detailed recheck: docs/migration/PHP_VS_ASPNET_DETAILED_RECHECK.md"
             ]);
     }

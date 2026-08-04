@@ -1,0 +1,125 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Port of epc_ecomae_platform_hub() — animated marketing hero (matrix + orbit + flow).
+  Requires marketing surface stylesheets (epc_ecomae_platform_marketing_css.php).
+*@
+
+<section class="epm-hub-section" aria-label="ECOM AE Blockchain BOS Enterprise hub">
+    <div class="epm-hub">
+        <div class="epm-hub__matrix" aria-hidden="true">
+            @for (var c = 0; c < 28; c++)
+            {
+                var col = BuildMatrixCol(c);
+                var dur = 1.4 + (c % 7) * 0.22;
+                var delay = $"{c * 0.11}s";
+                var left = (int)((c / 27.0) * 100);
+                <span class="epm-hub__matrix-col" style="--fall-dur:@(dur.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))s;--fall-delay:@delay;left:@left%">@col</span>
+            }
+        </div>
+        <div class="epm-hub__map" aria-hidden="true"></div>
+        <div class="epm-hub__cloud" aria-hidden="true">
+            <span class="epm-hub__cloud-shape"><i class="fa fa-cloud"></i></span>
+            <span class="epm-hub__servers">
+                <span></span><span></span><span></span>
+            </span>
+        </div>
+
+        <div class="epm-hub__flow-layer" aria-hidden="true">
+            <PhpEcomaeMarketingFlowSvg />
+        </div>
+
+        <div class="epm-hub__core">
+            <div class="epm-hub__core-glow" aria-hidden="true"></div>
+            <div class="epm-hub__core-pulse" aria-hidden="true"></div>
+            <img class="epm-hub__logo" src="@LegacyPresentationAssets.BrandMarkUrl" alt="" />
+            <p class="epm-hub__pill" style="margin-bottom:10px"><i class="fa fa-cubes"></i> The multi-tenant Blockchain BOS Enterprise System</p>
+            <h1 class="epm-hub__headline" aria-label="Blockchain BOS Enterprise System — ERP, Commerce, Compliance, Workflows, Industry Intelligence, Cryptographic Proof">
+                <span class="epm-hub__headline-line epm-hub__headline-line--stack epm-hub__headline-line--commerce">Blockchain</span>
+                <span class="epm-hub__headline-line epm-hub__headline-line--stack">BOS</span>
+                <span class="epm-hub__headline-line epm-hub__headline-line--stack">Enterprise</span>
+                <span class="epm-hub__headline-line epm-hub__headline-line--cloud">ONE SYSTEM</span>
+            </h1>
+            <p class="epm-hub__tagline-sub">ERP · Commerce · Compliance · Workflows · Intelligence · Blockchain Proof — one unified cloud, <a href="@(EcomaeMarketingPages.LiveBase)platform/business-continuity#cloud-continuity" style="color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(14,165,233,.5)">backup continuity</a> built in.</p>
+            <p class="epm-hub__pill"><i class="fa fa-circle epm-hub__live-dot"></i> Data flowing · multi-tenant hub</p>
+            <div class="epm-hub__cta">
+                <a class="epm-btn epm-btn--primary" href="@(EcomaeMarketingPages.LiveBase)platform/demo"><i class="fa fa-play-circle"></i> @EcomaeMarketingPages.DemoDays-day demo</a>
+                <a class="epm-btn epm-btn--ghost" href="@EcomaeMarketingPages.SuperCpUrl"><i class="fa fa-th-large"></i> Super CP</a>
+            </div>
+        </div>
+
+        <div class="epm-hub__orbit-spin">
+            @{
+                var i = 0;
+            }
+            @foreach (var n in Nodes)
+            {
+                var deg = 270 + (i * 45);
+                var featured = n.Featured ? " epm-hub__node--featured" : "";
+                var delay = (i * 0.09).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+                i++;
+                <a class="epm-hub__node@featured" href="@(EcomaeMarketingPages.LiveBase)platform" style="--hub-i: @(deg)deg; --hub-delay: @(delay)s" title="@(n.Title) — @(n.Data)">
+                    <div class="epm-hub__node-inner">
+                        <span class="epm-hub__node-tile"><i class="fa @n.Icon"></i></span>
+                        <strong>@n.Title</strong>
+                        <small>@n.Sub</small>
+                        <span class="epm-hub__data-chip">@n.Data</span>
+                    </div>
+                </a>
+            }
+        </div>
+
+        <div class="epm-hub__platform">
+            <p class="epm-hub__platform-title">One Blockchain BOS Enterprise System for the whole organization</p>
+            <p class="epm-hub__platform-sub">ECOM AE is one unified Blockchain BOS Enterprise System — ERP, commerce, compliance, workflows, industry intelligence and cryptographic proof on a single multi-tenant cloud.</p>
+            <div class="epm-hub__platform-pills">
+                @foreach (var p in PlatformPills)
+                {
+                    <span class="epm-hub__platform-pill"><i class="fa @p.Icon"></i> @p.Label</span>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    private const string MatrixChars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンVATGLERPCRM";
+
+    private static readonly HubNode[] Nodes =
+    [
+        new("fa-shopping-cart", "Commerce", "Orders & checkout", "Orders"),
+        new("fa-cubes", "Inventory", "Stock & warehouses", "Stock"),
+        new("fa-users", "CRM", "Clients & leads", "CRM"),
+        new("fa-line-chart", "Dashboard", "Live KPIs", "Analytics", Featured: true),
+        new("fa-file-text-o", "Finance", "GL & VAT", "Invoices"),
+        new("fa-id-badge", "HR", "Payroll", "Payroll"),
+        new("fa-truck", "Logistics", "Fulfilment", "Delivery"),
+        new("fa-cloud", "Tenants", "Super CP sync", "Config"),
+    ];
+
+    private static readonly PlatformPill[] PlatformPills =
+    [
+        new("fa-clock-o", "Live in 24 hours"),
+        new("fa-file-text-o", "Compliance · e-invoice · Peppol"),
+        new("fa-sitemap", "ERP + Commerce + CRM + Workflows"),
+        new("fa-lock", "Blockchain proof layer"),
+        new("fa-shield", "Cloud + backup continuity"),
+        new("fa-cloud-upload", "Super CP provisioning"),
+    ];
+
+    private static string BuildMatrixCol(int c)
+    {
+        var mLen = MatrixChars.Length;
+        var sb = new System.Text.StringBuilder(22 * 2);
+        for (var k = 0; k < 22; k++)
+        {
+            sb.Append(MatrixChars[(c + k) % mLen]);
+            sb.Append('\n');
+        }
+
+        return sb.ToString();
+    }
+
+    private sealed record HubNode(string Icon, string Title, string Sub, string Data, bool Featured = false);
+    private sealed record PlatformPill(string Icon, string Label);
+}

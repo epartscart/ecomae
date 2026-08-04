@@ -15,6 +15,7 @@ public static class LegacyPresentationAssets
         "erp" => ErpStylesheets,
         "bos" => BosStylesheets,
         "storefront" => StorefrontStylesheets,
+        "marketing" => MarketingStylesheets,
         _ => ControlPanelStylesheets
     };
 
@@ -87,6 +88,23 @@ public static class LegacyPresentationAssets
         "/content/general_pages/epc_automotive_spareparts.css"
     ];
 
+    /// <summary>
+    /// www.ecomae.com marketing chrome — animated epm-hub hero + home sections (PHP sources).
+    /// </summary>
+    public static readonly IReadOnlyList<string> MarketingStylesheets =
+    [
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
+        "/content/general_pages/epc_ecomae_platform_marketing_css.php",
+        "/epc-static.php?f=content/general_pages/epc_ecomae_home_sections.css&v=20260716d",
+        "/epc-static.php?f=content/general_pages/epc_ecomae_home_3d.css&v=20260716d"
+    ];
+
+    /// <summary>Home 3D / scroll helpers used after the marketing hub hero.</summary>
+    public static readonly IReadOnlyList<string> MarketingScripts =
+    [
+        "/epc-static.php?f=content/general_pages/epc_ecomae_home_3d.js&v=20260716d"
+    ];
+
     /// <summary>Structural selectors / class markers for graphical presentation probes.</summary>
     public static IReadOnlyList<string> RequiredGraphicalMarkers(string surface)
         => surface.Trim().ToLowerInvariant() switch
@@ -95,6 +113,7 @@ public static class LegacyPresentationAssets
             "erp" => [".ech-hub", "epc-cp-login-hero"],
             "bos" => [".bos-login__bg", "#bosParticles", ".bos-login__glow"],
             "storefront" => [".epc-engine-animation", ".epc-asp-piston-banner", "epc-home-pro"],
+            "marketing" => [".epm-hub", ".epm-hub__orbit-spin", ".epm-hub__matrix", ".epm-hub-section"],
             _ => []
         };
 
@@ -104,6 +123,7 @@ public static class LegacyPresentationAssets
         "erp" => "epc-erp-shell fixed-navbar fixed-sidebar",
         "bos" => "epc-bos-shell",
         "storefront" => "epc-storefront-shell",
+        "marketing" => "epm-body",
         _ => "epc-migration-shell"
     };
 
@@ -113,6 +133,7 @@ public static class LegacyPresentationAssets
         "erp" => "cp/templates/bootstrap_admin/erp_desktop.php",
         "bos" => "bos/index.php + bos/epc_bos_shell.css",
         "storefront" => "templates/modex/desktop.php",
+        "marketing" => "content/general_pages/epc_ecomae_platform_layout.php (epm-hub) + epc_ecomae_home_sections.php",
         _ => "unknown"
     };
 }
