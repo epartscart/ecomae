@@ -12,8 +12,9 @@ Human side-by-side compare board: `https://www.ecomae.com/migration/compare` (af
 | Meter | Wired in tip | Live on www.ecomae.com (probe 2026-08-04) |
 | --- | --- | --- |
 | Catalog digest-contract | **725 / 726** (~99.9%; `cp-debug-console` php-only by design) | Catalog APIs still allowlisted; not full tip redeploy |
-| Surface digests | **127** | **35** healthy (unauth **401**); **99** still **404** (nginx shadow not installed) |
-| Presentation apps | **144** | **19** **200**; rest mostly **404** pending shadow install |
+| Surface digests | **127** | **127 / 127** healthy (unauth **401**) |
+| Presentation apps | **144** | **142 / 144** **200** |
+| Storefront digests | **6** | **6 / 6** healthy (unauth **401**) |
 | Hybrid TARGETS | **134** | Partial — shells/login + early apps live |
 | Field contracts | ~153 | N/A (code/test floor) |
 | `cutoverAllowed` | **false** | **false** |
@@ -89,17 +90,16 @@ These are industry marketing/showcase hosts (not dedicated client DB tenants).
 | The Jewellery Trend | https://www.thejewellerytrend.com/ | https://www.thejewellerytrend.com/CP/ | https://www.thejewellerytrend.com/ERP/ |
 | Taxofin CA | https://www.taxofinca.com/ | https://www.taxofinca.com/CP/ | https://www.taxofinca.com/ERP/ |
 
-## Exact-route shadows pending on www
+## Exact-route shadows on www (installed)
 
-Most Wave ~9–23 digests/apps still **404** until CloudPanel. Soft probe after installer lock fix (127 routes): surface digests **~30 PASS / 97 FAIL** on www (FAIL = nginx shadow not installed yet).
+Surface digests **127/127**, storefront digests **6/6**, presentation apps **~142/144** live after CloudPanel install + `:5080→:5100` repair.
 
-Installer/probe now lock **127** surface digest locations (was stale **110**, which blocked full Wave 9–23 install).
+Re-probe anytime:
 
 ```bash
-ECOMAE_CONFIRM_INSTALL_SURFACE_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_surface_digest_shadows.sh
-bash scripts/cloudpanel_probe_surface_digest_shadows.sh   # expect 127× ASP.NET 401
-ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES bash scripts/cloudpanel_install_presentation_app_shadows.sh
-ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh
+cd /opt/ecomae-aspnet-source
+bash scripts/cloudpanel_probe_surface_digest_shadows.sh      # expect 127× 401
+bash scripts/cloudpanel_probe_storefront_digest_shadows.sh   # expect 6× 401
 ```
 
 Never broad `/api|/cp|/erp|/bos|/storefront`. Never tenant vhosts without `ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES`.

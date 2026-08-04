@@ -128,6 +128,86 @@
     </div>
 </div>
 
+@*
+  PHP epc_bos_shell.js only starts particles/counters when #bosLoginForm exists.
+  Keep ASP.NET bridge form IDs different; run visual-only init here (no PHP login hijack).
+*@
+<script>
+(function () {
+  function reduceMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+  function bosCreateParticlesVisual() {
+    var container = document.getElementById('bosParticles');
+    if (!container || reduceMotion()) return;
+    if (container.childElementCount > 0) return;
+    var colors = [
+      'rgba(14,165,233,.8)','rgba(14,165,233,.5)','rgba(14,165,233,.3)',
+      'rgba(56,189,248,.7)','rgba(56,189,248,.4)',
+      'rgba(99,102,241,.6)','rgba(99,102,241,.3)',
+      'rgba(168,85,247,.5)','rgba(16,185,129,.4)',
+      'rgba(255,255,255,.4)','rgba(255,255,255,.15)'
+    ];
+    for (var i = 0; i < 180; i++) {
+      var p = document.createElement('div');
+      p.className = 'bos-login__particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.top = Math.random() * 10 + '%';
+      var duration = 4 + Math.random() * 12;
+      p.style.animationDuration = duration + 's';
+      p.style.animationDelay = (Math.random() * duration) + 's';
+      var size = 1 + Math.random() * 3.5;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.animationName = Math.random() < 0.35 ? 'bosFloatDrift' : 'bosFloat';
+      var color = colors[Math.floor(Math.random() * colors.length)];
+      p.style.background = color;
+      if (size > 2) p.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + color;
+      container.appendChild(p);
+    }
+  }
+  function bosAnimateCountersVisual() {
+    var counters = document.querySelectorAll('.bos-login__stat-num[data-count]');
+    if (!counters.length || reduceMotion()) {
+      counters.forEach(function (el) { el.textContent = el.getAttribute('data-count') + '+'; });
+      return;
+    }
+    setTimeout(function () {
+      counters.forEach(function (el) {
+        var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+        var startTime = null;
+        function step(ts) {
+          if (!startTime) startTime = ts;
+          var progress = Math.min((ts - startTime) / 2000, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.floor(eased * target);
+          if (progress < 1) requestAnimationFrame(step);
+          else el.textContent = target + '+';
+        }
+        requestAnimationFrame(step);
+      });
+    }, 400);
+  }
+  function wireRoleTabs() {
+    var tabs = document.querySelectorAll('.bos-login__role-tab');
+    if (!tabs.length) return;
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        tabs.forEach(function (t) { t.classList.remove('bos-login__role-tab--active'); });
+        tab.classList.add('bos-login__role-tab--active');
+      });
+    });
+  }
+  function boot() {
+    bosCreateParticlesVisual();
+    bosAnimateCountersVisual();
+    wireRoleTabs();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+
 @code {
     private string? _error;
     protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
