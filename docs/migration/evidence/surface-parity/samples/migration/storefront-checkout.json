@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "surface": "storefront",
+  "user_id": 9,
+  "summary": {
+    "count": 1,
+    "sum": 0.0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "checked_for_order": 0,
+  "readiness": "cart-has-lines",
+  "php_steps": [
+    {
+      "id": "how_get",
+      "href": "https://epartscart.com/shop/checkout/how_get"
+    },
+    {
+      "id": "login_offer",
+      "href": "https://epartscart.com/shop/checkout/login_offer"
+    },
+    {
+      "id": "confirm",
+      "href": "https://epartscart.com/shop/checkout/confirm"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "session": {
+    "kind": "Customer",
+    "user_id": 9
+  },
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "migration-mode; checkout readiness sentinel; how_get/confirm/payment remain PHP; cutoverAllowed=false"
+}

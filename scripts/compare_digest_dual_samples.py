@@ -52,6 +52,10 @@ SUMMARY_CONTRACTS = {
         "summary",
         "count,sum,source,message",
     ),
+    "storefront-checkout": (
+        "summary",
+        "count,sum,source,message",
+    ),
     "cp-power-bi": (
         "summary",
         "siteKey,workspaceId,azureTenantId,defaultReportId,defaultDatasetId,embedUrl,embedMode,notes,active,reportCount,source,message",
