@@ -93,11 +93,16 @@ def main() -> int:
     INVENTORY_MARKER = "presentation/presentation-exact-routes.json"
 
     nginx_text = args.nginx.read_text(encoding="utf-8")
+    if "127.0.0.1:5080" in nginx_text or re.search(
+        r"proxy_pass\s+http://127\.0\.0\.1:(?!5100)\d+", nginx_text
+    ):
+        errors.append(
+            "presentation nginx example must proxy_pass only http://127.0.0.1:5100"
+        )
     nginx_paths = NGINX_LOC_RE.findall(nginx_text)
     nginx_set = set(nginx_paths)
     if len(nginx_paths) != len(nginx_set):
         errors.append("nginx presentation shadow has duplicate location = blocks")
-
     hybrid_text = args.hybrid_capture.read_text(encoding="utf-8")
     hybrid_routes = HYBRID_ROUTE_RE.findall(hybrid_text)
     # HYBRID_ROUTE_RE may also catch digestRoute empties poorly; restrict to TARGETS block.
