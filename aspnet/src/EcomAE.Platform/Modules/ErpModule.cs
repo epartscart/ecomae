@@ -267,6 +267,17 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new OnPremisesBackupRequest(body.Label, body.ConfirmWrites)).ToPayload());
         });
 
+        endpoints.MapPost(EcomAeRoutes.OnPremisesActivateLicenseCli, (OnPremisesActivateLicenseCliBody? body, IOnPremisesActivateLicenseCliDryRun dryRun) =>
+        {
+            body ??= new OnPremisesActivateLicenseCliBody(null, false);
+            return Results.Ok(dryRun.Evaluate(new OnPremisesActivateLicenseCliRequest(body.Action, body.ConfirmWrites)).ToPayload());
+        });
+        endpoints.MapPost(EcomAeRoutes.OnPremisesHealthCheckPack, (OnPremisesHealthCheckPackBody? body, IOnPremisesHealthCheckPackDryRun dryRun) =>
+        {
+            body ??= new OnPremisesHealthCheckPackBody(null, false);
+            return Results.Ok(dryRun.Evaluate(new OnPremisesHealthCheckPackRequest(body.Action, body.ConfirmWrites)).ToPayload());
+        });
+
 
         endpoints.MapPost(EcomAeRoutes.ErpOnPremisesHealthDryRun, (
             OnPremisesHealthBody? body,
@@ -2292,6 +2303,8 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpAjaxWriteRegistryBody(bool ConfirmWrites = false);
     private sealed record OnPremisesSetupWizardBody(string? TenantCode = null, bool ConfirmWrites = false);
     private sealed record OnPremisesBackupBody(string? Label = null, bool ConfirmWrites = false);
+    private sealed record OnPremisesActivateLicenseCliBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record OnPremisesHealthCheckPackBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record ErpEditLockAcquireBody(string? ResourceKey = null, bool ConfirmWrites = false);
     private sealed record ErpEditLockHeartbeatBody(string? ResourceKey = null, bool ConfirmWrites = false);
     private sealed record ErpEditLockReleaseBody(string? ResourceKey = null, bool ConfirmWrites = false);

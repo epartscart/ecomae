@@ -90,10 +90,22 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     }
 
     [Fact]
+    public void BosCatalogCoversAjaxWithoutCutover()
+    {
+        var report = new BosAjaxWriteCatalog().BuildReport();
+        Assert.Equal(231, report.TotalActions);
+        Assert.Equal(100, report.CoveragePct);
+        Assert.False(report.CutoverAllowed);
+        Assert.True(report.PhpAuthoritative);
+        Assert.True(report.DedicatedDryRuns > 0);
+        Assert.True(report.RegistryDryRuns > 0);
+    }
+
+    [Fact]
     public void PathBoardMentionsAjaxCatalogAndStaysBelow100()
     {
         var report = new AspNetZeroPhpPathReporter().BuildReport();
-        Assert.InRange(report.HonestCompletionPct, 92, 99);
+        Assert.InRange(report.HonestCompletionPct, 94, 99);
         Assert.False(report.CutoverAllowed);
         Assert.Contains(report.Phases, p => p.Id == "4-function-parity" && p.Detail.Contains("ajax_erp", StringComparison.Ordinal));
         Assert.Contains(report.NextBuilds, n => n.Contains("on-premises-aspnet", StringComparison.OrdinalIgnoreCase)

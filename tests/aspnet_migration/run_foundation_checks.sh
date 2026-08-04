@@ -882,6 +882,10 @@ check 'Wave B write dry-run probe covers storefront set-my-city' contains "$ROOT
 check 'Wave B write dry-run probe covers ins save' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/ins-save'
 check 'Wave B write dry-run probe covers CP channels' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/channels/write'
 check 'Wave B write dry-run probe covers CP lang translation' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/lang/save-translation'
+check 'BOS ajax write catalog route wired' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'BosAjaxWriteCatalog'
+check 'Wave B write dry-run probe covers BOS ajax registry' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/bos/ajax-writes/dry-run/'
+check 'Wave B write dry-run probe covers POS complete-sale' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/pos/complete-sale'
+check 'Wave B write dry-run probe covers on-prem activate-license CLI' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/on-premises/activate-license-cli-dry-run'
 
 
 check 'Wave B write dry-run dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh"

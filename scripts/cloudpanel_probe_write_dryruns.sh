@@ -226,5 +226,14 @@ probe_post "/cp/lang/set-is-error" '{"action":"dry-run","confirmWrites":false}' 
 probe_post "/cp/lang/set-same" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangSetSame"
 probe_post "/cp/lang/set-used-found" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangSetUsedFound"
 
+
+# Wave B BOS ajax + POS/portal/on-prem pack
+probe_post "/bos/ajax-writes/dry-run/save" '{"confirmWrites":false}' "$ADMIN_COOKIE" "bos ajax registry save"
+probe_post "/cp/pos/complete-sale" '{"action":"complete_sale","confirmWrites":false}' "$ADMIN_COOKIE" "cp pos complete-sale"
+probe_post "/cp/portal/save-settings" '{"action":"save_settings","confirmWrites":false}' "$ADMIN_COOKIE" "cp portal save-settings"
+probe_post "/cp/crm/action" '{"action":"crm_save","confirmWrites":false}' "$ADMIN_COOKIE" "cp crm action"
+probe_post "/erp/on-premises/activate-license-cli-dry-run" '{"action":"activate","confirmWrites":false}' "" "on-premises activate-license cli"
+probe_post "/erp/on-premises/health-check-pack-dry-run" '{"action":"health","confirmWrites":false}' "" "on-premises health-check pack"
+
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]

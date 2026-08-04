@@ -30,7 +30,7 @@ public sealed class OnPremisesParityReporter : IOnPremisesParityReporter
                 "on-prem-license-api",
                 "License activate + health intake APIs",
                 "php-authoritative",
-                "api/v1/licenses/activate.php + api/v1/on-premises/health.php remain PHP. ASP.NET: health/activate/setup-wizard/backup dry-runs (writes=0) + read digest /erp/on-premises/licenses (keys masked; notes/fingerprint/ip omitted)."),
+                "api/v1/licenses/activate.php + api/v1/on-premises/health.php remain PHP. ASP.NET: health/activate/setup-wizard/backup/activate-license-CLI/health-check-pack dry-runs (writes=0) + read digest /erp/on-premises/licenses (keys masked; notes/fingerprint/ip omitted)."),
             new(
                 "erp-on-premises-tab",
                 "ERP operator On-Premises tab",
