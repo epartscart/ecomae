@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 80,
-  "hybridUiSamplesOk": 79,
+  "pairsChecked": 84,
+  "hybridUiSamplesOk": 83,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -89,6 +89,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-blockchain-proofs-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-blockchain-proofs",
+      "appRoute": "/cp/blockchain-proofs-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-budgets-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-budgets",
@@ -113,6 +123,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-config-items",
       "appRoute": "/cp/config-items-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-cost-models-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-cost-models",
+      "appRoute": "/cp/cost-models-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -213,6 +233,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-einvoice-documents",
       "appRoute": "/cp/einvoice-documents-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-fin-advanced-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-fin-advanced",
+      "appRoute": "/cp/fin-advanced-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -493,6 +523,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-sms-whatsapp",
       "appRoute": "/cp/sms-whatsapp-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-soc2-compliance-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-soc2-compliance",
+      "appRoute": "/cp/soc2-compliance-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

@@ -1334,4 +1334,84 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>SOC 2 KPIs from epc_soc2_* (CREATE TABLE in epc_soc2_compliance.php).</summary>
+    public const string SelectCpSoc2ComplianceStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_soc2_controls`) AS control_count,
+            (SELECT COUNT(*) FROM `epc_soc2_controls` WHERE IFNULL(`status`,'') IN ('implemented','tested','effective')) AS implemented_count,
+            (SELECT COUNT(*) FROM `epc_soc2_evidence`) AS evidence_count,
+            (SELECT COUNT(*) FROM `epc_soc2_policies`) AS policy_count
+        """;
+
+    /// <summary>SOC 2 controls — omits description/implementation.</summary>
+    public const string SelectCpSoc2Controls = """
+        SELECT `id`, IFNULL(`control_id`,'') AS control_id, IFNULL(`category`,'') AS category,
+               IFNULL(`title`,'') AS title, IFNULL(`status`,'') AS status,
+               IFNULL(`owner`,'') AS owner, IFNULL(`frequency`,'') AS frequency,
+               IFNULL(`risk_level`,'') AS risk_level
+        FROM `epc_soc2_controls`
+        ORDER BY `control_id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Cost model KPIs from epc_costm_* (CREATE TABLE in epc_erp_cost_models.php).</summary>
+    public const string SelectCpCostModelsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_costm_item`) AS item_count,
+            (SELECT COUNT(*) FROM `epc_costm_txn`) AS txn_count,
+            (SELECT COUNT(*) FROM `epc_costm_close`) AS close_count,
+            (SELECT COUNT(DISTINCT `model`) FROM `epc_costm_item`) AS model_count
+        """;
+
+    /// <summary>Cost model item assignments.</summary>
+    public const string SelectCpCostModelItems = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`item_id`,0) AS item_id,
+               IFNULL(`model`,'') AS model, IFNULL(`std_cost`,0) AS std_cost,
+               IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_costm_item`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Financial depth KPIs from epc_fin_* (CREATE TABLE in epc_erp_fin_advanced.php).</summary>
+    public const string SelectCpFinAdvancedStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_fin_periods`) AS period_count,
+            (SELECT COUNT(*) FROM `epc_fin_periods` WHERE IFNULL(`status`,'')='open') AS open_period_count,
+            (SELECT COUNT(*) FROM `epc_fin_alloc_rule` WHERE IFNULL(`active`,0)=1) AS alloc_rule_count,
+            (SELECT COUNT(*) FROM `epc_fin_accrual`) AS accrual_count
+        """;
+
+    /// <summary>Fiscal periods — omits allocation/accrual/FX JSON payloads.</summary>
+    public const string SelectCpFinPeriods = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`fy`,0) AS fy,
+               IFNULL(`period_no`,0) AS period_no, IFNULL(`start_date`,0) AS start_date,
+               IFNULL(`end_date`,0) AS end_date, IFNULL(`status`,'') AS status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_fin_periods`
+        ORDER BY `fy` DESC, `period_no` DESC, `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Blockchain proof KPIs from epc_bc_* (CREATE TABLE in epc_blockchain_bos.php).</summary>
+    public const string SelectCpBlockchainProofStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_bc_proofs`) AS proof_count,
+            (SELECT COUNT(*) FROM `epc_bc_proofs` WHERE IFNULL(`status`,'')='pending') AS pending_count,
+            (SELECT COUNT(*) FROM `epc_bc_proofs` WHERE IFNULL(`status`,'') IN ('anchored','confirmed')) AS anchored_count,
+            (SELECT COUNT(*) FROM `epc_bc_anchor_batches`) AS batch_count
+        """;
+
+    /// <summary>Blockchain proofs — omits payload_json/merkle_proof_json.</summary>
+    public const string SelectCpBlockchainProofs = """
+        SELECT `id`, IFNULL(`proof_uid`,'') AS proof_uid, IFNULL(`tenant_key`,'') AS tenant_key,
+               IFNULL(`record_type`,'') AS record_type, IFNULL(`record_id`,'') AS record_id,
+               IFNULL(`payload_hash`,'') AS payload_hash, IFNULL(`status`,'') AS status,
+               `batch_id`, IFNULL(`anchor_ref`,'') AS anchor_ref,
+               IFNULL(`created_at`,'') AS created_at
+        FROM `epc_bc_proofs`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

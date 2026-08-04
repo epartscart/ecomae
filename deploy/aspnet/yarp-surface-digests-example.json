@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 72,
+  "routeCount": 76,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -869,6 +869,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-marketing-growth-shadow-approved"
+          }
+        ]
+      },
+      "cp-soc2-compliance": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/soc2-compliance"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-soc2-compliance-shadow-approved"
+          }
+        ]
+      },
+      "cp-cost-models": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/cost-models"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-cost-models-shadow-approved"
+          }
+        ]
+      },
+      "cp-fin-advanced": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/fin-advanced"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-fin-advanced-shadow-approved"
+          }
+        ]
+      },
+      "cp-blockchain-proofs": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/blockchain-proofs"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-blockchain-proofs-shadow-approved"
           }
         ]
       }

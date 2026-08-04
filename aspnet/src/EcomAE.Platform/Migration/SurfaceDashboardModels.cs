@@ -1567,3 +1567,103 @@ public sealed record CpMarketingGrowthDigestResult(
     string Source,
     string Message);
 
+public sealed record CpSoc2ComplianceSummary(
+    int ControlCount,
+    int ImplementedCount,
+    int EvidenceCount,
+    int PolicyCount,
+    string Source,
+    string Message);
+
+public sealed record CpSoc2ControlDigest(
+    long Id,
+    string ControlId,
+    string Category,
+    string Title,
+    string Status,
+    string Owner,
+    string Frequency,
+    string RiskLevel);
+
+public sealed record CpSoc2ComplianceDigestResult(
+    CpSoc2ComplianceSummary Summary,
+    IReadOnlyList<CpSoc2ControlDigest> Controls,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpCostModelsSummary(
+    int ItemCount,
+    int TxnCount,
+    int CloseCount,
+    int ModelCount,
+    string Source,
+    string Message);
+
+public sealed record CpCostModelItemDigest(
+    long Id,
+    long CompanyId,
+    long ItemId,
+    string Model,
+    decimal StdCost,
+    long TimeUpdated);
+
+public sealed record CpCostModelsDigestResult(
+    CpCostModelsSummary Summary,
+    IReadOnlyList<CpCostModelItemDigest> Items,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpFinAdvancedSummary(
+    int PeriodCount,
+    int OpenPeriodCount,
+    int AllocRuleCount,
+    int AccrualCount,
+    string Source,
+    string Message);
+
+public sealed record CpFinPeriodDigest(
+    long Id,
+    long CompanyId,
+    int Fy,
+    int PeriodNo,
+    long StartDate,
+    long EndDate,
+    string Status,
+    long TimeCreated);
+
+public sealed record CpFinAdvancedDigestResult(
+    CpFinAdvancedSummary Summary,
+    IReadOnlyList<CpFinPeriodDigest> Periods,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpBlockchainProofsSummary(
+    int ProofCount,
+    int PendingCount,
+    int AnchoredCount,
+    int BatchCount,
+    string Source,
+    string Message);
+
+public sealed record CpBlockchainProofDigest(
+    long Id,
+    string ProofUid,
+    string TenantKey,
+    string RecordType,
+    string RecordId,
+    string PayloadHash,
+    string Status,
+    long? BatchId,
+    string AnchorRef,
+    string CreatedAt);
+
+public sealed record CpBlockchainProofsDigestResult(
+    CpBlockchainProofsSummary Summary,
+    IReadOnlyList<CpBlockchainProofDigest> Proofs,
+    int Count,
+    string Source,
+    string Message);
+

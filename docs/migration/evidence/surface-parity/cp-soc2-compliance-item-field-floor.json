@@ -1,0 +1,29 @@
+{
+  "role": "cp-soc2-compliance-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-soc2-compliance",
+  "collectionKey": "controls",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "controlCount",
+    "implementedCount",
+    "evidenceCount",
+    "policyCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "controlId",
+    "category",
+    "title",
+    "status",
+    "owner",
+    "frequency",
+    "riskLevel"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-soc2-compliance digest summary+controls[] floors. Description/implementation omitted. PHP epc_soc2_compliance remains authoritative. cutoverAllowed=false."
+}
