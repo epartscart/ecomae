@@ -1,0 +1,176 @@
+{
+  "role": "pre-decommission-functional-required-flows",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "note": "Named functional flows that MUST be green before PHP decommission. Suite fails if any flow lacks required evidence. Never invents RELEASE_OWNER_APPROVAL.md.",
+  "flows": [
+    {
+      "id": "warehouse-search-offers",
+      "title": "epartscart warehouse frontend — stock / search offers",
+      "surface": "storefront+erp+cp",
+      "requiredPhpTests": [
+        "tests/erp_advanced/run_warehouse_search_fast_tests.php"
+      ],
+      "requiredFloors": [
+        "surface-parity/storefront-search-item-field-floor.json",
+        "surface-parity/erp-inventory-stock-item-field-floor.json",
+        "surface-parity/cp-warehouse-wms-item-field-floor.json",
+        "surface-parity/cp-product-catalogue-item-field-floor.json"
+      ],
+      "requiredEvidenceAll": [
+        "surface-parity/samples/migration/storefront-search.json",
+        "surface-parity/samples/migration/erp-inventory-stock.json"
+      ],
+      "requiredEvidenceAny": [
+        "decommission/staging-smoke/surface-digests-aspnet.json",
+        "hybrid-ui-dual-samples/aspnet-sf-search-hybrid-ui.json",
+        "hybrid-ui-dual-samples/aspnet-erp-inventory-stock-hybrid-ui.json"
+      ],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Authenticated /storefront/search with non-empty offer rows (storage/exist/price)",
+        "epartscart.com warehouse frontend stock result parity vs ASP.NET digest (part_search / ajax_getProductsOfBunch)",
+        "ERP inventory-stock digest same fields as PHP warehouse stock listing"
+      ]
+    },
+    {
+      "id": "erp-external-report-fetch",
+      "title": "ERP external report fetch",
+      "surface": "erp+cp",
+      "requiredPhpTests": [
+        "tests/erp_advanced/run_report_center_tests.php"
+      ],
+      "requiredFloors": [
+        "surface-parity/cp-tax-external-reporting-item-field-floor.json",
+        "surface-parity/cp-electronic-reporting-item-field-floor.json",
+        "surface-parity/cp-nl-reporting-item-field-floor.json"
+      ],
+      "requiredEvidenceAny": [
+        "decommission/staging-smoke/surface-digests-aspnet.json"
+      ],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Named report fetch (sales|inventory|vat|ar-aging) totals match PHP report-center/export",
+        "Worker ErpReportsDryRun remains writes=0 until dual-sample promotes live generation"
+      ]
+    },
+    {
+      "id": "einvoice",
+      "title": "E-invoice documents + submit/poll readiness",
+      "surface": "cp+erp",
+      "requiredPhpTests": [
+        "tests/erp_advanced/run_finance_tests.php"
+      ],
+      "requiredFloors": [
+        "surface-parity/cp-einvoice-documents-item-field-floor.json"
+      ],
+      "requiredEvidenceAny": [
+        "surface-parity/samples/migration/cp-einvoice-documents.json",
+        "decommission/staging-smoke/surface-digests-aspnet.json"
+      ],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Authenticated /cp/einvoice-documents digest field parity",
+        "Create→validate→submit→poll dry-run sequence paired with PHP (writes=0 until approval)"
+      ]
+    },
+    {
+      "id": "ct-catalog-umapi",
+      "title": "CT / catalog fetch + UMAPI miss-fill reporting",
+      "surface": "catalog-api",
+      "requiredPhpTests": [
+        "tests/erp_advanced/run_laximo_catalog_tests.php"
+      ],
+      "requiredFloors": [],
+      "requiredEvidenceAll": [
+        "catalog-miss-umapi/compare-result.json",
+        "catalog-miss-umapi/miss-fill-dry-run-report.json",
+        "catalog-miss-umapi/php-umapi-fill-inventory.json",
+        "decommission/staging-smoke/catalog-status-aspnet.json"
+      ],
+      "requiredEvidenceAny": [
+        "catalog-api/compare-result.json",
+        "decommission/public-probes/www-catalog-status-still-php.json"
+      ],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Auth catalog status connected=true (staging-smoke)",
+        "Miss → PHP UMAPI fill → ASP.NET cache hit dual-sample without inventing cutover",
+        "18/18 catalog exact-route auth gates remain ASP.NET JSON"
+      ]
+    },
+    {
+      "id": "process-flow",
+      "title": "Process flow / workflow engine",
+      "surface": "erp+cp",
+      "requiredPhpTests": [
+        "tests/erp_advanced/run_flow_tests.php",
+        "tests/erp_advanced/run_automation_centre_tests.php"
+      ],
+      "requiredFloors": [
+        "surface-parity/cp-workflows-item-field-floor.json"
+      ],
+      "requiredEvidenceAny": [
+        "surface-parity/samples/migration/cp-workflows.json",
+        "decommission/staging-smoke/surface-digests-aspnet.json"
+      ],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Process-flow task digest (open/done/overdue + rows) dual-sample vs PHP epc_erp_processflow_tasks",
+        "Industry step-chain posting parity (jewellery/trading/construction/POS)"
+      ]
+    },
+    {
+      "id": "oms-checkout",
+      "title": "Order system (OMS) + storefront checkout",
+      "surface": "cp+storefront+erp",
+      "requiredPhpTests": [
+        "tests/erp_advanced/run_ecommerce_tests.php"
+      ],
+      "requiredFloors": [
+        "surface-parity/cp-orders-item-field-floor.json",
+        "surface-parity/storefront-checkout-item-field-floor.json",
+        "surface-parity/storefront-cart-item-field-floor.json"
+      ],
+      "requiredEvidenceAll": [
+        "module-ajax-dual-samples/aspnet-oms-set_item_status.json",
+        "module-ajax-dual-samples/aspnet-oms-set_courier.json",
+        "module-ajax-dual-samples/aspnet-oms-send_message.json",
+        "module-ajax-dual-samples/compare-result.json"
+      ],
+      "requiredEvidenceAny": [
+        "surface-parity/samples/migration/cp-orders-digest.json",
+        "surface-parity/samples/migration/storefront-orders.json"
+      ],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Authenticated /cp/orders-digest + /storefront/checkout field parity",
+        "OMS status/courier dry-runs paired with PHP ajax samples",
+        "Checkout how_get/confirm/payment path dual-sample (writes=0 until approval)"
+      ]
+    },
+    {
+      "id": "super-cp-tenant-control",
+      "title": "Super CP control of tenant CP (fleet / isolation / onboard)",
+      "surface": "bos+cp",
+      "requiredPhpTests": [
+        "tests/erp_advanced/run_client_tenant_isolation_tests.php"
+      ],
+      "requiredFloors": [
+        "surface-parity/bos-fleet-summary-item-field-floor.json",
+        "surface-parity/bos-fleet-health-sample-tenants-floor.json",
+        "surface-parity/bos-fleet-readiness-item-field-floor.json",
+        "surface-parity/cp-demo-tenants-item-field-floor.json",
+        "surface-parity/cp-tenant-config-item-field-floor.json"
+      ],
+      "requiredEvidenceAll": [
+        "tenant-safety/live-tenant-php-chrome.json",
+        "tenant-safety/same-to-same-verify.json"
+      ],
+      "requiredEvidenceAny": [
+        "decommission/staging-smoke/surface-digests-aspnet.json",
+        "surface-parity/samples/migration/bos-tenants.json"
+      ],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Super CP tenants list + BOS fleet-health sampleTenants for a live tenant",
+        "Onboard/demo tenant provision → isolated DB → tenant CP login smoke",
+        "Tenant hosts still PHP chrome until intentional exact-route cutover"
+      ]
+    }
+  ]
+}

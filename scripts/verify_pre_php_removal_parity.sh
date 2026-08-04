@@ -60,6 +60,39 @@ else
   record "area-tests" fail "area tests failed (see /tmp/pre-removal-area.out)"
 fi
 
+printf -- '-- named functional flows (warehouse/ERP reports/einvoice/CT/OMS/Super CP) --\n'
+if ECOMAE_FUNC_SKIP_PHP=1 bash "$ROOT/scripts/run_pre_decommission_functional_suite.sh" >/tmp/pre-removal-functional.out 2>&1; then
+  record "functional-flows-suite" pass "7 named functional flows have required floors/evidence (live smoke may still block removal)"
+else
+  record "functional-flows-suite" fail "functional suite failed (see /tmp/pre-removal-functional.out)"
+fi
+# Explicit: PHP removal stays blocked while any flow still lists live smoke requirements.
+python3 - "$ROOT/docs/migration/evidence/decommission/functional-flows/www-functional-flow-suite.json" <<'PY' >/tmp/pre-removal-functional-judge.out 2>&1 || true
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+if not p.is_file():
+    raise SystemExit("missing functional suite artifact")
+doc = json.loads(p.read_text(encoding="utf-8"))
+if doc.get("cutoverAllowed") is True or doc.get("readyToRemovePhp") is True:
+    raise SystemExit("suite invents cutover/removal")
+if int(doc.get("failed") or 0) > 0:
+    raise SystemExit("suite failed>0")
+blocked = int(doc.get("blocked") or 0)
+print(f"FUNCTIONAL_BLOCKED={blocked}")
+print("FUNCTIONAL_STATIC_OK")
+PY
+if grep -q 'FUNCTIONAL_STATIC_OK' /tmp/pre-removal-functional-judge.out; then
+  blocked_n="$(sed -n 's/^FUNCTIONAL_BLOCKED=//p' /tmp/pre-removal-functional-judge.out | head -1)"
+  if [[ "${blocked_n:-0}" != "0" ]]; then
+    record "functional-flows-live-smoke" warn "static floors OK but ${blocked_n} flow(s) still need live CloudPanel smoke before PHP removal"
+  else
+    record "functional-flows-live-smoke" pass "all named flows fully green"
+  fi
+else
+  record "functional-flows-live-smoke" fail "functional suite artifact invalid"
+fi
+
 printf -- '-- attached smoke + live authority checks --\n'
 
 # 2) Attached smoke contract validation (no live secrets required)
@@ -339,6 +372,9 @@ with open(src, encoding="utf-8") as fh:
 payload = {
     "capturedAtUtc": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
     "verdict": verdict,
+    "cutoverAllowed": False,
+    "readyForPhpRemoval": False,
+    "aspNetInteractiveComplete": 0,
     "readyToRemovePhp": False,
     "passed": p,
     "failed": f,
@@ -348,6 +384,7 @@ payload = {
         "Public CP/ERP/BOS chrome remains PHP HTML — frontend cutover has not happened.",
         "Public digest/catalog routes are not broadly proxied to ASP.NET yet.",
         "Live surface-parity reports parity-not-yet-reached; presentation shells are scaffolded only.",
+        "Named functional flows (warehouse offers, ERP external reports, e-invoice, CT/UMAPI, process flow, OMS/checkout, Super CP tenant control) must pass live smoke before removal.",
         "RELEASE_OWNER_APPROVAL.md is absent; inventing it is forbidden.",
         "PHP must remain until exact-route shadows + dual-sample parity + human approval exist.",
     ],

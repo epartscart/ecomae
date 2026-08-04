@@ -1,0 +1,61 @@
+{
+  "role": "pre-decommission-functional-built-vs-pending",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "note": "Static floors/evidence for the 7 named flows are built. Live authenticated smokes + dual-sample write promotion + human RELEASE_OWNER_APPROVAL.md remain pending — PHP must stay until those clear. Never invent approval.",
+  "built": [
+    {
+      "id": "warehouse-search-offers",
+      "status": "static-floors-green",
+      "covers": "storefront search floor + ERP inventory-stock floor + CP warehouse WMS + product catalogue + hybrid UI samples"
+    },
+    {
+      "id": "erp-external-report-fetch",
+      "status": "static-floors-green",
+      "covers": "tax-external / electronic / NL reporting floors + report-center PHP tests"
+    },
+    {
+      "id": "einvoice",
+      "status": "static-floors-green",
+      "covers": "cp-einvoice-documents floor + migration sample + hybrid UI sample"
+    },
+    {
+      "id": "ct-catalog-umapi",
+      "status": "static-floors-green",
+      "covers": "catalog-miss-umapi compare + miss-fill dry-run + php fill inventory + staging catalog-status"
+    },
+    {
+      "id": "process-flow",
+      "status": "static-floors-green",
+      "covers": "cp-workflows floor + flow/automation PHP tests"
+    },
+    {
+      "id": "oms-checkout",
+      "status": "static-floors-green",
+      "covers": "orders/checkout/cart floors + OMS set_item_status/set_courier/send_message dual-samples"
+    },
+    {
+      "id": "super-cp-tenant-control",
+      "status": "static-floors-green",
+      "covers": "BOS fleet summary/health/readiness + demo tenants + tenant-config + tenant-safety floors"
+    }
+  ],
+  "pendingBeforePhpRemoval": [
+    "Authenticated warehouse stock/offer rows on epartscart.com vs ASP.NET digest (storage/exist/price)",
+    "ERP named external report fetch dual-sample (sales|inventory|vat|ar-aging)",
+    "E-invoice create→validate→submit→poll dry-run paired with PHP (writes=0 until approval)",
+    "CT/catalog miss → UMAPI fill → ASP.NET cache hit with auth cookies",
+    "Process-flow task digest dual-sample vs PHP epc_erp_processflow_tasks",
+    "OMS + storefront checkout path dual-sample (writes=0 until approval)",
+    "Super CP → tenant CP onboard/isolation live smoke",
+    "aspNetInteractiveComplete remains 0 until dual-samples promote live writes",
+    "Human RELEASE_OWNER_APPROVAL.md (never invent)"
+  ],
+  "suiteEntry": "bash scripts/run_pre_decommission_functional_suite.sh",
+  "wiredInto": [
+    "scripts/run_php_decommission_area_tests.sh",
+    "scripts/verify_pre_php_removal_parity.sh",
+    "scripts/validate_migration_evidence_cutover_locks.py"
+  ]
+}
