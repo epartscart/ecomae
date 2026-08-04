@@ -48,7 +48,7 @@ ENVELOPES: dict[str, list[str]] = {
     "api-catalog-brand-parts": ["ok", "brand", "rows", "source", "data", "message"],
 }
 
-# Offline-cache action goldens: data may be object blob (not typed items yet).
+# Offline-cache action goldens: envelope data is still an object blob (OfflineCacheOk).
 OFFLINE_CACHE_OBJECT_DATA = frozenset(
     {
         "api-catalog-engines",
@@ -63,6 +63,39 @@ OFFLINE_CACHE_OBJECT_DATA = frozenset(
         "api-catalog-engine",
     }
 )
+
+# Wave-2: nested list item fields inside the object blob at data.data[]
+# (mirrors PHP epc_engines_list_items / brands offline payload / UMAPI wrappers).
+OFFLINE_CACHE_NESTED_LIST_ITEM_FIELDS: dict[str, list[str]] = {
+    "api-catalog-engines": [
+        "ENG_ID",
+        "ENGINE_CODE",
+        "POWER_KW",
+        "CAPACITY_LT",
+        "FUEL_TYPE",
+    ],
+    "api-catalog-analogs": [
+        "ART_ID",
+        "BRAND",
+        "ARTICLE_NR",
+        "TITLE",
+    ],
+    "api-catalog-article-brands": [
+        "BRAND",
+        "SUP_BRAND",
+        "MANUFACTURER",
+        "DISPLAY_NR",
+        "SEARCH_NUMBER",
+        "ARTICLE",
+        "TITLE",
+        "DES",
+    ],
+    "api-catalog-categories": [
+        "STR_ID",
+        "CATEGORY_NAME",
+        "ORDER",
+    ],
+}
 
 STATUS_COUNT_FIELDS = ["manufacturers", "models", "modifications", "brands", "vins"]
 
@@ -168,6 +201,21 @@ def main() -> int:
             data = doc.get("data")
             if not isinstance(data, dict):
                 entry["errors"].append("offline-cache data must be object (JSON blob envelope)")
+            nested_fields = OFFLINE_CACHE_NESTED_LIST_ITEM_FIELDS.get(stem) or []
+            if nested_fields:
+                nested = data.get("data") if isinstance(data, dict) else None
+                if not isinstance(nested, list) or len(nested) < 1:
+                    entry["errors"].append(
+                        "expected non-empty nested data.data[] item-field sentinel"
+                    )
+                else:
+                    first = nested[0]
+                    if not isinstance(first, dict):
+                        entry["errors"].append("data.data[0] must be object")
+                    else:
+                        for field in nested_fields:
+                            if field not in first:
+                                entry["errors"].append(f"data.data[0] missing {field}")
         if stem == "api-catalog-vin":
             if not isinstance(doc.get("payload"), dict):
                 entry["errors"].append("vin.payload must be object")
@@ -207,12 +255,14 @@ def main() -> int:
         "priceLookupOk": price_ok if not args.skip_price else None,
         "listItemFieldStems": sorted(LIST_ITEM_FIELDS),
         "offlineCacheObjectDataStems": sorted(OFFLINE_CACHE_OBJECT_DATA),
+        "offlineCacheNestedListItemFieldStems": sorted(OFFLINE_CACHE_NESTED_LIST_ITEM_FIELDS),
         "vinEnvelopeExpanded": True,
         "results": results,
         "note": (
             "Catalog/API contract floor only. Wave-1 list goldens keep non-empty "
             "item-field sentinels; VIN envelope requires manufacturer/model_label/cached_at; "
-            "offline-cache action goldens require object data blobs. "
+            "offline-cache action goldens keep object data blobs; wave-2 nested "
+            "data.data[] item-field sentinels for engines/analogs/article-brands/categories. "
             "Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
         ),
     }

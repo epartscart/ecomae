@@ -228,6 +228,8 @@ check_file "storefront search item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/storefront-search-item-field-floor.json"
 check_file "storefront cart item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/storefront-cart-item-field-floor.json"
+check_file "catalog offline-cache nested item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/catalog-api/offline-cache-nested-item-field-floor.json"
 
 if [[ "$FAIL" -ne 0 ]]; then
   printf 'FAIL: Enterprise BOS scaffold guardrails\n'

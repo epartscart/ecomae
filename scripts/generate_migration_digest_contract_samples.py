@@ -736,37 +736,108 @@ def main() -> None:
             "ok": True,
             "action": "engines",
             "section": "passenger",
-            "rows": 0,
+            "rows": 1,
             "source": "migration",
             "stale": True,
-            "data": {},
+            "data": {
+                "data": [
+                    {
+                        "ENG_ID": 1,
+                        "ENGINE_CODE": "N47D20",
+                        "POWER_KW": 0,
+                        "CAPACITY_LT": 0.0,
+                        "FUEL_TYPE": "Diesel",
+                    }
+                ]
+            },
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "message": (
+                "migration-mode engines nested data.data[] item-field sentinel; "
+                "OfflineCacheOk keeps object blob; PHP/UMAPI remain authoritative"
+            ),
         },
         "api-catalog-analogs.json": {
             "ok": True,
             "action": "analogs",
             "section": "passenger",
-            "rows": 0,
+            "rows": 1,
             "source": "migration",
             "stale": True,
-            "data": {},
+            "data": {
+                "data": [
+                    {
+                        "ART_ID": 1,
+                        "BRAND": "BOSCH",
+                        "ARTICLE_NR": "0986424590",
+                        "TITLE": "Migration analog",
+                    }
+                ]
+            },
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "message": (
+                "migration-mode analogs nested data.data[] item-field sentinel; "
+                "OfflineCacheOk keeps object blob; PHP/UMAPI remain authoritative"
+            ),
         },
         "api-catalog-article-brands.json": {
             "ok": True,
             "action": "brands",
             "section": "passenger",
-            "rows": 0,
+            "rows": 1,
             "source": "migration",
             "stale": True,
-            "data": {},
+            "data": {
+                "rows": 1,
+                "data": [
+                    {
+                        "BRAND": "BOSCH",
+                        "SUP_BRAND": "BOSCH",
+                        "MANUFACTURER": "BOSCH",
+                        "DISPLAY_NR": "0986424590",
+                        "SEARCH_NUMBER": "0986424590",
+                        "ARTICLE": "0986424590",
+                        "TITLE": "Migration brand refinement",
+                        "DES": "Migration brand refinement",
+                    }
+                ],
+                "source": "migration",
+                "stale": True,
+            },
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "message": (
+                "migration-mode article-brands nested data.data[] item-field sentinel "
+                "(PHP epc_umapi_brands_offline_payload shape); OfflineCacheOk keeps object blob"
+            ),
         },
         "api-catalog-categories.json": {
             "ok": True,
             "action": "categories",
             "section": "passenger",
-            "rows": 0,
+            "rows": 1,
             "source": "migration",
             "stale": True,
-            "data": {},
+            "data": {
+                "data": [
+                    {
+                        "STR_ID": 1,
+                        "CATEGORY_NAME": "Migration category",
+                        "ORDER": 1,
+                    }
+                ]
+            },
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "message": (
+                "migration-mode categories nested data.data[] item-field sentinel; "
+                "OfflineCacheOk keeps object blob; PHP/UMAPI remain authoritative"
+            ),
         },
         "api-catalog-products.json": {
             "ok": True,

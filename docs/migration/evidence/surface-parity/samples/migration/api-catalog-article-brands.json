@@ -2,11 +2,28 @@
   "ok": true,
   "action": "brands",
   "section": "passenger",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": {},
+  "data": {
+    "rows": 1,
+    "data": [
+      {
+        "BRAND": "BOSCH",
+        "SUP_BRAND": "BOSCH",
+        "MANUFACTURER": "BOSCH",
+        "DISPLAY_NR": "0986424590",
+        "SEARCH_NUMBER": "0986424590",
+        "ARTICLE": "0986424590",
+        "TITLE": "Migration brand refinement",
+        "DES": "Migration brand refinement"
+      }
+    ],
+    "source": "migration",
+    "stale": true
+  },
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": false,
+  "message": "migration-mode article-brands nested data.data[] item-field sentinel (PHP epc_umapi_brands_offline_payload shape); OfflineCacheOk keeps object blob"
 }

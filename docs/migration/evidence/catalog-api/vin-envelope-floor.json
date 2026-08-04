@@ -19,5 +19,5 @@
     "payload"
   ],
   "offlineCacheObjectDataStemCount": 10,
-  "note": "VIN migration golden must keep full offline decode envelope (including manufacturer/model_label/cached_at and object payload). Offline-cache action routes keep object data blobs until typed item DTOs exist. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "VIN migration golden must keep full offline decode envelope (including manufacturer/model_label/cached_at and object payload). Offline-cache action routes keep object data blobs; wave-2 nested data.data[] floors cover engines/analogs/article-brands/categories. Never invents RELEASE_OWNER_APPROVAL.md."
 }

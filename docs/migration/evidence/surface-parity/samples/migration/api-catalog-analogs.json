@@ -2,11 +2,21 @@
   "ok": true,
   "action": "analogs",
   "section": "passenger",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": {},
+  "data": {
+    "data": [
+      {
+        "ART_ID": 1,
+        "BRAND": "BOSCH",
+        "ARTICLE_NR": "0986424590",
+        "TITLE": "Migration analog"
+      }
+    ]
+  },
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": false,
+  "message": "migration-mode analogs nested data.data[] item-field sentinel; OfflineCacheOk keeps object blob; PHP/UMAPI remain authoritative"
 }

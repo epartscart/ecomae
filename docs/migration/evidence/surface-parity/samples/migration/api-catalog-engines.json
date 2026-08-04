@@ -2,11 +2,22 @@
   "ok": true,
   "action": "engines",
   "section": "passenger",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": {},
+  "data": {
+    "data": [
+      {
+        "ENG_ID": 1,
+        "ENGINE_CODE": "N47D20",
+        "POWER_KW": 0,
+        "CAPACITY_LT": 0.0,
+        "FUEL_TYPE": "Diesel"
+      }
+    ]
+  },
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": false,
+  "message": "migration-mode engines nested data.data[] item-field sentinel; OfflineCacheOk keeps object blob; PHP/UMAPI remain authoritative"
 }

@@ -2,11 +2,20 @@
   "ok": true,
   "action": "categories",
   "section": "passenger",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": {},
+  "data": {
+    "data": [
+      {
+        "STR_ID": 1,
+        "CATEGORY_NAME": "Migration category",
+        "ORDER": 1
+      }
+    ]
+  },
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": false,
+  "message": "migration-mode categories nested data.data[] item-field sentinel; OfflineCacheOk keeps object blob; PHP/UMAPI remain authoritative"
 }
