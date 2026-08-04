@@ -12,6 +12,7 @@ All helpers keep `cutoverAllowed=false` / `readyForPhpRemoval=false`. Never inve
 | Digest + surface-field | `bash scripts/cloudpanel_run_digest_dual_sample_operator.sh` / `cloudpanel_run_surface_field_parity_operator.sh` | `surface-parity/OPERATOR_VERIFY.md` |
 | PHP catalog coverage board (714) | `python3 scripts/build_surface_field_catalog_coverage_board.py` | `surface-parity/php-catalog-coverage-board.json` |
 | Hybrid directory full catalog (714) | `python3 scripts/validate_hybrid_directory_full_catalog_floor.py` | `hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json` |
+| Module-function ↔ coverage consistency | `python3 scripts/validate_module_function_coverage_consistency.py` | `module-function-parity/coverage-consistency.json` |
 | Price lookup | `bash scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh` | `price-lookup/OPERATOR_VERIFY.md` |
 | Catalog/API contract floor | `bash scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh` | `catalog-api/OPERATOR_VERIFY.md` |
 | Login cookie | `bash scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh` | `login-session-bridge/OPERATOR_VERIFY.md` |

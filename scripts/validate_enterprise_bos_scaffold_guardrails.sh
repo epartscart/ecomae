@@ -150,6 +150,11 @@ if python3 "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"; then
 else
   fail "hybrid directory full catalog floor"
 fi
+if python3 "$ROOT/scripts/validate_module_function_coverage_consistency.py"; then
+  pass "module-function coverage consistency"
+else
+  fail "module-function coverage consistency"
+fi
 
 # YARP regenerator still green.
 if bash "$ROOT/scripts/generate_all_yarp_design_examples.sh" >/tmp/ecomae-yarp-guardrails.log 2>&1; then
@@ -205,6 +210,10 @@ check_file "hybrid directory full catalog floor validator" \
   "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"
 check_file "hybrid directory full catalog floor evidence" \
   "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json"
+check_file "module-function coverage consistency validator" \
+  "$ROOT/scripts/validate_module_function_coverage_consistency.py"
+check_file "module-function coverage consistency evidence" \
+  "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json"
 
 if [[ "$FAIL" -ne 0 ]]; then
   printf 'FAIL: Enterprise BOS scaffold guardrails\n'

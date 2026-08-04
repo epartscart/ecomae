@@ -168,7 +168,31 @@ def parse_cp_brochure(text: str) -> list[dict]:
                 "category": cat,
             }
         )
-    return features
+    return uniquify_ids(features)
+
+
+def uniquify_ids(rows: list[dict], key: str = "id") -> list[dict]:
+    """Ensure stable unique ids when PHP brochure inventory repeats the same name."""
+    used: set[str] = set()
+    base_counts: dict[str, int] = {}
+    out: list[dict] = []
+    for row in rows:
+        base = str(row.get(key) or "item")
+        base_counts[base] = base_counts.get(base, 0) + 1
+        item = dict(row)
+        candidate = base
+        if candidate in used:
+            href = str(item.get("href") or "")
+            suffix = slug(href) if href else str(base_counts[base])
+            candidate = f"{base}__{suffix}" if suffix else f"{base}__{base_counts[base]}"
+            n = base_counts[base]
+            while candidate in used:
+                n += 1
+                candidate = f"{base}__{n}"
+        used.add(candidate)
+        item[key] = candidate
+        out.append(item)
+    return out
 
 
 def write_csharp(catalog: dict, path: Path) -> None:
