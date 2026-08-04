@@ -55,6 +55,8 @@ MUST_DECLARE_CUTOVER_FALSE = (
     "erp-ajax-dual-samples/compare-result.json",
     "bos-ajax-dual-samples/compare-result.json",
     "module-ajax-dual-samples/compare-result.json",
+    "write-dryruns/compare-result.json",
+    "write-dryruns/write-dryrun-operator-result.json",
 )
 
 # Entire report-style trees (raw staging-smoke API dumps are excluded).
@@ -73,6 +75,7 @@ MUST_DECLARE_TREE_GLOBS = (
     "erp-ajax-dual-samples/*.json",
     "bos-ajax-dual-samples/*.json",
     "on-premises-dual-samples/*.json",
+    "write-dryruns/*.json",
     "catalog-api/*.json",
     "tenant-safety/*.json",
     # Top-level surface-parity reports only (sample fixtures/goldens have dedicated validators).

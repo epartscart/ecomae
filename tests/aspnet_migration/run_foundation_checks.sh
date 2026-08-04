@@ -722,6 +722,11 @@ check 'module function parity evidence dir exists' test -d "$ROOT/docs/migration
 check 'module function parity inventory JSON exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json"
 check 'module function parity inventory blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cutoverAllowed": false'
 check 'module function parity inventory keeps aspnet-complete at zero' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"aspnetCompleteCount": 0'
+check 'module function parity inventory hybridPreviewCount is 829' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"hybridPreviewCount": 829'
+check 'module function parity inventory phpOnlyCount is 0' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"phpOnlyCount": 0'
+check 'module function parity compare reports 829 hybrid previews' contains "$ROOT/docs/migration/evidence/module-function-parity/compare-result.json" '"hybridPreviewCount": 829'
+check 'module function parity compare phpOnlyCount is 0' contains "$ROOT/docs/migration/evidence/module-function-parity/compare-result.json" '"phpOnlyCount": 0'
+check 'module function parity compare stays ok' contains "$ROOT/docs/migration/evidence/module-function-parity/compare-result.json" '"ok": true'
 check 'module function parity inventory tracks php catalog counts' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"phpCatalogCounts"'
 check 'module function parity inventory floors CP brochure features' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cpBrochureFeatures": 405'
 check 'module function parity inventory floors ERP tabs' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"erpTabs": 154'
@@ -923,6 +928,16 @@ check 'Wave F write dry-run probe covers pos complete_sale' contains "$ROOT/scri
 
 check 'Wave B write dry-run dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh"
 check 'Wave B write dry-run dual-sample operator refuses cutover' contains "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh" 'cutoverAllowed'
+check 'write dry-run contract sample generator exists' test -x "$ROOT/scripts/generate_write_dryrun_contract_samples.py"
+check 'write dry-run dual-sample compare exists' test -x "$ROOT/scripts/compare_write_dryrun_dual_samples.py"
+check 'write dry-run operator seeds contract samples' contains "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh" 'generate_write_dryrun_contract_samples.py'
+check 'write dry-run compare supports contract-only' contains "$ROOT/scripts/compare_write_dryrun_dual_samples.py" 'contractOnly'
+check 'write dry-run dual-sample evidence dir exists' test -d "$ROOT/docs/migration/evidence/write-dryruns"
+check 'write dry-run compare-result blocks cutover' contains "$ROOT/docs/migration/evidence/write-dryruns/compare-result.json" '"cutoverAllowed": false'
+check 'write dry-run contract pairs are 183/183' contains "$ROOT/docs/migration/evidence/write-dryruns/compare-result.json" '"contractPairsOk": 183'
+check 'write dry-run catalog totalActions is 183' contains "$ROOT/docs/migration/evidence/write-dryruns/aspnet-catalog.json" '"totalActions": 183'
+check 'write dry-run README keeps PHP authoritative' contains "$ROOT/docs/migration/evidence/write-dryruns/README.md" 'PHP ajax endpoints remain authoritative'
+check 'residual board reports write-dryrun contract pairs' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"writeDryrunContractPairsOk": 183'
 check 'all dual-sample operators include write-dryrun' contains "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh" 'write-dryrun'
 check 'all dual-sample operators include module-ajax' contains "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh" 'module-ajax'
 check 'all dual-sample operators include on-premises' contains "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh" 'on-premises'
@@ -986,6 +1001,9 @@ check 'deploy packs presentation recheck operator' contains "$ROOT/scripts/deplo
 check 'deploy packs price-lookup dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_price_lookup_dual_sample_operator.sh'
 check 'deploy packs catalog-api dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_catalog_api_dual_sample_operator.sh'
 check 'deploy packs module-ajax dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_module_ajax_dual_sample_operator.sh'
+check 'deploy packs write-dryrun contract generator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'generate_write_dryrun_contract_samples.py'
+check 'deploy packs write-dryrun dual-sample compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_write_dryrun_dual_samples.py'
+check 'deploy packs write-dryrun dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_write_dryrun_dual_sample_operator.sh'
 check 'deploy packs module-ajax dual-sample compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_module_ajax_dual_samples.py'
 check 'deploy packs on-premises contract generator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'generate_on_premises_contract_samples.py'
 check 'deploy packs on-premises dual-sample compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_on_premises_dual_samples.py'

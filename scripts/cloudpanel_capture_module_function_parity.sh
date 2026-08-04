@@ -1153,9 +1153,11 @@ else:
         "phpOnlyCount": php_only_count,
         "phpCatalogCounts": catalog_counts,
         "phpCatalogScopeNote": (
-            "modules[] enumerates the full PHP catalog (ERP areas/tabs/categories, BOS modules, "
-            "CP brochure features, storefront surfaces). Hybrid TARGET matches upgrade status; "
-            "everything else remains php-only until human MODULE_FUNCTION_TEST_PASS.md exists."
+            "modules[] enumerates the full PHP catalog (ERP areas/tabs/categories, BOS modules/sections, "
+            "CP brochure features, storefront surfaces) plus hybrid TARGET rows. Statuses are "
+            "digest-only+hybrid-deeplink or hybrid-deeplink for matched TARGETS; unmatched catalog "
+            "rows stay php-only. Interactive aspnet-complete remains 0 until human "
+            "MODULE_FUNCTION_TEST_PASS.md exists."
         ),
         "source": (
             "aspnet/.../Generated/php_module_catalog.json + "

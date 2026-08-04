@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "action": "license-activate-dry-run",
+  "label": "on-premises license activate",
+  "aspNetRoute": "/erp/on-premises/license-activate-dry-run",
+  "sampleBody": "{\"licenseKey\":\"LIC-2026-ABCD-EFGH\",\"fingerprint\":\"fp-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"hostname\":\"onprem-demo\",\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

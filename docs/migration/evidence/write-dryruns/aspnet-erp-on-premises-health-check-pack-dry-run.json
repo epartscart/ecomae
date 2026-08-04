@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "action": "health-check-pack-dry-run",
+  "label": "on-premises health-check pack",
+  "aspNetRoute": "/erp/on-premises/health-check-pack-dry-run",
+  "sampleBody": "{\"action\":\"health\",\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

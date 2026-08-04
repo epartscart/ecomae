@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "action": "rma-create",
+  "label": "erp aftersales rma-create",
+  "aspNetRoute": "/erp/aftersales/rma-create",
+  "sampleBody": "{\"customerId\":1,\"sourceId\":1,\"reason\":\"dry-run\",\"lines\":[{\"itemId\":1,\"qty\":1,\"unitPrice\":10}],\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

@@ -1,0 +1,18 @@
+{
+  "role": "php-write-dryrun-contract-sample",
+  "ok": true,
+  "surface": "erp",
+  "action": "settlement-open-docs",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "pairedAspNetGolden": "aspnet-erp-ajax-settlement-open-docs.json",
+  "aspNetRoute": "/erp/ajax/settlement-open-docs",
+  "generatedAtUnix": 1785870349,
+  "note": "Seeded from aspnet write-dryrun golden for contract-only compare. Live PHP ajax remains authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

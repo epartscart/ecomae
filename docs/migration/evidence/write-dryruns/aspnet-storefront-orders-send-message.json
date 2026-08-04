@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "storefront",
+  "action": "send-message",
+  "label": "storefront order send-message",
+  "aspNetRoute": "/storefront/orders/send-message",
+  "sampleBody": "{\"orderId\":1,\"text\":\"dry-run\",\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

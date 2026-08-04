@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "storefront",
+  "action": "add",
+  "label": "cart add type-2",
+  "aspNetRoute": "/storefront/cart/add",
+  "sampleBody": "{\"productType\":2,\"manufacturer\":\"Bosch\",\"article\":\"0986\",\"countNeed\":1,\"price\":12,\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

@@ -1,0 +1,22 @@
+{
+  "role": "write-dryrun-dual-sample-compare",
+  "generatedAtUnix": 1785870679,
+  "ok": true,
+  "samplesChecked": 183,
+  "samplesOk": 183,
+  "probeUniquePaths": 183,
+  "contractOnly": true,
+  "contractPairs": 183,
+  "contractPairsOk": 183,
+  "migrationBaselinePairs": 183,
+  "missingAspNetSides": [],
+  "missingPhpSides": [],
+  "missingPhpSideCount": 0,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "errors": [],
+  "errorCount": 0,
+  "note": "Write dry-runs are writes=0. Contract-only pairs use migration-contract-golden baselines \u2014 not live PHP. Live PHP ajax remains authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}
