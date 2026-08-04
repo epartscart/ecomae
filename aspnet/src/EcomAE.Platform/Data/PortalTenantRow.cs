@@ -6,6 +6,8 @@ public sealed record PortalTenantRow(
     string SiteKey,
     string Hostname,
     string DatabaseName,
+    string DbUser,
+    string DbPassword,
     string Status,
     bool IsDemo,
     bool ErpOnlyShared,
@@ -23,10 +25,14 @@ public sealed record PortalTenantRow(
             Hostname,
             mode,
             SiteKey,
-            DatabaseName,
+            string.IsNullOrWhiteSpace(DatabaseName) ? null : DatabaseName,
             StorefrontEnabled: !ErpOnlyShared,
             ErpEnabled: true,
             ControlPanelEnabled: !ErpOnlyShared,
-            BosEnabled: false);
+            BosEnabled: false,
+            DbUser: string.IsNullOrWhiteSpace(DbUser) ? null : DbUser,
+            DbPassword: string.IsNullOrWhiteSpace(DbPassword) ? null : DbPassword,
+            DedicatedDb: DedicatedDb || string.Equals(ScalePolicy, "dedicated_mysql", StringComparison.OrdinalIgnoreCase),
+            ScalePolicy: string.IsNullOrWhiteSpace(ScalePolicy) ? null : ScalePolicy);
     }
 }

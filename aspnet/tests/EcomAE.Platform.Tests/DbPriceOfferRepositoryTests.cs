@@ -111,5 +111,14 @@ public sealed class DbPriceOfferRepositoryTests
 
             return Task.FromResult(OpenHandler(databaseName));
         }
+
+        public Task<DbConnection> OpenAsync(string? databaseName, string? userName, string? password, CancellationToken cancellationToken = default)
+            => OpenAsync(databaseName, cancellationToken);
+
+        public Task<DbConnection> OpenForTenantAsync(EcomAE.Platform.Services.TenantContext? tenant, CancellationToken cancellationToken = default)
+            => OpenAsync(tenant?.DatabaseName, cancellationToken);
+
+        public Task<DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default)
+            => OpenAsync(null, cancellationToken);
     }
 }

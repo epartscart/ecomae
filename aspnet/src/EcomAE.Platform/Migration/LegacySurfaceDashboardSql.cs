@@ -174,6 +174,85 @@ public static class LegacySurfaceDashboardSql
         WHERE `status` = 'open' AND `due_at` > 0 AND `due_at` < UNIX_TIMESTAMP()
         """;
 
+    /// <summary>
+    /// Single-round-trip ERP dashboard KPI batch (PHP erp_dashboard + command-center tiles).
+    /// Parameters: @dateFrom, @dateTo, @periodKey, @overdueBefore.
+    /// </summary>
+    public const string SelectErpDashboardSummaryBatch = """
+        SELECT
+            (
+                SELECT IFNULL(SUM(a.`opening_balance`
+                        + IFNULL(x.in_amt, 0) - IFNULL(x.out_amt, 0)), 0)
+                FROM `epc_erp_cash_bank_accounts` a
+                LEFT JOIN (
+                    SELECT `account_id`,
+                        SUM(CASE WHEN `direction` = 1 THEN `amount` ELSE 0 END) AS in_amt,
+                        SUM(CASE WHEN `direction` = 0 THEN `amount` ELSE 0 END) AS out_amt
+                    FROM `epc_erp_cash_bank_entries`
+                    WHERE `active` = 1
+                    GROUP BY `account_id`
+                ) x ON x.`account_id` = a.`id`
+                WHERE a.`active` = 1
+            ) AS cash_position,
+            (SELECT IFNULL(SUM(`amount`), 0) FROM `epc_erp_supplier_accounting` WHERE `active` = 1 AND `is_credit` = 1) AS supplier_credit,
+            (SELECT IFNULL(SUM(`amount`), 0) FROM `epc_erp_supplier_accounting` WHERE `active` = 1 AND `is_credit` = 0) AS supplier_debit,
+            (SELECT COUNT(*) FROM `epc_erp_cash_bank_accounts` WHERE `active` = 1) AS cash_accounts,
+            (SELECT COUNT(*) FROM `epc_erp_suppliers` WHERE `active` = 1) AS active_suppliers,
+            (SELECT COUNT(*) FROM `epc_erp_purchases` WHERE `active` = 1) AS active_purchases,
+            (SELECT COALESCE(SUM(`total_amount` - `paid_amount`), 0) FROM `epc_invoices` WHERE `status` <> 'paid') AS receivables,
+            (SELECT COALESCE(SUM(`total_amount` - `paid_amount`), 0) FROM `epc_bills` WHERE `status` <> 'paid') AS payables,
+            (
+                SELECT IF(
+                    EXISTS(SELECT 1 FROM `epc_erp_inv_stock` LIMIT 1),
+                    (SELECT COALESCE(SUM(`qty_on_hand` * `avg_unit_cost`), 0) FROM `epc_erp_inv_stock`),
+                    (SELECT COALESCE(SUM(`quantity` * `avg_cost`), 0) FROM `epc_inventory_stock`)
+                )
+            ) AS stock_value,
+            (
+                SELECT IFNULL(SUM(CASE WHEN `successfully_created` = 1 THEN `price_total_wt` - `price_total_wt_vat` ELSE 0 END), 0)
+                FROM `shop_orders`
+                WHERE `time` >= @dateFrom AND `time` <= @dateTo
+            ) AS revenue_ex_vat,
+            (
+                SELECT COUNT(*) FROM `shop_orders`
+                WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` <= @dateTo
+            ) AS orders_count,
+            (
+                SELECT IFNULL(SUM(CASE WHEN `income` = 1 THEN `amount` ELSE -`amount` END), 0)
+                FROM `shop_users_accounting` WHERE `active` = 1
+            ) AS ar_balance,
+            (SELECT IFNULL(SUM(`balance`), 0) FROM `epc_erp_suppliers` WHERE `active` = 1) AS ap_balance,
+            (
+                SELECT IFNULL(SUM(`price_total_wt_vat`), 0) FROM `shop_orders`
+                WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` <= @dateTo
+            ) AS vat_out,
+            (
+                SELECT IFNULL(SUM(`vat_amount`), 0) FROM `epc_erp_purchases`
+                WHERE `active` = 1 AND `purchase_date` >= @dateFrom AND `purchase_date` <= @dateTo
+            ) AS vat_in,
+            (SELECT COUNT(*) FROM `epc_erp_inv_items` WHERE `active` = 1) AS inventory_items,
+            IFNULL((SELECT `status` FROM `epc_erp_periods` WHERE `period_key` = @periodKey LIMIT 1), 'open') AS period_status,
+            (SELECT COUNT(*) FROM `epc_erp_sales_orders` WHERE `status` = 'draft') AS draft_sales_orders,
+            (SELECT COUNT(*) FROM `epc_erp_purchase_orders` WHERE `status` IN ('draft', 'pending')) AS pending_purchase_orders,
+            (SELECT COUNT(*) FROM `epc_erp_gl_journals` WHERE `status` = 'draft' AND `active` = 1) AS unposted_gl_journals,
+            (
+                SELECT COUNT(*) FROM `epc_erp_sales_invoices`
+                WHERE `status` = 'unpaid' AND `due_date` < @overdueBefore
+            ) AS overdue_invoices,
+            (
+                SELECT COUNT(*) FROM `epc_erp_inv_stock` s
+                INNER JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id` AND i.`active` = 1
+                WHERE i.`reorder_level` > 0 AND s.`qty_on_hand` > 0 AND s.`qty_on_hand` <= i.`reorder_level`
+            ) AS low_stock_items,
+            (SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE `status` IN ('draft', 'queued')) AS pending_einvoices,
+            (SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` = 'open') AS process_open,
+            (SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` = 'done') AS process_done,
+            (
+                SELECT COUNT(*) FROM `epc_pf_cases`
+                WHERE `status` = 'open' AND `due_at` > 0 AND `due_at` < UNIX_TIMESTAMP()
+            ) AS process_overdue
+        """;
+
     /// <summary>Process-flow case KPIs aligned to PHP <c>epc_erp_processflow.php</c> / <c>epc_pf_cases</c>.</summary>
     public const string SelectErpProcessFlowTaskStats = """
         SELECT

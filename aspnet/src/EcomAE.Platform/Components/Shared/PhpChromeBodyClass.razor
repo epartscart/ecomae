@@ -1,7 +1,10 @@
 @using EcomAE.Platform.Presentation
 @*
   Applies PHP-matching document.body classes (Blazor layout leaves body bare).
+  Meta + data attribute keep markers visible in SSR HTML for presentation probes.
 *@
+<meta name="epc-body-class" content="@BodyClass" />
+<div class="epc-body-class-bridge" data-epc-body-class="@BodyClass" hidden aria-hidden="true"></div>
 <script>
 (function () {
   var cls = '@BodyClass';

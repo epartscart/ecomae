@@ -56,6 +56,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
+            // Uses TenantContext DB/credentials when present (per-tenant isolation).
             await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var monthStart = new DateTimeOffset(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, TimeSpan.Zero)
@@ -63,67 +64,152 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var periodKey = DateTime.UtcNow.ToString("yyyy-MM", CultureInfo.InvariantCulture);
             var overdueBefore = now - (86400L * 30);
 
-            var cash = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumCashBankTotal, cancellationToken).ConfigureAwait(false);
-            var credit = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumSupplierCredit, cancellationToken).ConfigureAwait(false);
-            var debit = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumSupplierDebit, cancellationToken).ConfigureAwait(false);
-            var cashAccounts = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCashAccounts, cancellationToken).ConfigureAwait(false);
-            var suppliers = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountActiveSuppliers, cancellationToken).ConfigureAwait(false);
-            var purchases = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountActivePurchases, cancellationToken).ConfigureAwait(false);
-
-            var receivables = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpDashboardReceivables, cancellationToken).ConfigureAwait(false);
-            var payables = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpDashboardPayables, cancellationToken).ConfigureAwait(false);
-            var stockValue = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpDashboardStockValue, cancellationToken).ConfigureAwait(false);
-
-            var revenue = await ScalarDecimalParamSafeAsync(
-                connection, LegacySurfaceDashboardSql.SumErpCcRevenueExVat, cancellationToken,
-                ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
-            var orders = await ScalarIntParamSafeAsync(
-                connection, LegacySurfaceDashboardSql.CountErpCcOrders, cancellationToken,
-                ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
-            var arBalance = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpCcArBalance, cancellationToken).ConfigureAwait(false);
-            var apBalance = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpCcApBalance, cancellationToken).ConfigureAwait(false);
-            var vatOut = await ScalarDecimalParamSafeAsync(
-                connection, LegacySurfaceDashboardSql.SumErpCcVatOut, cancellationToken,
-                ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
-            var vatIn = await ScalarDecimalParamSafeAsync(
-                connection, LegacySurfaceDashboardSql.SumErpCcVatIn, cancellationToken,
-                ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
-            var inventoryItems = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcInventoryItems, cancellationToken).ConfigureAwait(false);
-            var periodStatus = await ScalarStringParamSafeAsync(
-                connection, LegacySurfaceDashboardSql.SelectErpCcPeriodStatus, "open", cancellationToken,
-                ("@periodKey", periodKey)).ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(periodStatus))
+            ErpDashboardSummary summary;
+            try
             {
-                periodStatus = "open";
+                summary = await ReadErpDashboardBatchAsync(
+                    connection, monthStart, now, periodKey, overdueBefore, cancellationToken).ConfigureAwait(false);
+                activity?.SetTag("ecomae.erp_kpi_path", "batch");
+            }
+            catch
+            {
+                // Missing tables make the single-statement batch fail; degrade per-scalar like PHP digests.
+                summary = await ReadErpDashboardScalarsAsync(
+                    connection, monthStart, now, periodKey, overdueBefore, cancellationToken).ConfigureAwait(false);
+                activity?.SetTag("ecomae.erp_kpi_path", "scalar-fallback");
             }
 
-            var draftSo = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcDraftSalesOrders, cancellationToken).ConfigureAwait(false);
-            var pendingPo = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcPendingPurchaseOrders, cancellationToken).ConfigureAwait(false);
-            var unpostedGl = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcUnpostedGlJournals, cancellationToken).ConfigureAwait(false);
-            var overdueInv = await ScalarIntParamSafeAsync(
-                connection, LegacySurfaceDashboardSql.CountErpCcOverdueInvoices, cancellationToken,
-                ("@overdueBefore", overdueBefore)).ConfigureAwait(false);
-            var lowStock = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcLowStockItems, cancellationToken).ConfigureAwait(false);
-            var pendingEinv = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcPendingEinvoices, cancellationToken).ConfigureAwait(false);
-            var processOpen = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessOpen, cancellationToken).ConfigureAwait(false);
-            var processDone = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessDone, cancellationToken).ConfigureAwait(false);
-            var processOverdue = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessOverdue, cancellationToken).ConfigureAwait(false);
-
-            var summary = new ErpDashboardSummary(
-                cash, credit, debit, credit - debit, cashAccounts, suppliers, purchases,
-                receivables, payables, stockValue,
-                revenue, orders, arBalance, apBalance, vatOut - vatIn, periodStatus, inventoryItems,
-                draftSo, pendingPo, unpostedGl, overdueInv, lowStock, pendingEinv,
-                processOpen, processDone, processOverdue,
-                "database", string.Empty);
             var queue = BuildErpApprovalQueue(summary);
-            return new(summary, queue, queue.Count, "database", string.Empty);
+            return new(summary, queue, queue.Count, summary.Source, summary.Message);
         }
         catch (Exception ex)
         {
             var err = EmptyErpSummary("database-error", ex.Message);
             return new(err, [], 0, err.Source, err.Message);
         }
+    }
+
+    private static async Task<ErpDashboardSummary> ReadErpDashboardBatchAsync(
+        DbConnection connection,
+        long monthStart,
+        long now,
+        string periodKey,
+        long overdueBefore,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = LegacySurfaceDashboardSql.SelectErpDashboardSummaryBatch;
+        AddParameter(command, "@dateFrom", monthStart);
+        AddParameter(command, "@dateTo", now);
+        AddParameter(command, "@periodKey", periodKey);
+        AddParameter(command, "@overdueBefore", overdueBefore);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return EmptyErpSummary("database", string.Empty);
+        }
+
+        var cash = ReadDecimal(reader, "cash_position");
+        var credit = ReadDecimal(reader, "supplier_credit");
+        var debit = ReadDecimal(reader, "supplier_debit");
+        var cashAccounts = ReadInt(reader, "cash_accounts");
+        var suppliers = ReadInt(reader, "active_suppliers");
+        var purchases = ReadInt(reader, "active_purchases");
+        var receivables = ReadDecimal(reader, "receivables");
+        var payables = ReadDecimal(reader, "payables");
+        var stockValue = ReadDecimal(reader, "stock_value");
+        var revenue = ReadDecimal(reader, "revenue_ex_vat");
+        var orders = ReadInt(reader, "orders_count");
+        var arBalance = ReadDecimal(reader, "ar_balance");
+        var apBalance = ReadDecimal(reader, "ap_balance");
+        var vatOut = ReadDecimal(reader, "vat_out");
+        var vatIn = ReadDecimal(reader, "vat_in");
+        var inventoryItems = ReadInt(reader, "inventory_items");
+        var periodStatus = Convert.ToString(reader["period_status"], CultureInfo.InvariantCulture);
+        if (string.IsNullOrWhiteSpace(periodStatus))
+        {
+            periodStatus = "open";
+        }
+
+        var draftSo = ReadInt(reader, "draft_sales_orders");
+        var pendingPo = ReadInt(reader, "pending_purchase_orders");
+        var unpostedGl = ReadInt(reader, "unposted_gl_journals");
+        var overdueInv = ReadInt(reader, "overdue_invoices");
+        var lowStock = ReadInt(reader, "low_stock_items");
+        var pendingEinv = ReadInt(reader, "pending_einvoices");
+        var processOpen = ReadInt(reader, "process_open");
+        var processDone = ReadInt(reader, "process_done");
+        var processOverdue = ReadInt(reader, "process_overdue");
+
+        return new ErpDashboardSummary(
+            cash, credit, debit, credit - debit, cashAccounts, suppliers, purchases,
+            receivables, payables, stockValue,
+            revenue, orders, arBalance, apBalance, vatOut - vatIn, periodStatus, inventoryItems,
+            draftSo, pendingPo, unpostedGl, overdueInv, lowStock, pendingEinv,
+            processOpen, processDone, processOverdue,
+            "database", string.Empty);
+    }
+
+    private async Task<ErpDashboardSummary> ReadErpDashboardScalarsAsync(
+        DbConnection connection,
+        long monthStart,
+        long now,
+        string periodKey,
+        long overdueBefore,
+        CancellationToken cancellationToken)
+    {
+        var cash = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumCashBankTotal, cancellationToken).ConfigureAwait(false);
+        var credit = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumSupplierCredit, cancellationToken).ConfigureAwait(false);
+        var debit = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumSupplierDebit, cancellationToken).ConfigureAwait(false);
+        var cashAccounts = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCashAccounts, cancellationToken).ConfigureAwait(false);
+        var suppliers = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountActiveSuppliers, cancellationToken).ConfigureAwait(false);
+        var purchases = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountActivePurchases, cancellationToken).ConfigureAwait(false);
+        var receivables = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpDashboardReceivables, cancellationToken).ConfigureAwait(false);
+        var payables = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpDashboardPayables, cancellationToken).ConfigureAwait(false);
+        var stockValue = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpDashboardStockValue, cancellationToken).ConfigureAwait(false);
+        var revenue = await ScalarDecimalParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.SumErpCcRevenueExVat, cancellationToken,
+            ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
+        var orders = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpCcOrders, cancellationToken,
+            ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
+        var arBalance = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpCcArBalance, cancellationToken).ConfigureAwait(false);
+        var apBalance = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpCcApBalance, cancellationToken).ConfigureAwait(false);
+        var vatOut = await ScalarDecimalParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.SumErpCcVatOut, cancellationToken,
+            ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
+        var vatIn = await ScalarDecimalParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.SumErpCcVatIn, cancellationToken,
+            ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
+        var inventoryItems = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcInventoryItems, cancellationToken).ConfigureAwait(false);
+        var periodStatus = await ScalarStringParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.SelectErpCcPeriodStatus, "open", cancellationToken,
+            ("@periodKey", periodKey)).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(periodStatus))
+        {
+            periodStatus = "open";
+        }
+
+        var draftSo = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcDraftSalesOrders, cancellationToken).ConfigureAwait(false);
+        var pendingPo = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcPendingPurchaseOrders, cancellationToken).ConfigureAwait(false);
+        var unpostedGl = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcUnpostedGlJournals, cancellationToken).ConfigureAwait(false);
+        var overdueInv = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpCcOverdueInvoices, cancellationToken,
+            ("@overdueBefore", overdueBefore)).ConfigureAwait(false);
+        var lowStock = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcLowStockItems, cancellationToken).ConfigureAwait(false);
+        var pendingEinv = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcPendingEinvoices, cancellationToken).ConfigureAwait(false);
+        var processOpen = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessOpen, cancellationToken).ConfigureAwait(false);
+        var processDone = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessDone, cancellationToken).ConfigureAwait(false);
+        var processOverdue = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessOverdue, cancellationToken).ConfigureAwait(false);
+
+        return new ErpDashboardSummary(
+            cash, credit, debit, credit - debit, cashAccounts, suppliers, purchases,
+            receivables, payables, stockValue,
+            revenue, orders, arBalance, apBalance, vatOut - vatIn, periodStatus, inventoryItems,
+            draftSo, pendingPo, unpostedGl, overdueInv, lowStock, pendingEinv,
+            processOpen, processDone, processOverdue,
+            "database", string.Empty);
     }
 
     public async Task<BosFleetSummary> BuildBosAsync(CancellationToken cancellationToken = default)
@@ -6301,6 +6387,28 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return fallback;
         }
+    }
+
+    private static decimal ReadDecimal(DbDataReader reader, string column)
+    {
+        var ordinal = reader.GetOrdinal(column);
+        if (reader.IsDBNull(ordinal))
+        {
+            return 0m;
+        }
+
+        return Convert.ToDecimal(reader.GetValue(ordinal), CultureInfo.InvariantCulture);
+    }
+
+    private static int ReadInt(DbDataReader reader, string column)
+    {
+        var ordinal = reader.GetOrdinal(column);
+        if (reader.IsDBNull(ordinal))
+        {
+            return 0;
+        }
+
+        return Convert.ToInt32(reader.GetValue(ordinal), CultureInfo.InvariantCulture);
     }
 
     private static void AddParameter(DbCommand command, string name, object value)

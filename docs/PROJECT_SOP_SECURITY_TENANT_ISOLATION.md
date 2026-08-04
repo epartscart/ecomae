@@ -130,7 +130,21 @@
 - BOS “list all tenants” UI that then queries one shared commerce schema for all sites.  
 - Logging full SQL rows with PII into shared log ships without tenant redaction.  
 - Backup/restore of tenant A into tenant B hostname without credential rewrite.  
-- Giving a support engineer a platform root password for “quick fix” on a live tenant DB without ticket + time-bound access.
+- Giving a support engineer a platform root password for “quick fix” on a live tenant DB without ticket + time-bound access.  
+- Caching admin/session identity without a key that includes **host + tenant database** (cross-tenant cache bleed).  
+- Opening the portal registry (`epc_portal_tenants`) with ambient tenant credentials (must use registry/base connection only).
+
+### 4.5 ASP.NET isolation components (current)
+
+| Component | Role |
+|---|---|
+| `DbBackedTenantRegistry` | Host → site_key/db/creds from portal; 60s cache; seed fallback |
+| `MySqlTenantDbConnectionFactory` | Opens tenant DB + optional per-tenant user/password; pool knobs via `EcomAE:TenantDbPool` |
+| `OpenRegistryAsync` | Portal/registry open — **never** applies request `TenantContext` |
+| `CachingLegacySessionStore` | Short TTL over PHP-compatible session checks; scoped by host/db (`EcomAE:SessionCache`) |
+| ERP KPI batch | One-round-trip dashboard SQL with per-scalar safe fallback |
+
+**Still not cutover:** these harden digests/isolation scaffolding only. Interactive PHP remains authoritative until approval gates pass.
 
 ---
 

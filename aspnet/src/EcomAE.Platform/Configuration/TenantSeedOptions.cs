@@ -10,6 +10,16 @@ public sealed class TenantSeedOptions
 
     public string? DatabaseName { get; set; }
 
+    /// <summary>Optional dedicated DB user (never commit secrets; prefer env / registry).</summary>
+    public string? DbUser { get; set; }
+
+    /// <summary>Optional dedicated DB password (never commit secrets).</summary>
+    public string? DbPassword { get; set; }
+
+    public bool DedicatedDb { get; set; }
+
+    public string? ScalePolicy { get; set; }
+
     public TenantMode Mode { get; set; } = TenantMode.LiveTenant;
 
     public bool StorefrontEnabled { get; set; } = true;
