@@ -16,5 +16,8 @@
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode contract sample; PHP remains authoritative"
+  "note": "migration-mode contract sample; PHP remains authoritative",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
 }

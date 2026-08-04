@@ -9,5 +9,8 @@
   "vehicle_count": 0,
   "manufacturer": null,
   "model_label": null,
-  "payload": {}
+  "payload": {},
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
 }
