@@ -155,8 +155,8 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         Assert.False(report.CutoverAllowed);
         Assert.Contains(report.Phases, p => p.Id == "4-function-parity" && p.Detail.Contains("ajax_erp", StringComparison.Ordinal));
         Assert.Contains(report.Phases, p => p.Id == "4-function-parity" && p.Detail.Contains("module ajax", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(report.NextBuilds, n => n.Contains("on-premises-aspnet", StringComparison.OrdinalIgnoreCase)
-            || n.Contains("setup-wizard", StringComparison.OrdinalIgnoreCase)
-            || n.Contains("module ajax", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.NextBuilds, n => n.Contains("module-ajax", StringComparison.OrdinalIgnoreCase)
+            || n.Contains("on-premises", StringComparison.OrdinalIgnoreCase)
+            || n.Contains("RELEASE_OWNER_APPROVAL", StringComparison.OrdinalIgnoreCase));
     }
 }

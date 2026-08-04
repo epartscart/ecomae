@@ -1,0 +1,14 @@
+{
+  "role": "module-ajax-dual-sample-compare",
+  "generatedAtUnix": 1785860623,
+  "ok": true,
+  "samplesChecked": 1,
+  "samplesOk": 1,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "errors": [],
+  "warnings": [],
+  "note": "ASP.NET module-ajax dry-runs are writes=0 gates only. Live PHP ajax/forms remain authoritative until field-level dual-sample + human RELEASE_OWNER_APPROVAL.md."
+}

@@ -46,8 +46,10 @@ doc = {
     ),
     "next": [
         "Capture paired PHP ajax vs ASP.NET dry-run JSON samples per surface",
+        "Run module-ajax dual-sample operator: bash scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh",
         "Compare intended/simulated fields; keep cutoverAllowed=false until human sign-off",
     ],
+    "moduleAjaxOperator": "scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh",
 }
 out.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
 if not probe_ok:

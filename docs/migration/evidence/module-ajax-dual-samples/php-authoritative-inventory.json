@@ -1,0 +1,15 @@
+{
+  "role": "php-module-ajax-authoritative-inventory",
+  "generatedAtUnix": 1785860623,
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "surfaces": [
+    {
+      "module": "procurement",
+      "php": "cp/content/shop/procurement/ajax_procurement.php"
+    }
+  ],
+  "note": "fixture"
+}

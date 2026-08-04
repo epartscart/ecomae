@@ -1,0 +1,13 @@
+# Scaffold only — not a live cutover compose file.
+# PHP deploy/on-premises docker-compose remains authoritative until dual-sample + approval.
+# cutoverAllowed=false
+services:
+  ecomae-onprem-platform:
+    image: ecomae/onprem-platform:scaffold
+    profiles: ["scaffold-not-for-production"]
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:5100
+      ECOMAE_ONPREM_SCAFFOLD: "1"
+    ports:
+      - "5100:5100"
+    # No volumes / secrets wired — PHP pack remains the install path.

@@ -27,14 +27,11 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             Phases: phases,
             NextBuilds:
             [
-                "Dual-sample CP module ajax catalog (procurement/document_control/customer_mgmt/auto_price/CRM) vs PHP.",
+                "Run module-ajax dual-sample operator on CloudPanel; pair PHP ajax field samples; keep cutoverAllowed=false.",
                 "Dual-sample ERP ajax registry + dedicated BOS/concurrency/OPL dry-runs vs PHP ajax_erp.php.",
-                "Dual-sample OMS refresh-cost + ERP period/settlement/FX/fiscal + purchase-from-order vs PHP ajax.",
-                "Dual-sample /erp/on-premises-app + licenses digest + health/activate/setup-wizard/backup dry-runs vs PHP.",
-                "Promote deploy/on-premises-aspnet/ scaffold to replace PHP installer runtime after dual-sample.",
-                "Dual-sample marketing legal aliases + brochure-cp vs live PHP; remaining exact-route candidates.",
-                "Paired PHP ajax vs ASP.NET write dry-run samples via write-dryrun operator; then staged exact-route.",
-                "Dual-sample CP/storefront module ajax + classic_form catalogs vs PHP; then staged exact-route — never invent cutoverAllowed or RELEASE_OWNER_APPROVAL.",
+                "Dual-sample /erp/on-premises-app + licenses + health/activate/setup-wizard/backup; grow on-premises-aspnet pack.",
+                "Paired PHP ajax vs ASP.NET write dry-run samples via write-dryrun + module-ajax operators; then staged exact-route.",
+                "Human RELEASE_OWNER_APPROVAL.md after dual-sample — never invent that file; then 100% / 0 PHP.",
             ],
             Notes:
             [

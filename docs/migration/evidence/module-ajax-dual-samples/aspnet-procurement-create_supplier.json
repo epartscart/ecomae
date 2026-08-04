@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "phpAuthoritative": true
+}
