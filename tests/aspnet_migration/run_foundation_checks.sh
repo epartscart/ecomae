@@ -722,6 +722,11 @@ check 'module function parity evidence dir exists' test -d "$ROOT/docs/migration
 check 'module function parity inventory JSON exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json"
 check 'module function parity inventory blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cutoverAllowed": false'
 check 'module function parity inventory keeps aspnet-complete at zero' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"aspnetCompleteCount": 0'
+check 'module function parity inventory hybridPreviewCount is 829' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"hybridPreviewCount": 829'
+check 'module function parity inventory phpOnlyCount is 0' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"phpOnlyCount": 0'
+check 'module function parity compare reports 829 hybrid previews' contains "$ROOT/docs/migration/evidence/module-function-parity/compare-result.json" '"hybridPreviewCount": 829'
+check 'module function parity compare phpOnlyCount is 0' contains "$ROOT/docs/migration/evidence/module-function-parity/compare-result.json" '"phpOnlyCount": 0'
+check 'module function parity compare stays ok' contains "$ROOT/docs/migration/evidence/module-function-parity/compare-result.json" '"ok": true'
 check 'module function parity inventory tracks php catalog counts' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"phpCatalogCounts"'
 check 'module function parity inventory floors CP brochure features' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cpBrochureFeatures": 405'
 check 'module function parity inventory floors ERP tabs' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"erpTabs": 154'

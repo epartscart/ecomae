@@ -1,6 +1,6 @@
 {
   "role": "www-zero-php-residual-board",
-  "generatedAtUnix": 1785870349,
+  "generatedAtUnix": 1785870679,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
@@ -16,7 +16,10 @@
     "writeDryrunContractPairs": 183,
     "writeDryrunContractPairsOk": 183,
     "erpAjaxContractPairsOk": 321,
-    "bosAjaxContractPairsOk": 231
+    "bosAjaxContractPairsOk": 231,
+    "moduleFunctionHybridPreviewCount": 829,
+    "moduleFunctionPhpOnlyCount": 0,
+    "moduleFunctionAspnetCompleteCount": 0
   },
   "whatThePercentsMean": {
     "100_scaffold": "Menus 726/726, field floors, ajax dry-run catalogs/goldens (CP 254 + ERP 321 + BOS 231), write-dryrun contract pairs 183/183, tenant/industry gates, security headers + compression are built. This is NOT UX cutover.",

@@ -5,8 +5,8 @@
   "readyForPhpRemoval": false,
   "aspnetCompleteCount": 0,
   "moduleCount": 829,
-  "hybridPreviewCount": 828,
-  "phpOnlyCount": 1,
+  "hybridPreviewCount": 829,
+  "phpOnlyCount": 0,
   "phpCatalogCounts": {
     "erpAreas": 35,
     "erpTabs": 154,
@@ -16,9 +16,9 @@
     "cpBrochureFeatures": 405,
     "storefrontSurfaces": 13
   },
-  "phpCatalogScopeNote": "modules[] enumerates the full PHP catalog (ERP areas/tabs/categories, BOS modules, CP brochure features, storefront surfaces). Hybrid TARGET matches upgrade status; everything else remains php-only until human MODULE_FUNCTION_TEST_PASS.md exists.",
+  "phpCatalogScopeNote": "modules[] enumerates the full PHP catalog (ERP areas/tabs/categories, BOS modules/sections, CP brochure features, storefront surfaces) plus hybrid TARGET rows. Current statuses are digest-only+hybrid-deeplink (scaffold previews). Interactive aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists.",
   "source": "aspnet/.../Generated/php_module_catalog.json + scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh TARGETS",
-  "note": "Full PHP module/menu/function inventory contract. aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists.",
+  "note": "Full PHP module/menu/function inventory contract. hybridPreviewCount=829 phpOnlyCount=0. aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists. Never invents RELEASE_OWNER_APPROVAL.md.",
   "modules": [
     {
       "id": "erp-area-overview",
