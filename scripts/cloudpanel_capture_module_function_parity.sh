@@ -375,9 +375,18 @@ CP_FEATURE_HYBRID_BY_ID = {
     "sales-and-marketing-marketing": "cp-marketing-growth",
     "epc-social-media-hub": "cp-marketing-growth",
     "social-media-hub": "cp-marketing-growth",
+    # Wave 12 — soc2 / cost-models / fin-advanced / blockchain
+    "cost-management-costing-value-models": "cp-cost-models",
+    "cost-accounting-financial-depth": "cp-fin-advanced",
+    "general-ledger-financial-depth": "cp-fin-advanced",
+    "tax-blockchain-proofs": "cp-blockchain-proofs",
+    "audit-workbench-blockchain-proofs": "cp-blockchain-proofs",
 }
 
 ERP_AREA_HYBRID_BY_ID = {
+
+    "cost_acct": "cp-fin-advanced",
+    "cost_mgmt": "cp-cost-models",
     "banking": "erp-accounts-summary",
     "finance": "erp-coa-accounts",
     "sales": "erp-sales-orders",
@@ -460,6 +469,12 @@ ERP_TAB_HYBRID_BY_ID = {
     ("tax", "compliance"): "cp-uae-tax-compliance",
     ("tax", "jw_tourist_vat"): "cp-uae-tax-compliance",
     ("tax", "einvoice"): "cp-einvoice-documents",
+
+    ("cost_acct", "fin_advanced"): "cp-fin-advanced",
+    ("finance", "fin_advanced"): "cp-fin-advanced",
+    ("cost_mgmt", "cost_models"): "cp-cost-models",
+    ("tax", "blockchain_proofs"): "cp-blockchain-proofs",
+    ("audit_wb", "blockchain_proofs"): "cp-blockchain-proofs",
     ("budgeting", "budgeting"): "cp-budgets",
     ("budgeting", "budget_planning"): "cp-budgets",
     ("logistics", "custom_shipping"): "cp-carriers",
@@ -522,6 +537,8 @@ BOS_SECTION_HYBRID_BY_ID = {
 }
 BOS_MODULE_HYBRID_BY_ID = {
     "seo": "cp-marketing-growth",
+
+    "soc2_compliance": "cp-soc2-compliance",
     "social": "cp-marketing-growth",
     "fleet_cp": "bos-fleet-summary",
     "fleet_erp": "bos-fleet-summary",

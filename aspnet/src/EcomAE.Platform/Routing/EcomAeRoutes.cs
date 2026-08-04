@@ -216,6 +216,22 @@ public static class EcomAeRoutes
     public const string ControlPanelMarketingGrowth = "/cp/marketing-growth";
     /// <summary>CP marketing growth Blazor list (JSON digest remains <see cref="ControlPanelMarketingGrowth"/>).</summary>
     public const string ControlPanelMarketingGrowthApp = "/cp/marketing-growth-app";
+    /// <summary>CP SOC 2 compliance controls (description/implementation omitted).</summary>
+    public const string ControlPanelSoc2Compliance = "/cp/soc2-compliance";
+    /// <summary>CP SOC 2 Blazor list (JSON digest remains <see cref="ControlPanelSoc2Compliance"/>).</summary>
+    public const string ControlPanelSoc2ComplianceApp = "/cp/soc2-compliance-app";
+    /// <summary>CP cost models (detail_json omitted).</summary>
+    public const string ControlPanelCostModels = "/cp/cost-models";
+    /// <summary>CP cost models Blazor list (JSON digest remains <see cref="ControlPanelCostModels"/>).</summary>
+    public const string ControlPanelCostModelsApp = "/cp/cost-models-app";
+    /// <summary>CP financial depth / periods (basis/schedule/lines JSON omitted).</summary>
+    public const string ControlPanelFinAdvanced = "/cp/fin-advanced";
+    /// <summary>CP fin-advanced Blazor list (JSON digest remains <see cref="ControlPanelFinAdvanced"/>).</summary>
+    public const string ControlPanelFinAdvancedApp = "/cp/fin-advanced-app";
+    /// <summary>CP blockchain proofs (payload/merkle JSON omitted).</summary>
+    public const string ControlPanelBlockchainProofs = "/cp/blockchain-proofs";
+    /// <summary>CP blockchain proofs Blazor list (JSON digest remains <see cref="ControlPanelBlockchainProofs"/>).</summary>
+    public const string ControlPanelBlockchainProofsApp = "/cp/blockchain-proofs-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

@@ -308,6 +308,15 @@ check_file "cp crm-tickets item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-crm-tickets-item-field-floor.json"
 check_file "cp marketing-growth item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-marketing-growth-item-field-floor.json"
+
+check_file "cp soc2-compliance item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-soc2-compliance-item-field-floor.json"
+check_file "cp cost-models item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-cost-models-item-field-floor.json"
+check_file "cp fin-advanced item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-fin-advanced-item-field-floor.json"
+check_file "cp blockchain-proofs item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-blockchain-proofs-item-field-floor.json"
 check_file "cp auto-price item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
 check_file "cp uae-tax-compliance item-field floor evidence" \

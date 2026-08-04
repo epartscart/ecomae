@@ -32,39 +32,39 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 471,
-    "php-only-deeplink": 255
+    "digest-contract": 484,
+    "php-only-deeplink": 242
   },
   "coverageByKind": {
     "bos-module": {
-      "digest-contract": 66,
-      "php-only-deeplink": 33
+      "digest-contract": 67,
+      "php-only-deeplink": 32
     },
     "bos-section": {
       "digest-contract": 7,
       "php-only-deeplink": 4
     },
     "cp-feature": {
-      "digest-contract": 250,
-      "php-only-deeplink": 155
+      "digest-contract": 255,
+      "php-only-deeplink": 150
     },
     "erp-area": {
-      "digest-contract": 25,
-      "php-only-deeplink": 10
+      "digest-contract": 27,
+      "php-only-deeplink": 8
     },
     "erp-category": {
       "digest-contract": 9
     },
     "erp-tab": {
-      "digest-contract": 105,
-      "php-only-deeplink": 49
+      "digest-contract": 110,
+      "php-only-deeplink": 44
     },
     "storefront-surface": {
       "php-only-deeplink": 4,
       "digest-contract": 9
     }
   },
-  "digestContractRouteCount": 98,
+  "digestContractRouteCount": 102,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -250,10 +250,10 @@
       "kind": "erp-tab",
       "label": "Blockchain proofs",
       "phpPath": "/ERP/?epc_erp_shell=1&area=audit_wb&tab=blockchain_proofs",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/blockchain-proofs",
+      "aspnetRoute": "/cp/blockchain-proofs-app",
       "aspnetComplete": false
     },
     {
@@ -514,10 +514,10 @@
       "kind": "erp-area",
       "label": "Cost accounting",
       "phpPath": "/ERP/?epc_erp_shell=1&area=cost_acct",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/fin-advanced",
+      "aspnetRoute": "/cp/fin-advanced-app",
       "aspnetComplete": false
     },
     {
@@ -525,10 +525,10 @@
       "kind": "erp-tab",
       "label": "Financial depth",
       "phpPath": "/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/fin-advanced",
+      "aspnetRoute": "/cp/fin-advanced-app",
       "aspnetComplete": false
     },
     {
@@ -536,10 +536,10 @@
       "kind": "erp-area",
       "label": "Cost management",
       "phpPath": "/ERP/?epc_erp_shell=1&area=cost_mgmt",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/cost-models",
+      "aspnetRoute": "/cp/cost-models-app",
       "aspnetComplete": false
     },
     {
@@ -547,10 +547,10 @@
       "kind": "erp-tab",
       "label": "Costing value-models",
       "phpPath": "/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/cost-models",
+      "aspnetRoute": "/cp/cost-models-app",
       "aspnetComplete": false
     },
     {
@@ -712,10 +712,10 @@
       "kind": "erp-tab",
       "label": "Financial depth",
       "phpPath": "/ERP/?epc_erp_shell=1&area=finance&tab=fin_advanced",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/fin-advanced",
+      "aspnetRoute": "/cp/fin-advanced-app",
       "aspnetComplete": false
     },
     {
@@ -2043,10 +2043,10 @@
       "kind": "erp-tab",
       "label": "Blockchain proofs",
       "phpPath": "/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/blockchain-proofs",
+      "aspnetRoute": "/cp/blockchain-proofs-app",
       "aspnetComplete": false
     },
     {
@@ -2780,10 +2780,10 @@
       "kind": "bos-module",
       "label": "SOC 2",
       "phpPath": "/CP/control/portal/epc_soc2_compliance",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/soc2-compliance",
+      "aspnetRoute": "/cp/soc2-compliance-app",
       "aspnetComplete": false
     },
     {
@@ -5486,10 +5486,10 @@
       "kind": "cp-feature",
       "label": "Audit workbench: Blockchain proofs",
       "phpPath": "/CP/shop/finance/erp?area=audit_wb&tab=blockchain_proofs&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/blockchain-proofs",
+      "aspnetRoute": "/cp/blockchain-proofs-app",
       "aspnetComplete": false
     },
     {
@@ -5695,10 +5695,10 @@
       "kind": "cp-feature",
       "label": "Cost accounting: Financial depth",
       "phpPath": "/CP/shop/finance/erp?area=cost_acct&tab=fin_advanced&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/fin-advanced",
+      "aspnetRoute": "/cp/fin-advanced-app",
       "aspnetComplete": false
     },
     {
@@ -5706,10 +5706,10 @@
       "kind": "cp-feature",
       "label": "Cost management: Costing value-models",
       "phpPath": "/CP/shop/finance/erp?area=cost_mgmt&tab=cost_models&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/cost-models",
+      "aspnetRoute": "/cp/cost-models-app",
       "aspnetComplete": false
     },
     {
@@ -5794,10 +5794,10 @@
       "kind": "cp-feature",
       "label": "General ledger: Financial depth",
       "phpPath": "/CP/shop/finance/erp?area=finance&tab=fin_advanced&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/fin-advanced",
+      "aspnetRoute": "/cp/fin-advanced-app",
       "aspnetComplete": false
     },
     {
@@ -6905,10 +6905,10 @@
       "kind": "cp-feature",
       "label": "Tax: Blockchain proofs",
       "phpPath": "/CP/shop/finance/erp?area=tax&tab=blockchain_proofs&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/blockchain-proofs",
+      "aspnetRoute": "/cp/blockchain-proofs-app",
       "aspnetComplete": false
     },
     {

@@ -212,6 +212,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "taskCount,tasksDone,kpiLogCount,reviewCount,source,message",
     ),
+    "cp-soc2-compliance": (
+        "summary",
+        "controlCount,implementedCount,evidenceCount,policyCount,source,message",
+    ),
+    "cp-cost-models": (
+        "summary",
+        "itemCount,txnCount,closeCount,modelCount,source,message",
+    ),
+    "cp-fin-advanced": (
+        "summary",
+        "periodCount,openPeriodCount,allocRuleCount,accrualCount,source,message",
+    ),
+    "cp-blockchain-proofs": (
+        "summary",
+        "proofCount,pendingCount,anchoredCount,batchCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -696,6 +712,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-marketing-growth": (
         "reviews",
         ["id", "strategyKey", "reviewType", "score", "createdAt", "createdBy"],
+    ),
+    "cp-soc2-compliance": (
+        "controls",
+        ["id", "controlId", "category", "title", "status", "owner", "frequency", "riskLevel"],
+    ),
+    "cp-cost-models": (
+        "items",
+        ["id", "companyId", "itemId", "model", "stdCost", "timeUpdated"],
+    ),
+    "cp-fin-advanced": (
+        "periods",
+        ["id", "companyId", "fy", "periodNo", "startDate", "endDate", "status", "timeCreated"],
+    ),
+    "cp-blockchain-proofs": (
+        "proofs",
+        ["id", "proofUid", "tenantKey", "recordType", "recordId", "payloadHash", "status", "batchId", "anchorRef", "createdAt"],
     ),
     "cp-orders-digest": (
         "orders",

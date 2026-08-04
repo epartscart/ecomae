@@ -85,6 +85,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var jewelleryRepairs = await reporter.BuildCpJewelleryRepairsDigestAsync(10);
         var crmTickets = await reporter.BuildCpCrmTicketsDigestAsync(10);
         var marketingGrowth = await reporter.BuildCpMarketingGrowthDigestAsync(10);
+        var soc2Compliance = await reporter.BuildCpSoc2ComplianceDigestAsync(10);
+        var costModels = await reporter.BuildCpCostModelsDigestAsync(10);
+        var finAdvanced = await reporter.BuildCpFinAdvancedDigestAsync(10);
+        var blockchainProofs = await reporter.BuildCpBlockchainProofsDigestAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -171,6 +175,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", jewelleryRepairs.Source);
         Assert.Equal("migration", crmTickets.Source);
         Assert.Equal("migration", marketingGrowth.Source);
+        Assert.Equal("migration", soc2Compliance.Source);
+        Assert.Equal("migration", costModels.Source);
+        Assert.Equal("migration", finAdvanced.Source);
+        Assert.Equal("migration", blockchainProofs.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
@@ -297,6 +305,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("UPDATE", LegacySurfaceDashboardSql.SelectPortalTenants, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("DELETE", LegacySurfaceDashboardSql.SelectCustomerOrders, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("DELETE", LegacySurfaceDashboardSql.SelectCpUsers, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("epc_soc2_controls", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);
+        Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);
+        Assert.DoesNotContain("`implementation`", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);
+        Assert.Contains("epc_costm_item", LegacySurfaceDashboardSql.SelectCpCostModelItems, StringComparison.Ordinal);
+        Assert.Contains("epc_fin_periods", LegacySurfaceDashboardSql.SelectCpFinPeriods, StringComparison.Ordinal);
+        Assert.Contains("epc_bc_proofs", LegacySurfaceDashboardSql.SelectCpBlockchainProofs, StringComparison.Ordinal);
+        Assert.DoesNotContain("payload_json", LegacySurfaceDashboardSql.SelectCpBlockchainProofs, StringComparison.Ordinal);
+        Assert.DoesNotContain("merkle_proof_json", LegacySurfaceDashboardSql.SelectCpBlockchainProofs, StringComparison.Ordinal);
     }
 
     private sealed class UnconfiguredFactory : ITenantDbConnectionFactory

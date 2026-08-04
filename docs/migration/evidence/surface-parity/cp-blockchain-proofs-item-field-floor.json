@@ -1,0 +1,31 @@
+{
+  "role": "cp-blockchain-proofs-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-blockchain-proofs",
+  "collectionKey": "proofs",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "proofCount",
+    "pendingCount",
+    "anchoredCount",
+    "batchCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "proofUid",
+    "tenantKey",
+    "recordType",
+    "recordId",
+    "payloadHash",
+    "status",
+    "batchId",
+    "anchorRef",
+    "createdAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-blockchain-proofs digest summary+proofs[] floors. Payload/merkle JSON omitted. PHP blockchain_proofs remains authoritative. cutoverAllowed=false."
+}

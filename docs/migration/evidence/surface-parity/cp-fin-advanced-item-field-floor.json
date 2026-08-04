@@ -1,0 +1,29 @@
+{
+  "role": "cp-fin-advanced-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-fin-advanced",
+  "collectionKey": "periods",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "periodCount",
+    "openPeriodCount",
+    "allocRuleCount",
+    "accrualCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "fy",
+    "periodNo",
+    "startDate",
+    "endDate",
+    "status",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-fin-advanced digest summary+periods[] floors. Allocation/accrual JSON omitted. PHP fin_advanced remains authoritative. cutoverAllowed=false."
+}
