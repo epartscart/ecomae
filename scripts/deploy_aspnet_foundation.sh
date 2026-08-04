@@ -62,6 +62,24 @@ for ov in "$ROOT"/docs/migration/evidence/*/OPERATOR_VERIFY.md; do
 done
 shopt -u nullglob
 install -m 0644 "$ROOT/docs/migration/PHP_DECOMMISSION_READINESS.md" "$PLATFORM_DIR/docs/migration/PHP_DECOMMISSION_READINESS.md"
+if [[ -f "$ROOT/docs/migration/TENANT_MIGRATION_SAFETY.md" ]]; then
+  install -m 0644 "$ROOT/docs/migration/TENANT_MIGRATION_SAFETY.md" \
+    "$PLATFORM_DIR/docs/migration/TENANT_MIGRATION_SAFETY.md"
+fi
+if [[ -f "$ROOT/docs/migration/PHP_DECOMMISSION_ONE_BY_ONE.md" ]]; then
+  install -m 0644 "$ROOT/docs/migration/PHP_DECOMMISSION_ONE_BY_ONE.md" \
+    "$PLATFORM_DIR/docs/migration/PHP_DECOMMISSION_ONE_BY_ONE.md"
+fi
+# Tenant-safety evidence (live PHP chrome probes) for readiness checklist.
+if [[ -d "$ROOT/docs/migration/evidence/tenant-safety" ]]; then
+  install -d "$PLATFORM_DIR/docs/migration/evidence/tenant-safety"
+  cp -a "$ROOT/docs/migration/evidence/tenant-safety/." "$PLATFORM_DIR/docs/migration/evidence/tenant-safety/"
+fi
+# Presentation evidence for chrome recheck / scaffold floors (never invent status=pass).
+if [[ -d "$ROOT/docs/migration/evidence/presentation" ]]; then
+  install -d "$PLATFORM_DIR/docs/migration/evidence/presentation"
+  cp -a "$ROOT/docs/migration/evidence/presentation/." "$PLATFORM_DIR/docs/migration/evidence/presentation/"
+fi
 install -m 0644 \
   "$ROOT/deploy/aspnet/nginx-price-lookup-shadow-example.conf" \
   "$ROOT/deploy/aspnet/nginx-api-shadow-example.conf" \
@@ -85,7 +103,19 @@ do
   fi
 done
 shopt -u nullglob
+install -d "$PLATFORM_DIR/scripts/lib"
+if [[ -f "$ROOT/scripts/lib/ecomae_nginx_site_safety.sh" ]]; then
+  install -m 0644 "$ROOT/scripts/lib/ecomae_nginx_site_safety.sh" \
+    "$PLATFORM_DIR/scripts/lib/ecomae_nginx_site_safety.sh"
+fi
 install -m 0755 \
+  "$ROOT/scripts/ecomae_nginx_site_safety.py" \
+  "$ROOT/scripts/cloudpanel_php_decommission_gated.sh" \
+  "$ROOT/scripts/cloudpanel_install_marketing_app_shadows.sh" \
+  "$ROOT/scripts/cloudpanel_probe_marketing_app_shadows.sh" \
+  "$ROOT/scripts/cloudpanel_probe_ecomae_marketing_php_chrome.sh" \
+  "$ROOT/scripts/estimate_presentation_scaffold_bytes.py" \
+  "$ROOT/scripts/validate_login_chrome_body_parity.py" \
   "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" \
   "$ROOT/scripts/cloudpanel_validate_final_gate_env.sh" \
   "$ROOT/scripts/cloudpanel_repair_smoke_cookie_env.sh" \

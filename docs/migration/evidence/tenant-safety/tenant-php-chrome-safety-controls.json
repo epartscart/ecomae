@@ -1,0 +1,15 @@
+{
+  "role": "tenant-php-chrome-safety-controls",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "requiredFiles": [
+    "scripts/ecomae_nginx_site_safety.py",
+    "scripts/lib/ecomae_nginx_site_safety.sh",
+    "scripts/cloudpanel_probe_live_tenant_php_chrome.sh",
+    "docs/migration/TENANT_MIGRATION_SAFETY.md",
+    "docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json"
+  ],
+  "deployPacksIntoContentRoot": true,
+  "note": "Tenant hosts stay PHP chrome until same-to-same + dual-sample + human approval. Never invent cutoverAllowed=true."
+}

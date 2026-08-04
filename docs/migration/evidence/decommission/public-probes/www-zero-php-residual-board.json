@@ -87,7 +87,9 @@
     "Presentation scaffold byte estimator (scripts/estimate_presentation_scaffold_bytes.py)",
     "Storefront home depth expanded: categories, makes, featured strips, VIN CTA, FAQ, footer trust",
     "BOS login industry grid + platform deck (epc-asp-login-bos retained)",
-    "ERP login portal body: full area + tab directory from PhpModuleCatalog"
+    "ERP login portal body: full area + tab directory from PhpModuleCatalog",
+    "Deploy packs tenant-safety controls + marketing installers into ContentRoot",
+    "Readiness reporter resolves tenant-php-chrome-safe from ContentRoot pack"
   ],
   "liveLag": {
     "storefrontDigestsLive": "6/7 (checkout shadow not installed on www yet)",
@@ -95,6 +97,6 @@
     "digestLiveAspNetSamples": "0 core stems",
     "functionalLiveSmoke": "0/7 captured"
   },
-  "honestAnswer": "Scaffold contract 100% (726/726). Interactive cutover still 0%. Live readiness blocked (presentation + module-function + approval). PHP must stay until ReadyToRemovePhp=true \u2014 never invent approval or delete PHP source.",
+  "honestAnswer": "Scaffold contract 100%. Interactive cutover 0%. Live ReadyToRemovePhp=false. Redeploy tip to pack tenant-safety controls; then dual-sample + approval before any PHP removal. Never invent approval or delete PHP source.",
   "note": "Never invent cutoverAllowed=true or RELEASE_OWNER_APPROVAL.md."
 }
