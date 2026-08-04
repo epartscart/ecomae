@@ -3,10 +3,8 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "forbiddenHits": 1,
-  "hits": [
-    "CpLoginApp.razor: non-canonical linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)"
-  ],
+  "forbiddenHits": 0,
+  "hits": [],
   "tokens": {
     "cp": {
       "body": "#f0f9ff",
