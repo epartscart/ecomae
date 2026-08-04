@@ -1,0 +1,382 @@
+{
+  "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "routeCount": 30,
+  "generatedFrom": [
+    "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
+  ],
+  "ReverseProxy": {
+    "Routes": {
+      "cp-dashboard-summary": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/dashboard-summary"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-digest-shadow-approved"
+          }
+        ]
+      },
+      "cp-tenants": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/tenants"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-tenants-shadow-approved"
+          }
+        ]
+      },
+      "cp-users": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/users"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-users-shadow-approved"
+          }
+        ]
+      },
+      "cp-groups": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/groups"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-groups-shadow-approved"
+          }
+        ]
+      },
+      "cp-modules": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/modules"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-modules-shadow-approved"
+          }
+        ]
+      },
+      "cp-menus": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/menus"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-menus-shadow-approved"
+          }
+        ]
+      },
+      "cp-pages": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/pages"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-pages-shadow-approved"
+          }
+        ]
+      },
+      "cp-currencies": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/currencies"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-currencies-shadow-approved"
+          }
+        ]
+      },
+      "cp-api-clients": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/api-clients"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-api-clients-shadow-approved"
+          }
+        ]
+      },
+      "cp-config-items": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/config-items"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-config-items-shadow-approved"
+          }
+        ]
+      },
+      "cp-admin-sessions": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/admin-sessions"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-admin-sessions-shadow-approved"
+          }
+        ]
+      },
+      "cp-storages": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/storages"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-storages-shadow-approved"
+          }
+        ]
+      },
+      "erp-dashboard-summary": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/dashboard-summary"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-digest-shadow-approved"
+          }
+        ]
+      },
+      "erp-accounts-summary": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/accounts-summary"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-accounts-summary-shadow-approved"
+          }
+        ]
+      },
+      "erp-suppliers": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/suppliers"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-suppliers-shadow-approved"
+          }
+        ]
+      },
+      "erp-cash-accounts": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/cash-accounts"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-cash-accounts-shadow-approved"
+          }
+        ]
+      },
+      "erp-cash-entries": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/cash-entries"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-cash-entries-shadow-approved"
+          }
+        ]
+      },
+      "erp-purchases": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/purchases"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-purchases-shadow-approved"
+          }
+        ]
+      },
+      "erp-coa-accounts": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/coa-accounts"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-coa-shadow-approved"
+          }
+        ]
+      },
+      "erp-warehouses": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/warehouses"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-warehouses-shadow-approved"
+          }
+        ]
+      },
+      "erp-sales-orders": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/sales-orders"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-sales-orders-shadow-approved"
+          }
+        ]
+      },
+      "erp-purchase-orders": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/purchase-orders"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-po-shadow-approved"
+          }
+        ]
+      },
+      "erp-inventory-stock": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/inventory-stock"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-inventory-stock-shadow-approved"
+          }
+        ]
+      },
+      "erp-invoices": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/invoices"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-invoices-shadow-approved"
+          }
+        ]
+      },
+      "erp-gl-journals": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/gl-journals"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-gl-journals-shadow-approved"
+          }
+        ]
+      },
+      "bos-fleet-summary": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/fleet-summary"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-digest-shadow-approved"
+          }
+        ]
+      },
+      "bos-tenants": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/tenants"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-tenants-shadow-approved"
+          }
+        ]
+      },
+      "bos-fleet-health": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/fleet-health"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-fleet-health-shadow-approved"
+          }
+        ]
+      },
+      "bos-fleet-readiness": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/fleet-readiness"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-fleet-readiness-shadow-approved"
+          }
+        ]
+      },
+      "bos-audit-log": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/audit-log"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-audit-shadow-approved"
+          }
+        ]
+      }
+    },
+    "Clusters": {
+      "ecomae-platform": {
+        "Destinations": {
+          "loopback": {
+            "Address": "http://127.0.0.1:5100/"
+          }
+        }
+      }
+    }
+  }
+}

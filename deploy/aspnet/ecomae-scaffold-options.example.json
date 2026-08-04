@@ -62,6 +62,19 @@
       "OtlpEndpoint": "",
       "Enabled": false,
       "RegisterExporters": false
+    },
+    "RabbitMq": {
+      "HostName": "127.0.0.1",
+      "Port": 5672,
+      "VirtualHost": "/",
+      "Enabled": false,
+      "AllowPublish": false
+    },
+    "Polly": {
+      "TimeoutMilliseconds": 10000,
+      "RetryCount": 2,
+      "Enabled": false,
+      "RegisterPipelines": false
     }
   }
 }

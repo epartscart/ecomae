@@ -33,6 +33,9 @@ bash scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh
 python3 scripts/compare_hybrid_ui_dual_samples.py \
   --samples-dir docs/migration/evidence/hybrid-ui-dual-samples \
   --out docs/migration/evidence/hybrid-ui-dual-samples/compare-result.json
+
+# Or one-shot helper (also asserts cutoverAllowed=false):
+bash scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh
 ```
 
 Without cookies the capture script writes **contract stubs** so foundation checks have a stable floor. Stubs are enough for CI; live marker passes require operator cookies after presentation shadows are installed.
