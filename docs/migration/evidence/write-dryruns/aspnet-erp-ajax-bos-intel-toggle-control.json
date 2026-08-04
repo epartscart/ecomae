@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "action": "bos-intel-toggle-control",
+  "label": "erp bos_intel_toggle_control",
+  "aspNetRoute": "/erp/ajax/bos-intel-toggle-control",
+  "sampleBody": "{\"controlKey\":\"vat\",\"enabled\":true,\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

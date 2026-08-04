@@ -1,6 +1,6 @@
 {
   "role": "www-zero-php-residual-board",
-  "generatedAtUnix": 1785868800,
+  "generatedAtUnix": 1785870349,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
@@ -12,10 +12,14 @@
     "interactiveWriteCutoverPercent": 0,
     "checklistCompletePercent": 88.9,
     "moduleAjaxContractPairs": 254,
-    "moduleAjaxContractPairsOk": 254
+    "moduleAjaxContractPairsOk": 254,
+    "writeDryrunContractPairs": 183,
+    "writeDryrunContractPairsOk": 183,
+    "erpAjaxContractPairsOk": 321,
+    "bosAjaxContractPairsOk": 231
   },
   "whatThePercentsMean": {
-    "100_scaffold": "Menus 726/726, field floors 137/137, ajax dry-run catalogs/goldens, tenant/industry gates, security headers + compression are built. Module-ajax contract floor pairs 254 aspnet goldens with seeded php-* baselines (migration-contract-golden). This is NOT UX cutover.",
+    "100_scaffold": "Menus 726/726, field floors, ajax dry-run catalogs/goldens (CP 254 + ERP 321 + BOS 231), write-dryrun contract pairs 183/183, tenant/industry gates, security headers + compression are built. This is NOT UX cutover.",
     "95_weighted": "Legacy weighted area board in www-zero-php-completion.json \u2014 residual 5% is PHP runtime decommission + approval.",
     "0_interactive": "Live product writes/menus still PHP. aspNetInteractiveComplete stays 0 until CloudPanel dual-sample + human approval. User-facing look must stay same-to-same."
   },
@@ -70,6 +74,7 @@
     }
   ],
   "builtAlready": [
+    "Write-dryrun dual-sample contract floor 183/183 (writes=0; cutoverAllowed=false)",
     "Menus 726/726 digest-contract (cp-debug-console safe metadata-only, no LFI)",
     "Field floors 137/137",
     "CP ajax goldens 254; ERP 321; BOS 231 (all writes=0)",

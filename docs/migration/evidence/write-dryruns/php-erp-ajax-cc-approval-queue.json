@@ -1,0 +1,18 @@
+{
+  "role": "php-write-dryrun-contract-sample",
+  "ok": true,
+  "surface": "erp",
+  "action": "cc-approval-queue",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "pairedAspNetGolden": "aspnet-erp-ajax-cc-approval-queue.json",
+  "aspNetRoute": "/erp/ajax/cc-approval-queue",
+  "generatedAtUnix": 1785870349,
+  "note": "Seeded from aspnet write-dryrun golden for contract-only compare. Live PHP ajax remains authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

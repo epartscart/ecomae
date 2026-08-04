@@ -1,0 +1,20 @@
+{
+  "role": "write-dryrun-dual-sample-operator",
+  "generatedAtUnix": 1785870349,
+  "probePassed": false,
+  "probeSkipped": true,
+  "requireLiveProbe": false,
+  "contractPairs": 183,
+  "contractPairsOk": 183,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "compareResult": "/workspace/docs/migration/evidence/write-dryruns/compare-result.json",
+  "note": "Contract floor pairs Wave B probe routes with migration-contract-golden baselines. Live PHP ajax remains authoritative. Do not invent RELEASE_OWNER_APPROVAL.md.",
+  "next": [
+    "On CloudPanel: ECOMAE_WRITE_DRYRUN_REQUIRE_LIVE_PROBE=1 bash scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh",
+    "Capture paired live PHP ajax vs ASP.NET dry-run JSON when cookies available",
+    "Keep cutoverAllowed=false until human dual-sample + RELEASE_OWNER_APPROVAL.md"
+  ]
+}

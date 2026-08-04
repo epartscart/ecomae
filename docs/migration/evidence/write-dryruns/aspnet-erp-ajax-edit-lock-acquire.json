@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "action": "edit-lock-acquire",
+  "label": "erp edit_lock_acquire",
+  "aspNetRoute": "/erp/ajax/edit-lock-acquire",
+  "sampleBody": "{\"resourceKey\":\"so:1\",\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

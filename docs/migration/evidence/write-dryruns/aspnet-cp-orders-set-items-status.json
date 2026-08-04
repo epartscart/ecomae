@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "action": "set-items-status",
+  "label": "oms set-items-status",
+  "aspNetRoute": "/cp/orders/set-items-status",
+  "sampleBody": "{\"orderId\":1,\"status\":2,\"itemIds\":[1,2],\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

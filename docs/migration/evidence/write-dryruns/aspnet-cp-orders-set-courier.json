@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "action": "set-courier",
+  "label": "oms set-courier",
+  "aspNetRoute": "/cp/orders/set-courier",
+  "sampleBody": "{\"orderId\":1,\"deliveryPrice\":25,\"country\":\"AE\",\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

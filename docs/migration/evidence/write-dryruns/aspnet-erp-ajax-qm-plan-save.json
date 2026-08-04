@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "action": "qm-plan-save",
+  "label": "erp qm_plan_save",
+  "aspNetRoute": "/erp/ajax/qm-plan-save",
+  "sampleBody": "{\"id\":0,\"code\":\"DRY\",\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

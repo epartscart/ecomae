@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "surface": "storefront",
+  "action": "add-manual",
+  "label": "quote add-manual",
+  "aspNetRoute": "/storefront/quotes/add-manual",
+  "sampleBody": "{\"manufacturer\":\"Bosch\",\"article\":\"0986\",\"countNeed\":1,\"confirmWrites\":false}",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}
