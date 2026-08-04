@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Observability;
@@ -1304,36 +1305,70 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<ErpInventoryStockSummaryResult> BuildErpInventoryStockSummaryAsync(CancellationToken cancellationToken = default)
+    public async Task<ErpInventoryStockDigestResult> BuildErpInventoryStockDigestAsync(int limit, int? warehouseId = null, CancellationToken cancellationToken = default)
     {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var wh = warehouseId is > 0 ? warehouseId.Value : 0;
+        var empty = new ErpInventoryStockSummaryResult(0, 0m, 0m, 0, 0, "migration", "TenantRegistry DB is not configured.");
         if (!_connections.IsConfigured)
         {
-            return new(0, 0m, 0m, 0, 0, "migration", "TenantRegistry DB is not configured.");
+            return new(empty, [], 0, "migration", empty.Message);
         }
 
         try
         {
             await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            command.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryStockSummary;
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            var summary = empty with { Source = "database", Message = string.Empty };
+            await using (var stats = connection.CreateCommand())
             {
-                return new(0, 0m, 0m, 0, 0, "database", string.Empty);
+                stats.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryStockSummary;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    summary = new(
+                        Convert.ToInt64(reader["row_count"] is DBNull ? 0 : reader["row_count"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["qty_on_hand"] is DBNull ? 0m : reader["qty_on_hand"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["stock_value"] is DBNull ? 0m : reader["stock_value"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["warehouse_count"] is DBNull ? 0 : reader["warehouse_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["item_count"] is DBNull ? 0 : reader["item_count"], CultureInfo.InvariantCulture),
+                        "database",
+                        string.Empty);
+                }
             }
 
-            return new(
-                Convert.ToInt64(reader["row_count"] is DBNull ? 0 : reader["row_count"], CultureInfo.InvariantCulture),
-                Convert.ToDecimal(reader["qty_on_hand"] is DBNull ? 0m : reader["qty_on_hand"], CultureInfo.InvariantCulture),
-                Convert.ToDecimal(reader["stock_value"] is DBNull ? 0m : reader["stock_value"], CultureInfo.InvariantCulture),
-                Convert.ToInt32(reader["warehouse_count"] is DBNull ? 0 : reader["warehouse_count"], CultureInfo.InvariantCulture),
-                Convert.ToInt32(reader["item_count"] is DBNull ? 0 : reader["item_count"], CultureInfo.InvariantCulture),
-                "database",
-                string.Empty);
+            var rows = new List<ErpInventoryStockDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryStockRows;
+                AddParameter(list, "@limit", safeLimit);
+                AddParameter(list, "@warehouseId", wh);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new ErpInventoryStockDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["warehouse_id"] is DBNull ? 0 : reader["warehouse_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["item_id"] is DBNull ? 0 : reader["item_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["sku"] is DBNull ? string.Empty : reader["sku"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["item_type"] is DBNull ? string.Empty : reader["item_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["unit"] is DBNull ? string.Empty : reader["unit"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["warehouse_name"] is DBNull ? string.Empty : reader["warehouse_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["qty_on_hand"] is DBNull ? 0m : reader["qty_on_hand"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["avg_unit_cost"] is DBNull ? 0m : reader["avg_unit_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["batch_no"] is DBNull ? string.Empty : reader["batch_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["variant_label"] is DBNull ? string.Empty : reader["variant_label"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["expiry_date"] is DBNull ? string.Empty : reader["expiry_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(summary, rows, rows.Count, "database", string.Empty);
         }
         catch (Exception ex)
         {
-            return new(0, 0m, 0m, 0, 0, "database-error", ex.Message);
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
         }
     }
 
@@ -3406,6 +3441,105 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
             return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public Task<ErpReportCenterDigestResult> BuildErpReportCenterDigestAsync(string? key, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        var reports = ErpReportCenterRegistry.All
+            .Select(e => new ErpReportCenterReportDigest(e.Key, e.Area, e.Name, e.Desc))
+            .ToList();
+        var areaCount = reports.Select(r => r.Area).Distinct(StringComparer.Ordinal).Count();
+        var selectedKey = string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
+
+        if (!_connections.IsConfigured || string.IsNullOrEmpty(selectedKey))
+        {
+            var migSummary = new ErpReportCenterSummary(
+                reports.Count,
+                areaCount,
+                selectedKey,
+                0,
+                "migration",
+                _connections.IsConfigured ? string.Empty : "TenantRegistry DB is not configured.");
+            return Task.FromResult(new ErpReportCenterDigestResult(
+                migSummary,
+                reports,
+                [],
+                [],
+                reports.Count,
+                migSummary.Source,
+                migSummary.Message));
+        }
+
+        return BuildErpReportCenterDigestCoreAsync(reports, areaCount, selectedKey, safeLimit, cancellationToken);
+    }
+
+    private async Task<ErpReportCenterDigestResult> BuildErpReportCenterDigestCoreAsync(
+        IReadOnlyList<ErpReportCenterReportDigest> reports,
+        int areaCount,
+        string selectedKey,
+        int safeLimit,
+        CancellationToken cancellationToken)
+    {
+        var entry = ErpReportCenterRegistry.Find(selectedKey);
+        if (entry is null)
+        {
+            var missing = new ErpReportCenterSummary(reports.Count, areaCount, selectedKey, 0, "migration", "Report key not found in epc_rc_registry mirror.");
+            return new(missing, reports, [], [], reports.Count, missing.Source, missing.Message);
+        }
+
+        if (string.IsNullOrWhiteSpace(entry.Table) || !Regex.IsMatch(entry.Table, "^[A-Za-z0-9_]+$"))
+        {
+            var noTable = new ErpReportCenterSummary(
+                reports.Count,
+                areaCount,
+                selectedKey,
+                0,
+                "migration",
+                "Selected report uses PHP-only source; table peek not available. PHP epc_rc_run remains authoritative.");
+            return new(noTable, reports, [], [], reports.Count, noTable.Source, noTable.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = string.Format(
+                CultureInfo.InvariantCulture,
+                LegacySurfaceDashboardSql.SelectErpReportCenterTableRowsTemplate,
+                entry.Table);
+            AddParameter(command, "@limit", safeLimit);
+
+            var columns = new List<string>();
+            var rows = new List<IReadOnlyDictionary<string, string>>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            for (var i = 0; i < reader.FieldCount; i++)
+            {
+                columns.Add(reader.GetName(i));
+            }
+
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var col in columns)
+                {
+                    var val = reader[col];
+                    dict[col] = val is DBNull or null
+                        ? string.Empty
+                        : Convert.ToString(val, CultureInfo.InvariantCulture) ?? string.Empty;
+                }
+
+                rows.Add(dict);
+            }
+
+            var summary = new ErpReportCenterSummary(reports.Count, areaCount, selectedKey, rows.Count, "database", string.Empty);
+            return new(summary, reports, columns, rows, reports.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = new ErpReportCenterSummary(reports.Count, areaCount, selectedKey, 0, "database-error", ex.Message);
+            return new(err, reports, [], [], reports.Count, "database-error", ex.Message);
         }
     }
 

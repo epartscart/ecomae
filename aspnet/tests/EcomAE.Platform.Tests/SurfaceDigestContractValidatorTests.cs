@@ -61,7 +61,11 @@ public sealed class SurfaceDigestContractValidatorTests
             {
                 ok = true,
                 surface = "erp",
-                summary = await reporter.BuildErpInventoryStockSummaryAsync(),
+                summary = (await reporter.BuildErpInventoryStockDigestAsync(10)).Summary,
+                stock = (await reporter.BuildErpInventoryStockDigestAsync(10)).Stock,
+                count = 0,
+                source = "migration",
+                message = "x",
                 session,
                 note = "contract validation"
             },
@@ -309,6 +313,7 @@ public sealed class SurfaceDigestContractValidatorTests
             ["/erp/workspace-favorites"] = new { ok = true, surface = "erp", summary = (await reporter.BuildErpWorkspaceFavoritesDigestAsync(10)).Summary, favorites = (await reporter.BuildErpWorkspaceFavoritesDigestAsync(10)).Favorites, count = 0, source = "migration", message = "x", session, note = "contract validation" },
             ["/erp/fixed-assets"] = new { ok = true, surface = "erp", summary = (await reporter.BuildErpFixedAssetsDigestAsync(10)).Summary, assets = (await reporter.BuildErpFixedAssetsDigestAsync(10)).Assets, count = 0, source = "migration", message = "x", session, note = "contract validation" },
             ["/erp/process-flow-tasks"] = new { ok = true, surface = "erp", summary = (await reporter.BuildErpProcessFlowTasksDigestAsync(10)).Summary, tasks = (await reporter.BuildErpProcessFlowTasksDigestAsync(10)).Tasks, count = 0, source = "migration", message = "x", session, note = "contract validation" },
+            ["/erp/report-center"] = new { ok = true, surface = "erp", summary = (await reporter.BuildErpReportCenterDigestAsync(null, 10)).Summary, reports = (await reporter.BuildErpReportCenterDigestAsync(null, 10)).Reports, columns = Array.Empty<string>(), rows = Array.Empty<object>(), count = 33, source = "migration", message = "x", session, note = "contract validation" },
             ["/cp/config-items"] = Envelope("cp", "items", await reporter.ListCpConfigItemsMetaAsync(10), session),
             ["/cp/admin-sessions"] = Envelope("cp", "sessions", await reporter.ListCpAdminSessionsAsync(10), session),
             ["/cp/storages"] = Envelope("cp", "storages", await reporter.ListCpStoragesAsync(10), session),

@@ -65,7 +65,8 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpPurchaseOrderListResult> ListErpPurchaseOrdersAsync(int limit, CancellationToken cancellationToken = default);
 
-    Task<ErpInventoryStockSummaryResult> BuildErpInventoryStockSummaryAsync(CancellationToken cancellationToken = default);
+    /// <summary>Read-only inventory stock KPIs + on-hand rows (PHP <c>epc_erp_inventory_stock_report</c>).</summary>
+    Task<ErpInventoryStockDigestResult> BuildErpInventoryStockDigestAsync(int limit, int? warehouseId = null, CancellationToken cancellationToken = default);
 
     Task<CpCurrencyListResult> ListCpCurrenciesAsync(int limit, CancellationToken cancellationToken = default);
 
@@ -271,6 +272,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only process-flow cases from PHP <c>epc_pf_cases</c> (writes remain PHP).</summary>
     Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only ERP report-center registry (+ optional table-backed run). CSV/export remain PHP.</summary>
+    Task<ErpReportCenterDigestResult> BuildErpReportCenterDigestAsync(string? key, int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);

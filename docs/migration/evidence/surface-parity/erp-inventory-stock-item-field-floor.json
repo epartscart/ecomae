@@ -4,9 +4,9 @@
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
   "stem": "erp-inventory-stock",
-  "requireNonemptyMigrationSentinel": false,
-  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
-  "note": "Locks erp-inventory-stock digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_migration_digest_contract_samples.py",
+  "note": "Locks erp-inventory-stock digest field floors for PHP↔ASP.NET dual-sample against epc_erp_inventory_stock_report. Interactive stock writes remain PHP. cutoverAllowed=false.",
   "requiredSummaryFields": [
     "rowCount",
     "qtyOnHand",
@@ -15,5 +15,22 @@
     "itemCount",
     "source",
     "message"
+  ],
+  "collectionKey": "stock",
+  "requiredItemFields": [
+    "id",
+    "warehouseId",
+    "itemId",
+    "sku",
+    "name",
+    "itemType",
+    "unit",
+    "warehouseName",
+    "qtyOnHand",
+    "avgUnitCost",
+    "batchNo",
+    "variantLabel",
+    "expiryDate",
+    "timeUpdated"
   ]
 }

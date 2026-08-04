@@ -43,14 +43,18 @@
       "requiredFloors": [
         "surface-parity/cp-tax-external-reporting-item-field-floor.json",
         "surface-parity/cp-electronic-reporting-item-field-floor.json",
-        "surface-parity/cp-nl-reporting-item-field-floor.json"
+        "surface-parity/cp-nl-reporting-item-field-floor.json",
+        "surface-parity/erp-report-center-item-field-floor.json"
       ],
       "requiredEvidenceAny": [
-        "decommission/staging-smoke/surface-digests-aspnet.json"
+        "surface-parity/samples/migration/erp-report-center.json",
+        "decommission/staging-smoke/surface-digests-aspnet.json",
+        "hybrid-ui-dual-samples/aspnet-erp-report-center-hybrid-ui.json"
       ],
       "liveSmokeRequiredForPhpRemoval": [
         "Named report fetch (sales|inventory|vat|ar-aging) totals match PHP report-center/export",
-        "Worker ErpReportsDryRun remains writes=0 until dual-sample promotes live generation"
+        "Worker ErpReportsDryRun remains writes=0 until dual-sample promotes live generation",
+        "ERP report-center digest registry (33 keys) dual-sample vs PHP epc_rc_registry (/erp/report-center)"
       ]
     },
     {

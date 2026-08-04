@@ -1,0 +1,123 @@
+@page "/erp/report-center-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Report center · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Report center" BreadcrumbArea="Overview" BreadcrumbTab="Reports">
+    <style>
+        .epc-rc-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#1e3a5f 0%,#0f766e 50%,#115e59 100%);
+        }
+        .epc-rc-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-rc-hero p { margin:0; color:rgba(255,255,255,.88); max-width:46rem; font-size:.92rem; line-height:1.45; }
+        .epc-rc-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-rc-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#134e4a; background:#ccfbf1;
+        }
+        .epc-rc-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-rc-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-rc-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-rc-kpi strong { display:block; font-size:1.2rem; }
+        .epc-rc-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-rc-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-rc-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-rc-table th, .epc-rc-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; }
+        .epc-rc-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
+        .epc-rc-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #67e8f9; border-radius:.45rem; color:#164e63; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-rc-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-rc-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Report center</h1>
+        <p>Read-only mirror of PHP <code>epc_rc_registry</code> (33 inquiries). CSV export and complex report runs stay on PHP.</p>
+        <div class="epc-rc-cta">
+            <a href="@_phpTab">Open PHP reports</a>
+            <a class="ghost" href="/erp/dashboard-summary-app">ERP dashboard</a>
+            <a class="ghost" href="/erp/report-center">JSON digest</a>
+        </div>
+    </section>
+
+    <div class="epc-rc-kpis" aria-label="Report center stats">
+        <div class="epc-rc-kpi"><strong>@_summary.ReportCount.ToString(CultureInfo.InvariantCulture)</strong><span>Reports</span></div>
+        <div class="epc-rc-kpi"><strong>@_summary.AreaCount.ToString(CultureInfo.InvariantCulture)</strong><span>Areas</span></div>
+        <div class="epc-rc-kpi"><strong>@(string.IsNullOrEmpty(_summary.SelectedKey) ? "—" : _summary.SelectedKey)</strong><span>Selected key</span></div>
+        <div class="epc-rc-kpi"><strong>@_summary.SelectedRowCount.ToString(CultureInfo.InvariantCulture)</strong><span>Selected rows</span></div>
+    </div>
+
+    <div class="epc-rc-table-wrap">
+        <table class="epc-rc-table">
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Area</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_reports.Count == 0)
+                {
+                    <tr><td colspan="4">Nothing to show yet.</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _reports)
+                    {
+                        <tr>
+                            <td><code>@row.Key</code></td>
+                            <td>@row.Area</td>
+                            <td>@row.Name</td>
+                            <td>@row.Desc</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-rc-note">
+        Source: @_summary.Source. PHP <code>epc_erp_report_center.php</code> remains authoritative for run/export.
+        Worker <code>erp-reports</code> dry-run stays writes=0 (sales|inventory|vat|ar-aging).
+        @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private ErpReportCenterSummary _summary = new(0, 0, string.Empty, 0, "migration", string.Empty);
+    private IReadOnlyList<ErpReportCenterReportDigest> _reports = [];
+    private readonly string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=rc_finance";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
+        {
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
+
+        var result = await Dashboards.BuildErpReportCenterDigestAsync(null, 100);
+        _summary = result.Summary;
+        _reports = result.Reports;
+    }
+}

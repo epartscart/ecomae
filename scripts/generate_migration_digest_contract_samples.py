@@ -146,16 +146,43 @@ def main() -> None:
             "storefront",
             {"userId": 9, "orders": 0, "sessions": 0, "garageVehicles": 0},
         ),
-        "erp-inventory-stock.json": summary(
-            "erp",
-            {
-                "rowCount": 0,
-                "qtyOnHand": 0,
-                "stockValue": 0,
-                "warehouseCount": 0,
-                "itemCount": 0,
-            },
-        ),
+        "erp-inventory-stock.json": {
+            **summary(
+                "erp",
+                {
+                    "rowCount": 1,
+                    "qtyOnHand": 10,
+                    "stockValue": 100,
+                    "warehouseCount": 1,
+                    "itemCount": 1,
+                },
+            ),
+            "stock": [
+                {
+                    "id": 1,
+                    "warehouseId": 1,
+                    "itemId": 1,
+                    "sku": "MIG-SKU-1",
+                    "name": "Migration item",
+                    "itemType": "part",
+                    "unit": "ea",
+                    "warehouseName": "Main",
+                    "qtyOnHand": 10.0,
+                    "avgUnitCost": 10.0,
+                    "batchNo": "",
+                    "variantLabel": "",
+                    "expiryDate": "",
+                    "timeUpdated": 0,
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": "migration-mode; stock[] sentinel from epc_erp_inventory_stock_report; PHP epc_erp_inventory.php authoritative; cutoverAllowed=false",
+        },
         "bos-fleet-readiness.json": readiness(
             {
                 "tenants": 0,
@@ -814,6 +841,34 @@ def main() -> None:
             "cutoverAllowed": False,
             "readyForPhpRemoval": False,
             "note": "migration-mode; tasks[] sentinel from epc_pf_cases; PHP epc_erp_processflow.php authoritative; cutoverAllowed=false",
+        },
+        "erp-report-center.json": {
+            **summary(
+                "erp",
+                {
+                    "reportCount": 33,
+                    "areaCount": 19,
+                    "selectedKey": "",
+                    "selectedRowCount": 0,
+                },
+            ),
+            "reports": [
+                {
+                    "key": "ap_vendor_list",
+                    "area": "ap",
+                    "name": "Vendor list",
+                    "desc": "All suppliers / vendors on file.",
+                }
+            ],
+            "columns": [],
+            "rows": [],
+            "count": 33,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": "migration-mode; reports[] sentinel from epc_rc_registry; PHP epc_erp_report_center.php authoritative; cutoverAllowed=false",
         },
         "cp-page-builder.json": {
             **summary("cp", {"layoutCount": 1, "publishedCount": 0, "draftCount": 1, "siteCount": 1}),

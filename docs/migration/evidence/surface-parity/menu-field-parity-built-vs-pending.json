@@ -11,9 +11,9 @@
     "holdoutNote": "cp-debug-console ported as safe metadata-only digest (no LFI)"
   },
   "fieldFloors": {
-    "summaryContractStems": 108,
-    "hybridListStems": 99,
-    "listItemStems": 29,
+    "summaryContractStems": 110,
+    "hybridListStems": 103,
+    "listItemStems": 28,
     "objectStems": 1,
     "floorsCreatedThisRun": [
       "bos-fleet-readiness",
@@ -47,15 +47,15 @@
       "storefront-checkout"
     ],
     "floorsCreatedCount": 29,
-    "coveredContractStems": 137,
-    "totalContractStems": 137,
+    "coveredContractStems": 139,
+    "totalContractStems": 139,
     "missingContractStems": []
   },
   "pendingTowardZeroPhp": [
-    "aspNetInteractiveComplete remains 0 — live writes still PHP",
+    "aspNetInteractiveComplete remains 0 \u2014 live writes still PHP",
     "Module-ajax dual-sample pairs still thin (need CloudPanel cookies for PHP ajax field samples)",
     "Authenticated digest dual-sample capture for core CP/ERP still required",
-    "Exact-route shadows + RELEASE_OWNER_APPROVAL.md before PHP removal — never invent approval"
+    "Exact-route shadows + RELEASE_OWNER_APPROVAL.md before PHP removal \u2014 never invent approval"
   ],
   "ok": true,
   "moduleAjaxDualSamples": {
@@ -68,7 +68,7 @@
   },
   "built": [
     "Menu catalog 726/726 digest-contract (cp-debug-console safe metadata-only)",
-    "Field floors cover 137/137 digest contract stems",
+    "Field floors cover 139/139 digest contract stems",
     "CP module-ajax write catalog 394 actions @ 100% dry-run coverage (writes=0); goldens 254",
     "ERP ajax_erp catalog 321/321 dedicated dry-run goldens",
     "BOS ajax catalog 231/231 dry-run goldens",
@@ -76,8 +76,8 @@
     "Marketing /marketing/* install+probe floor (37 routes)"
   ],
   "pending": [
-    "aspNetInteractiveComplete=0 — no live write cutover",
-    "Paired PHP↔ASP.NET ajax field dual-samples on CloudPanel (cookies) still required",
+    "aspNetInteractiveComplete=0 \u2014 no live write cutover",
+    "Paired PHP\u2194ASP.NET ajax field dual-samples on CloudPanel (cookies) still required",
     "Authenticated digest dual-sample capture for core CP/ERP",
     "Exact-route shadows + human RELEASE_OWNER_APPROVAL.md before PHP decommission",
     "Live /CP/ /ERP/ /BOS/ / storefront chrome remains PHP-primary for tenants"
