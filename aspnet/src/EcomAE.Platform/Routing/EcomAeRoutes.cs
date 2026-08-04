@@ -430,6 +430,8 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsSetItemsStatus = "/cp/orders/set-items-status";
     /// <summary>Wave B dry-run OMS send_message (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
     public const string ControlPanelOmsSendMessage = "/cp/orders/send-message";
+    /// <summary>Wave B dry-run OMS set_courier (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    public const string ControlPanelOmsSetCourier = "/cp/orders/set-courier";
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
     /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>
@@ -581,6 +583,8 @@ public static class EcomAeRoutes
     public const string MarketingAboutApp = "/marketing/about";
     /// <summary>Marketing FAQ Blazor scaffold (PHP /platform/faq remains primary until dual-sample).</summary>
     public const string MarketingFaqApp = "/marketing/faq";
+    /// <summary>Marketing pricing Blazor scaffold (PHP /platform/pricing remains primary until dual-sample).</summary>
+    public const string MarketingPricingApp = "/marketing/pricing";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
