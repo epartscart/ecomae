@@ -100,6 +100,7 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 - Digest (cookie capture or migration contract-only): `bash scripts/cloudpanel_run_digest_dual_sample_operator.sh`
 - Module-function inventory (`aspnetCompleteCount=0`): `bash scripts/cloudpanel_run_module_function_parity_operator.sh`
 - Presentation recheck (cached/honest fail): `bash scripts/cloudpanel_run_presentation_recheck_operator.sh`
+- Tenant same-to-same (cached pass + cutover false): `bash scripts/cloudpanel_run_tenant_safety_operator.sh`
 - Operator index: `docs/migration/evidence/OPERATOR_VERIFY.md`
 - Asserts compare-result keeps `cutoverAllowed=false`.
 

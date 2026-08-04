@@ -1,0 +1,27 @@
+{
+  "generatedAtUtc": "2026-08-03T12:34:45Z",
+  "status": "pass",
+  "policy": "same-to-same-invisible-migration",
+  "mandate": "Tenants must not feel PHP→ASP.NET change. Frontend/CP/ERP/BOS/storefront product chrome stays PHP.",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "tenantChromeProbe": {
+    "status": "pass",
+    "passCount": 21,
+    "failCount": 0,
+    "evidence": "docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json"
+  },
+  "bosChromeProbe": {
+    "passCount": 0,
+    "failCount": 0,
+    "skipCount": 0,
+    "probes": [],
+    "note": "Cached offline floor; live BOS probes require ECOMAE_TENANT_LIVE=1 on CloudPanel."
+  },
+  "notes": [
+    "Blazor /cp|/erp|/bos|/storefront/app previews on www are migration scaffolding only.",
+    "Digests and JSON APIs must never replace tenant product chrome.",
+    "Batch 6 decommission remains blocked until presentation + module function + this verify pass + human approval.",
+    "Never invent RELEASE_OWNER_APPROVAL.md."
+  ]
+}

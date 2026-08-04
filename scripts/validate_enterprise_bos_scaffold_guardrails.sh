@@ -140,6 +140,8 @@ check_file "price-lookup dual-sample operator helper" \
   "$ROOT/scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh"
 check_file "catalog-api dual-sample operator helper" \
   "$ROOT/scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh"
+check_file "tenant-safety operator helper" \
+  "$ROOT/scripts/cloudpanel_run_tenant_safety_operator.sh"
 check_file "operator verify index" \
   "$ROOT/docs/migration/evidence/OPERATOR_VERIFY.md"
 check_file "YARP all-packs generator helper" \
