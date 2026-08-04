@@ -996,6 +996,101 @@ public sealed record CpUaeTaxComplianceDigestResult(
     string Source,
     string Message);
 
+public sealed record CpBudgetsSummary(
+    int BudgetCount,
+    int ActiveBudgets,
+    int BudgetLineCount,
+    int DimensionCount,
+    string Source,
+    string Message);
+
+public sealed record CpBudgetDigest(
+    long Id,
+    string Code,
+    string Name,
+    string FiscalYear,
+    long BusinessUnitId,
+    bool IsMaster,
+    bool Active);
+
+public sealed record CpBudgetsDigestResult(
+    CpBudgetsSummary Summary,
+    IReadOnlyList<CpBudgetDigest> Budgets,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpCarriersSummary(
+    int CarrierCount,
+    int ActiveCarriers,
+    int RateCount,
+    int OpenShipments,
+    string Source,
+    string Message);
+
+public sealed record CpCarrierDigest(
+    long Id,
+    string Code,
+    string Name,
+    string Mode,
+    string Currency,
+    decimal Rating,
+    bool Active);
+
+public sealed record CpCarriersDigestResult(
+    CpCarriersSummary Summary,
+    IReadOnlyList<CpCarrierDigest> Carriers,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPaymentGatewaysSummary(
+    int GatewayCount,
+    int ActiveGateways,
+    int SelectableGateways,
+    int AccountCount,
+    string Source,
+    string Message);
+
+public sealed record CpPaymentGatewayDigest(
+    long Id,
+    string Name,
+    string Handler,
+    bool Active,
+    bool IsSelectable);
+
+public sealed record CpPaymentGatewaysDigestResult(
+    CpPaymentGatewaysSummary Summary,
+    IReadOnlyList<CpPaymentGatewayDigest> Gateways,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpWorkflowsSummary(
+    int WorkflowCount,
+    int ActiveWorkflows,
+    int RunCount,
+    int FailedRuns,
+    string Source,
+    string Message);
+
+public sealed record CpWorkflowDigest(
+    long Id,
+    string SiteKey,
+    string Name,
+    string TriggerType,
+    bool Active,
+    int Version,
+    int RunCount,
+    string LastRunStatus);
+
+public sealed record CpWorkflowsDigestResult(
+    CpWorkflowsSummary Summary,
+    IReadOnlyList<CpWorkflowDigest> Workflows,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontPartOfferDigest(
     int PriceId,
     string PriceList,

@@ -1,0 +1,26 @@
+{
+  "role": "cp-payment-gateways-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-payment-gateways",
+  "collectionKey": "gateways",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "gatewayCount",
+    "activeGateways",
+    "selectableGateways",
+    "accountCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "name",
+    "handler",
+    "active",
+    "isSelectable"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks payment-gateways digest summary+gateways[] floors. parameters/credentials omitted. PHP payments remains authoritative. cutoverAllowed=false."
+}

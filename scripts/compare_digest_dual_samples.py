@@ -132,6 +132,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "legislationCount,vatAdvanceRows,vatRefundRows,source,message",
     ),
+    "cp-budgets": (
+        "summary",
+        "budgetCount,activeBudgets,budgetLineCount,dimensionCount,source,message",
+    ),
+    "cp-carriers": (
+        "summary",
+        "carrierCount,activeCarriers,rateCount,openShipments,source,message",
+    ),
+    "cp-payment-gateways": (
+        "summary",
+        "gatewayCount,activeGateways,selectableGateways,accountCount,source,message",
+    ),
+    "cp-workflows": (
+        "summary",
+        "workflowCount,activeWorkflows,runCount,failedRuns,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -536,6 +552,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-uae-tax-compliance": (
         "items",
         ["id", "slug", "title", "issueDate", "category", "taxCategory", "isNew", "isUpdated", "timeSynced"],
+    ),
+    "cp-budgets": (
+        "budgets",
+        ["id", "code", "name", "fiscalYear", "businessUnitId", "isMaster", "active"],
+    ),
+    "cp-carriers": (
+        "carriers",
+        ["id", "code", "name", "mode", "currency", "rating", "active"],
+    ),
+    "cp-payment-gateways": (
+        "gateways",
+        ["id", "name", "handler", "active", "isSelectable"],
+    ),
+    "cp-workflows": (
+        "workflows",
+        ["id", "siteKey", "name", "triggerType", "active", "version", "runCount", "lastRunStatus"],
     ),
     "cp-orders-digest": (
         "orders",

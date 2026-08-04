@@ -6,16 +6,16 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 276,
-    "php-only-deeplink": 450
+    "digest-contract": 310,
+    "php-only-deeplink": 416
   },
   "families": [
     {
       "family": "ai-automation",
       "total": 21,
-      "digestContract": 6,
-      "phpOnlyDeeplink": 15,
-      "digestPercent": 28.6,
+      "digestContract": 9,
+      "phpOnlyDeeplink": 12,
+      "digestPercent": 42.9,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-ai_copilot",
@@ -67,9 +67,9 @@
     {
       "family": "banking-cash",
       "total": 24,
-      "digestContract": 8,
-      "phpOnlyDeeplink": 16,
-      "digestPercent": 33.3,
+      "digestContract": 9,
+      "phpOnlyDeeplink": 15,
+      "digestPercent": 37.5,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_cash",
@@ -189,9 +189,9 @@
     {
       "family": "erp-workspace-misc",
       "total": 35,
-      "digestContract": 3,
-      "phpOnlyDeeplink": 32,
-      "digestPercent": 8.6,
+      "digestContract": 7,
+      "phpOnlyDeeplink": 28,
+      "digestPercent": 20.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-business-unit-financial-dimensions",
@@ -234,9 +234,9 @@
     {
       "family": "finance-gl",
       "total": 37,
-      "digestContract": 7,
-      "phpOnlyDeeplink": 30,
-      "digestPercent": 18.9,
+      "digestContract": 13,
+      "phpOnlyDeeplink": 24,
+      "digestPercent": 35.1,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_budgeting",
@@ -502,9 +502,9 @@
     {
       "family": "platform-ops-bos",
       "total": 68,
-      "digestContract": 22,
-      "phpOnlyDeeplink": 46,
-      "digestPercent": 32.4,
+      "digestContract": 23,
+      "phpOnlyDeeplink": 45,
+      "digestPercent": 33.8,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-audit_log",
@@ -858,9 +858,9 @@
     {
       "family": "shipping-logistics",
       "total": 33,
-      "digestContract": 6,
-      "phpOnlyDeeplink": 27,
-      "digestPercent": 18.2,
+      "digestContract": 21,
+      "phpOnlyDeeplink": 12,
+      "digestPercent": 63.6,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_warehouse",
@@ -901,9 +901,9 @@
     {
       "family": "storefront-checkout",
       "total": 16,
-      "digestContract": 2,
-      "phpOnlyDeeplink": 14,
-      "digestPercent": 12.5,
+      "digestContract": 6,
+      "phpOnlyDeeplink": 10,
+      "digestPercent": 37.5,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-account-operations",

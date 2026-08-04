@@ -1,0 +1,29 @@
+{
+  "role": "cp-workflows-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-workflows",
+  "collectionKey": "workflows",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "workflowCount",
+    "activeWorkflows",
+    "runCount",
+    "failedRuns",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "name",
+    "triggerType",
+    "active",
+    "version",
+    "runCount",
+    "lastRunStatus"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks workflows digest summary+workflows[] floors. trigger_config omitted. PHP workflow automation remains authoritative. cutoverAllowed=false."
+}

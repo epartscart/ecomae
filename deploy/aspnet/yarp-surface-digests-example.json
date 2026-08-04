@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 52,
+  "routeCount": 56,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -377,6 +377,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-uae-tax-compliance-shadow-approved"
+          }
+        ]
+      },
+      "cp-budgets": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/budgets"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-budgets-shadow-approved"
+          }
+        ]
+      },
+      "cp-carriers": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/carriers"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-carriers-shadow-approved"
+          }
+        ]
+      },
+      "cp-payment-gateways": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/payment-gateways"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-payment-gateways-shadow-approved"
+          }
+        ]
+      },
+      "cp-workflows": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/workflows"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-workflows-shadow-approved"
           }
         ]
       },

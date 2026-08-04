@@ -32,40 +32,40 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 276,
-    "php-only-deeplink": 450
+    "digest-contract": 310,
+    "php-only-deeplink": 416
   },
   "coverageByKind": {
     "bos-module": {
-      "php-only-deeplink": 54,
-      "digest-contract": 45
+      "php-only-deeplink": 50,
+      "digest-contract": 49
     },
     "bos-section": {
       "digest-contract": 5,
       "php-only-deeplink": 6
     },
     "cp-feature": {
-      "digest-contract": 133,
-      "php-only-deeplink": 272
+      "digest-contract": 152,
+      "php-only-deeplink": 253
     },
     "erp-area": {
-      "digest-contract": 16,
-      "php-only-deeplink": 19
+      "digest-contract": 18,
+      "php-only-deeplink": 17
     },
     "erp-category": {
       "digest-contract": 8,
       "php-only-deeplink": 1
     },
     "erp-tab": {
-      "digest-contract": 63,
-      "php-only-deeplink": 91
+      "digest-contract": 70,
+      "php-only-deeplink": 84
     },
     "storefront-surface": {
-      "php-only-deeplink": 7,
-      "digest-contract": 6
+      "php-only-deeplink": 5,
+      "digest-contract": 8
     }
   },
-  "digestContractRouteCount": 78,
+  "digestContractRouteCount": 82,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -97,10 +97,10 @@
       "kind": "erp-tab",
       "label": "Workflow",
       "phpPath": "/ERP/?epc_erp_shell=1&area=overview&tab=workflow",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/workflows",
+      "aspnetRoute": "/cp/workflows-app",
       "aspnetComplete": false
     },
     {
@@ -130,10 +130,10 @@
       "kind": "erp-tab",
       "label": "Automation Centre",
       "phpPath": "/ERP/?epc_erp_shell=1&area=overview&tab=workflow_automation",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/workflows",
+      "aspnetRoute": "/cp/workflows-app",
       "aspnetComplete": false
     },
     {
@@ -262,10 +262,10 @@
       "kind": "erp-area",
       "label": "Budgeting",
       "phpPath": "/ERP/?epc_erp_shell=1&area=budgeting",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/budgets",
+      "aspnetRoute": "/cp/budgets-app",
       "aspnetComplete": false
     },
     {
@@ -273,10 +273,10 @@
       "kind": "erp-tab",
       "label": "Budgeting",
       "phpPath": "/ERP/?epc_erp_shell=1&area=budgeting&tab=budgeting",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/budgets",
+      "aspnetRoute": "/cp/budgets-app",
       "aspnetComplete": false
     },
     {
@@ -284,10 +284,10 @@
       "kind": "erp-tab",
       "label": "Budget planning",
       "phpPath": "/ERP/?epc_erp_shell=1&area=budgeting&tab=budget_planning",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/budgets",
+      "aspnetRoute": "/cp/budgets-app",
       "aspnetComplete": false
     },
     {
@@ -1098,10 +1098,10 @@
       "kind": "erp-area",
       "label": "Logistics",
       "phpPath": "/ERP/?epc_erp_shell=1&area=logistics",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -1109,10 +1109,10 @@
       "kind": "erp-tab",
       "label": "Customs & shipping",
       "phpPath": "/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -1120,10 +1120,10 @@
       "kind": "erp-tab",
       "label": "Procurement CP",
       "phpPath": "/ERP/?epc_erp_shell=1&area=logistics&tab=procurement_link",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -1967,10 +1967,10 @@
       "kind": "erp-tab",
       "label": "Automation Centre",
       "phpPath": "/ERP/?epc_erp_shell=1&area=setup&tab=workflow_automation",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/workflows",
+      "aspnetRoute": "/cp/workflows-app",
       "aspnetComplete": false
     },
     {
@@ -2539,10 +2539,10 @@
       "kind": "bos-module",
       "label": "Fulfillment",
       "phpPath": "/CP/shop/finance/epc_fulfillment_queue",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -2924,10 +2924,10 @@
       "kind": "bos-module",
       "label": "Payments",
       "phpPath": "/CP/shop/payments/payments_main",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/payment-gateways",
+      "aspnetRoute": "/cp/payment-gateways-app",
       "aspnetComplete": false
     },
     {
@@ -3078,10 +3078,10 @@
       "kind": "bos-module",
       "label": "Delivery & Shipping",
       "phpPath": "/CP/shop/logistics/logistics",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -3342,10 +3342,10 @@
       "kind": "bos-module",
       "label": "Budgeting",
       "phpPath": "/ERP/?epc_erp_shell=1&area=budgeting",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/budgets",
+      "aspnetRoute": "/cp/budgets-app",
       "aspnetComplete": false
     },
     {
@@ -3936,10 +3936,10 @@
       "kind": "cp-feature",
       "label": "Epc Custom Shipping Guide",
       "phpPath": "/CP/control/portal/epc_custom_shipping_guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -4046,10 +4046,10 @@
       "kind": "cp-feature",
       "label": "Custom & Shipping guide",
       "phpPath": "/CP/control/portal/epc_custom_shipping_guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -4893,10 +4893,10 @@
       "kind": "cp-feature",
       "label": "Payment gateway setup",
       "phpPath": "/CP/shop/payments/payments",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/payment-gateways",
+      "aspnetRoute": "/cp/payment-gateways-app",
       "aspnetComplete": false
     },
     {
@@ -4904,10 +4904,10 @@
       "kind": "cp-feature",
       "label": "Payment gateways",
       "phpPath": "/CP/shop/payments/payments",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/payment-gateways",
+      "aspnetRoute": "/cp/payment-gateways-app",
       "aspnetComplete": false
     },
     {
@@ -4915,10 +4915,10 @@
       "kind": "cp-feature",
       "label": "Payment reconciliation",
       "phpPath": "/CP/shop/payments/payments",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/payment-gateways",
+      "aspnetRoute": "/cp/payment-gateways-app",
       "aspnetComplete": false
     },
     {
@@ -4926,10 +4926,10 @@
       "kind": "cp-feature",
       "label": "Payments guide",
       "phpPath": "/CP/shop/payments/payments/guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/payment-gateways",
+      "aspnetRoute": "/cp/payment-gateways-app",
       "aspnetComplete": false
     },
     {
@@ -4948,10 +4948,10 @@
       "kind": "cp-feature",
       "label": "Carriers & shipments",
       "phpPath": "/CP/shop/logistics/carriers",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -4959,10 +4959,10 @@
       "kind": "cp-feature",
       "label": "Custom & shipping declarations",
       "phpPath": "/CP/shop/finance/erp?area=logistics&tab=custom_shipping&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -4992,10 +4992,10 @@
       "kind": "cp-feature",
       "label": "Logistics guide",
       "phpPath": "/CP/shop/logistics/guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -5003,10 +5003,10 @@
       "kind": "cp-feature",
       "label": "Logistics hub",
       "phpPath": "/CP/shop/logistics",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -5014,10 +5014,10 @@
       "kind": "cp-feature",
       "label": "Logistics reports",
       "phpPath": "/CP/shop/logistics",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -5256,10 +5256,10 @@
       "kind": "cp-feature",
       "label": "Cross-department workflow",
       "phpPath": "/CP/shop/finance/erp?area=overview&tab=workflow&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/workflows",
+      "aspnetRoute": "/cp/workflows-app",
       "aspnetComplete": false
     },
     {
@@ -5267,10 +5267,10 @@
       "kind": "cp-feature",
       "label": "Custom & Shipping",
       "phpPath": "/CP/shop/finance/erp?epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -5278,10 +5278,10 @@
       "kind": "cp-feature",
       "label": "Custom & Shipping guide",
       "phpPath": "/CP/shop/finance/erp/custom-shipping-guide?epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -5498,10 +5498,10 @@
       "kind": "cp-feature",
       "label": "Budgeting: Budget planning",
       "phpPath": "/CP/shop/finance/erp?area=budgeting&tab=budget_planning&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/budgets",
+      "aspnetRoute": "/cp/budgets-app",
       "aspnetComplete": false
     },
     {
@@ -5509,10 +5509,10 @@
       "kind": "cp-feature",
       "label": "Budgeting: Budgeting",
       "phpPath": "/CP/shop/finance/erp?area=budgeting&tab=budgeting&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/budgets",
+      "aspnetRoute": "/cp/budgets-app",
       "aspnetComplete": false
     },
     {
@@ -5927,10 +5927,10 @@
       "kind": "cp-feature",
       "label": "Home: Workflow",
       "phpPath": "/CP/shop/finance/erp?area=overview&tab=workflow&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/workflows",
+      "aspnetRoute": "/cp/workflows-app",
       "aspnetComplete": false
     },
     {
@@ -6180,10 +6180,10 @@
       "kind": "cp-feature",
       "label": "Logistics: Customs & shipping",
       "phpPath": "/CP/shop/finance/erp?area=logistics&tab=custom_shipping&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -6895,10 +6895,10 @@
       "kind": "cp-feature",
       "label": "System administration: Workflow automation",
       "phpPath": "/CP/shop/finance/erp?area=setup&tab=workflow_automation&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/workflows",
+      "aspnetRoute": "/cp/workflows-app",
       "aspnetComplete": false
     },
     {
@@ -7973,10 +7973,10 @@
       "kind": "storefront-surface",
       "label": "Checkout",
       "phpPath": "https://epartscart.com/shop/checkout",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/payment-gateways",
+      "aspnetRoute": "/cp/payment-gateways-app",
       "aspnetComplete": false
     },
     {
@@ -8039,10 +8039,10 @@
       "kind": "storefront-surface",
       "label": "Payments",
       "phpPath": "https://epartscart.com/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/payment-gateways",
+      "aspnetRoute": "/cp/payment-gateways-app",
       "aspnetComplete": false
     },
     {

@@ -137,6 +137,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only UAE tax legislation (erp_summary/pdf/passport omitted).</summary>
     Task<CpUaeTaxComplianceDigestResult> BuildCpUaeTaxComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only budgets (note omitted).</summary>
+    Task<CpBudgetsDigestResult> BuildCpBudgetsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only carriers (contact PII omitted).</summary>
+    Task<CpCarriersDigestResult> BuildCpCarriersDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only payment gateways (parameters/credentials omitted).</summary>
+    Task<CpPaymentGatewaysDigestResult> BuildCpPaymentGatewaysDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only workflows (trigger_config/JSON omitted).</summary>
+    Task<CpWorkflowsDigestResult> BuildCpWorkflowsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

@@ -65,6 +65,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var priceLists = await reporter.BuildCpPriceListsDigestAsync(10);
         var autoPrice = await reporter.BuildCpAutoPriceDigestAsync(10);
         var uaeTax = await reporter.BuildCpUaeTaxComplianceDigestAsync(10);
+        var budgets = await reporter.BuildCpBudgetsDigestAsync(10);
+        var carriers = await reporter.BuildCpCarriersDigestAsync(10);
+        var paymentGateways = await reporter.BuildCpPaymentGatewaysDigestAsync(10);
+        var workflows = await reporter.BuildCpWorkflowsDigestAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -131,6 +135,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", priceLists.Source);
         Assert.Equal("migration", autoPrice.Source);
         Assert.Equal("migration", uaeTax.Source);
+        Assert.Equal("migration", budgets.Source);
+        Assert.Equal("migration", carriers.Source);
+        Assert.Equal("migration", paymentGateways.Source);
+        Assert.Equal("migration", workflows.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
@@ -206,6 +214,15 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_uae_tax_legislation_items", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("erp_summary", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("pdf_url", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_pm_budgets", LegacySurfaceDashboardSql.SelectCpBudgets, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectCpBudgets, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_carriers", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
+        Assert.DoesNotContain("contact_phone", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
+        Assert.DoesNotContain("contact_email", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
+        Assert.Contains("shop_payment_systems", LegacySurfaceDashboardSql.SelectCpPaymentGateways, StringComparison.Ordinal);
+        Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpPaymentGateways, StringComparison.Ordinal);
+        Assert.Contains("epc_workflows", LegacySurfaceDashboardSql.SelectCpWorkflows, StringComparison.Ordinal);
+        Assert.DoesNotContain("trigger_config", LegacySurfaceDashboardSql.SelectCpWorkflows, StringComparison.Ordinal);
         Assert.Contains("epc_document_templates", LegacySurfaceDashboardSql.SelectCpDocumentTemplates, StringComparison.Ordinal);
         Assert.DoesNotContain("header_html", LegacySurfaceDashboardSql.SelectCpDocumentTemplates, StringComparison.Ordinal);
         Assert.Contains("shop_obtaining_modes", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);

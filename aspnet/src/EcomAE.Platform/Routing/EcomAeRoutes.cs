@@ -156,6 +156,22 @@ public static class EcomAeRoutes
     public const string ControlPanelUaeTaxCompliance = "/cp/uae-tax-compliance";
     /// <summary>CP UAE tax Blazor list (JSON digest remains <see cref="ControlPanelUaeTaxCompliance"/>).</summary>
     public const string ControlPanelUaeTaxComplianceApp = "/cp/uae-tax-compliance-app";
+    /// <summary>CP budgets KPIs + headers (note omitted).</summary>
+    public const string ControlPanelBudgets = "/cp/budgets";
+    /// <summary>CP budgets Blazor list (JSON digest remains <see cref="ControlPanelBudgets"/>).</summary>
+    public const string ControlPanelBudgetsApp = "/cp/budgets-app";
+    /// <summary>CP carriers KPIs + directory (contact PII omitted).</summary>
+    public const string ControlPanelCarriers = "/cp/carriers";
+    /// <summary>CP carriers Blazor list (JSON digest remains <see cref="ControlPanelCarriers"/>).</summary>
+    public const string ControlPanelCarriersApp = "/cp/carriers-app";
+    /// <summary>CP payment gateways (parameters/credentials omitted).</summary>
+    public const string ControlPanelPaymentGateways = "/cp/payment-gateways";
+    /// <summary>CP payment gateways Blazor list (JSON digest remains <see cref="ControlPanelPaymentGateways"/>).</summary>
+    public const string ControlPanelPaymentGatewaysApp = "/cp/payment-gateways-app";
+    /// <summary>CP workflows KPIs + definitions (trigger_config/JSON omitted).</summary>
+    public const string ControlPanelWorkflows = "/cp/workflows";
+    /// <summary>CP workflows Blazor list (JSON digest remains <see cref="ControlPanelWorkflows"/>).</summary>
+    public const string ControlPanelWorkflowsApp = "/cp/workflows-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

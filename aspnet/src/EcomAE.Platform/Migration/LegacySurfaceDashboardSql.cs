@@ -866,6 +866,83 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Budget KPIs — omits note text.</summary>
+    public const string SelectCpBudgetStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_pm_budgets`) AS budget_count,
+            (SELECT COUNT(*) FROM `epc_erp_pm_budgets` WHERE IFNULL(`active`,0)=1) AS active_budgets,
+            (SELECT COUNT(*) FROM `epc_erp_pm_budget_lines`) AS budget_line_count,
+            (SELECT COUNT(*) FROM `epc_erp_pm_dimensions`) AS dimension_count
+        """;
+
+    /// <summary>Budgets — omits note.</summary>
+    public const string SelectCpBudgets = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`fiscal_year`,'') AS fiscal_year,
+               IFNULL(`business_unit_id`,0) AS business_unit_id,
+               IFNULL(`is_master`,0) AS is_master, IFNULL(`active`,0) AS active
+        FROM `epc_erp_pm_budgets`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Carrier KPIs — omits contact PII.</summary>
+    public const string SelectCpCarrierStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_carriers`) AS carrier_count,
+            (SELECT COUNT(*) FROM `epc_erp_carriers` WHERE IFNULL(`active`,0)=1) AS active_carriers,
+            (SELECT COUNT(*) FROM `epc_erp_carrier_rates`) AS rate_count,
+            (SELECT COUNT(*) FROM `epc_erp_shipments` WHERE IFNULL(`status`,'') IN ('planned','dispatched','in_transit')) AS open_shipments
+        """;
+
+    /// <summary>Carriers — omits contact_name/phone/email/tax_id.</summary>
+    public const string SelectCpCarriers = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`mode`,'') AS mode, IFNULL(`currency`,'') AS currency,
+               IFNULL(`rating`,0) AS rating, IFNULL(`active`,0) AS active
+        FROM `epc_erp_carriers`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Payment gateway KPIs — omits parameters/credentials.</summary>
+    public const string SelectCpPaymentGatewayStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_payment_systems`) AS gateway_count,
+            (SELECT COUNT(*) FROM `shop_payment_systems` WHERE IFNULL(`active`,0)=1) AS active_gateways,
+            (SELECT COUNT(*) FROM `shop_payment_systems` WHERE IFNULL(`is_selectable`,0)=1) AS selectable_gateways,
+            (SELECT COUNT(*) FROM `epc_payment_accounts`) AS account_count
+        """;
+
+    /// <summary>Payment gateways — omits parameters/parameters_values/description.</summary>
+    public const string SelectCpPaymentGateways = """
+        SELECT `id`, IFNULL(`name`,'') AS name, IFNULL(`handler`,'') AS handler,
+               IFNULL(`active`,0) AS active, IFNULL(`is_selectable`,0) AS is_selectable
+        FROM `shop_payment_systems`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Workflow KPIs — omits trigger_config/step JSON.</summary>
+    public const string SelectCpWorkflowStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_workflows`) AS workflow_count,
+            (SELECT COUNT(*) FROM `epc_workflows` WHERE IFNULL(`active`,0)=1) AS active_workflows,
+            (SELECT COUNT(*) FROM `epc_workflow_runs`) AS run_count,
+            (SELECT COUNT(*) FROM `epc_workflow_runs` WHERE IFNULL(`status`,'')='failed') AS failed_runs
+        """;
+
+    /// <summary>Workflows — omits trigger_config/description JSON blobs.</summary>
+    public const string SelectCpWorkflows = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`name`,'') AS name,
+               IFNULL(`trigger_type`,'') AS trigger_type, IFNULL(`active`,0) AS active,
+               IFNULL(`version`,0) AS version, IFNULL(`run_count`,0) AS run_count,
+               IFNULL(`last_run_status`,'') AS last_run_status
+        FROM `epc_workflows`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>
     /// Batch 4 storefront part search (mirrors pyapi <c>part_search</c> / warehouse offers).
     /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.
