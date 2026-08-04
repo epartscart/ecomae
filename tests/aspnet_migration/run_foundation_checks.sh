@@ -764,6 +764,15 @@ check 'piston banner component exists' test -f "$ROOT/aspnet/src/EcomAE.Platform
 check 'hub logo component exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeHubLogo.razor"
 check 'storefront app uses piston banner' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor" 'PhpAspPistonBanner'
 check 'BOS login emits particle host' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosLoginApp.razor" 'bosParticles'
+check 'login chrome body class component exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/PhpChromeBodyClass.razor"
+check 'login body class helper exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs" 'LoginBodyClassFor'
+check 'ERP portal inline login CSS serve exists' test -f "$ROOT/content/shop/finance/epc_erp_portal_inline_css_serve.php"
+check 'ERP login portal wrap marker' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" 'epc-erp-portal-wrap'
+check 'login chrome body parity validator exists' test -f "$ROOT/scripts/validate_login_chrome_body_parity.py"
+check 'php decommission gated script refuses without ready' contains "$ROOT/scripts/cloudpanel_php_decommission_gated.sh" 'ReadyToRemovePhp is false'
+check 'module function live status is honest (not PASS invent)' contains "$ROOT/docs/migration/evidence/presentation/MODULE_FUNCTION_PARITY_STATUS_LIVE.md" 'Do **not** invent'
+check 'php decommission one-by-one runbook' test -f "$ROOT/docs/migration/PHP_DECOMMISSION_ONE_BY_ONE.md"
+check 'login chrome body parity floor exists' test -f "$ROOT/docs/migration/evidence/presentation/login-chrome-body-parity-floor.json"
 check 'plan requires graphical hero/animation parity' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'Graphical presentation is in scope'
 check 'customer session insert includes last_activiti_time' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyAdminLoginSql.cs" 'last_activiti_time'
 check 'customer token formula uses userId' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionTokenFactory.cs" 'CustomerSessionToken'

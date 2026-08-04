@@ -4,9 +4,9 @@
 @inject IHttpContextAccessor Http
 
 <PageTitle>@_pageTitle</PageTitle>
-<PhpChromeStyles Surface="storefront" />
-<PhpChromeBodyClass Surface="storefront" LoginChrome="false" />
-<StorefrontAnalytics Enabled="true" IncludeClarity="true" ClarityId="xoflbamawu" />
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+<StorefrontAnalytics Enabled="false" IncludeClarity="true" ClarityId="xoflbamawu" />
 
 <PhpStorefrontDesktopChrome>
     <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/storefront/app" />

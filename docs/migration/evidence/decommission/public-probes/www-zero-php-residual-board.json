@@ -80,7 +80,10 @@
     "Marketing install/probe floor ready",
     "Font URL %20 encoding so Open Sans probes pass",
     "Storefront Clarity xoflbamawu + homepage depth component",
-    "ERP login inline CSS serve + PHP body class bridges"
+    "ERP login inline CSS serve + PHP body class bridges",
+    "ERP/BOS/CP/storefront login body-class + ERP portal CSS parity floor",
+    "Gated PHP decommission script refuses until ReadyToRemovePhp",
+    "Honest MODULE_FUNCTION_PARITY_STATUS_LIVE (no invented PASS)"
   ],
   "liveLag": {
     "storefrontDigestsLive": "6/7 (checkout shadow not installed on www yet)",
@@ -88,6 +91,6 @@
     "digestLiveAspNetSamples": "0 core stems",
     "functionalLiveSmoke": "0/7 captured"
   },
-  "honestAnswer": "Scaffold contract is 100% (726/726 menus). Weighted decommission residual ~5% and interactive cutover still 0%. Same-to-same look + CloudPanel dual-sample + human approval required before PHP removal. Speed/security may improve; look must not change for users.",
+  "honestAnswer": "Scaffold contract 100% (726/726). Interactive cutover still 0%. Live readiness blocked (presentation + module-function + approval). PHP must stay until ReadyToRemovePhp=true \u2014 never invent approval or delete PHP source.",
   "note": "Never invent cutoverAllowed=true or RELEASE_OWNER_APPROVAL.md."
 }
