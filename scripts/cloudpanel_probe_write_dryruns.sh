@@ -270,6 +270,11 @@ probe_post "/cp/module-ajax/portal_integrations/save_mobile/dry-run" '{"confirmW
 probe_post "/cp/module-ajax/sku_media/upload_photo/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated upload_photo"
 probe_post "/cp/module-ajax/classic_form/shop_catalogue_product/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp classic form product.php"
 probe_post "/cp/module-ajax/classic_form/users_user/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp classic form user.php"
+probe_post "/cp/module-ajax/parts_agent/save_config/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated parts_agent save_config"
+probe_post "/cp/module-ajax/free_tools/register/dry-run" '{"confirmWrites":false}' "" "cp module ajax dedicated free_tools register"
+probe_post "/cp/module-ajax/garage_manager/create_job/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated garage_manager create_job"
+probe_post "/cp/module-ajax/currency_live_rates/apply/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated currency_live_rates apply"
+probe_post "/cp/module-ajax/multivendor_ingest/vendor_code_save/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated multivendor vendor_code_save"
 
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]
