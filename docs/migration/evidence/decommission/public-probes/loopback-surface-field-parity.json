@@ -1321,7 +1321,8 @@
       ],
       "requiredSummaryOrItemFields": [],
       "functionsCovered": [
-        "offline-cache engines"
+        "offline-cache engines",
+        "nested data.data[] ENG_ID/ENGINE_CODE item floor"
       ],
       "presentationChrome": "n/a-json-api",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -1342,7 +1343,8 @@
       ],
       "requiredSummaryOrItemFields": [],
       "functionsCovered": [
-        "offline-cache analogs"
+        "offline-cache analogs",
+        "nested data.data[] ART_ID/BRAND item floor"
       ],
       "presentationChrome": "n/a-json-api",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -1363,7 +1365,8 @@
       ],
       "requiredSummaryOrItemFields": [],
       "functionsCovered": [
-        "offline-cache article brands"
+        "offline-cache article brands",
+        "nested data.data[] BRAND/ARTICLE item floor"
       ],
       "presentationChrome": "n/a-json-api",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -1384,7 +1387,8 @@
       ],
       "requiredSummaryOrItemFields": [],
       "functionsCovered": [
-        "offline-cache categories"
+        "offline-cache categories",
+        "nested data.data[] STR_ID/CATEGORY_NAME item floor"
       ],
       "presentationChrome": "n/a-json-api",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"

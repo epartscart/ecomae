@@ -1,0 +1,33 @@
+{
+  "role": "catalog-offline-cache-nested-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "nestedStemCount": 4,
+  "stems": [
+    "api-catalog-engines",
+    "api-catalog-analogs",
+    "api-catalog-article-brands",
+    "api-catalog-categories"
+  ],
+  "nestedCollectionPath": "data.data",
+  "requireNonemptyMigrationSentinel": true,
+  "keepObjectBlobEnvelope": true,
+  "requiredItemFieldsByStem": {
+    "api-catalog-engines": ["ENG_ID", "ENGINE_CODE", "POWER_KW", "CAPACITY_LT", "FUEL_TYPE"],
+    "api-catalog-analogs": ["ART_ID", "BRAND", "ARTICLE_NR", "TITLE"],
+    "api-catalog-article-brands": [
+      "BRAND",
+      "SUP_BRAND",
+      "MANUFACTURER",
+      "DISPLAY_NR",
+      "SEARCH_NUMBER",
+      "ARTICLE",
+      "TITLE",
+      "DES"
+    ],
+    "api-catalog-categories": ["STR_ID", "CATEGORY_NAME", "ORDER"]
+  },
+  "source": "PHP umapi_proxy epc_engines_list_items + epc_umapi_brands_offline_payload + UMAPI wrappers; ASP.NET OfflineCacheOk keeps object blob",
+  "note": "Wave-2 locks nested data.data[] item fields inside offline-cache object blobs without inventing top-level typed DTO unwrap. Remaining offline-cache stems stay empty object blobs. Never invents RELEASE_OWNER_APPROVAL.md."
+}

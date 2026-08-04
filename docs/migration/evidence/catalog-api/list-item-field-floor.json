@@ -14,5 +14,5 @@
   ],
   "requireNonemptyMigrationSentinel": true,
   "source": "CatalogManufacturerService + CatalogVehicleCacheService + CatalogBrandPartsService",
-  "note": "Wave-1 catalog list routes keep non-empty migration data[] item-field sentinels. Offline-cache JSON blobs remain envelope-only until typed item DTOs exist. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "Wave-1 catalog list routes keep non-empty migration data[] item-field sentinels. Offline-cache wave-2 nested data.data[] floors live in offline-cache-nested-item-field-floor.json; remaining offline-cache stems stay empty object blobs. Never invents RELEASE_OWNER_APPROVAL.md."
 }

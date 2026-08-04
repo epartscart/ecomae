@@ -1001,6 +1001,14 @@ check 'catalog VIN migration golden includes manufacturer' contains "$ROOT/docs/
 check 'catalog VIN envelope floor evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-api/vin-envelope-floor.json"
 check 'catalog VIN envelope floor blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-api/vin-envelope-floor.json" '"cutoverAllowed": false'
 check 'catalog api contract floor locks offline-cache object data' contains "$ROOT/scripts/compare_catalog_api_contract_floor.py" 'OFFLINE_CACHE_OBJECT_DATA'
+check 'catalog api contract floor locks offline-cache nested list items' contains "$ROOT/scripts/compare_catalog_api_contract_floor.py" 'OFFLINE_CACHE_NESTED_LIST_ITEM_FIELDS'
+check 'catalog offline-cache nested item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-api/offline-cache-nested-item-field-floor.json"
+check 'catalog offline-cache nested item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-api/offline-cache-nested-item-field-floor.json" '"cutoverAllowed": false'
+check 'catalog offline-cache nested item-field floor tracks 4 stems' contains "$ROOT/docs/migration/evidence/catalog-api/offline-cache-nested-item-field-floor.json" '"nestedStemCount": 4'
+check 'catalog engines migration golden has nested item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-engines.json" '"ENGINE_CODE": "N47D20"'
+check 'catalog analogs migration golden has nested item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-analogs.json" '"ARTICLE_NR": "0986424590"'
+check 'catalog article-brands migration golden has nested item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-article-brands.json" '"SEARCH_NUMBER": "0986424590"'
+check 'catalog categories migration golden has nested item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-categories.json" '"CATEGORY_NAME": "Migration category"'
 check 'orders digest migration golden exists' test -f "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-orders-digest.json"
 check 'digest dual compare accepts migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migrationBaselinePairs'
 check 'digest dual compare detects seeded migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migration-contract-golden'
