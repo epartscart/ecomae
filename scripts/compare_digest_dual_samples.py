@@ -84,6 +84,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "smsOperators,activeOperator,whatsappSent,whatsappFailed,source,message",
     ),
+    "cp-crm-board": (
+        "summary",
+        "leads,opportunities,activities,ticketsOpen,source,message",
+    ),
+    "cp-document-control": (
+        "summary",
+        "companyName,templateCount,attachmentCount,source,message",
+    ),
+    "cp-delivery-methods": (
+        "summary",
+        "methods,available,source,message",
+    ),
+    "cp-crosses": (
+        "summary",
+        "totalPairs,brands,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -440,6 +456,22 @@ HYBRID_LIST_ITEM_FIELDS = {
             "active",
             "controlAvailable",
         ],
+    ),
+    "cp-crm-board": (
+        "leads",
+        ["id", "title", "status", "source", "ownerId", "amount", "updatedAt"],
+    ),
+    "cp-document-control": (
+        "templates",
+        ["id", "code", "title", "category", "active", "sortOrder"],
+    ),
+    "cp-delivery-methods": (
+        "modes",
+        ["id", "caption", "handler", "available", "controlAvailable", "sortOrder"],
+    ),
+    "cp-crosses": (
+        "pairs",
+        ["id", "manufacturer", "article", "crossManufacturer", "crossArticle"],
     ),
     "cp-orders-digest": (
         "orders",

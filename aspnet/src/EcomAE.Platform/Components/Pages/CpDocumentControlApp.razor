@@ -1,0 +1,131 @@
+@page "/cp/document-control-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Document Control · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-doc-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#1e293b 0%,#334155 50%,#475569 100%);
+        }
+        .epc-doc-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-doc-hero p { margin:0; color:#cbd5e1; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-doc-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-doc-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#1e293b; background:#94a3b8;
+        }
+        .epc-doc-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-doc-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-doc-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-doc-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-doc-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-doc-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-doc-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-doc-table th, .epc-doc-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-doc-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-doc-note { margin-top:1rem; padding:.75rem .9rem; background:#f1f5f9; border:1px solid #94a3b8; border-radius:.45rem; color:#334155; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-doc-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-doc-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Document Control</h1>
+        <p>Read-only document templates + attachment counts from <code>/cp/document-control</code>. Template edit and print stays on live PHP.</p>
+        <div class="epc-doc-cta">
+            <a href="@_phpTab">Open PHP document control</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/tax-toolkits-app">Tax toolkits</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-doc-kpis" aria-label="Document control stats">
+        <div class="epc-doc-kpi"><strong>@(string.IsNullOrWhiteSpace(_summary.CompanyName) ? "—" : _summary.CompanyName)</strong><span>Company</span></div>
+        <div class="epc-doc-kpi"><strong>@_summary.TemplateCount.ToString(CultureInfo.InvariantCulture)</strong><span>Templates</span></div>
+        <div class="epc-doc-kpi"><strong>@_summary.AttachmentCount.ToString(CultureInfo.InvariantCulture)</strong><span>Attachments</span></div>
+    </div>
+
+    <div class="epc-doc-table-wrap">
+        <table class="epc-doc-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Code</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Active</th>
+                    <th>Sort</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_templates.Count == 0)
+                {
+                    <tr><td colspan="7">No templates in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var t in _templates)
+                    {
+                        <tr>
+                            <td><strong>@t.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(t.Code) ? "—" : t.Code)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.Title) ? "—" : t.Title)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.Category) ? "—" : t.Category)</td>
+                            <td>@(t.Active ? "yes" : "no")</td>
+                            <td>@t.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-doc-note">
+        Read-only preview · JSON digest <a href="/cp/document-control?limit=200">/cp/document-control</a>.
+        PHP <code>shop/document_control/document_control</code> remains authoritative for templates and print.
+        Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/document_control/document_control";
+    private bool _isAdmin;
+    private CpDocumentControlSummary _summary = new("", 0, 0, "n/a", "");
+    private IReadOnlyList<CpDocumentTemplateDigest> _templates = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpDocumentControlDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _templates = result.Templates;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

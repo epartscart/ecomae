@@ -580,6 +580,35 @@ def main() -> None:
             "readyForPhpRemoval": False,
             "note": "migration-mode contract sample; operators[] sentinel; PHP sms/whatsapp remains authoritative; cutoverAllowed=false",
         },
+
+        "cp-crm-board.json": {
+            **summary("cp", {"leads": 1, "opportunities": 0, "activities": 0, "ticketsOpen": 0}),
+            "leads": [{"id": 1, "title": "Migration Lead", "status": "new", "source": "web", "ownerId": 1, "amount": 100.0, "updatedAt": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; leads[] sentinel; PHP crm_main authoritative; cutoverAllowed=false",
+        },
+        "cp-document-control.json": {
+            **summary("cp", {"companyName": "Migration Co", "templateCount": 1, "attachmentCount": 0}),
+            "templates": [{"id": 1, "code": "tax_invoice", "title": "Tax Invoice", "category": "sales", "active": True, "sortOrder": 1}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; templates[] sentinel; PHP document_control authoritative; cutoverAllowed=false",
+        },
+        "cp-delivery-methods.json": {
+            **summary("cp", {"methods": 1, "available": 1}),
+            "modes": [{"id": 1, "caption": "Courier", "handler": "epc_carriers", "available": True, "controlAvailable": True, "sortOrder": 1}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; modes[] sentinel; PHP obtaining modes authoritative; cutoverAllowed=false",
+        },
+        "cp-crosses.json": {
+            **summary("cp", {"totalPairs": 1, "brands": 1}),
+            "pairs": [{"id": 1, "manufacturer": "BOSCH", "article": "0986424590", "crossManufacturer": "OEM", "crossArticle": "123"}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; pairs[] sentinel; PHP crosses authoritative; cutoverAllowed=false",
+        },
         "cp-config-items.json": list_digest(
             "cp",
             "items",

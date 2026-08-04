@@ -32,21 +32,21 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 119,
-    "php-only-deeplink": 607
+    "digest-contract": 142,
+    "php-only-deeplink": 584
   },
   "coverageByKind": {
     "bos-module": {
-      "php-only-deeplink": 74,
-      "digest-contract": 25
+      "php-only-deeplink": 68,
+      "digest-contract": 31
     },
     "bos-section": {
       "digest-contract": 4,
       "php-only-deeplink": 7
     },
     "cp-feature": {
-      "digest-contract": 59,
-      "php-only-deeplink": 346
+      "digest-contract": 76,
+      "php-only-deeplink": 329
     },
     "erp-area": {
       "digest-contract": 8,
@@ -65,7 +65,7 @@
       "digest-contract": 6
     }
   },
-  "digestContractRouteCount": 66,
+  "digestContractRouteCount": 70,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -2649,10 +2649,10 @@
       "kind": "bos-module",
       "label": "Customer Board",
       "phpPath": "/CP/control/portal/epc_super_cp_customer_board",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crm-board",
+      "aspnetRoute": "/cp/crm-board-app",
       "aspnetComplete": false
     },
     {
@@ -2759,10 +2759,10 @@
       "kind": "bos-module",
       "label": "Doc Vault",
       "phpPath": "/CP/control/portal/epc_document_vault",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/document-control",
+      "aspnetRoute": "/cp/document-control-app",
       "aspnetComplete": false
     },
     {
@@ -2913,10 +2913,10 @@
       "kind": "bos-module",
       "label": "Customers",
       "phpPath": "/CP/shop/customer_mgmt/customer_mgmt",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crm-board",
+      "aspnetRoute": "/cp/crm-board-app",
       "aspnetComplete": false
     },
     {
@@ -3144,10 +3144,10 @@
       "kind": "bos-module",
       "label": "CRM",
       "phpPath": "/CP/shop/crm/crm_main",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crm-board",
+      "aspnetRoute": "/cp/crm-board-app",
       "aspnetComplete": false
     },
     {
@@ -3155,10 +3155,10 @@
       "kind": "bos-module",
       "label": "Documents",
       "phpPath": "/CP/shop/document_control/document_control",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/document-control",
+      "aspnetRoute": "/cp/document-control-app",
       "aspnetComplete": false
     },
     {
@@ -3353,10 +3353,10 @@
       "kind": "bos-module",
       "label": "Crosses",
       "phpPath": "/CP/shop/crosses/crosses",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crosses",
+      "aspnetRoute": "/cp/crosses-app",
       "aspnetComplete": false
     },
     {
@@ -3738,10 +3738,10 @@
       "kind": "cp-feature",
       "label": "Customer board",
       "phpPath": "/CP/control/portal/epc_super_cp_customer_board",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crm-board",
+      "aspnetRoute": "/cp/crm-board-app",
       "aspnetComplete": false
     },
     {
@@ -3760,10 +3760,10 @@
       "kind": "cp-feature",
       "label": "Epc Super Cp Customer Board",
       "phpPath": "/CP/control/portal/epc_super_cp_customer_board",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crm-board",
+      "aspnetRoute": "/cp/crm-board-app",
       "aspnetComplete": false
     },
     {
@@ -4277,10 +4277,10 @@
       "kind": "cp-feature",
       "label": "Cross-references",
       "phpPath": "/CP/shop/crosses",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crosses",
+      "aspnetRoute": "/cp/crosses-app",
       "aspnetComplete": false
     },
     {
@@ -4299,10 +4299,10 @@
       "kind": "cp-feature",
       "label": "Delivery notes & pick lists",
       "phpPath": "/CP/shop/document_control/document_control",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/document-control",
+      "aspnetRoute": "/cp/document-control-app",
       "aspnetComplete": false
     },
     {
@@ -4640,10 +4640,10 @@
       "kind": "cp-feature",
       "label": "Cross-reference lookup",
       "phpPath": "/CP/shop/crosses",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crosses",
+      "aspnetRoute": "/cp/crosses-app",
       "aspnetComplete": false
     },
     {
@@ -4970,10 +4970,10 @@
       "kind": "cp-feature",
       "label": "Delivery methods",
       "phpPath": "/CP/shop/logistics/sposoby-polucheniya",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/delivery-methods",
+      "aspnetRoute": "/cp/delivery-methods-app",
       "aspnetComplete": false
     },
     {
@@ -4981,10 +4981,10 @@
       "kind": "cp-feature",
       "label": "Delivery methods & pickup",
       "phpPath": "/CP/shop/logistics/sposoby-polucheniya",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/delivery-methods",
+      "aspnetRoute": "/cp/delivery-methods-app",
       "aspnetComplete": false
     },
     {
@@ -6488,10 +6488,10 @@
       "kind": "cp-feature",
       "label": "Sales and marketing: CRM",
       "phpPath": "/CP/shop/finance/erp?area=sales&tab=crm&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crm-board",
+      "aspnetRoute": "/cp/crm-board-app",
       "aspnetComplete": false
     },
     {
@@ -7071,10 +7071,10 @@
       "kind": "cp-feature",
       "label": "Tax invoices with TRN",
       "phpPath": "/CP/shop/document_control/document_control",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/document-control",
+      "aspnetRoute": "/cp/document-control-app",
       "aspnetComplete": false
     },
     {
@@ -7214,10 +7214,10 @@
       "kind": "cp-feature",
       "label": "Document Control",
       "phpPath": "/CP/shop/document_control/document_control",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/document-control",
+      "aspnetRoute": "/cp/document-control-app",
       "aspnetComplete": false
     },
     {
@@ -7225,10 +7225,10 @@
       "kind": "cp-feature",
       "label": "Document library & archive",
       "phpPath": "/CP/shop/document_control/document_control",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/document-control",
+      "aspnetRoute": "/cp/document-control-app",
       "aspnetComplete": false
     },
     {
@@ -7236,10 +7236,10 @@
       "kind": "cp-feature",
       "label": "Document templates",
       "phpPath": "/CP/shop/document_control/document_control",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/document-control",
+      "aspnetRoute": "/cp/document-control-app",
       "aspnetComplete": false
     },
     {
@@ -7247,10 +7247,10 @@
       "kind": "cp-feature",
       "label": "Legal footers & TRN blocks",
       "phpPath": "/CP/shop/document_control/document_control",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/document-control",
+      "aspnetRoute": "/cp/document-control-app",
       "aspnetComplete": false
     },
     {
@@ -7258,10 +7258,10 @@
       "kind": "cp-feature",
       "label": "Print documents & PDFs",
       "phpPath": "/CP/shop/document_control/document_control",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/document-control",
+      "aspnetRoute": "/cp/document-control-app",
       "aspnetComplete": false
     },
     {
@@ -7291,10 +7291,10 @@
       "kind": "cp-feature",
       "label": "CRM pipeline & kanban",
       "phpPath": "/CP/shop/finance/erp?area=sales&tab=crm&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crm-board",
+      "aspnetRoute": "/cp/crm-board-app",
       "aspnetComplete": false
     },
     {
@@ -7335,10 +7335,10 @@
       "kind": "cp-feature",
       "label": "Customer management",
       "phpPath": "/CP/shop/customer_mgmt/customer_mgmt",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crm-board",
+      "aspnetRoute": "/cp/crm-board-app",
       "aspnetComplete": false
     },
     {
@@ -7346,10 +7346,10 @@
       "kind": "cp-feature",
       "label": "Customer management hub",
       "phpPath": "/CP/shop/customer_mgmt/customer_mgmt",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/crm-board",
+      "aspnetRoute": "/cp/crm-board-app",
       "aspnetComplete": false
     },
     {

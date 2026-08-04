@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-crosses",
+  "surface": "cp",
+  "appRoute": "/cp/crosses-app",
+  "digestRoute": "/cp/crosses",
+  "phpAuthoritativePath": "/CP/shop/crosses",
+  "blazorComponent": "CpCrossesApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-crosses. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T05:45:00Z"
+}

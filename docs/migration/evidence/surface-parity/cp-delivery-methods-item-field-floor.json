@@ -1,0 +1,25 @@
+{
+  "role": "cp-delivery-methods-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-delivery-methods",
+  "collectionKey": "modes",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "methods",
+    "available",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "caption",
+    "handler",
+    "available",
+    "controlAvailable",
+    "sortOrder"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks delivery methods digest summary+modes[] floors. Configure handlers remains PHP shop/logistics/sposoby-polucheniya. cutoverAllowed=false."
+}

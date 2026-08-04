@@ -219,6 +219,10 @@ public sealed class SurfaceDigestContractValidatorTests
                 session,
                 note = "contract validation"
             },
+            ["/cp/crm-board"] = new { ok = true, surface = "cp", summary = (await reporter.BuildCpCrmBoardDigestAsync(10)).Summary, leads = (await reporter.BuildCpCrmBoardDigestAsync(10)).Leads, count = 0, source = "migration", message = "x", session, note = "contract validation" },
+            ["/cp/document-control"] = new { ok = true, surface = "cp", summary = (await reporter.BuildCpDocumentControlDigestAsync(10)).Summary, templates = (await reporter.BuildCpDocumentControlDigestAsync(10)).Templates, count = 0, source = "migration", message = "x", session, note = "contract validation" },
+            ["/cp/delivery-methods"] = new { ok = true, surface = "cp", summary = (await reporter.BuildCpDeliveryMethodsDigestAsync(10)).Summary, modes = (await reporter.BuildCpDeliveryMethodsDigestAsync(10)).Modes, count = 0, source = "migration", message = "x", session, note = "contract validation" },
+            ["/cp/crosses"] = new { ok = true, surface = "cp", summary = (await reporter.BuildCpCrossesDigestAsync(10)).Summary, pairs = (await reporter.BuildCpCrossesDigestAsync(10)).Pairs, count = 0, source = "migration", message = "x", session, note = "contract validation" },
             ["/cp/config-items"] = Envelope("cp", "items", await reporter.ListCpConfigItemsMetaAsync(10), session),
             ["/cp/admin-sessions"] = Envelope("cp", "sessions", await reporter.ListCpAdminSessionsAsync(10), session),
             ["/cp/storages"] = Envelope("cp", "storages", await reporter.ListCpStoragesAsync(10), session),

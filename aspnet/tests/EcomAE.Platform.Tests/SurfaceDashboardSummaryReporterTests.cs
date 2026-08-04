@@ -53,6 +53,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var posOverview = await reporter.BuildCpPosOverviewDigestAsync(10);
         var taxToolkits = await reporter.BuildCpTaxToolkitsDigestAsync(10);
         var smsWhatsapp = await reporter.BuildCpSmsWhatsappDigestAsync(10);
+        var crmBoard = await reporter.BuildCpCrmBoardDigestAsync(10);
+        var documentControl = await reporter.BuildCpDocumentControlDigestAsync(10);
+        var deliveryMethods = await reporter.BuildCpDeliveryMethodsDigestAsync(10);
+        var crosses = await reporter.BuildCpCrossesDigestAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -107,6 +111,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", posOverview.Source);
         Assert.Equal("migration", taxToolkits.Source);
         Assert.Equal("migration", smsWhatsapp.Source);
+        Assert.Equal("migration", crmBoard.Source);
+        Assert.Equal("migration", documentControl.Source);
+        Assert.Equal("migration", deliveryMethods.Source);
+        Assert.Equal("migration", crosses.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
@@ -169,6 +177,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpSmsOperators, StringComparison.Ordinal);
         Assert.Contains("phone_masked", LegacySurfaceDashboardSql.SelectCpWhatsappNotifyLog, StringComparison.Ordinal);
         Assert.DoesNotContain("`response`", LegacySurfaceDashboardSql.SelectCpWhatsappNotifyLog, StringComparison.Ordinal);
+        Assert.Contains("epc_crm_leads", LegacySurfaceDashboardSql.SelectCpCrmLeads, StringComparison.Ordinal);
+        Assert.DoesNotContain("email", LegacySurfaceDashboardSql.SelectCpCrmLeads, StringComparison.Ordinal);
+        Assert.Contains("epc_document_templates", LegacySurfaceDashboardSql.SelectCpDocumentTemplates, StringComparison.Ordinal);
+        Assert.DoesNotContain("header_html", LegacySurfaceDashboardSql.SelectCpDocumentTemplates, StringComparison.Ordinal);
+        Assert.Contains("shop_obtaining_modes", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);
+        Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);
+        Assert.Contains("shop_docpart_articles_analogs_list", LegacySurfaceDashboardSql.SelectCpCrossPairs, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("article_search", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("shop_carts", LegacySurfaceDashboardSql.SelectStorefrontCartSummary, StringComparison.Ordinal);

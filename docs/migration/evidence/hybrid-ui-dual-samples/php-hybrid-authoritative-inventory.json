@@ -364,6 +364,58 @@
       "phpAuthoritative": true,
       "wwwPreviewOnly": true,
       "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-crm-board",
+      "surface": "cp",
+      "appRoute": "/cp/crm-board-app",
+      "digestRoute": "/cp/crm-board",
+      "phpAuthoritativePath": "/CP/shop/crm/crm_main",
+      "blazorMarker": "CpCrmBoardApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-document-control",
+      "surface": "cp",
+      "appRoute": "/cp/document-control-app",
+      "digestRoute": "/cp/document-control",
+      "phpAuthoritativePath": "/CP/shop/document_control/document_control",
+      "blazorMarker": "CpDocumentControlApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-delivery-methods",
+      "surface": "cp",
+      "appRoute": "/cp/delivery-methods-app",
+      "digestRoute": "/cp/delivery-methods",
+      "phpAuthoritativePath": "/CP/shop/logistics/sposoby-polucheniya",
+      "blazorMarker": "CpDeliveryMethodsApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-crosses",
+      "surface": "cp",
+      "appRoute": "/cp/crosses-app",
+      "digestRoute": "/cp/crosses",
+      "phpAuthoritativePath": "/CP/shop/crosses",
+      "blazorMarker": "CpCrossesApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."
