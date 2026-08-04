@@ -1,0 +1,17 @@
+{
+  "role": "functional-flow-live-smoke-stub",
+  "flowId": "super-cp-tenant-control",
+  "title": "Super CP control of tenant CP (fleet / isolation / onboard)",
+  "status": "blocked",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "requiredProbes": [
+    "Super CP tenants list + BOS fleet-health sampleTenants for a live tenant",
+    "Onboard/demo tenant provision \u2192 isolated DB \u2192 tenant CP login smoke",
+    "Tenant hosts still PHP chrome until intentional exact-route cutover"
+  ],
+  "capturedEvidence": [],
+  "blockedReason": "CloudPanel authenticated dual-sample not yet captured",
+  "note": "Stub only. Flip status to captured when live evidence lands. Never invent RELEASE_OWNER_APPROVAL.md."
+}

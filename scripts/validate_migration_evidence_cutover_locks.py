@@ -46,6 +46,11 @@ MUST_DECLARE_CUTOVER_FALSE = (
     "decommission/public-probes/www-live-surface-stack.json",
     "decommission/functional-flows/required-flows.json",
     "decommission/functional-flows/www-functional-flow-suite.json",
+    "presentation/marketing-app-dual-sample-floor.json",
+    "presentation/www-marketing-app-shadow-probe.json",
+    "erp-ajax-dual-samples/compare-result.json",
+    "bos-ajax-dual-samples/compare-result.json",
+    "module-ajax-dual-samples/compare-result.json",
 )
 
 # Entire report-style trees (raw staging-smoke API dumps are excluded).
@@ -53,12 +58,16 @@ MUST_DECLARE_TREE_GLOBS = (
     "decommission/public-probes/*.json",
     "decommission/parity-samples/*.json",
     "decommission/functional-flows/*.json",
+    "decommission/functional-flows/live-smoke/*.json",
     "hybrid-ui-dual-samples/*.json",
     "login-session-bridge/*.json",
     "catalog-miss-umapi/*.json",
     "price-lookup/*.json",
     "presentation/*.json",
     "module-function-parity/*.json",
+    "module-ajax-dual-samples/*.json",
+    "erp-ajax-dual-samples/*.json",
+    "bos-ajax-dual-samples/*.json",
     "catalog-api/*.json",
     "tenant-safety/*.json",
     # Top-level surface-parity reports only (sample fixtures/goldens have dedicated validators).

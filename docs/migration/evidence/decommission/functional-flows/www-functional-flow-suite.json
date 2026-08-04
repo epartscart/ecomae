@@ -1,6 +1,6 @@
 {
   "role": "pre-decommission-functional-flow-suite",
-  "generatedAtUnix": 1785864718,
+  "generatedAtUnix": 1785865785,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "readyToRemovePhp": false,
@@ -26,7 +26,7 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
-        "3 live smoke item(s) still required before PHP removal"
+        "3 live smoke item(s) still blocked (stub status=blocked)"
       ],
       "phpTests": [],
       "liveSmokeRequiredForPhpRemoval": [
@@ -42,7 +42,7 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
-        "2 live smoke item(s) still required before PHP removal"
+        "2 live smoke item(s) still blocked (stub status=blocked)"
       ],
       "phpTests": [],
       "liveSmokeRequiredForPhpRemoval": [
@@ -57,7 +57,7 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
-        "2 live smoke item(s) still required before PHP removal"
+        "2 live smoke item(s) still blocked (stub status=blocked)"
       ],
       "phpTests": [],
       "liveSmokeRequiredForPhpRemoval": [
@@ -72,7 +72,7 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
-        "3 live smoke item(s) still required before PHP removal"
+        "3 live smoke item(s) still blocked (stub status=blocked)"
       ],
       "phpTests": [],
       "liveSmokeRequiredForPhpRemoval": [
@@ -88,7 +88,7 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
-        "2 live smoke item(s) still required before PHP removal"
+        "2 live smoke item(s) still blocked (stub status=blocked)"
       ],
       "phpTests": [],
       "liveSmokeRequiredForPhpRemoval": [
@@ -103,7 +103,7 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
-        "3 live smoke item(s) still required before PHP removal"
+        "3 live smoke item(s) still blocked (stub status=blocked)"
       ],
       "phpTests": [],
       "liveSmokeRequiredForPhpRemoval": [
@@ -119,7 +119,7 @@
       "status": "blocked",
       "errors": [],
       "warnings": [
-        "3 live smoke item(s) still required before PHP removal"
+        "3 live smoke item(s) still blocked (stub status=blocked)"
       ],
       "phpTests": [],
       "liveSmokeRequiredForPhpRemoval": [

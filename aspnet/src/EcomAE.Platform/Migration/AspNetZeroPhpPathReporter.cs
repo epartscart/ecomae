@@ -11,9 +11,9 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
         AspNetZeroPhpPhase[] phases =
         [
             new("1-inventory", "Route/job inventory", "complete", "Inventory + digest contracts tracked; cp-debug-console holdout intentional."),
-            new("2-scaffold", "ASP.NET digests + hybrid shells", "complete", "128 surface digests + storefront digests + ~184 presentation apps on www (incl. ERP on-premises + legal aliases)."),
-            new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Marketing solutions+resources+full legal alias set+brochure-cp scaffolded; CP/ERP/BOS/storefront hybrid on www; ERP on-premises overview scaffolded; tenants PHP-primary under parity gate."),
-            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; full ajax_erp.php catalog (321) all dedicated; BOS ajax_epc_bos catalog; CP/storefront module ajax+classic form catalog (394 actions) + POS/portal/on-prem pack dry-runs; CP integrations field parity (payments/carriers/Amazon/hub); on-premises scaffolds; write-dryrun dual-sample operator floor; live writes still PHP — dual-sample + RELEASE_OWNER_APPROVAL still required for 100%."),
+            new("2-scaffold", "ASP.NET digests + hybrid shells", "complete", "128 surface digests + 7 storefront digests wired + ~184 presentation apps on www (incl. ERP on-premises + legal aliases)."),
+            new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Look/color floors green; marketing /marketing/* 37-route install+probe ready (live shadows may still be 0/37); industry 28 hosts + epartscart gates; tenants PHP-primary under parity gate."),
+            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; full ajax_erp.php catalog (321) dedicated goldens; BOS ajax catalog (231) goldens; CP/storefront module ajax goldens (254/249 dedicated of 394); functional 7-flow suite static-green with live-smoke stubs blocked; live writes still PHP — dual-sample + RELEASE_OWNER_APPROVAL required."),
             new("5-tenant-exact-route", "Staged exact-route cutover on live tenants", "blocked-on-parity", "Default refuse on named tenants; ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW unlocks parity shadows only."),
             new("6-php-removal", "Disable PHP + remove runtime", "blocked", "Requires dual-sample + human RELEASE_OWNER_APPROVAL.md — never invent that file. Includes on-premises installer pack (not only SaaS)."),
         ];
@@ -27,10 +27,10 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             Phases: phases,
             NextBuilds:
             [
-                "Run module-ajax dual-sample operator on CloudPanel; pair PHP ajax field samples; keep cutoverAllowed=false.",
-                "Dual-sample ERP ajax registry + dedicated BOS/concurrency/OPL dry-runs vs PHP ajax_erp.php.",
-                "Dual-sample /erp/on-premises-app + licenses + health/activate/setup-wizard/backup; grow on-premises-aspnet pack.",
-                "Paired PHP ajax vs ASP.NET write dry-run samples via write-dryrun + module-ajax operators; then staged exact-route.",
+                "Install www /marketing/* shadows: ECOMAE_CONFIRM_INSTALL_MARKETING_APP_SHADOWS=YES bash scripts/cloudpanel_install_marketing_app_shadows.sh",
+                "Run module-ajax + ERP/BOS dual-sample operators on CloudPanel; pair PHP ajax field samples (writes=0 stay until dual-sample).",
+                "Capture authenticated digest dual-samples for core CP/ERP/storefront stems; flip functional live-smoke stubs to captured.",
+                "Dual-sample /erp/on-premises-app + licenses + health/activate/setup-wizard/backup.",
                 "Human RELEASE_OWNER_APPROVAL.md after dual-sample — never invent that file; then 100% / 0 PHP.",
             ],
             Notes:

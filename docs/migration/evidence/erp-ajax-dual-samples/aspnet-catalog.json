@@ -1,0 +1,10 @@
+{
+  "role": "erp-ajax-write-catalog",
+  "totalActions": 321,
+  "dedicatedDryRuns": 321,
+  "registryDryRuns": 0,
+  "coveragePct": 100,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true
+}

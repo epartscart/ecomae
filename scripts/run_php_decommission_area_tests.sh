@@ -240,6 +240,23 @@ if ECOMAE_MARKETING_PROBE_OFFLINE=1 bash "$ROOT/scripts/cloudpanel_probe_marketi
 else
   record "marketing-app-shadow-inventory" fail "marketing shadow probe failed (see /tmp/area-marketing.out)"
 fi
+if [[ -x "$ROOT/scripts/cloudpanel_install_marketing_app_shadows.sh" ]]; then
+  record "marketing-app-shadow-installer" pass "marketing exact-route installer present (requires ECOMAE_CONFIRM_INSTALL_MARKETING_APP_SHADOWS=YES)"
+else
+  record "marketing-app-shadow-installer" fail "missing cloudpanel_install_marketing_app_shadows.sh"
+fi
+
+# ERP + BOS ajax dual-sample golden floors (writes=0)
+if python3 "$ROOT/scripts/compare_erp_ajax_dual_samples.py" >/tmp/area-erp-ajax.out 2>&1; then
+  record "erp-ajax-dual-sample-goldens" pass "ERP ajax dry-run goldens 321/321 (writes=0; PHP authoritative)"
+else
+  record "erp-ajax-dual-sample-goldens" fail "ERP ajax golden compare failed (see /tmp/area-erp-ajax.out)"
+fi
+if python3 "$ROOT/scripts/compare_bos_ajax_dual_samples.py" >/tmp/area-bos-ajax.out 2>&1; then
+  record "bos-ajax-dual-sample-goldens" pass "BOS ajax dry-run goldens 231/231 (writes=0; PHP authoritative)"
+else
+  record "bos-ajax-dual-sample-goldens" fail "BOS ajax golden compare failed (see /tmp/area-bos-ajax.out)"
+fi
 
 # Named functional flows (warehouse offers, ERP reports, e-invoice, CT/UMAPI, process flow, OMS, Super CP).
 # Static floors/evidence must exist; live auth smokes may be blocked — PHP must remain.

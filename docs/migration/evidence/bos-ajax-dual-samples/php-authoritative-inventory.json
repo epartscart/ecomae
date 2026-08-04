@@ -1,0 +1,12 @@
+{
+  "role": "php-bos-ajax-authoritative-inventory",
+  "generatedAtUnix": 1785865672,
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "actionCount": 231,
+  "dedicatedCount": 53,
+  "registryCount": 178,
+  "note": "PHP bos ajax remains authoritative. ASP.NET dry-run goldens are writes=0 contract stubs."
+}

@@ -1,0 +1,16 @@
+{
+  "role": "functional-flow-live-smoke-stub",
+  "flowId": "process-flow",
+  "title": "Process flow / workflow engine",
+  "status": "blocked",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "requiredProbes": [
+    "Process-flow task digest (open/done/overdue + rows) dual-sample vs PHP epc_erp_processflow_tasks",
+    "Industry step-chain posting parity (jewellery/trading/construction/POS)"
+  ],
+  "capturedEvidence": [],
+  "blockedReason": "CloudPanel authenticated dual-sample not yet captured",
+  "note": "Stub only. Flip status to captured when live evidence lands. Never invent RELEASE_OWNER_APPROVAL.md."
+}

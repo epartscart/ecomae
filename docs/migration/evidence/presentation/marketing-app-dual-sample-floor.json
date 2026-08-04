@@ -1,0 +1,23 @@
+{
+  "role": "marketing-app-dual-sample-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritativeHome": "https://www.ecomae.com/",
+  "phpHomeMustRemainEpmHub": true,
+  "aspNetPreviewRoutes": [
+    "/marketing/app",
+    "/marketing/industries",
+    "/marketing/platform",
+    "/marketing/pricing",
+    "/marketing/about",
+    "/marketing/contact",
+    "/marketing/demo"
+  ],
+  "requiredRouteCountMin": 30,
+  "installScript": "scripts/cloudpanel_install_marketing_app_shadows.sh",
+  "probeScript": "scripts/cloudpanel_probe_marketing_app_shadows.sh",
+  "phpChromeProbe": "scripts/cloudpanel_probe_ecomae_marketing_php_chrome.sh",
+  "confirmEnv": "ECOMAE_CONFIRM_INSTALL_MARKETING_APP_SHADOWS=YES",
+  "note": "www /marketing/* exact-route shadows are ASP.NET compare targets only. Live / stays PHP epm-hub until dual-sample same-to-same + human RELEASE_OWNER_APPROVAL.md. Never invent cutover."
+}

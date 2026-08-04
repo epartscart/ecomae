@@ -1,0 +1,10 @@
+{
+  "role": "bos-ajax-write-catalog",
+  "totalActions": 231,
+  "dedicatedDryRuns": 53,
+  "registryDryRuns": 178,
+  "coveragePct": 100,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true
+}

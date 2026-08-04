@@ -1,0 +1,17 @@
+{
+  "role": "functional-flow-live-smoke-stub",
+  "flowId": "oms-checkout",
+  "title": "Order system (OMS) + storefront checkout",
+  "status": "blocked",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "requiredProbes": [
+    "Authenticated /cp/orders-digest + /storefront/checkout field parity",
+    "OMS status/courier dry-runs paired with PHP ajax samples",
+    "Checkout how_get/confirm/payment path dual-sample (writes=0 until approval)"
+  ],
+  "capturedEvidence": [],
+  "blockedReason": "CloudPanel authenticated dual-sample not yet captured",
+  "note": "Stub only. Flip status to captured when live evidence lands. Never invent RELEASE_OWNER_APPROVAL.md."
+}

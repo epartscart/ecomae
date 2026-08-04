@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "surface": "bos",
+  "action": "nl_reporting",
+  "kind": "registry",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Migration-mode bos ajax dry-run golden; PHP remains authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

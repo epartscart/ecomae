@@ -16,7 +16,7 @@
 | Hybrid TARGETS | **134** | Sample apps + shells live | Digests/UI wired; interactive still PHP |
 | Field contracts | ~153 | Probe attached | Contract floor only |
 | Chrome **look** parity (fonts/color/width/motion) | Hybrid assets + ERP/BOS mega-nav + marketing hub | Improving on www hybrid | **~70–75%** look |
-| Interactive module parity (menus/forms/writes) | Digests read-only | PHP-primary until function dual-sample | **~0%** full interactive |
+| Interactive module parity (menus/forms/writes) | CP 254 + ERP 321 + BOS 231 dry-run goldens (`writes=0`) | PHP-primary until field dual-sample | **~0%** interactive; **100%** dry-run catalog |
 | Tenant cutover path (5 live) | Parity-gate refuse-by-default; unlock via `ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW` | PHP-primary today | **Gate open — not permanent PHP** |
 | Zero-PHP end-state readiness | Phases 1–2 done; 3–4 in progress (marketing scaffolds + write dry-runs + write-dryrun dual-sample operator); 5–6 blocked | — | **~55%** honest (see path board) |
 
