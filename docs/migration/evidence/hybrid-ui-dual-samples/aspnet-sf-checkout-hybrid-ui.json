@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "sf-checkout",
+  "surface": "storefront",
+  "appRoute": "/storefront/checkout-app",
+  "digestRoute": "/storefront/checkout",
+  "phpAuthoritativePath": "https://www.epartscart.com/en/shop/checkout/how_get",
+  "blazorMarker": "StorefrontCheckoutApp",
+  "chromeShell": "PhpStorefrontDesktopChrome",
+  "authKind": "customer",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T17:15:00Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Contract stub for epartscart checkout. Re-run on CloudPanel with cookies + ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1. Tenant chrome stays PHP."
+}

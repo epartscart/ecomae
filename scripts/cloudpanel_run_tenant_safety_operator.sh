@@ -63,3 +63,9 @@ print(
     f"(same-to-same tenant chrome stays PHP; Batch 6 blocked)"
 )
 PY
+
+# epartscart.com frontend + CP contract coverage (always; optional live via ECOMAE_EPARTSCART_LIVE)
+if [[ "$LIVE" == "1" ]]; then
+  export ECOMAE_EPARTSCART_LIVE=1
+fi
+bash "$ROOT/scripts/run_epartscart_tenant_parity.sh"

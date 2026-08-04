@@ -1,0 +1,25 @@
+{
+  "role": "epartscart-frontend-cp-parity-suite",
+  "tenant": "epartscart.com",
+  "generatedAtUnix": 1785864718,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "readyToRemovePhp": false,
+  "aspNetInteractiveComplete": 0,
+  "ok": true,
+  "errorCount": 0,
+  "warningCount": 4,
+  "errors": [],
+  "warnings": [
+    "live probe skipped (pass --live on CloudPanel / network host)",
+    "aspNetInteractiveComplete=0 \u2014 live writes still PHP on epartscart.com",
+    "Authenticated dual-sample capture still required before any cutover",
+    "Never invent RELEASE_OWNER_APPROVAL.md"
+  ],
+  "liveProbeCount": 0,
+  "liveProbeFails": 0,
+  "liveProbes": [],
+  "matrixRef": "/workspace/docs/migration/evidence/tenant-safety/epartscart-coverage-matrix.json",
+  "phpRemovalBlockedReason": "epartscart.com remains PHP-primary until live dual-sample + human approval. Never invent RELEASE_OWNER_APPROVAL.md.",
+  "note": "Fail-closed tenant gate for epartscart.com storefront + CP."
+}

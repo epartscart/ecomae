@@ -242,6 +242,13 @@ else
   record "pre-decommission-functional-suite" fail "functional suite missing required floors/evidence (see /tmp/area-functional.out)"
 fi
 
+# epartscart.com frontend + CP contract coverage (same-to-same PHP; no tenant hybrid)
+if bash "$ROOT/scripts/run_epartscart_tenant_parity.sh" >/tmp/area-epartscart.out 2>&1; then
+  record "epartscart-frontend-cp-parity" pass "epartscart.com storefront+CP floors/samples/hybrids complete (live dual-sample may still block)"
+else
+  record "epartscart-frontend-cp-parity" fail "epartscart tenant parity gate failed (see /tmp/area-epartscart.out)"
+fi
+
 # Decommission script must refuse without confirmation/ready
 if ! ECOMAE_CONFIRM_PHP_DECOMMISSION= bash "$ROOT/scripts/cloudpanel_php_decommission.sh" >/tmp/decom.out 2>&1; then
   record "decommission-refuses-without-confirm" pass "gated script refused"
