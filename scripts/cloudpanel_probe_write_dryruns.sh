@@ -245,6 +245,13 @@ probe_post "/cp/module-ajax/dry-run/crm/crm_save_lead" '{"confirmWrites":false}'
 probe_post "/cp/module-ajax/crm/crm_save_lead/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated crm_save_lead"
 probe_post "/cp/module-ajax/document_control/save_company/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated save_company"
 probe_post "/cp/module-ajax/auto_price/bulk_approve/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated bulk_approve"
+probe_post "/cp/module-ajax/bulk_upload/process_upload/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated process_upload"
+probe_post "/cp/module-ajax/marketing/save_kpi/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated save_kpi"
+probe_post "/cp/module-ajax/prices_upload/ajax_1_prepare_tmp_dir/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated prices_upload ajax_1"
+probe_post "/cp/module-ajax/portal_integrations/save_mobile/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated save_mobile"
+probe_post "/cp/module-ajax/sku_media/upload_photo/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp module ajax dedicated upload_photo"
+probe_post "/cp/module-ajax/classic_form/shop_catalogue_product/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp classic form product.php"
+probe_post "/cp/module-ajax/classic_form/users_user/dry-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "cp classic form user.php"
 
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]
