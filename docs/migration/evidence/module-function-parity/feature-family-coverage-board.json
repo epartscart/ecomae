@@ -6,8 +6,7 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 643,
-    "hybrid-directory-only": 42,
+    "digest-contract": 685,
     "php-only-deeplink": 41
   },
   "families": [
@@ -102,9 +101,9 @@
     {
       "family": "crm-customers",
       "total": 33,
-      "digestContract": 25,
+      "digestContract": 33,
       "phpOnlyDeeplink": 0,
-      "digestPercent": 75.8,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-credit_limit",
@@ -235,9 +234,9 @@
     {
       "family": "finance-gl",
       "total": 37,
-      "digestContract": 34,
+      "digestContract": 37,
       "phpOnlyDeeplink": 0,
-      "digestPercent": 91.9,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_budgeting",
@@ -378,9 +377,9 @@
     {
       "family": "marketing-growth",
       "total": 35,
-      "digestContract": 34,
+      "digestContract": 35,
       "phpOnlyDeeplink": 0,
-      "digestPercent": 97.1,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-broadcast",
@@ -435,9 +434,9 @@
     {
       "family": "other-unclassified",
       "total": 58,
-      "digestContract": 21,
+      "digestContract": 25,
       "phpOnlyDeeplink": 33,
-      "digestPercent": 36.2,
+      "digestPercent": 43.1,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-accessories-marketplace",
@@ -581,9 +580,9 @@
     {
       "family": "pos-retail",
       "total": 72,
-      "digestContract": 59,
+      "digestContract": 72,
       "phpOnlyDeeplink": 0,
-      "digestPercent": 81.9,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-pos",
@@ -928,9 +927,9 @@
     {
       "family": "tax-compliance",
       "total": 62,
-      "digestContract": 46,
+      "digestContract": 59,
       "phpOnlyDeeplink": 3,
-      "digestPercent": 74.2,
+      "digestPercent": 95.2,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_tax",
