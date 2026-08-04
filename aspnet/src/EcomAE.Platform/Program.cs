@@ -145,6 +145,7 @@ builder.Services.AddSingleton<ICpOmsAddCommentDryRun, CpOmsAddCommentDryRun>();
 builder.Services.AddSingleton<ICpOmsSetViewedDryRun, CpOmsSetViewedDryRun>();
 builder.Services.AddSingleton<ICpOmsUpdateItemDryRun, CpOmsUpdateItemDryRun>();
 builder.Services.AddSingleton<ICpOmsPayRefundDryRun, CpOmsPayRefundDryRun>();
+builder.Services.AddSingleton<ICpOmsUpdateItemsDryRun, CpOmsUpdateItemsDryRun>();
 builder.Services.AddSingleton<ICpOmsSetCourierDryRun, CpOmsSetCourierDryRun>();
 builder.Services.AddSingleton<ICpOmsDeleteOrdersDryRun, CpOmsDeleteOrdersDryRun>();
 builder.Services.AddSingleton<IErpCashVoucherAmendDryRun, ErpCashVoucherAmendDryRun>();
@@ -156,6 +157,8 @@ builder.Services.AddSingleton<IErpSupplierCreateDryRun, ErpSupplierCreateDryRun>
 builder.Services.AddSingleton<IErpPurchaseCreateDryRun, ErpPurchaseCreateDryRun>();
 builder.Services.AddSingleton<IErpPurchaseDeleteDryRun, ErpPurchaseDeleteDryRun>();
 builder.Services.AddSingleton<IErpInvoiceDeleteDryRun, ErpInvoiceDeleteDryRun>();
+builder.Services.AddSingleton<IErpCashAccountCreateDryRun, ErpCashAccountCreateDryRun>();
+builder.Services.AddSingleton<IErpCoaCreateDryRun, ErpCoaCreateDryRun>();
 
 builder.Services.AddSingleton<IErpGlManualEntryDryRun, ErpGlManualEntryDryRun>();
 builder.Services.AddSingleton<IErpGlReverseJournalDryRun, ErpGlReverseJournalDryRun>();

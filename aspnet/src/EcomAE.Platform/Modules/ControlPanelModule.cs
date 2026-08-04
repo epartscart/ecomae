@@ -283,6 +283,24 @@ public sealed class ControlPanelModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ControlPanelOmsUpdateItems, async (
+            HttpContext context,
+            CpOmsUpdateItemsBody? body,
+            ILegacySessionValidator validator,
+            ICpOmsUpdateItemsDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for OMS update-items dry-run.");
+            }
+            body ??= new CpOmsUpdateItemsBody(0, null, false);
+            var items = (body.Items ?? []).Select(i => new CpOmsUpdateItemsItem(i.ItemId, i.Price, i.CountNeed)).ToList();
+            var result = await dryRun.EvaluateAsync(new CpOmsUpdateItemsRequest(body.OrderId, items, body.ConfirmWrites), cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelUsers, async (
             HttpContext context,
             int? limit,
@@ -3219,4 +3237,6 @@ public sealed class ControlPanelModule : ISurfaceModule
         int? StorageId = null,
         bool ConfirmWrites = false);
     private sealed record CpOmsPayRefundBody(long OrderId, bool DirectRefund, decimal? PaidSum = null, bool ConfirmWrites = false);
+    private sealed record CpOmsUpdateItemsItemBody(long ItemId, decimal? Price = null, int? CountNeed = null);
+    private sealed record CpOmsUpdateItemsBody(long OrderId, IReadOnlyList<CpOmsUpdateItemsItemBody>? Items, bool ConfirmWrites = false);
 }
