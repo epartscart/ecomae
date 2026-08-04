@@ -40,12 +40,15 @@ MUST_DECLARE_CUTOVER_FALSE = (
     "decommission/public-probes/www-pre-php-removal-parity-verdict.json",
     "decommission/public-probes/www-final-gate-area-tests.json",
     "decommission/public-probes/www-live-surface-stack.json",
+    "decommission/functional-flows/required-flows.json",
+    "decommission/functional-flows/www-functional-flow-suite.json",
 )
 
 # Entire report-style trees (raw staging-smoke API dumps are excluded).
 MUST_DECLARE_TREE_GLOBS = (
     "decommission/public-probes/*.json",
     "decommission/parity-samples/*.json",
+    "decommission/functional-flows/*.json",
     "hybrid-ui-dual-samples/*.json",
     "login-session-bridge/*.json",
     "catalog-miss-umapi/*.json",

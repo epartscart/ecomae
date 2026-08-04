@@ -1,0 +1,134 @@
+{
+  "role": "pre-decommission-functional-flow-suite",
+  "generatedAtUnix": 1785863384,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "readyToRemovePhp": false,
+  "aspNetInteractiveComplete": 0,
+  "passed": 0,
+  "blocked": 7,
+  "failed": 0,
+  "flowCount": 7,
+  "allFlowsDeclared": [
+    "ct-catalog-umapi",
+    "einvoice",
+    "erp-external-report-fetch",
+    "oms-checkout",
+    "process-flow",
+    "super-cp-tenant-control",
+    "warehouse-search-offers"
+  ],
+  "phpRemovalBlockedReason": "Functional suite requires every named flow to pass with live smoke evidence + dual-sample + human RELEASE_OWNER_APPROVAL.md. Never invent approval.",
+  "flows": [
+    {
+      "id": "warehouse-search-offers",
+      "title": "epartscart warehouse frontend \u2014 stock / search offers",
+      "status": "blocked",
+      "errors": [],
+      "warnings": [
+        "3 live smoke item(s) still required before PHP removal"
+      ],
+      "phpTests": [],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Authenticated /storefront/search with non-empty offer rows (storage/exist/price)",
+        "epartscart.com warehouse frontend stock result parity vs ASP.NET digest (part_search / ajax_getProductsOfBunch)",
+        "ERP inventory-stock digest same fields as PHP warehouse stock listing"
+      ],
+      "readyForPhpRemoval": false
+    },
+    {
+      "id": "erp-external-report-fetch",
+      "title": "ERP external report fetch",
+      "status": "blocked",
+      "errors": [],
+      "warnings": [
+        "2 live smoke item(s) still required before PHP removal"
+      ],
+      "phpTests": [],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Named report fetch (sales|inventory|vat|ar-aging) totals match PHP report-center/export",
+        "Worker ErpReportsDryRun remains writes=0 until dual-sample promotes live generation"
+      ],
+      "readyForPhpRemoval": false
+    },
+    {
+      "id": "einvoice",
+      "title": "E-invoice documents + submit/poll readiness",
+      "status": "blocked",
+      "errors": [],
+      "warnings": [
+        "2 live smoke item(s) still required before PHP removal"
+      ],
+      "phpTests": [],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Authenticated /cp/einvoice-documents digest field parity",
+        "Create\u2192validate\u2192submit\u2192poll dry-run sequence paired with PHP (writes=0 until approval)"
+      ],
+      "readyForPhpRemoval": false
+    },
+    {
+      "id": "ct-catalog-umapi",
+      "title": "CT / catalog fetch + UMAPI miss-fill reporting",
+      "status": "blocked",
+      "errors": [],
+      "warnings": [
+        "3 live smoke item(s) still required before PHP removal"
+      ],
+      "phpTests": [],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Auth catalog status connected=true (staging-smoke)",
+        "Miss \u2192 PHP UMAPI fill \u2192 ASP.NET cache hit dual-sample without inventing cutover",
+        "18/18 catalog exact-route auth gates remain ASP.NET JSON"
+      ],
+      "readyForPhpRemoval": false
+    },
+    {
+      "id": "process-flow",
+      "title": "Process flow / workflow engine",
+      "status": "blocked",
+      "errors": [],
+      "warnings": [
+        "2 live smoke item(s) still required before PHP removal"
+      ],
+      "phpTests": [],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Process-flow task digest (open/done/overdue + rows) dual-sample vs PHP epc_erp_processflow_tasks",
+        "Industry step-chain posting parity (jewellery/trading/construction/POS)"
+      ],
+      "readyForPhpRemoval": false
+    },
+    {
+      "id": "oms-checkout",
+      "title": "Order system (OMS) + storefront checkout",
+      "status": "blocked",
+      "errors": [],
+      "warnings": [
+        "3 live smoke item(s) still required before PHP removal"
+      ],
+      "phpTests": [],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Authenticated /cp/orders-digest + /storefront/checkout field parity",
+        "OMS status/courier dry-runs paired with PHP ajax samples",
+        "Checkout how_get/confirm/payment path dual-sample (writes=0 until approval)"
+      ],
+      "readyForPhpRemoval": false
+    },
+    {
+      "id": "super-cp-tenant-control",
+      "title": "Super CP control of tenant CP (fleet / isolation / onboard)",
+      "status": "blocked",
+      "errors": [],
+      "warnings": [
+        "3 live smoke item(s) still required before PHP removal"
+      ],
+      "phpTests": [],
+      "liveSmokeRequiredForPhpRemoval": [
+        "Super CP tenants list + BOS fleet-health sampleTenants for a live tenant",
+        "Onboard/demo tenant provision \u2192 isolated DB \u2192 tenant CP login smoke",
+        "Tenant hosts still PHP chrome until intentional exact-route cutover"
+      ],
+      "readyForPhpRemoval": false
+    }
+  ],
+  "note": "Static floors/evidence/PHP CLI coverage for warehouse offers, ERP external reports, e-invoice, CT/UMAPI catalog, process flow, OMS/checkout, Super CP tenant control. PHP chrome remains authoritative until cutover gates clear."
+}
