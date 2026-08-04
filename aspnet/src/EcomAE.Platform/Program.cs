@@ -130,6 +130,7 @@ builder.Services.AddSingleton<IMarketingPresentationLockReporter, MarketingPrese
 builder.Services.AddSingleton<IAspNetZeroPhpPathReporter, AspNetZeroPhpPathReporter>();
 builder.Services.AddSingleton<IOnPremisesParityReporter, OnPremisesParityReporter>();
 builder.Services.AddSingleton<IOnPremisesHealthDryRun, OnPremisesHealthDryRun>();
+builder.Services.AddSingleton<IOnPremisesLicenseActivateDryRun, OnPremisesLicenseActivateDryRun>();
 builder.Services.AddSingleton<ISurfaceFieldParityReporter, SurfaceFieldParityReporter>();
 builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryReporter>();
 builder.Services.AddSingleton<IPlatformJobsSummaryReporter, PlatformJobsSummaryReporter>();

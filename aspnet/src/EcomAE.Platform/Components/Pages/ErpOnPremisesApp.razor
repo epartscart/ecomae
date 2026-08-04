@@ -2,7 +2,6 @@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
-@using EcomAE.Platform.Presentation.Generated
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
@@ -51,7 +50,7 @@
         </div>
         <div class="epc-op-card">
             <h3>License + health APIs</h3>
-            <p><code>api/v1/licenses/activate</code> + <code>api/v1/on-premises/health</code> stay PHP. ASP.NET dry-run at <code>/erp/on-premises/health-dry-run</code> (writes=0).</p>
+            <p><code>api/v1/licenses/activate</code> + <code>api/v1/on-premises/health</code> stay PHP. ASP.NET dry-runs: <code>/erp/on-premises/health-dry-run</code> + <code>/erp/on-premises/license-activate-dry-run</code> (writes=0).</p>
         </div>
         <div class="epc-op-card">
             <h3>≠ ERP-only SaaS</h3>

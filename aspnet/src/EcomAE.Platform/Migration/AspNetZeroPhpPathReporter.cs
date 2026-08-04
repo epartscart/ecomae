@@ -13,7 +13,7 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             new("1-inventory", "Route/job inventory", "complete", "Inventory + digest contracts tracked; cp-debug-console holdout intentional."),
             new("2-scaffold", "ASP.NET digests + hybrid shells", "complete", "128 surface digests + storefront digests + ~171 presentation apps on www (incl. ERP on-premises overview)."),
             new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Marketing solutions+resources nav largely scaffolded; CP/ERP/BOS/storefront hybrid on www; ERP on-premises overview scaffolded; tenants PHP-primary under parity gate."),
-            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; cart/quote/garage/OMS/ERP dry-runs + on-premises health dry-run; write-dryrun dual-sample operator floor; live writes still PHP."),
+            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; cart/quote/garage/OMS/ERP dry-runs + on-premises health/activate dry-runs; write-dryrun dual-sample operator floor; live writes still PHP."),
             new("5-tenant-exact-route", "Staged exact-route cutover on live tenants", "blocked-on-parity", "Default refuse on named tenants; ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW unlocks parity shadows only."),
             new("6-php-removal", "Disable PHP + remove runtime", "blocked", "Requires dual-sample + human RELEASE_OWNER_APPROVAL.md — never invent that file. Includes on-premises installer pack (not only SaaS)."),
         ];
@@ -23,12 +23,12 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             Status: "building-toward-zero-php",
             CutoverAllowed: false,
             ReadyForPhpRemoval: false,
-            HonestCompletionPct: 62,
+            HonestCompletionPct: 63,
             Phases: phases,
             NextBuilds:
             [
-                "Dual-sample /erp/on-premises-app + health dry-run vs PHP on_premises tab / health.php.",
-                "On-premises license read digest + activate dry-run; ASP.NET Core installer pack (replace deploy/on-premises PHP runtime).",
+                "Dual-sample /erp/on-premises-app + health/activate dry-runs vs PHP on_premises tab / health.php / activate.php.",
+                "On-premises license read digest (omit secrets/notes); ASP.NET Core installer pack (replace deploy/on-premises PHP runtime).",
                 "Dual-sample marketing scaffolds vs live PHP → exact-route candidates.",
                 "Paired PHP ajax vs ASP.NET write dry-run samples via write-dryrun operator, then promote.",
                 "Capture dual-sample evidence per surface; only then staged exact-route on tenants.",
