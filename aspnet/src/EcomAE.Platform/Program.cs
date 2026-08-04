@@ -152,6 +152,11 @@ builder.Services.AddSingleton<IErpCashVoucherVoidDryRun, ErpCashVoucherVoidDryRu
 builder.Services.AddSingleton<IErpCashEntryCreateDryRun, ErpCashEntryCreateDryRun>();
 builder.Services.AddSingleton<IErpReceiptVoucherDryRun, ErpReceiptVoucherDryRun>();
 builder.Services.AddSingleton<IErpPaymentVoucherDryRun, ErpPaymentVoucherDryRun>();
+builder.Services.AddSingleton<IErpSupplierCreateDryRun, ErpSupplierCreateDryRun>();
+builder.Services.AddSingleton<IErpPurchaseCreateDryRun, ErpPurchaseCreateDryRun>();
+builder.Services.AddSingleton<IErpPurchaseDeleteDryRun, ErpPurchaseDeleteDryRun>();
+builder.Services.AddSingleton<IErpInvoiceDeleteDryRun, ErpInvoiceDeleteDryRun>();
+
 builder.Services.AddSingleton<IErpGlManualEntryDryRun, ErpGlManualEntryDryRun>();
 builder.Services.AddSingleton<IErpGlReverseJournalDryRun, ErpGlReverseJournalDryRun>();
 builder.Services.AddSingleton<IErpPurchaseVoidDryRun, ErpPurchaseVoidDryRun>();
