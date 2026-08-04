@@ -308,6 +308,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "verificationCount,inProgressCount,completeCount,lineCount,source,message",
     ),
+    "cp-tax-external-reporting": (
+        "summary",
+        "ruleCount,activeCount,stagingCount,auditCount,source,message",
+    ),
+    "cp-po-approvals": (
+        "summary",
+        "requestCount,pendingCount,approvedCount,stepCount,source,message",
+    ),
+    "cp-finance-close": (
+        "summary",
+        "batchCount,postedBatchCount,openingLineCount,periodCount,closedPeriodCount,closeLogCount,source,message",
+    ),
+    "cp-jewellery-fixing": (
+        "summary",
+        "fixingCount,openFixingCount,purchaseFixCount,settlementCount,pettyCashCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -888,6 +904,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-jewellery-stock-verification": (
         "verifications",
         ["id", "companyId", "branch", "vocType", "vocDate", "vocNo", "location", "totalPcs", "scannedPcs", "remainingPcs", "status", "createdBy"],
+    ),
+    "cp-tax-external-reporting": (
+        "rules",
+        ["id", "country", "ruleKey", "version", "status", "ruleSource", "validFrom", "validTo"],
+    ),
+    "cp-po-approvals": (
+        "requests",
+        ["id", "siteKey", "poNumber", "requesterId", "vendorName", "currency", "total", "status", "currentTier", "priority", "createdAt"],
+    ),
+    "cp-finance-close": (
+        "batches",
+        ["id", "module", "asOfDate", "reference", "status", "adminId", "timeCreated", "timePosted"],
+    ),
+    "cp-jewellery-fixing": (
+        "fixings",
+        ["id", "companyId", "branch", "fixType", "fixDate", "fixNo", "partyCode", "partyName", "metal", "karat", "fixQtyGms", "fixAmount", "status", "createdBy"],
     ),
     "cp-orders-digest": (
         "orders",

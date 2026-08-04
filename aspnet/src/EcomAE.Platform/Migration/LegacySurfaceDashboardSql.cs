@@ -1833,4 +1833,92 @@ public static class LegacySurfaceDashboardSql
         """;
 
 
+
+    /// <summary>Tax external reporting KPIs from epc_cmp_rules + staging/audit (CREATE TABLE unused cluster).</summary>
+    public const string SelectCpTaxExternalReportingStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_cmp_rules`) AS rule_count,
+            (SELECT COUNT(*) FROM `epc_cmp_rules` WHERE IFNULL(`status`,'')='active') AS active_count,
+            (SELECT COUNT(*) FROM `epc_cmp_staging`) AS staging_count,
+            (SELECT COUNT(*) FROM `epc_cmp_audit`) AS audit_count
+        """;
+
+    /// <summary>Tax external reporting rows — value_json/notes omitted.</summary>
+    public const string SelectCpTaxExternalReportingRows = """
+        SELECT `id`, IFNULL(`country`,'') AS country, IFNULL(`rule_key`,'') AS rule_key,
+               IFNULL(`version`,0) AS version, IFNULL(`status`,'') AS status,
+               IFNULL(`source`,'') AS rule_source, IFNULL(`valid_from`,0) AS valid_from,
+               IFNULL(`valid_to`,0) AS valid_to
+        FROM `epc_cmp_rules`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PO approvals KPIs from epc_po_requests + approval_steps (CREATE TABLE unused cluster).</summary>
+    public const string SelectCpPoApprovalsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_po_requests`) AS request_count,
+            (SELECT COUNT(*) FROM `epc_po_requests` WHERE IFNULL(`status`,'')='pending') AS pending_count,
+            (SELECT COUNT(*) FROM `epc_po_requests` WHERE IFNULL(`status`,'')='approved') AS approved_count,
+            (SELECT COUNT(*) FROM `epc_po_approval_steps`) AS step_count
+        """;
+
+    /// <summary>PO approvals rows — description/notes/attachments/items JSON omitted.</summary>
+    public const string SelectCpPoApprovalsRows = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`po_number`,'') AS po_number,
+               IFNULL(`requester_id`,0) AS requester_id, IFNULL(`vendor_name`,'') AS vendor_name,
+               IFNULL(`currency`,'') AS currency, IFNULL(`total`,0) AS total,
+               IFNULL(`status`,'') AS status, IFNULL(`current_tier`,0) AS current_tier,
+               IFNULL(`priority`,'') AS priority, IFNULL(`created_at`,'') AS created_at
+        FROM `epc_po_requests`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Finance close KPIs from epc_erp_opening_batches/lines + epc_erp_periods/close_log (CREATE TABLE unused cluster).</summary>
+    public const string SelectCpFinanceCloseStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_opening_batches`) AS batch_count,
+            (SELECT COUNT(*) FROM `epc_erp_opening_batches` WHERE IFNULL(`status`,'')='posted') AS posted_batch_count,
+            (SELECT COUNT(*) FROM `epc_erp_opening_lines`) AS opening_line_count,
+            (SELECT COUNT(*) FROM `epc_erp_periods`) AS period_count,
+            (SELECT COUNT(*) FROM `epc_erp_periods` WHERE IFNULL(`status`,'') IN ('soft_close','locked')) AS closed_period_count,
+            (SELECT COUNT(*) FROM `epc_erp_period_close_log`) AS close_log_count
+        """;
+
+    /// <summary>Finance close rows — batch notes/meta_json/checklist omitted.</summary>
+    public const string SelectCpFinanceCloseRows = """
+        SELECT `id`, IFNULL(`module`,'') AS module, IFNULL(`as_of_date`,'') AS as_of_date,
+               IFNULL(`reference`,'') AS reference, IFNULL(`status`,'') AS status,
+               IFNULL(`admin_id`,0) AS admin_id, IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_posted`,0) AS time_posted
+        FROM `epc_erp_opening_batches`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Jewellery fixing KPIs from epc_jewel_fixing + epc_fix_unfix_* + epc_jewel_petty_cash (CREATE TABLE unused cluster).</summary>
+    public const string SelectCpJewelleryFixingStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_jewel_fixing`) AS fixing_count,
+            (SELECT COUNT(*) FROM `epc_jewel_fixing` WHERE IFNULL(`status`,'')='open') AS open_fixing_count,
+            (SELECT COUNT(*) FROM `epc_fix_unfix_purchases`) AS purchase_fix_count,
+            (SELECT COUNT(*) FROM `epc_fix_unfix_settlements`) AS settlement_count,
+            (SELECT COUNT(*) FROM `epc_jewel_petty_cash`) AS petty_cash_count
+        """;
+
+    /// <summary>Jewellery fixing rows — remarks/notes omitted.</summary>
+    public const string SelectCpJewelleryFixingRows = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`branch`,'') AS branch,
+               IFNULL(`fix_type`,'') AS fix_type, IFNULL(`fix_date`,'') AS fix_date,
+               IFNULL(`fix_no`,0) AS fix_no, IFNULL(`party_code`,'') AS party_code,
+               IFNULL(`party_name`,'') AS party_name, IFNULL(`metal`,'') AS metal,
+               IFNULL(`karat`,'') AS karat, IFNULL(`fix_qty_gms`,0) AS fix_qty_gms,
+               IFNULL(`fix_amount`,0) AS fix_amount, IFNULL(`status`,'') AS status,
+               IFNULL(`created_by`,'') AS created_by
+        FROM `epc_jewel_fixing`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

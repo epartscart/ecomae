@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 122,
+  "contractCount": 126,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -2270,6 +2270,137 @@
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
+      "surface": "cp",
+      "aspNetRoute": "/cp/tax-external-reporting",
+      "legacyPhpAuthority": "epc_cmp_rules \u002B staging/audit",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "rules",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "ruleCount",
+        "activeCount",
+        "stagingCount",
+        "auditCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Tax external reporting KPIs \u002B rules",
+        "value_json/notes omitted",
+        "PHP tax external reporting remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/po-approvals",
+      "legacyPhpAuthority": "epc_po_requests \u002B approval_steps",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "requests",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "requestCount",
+        "pendingCount",
+        "approvedCount",
+        "stepCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "PO approvals KPIs \u002B requests",
+        "description/notes/attachments/items JSON omitted",
+        "PHP PO approval remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/finance-close",
+      "legacyPhpAuthority": "epc_erp_opening_batches/lines \u002B epc_erp_periods/close_log",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "batches",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "batchCount",
+        "postedBatchCount",
+        "openingLineCount",
+        "periodCount",
+        "closedPeriodCount",
+        "closeLogCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Finance close KPIs \u002B batches",
+        "batch notes/meta_json/checklist omitted",
+        "PHP opening balances / year-end close remain authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/jewellery-fixing",
+      "legacyPhpAuthority": "epc_jewel_fixing \u002B epc_fix_unfix_* \u002B epc_jewel_petty_cash",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "fixings",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "fixingCount",
+        "openFixingCount",
+        "purchaseFixCount",
+        "settlementCount",
+        "pettyCashCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Jewellery fixing KPIs \u002B fixings",
+        "remarks/notes omitted",
+        "PHP jewellery fixing / purchase window remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
       "surface": "erp",
       "aspNetRoute": "/erp/bank-reconciliation",
       "legacyPhpAuthority": "epc_erp_bank_statement_lines",
@@ -4216,6 +4347,34 @@
       "aspNetRouteOrCapability": "/cp/jewellery-stock-verification-app",
       "status": "digest-wired-awaiting-dual-sample",
       "notes": "Read UI over /cp/jewellery-stock-verification digest; remarks omitted; PHP jewellery stock verification remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "tax-external-reporting Blazor list",
+      "aspNetRouteOrCapability": "/cp/tax-external-reporting-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/tax-external-reporting digest; value_json/notes omitted; PHP tax external reporting remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "po-approvals Blazor list",
+      "aspNetRouteOrCapability": "/cp/po-approvals-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/po-approvals digest; description/notes/attachments/items JSON omitted; PHP PO approval remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "finance-close Blazor list",
+      "aspNetRouteOrCapability": "/cp/finance-close-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/finance-close digest; batch notes/meta_json/checklist omitted; PHP opening balances / year-end close remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "jewellery-fixing Blazor list",
+      "aspNetRouteOrCapability": "/cp/jewellery-fixing-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/jewellery-fixing digest; remarks/notes omitted; PHP jewellery fixing / purchase window remains authoritative; tenant chrome stays PHP."
     },
     {
       "surface": "cp",

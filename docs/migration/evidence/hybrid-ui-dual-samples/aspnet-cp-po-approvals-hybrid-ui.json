@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "cp-po-approvals",
+  "surface": "cp",
+  "appRoute": "/cp/po-approvals-app",
+  "digestRoute": "/cp/po-approvals",
+  "phpAuthoritativePath": "/CP/shop/finance/epc_po_approval",
+  "blazorMarker": "CpPoApprovalsApp",
+  "chromeShell": "PhpCpDesktopChrome",
+  "authKind": "admin",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T08:00:00Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Hybrid preview stub for cp-po-approvals. Interactive chrome remains PHP. cutoverAllowed=false."
+}

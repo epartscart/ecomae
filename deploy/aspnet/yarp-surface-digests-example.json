@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 96,
+  "routeCount": 100,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -1157,6 +1157,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-jewellery-stock-verification-shadow-approved"
+          }
+        ]
+      },
+      "cp-tax-external-reporting": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/tax-external-reporting"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-tax-external-reporting-shadow-approved"
+          }
+        ]
+      },
+      "cp-po-approvals": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/po-approvals"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-po-approvals-shadow-approved"
+          }
+        ]
+      },
+      "cp-finance-close": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/finance-close"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-finance-close-shadow-approved"
+          }
+        ]
+      },
+      "cp-jewellery-fixing": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/jewellery-fixing"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-jewellery-fixing-shadow-approved"
           }
         ]
       }

@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "cp-jewellery-fixing",
+  "surface": "cp",
+  "appRoute": "/cp/jewellery-fixing-app",
+  "digestRoute": "/cp/jewellery-fixing",
+  "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing",
+  "blazorMarker": "CpJewelleryFixingApp",
+  "chromeShell": "PhpCpDesktopChrome",
+  "authKind": "admin",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T08:00:00Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Hybrid preview stub for cp-jewellery-fixing. Interactive chrome remains PHP. cutoverAllowed=false."
+}

@@ -959,6 +959,35 @@ def main() -> None:
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
             "note": "migration-mode; verifications[] sentinel; remarks omitted; PHP jewellery stock verification authoritative; cutoverAllowed=false",
         },
+        "cp-tax-external-reporting.json": {
+            **summary("cp", {"ruleCount": 1, "activeCount": 1, "stagingCount": 0, "auditCount": 0}),
+            "rules": [{"id": 1, "country": "AE", "ruleKey": "vat_rate", "version": 1, "status": "active", "ruleSource": "manual", "validFrom": 0, "validTo": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; rules[] sentinel; value_json/notes omitted; PHP tax external reporting remains authoritative; cutoverAllowed=false",
+        },
+        "cp-po-approvals.json": {
+            **summary("cp", {"requestCount": 1, "pendingCount": 1, "approvedCount": 0, "stepCount": 0}),
+            "requests": [{"id": 1, "siteKey": "demo", "poNumber": "PO-1", "requesterId": 1, "vendorName": "Supplier", "currency": "AED", "total": 100.0, "status": "pending", "currentTier": 1, "priority": "normal", "createdAt": ""}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; requests[] sentinel; description/notes/attachments/items JSON omitted; PHP PO approval remains authoritative; cutoverAllowed=false",
+        },
+        "cp-finance-close.json": {
+            **summary("cp", {"batchCount": 1, "postedBatchCount": 0, "openingLineCount": 0, "periodCount": 1, "closedPeriodCount": 0, "closeLogCount": 0}),
+            "batches": [{"id": 1, "module": "combined", "asOfDate": "2026-01-01", "reference": "OB-1", "status": "draft", "adminId": 1, "timeCreated": 0, "timePosted": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; batches[] sentinel; batch notes/meta_json/checklist omitted; PHP opening balances / year-end close remain authoritative; cutoverAllowed=false",
+        },
+        "cp-jewellery-fixing.json": {
+            **summary("cp", {"fixingCount": 1, "openFixingCount": 1, "purchaseFixCount": 0, "settlementCount": 0, "pettyCashCount": 0}),
+            "fixings": [{"id": 1, "companyId": 0, "branch": "HO", "fixType": "PF", "fixDate": "2026-08-04", "fixNo": 1, "partyCode": "P1", "partyName": "Party", "metal": "G", "karat": "22K", "fixQtyGms": 10.0, "fixAmount": 2500.0, "status": "open", "createdBy": "demo"}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; fixings[] sentinel; remarks/notes omitted; PHP jewellery fixing / purchase window remains authoritative; cutoverAllowed=false",
+        },
+
         "cp-consolidations.json": {
             **summary("cp", {"entityCount": 1, "figureCount": 0, "icCount": 0, "openIcCount": 0}),
             "entities": [{"id": 1, "code": "HOME", "name": "Migration entity", "currencyCode": "AED", "ownershipPct": 100.0, "isHome": 1, "parentCode": "", "active": 1, "timeCreated": 0}],

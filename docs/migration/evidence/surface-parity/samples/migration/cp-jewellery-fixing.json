@@ -1,0 +1,42 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "fixingCount": 1,
+    "openFixingCount": 1,
+    "purchaseFixCount": 0,
+    "settlementCount": 0,
+    "pettyCashCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; fixings[] sentinel; remarks/notes omitted; PHP jewellery fixing / purchase window remains authoritative; cutoverAllowed=false",
+  "fixings": [
+    {
+      "id": 1,
+      "companyId": 0,
+      "branch": "HO",
+      "fixType": "PF",
+      "fixDate": "2026-08-04",
+      "fixNo": 1,
+      "partyCode": "P1",
+      "partyName": "Party",
+      "metal": "G",
+      "karat": "22K",
+      "fixQtyGms": 10.0,
+      "fixAmount": 2500.0,
+      "status": "open",
+      "createdBy": "demo"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

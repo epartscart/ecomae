@@ -1,0 +1,36 @@
+{
+  "role": "cp-jewellery-fixing-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-jewellery-fixing",
+  "collectionKey": "fixings",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "fixingCount",
+    "openFixingCount",
+    "purchaseFixCount",
+    "settlementCount",
+    "pettyCashCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "branch",
+    "fixType",
+    "fixDate",
+    "fixNo",
+    "partyCode",
+    "partyName",
+    "metal",
+    "karat",
+    "fixQtyGms",
+    "fixAmount",
+    "status",
+    "createdBy"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-jewellery-fixing digest summary+fixings[] floors. remarks/notes omitted. PHP jewellery fixing / purchase window remains authoritative. cutoverAllowed=false."
+}

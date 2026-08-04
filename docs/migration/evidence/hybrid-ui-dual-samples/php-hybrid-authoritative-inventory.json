@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-04T07:22:08Z",
+  "capturedAt": "2026-08-04T07:56:01Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -630,6 +630,30 @@
       "appRoute": "/cp/jewellery-stock-verification-app",
       "digestRoute": "/cp/jewellery-stock-verification",
       "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification"
+    },
+    {
+      "stem": "cp-tax-external-reporting",
+      "appRoute": "/cp/tax-external-reporting-app",
+      "digestRoute": "/cp/tax-external-reporting",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=tax&tab=ext_reports"
+    },
+    {
+      "stem": "cp-po-approvals",
+      "appRoute": "/cp/po-approvals-app",
+      "digestRoute": "/cp/po-approvals",
+      "phpAuthoritativePath": "/CP/shop/finance/epc_po_approval"
+    },
+    {
+      "stem": "cp-finance-close",
+      "appRoute": "/cp/finance-close-app",
+      "digestRoute": "/cp/finance-close",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=opening_balances"
+    },
+    {
+      "stem": "cp-jewellery-fixing",
+      "appRoute": "/cp/jewellery-fixing-app",
+      "digestRoute": "/cp/jewellery-fixing",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing"
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

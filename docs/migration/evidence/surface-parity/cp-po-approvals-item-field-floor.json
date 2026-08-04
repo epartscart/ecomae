@@ -1,0 +1,32 @@
+{
+  "role": "cp-po-approvals-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-po-approvals",
+  "collectionKey": "requests",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "requestCount",
+    "pendingCount",
+    "approvedCount",
+    "stepCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "poNumber",
+    "requesterId",
+    "vendorName",
+    "currency",
+    "total",
+    "status",
+    "currentTier",
+    "priority",
+    "createdAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-po-approvals digest summary+requests[] floors. description/notes/attachments/items JSON omitted. PHP PO approval remains authoritative. cutoverAllowed=false."
+}

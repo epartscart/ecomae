@@ -109,6 +109,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var docExpiry = await reporter.BuildCpDocExpiryDigestAsync(10);
         var tenantConfig = await reporter.BuildCpTenantConfigDigestAsync(10);
         var jewelStockVerification = await reporter.BuildCpJewelleryStockVerificationDigestAsync(10);
+        var taxExternalReporting = await reporter.BuildCpTaxExternalReportingDigestAsync(10);
+        var poApprovals = await reporter.BuildCpPoApprovalsDigestAsync(10);
+        var financeClose = await reporter.BuildCpFinanceCloseDigestAsync(10);
+        var jewelleryFixing = await reporter.BuildCpJewelleryFixingDigestAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -215,6 +219,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", warehouseWms.Source);
         Assert.Equal("migration", aiService.Source);
         Assert.Equal("migration", returnsRma.Source);
+        Assert.Equal("migration", taxExternalReporting.Source);
+        Assert.Equal("migration", poApprovals.Source);
+        Assert.Equal("migration", financeClose.Source);
+        Assert.Equal("migration", jewelleryFixing.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
@@ -366,6 +374,17 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_jewel_karat_master", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKarats, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKarats, StringComparison.Ordinal);
         Assert.Contains("epc_cons_entities", LegacySurfaceDashboardSql.SelectCpConsolidationsEntities, StringComparison.Ordinal);
+        Assert.Contains("epc_cmp_rules", LegacySurfaceDashboardSql.SelectCpTaxExternalReportingStats, StringComparison.Ordinal);
+        Assert.DoesNotContain("value_json", LegacySurfaceDashboardSql.SelectCpTaxExternalReportingRows, StringComparison.Ordinal);
+        Assert.Contains("epc_po_requests", LegacySurfaceDashboardSql.SelectCpPoApprovalsStats, StringComparison.Ordinal);
+        Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpPoApprovalsRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpPoApprovalsRows, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_opening_batches", LegacySurfaceDashboardSql.SelectCpFinanceCloseStats, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_periods", LegacySurfaceDashboardSql.SelectCpFinanceCloseStats, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectCpFinanceCloseRows, StringComparison.Ordinal);
+        Assert.Contains("epc_jewel_fixing", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStats, StringComparison.Ordinal);
+        Assert.Contains("epc_fix_unfix_purchases", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStats, StringComparison.Ordinal);
+        Assert.DoesNotContain("`remarks`", LegacySurfaceDashboardSql.SelectCpJewelleryFixingRows, StringComparison.Ordinal);
     }
 
     private sealed class UnconfiguredFactory : ITenantDbConnectionFactory

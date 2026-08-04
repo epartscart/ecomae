@@ -472,6 +472,48 @@ CP_FEATURE_HYBRID_BY_ID = {
     "sales-and-marketing-sales-analysis-weight-jw": "cp-jewellery-retail",
     "sales-and-marketing-sales-forming-jw": "cp-jewellery-retail",
     "sales-and-marketing-sales-return-jw": "cp-jewellery-retail",
+
+    # Wave 18 — tax/crm/pos/finance closeout + singles
+    "built-in-compliance-engine": "cp-tax-external-reporting",
+    "business-valuation-report": "cp-tax-external-reporting",
+    "corporate-tax-return-full-computation": "cp-tax-external-reporting",
+    "drill-down-to-transaction-level": "cp-tax-external-reporting",
+    "external-audit-report-isa-700-ifrs": "cp-tax-external-reporting",
+    "financial-model-5-year-forecast": "cp-tax-external-reporting",
+    "flexible-reporting-periods": "cp-tax-external-reporting",
+    "fta-style-audit-file-schedules": "cp-tax-external-reporting",
+    "off-system-excel-import-return": "cp-tax-external-reporting",
+    "professional-pdf-commentary": "cp-tax-external-reporting",
+    "statutory-reporting-centre": "cp-tax-external-reporting",
+    "tax-external-reporting": "cp-tax-external-reporting",
+    "home-approvals": "cp-po-approvals",
+    "b2b-trade-accounts": "cp-po-approvals",
+    "customer-approval-workflows": "cp-po-approvals",
+    "customer-approvals": "cp-po-approvals",
+    "general-ledger-opening-balances": "cp-finance-close",
+    "general-ledger-year-end-closing": "cp-finance-close",
+    "general-ledger-reports": "cp-finance-close",
+    "general-ledger-profit-loss": "cp-finance-close",
+    "general-ledger-balance-sheet": "erp-gl-journals",
+    "general-ledger-trial-balance-reports": "erp-gl-journals",
+    "p-l-balance-sheet": "erp-gl-journals",
+    "aging-statements-of-account": "erp-gl-journals",
+    "general-ledger-aging-ar-ap-inv": "erp-gl-journals",
+    "period-as-of-date-reporting": "cp-finance-close",
+    "sales-and-marketing-sales-fixing-jw": "cp-jewellery-fixing",
+    "procurement-and-sourcing-diamond-purchase-jw": "cp-jewellery-fixing",
+    "procurement-and-sourcing-metal-purchase-jw": "cp-jewellery-fixing",
+    "procurement-and-sourcing-purchase-fixing-jw": "cp-jewellery-fixing",
+    "procurement-and-sourcing-purchase-window-jw": "cp-jewellery-fixing",
+    "general-ledger-dual-trial-balance-wt-val-jw": "cp-jewellery-fixing",
+    "general-ledger-petty-cash-jewellery-jw": "cp-jewellery-fixing",
+    "inventory-management-stock-balance-weight-jw": "cp-jewellery-retail",
+    "add-user": "cp-users",
+    "api-documentation-guide": "cp-integrations",
+    "epc-api-documentation-guide": "cp-integrations",
+    "human-resources-labour-law-compliance": "cp-hr-overview",
+    "tax-advisory-template": "cp-uae-tax-compliance",
+    "credit-notes-adjustments": "cp-returns-rma",
 }
 
 ERP_AREA_HYBRID_BY_ID = {
@@ -510,6 +552,8 @@ ERP_AREA_HYBRID_BY_ID = {
     "setup": "erp-workspace-favorites",
     "fixed_assets": "erp-fixed-assets",
     "asset_mgmt": "erp-fixed-assets",
+    "risk": "cp-insurance-compliance",
+
 }
 ERP_TAB_HYBRID_BY_ID = {
     ("overview", "dashboard"): "erp-dashboard-summary",
@@ -647,6 +691,25 @@ ERP_TAB_HYBRID_BY_ID = {
     ("fixed_assets", "fixed_assets"): "erp-fixed-assets",
     ("asset_mgmt", "fixed_assets"): "erp-fixed-assets",
     ("setup", "platform"): "cp-platform-governance",
+    ("tax", "ext_reports"): "cp-tax-external-reporting",
+    ("overview", "approvals"): "cp-po-approvals",
+    ("finance", "opening_balances"): "cp-finance-close",
+    ("finance", "year_end"): "cp-finance-close",
+    ("finance", "reports"): "cp-finance-close",
+    ("finance", "pl"): "cp-finance-close",
+    ("finance", "balance_sheet"): "erp-gl-journals",
+    ("finance", "enterprise_reports"): "erp-gl-journals",
+    ("finance", "aging"): "erp-gl-journals",
+    ("finance", "jw_trial_balance"): "cp-jewellery-fixing",
+    ("finance", "jw_petty_cash"): "cp-jewellery-fixing",
+    ("finance", "jw_journal_voucher"): "cp-jewellery-retail",
+    ("purchasing", "jw_purchase_fixing"): "cp-jewellery-fixing",
+    ("purchasing", "jw_purchase_window"): "cp-jewellery-fixing",
+    ("purchasing", "jw_metal_purchase"): "cp-jewellery-fixing",
+    ("purchasing", "jw_diamond_purchase"): "cp-jewellery-fixing",
+    ("sales", "jw_sales_fixing"): "cp-jewellery-fixing",
+    ("people", "hr_law"): "cp-hr-overview",
+
 }
 ERP_CATEGORY_HYBRID_BY_ID = {
     "cash_treasury": "erp-cash-accounts",
@@ -666,6 +729,10 @@ BOS_SECTION_HYBRID_BY_ID = {
     "erp": "erp-dashboard-summary",
     "tax_advisory": "cp-uae-tax-compliance",
     "catalogue": "cp-product-catalogue",
+    "auto_parts": "cp-product-catalogue",
+    "commerce": "cp-marketplace-channels",
+    "professional": "cp-industry-packs",
+
 }
 BOS_MODULE_HYBRID_BY_ID = {
     "seo": "cp-marketing-growth",
@@ -745,6 +812,16 @@ BOS_MODULE_HYBRID_BY_ID = {
     "operator_guide": "cp-platform-governance",
     "command_center": "cp-platform-governance",
     "platform_health": "cp-platform-governance",
+    "po_approval": "cp-po-approvals",
+    "erp_gl": "erp-gl-journals",
+    "api_docs": "cp-integrations",
+    "multi_currency_gl": "cp-currencies",
+    "quotes": "cp-crm-opportunities",
+    "returns": "cp-returns-rma",
+    "warranty_rma": "cp-returns-rma",
+    "free_tools": "cp-platform-governance",
+    "statistics": "cp-platform-governance",
+
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}

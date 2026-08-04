@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 104,
-  "hybridUiSamplesOk": 103,
+  "pairsChecked": 108,
+  "hybridUiSamplesOk": 107,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -359,6 +359,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-finance-close-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-finance-close",
+      "appRoute": "/cp/finance-close-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-groups-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-groups",
@@ -413,6 +423,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-isolation-audit",
       "appRoute": "/cp/isolation-audit-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-jewellery-fixing-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-jewellery-fixing",
+      "appRoute": "/cp/jewellery-fixing-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -609,6 +629,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-po-approvals-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-po-approvals",
+      "appRoute": "/cp/po-approvals-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-pos-overview-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-pos-overview",
@@ -723,6 +753,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-storages",
       "appRoute": "/cp/storages-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-tax-external-reporting-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-tax-external-reporting",
+      "appRoute": "/cp/tax-external-reporting-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

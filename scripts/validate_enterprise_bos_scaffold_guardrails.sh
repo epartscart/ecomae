@@ -357,6 +357,14 @@ check_file "cp tenant-config item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-tenant-config-item-field-floor.json"
 check_file "cp jewellery-stock-verification item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-jewellery-stock-verification-item-field-floor.json"
+check_file "cp tax-external-reporting item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-tax-external-reporting-item-field-floor.json"
+check_file "cp po-approvals item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-po-approvals-item-field-floor.json"
+check_file "cp finance-close item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-finance-close-item-field-floor.json"
+check_file "cp jewellery-fixing item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-jewellery-fixing-item-field-floor.json"
 check_file "cp auto-price item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
 check_file "cp uae-tax-compliance item-field floor evidence" \
