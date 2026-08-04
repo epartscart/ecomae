@@ -242,6 +242,13 @@ else
   record "pre-decommission-functional-suite" fail "functional suite missing required floors/evidence (see /tmp/area-functional.out)"
 fi
 
+# Industry *.ecomae.com frontend catalog (PHP-primary; ASP.NET compare on www /marketing/*)
+if bash "$ROOT/scripts/run_industry_ecomae_frontend_parity.sh" >/tmp/area-industry.out 2>&1; then
+  record "industry-ecomae-frontend-parity" pass "28 industry hosts catalogued; PHP live chrome until marketing ASP.NET dual-sample"
+else
+  record "industry-ecomae-frontend-parity" fail "industry frontend parity gate failed (see /tmp/area-industry.out)"
+fi
+
 # Decommission script must refuse without confirmation/ready
 if ! ECOMAE_CONFIRM_PHP_DECOMMISSION= bash "$ROOT/scripts/cloudpanel_php_decommission.sh" >/tmp/decom.out 2>&1; then
   record "decommission-refuses-without-confirm" pass "gated script refused"

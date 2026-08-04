@@ -21,6 +21,8 @@ FORBIDDEN_FILES = (
 MUST_DECLARE_CUTOVER_FALSE = (
     "tenant-safety/live-tenant-php-chrome.json",
     "tenant-safety/same-to-same-verify.json",
+    "tenant-safety/industry-ecomae-frontend-parity.json",
+    "tenant-safety/industry-ecomae-coverage-matrix.json",
     "presentation/php-vs-aspnet-recheck.json",
     "presentation/php_module_catalog.json",
     "presentation/php_module_catalog_counts.json",

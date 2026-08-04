@@ -66,6 +66,13 @@ if ECOMAE_FUNC_SKIP_PHP=1 bash "$ROOT/scripts/run_pre_decommission_functional_su
 else
   record "functional-flows-suite" fail "functional suite failed (see /tmp/pre-removal-functional.out)"
 fi
+
+printf -- '-- industry *.ecomae.com frontend parity --\n'
+if bash "$ROOT/scripts/run_industry_ecomae_frontend_parity.sh" >/tmp/pre-removal-industry.out 2>&1; then
+  record "industry-ecomae-frontend-parity" pass "28 industry hosts catalogued; PHP-primary until marketing ASP.NET dual-sample"
+else
+  record "industry-ecomae-frontend-parity" fail "industry frontend parity gate failed (see /tmp/pre-removal-industry.out)"
+fi
 # Explicit: PHP removal stays blocked while any flow still lists live smoke requirements.
 python3 - "$ROOT/docs/migration/evidence/decommission/functional-flows/www-functional-flow-suite.json" <<'PY' >/tmp/pre-removal-functional-judge.out 2>&1 || true
 import json, sys

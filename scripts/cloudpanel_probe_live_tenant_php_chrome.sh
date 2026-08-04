@@ -36,11 +36,36 @@ else
     "https://www.ecomae.com"
   )
   if [[ "${ECOMAE_INCLUDE_INDUSTRY_PROBE:-0}" == "1" ]]; then
+    # Full industry showcase catalog (see EcomaeIndustryShowcaseHosts / industry parity gate).
     BASES+=(
-      "https://healthcare.ecomae.com"
-      "https://retail.ecomae.com"
-      "https://homeliving.ecomae.com"
+      "https://agriculture.ecomae.com"
+      "https://automotive.ecomae.com"
+      "https://beauty.ecomae.com"
+      "https://cleaning.ecomae.com"
+      "https://construction.ecomae.com"
+      "https://education.ecomae.com"
+      "https://electronics.ecomae.com"
+      "https://energy.ecomae.com"
       "https://fashion.ecomae.com"
+      "https://finance.ecomae.com"
+      "https://food.ecomae.com"
+      "https://healthcare.ecomae.com"
+      "https://homeliving.ecomae.com"
+      "https://hospitality.ecomae.com"
+      "https://jewellery.ecomae.com"
+      "https://logistics.ecomae.com"
+      "https://manufacturing.ecomae.com"
+      "https://media.ecomae.com"
+      "https://nonprofit.ecomae.com"
+      "https://pet.ecomae.com"
+      "https://printing.ecomae.com"
+      "https://professional.ecomae.com"
+      "https://rental.ecomae.com"
+      "https://retail.ecomae.com"
+      "https://security.ecomae.com"
+      "https://sports.ecomae.com"
+      "https://technology.ecomae.com"
+      "https://wholesale.ecomae.com"
     )
   fi
 fi

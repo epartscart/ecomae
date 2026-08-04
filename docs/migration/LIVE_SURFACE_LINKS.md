@@ -70,18 +70,42 @@ Tenant BOS is generally Super-CP-only; tenant hosts may still answer `/BOS/` via
 ## Industry showcase frontends (`*.ecomae.com`)
 
 These are industry marketing/showcase hosts (not dedicated client DB tenants).
+There is **no** `industry.ecomae.com` host — use `[slug].ecomae.com`. Trading → `wholesale.ecomae.com`.
+
+**Live stack today:** PHP product chrome on every industry host (same look source).  
+**ASP.NET compare (www only):** `/marketing/industries` + `/marketing/app` exact-route shadows (install required).  
+**Gate:** `bash scripts/run_industry_ecomae_frontend_parity.sh` · `ECOMAE_INDUSTRY_LIVE=1` for probes.
 
 | Host | Frontend | CP | ERP |
 | --- | --- | --- | --- |
+| agriculture | https://agriculture.ecomae.com/ | https://agriculture.ecomae.com/CP/ | https://agriculture.ecomae.com/ERP/ |
+| automotive | https://automotive.ecomae.com/ | https://automotive.ecomae.com/CP/ | https://automotive.ecomae.com/ERP/ |
+| beauty | https://beauty.ecomae.com/ | https://beauty.ecomae.com/CP/ | https://beauty.ecomae.com/ERP/ |
+| cleaning | https://cleaning.ecomae.com/ | https://cleaning.ecomae.com/CP/ | https://cleaning.ecomae.com/ERP/ |
+| construction | https://construction.ecomae.com/ | https://construction.ecomae.com/CP/ | https://construction.ecomae.com/ERP/ |
+| education | https://education.ecomae.com/ | https://education.ecomae.com/CP/ | https://education.ecomae.com/ERP/ |
+| electronics | https://electronics.ecomae.com/ | https://electronics.ecomae.com/CP/ | https://electronics.ecomae.com/ERP/ |
+| energy | https://energy.ecomae.com/ | https://energy.ecomae.com/CP/ | https://energy.ecomae.com/ERP/ |
+| fashion | https://fashion.ecomae.com/ | https://fashion.ecomae.com/CP/ | https://fashion.ecomae.com/ERP/ |
+| finance | https://finance.ecomae.com/ | https://finance.ecomae.com/CP/ | https://finance.ecomae.com/ERP/ |
+| food | https://food.ecomae.com/ | https://food.ecomae.com/CP/ | https://food.ecomae.com/ERP/ |
 | healthcare | https://healthcare.ecomae.com/ | https://healthcare.ecomae.com/CP/ | https://healthcare.ecomae.com/ERP/ |
 | homeliving | https://homeliving.ecomae.com/ | https://homeliving.ecomae.com/CP/ | https://homeliving.ecomae.com/ERP/ |
-| retail | https://retail.ecomae.com/ | https://retail.ecomae.com/CP/ | https://retail.ecomae.com/ERP/ |
-| fashion | https://fashion.ecomae.com/ | https://fashion.ecomae.com/CP/ | https://fashion.ecomae.com/ERP/ |
+| hospitality | https://hospitality.ecomae.com/ | https://hospitality.ecomae.com/CP/ | https://hospitality.ecomae.com/ERP/ |
 | jewellery | https://jewellery.ecomae.com/ | https://jewellery.ecomae.com/CP/ | https://jewellery.ecomae.com/ERP/ |
-| food | https://food.ecomae.com/ | https://food.ecomae.com/CP/ | https://food.ecomae.com/ERP/ |
-| beauty | https://beauty.ecomae.com/ | https://beauty.ecomae.com/CP/ | https://beauty.ecomae.com/ERP/ |
-| sports | https://sports.ecomae.com/ | https://sports.ecomae.com/CP/ | https://sports.ecomae.com/ERP/ |
+| logistics | https://logistics.ecomae.com/ | https://logistics.ecomae.com/CP/ | https://logistics.ecomae.com/ERP/ |
+| manufacturing | https://manufacturing.ecomae.com/ | https://manufacturing.ecomae.com/CP/ | https://manufacturing.ecomae.com/ERP/ |
+| media | https://media.ecomae.com/ | https://media.ecomae.com/CP/ | https://media.ecomae.com/ERP/ |
+| nonprofit | https://nonprofit.ecomae.com/ | https://nonprofit.ecomae.com/CP/ | https://nonprofit.ecomae.com/ERP/ |
 | pet | https://pet.ecomae.com/ | https://pet.ecomae.com/CP/ | https://pet.ecomae.com/ERP/ |
+| printing | https://printing.ecomae.com/ | https://printing.ecomae.com/CP/ | https://printing.ecomae.com/ERP/ |
+| professional | https://professional.ecomae.com/ | https://professional.ecomae.com/CP/ | https://professional.ecomae.com/ERP/ |
+| rental | https://rental.ecomae.com/ | https://rental.ecomae.com/CP/ | https://rental.ecomae.com/ERP/ |
+| retail | https://retail.ecomae.com/ | https://retail.ecomae.com/CP/ | https://retail.ecomae.com/ERP/ |
+| security | https://security.ecomae.com/ | https://security.ecomae.com/CP/ | https://security.ecomae.com/ERP/ |
+| sports | https://sports.ecomae.com/ | https://sports.ecomae.com/CP/ | https://sports.ecomae.com/ERP/ |
+| technology | https://technology.ecomae.com/ | https://technology.ecomae.com/CP/ | https://technology.ecomae.com/ERP/ |
+| wholesale | https://wholesale.ecomae.com/ | https://wholesale.ecomae.com/CP/ | https://wholesale.ecomae.com/ERP/ |
 
 ## Other dedicated tenant / brand hosts
 

@@ -1,18 +1,19 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Presentation
 @*
-  Scaffold of epc_ecomae_platform_page_industries() — hero + vertical teasers.
-  Full searchable industry grid / DED mapping remains PHP deeplink until dual-sample.
+  Scaffold of epc_ecomae_platform_page_industries() — hero + full *.ecomae.com industry host grid.
+  Live industry vhosts remain PHP-primary until dual-sample + RELEASE_OWNER_APPROVAL.
+  ASP.NET preview only on www /marketing/industries — same epm chrome tokens as PHP.
 *@
 
 <div class="epm-wrap" id="ehm-industries-overview">
 	<div class="epm-hero">
-		<img class="epm-hero__img" src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=800&q=75" alt="" loading="lazy" />
+		<img class="epm-hero__img" src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&amp;fit=crop&amp;w=1600&amp;q=75" alt="" loading="lazy" />
 		<div class="epm-hero__shade"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge">Industry templates</div>
 			<h1>Industries we run on ECOM AE</h1>
-			<p class="lead">Automotive parts, jewellery, fashion, electronics, food, healthcare, and more — each with storefront themes, CP modules, and Super CP onboarding packs.</p>
+			<p class="lead">@EcomaeIndustryShowcaseHosts.Count vertical showcase hosts on *.ecomae.com — each with storefront, CP, and ERP chrome matching live PHP.</p>
 			<div class="epm-cta">
 				<a class="epm-btn epm-btn--primary" href="/marketing/industries?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/industries"))">Open full PHP industries (hybrid)</a>
 				<a class="epm-btn epm-btn--ghost" href="@(EcomaeMarketingPages.LiveBase)platform/demo">Book @EcomaeMarketingPages.DemoDays-day demo</a>
@@ -20,32 +21,32 @@
 		</div>
 	</div>
 
-	<div class="epm-model-cards">
-		<div class="epm-model-card">
-			<i class="fa fa-car"></i>
-			<strong>Automotive</strong>
-			<p>Catalog, VIN, supplier feeds, garage — eParts Cart live template.</p>
-		</div>
-		<div class="epm-model-card">
-			<i class="fa fa-diamond"></i>
-			<strong>Jewellery &amp; luxury</strong>
-			<p>Stock verification, forming, hallmarking workflows.</p>
-		</div>
-		<div class="epm-model-card">
-			<i class="fa fa-shopping-bag"></i>
-			<strong>Retail &amp; fashion</strong>
-			<p>POS, promotions, multi-warehouse commerce.</p>
-		</div>
+	<div class="epm-model-cards" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));">
+		@foreach (var host in EcomaeIndustryShowcaseHosts.All)
+		{
+			<div class="epm-model-card">
+				<strong>@host.Title</strong>
+				<p style="margin:8px 0 12px;color:var(--epm-muted,#6b7280);font-size:.9rem;">@(host.Slug).ecomae.com — PHP live chrome</p>
+				<p style="margin:0;display:flex;flex-wrap:wrap;gap:8px;">
+					<a class="epm-btn epm-btn--primary" style="font-size:.8rem;padding:.35rem .7rem;" href="@host.HomeUrl" rel="noopener">Frontend</a>
+					<a class="epm-btn epm-btn--ghost" style="font-size:.8rem;padding:.35rem .7rem;" href="@host.CpUrl" rel="noopener">CP</a>
+					<a class="epm-btn epm-btn--ghost" style="font-size:.8rem;padding:.35rem .7rem;" href="@host.ErpUrl" rel="noopener">ERP</a>
+				</p>
+			</div>
+		}
 	</div>
 
 	<div class="epm-highlight">
-		<h3>Browse every vertical</h3>
-		<p style="color:var(--epm-muted);margin-bottom:14px">Full industry cards, consolidation groups, and DED activity mapping remain on live PHP until dual-sample.</p>
-		<a class="epm-btn epm-btn--primary" href="/marketing/industries?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/industries"))">Browse industries</a>
+		<h3>Same look as PHP</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">
+			Industry hosts stay on PHP product chrome until ASP.NET <code>/marketing/industries</code> dual-samples same-to-same.
+			Do not install Blazor shadows on <code>*.ecomae.com</code> industry vhosts.
+		</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/industries?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/industries"))">Browse PHP industries</a>
 	</div>
 
 	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
-		ASP.NET industries overview scaffold — dual-sample against live PHP <code>/platform/industries</code> before exact-route cutover.
-		Target: 100% ASP.NET / 0 PHP.
+		ASP.NET industries overview — @EcomaeIndustryShowcaseHosts.Count hosts catalogued.
+		Target: 100% ASP.NET / 0 PHP. cutoverAllowed=false until dual-sample + human approval.
 	</p>
 </div>

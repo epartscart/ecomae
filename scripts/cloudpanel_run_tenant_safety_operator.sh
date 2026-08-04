@@ -63,3 +63,9 @@ print(
     f"(same-to-same tenant chrome stays PHP; Batch 6 blocked)"
 )
 PY
+
+# Industry *.ecomae.com frontend catalog + optional live probe
+if [[ "${ECOMAE_INDUSTRY_LIVE:-}" == "1" || "$LIVE" == "1" ]]; then
+  export ECOMAE_INDUSTRY_LIVE=1
+fi
+bash "$ROOT/scripts/run_industry_ecomae_frontend_parity.sh"
