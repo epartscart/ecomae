@@ -175,7 +175,14 @@
         "caption",
         "isFrontend",
         "menuUlClass",
-        "menuUlId"
+        "menuUlId",
+        "structurePresent",
+        "structureParseOk",
+        "nodeCount",
+        "maxDepth",
+        "urlLinkCount",
+        "contentLinkCount",
+        "unknownLinkCount"
       ],
       "functionsCovered": [
         "menu metadata digest"
@@ -769,7 +776,7 @@
       "functionsCovered": [
         "BOS fleet KPI read"
       ],
-      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -802,7 +809,7 @@
       "functionsCovered": [
         "portal tenant registry list"
       ],
-      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -832,7 +839,7 @@
       "functionsCovered": [
         "fleet health sample tenants"
       ],
-      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -861,7 +868,7 @@
       "functionsCovered": [
         "platform-DB readiness scoring"
       ],
-      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -892,7 +899,7 @@
       "functionsCovered": [
         "audit log digest"
       ],
-      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -1458,10 +1465,10 @@
     },
     {
       "surface": "erp",
-      "phpFunctionOrEntry": "erp_desktop.php \u002B erp_dashboard.php",
-      "aspNetRouteOrCapability": "/erp?format=html \u002B /erp/dashboard-summary",
+      "phpFunctionOrEntry": "erp_desktop.php + erp_dashboard.php",
+      "aspNetRouteOrCapability": "/erp?format=html + /erp/dashboard-summary",
       "status": "presentation-and-digest-scaffolded",
-      "notes": "Chrome CSS \u002B KPI fields contracted; full voucher/posting UX still PHP."
+      "notes": "Chrome CSS + KPI fields contracted; full voucher/posting UX still PHP."
     },
     {
       "surface": "erp",
@@ -1472,15 +1479,15 @@
     },
     {
       "surface": "erp",
-      "phpFunctionOrEntry": "accounts-summary / cash accounts\u002Bentries",
+      "phpFunctionOrEntry": "accounts-summary / cash accounts+entries",
       "aspNetRouteOrCapability": "/erp/accounts-summary|/erp/cash-accounts|/erp/cash-entries",
       "status": "digest-wired-awaiting-dual-sample",
       "notes": "Cash KPI/ledger digests; posting remains PHP."
     },
     {
       "surface": "bos",
-      "phpFunctionOrEntry": "bos/index.php \u002B epc_bos_shell.css",
-      "aspNetRouteOrCapability": "/bos?format=html \u002B /bos/fleet-summary",
+      "phpFunctionOrEntry": "bos/index.php + epc_bos_shell.css",
+      "aspNetRouteOrCapability": "/bos?format=html + /bos/fleet-summary",
       "status": "presentation-and-digest-scaffolded",
       "notes": "BOS shell CSS must match; privileged ops remain PHP."
     },
@@ -1524,21 +1531,21 @@
       "phpFunctionOrEntry": "catalog status",
       "aspNetRouteOrCapability": "/api/v1/catalog/status",
       "status": "awaiting-exact-route-shadow",
-      "notes": "Contract ready; public host still PHP until shadow \u002B smoke."
+      "notes": "Contract ready; public host still PHP until shadow + smoke."
     },
     {
       "surface": "api",
       "phpFunctionOrEntry": "catalog manufacturers/models/modifications/brands/suppliers",
       "aspNetRouteOrCapability": "/api/v1/catalog/manufacturers|\u2026|/suppliers",
       "status": "digest-wired-awaiting-dual-sample",
-      "notes": "Envelope contracts \u002B compare_catalog_list_parity.py; one-path nginx-catalog-*-shadow after smoke."
+      "notes": "Envelope contracts + compare_catalog_list_parity.py; one-path nginx-catalog-*-shadow after smoke."
     },
     {
       "surface": "api",
-      "phpFunctionOrEntry": "catalog offline-cache \u002B vin \u002B brand-parts",
+      "phpFunctionOrEntry": "catalog offline-cache + vin + brand-parts",
       "aspNetRouteOrCapability": "/api/v1/catalog/engines|analogs|\u2026|vin|brand-parts",
       "status": "digest-wired-awaiting-dual-sample",
-      "notes": "Offline-cache envelopes \u002B compare_catalog_offline_cache_parity.py / compare_catalog_vin_parity.py."
+      "notes": "Offline-cache envelopes + compare_catalog_offline_cache_parity.py / compare_catalog_vin_parity.py."
     }
   ],
   "guarantees": [
@@ -1550,7 +1557,7 @@
     "CutoverAllowed is false; AdminAspNetEnabled/StorefrontAspNetEnabled must remain false; RequirePhpFallback must remain true."
   ],
   "remainingGaps": [
-    "Capture authenticated ASP.NET \u002B PHP (or shared-DB fixture) dual samples for each contracted digest route.",
+    "Capture authenticated ASP.NET + PHP (or shared-DB fixture) dual samples for each contracted digest route.",
     "Run scripts/run_surface_parity_harness.sh and attach match=true samples under docs/migration/evidence/surface-parity/samples/.",
     "Do not enable broad /cp /erp /bos / storefront nginx cutover until every contract has match=true evidence.",
     "Storefront cart/checkout/SEO HTML and ERP voucher posting UX are still PHP-authoritative gaps.",

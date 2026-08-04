@@ -340,7 +340,14 @@ public sealed record CpMenuDigest(
     string Caption,
     bool IsFrontend,
     string MenuUlClass,
-    string MenuUlId);
+    string MenuUlId,
+    bool StructurePresent = false,
+    bool StructureParseOk = true,
+    int NodeCount = 0,
+    int MaxDepth = 0,
+    int UrlLinkCount = 0,
+    int ContentLinkCount = 0,
+    int UnknownLinkCount = 0);
 
 public sealed record CpMenuListResult(
     IReadOnlyList<CpMenuDigest> Menus,

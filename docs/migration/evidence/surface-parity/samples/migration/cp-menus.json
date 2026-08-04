@@ -1,15 +1,30 @@
 {
   "ok": true,
   "surface": "cp",
-  "menus": [],
-  "count": 0,
+  "menus": [
+    {
+      "id": 1,
+      "caption": "Main menu",
+      "isFrontend": true,
+      "menuUlClass": "nav",
+      "menuUlId": "main-menu",
+      "structurePresent": true,
+      "structureParseOk": true,
+      "nodeCount": 3,
+      "maxDepth": 2,
+      "urlLinkCount": 2,
+      "contentLinkCount": 1,
+      "unknownLinkCount": 0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode contract sample; PHP remains authoritative",
+  "note": "migration-mode contract sample; structure summary fields locked; raw structure JSON omitted; PHP remains authoritative",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false

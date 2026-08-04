@@ -428,6 +428,13 @@ check 'presentation allowlist sync mirrors inventory' contains "$ROOT/scripts/va
 check 'live surface probe references presentation inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'presentation/presentation-exact-routes.json'
 check 'decommission area tests reference presentation inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'presentation/presentation-exact-routes.json'
 check 'pre-php-removal parity references presentation inventory' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'presentation/presentation-exact-routes.json'
+check 'cp menu tree inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/cp-menu-tree-inventory.json"
+check 'cp menu tree inventory blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menu-tree-inventory.json" '"cutoverAllowed": false'
+check 'cp menu tree inventory omits raw structure' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menu-tree-inventory.json" '"rawStructureReturned": false'
+check 'cp menus SQL selects structure column' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs" 'AS structure'
+check 'cp menus digest contract requires nodeCount' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'nodeCount'
+check 'cp menus migration golden includes structure summary' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-menus.json" '"structurePresent": true'
+check 'cp menu structure analyzer exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Migration/CpMenuStructureAnalyzer.cs"
 check 'surface-digest exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json"
 check 'surface-digest exact-route inventory routeCount is 35' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"routeCount": 35'
 check 'surface-digest exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"cutoverAllowed": false'
