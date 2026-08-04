@@ -78,6 +78,7 @@ TARGETS = [
     ("erp-purchase-orders", "erp", "/erp/purchase-orders-app", "/erp/purchase-orders", "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders", "ErpPurchaseOrdersApp", "PhpErpDesktopChrome", "admin"),
     ("erp-invoices", "erp", "/erp/invoices-app", "/erp/invoices", "/ERP/?epc_erp_shell=1&area=sales&tab=invoices", "ErpInvoicesApp", "PhpErpDesktopChrome", "admin"),
     ("erp-cash-accounts", "erp", "/erp/cash-accounts-app", "/erp/cash-accounts", "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank", "ErpCashAccountsApp", "PhpErpDesktopChrome", "admin"),
+    ("erp-cash-entries", "erp", "/erp/cash-entries-app", "/erp/cash-entries", "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank", "ErpCashEntriesApp", "PhpErpDesktopChrome", "admin"),
     ("erp-coa-accounts", "erp", "/erp/coa-accounts-app", "/erp/coa-accounts", "/ERP/?epc_erp_shell=1&area=finance&tab=coa", "ErpCoaAccountsApp", "PhpErpDesktopChrome", "admin"),
     ("erp-gl-journals", "erp", "/erp/gl-journals-app", "/erp/gl-journals", "/ERP/?epc_erp_shell=1&area=finance&tab=gl", "ErpGlJournalsApp", "PhpErpDesktopChrome", "admin"),
     ("erp-warehouses", "erp", "/erp/warehouses-app", "/erp/warehouses", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory", "ErpWarehousesApp", "PhpErpDesktopChrome", "admin"),

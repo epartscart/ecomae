@@ -51,7 +51,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Sales orders tab | `erp_tabs_sales_orders.php` | `/erp/sales-orders-app` over `/erp/sales-orders` digest | digest-only + hybrid-deeplink (Batch 4; writes PHP) |
 | Purchase orders tab | `erp_tabs_purchase_orders.php` | `/erp/purchase-orders-app` over `/erp/purchase-orders` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Invoices tab | `erp_tabs_invoices.php` | `/erp/invoices-app` over `/erp/invoices` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
-| Cash & bank tab | `erp_tabs_cash_bank.php` | `/erp/cash-accounts-app` + `/erp/accounts-summary-app` over digests | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
+| Cash & bank tab | `erp_tabs_cash_bank.php` | `/erp/cash-accounts-app` + `/erp/cash-entries-app` + `/erp/accounts-summary-app` over digests | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Chart of accounts | `erp_tabs_accounting.php` (`tab=coa`) | `/erp/coa-accounts-app` over `/erp/coa-accounts` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | General ledger | `erp_tabs_accounting.php` (`tab=gl`) | `/erp/gl-journals-app` over `/erp/gl-journals` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Warehouses / inventory | `erp_tabs_inventory.php` | `/erp/warehouses-app` + `/erp/inventory-stock-app` over digests | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |

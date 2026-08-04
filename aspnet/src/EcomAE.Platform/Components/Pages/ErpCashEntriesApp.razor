@@ -1,0 +1,169 @@
+@page "/erp/cash-entries-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Cash Entries · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash Entries" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash ledger">
+    <style>
+        .epc-ce-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#083344 0%,#0e7490 48%,#155e75 100%);
+        }
+        .epc-ce-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-ce-hero p { margin:0; color:#a5f3fc; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-ce-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-ce-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#083344; background:#67e8f9;
+        }
+        .epc-ce-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-ce-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-ce-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-ce-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-ce-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-ce-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-ce-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-ce-table th, .epc-ce-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-ce-table th { background:#f0f9ff; color:#0e7490; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-ce-table a { color:#0e7490; font-weight:700; text-decoration:none; }
+        .epc-ce-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#cffafe; color:#155e75; }
+        .epc-ce-badge.out { background:#fee2e2; color:#991b1b; }
+        .epc-ce-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #a5f3fc; border-radius:.45rem; color:#155e75; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-ce-kpis{grid-template-columns:1fr 1fr;} }
+        @@media (max-width:560px){ .epc-ce-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-ce-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Cash Ledger Entries</h1>
+        <p>Read-only cash ledger from <code>/erp/cash-entries</code> digest under PHP ERP desktop chrome. Transfers, reconcile, and posting stay on live PHP <code>erp_tabs_cash_bank.php</code> — same-to-same for tenants.</p>
+        <div class="epc-ce-cta">
+            <a href="@_phpTab">Open PHP cash &amp; bank</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/erp/cash-accounts-app">Cash accounts</a>
+            <a class="ghost" href="/erp/accounts-summary-app">Accounts summary</a>
+            <a class="ghost" href="/erp/app">ERP dashboard</a>
+        </div>
+    </section>
+
+    <div class="epc-ce-kpis" aria-label="Cash entry KPIs">
+        <div class="epc-ce-kpi"><strong>@_entries.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-ce-kpi"><strong>@_inCount</strong><span>Inflows in page</span></div>
+        <div class="epc-ce-kpi"><strong>@_outCount</strong><span>Outflows in page</span></div>
+        <div class="epc-ce-kpi"><strong>@_net.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Page net amount</span></div>
+    </div>
+
+    <div class="epc-ce-table-wrap">
+        <table class="epc-ce-table">
+            <thead>
+                <tr>
+                    <th>When</th>
+                    <th>Account</th>
+                    <th>Type</th>
+                    <th>Direction</th>
+                    <th>Amount</th>
+                    <th>Reference</th>
+                    <th>Note</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_entries.Count == 0)
+                {
+                    <tr><td colspan="8">No cash entries in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var e in _entries)
+                    {
+                        var phpHref = $"{_phpTab}&account_id={e.AccountId.ToString(CultureInfo.InvariantCulture)}";
+                        var dirClass = e.Direction == 1 ? "" : "out";
+                        <tr>
+                            <td>@FormatTime(e.TimeUnix)</td>
+                            <td><strong>@(string.IsNullOrWhiteSpace(e.AccountName) ? $"#{e.AccountId}" : e.AccountName)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(e.AccountType) ? "—" : e.AccountType)</td>
+                            <td><span class="epc-ce-badge @dirClass">@FormatDirection(e.Direction)</span></td>
+                            <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
+                            <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
+                            <td><a href="@phpHref">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-ce-note">
+        Read-only preview · JSON digest <a href="/erp/cash-entries?limit=@_limit">/erp/cash-entries</a>.
+        PHP tab <code>erp_tabs_cash_bank.php</code> remains authoritative for transfers/reconcile/post.
+        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>@(_accountId is int aid ? $" · account_id={aid.ToString(CultureInfo.InvariantCulture)}" : "").
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank";
+    private bool _isAdmin;
+    private IReadOnlyList<ErpCashEntryDigest> _entries = [];
+    private int _inCount;
+    private int _outCount;
+    private decimal _net;
+    private int _limit = 100;
+    private int? _accountId;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
+
+        if (ctx.Request.Query.TryGetValue("limit", out var limitRaw)
+            && int.TryParse(limitRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedLimit)
+            && parsedLimit > 0)
+        {
+            _limit = Math.Min(parsedLimit, 500);
+        }
+
+        if (ctx.Request.Query.TryGetValue("account_id", out var accountRaw)
+            && int.TryParse(accountRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedAccount)
+            && parsedAccount > 0)
+        {
+            _accountId = parsedAccount;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.ListErpCashEntriesAsync(_accountId, _limit, ctx.RequestAborted);
+        _entries = result.Entries;
+        _inCount = _entries.Count(e => e.Direction == 1);
+        _outCount = _entries.Count(e => e.Direction != 1);
+        _net = _entries.Sum(e => e.Direction == 1 ? e.Amount : -e.Amount);
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatDirection(int direction) => direction == 1 ? "in" : "out";
+}
