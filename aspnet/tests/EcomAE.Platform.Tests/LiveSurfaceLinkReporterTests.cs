@@ -141,7 +141,7 @@ public sealed class LiveSurfaceLinkReporterTests
             link.HostClass == "aspnet-exact-route-shadow-live"
             && link.AspNetRouteHint == "/bos/audit-log"
             && link.StackToday == "aspnet");
-        Assert.Equal(68, report.Links.Count(link =>
+        Assert.Equal(72, report.Links.Count(link =>
             link.HostClass == "aspnet-exact-route-shadow-live"
             && (link.AspNetRouteHint.StartsWith("/cp/", StringComparison.Ordinal)
                 || link.AspNetRouteHint.StartsWith("/erp/", StringComparison.Ordinal)

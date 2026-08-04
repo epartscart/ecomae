@@ -1,16 +1,21 @@
 {
-  "role": "coverage-consistency",
+  "role": "module-function-coverage-consistency",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "aspNetInteractiveComplete": 0,
-  "phpCatalogCoverage": {
+  "aspnetCompleteCount": 0,
+  "inventoryCatalogRows": 726,
+  "coverageBoardRows": 726,
+  "matchedIds": 726,
+  "coverageCounts": {
     "digest-contract": 471,
     "php-only-deeplink": 255
   },
-  "featureFamilyCoverage": {
-    "digest-contract": 471,
-    "php-only-deeplink": 255
+  "inventoryStatusCounts": {
+    "php-only": 255,
+    "digest-only+hybrid-deeplink": 471,
+    "hybrid-deeplink": 0
   },
-  "totalTracked": 726,
-  "note": "Honesty lock: digest-contract vs php-only-deeplink counts must stay consistent across boards. Never invents cutover/aspnetComplete."
+  "ok": true,
+  "errors": [],
+  "note": "Inventory and coverage board must enumerate the same 725 PHP catalog ids. Interactive aspnet-complete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."
 }
