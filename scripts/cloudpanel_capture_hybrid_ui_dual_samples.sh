@@ -83,6 +83,7 @@ TARGETS = [
     ("erp-suppliers", "erp", "/erp/suppliers-app", "/erp/suppliers", "/ERP/?epc_erp_shell=1&area=ap&tab=payables", "ErpSuppliersApp", "PhpErpDesktopChrome", "admin"),
     ("erp-purchases", "erp", "/erp/purchases-app", "/erp/purchases", "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchases", "ErpPurchasesApp", "PhpErpDesktopChrome", "admin"),
     ("erp-inventory-stock", "erp", "/erp/inventory-stock-app", "/erp/inventory-stock", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory", "ErpInventoryStockApp", "PhpErpDesktopChrome", "admin"),
+    ("erp-accounts-summary", "erp", "/erp/accounts-summary-app", "/erp/accounts-summary", "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank", "ErpAccountsSummaryApp", "PhpErpDesktopChrome", "admin"),
     ("bos-audit-log", "bos", "/bos/audit-log-app", "/bos/audit-log", "/CP/control/portal/epc_boc_audit_log", "BosAuditLogApp", "PhpBosDesktopChrome", "admin"),
     ("bos-tenants", "bos", "/bos/tenants-app", "/bos/tenants", "/CP/control/portal/epc_tenant_control_center", "BosTenantsApp", "PhpBosDesktopChrome", "admin"),
     ("bos-fleet-health", "bos", "/bos/fleet-health-app", "/bos/fleet-health", "/CP/control/portal/epc_platform_health_checkup", "BosFleetHealthApp", "PhpBosDesktopChrome", "admin"),

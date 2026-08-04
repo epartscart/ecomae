@@ -78,6 +78,8 @@ public static class EcomAeRoutes
     public const string ErpParity = "/erp/parity";
     public const string ErpDashboardSummary = "/erp/dashboard-summary";
     public const string ErpAccountsSummary = "/erp/accounts-summary";
+    /// <summary>ERP accounts summary Blazor KPI UI (JSON digest remains <see cref="ErpAccountsSummary"/>).</summary>
+    public const string ErpAccountsSummaryApp = "/erp/accounts-summary-app";
     public const string ErpSuppliers = "/erp/suppliers";
     /// <summary>Suppliers Blazor list (JSON digest remains <see cref="ErpSuppliers"/>).</summary>
     public const string ErpSuppliersApp = "/erp/suppliers-app";

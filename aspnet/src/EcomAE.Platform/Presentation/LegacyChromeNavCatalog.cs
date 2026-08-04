@@ -80,6 +80,7 @@ public static class LegacyChromeNavCatalog
         new("Purchase orders PHP", "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders"),
         new("Invoices list", "/erp/invoices-app"),
         new("Invoices PHP", "/ERP/?epc_erp_shell=1&area=sales&tab=invoices"),
+        new("Accounts summary KPIs", "/erp/accounts-summary-app"),
         new("Cash & bank list", "/erp/cash-accounts-app"),
         new("Cash & bank PHP", "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"),
         new("Chart of accounts list", "/erp/coa-accounts-app"),
