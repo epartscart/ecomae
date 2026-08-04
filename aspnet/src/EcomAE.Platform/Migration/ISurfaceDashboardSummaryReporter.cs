@@ -4,7 +4,7 @@ public interface ISurfaceDashboardSummaryReporter
 {
     Task<ControlPanelDashboardSummary> BuildControlPanelAsync(CancellationToken cancellationToken = default);
 
-    Task<ErpDashboardSummary> BuildErpAsync(CancellationToken cancellationToken = default);
+    Task<ErpDashboardDigestResult> BuildErpAsync(CancellationToken cancellationToken = default);
 
     Task<BosFleetSummary> BuildBosAsync(CancellationToken cancellationToken = default);
 
@@ -274,7 +274,7 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only ERP report-center registry (+ optional table-backed/computed run). CSV/export remain PHP.</summary>
-    Task<ErpReportCenterDigestResult> BuildErpReportCenterDigestAsync(string? key, int limit, CancellationToken cancellationToken = default);
+    Task<ErpReportCenterDigestResult> BuildErpReportCenterDigestAsync(string? key, int limit, CancellationToken cancellationToken = default, int? companyId = null);
 
     /// <summary>Read-only AR/AP/inventory aging (PHP <c>epc_erp_aging.php</c>).</summary>
     Task<ErpAgingDigestResult> BuildErpAgingDigestAsync(int limit, CancellationToken cancellationToken = default);

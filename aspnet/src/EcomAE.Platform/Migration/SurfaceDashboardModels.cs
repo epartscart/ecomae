@@ -43,6 +43,25 @@ public sealed record ErpDashboardSummary(
     string Source,
     string Message);
 
+/// <summary>PHP <c>epc_erp_cc_approval_queue</c> structured queue item (read-only).</summary>
+public sealed record ErpApprovalQueueItemDigest(
+    string Id,
+    string Category,
+    string Label,
+    int Count,
+    string Action,
+    string Link,
+    string Severity,
+    string Icon);
+
+/// <summary>ERP dashboard KPIs + approval queue rows (PHP command-center parity).</summary>
+public sealed record ErpDashboardDigestResult(
+    ErpDashboardSummary Summary,
+    IReadOnlyList<ErpApprovalQueueItemDigest> ApprovalQueue,
+    int Count,
+    string Source,
+    string Message);
+
 /// <summary>
 /// BOS fleet summary aligned to PHP Fleet Command Center stats
 /// (Total / Commerce / ERP Only / Demo) plus platform + session digests.

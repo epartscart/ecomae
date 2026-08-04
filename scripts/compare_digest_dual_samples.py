@@ -1250,6 +1250,19 @@ HYBRID_LIST_ITEM_FIELDS = {
             "status",
         ],
     ),
+    "erp-dashboard-summary": (
+        "approvalQueue",
+        [
+            "id",
+            "category",
+            "label",
+            "count",
+            "action",
+            "link",
+            "severity",
+            "icon",
+        ],
+    ),
     "storefront-checkout": (
         "php_steps",
         [

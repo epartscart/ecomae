@@ -4,9 +4,10 @@
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
   "stem": "erp-dashboard-summary",
-  "requireNonemptyMigrationSentinel": false,
-  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
-  "note": "Locks erp-dashboard-summary digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "collectionKey": "approvalQueue",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + ErpDashboardDigestResult",
+  "note": "Locks erp-dashboard-summary KPI summary plus approvalQueue[] item-field sentinel (PHP epc_erp_cc_approval_queue). Interactive writes remain PHP. cutoverAllowed=false.",
   "requiredSummaryFields": [
     "cashPosition",
     "supplierCredit",
@@ -36,5 +37,17 @@
     "processOverdue",
     "source",
     "message"
-  ]
+  ],
+  "requiredItemFields": [
+    "id",
+    "category",
+    "label",
+    "count",
+    "action",
+    "link",
+    "severity",
+    "icon"
+  ],
+  "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard",
+  "tenant": "epartscart.com"
 }

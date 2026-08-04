@@ -42,7 +42,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<ErpDashboardSummary> BuildErpAsync(CancellationToken cancellationToken = default)
+    public async Task<ErpDashboardDigestResult> BuildErpAsync(CancellationToken cancellationToken = default)
     {
         using var activity = EcomAeActivitySources.Surfaces.StartActivity("surface.erp.dashboard-summary");
         activity?.SetTag("ecomae.surface", "erp");
@@ -50,7 +50,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         if (!_connections.IsConfigured)
         {
-            return EmptyErpSummary("migration", "TenantRegistry DB is not configured.");
+            var mig = EmptyErpSummary("migration", "TenantRegistry DB is not configured.");
+            return new(mig, [], 0, mig.Source, mig.Message);
         }
 
         try
@@ -108,17 +109,20 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var processDone = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessDone, cancellationToken).ConfigureAwait(false);
             var processOverdue = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessOverdue, cancellationToken).ConfigureAwait(false);
 
-            return new(
+            var summary = new ErpDashboardSummary(
                 cash, credit, debit, credit - debit, cashAccounts, suppliers, purchases,
                 receivables, payables, stockValue,
                 revenue, orders, arBalance, apBalance, vatOut - vatIn, periodStatus, inventoryItems,
                 draftSo, pendingPo, unpostedGl, overdueInv, lowStock, pendingEinv,
                 processOpen, processDone, processOverdue,
                 "database", string.Empty);
+            var queue = BuildErpApprovalQueue(summary);
+            return new(summary, queue, queue.Count, "database", string.Empty);
         }
         catch (Exception ex)
         {
-            return EmptyErpSummary("database-error", ex.Message);
+            var err = EmptyErpSummary("database-error", ex.Message);
+            return new(err, [], 0, err.Source, err.Message);
         }
     }
 
@@ -243,8 +247,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     public async Task<ErpAccountsSummaryResult> BuildErpAccountsAsync(CancellationToken cancellationToken = default)
     {
-        var summary = await BuildErpAsync(cancellationToken).ConfigureAwait(false);
-        return new(summary, summary.Source, summary.Message);
+        var digest = await BuildErpAsync(cancellationToken).ConfigureAwait(false);
+        return new(digest.Summary, digest.Source, digest.Message);
     }
 
     public async Task<StorefrontOrdersResult> ListStorefrontOrdersAsync(int userId, int limit, CancellationToken cancellationToken = default)
@@ -3490,7 +3494,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public Task<ErpReportCenterDigestResult> BuildErpReportCenterDigestAsync(string? key, int limit, CancellationToken cancellationToken = default)
+    public Task<ErpReportCenterDigestResult> BuildErpReportCenterDigestAsync(string? key, int limit, CancellationToken cancellationToken = default, int? companyId = null)
     {
         var safeLimit = Math.Clamp(limit, 1, 200);
         var reports = ErpReportCenterRegistry.All
@@ -3518,7 +3522,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 migSummary.Message));
         }
 
-        return BuildErpReportCenterDigestCoreAsync(reports, areaCount, selectedKey, safeLimit, cancellationToken);
+        return BuildErpReportCenterDigestCoreAsync(reports, areaCount, selectedKey, safeLimit, companyId, cancellationToken);
     }
 
     private async Task<ErpReportCenterDigestResult> BuildErpReportCenterDigestCoreAsync(
@@ -3526,6 +3530,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         int areaCount,
         string selectedKey,
         int safeLimit,
+        int? companyId,
         CancellationToken cancellationToken)
     {
         var entry = ErpReportCenterRegistry.Find(selectedKey);
@@ -3547,7 +3552,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             else
             {
-                (columns, rows) = await RunErpReportCenterTablePeekAsync(connection, entry, safeLimit, cancellationToken).ConfigureAwait(false);
+                (columns, rows) = await RunErpReportCenterTablePeekAsync(connection, entry, safeLimit, companyId, cancellationToken).ConfigureAwait(false);
             }
 
             var summary = new ErpReportCenterSummary(reports.Count, areaCount, selectedKey, rows.Count, "database", string.Empty);
@@ -3564,6 +3569,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         DbConnection connection,
         ErpReportCenterRegistry.Entry entry,
         int safeLimit,
+        int? companyId,
         CancellationToken cancellationToken)
     {
         foreach (var table in new[] { entry.Table, entry.FallbackTable })
@@ -3575,11 +3581,19 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             try
             {
+                var useCompany = companyId is > 0 && await TableHasCompanyIdAsync(connection, table, cancellationToken).ConfigureAwait(false);
                 await using var command = connection.CreateCommand();
                 command.CommandText = string.Format(
                     CultureInfo.InvariantCulture,
-                    LegacySurfaceDashboardSql.SelectErpReportCenterTableRowsTemplate,
+                    useCompany
+                        ? LegacySurfaceDashboardSql.SelectErpReportCenterTableRowsByCompanyTemplate
+                        : LegacySurfaceDashboardSql.SelectErpReportCenterTableRowsTemplate,
                     table);
+                if (useCompany)
+                {
+                    AddParameter(command, "@companyId", companyId!.Value);
+                }
+
                 AddParameter(command, "@limit", safeLimit);
                 var (columns, rows) = await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
                 if (rows.Count > 0 || string.IsNullOrWhiteSpace(entry.FallbackTable) || table == entry.FallbackTable)
@@ -3594,6 +3608,22 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
 
         return ([], []);
+    }
+
+    private static async Task<bool> TableHasCompanyIdAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpReportCenterHasCompanyIdTemplate;
+            AddParameter(command, "@tableName", table);
+            var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return Convert.ToInt32(scalar is DBNull or null ? 0 : scalar, CultureInfo.InvariantCulture) > 0;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private async Task<(IReadOnlyList<string> Columns, IReadOnlyList<IReadOnlyDictionary<string, string>> Rows)> RunErpReportCenterComputedAsync(
@@ -6053,6 +6083,67 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             0, 0, 0, 0, 0, 0,
             0, 0, 0,
             source, message);
+
+    /// <summary>Mirrors PHP <c>epc_erp_cc_approval_queue</c> — only emits rows when count &gt; 0.</summary>
+    public static IReadOnlyList<ErpApprovalQueueItemDigest> BuildErpApprovalQueue(ErpDashboardSummary s)
+    {
+        var queue = new List<ErpApprovalQueueItemDigest>(6);
+        if (s.DraftSalesOrders > 0)
+        {
+            var n = s.DraftSalesOrders;
+            queue.Add(new(
+                "draft_so", "Sales",
+                n + " draft sales order" + (n > 1 ? "s" : "") + " awaiting confirmation",
+                n, "Open Sales Orders", "/erp/?area=sales&tab=sales_orders", "warning", "fa-file-text"));
+        }
+
+        if (s.PendingPurchaseOrders > 0)
+        {
+            var n = s.PendingPurchaseOrders;
+            queue.Add(new(
+                "pending_po", "Procurement",
+                n + " purchase order" + (n > 1 ? "s" : "") + " pending approval",
+                n, "Open Purchase Orders", "/erp/?area=procurement&tab=purchase_orders", "warning", "fa-truck"));
+        }
+
+        if (s.UnpostedGlJournals > 0)
+        {
+            var n = s.UnpostedGlJournals;
+            queue.Add(new(
+                "unposted_gl", "Finance",
+                n + " unposted GL journal" + (n > 1 ? "s" : ""),
+                n, "Open General Ledger", "/erp/?area=finance&tab=gl", "info", "fa-book"));
+        }
+
+        if (s.OverdueInvoices > 0)
+        {
+            var n = s.OverdueInvoices;
+            queue.Add(new(
+                "overdue_invoices", "Finance",
+                n + " overdue invoice" + (n > 1 ? "s" : "") + " (30+ days)",
+                n, "Open Aging Report", "/erp/?area=finance&tab=aging", "danger", "fa-exclamation-triangle"));
+        }
+
+        if (s.LowStockItems > 0)
+        {
+            var n = s.LowStockItems;
+            queue.Add(new(
+                "low_stock", "Inventory",
+                n + " item" + (n > 1 ? "s" : "") + " at or below reorder level",
+                n, "Open Inventory", "/erp/?area=inventory&tab=items", "warning", "fa-archive"));
+        }
+
+        if (s.PendingEinvoices > 0)
+        {
+            var n = s.PendingEinvoices;
+            queue.Add(new(
+                "pending_einvoice", "Compliance",
+                n + " e-invoice" + (n > 1 ? "s" : "") + " pending submission",
+                n, "Open E-Invoicing", "/erp/?area=finance&tab=einvoice", "info", "fa-paper-plane"));
+        }
+
+        return queue;
+    }
 
     private static BosFleetSummary EmptyBosSummary(string source, string message)
         => new(0, 0, 0, 0, 0, 0, 0, 0, source, message);

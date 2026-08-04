@@ -11,7 +11,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
     {
         var reporter = new SurfaceDashboardSummaryReporter(new UnconfiguredFactory());
         var cp = await reporter.BuildControlPanelAsync();
-        var erp = await reporter.BuildErpAsync();
+        var erpDigest = await reporter.BuildErpAsync();
+        var erp = erpDigest.Summary;
         var bos = await reporter.BuildBosAsync();
         var tenants = await reporter.ListPortalTenantsAsync(10);
         var health = await reporter.BuildBosFleetHealthAsync(5);
@@ -259,6 +260,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", dataMigrations.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
+        Assert.Empty(erpDigest.ApprovalQueue);
+        Assert.Equal(0, erpDigest.Count);
         Assert.Empty(tenants.Tenants);
         Assert.Empty(orders.Orders);
         Assert.Empty(users.Users);
@@ -304,6 +307,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.CountErpCcLowStockItems, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_items", LegacySurfaceDashboardSql.CountErpCcLowStockItems, StringComparison.Ordinal);
         Assert.DoesNotContain("`epc_erp_items`", LegacySurfaceDashboardSql.CountErpCcLowStockItems, StringComparison.Ordinal);
+        Assert.Contains("company_id", LegacySurfaceDashboardSql.SelectErpReportCenterTableRowsByCompanyTemplate, StringComparison.Ordinal);
+        Assert.Contains("information_schema.COLUMNS", LegacySurfaceDashboardSql.SelectErpReportCenterHasCompanyIdTemplate, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_movements", LegacySurfaceDashboardSql.SelectErpInventoryMovements, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SumErpDashboardStockValue, StringComparison.Ordinal);
         Assert.Contains("epc_erp_gl_lines", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);
@@ -470,6 +475,45 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("column_mapping", LegacySurfaceDashboardSql.SelectCpDataMigrationsRows, StringComparison.Ordinal);
         Assert.DoesNotContain("validation_errors", LegacySurfaceDashboardSql.SelectCpDataMigrationsRows, StringComparison.Ordinal);
         Assert.DoesNotContain("raw_data", LegacySurfaceDashboardSql.SelectCpDataMigrationsRows, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ErpReportCenterTableEntriesHaveAllowlistedTables()
+    {
+        Assert.Equal(33, ErpReportCenterRegistry.All.Count);
+        foreach (var entry in ErpReportCenterRegistry.All.Where(e => e.Kind == ErpReportCenterRegistry.SourceKind.Table))
+        {
+            Assert.False(string.IsNullOrWhiteSpace(entry.Table), entry.Key + " missing Table");
+            Assert.Matches("^[A-Za-z0-9_]+$", entry.Table!);
+            if (!string.IsNullOrWhiteSpace(entry.FallbackTable))
+            {
+                Assert.Matches("^[A-Za-z0-9_]+$", entry.FallbackTable!);
+            }
+        }
+
+        Assert.Contains(ErpReportCenterRegistry.All, e => e.Key == "ap_withholding" && e.Table == "epc_wht_txn");
+        Assert.Contains(ErpReportCenterRegistry.All, e => e.Key == "proc_requisitions" && e.Table == "epc_proc_req");
+        Assert.Contains(ErpReportCenterRegistry.All, e => e.Key == "tax_er_runs" && e.Table == "epc_er_run");
+    }
+
+    [Fact]
+    public void BuildErpApprovalQueueMirrorsPhpCommandCenterShape()
+    {
+        var summary = new ErpDashboardSummary(
+            0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+            0, 0, 0, 0, 0, "open", 0,
+            2, 1, 0, 3, 0, 1,
+            0, 0, 0,
+            "database", "");
+        var queue = SurfaceDashboardSummaryReporter.BuildErpApprovalQueue(summary);
+        Assert.Equal(4, queue.Count);
+        Assert.Contains(queue, q => q.Id == "draft_so" && q.Count == 2 && q.Category == "Sales");
+        Assert.Contains(queue, q => q.Id == "pending_po" && q.Count == 1);
+        Assert.Contains(queue, q => q.Id == "overdue_invoices" && q.Count == 3 && q.Severity == "danger");
+        Assert.Contains(queue, q => q.Id == "pending_einvoice" && q.Count == 1);
+        Assert.DoesNotContain(queue, q => q.Id == "unposted_gl");
+        Assert.DoesNotContain(queue, q => q.Id == "low_stock");
     }
 
     private sealed class UnconfiguredFactory : ITenantDbConnectionFactory

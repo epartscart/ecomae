@@ -32,6 +32,10 @@
         .epc-eds-kpi strong { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; word-break:break-all; }
         .epc-eds-kpi span { color:#64748b; font-size:.78rem; }
         .epc-eds-note { margin-top:1rem; padding:.75rem .9rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:.45rem; color:#0c4a6e; font-size:.86rem; }
+        .epc-eds-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; margin-bottom:1rem; }
+        .epc-eds-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-eds-table th, .epc-eds-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; }
+        .epc-eds-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
         @@media (max-width:1100px){ .epc-eds-kpis{grid-template-columns:1fr 1fr;} }
         @@media (max-width:700px){ .epc-eds-kpis{grid-template-columns:1fr;} }
     </style>
@@ -87,6 +91,34 @@
         <div class="epc-eds-kpi"><strong>@_s.PendingEinvoices.ToString(CultureInfo.InvariantCulture)</strong><span>Pending e-invoices</span></div>
     </div>
 
+    <h2 class="epc-eds-sec">Approval queue</h2>
+    <div class="epc-eds-table-wrap">
+        <table class="epc-eds-table">
+            <thead>
+                <tr><th>Category</th><th>Label</th><th>Count</th><th>Action</th><th>Severity</th></tr>
+            </thead>
+            <tbody>
+                @if (_queue.Count == 0)
+                {
+                    <tr><td colspan="5">No approval queue items.</td></tr>
+                }
+                else
+                {
+                    @foreach (var item in _queue)
+                    {
+                        <tr>
+                            <td>@item.Category</td>
+                            <td>@item.Label</td>
+                            <td>@item.Count.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><a href="@item.Link">@item.Action</a></td>
+                            <td>@item.Severity</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
     <h2 class="epc-eds-sec">Process flow</h2>
     <div class="epc-eds-kpis" aria-label="ERP process flow">
         <div class="epc-eds-kpi"><strong>@_s.ProcessOpen.ToString(CultureInfo.InvariantCulture)</strong><span>Open tasks</span></div>
@@ -106,6 +138,7 @@
         0, 0, 0, 0, 0, 0,
         0, 0, 0,
         "n/a", "");
+    private IReadOnlyList<ErpApprovalQueueItemDigest> _queue = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -120,6 +153,8 @@
         }
 
         _isAdmin = true;
-        _s = await Dashboards.BuildErpAsync(ctx.RequestAborted);
+        var result = await Dashboards.BuildErpAsync(ctx.RequestAborted);
+        _s = result.Summary;
+        _queue = result.ApprovalQueue;
     }
 }

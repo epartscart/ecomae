@@ -354,14 +354,18 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin session required for ERP dashboard summary.");
             }
 
-            var summary = await dashboards.BuildErpAsync(cancellationToken);
+            var result = await dashboards.BuildErpAsync(cancellationToken);
             return Results.Ok(new
             {
                 ok = true,
                 surface = "erp",
-                summary,
+                summary = result.Summary,
+                approvalQueue = result.ApprovalQueue,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only migration summary. PHP ERP dashboard remains authoritative."
+                note = "Read-only migration summary + approval queue. PHP ERP dashboard / command center remains authoritative."
             });
         });
 
@@ -1950,6 +1954,7 @@ public sealed class ErpModule : ISurfaceModule
             HttpContext context,
             string? key,
             int? limit,
+            int? companyId,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
@@ -1960,7 +1965,7 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for report-center digest.");
             }
 
-            var result = await dashboards.BuildErpReportCenterDigestAsync(key, limit ?? 100, cancellationToken);
+            var result = await dashboards.BuildErpReportCenterDigestAsync(key, limit ?? 100, cancellationToken, companyId);
             return Results.Ok(new
             {
                 ok = true,
