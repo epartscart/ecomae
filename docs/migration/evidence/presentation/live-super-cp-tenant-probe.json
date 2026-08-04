@@ -1,0 +1,208 @@
+{
+  "role": "live-super-cp-tenant-probe",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "probes": [
+    {
+      "url": "https://www.ecomae.com/",
+      "status": 200,
+      "ct": "text/html; charset=utf-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html><html lang=\"en\"><head><!-- ECOMAE-MARKETING-HOME-v8 --><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"theme-color\" content=\"#080b14\"><title>ECOM AE \u2014 U"
+    },
+    {
+      "url": "https://www.ecomae.com/CP/",
+      "status": 200,
+      "ct": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html> <head> \t<base href=\"/cp/templates/bootstrap_admin/\">     <meta charset=\"utf-8\">     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">     <meta http-equiv=\"X-UA-Compatible\" con"
+    },
+    {
+      "url": "https://www.ecomae.com/ERP/",
+      "status": 200,
+      "ct": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\"> <head> \t<meta charset=\"utf-8\"> \t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"> \t<title>ERP Finance \u2014 ECOM AE</title> \t<link rel=\"icon\" type=\"image/svg+xml\" href=\"/co"
+    },
+    {
+      "url": "https://www.ecomae.com/BOS/",
+      "status": 200,
+      "ct": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\" dir=\"ltr\"> <head> <meta charset=\"utf-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"> <meta name=\"robots\" content=\"noindex, nofollow\"> <title>BOS &mdash; Business O"
+    },
+    {
+      "url": "https://cp.ecomae.com/CP/",
+      "status": 200,
+      "ct": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html> <head> \t<base href=\"/cp/templates/bootstrap_admin/\">     <meta charset=\"utf-8\">     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">     <meta http-equiv=\"X-UA-Compatible\" con"
+    },
+    {
+      "url": "https://epartscart.com/",
+      "status": 200,
+      "ct": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\" data-theme=\"default\" data-epc-industry=\"auto_parts\" data-epc-style=\"classic\" data-epc-commerce=\"on\" data-epc-storefront=\"automotive_spareparts_pro\"> <head> \t<!-- Google tag (gtag.js) - per"
+    },
+    {
+      "url": "https://epartscart.com/CP/",
+      "status": 200,
+      "ct": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html> <head> \t<base href=\"/cp/templates/bootstrap_admin/\">     <meta charset=\"utf-8\">     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">     <meta http-equiv=\"X-UA-Compatible\" con"
+    },
+    {
+      "url": "https://epartscart.com/ERP/",
+      "status": 200,
+      "ct": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\"> <head> \t<meta charset=\"utf-8\"> \t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"> \t<title>ERP Finance \u2014 eParts Cart</title> \t\t<link rel=\"stylesheet\" href=\"https://cdnjs"
+    },
+    {
+      "url": "https://www.epartscart.com/",
+      "status": 200,
+      "ct": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\" data-theme=\"default\" data-epc-industry=\"auto_parts\" data-epc-style=\"classic\" data-epc-commerce=\"on\" data-epc-storefront=\"automotive_spareparts_pro\"> <head> \t<!-- Google tag (gtag.js) - per"
+    },
+    {
+      "url": "https://www.epartscart.com/CP/",
+      "status": 200,
+      "ct": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html> <head> \t<base href=\"/cp/templates/bootstrap_admin/\">     <meta charset=\"utf-8\">     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">     <meta http-equiv=\"X-UA-Compatible\" con"
+    },
+    {
+      "url": "https://www.epartscart.com/ERP/",
+      "status": 200,
+      "ct": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\"> <head> \t<meta charset=\"utf-8\"> \t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"> \t<title>ERP Finance \u2014 eParts Cart</title> \t\t<link rel=\"stylesheet\" href=\"https://cdnjs"
+    },
+    {
+      "url": "https://www.ecomae.com/health",
+      "status": 200,
+      "ct": "text/plain",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 7,
+      "snip": "Healthy"
+    },
+    {
+      "url": "https://www.ecomae.com/migration/live-surface-links",
+      "status": 200,
+      "ct": "application/json; charset=utf-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "{\"status\":\"catalogued-php-authoritative-except-allowlisted-aspnet\",\"platformHost\":\"www.ecomae.com\",\"links\":[{\"hostClass\":\"super-cp\",\"surface\":\"Frontend / marketing\",\"url\":\"https://www.ecomae.com/\",\"stackToday\":\"php\",\"asp"
+    },
+    {
+      "url": "https://www.ecomae.com/migration/presentation-parity",
+      "status": 200,
+      "ct": "application/json; charset=utf-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 4197,
+      "snip": "{\"status\":\"scaffold-not-full-php-parity\",\"contract\":\"HONEST: Batch 1 puts PHP webfonts/CSS/analytics into <head> via PhpSurfaceHead + hybrid login enrichments. Full desktop pixel parity and interactive modules remain inc"
+    },
+    {
+      "url": "https://www.ecomae.com/cp/app",
+      "status": 200,
+      "ct": "text/html; charset=utf-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\"><head><meta charset=\"utf-8\">     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">     <meta name=\"robots\" content=\"noindex,nofollow,noarchive\">     <base href=\"/\">   "
+    },
+    {
+      "url": "https://www.ecomae.com/erp/app",
+      "status": 200,
+      "ct": "text/html; charset=utf-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\"><head><meta charset=\"utf-8\">     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">     <meta name=\"robots\" content=\"noindex,nofollow,noarchive\">     <base href=\"/\">   "
+    },
+    {
+      "url": "https://www.ecomae.com/bos/app",
+      "status": 200,
+      "ct": "text/html; charset=utf-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\"><head><meta charset=\"utf-8\">     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">     <meta name=\"robots\" content=\"noindex,nofollow,noarchive\">     <base href=\"/\">   "
+    },
+    {
+      "url": "https://www.ecomae.com/cp/dashboard-summary-app",
+      "status": 404,
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "url": "https://www.ecomae.com/cp/orders",
+      "status": 200,
+      "ct": "text/html; charset=utf-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\"><head><meta charset=\"utf-8\">     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">     <meta name=\"robots\" content=\"noindex,nofollow,noarchive\">     <base href=\"/\">   "
+    },
+    {
+      "url": "https://www.ecomae.com/storefront/search-app",
+      "status": 200,
+      "ct": "text/html; charset=utf-8",
+      "server": "cloudflare",
+      "x_route": "",
+      "len": 8000,
+      "snip": "<!DOCTYPE html> <html lang=\"en\"><head><meta charset=\"utf-8\">     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">     <meta name=\"robots\" content=\"noindex,nofollow,noarchive\">     <base href=\"/\">   "
+    },
+    {
+      "url": "https://www.ecomae.com/cp/dashboard-summary",
+      "status": 401,
+      "error": "HTTP Error 401: Unauthorized"
+    },
+    {
+      "url": "https://www.ecomae.com/cp/geo-regions",
+      "status": 404,
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "url": "https://www.ecomae.com/cp/failover-status",
+      "status": 404,
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "url": "https://epartscart.com/cp/app",
+      "status": 404,
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "url": "https://epartscart.com/health",
+      "status": 404,
+      "error": "HTTP Error 404: Not Found"
+    }
+  ]
+}

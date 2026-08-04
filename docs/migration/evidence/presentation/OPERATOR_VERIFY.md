@@ -31,6 +31,16 @@ Checked-in floor (47 presentation nginx locations, `cutoverAllowed=false`):
 python3 scripts/validate_presentation_hybrid_allowlist_sync.py
 ```
 
+## Human compare (Super CP + ePartsCart)
+
+Open the side-by-side board after deploy:
+
+- Live: `https://www.ecomae.com/migration/compare`
+- Checklist: `docs/migration/evidence/presentation/HUMAN_COMPARE_BOARD.md`
+- Probes: `live-super-cp-tenant-probe.json`, `www-live-exact-route-probe.json`
+
+Compare PHP `/CP|/ERP|/BOS` vs ASP.NET `/cp/app|/erp/app|/bos/app` on **www only**. Tenant `epartscart.com` must remain PHP (`/cp/app` + `/health` → 404).
+
 ## Related
 
 - Dual-sample suite: `bash scripts/cloudpanel_run_all_dual_sample_operators.sh`
