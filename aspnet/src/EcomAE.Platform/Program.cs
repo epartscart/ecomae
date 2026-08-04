@@ -139,6 +139,7 @@ builder.Services.AddSingleton<ICpOmsSetItemStatusDryRun, CpOmsSetItemStatusDryRu
 builder.Services.AddSingleton<ICpOmsSetItemsStatusDryRun, CpOmsSetItemsStatusDryRun>();
 builder.Services.AddSingleton<ICpOmsSendMessageDryRun, CpOmsSendMessageDryRun>();
 builder.Services.AddSingleton<ICpOmsAddCommentDryRun, CpOmsAddCommentDryRun>();
+builder.Services.AddSingleton<ICpOmsSetViewedDryRun, CpOmsSetViewedDryRun>();
 builder.Services.AddSingleton<ICpOmsSetCourierDryRun, CpOmsSetCourierDryRun>();
 builder.Services.AddSingleton<ICpOmsDeleteOrdersDryRun, CpOmsDeleteOrdersDryRun>();
 builder.Services.AddSingleton<IErpCashVoucherAmendDryRun, ErpCashVoucherAmendDryRun>();

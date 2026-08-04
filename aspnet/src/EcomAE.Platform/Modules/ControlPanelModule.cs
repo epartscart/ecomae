@@ -221,6 +221,26 @@ public sealed class ControlPanelModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ControlPanelOmsSetViewed, async (
+            HttpContext context,
+            CpOmsSetViewedBody? body,
+            ILegacySessionValidator validator,
+            ICpOmsSetViewedDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for OMS set-viewed dry-run.");
+            }
+
+            body ??= new CpOmsSetViewedBody([], 1, false);
+            var result = await dryRun.EvaluateAsync(
+                new CpOmsSetViewedRequest(body.OrderIds ?? [], body.ViewedFlag, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelUsers, async (
             HttpContext context,
             int? limit,
@@ -3146,4 +3166,5 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpOmsSetCourierBody(long OrderId, decimal DeliveryPrice, string? Country = null, bool ConfirmWrites = false);
     private sealed record CpOmsDeleteOrdersBody(IReadOnlyList<long>? OrderIds, bool ConfirmWrites = false);
     private sealed record CpOmsAddCommentBody(long OrderId, string? Text, bool ConfirmWrites = false);
+    private sealed record CpOmsSetViewedBody(IReadOnlyList<long>? OrderIds, int ViewedFlag = 1, bool ConfirmWrites = false);
 }
