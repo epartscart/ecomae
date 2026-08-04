@@ -6,8 +6,8 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 443,
-    "php-only-deeplink": 283
+    "digest-contract": 471,
+    "php-only-deeplink": 255
   },
   "families": [
     {
@@ -101,9 +101,9 @@
     {
       "family": "crm-customers",
       "total": 33,
-      "digestContract": 13,
-      "phpOnlyDeeplink": 20,
-      "digestPercent": 39.4,
+      "digestContract": 20,
+      "phpOnlyDeeplink": 13,
+      "digestPercent": 60.6,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-credit_limit",
@@ -377,9 +377,9 @@
     {
       "family": "marketing-growth",
       "total": 35,
-      "digestContract": 17,
-      "phpOnlyDeeplink": 18,
-      "digestPercent": 48.6,
+      "digestContract": 26,
+      "phpOnlyDeeplink": 9,
+      "digestPercent": 74.3,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-broadcast",
@@ -580,9 +580,9 @@
     {
       "family": "pos-retail",
       "total": 72,
-      "digestContract": 44,
-      "phpOnlyDeeplink": 28,
-      "digestPercent": 61.1,
+      "digestContract": 54,
+      "phpOnlyDeeplink": 18,
+      "digestPercent": 75.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-pos",
@@ -927,9 +927,9 @@
     {
       "family": "tax-compliance",
       "total": 62,
-      "digestContract": 29,
-      "phpOnlyDeeplink": 33,
-      "digestPercent": 46.8,
+      "digestContract": 31,
+      "phpOnlyDeeplink": 31,
+      "digestPercent": 50.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_tax",

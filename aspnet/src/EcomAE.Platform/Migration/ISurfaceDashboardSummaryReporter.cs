@@ -170,6 +170,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only platform governance rules (description/config_json omitted).</summary>
     Task<CpPlatformGovernanceDigestResult> BuildCpPlatformGovernanceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only e-invoice documents (payload JSON/XML omitted).</summary>
+    Task<CpEinvoiceDocumentsDigestResult> BuildCpEinvoiceDocumentsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only jewellery repairs (customer PII/narration omitted).</summary>
+    Task<CpJewelleryRepairsDigestResult> BuildCpJewelleryRepairsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only CRM tickets (message bodies omitted).</summary>
+    Task<CpCrmTicketsDigestResult> BuildCpCrmTicketsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only marketing growth reviews (notes omitted).</summary>
+    Task<CpMarketingGrowthDigestResult> BuildCpMarketingGrowthDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only bank statement lines for reconciliation.</summary>
     Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
 

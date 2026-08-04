@@ -196,6 +196,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "ruleCount,activeCount,requiredCount,categoryCount,source,message",
     ),
+    "cp-einvoice-documents": (
+        "summary",
+        "documentCount,openCount,submittedCount,totalInclVat,source,message",
+    ),
+    "cp-jewellery-repairs": (
+        "summary",
+        "repairCount,openCount,authorizedCount,itemCount,source,message",
+    ),
+    "cp-crm-tickets": (
+        "summary",
+        "ticketCount,openCount,highPriorityCount,messageCount,source,message",
+    ),
+    "cp-marketing-growth": (
+        "summary",
+        "taskCount,tasksDone,kpiLogCount,reviewCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -664,6 +680,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-platform-governance": (
         "rules",
         ["id", "ruleKey", "category", "title", "enforcement", "scope", "moduleLink", "active", "timeUpdated"],
+    ),
+    "cp-einvoice-documents": (
+        "documents",
+        ["id", "uuid", "invoiceNumber", "orderId", "userId", "docCategory", "issueDate", "currencyCode", "status", "totalInclVat", "validationOk", "timeCreated"],
+    ),
+    "cp-jewellery-repairs": (
+        "repairs",
+        ["id", "companyId", "branch", "vocType", "vocDate", "vocNo", "customerName", "status", "currency", "deliveryDate", "authorized", "createdAt"],
+    ),
+    "cp-crm-tickets": (
+        "tickets",
+        ["id", "customerUserId", "orderId", "subject", "status", "priority", "assignedUserId", "timeCreated", "timeUpdated", "active"],
+    ),
+    "cp-marketing-growth": (
+        "reviews",
+        ["id", "strategyKey", "reviewType", "score", "createdAt", "createdBy"],
     ),
     "cp-orders-digest": (
         "orders",

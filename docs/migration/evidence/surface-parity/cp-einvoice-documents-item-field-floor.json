@@ -1,0 +1,33 @@
+{
+  "role": "cp-einvoice-documents-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-einvoice-documents",
+  "collectionKey": "documents",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "documentCount",
+    "openCount",
+    "submittedCount",
+    "totalInclVat",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "uuid",
+    "invoiceNumber",
+    "orderId",
+    "userId",
+    "docCategory",
+    "issueDate",
+    "currencyCode",
+    "status",
+    "totalInclVat",
+    "validationOk",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-einvoice-documents digest summary+documents[] floors. E-invoice document floors. PHP tax einvoice remains authoritative. cutoverAllowed=false."
+}

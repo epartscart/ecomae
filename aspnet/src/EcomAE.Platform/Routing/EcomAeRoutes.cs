@@ -200,6 +200,22 @@ public static class EcomAeRoutes
     public const string ControlPanelPlatformGovernance = "/cp/platform-governance";
     /// <summary>CP platform governance Blazor list (JSON digest remains <see cref="ControlPanelPlatformGovernance"/>).</summary>
     public const string ControlPanelPlatformGovernanceApp = "/cp/platform-governance-app";
+    /// <summary>CP e-invoice documents (payload JSON/XML omitted).</summary>
+    public const string ControlPanelEinvoiceDocuments = "/cp/einvoice-documents";
+    /// <summary>CP e-invoice documents Blazor list (JSON digest remains <see cref="ControlPanelEinvoiceDocuments"/>).</summary>
+    public const string ControlPanelEinvoiceDocumentsApp = "/cp/einvoice-documents-app";
+    /// <summary>CP jewellery repairs (customer PII/narration omitted).</summary>
+    public const string ControlPanelJewelleryRepairs = "/cp/jewellery-repairs";
+    /// <summary>CP jewellery repairs Blazor list (JSON digest remains <see cref="ControlPanelJewelleryRepairs"/>).</summary>
+    public const string ControlPanelJewelleryRepairsApp = "/cp/jewellery-repairs-app";
+    /// <summary>CP CRM tickets (message bodies omitted).</summary>
+    public const string ControlPanelCrmTickets = "/cp/crm-tickets";
+    /// <summary>CP CRM tickets Blazor list (JSON digest remains <see cref="ControlPanelCrmTickets"/>).</summary>
+    public const string ControlPanelCrmTicketsApp = "/cp/crm-tickets-app";
+    /// <summary>CP marketing growth (task/KPI/review; notes omitted).</summary>
+    public const string ControlPanelMarketingGrowth = "/cp/marketing-growth";
+    /// <summary>CP marketing growth Blazor list (JSON digest remains <see cref="ControlPanelMarketingGrowth"/>).</summary>
+    public const string ControlPanelMarketingGrowthApp = "/cp/marketing-growth-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

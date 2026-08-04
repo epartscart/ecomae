@@ -1,0 +1,131 @@
+@page "/cp/crm-tickets-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>CRM tickets · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-ct-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#1e1b4b 0%,#4338ca 50%,#6366f1 100%);
+        }
+        .epc-ct-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-ct-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-ct-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-ct-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#1e1b4b; background:#e0e7ff;
+        }
+        .epc-ct-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-ct-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-ct-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-ct-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-ct-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-ct-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-ct-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-ct-table th, .epc-ct-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-ct-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-ct-note { margin-top:1rem; padding:.75rem .9rem; background:#eef2ff; border:1px solid #a5b4fc; border-radius:.45rem; color:#312e81; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-ct-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-ct-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>CRM tickets</h1>
+        <p>Read-only ticket KPIs + queue from <code>/cp/crm-tickets</code>. Message bodies and assignment writes stay on live PHP.</p>
+        <div class="epc-ct-cta">
+            <a href="@_phpTab">Open PHP</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-ct-kpis" aria-label="CRM tickets stats">
+        <div class="epc-ct-kpi"><strong>@_summary.TicketCount.ToString(CultureInfo.InvariantCulture)</strong><span>Tickets</span></div>
+        <div class="epc-ct-kpi"><strong>@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open</span></div>
+        <div class="epc-ct-kpi"><strong>@_summary.HighPriorityCount.ToString(CultureInfo.InvariantCulture)</strong><span>High priority</span></div>
+        <div class="epc-ct-kpi"><strong>@_summary.MessageCount.ToString(CultureInfo.InvariantCulture)</strong><span>Messages</span></div>
+    </div>
+
+    <div class="epc-ct-table-wrap">
+        <table class="epc-ct-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Customer</th>
+                    <th>Assignee</th>
+                    <th>Order</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_rows.Count == 0)
+                {
+                    <tr><td colspan="8">No rows in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _rows)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Subject) ? row.Subject : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Priority) ? row.Priority : "—")</td>
+                            <td>@row.CustomerUserId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.AssignedUserId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.OrderId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-ct-note">
+        Read-only preview · JSON digest <a href="/cp/crm-tickets?limit=200">/cp/crm-tickets</a>. PHP CRM shell remains authoritative · message bodies omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=sales&tab=crm";
+    private bool _isAdmin;
+    private CpCrmTicketsSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpCrmTicketDigest> _rows = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpCrmTicketsDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _rows = result.Tickets;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

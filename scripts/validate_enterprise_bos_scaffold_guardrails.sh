@@ -300,6 +300,14 @@ check_file "cp product-catalogue item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-product-catalogue-item-field-floor.json"
 check_file "cp platform-governance item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-platform-governance-item-field-floor.json"
+check_file "cp einvoice-documents item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-einvoice-documents-item-field-floor.json"
+check_file "cp jewellery-repairs item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-jewellery-repairs-item-field-floor.json"
+check_file "cp crm-tickets item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-crm-tickets-item-field-floor.json"
+check_file "cp marketing-growth item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-marketing-growth-item-field-floor.json"
 check_file "cp auto-price item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
 check_file "cp uae-tax-compliance item-field floor evidence" \

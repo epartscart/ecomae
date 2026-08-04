@@ -81,6 +81,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var pageBuilder = await reporter.BuildCpPageBuilderDigestAsync(10);
         var productCatalogue = await reporter.BuildCpProductCatalogueDigestAsync(10);
         var platformGovernance = await reporter.BuildCpPlatformGovernanceDigestAsync(10);
+        var einvoiceDocuments = await reporter.BuildCpEinvoiceDocumentsDigestAsync(10);
+        var jewelleryRepairs = await reporter.BuildCpJewelleryRepairsDigestAsync(10);
+        var crmTickets = await reporter.BuildCpCrmTicketsDigestAsync(10);
+        var marketingGrowth = await reporter.BuildCpMarketingGrowthDigestAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -163,6 +167,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", pageBuilder.Source);
         Assert.Equal("migration", productCatalogue.Source);
         Assert.Equal("migration", platformGovernance.Source);
+        Assert.Equal("migration", einvoiceDocuments.Source);
+        Assert.Equal("migration", jewelleryRepairs.Source);
+        Assert.Equal("migration", crmTickets.Source);
+        Assert.Equal("migration", marketingGrowth.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);

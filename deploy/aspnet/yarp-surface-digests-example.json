@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 68,
+  "routeCount": 72,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -821,6 +821,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-platform-governance-shadow-approved"
+          }
+        ]
+      },
+      "cp-einvoice-documents": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/einvoice-documents"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-einvoice-documents-shadow-approved"
+          }
+        ]
+      },
+      "cp-jewellery-repairs": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/jewellery-repairs"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-jewellery-repairs-shadow-approved"
+          }
+        ]
+      },
+      "cp-crm-tickets": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/crm-tickets"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-crm-tickets-shadow-approved"
+          }
+        ]
+      },
+      "cp-marketing-growth": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/marketing-growth"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-marketing-growth-shadow-approved"
           }
         ]
       }

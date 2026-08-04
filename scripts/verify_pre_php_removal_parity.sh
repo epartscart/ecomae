@@ -2,7 +2,7 @@
 # Hard fail-closed pre-PHP-removal verdict.
 # Runs unit/foundation/area checks + live public surface authority checks.
 # Never removes PHP. Never invents RELEASE_OWNER_APPROVAL.md.
-# Presentation exact-route inventory (85): docs/migration/evidence/presentation/presentation-exact-routes.json
+# Presentation exact-route inventory (89): docs/migration/evidence/presentation/presentation-exact-routes.json
 # Kept in sync by scripts/validate_presentation_hybrid_allowlist_sync.py.
 # Surface-digest exact-route inventory (35): docs/migration/evidence/surface-parity/surface-digest-exact-routes.json
 # Kept in sync by scripts/validate_surface_digest_allowlist_sync.py.

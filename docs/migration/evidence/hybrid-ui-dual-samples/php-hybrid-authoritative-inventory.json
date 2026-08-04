@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-04T06:38:51Z",
+  "capturedAt": "2026-08-04T06:57:21Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -360,6 +360,54 @@
       "appRoute": "/erp/workspace-favorites-app",
       "digestRoute": "/erp/workspace-favorites",
       "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard"
+    },
+    {
+      "stem": "erp-fixed-assets",
+      "appRoute": "/erp/fixed-assets-app",
+      "digestRoute": "/erp/fixed-assets",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=fixed_assets&tab=fixed_assets"
+    },
+    {
+      "stem": "cp-page-builder",
+      "appRoute": "/cp/page-builder-app",
+      "digestRoute": "/cp/page-builder",
+      "phpAuthoritativePath": "/CP/control/portal/epc_visual_page_editor"
+    },
+    {
+      "stem": "cp-product-catalogue",
+      "appRoute": "/cp/product-catalogue-app",
+      "digestRoute": "/cp/product-catalogue",
+      "phpAuthoritativePath": "/CP/shop/catalogue/catalogue_editor"
+    },
+    {
+      "stem": "cp-platform-governance",
+      "appRoute": "/cp/platform-governance-app",
+      "digestRoute": "/cp/platform-governance",
+      "phpAuthoritativePath": "/CP/control/portal/epc_platform_governance"
+    },
+    {
+      "stem": "cp-einvoice-documents",
+      "appRoute": "/cp/einvoice-documents-app",
+      "digestRoute": "/cp/einvoice-documents",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=tax&tab=einvoice"
+    },
+    {
+      "stem": "cp-jewellery-repairs",
+      "appRoute": "/cp/jewellery-repairs-app",
+      "digestRoute": "/cp/jewellery-repairs",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repairs"
+    },
+    {
+      "stem": "cp-crm-tickets",
+      "appRoute": "/cp/crm-tickets-app",
+      "digestRoute": "/cp/crm-tickets",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=sales&tab=crm"
+    },
+    {
+      "stem": "cp-marketing-growth",
+      "appRoute": "/cp/marketing-growth-app",
+      "digestRoute": "/cp/marketing-growth",
+      "phpAuthoritativePath": "/CP/shop/marketing/marketing"
     },
     {
       "stem": "erp-accounts-summary",
