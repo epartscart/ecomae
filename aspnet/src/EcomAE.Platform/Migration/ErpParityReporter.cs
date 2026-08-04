@@ -23,7 +23,7 @@ public sealed class ErpParityReporter : IErpParityReporter
                 "Replay PHP finance dashboard, chart-of-accounts, voucher, invoice, and inventory fixtures.",
                 "Port ERP permissions, tenant scoping, exports, and audit evidence.",
                 "Validate ERP-only tenant navigation and rollback behavior in staging.",
-                "Dual-sample on-premises tab + health dry-run; ASP.NET Core installer pack is a later NextBuild (never invent cutover).",
+                "Dual-sample on-premises tab + health/activate dry-runs; ASP.NET Core installer pack is a later NextBuild (never invent cutover).",
                 "Promote only location = digests via nginx-surface-digests-shadow-example.conf (never broad /erp)."
             ]);
     }

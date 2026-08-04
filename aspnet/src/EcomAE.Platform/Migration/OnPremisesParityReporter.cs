@@ -30,7 +30,7 @@ public sealed class OnPremisesParityReporter : IOnPremisesParityReporter
                 "on-prem-license-api",
                 "License activate + health intake APIs",
                 "php-authoritative",
-                "api/v1/licenses/activate.php + api/v1/on-premises/health.php + epc_onprem_licenses registry remain PHP. ASP.NET health dry-run only (writes=0)."),
+                "api/v1/licenses/activate.php + api/v1/on-premises/health.php + epc_onprem_licenses registry remain PHP. ASP.NET health + activate dry-runs only (writes=0)."),
             new(
                 "erp-on-premises-tab",
                 "ERP operator On-Premises tab",
@@ -64,7 +64,7 @@ public sealed class OnPremisesParityReporter : IOnPremisesParityReporter
             [
                 "Dual-sample /erp/on-premises-app vs PHP on_premises tab.",
                 "Read digest over epc_onprem_licenses (omit secrets/notes) after schema dual-sample.",
-                "Promote health/activate dry-runs via write-dryrun operator; PHP remains authoritative.",
+                "Promote health + license-activate dry-runs via write-dryrun operator; PHP remains authoritative.",
                 "ASP.NET Core on-prem installer pack (replace PHP runtime in deploy/on-premises) — separate from SaaS ERP-only tenants.",
             ],
             Notes:
