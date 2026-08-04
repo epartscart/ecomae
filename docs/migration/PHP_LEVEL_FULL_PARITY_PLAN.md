@@ -152,7 +152,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Price-lookup evidence tree explicit cutover locks (#724)
 - ✅ Tighten Program.cs production-client wiring negative locks (#725)
 - ✅ Mirror catalog/API allowlist into live/decommission probe scripts (#726)
-- **This PR:** Expand evidence cutover-lock tree globs (presentation/module/catalog/tenant/surface)
+- ✅ Expand evidence cutover-lock tree globs (presentation/module/catalog/tenant/surface) (#727)
+- **This PR:** Presentation/hybrid exact-route inventory + probe script mirror
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
