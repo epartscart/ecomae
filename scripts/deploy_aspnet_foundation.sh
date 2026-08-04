@@ -154,6 +154,8 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh" \
   "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh" \
   "$ROOT/scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh" \
+  "$ROOT/scripts/generate_login_cookie_contract_samples.py" \
+  "$ROOT/scripts/validate_marketing_app_allowlist_sync.py" \
   "$ROOT/scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh" \
   "$ROOT/scripts/cloudpanel_run_digest_dual_sample_operator.sh" \
   "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh" \

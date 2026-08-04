@@ -88,6 +88,11 @@ def main() -> int:
         help="Directory containing *.json samples",
     )
     ap.add_argument("--out", type=Path, default=None, help="Optional result JSON path")
+    ap.add_argument(
+        "--contract-only",
+        action="store_true",
+        help="Require php-{surface}-login-bridge.json migration-contract-golden for each aspnet surface",
+    )
     args = ap.parse_args()
 
     samples_dir: Path = args.samples_dir
@@ -96,8 +101,13 @@ def main() -> int:
         return 2
 
     results = []
+    skip_names = {
+        "README.md",
+        "compare-result.json",
+        "OPERATOR_VERIFY.md",
+    }
     for path in sorted(samples_dir.glob("*.json")):
-        if path.name in {"README.md", "compare-result.json"} or path.name.startswith("compare-"):
+        if path.name in skip_names or path.name.startswith("compare-"):
             continue
         if path.name.endswith(".result.json"):
             continue
@@ -109,19 +119,73 @@ def main() -> int:
         if not isinstance(doc, dict):
             results.append({"file": path.name, "ok": False, "errors": ["not a JSON object"]})
             continue
-        # Skip meta/result envelopes
-        if doc.get("role") == "compare-result" or "samples" in doc and "cutoverAllowed" in doc:
+        # Skip meta/result envelopes / generator outputs
+        role = str(doc.get("role") or "")
+        if role in {"compare-result", "login-cookie-contract-sample-generator"}:
+            continue
+        if "samples" in doc and "cutoverAllowed" in doc and role == "compare-result":
             continue
         evaluated = evaluate_sample(doc)
         evaluated["file"] = path.name
         results.append(evaluated)
 
+    contract_pairs = 0
+    contract_pairs_ok = 0
+    missing_php: list[str] = []
+    if args.contract_only:
+        for surface in ("cp", "erp", "bos", "storefront"):
+            contract_pairs += 1
+            asp = samples_dir / f"aspnet-{surface}-login-bridge.json"
+            php = samples_dir / f"php-{surface}-login-bridge.json"
+            if not asp.is_file():
+                missing_php.append(surface)
+                results.append(
+                    {
+                        "file": asp.name,
+                        "ok": False,
+                        "errors": [f"missing aspnet-{surface}-login-bridge.json"],
+                    }
+                )
+                continue
+            if not php.is_file():
+                missing_php.append(surface)
+                results.append(
+                    {
+                        "file": php.name,
+                        "ok": False,
+                        "errors": [f"missing php-{surface}-login-bridge.json"],
+                    }
+                )
+                continue
+            try:
+                php_doc = json.loads(php.read_text(encoding="utf-8"))
+            except Exception as exc:  # noqa: BLE001
+                results.append({"file": php.name, "ok": False, "errors": [f"parse error: {exc}"]})
+                continue
+            errs: list[str] = []
+            if php_doc.get("dualSampleBaseline") != "migration-contract-golden":
+                errs.append("expected dualSampleBaseline=migration-contract-golden")
+            if php_doc.get("cutoverAllowed") is True or php_doc.get("readyForPhpRemoval") is True:
+                errs.append("invents cutover/removal")
+            if php_doc.get("phpAuthoritative") is not True:
+                errs.append("phpAuthoritative must be true")
+            if errs:
+                results.append({"file": php.name, "ok": False, "errors": errs})
+            else:
+                contract_pairs_ok += 1
+
     ok = all(r.get("ok") for r in results) if results else False
+    if args.contract_only and contract_pairs_ok < 4:
+        ok = False
     out = {
         "role": "compare-result",
         "ok": ok,
         "cutoverAllowed": False,
         "readyForPhpRemoval": False,
+        "contractOnly": bool(args.contract_only),
+        "contractPairs": contract_pairs,
+        "contractPairsOk": contract_pairs_ok,
+        "missingPhpSides": missing_php,
         "policy": "login-bridge-hybrid-batch3; PHP chrome authoritative; BOS $_SESSION stays PHP",
         "sampleCount": len(results),
         "samples": results,

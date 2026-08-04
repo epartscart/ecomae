@@ -13,6 +13,6 @@
   "dualSampleBaseline": "migration-contract-golden",
   "pairedAspNetGolden": "aspnet-activate-license-cli.json",
   "phpAuthoritativePath": "deploy/on-premises/activate-license.php",
-  "generatedAtUnix": 1785869989,
+  "generatedAtUnix": 1785870874,
   "note": "Seeded from aspnet on-premises dry-run golden for contract-only compare. PHP deploy/on-premises + license APIs remain authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
 }

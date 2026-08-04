@@ -109,11 +109,51 @@ def main() -> int:
         php_path.write_text(json.dumps(php_doc, indent=2) + "\n", encoding="utf-8")
         written += 1
 
+    stems = sorted(
+        p.name[len("aspnet-") : -len(".json")]
+        for p in evidence.glob("aspnet-*.json")
+        if p.name != "aspnet-catalog.json"
+    )
+    catalog = {
+        "role": "on-premises-ajax-write-catalog",
+        "totalActions": len(stems),
+        "dedicatedDryRuns": len([s for s in stems if s != "licenses"]),
+        "readDigests": 1 if "licenses" in stems else 0,
+        "coveragePct": 100,
+        "actions": stems,
+        "cutoverAllowed": False,
+        "readyForPhpRemoval": False,
+        "phpAuthoritative": True,
+        "aspNetInteractiveComplete": 0,
+        "note": (
+            f"{len(stems)} on-premises surfaces (writes=0 dry-runs + licenses read digest). "
+            "PHP pack remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md."
+        ),
+    }
+    (evidence / "aspnet-catalog.json").write_text(
+        json.dumps(catalog, indent=2) + "\n", encoding="utf-8"
+    )
+    inventory = {
+        "role": "php-on-premises-authoritative-inventory",
+        "generatedAtUnix": int(time.time()),
+        "phpAuthoritative": True,
+        "cutoverAllowed": False,
+        "readyForPhpRemoval": False,
+        "aspNetInteractiveComplete": 0,
+        "totalActions": len(stems),
+        "actions": stems,
+        "note": "PHP on-premises pack remains authoritative for dry-runs + licenses registry.",
+    }
+    (evidence / "php-authoritative-inventory.json").write_text(
+        json.dumps(inventory, indent=2) + "\n", encoding="utf-8"
+    )
+
     result = {
         "role": "on-premises-contract-sample-generator",
         "evidenceDir": str(evidence),
         "written": written,
         "skippedLiveOrNonBaseline": skipped,
+        "totalActions": len(stems),
         "errors": errors,
         "cutoverAllowed": False,
         "readyForPhpRemoval": False,
@@ -123,7 +163,10 @@ def main() -> int:
     if errors:
         print(f"FAIL: {len(errors)} error(s)", file=sys.stderr)
         return 1
-    print(f"PASS: wrote {written} php-* on-premises contract baselines (writes=0)")
+    if len(stems) < 7:
+        print(f"FAIL: totalActions={len(stems)} < 7", file=sys.stderr)
+        return 1
+    print(f"PASS: wrote {written} php-* on-premises contract baselines (writes=0) totalActions={len(stems)}")
     return 0
 
 

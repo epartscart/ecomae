@@ -16,8 +16,8 @@ if [[ ! -f "$EXAMPLE" ]]; then
 fi
 
 mapfile -t ROUTES < <(grep -E '^location = /marketing/' "$EXAMPLE" | sed -E 's/^location = ([^ {]+).*/\1/' | sort -u)
-if [[ "${#ROUTES[@]}" -lt 30 ]]; then
-  echo "ERROR: expected >=30 /marketing/* routes in example, found ${#ROUTES[@]}" >&2
+if [[ "${#ROUTES[@]}" -ne 37 ]]; then
+  echo "ERROR: expected 37 /marketing/* routes in example, found ${#ROUTES[@]}" >&2
   exit 1
 fi
 

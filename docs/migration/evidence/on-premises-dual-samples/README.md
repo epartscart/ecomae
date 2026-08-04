@@ -17,6 +17,6 @@ bash scripts/cloudpanel_run_on_premises_dual_sample_operator.sh
 bash scripts/cloudpanel_run_all_digest_hybrid_onprem_floors.sh
 ```
 
-Expected: **6/6** contract pairs (`health`, `license-activate`, `setup-wizard`, `backup`, `activate-license-cli`, `health-check-pack`).
+Expected: **7/7** contract pairs (`health`, `license-activate`, `setup-wizard`, `backup`, `activate-license-cli`, `health-check-pack`, `licenses`).
 
 Licenses digest (`GET /erp/on-premises/licenses`) is a separate read surface — still awaiting live dual-sample.
