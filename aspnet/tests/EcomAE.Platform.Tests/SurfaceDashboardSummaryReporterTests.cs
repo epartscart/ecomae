@@ -113,6 +113,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var poApprovals = await reporter.BuildCpPoApprovalsDigestAsync(10);
         var financeClose = await reporter.BuildCpFinanceCloseDigestAsync(10);
         var jewelleryFixing = await reporter.BuildCpJewelleryFixingDigestAsync(10);
+        var webTracker = await reporter.BuildCpWebTrackerDigestAsync(10);
+        var quoteRequests = await reporter.BuildCpQuoteRequestsDigestAsync(10);
+        var platformCommunication = await reporter.BuildCpPlatformCommunicationDigestAsync(10);
+        var infoBlocks = await reporter.BuildCpInfoBlocksDigestAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -223,6 +227,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", poApprovals.Source);
         Assert.Equal("migration", financeClose.Source);
         Assert.Equal("migration", jewelleryFixing.Source);
+        Assert.Equal("migration", webTracker.Source);
+        Assert.Equal("migration", quoteRequests.Source);
+        Assert.Equal("migration", platformCommunication.Source);
+        Assert.Equal("migration", infoBlocks.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
@@ -385,6 +393,15 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_jewel_fixing", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStats, StringComparison.Ordinal);
         Assert.Contains("epc_fix_unfix_purchases", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStats, StringComparison.Ordinal);
         Assert.DoesNotContain("`remarks`", LegacySurfaceDashboardSql.SelectCpJewelleryFixingRows, StringComparison.Ordinal);
+        Assert.Contains("epc_web_tracker_sessions", LegacySurfaceDashboardSql.SelectCpWebTrackerStats, StringComparison.Ordinal);
+        Assert.DoesNotContain("`ip`", LegacySurfaceDashboardSql.SelectCpWebTrackerRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("`ua`", LegacySurfaceDashboardSql.SelectCpWebTrackerRows, StringComparison.Ordinal);
+        Assert.Contains("shop_quote_requests", LegacySurfaceDashboardSql.SelectCpQuoteRequestsStats, StringComparison.Ordinal);
+        Assert.DoesNotContain("admin_note", LegacySurfaceDashboardSql.SelectCpQuoteRequestsRows, StringComparison.Ordinal);
+        Assert.Contains("epc_platform_comm_settings", LegacySurfaceDashboardSql.SelectCpPlatformCommunicationStats, StringComparison.Ordinal);
+        Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpPlatformCommunicationRows, StringComparison.Ordinal);
+        Assert.Contains("epc_platform_info_blocks", LegacySurfaceDashboardSql.SelectCpInfoBlocksStats, StringComparison.Ordinal);
+        Assert.DoesNotContain("content_html", LegacySurfaceDashboardSql.SelectCpInfoBlocksRows, StringComparison.Ordinal);
     }
 
     private sealed class UnconfiguredFactory : ITenantDbConnectionFactory

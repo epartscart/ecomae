@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "sessionCount": 1,
+    "pageviewCount": 1,
+    "eventCount": 0,
+    "countryCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; sessions[] sentinel; ip/ua/meta_json omitted; PHP web tracker remains authoritative; cutoverAllowed=false",
+  "sessions": [
+    {
+      "id": 1,
+      "sessionUid": "sess-1",
+      "siteKey": "demo",
+      "pageviewCount": 3,
+      "eventCount": 1,
+      "countryCode": "AE",
+      "deviceType": "desktop",
+      "browser": "Chrome",
+      "firstSeenAt": 0,
+      "lastSeenAt": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

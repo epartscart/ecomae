@@ -324,6 +324,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "fixingCount,openFixingCount,purchaseFixCount,settlementCount,pettyCashCount,source,message",
     ),
+    "cp-web-tracker": (
+        "summary",
+        "sessionCount,pageviewCount,eventCount,countryCount,source,message",
+    ),
+    "cp-quote-requests": (
+        "summary",
+        "quoteCount,draftCount,submittedCount,itemCount,source,message",
+    ),
+    "cp-platform-communication": (
+        "summary",
+        "settingCount,taskCount,openTaskCount,highPriorityCount,source,message",
+    ),
+    "cp-info-blocks": (
+        "summary",
+        "blockCount,activeCount,placementCount,localeCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -920,6 +936,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-jewellery-fixing": (
         "fixings",
         ["id", "companyId", "branch", "fixType", "fixDate", "fixNo", "partyCode", "partyName", "metal", "karat", "fixQtyGms", "fixAmount", "status", "createdBy"],
+    ),
+    "cp-web-tracker": (
+        "sessions",
+        ["id", "sessionUid", "siteKey", "pageviewCount", "eventCount", "countryCode", "deviceType", "browser", "firstSeenAt", "lastSeenAt"],
+    ),
+    "cp-quote-requests": (
+        "quotes",
+        ["id", "userId", "sessionId", "status", "timeCreated", "timeUpdated", "timeSubmitted", "acceptedOrderId"],
+    ),
+    "cp-platform-communication": (
+        "tasks",
+        ["id", "title", "assignedTo", "siteKey", "category", "status", "priority", "dueAt", "createdAt"],
+    ),
+    "cp-info-blocks": (
+        "blocks",
+        ["id", "blockKey", "title", "scope", "siteKey", "placement", "locale", "active", "sortOrder", "updatedAt"],
     ),
     "cp-orders-digest": (
         "orders",

@@ -1,0 +1,29 @@
+{
+  "role": "cp-quote-requests-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-quote-requests",
+  "collectionKey": "quotes",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "quoteCount",
+    "draftCount",
+    "submittedCount",
+    "itemCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "userId",
+    "sessionId",
+    "status",
+    "timeCreated",
+    "timeUpdated",
+    "timeSubmitted",
+    "acceptedOrderId"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-quote-requests digest summary+quotes[] floors. admin_note/customer_note/product_object_json omitted; PHP quote requests remain authoritative. cutoverAllowed=false."
+}

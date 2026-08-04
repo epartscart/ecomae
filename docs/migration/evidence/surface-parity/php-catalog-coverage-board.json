@@ -32,20 +32,20 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 685,
-    "php-only-deeplink": 41
+    "digest-contract": 693,
+    "php-only-deeplink": 33
   },
   "coverageByKind": {
     "bos-module": {
-      "digest-contract": 93,
-      "php-only-deeplink": 6
+      "digest-contract": 94,
+      "php-only-deeplink": 5
     },
     "bos-section": {
       "digest-contract": 11
     },
     "cp-feature": {
-      "digest-contract": 370,
-      "php-only-deeplink": 35
+      "digest-contract": 377,
+      "php-only-deeplink": 28
     },
     "erp-area": {
       "digest-contract": 35
@@ -60,7 +60,7 @@
       "digest-contract": 13
     }
   },
-  "digestContractRouteCount": 126,
+  "digestContractRouteCount": 130,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -3414,10 +3414,10 @@
       "kind": "bos-module",
       "label": "Communication",
       "phpPath": "/CP/control/portal/epc_super_cp_communication",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/platform-communication",
+      "aspnetRoute": "/cp/platform-communication-app",
       "aspnetComplete": false
     },
     {
@@ -3722,10 +3722,10 @@
       "kind": "cp-feature",
       "label": "Communication",
       "phpPath": "/CP/control/portal/epc_super_cp_communication",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/platform-communication",
+      "aspnetRoute": "/cp/platform-communication-app",
       "aspnetComplete": false
     },
     {
@@ -3744,10 +3744,10 @@
       "kind": "cp-feature",
       "label": "Epc Super Cp Communication",
       "phpPath": "/CP/control/portal/epc_super_cp_communication",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/platform-communication",
+      "aspnetRoute": "/cp/platform-communication-app",
       "aspnetComplete": false
     },
     {
@@ -3766,10 +3766,10 @@
       "kind": "cp-feature",
       "label": "Epc Super Cp Info Blocks",
       "phpPath": "/CP/control/portal/epc_super_cp_info_blocks",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/info-blocks",
+      "aspnetRoute": "/cp/info-blocks-app",
       "aspnetComplete": false
     },
     {
@@ -3810,10 +3810,10 @@
       "kind": "cp-feature",
       "label": "Info blocks (CMS)",
       "phpPath": "/CP/control/portal/epc_super_cp_info_blocks",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/info-blocks",
+      "aspnetRoute": "/cp/info-blocks-app",
       "aspnetComplete": false
     },
     {
@@ -4118,10 +4118,10 @@
       "kind": "cp-feature",
       "label": "Web tracker",
       "phpPath": "/CP/control/portal/epc_web_tracker",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/web-tracker",
+      "aspnetRoute": "/cp/web-tracker-app",
       "aspnetComplete": false
     },
     {
@@ -4481,10 +4481,10 @@
       "kind": "cp-feature",
       "label": "Quote requests",
       "phpPath": "/CP/shop/quote-requests",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/quote-requests",
+      "aspnetRoute": "/cp/quote-requests-app",
       "aspnetComplete": false
     },
     {
@@ -4547,10 +4547,10 @@
       "kind": "cp-feature",
       "label": "Shop statistics",
       "phpPath": "/CP/shop/statistika",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/web-tracker",
+      "aspnetRoute": "/cp/web-tracker-app",
       "aspnetComplete": false
     },
     {

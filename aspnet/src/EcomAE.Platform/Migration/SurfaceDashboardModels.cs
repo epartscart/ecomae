@@ -2306,3 +2306,108 @@ public sealed record CpJewelleryFixingDigestResult(
     string Source,
     string Message);
 
+public sealed record CpWebTrackerSummary(
+    int SessionCount,
+    int PageviewCount,
+    int EventCount,
+    int CountryCount,
+    string Source,
+    string Message);
+
+public sealed record CpWebTrackerRowDigest(
+    long Id,
+    string SessionUid,
+    string SiteKey,
+    long PageviewCount,
+    long EventCount,
+    string CountryCode,
+    string DeviceType,
+    string Browser,
+    long FirstSeenAt,
+    long LastSeenAt);
+
+public sealed record CpWebTrackerDigestResult(
+    CpWebTrackerSummary Summary,
+    IReadOnlyList<CpWebTrackerRowDigest> Sessions,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpQuoteRequestsSummary(
+    int QuoteCount,
+    int DraftCount,
+    int SubmittedCount,
+    int ItemCount,
+    string Source,
+    string Message);
+
+public sealed record CpQuoteRequestsRowDigest(
+    long Id,
+    long UserId,
+    long SessionId,
+    string Status,
+    long TimeCreated,
+    long TimeUpdated,
+    long TimeSubmitted,
+    long AcceptedOrderId);
+
+public sealed record CpQuoteRequestsDigestResult(
+    CpQuoteRequestsSummary Summary,
+    IReadOnlyList<CpQuoteRequestsRowDigest> Quotes,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPlatformCommunicationSummary(
+    int SettingCount,
+    int TaskCount,
+    int OpenTaskCount,
+    int HighPriorityCount,
+    string Source,
+    string Message);
+
+public sealed record CpPlatformCommunicationRowDigest(
+    long Id,
+    string Title,
+    long AssignedTo,
+    string SiteKey,
+    string Category,
+    string Status,
+    string Priority,
+    long DueAt,
+    long CreatedAt);
+
+public sealed record CpPlatformCommunicationDigestResult(
+    CpPlatformCommunicationSummary Summary,
+    IReadOnlyList<CpPlatformCommunicationRowDigest> Tasks,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpInfoBlocksSummary(
+    int BlockCount,
+    int ActiveCount,
+    int PlacementCount,
+    int LocaleCount,
+    string Source,
+    string Message);
+
+public sealed record CpInfoBlocksRowDigest(
+    long Id,
+    string BlockKey,
+    string Title,
+    string Scope,
+    string SiteKey,
+    string Placement,
+    string Locale,
+    int Active,
+    int SortOrder,
+    long UpdatedAt);
+
+public sealed record CpInfoBlocksDigestResult(
+    CpInfoBlocksSummary Summary,
+    IReadOnlyList<CpInfoBlocksRowDigest> Blocks,
+    int Count,
+    string Source,
+    string Message);
+

@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "quoteCount": 1,
+    "draftCount": 1,
+    "submittedCount": 0,
+    "itemCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; quotes[] sentinel; admin_note/customer_note/product_object_json omitted; PHP quote requests remain authoritative; cutoverAllowed=false",
+  "quotes": [
+    {
+      "id": 1,
+      "userId": 1,
+      "sessionId": 0,
+      "status": "draft",
+      "timeCreated": 0,
+      "timeUpdated": 0,
+      "timeSubmitted": 0,
+      "acceptedOrderId": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}
