@@ -146,7 +146,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Migration golden cutover locks (53) + pack YARP/OPERATOR_VERIFY (#718)
 - ✅ Offline migration gate + platform.env ↔ scaffold options key parity (#719)
 - ✅ Surface-field parity offline operator (board + digest/catalog floors) (#720)
-- **This PR:** Decommission/public-probe + parity-sample explicit cutover locks
+- ✅ Decommission/public-probe + parity-sample explicit cutover locks (#721)
+- **This PR:** Catalog/API YARP design pack hard floor (routeCount=19)
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
