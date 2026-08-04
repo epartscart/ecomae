@@ -138,6 +138,14 @@ def main() -> int:
             f"YARP storefront routeCount={storefront_count} != nginx={len(storefront_set)}"
         )
 
+    surface_nginx_text = args.surface_nginx.read_text(encoding="utf-8")
+    if "127.0.0.1:5080" in surface_nginx_text or re.search(
+        r"proxy_pass\s+http://127\.0\.0\.1:(?!5100)\d+", surface_nginx_text
+    ):
+        errors.append(
+            "surface digest nginx example must proxy_pass only http://127.0.0.1:5100"
+        )
+
     installer = args.surface_installer.read_text(encoding="utf-8")
     if "!= 127" not in installer or "expected 127 digest locations" not in installer:
         errors.append("surface digest installer must lock expected count 127")
