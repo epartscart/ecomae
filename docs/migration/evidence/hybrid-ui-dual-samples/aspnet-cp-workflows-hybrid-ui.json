@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-workflows",
+  "surface": "cp",
+  "appRoute": "/cp/workflows-app",
+  "digestRoute": "/cp/workflows",
+  "phpAuthoritativePath": "/CP/shop/finance/erp?area=setup&tab=workflow_automation&epc_erp_shell=1",
+  "blazorComponent": "CpWorkflowsApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-workflows. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T06:20:00Z"
+}

@@ -1,0 +1,26 @@
+{
+  "role": "cp-production-overview-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-production-overview",
+  "collectionKey": "workOrders",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "bomCount",
+    "openWorkOrders",
+    "completedWorkOrders",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "woNo",
+    "status",
+    "qtyPlanned",
+    "qtyProduced",
+    "updatedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks production overview digest summary+workOrders[] floors. Cost columns omitted. PHP production/manufacturing shell remains authoritative. cutoverAllowed=false."
+}

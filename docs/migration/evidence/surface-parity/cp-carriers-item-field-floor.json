@@ -1,0 +1,28 @@
+{
+  "role": "cp-carriers-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-carriers",
+  "collectionKey": "carriers",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "carrierCount",
+    "activeCarriers",
+    "rateCount",
+    "openShipments",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "code",
+    "name",
+    "mode",
+    "currency",
+    "rating",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks carriers digest summary+carriers[] floors. contact PII omitted. PHP carriers remains authoritative. cutoverAllowed=false."
+}

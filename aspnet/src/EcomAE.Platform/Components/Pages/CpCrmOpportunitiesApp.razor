@@ -1,0 +1,131 @@
+@page "/cp/crm-opportunities-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>CRM opportunities · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-opp-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 50%,#38bdf8 100%);
+        }
+        .epc-opp-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-opp-hero p { margin:0; color:rgba(255,255,255,.85); max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-opp-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-opp-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#1e3a5f; background:#bae6fd;
+        }
+        .epc-opp-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-opp-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-opp-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-opp-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-opp-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-opp-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-opp-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-opp-table th, .epc-opp-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-opp-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-opp-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a5f; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-opp-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-opp-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>CRM opportunities</h1>
+        <p>Read-only opportunity KPIs + pipeline from <code>/cp/crm-opportunities</code>. Stage writes stay on live PHP CRM.</p>
+        <div class="epc-opp-cta">
+            <a href="@_phpTab">Open PHP</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-opp-kpis" aria-label="CRM opportunities stats">
+        <div class="epc-opp-kpi"><strong>@_summary.OpportunityCount.ToString(CultureInfo.InvariantCulture)</strong><span>Opportunities</span></div>
+        <div class="epc-opp-kpi"><strong>@_summary.OpenOpportunities.ToString(CultureInfo.InvariantCulture)</strong><span>Open</span></div>
+        <div class="epc-opp-kpi"><strong>@_summary.WonOpportunities.ToString(CultureInfo.InvariantCulture)</strong><span>Won</span></div>
+        <div class="epc-opp-kpi"><strong>@_summary.PipelineAmount.ToString("0.00", CultureInfo.InvariantCulture)</strong><span>Pipeline amount</span></div>
+    </div>
+
+    <div class="epc-opp-table-wrap">
+        <table class="epc-opp-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Title</th>
+                    <th>Stage</th>
+                    <th>Amount</th>
+                    <th>Prob %</th>
+                    <th>Owner</th>
+                    <th>Active</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_opportunities.Count == 0)
+                {
+                    <tr><td colspan="8">No rows in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _opportunities)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Stage) ? row.Stage : "—")</td>
+                            <td>@row.Amount.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                            <td>@row.Probability.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.OwnerUserId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(row.Active ? "yes" : "no")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-opp-note">
+        Read-only preview · JSON digest <a href="/cp/crm-opportunities?limit=200">/cp/crm-opportunities</a>. PHP sales opportunities / CRM shell remains authoritative. notes omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/finance/erp?area=sales&tab=opportunities&epc_erp_shell=1";
+    private bool _isAdmin;
+    private CpCrmOpportunitiesSummary _summary = new(0, 0, 0, 0m, "n/a", "");
+    private IReadOnlyList<CpCrmOpportunityDigest> _opportunities = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpCrmOpportunitiesDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _opportunities = result.Opportunities;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

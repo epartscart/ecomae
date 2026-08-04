@@ -124,6 +124,70 @@ public static class EcomAeRoutes
     public const string ControlPanelCrosses = "/cp/crosses";
     /// <summary>CP crosses Blazor list (JSON digest remains <see cref="ControlPanelCrosses"/>).</summary>
     public const string ControlPanelCrossesApp = "/cp/crosses-app";
+    /// <summary>CP HR overview KPIs + employees (salary/PII detail omitted).</summary>
+    public const string ControlPanelHrOverview = "/cp/hr-overview";
+    /// <summary>CP HR Blazor overview (JSON digest remains <see cref="ControlPanelHrOverview"/>).</summary>
+    public const string ControlPanelHrOverviewApp = "/cp/hr-overview-app";
+    /// <summary>CP production overview KPIs + work orders (cost columns omitted).</summary>
+    public const string ControlPanelProductionOverview = "/cp/production-overview";
+    /// <summary>CP production Blazor overview (JSON digest remains <see cref="ControlPanelProductionOverview"/>).</summary>
+    public const string ControlPanelProductionOverviewApp = "/cp/production-overview-app";
+    /// <summary>CP projects overview KPIs + projects (timesheet rates omitted).</summary>
+    public const string ControlPanelProjectsOverview = "/cp/projects-overview";
+    /// <summary>CP projects Blazor overview (JSON digest remains <see cref="ControlPanelProjectsOverview"/>).</summary>
+    public const string ControlPanelProjectsOverviewApp = "/cp/projects-overview-app";
+    /// <summary>CP industry packs metadata (JSON blobs omitted).</summary>
+    public const string ControlPanelIndustryPacks = "/cp/industry-packs";
+    /// <summary>CP industry packs Blazor list (JSON digest remains <see cref="ControlPanelIndustryPacks"/>).</summary>
+    public const string ControlPanelIndustryPacksApp = "/cp/industry-packs-app";
+    /// <summary>CP jewellery retail KPIs + vouchers (PII/cost omitted).</summary>
+    public const string ControlPanelJewelleryRetail = "/cp/jewellery-retail";
+    /// <summary>CP jewellery Blazor retail (JSON digest remains <see cref="ControlPanelJewelleryRetail"/>).</summary>
+    public const string ControlPanelJewelleryRetailApp = "/cp/jewellery-retail-app";
+    /// <summary>CP price lists metadata (stats_json/error_text/stored_relpath omitted).</summary>
+    public const string ControlPanelPriceLists = "/cp/price-lists";
+    /// <summary>CP price lists Blazor list (JSON digest remains <see cref="ControlPanelPriceLists"/>).</summary>
+    public const string ControlPanelPriceListsApp = "/cp/price-lists-app";
+    /// <summary>CP auto-price rules (config_json/notes/meta omitted).</summary>
+    public const string ControlPanelAutoPrice = "/cp/auto-price";
+    /// <summary>CP auto-price Blazor list (JSON digest remains <see cref="ControlPanelAutoPrice"/>).</summary>
+    public const string ControlPanelAutoPriceApp = "/cp/auto-price-app";
+    /// <summary>CP UAE tax compliance legislation (erp_summary/pdf/passport omitted).</summary>
+    public const string ControlPanelUaeTaxCompliance = "/cp/uae-tax-compliance";
+    /// <summary>CP UAE tax Blazor list (JSON digest remains <see cref="ControlPanelUaeTaxCompliance"/>).</summary>
+    public const string ControlPanelUaeTaxComplianceApp = "/cp/uae-tax-compliance-app";
+    /// <summary>CP budgets KPIs + headers (note omitted).</summary>
+    public const string ControlPanelBudgets = "/cp/budgets";
+    /// <summary>CP budgets Blazor list (JSON digest remains <see cref="ControlPanelBudgets"/>).</summary>
+    public const string ControlPanelBudgetsApp = "/cp/budgets-app";
+    /// <summary>CP carriers KPIs + directory (contact PII omitted).</summary>
+    public const string ControlPanelCarriers = "/cp/carriers";
+    /// <summary>CP carriers Blazor list (JSON digest remains <see cref="ControlPanelCarriers"/>).</summary>
+    public const string ControlPanelCarriersApp = "/cp/carriers-app";
+    /// <summary>CP payment gateways (parameters/credentials omitted).</summary>
+    public const string ControlPanelPaymentGateways = "/cp/payment-gateways";
+    /// <summary>CP payment gateways Blazor list (JSON digest remains <see cref="ControlPanelPaymentGateways"/>).</summary>
+    public const string ControlPanelPaymentGatewaysApp = "/cp/payment-gateways-app";
+    /// <summary>CP workflows KPIs + definitions (trigger_config/JSON omitted).</summary>
+    public const string ControlPanelWorkflows = "/cp/workflows";
+    /// <summary>CP workflows Blazor list (JSON digest remains <see cref="ControlPanelWorkflows"/>).</summary>
+    public const string ControlPanelWorkflowsApp = "/cp/workflows-app";
+    /// <summary>CP purchase requisitions (justification/decision_note omitted).</summary>
+    public const string ControlPanelPurchaseRequests = "/cp/purchase-requests";
+    /// <summary>CP purchase requests Blazor list (JSON digest remains <see cref="ControlPanelPurchaseRequests"/>).</summary>
+    public const string ControlPanelPurchaseRequestsApp = "/cp/purchase-requests-app";
+    /// <summary>CP promotions (campaign codes from epc_promo_promotions).</summary>
+    public const string ControlPanelPromotions = "/cp/promotions";
+    /// <summary>CP promotions Blazor list (JSON digest remains <see cref="ControlPanelPromotions"/>).</summary>
+    public const string ControlPanelPromotionsApp = "/cp/promotions-app";
+    /// <summary>CP CRM opportunities (notes omitted).</summary>
+    public const string ControlPanelCrmOpportunities = "/cp/crm-opportunities";
+    /// <summary>CP CRM opportunities Blazor list (JSON digest remains <see cref="ControlPanelCrmOpportunities"/>).</summary>
+    public const string ControlPanelCrmOpportunitiesApp = "/cp/crm-opportunities-app";
+    /// <summary>CP integrations / webhooks (secrets/events JSON omitted).</summary>
+    public const string ControlPanelIntegrations = "/cp/integrations";
+    /// <summary>CP integrations Blazor list (JSON digest remains <see cref="ControlPanelIntegrations"/>).</summary>
+    public const string ControlPanelIntegrationsApp = "/cp/integrations-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

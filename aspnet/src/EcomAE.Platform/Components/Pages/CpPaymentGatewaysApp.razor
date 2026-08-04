@@ -1,0 +1,127 @@
+@page "/cp/payment-gateways-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Payment Gateways · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-pay-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#7c2d12 0%,#c2410c 50%,#ea580c 100%);
+        }
+        .epc-pay-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-pay-hero p { margin:0; color:rgba(255,255,255,.85); max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-pay-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-pay-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#7c2d12; background:#fdba74;
+        }
+        .epc-pay-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-pay-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-pay-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-pay-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-pay-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-pay-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-pay-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-pay-table th, .epc-pay-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-pay-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-pay-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#7c2d12; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-pay-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-pay-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Payment Gateways</h1>
+        <p>Read-only payment gateway KPIs + handlers from <code>/cp/payment-gateways</code>. Credentials and checkout writes stay on live PHP.</p>
+        <div class="epc-pay-cta">
+            <a href="@_phpTab">Open PHP</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-pay-kpis" aria-label="Payment Gateways stats">
+        <div class="epc-pay-kpi"><strong>@_summary.GatewayCount.ToString(CultureInfo.InvariantCulture)</strong><span>Gateways</span></div>
+        <div class="epc-pay-kpi"><strong>@_summary.ActiveGateways.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
+        <div class="epc-pay-kpi"><strong>@_summary.SelectableGateways.ToString(CultureInfo.InvariantCulture)</strong><span>Selectable</span></div>
+        <div class="epc-pay-kpi"><strong>@_summary.AccountCount.ToString(CultureInfo.InvariantCulture)</strong><span>Accounts</span></div>
+    </div>
+
+    <div class="epc-pay-table-wrap">
+        <table class="epc-pay-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Handler</th>
+                    <th>Active</th>
+                    <th>Selectable</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_gateways.Count == 0)
+                {
+                    <tr><td colspan="6">No rows in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _gateways)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Handler) ? row.Handler : "—")</td>
+                            <td>@(row.Active ? "yes" : "no")</td>
+                            <td>@(row.IsSelectable ? "yes" : "no")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-pay-note">
+        Read-only preview · JSON digest <a href="/cp/payment-gateways?limit=200">/cp/payment-gateways</a>. PHP /CP/shop/payments/payments remains authoritative. parameters/credentials omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/payments/payments";
+    private bool _isAdmin;
+    private CpPaymentGatewaysSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpPaymentGatewayDigest> _gateways = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpPaymentGatewaysDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _gateways = result.Gateways;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

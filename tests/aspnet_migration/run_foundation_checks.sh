@@ -690,8 +690,8 @@ check 'surface digest batch installer exists' test -x "$ROOT/scripts/cloudpanel_
 check 'surface digest batch probe exists' test -x "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh"
 check 'surface digest batch installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'ECOMAE_CONFIRM_INSTALL_SURFACE_DIGEST_SHADOWS'
 check 'surface digest batch installer refuses broad paths' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'refusing broad path'
-check 'surface digest batch installer expects 30 routes' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'expected 44 digest locations'
-check 'surface digest batch probe expects PASS=30' contains "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh" 'expected 44 digest routes'
+check 'surface digest batch installer expects 30 routes' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'expected 48 digest locations'
+check 'surface digest batch probe expects PASS=30' contains "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh" 'expected 48 digest routes'
 check 'deploy packs surface digest batch installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_surface_digest_shadows.sh'
 check 'deploy packs surface digest batch probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_surface_digest_shadows.sh'
 check 'storefront digest batch installer exists' test -x "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh"
@@ -1030,7 +1030,7 @@ check 'pre-PHP-removal verdict skips nested heavy area suite' contains "$ROOT/sc
 check 'area tests honor ECOMAE_AREA_SKIP_HEAVY' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'ECOMAE_AREA_SKIP_HEAVY'
 check 'area tests validate attached staging smoke' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'attached-staging-smoke'
 check 'area tests require live surface digests from example' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'nginx-surface-digests-shadow-example.conf'
-check 'area tests require 30 digest inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'expected 44 digest routes'
+check 'area tests require 30 digest inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'expected 48 digest routes'
 check 'live surface links mark CP dashboard digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP dashboard digest"'
 check 'live surface links mark CP tenants digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP tenants digest"'
 check 'live surface links mark CP users digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP users digest"'

@@ -1,0 +1,131 @@
+@page "/cp/industry-packs-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Industry Packs · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-pack-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#166534 0%,#15803d 50%,#22c55e 100%);
+        }
+        .epc-pack-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-pack-hero p { margin:0; color:#dcfce7; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-pack-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-pack-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#166534; background:#bbf7d0;
+        }
+        .epc-pack-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-pack-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-pack-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-pack-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-pack-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-pack-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-pack-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-pack-table th, .epc-pack-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-pack-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-pack-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:.45rem; color:#14532d; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-pack-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-pack-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Industry Packs</h1>
+        <p>Read-only industry pack catalog from <code>/cp/industry-packs</code>. Assignments and template deploy stay on live PHP.</p>
+        <div class="epc-pack-cta">
+            <a href="@_phpTab">Open PHP Industry settings</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/hr-overview-app">HR overview</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-pack-kpis" aria-label="Industry pack stats">
+        <div class="epc-pack-kpi"><strong>@_summary.PackCount.ToString(CultureInfo.InvariantCulture)</strong><span>Packs</span></div>
+        <div class="epc-pack-kpi"><strong>@_summary.ActivePacks.ToString(CultureInfo.InvariantCulture)</strong><span>Active packs</span></div>
+        <div class="epc-pack-kpi"><strong>@_summary.Assignments.ToString(CultureInfo.InvariantCulture)</strong><span>Assignments</span></div>
+    </div>
+
+    <div class="epc-pack-table-wrap">
+        <table class="epc-pack-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Key</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Icon</th>
+                    <th>Active</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_packs.Count == 0)
+                {
+                    <tr><td colspan="7">No packs in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var p in _packs)
+                    {
+                        <tr>
+                            <td><strong>@p.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(p.PackKey) ? "—" : p.PackKey)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Name) ? "—" : p.Name)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Description) ? "—" : p.Description)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Icon) ? "—" : p.Icon)</td>
+                            <td>@(p.Active ? "yes" : "no")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-pack-note">
+        Read-only preview · JSON digest <a href="/cp/industry-packs?limit=200">/cp/industry-packs</a>.
+        PHP <code>industry_settings</code> remains authoritative for pack deploy/assign.
+        JSON blobs omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/portal/industry_settings";
+    private bool _isAdmin;
+    private CpIndustryPacksSummary _summary = new(0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpIndustryPackDigest> _packs = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpIndustryPacksDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _packs = result.Packs;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

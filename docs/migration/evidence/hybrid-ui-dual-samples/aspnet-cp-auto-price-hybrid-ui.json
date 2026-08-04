@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-auto-price",
+  "surface": "cp",
+  "appRoute": "/cp/auto-price-app",
+  "digestRoute": "/cp/auto-price",
+  "phpAuthoritativePath": "/CP/control/portal/epc_auto_price_engine",
+  "blazorComponent": "CpAutoPriceApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-auto-price. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T06:10:00Z"
+}

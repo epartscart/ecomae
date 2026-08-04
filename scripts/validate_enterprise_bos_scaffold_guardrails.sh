@@ -256,6 +256,38 @@ check_file "cp delivery-methods item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-delivery-methods-item-field-floor.json"
 check_file "cp crosses item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-crosses-item-field-floor.json"
+check_file "cp hr-overview item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-hr-overview-item-field-floor.json"
+check_file "cp production-overview item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-production-overview-item-field-floor.json"
+check_file "cp projects-overview item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-projects-overview-item-field-floor.json"
+check_file "cp industry-packs item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-industry-packs-item-field-floor.json"
+check_file "cp jewellery-retail item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-jewellery-retail-item-field-floor.json"
+check_file "cp price-lists item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-price-lists-item-field-floor.json"
+check_file "cp budgets item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-budgets-item-field-floor.json"
+check_file "cp carriers item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-carriers-item-field-floor.json"
+check_file "cp payment-gateways item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-payment-gateways-item-field-floor.json"
+check_file "cp workflows item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-workflows-item-field-floor.json"
+check_file "cp purchase-requests item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-purchase-requests-item-field-floor.json"
+check_file "cp promotions item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-promotions-item-field-floor.json"
+check_file "cp crm-opportunities item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-crm-opportunities-item-field-floor.json"
+check_file "cp integrations item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-integrations-item-field-floor.json"
+check_file "cp auto-price item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
+check_file "cp uae-tax-compliance item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-uae-tax-compliance-item-field-floor.json"
 check_file "feature family coverage board builder" \
   "$ROOT/scripts/build_feature_family_coverage_board.py"
 check_file "feature family coverage board evidence" \

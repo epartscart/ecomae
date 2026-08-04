@@ -1,0 +1,131 @@
+@page "/cp/production-overview-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Production Overview · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-mfg-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#334155 0%,#475569 50%,#64748b 100%);
+        }
+        .epc-mfg-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-mfg-hero p { margin:0; color:#e2e8f0; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-mfg-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-mfg-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#334155; background:#cbd5e1;
+        }
+        .epc-mfg-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-mfg-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-mfg-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-mfg-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-mfg-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-mfg-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-mfg-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-mfg-table th, .epc-mfg-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-mfg-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-mfg-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-mfg-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-mfg-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Production Overview</h1>
+        <p>Read-only work orders + manufacturing KPIs from <code>/cp/production-overview</code>. BOM edits and costing stay on live PHP.</p>
+        <div class="epc-mfg-cta">
+            <a href="@_phpTab">Open PHP Production</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/hr-overview-app">HR overview</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-mfg-kpis" aria-label="Production stats">
+        <div class="epc-mfg-kpi"><strong>@_summary.BomCount.ToString(CultureInfo.InvariantCulture)</strong><span>Active BOMs</span></div>
+        <div class="epc-mfg-kpi"><strong>@_summary.OpenWorkOrders.ToString(CultureInfo.InvariantCulture)</strong><span>Open work orders</span></div>
+        <div class="epc-mfg-kpi"><strong>@_summary.CompletedWorkOrders.ToString(CultureInfo.InvariantCulture)</strong><span>Completed work orders</span></div>
+    </div>
+
+    <div class="epc-mfg-table-wrap">
+        <table class="epc-mfg-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>WO no</th>
+                    <th>Status</th>
+                    <th>Qty planned</th>
+                    <th>Qty produced</th>
+                    <th>Updated</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_workOrders.Count == 0)
+                {
+                    <tr><td colspan="7">No work orders in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var w in _workOrders)
+                    {
+                        <tr>
+                            <td><strong>@w.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(w.WoNo) ? "—" : w.WoNo)</td>
+                            <td>@(string.IsNullOrWhiteSpace(w.Status) ? "—" : w.Status)</td>
+                            <td>@w.QtyPlanned.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@w.QtyProduced.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(w.UpdatedAt > 0 ? w.UpdatedAt.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-mfg-note">
+        Read-only preview · JSON digest <a href="/cp/production-overview?limit=200">/cp/production-overview</a>.
+        PHP production/manufacturing shell remains authoritative for manufacturing workflows.
+        Cost columns omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/finance/erp?area=production&tab=manufacturing&epc_erp_shell=1";
+    private bool _isAdmin;
+    private CpProductionOverviewSummary _summary = new(0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpProductionWorkOrderDigest> _workOrders = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpProductionOverviewDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _workOrders = result.WorkOrders;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

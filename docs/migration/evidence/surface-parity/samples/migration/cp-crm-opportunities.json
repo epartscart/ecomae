@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "opportunityCount": 1,
+    "openOpportunities": 1,
+    "wonOpportunities": 0,
+    "pipelineAmount": 1000.0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; opportunities[] sentinel; notes omitted; PHP CRM opportunities authoritative; cutoverAllowed=false",
+  "opportunities": [
+    {
+      "id": 1,
+      "title": "Migration Opportunity",
+      "stage": "prospect",
+      "amount": 1000.0,
+      "probability": 10,
+      "closeDate": 0,
+      "ownerUserId": 0,
+      "leadId": 0,
+      "active": true
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

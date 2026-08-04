@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 44,
+  "routeCount": 60,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -281,6 +281,198 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-crosses-shadow-approved"
+          }
+        ]
+      },
+      "cp-hr-overview": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/hr-overview"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-hr-overview-shadow-approved"
+          }
+        ]
+      },
+      "cp-production-overview": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/production-overview"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-production-overview-shadow-approved"
+          }
+        ]
+      },
+      "cp-projects-overview": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/projects-overview"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-projects-overview-shadow-approved"
+          }
+        ]
+      },
+      "cp-industry-packs": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/industry-packs"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-industry-packs-shadow-approved"
+          }
+        ]
+      },
+      "cp-jewellery-retail": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/jewellery-retail"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-jewellery-retail-shadow-approved"
+          }
+        ]
+      },
+      "cp-price-lists": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/price-lists"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-price-lists-shadow-approved"
+          }
+        ]
+      },
+      "cp-auto-price": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/auto-price"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-auto-price-shadow-approved"
+          }
+        ]
+      },
+      "cp-uae-tax-compliance": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/uae-tax-compliance"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-uae-tax-compliance-shadow-approved"
+          }
+        ]
+      },
+      "cp-budgets": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/budgets"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-budgets-shadow-approved"
+          }
+        ]
+      },
+      "cp-carriers": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/carriers"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-carriers-shadow-approved"
+          }
+        ]
+      },
+      "cp-payment-gateways": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/payment-gateways"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-payment-gateways-shadow-approved"
+          }
+        ]
+      },
+      "cp-workflows": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/workflows"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-workflows-shadow-approved"
+          }
+        ]
+      },
+      "cp-purchase-requests": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/purchase-requests"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-purchase-requests-shadow-approved"
+          }
+        ]
+      },
+      "cp-promotions": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/promotions"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-promotions-shadow-approved"
+          }
+        ]
+      },
+      "cp-crm-opportunities": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/crm-opportunities"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-crm-opportunities-shadow-approved"
+          }
+        ]
+      },
+      "cp-integrations": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/integrations"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-integrations-shadow-approved"
           }
         ]
       },

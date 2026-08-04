@@ -100,6 +100,70 @@ SUMMARY_CONTRACTS = {
         "summary",
         "totalPairs,brands,source,message",
     ),
+    "cp-hr-overview": (
+        "summary",
+        "activeEmployees,pendingLeave,payrollRuns,attendanceRows,source,message",
+    ),
+    "cp-production-overview": (
+        "summary",
+        "bomCount,openWorkOrders,completedWorkOrders,source,message",
+    ),
+    "cp-projects-overview": (
+        "summary",
+        "openProjects,taskCount,contractCount,source,message",
+    ),
+    "cp-industry-packs": (
+        "summary",
+        "packCount,activePacks,assignments,source,message",
+    ),
+    "cp-jewellery-retail": (
+        "summary",
+        "voucherCount,openVouchers,tagCount,metalStockRows,source,message",
+    ),
+    "cp-price-lists": (
+        "summary",
+        "activeLists,priceRows,uploadCount,source,message",
+    ),
+    "cp-auto-price": (
+        "summary",
+        "activeRules,activeSources,compareRuns,source,message",
+    ),
+    "cp-uae-tax-compliance": (
+        "summary",
+        "legislationCount,vatAdvanceRows,vatRefundRows,source,message",
+    ),
+    "cp-budgets": (
+        "summary",
+        "budgetCount,activeBudgets,budgetLineCount,dimensionCount,source,message",
+    ),
+    "cp-carriers": (
+        "summary",
+        "carrierCount,activeCarriers,rateCount,openShipments,source,message",
+    ),
+    "cp-payment-gateways": (
+        "summary",
+        "gatewayCount,activeGateways,selectableGateways,accountCount,source,message",
+    ),
+    "cp-workflows": (
+        "summary",
+        "workflowCount,activeWorkflows,runCount,failedRuns,source,message",
+    ),
+    "cp-purchase-requests": (
+        "summary",
+        "reqCount,draftCount,pendingApproval,lineCount,categoryCount,source,message",
+    ),
+    "cp-promotions": (
+        "summary",
+        "promotionCount,activePromotions,percentPromotions,loyaltyAccounts,source,message",
+    ),
+    "cp-crm-opportunities": (
+        "summary",
+        "opportunityCount,openOpportunities,wonOpportunities,pipelineAmount,source,message",
+    ),
+    "cp-integrations": (
+        "summary",
+        "webhookCount,activeWebhooks,deliveryCount,failedDeliveries,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -472,6 +536,70 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-crosses": (
         "pairs",
         ["id", "manufacturer", "article", "crossManufacturer", "crossArticle"],
+    ),
+    "cp-hr-overview": (
+        "employees",
+        ["id", "code", "name", "department", "status", "joinDate"],
+    ),
+    "cp-production-overview": (
+        "workOrders",
+        ["id", "woNo", "status", "qtyPlanned", "qtyProduced", "updatedAt"],
+    ),
+    "cp-projects-overview": (
+        "projects",
+        ["id", "code", "name", "status", "billingType", "contractValue"],
+    ),
+    "cp-industry-packs": (
+        "packs",
+        ["id", "packKey", "name", "description", "icon", "active"],
+    ),
+    "cp-jewellery-retail": (
+        "vouchers",
+        ["id", "vocType", "vocDate", "vocNo", "partyName", "status", "netAmount", "vatAmount", "totalWithVat"],
+    ),
+    "cp-price-lists": (
+        "lists",
+        ["id", "code", "name", "currency", "customerId", "priority", "active"],
+    ),
+    "cp-auto-price": (
+        "rules",
+        ["id", "siteKey", "ruleKey", "minMarginPercent", "autoUpdatePrices", "scheduleHours", "active", "updatedAt"],
+    ),
+    "cp-uae-tax-compliance": (
+        "items",
+        ["id", "slug", "title", "issueDate", "category", "taxCategory", "isNew", "isUpdated", "timeSynced"],
+    ),
+    "cp-budgets": (
+        "budgets",
+        ["id", "code", "name", "fiscalYear", "businessUnitId", "isMaster", "active"],
+    ),
+    "cp-carriers": (
+        "carriers",
+        ["id", "code", "name", "mode", "currency", "rating", "active"],
+    ),
+    "cp-payment-gateways": (
+        "gateways",
+        ["id", "name", "handler", "active", "isSelectable"],
+    ),
+    "cp-workflows": (
+        "workflows",
+        ["id", "siteKey", "name", "triggerType", "active", "version", "runCount", "lastRunStatus"],
+    ),
+    "cp-purchase-requests": (
+        "requests",
+        ["id", "companyId", "reqNumber", "requester", "businessUnitId", "status", "total", "requiresApproval", "poRef", "timeCreated"],
+    ),
+    "cp-promotions": (
+        "promotions",
+        ["id", "code", "name", "type", "value", "minSpend", "validFrom", "validTo", "active"],
+    ),
+    "cp-crm-opportunities": (
+        "opportunities",
+        ["id", "title", "stage", "amount", "probability", "closeDate", "ownerUserId", "leadId", "active"],
+    ),
+    "cp-integrations": (
+        "integrations",
+        ["id", "tenantKey", "url", "active", "description", "createdAt"],
     ),
     "cp-orders-digest": (
         "orders",

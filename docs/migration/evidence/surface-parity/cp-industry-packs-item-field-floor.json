@@ -1,0 +1,26 @@
+{
+  "role": "cp-industry-packs-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-industry-packs",
+  "collectionKey": "packs",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "packCount",
+    "activePacks",
+    "assignments",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "packKey",
+    "name",
+    "description",
+    "icon",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks industry packs digest summary+packs[] floors. JSON blobs omitted. PHP industry_settings remains authoritative. cutoverAllowed=false."
+}

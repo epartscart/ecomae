@@ -809,6 +809,391 @@ public sealed record CpCrossesDigestResult(
     string Source,
     string Message);
 
+public sealed record CpHrOverviewSummary(
+    int ActiveEmployees,
+    int PendingLeave,
+    int PayrollRuns,
+    int AttendanceRows,
+    string Source,
+    string Message);
+
+public sealed record CpHrEmployeeDigest(
+    long Id,
+    string Code,
+    string Name,
+    string Department,
+    string Status,
+    long JoinDate);
+
+public sealed record CpHrOverviewDigestResult(
+    CpHrOverviewSummary Summary,
+    IReadOnlyList<CpHrEmployeeDigest> Employees,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpProductionOverviewSummary(
+    int BomCount,
+    int OpenWorkOrders,
+    int CompletedWorkOrders,
+    string Source,
+    string Message);
+
+public sealed record CpProductionWorkOrderDigest(
+    long Id,
+    string WoNo,
+    string Status,
+    decimal QtyPlanned,
+    decimal QtyProduced,
+    long UpdatedAt);
+
+public sealed record CpProductionOverviewDigestResult(
+    CpProductionOverviewSummary Summary,
+    IReadOnlyList<CpProductionWorkOrderDigest> WorkOrders,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpProjectsOverviewSummary(
+    int OpenProjects,
+    int TaskCount,
+    int ContractCount,
+    string Source,
+    string Message);
+
+public sealed record CpProjectDigest(
+    long Id,
+    string Code,
+    string Name,
+    string Status,
+    string BillingType,
+    decimal ContractValue);
+
+public sealed record CpProjectsOverviewDigestResult(
+    CpProjectsOverviewSummary Summary,
+    IReadOnlyList<CpProjectDigest> Projects,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpIndustryPacksSummary(
+    int PackCount,
+    int ActivePacks,
+    int Assignments,
+    string Source,
+    string Message);
+
+public sealed record CpIndustryPackDigest(
+    long Id,
+    string PackKey,
+    string Name,
+    string Description,
+    string Icon,
+    bool Active);
+
+public sealed record CpIndustryPacksDigestResult(
+    CpIndustryPacksSummary Summary,
+    IReadOnlyList<CpIndustryPackDigest> Packs,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryRetailSummary(
+    int VoucherCount,
+    int OpenVouchers,
+    int TagCount,
+    int MetalStockRows,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryVoucherDigest(
+    long Id,
+    string VocType,
+    string VocDate,
+    long VocNo,
+    string PartyName,
+    string Status,
+    decimal NetAmount,
+    decimal VatAmount,
+    decimal TotalWithVat);
+
+public sealed record CpJewelleryRetailDigestResult(
+    CpJewelleryRetailSummary Summary,
+    IReadOnlyList<CpJewelleryVoucherDigest> Vouchers,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPriceListsSummary(
+    int ActiveLists,
+    int PriceRows,
+    int UploadCount,
+    string Source,
+    string Message);
+
+public sealed record CpPriceListDigest(
+    long Id,
+    string Code,
+    string Name,
+    string Currency,
+    long CustomerId,
+    int Priority,
+    bool Active);
+
+public sealed record CpPriceListsDigestResult(
+    CpPriceListsSummary Summary,
+    IReadOnlyList<CpPriceListDigest> Lists,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpAutoPriceSummary(
+    int ActiveRules,
+    int ActiveSources,
+    int CompareRuns,
+    string Source,
+    string Message);
+
+public sealed record CpAutoPriceRuleDigest(
+    long Id,
+    string SiteKey,
+    string RuleKey,
+    decimal MinMarginPercent,
+    bool AutoUpdatePrices,
+    int ScheduleHours,
+    bool Active,
+    long UpdatedAt);
+
+public sealed record CpAutoPriceDigestResult(
+    CpAutoPriceSummary Summary,
+    IReadOnlyList<CpAutoPriceRuleDigest> Rules,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpUaeTaxComplianceSummary(
+    int LegislationCount,
+    int VatAdvanceRows,
+    int VatRefundRows,
+    string Source,
+    string Message);
+
+public sealed record CpUaeTaxItemDigest(
+    long Id,
+    string Slug,
+    string Title,
+    string IssueDate,
+    string Category,
+    string TaxCategory,
+    bool IsNew,
+    bool IsUpdated,
+    long TimeSynced);
+
+public sealed record CpUaeTaxComplianceDigestResult(
+    CpUaeTaxComplianceSummary Summary,
+    IReadOnlyList<CpUaeTaxItemDigest> Items,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpBudgetsSummary(
+    int BudgetCount,
+    int ActiveBudgets,
+    int BudgetLineCount,
+    int DimensionCount,
+    string Source,
+    string Message);
+
+public sealed record CpBudgetDigest(
+    long Id,
+    string Code,
+    string Name,
+    string FiscalYear,
+    long BusinessUnitId,
+    bool IsMaster,
+    bool Active);
+
+public sealed record CpBudgetsDigestResult(
+    CpBudgetsSummary Summary,
+    IReadOnlyList<CpBudgetDigest> Budgets,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpCarriersSummary(
+    int CarrierCount,
+    int ActiveCarriers,
+    int RateCount,
+    int OpenShipments,
+    string Source,
+    string Message);
+
+public sealed record CpCarrierDigest(
+    long Id,
+    string Code,
+    string Name,
+    string Mode,
+    string Currency,
+    decimal Rating,
+    bool Active);
+
+public sealed record CpCarriersDigestResult(
+    CpCarriersSummary Summary,
+    IReadOnlyList<CpCarrierDigest> Carriers,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPaymentGatewaysSummary(
+    int GatewayCount,
+    int ActiveGateways,
+    int SelectableGateways,
+    int AccountCount,
+    string Source,
+    string Message);
+
+public sealed record CpPaymentGatewayDigest(
+    long Id,
+    string Name,
+    string Handler,
+    bool Active,
+    bool IsSelectable);
+
+public sealed record CpPaymentGatewaysDigestResult(
+    CpPaymentGatewaysSummary Summary,
+    IReadOnlyList<CpPaymentGatewayDigest> Gateways,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpWorkflowsSummary(
+    int WorkflowCount,
+    int ActiveWorkflows,
+    int RunCount,
+    int FailedRuns,
+    string Source,
+    string Message);
+
+public sealed record CpWorkflowDigest(
+    long Id,
+    string SiteKey,
+    string Name,
+    string TriggerType,
+    bool Active,
+    int Version,
+    int RunCount,
+    string LastRunStatus);
+
+public sealed record CpWorkflowsDigestResult(
+    CpWorkflowsSummary Summary,
+    IReadOnlyList<CpWorkflowDigest> Workflows,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPurchaseRequestsSummary(
+    int ReqCount,
+    int DraftCount,
+    int PendingApproval,
+    int LineCount,
+    int CategoryCount,
+    string Source,
+    string Message);
+
+public sealed record CpPurchaseRequestDigest(
+    long Id,
+    long CompanyId,
+    string ReqNumber,
+    string Requester,
+    long BusinessUnitId,
+    string Status,
+    decimal Total,
+    bool RequiresApproval,
+    string PoRef,
+    long TimeCreated);
+
+public sealed record CpPurchaseRequestsDigestResult(
+    CpPurchaseRequestsSummary Summary,
+    IReadOnlyList<CpPurchaseRequestDigest> Requests,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPromotionsSummary(
+    int PromotionCount,
+    int ActivePromotions,
+    int PercentPromotions,
+    int LoyaltyAccounts,
+    string Source,
+    string Message);
+
+public sealed record CpPromotionDigest(
+    long Id,
+    string Code,
+    string Name,
+    string Type,
+    decimal Value,
+    decimal MinSpend,
+    long ValidFrom,
+    long ValidTo,
+    bool Active);
+
+public sealed record CpPromotionsDigestResult(
+    CpPromotionsSummary Summary,
+    IReadOnlyList<CpPromotionDigest> Promotions,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpCrmOpportunitiesSummary(
+    int OpportunityCount,
+    int OpenOpportunities,
+    int WonOpportunities,
+    decimal PipelineAmount,
+    string Source,
+    string Message);
+
+public sealed record CpCrmOpportunityDigest(
+    long Id,
+    string Title,
+    string Stage,
+    decimal Amount,
+    int Probability,
+    long CloseDate,
+    long OwnerUserId,
+    long LeadId,
+    bool Active);
+
+public sealed record CpCrmOpportunitiesDigestResult(
+    CpCrmOpportunitiesSummary Summary,
+    IReadOnlyList<CpCrmOpportunityDigest> Opportunities,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpIntegrationsSummary(
+    int WebhookCount,
+    int ActiveWebhooks,
+    int DeliveryCount,
+    int FailedDeliveries,
+    string Source,
+    string Message);
+
+public sealed record CpIntegrationDigest(
+    long Id,
+    string TenantKey,
+    string Url,
+    bool Active,
+    string Description,
+    string CreatedAt);
+
+public sealed record CpIntegrationsDigestResult(
+    CpIntegrationsSummary Summary,
+    IReadOnlyList<CpIntegrationDigest> Integrations,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontPartOfferDigest(
     int PriceId,
     string PriceList,

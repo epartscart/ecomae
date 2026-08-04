@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-industry-packs",
+  "surface": "cp",
+  "appRoute": "/cp/industry-packs-app",
+  "digestRoute": "/cp/industry-packs",
+  "phpAuthoritativePath": "/CP/control/portal/industry_settings",
+  "blazorComponent": "CpIndustryPacksApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-industry-packs. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T05:55:00Z"
+}

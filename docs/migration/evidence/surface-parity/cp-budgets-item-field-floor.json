@@ -1,0 +1,28 @@
+{
+  "role": "cp-budgets-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-budgets",
+  "collectionKey": "budgets",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "budgetCount",
+    "activeBudgets",
+    "budgetLineCount",
+    "dimensionCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "code",
+    "name",
+    "fiscalYear",
+    "businessUnitId",
+    "isMaster",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks budgets digest summary+budgets[] floors. note omitted. PHP budgeting remains authoritative. cutoverAllowed=false."
+}

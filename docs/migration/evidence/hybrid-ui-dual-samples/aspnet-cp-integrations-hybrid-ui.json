@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-integrations",
+  "surface": "cp",
+  "appRoute": "/cp/integrations-app",
+  "digestRoute": "/cp/integrations",
+  "phpAuthoritativePath": "/CP/control/portal/epc_integrations_hub",
+  "blazorComponent": "CpIntegrationsApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-integrations. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T06:30:00Z"
+}

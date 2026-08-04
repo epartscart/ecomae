@@ -1,0 +1,133 @@
+@page "/cp/price-lists-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Price Lists · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-pl-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 50%,#2563eb 100%);
+        }
+        .epc-pl-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-pl-hero p { margin:0; color:#dbeafe; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-pl-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-pl-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#1e3a8a; background:#93c5fd;
+        }
+        .epc-pl-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-pl-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-pl-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-pl-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-pl-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-pl-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-pl-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-pl-table th, .epc-pl-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-pl-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-pl-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-pl-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-pl-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Price Lists</h1>
+        <p>Read-only price lists + upload KPIs from <code>/cp/price-lists</code>. Row edits and uploads stay on live PHP.</p>
+        <div class="epc-pl-cta">
+            <a href="@_phpTab">Open PHP prices</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/auto-price-app">Auto-price</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-pl-kpis" aria-label="Price list stats">
+        <div class="epc-pl-kpi"><strong>@_summary.ActiveLists.ToString(CultureInfo.InvariantCulture)</strong><span>Active lists</span></div>
+        <div class="epc-pl-kpi"><strong>@_summary.PriceRows.ToString(CultureInfo.InvariantCulture)</strong><span>Price rows</span></div>
+        <div class="epc-pl-kpi"><strong>@_summary.UploadCount.ToString(CultureInfo.InvariantCulture)</strong><span>Upload history</span></div>
+    </div>
+
+    <div class="epc-pl-table-wrap">
+        <table class="epc-pl-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Currency</th>
+                    <th>Customer</th>
+                    <th>Priority</th>
+                    <th>Active</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_lists.Count == 0)
+                {
+                    <tr><td colspan="8">No price lists in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var l in _lists)
+                    {
+                        <tr>
+                            <td><strong>@l.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(l.Code) ? "—" : l.Code)</td>
+                            <td>@(string.IsNullOrWhiteSpace(l.Name) ? "—" : l.Name)</td>
+                            <td>@(string.IsNullOrWhiteSpace(l.Currency) ? "—" : l.Currency)</td>
+                            <td>@l.CustomerId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@l.Priority.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(l.Active ? "yes" : "no")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-pl-note">
+        Read-only preview · JSON digest <a href="/cp/price-lists?limit=200">/cp/price-lists</a>.
+        PHP <code>/CP/shop/prices</code> remains authoritative for list edits and uploads.
+        stats_json/error_text/stored_relpath omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/prices";
+    private bool _isAdmin;
+    private CpPriceListsSummary _summary = new(0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpPriceListDigest> _lists = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpPriceListsDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _lists = result.Lists;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

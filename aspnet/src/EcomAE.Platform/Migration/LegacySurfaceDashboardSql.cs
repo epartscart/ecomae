@@ -714,6 +714,316 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>HR overview KPIs — omits salary/allowances/currency/payslip detail.</summary>
+    public const string SelectCpHrStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_hr_employees` WHERE IFNULL(`status`,'')='active') AS active_employees,
+            (SELECT COUNT(*) FROM `epc_hr_leave` WHERE IFNULL(`status`,'')='pending') AS pending_leave,
+            (SELECT COUNT(*) FROM `epc_hr_payroll_runs`) AS payroll_runs,
+            (SELECT COUNT(*) FROM `epc_hr_attendance`) AS attendance_rows
+        """;
+
+    /// <summary>HR employees — omits salary/allowances/currency/payslip detail.</summary>
+    public const string SelectCpHrEmployees = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`department`,'') AS department, IFNULL(`status`,'') AS status,
+               IFNULL(`join_date`,0) AS join_date
+        FROM `epc_hr_employees`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Production overview KPIs — omits cost columns.</summary>
+    public const string SelectCpProductionStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_mfg_bom` WHERE IFNULL(`active`,0)=1) AS bom_count,
+            (SELECT COUNT(*) FROM `epc_mfg_work_orders` WHERE `status` IN ('planned','in_progress')) AS open_work_orders,
+            (SELECT COUNT(*) FROM `epc_mfg_work_orders` WHERE `status`='completed') AS completed_work_orders
+        """;
+
+    /// <summary>Production work orders — omits cost columns.</summary>
+    public const string SelectCpProductionWorkOrders = """
+        SELECT `id`, IFNULL(`wo_no`,'') AS wo_no, IFNULL(`status`,'') AS status,
+               IFNULL(`qty_planned`,0) AS qty_planned, IFNULL(`qty_produced`,0) AS qty_produced,
+               IFNULL(`time_updated`,0) AS updated_at
+        FROM `epc_mfg_work_orders`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Projects overview KPIs — omits timesheet rates; includes contract count.</summary>
+    public const string SelectCpProjectsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_prj_projects` WHERE IFNULL(`status`,'')='open') AS open_projects,
+            (SELECT COUNT(*) FROM `epc_prj_tasks`) AS task_count,
+            (SELECT COUNT(*) FROM `epc_con_contracts`) AS contract_count
+        """;
+
+    /// <summary>Projects list — omits timesheet rates.</summary>
+    public const string SelectCpProjects = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`status`,'') AS status, IFNULL(`billing_type`,'') AS billing_type,
+               IFNULL(`contract_value`,0) AS contract_value
+        FROM `epc_prj_projects`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Industry pack KPIs — omits JSON blobs.</summary>
+    public const string SelectCpIndustryPackStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_industry_packs`) AS pack_count,
+            (SELECT COUNT(*) FROM `epc_industry_packs` WHERE IFNULL(`active`,0)=1) AS active_packs,
+            (SELECT COUNT(*) FROM `epc_tenant_pack_assignments`) AS assignments
+        """;
+
+    /// <summary>Industry packs — omits modules/gl_template/tax_rules/theme/product_attrs JSON.</summary>
+    public const string SelectCpIndustryPacks = """
+        SELECT `id`, IFNULL(`pack_key`,'') AS pack_key, IFNULL(`name`,'') AS name,
+               IFNULL(`description`,'') AS description, IFNULL(`icon`,'') AS icon,
+               IFNULL(`active`,0) AS active
+        FROM `epc_industry_packs`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Jewellery retail KPIs — omits mobile/email/tel/passport/remarks/narration/customer PII/cost.</summary>
+    public const string SelectCpJewelleryStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_jewel_voucher`) AS voucher_count,
+            (SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE IFNULL(`status`,'') IN ('draft','posted','authorized')) AS open_vouchers,
+            (SELECT COUNT(*) FROM `epc_jw_tags`) AS tag_count,
+            (SELECT COUNT(*) FROM `epc_jewel_metal_stock`) AS metal_stock_rows
+        """;
+
+    /// <summary>Jewellery vouchers — omits mobile/email/tel/passport/remarks/narration/customer PII/cost.</summary>
+    public const string SelectCpJewelleryVouchers = """
+        SELECT `id`, IFNULL(`voc_type`,'') AS voc_type, IFNULL(`voc_date`,'') AS voc_date,
+               IFNULL(`voc_no`,0) AS voc_no, IFNULL(`party_name`,'') AS party_name,
+               IFNULL(`status`,'') AS status,
+               IFNULL(`net_amount`,0) AS net_amount, IFNULL(`vat_amount`,0) AS vat_amount,
+               IFNULL(`total_with_vat`,0) AS total_with_vat
+        FROM `epc_jewel_voucher`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Price list KPIs — omits stats_json/error_text/stored_relpath.</summary>
+    public const string SelectCpPriceListStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_pl_lists` WHERE IFNULL(`active`,0)=1) AS active_lists,
+            (SELECT COUNT(*) FROM `epc_pl_prices`) AS price_rows,
+            (SELECT COUNT(*) FROM `epc_price_upload_history`) AS upload_count
+        """;
+
+    /// <summary>Price lists — omits stats_json/error_text/stored_relpath.</summary>
+    public const string SelectCpPriceLists = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`currency`,'') AS currency, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`priority`,0) AS priority, IFNULL(`active`,0) AS active
+        FROM `epc_pl_lists`
+        ORDER BY `priority` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Auto-price KPIs — omits config_json/notes/meta.</summary>
+    public const string SelectCpAutoPriceStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_auto_price_rules` WHERE IFNULL(`active`,0)=1) AS active_rules,
+            (SELECT COUNT(*) FROM `epc_price_sources` WHERE IFNULL(`active`,0)=1) AS active_sources,
+            (SELECT COUNT(*) FROM `epc_price_compare_runs`) AS compare_runs
+        """;
+
+    /// <summary>Auto-price rules — omits config_json/notes/meta.</summary>
+    public const string SelectCpAutoPriceRules = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`rule_key`,'') AS rule_key,
+               IFNULL(`min_margin_percent`,0) AS min_margin_percent,
+               IFNULL(`auto_update_prices`,0) AS auto_update_prices,
+               IFNULL(`schedule_hours`,0) AS schedule_hours,
+               IFNULL(`active`,0) AS active, IFNULL(`updated_at`,0) AS updated_at
+        FROM `epc_auto_price_rules`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>UAE tax KPIs — omits erp_summary/compliance_actions_json/pdf_url/passport.</summary>
+    public const string SelectCpUaeTaxStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_uae_tax_legislation_items`) AS legislation_count,
+            (SELECT COUNT(*) FROM `epc_uae_vat_advance`) AS vat_advance_rows,
+            (SELECT COUNT(*) FROM `epc_bos_vat_refunds`) AS vat_refund_rows
+        """;
+
+    /// <summary>UAE tax legislation items — omits erp_summary/compliance_actions_json/pdf_url/passport.</summary>
+    public const string SelectCpUaeTaxItems = """
+        SELECT `id`, IFNULL(`slug`,'') AS slug, IFNULL(`title`,'') AS title,
+               IFNULL(`issue_date`,'') AS issue_date, IFNULL(`category`,'') AS category,
+               IFNULL(`tax_category`,'') AS tax_category,
+               IFNULL(`is_new`,0) AS is_new, IFNULL(`is_updated`,0) AS is_updated,
+               IFNULL(`time_synced`,0) AS time_synced
+        FROM `epc_uae_tax_legislation_items`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Budget KPIs — omits note text.</summary>
+    public const string SelectCpBudgetStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_pm_budgets`) AS budget_count,
+            (SELECT COUNT(*) FROM `epc_erp_pm_budgets` WHERE IFNULL(`active`,0)=1) AS active_budgets,
+            (SELECT COUNT(*) FROM `epc_erp_pm_budget_lines`) AS budget_line_count,
+            (SELECT COUNT(*) FROM `epc_erp_pm_dimensions`) AS dimension_count
+        """;
+
+    /// <summary>Budgets — omits note.</summary>
+    public const string SelectCpBudgets = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`fiscal_year`,'') AS fiscal_year,
+               IFNULL(`business_unit_id`,0) AS business_unit_id,
+               IFNULL(`is_master`,0) AS is_master, IFNULL(`active`,0) AS active
+        FROM `epc_erp_pm_budgets`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Carrier KPIs — omits contact PII.</summary>
+    public const string SelectCpCarrierStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_carriers`) AS carrier_count,
+            (SELECT COUNT(*) FROM `epc_erp_carriers` WHERE IFNULL(`active`,0)=1) AS active_carriers,
+            (SELECT COUNT(*) FROM `epc_erp_carrier_rates`) AS rate_count,
+            (SELECT COUNT(*) FROM `epc_erp_shipments` WHERE IFNULL(`status`,'') IN ('planned','dispatched','in_transit')) AS open_shipments
+        """;
+
+    /// <summary>Carriers — omits contact_name/phone/email/tax_id.</summary>
+    public const string SelectCpCarriers = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`mode`,'') AS mode, IFNULL(`currency`,'') AS currency,
+               IFNULL(`rating`,0) AS rating, IFNULL(`active`,0) AS active
+        FROM `epc_erp_carriers`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Payment gateway KPIs — omits parameters/credentials.</summary>
+    public const string SelectCpPaymentGatewayStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_payment_systems`) AS gateway_count,
+            (SELECT COUNT(*) FROM `shop_payment_systems` WHERE IFNULL(`active`,0)=1) AS active_gateways,
+            (SELECT COUNT(*) FROM `shop_payment_systems` WHERE IFNULL(`is_selectable`,0)=1) AS selectable_gateways,
+            (SELECT COUNT(*) FROM `epc_payment_accounts`) AS account_count
+        """;
+
+    /// <summary>Payment gateways — omits parameters/parameters_values/description.</summary>
+    public const string SelectCpPaymentGateways = """
+        SELECT `id`, IFNULL(`name`,'') AS name, IFNULL(`handler`,'') AS handler,
+               IFNULL(`active`,0) AS active, IFNULL(`is_selectable`,0) AS is_selectable
+        FROM `shop_payment_systems`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Workflow KPIs — omits trigger_config/step JSON.</summary>
+    public const string SelectCpWorkflowStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_workflows`) AS workflow_count,
+            (SELECT COUNT(*) FROM `epc_workflows` WHERE IFNULL(`active`,0)=1) AS active_workflows,
+            (SELECT COUNT(*) FROM `epc_workflow_runs`) AS run_count,
+            (SELECT COUNT(*) FROM `epc_workflow_runs` WHERE IFNULL(`status`,'')='failed') AS failed_runs
+        """;
+
+    /// <summary>Workflows — omits trigger_config/description JSON blobs.</summary>
+    public const string SelectCpWorkflows = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`name`,'') AS name,
+               IFNULL(`trigger_type`,'') AS trigger_type, IFNULL(`active`,0) AS active,
+               IFNULL(`version`,0) AS version, IFNULL(`run_count`,0) AS run_count,
+               IFNULL(`last_run_status`,'') AS last_run_status
+        FROM `epc_workflows`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Purchase requisition KPIs — omits justification/decision notes.</summary>
+    public const string SelectCpPurchaseRequestStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_proc_req`) AS req_count,
+            (SELECT COUNT(*) FROM `epc_proc_req` WHERE IFNULL(`status`,'')='draft') AS draft_count,
+            (SELECT COUNT(*) FROM `epc_proc_req` WHERE IFNULL(`requires_approval`,0)=1 AND IFNULL(`status`,'') NOT IN ('approved','rejected','converted')) AS pending_approval,
+            (SELECT COUNT(*) FROM `epc_proc_req_line`) AS line_count,
+            (SELECT COUNT(*) FROM `epc_proc_category` WHERE IFNULL(`active`,0)=1) AS category_count
+        """;
+
+    /// <summary>Purchase requisitions — omits justification/decision_note.</summary>
+    public const string SelectCpPurchaseRequests = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`req_number`,'') AS req_number,
+               IFNULL(`requester`,'') AS requester, IFNULL(`business_unit_id`,0) AS business_unit_id,
+               IFNULL(`status`,'') AS status, IFNULL(`total`,0) AS total,
+               IFNULL(`requires_approval`,0) AS requires_approval, IFNULL(`po_ref`,'') AS po_ref,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_proc_req`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Promotion KPIs.</summary>
+    public const string SelectCpPromotionStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_promo_promotions`) AS promotion_count,
+            (SELECT COUNT(*) FROM `epc_promo_promotions` WHERE IFNULL(`active`,0)=1) AS active_promotions,
+            (SELECT COUNT(*) FROM `epc_promo_promotions` WHERE IFNULL(`type`,'')='percent') AS percent_promotions,
+            (SELECT COUNT(*) FROM `epc_loy_accounts`) AS loyalty_accounts
+        """;
+
+    /// <summary>Promotions from epc_promo_promotions.</summary>
+    public const string SelectCpPromotions = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`type`,'') AS type, IFNULL(`value`,0) AS value,
+               IFNULL(`min_spend`,0) AS min_spend, IFNULL(`valid_from`,0) AS valid_from,
+               IFNULL(`valid_to`,0) AS valid_to, IFNULL(`active`,0) AS active
+        FROM `epc_promo_promotions`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>CRM opportunity KPIs — omits notes.</summary>
+    public const string SelectCpCrmOpportunityStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE IFNULL(`active`,0)=1) AS opportunity_count,
+            (SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE IFNULL(`active`,0)=1 AND IFNULL(`stage`,'') NOT IN ('won','lost')) AS open_opportunities,
+            (SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE IFNULL(`active`,0)=1 AND IFNULL(`stage`,'')='won') AS won_opportunities,
+            (SELECT IFNULL(SUM(`amount`),0) FROM `epc_crm_opportunities` WHERE IFNULL(`active`,0)=1 AND IFNULL(`stage`,'') NOT IN ('won','lost')) AS pipeline_amount
+        """;
+
+    /// <summary>CRM opportunities — omits notes.</summary>
+    public const string SelectCpCrmOpportunities = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`stage`,'') AS stage,
+               IFNULL(`amount`,0) AS amount, IFNULL(`probability`,0) AS probability,
+               IFNULL(`close_date`,0) AS close_date, IFNULL(`owner_user_id`,0) AS owner_user_id,
+               IFNULL(`lead_id`,0) AS lead_id, IFNULL(`active`,0) AS active
+        FROM `epc_crm_opportunities`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Integrations/webhook KPIs — omits secrets/payloads.</summary>
+    public const string SelectCpIntegrationStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_webhooks`) AS webhook_count,
+            (SELECT COUNT(*) FROM `epc_webhooks` WHERE IFNULL(`active`,0)=1) AS active_webhooks,
+            (SELECT COUNT(*) FROM `epc_webhook_deliveries`) AS delivery_count,
+            (SELECT COUNT(*) FROM `epc_webhook_deliveries` WHERE IFNULL(`status`,'') IN ('failed','dlq')) AS failed_deliveries
+        """;
+
+    /// <summary>Integrations/webhooks — omits secret_hash/secret_encrypted/events.</summary>
+    public const string SelectCpIntegrations = """
+        SELECT `id`, IFNULL(`tenant_key`,'') AS tenant_key, IFNULL(`url`,'') AS url,
+               IFNULL(`active`,0) AS active, IFNULL(`description`,'') AS description,
+               IFNULL(`created_at`,'') AS created_at
+        FROM `epc_webhooks`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>
     /// Batch 4 storefront part search (mirrors pyapi <c>part_search</c> / warehouse offers).
     /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.

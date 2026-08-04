@@ -113,6 +113,54 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only article cross pairs.</summary>
     Task<CpCrossesDigestResult> BuildCpCrossesDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only HR KPIs + employees (salary/allowances/currency/payslip omitted).</summary>
+    Task<CpHrOverviewDigestResult> BuildCpHrOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only production KPIs + work orders (cost columns omitted).</summary>
+    Task<CpProductionOverviewDigestResult> BuildCpProductionOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only projects KPIs + projects (timesheet rates omitted).</summary>
+    Task<CpProjectsOverviewDigestResult> BuildCpProjectsOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only industry packs (JSON blobs omitted).</summary>
+    Task<CpIndustryPacksDigestResult> BuildCpIndustryPacksDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only jewellery retail KPIs + vouchers (PII/cost omitted).</summary>
+    Task<CpJewelleryRetailDigestResult> BuildCpJewelleryRetailDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only price lists (stats_json/error_text/stored_relpath omitted).</summary>
+    Task<CpPriceListsDigestResult> BuildCpPriceListsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only auto-price rules (config_json/notes/meta omitted).</summary>
+    Task<CpAutoPriceDigestResult> BuildCpAutoPriceDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only UAE tax legislation (erp_summary/pdf/passport omitted).</summary>
+    Task<CpUaeTaxComplianceDigestResult> BuildCpUaeTaxComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only budgets (note omitted).</summary>
+    Task<CpBudgetsDigestResult> BuildCpBudgetsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only carriers (contact PII omitted).</summary>
+    Task<CpCarriersDigestResult> BuildCpCarriersDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only payment gateways (parameters/credentials omitted).</summary>
+    Task<CpPaymentGatewaysDigestResult> BuildCpPaymentGatewaysDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only workflows (trigger_config/JSON omitted).</summary>
+    Task<CpWorkflowsDigestResult> BuildCpWorkflowsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only purchase requisitions (justification/decision_note omitted).</summary>
+    Task<CpPurchaseRequestsDigestResult> BuildCpPurchaseRequestsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only promotions (epc_promo_promotions).</summary>
+    Task<CpPromotionsDigestResult> BuildCpPromotionsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only CRM opportunities (notes omitted).</summary>
+    Task<CpCrmOpportunitiesDigestResult> BuildCpCrmOpportunitiesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only integrations/webhooks (secrets/events omitted).</summary>
+    Task<CpIntegrationsDigestResult> BuildCpIntegrationsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 
