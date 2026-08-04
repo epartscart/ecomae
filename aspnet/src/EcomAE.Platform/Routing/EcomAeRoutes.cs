@@ -595,6 +595,8 @@ public static class EcomAeRoutes
     public const string StorefrontQuoteSubmit = "/storefront/quotes/submit";
     /// <summary>Wave B dry-run quote accept (PHP ajax_quote_accept.php remains authoritative; cart INSERT stays PHP).</summary>
     public const string StorefrontQuoteAccept = "/storefront/quotes/accept";
+    /// <summary>Wave B dry-run quote add-item (PHP ajax_add_to_quote.php remains authoritative; check_hash stays PHP).</summary>
+    public const string StorefrontQuoteAddItem = "/storefront/quotes/add-item";
     /// <summary>Wave B dry-run garage set-active (PHP ajax_operations_cars.php action=active_car remains authoritative).</summary>
     public const string StorefrontGarageSetActive = "/storefront/garage/set-active";
     /// <summary>Wave B dry-run customer order message (PHP ajax_send_message.php customer path remains authoritative).</summary>
@@ -639,6 +641,8 @@ public static class EcomAeRoutes
     public const string MarketingBosApp = "/marketing/bos";
     /// <summary>Marketing blockchain Blazor scaffold (PHP /blockchain remains primary until dual-sample).</summary>
     public const string MarketingBlockchainApp = "/marketing/blockchain";
+    /// <summary>Marketing documentation Blazor scaffold (PHP /documentation remains primary until dual-sample).</summary>
+    public const string MarketingDocumentationApp = "/marketing/documentation";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
