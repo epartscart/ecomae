@@ -68,6 +68,9 @@ probe_post "/storefront/cart/delete" '{"recordsToDel":[1],"confirmWrites":false}
 probe_post "/cp/orders/set-item-status" '{"orderId":1,"itemId":1,"status":2,"confirmWrites":false}' "$ADMIN_COOKIE" "oms set-item-status"
 probe_post "/cp/orders/set-items-status" '{"orderId":1,"status":2,"itemIds":[1,2],"confirmWrites":false}' "$ADMIN_COOKIE" "oms set-items-status"
 probe_post "/erp/cash-entries/amend" '{"entryId":1,"reference":"dry-run","note":"wave-b","confirmWrites":false}' "$ADMIN_COOKIE" "erp cash-entries amend"
+probe_post "/erp/cash-entries/void" '{"entryId":1,"reason":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp cash-entries void"
+probe_post "/erp/gl-journals/manual" '{"lines":[{"coaId":1,"debit":10,"credit":0},{"coaId":2,"debit":0,"credit":10}],"reference":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp gl-journals manual"
+probe_post "/storefront/cart/add" '{"productType":2,"manufacturer":"Bosch","article":"0986","countNeed":1,"price":12,"confirmWrites":false}' "$COOKIE" "cart add type-2"
 
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]

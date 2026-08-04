@@ -1,0 +1,66 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_platform() — overview hero + model cards + onboarding.
+  Full area screenshot sections remain PHP deeplinks until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-platform-overview">
+	<div class="epm-hero">
+		<img class="epm-hero__img" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=75" alt="" loading="lazy" />
+		<div class="epm-hero__shade"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge">Blockchain BOS Enterprise System · complete overview</div>
+			<h1>Everything in the ECOM AE Blockchain BOS — by area</h1>
+			<p class="lead">One Blockchain BOS Enterprise System: <strong>ERP + commerce + compliance + workflows + CRM + industry intelligence + cryptographic proof</strong> — go live in <strong>24 hours</strong> with <strong>e-invoice</strong> built in.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="@(EcomaeMarketingPages.LiveBase)platform#super-cp">Super CP</a>
+				<a class="epm-btn epm-btn--ghost" href="@(EcomaeMarketingPages.LiveBase)platform/platform-guides">Super CP guides</a>
+				<a class="epm-btn epm-btn--outline" href="@(EcomaeMarketingPages.LiveBase)platform/industries">Industries</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-cloud"></i>
+			<strong>Super CP</strong>
+			<p>You onboard tenants, modules, and DNS from <a href="@EcomaeMarketingPages.SuperCpUrl" target="_blank" rel="noopener">www.ecomae.com/cp</a> — not visible on client domains.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-desktop"></i>
+			<strong>Client CP</strong>
+			<p>Staff work at <code>www.client.com/cp</code> — orders, stock, finance, documents.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-shopping-bag"></i>
+			<strong>Storefront</strong>
+			<p>Shoppers and clients use <code>www.client.com</code> — themed per industry.</p>
+		</div>
+	</div>
+
+	<h2 class="epm-section-title">How onboarding works</h2>
+	<ol class="epm-steps">
+		<li>Register the client in Super CP (intro form + industry template + visual style).</li>
+		<li>Client adds registrar A records → platform IP — no separate hosting package.</li>
+		<li>We add their domain as an nginx alias on the live storefront stack — tenant DB routing by hostname.</li>
+		<li>Set tenant status to <strong>Live</strong> — storefront at www.client.com, CP at /cp/.</li>
+		<li>Optional: @EcomaeMarketingPages.DemoDays-day demo, then monthly rental.</li>
+	</ol>
+
+	<div class="epm-highlight">
+		<h3>Pick an industry template</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">Each vertical has its own page with storefront vs CP features, workflows, and module packs.</p>
+		<a class="epm-btn epm-btn--primary" href="@(EcomaeMarketingPages.LiveBase)platform/industries">Browse industries</a>
+	</div>
+	<div class="epm-cta">
+		<a class="epm-btn epm-btn--primary" href="@(EcomaeMarketingPages.LiveBase)platform/demo">Book @EcomaeMarketingPages.DemoDays-day demo</a>
+		<a class="epm-btn epm-btn--ghost" href="@(EcomaeMarketingPages.LiveBase)platform/pricing">View rental plans</a>
+		<a class="epm-btn epm-btn--ghost" href="/marketing/app?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform"))">Open full PHP platform (hybrid)</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET overview scaffold — area screenshot sections and ecosystem strips still dual-sample against live PHP <code>/platform</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

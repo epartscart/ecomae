@@ -332,11 +332,49 @@ public sealed class StorefrontModule : ISurfaceModule
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontCartAdd, async (
+            HttpContext context,
+            StorefrontCartAddBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontCartAddDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for cart add dry-run.");
+            }
+
+            body ??= new StorefrontCartAddBody(2, null, null, 0, 0, 0, 0, false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontCartAddRequest(
+                    body.ProductType,
+                    body.Manufacturer,
+                    body.Article,
+                    body.CountNeed,
+                    body.Price,
+                    body.MinOrder,
+                    body.Exist,
+                    body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
     }
 
     private sealed record StorefrontCartChangeCountNeedBody(int Id, decimal CountNeed, bool ConfirmWrites = false);
     private sealed record StorefrontCartCheckForOrderBody(IReadOnlyList<long>? Records, bool ConfirmWrites = false);
     private sealed record StorefrontCartDeleteBody(IReadOnlyList<long>? RecordsToDel, bool ConfirmWrites = false);
+    private sealed record StorefrontCartAddBody(
+        int ProductType,
+        string? Manufacturer,
+        string? Article,
+        decimal CountNeed,
+        decimal Price,
+        decimal MinOrder = 0,
+        decimal Exist = 0,
+        bool ConfirmWrites = false);
 
     private static IResult Unauthorized(string message) => Results.Json(
         new { ok = false, error = new { code = "unauthorized", message } },
