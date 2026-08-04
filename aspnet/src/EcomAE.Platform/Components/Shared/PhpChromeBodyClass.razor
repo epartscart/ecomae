@@ -1,0 +1,19 @@
+@using EcomAE.Platform.Presentation
+@*
+  Applies PHP-matching document.body classes (Blazor layout leaves body bare).
+*@
+<script>
+(function () {
+  var cls = '@BodyClass';
+  if (cls) document.body.className = cls;
+})();
+</script>
+
+@code {
+  [Parameter, EditorRequired] public string Surface { get; set; } = "cp";
+    [Parameter] public bool LoginChrome { get; set; }
+
+    private string BodyClass => LoginChrome
+        ? LegacyPresentationAssets.LoginBodyClassFor(Surface)
+        : LegacyPresentationAssets.BodyClassFor(Surface);
+}

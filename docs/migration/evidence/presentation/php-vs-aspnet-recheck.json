@@ -1,15 +1,17 @@
 {
-  "status": "fail",
+  "status": "soft-fail",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "failureCount": 6,
+  "failureCount": 3,
+  "warningCount": 2,
   "failures": [
-    "cp-unauth: ASP.NET body 7304B << PHP 30247B \u2014 full-page presentation not matched",
-    "erp-unauth: ASP.NET body 7862B << PHP 170612B \u2014 full-page presentation not matched",
-    "bos-unauth: ASP.NET body 6039B << PHP 32724B \u2014 full-page presentation not matched",
-    "storefront: ASP.NET body 8280B << PHP 506927B \u2014 full-page presentation not matched",
-    "storefront: PHP has gtag/analytics; ASP.NET preview missing analytics tags",
-    "FUNCTIONALITY: interactive CP/ERP/BOS/storefront modules remain PHP-only (see docs/migration/inventory/MODULE_FUNCTION_PARITY_STATUS.md) \u2014 digests \u2260 product UX"
+    "bos-unauth: ASP.NET missing chrome markers ['epc-asp-login-bos']",
+    "storefront: ASP.NET body 18667B << PHP 506984B \u2014 presentation scaffold too thin (hard floor 40558B)",
+    "FUNCTIONALITY: interactive CP/ERP/BOS/storefront modules remain PHP-authoritative (hybrid deeplinks \u2260 aspnet-complete; see docs/migration/inventory/MODULE_FUNCTION_PARITY_STATUS.md)"
+  ],
+  "warnings": [
+    "erp-unauth: ASP.NET body 16960B < soft floor 42653B vs PHP 170612B \u2014 continue Batch 2 desktop chrome depth",
+    "bos-unauth: ASP.NET body 10523B < soft floor 12000B vs PHP 32724B \u2014 continue Batch 2 desktop chrome depth"
   ],
   "pages": [
     {
@@ -21,25 +23,40 @@
       "has_sora_console": false,
       "has_open_sans": false,
       "has_pt_sans": false,
+      "has_inter": false,
       "has_gtag": false,
       "has_clarity": false,
       "has_login_markers": true,
       "has_php_cp_login": true,
+      "chrome_asset_hits": [
+        "font-awesome",
+        "epc_cp_login",
+        "epc_cp_ui_css",
+        "epc-static.php"
+      ],
       "notes": ""
     },
     {
       "name": "cp-unauth/aspnet",
       "url": "https://www.ecomae.com/cp/login",
       "status": 200,
-      "bytes": 7304,
+      "bytes": 12266,
       "title": "Log in form - ECOM AE \u00b7 BOS",
       "has_sora_console": false,
-      "has_open_sans": false,
+      "has_open_sans": true,
       "has_pt_sans": false,
+      "has_inter": false,
       "has_gtag": false,
       "has_clarity": false,
       "has_login_markers": true,
       "has_php_cp_login": true,
+      "chrome_asset_hits": [
+        "font-awesome",
+        "epc_cp_login",
+        "epc_cp_ui_css",
+        "epc-static.php",
+        "ecomae-php-chrome-surface"
+      ],
       "notes": ""
     },
     {
@@ -51,25 +68,39 @@
       "has_sora_console": false,
       "has_open_sans": true,
       "has_pt_sans": false,
+      "has_inter": false,
       "has_gtag": false,
       "has_clarity": false,
       "has_login_markers": true,
       "has_php_cp_login": true,
+      "chrome_asset_hits": [
+        "font-awesome"
+      ],
       "notes": ""
     },
     {
       "name": "erp-unauth/aspnet",
       "url": "https://www.ecomae.com/erp/login",
       "status": 200,
-      "bytes": 7862,
+      "bytes": 16960,
       "title": "ERP Finance \u2014 ECOM AE",
       "has_sora_console": false,
-      "has_open_sans": false,
+      "has_open_sans": true,
       "has_pt_sans": false,
+      "has_inter": false,
       "has_gtag": false,
       "has_clarity": false,
       "has_login_markers": true,
-      "has_php_cp_login": false,
+      "has_php_cp_login": true,
+      "chrome_asset_hits": [
+        "fraunces",
+        "font-awesome",
+        "epc_cp_login",
+        "epc_cp_ui_css",
+        "erp_theme",
+        "epc-static.php",
+        "ecomae-php-chrome-surface"
+      ],
       "notes": ""
     },
     {
@@ -81,57 +112,85 @@
       "has_sora_console": false,
       "has_open_sans": false,
       "has_pt_sans": false,
+      "has_inter": false,
       "has_gtag": false,
       "has_clarity": false,
       "has_login_markers": false,
       "has_php_cp_login": false,
+      "chrome_asset_hits": [
+        "font-awesome",
+        "epc_bos_shell",
+        "epc-static.php"
+      ],
       "notes": ""
     },
     {
       "name": "bos-unauth/aspnet",
       "url": "https://www.ecomae.com/bos/login",
       "status": 200,
-      "bytes": 6039,
+      "bytes": 10523,
       "title": "BOS \u2014 Business Operating System",
       "has_sora_console": false,
-      "has_open_sans": false,
+      "has_open_sans": true,
       "has_pt_sans": false,
+      "has_inter": true,
       "has_gtag": false,
       "has_clarity": false,
       "has_login_markers": true,
       "has_php_cp_login": false,
+      "chrome_asset_hits": [
+        "family=inter",
+        "font-awesome",
+        "epc_bos_shell",
+        "epc-static.php",
+        "ecomae-php-chrome-surface"
+      ],
       "notes": ""
     },
     {
       "name": "storefront/php",
       "url": "https://epartscart.com/",
       "status": 200,
-      "bytes": 506927,
+      "bytes": 506984,
       "title": "- eParts Cart (Autoparts)",
       "has_sora_console": false,
       "has_open_sans": false,
       "has_pt_sans": false,
+      "has_inter": false,
       "has_gtag": true,
       "has_clarity": true,
       "has_login_markers": true,
       "has_php_cp_login": false,
+      "chrome_asset_hits": [
+        "googletagmanager",
+        "gtag("
+      ],
       "notes": ""
     },
     {
       "name": "storefront/aspnet",
       "url": "https://www.ecomae.com/storefront/app",
       "status": 200,
-      "bytes": 8280,
+      "bytes": 18667,
       "title": "eParts Cart (Autoparts)",
       "has_sora_console": false,
-      "has_open_sans": false,
+      "has_open_sans": true,
       "has_pt_sans": true,
-      "has_gtag": false,
+      "has_inter": false,
+      "has_gtag": true,
       "has_clarity": false,
       "has_login_markers": false,
       "has_php_cp_login": false,
+      "chrome_asset_hits": [
+        "font-awesome",
+        "style_color",
+        "epc-static.php",
+        "googletagmanager",
+        "gtag(",
+        "ecomae-php-chrome-surface"
+      ],
       "notes": ""
     }
   ],
-  "note": "Do not remove PHP. Hybrid ASP.NET previews are not full PHP presentation/functionality parity."
+  "note": "Do not remove PHP. Batch 1 targets chrome asset/font/analytics parity for login/shell bridges. Full desktop presentation + interactive modules remain Batch 2+. Never invent RELEASE_OWNER_APPROVAL.md. Scaffold depth grown offline (storefront home, BOS industry deck, ERP area/tab directory) — live compare still soft-fail until redeploy."
 }

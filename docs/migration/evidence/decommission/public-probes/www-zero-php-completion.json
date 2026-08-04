@@ -83,14 +83,13 @@
     }
   ],
   "nextActions": [
-    "See www-zero-php-residual-board.json for honest residual % (scaffold contract 100% / weighted ~95% / interactive 0%).",
-    "Install marketing shadows: ECOMAE_CONFIRM_INSTALL_MARKETING_APP_SHADOWS=YES bash scripts/cloudpanel_install_marketing_app_shadows.sh",
-    "Install storefront checkout digest shadow (6/7 live) + probe.",
-    "CloudPanel dual-sample: module-ajax + ERP/BOS ajax + authenticated digests (admin + customer cookies).",
-    "Prove same-to-same look on login/chrome/industry hosts before any tenant exact-route cutover.",
-    "Flip functional live-smoke stubs to captured when evidence lands.",
-    "The remaining weighted 5% is PHP runtime decommission — obtain human RELEASE_OWNER_APPROVAL.md (APPROVED_TO_REMOVE_PHP_FALLBACK); do not invent approval or remove PHP."
+    "Scaffold contract 100%; interactive cutover still 0% \u2014 see residual board.",
+    "Redeploy tip + install marketing/checkout shadows on www only.",
+    "Run presentation recheck until status=pass (do not invent).",
+    "Dual-sample digests/ajax with admin+customer cookies; capture functional live-smoke.",
+    "Human RELEASE_OWNER_APPROVAL.md only after ReadyToRemovePhp checklist green.",
+    "Then: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh",
+    "PHP source deletion is a separate human PR after runtime decommission \u2014 never agent-invented."
   ],
   "residualBoard": "docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json"
 }
-

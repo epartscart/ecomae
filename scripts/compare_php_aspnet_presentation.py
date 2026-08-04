@@ -80,15 +80,33 @@ def fetch(url: str) -> tuple[int, str]:
 
 
 def has_open_sans(low: str) -> bool:
-    return "open+sans" in low or "open sans" in low or "family=open+sans" in low
+    return (
+        "open+sans" in low
+        or "open sans" in low
+        or "family=open+sans" in low
+        or "open%20sans" in low
+        or "open&#x2b;sans" in low
+        or "open%2bsans" in low
+    )
 
 
 def has_pt_sans(low: str) -> bool:
-    return "pt+sans" in low or "pt sans" in low or "family=pt+sans" in low
+    return (
+        "pt+sans" in low
+        or "pt sans" in low
+        or "family=pt+sans" in low
+        or "pt%20sans" in low
+        or "pt&#x2b;sans" in low
+        or "pt%2bsans" in low
+    )
 
 
 def has_inter(low: str) -> bool:
-    return "family=inter" in low or "fonts.googleapis.com/css2?family=inter" in low
+    return (
+        "family=inter" in low
+        or "fonts.googleapis.com/css2?family=inter" in low
+        or "family=inter:" in low
+    )
 
 
 def chrome_hits(low: str) -> list[str]:

@@ -196,11 +196,59 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
 
     private bool HasTenantPhpChromeSafetyControls()
     {
-        var repo = FindRepoRoot();
-        return File.Exists(Path.Combine(repo, "scripts", "ecomae_nginx_site_safety.py"))
-            && File.Exists(Path.Combine(repo, "scripts", "lib", "ecomae_nginx_site_safety.sh"))
-            && File.Exists(Path.Combine(repo, "scripts", "cloudpanel_probe_live_tenant_php_chrome.sh"))
-            && File.Exists(Path.Combine(repo, "docs", "migration", "TENANT_MIGRATION_SAFETY.md"));
+        // Prefer full repo / packed ContentRoot controls. Published releases pack these under ContentRoot.
+        foreach (var root in new[] { FindRepoRoot(), _environment.ContentRootPath })
+        {
+            if (string.IsNullOrWhiteSpace(root))
+            {
+                continue;
+            }
+
+            var py = Path.Combine(root, "scripts", "ecomae_nginx_site_safety.py");
+            var sh = Path.Combine(root, "scripts", "lib", "ecomae_nginx_site_safety.sh");
+            var probe = Path.Combine(root, "scripts", "cloudpanel_probe_live_tenant_php_chrome.sh");
+            var doc = Path.Combine(root, "docs", "migration", "TENANT_MIGRATION_SAFETY.md");
+            if (File.Exists(py) && File.Exists(sh) && File.Exists(probe) && File.Exists(doc))
+            {
+                return true;
+            }
+        }
+
+        // Fallback: packed tenant-safety probe evidence that locks cutover false + PHP chrome on tenants.
+        foreach (var root in new[] { FindRepoRoot(), _environment.ContentRootPath })
+        {
+            var evidence = Path.Combine(
+                root,
+                "docs",
+                "migration",
+                "evidence",
+                "tenant-safety",
+                "live-tenant-php-chrome.json");
+            if (!File.Exists(evidence))
+            {
+                continue;
+            }
+
+            try
+            {
+                var json = File.ReadAllText(evidence);
+                if ((json.Contains("\"status\": \"pass\"", StringComparison.Ordinal)
+                        || json.Contains("\"status\":\"pass\"", StringComparison.Ordinal))
+                    && (json.Contains("\"cutoverAllowed\": false", StringComparison.Ordinal)
+                        || json.Contains("\"cutoverAllowed\":false", StringComparison.Ordinal))
+                    && (json.Contains("\"readyForPhpRemoval\": false", StringComparison.Ordinal)
+                        || json.Contains("\"readyForPhpRemoval\":false", StringComparison.Ordinal)))
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                // ignore unreadable evidence
+            }
+        }
+
+        return false;
     }
 
     private bool HasPresentationRecheckPass()

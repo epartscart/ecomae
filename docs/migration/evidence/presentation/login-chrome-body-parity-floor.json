@@ -1,0 +1,69 @@
+{
+  "role": "login-chrome-body-parity-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "surfaces": {
+    "cp": {
+      "route": "/cp/login",
+      "bodyClass": "blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super fixed-navbar fixed-sidebar",
+      "headAssets": [
+        "epc_cp_login",
+        "open+sans",
+        "epc_ecomae_hub_logo_css"
+      ],
+      "bodyMarkers": [
+        "#epcCpParticles",
+        "epc-cp-login-shell",
+        "authentication"
+      ]
+    },
+    "erp": {
+      "route": "/erp/login",
+      "bodyClass": "epc-erp-standalone",
+      "headAssets": [
+        "open+sans",
+        "fraunces",
+        "epc_erp_portal_inline_css_serve",
+        "font-awesome"
+      ],
+      "bodyMarkers": [
+        "epc-erp-portal-wrap",
+        "epc-erp-bos-hero",
+        "#erpPortalParticles",
+        "epc-asp-login-erp"
+      ]
+    },
+    "bos": {
+      "route": "/bos/login",
+      "bodyClass": "epc-bos-shell",
+      "headAssets": [
+        "epc_bos_shell",
+        "family=inter",
+        "font-awesome"
+      ],
+      "bodyMarkers": [
+        "epc-asp-login-bos",
+        "bos-login",
+        "#bosParticles"
+      ]
+    },
+    "storefront": {
+      "route": "/storefront/login",
+      "bodyClass": "epc-storefront-shell",
+      "headAssets": [
+        "pt+sans",
+        "open+sans",
+        "style_color",
+        "gtag"
+      ],
+      "bodyMarkers": [
+        "epc-modex-shell",
+        "login_form--page"
+      ]
+    }
+  },
+  "note": "Offline locks for login body class trees + PHP asset URLs. Live dual-sample size/pixel parity still required before cutover.",
+  "offlineOk": true,
+  "errors": []
+}

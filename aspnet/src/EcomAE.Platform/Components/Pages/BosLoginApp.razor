@@ -6,6 +6,7 @@
 
 <PageTitle>BOS — Business Operating System</PageTitle>
 <PhpSurfaceHead Surface="bos" IncludeBosLoginScripts="true" />
+<PhpChromeBodyClass Surface="bos" LoginChrome="true" />
 
 @*
   PHP-class graphical presentation from bos/index.php login screen:
@@ -24,9 +25,17 @@
     .bos-login .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
     .bos-login .epc-login-php { color:#93c5fd; font-weight:700; }
     .bos-login .bos-login__secure a.epc-login-php { color:#93c5fd; font-weight:700; }
+    .bos-login__industries { margin-top:1.5rem; }
+    .bos-login__industries-title { margin:0 0 .35rem; font-size:1rem; color:#e2e8f0; }
+    .bos-login__industries-lead { margin:0 0 .85rem; color:#94a3b8; font-size:.82rem; line-height:1.45; max-width:36rem; }
+    .bos-login__platform-deck { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; margin-top:1rem; }
+    .bos-login__deck-item { display:flex; gap:.65rem; align-items:flex-start; background:rgba(15,23,42,.55); border:1px solid rgba(148,163,184,.2); border-radius:.55rem; padding:.65rem .75rem; }
+    .bos-login__deck-item i { color:#38bdf8; margin-top:.15rem; }
+    .bos-login__deck-item strong { display:block; font-size:.82rem; color:#f8fafc; }
+    .bos-login__deck-item span { display:block; color:#94a3b8; font-size:.76rem; line-height:1.35; }
 </style>
 
-<div class="bos-login">
+<div class="epc-asp-login-bos bos-login">
     <div class="bos-login__bg">
         <div class="bos-login__grid-lines"></div>
         <div class="bos-login__particles" id="bosParticles"></div>
@@ -92,14 +101,42 @@
                 </div>
                 <div class="bos-login__stat-divider"></div>
                 <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="@PhpModuleCatalog.BosModuleCount">0</span>
-                    <span class="bos-login__stat-label">BOS Modules</span>
+                    <span class="bos-login__stat-num" data-count="95">0</span>
+                    <span class="bos-login__stat-label">ERP Modules</span>
                 </div>
                 <div class="bos-login__stat-divider"></div>
                 <div class="bos-login__stat">
                     <span class="bos-login__stat-num" data-count="15">0</span>
                     <span class="bos-login__stat-label">Countries</span>
                 </div>
+            </div>
+
+            <div class="bos-login__industries">
+                <h3 class="bos-login__industries-title"><i class="fa fa-industry"></i> Industry coverage</h3>
+                <p class="bos-login__industries-lead">Multi-tenant commerce and ERP packs across verticals — same BOS fleet operators manage from one console.</p>
+                <div class="bos-industry-grid">
+                    @foreach (var ind in LoginIndustries)
+                    {
+                        <div class="bos-industry-card bos-industry-card--active" style="--industry-color:@ind.Color">
+                            <i class="fa @ind.Icon" style="color:@ind.Color"></i>
+                            <span class="bos-industry-card__name">@ind.Name</span>
+                            <span class="bos-industry-card__count">@ind.PackHint</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="bos-login__platform-deck">
+                @foreach (var deck in PlatformDeck)
+                {
+                    <div class="bos-login__deck-item">
+                        <i class="fa @deck.Icon"></i>
+                        <div>
+                            <strong>@deck.Title</strong>
+                            <span>@deck.Body</span>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -119,6 +156,10 @@
             <h2 class="bos-login__panel-title">Operator Access</h2>
             <p class="bos-login__panel-sub">Manage your entire tenant fleet from one dashboard.</p>
             <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/BOS/" ErrorMessage="@_error" SubmitLabel="Sign In" Accent="blue" />
+            <div class="bos-login__secure-badge">
+                <i class="fa fa-lock"></i>
+                256-bit encrypted · Session isolated · Audit logged
+            </div>
             <p class="bos-login__secure">
                 <i class="fa fa-lock"></i>
                 Secure operator access to your tenant fleet.
@@ -210,4 +251,32 @@
 @code {
     private string? _error;
     protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
+
+    private static readonly LoginIndustry[] LoginIndustries =
+    [
+        new("fa-car", "Auto spare parts", "#dc2626", "Commerce + ERP"),
+        new("fa-microchip", "Electronics", "#e10a0a", "Retail pack"),
+        new("fa-shopping-bag", "Fashion", "#be185d", "Commerce"),
+        new("fa-diamond", "Jewellery", "#b45309", "Luxury retail"),
+        new("fa-medkit", "Medical supplies", "#0284c7", "Commerce + ERP"),
+        new("fa-cutlery", "Food & beverage", "#ea580c", "Hospitality"),
+        new("fa-home", "Furniture", "#92400e", "Home & living"),
+        new("fa-cubes", "Building materials", "#78716c", "Trading"),
+        new("fa-truck", "FMCG wholesale", "#0369a1", "Logistics"),
+        new("fa-briefcase", "Professional services", "#2563eb", "ERP-led"),
+        new("fa-line-chart", "Tax advisory", "#0d9488", "Compliance"),
+    ];
+
+    private static readonly DeckItem[] PlatformDeck =
+    [
+        new("fa-th-large", "Tenant fleet console", "Switch tenants, industries, and module packs without leaving BOS."),
+        new("fa-shield", "Operator RBAC", "Platform operator roles isolated from tenant customer accounts."),
+        new("fa-globe", "Country packs", "Auto-localized tax, currency, and compliance per territory."),
+        new("fa-magic", "AI operations", "Price engine, CRM automation, and advisor surfaces."),
+        new("fa-shopping-cart", "Commerce shells", "Storefront, catalog, and checkout per industry host."),
+        new("fa-university", "ERP finance bridge", "Finance, inventory, and HR tabs mirror control panel ERP."),
+    ];
+
+    private sealed record LoginIndustry(string Icon, string Name, string Color, string PackHint);
+    private sealed record DeckItem(string Icon, string Title, string Body);
 }

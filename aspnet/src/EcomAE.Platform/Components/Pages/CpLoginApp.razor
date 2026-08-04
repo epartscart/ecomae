@@ -6,6 +6,8 @@
 
 <PageTitle>Log in form - ECOM AE · BOS</PageTitle>
 <PhpSurfaceHead Surface="cp" IncludeLoginCss="true" />
+<PhpChromeBodyClass Surface="cp" LoginChrome="true" />
+<PhpChromeBodyClass Surface="cp" LoginChrome="true" />
 
 @*
   Super CP login mirrors PHP authentication plugin template:
@@ -40,6 +42,9 @@
     .epc-cp-login .epc-cp-particle { position: absolute; border-radius: 50%; }
     @@keyframes epcCpFloat { from { transform: translateY(0); } to { transform: translateY(110vh); } }
 </style>
+
+<div class="splash"> <div class="color-line"></div><div class="splash-title"><h1>BOS — Business Operation System</h1><p>Loading…</p><div class="spinner"> <div class="rect1"></div> <div class="rect2"></div> <div class="rect3"></div> <div class="rect4"></div> <div class="rect5"></div> </div> </div> </div>
+<script>(function(){function epcHideCpSplash(){var s=document.querySelector('.splash');if(s){s.style.display='none';}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',epcHideCpSplash);}else{epcHideCpSplash();}window.addEventListener('load',epcHideCpSplash);setTimeout(epcHideCpSplash,3500);})();</script>
 
 <div class="blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super">
     <div class="color-line"></div>

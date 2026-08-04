@@ -764,6 +764,20 @@ check 'piston banner component exists' test -f "$ROOT/aspnet/src/EcomAE.Platform
 check 'hub logo component exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeHubLogo.razor"
 check 'storefront app uses piston banner' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor" 'PhpAspPistonBanner'
 check 'BOS login emits particle host' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosLoginApp.razor" 'bosParticles'
+check 'login chrome body class component exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/PhpChromeBodyClass.razor"
+check 'login body class helper exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs" 'LoginBodyClassFor'
+check 'ERP portal inline login CSS serve exists' test -f "$ROOT/content/shop/finance/epc_erp_portal_inline_css_serve.php"
+check 'ERP login portal wrap marker' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" 'epc-erp-portal-wrap'
+check 'login chrome body parity validator exists' test -f "$ROOT/scripts/validate_login_chrome_body_parity.py"
+check 'php decommission gated script refuses without ready' contains "$ROOT/scripts/cloudpanel_php_decommission_gated.sh" 'ReadyToRemovePhp is false'
+check 'module function live status is honest (not PASS invent)' contains "$ROOT/docs/migration/evidence/presentation/MODULE_FUNCTION_PARITY_STATUS_LIVE.md" 'Do **not** invent'
+check 'php decommission one-by-one runbook' test -f "$ROOT/docs/migration/PHP_DECOMMISSION_ONE_BY_ONE.md"
+check 'deploy packs tenant nginx site safety py' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ecomae_nginx_site_safety.py'
+check 'deploy packs tenant migration safety doc' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'TENANT_MIGRATION_SAFETY.md'
+check 'deploy packs marketing shadow installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_marketing_app_shadows.sh'
+check 'readiness checks ContentRoot for tenant safety' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/PhpDecommissionReadinessReporter.cs" 'ContentRootPath'
+check 'tenant safety controls evidence exists' test -f "$ROOT/docs/migration/evidence/tenant-safety/tenant-php-chrome-safety-controls.json"
+check 'login chrome body parity floor exists' test -f "$ROOT/docs/migration/evidence/presentation/login-chrome-body-parity-floor.json"
 check 'plan requires graphical hero/animation parity' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'Graphical presentation is in scope'
 check 'customer session insert includes last_activiti_time' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacyAdminLoginSql.cs" 'last_activiti_time'
 check 'customer token formula uses userId' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionTokenFactory.cs" 'CustomerSessionToken'
@@ -1544,6 +1558,10 @@ check 'zero PHP inventory script reports php-only status' contains "$ROOT/script
 check 'zero PHP inventory script emits surface counts' contains "$ROOT/scripts/inventory_php_routes.sh" 'surfaceCounts'
 check 'zero PHP inventory script excludes vendor dependencies' contains "$ROOT/scripts/inventory_php_routes.sh" "-not -path './vendor/*'"
 check 'security headers middleware exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Security/SecurityHeadersMiddleware.cs"
+check 'php font assets use percent encoding' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/LegacyPhpFontAssets.cs" 'Open%20Sans'
+check 'storefront analytics clarity matches epartscart' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/StorefrontAnalytics.razor" 'xoflbamawu'
+check 'storefront home depth component exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontHomeDepth.razor"
+check 'presentation compare accepts encoded Open Sans' contains "$ROOT/scripts/compare_php_aspnet_presentation.py" 'open%20sans'
 check 'program wires security headers middleware' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'SecurityHeadersMiddleware'
 check 'program registers response compression' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'AddResponseCompression'
 check 'program uses response compression' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'UseResponseCompression'
