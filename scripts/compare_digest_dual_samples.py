@@ -100,6 +100,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "totalPairs,brands,source,message",
     ),
+    "cp-hr-overview": (
+        "summary",
+        "activeEmployees,pendingLeave,payrollRuns,attendanceRows,source,message",
+    ),
+    "cp-production-overview": (
+        "summary",
+        "bomCount,openWorkOrders,completedWorkOrders,source,message",
+    ),
+    "cp-projects-overview": (
+        "summary",
+        "openProjects,taskCount,contractCount,source,message",
+    ),
+    "cp-industry-packs": (
+        "summary",
+        "packCount,activePacks,assignments,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -472,6 +488,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-crosses": (
         "pairs",
         ["id", "manufacturer", "article", "crossManufacturer", "crossArticle"],
+    ),
+    "cp-hr-overview": (
+        "employees",
+        ["id", "code", "name", "department", "status", "joinDate"],
+    ),
+    "cp-production-overview": (
+        "workOrders",
+        ["id", "woNo", "status", "qtyPlanned", "qtyProduced", "updatedAt"],
+    ),
+    "cp-projects-overview": (
+        "projects",
+        ["id", "code", "name", "status", "billingType", "contractValue"],
+    ),
+    "cp-industry-packs": (
+        "packs",
+        ["id", "packKey", "name", "description", "icon", "active"],
     ),
     "cp-orders-digest": (
         "orders",

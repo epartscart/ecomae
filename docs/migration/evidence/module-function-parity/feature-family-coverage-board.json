@@ -6,8 +6,8 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 142,
-    "php-only-deeplink": 584
+    "digest-contract": 194,
+    "php-only-deeplink": 532
   },
   "families": [
     {
@@ -281,9 +281,9 @@
     {
       "family": "hr-payroll",
       "total": 21,
-      "digestContract": 0,
-      "phpOnlyDeeplink": 21,
-      "digestPercent": 0.0,
+      "digestContract": 21,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_hr",
@@ -312,9 +312,9 @@
     {
       "family": "industry-packs",
       "total": 9,
-      "digestContract": 0,
-      "phpOnlyDeeplink": 9,
-      "digestPercent": 0.0,
+      "digestContract": 9,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-auto-spare-parts-template",
@@ -502,9 +502,9 @@
     {
       "family": "platform-ops-bos",
       "total": 68,
-      "digestContract": 21,
-      "phpOnlyDeeplink": 47,
-      "digestPercent": 30.9,
+      "digestContract": 22,
+      "phpOnlyDeeplink": 46,
+      "digestPercent": 32.4,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-audit_log",
@@ -774,9 +774,9 @@
     {
       "family": "production-mfg",
       "total": 9,
-      "digestContract": 0,
-      "phpOnlyDeeplink": 9,
-      "digestPercent": 0.0,
+      "digestContract": 8,
+      "phpOnlyDeeplink": 1,
+      "digestPercent": 88.9,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_production",
@@ -793,9 +793,9 @@
     {
       "family": "projects-services",
       "total": 13,
-      "digestContract": 0,
-      "phpOnlyDeeplink": 13,
-      "digestPercent": 0.0,
+      "digestContract": 13,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_projects",

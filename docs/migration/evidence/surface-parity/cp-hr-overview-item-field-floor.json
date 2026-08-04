@@ -1,0 +1,27 @@
+{
+  "role": "cp-hr-overview-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-hr-overview",
+  "collectionKey": "employees",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "activeEmployees",
+    "pendingLeave",
+    "payrollRuns",
+    "attendanceRows",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "code",
+    "name",
+    "department",
+    "status",
+    "joinDate"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks HR overview digest summary+employees[] floors. Salary/allowances/currency/payslip omitted. PHP people/HR shell remains authoritative. cutoverAllowed=false."
+}

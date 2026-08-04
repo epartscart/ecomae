@@ -256,6 +256,14 @@ check_file "cp delivery-methods item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-delivery-methods-item-field-floor.json"
 check_file "cp crosses item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-crosses-item-field-floor.json"
+check_file "cp hr-overview item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-hr-overview-item-field-floor.json"
+check_file "cp production-overview item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-production-overview-item-field-floor.json"
+check_file "cp projects-overview item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-projects-overview-item-field-floor.json"
+check_file "cp industry-packs item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-industry-packs-item-field-floor.json"
 check_file "feature family coverage board builder" \
   "$ROOT/scripts/build_feature_family_coverage_board.py"
 check_file "feature family coverage board evidence" \

@@ -2,8 +2,8 @@
   "role": "surface-digest-exact-route-inventory",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 51,
-  "surfaceDigestCount": 44,
+  "routeCount": 55,
+  "surfaceDigestCount": 48,
   "storefrontDigestCount": 6,
   "ordersDigestCount": 1,
   "generatedFrom": [
@@ -11,7 +11,7 @@
     "deploy/aspnet/nginx-storefront-digests-shadow-example.conf",
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf (/cp/orders-digest)"
   ],
-  "note": "Design/inventory only for digest dual-sample floor (51). Storefront search/cart digests wired (live shadows still 4/6). Surface digests wired 44 (live until operator install). Never invents RELEASE_OWNER_APPROVAL.md.",
+  "note": "Design/inventory only for digest dual-sample floor (55). Storefront search/cart digests wired (live shadows still 4/6). Surface digests wired 48 (live until operator install). Never invents RELEASE_OWNER_APPROVAL.md.",
   "routes": [
     "/cp/dashboard-summary",
     "/cp/tenants",
@@ -36,6 +36,10 @@
     "/cp/document-control",
     "/cp/delivery-methods",
     "/cp/crosses",
+    "/cp/industry-packs",
+    "/cp/projects-overview",
+    "/cp/production-overview",
+    "/cp/hr-overview",
     "/cp/config-items",
     "/cp/admin-sessions",
     "/cp/storages",

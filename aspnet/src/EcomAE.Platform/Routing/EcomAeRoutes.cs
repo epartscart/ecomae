@@ -124,6 +124,22 @@ public static class EcomAeRoutes
     public const string ControlPanelCrosses = "/cp/crosses";
     /// <summary>CP crosses Blazor list (JSON digest remains <see cref="ControlPanelCrosses"/>).</summary>
     public const string ControlPanelCrossesApp = "/cp/crosses-app";
+    /// <summary>CP HR overview KPIs + employees (salary/PII detail omitted).</summary>
+    public const string ControlPanelHrOverview = "/cp/hr-overview";
+    /// <summary>CP HR Blazor overview (JSON digest remains <see cref="ControlPanelHrOverview"/>).</summary>
+    public const string ControlPanelHrOverviewApp = "/cp/hr-overview-app";
+    /// <summary>CP production overview KPIs + work orders (cost columns omitted).</summary>
+    public const string ControlPanelProductionOverview = "/cp/production-overview";
+    /// <summary>CP production Blazor overview (JSON digest remains <see cref="ControlPanelProductionOverview"/>).</summary>
+    public const string ControlPanelProductionOverviewApp = "/cp/production-overview-app";
+    /// <summary>CP projects overview KPIs + projects (timesheet rates omitted).</summary>
+    public const string ControlPanelProjectsOverview = "/cp/projects-overview";
+    /// <summary>CP projects Blazor overview (JSON digest remains <see cref="ControlPanelProjectsOverview"/>).</summary>
+    public const string ControlPanelProjectsOverviewApp = "/cp/projects-overview-app";
+    /// <summary>CP industry packs metadata (JSON blobs omitted).</summary>
+    public const string ControlPanelIndustryPacks = "/cp/industry-packs";
+    /// <summary>CP industry packs Blazor list (JSON digest remains <see cref="ControlPanelIndustryPacks"/>).</summary>
+    public const string ControlPanelIndustryPacksApp = "/cp/industry-packs-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

@@ -416,6 +416,58 @@
       "phpAuthoritative": true,
       "wwwPreviewOnly": true,
       "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-hr-overview",
+      "surface": "cp",
+      "appRoute": "/cp/hr-overview-app",
+      "digestRoute": "/cp/hr-overview",
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=people&tab=hr&epc_erp_shell=1",
+      "blazorMarker": "CpHrOverviewApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-production-overview",
+      "surface": "cp",
+      "appRoute": "/cp/production-overview-app",
+      "digestRoute": "/cp/production-overview",
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=production&tab=manufacturing&epc_erp_shell=1",
+      "blazorMarker": "CpProductionOverviewApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-projects-overview",
+      "surface": "cp",
+      "appRoute": "/cp/projects-overview-app",
+      "digestRoute": "/cp/projects-overview",
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=projects&tab=projects&epc_erp_shell=1",
+      "blazorMarker": "CpProjectsOverviewApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-industry-packs",
+      "surface": "cp",
+      "appRoute": "/cp/industry-packs-app",
+      "digestRoute": "/cp/industry-packs",
+      "phpAuthoritativePath": "/CP/control/portal/industry_settings",
+      "blazorMarker": "CpIndustryPacksApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."
