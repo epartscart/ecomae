@@ -230,6 +230,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only collections/dunning queue (notes omitted).</summary>
     Task<CpCollectionsDunningDigestResult> BuildCpCollectionsDunningDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only marketplace channels (config_json omitted).</summary>
+    Task<CpMarketplaceChannelsDigestResult> BuildCpMarketplaceChannelsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only demand intelligence countries.</summary>
+    Task<CpDemandIntelligenceDigestResult> BuildCpDemandIntelligenceDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only credit limits (notes omitted).</summary>
+    Task<CpCreditLimitsDigestResult> BuildCpCreditLimitsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only insurance policies (notes/emails omitted).</summary>
+    Task<CpInsuranceComplianceDigestResult> BuildCpInsuranceComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only bank statement lines for reconciliation.</summary>
     Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
 

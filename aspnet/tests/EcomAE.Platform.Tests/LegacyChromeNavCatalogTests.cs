@@ -82,6 +82,10 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Auth MFA" && item.Href == "/cp/auth-mfa-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Electronic reporting" && item.Href == "/cp/electronic-reporting-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Collections dunning" && item.Href == "/cp/collections-dunning-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Marketplace channels" && item.Href == "/cp/marketplace-channels-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Demand intelligence" && item.Href == "/cp/demand-intelligence-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Credit limits" && item.Href == "/cp/credit-limits-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Insurance compliance" && item.Href == "/cp/insurance-compliance-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "API clients PHP" && item.Href == "/CP/control/portal/epc_api_clients_manage");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Config items list" && item.Href == "/cp/config-items-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Site config PHP" && item.Href == "/CP/control/config_edit");

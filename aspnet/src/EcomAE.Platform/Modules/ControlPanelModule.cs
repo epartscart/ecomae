@@ -1852,6 +1852,119 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelMarketplaceChannels, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for marketplace-channels digest.");
+            }
+
+            var result = await dashboards.BuildCpMarketplaceChannelsDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                channels = result.Channels,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_marketplace_* KPIs + channels (config_json omitted). PHP marketplace/channels remain authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelDemandIntelligence, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for demand-intelligence digest.");
+            }
+
+            var result = await dashboards.BuildCpDemandIntelligenceDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                countries = result.Countries,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_demand_* KPIs + countries. PHP demand countries remain authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelCreditLimits, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for credit-limits digest.");
+            }
+
+            var result = await dashboards.BuildCpCreditLimitsDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                limits = result.Limits,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_credit_* KPIs + limits (notes omitted). PHP credit limit engine remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelInsuranceCompliance, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for insurance-compliance digest.");
+            }
+
+            var result = await dashboards.BuildCpInsuranceComplianceDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                policies = result.Policies,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_erp_ins_* KPIs + policies (notes/emails omitted). PHP risk insurance remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ControlPanelAliases)
         {
             endpoints.MapGet(route, async (

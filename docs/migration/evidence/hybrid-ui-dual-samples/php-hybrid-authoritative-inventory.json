@@ -582,6 +582,30 @@
       "appRoute": "/storefront/account-summary-app",
       "digestRoute": "/storefront/account-summary",
       "phpAuthoritativePath": "https://epartscart.com/users/"
+    },
+    {
+      "stem": "cp-marketplace-channels",
+      "appRoute": "/cp/marketplace-channels-app",
+      "digestRoute": "/cp/marketplace-channels",
+      "phpAuthoritativePath": "/CP/shop/channels/channels_main"
+    },
+    {
+      "stem": "cp-demand-intelligence",
+      "appRoute": "/cp/demand-intelligence-app",
+      "digestRoute": "/cp/demand-intelligence",
+      "phpAuthoritativePath": "/CP/shop/demand_countries"
+    },
+    {
+      "stem": "cp-credit-limits",
+      "appRoute": "/cp/credit-limits-app",
+      "digestRoute": "/cp/credit-limits",
+      "phpAuthoritativePath": "/CP/shop/finance/epc_credit_limit"
+    },
+    {
+      "stem": "cp-insurance-compliance",
+      "appRoute": "/cp/insurance-compliance-app",
+      "digestRoute": "/cp/insurance-compliance",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=risk&tab=insurance"
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

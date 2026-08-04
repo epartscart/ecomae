@@ -341,6 +341,14 @@ check_file "cp electronic-reporting item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-electronic-reporting-item-field-floor.json"
 check_file "cp collections-dunning item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-collections-dunning-item-field-floor.json"
+check_file "cp marketplace-channels item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-marketplace-channels-item-field-floor.json"
+check_file "cp demand-intelligence item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-demand-intelligence-item-field-floor.json"
+check_file "cp credit-limits item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-credit-limits-item-field-floor.json"
+check_file "cp insurance-compliance item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-insurance-compliance-item-field-floor.json"
 check_file "cp auto-price item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
 check_file "cp uae-tax-compliance item-field floor evidence" \

@@ -1,0 +1,31 @@
+{
+  "role": "cp-credit-limits-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-credit-limits",
+  "collectionKey": "limits",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "limitCount",
+    "activeCount",
+    "heldCount",
+    "txnCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "customerId",
+    "creditLimit",
+    "balanceUsed",
+    "currency",
+    "status",
+    "riskScore",
+    "paymentTerms",
+    "updatedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-credit-limits digest summary+limits[] floors. notes omitted. PHP credit limit engine remains authoritative. cutoverAllowed=false."
+}
