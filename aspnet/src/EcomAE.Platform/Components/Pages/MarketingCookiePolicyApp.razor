@@ -1,0 +1,38 @@
+@page "/marketing/cookie-policy"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>ECOM AE — Cookie policy (PHP parity preview)</PageTitle>
+<PhpChromeStyles Surface="marketing" />
+
+<PhpEcomaeMarketingChrome ActiveKey="cookie_policy">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/cookie-policy" />
+
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <PhpEcomaeLegalAliasOverview
+            Title="Cookie policy"
+            Badge="Cookies"
+            Icon="fa-cookie"
+            GradientStart="#422006"
+            GradientMid="#b45309"
+            PhpSlug="cookie-policy"
+            AspNetRoute="/marketing/cookie-policy"
+            Lead="How cookies and similar technologies are used on ECOM AE marketing and product surfaces. Full policy text remains on live PHP until dual-sample."
+            CardOne="Session, preference, and analytics cookie categories explained on the live PHP page." />
+    }
+</PhpEcomaeMarketingChrome>
+
+@code {
+    private string? _phpHref;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
+    }
+}
