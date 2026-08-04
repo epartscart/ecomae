@@ -61,12 +61,32 @@ catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
 catalog_counts = catalog.get("counts") if isinstance(catalog.get("counts"), dict) else {}
 
 
+from urllib.parse import parse_qs, urlsplit
+
+
 def normalize_php(url: str) -> str:
     value = url.strip()
     # Strip scheme/host for storefront absolute URLs.
     if "://" in value:
         value = "/" + value.split("://", 1)[1].split("/", 1)[-1]
     return value.rstrip("/") or "/"
+
+
+def to_erp_shell_key(url: str) -> str | None:
+    """Canonicalize CP/ERP shell URLs to /ERP/?epc_erp_shell=1&area=&tab= form."""
+    key = normalize_php(url)
+    lower = key.lower()
+    if "/shop/finance/erp" not in lower and not lower.startswith("/erp"):
+        return None
+    parts = urlsplit(key if "?" in key or key.startswith("/") else f"/{key}")
+    qs = parse_qs(parts.query, keep_blank_values=True)
+    area = (qs.get("area") or [""])[0].strip()
+    tab = (qs.get("tab") or [""])[0].strip()
+    if not area:
+        return None
+    if tab:
+        return f"/ERP/?epc_erp_shell=1&area={area}&tab={tab}"
+    return f"/ERP/?epc_erp_shell=1&area={area}"
 
 
 BROAD_PHP_PATHS = {
@@ -86,6 +106,9 @@ for hybrid in hybrid_modules:
     if key in BROAD_PHP_PATHS:
         continue
     hybrid_by_php[key] = hybrid
+    erp_key = to_erp_shell_key(key)
+    if erp_key:
+        hybrid_by_php[erp_key] = hybrid
 
 
 # Storefront catalog ids → hybrid TARGET stems (path-only matching collides:
@@ -98,6 +121,21 @@ STOREFRONT_HYBRID_BY_ID = {
     "account": "sf-account-summary",
 }
 
+# Explicit catalog-id maps where PHP paths diverge from hybrid TARGET paths.
+CP_FEATURE_HYBRID_BY_ID = {
+    "user-manager": "cp-users",
+}
+ERP_AREA_HYBRID_BY_ID = {
+    "banking": "erp-accounts-summary",
+}
+ERP_TAB_HYBRID_BY_ID = {
+    ("overview", "dashboard"): "erp-dashboard-summary",
+}
+BOS_MODULE_HYBRID_BY_ID = {
+    "fleet_cp": "bos-fleet-summary",
+    "fleet_erp": "bos-fleet-summary",
+}
+
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}
 
 
@@ -106,19 +144,47 @@ def match_hybrid(
     app_hint: str | None = None,
     *,
     storefront_id: str | None = None,
+    cp_feature_id: str | None = None,
+    erp_area_id: str | None = None,
+    erp_tab_id: str | None = None,
+    bos_module_id: str | None = None,
 ) -> dict | None:
     # Storefront surfaces only match via explicit id → TARGET stem.
     # Path-only matching is unsafe (part_search is shared by search + garage).
     if storefront_id is not None:
         stem = STOREFRONT_HYBRID_BY_ID.get(storefront_id)
         return hybrid_by_stem.get(stem) if stem else None
+    if cp_feature_id is not None and cp_feature_id in CP_FEATURE_HYBRID_BY_ID:
+        hit = hybrid_by_stem.get(CP_FEATURE_HYBRID_BY_ID[cp_feature_id])
+        if hit:
+            return hit
+    if erp_area_id is not None and erp_tab_id is not None:
+        stem = ERP_TAB_HYBRID_BY_ID.get((erp_area_id, erp_tab_id))
+        if stem:
+            hit = hybrid_by_stem.get(stem)
+            if hit:
+                return hit
+    if erp_area_id is not None and erp_area_id in ERP_AREA_HYBRID_BY_ID and erp_tab_id is None:
+        hit = hybrid_by_stem.get(ERP_AREA_HYBRID_BY_ID[erp_area_id])
+        if hit:
+            return hit
+    if bos_module_id is not None and bos_module_id in BOS_MODULE_HYBRID_BY_ID:
+        hit = hybrid_by_stem.get(BOS_MODULE_HYBRID_BY_ID[bos_module_id])
+        if hit:
+            return hit
     # Never match catalog rows by aspnetRoute alone — only concrete PHP paths.
     if not php_href:
         return None
     key = normalize_php(php_href)
     if key in BROAD_PHP_PATHS:
         return None
-    return hybrid_by_php.get(key)
+    hit = hybrid_by_php.get(key)
+    if hit:
+        return hit
+    erp_key = to_erp_shell_key(php_href)
+    if erp_key:
+        return hybrid_by_php.get(erp_key)
+    return None
 
 
 def entry(
@@ -132,8 +198,20 @@ def entry(
     digest_route: str | None = None,
     extra: dict | None = None,
     storefront_id: str | None = None,
+    cp_feature_id: str | None = None,
+    erp_area_id: str | None = None,
+    erp_tab_id: str | None = None,
+    bos_module_id: str | None = None,
 ) -> dict:
-    hybrid = match_hybrid(php_path, aspnet_route, storefront_id=storefront_id)
+    hybrid = match_hybrid(
+        php_path,
+        aspnet_route,
+        storefront_id=storefront_id,
+        cp_feature_id=cp_feature_id,
+        erp_area_id=erp_area_id,
+        erp_tab_id=erp_tab_id,
+        bos_module_id=bos_module_id,
+    )
     if hybrid:
         status = hybrid["status"]
         aspnet_route = hybrid.get("aspnetRoute") or aspnet_route
@@ -181,6 +259,7 @@ for area in catalog.get("erpAreas") or []:
             kind="erp-area",
             label=str(area.get("label") or area_id),
             php_path=area_href,
+            erp_area_id=area_id,
             extra={"areaId": area_id},
         )
     )
@@ -199,6 +278,8 @@ for area in catalog.get("erpAreas") or []:
                 kind="erp-tab",
                 label=str(tab.get("label") or tab_id),
                 php_path=tab_href,
+                erp_area_id=area_id,
+                erp_tab_id=tab_id,
                 extra={"areaId": area_id, "tabId": tab_id},
             )
         )
@@ -244,6 +325,7 @@ for bos in catalog.get("bosModules") or []:
             kind="bos-module",
             label=str(bos.get("label") or bos_id),
             php_path=str(bos.get("href") or f"/BOS/"),
+            bos_module_id=bos_id,
             extra={"path": bos.get("path"), "section": bos.get("section")},
         )
     )
@@ -259,6 +341,7 @@ for cp in catalog.get("cpBrochureFeatures") or []:
             kind="cp-feature",
             label=str(cp.get("name") or cp_id),
             php_path=str(cp.get("href") or "/CP/"),
+            cp_feature_id=cp_id,
             extra={
                 "category": cp.get("category"),
                 "scope": cp.get("scope"),
