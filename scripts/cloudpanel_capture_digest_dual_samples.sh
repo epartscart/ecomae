@@ -111,6 +111,7 @@ declare -A ROUTES=(
   [cp-finance-close]="/cp/finance-close?limit=5"
   [cp-jewellery-fixing]="/cp/jewellery-fixing?limit=5"
   [cp-web-tracker]="/cp/web-tracker?limit=5"
+  [cp-abandoned-carts]="/cp/abandoned-carts?limit=5"
   [cp-quote-requests]="/cp/quote-requests?limit=5"
   [cp-platform-communication]="/cp/platform-communication?limit=5"
   [cp-info-blocks]="/cp/info-blocks?limit=5"

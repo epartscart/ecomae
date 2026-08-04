@@ -12,7 +12,7 @@
     "catalogExactRoutesWired": 18,
     "catalogExactRoutesPending": [],
     "surfaceDigestExactRoutesLive": 30,
-    "surfaceDigestExactRoutesWired": 127,
+    "surfaceDigestExactRoutesWired": 128,
     "storefrontDigestExactRoutesLive": 4,
     "storefrontDigestExactRoutesWired": 6,
     "blazorMigrationConsole": "/migration/console",

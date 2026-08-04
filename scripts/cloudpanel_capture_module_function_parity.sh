@@ -308,7 +308,7 @@ CP_FEATURE_HYBRID_BY_ID = {
     "order-fulfilment-guide": "erp-sales-quotations",
     "order-items": "erp-sales-quotations",
     "order-statuses": "erp-sales-quotations",
-    "abandoned-carts": "erp-sales-quotations",
+    "abandoned-carts": "cp-abandoned-carts",
     "channel-order-routing": "erp-sales-quotations",
     "channels-orders-fleet-oms": "erp-sales-quotations",
     "sao-status-links": "erp-sales-quotations",

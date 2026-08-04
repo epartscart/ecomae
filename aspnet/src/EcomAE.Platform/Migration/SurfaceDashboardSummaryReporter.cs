@@ -5788,6 +5788,69 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpAbandonedCartsDigestResult> BuildCpAbandonedCartsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpAbandonedCartsSummary(0, 0, 0, 0, 0, 0m, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var lineCount = 0; var guestLineCount = 0; var userLineCount = 0; var guestSessionCount = 0; var userCartCount = 0;
+            var cartSum = 0m;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectCpAbandonedCartsStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lineCount = Convert.ToInt32(reader["line_count"] is DBNull ? 0 : reader["line_count"], CultureInfo.InvariantCulture);
+                    guestLineCount = Convert.ToInt32(reader["guest_line_count"] is DBNull ? 0 : reader["guest_line_count"], CultureInfo.InvariantCulture);
+                    userLineCount = Convert.ToInt32(reader["user_line_count"] is DBNull ? 0 : reader["user_line_count"], CultureInfo.InvariantCulture);
+                    guestSessionCount = Convert.ToInt32(reader["guest_session_count"] is DBNull ? 0 : reader["guest_session_count"], CultureInfo.InvariantCulture);
+                    userCartCount = Convert.ToInt32(reader["user_cart_count"] is DBNull ? 0 : reader["user_cart_count"], CultureInfo.InvariantCulture);
+                    cartSum = Convert.ToDecimal(reader["cart_sum"] is DBNull ? 0 : reader["cart_sum"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<CpAbandonedCartsRowDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpAbandonedCartsRows;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new CpAbandonedCartsRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["session_id"] is DBNull ? 0 : reader["session_id"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["price"] is DBNull ? 0 : reader["price"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["count_need"] is DBNull ? 0 : reader["count_need"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["checked_for_order"] is DBNull ? 0 : reader["checked_for_order"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["product_type"] is DBNull ? 0 : reader["product_type"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time"] is DBNull ? 0 : reader["time"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["price_sum"] is DBNull ? 0 : reader["price_sum"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var summary = new CpAbandonedCartsSummary(lineCount, guestLineCount, userLineCount, guestSessionCount, userCartCount, cartSum, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpQuoteRequestsDigestResult> BuildCpQuoteRequestsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

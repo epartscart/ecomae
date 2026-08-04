@@ -328,6 +328,10 @@ SUMMARY_CONTRACTS = {
         "summary",
         "sessionCount,pageviewCount,eventCount,countryCount,source,message",
     ),
+    "cp-abandoned-carts": (
+        "summary",
+        "lineCount,guestLineCount,userLineCount,guestSessionCount,userCartCount,cartSum,source,message",
+    ),
     "cp-quote-requests": (
         "summary",
         "quoteCount,draftCount,submittedCount,quotedCount,acceptedCount,itemCount,source,message",
@@ -1032,6 +1036,10 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-web-tracker": (
         "sessions",
         ["id", "sessionUid", "siteKey", "pageviewCount", "eventCount", "countryCode", "deviceType", "browser", "firstSeenAt", "lastSeenAt"],
+    ),
+    "cp-abandoned-carts": (
+        "carts",
+        ["id", "userId", "sessionId", "price", "countNeed", "checkedForOrder", "productType", "manufacturer", "article", "name", "timeUnix", "priceSum"],
     ),
     "cp-quote-requests": (
         "quotes",

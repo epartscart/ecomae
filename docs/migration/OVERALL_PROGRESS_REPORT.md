@@ -9,7 +9,7 @@
 | Area | Wired | Live on www.ecomae.com | Honest % |
 | --- | ---: | ---: | ---: |
 | Catalog digest-contract | **725 / 726** | Catalog APIs allowlisted | **~99.9%** contract (holdout: `cp-debug-console` php-only) |
-| Surface digests (CP/ERP/BOS) | **127 / 127** | **127 / 127** (`401` auth gate) | **100%** shadow live |
+| Surface digests (CP/ERP/BOS) | **128 / 128** | **128 / 128** (`401` auth gate) | **100%** shadow live |
 | Storefront digests | **6 / 6** | **6 / 6** (`401`) | **100%** shadow live |
 | Presentation apps / shells | **145** | **142 / 145** (`200`; +`/marketing/app` pending shadow install) | **~98%** shadows live |
 | Marketing ASP.NET scaffold | `/marketing/app` epm-hub | Pending nginx shadow | Replacement path started |

@@ -333,6 +333,9 @@ public static class EcomAeRoutes
     public const string ControlPanelWebTracker = "/cp/web-tracker";
     /// <summary>CP Web tracker Blazor list (JSON digest remains <see cref="ControlPanelWebTracker"/>).</summary>
     public const string ControlPanelWebTrackerApp = "/cp/web-tracker-app";
+    public const string ControlPanelAbandonedCarts = "/cp/abandoned-carts";
+    /// <summary>CP Abandoned carts Blazor list (JSON digest remains <see cref="ControlPanelAbandonedCarts"/>).</summary>
+    public const string ControlPanelAbandonedCartsApp = "/cp/abandoned-carts-app";
     public const string ControlPanelQuoteRequests = "/cp/quote-requests";
     /// <summary>CP Quote requests Blazor list (JSON digest remains <see cref="ControlPanelQuoteRequests"/>).</summary>
     public const string ControlPanelQuoteRequestsApp = "/cp/quote-requests-app";
