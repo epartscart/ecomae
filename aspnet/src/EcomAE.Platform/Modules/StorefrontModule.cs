@@ -431,6 +431,48 @@ public sealed class StorefrontModule : ISurfaceModule
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontGarageSetActive, async (
+            HttpContext context,
+            StorefrontGarageSetActiveBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontGarageSetActiveDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for garage set-active dry-run.");
+            }
+
+            body ??= new StorefrontGarageSetActiveBody(0, false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontGarageSetActiveRequest(body.CarId, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontOrderSendMessage, async (
+            HttpContext context,
+            StorefrontOrderSendMessageBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontOrderSendMessageDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for order send-message dry-run.");
+            }
+
+            body ??= new StorefrontOrderSendMessageBody(0, null, false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontOrderSendMessageRequest(body.OrderId, body.Text, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
     }
 
     private sealed record StorefrontCartChangeCountNeedBody(int Id, decimal CountNeed, bool ConfirmWrites = false);
@@ -455,6 +497,8 @@ public sealed class StorefrontModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record StorefrontQuoteSubmitBody(long QuoteId, string? CustomerNote = null, bool ConfirmWrites = false);
     private sealed record StorefrontQuoteAcceptBody(long QuoteId, bool ConfirmWrites = false);
+    private sealed record StorefrontGarageSetActiveBody(long CarId, bool ConfirmWrites = false);
+    private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
 
     private static IResult Unauthorized(string message) => Results.Json(
         new { ok = false, error = new { code = "unauthorized", message } },

@@ -1,0 +1,51 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_compare() — hub overview.
+  Per-competitor tables remain PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-compare-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 45%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-balance-scale"></i> Comparisons</div>
+			<h1>ECOM AE compared</h1>
+			<p class="lead">How ECOM AE — a Blockchain BOS Enterprise System — compares with leading ERP and business platforms.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/demo">Start @EcomaeMarketingPages.DemoDays-day demo</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/compare?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "compare"))">Open full PHP compare hub (hybrid)</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/contact">Contact sales</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-sitemap"></i>
+			<strong>BOS vs ERP</strong>
+			<p>One verifiable operating system — not a bolted-on ERP suite.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-table"></i>
+			<strong>Feature tables</strong>
+			<p>Side-by-side rows for commerce, finance, compliance, and catalog.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-compass"></i>
+			<strong>When to choose</strong>
+			<p>Honest “when them / when us” guidance stays on live PHP pages.</p>
+		</div>
+	</div>
+
+	<div class="epm-highlight">
+		<h3>Competitor pages</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">Full comparison tables and FAQs remain on live PHP until dual-sample.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/compare?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "compare"))">Open compare catalog</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET compare overview scaffold — dual-sample against live PHP <code>/compare</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

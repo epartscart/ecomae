@@ -1,0 +1,45 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_bos() hub — marketing /bos (not product /BOS/).
+  Article pages remain PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-bos-knowledge-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#0f766e 0%,#134e4a 45%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-lightbulb-o"></i> Blockchain BOS knowledge</div>
+			<h1>The Blockchain BOS Enterprise category</h1>
+			<p class="lead">What a Blockchain BOS Enterprise System is, how it differs from ERP and CRM, and why modern businesses run on one unified verifiable system.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/blockchain">See Blockchain BOS product story</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/bos?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "bos"))">Open full PHP BOS hub (hybrid)</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/demo">Start demo</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-cubes"></i>
+			<strong>One system</strong>
+			<p>Commerce, ERP, CRM, and compliance in one verifiable operating story.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-exchange"></i>
+			<strong>Not bolted ERP</strong>
+			<p>How BOS differs from classic ERP/CRM suites — articles stay on PHP.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-check-square-o"></i>
+			<strong>Proof layer</strong>
+			<p>Selected facts get cryptographic proof without moving day-to-day MySQL ops.</p>
+		</div>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET marketing <code>/bos</code> overview scaffold (distinct from product <code>/BOS/</code>) — dual-sample against live PHP before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>
