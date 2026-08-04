@@ -5,9 +5,10 @@ Live PHP ajax/forms remain authoritative until paired field-level samples and hu
 
 | Helper | Role |
 | --- | --- |
+| `scripts/generate_module_ajax_contract_samples.py` | Seed `php-*` from `aspnet-*` migration-contract goldens (no live PHP) |
 | `scripts/cloudpanel_capture_module_ajax_dual_samples.sh` | Capture catalog + curated dedicated dry-runs |
-| `scripts/compare_module_ajax_dual_samples.py` | Assert writes=0 / cutover false |
-| `scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh` | Capture + compare operator |
+| `scripts/compare_module_ajax_dual_samples.py` | Assert writes=0 / pair contract baselines (`--contract-only`) |
+| `scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh` | Generate + capture + compare operator |
 
 Catalog board: `GET /cp/module-ajax/writes/catalog`
 

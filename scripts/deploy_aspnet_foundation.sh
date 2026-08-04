@@ -161,7 +161,9 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh" \
   "$ROOT/scripts/cloudpanel_capture_module_ajax_dual_samples.sh" \
   "$ROOT/scripts/compare_module_ajax_dual_samples.py" \
+  "$ROOT/scripts/generate_module_ajax_contract_samples.py" \
   "$ROOT/scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh" \
+  "$ROOT/scripts/cloudpanel_www_shadow_closeout_operator.sh" \
   "$ROOT/scripts/compare_catalog_api_contract_floor.py" \
   "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" \
   "$ROOT/scripts/cloudpanel_capture_module_function_parity.sh" \
