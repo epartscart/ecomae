@@ -69,6 +69,9 @@ def main() -> int:
 
     if php_offers is not None and asp_offers is not None:
         for side, offers in (("php", php_offers), ("aspnet", asp_offers)):
+            if args.contract_only and not offers:
+                failures.append(f"{side}.offers must be non-empty for contract floor sentinel")
+                continue
             if not offers:
                 continue
             first = offers[0]

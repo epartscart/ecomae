@@ -6,6 +6,9 @@
   "catalogGoldensChecked": 18,
   "failed": 0,
   "priceLookupOk": true,
+  "listItemFieldStems": [
+    "api-catalog-manufacturers"
+  ],
   "results": [
     {
       "stem": "api-catalog-status",
@@ -116,5 +119,5 @@
       "errors": []
     }
   ],
-  "note": "Catalog/API contract floor only. Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "Catalog/API contract floor only. Manufacturers migration golden keeps non-empty item-field sentinel. Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
 }

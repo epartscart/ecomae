@@ -558,11 +558,21 @@ def main() -> None:
         "api-catalog-manufacturers.json": {
             "ok": True,
             "section": "passenger",
-            "rows": 0,
+            "rows": 1,
             "source": "migration",
             "stale": True,
-            "data": [],
-            "message": "TenantRegistry DB is not configured.",
+            "data": [
+                {
+                    "MFA_ID": 1,
+                    "manufacturer": "Migration Make",
+                    "manufacturer_ru": "Migration Make",
+                    "type": "passenger",
+                    "country": "AE",
+                    "popular": 0,
+                    "is_logo": 0,
+                }
+            ],
+            "message": "migration-mode manufacturers item-field sentinel; PHP/cache remain authoritative",
         },
         "api-catalog-models.json": {
             "ok": True,

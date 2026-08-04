@@ -1,0 +1,20 @@
+{
+  "role": "catalog-manufacturers-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "api-catalog-manufacturers",
+  "route": "/api/v1/catalog/manufacturers",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredItemFields": [
+    "MFA_ID",
+    "manufacturer",
+    "manufacturer_ru",
+    "type",
+    "country",
+    "popular",
+    "is_logo"
+  ],
+  "priceLookupRequireNonemptyOffers": true,
+  "note": "Manufacturers migration golden must keep a non-empty data[] sentinel matching CatalogManufacturerService fallback shape. Price-lookup contract-only requires non-empty offers[]. Never invents RELEASE_OWNER_APPROVAL.md."
+}

@@ -214,6 +214,8 @@ check_file "module-function coverage consistency validator" \
   "$ROOT/scripts/validate_module_function_coverage_consistency.py"
 check_file "module-function coverage consistency evidence" \
   "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json"
+check_file "catalog manufacturers item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/catalog-api/manufacturers-item-field-floor.json"
 
 if [[ "$FAIL" -ne 0 ]]; then
   printf 'FAIL: Enterprise BOS scaffold guardrails\n'
