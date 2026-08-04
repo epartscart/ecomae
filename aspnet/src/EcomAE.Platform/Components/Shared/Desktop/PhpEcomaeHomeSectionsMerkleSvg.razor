@@ -1,0 +1,37 @@
+@namespace EcomAE.Platform.Components.Shared
+@*
+  Merkle diagram from epc_ecomae_home_sections.php — MarkupString avoids Razor <text> conflicts.
+*@
+
+@((MarkupString)Svg)
+
+@code {
+    private static readonly string Svg = """
+<svg class="ehm-bc-merkle" viewBox="0 0 360 160" role="img" focusable="false">
+	<title>Merkle tree anchoring diagram</title>
+	<defs>
+		<linearGradient id="ehmBcLine" x1="0%" y1="0%" x2="100%" y2="0%">
+			<stop offset="0%" stop-color="#00ccff" stop-opacity=".2"/>
+			<stop offset="50%" stop-color="#00ffb2" stop-opacity=".85"/>
+			<stop offset="100%" stop-color="#00ccff" stop-opacity=".2"/>
+		</linearGradient>
+	</defs>
+	<line class="ehm-bc-edge" x1="180" y1="28" x2="100" y2="78"/>
+	<line class="ehm-bc-edge" x1="180" y1="28" x2="260" y2="78"/>
+	<line class="ehm-bc-edge" x1="100" y1="78" x2="55" y2="128"/>
+	<line class="ehm-bc-edge" x1="100" y1="78" x2="145" y2="128"/>
+	<line class="ehm-bc-edge" x1="260" y1="78" x2="215" y2="128"/>
+	<line class="ehm-bc-edge" x1="260" y1="78" x2="305" y2="128"/>
+	<circle class="ehm-bc-leaf ehm-bc-leaf--root" cx="180" cy="28" r="11"/>
+	<circle class="ehm-bc-leaf" cx="100" cy="78" r="8"/>
+	<circle class="ehm-bc-leaf" cx="260" cy="78" r="8"/>
+	<circle class="ehm-bc-leaf ehm-bc-leaf--doc" cx="55" cy="128" r="7"/>
+	<circle class="ehm-bc-leaf ehm-bc-leaf--doc" cx="145" cy="128" r="7"/>
+	<circle class="ehm-bc-leaf ehm-bc-leaf--doc" cx="215" cy="128" r="7"/>
+	<circle class="ehm-bc-leaf ehm-bc-leaf--doc" cx="305" cy="128" r="7"/>
+	<text x="180" y="18" text-anchor="middle" class="ehm-bc-svg-label">Merkle root</text>
+	<text x="180" y="152" text-anchor="middle" class="ehm-bc-svg-label ehm-bc-svg-label--muted">Invoice · Credit note · GRN · RMA</text>
+	<rect class="ehm-bc-scan" x="20" y="0" width="40" height="160" fill="url(#ehmBcLine)" opacity=".35"/>
+</svg>
+""";
+}

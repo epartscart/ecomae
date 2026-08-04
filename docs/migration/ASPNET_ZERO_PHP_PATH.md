@@ -21,8 +21,8 @@ Related: `docs/migration/ZERO_PHP_PRODUCTION_CUTOVER_ROADMAP.md`
 
 1. Inventory — done  
 2. Digests + hybrid shells — done on www  
-3. Presentation parity (heroes/fonts/menus) — in progress (`/marketing/app`, CP/ERP/BOS/storefront chrome)  
-4. Function parity (writes/menus) — not started (`aspNetInteractiveComplete=0`)  
+3. Presentation parity (heroes/fonts/menus) — in progress (`/marketing/app` now includes `epm-hub` + `#ehm-home-sections`; CP/ERP/BOS/storefront chrome)  
+4. Function parity (writes/menus) — in progress scaffolds (`/storefront/checkout-app` readiness; `aspNetInteractiveComplete=0` until human dual-sample pass)  
 5. Tenant exact-route cutover — blocked on parity  
 6. PHP removal — blocked on approval  
 

@@ -229,6 +229,46 @@ public sealed class StorefrontModule : ISurfaceModule
                 note = "Read-only authenticated shop_carts digest. Qty/guest cart/checkout writes remain PHP /shop/cart."
             });
         });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontCheckout, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for storefront checkout digest.");
+            }
+
+            var result = await dashboards.ListStorefrontCartAsync(session.UserId, limit ?? 50, cancellationToken);
+            var checkedCount = result.Lines.Count(l => l.CheckedForOrder);
+            var readiness = result.Summary.Count > 0
+                ? (checkedCount > 0 ? "ready-for-php-how-get" : "cart-has-lines")
+                : "empty-cart";
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "storefront",
+                user_id = result.UserId,
+                summary = result.Summary,
+                checked_for_order = checkedCount,
+                readiness,
+                php_steps = new[]
+                {
+                    new { id = "how_get", href = "https://epartscart.com/shop/checkout/how_get" },
+                    new { id = "login_offer", href = "https://epartscart.com/shop/checkout/login_offer" },
+                    new { id = "confirm", href = "https://epartscart.com/shop/checkout/confirm" },
+                },
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Wave B read-only checkout readiness over shop_carts. Obtain/confirm/payment writes remain PHP."
+            });
+        });
     }
 
     private static IResult Unauthorized(string message) => Results.Json(

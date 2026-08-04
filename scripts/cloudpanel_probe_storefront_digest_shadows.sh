@@ -18,7 +18,7 @@ fi
 
 mapfile -t ROUTES < <(grep -E '^location = /storefront/' "$EXAMPLE" | sed -E 's/^location = ([^ {]+).*/\1/')
 if [[ "${#ROUTES[@]}" -ne 6 ]]; then
-  printf 'ERROR: expected 6 storefront digest routes, found %s\n' "${#ROUTES[@]}" >&2
+  printf 'ERROR: expected 7 storefront digest routes, found %s\n' "${#ROUTES[@]}" >&2
   exit 1
 fi
 

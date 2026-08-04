@@ -36,6 +36,8 @@ public static class LegacyChromeNavCatalog
         new("Dashboard summary KPIs", "/cp/dashboard-summary-app"),
         new("Orders (OMS)", "/cp/orders"),
         new("Orders PHP OMS", "/CP/shop/orders/orders"),
+        new("Abandoned carts", "/cp/abandoned-carts-app"),
+        new("Abandoned carts PHP", "/CP/shop/orders/carts"),
         new("Users list", "/cp/users-app"),
         new("Groups list", "/cp/groups-app"),
         new("Modules list", "/cp/modules-app"),
@@ -298,12 +300,13 @@ public static class LegacyChromeNavCatalog
         new("Account PHP", "https://epartscart.com/users/"),
         new("Cart", "/storefront/cart-app"),
         new("Cart PHP", "https://epartscart.com/shop/cart"),
+        new("Checkout", "/storefront/checkout-app"),
+        new("Checkout PHP", "https://epartscart.com/shop/checkout/how_get"),
         new("My orders", "/storefront/orders-app"),
         new("Orders PHP", "https://epartscart.com/shop/orders"),
         new("Garage", "/storefront/garage-app"),
         new("Garage PHP", "https://epartscart.com/shop/part_search"),
         new("Profile", "/storefront/profile-app"),
-        new("Profile PHP", "https://epartscart.com/users/profile"),
-        new("Checkout PHP", "https://epartscart.com/shop/checkout/how_get")
+        new("Profile PHP", "https://epartscart.com/users/profile")
     ];
 }

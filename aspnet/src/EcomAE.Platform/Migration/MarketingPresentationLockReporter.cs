@@ -52,7 +52,7 @@ public sealed class MarketingPresentationLockReporter : IMarketingPresentationLo
             [
                 "TARGET: 100% ASP.NET Core / 0 PHP for ecomae.com marketing.",
                 "Live / is PHP-primary only until ASP.NET same-to-same — parity gate, not destination.",
-                "ASP.NET /marketing/app reuses PHP epm-hub CSS/markup as the replacement scaffold.",
+                "ASP.NET /marketing/app now includes epm-hub + #ehm-home-sections (PhpEcomaeHomeSections) as the replacement scaffold.",
                 "cutoverAllowed=false until dual-sample + approval; never invent true.",
                 "Probe: bash scripts/cloudpanel_probe_ecomae_marketing_php_chrome.sh",
             ]);

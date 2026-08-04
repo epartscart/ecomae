@@ -62,6 +62,7 @@ now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 # stem, surface, appRoute, digestRoute, phpPath, blazorMarker, chromeShell, authKind
 TARGETS = [
     ("cp-orders", "cp", "/cp/orders", "/cp/orders-digest", "/CP/shop/orders/orders", "CpOrdersApp", "PhpCpDesktopChrome", "admin"),
+    ("cp-abandoned-carts", "cp", "/cp/abandoned-carts-app", "/cp/abandoned-carts", "/CP/shop/orders/carts", "CpAbandonedCartsApp", "PhpCpDesktopChrome", "admin"),
     ("cp-dashboard-summary", "cp", "/cp/dashboard-summary-app", "/cp/dashboard-summary", "/CP/", "CpDashboardSummaryApp", "PhpCpDesktopChrome", "admin"),
     ("cp-users", "cp", "/cp/users-app", "/cp/users", "/CP/control/users", "CpUsersApp", "PhpCpDesktopChrome", "admin"),
     ("cp-groups", "cp", "/cp/groups-app", "/cp/groups", "/CP/users/usergroups", "CpGroupsApp", "PhpCpDesktopChrome", "admin"),
@@ -191,6 +192,7 @@ TARGETS = [
     ("bos-fleet-summary", "bos", "/bos/fleet-summary-app", "/bos/fleet-summary", "/BOS/", "BosFleetSummaryApp", "PhpBosDesktopChrome", "admin"),
     ("sf-search", "storefront", "/storefront/search-app", "/storefront/search", "https://epartscart.com/shop/part_search", "StorefrontSearchApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-cart", "storefront", "/storefront/cart-app", "/storefront/cart", "https://epartscart.com/shop/cart", "StorefrontCartApp", "PhpStorefrontDesktopChrome", "customer"),
+    ("sf-checkout", "storefront", "/storefront/checkout-app", "/storefront/checkout", "https://epartscart.com/shop/checkout/how_get", "StorefrontCheckoutApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-orders", "storefront", "/storefront/orders-app", "/storefront/orders", "https://epartscart.com/shop/orders", "StorefrontOrdersApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-garage", "storefront", "/storefront/garage-app", "/storefront/garage", "https://epartscart.com/shop/part_search", "StorefrontGarageApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-profile", "storefront", "/storefront/profile-app", "/storefront/profile", "https://epartscart.com/users/profile", "StorefrontProfileApp", "PhpStorefrontDesktopChrome", "customer"),

@@ -1,0 +1,139 @@
+@page "/storefront/checkout-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Checkout · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <style>
+        .epc-sf-co-hero {
+            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0f172a 0%,#1e293b 40%,#14532d 100%);
+        }
+        .epc-sf-co-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
+        .epc-sf-co-hero p { margin:0; color:#bbf7d0; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-sf-co-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-sf-co-cta a {
+            display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#16a34a;
+        }
+        .epc-sf-co-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-sf-co-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-sf-co-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-sf-co-kpi strong { display:block; font-size:1.25rem; font-variant-numeric:tabular-nums; }
+        .epc-sf-co-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-sf-co-steps { display:grid; gap:.55rem; margin-bottom:1rem; }
+        .epc-sf-co-step {
+            display:flex; gap:.75rem; align-items:flex-start; background:#fff; border:1px solid #e5e7eb;
+            border-radius:.55rem; padding:.85rem .95rem;
+        }
+        .epc-sf-co-step__n {
+            flex:0 0 1.6rem; height:1.6rem; border-radius:999px; background:#14532d; color:#fff;
+            display:inline-flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:800;
+        }
+        .epc-sf-co-step h3 { margin:0 0 .2rem; font-size:.95rem; }
+        .epc-sf-co-step p { margin:0; color:#64748b; font-size:.84rem; line-height:1.4; }
+        .epc-sf-co-step a { color:#15803d; font-weight:700; text-decoration:none; }
+        .epc-sf-co-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
+        .epc-sf-co-gate { padding:1.25rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; }
+        @@media (max-width:900px){ .epc-sf-co-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-sf-co-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
+        <h1>Checkout readiness</h1>
+        <p>Wave B read-only checkout scaffold. Cart summary and step map live here; obtain mode, confirm, and payment stay on live PHP until dual-sample write parity.</p>
+        <div class="epc-sf-co-cta">
+            <a href="https://epartscart.com/shop/checkout/how_get">PHP how-get</a>
+            <a class="ghost" href="https://epartscart.com/shop/checkout/confirm">PHP confirm</a>
+            <a class="ghost" href="/storefront/cart-app">Cart summary</a>
+            <a class="ghost" href="/storefront/login">Customer login</a>
+        </div>
+    </section>
+
+    @if (!_isCustomer)
+    {
+        <div class="epc-sf-co-gate">
+            <p style="margin:0 0 .75rem;color:#334155">Sign in with a customer session to load checkout readiness from your authenticated cart. Guest checkout remains on PHP.</p>
+            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#16a34a;color:#fff;font-weight:700;text-decoration:none">Customer login bridge</a>
+            <a href="https://epartscart.com/shop/checkout/login_offer" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">PHP login offer</a>
+        </div>
+    }
+    else
+    {
+        <div class="epc-sf-co-kpis" aria-label="Checkout readiness KPIs">
+            <div class="epc-sf-co-kpi"><strong>@_summary.Count</strong><span>Cart lines</span></div>
+            <div class="epc-sf-co-kpi"><strong>@_summary.Sum.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cart sum</span></div>
+            <div class="epc-sf-co-kpi"><strong>@_checkedCount</strong><span>Checked for order</span></div>
+            <div class="epc-sf-co-kpi"><strong>@_readiness</strong><span>Readiness</span></div>
+        </div>
+
+        <div class="epc-sf-co-steps" aria-label="Checkout steps">
+            <div class="epc-sf-co-step">
+                <span class="epc-sf-co-step__n">1</span>
+                <div>
+                    <h3>Review cart</h3>
+                    <p>@_summary.Count line(s) · source <code>@_source</code>. <a href="/storefront/cart-app">Open cart summary</a> · <a href="https://epartscart.com/shop/cart">PHP cart</a></p>
+                </div>
+            </div>
+            <div class="epc-sf-co-step">
+                <span class="epc-sf-co-step__n">2</span>
+                <div>
+                    <h3>How to obtain</h3>
+                    <p>Delivery / pickup mode selection stays on PHP. <a href="https://epartscart.com/shop/checkout/how_get">Open how_get</a></p>
+                </div>
+            </div>
+            <div class="epc-sf-co-step">
+                <span class="epc-sf-co-step__n">3</span>
+                <div>
+                    <h3>Confirm &amp; pay</h3>
+                    <p>Order confirm and payment remain PHP-authoritative. <a href="https://epartscart.com/shop/checkout/confirm">Open confirm</a></p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="epc-sf-co-note">
+        Read-only Wave B scaffold · reuses authenticated <code>shop_carts</code> digest (<code>/storefront/checkout</code>).
+        Writes stay <a href="https://epartscart.com/shop/checkout/how_get">PHP checkout</a>.
+        Does not set <code>aspNetInteractiveComplete</code> or cutover flags.
+    </div>
+</PhpStorefrontDesktopChrome>
+
+@code {
+    private bool _isCustomer;
+    private StorefrontCartSummary _summary = new(0, 0m, "n/a", "");
+    private int _checkedCount;
+    private string _source = "n/a";
+    private string _readiness = "n/a";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+        {
+            _isCustomer = false;
+            return;
+        }
+
+        _isCustomer = true;
+        var result = await Dashboards.ListStorefrontCartAsync(session.UserId, 100, ctx.RequestAborted);
+        _summary = result.Summary;
+        _source = result.Source;
+        _checkedCount = result.Lines.Count(l => l.CheckedForOrder);
+        _readiness = result.Summary.Count > 0
+            ? (result.Lines.Any(l => l.CheckedForOrder) ? "ready-for-php-how-get" : "cart-has-lines")
+            : "empty-cart";
+    }
+}

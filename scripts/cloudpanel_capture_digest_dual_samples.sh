@@ -111,6 +111,7 @@ declare -A ROUTES=(
   [cp-finance-close]="/cp/finance-close?limit=5"
   [cp-jewellery-fixing]="/cp/jewellery-fixing?limit=5"
   [cp-web-tracker]="/cp/web-tracker?limit=5"
+  [cp-abandoned-carts]="/cp/abandoned-carts?limit=5"
   [cp-quote-requests]="/cp/quote-requests?limit=5"
   [cp-platform-communication]="/cp/platform-communication?limit=5"
   [cp-info-blocks]="/cp/info-blocks?limit=5"
@@ -166,6 +167,7 @@ declare -A ROUTES=(
   [storefront-profile]="/storefront/profile"
   [storefront-search]="/storefront/search?article=0986424590&limit=5"
   [storefront-cart]="/storefront/cart?limit=5"
+  [storefront-checkout]="/storefront/checkout?limit=5"
 )
 
 capture() {

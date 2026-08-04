@@ -2044,6 +2044,36 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// Abandoned carts KPIs from shop_carts (PHP /CP/shop/orders/carts lists all cart lines).
+    /// Guest/session carts use session_id != 0; authenticated lines use session_id = 0.
+    /// </summary>
+    public const string SelectCpAbandonedCartsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_carts`) AS line_count,
+            (SELECT COUNT(*) FROM `shop_carts` WHERE IFNULL(`session_id`,0) != 0) AS guest_line_count,
+            (SELECT COUNT(*) FROM `shop_carts` WHERE IFNULL(`session_id`,0) = 0 AND IFNULL(`user_id`,0) > 0) AS user_line_count,
+            (SELECT COUNT(DISTINCT `session_id`) FROM `shop_carts` WHERE IFNULL(`session_id`,0) != 0) AS guest_session_count,
+            (SELECT COUNT(DISTINCT `user_id`) FROM `shop_carts` WHERE IFNULL(`session_id`,0) = 0 AND IFNULL(`user_id`,0) > 0) AS user_cart_count,
+            (SELECT IFNULL(SUM(`price` * `count_need`), 0) FROM `shop_carts`) AS cart_sum
+        """;
+
+    /// <summary>
+    /// Abandoned cart lines (read-only subset of carts.php). Deletes/filters remain PHP.
+    /// Prefer guest/session rows first, then authenticated user carts.
+    /// </summary>
+    public const string SelectCpAbandonedCartsRows = """
+        SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`session_id`,0) AS session_id,
+               IFNULL(`price`,0) AS price, IFNULL(`count_need`,0) AS count_need,
+               IFNULL(`checked_for_order`,0) AS checked_for_order, IFNULL(`product_type`,0) AS product_type,
+               IFNULL(`t2_manufacturer`,'') AS manufacturer, IFNULL(`t2_article`,'') AS article,
+               IFNULL(`t2_name`,'') AS name, IFNULL(`time`,0) AS time,
+               CAST(IFNULL(`price`,0) * IFNULL(`count_need`,0) AS DECIMAL(20,2)) AS price_sum
+        FROM `shop_carts`
+        ORDER BY CASE WHEN IFNULL(`session_id`,0) != 0 THEN 0 ELSE 1 END ASC, `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>Quote request KPIs — status stages are distinct in PHP (draft→submitted→quoted→accepted).</summary>
     public const string SelectCpQuoteRequestsStats = """
         SELECT

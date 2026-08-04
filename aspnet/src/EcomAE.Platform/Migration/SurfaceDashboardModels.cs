@@ -2362,6 +2362,37 @@ public sealed record CpWebTrackerDigestResult(
     string Source,
     string Message);
 
+public sealed record CpAbandonedCartsSummary(
+    int LineCount,
+    int GuestLineCount,
+    int UserLineCount,
+    int GuestSessionCount,
+    int UserCartCount,
+    decimal CartSum,
+    string Source,
+    string Message);
+
+public sealed record CpAbandonedCartsRowDigest(
+    long Id,
+    long UserId,
+    long SessionId,
+    decimal Price,
+    int CountNeed,
+    int CheckedForOrder,
+    int ProductType,
+    string Manufacturer,
+    string Article,
+    string Name,
+    long TimeUnix,
+    decimal PriceSum);
+
+public sealed record CpAbandonedCartsDigestResult(
+    CpAbandonedCartsSummary Summary,
+    IReadOnlyList<CpAbandonedCartsRowDigest> Carts,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record CpQuoteRequestsSummary(
     int QuoteCount,
     int DraftCount,

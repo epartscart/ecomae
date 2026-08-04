@@ -2219,6 +2219,34 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelAbandonedCarts, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for abandoned-carts digest.");
+            }
+
+            var result = await dashboards.BuildCpAbandonedCartsDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                carts = result.Carts,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only shop_carts abandoned-cart KPIs + lines (guest/session preferred). Deletes/filters remain PHP /CP/shop/orders/carts."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelQuoteRequests, async (
             HttpContext context,
             int? limit,

@@ -1,0 +1,149 @@
+@page "/cp/abandoned-carts-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Abandoned carts · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-w19-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#111 0%,#1f1f1f 55%,#3f0d0d 100%);
+        }
+        .epc-w19-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-w19-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-w19-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-w19-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#dc2626;
+        }
+        .epc-w19-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-w19-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-w19-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-w19-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-w19-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-w19-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-w19-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-w19-table th, .epc-w19-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-w19-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-w19-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-w19-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-w19-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
+        <h1>Abandoned carts</h1>
+        <p>Read-only KPIs + cart lines from <code>/cp/abandoned-carts</code>. Guest/session carts listed first. Deletes and filters stay on live PHP.</p>
+        <div class="epc-w19-cta">
+            <a href="@_phpTab">Open PHP carts</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-w19-kpis" aria-label="Abandoned carts stats">
+        <div class="epc-w19-kpi"><strong>@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</strong><span>Cart lines</span></div>
+        <div class="epc-w19-kpi"><strong>@_summary.GuestLineCount.ToString(CultureInfo.InvariantCulture)</strong><span>Guest / session lines</span></div>
+        <div class="epc-w19-kpi"><strong>@_summary.UserLineCount.ToString(CultureInfo.InvariantCulture)</strong><span>User lines</span></div>
+        <div class="epc-w19-kpi"><strong>@_summary.GuestSessionCount.ToString(CultureInfo.InvariantCulture)</strong><span>Guest sessions</span></div>
+        <div class="epc-w19-kpi"><strong>@_summary.UserCartCount.ToString(CultureInfo.InvariantCulture)</strong><span>Users with carts</span></div>
+        <div class="epc-w19-kpi"><strong>@_summary.CartSum.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cart sum</span></div>
+    </div>
+
+    <div class="epc-w19-table-wrap">
+    <table class="epc-w19-table">
+        <thead>
+            <tr>
+                    <th>Id</th>
+                    <th>Manufacturer</th>
+                    <th>Article</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Sum</th>
+                    <th>When</th>
+                    <th>User</th>
+                    <th>Session</th>
+                    <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (_rows.Count == 0)
+            {
+                <tr><td colspan="11">No rows in digest (@_source). @_message</td></tr>
+            }
+            else
+            {
+                @foreach (var row in _rows)
+                {
+                    <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Manufacturer) ? row.Manufacturer : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Article) ? row.Article : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
+                            <td>@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@row.CountNeed.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.PriceSum.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@FormatTime(row.TimeUnix)</td>
+                            <td>@row.UserId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.SessionId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    </div>
+
+    <div class="epc-w19-note">
+        Read-only preview · JSON digest <a href="/cp/abandoned-carts?limit=200">/cp/abandoned-carts</a>. PHP abandoned carts remains authoritative · Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>. Table: <code>shop_carts</code>. Deletes/filters remain PHP.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/orders/carts";
+    private bool _isAdmin;
+    private CpAbandonedCartsSummary _summary = new(0, 0, 0, 0, 0, 0m, "n/a", "");
+    private IReadOnlyList<CpAbandonedCartsRowDigest> _rows = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpAbandonedCartsDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _rows = result.Carts;
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0)
+        {
+            return "—";
+        }
+
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
+}
