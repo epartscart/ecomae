@@ -5,12 +5,24 @@
   "aspNetInteractiveComplete": 0,
   "stem": "storefront-checkout",
   "requireNonemptyMigrationSentinel": false,
-  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
-  "note": "Locks storefront-checkout digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "collectionKey": "php_steps",
   "requiredSummaryFields": [
     "count",
     "sum",
     "source",
     "message"
-  ]
+  ],
+  "requiredItemFields": [
+    "id",
+    "href"
+  ],
+  "requiredTopLevelFields": [
+    "readiness",
+    "checked_for_order",
+    "php_steps"
+  ],
+  "phpAuthoritativePath": "https://www.epartscart.com/en/shop/checkout/how_get",
+  "tenant": "epartscart.com",
+  "source": "scripts/compare_digest_dual_samples.py + epartscart checkout sample",
+  "note": "Locks epartscart checkout readiness + php_steps (how_get/login_offer/confirm). Payment/confirm writes remain PHP. cutoverAllowed=false."
 }

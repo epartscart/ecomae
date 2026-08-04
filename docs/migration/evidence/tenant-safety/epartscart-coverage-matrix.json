@@ -1,0 +1,211 @@
+{
+  "role": "epartscart-frontend-cp-coverage-matrix",
+  "tenant": "epartscart.com",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "generatedAtUnix": 1785863935,
+  "storefront": {
+    "digestSurfacesRequired": 7,
+    "digestSurfacesComplete": 7,
+    "phpChromeLocks": 11,
+    "surfaces": [
+      {
+        "id": "storefront-search",
+        "kind": "digest-contract",
+        "phpPath": "https://www.epartscart.com/en/shop/part_search",
+        "floor": "storefront-search-item-field-floor.json",
+        "sample": "storefront-search.json",
+        "hybrid": "aspnet-sf-search-hybrid-ui.json",
+        "status": "contract-complete",
+        "errors": []
+      },
+      {
+        "id": "storefront-cart",
+        "kind": "digest-contract",
+        "phpPath": "https://www.epartscart.com/en/shop/cart",
+        "floor": "storefront-cart-item-field-floor.json",
+        "sample": "storefront-cart.json",
+        "hybrid": "aspnet-sf-cart-hybrid-ui.json",
+        "status": "contract-complete",
+        "errors": []
+      },
+      {
+        "id": "storefront-checkout",
+        "kind": "digest-contract",
+        "phpPath": "https://www.epartscart.com/en/shop/checkout/how_get",
+        "floor": "storefront-checkout-item-field-floor.json",
+        "sample": "storefront-checkout.json",
+        "hybrid": "aspnet-sf-checkout-hybrid-ui.json",
+        "status": "contract-complete",
+        "errors": []
+      },
+      {
+        "id": "storefront-orders",
+        "kind": "digest-contract",
+        "phpPath": "https://www.epartscart.com/en/shop/orders",
+        "floor": "storefront-orders-item-field-floor.json",
+        "sample": "storefront-orders.json",
+        "hybrid": "aspnet-sf-orders-hybrid-ui.json",
+        "status": "contract-complete",
+        "errors": []
+      },
+      {
+        "id": "storefront-garage",
+        "kind": "digest-contract",
+        "phpPath": "https://www.epartscart.com/en/garage/login",
+        "floor": "storefront-garage-item-field-floor.json",
+        "sample": "storefront-garage.json",
+        "hybrid": "aspnet-sf-garage-hybrid-ui.json",
+        "status": "contract-complete",
+        "errors": []
+      },
+      {
+        "id": "storefront-profile",
+        "kind": "digest-contract",
+        "phpPath": "https://www.epartscart.com/en/users/profile",
+        "floor": "storefront-profile-object-field-floor.json",
+        "sample": "storefront-profile.json",
+        "hybrid": "aspnet-sf-profile-hybrid-ui.json",
+        "status": "contract-complete",
+        "errors": []
+      },
+      {
+        "id": "storefront-account-summary",
+        "kind": "digest-contract",
+        "phpPath": "https://www.epartscart.com/en/users/",
+        "floor": "storefront-account-summary-item-field-floor.json",
+        "sample": "storefront-account-summary.json",
+        "hybrid": "aspnet-sf-account-summary-hybrid-ui.json",
+        "status": "contract-complete",
+        "errors": []
+      },
+      {
+        "id": "storefront-home",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://epartscart.com/",
+        "probePath": "/",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      },
+      {
+        "id": "storefront-catalog",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://www.epartscart.com/en/",
+        "probePath": "/en/",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      },
+      {
+        "id": "storefront-vin_search",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://epartscart.com/shop/part_search",
+        "probePath": "/shop/part_search",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      },
+      {
+        "id": "storefront-returns",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://epartscart.com/",
+        "probePath": "/",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      },
+      {
+        "id": "storefront-payments",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://epartscart.com/",
+        "probePath": "/",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      },
+      {
+        "id": "storefront-support",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://epartscart.com/",
+        "probePath": "/",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      },
+      {
+        "id": "storefront-quotes",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://www.epartscart.com/en/shop/quotes",
+        "probePath": "/en/shop/quotes",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      },
+      {
+        "id": "storefront-wishlist",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://www.epartscart.com/en/shop/zakladki",
+        "probePath": "/en/shop/zakladki",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      },
+      {
+        "id": "storefront-compare",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://www.epartscart.com/en/shop/sravneniya",
+        "probePath": "/en/shop/sravneniya",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      },
+      {
+        "id": "storefront-bulk-upload",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://www.epartscart.com/en/shop/bulk-upload",
+        "probePath": "/en/shop/bulk-upload",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      },
+      {
+        "id": "storefront-balance",
+        "kind": "php-chrome-lock",
+        "phpPath": "https://www.epartscart.com/en/shop/balans",
+        "probePath": "/en/shop/balans",
+        "status": "php-authoritative-required",
+        "note": "No ASP.NET hybrid on epartscart.com \u2014 live PHP chrome is the parity source."
+      }
+    ]
+  },
+  "cp": {
+    "menusTracked": 726,
+    "menusDigestContract": 725,
+    "phpOnlyHoldout": 1,
+    "holdoutId": "cp-debug-console",
+    "fieldFloorsCovered": 136,
+    "fieldFloorsTotal": 136,
+    "cpSamplesWithFloorCoverage": 106,
+    "cpSamplesTotal": 106,
+    "cpHybridStubs": 105,
+    "cpModulesInInventory": 479,
+    "phpOnlyModules": [
+      "cp-debug-console"
+    ]
+  },
+  "moduleInventoryStorefrontCount": 19,
+  "built": [
+    "Storefront digest surfaces 7/7 contract-complete",
+    "CP menus 725/726 digest-contract",
+    "Field floors 136/136",
+    "CP hybrid stubs 105",
+    "PHP chrome locks declared for 11 epartscart pages"
+  ],
+  "pendingBeforePhpRemoval": [
+    "Live authenticated dual-sample for search/cart/checkout/orders/garage/profile",
+    "CP authenticated digest dual-samples for epartscart tenant cookies",
+    "aspNetInteractiveComplete remains 0 until write dual-samples promote",
+    "Human RELEASE_OWNER_APPROVAL.md (never invent)",
+    "Exact-route shadows must not land on epartscart.com until approval"
+  ],
+  "ok": true,
+  "errors": [],
+  "warnings": [
+    "aspNetInteractiveComplete=0 \u2014 live writes still PHP on epartscart.com",
+    "Authenticated dual-sample capture still required before any cutover",
+    "Never invent RELEASE_OWNER_APPROVAL.md"
+  ],
+  "note": "epartscart.com frontend + CP must match PHP same-to-same. Contract coverage is gated here; live write cutover stays forbidden."
+}

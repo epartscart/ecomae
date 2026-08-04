@@ -60,6 +60,13 @@ else
   record "area-tests" fail "area tests failed (see /tmp/pre-removal-area.out)"
 fi
 
+printf -- '-- epartscart.com frontend + CP parity (contract coverage) --\n'
+if bash "$ROOT/scripts/run_epartscart_tenant_parity.sh" >/tmp/pre-removal-epartscart.out 2>&1; then
+  record "epartscart-frontend-cp-parity" pass "epartscart.com storefront+CP contract coverage green (live dual-sample may still block removal)"
+else
+  record "epartscart-frontend-cp-parity" fail "epartscart tenant parity gate failed (see /tmp/pre-removal-epartscart.out)"
+fi
+
 printf -- '-- attached smoke + live authority checks --\n'
 
 # 2) Attached smoke contract validation (no live secrets required)
