@@ -176,6 +176,76 @@
                 </div>
             </div>
         </div>
+
+        <div class="epc-erp-home-grid">
+            <div class="epc-erp-home-hero__eyebrow" style="margin-bottom:.5rem">Department areas</div>
+            <div class="row">
+                @foreach (var area in PhpModuleCatalog.ErpAreas)
+                {
+                    <div class="col-md-4 col-sm-6" style="margin-bottom:12px">
+                        <div class="epc-erp-home-card">
+                            <h3><i class="fa @area.Icon"></i> @area.Label</h3>
+                            <p>Workspace area <code>@area.Id</code> — finance, operations, and compliance tabs open after sign-in.</p>
+                            <a href="@area.Href">Open @area.Label</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @foreach (var group in PhpModuleCatalog.ErpTabsByArea())
+        {
+            <div class="epc-erp-home-grid">
+                <h3 class="epc-erp-area-tabs-title"><i class="fa fa-folder-open-o"></i> @group.Key tabs</h3>
+                <div class="epc-erp-home-hero__stats">
+                    @foreach (var tab in group)
+                    {
+                        <a class="epc-erp-home-stat" href="@tab.Href" style="color:inherit;text-decoration:none;background:#fff;border:1px solid #dce4ef">
+                            <strong><i class="fa @tab.Icon"></i> @tab.Label</strong>
+                            <span>@tab.Id</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="epc-erp-home-grid">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="epc-erp-home-card epc-erp-home-card--accent">
+                        <h3><i class="fa fa-book"></i> ERP guide &amp; onboarding</h3>
+                        <p>Department sign-in unlocks the same tabs as control panel ERP — GL, VAT, inventory, payables, and HR workflows.</p>
+                        <ul class="epc-erp-login-features">
+                            @foreach (var feat in GuideFeatures)
+                            {
+                                <li><i class="fa fa-check"></i> @feat</li>
+                            }
+                        </ul>
+                        <a href="/ERP/guide">Open ERP guide</a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="epc-erp-home-card">
+                        <h3><i class="fa fa-shield"></i> Compliance &amp; platform links</h3>
+                        <p>Finance portal stays separate from public storefront accounts. Administrators use control panel advanced ERP for shell configuration.</p>
+                        <div class="epc-erp-home-hero__stats">
+                            <a class="epc-erp-home-stat" href="/CP/shop/finance/erp?epc_erp_shell=1" style="color:inherit;text-decoration:none;background:#f8fafc;border:1px solid #dce4ef">
+                                <strong><i class="fa fa-cog"></i> Control panel ERP</strong>
+                                <span>Advanced shell</span>
+                            </a>
+                            <a class="epc-erp-home-stat" href="https://epartscart.com/" style="color:inherit;text-decoration:none;background:#f8fafc;border:1px solid #dce4ef">
+                                <strong><i class="fa fa-shopping-cart"></i> E-commerce website</strong>
+                                <span>Storefront host</span>
+                            </a>
+                            <a class="epc-erp-home-stat" href="/bos/login" style="color:inherit;text-decoration:none;background:#f8fafc;border:1px solid #dce4ef">
+                                <strong><i class="fa fa-th-large"></i> BOS console</strong>
+                                <span>Operator fleet</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer class="epc-erp-foot">ECOM AE ERP Finance · authentication · epc-erp-portal</footer>
@@ -236,4 +306,16 @@
 @code {
     private string? _error;
     protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
+
+    private static readonly string[] GuideFeatures =
+    [
+        "Role-based tabs per department and finance team",
+        "GL journals, VAT, and bank reconciliation",
+        "Inventory, WMS, and landed cost areas",
+        "Procurement, sales orders, and AR/AP",
+        "HR, payroll, and leave workflows",
+        "Audit trail and compliance dashboards",
+        "AI advisor and knowledge base tabs",
+        "Same live data as control panel ERP shell",
+    ];
 }

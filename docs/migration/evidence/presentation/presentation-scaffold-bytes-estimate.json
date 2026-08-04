@@ -1,0 +1,113 @@
+{
+  "role": "presentation-scaffold-bytes-estimate",
+  "generatedAt": "2026-08-04T18:33:15.185486+00:00",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "catalogCounts": {
+    "ErpAreaCount": 35,
+    "ErpTabCount": 154,
+    "ErpCategoryCount": 9,
+    "BosModuleCount": 99
+  },
+  "floors": {
+    "storefront_app": {
+      "floorBytes": 40558,
+      "estimatedCombinedBytes": 64345,
+      "meetsFloor": true,
+      "note": "Combined storefront/app chrome + piston + home depth offline estimate"
+    },
+    "bos_login": {
+      "floorBytes": 12000,
+      "estimatedMarkupBytes": 14661,
+      "meetsFloor": true,
+      "markerClass": "epc-asp-login-bos",
+      "markerOk": true
+    },
+    "erp_login": {
+      "floorBytes": 42653,
+      "estimatedMarkupBytes": 52277,
+      "meetsFloor": true,
+      "markerClass": "epc-asp-login-erp",
+      "markerOk": true
+    }
+  },
+  "files": {
+    "storefront_home_depth": {
+      "path": "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontHomeDepth.razor",
+      "markupBytes": 16184,
+      "foreachLoops": 15,
+      "expansionBonusBytes": 30076,
+      "estimatedSsrMarkupBytes": 46260,
+      "markersExpected": [
+        "epc-sf-home-depth",
+        "epc-sf-cat-grid",
+        "epc-sf-vin-cta"
+      ],
+      "markersMissing": [],
+      "markersOk": true
+    },
+    "storefront_app": {
+      "path": "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor",
+      "markupBytes": 939,
+      "foreachLoops": 0,
+      "expansionBonusBytes": 0,
+      "estimatedSsrMarkupBytes": 939,
+      "markersExpected": [],
+      "markersMissing": [],
+      "markersOk": true
+    },
+    "piston_banner": {
+      "path": "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpAspPistonBanner.razor",
+      "markupBytes": 3146,
+      "foreachLoops": 0,
+      "expansionBonusBytes": 0,
+      "estimatedSsrMarkupBytes": 3146,
+      "markersExpected": [],
+      "markersMissing": [],
+      "markersOk": true
+    },
+    "bos_login": {
+      "path": "aspnet/src/EcomAE.Platform/Components/Pages/BosLoginApp.razor",
+      "markupBytes": 11861,
+      "foreachLoops": 2,
+      "expansionBonusBytes": 2800,
+      "estimatedSsrMarkupBytes": 14661,
+      "markersExpected": [
+        "epc-asp-login-bos",
+        "bosParticles",
+        "bos-login"
+      ],
+      "markersMissing": [],
+      "markersOk": true
+    },
+    "erp_login": {
+      "path": "aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor",
+      "markupBytes": 16437,
+      "foreachLoops": 5,
+      "expansionBonusBytes": 35840,
+      "estimatedSsrMarkupBytes": 52277,
+      "markersExpected": [
+        "epc-asp-login-erp",
+        "epc-erp-portal-wrap",
+        "erpPortalParticles"
+      ],
+      "markersMissing": [],
+      "markersOk": true
+    },
+    "cp_login": {
+      "path": "aspnet/src/EcomAE.Platform/Components/Pages/CpLoginApp.razor",
+      "markupBytes": 6907,
+      "foreachLoops": 0,
+      "expansionBonusBytes": 0,
+      "estimatedSsrMarkupBytes": 6907,
+      "markersExpected": [
+        "epc-cp-login-hero",
+        "epcCpParticles"
+      ],
+      "markersMissing": [],
+      "markersOk": true
+    }
+  },
+  "note": "Offline razor-source estimate for scaffold depth \u2014 not a live body-byte probe. php-vs-aspnet-recheck remains soft-fail until redeploy + live compare. Never invent cutoverAllowed=true or status=pass."
+}

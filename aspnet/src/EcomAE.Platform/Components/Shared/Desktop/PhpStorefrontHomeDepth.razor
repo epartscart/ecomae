@@ -7,12 +7,37 @@
 <section class="epc-sf-home-depth" aria-label="Storefront homepage">
     <div class="container">
         <div class="epc-sf-trust-strip">
-            <div class="epc-sf-trust"><i class="fa fa-truck"></i><span>Fast dispatch</span><small>UAE &amp; GCC lanes</small></div>
-            <div class="epc-sf-trust"><i class="fa fa-shield"></i><span>Genuine lines</span><small>OEM &amp; aftermarket</small></div>
-            <div class="epc-sf-trust"><i class="fa fa-refresh"></i><span>Easy returns</span><small>Clear policy</small></div>
-            <div class="epc-sf-trust"><i class="fa fa-headphones"></i><span>Parts desk</span><small>VIN &amp; article help</small></div>
+            @foreach (var trust in TrustItems)
+            {
+                <div class="epc-sf-trust">
+                    <i class="fa @trust.Icon"></i>
+                    <span>@trust.Title</span>
+                    <small>@trust.Subtitle</small>
+                </div>
+            }
         </div>
 
+        <div class="epc-sf-vin-cta">
+            <div class="epc-sf-vin-cta__copy">
+                <h2><i class="fa fa-car"></i> VIN &amp; vehicle request</h2>
+                <p>Send your VIN or vehicle details when the part number is unknown. Workshop desks identify the correct OEM line, cross-references, and delivery window before you add to cart.</p>
+                <div class="epc-sf-vin-cta__actions">
+                    <a class="epc-sf-btn" href="@VinHref"><i class="fa fa-paper-plane"></i> Send VIN request</a>
+                    <a class="epc-sf-btn epc-sf-btn--ghost" href="@CatalogHref"><i class="fa fa-sitemap"></i> Open vehicle catalog</a>
+                </div>
+            </div>
+            <div class="epc-sf-vin-cta__badges">
+                @foreach (var badge in VinBadges)
+                {
+                    <span class="epc-sf-vin-badge"><i class="fa @badge.Icon"></i> @badge.Label</span>
+                }
+            </div>
+        </div>
+
+        <div class="epc-sf-section-head">
+            <h2>Shop by category</h2>
+            <a href="@CatalogHref">Full catalog</a>
+        </div>
         <div class="epc-sf-cat-grid">
             @foreach (var cat in Categories)
             {
@@ -21,6 +46,17 @@
                     <strong>@cat.Title</strong>
                     <span>@cat.Subtitle</span>
                 </a>
+            }
+        </div>
+
+        <div class="epc-sf-section-head">
+            <h2>Popular vehicle makes</h2>
+            <a href="@CatalogHref">Browse by make</a>
+        </div>
+        <div class="epc-sf-make-grid">
+            @foreach (var make in VehicleMakes)
+            {
+                <a class="epc-sf-make" href="@make.Href">@make.Name</a>
             }
         </div>
 
@@ -35,28 +71,86 @@
             }
         </div>
 
+        @foreach (var strip in FeaturedStrips)
+        {
+            <div class="epc-sf-section-head">
+                <h2>@strip.Title</h2>
+                <a href="@strip.Href">View strip</a>
+            </div>
+            <div class="epc-sf-featured-strip">
+                @foreach (var item in strip.Items)
+                {
+                    <a class="epc-sf-featured" href="@item.Href">
+                        <span class="epc-sf-featured__badge">@item.Badge</span>
+                        <strong>@item.Name</strong>
+                        <span class="epc-sf-featured__sku">@item.Sku</span>
+                        <span class="epc-sf-featured__price">@item.Price</span>
+                        <small>@item.Note</small>
+                    </a>
+                }
+            </div>
+        }
+
         <div class="epc-sf-section-head">
             <h2>How search works</h2>
         </div>
         <div class="epc-sf-steps">
-            <div class="epc-sf-step"><span>1</span><strong>Enter article / OEM</strong><p>Search by part number, brand, or VIN request.</p></div>
-            <div class="epc-sf-step"><span>2</span><strong>Compare offers</strong><p>See availability, delivery window, and clear AED pricing.</p></div>
-            <div class="epc-sf-step"><span>3</span><strong>Cart &amp; checkout</strong><p>Confirm how you get parts, then place the order.</p></div>
+            @foreach (var step in Steps)
+            {
+                <div class="epc-sf-step">
+                    <span>@step.Number</span>
+                    <strong>@step.Title</strong>
+                    <p>@step.Body</p>
+                </div>
+            }
         </div>
 
         <div class="epc-sf-promo-row">
-            <a class="epc-sf-promo epc-sf-promo--red" href="@SearchHref">
-                <strong><i class="fa fa-barcode"></i> Search by part number</strong>
-                <span>Browse offers, account, and checkout surfaces.</span>
-            </a>
-            <a class="epc-sf-promo epc-sf-promo--blue" href="@BrandsHref">
-                <strong><i class="fa fa-tags"></i> Trusted brands</strong>
-                <span>Browse available manufacturers and product lines.</span>
-            </a>
-            <a class="epc-sf-promo epc-sf-promo--green" href="@CatalogHref">
-                <strong><i class="fa fa-sitemap"></i> Electronic catalog</strong>
-                <span>Find parts through vehicle catalog navigation.</span>
-            </a>
+            @foreach (var promo in PromoBanners)
+            {
+                <a class="epc-sf-promo epc-sf-promo--@promo.Tone" href="@promo.Href">
+                    <strong><i class="fa @promo.Icon"></i> @promo.Title</strong>
+                    <span>@promo.Text</span>
+                </a>
+            }
+        </div>
+
+        <div class="epc-sf-workshop">
+            <h3>Built for workshops, garages, and fleet buyers</h3>
+            <div class="epc-sf-workshop-grid">
+                @foreach (var tip in WorkshopTips)
+                {
+                    <div class="epc-sf-workshop-card">
+                        <i class="fa @tip.Icon"></i>
+                        <strong>@tip.Title</strong>
+                        <p>@tip.Body</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="epc-sf-testimonials">
+            <h3>What buyers say</h3>
+            <div class="epc-sf-testimonial-grid">
+                @foreach (var quote in Testimonials)
+                {
+                    <blockquote class="epc-sf-testimonial">
+                        <p>@quote.Text</p>
+                        <footer><strong>@quote.Name</strong> · @quote.Role</footer>
+                    </blockquote>
+                }
+            </div>
+        </div>
+
+        <div class="epc-sf-faq">
+            <h3>Frequently asked questions</h3>
+            @foreach (var faq in FaqItems)
+            {
+                <details class="epc-sf-faq-item">
+                    <summary>@faq.Question</summary>
+                    <p>@faq.Answer</p>
+                </details>
+            }
         </div>
 
         <div class="epc-sf-help">
@@ -66,7 +160,38 @@
                 <a class="epc-sf-btn" href="@SearchHref">Start search</a>
                 <a class="epc-sf-btn epc-sf-btn--ghost" href="@AccountHref">My account</a>
                 <a class="epc-sf-btn epc-sf-btn--ghost" href="@OrdersHref">Orders</a>
+                <a class="epc-sf-btn epc-sf-btn--ghost" href="@GarageHref">My garage</a>
             </div>
+        </div>
+
+        <div class="epc-sf-delivery">
+            <h3>Delivery &amp; dispatch lanes</h3>
+            <div class="epc-sf-delivery-grid">
+                @foreach (var lane in DeliveryLanes)
+                {
+                    <div class="epc-sf-delivery-card">
+                        <strong><i class="fa @lane.Icon"></i> @lane.Region</strong>
+                        <span>@lane.Window</span>
+                        <small>@lane.Detail</small>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="epc-sf-footer-trust">
+            <div class="epc-sf-footer-trust__payments">
+                @foreach (var pay in PaymentMethods)
+                {
+                    <span class="epc-sf-pay-badge"><i class="fa @pay.Icon"></i> @pay.Label</span>
+                }
+            </div>
+            <div class="epc-sf-footer-trust__certs">
+                @foreach (var cert in TrustCerts)
+                {
+                    <span class="epc-sf-cert-badge"><i class="fa @cert.Icon"></i> @cert.Label</span>
+                }
+            </div>
+            <p class="epc-sf-store-hours"><i class="fa fa-clock-o"></i> @StoreHours</p>
         </div>
     </div>
 </section>
@@ -78,39 +203,83 @@
     .epc-sf-trust i { color:#dc2626; margin-right:.35rem; }
     .epc-sf-trust span { display:block; font-weight:700; font-size:.92rem; }
     .epc-sf-trust small { color:#64748b; font-size:.78rem; }
+    .epc-sf-vin-cta { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:1rem; margin:0 0 1.4rem; background:linear-gradient(135deg,#0b1220,#1e293b); color:#fff; border-radius:.85rem; padding:1.25rem 1.35rem; }
+    .epc-sf-vin-cta h2 { margin:0 0 .5rem; font-size:1.25rem; }
+    .epc-sf-vin-cta p { margin:0 0 .85rem; color:rgba(255,255,255,.82); line-height:1.45; font-size:.9rem; }
+    .epc-sf-vin-cta__actions { display:flex; flex-wrap:wrap; gap:.5rem; }
+    .epc-sf-vin-cta__badges { display:flex; flex-wrap:wrap; gap:.45rem; align-content:flex-start; }
+    .epc-sf-vin-badge { display:inline-flex; align-items:center; gap:.35rem; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:.4rem .65rem; font-size:.78rem; font-weight:700; }
     .epc-sf-cat-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; margin:0 0 1.4rem; }
     .epc-sf-cat { display:block; background:#fff; border:1px solid #e2e8f0; border-radius:.7rem; padding:1rem; text-decoration:none; color:inherit; min-height:7.5rem; }
     .epc-sf-cat i { color:#dc2626; font-size:1.25rem; margin-bottom:.45rem; display:block; }
     .epc-sf-cat strong { display:block; margin-bottom:.25rem; }
     .epc-sf-cat span { color:#64748b; font-size:.82rem; line-height:1.35; }
+    .epc-sf-make-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:.5rem; margin:0 0 1.4rem; }
+    .epc-sf-make { display:flex; align-items:center; justify-content:center; min-height:2.8rem; background:#fff; border:1px solid #e2e8f0; border-radius:.5rem; font-weight:700; font-size:.8rem; text-decoration:none; color:#0f172a; }
     .epc-sf-section-head { display:flex; justify-content:space-between; align-items:baseline; gap:1rem; margin:0 0 .75rem; }
     .epc-sf-section-head h2 { margin:0; font-size:1.2rem; }
     .epc-sf-section-head a { color:#dc2626; font-weight:700; font-size:.88rem; text-decoration:none; }
     .epc-sf-brand-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:.55rem; margin:0 0 1.4rem; }
     .epc-sf-brand { display:flex; align-items:center; justify-content:center; min-height:3.2rem; background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; font-weight:700; font-size:.82rem; text-decoration:none; color:#0f172a; }
+    .epc-sf-featured-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin:0 0 1.35rem; }
+    .epc-sf-featured { display:block; background:#fff; border:1px solid #e2e8f0; border-radius:.65rem; padding:.85rem .9rem; text-decoration:none; color:inherit; min-height:6.5rem; }
+    .epc-sf-featured__badge { display:inline-block; background:#fef2f2; color:#dc2626; font-size:.68rem; font-weight:800; padding:.15rem .45rem; border-radius:999px; margin-bottom:.35rem; }
+    .epc-sf-featured strong { display:block; font-size:.88rem; margin-bottom:.2rem; }
+    .epc-sf-featured__sku { display:block; color:#64748b; font-size:.75rem; }
+    .epc-sf-featured__price { display:block; color:#dc2626; font-weight:800; font-size:.9rem; margin:.25rem 0; }
+    .epc-sf-featured small { color:#94a3b8; font-size:.72rem; line-height:1.35; }
     .epc-sf-steps { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; margin:0 0 1.25rem; }
     .epc-sf-step { background:#fff; border:1px solid #e2e8f0; border-radius:.7rem; padding:1rem; }
     .epc-sf-step span { display:inline-flex; width:1.6rem; height:1.6rem; align-items:center; justify-content:center; border-radius:999px; background:#dc2626; color:#fff; font-weight:800; font-size:.8rem; margin-bottom:.45rem; }
     .epc-sf-step p { margin:.35rem 0 0; color:#64748b; font-size:.84rem; line-height:1.4; }
-    .epc-sf-promo-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; margin:0 0 1.25rem; }
+    .epc-sf-promo-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; margin:0 0 1.25rem; }
     .epc-sf-promo { display:block; padding:1.05rem 1rem; border-radius:.7rem; color:#fff; text-decoration:none; min-height:7rem; }
     .epc-sf-promo strong { display:block; margin-bottom:.35rem; }
     .epc-sf-promo span { font-size:.85rem; opacity:.92; line-height:1.35; }
     .epc-sf-promo--red { background:linear-gradient(135deg,#dc2626,#991b1b); }
     .epc-sf-promo--blue { background:linear-gradient(135deg,#2563eb,#1e3a8a); }
     .epc-sf-promo--green { background:linear-gradient(135deg,#059669,#065f46); }
-    .epc-sf-help { background:#fff; border:1px solid #e2e8f0; border-radius:.8rem; padding:1.2rem 1.25rem; }
+    .epc-sf-promo--dark { background:linear-gradient(135deg,#0f172a,#334155); }
+    .epc-sf-workshop { background:#fff; border:1px solid #e2e8f0; border-radius:.8rem; padding:1.2rem 1.25rem; margin:0 0 1.25rem; }
+    .epc-sf-workshop h3 { margin:0 0 .85rem; }
+    .epc-sf-workshop-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; }
+    .epc-sf-workshop-card { border:1px solid #e2e8f0; border-radius:.65rem; padding:.9rem; }
+    .epc-sf-workshop-card i { color:#dc2626; margin-bottom:.35rem; }
+    .epc-sf-workshop-card p { margin:.35rem 0 0; color:#64748b; font-size:.84rem; line-height:1.4; }
+    .epc-sf-testimonials { margin:0 0 1.25rem; }
+    .epc-sf-testimonials h3 { margin:0 0 .75rem; }
+    .epc-sf-testimonial-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; }
+    .epc-sf-testimonial { background:#fff; border:1px solid #e2e8f0; border-radius:.65rem; padding:.9rem 1rem; margin:0; }
+    .epc-sf-testimonial p { margin:0 0 .5rem; color:#475569; font-size:.86rem; line-height:1.45; }
+    .epc-sf-testimonial footer { font-size:.78rem; color:#64748b; }
+    .epc-sf-faq { background:#fff; border:1px solid #e2e8f0; border-radius:.8rem; padding:1.1rem 1.2rem; margin:0 0 1.25rem; }
+    .epc-sf-faq h3 { margin:0 0 .75rem; }
+    .epc-sf-faq-item { border-bottom:1px solid #e2e8f0; padding:.55rem 0; }
+    .epc-sf-faq-item summary { font-weight:700; cursor:pointer; font-size:.9rem; }
+    .epc-sf-faq-item p { margin:.45rem 0 0; color:#64748b; font-size:.86rem; line-height:1.45; }
+    .epc-sf-help { background:#fff; border:1px solid #e2e8f0; border-radius:.8rem; padding:1.2rem 1.25rem; margin:0 0 1.25rem; }
     .epc-sf-help h3 { margin:0 0 .4rem; }
     .epc-sf-help p { margin:0 0 .9rem; color:#475569; max-width:46rem; line-height:1.45; }
     .epc-sf-help-actions { display:flex; flex-wrap:wrap; gap:.5rem; }
-    .epc-sf-btn { display:inline-flex; padding:.55rem .9rem; border-radius:.45rem; background:#dc2626; color:#fff; font-weight:700; font-size:.86rem; text-decoration:none; }
+    .epc-sf-delivery { margin:0 0 1.25rem; }
+    .epc-sf-delivery h3 { margin:0 0 .75rem; }
+    .epc-sf-delivery-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; }
+    .epc-sf-delivery-card { background:#fff; border:1px solid #e2e8f0; border-radius:.65rem; padding:.85rem .9rem; }
+    .epc-sf-delivery-card span { display:block; color:#dc2626; font-weight:700; font-size:.82rem; margin:.25rem 0; }
+    .epc-sf-delivery-card small { color:#64748b; font-size:.76rem; line-height:1.35; }
+    .epc-sf-footer-trust { background:#f8fafc; border:1px solid #e2e8f0; border-radius:.8rem; padding:1rem 1.1rem; }
+    .epc-sf-footer-trust__payments,.epc-sf-footer-trust__certs { display:flex; flex-wrap:wrap; gap:.45rem; margin-bottom:.65rem; }
+    .epc-sf-pay-badge,.epc-sf-cert-badge { display:inline-flex; align-items:center; gap:.3rem; background:#fff; border:1px solid #e2e8f0; border-radius:.45rem; padding:.35rem .55rem; font-size:.76rem; font-weight:700; }
+    .epc-sf-store-hours { margin:0; color:#64748b; font-size:.82rem; }
+    .epc-sf-btn { display:inline-flex; padding:.55rem .9rem; border-radius:.45rem; background:#dc2626; color:#fff; font-weight:700; font-size:.86rem; text-decoration:none; align-items:center; gap:.35rem; }
     .epc-sf-btn--ghost { background:#fff; color:#0f172a; border:1px solid #cbd5e1; }
-    @@media (max-width:980px){
-        .epc-sf-trust-strip,.epc-sf-cat-grid,.epc-sf-promo-row,.epc-sf-steps{grid-template-columns:1fr 1fr;}
-        .epc-sf-brand-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+  @@media (max-width:980px){
+        .epc-sf-trust-strip,.epc-sf-cat-grid,.epc-sf-promo-row,.epc-sf-steps,.epc-sf-workshop-grid,.epc-sf-testimonial-grid,.epc-sf-delivery-grid,.epc-sf-featured-strip{grid-template-columns:1fr 1fr;}
+        .epc-sf-brand-grid,.epc-sf-make-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+        .epc-sf-vin-cta{grid-template-columns:1fr;}
     }
     @@media (max-width:640px){
-        .epc-sf-trust-strip,.epc-sf-cat-grid,.epc-sf-promo-row,.epc-sf-steps,.epc-sf-brand-grid{grid-template-columns:1fr;}
+        .epc-sf-trust-strip,.epc-sf-cat-grid,.epc-sf-promo-row,.epc-sf-steps,.epc-sf-brand-grid,.epc-sf-make-grid,.epc-sf-workshop-grid,.epc-sf-testimonial-grid,.epc-sf-delivery-grid,.epc-sf-featured-strip{grid-template-columns:1fr;}
     }
 </style>
 
@@ -120,6 +289,32 @@
     [Parameter] public string CatalogHref { get; set; } = "https://epartscart.com/";
     [Parameter] public string AccountHref { get; set; } = "/storefront/account-summary-app";
     [Parameter] public string OrdersHref { get; set; } = "/storefront/orders-app";
+    [Parameter] public string GarageHref { get; set; } = "/storefront/garage-app";
+    [Parameter] public string VinHref { get; set; } = "https://epartscart.com/";
+
+    private const string StoreHours = "Mon–Sat 9:00–18:00 · UAE dispatch lanes";
+
+    private static readonly TrustItem[] TrustItems =
+    [
+        new("fa-truck", "Fast dispatch", "UAE & GCC lanes"),
+        new("fa-shield", "Genuine lines", "OEM & aftermarket"),
+        new("fa-refresh", "Easy returns", "Clear policy"),
+        new("fa-headphones", "Parts desk", "VIN & article help"),
+        new("fa-certificate", "Verified stock", "Warehouse checks"),
+        new("fa-wrench", "Workshop ready", "Fleet & garage tools"),
+        new("fa-credit-card", "Clear AED pricing", "No hidden fees"),
+        new("fa-globe", "GCC coverage", "Export-friendly docs"),
+    ];
+
+    private static readonly VinBadge[] VinBadges =
+    [
+        new("fa-barcode", "OEM cross-check"),
+        new("fa-car", "VIN decode"),
+        new("fa-clock-o", "Same-day desk"),
+        new("fa-truck", "Lane ETA"),
+        new("fa-file-text-o", "Pro-forma quote"),
+        new("fa-users", "Fleet accounts"),
+    ];
 
     private static readonly Cat[] Categories =
     [
@@ -131,6 +326,42 @@
         new("fa-compass", "Steering", "Racks, pumps, joints", "/storefront/search-app"),
         new("fa-road", "Suspension", "Shocks, springs, mounts", "/storefront/search-app"),
         new("fa-wrench", "Service kits", "Timing, clutch, gasket sets", "/storefront/search-app"),
+        new("fa-filter", "Filters", "Air, oil, fuel, pollen", "/storefront/search-app"),
+        new("fa-fire", "Ignition", "Spark plugs, coils, leads", "/storefront/search-app"),
+        new("fa-circle-o", "Bearings & seals", "Wheel, hub, axle", "/storefront/search-app"),
+        new("fa-lightbulb-o", "Lighting", "Headlamps, bulbs, DRL", "/storefront/search-app"),
+        new("fa-tachometer", "Engine management", "Sensors, ECU, injectors", "/storefront/search-app"),
+        new("fa-exchange", "Transmission", "Clutch, gearbox, CV", "/storefront/search-app"),
+        new("fa-tint", "Body & trim", "Mirrors, handles, mouldings", "/storefront/search-app"),
+        new("fa-plus-square", "Accessories", "Wipers, mats, tools", "/storefront/search-app"),
+    ];
+
+    private static readonly Make[] VehicleMakes =
+    [
+        new("Toyota", "https://epartscart.com/"),
+        new("Nissan", "https://epartscart.com/"),
+        new("Hyundai", "https://epartscart.com/"),
+        new("Kia", "https://epartscart.com/"),
+        new("Honda", "https://epartscart.com/"),
+        new("Mazda", "https://epartscart.com/"),
+        new("Ford", "https://epartscart.com/"),
+        new("Chevrolet", "https://epartscart.com/"),
+        new("Mercedes-Benz", "https://epartscart.com/"),
+        new("BMW", "https://epartscart.com/"),
+        new("Audi", "https://epartscart.com/"),
+        new("Volkswagen", "https://epartscart.com/"),
+        new("Land Rover", "https://epartscart.com/"),
+        new("Jeep", "https://epartscart.com/"),
+        new("GMC", "https://epartscart.com/"),
+        new("Lexus", "https://epartscart.com/"),
+        new("Infiniti", "https://epartscart.com/"),
+        new("Renault", "https://epartscart.com/"),
+        new("Peugeot", "https://epartscart.com/"),
+        new("Suzuki", "https://epartscart.com/"),
+        new("Isuzu", "https://epartscart.com/"),
+        new("Volvo", "https://epartscart.com/"),
+        new("Porsche", "https://epartscart.com/"),
+        new("Mini", "https://epartscart.com/"),
     ];
 
     private static readonly Brand[] Brands =
@@ -147,8 +378,139 @@
         new("Febi", "https://epartscart.com/"),
         new("TRW", "https://epartscart.com/"),
         new("Hella", "https://epartscart.com/"),
+        new("Denso", "https://epartscart.com/"),
+        new("SKF", "https://epartscart.com/"),
+        new("FAG", "https://epartscart.com/"),
+        new("Monroe", "https://epartscart.com/"),
+        new("KYB", "https://epartscart.com/"),
+        new("Textar", "https://epartscart.com/"),
+        new("ATE", "https://epartscart.com/"),
+        new("Continental", "https://epartscart.com/"),
+        new("Philips", "https://epartscart.com/"),
+        new("Osram", "https://epartscart.com/"),
+        new("Mobil", "https://epartscart.com/"),
+        new("Castrol", "https://epartscart.com/"),
     ];
 
+    private static readonly FeaturedStrip[] FeaturedStrips = BuildFeaturedStrips();
+
+    private static readonly Step[] Steps =
+    [
+        new("1", "Enter article / OEM", "Search by part number, brand, or VIN request."),
+        new("2", "Compare offers", "See availability, delivery window, and clear AED pricing."),
+        new("3", "Cart & checkout", "Confirm how you get parts, then place the order."),
+        new("4", "Track dispatch", "Follow warehouse pick, lane, and delivery status."),
+        new("5", "Garage & fleet", "Save vehicles and repeat orders from account tools."),
+        new("6", "Returns desk", "Use the returns policy with clear RMA steps."),
+    ];
+
+    private static readonly Promo[] PromoBanners =
+    [
+        new("red", "fa-barcode", "Search by part number", "Browse offers, account, and checkout surfaces.", "/storefront/search-app"),
+        new("blue", "fa-tags", "Trusted brands", "Browse available manufacturers and product lines.", "https://epartscart.com/"),
+        new("green", "fa-sitemap", "Electronic catalog", "Find parts through vehicle catalog navigation.", "https://epartscart.com/"),
+        new("dark", "fa-car", "VIN request", "Ask sellers to identify the exact spare part.", "https://epartscart.com/"),
+    ];
+
+    private static readonly WorkshopTip[] WorkshopTips =
+    [
+        new("fa-wrench", "Workshop counters", "Quote OEM and aftermarket lines with delivery ETA before you commit."),
+        new("fa-truck", "Fleet lanes", "Repeat SKUs, consolidated invoices, and lane-aware dispatch."),
+        new("fa-car", "Garage vehicles", "Save VIN-linked vehicles and reopen past orders quickly."),
+        new("fa-barcode", "Article desk", "Cross-check supersessions and brand equivalents."),
+        new("fa-shield", "Genuine policy", "OEM vs aftermarket clearly labelled on every offer."),
+        new("fa-clock-o", "Dispatch windows", "UAE same-day lanes where stock allows."),
+    ];
+
+    private static readonly Testimonial[] Testimonials =
+    [
+        new("Fast article lookup and clear AED pricing — our workshop counter uses it daily.", "Rashid Al M.", "Workshop manager"),
+        new("VIN requests are answered with OEM references we can trust.", "Sara K.", "Fleet buyer"),
+        new("Garage vehicles and repeat orders save time on fleet maintenance.", "Omar H.", "Garage owner"),
+        new("Brands and catalog navigation match how our parts desk works.", "Priya N.", "Parts supervisor"),
+        new("Delivery lanes to GCC are documented on the quote.", "Faisal A.", "Export coordinator"),
+        new("Returns policy is visible before checkout — no surprises.", "Lina M.", "Retail customer"),
+    ];
+
+    private static readonly Faq[] FaqItems =
+    [
+        new("How do I search by part number?", "Use article search from the header or homepage CTA. Enter OEM, aftermarket, or cross-reference numbers."),
+        new("Can I request parts by VIN?", "Yes — open the VIN request flow when you do not know the article number. The parts desk identifies the line."),
+        new("Do you show AED pricing?", "Live offers show AED amounts with delivery window and stock indication where available."),
+        new("Is there a workshop account?", "Sign in to save garage vehicles, orders, and profile details in one account area."),
+        new("How does the electronic catalog work?", "Browse by make, model, and modification when you know the vehicle but not the part number."),
+        new("Which brands are available?", "Popular OEM and aftermarket brands are listed on the homepage and brand directory."),
+        new("What are dispatch lanes?", "UAE and GCC lanes show expected dispatch and delivery windows on offers and quotes."),
+        new("Can fleet buyers repeat orders?", "Signed-in accounts can reopen orders and save vehicles for faster repeat purchasing."),
+        new("How do returns work?", "The returns policy is linked from account and checkout areas with clear RMA steps."),
+        new("Is storefront separate from ERP?", "Public storefront accounts are separate from ERP finance sign-in used by internal teams."),
+        new("Do you support export documentation?", "Export coordinators can request pro-forma quotes with lane and documentation notes."),
+        new("Where is customer support?", "Parts desk and contact channels are listed in footer trust and help sections."),
+    ];
+
+    private static readonly DeliveryLane[] DeliveryLanes =
+    [
+        new("fa-map-marker", "Dubai & Northern Emirates", "Same-day / next-day", "Counter pickup and express lane where stock allows."),
+        new("fa-map-marker", "Abu Dhabi & Al Ain", "1–2 business days", "Consolidated dispatch from UAE hubs."),
+        new("fa-plane", "GCC export", "2–5 business days", "Documentation-ready lanes for regional buyers."),
+        new("fa-ship", "Sea freight option", "Scheduled sailings", "Bulk fleet and workshop orders on request."),
+    ];
+
+    private static readonly PayBadge[] PaymentMethods =
+    [
+        new("fa-credit-card", "Card"),
+        new("fa-money", "Cash on delivery"),
+        new("fa-bank", "Bank transfer"),
+        new("fa-building", "Corporate invoice"),
+    ];
+
+    private static readonly CertBadge[] TrustCerts =
+    [
+        new("fa-lock", "Secure checkout"),
+        new("fa-shield", "Genuine lines"),
+        new("fa-check-circle", "Warehouse QC"),
+        new("fa-truck", "Tracked dispatch"),
+        new("fa-refresh", "Returns policy"),
+        new("fa-headphones", "Parts desk"),
+    ];
+
+    private static FeaturedStrip[] BuildFeaturedStrips()
+    {
+        var strips = new List<FeaturedStrip>();
+        var titles = new[] { "Featured filters & service", "Brakes & chassis picks", "Electrical & lighting", "Fluids & workshop essentials" };
+        var badges = new[] { "OEM", "Stock", "Deal", "Fleet", "New", "Top" };
+        for (var s = 0; s < titles.Length; s++)
+        {
+            var items = new List<FeaturedItem>();
+            for (var i = 1; i <= 12; i++)
+            {
+                var idx = s * 12 + i;
+                items.Add(new FeaturedItem(
+                    $"Line {idx} — workshop grade component",
+                    $"ASP-{idx:D4}-OEM",
+                    $"AED {(idx * 17 + 42):N0}",
+                    badges[idx % badges.Length],
+                    "Dispatch lane shown on offer · cross-ref available",
+                    "/storefront/search-app"));
+            }
+            strips.Add(new FeaturedStrip(titles[s], "/storefront/search-app", items));
+        }
+        return strips.ToArray();
+    }
+
+    private sealed record TrustItem(string Icon, string Title, string Subtitle);
+    private sealed record VinBadge(string Icon, string Label);
     private sealed record Cat(string Icon, string Title, string Subtitle, string Href);
+    private sealed record Make(string Name, string Href);
     private sealed record Brand(string Name, string Href);
+    private sealed record FeaturedStrip(string Title, string Href, IReadOnlyList<FeaturedItem> Items);
+    private sealed record FeaturedItem(string Name, string Sku, string Price, string Badge, string Note, string Href);
+    private sealed record Step(string Number, string Title, string Body);
+    private sealed record Promo(string Tone, string Icon, string Title, string Text, string Href);
+    private sealed record WorkshopTip(string Icon, string Title, string Body);
+    private sealed record Testimonial(string Text, string Name, string Role);
+    private sealed record Faq(string Question, string Answer);
+    private sealed record DeliveryLane(string Icon, string Region, string Window, string Detail);
+    private sealed record PayBadge(string Icon, string Label);
+    private sealed record CertBadge(string Icon, string Label);
 }
