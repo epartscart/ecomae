@@ -49,9 +49,16 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 
 ## Messaging / search / storage (future)
 
-- Kafka 4 primary (RabbitMQ alternative) for domain/integration events after worker parity.
-- OpenSearch 3 for enterprise search/logs.
-- Azure Blob / S3 / MinIO for documents and backups.
+- Kafka 4 primary (RabbitMQ alternative): `EcomAeKafkaScaffoldOptions` + `IDomainEventPublisherScaffold` (`Enabled=false`, `AllowPublish=false`).
+- OpenSearch 3: `EcomAeOpenSearchScaffoldOptions` + `IEnterpriseSearchScaffold` (`ReplacePhpSearch=false`).
+- Azure Blob / S3 / MinIO for documents and backups (not scaffolded yet).
+- Do not register producers/clients in `Program.cs` until dry-run parity evidence exists.
+
+## Serilog / OTLP sinks (not registered)
+
+- Scaffold options: `EcomAeSerilogScaffoldOptions` (`RegisterExporters=false`).
+- Workers mirror: `EcomAE.Workers.Observability.EcomAeWorkerActivitySources`.
+- Do not call `UseSerilog` / OTLP exporter registration until staging sink approval.
 
 ## AI boundary
 

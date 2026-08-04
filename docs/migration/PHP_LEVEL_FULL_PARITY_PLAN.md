@@ -127,8 +127,9 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 
 ### Enterprise BOS scaffolding continue ← current
 - ✅ TenantRegistry/Identity stubs + YARP design example + ActivitySource Data (#701)
-- **This PR:** ERP cash EF stubs + Redis scaffold options/contract (unwired) + YARP generator synced to presentation nginx allowlist + Auth/Surfaces activities
-- Still not live: `AddDbContext`, OTLP exporters, YARP process, Redis client, PG17/Kafka
+- ✅ ERP cash EF stubs + Redis options + YARP nginx sync + Auth/Surfaces activities (#702)
+- **This PR:** Kafka/OpenSearch/Serilog scaffold options (unwired) + Workers ActivitySource mirror
+- Still not live: `AddDbContext`, OTLP/Serilog sinks, YARP/Redis/Kafka/OpenSearch clients, PG17
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
 Do **not** start Batch 6 cutover while interactive `aspnet-complete` is still 0 and tenants must remain same-to-same on PHP chrome.

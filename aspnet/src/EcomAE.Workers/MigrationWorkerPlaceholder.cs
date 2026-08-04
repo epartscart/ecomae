@@ -1,3 +1,5 @@
+using EcomAE.Workers.Observability;
+
 namespace EcomAE.Workers;
 
 public sealed class MigrationWorkerPlaceholder : BackgroundService
@@ -21,7 +23,11 @@ public sealed class MigrationWorkerPlaceholder : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        using var activity = EcomAeWorkerActivitySources.Workers.StartActivity("workers.batch-dry-run.startup");
+        activity?.SetTag("ecomae.workers.mode", "dry-run");
+
         var report = _batchDryRunReporter.BuildReport(_timeProvider.GetUtcNow(), "worker-host-startup");
+        activity?.SetTag("ecomae.workers.dry_run_ready_jobs", report.DryRunEvidenceReadyJobs);
 
         _logger.LogInformation(
             "ECOM AE worker migration placeholder started with {JobCount} planned PHP job replacements: {JobKeys}",

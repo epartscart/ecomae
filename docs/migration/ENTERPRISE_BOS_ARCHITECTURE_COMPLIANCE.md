@@ -37,11 +37,11 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | EF Core 10 primary ORM | 🔶 package + bounded-context stubs | `Microsoft.EntityFrameworkCore` 10.0.0 referenced; Catalog/TenantRegistry/Identity/ERP stubs on `EcomAeScaffoldDbContext` (not registered in `Program.cs`); production still uses `MySqlConnector` ADO |
 | PostgreSQL 17 primary SoR | ❌ not migrated | Legacy MySQL/MariaDB remains SoR during Zero-PHP; PG17 is target after parity |
 | Redis 8 | 🔶 options scaffold | `EcomAeRedisScaffoldOptions` + `IDistributedCacheScaffold` unwired; PHP cookies remain authoritative (`ReplacePhpSessionCookies=false`) |
-| Kafka 4 (or RabbitMQ) | ❌ not wired | Event architecture planned; not claimed live |
-| OpenSearch 3 | ❌ not wired | Future search track |
+| Kafka 4 (or RabbitMQ) | 🔶 options scaffold | `EcomAeKafkaScaffoldOptions` + `IDomainEventPublisherScaffold` unwired (`AllowPublish=false`); dry-run workers only |
+| OpenSearch 3 | 🔶 options scaffold | `EcomAeOpenSearchScaffoldOptions` + `IEnterpriseSearchScaffold` unwired (`ReplacePhpSearch=false`) |
 | Object storage (Blob/S3/MinIO) | ❌ not wired | Future file track |
 | YARP / Kong gateway | 🔶 design example | Nginx edge today; YARP JSON generated from presentation nginx allowlist (`generate_yarp_exact_routes_example.py`); not loaded; never catch-all |
-| OpenTelemetry / Serilog | 🔶 scaffolding | `EcomAeActivitySources` names reserved (+ Data); Auth + Surfaces activities on session validate / ERP+BOS digests; exporters not registered |
+| OpenTelemetry / Serilog | 🔶 scaffolding | ActivitySources + `EcomAeSerilogScaffoldOptions` (`RegisterExporters=false`); Workers ActivitySource mirror; exporters/sinks not registered |
 | Vault / Key Vault | ❌ not wired | Env files used in CloudPanel deploy today |
 | K8s / Helm / GitOps | 🔶 roadmap | Advanced architecture roadmap exists; CloudPanel VM is current host |
 | Angular 20 / React 19 | ❌ not started | Target SPA later; interim UI is Blazor SSR hybrid chrome on exact-routes only |
