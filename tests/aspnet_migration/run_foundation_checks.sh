@@ -392,6 +392,19 @@ check 'Polly scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform
 check 'Polly scaffold defaults do not register pipelines' contains "$ROOT/aspnet/src/EcomAE.Platform/Resilience/EcomAePollyScaffoldOptions.cs" 'RegisterPipelines'
 check 'hybrid UI dual-sample operator helper exists' test -f "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh"
 check 'hybrid UI dual-sample operator asserts cutover false' contains "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh" 'cutoverAllowed'
+check 'YARP storefront digests design example exists' test -f "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json"
+check 'YARP storefront digests design blocks cutover' contains "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" '"cutoverAllowed": false'
+check 'YARP storefront digests routeCount is 4' contains "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" '"routeCount": 4'
+check 'YARP catalog-api design example exists' test -f "$ROOT/deploy/aspnet/yarp-catalog-api-example.json"
+check 'YARP catalog-api design blocks cutover' contains "$ROOT/deploy/aspnet/yarp-catalog-api-example.json" '"cutoverAllowed": false'
+check 'YARP all-packs generator helper exists' test -f "$ROOT/scripts/generate_all_yarp_design_examples.sh"
+check 'GraphQL scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Scaffolding/EcomAeGraphQlScaffoldOptions.cs"
+check 'GraphQL scaffold defaults not public' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Scaffolding/EcomAeGraphQlScaffoldOptions.cs" 'ExposePublicEndpoint'
+check 'gRPC scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Scaffolding/EcomAeGrpcScaffoldOptions.cs"
+check 'Blockchain scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Integrations/Scaffolding/EcomAeBlockchainScaffoldOptions.cs"
+check 'Blockchain scaffold forbids SoR use' contains "$ROOT/aspnet/src/EcomAE.Platform/Integrations/Scaffolding/EcomAeBlockchainScaffoldOptions.cs" 'UseAsBusinessSourceOfRecord'
+check 'Rate-limit scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/EcomAeRateLimitScaffoldOptions.cs"
+check 'Rate-limit scaffold keeps legacy throttle' contains "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/EcomAeRateLimitScaffoldOptions.cs" 'ReplaceLegacyApiClientThrottle'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
 check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 47'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"

@@ -75,6 +75,28 @@
       "RetryCount": 2,
       "Enabled": false,
       "RegisterPipelines": false
+    },
+    "GraphQl": {
+      "Path": "/graphql",
+      "Enabled": false,
+      "ExposePublicEndpoint": false
+    },
+    "Grpc": {
+      "Port": 5200,
+      "Enabled": false,
+      "ExposePublicEndpoint": false
+    },
+    "Blockchain": {
+      "Network": "",
+      "RpcUrl": "",
+      "Enabled": false,
+      "UseAsBusinessSourceOfRecord": false
+    },
+    "RateLimit": {
+      "PermitLimit": 100,
+      "WindowSeconds": 60,
+      "Enabled": false,
+      "ReplaceLegacyApiClientThrottle": false
     }
   }
 }

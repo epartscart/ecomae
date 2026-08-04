@@ -40,14 +40,16 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | Kafka 4 (or RabbitMQ) | 🔶 options scaffold | Kafka + RabbitMQ options unwired (`AllowPublish=false`); dry-run workers only |
 | OpenSearch 3 | 🔶 options scaffold | `EcomAeOpenSearchScaffoldOptions` + `IEnterpriseSearchScaffold` unwired (`ReplacePhpSearch=false`) |
 | Object storage (Blob/S3/MinIO) | 🔶 options scaffold | `EcomAeObjectStorageScaffoldOptions` + `IObjectStorageScaffold` unwired (`ReplaceLocalFilePaths=false`) |
-| YARP / Kong gateway | 🔶 design example | Nginx edge today; YARP JSON for presentation + surface digests (`generate_yarp_exact_routes_example.py`); not loaded; never catch-all |
+| YARP / Kong gateway | 🔶 design example | Nginx edge today; YARP JSON for presentation/surface/storefront/catalog-api (`generate_all_yarp_design_examples.sh`); not loaded; never catch-all |
 | OpenTelemetry / Serilog | 🔶 scaffolding | ActivitySources + `EcomAeSerilogScaffoldOptions` (`RegisterExporters=false`); Workers ActivitySource mirror; exporters/sinks not registered |
 | Polly resilience pipelines | 🔶 options scaffold | `EcomAePollyScaffoldOptions` + `IResiliencePipelineScaffold` unwired (`RegisterPipelines=false`) |
+| GraphQL / gRPC | 🔶 options scaffold | GraphQL/gRPC options unwired (`ExposePublicEndpoint=false`); REST remains default |
+| Rate limiting | 🔶 options scaffold | `EcomAeRateLimitScaffoldOptions` unwired (`ReplaceLegacyApiClientThrottle=false`) |
 | Vault / Key Vault | 🔶 options scaffold | `EcomAeVaultScaffoldOptions` + `ISecretStoreScaffold` unwired (`ReplaceEnvFileSecrets=false`); CloudPanel env files remain current |
 | K8s / Helm / GitOps | 🔶 design chart | `deploy/aspnet/helm-ecomae-platform-example/` design-only (`cutoverAllowed=false`); CloudPanel VM is current host |
 | Angular 20 / React 19 | 🔶 options scaffold | `EcomAeSpaScaffoldOptions` unwired (`ReplaceBlazorHybridPresentation=false`); interim UI remains Blazor SSR hybrid |
 | Blazor SSR hybrid presentation | 🔶 in progress | `/cp|erp|bos|storefront/*-app` www previews under PHP chrome shells; not tenant product chrome |
-| Blockchain as integration only | ✅ policy | Business SoR remains app DB; blockchain docs treat it as proof layer |
+| Blockchain as integration only | 🔶 options scaffold | `EcomAeBlockchainScaffoldOptions` (`UseAsBusinessSourceOfRecord=false`); business SoR remains app DB |
 | Modular monolith first | ✅ direction | Surface modules under `EcomAE.Platform`; extract microservices later |
 | Zero Trust / MFA / OAuth 2.1 | 🔶 options scaffold | `EcomAeOAuthScaffoldOptions` + `IModernIdentityScaffold` unwired (`ReplacePhpCookieBridge=false`); PHP cookies remain authoritative |
 
