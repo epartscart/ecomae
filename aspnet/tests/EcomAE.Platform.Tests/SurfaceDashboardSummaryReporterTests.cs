@@ -101,6 +101,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var authMfa = await reporter.BuildCpAuthMfaDigestAsync(10);
         var electronicReporting = await reporter.BuildCpElectronicReportingDigestAsync(10);
         var collectionsDunning = await reporter.BuildCpCollectionsDunningDigestAsync(10);
+        var marketplaceChannels = await reporter.BuildCpMarketplaceChannelsDigestAsync(10);
+        var demandIntelligence = await reporter.BuildCpDemandIntelligenceDigestAsync(10);
+        var creditLimits = await reporter.BuildCpCreditLimitsDigestAsync(10);
+        var insuranceCompliance = await reporter.BuildCpInsuranceComplianceDigestAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -200,6 +204,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", authMfa.Source);
         Assert.Equal("migration", electronicReporting.Source);
         Assert.Equal("migration", collectionsDunning.Source);
+        Assert.Equal("migration", marketplaceChannels.Source);
+        Assert.Equal("migration", demandIntelligence.Source);
+        Assert.Equal("migration", creditLimits.Source);
+        Assert.Equal("migration", insuranceCompliance.Source);
         Assert.Equal("migration", warehouseWms.Source);
         Assert.Equal("migration", aiService.Source);
         Assert.Equal("migration", returnsRma.Source);

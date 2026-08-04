@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 96,
-  "hybridUiSamplesOk": 95,
+  "pairsChecked": 100,
+  "hybridUiSamplesOk": 99,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -189,6 +189,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-credit-limits-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-credit-limits",
+      "appRoute": "/cp/credit-limits-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-crm-activities-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-crm-activities",
@@ -263,6 +273,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-delivery-methods",
       "appRoute": "/cp/delivery-methods-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-demand-intelligence-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-demand-intelligence",
+      "appRoute": "/cp/demand-intelligence-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -349,6 +369,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-insurance-compliance-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-insurance-compliance",
+      "appRoute": "/cp/insurance-compliance-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-integrations-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-integrations",
@@ -423,6 +453,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-marketing-growth",
       "appRoute": "/cp/marketing-growth-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-marketplace-channels-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-marketplace-channels",
+      "appRoute": "/cp/marketplace-channels-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

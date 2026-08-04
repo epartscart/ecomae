@@ -1,0 +1,29 @@
+{
+  "role": "cp-marketplace-channels-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-marketplace-channels",
+  "collectionKey": "channels",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "channelCount",
+    "activeCount",
+    "skuMapCount",
+    "orderCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "code",
+    "name",
+    "marketplaceId",
+    "active",
+    "demoMode",
+    "lastSyncAt",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-marketplace-channels digest summary+channels[] floors. config_json omitted. PHP marketplace/channels remain authoritative. cutoverAllowed=false."
+}

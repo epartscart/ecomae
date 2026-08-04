@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 105,
+  "routeCount": 109,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -1265,6 +1265,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-collections-dunning-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-marketplace-channels-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/marketplace-channels-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-marketplace-channels-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-demand-intelligence-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/demand-intelligence-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-demand-intelligence-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-credit-limits-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/credit-limits-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-credit-limits-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-insurance-compliance-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/insurance-compliance-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-insurance-compliance-app-shadow-approved"
           }
         ]
       }

@@ -1,0 +1,24 @@
+{
+  "role": "cp-demand-intelligence-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-demand-intelligence",
+  "collectionKey": "countries",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "countryCount",
+    "articleDemandCount",
+    "priceListDemandCount",
+    "userDemandCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "code",
+    "name",
+    "sortOrder"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-demand-intelligence digest summary+countries[] floors. PHP demand countries remain authoritative. cutoverAllowed=false."
+}

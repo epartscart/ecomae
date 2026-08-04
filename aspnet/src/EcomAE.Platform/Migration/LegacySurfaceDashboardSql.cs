@@ -1666,4 +1666,87 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+
+    /// <summary>Marketplace channel KPIs from epc_marketplace_* (CREATE TABLE in epc_channel_schema.php).</summary>
+    public const string SelectCpMarketplaceChannelsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_marketplace_channels`) AS channel_count,
+            (SELECT COUNT(*) FROM `epc_marketplace_channels` WHERE IFNULL(`active`,0)=1) AS active_count,
+            (SELECT COUNT(*) FROM `epc_marketplace_sku_map` WHERE IFNULL(`active`,0)=1) AS sku_map_count,
+            (SELECT COUNT(*) FROM `epc_marketplace_orders`) AS order_count
+        """;
+
+    /// <summary>Marketplace channels — omits config_json.</summary>
+    public const string SelectCpMarketplaceChannels = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`marketplace_id`,'') AS marketplace_id, IFNULL(`active`,0) AS active,
+               IFNULL(`demo_mode`,0) AS demo_mode, IFNULL(`last_sync_at`,0) AS last_sync_at,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_marketplace_channels`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Demand intelligence KPIs from epc_demand_* (CREATE TABLE in epc_demand_intelligence.php).</summary>
+    public const string SelectCpDemandIntelligenceStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_demand_country`) AS country_count,
+            (SELECT COUNT(*) FROM `epc_article_demand`) AS article_demand_count,
+            (SELECT COUNT(*) FROM `epc_price_list_demand`) AS price_list_demand_count,
+            (SELECT COUNT(*) FROM `epc_user_demand_country`) AS user_demand_count
+        """;
+
+    /// <summary>Demand country rows.</summary>
+    public const string SelectCpDemandIntelligenceCountries = """
+        SELECT IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`sort_order`,0) AS sort_order
+        FROM `epc_demand_country`
+        ORDER BY `sort_order` ASC, `code` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Credit limit KPIs from epc_credit_* (CREATE TABLE in epc_credit_limit.php).</summary>
+    public const string SelectCpCreditLimitsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_credit_limits`) AS limit_count,
+            (SELECT COUNT(*) FROM `epc_credit_limits` WHERE IFNULL(`status`,'')='active') AS active_count,
+            (SELECT COUNT(*) FROM `epc_credit_limits` WHERE IFNULL(`status`,'') IN ('on_hold','suspended','review')) AS held_count,
+            (SELECT COUNT(*) FROM `epc_credit_transactions`) AS txn_count
+        """;
+
+    /// <summary>Credit limits — omits notes/hold_reason detail beyond status.</summary>
+    public const string SelectCpCreditLimits = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`credit_limit`,0) AS credit_limit, IFNULL(`balance_used`,0) AS balance_used,
+               IFNULL(`currency`,'') AS currency, IFNULL(`status`,'') AS status,
+               IFNULL(`risk_score`,0) AS risk_score, IFNULL(`payment_terms`,'') AS payment_terms,
+               IFNULL(`updated_at`,'') AS updated_at
+        FROM `epc_credit_limits`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Insurance KPIs from epc_erp_ins_* (CREATE TABLE in epc_erp_insurance.php).</summary>
+    public const string SelectCpInsuranceComplianceStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_ins_policies`) AS policy_count,
+            (SELECT COUNT(*) FROM `epc_erp_ins_policies` WHERE IFNULL(`status`,'')='active') AS active_count,
+            (SELECT COUNT(*) FROM `epc_erp_ins_claims`) AS claim_count,
+            (SELECT COUNT(*) FROM `epc_erp_ins_documents`) AS document_count
+        """;
+
+    /// <summary>Insurance policies — omits note/contact_email.</summary>
+    public const string SelectCpInsuranceCompliancePolicies = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`policy_no`,'') AS policy_no,
+               IFNULL(`class`,'') AS policy_class, IFNULL(`title`,'') AS title,
+               IFNULL(`insurer`,'') AS insurer, IFNULL(`sum_insured`,0) AS sum_insured,
+               IFNULL(`premium`,0) AS premium, IFNULL(`currency`,'') AS currency,
+               IFNULL(`expiry_date`,0) AS expiry_date, IFNULL(`status`,'') AS status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_ins_policies`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+
 }

@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "countryCount": 1,
+    "articleDemandCount": 0,
+    "priceListDemandCount": 0,
+    "userDemandCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; countries[] sentinel; PHP demand countries authoritative; cutoverAllowed=false",
+  "countries": [
+    {
+      "code": "ARE",
+      "name": "United Arab Emirates",
+      "sortOrder": 1
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

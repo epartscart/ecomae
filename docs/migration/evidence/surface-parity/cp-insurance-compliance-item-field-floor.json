@@ -1,0 +1,33 @@
+{
+  "role": "cp-insurance-compliance-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-insurance-compliance",
+  "collectionKey": "policies",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "policyCount",
+    "activeCount",
+    "claimCount",
+    "documentCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "policyNo",
+    "class",
+    "title",
+    "insurer",
+    "sumInsured",
+    "premium",
+    "currency",
+    "expiryDate",
+    "status",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-insurance-compliance digest summary+policies[] floors. notes/emails omitted. PHP risk insurance remains authoritative. cutoverAllowed=false."
+}

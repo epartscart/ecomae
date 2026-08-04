@@ -2,7 +2,7 @@
   "role": "presentation-exact-routes",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 105,
+  "routeCount": 109,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -112,6 +112,10 @@
     "/cp/crm-activities-app",
     "/cp/auth-mfa-app",
     "/cp/electronic-reporting-app",
-    "/cp/collections-dunning-app"
+    "/cp/collections-dunning-app",
+    "/cp/marketplace-channels-app",
+    "/cp/demand-intelligence-app",
+    "/cp/credit-limits-app",
+    "/cp/insurance-compliance-app"
   ]
 }

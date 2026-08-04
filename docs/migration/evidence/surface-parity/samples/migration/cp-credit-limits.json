@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "limitCount": 1,
+    "activeCount": 1,
+    "heldCount": 0,
+    "txnCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; limits[] sentinel; notes omitted; PHP credit limit engine authoritative; cutoverAllowed=false",
+  "limits": [
+    {
+      "id": 1,
+      "siteKey": "demo",
+      "customerId": 1,
+      "creditLimit": 10000.0,
+      "balanceUsed": 2500.0,
+      "currency": "AED",
+      "status": "active",
+      "riskScore": 40,
+      "paymentTerms": "net30",
+      "updatedAt": ""
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

@@ -280,6 +280,22 @@ public static class EcomAeRoutes
     public const string ControlPanelCollectionsDunning = "/cp/collections-dunning";
     /// <summary>CP collections/dunning Blazor list (JSON digest remains <see cref="ControlPanelCollectionsDunning"/>).</summary>
     public const string ControlPanelCollectionsDunningApp = "/cp/collections-dunning-app";
+
+    public const string ControlPanelMarketplaceChannels = "/cp/marketplace-channels";
+    /// <summary>CP marketplace channels Blazor list (JSON digest remains <see cref="ControlPanelMarketplaceChannels"/>).</summary>
+    public const string ControlPanelMarketplaceChannelsApp = "/cp/marketplace-channels-app";
+
+    public const string ControlPanelDemandIntelligence = "/cp/demand-intelligence";
+    /// <summary>CP demand intelligence Blazor list (JSON digest remains <see cref="ControlPanelDemandIntelligence"/>).</summary>
+    public const string ControlPanelDemandIntelligenceApp = "/cp/demand-intelligence-app";
+
+    public const string ControlPanelCreditLimits = "/cp/credit-limits";
+    /// <summary>CP credit limits Blazor list (JSON digest remains <see cref="ControlPanelCreditLimits"/>).</summary>
+    public const string ControlPanelCreditLimitsApp = "/cp/credit-limits-app";
+
+    public const string ControlPanelInsuranceCompliance = "/cp/insurance-compliance";
+    /// <summary>CP insurance compliance Blazor list (JSON digest remains <see cref="ControlPanelInsuranceCompliance"/>).</summary>
+    public const string ControlPanelInsuranceComplianceApp = "/cp/insurance-compliance-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

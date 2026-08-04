@@ -276,6 +276,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "queueCount,openCount,profileCount,logCount,source,message",
     ),
+    "cp-marketplace-channels": (
+        "summary",
+        "channelCount,activeCount,skuMapCount,orderCount,source,message",
+    ),
+    "cp-demand-intelligence": (
+        "summary",
+        "countryCount,articleDemandCount,priceListDemandCount,userDemandCount,source,message",
+    ),
+    "cp-credit-limits": (
+        "summary",
+        "limitCount,activeCount,heldCount,txnCount,source,message",
+    ),
+    "cp-insurance-compliance": (
+        "summary",
+        "policyCount,activeCount,claimCount,documentCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -824,6 +840,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-collections-dunning": (
         "queue",
         ["id", "siteKey", "customerId", "customerName", "invoiceRef", "invoiceAmount", "amountDue", "dueDate", "daysOverdue", "dunningStep", "status", "updatedAt"],
+    ),
+    "cp-marketplace-channels": (
+        "channels",
+        ["id", "code", "name", "marketplaceId", "active", "demoMode", "lastSyncAt", "timeCreated"],
+    ),
+    "cp-demand-intelligence": (
+        "countries",
+        ["code", "name", "sortOrder"],
+    ),
+    "cp-credit-limits": (
+        "limits",
+        ["id", "siteKey", "customerId", "creditLimit", "balanceUsed", "currency", "status", "riskScore", "paymentTerms", "updatedAt"],
+    ),
+    "cp-insurance-compliance": (
+        "policies",
+        ["id", "companyId", "policyNo", "class", "title", "insurer", "sumInsured", "premium", "currency", "expiryDate", "status", "timeCreated"],
     ),
     "cp-orders-digest": (
         "orders",

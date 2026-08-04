@@ -1985,3 +1985,104 @@ public sealed record CpCollectionsDunningDigestResult(
     string Source,
     string Message);
 
+public sealed record CpMarketplaceChannelsSummary(
+    int ChannelCount,
+    int ActiveCount,
+    int SkuMapCount,
+    int OrderCount,
+    string Source,
+    string Message);
+
+public sealed record CpMarketplaceChannelsChannelDigest(
+    long Id,
+    string Code,
+    string Name,
+    string MarketplaceId,
+    int Active,
+    int DemoMode,
+    long LastSyncAt,
+    long TimeCreated);
+
+public sealed record CpMarketplaceChannelsDigestResult(
+    CpMarketplaceChannelsSummary Summary,
+    IReadOnlyList<CpMarketplaceChannelsChannelDigest> Channels,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpDemandIntelligenceSummary(
+    int CountryCount,
+    int ArticleDemandCount,
+    int PriceListDemandCount,
+    int UserDemandCount,
+    string Source,
+    string Message);
+
+public sealed record CpDemandIntelligenceCountryDigest(
+    string Code,
+    string Name,
+    int SortOrder);
+
+public sealed record CpDemandIntelligenceDigestResult(
+    CpDemandIntelligenceSummary Summary,
+    IReadOnlyList<CpDemandIntelligenceCountryDigest> Countries,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpCreditLimitsSummary(
+    int LimitCount,
+    int ActiveCount,
+    int HeldCount,
+    int TxnCount,
+    string Source,
+    string Message);
+
+public sealed record CpCreditLimitsLimitDigest(
+    long Id,
+    string SiteKey,
+    long CustomerId,
+    decimal CreditLimit,
+    decimal BalanceUsed,
+    string Currency,
+    string Status,
+    int RiskScore,
+    string PaymentTerms,
+    string UpdatedAt);
+
+public sealed record CpCreditLimitsDigestResult(
+    CpCreditLimitsSummary Summary,
+    IReadOnlyList<CpCreditLimitsLimitDigest> Limits,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpInsuranceComplianceSummary(
+    int PolicyCount,
+    int ActiveCount,
+    int ClaimCount,
+    int DocumentCount,
+    string Source,
+    string Message);
+
+public sealed record CpInsuranceCompliancePolicyDigest(
+    long Id,
+    long CompanyId,
+    string PolicyNo,
+    string Class,
+    string Title,
+    string Insurer,
+    decimal SumInsured,
+    decimal Premium,
+    string Currency,
+    long ExpiryDate,
+    string Status,
+    long TimeCreated);
+
+public sealed record CpInsuranceComplianceDigestResult(
+    CpInsuranceComplianceSummary Summary,
+    IReadOnlyList<CpInsuranceCompliancePolicyDigest> Policies,
+    int Count,
+    string Source,
+    string Message);
+
