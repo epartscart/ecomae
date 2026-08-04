@@ -2194,4 +2194,115 @@ public sealed record CpJewelleryStockVerificationDigestResult(
     int Count,
     string Source,
     string Message);
+public sealed record CpTaxExternalReportingSummary(
+    int RuleCount,
+    int ActiveCount,
+    int StagingCount,
+    int AuditCount,
+    string Source,
+    string Message);
+
+public sealed record CpTaxExternalReportingRowDigest(
+    long Id,
+    string Country,
+    string RuleKey,
+    long Version,
+    string Status,
+    string RuleSource,
+    long ValidFrom,
+    long ValidTo);
+
+public sealed record CpTaxExternalReportingDigestResult(
+    CpTaxExternalReportingSummary Summary,
+    IReadOnlyList<CpTaxExternalReportingRowDigest> Rules,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPoApprovalsSummary(
+    int RequestCount,
+    int PendingCount,
+    int ApprovedCount,
+    int StepCount,
+    string Source,
+    string Message);
+
+public sealed record CpPoApprovalsRowDigest(
+    long Id,
+    string SiteKey,
+    string PoNumber,
+    long RequesterId,
+    string VendorName,
+    string Currency,
+    decimal Total,
+    string Status,
+    int CurrentTier,
+    string Priority,
+    string CreatedAt);
+
+public sealed record CpPoApprovalsDigestResult(
+    CpPoApprovalsSummary Summary,
+    IReadOnlyList<CpPoApprovalsRowDigest> Requests,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpFinanceCloseSummary(
+    int BatchCount,
+    int PostedBatchCount,
+    int OpeningLineCount,
+    int PeriodCount,
+    int ClosedPeriodCount,
+    int CloseLogCount,
+    string Source,
+    string Message);
+
+public sealed record CpFinanceCloseRowDigest(
+    long Id,
+    string Module,
+    string AsOfDate,
+    string Reference,
+    string Status,
+    long AdminId,
+    long TimeCreated,
+    long TimePosted);
+
+public sealed record CpFinanceCloseDigestResult(
+    CpFinanceCloseSummary Summary,
+    IReadOnlyList<CpFinanceCloseRowDigest> Batches,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryFixingSummary(
+    int FixingCount,
+    int OpenFixingCount,
+    int PurchaseFixCount,
+    int SettlementCount,
+    int PettyCashCount,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryFixingRowDigest(
+    long Id,
+    long CompanyId,
+    string Branch,
+    string FixType,
+    string FixDate,
+    long FixNo,
+    string PartyCode,
+    string PartyName,
+    string Metal,
+    string Karat,
+    decimal FixQtyGms,
+    decimal FixAmount,
+    string Status,
+    string CreatedBy);
+
+public sealed record CpJewelleryFixingDigestResult(
+    CpJewelleryFixingSummary Summary,
+    IReadOnlyList<CpJewelleryFixingRowDigest> Fixings,
+    int Count,
+    string Source,
+    string Message);
 

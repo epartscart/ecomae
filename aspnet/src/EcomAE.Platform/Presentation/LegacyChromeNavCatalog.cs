@@ -166,6 +166,10 @@ public static class LegacyChromeNavCatalog
         new("Doc expiry", "/cp/doc-expiry-app"),
         new("Tenant config", "/cp/tenant-config-app"),
         new("Jewellery stock verification", "/cp/jewellery-stock-verification-app"),
+        new("Tax external reporting", "/cp/tax-external-reporting-app"),
+        new("PO approvals", "/cp/po-approvals-app"),
+        new("Finance close", "/cp/finance-close-app"),
+        new("Jewellery fixing", "/cp/jewellery-fixing-app"),
 
         new("Collections dunning PHP", "/CP/shop/finance/epc_collections_dunning"),
         new("Config items list", "/cp/config-items-app"),

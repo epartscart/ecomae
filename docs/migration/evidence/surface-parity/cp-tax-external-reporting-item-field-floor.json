@@ -1,0 +1,29 @@
+{
+  "role": "cp-tax-external-reporting-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-tax-external-reporting",
+  "collectionKey": "rules",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "ruleCount",
+    "activeCount",
+    "stagingCount",
+    "auditCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "country",
+    "ruleKey",
+    "version",
+    "status",
+    "ruleSource",
+    "validFrom",
+    "validTo"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-tax-external-reporting digest summary+rules[] floors. value_json/notes omitted. PHP tax external reporting remains authoritative. cutoverAllowed=false."
+}

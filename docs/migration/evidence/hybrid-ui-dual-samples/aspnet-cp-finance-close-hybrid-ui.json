@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "stem": "cp-finance-close",
+  "surface": "cp",
+  "aspnetRoute": "/cp/finance-close-app",
+  "digestRoute": "/cp/finance-close",
+  "phpPath": "/ERP/?epc_erp_shell=1&area=finance&tab=opening_balances",
+  "chrome": "PhpCpDesktopChrome",
+  "status": "digest-only+hybrid-deeplink",
+  "aspnetComplete": false,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "Hybrid preview stub for cp-finance-close. PHP opening balances / year-end close remain authoritative. Interactive chrome remains PHP."
+}

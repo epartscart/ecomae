@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "stem": "cp-tax-external-reporting",
+  "surface": "cp",
+  "aspnetRoute": "/cp/tax-external-reporting-app",
+  "digestRoute": "/cp/tax-external-reporting",
+  "phpPath": "/ERP/?epc_erp_shell=1&area=tax&tab=ext_reports",
+  "chrome": "PhpCpDesktopChrome",
+  "status": "digest-only+hybrid-deeplink",
+  "aspnetComplete": false,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "Hybrid preview stub for cp-tax-external-reporting. PHP tax external reporting remains authoritative. Interactive chrome remains PHP."
+}

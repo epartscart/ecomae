@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "stem": "cp-po-approvals",
+  "surface": "cp",
+  "aspnetRoute": "/cp/po-approvals-app",
+  "digestRoute": "/cp/po-approvals",
+  "phpPath": "/CP/shop/finance/epc_po_approval",
+  "chrome": "PhpCpDesktopChrome",
+  "status": "digest-only+hybrid-deeplink",
+  "aspnetComplete": false,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "Hybrid preview stub for cp-po-approvals. PHP PO approval remains authoritative. Interactive chrome remains PHP."
+}

@@ -1,0 +1,31 @@
+{
+  "role": "cp-finance-close-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-finance-close",
+  "collectionKey": "batches",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "batchCount",
+    "postedBatchCount",
+    "openingLineCount",
+    "periodCount",
+    "closedPeriodCount",
+    "closeLogCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "module",
+    "asOfDate",
+    "reference",
+    "status",
+    "adminId",
+    "timeCreated",
+    "timePosted"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-finance-close digest summary+batches[] floors. batch notes/meta_json/checklist omitted. PHP opening balances / year-end close remain authoritative. cutoverAllowed=false."
+}
