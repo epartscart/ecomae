@@ -92,6 +92,22 @@ public static class EcomAeRoutes
     public const string ControlPanelDemoTenants = "/cp/demo-tenants";
     /// <summary>CP demo tenants Blazor list (JSON digest remains <see cref="ControlPanelDemoTenants"/>).</summary>
     public const string ControlPanelDemoTenantsApp = "/cp/demo-tenants-app";
+    /// <summary>CP AI Parts Agent sessions metadata (system_prompt / client_ip / full transcripts omitted).</summary>
+    public const string ControlPanelPartsAgentChats = "/cp/parts-agent-chats";
+    /// <summary>CP Parts Agent Blazor list (JSON digest remains <see cref="ControlPanelPartsAgentChats"/>).</summary>
+    public const string ControlPanelPartsAgentChatsApp = "/cp/parts-agent-chats-app";
+    /// <summary>CP POS settings + recent sales metadata (terminal writes remain PHP).</summary>
+    public const string ControlPanelPosOverview = "/cp/pos-overview";
+    /// <summary>CP POS Blazor overview (JSON digest remains <see cref="ControlPanelPosOverview"/>).</summary>
+    public const string ControlPanelPosOverviewApp = "/cp/pos-overview-app";
+    /// <summary>CP tax toolkit catalog + tenant profile (rules_json / reg_number secrets omitted).</summary>
+    public const string ControlPanelTaxToolkits = "/cp/tax-toolkits";
+    /// <summary>CP tax toolkits Blazor list (JSON digest remains <see cref="ControlPanelTaxToolkits"/>).</summary>
+    public const string ControlPanelTaxToolkitsApp = "/cp/tax-toolkits-app";
+    /// <summary>CP SMS operators + WhatsApp notify log (parameters_values / tokens / raw phone omitted).</summary>
+    public const string ControlPanelSmsWhatsapp = "/cp/sms-whatsapp";
+    /// <summary>CP SMS/WhatsApp Blazor list (JSON digest remains <see cref="ControlPanelSmsWhatsapp"/>).</summary>
+    public const string ControlPanelSmsWhatsappApp = "/cp/sms-whatsapp-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

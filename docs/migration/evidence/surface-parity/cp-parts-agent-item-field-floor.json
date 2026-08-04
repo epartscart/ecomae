@@ -1,0 +1,34 @@
+{
+  "role": "cp-parts-agent-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-parts-agent",
+  "collectionKey": "sessions",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "totalSessions",
+    "sessionsToday",
+    "messagesToday",
+    "loggedInSessions",
+    "guestSessions",
+    "enabled",
+    "agentName",
+    "domain",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "sessionId",
+    "updatedAt",
+    "messageCount",
+    "countryCode",
+    "countryName",
+    "userId",
+    "ipHash",
+    "lastUserText",
+    "lastAgentText"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks parts agent digest summary+sessions[] floors. Chat control remains PHP parts_agent_chats. cutoverAllowed=false."
+}

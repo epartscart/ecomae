@@ -1,0 +1,28 @@
+{
+  "role": "cp-tax-toolkits-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-tax-toolkits",
+  "collectionKey": "toolkits",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "toolkitCount",
+    "installCount",
+    "tenantCountry",
+    "tenantKitCode",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "kitCode",
+    "name",
+    "jurisdiction",
+    "taxType",
+    "isSystem",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks tax toolkits digest summary+toolkits[] floors. Install/configure remains PHP epc_tax_toolkit_manage. cutoverAllowed=false."
+}

@@ -89,6 +89,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only demo tenant registry (passwords never returned).</summary>
     Task<CpDemoTenantsDigestResult> ListCpDemoTenantsAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only AI Parts Agent config + sessions (system_prompt / client_ip omitted).</summary>
+    Task<CpPartsAgentDigestResult> BuildCpPartsAgentDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only POS settings + recent sales (terminal writes remain PHP).</summary>
+    Task<CpPosOverviewDigestResult> BuildCpPosOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only tax toolkit catalog + tenant profile (rules_json / reg_number omitted).</summary>
+    Task<CpTaxToolkitsDigestResult> BuildCpTaxToolkitsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only SMS operators + WhatsApp log (parameters_values / tokens / raw phone omitted).</summary>
+    Task<CpSmsWhatsappDigestResult> BuildCpSmsWhatsappDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

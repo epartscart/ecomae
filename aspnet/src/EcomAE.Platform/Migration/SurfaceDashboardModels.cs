@@ -606,6 +606,121 @@ public sealed record CpDemoTenantsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpPartsAgentSummary(
+    int TotalSessions,
+    int SessionsToday,
+    int MessagesToday,
+    int LoggedInSessions,
+    int GuestSessions,
+    bool Enabled,
+    string AgentName,
+    string Domain,
+    string Source,
+    string Message);
+
+public sealed record CpPartsAgentSessionDigest(
+    string SessionId,
+    long UpdatedAt,
+    int MessageCount,
+    string CountryCode,
+    string CountryName,
+    long UserId,
+    string IpHash,
+    string LastUserText,
+    string LastAgentText);
+
+public sealed record CpPartsAgentDigestResult(
+    CpPartsAgentSummary Summary,
+    IReadOnlyList<CpPartsAgentSessionDigest> Sessions,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPosOverviewSummary(
+    bool PosEnabled,
+    string RegisterName,
+    int OpenSessions,
+    int SalesToday,
+    decimal SalesTotalToday,
+    string Source,
+    string Message);
+
+public sealed record CpPosSaleDigest(
+    long Id,
+    string SaleNo,
+    long SessionId,
+    string CustomerLabel,
+    decimal SubtotalEx,
+    decimal VatAmount,
+    decimal TotalAmount,
+    string PaymentMethod,
+    string TaxKitCode,
+    string Status,
+    long TimeCreated);
+
+public sealed record CpPosOverviewDigestResult(
+    CpPosOverviewSummary Summary,
+    IReadOnlyList<CpPosSaleDigest> Sales,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpTaxToolkitsSummary(
+    int ToolkitCount,
+    int InstallCount,
+    string TenantCountry,
+    string TenantKitCode,
+    string Source,
+    string Message);
+
+public sealed record CpTaxToolkitDigest(
+    long Id,
+    string KitCode,
+    string Name,
+    string Jurisdiction,
+    string TaxType,
+    bool IsSystem,
+    bool Active);
+
+public sealed record CpTaxToolkitsDigestResult(
+    CpTaxToolkitsSummary Summary,
+    IReadOnlyList<CpTaxToolkitDigest> Toolkits,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpSmsWhatsappSummary(
+    int SmsOperators,
+    string ActiveOperator,
+    int WhatsappSent,
+    int WhatsappFailed,
+    string Source,
+    string Message);
+
+public sealed record CpSmsOperatorDigest(
+    long Id,
+    string Name,
+    string Handler,
+    string Description,
+    bool Active,
+    bool ControlAvailable);
+
+public sealed record CpWhatsappLogDigest(
+    long Id,
+    long CreatedAt,
+    string NotifyName,
+    string PhoneMasked,
+    int Status,
+    string MessagePreview);
+
+public sealed record CpSmsWhatsappDigestResult(
+    CpSmsWhatsappSummary Summary,
+    IReadOnlyList<CpSmsOperatorDigest> Operators,
+    IReadOnlyList<CpWhatsappLogDigest> WhatsappLog,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontPartOfferDigest(
     int PriceId,
     string PriceList,

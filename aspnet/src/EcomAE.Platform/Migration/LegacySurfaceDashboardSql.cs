@@ -501,6 +501,134 @@ public static class LegacySurfaceDashboardSql
         LIMIT 1
         """;
 
+    /// <summary>Parts agent config — omits system_prompt / greeting.</summary>
+    public const string SelectCpPartsAgentConfig = """
+        SELECT IFNULL(`enabled`, 0) AS enabled,
+               IFNULL(`agent_name`, '') AS agent_name,
+               IFNULL(`domain`, '') AS domain
+        FROM `epc_parts_agent_config`
+        ORDER BY `id` ASC
+        LIMIT 1
+        """;
+
+    public const string SelectCpPartsAgentStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_parts_agent_session`) AS total_sessions,
+            (SELECT COUNT(*) FROM `epc_parts_agent_session` WHERE `updated_at` >= UNIX_TIMESTAMP(CURDATE())) AS sessions_today,
+            (SELECT COUNT(*) FROM `epc_parts_agent_message` WHERE `created_at` >= UNIX_TIMESTAMP(CURDATE())) AS messages_today,
+            (SELECT COUNT(*) FROM `epc_parts_agent_session` WHERE `user_id` > 0) AS logged_in_sessions
+        """;
+
+    /// <summary>Parts agent sessions — omits client_ip / user_agent; truncates last texts.</summary>
+    public const string SelectCpPartsAgentSessions = """
+        SELECT IFNULL(`session_id`, '') AS session_id,
+               IFNULL(`updated_at`, 0) AS updated_at,
+               IFNULL(`message_count`, 0) AS message_count,
+               IFNULL(`country_code`, '') AS country_code,
+               IFNULL(`country_name`, '') AS country_name,
+               IFNULL(`user_id`, 0) AS user_id,
+               IFNULL(`ip_hash`, '') AS ip_hash,
+               LEFT(IFNULL(`last_user_text`, ''), 240) AS last_user_text,
+               LEFT(IFNULL(`last_agent_text`, ''), 240) AS last_agent_text
+        FROM `epc_parts_agent_session`
+        ORDER BY `updated_at` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpPosSettings = """
+        SELECT IFNULL(`pos_enabled`, 0) AS pos_enabled,
+               IFNULL(`register_name`, '') AS register_name
+        FROM `epc_pos_settings`
+        ORDER BY `id` ASC
+        LIMIT 1
+        """;
+
+    public const string SelectCpPosStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_pos_sessions` WHERE `status` = 'open') AS open_sessions,
+            (SELECT COUNT(*) FROM `epc_pos_sales` WHERE `status` = 'completed' AND `time_created` >= UNIX_TIMESTAMP(CURDATE())) AS sales_today,
+            (SELECT IFNULL(SUM(`total_amount`), 0) FROM `epc_pos_sales` WHERE `status` = 'completed' AND `time_created` >= UNIX_TIMESTAMP(CURDATE())) AS sales_total_today
+        """;
+
+    public const string SelectCpPosSales = """
+        SELECT `id`, IFNULL(`sale_no`, '') AS sale_no,
+               IFNULL(`session_id`, 0) AS session_id,
+               IFNULL(`customer_label`, '') AS customer_label,
+               IFNULL(`subtotal_ex`, 0) AS subtotal_ex,
+               IFNULL(`vat_amount`, 0) AS vat_amount,
+               IFNULL(`total_amount`, 0) AS total_amount,
+               IFNULL(`payment_method`, '') AS payment_method,
+               IFNULL(`tax_kit_code`, '') AS tax_kit_code,
+               IFNULL(`status`, '') AS status,
+               IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_pos_sales`
+        ORDER BY `time_created` DESC, `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Tax toolkit catalog — omits rules_json.</summary>
+    public const string SelectCpTaxToolkits = """
+        SELECT `id`, IFNULL(`kit_code`, '') AS kit_code,
+               IFNULL(`name`, '') AS name,
+               IFNULL(`jurisdiction`, '') AS jurisdiction,
+               IFNULL(`tax_type`, '') AS tax_type,
+               IFNULL(`is_system`, 0) AS is_system,
+               IFNULL(`active`, 0) AS active
+        FROM `epc_tax_toolkits`
+        WHERE IFNULL(`active`, 0) = 1
+        ORDER BY `kit_code` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpTaxToolkitStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_tax_toolkits` WHERE IFNULL(`active`, 0) = 1) AS toolkit_count,
+            (SELECT COUNT(*) FROM `epc_tax_toolkit_installs`) AS install_count
+        """;
+
+    /// <summary>Tenant tax profile — omits reg_number.</summary>
+    public const string SelectCpTaxTenantProfile = """
+        SELECT IFNULL(`country_code`, '') AS country_code,
+               IFNULL(`kit_code`, '') AS kit_code
+        FROM `epc_tax_toolkit_tenant_profile`
+        ORDER BY `id` ASC
+        LIMIT 1
+        """;
+
+    /// <summary>SMS operators — omits parameters / parameters_values.</summary>
+    public const string SelectCpSmsOperators = """
+        SELECT `id`, IFNULL(`name`, '') AS name,
+               IFNULL(`handler`, '') AS handler,
+               IFNULL(`description`, '') AS description,
+               IFNULL(`active`, 0) AS active,
+               IFNULL(`control_available`, 0) AS control_available
+        FROM `sms_api`
+        WHERE IFNULL(`control_available`, 0) = 1
+        ORDER BY CASE WHEN `handler` LIKE 'epc_%' THEN 0 ELSE 1 END, `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpWhatsappLogStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_whatsapp_notify_log` WHERE IFNULL(`status`, 0) = 1) AS whatsapp_sent,
+            (SELECT COUNT(*) FROM `epc_whatsapp_notify_log` WHERE IFNULL(`status`, 0) != 1) AS whatsapp_failed
+        """;
+
+    /// <summary>WhatsApp notify log — masks phone; omits raw response JSON.</summary>
+    public const string SelectCpWhatsappNotifyLog = """
+        SELECT `id`, IFNULL(`created_at`, 0) AS created_at,
+               IFNULL(`notify_name`, '') AS notify_name,
+               CASE
+                   WHEN CHAR_LENGTH(IFNULL(`phone`, '')) <= 4 THEN '****'
+                   ELSE CONCAT(REPEAT('*', GREATEST(CHAR_LENGTH(`phone`) - 4, 0)), RIGHT(`phone`, 4))
+               END AS phone_masked,
+               IFNULL(`status`, 0) AS status,
+               LEFT(IFNULL(`message_preview`, ''), 240) AS message_preview
+        FROM `epc_whatsapp_notify_log`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>
     /// Batch 4 storefront part search (mirrors pyapi <c>part_search</c> / warehouse offers).
     /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.

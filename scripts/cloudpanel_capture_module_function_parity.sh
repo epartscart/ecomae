@@ -142,6 +142,20 @@ CP_FEATURE_HYBRID_BY_ID = {
     "epc-marketing-broadcast": "cp-marketing-broadcast",
     "demo-tenants": "cp-demo-tenants",
     "epc-demo-tenants-manage": "cp-demo-tenants",
+    "ai-parts-agent-chat": "cp-parts-agent-chats",
+    "ai-parts-expert-chats": "cp-parts-agent-chats",
+    "parts-agent": "cp-parts-agent-chats",
+    "epc-pos-tenant-manage": "cp-pos-overview",
+    "pos-tenant-overview": "cp-pos-overview",
+    "pos-terminal": "cp-pos-overview",
+    "epc-tax-toolkit-manage": "cp-tax-toolkits",
+    "tax-compliance-center": "cp-tax-toolkits",
+    "tax-e-invoicing": "cp-tax-toolkits",
+    "worldwide-tax-toolkit": "cp-tax-toolkits",
+    "peppol-pint-ae-e-invoice": "cp-tax-toolkits",
+    "sms-operators": "cp-sms-whatsapp",
+    "whatsapp-order-sharing": "cp-sms-whatsapp",
+    "whatsapp-sharing-guide": "cp-sms-whatsapp",
 }
 ERP_AREA_HYBRID_BY_ID = {
     "banking": "erp-accounts-summary",
@@ -181,6 +195,10 @@ BOS_MODULE_HYBRID_BY_ID = {
     "marketing": "cp-marketing-broadcast",
     "broadcast": "cp-marketing-broadcast",
     "demo_tenants": "cp-demo-tenants",
+    "parts_agent": "cp-parts-agent-chats",
+    "pos": "cp-pos-overview",
+    "tax_toolkit": "cp-tax-toolkits",
+    "sms_turning": "cp-sms-whatsapp",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}

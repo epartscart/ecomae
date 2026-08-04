@@ -32,21 +32,21 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 101,
-    "php-only-deeplink": 625
+    "digest-contract": 119,
+    "php-only-deeplink": 607
   },
   "coverageByKind": {
     "bos-module": {
-      "php-only-deeplink": 78,
-      "digest-contract": 21
+      "php-only-deeplink": 74,
+      "digest-contract": 25
     },
     "bos-section": {
       "digest-contract": 4,
       "php-only-deeplink": 7
     },
     "cp-feature": {
-      "digest-contract": 45,
-      "php-only-deeplink": 360
+      "digest-contract": 59,
+      "php-only-deeplink": 346
     },
     "erp-area": {
       "digest-contract": 8,
@@ -65,7 +65,7 @@
       "digest-contract": 6
     }
   },
-  "digestContractRouteCount": 62,
+  "digestContractRouteCount": 66,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -2671,10 +2671,10 @@
       "kind": "bos-module",
       "label": "SMS Settings",
       "phpPath": "/CP/control/sms_turning",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/sms-whatsapp",
+      "aspnetRoute": "/cp/sms-whatsapp-app",
       "aspnetComplete": false
     },
     {
@@ -2968,10 +2968,10 @@
       "kind": "bos-module",
       "label": "POS Terminal",
       "phpPath": "/CP/shop/pos/epc_pos_hub_page",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/pos-overview",
+      "aspnetRoute": "/cp/pos-overview-app",
       "aspnetComplete": false
     },
     {
@@ -3166,10 +3166,10 @@
       "kind": "bos-module",
       "label": "Parts Agent",
       "phpPath": "/CP/shop/parts_agent/parts_agent_chats",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/parts-agent-chats",
+      "aspnetRoute": "/cp/parts-agent-chats-app",
       "aspnetComplete": false
     },
     {
@@ -3386,10 +3386,10 @@
       "kind": "bos-module",
       "label": "Tax Toolkit",
       "phpPath": "/CP/control/portal/epc_tax_toolkit_manage",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/tax-toolkits",
+      "aspnetRoute": "/cp/tax-toolkits-app",
       "aspnetComplete": false
     },
     {
@@ -3562,10 +3562,10 @@
       "kind": "cp-feature",
       "label": "Epc Pos Tenant Manage",
       "phpPath": "/CP/control/portal/epc_pos_tenant_manage",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/pos-overview",
+      "aspnetRoute": "/cp/pos-overview-app",
       "aspnetComplete": false
     },
     {
@@ -3672,10 +3672,10 @@
       "kind": "cp-feature",
       "label": "POS tenant overview",
       "phpPath": "/CP/control/portal/epc_pos_tenant_manage",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/pos-overview",
+      "aspnetRoute": "/cp/pos-overview-app",
       "aspnetComplete": false
     },
     {
@@ -3969,10 +3969,10 @@
       "kind": "cp-feature",
       "label": "Epc Tax Toolkit Manage",
       "phpPath": "/CP/control/portal/epc_tax_toolkit_manage",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/tax-toolkits",
+      "aspnetRoute": "/cp/tax-toolkits-app",
       "aspnetComplete": false
     },
     {
@@ -4002,10 +4002,10 @@
       "kind": "cp-feature",
       "label": "POS Terminal",
       "phpPath": "/CP/shop/pos/terminal",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/pos-overview",
+      "aspnetRoute": "/cp/pos-overview-app",
       "aspnetComplete": false
     },
     {
@@ -4101,10 +4101,10 @@
       "kind": "cp-feature",
       "label": "Tax Toolkit",
       "phpPath": "/CP/control/portal/epc_tax_toolkit_manage",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/tax-toolkits",
+      "aspnetRoute": "/cp/tax-toolkits-app",
       "aspnetComplete": false
     },
     {
@@ -4596,10 +4596,10 @@
       "kind": "cp-feature",
       "label": "WhatsApp order sharing",
       "phpPath": "/CP/shop/orders/whatsapp-guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/sms-whatsapp",
+      "aspnetRoute": "/cp/sms-whatsapp-app",
       "aspnetComplete": false
     },
     {
@@ -5047,10 +5047,10 @@
       "kind": "cp-feature",
       "label": "WhatsApp sharing guide",
       "phpPath": "/CP/shop/orders/whatsapp-guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/sms-whatsapp",
+      "aspnetRoute": "/cp/sms-whatsapp-app",
       "aspnetComplete": false
     },
     {
@@ -5410,10 +5410,10 @@
       "kind": "cp-feature",
       "label": "Worldwide Tax Toolkit",
       "phpPath": "/CP/control/portal/epc_tax_toolkit_manage",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/tax-toolkits",
+      "aspnetRoute": "/cp/tax-toolkits-app",
       "aspnetComplete": false
     },
     {
@@ -6917,10 +6917,10 @@
       "kind": "cp-feature",
       "label": "Tax: Compliance center",
       "phpPath": "/CP/shop/finance/erp?area=tax&tab=compliance&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/tax-toolkits",
+      "aspnetRoute": "/cp/tax-toolkits-app",
       "aspnetComplete": false
     },
     {
@@ -6939,10 +6939,10 @@
       "kind": "cp-feature",
       "label": "Tax: E-invoicing",
       "phpPath": "/CP/shop/finance/erp?area=tax&tab=einvoice&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/tax-toolkits",
+      "aspnetRoute": "/cp/tax-toolkits-app",
       "aspnetComplete": false
     },
     {
@@ -7060,10 +7060,10 @@
       "kind": "cp-feature",
       "label": "Peppol / PINT-AE e-invoice",
       "phpPath": "/CP/shop/finance/erp?area=tax&tab=einvoice&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/tax-toolkits",
+      "aspnetRoute": "/cp/tax-toolkits-app",
       "aspnetComplete": false
     },
     {
@@ -7412,10 +7412,10 @@
       "kind": "cp-feature",
       "label": "AI parts agent chat",
       "phpPath": "/CP/shop/parts_agent_chats",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/parts-agent-chats",
+      "aspnetRoute": "/cp/parts-agent-chats-app",
       "aspnetComplete": false
     },
     {
@@ -7423,10 +7423,10 @@
       "kind": "cp-feature",
       "label": "AI Parts Expert chats",
       "phpPath": "/CP/shop/parts_agent_chats",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/parts-agent-chats",
+      "aspnetRoute": "/cp/parts-agent-chats-app",
       "aspnetComplete": false
     },
     {
@@ -7753,10 +7753,10 @@
       "kind": "cp-feature",
       "label": "SMS operators",
       "phpPath": "/CP/control/sms-operatory",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/sms-whatsapp",
+      "aspnetRoute": "/cp/sms-whatsapp-app",
       "aspnetComplete": false
     },
     {
