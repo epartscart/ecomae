@@ -528,6 +528,8 @@ public static class EcomAeRoutes
     public const string ErpOnPremisesHealthDryRun = "/erp/on-premises/health-dry-run";
     /// <summary>Wave B dry-run for PHP api/v1/licenses/activate.php (writes=0; PHP authoritative).</summary>
     public const string ErpOnPremisesLicenseActivateDryRun = "/erp/on-premises/license-activate-dry-run";
+    /// <summary>Read-only on-premises license registry digest (notes/fingerprint/ip omitted; keys masked).</summary>
+    public const string ErpOnPremisesLicenses = "/erp/on-premises/licenses";
     public const string Bos = "/bos";
     public const string BosApp = "/bos/app";
     public const string BosParity = "/bos/parity";

@@ -7321,4 +7321,56 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<OnPremisesLicenseListResult> ListOnPremisesLicensesAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectOnPremisesLicenses;
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<OnPremisesLicenseDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var rawKey = Convert.ToString(reader["license_key"] is DBNull ? string.Empty : reader["license_key"], CultureInfo.InvariantCulture) ?? string.Empty;
+                rows.Add(new OnPremisesLicenseDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    MaskOnPremisesLicenseKey(rawKey),
+                    Convert.ToString(reader["customer_name"] is DBNull ? string.Empty : reader["customer_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["tier"] is DBNull ? string.Empty : reader["tier"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToInt32(reader["users_max"] is DBNull ? 0 : reader["users_max"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["hostname"] is DBNull ? string.Empty : reader["hostname"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToInt64(reader["issued_at"] is DBNull ? 0 : reader["issued_at"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["activated_at"] is DBNull ? 0 : reader["activated_at"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["last_seen_at"] is DBNull ? 0 : reader["last_seen_at"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["expires_at"] is DBNull ? 0 : reader["expires_at"], CultureInfo.InvariantCulture)));
+            }
+
+            return new(rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
+    public static string MaskOnPremisesLicenseKey(string? key)
+    {
+        var k = (key ?? string.Empty).Trim();
+        if (k.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        return k.Length <= 8 ? k : k[..4] + "…" + k[^4..];
+    }
+
 }

@@ -802,6 +802,8 @@ check 'Wave B write dry-run probe covers on-premises license activate' contains 
 check 'on-premises parity board reporter exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/OnPremisesParityReporter.cs" 'cutoverAllowed'
 check 'on-premises parity route wired' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'MigrationOnPremisesParity'
 check 'on-premises license activate dry-run route wired' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpOnPremisesLicenseActivateDryRun'
+check 'on-premises licenses digest route wired' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpOnPremisesLicenses'
+check 'on-premises licenses SQL omits notes' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs" 'SelectOnPremisesLicenses'
 check 'ASP.NET zero-PHP path mentions on-premises' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/AspNetZeroPhpPathReporter.cs" 'on-premises'
 check 'ASP.NET zero-PHP path doc mentions on-premises' contains "$ROOT/docs/migration/ASPNET_ZERO_PHP_PATH.md" 'On-premises ERP'
 check 'Wave B write dry-run probe covers SO cancel' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/sales-orders/cancel'
