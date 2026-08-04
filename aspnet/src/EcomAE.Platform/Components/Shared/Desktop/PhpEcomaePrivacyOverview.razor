@@ -1,0 +1,45 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of PHP /privacy — overview + CTA.
+  Full policy body remains PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-privacy-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#164e63 0%,#0e7490 45%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-user-secret"></i> Privacy</div>
+			<h1>Privacy policy</h1>
+			<p class="lead">How Electronic World Group handles personal data across the ECOM AE Blockchain BOS Enterprise System. Full policy text remains on live PHP until dual-sample.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/legal">Legal hub</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/privacy?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "privacy"))">Open full PHP privacy policy (hybrid)</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/contact">Contact</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-database"></i>
+			<strong>What we collect</strong>
+			<p>Tenant, buyer, and operator data needed to run hosted commerce &amp; ERP.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-lock"></i>
+			<strong>How we protect it</strong>
+			<p>Security controls and access boundaries for multi-tenant isolation.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-handshake-o"></i>
+			<strong>Your rights</strong>
+			<p>Requests and related policies are listed on the live PHP page.</p>
+		</div>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET privacy overview scaffold — dual-sample against live PHP <code>/privacy</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

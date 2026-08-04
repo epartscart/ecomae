@@ -156,6 +156,7 @@ builder.Services.AddSingleton<IStorefrontQuoteSubmitDryRun, StorefrontQuoteSubmi
 builder.Services.AddSingleton<IStorefrontQuoteAcceptDryRun, StorefrontQuoteAcceptDryRun>();
 builder.Services.AddSingleton<IStorefrontQuoteAddItemDryRun, StorefrontQuoteAddItemDryRun>();
 builder.Services.AddSingleton<IStorefrontGarageSetActiveDryRun, StorefrontGarageSetActiveDryRun>();
+builder.Services.AddSingleton<IStorefrontGarageDeleteDryRun, StorefrontGarageDeleteDryRun>();
 builder.Services.AddSingleton<IStorefrontOrderSendMessageDryRun, StorefrontOrderSendMessageDryRun>();
 builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);

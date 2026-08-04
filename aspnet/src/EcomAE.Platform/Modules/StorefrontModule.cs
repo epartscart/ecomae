@@ -479,6 +479,27 @@ public sealed class StorefrontModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.StorefrontGarageDelete, async (
+            HttpContext context,
+            StorefrontGarageDeleteBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontGarageDeleteDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for garage delete dry-run.");
+            }
+
+            body ??= new StorefrontGarageDeleteBody(0, false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontGarageDeleteRequest(body.CarId, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapPost(EcomAeRoutes.StorefrontOrderSendMessage, async (
             HttpContext context,
             StorefrontOrderSendMessageBody? body,
@@ -530,6 +551,7 @@ public sealed class StorefrontModule : ISurfaceModule
         int CountNeed = 1,
         bool ConfirmWrites = false);
     private sealed record StorefrontGarageSetActiveBody(long CarId, bool ConfirmWrites = false);
+    private sealed record StorefrontGarageDeleteBody(long CarId, bool ConfirmWrites = false);
     private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
 
     private static IResult Unauthorized(string message) => Results.Json(
