@@ -1,0 +1,115 @@
+@page "/bos/fleet-readiness-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Fleet Readiness · Super BOS · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="bos" />
+
+<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Fleet Readiness">
+    <style>
+        .epc-fr-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c1929 0%,#1e3a5f 48%,#334155 100%);
+        }
+        .epc-fr-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-fr-hero p { margin:0; color:#bae6fd; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-fr-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-fr-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0c1929; background:#7dd3fc;
+        }
+        .epc-fr-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-fr-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-fr-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-fr-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-fr-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-fr-score { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-fr-score div { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; text-align:center; }
+        .epc-fr-score strong { display:block; font-size:1.6rem; font-variant-numeric:tabular-nums; }
+        .epc-fr-score span { color:#64748b; font-size:.78rem; }
+        .epc-fr-pass strong { color:#15803d; }
+        .epc-fr-warn strong { color:#b45309; }
+        .epc-fr-fail strong { color:#b91c1c; }
+        .epc-fr-note { margin-top:1rem; padding:.75rem .9rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:.45rem; color:#0c4a6e; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-fr-kpis,.epc-fr-score{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-fr-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Fleet Readiness</h1>
+        <p>Read-only platform-DB readiness scoring from <code>/bos/fleet-readiness</code> digest under PHP BOS desktop chrome. Live health checks stay on PHP — native <code>/BOS/</code> session still required for full module UX.</p>
+        <div class="epc-fr-cta">
+            <a href="@_phpTab">Open PHP platform health</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/bos/fleet-health-app">Fleet health</a>
+            <a class="ghost" href="/bos/tenants-app">Fleet tenants</a>
+            <a class="ghost" href="/bos/app">Fleet command</a>
+        </div>
+    </section>
+
+    <div class="epc-fr-score" aria-label="Readiness scores">
+        <div class="epc-fr-pass"><strong>@_pass.ToString(CultureInfo.InvariantCulture)</strong><span>Pass</span></div>
+        <div class="epc-fr-warn"><strong>@_warn.ToString(CultureInfo.InvariantCulture)</strong><span>Warn</span></div>
+        <div class="epc-fr-fail"><strong>@_fail.ToString(CultureInfo.InvariantCulture)</strong><span>Fail</span></div>
+    </div>
+
+    <div class="epc-fr-kpis" aria-label="Fleet readiness KPIs">
+        <div class="epc-fr-kpi"><strong>@_tenants.ToString(CultureInfo.InvariantCulture)</strong><span>Tenants scored</span></div>
+        <div class="epc-fr-kpi"><strong>@_active.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
+        <div class="epc-fr-kpi"><strong>@_withDb.ToString(CultureInfo.InvariantCulture)</strong><span>With database</span></div>
+        <div class="epc-fr-kpi"><strong>@_erpOnly.ToString(CultureInfo.InvariantCulture)</strong><span>ERP-only</span></div>
+    </div>
+
+    <div class="epc-fr-note">
+        Read-only preview · JSON digest <a href="/bos/fleet-readiness">/bos/fleet-readiness</a>.
+        Platform-DB-only scoring (no per-tenant connects). PHP <code>epc_bos_health_check</code> remains authoritative.
+        Not a broad /bos cutover · native BOS <code>$_SESSION</code> modules stay PHP.
+        Source: <code>@_source</code>@(!string.IsNullOrWhiteSpace(_message) ? $" · {_message}" : "").
+    </div>
+</PhpBosDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/portal/epc_platform_health_checkup";
+    private bool _isAdmin;
+    private int _tenants;
+    private int _pass;
+    private int _warn;
+    private int _fail;
+    private int _active;
+    private int _withDb;
+    private int _erpOnly;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+        {
+            Nav.NavigateTo("/bos/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildBosFleetReadinessAsync(ctx.RequestAborted);
+        _tenants = result.Tenants;
+        _pass = result.Pass;
+        _warn = result.Warn;
+        _fail = result.Fail;
+        _active = result.Active;
+        _withDb = result.WithDatabase;
+        _erpOnly = result.ErpOnly;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

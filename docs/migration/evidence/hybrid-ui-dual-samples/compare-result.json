@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 32,
-  "hybridUiSamplesOk": 31,
+  "pairsChecked": 33,
+  "hybridUiSamplesOk": 32,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -23,6 +23,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "bos-fleet-health",
       "appRoute": "/bos/fleet-health-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-bos-fleet-readiness-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "bos-fleet-readiness",
+      "appRoute": "/bos/fleet-readiness-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

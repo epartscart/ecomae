@@ -116,9 +116,9 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - Exact-route www preview only — tenant ERP stays PHP (same-to-same).
 
 ### Hybrid BOS continue ← current
-- ✅ Audit-log-app; fleet KPIs on `/bos/app`; tenants-app (#693 track)
-- **This PR:** `/bos/fleet-health-app` over `/bos/fleet-health` digest; PHP platform health authoritative.
-- Next: `/bos/fleet-readiness-app` optional; CloudPanel live dual-sample captures.
+- ✅ Audit-log-app; fleet KPIs on `/bos/app`; tenants-app; fleet-health-app
+- **This PR:** `/bos/fleet-readiness-app` over `/bos/fleet-readiness` digest; PHP platform health authoritative.
+- Next: CloudPanel live dual-sample captures; optional `/erp/accounts-summary-app`.
 - Exact-route www preview only — native `/BOS/` session stays PHP.
 
 ### Dual-sample evidence packs for hybrid UIs
