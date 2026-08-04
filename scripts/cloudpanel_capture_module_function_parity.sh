@@ -119,12 +119,16 @@ STOREFRONT_HYBRID_BY_ID = {
     "orders": "sf-orders",
     "garage": "sf-garage",
     "account": "sf-account-summary",
+    "profile": "sf-profile",
 }
 
 # Explicit catalog-id maps where PHP paths diverge from hybrid TARGET paths.
 CP_FEATURE_HYBRID_BY_ID = {
     "user-manager": "cp-users",
     "super-cp-operator-console": "cp-dashboard-summary",
+    # Prefer CP tenants digest for CP brochure rows; BOS module keeps /bos/tenants via path.
+    "tenant-control-center": "cp-tenants",
+    "epc-tenant-control-center": "cp-tenants",
 }
 ERP_AREA_HYBRID_BY_ID = {
     "banking": "erp-accounts-summary",

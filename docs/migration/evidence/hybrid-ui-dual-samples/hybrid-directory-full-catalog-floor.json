@@ -3,7 +3,7 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "totalTracked": 725,
+  "totalTracked": 726,
   "floors": {
     "erpCategories": 9,
     "erpAreas": 35,
@@ -11,7 +11,7 @@
     "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
-    "storefrontSurfaces": 12
+    "storefrontSurfaces": 13
   },
   "counts": {
     "erpCategories": 9,
@@ -20,7 +20,7 @@
     "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
-    "storefrontSurfaces": 12
+    "storefrontSurfaces": 13
   },
   "shellRequirements": {
     "aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor": {

@@ -18,7 +18,7 @@ FLOORS = {
     "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
-    "storefrontSurfaces": 12,
+    "storefrontSurfaces": 13,
 }
 
 

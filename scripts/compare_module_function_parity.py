@@ -31,7 +31,7 @@ PHP_CATALOG_FLOORS = {
     "erpCategories": 9,
     "bosSections": 11,
     "bosModules": 99,
-    "storefrontSurfaces": 12,
+    "storefrontSurfaces": 13,
 }
 # ERP areas + tabs + categories + BOS sections/modules + CP + storefront = 725
 MIN_FULL_MODULE_COUNT = sum(PHP_CATALOG_FLOORS.values())

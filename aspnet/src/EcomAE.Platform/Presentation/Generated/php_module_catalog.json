@@ -14,7 +14,7 @@
     "bosModules": 99,
     "bosSections": 11,
     "cpBrochureFeatures": 405,
-    "storefrontSurfaces": 12
+    "storefrontSurfaces": 13
   },
   "erpAreas": [
     {
@@ -5391,6 +5391,11 @@
       "id": "account",
       "label": "Account",
       "href": "https://epartscart.com/users/"
+    },
+    {
+      "id": "profile",
+      "label": "Profile",
+      "href": "https://epartscart.com/users/profile"
     },
     {
       "id": "garage",

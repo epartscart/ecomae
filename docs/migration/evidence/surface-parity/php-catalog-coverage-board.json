@@ -3,7 +3,7 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "totalTracked": 725,
+  "totalTracked": 726,
   "floors": {
     "erpAreas": 35,
     "erpTabs": 154,
@@ -11,7 +11,7 @@
     "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
-    "storefrontSurfaces": 12
+    "storefrontSurfaces": 13
   },
   "catalogCounts": {
     "erpAreas": 35,
@@ -20,7 +20,7 @@
     "bosModules": 99,
     "bosSections": 11,
     "cpBrochureFeatures": 405,
-    "storefrontSurfaces": 12
+    "storefrontSurfaces": 13
   },
   "kindCounts": {
     "erp-area": 35,
@@ -29,10 +29,10 @@
     "bos-section": 11,
     "bos-module": 99,
     "cp-feature": 405,
-    "storefront-surface": 12
+    "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 85,
+    "digest-contract": 86,
     "php-only-deeplink": 640
   },
   "coverageByKind": {
@@ -62,7 +62,7 @@
     },
     "storefront-surface": {
       "php-only-deeplink": 7,
-      "digest-contract": 5
+      "digest-contract": 6
     }
   },
   "digestContractRouteCount": 56,
@@ -3575,8 +3575,8 @@
       "phpPath": "/CP/control/portal/epc_tenant_control_center",
       "coverage": "digest-contract",
       "moduleStatus": "digest-only+hybrid-deeplink",
-      "digestRoute": "/bos/tenants",
-      "aspnetRoute": "/bos/tenants-app",
+      "digestRoute": "/cp/tenants",
+      "aspnetRoute": "/cp/tenants-app",
       "aspnetComplete": false
     },
     {
@@ -3696,8 +3696,8 @@
       "phpPath": "/CP/control/portal/epc_tenant_control_center",
       "coverage": "digest-contract",
       "moduleStatus": "digest-only+hybrid-deeplink",
-      "digestRoute": "/bos/tenants",
-      "aspnetRoute": "/bos/tenants-app",
+      "digestRoute": "/cp/tenants",
+      "aspnetRoute": "/cp/tenants-app",
       "aspnetComplete": false
     },
     {
@@ -7988,6 +7988,17 @@
       "moduleStatus": "digest-only+hybrid-deeplink",
       "digestRoute": "/storefront/account-summary",
       "aspnetRoute": "/storefront/account-summary-app",
+      "aspnetComplete": false
+    },
+    {
+      "id": "storefront-profile",
+      "kind": "storefront-surface",
+      "label": "Profile",
+      "phpPath": "https://epartscart.com/users/profile",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/storefront/profile",
+      "aspnetRoute": "/storefront/profile-app",
       "aspnetComplete": false
     },
     {
