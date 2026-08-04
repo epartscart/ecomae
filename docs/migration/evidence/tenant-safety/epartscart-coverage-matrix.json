@@ -4,7 +4,7 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "generatedAtUnix": 1785863935,
+  "generatedAtUnix": 1785864718,
   "storefront": {
     "digestSurfacesRequired": 7,
     "digestSurfacesComplete": 7,
@@ -203,6 +203,7 @@
   "ok": true,
   "errors": [],
   "warnings": [
+    "live probe skipped (pass --live on CloudPanel / network host)",
     "aspNetInteractiveComplete=0 \u2014 live writes still PHP on epartscart.com",
     "Authenticated dual-sample capture still required before any cutover",
     "Never invent RELEASE_OWNER_APPROVAL.md"
