@@ -4,21 +4,29 @@ namespace EcomAE.Platform.Migration;
 public interface ICpLogisticsWriteDryRun { CpLogisticsWriteDryRunResult Evaluate(CpLogisticsWriteRequest request); }
 public sealed class CpLogisticsWriteDryRun : ICpLogisticsWriteDryRun
 {
+    private static readonly HashSet<string> AllowedActions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "seed_sample", "seed_carriers", "toggle_carrier", "create_shipment",
+    };
+
     public CpLogisticsWriteDryRunResult Evaluate(CpLogisticsWriteRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP cp/content/shop/logistics/ajax_logistics.php remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Action,
-            ["cp/content/shop/logistics/ajax_logistics.php (NOT executed)"],
+            return Refuse("dry-run-confirm-refused", "confirm_writes_refused", "confirm_writes refused; PHP cp/content/shop/logistics/ajax_logistics.php remains authoritative.", request);
+        var action = (request.Action ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(action) || !AllowedActions.Contains(action))
+            return Refuse("dry-run-unknown-action", "unknown_action", $"action '{action}' is not a known logistics ajax action.", request);
+        return new("dry-run-validated", 0, true, false, true, "ok", true, action,
+            [$"cp/content/shop/logistics/ajax_logistics.php?action={action} (NOT executed)"],
             "CpLogisticsWrite payload validated; UPDATE blocked.",
             "cp/content/shop/logistics/ajax_logistics.php");
     }
-    private static CpLogisticsWriteDryRunResult Refuse(string s,string c,string d,CpLogisticsWriteRequest r)=>
-        new(s,0,true,false,true,c,false,r.Action,[],d,"cp/content/shop/logistics/ajax_logistics.php");
+    private static CpLogisticsWriteDryRunResult Refuse(string s, string c, string d, CpLogisticsWriteRequest r) =>
+        new(s, 0, true, false, true, c, false, r.Action, [], d, "cp/content/shop/logistics/ajax_logistics.php");
 }
 public sealed record CpLogisticsWriteRequest(string? Action = null, bool ConfirmWrites = false);
-public sealed record CpLogisticsWriteDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Action,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
+public sealed record CpLogisticsWriteDryRunResult(string Status, int Writes, bool WritesBlocked, bool CutoverAllowed, bool PhpAuthoritative, string ValidationCode, bool WouldWrite, string? Action, IReadOnlyList<string> SimulatedSql, string Detail, string PhpAjax)
 {
-    public object ToPayload(object session)=>new{ok=true,surface="cp",status=Status,writes=Writes,writesBlocked=WritesBlocked,cutoverAllowed=CutoverAllowed,phpAuthoritative=PhpAuthoritative,validation_code=ValidationCode,would_write=WouldWrite,intended=new{action=Action},simulated=SimulatedSql,php_ajax=PhpAjax,session,note=Detail};
+    public object ToPayload(object session) => new { ok = true, surface = "cp", status = Status, writes = Writes, writesBlocked = WritesBlocked, cutoverAllowed = CutoverAllowed, phpAuthoritative = PhpAuthoritative, validation_code = ValidationCode, would_write = WouldWrite, intended = new { action = Action }, simulated = SimulatedSql, php_ajax = PhpAjax, session, note = Detail };
 }

@@ -9,7 +9,7 @@
   "requiredSummaryFields": [
     "carrierCount",
     "activeCarriers",
-    "rateCount",
+    "shipmentCount",
     "openShipments",
     "source",
     "message"
@@ -18,11 +18,21 @@
     "id",
     "code",
     "name",
-    "mode",
-    "currency",
-    "rating",
-    "active"
+    "active",
+    "demoMode",
+    "timeCreated",
+    "region",
+    "blurb"
+  ],
+  "tables": [
+    "epc_carrier_accounts",
+    "epc_carrier_shipments"
+  ],
+  "omit": [
+    "config_json",
+    "recipient_json",
+    "raw_json"
   ],
   "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
-  "note": "Locks carriers digest summary+carriers[] floors. contact PII omitted. PHP carriers remains authoritative. cutoverAllowed=false."
+  "note": "Locks carriers digest to logistics hub (NOT epc_erp_carriers). Catalog region/blurb enriched. cutoverAllowed=false."
 }

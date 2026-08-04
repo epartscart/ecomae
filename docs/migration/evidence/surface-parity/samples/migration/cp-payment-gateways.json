@@ -3,6 +3,7 @@
   "surface": "cp",
   "summary": {
     "gatewayCount": 1,
+    "enabledGateways": 1,
     "activeGateways": 1,
     "selectableGateways": 1,
     "accountCount": 0,
@@ -13,12 +14,13 @@
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode; gateways[] sentinel; parameters/credentials omitted; PHP payments authoritative; cutoverAllowed=false",
+  "note": "migration-mode; gateways[] sentinel; anable=Enabled; parameters/credentials omitted; PHP payments authoritative; cutoverAllowed=false",
   "gateways": [
     {
       "id": 1,
       "name": "Migration Gateway",
       "handler": "cash",
+      "anable": true,
       "active": true,
       "isSelectable": true
     }

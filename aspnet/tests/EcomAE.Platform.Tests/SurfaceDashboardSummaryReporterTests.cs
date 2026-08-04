@@ -322,10 +322,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("pdf_url", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.Contains("epc_erp_pm_budgets", LegacySurfaceDashboardSql.SelectCpBudgets, StringComparison.Ordinal);
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectCpBudgets, StringComparison.Ordinal);
-        Assert.Contains("epc_erp_carriers", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
-        Assert.DoesNotContain("contact_phone", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
-        Assert.DoesNotContain("contact_email", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
+        Assert.Contains("epc_carrier_accounts", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
+        Assert.Contains("epc_carrier_shipments", LegacySurfaceDashboardSql.SelectCpCarrierStats, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_erp_carriers", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
+        Assert.DoesNotContain("config_json", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
         Assert.Contains("shop_payment_systems", LegacySurfaceDashboardSql.SelectCpPaymentGateways, StringComparison.Ordinal);
+        Assert.Contains("anable", LegacySurfaceDashboardSql.SelectCpPaymentGateways, StringComparison.Ordinal);
         Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpPaymentGateways, StringComparison.Ordinal);
         Assert.Contains("epc_workflows", LegacySurfaceDashboardSql.SelectCpWorkflows, StringComparison.Ordinal);
         Assert.DoesNotContain("trigger_config", LegacySurfaceDashboardSql.SelectCpWorkflows, StringComparison.Ordinal);
@@ -335,7 +337,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_promo_promotions", LegacySurfaceDashboardSql.SelectCpPromotions, StringComparison.Ordinal);
         Assert.Contains("epc_crm_opportunities", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
-        Assert.Contains("epc_webhooks", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
+        Assert.Contains("epc_tenant_feature_flags", LegacySurfaceDashboardSql.SelectCpIntegrationFeatureFlags, StringComparison.Ordinal);
+        Assert.DoesNotContain("config_json", LegacySurfaceDashboardSql.SelectCpIntegrationFeatureFlags, StringComparison.Ordinal);
+        Assert.Contains("payment_gateways", string.Join(",", CpIntegrationsHubCatalog.All.Select(x => x.Key)), StringComparison.Ordinal);
 
         Assert.Contains("epc_erp_bank_statement_lines", LegacySurfaceDashboardSql.SelectErpBankReconciliationLines, StringComparison.Ordinal);
         Assert.Contains("epc_warehouse_transfers", LegacySurfaceDashboardSql.SelectErpStockTransfers, StringComparison.Ordinal);
@@ -352,9 +356,6 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_platform_governance_rules", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("config_json", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
-        Assert.DoesNotContain("secret_hash", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
-        Assert.DoesNotContain("secret_encrypted", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
-        Assert.DoesNotContain("`events`", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
         Assert.Contains("epc_document_templates", LegacySurfaceDashboardSql.SelectCpDocumentTemplates, StringComparison.Ordinal);
         Assert.DoesNotContain("header_html", LegacySurfaceDashboardSql.SelectCpDocumentTemplates, StringComparison.Ordinal);
         Assert.Contains("shop_obtaining_modes", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);

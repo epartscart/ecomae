@@ -13,17 +13,21 @@
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode; channels[] sentinel; config_json omitted; PHP marketplace/channels authoritative; cutoverAllowed=false",
+  "note": "migration-mode; channels[] sentinel; family/region/api/blurb; config_json omitted; PHP marketplace/channels authoritative; cutoverAllowed=false",
   "channels": [
     {
       "id": 1,
       "code": "amazon_ae",
-      "name": "Amazon AE",
+      "name": "Amazon.ae",
       "marketplaceId": "A2VIGQ35RCS4UG",
       "active": 1,
       "demoMode": 1,
       "lastSyncAt": 0,
-      "timeCreated": 0
+      "timeCreated": 0,
+      "family": "Amazon",
+      "region": "MENA",
+      "api": "SP-API",
+      "blurb": "Amazon UAE \u2014 SP-API listings & FBA/FBM"
     }
   ],
   "count": 1,

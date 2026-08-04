@@ -1054,19 +1054,21 @@ public sealed record CpBudgetsDigestResult(
 public sealed record CpCarriersSummary(
     int CarrierCount,
     int ActiveCarriers,
-    int RateCount,
+    int ShipmentCount,
     int OpenShipments,
     string Source,
     string Message);
 
+/// <summary>Courier partner accounts from <c>epc_carrier_accounts</c> (+ catalog region/blurb). Not ERP TMS.</summary>
 public sealed record CpCarrierDigest(
     long Id,
     string Code,
     string Name,
-    string Mode,
-    string Currency,
-    decimal Rating,
-    bool Active);
+    bool Active,
+    bool DemoMode,
+    long TimeCreated,
+    string Region,
+    string Blurb);
 
 public sealed record CpCarriersDigestResult(
     CpCarriersSummary Summary,
@@ -1077,16 +1079,19 @@ public sealed record CpCarriersDigestResult(
 
 public sealed record CpPaymentGatewaysSummary(
     int GatewayCount,
+    int EnabledGateways,
     int ActiveGateways,
     int SelectableGateways,
     int AccountCount,
     string Source,
     string Message);
 
+/// <summary><c>anable</c>=Enabled; <c>active</c>=Default gateway. Secrets omitted.</summary>
 public sealed record CpPaymentGatewayDigest(
     long Id,
     string Name,
     string Handler,
+    bool Anable,
     bool Active,
     bool IsSelectable);
 
@@ -1202,21 +1207,26 @@ public sealed record CpCrmOpportunitiesDigestResult(
     string Source,
     string Message);
 
+/// <summary>CP Integrations Hub KPIs (catalog rows) — not webhook delivery counters.</summary>
 public sealed record CpIntegrationsSummary(
-    int WebhookCount,
-    int ActiveWebhooks,
-    int DeliveryCount,
-    int FailedDeliveries,
+    int CatalogCount,
+    int ActiveCount,
+    int GuideCount,
+    int CategoryCount,
     string Source,
     string Message);
 
+/// <summary>Hub row from <c>epc_integrations_hub_rows</c> shape (key/label/blurb/category/configure_url).</summary>
 public sealed record CpIntegrationDigest(
-    long Id,
-    string TenantKey,
-    string Url,
+    string Key,
+    string Label,
+    string Blurb,
+    string Category,
     bool Active,
-    string Description,
-    string CreatedAt);
+    string ConfigureUrl,
+    string Guide,
+    string Icon,
+    string Color);
 
 public sealed record CpIntegrationsDigestResult(
     CpIntegrationsSummary Summary,
@@ -2032,7 +2042,11 @@ public sealed record CpMarketplaceChannelsChannelDigest(
     int Active,
     int DemoMode,
     long LastSyncAt,
-    long TimeCreated);
+    long TimeCreated,
+    string Family,
+    string Region,
+    string Api,
+    string Blurb);
 
 public sealed record CpMarketplaceChannelsDigestResult(
     CpMarketplaceChannelsSummary Summary,
