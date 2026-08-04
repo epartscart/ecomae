@@ -12,8 +12,8 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
         [
             new("1-inventory", "Route/job inventory", "complete", "Inventory + digest contracts tracked; cp-debug-console holdout intentional."),
             new("2-scaffold", "ASP.NET digests + hybrid shells", "complete", "127 surface digests + storefront digests + ~145 presentation apps on www."),
-            new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Marketing epm-hub + CP/ERP/BOS/storefront hybrid on www; tenant hosts still PHP-primary under parity gate."),
-            new("4-function-parity", "Interactive module writes/menus/flows", "not-started", "aspNetInteractiveComplete=0; dual-sample function evidence still required."),
+            new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Marketing epm-hub + #ehm-home-sections scaffolded on /marketing/app; CP/ERP/BOS/storefront hybrid on www; tenants PHP-primary under parity gate."),
+            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; checkout readiness + cart read scaffolds exist; write dual-sample still required."),
             new("5-tenant-exact-route", "Staged exact-route cutover on live tenants", "blocked-on-parity", "Default refuse on named tenants; ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW unlocks parity shadows only."),
             new("6-php-removal", "Disable PHP + remove runtime", "blocked", "Requires dual-sample + human RELEASE_OWNER_APPROVAL.md — never invent that file."),
         ];
@@ -23,13 +23,13 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             Status: "building-toward-zero-php",
             CutoverAllowed: false,
             ReadyForPhpRemoval: false,
-            HonestCompletionPct: 38,
+            HonestCompletionPct: 42,
             Phases: phases,
             NextBuilds:
             [
-                "Deepen /marketing/app to full PHP home sections (not just hub) → exact-route marketing cutover candidates.",
+                "Dual-sample /marketing/app (hub + home sections) vs live PHP / → exact-route marketing cutover candidates.",
+                "Deepen storefront checkout writes (qty/how_get/confirm) behind hybrid after dual-sample harness.",
                 "Per-tenant storefront theme parity scaffolds (epartscart piston first) on www, then dual-sample.",
-                "Expand interactive Blazor ports behind hybrid iframe until write parity proven.",
                 "Capture dual-sample evidence per surface; only then staged exact-route on tenants.",
             ],
             Notes:

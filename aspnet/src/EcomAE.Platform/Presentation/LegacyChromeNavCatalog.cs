@@ -298,12 +298,13 @@ public static class LegacyChromeNavCatalog
         new("Account PHP", "https://epartscart.com/users/"),
         new("Cart", "/storefront/cart-app"),
         new("Cart PHP", "https://epartscart.com/shop/cart"),
+        new("Checkout", "/storefront/checkout-app"),
+        new("Checkout PHP", "https://epartscart.com/shop/checkout/how_get"),
         new("My orders", "/storefront/orders-app"),
         new("Orders PHP", "https://epartscart.com/shop/orders"),
         new("Garage", "/storefront/garage-app"),
         new("Garage PHP", "https://epartscart.com/shop/part_search"),
         new("Profile", "/storefront/profile-app"),
-        new("Profile PHP", "https://epartscart.com/users/profile"),
-        new("Checkout PHP", "https://epartscart.com/shop/checkout/how_get")
+        new("Profile PHP", "https://epartscart.com/users/profile")
     ];
 }

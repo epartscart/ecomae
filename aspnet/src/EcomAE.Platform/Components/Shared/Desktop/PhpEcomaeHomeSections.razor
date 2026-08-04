@@ -1,0 +1,641 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Port of epc_ecomae_home_sections_render() — post-hub marketing sections for www.ecomae.com.
+  CSS/JS already loaded via LegacyPresentationAssets.MarketingStylesheets/Scripts.
+  Dynamic PHP demo portal block is replaced by a static demo CTA (same destination).
+  Reveal + Super CP tabs use the same deferred JS as PHP (works under static SSR).
+*@
+
+<!-- ECOMAE-HOME-SECTIONS-v2-3d -->
+<div class="ehm-home ehm-home--3d" id="ehm-home-sections">
+	<section id="trust" class="ehm-trust" aria-label="Platform trust signals">
+		<div class="ehm-wrap">
+			<div class="ehm-trust-row">
+				<div class="ehm-ti"><span class="ehm-ti-ico">⚡</span><span>Go live in <strong>24 hours</strong></span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">🔒</span><span>Isolated <strong>MySQL per tenant</strong></span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">📋</span><span><strong>UAE e-invoice</strong> (PINT-AE) built-in</span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">🏭</span><span><strong>19+ industry</strong> packs ready</span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">🌍</span><span><strong>195+</strong> tax jurisdictions</span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">🤖</span><span><strong>AI advisor</strong> &amp; forecasting</span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">🔗</span><span><strong>Blockchain proofs</strong> built-in</span></div>
+			</div>
+		</div>
+	</section>
+	<div class="ehm-divider"></div>
+
+	<section id="blockchain-proof" class="ehm-sec ehm-bc" aria-labelledby="ehm-bc-title">
+		<div class="ehm-wrap">
+			<div class="ehm-bc-grid">
+				<div class="ehm-bc-copy ehm-rev">
+					<div class="ehm-tag"><span class="ehm-dot"></span>Blockchain Proof Layer</div>
+					<h2 id="ehm-bc-title">Prove every critical<br><span class="ehm-glow">business fact.</span></h2>
+					<p>MySQL stays the system of record. The Blockchain BOS proof layer hashes invoices, GRNs and RMAs, Merkle-anchors batches, and lets anyone verify authenticity — without moving operations off the ERP.</p>
+					<ul class="ehm-bc-facts">
+						<li><strong>SHA-256</strong> canonical business-fact hashes</li>
+						<li><strong>Merkle batch</strong> anchoring via platform jobs</li>
+						<li><strong>Public verify</strong> HTML + JSON for auditors &amp; partners</li>
+						<li><strong>Best-effort hooks</strong> — never block a business commit</li>
+					</ul>
+					<div class="ehm-bc-cta">
+						<a class="ehm-btn ehm-btn--p" href="@BlockchainUrl">How Blockchain BOS works</a>
+						<a class="ehm-btn ehm-btn--g" href="@VerifyUrl">Verify a proof</a>
+					</div>
+				</div>
+				<div class="ehm-bc-graphic ehm-rev ehm-rev--2" aria-hidden="true">
+					<div class="ehm-bc-planes">
+						<div class="ehm-bc-plane ehm-bc-plane--ops">
+							<span class="ehm-bc-plane__label">Operational truth</span>
+							<span class="ehm-bc-plane__val">MySQL · ERP · Commerce</span>
+						</div>
+						<div class="ehm-bc-plane-bridge">
+							<span class="ehm-bc-plane-bridge__pulse"></span>
+							<span>proof hash</span>
+						</div>
+						<div class="ehm-bc-plane ehm-bc-plane--proof">
+							<span class="ehm-bc-plane__label">Integrity layer</span>
+							<span class="ehm-bc-plane__val">SHA-256 · Merkle · Verify</span>
+						</div>
+					</div>
+					<div class="ehm-bc-flow">
+						<div class="ehm-bc-node">
+							<span class="ehm-bc-node__n">1</span>
+							<span class="ehm-bc-node__t">Commit</span>
+							<span class="ehm-bc-node__d">Document saved</span>
+						</div>
+						<div class="ehm-bc-node">
+							<span class="ehm-bc-node__n">2</span>
+							<span class="ehm-bc-node__t">Hash</span>
+							<span class="ehm-bc-node__d">SHA-256 digest</span>
+						</div>
+						<div class="ehm-bc-node">
+							<span class="ehm-bc-node__n">3</span>
+							<span class="ehm-bc-node__t">Anchor</span>
+							<span class="ehm-bc-node__d">Merkle root</span>
+						</div>
+						<div class="ehm-bc-node ehm-bc-node--end">
+							<span class="ehm-bc-node__n">4</span>
+							<span class="ehm-bc-node__t">Verify</span>
+							<span class="ehm-bc-node__d">Public check</span>
+						</div>
+					</div>
+					<PhpEcomaeHomeSectionsMerkleSvg />
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section id="demo-portal" class="ehm-sec ehm-sec--alt" aria-labelledby="ehm-demo-title">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>Live Sandbox</div>
+				<h2 id="ehm-demo-title">Try the platform<br><span class="ehm-glow">before you commit.</span></h2>
+				<p>@EcomaeMarketingPages.DemoDays-day isolated MySQL sandbox — commerce or ERP-only. Same destination as the PHP demo portal.</p>
+			</div>
+			<p class="ehm-rev" style="text-align:center;margin:0">
+				<a class="ehm-btn ehm-btn--p" href="@DemoUrl">Start @EcomaeMarketingPages.DemoDays-day free demo</a>
+				<a class="ehm-btn ehm-btn--g" href="@PlatformUrl" style="margin-left:10px">View platform</a>
+			</p>
+		</div>
+	</section>
+
+	<section class="ehm-sec ehm-sec--alt ehm-sec--clients">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>Live Clients</div>
+				<h2>Trusted by businesses<br><span class="ehm-glow">across industries.</span></h2>
+				<p>Real companies running on ecomae — from auto parts to jewellery, fashion to tax advisory.</p>
+			</div>
+			<div class="ehm-client-grid ehm-rev">
+				@foreach (var c in Clients)
+				{
+					<a class="ehm-client-card" href="@c.Href" target="_blank" rel="noopener">
+						<img src="@c.Img" alt="@c.Alt" loading="lazy" />
+						<div class="ehm-client-card__body">
+							<div class="ehm-client-card__name">@c.Name</div>
+							<div class="ehm-client-card__meta">@c.Meta</div>
+						</div>
+					</a>
+				}
+			</div>
+		</div>
+	</section>
+
+	<section id="platform" class="ehm-sec">
+		<div class="ehm-wrap">
+			<div class="ehm-plat-grid">
+				<div class="ehm-rev">
+					<div class="ehm-tag"><span class="ehm-dot"></span>Blockchain BOS Enterprise Architecture</div>
+					<h2 style="margin:14px 0">One unified<br><span class="ehm-glow">enterprise system.</span></h2>
+					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;max-width:460px;margin:0">Stop reconciling across disconnected tools. ECOM AE is one Blockchain BOS Enterprise System — storefront, GL, VAT and cryptographic proofs in one cloud, zero manual sync.</p>
+					<div class="ehm-layer-stack">
+						@foreach (var layer in Layers)
+						{
+							<div class="ehm-layer"><div class="ehm-l-num">@layer.Num</div><div class="ehm-l-body"><h4>@layer.Title</h4><p>@layer.Body</p></div></div>
+						}
+					</div>
+				</div>
+				<div class="ehm-rev ehm-rev--2">
+					<div class="ehm-eco">
+						@for (var i = 0; i < EcoNodes.Length; i++)
+						{
+							var n = EcoNodes[i];
+							<div class="ehm-eco-node@(n.Core ? " ehm-eco-node--core" : "")"><div class="ehm-eco-l"><span class="ehm-eco-ico">@n.Ico</span><div><div class="ehm-eco-name">@n.Name</div><div class="ehm-eco-sub">@n.Sub</div></div></div><span class="ehm-eco-badge ehm-eco-badge--@(n.Core ? "g" : "c")">@n.Badge</span></div>
+							@if (i < EcoNodes.Length - 1)
+							{
+								<div class="ehm-eco-con"></div>
+							}
+						}
+					</div>
+					<p style="font-size:11px;color:var(--ehm-mt);text-align:center;margin:12px 0 0">Multi-tenant nginx · Isolated MySQL per tenant · One codebase</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section id="features" class="ehm-sec ehm-sec--alt">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>One Blockchain BOS Enterprise System</div>
+				<h2>Everything your business<br><span class="ehm-glow">runs on.</span></h2>
+				<p>The capability pillars of the ECOM AE Blockchain BOS Enterprise System — ERP, commerce, compliance, workflows, industry intelligence and cryptographic proof — one unified cloud, nothing needs to sync.</p>
+			</div>
+			<div class="ehm-feat-grid">
+				@foreach (var f in Features)
+				{
+					<div class="ehm-fc ehm-rev @f.RevClass"><div class="ehm-fc-ico">@f.Ico</div><h4>@f.Title</h4><p>@((MarkupString)f.BodyHtml)</p><div class="ehm-pills">@foreach (var pill in f.Pills){<span class="ehm-pill">@pill</span>}</div></div>
+				}
+			</div>
+		</div>
+	</section>
+
+	<section id="industries" class="ehm-sec">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>Industry Solutions</div>
+				<h2>Built for your<br><span class="ehm-glow">industry.</span></h2>
+				<p>Pre-built module packs, catalogue structure, and workflows tuned to each vertical.</p>
+			</div>
+			<div class="ehm-ind-grid ehm-rev">
+				@foreach (var ind in Industries)
+				{
+					@if (ind.Href is not null)
+					{
+						<a class="ehm-ind-card" href="@ind.Href" style="text-decoration:none;color:inherit"><span class="ehm-ind-emo">@ind.Emo</span><div class="ehm-ind-name">@ind.Name</div><div class="ehm-ind-sub">@ind.Sub</div><span class="@ind.TagClass">@ind.Tag</span></a>
+					}
+					else
+					{
+						<div class="ehm-ind-card"><span class="ehm-ind-emo">@ind.Emo</span><div class="ehm-ind-name">@ind.Name</div><div class="ehm-ind-sub">@ind.Sub</div><span class="@ind.TagClass">@ind.Tag</span></div>
+					}
+				}
+			</div>
+			<p style="text-align:center;margin-top:20px"><a class="ehm-btn ehm-btn--g" href="@IndustriesUrl">Browse all industries →</a></p>
+		</div>
+	</section>
+
+	<section id="ai" class="ehm-sec ehm-sec--alt">
+		<div class="ehm-wrap">
+			<div class="ehm-ai-grid">
+				<div class="ehm-rev">
+					<div class="ehm-tag" style="background:rgba(0,255,178,.07);border-color:rgba(0,255,178,.2);color:var(--ehm-m)"><span class="ehm-dot"></span>Intelligent Blockchain BOS · AI Layer</div>
+					<h2 style="margin:14px 0 12px">Runs and advises<br>the business.</h2>
+					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;margin:0 0 24px">The Intelligent Blockchain BOS reads your live data and tells you what to do next — forecasting, predictive inventory and recommendations woven into the stack, not a chatbot bolted on.</p>
+					<div class="ehm-ai-cards">
+						@foreach (var a in AiCards)
+						{
+							<div class="ehm-ai-card"><div class="ehm-ai-ico">@a.Ico</div><div><h4>@a.Title</h4><p>@a.Body</p></div></div>
+						}
+					</div>
+				</div>
+				<div class="ehm-rev ehm-rev--2">
+					<div class="ehm-layla-card">
+						<div class="ehm-layla-badge">🤖 Meet Layla</div>
+						<div class="ehm-layla-av">L</div>
+						<h3 style="color:#fff;margin:0 0 10px">Your AI Demo Guide</h3>
+						<p class="ehm-layla-desc">Layla walks you through a live @EcomaeMarketingPages.DemoDays-day sandbox — commerce or ERP-only. She adapts the tour to your industry. No sales rep. No waiting.</p>
+						<ul class="ehm-layla-li">
+							<li>Guided tour of your industry solution</li>
+							<li>ERP setup walkthrough in real time</li>
+							<li>UAE compliance feature overview</li>
+							<li>Live isolated MySQL sandbox environment</li>
+							<li>Voice-enabled on supported browsers</li>
+						</ul>
+						<a href="@DemoUrl" class="ehm-btn ehm-btn--p" style="margin-top:22px;width:100%;justify-content:center">Try AI Demo — @EcomaeMarketingPages.DemoDays Days Free</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section id="compliance" class="ehm-sec">
+		<div class="ehm-wrap">
+			<div class="ehm-comp-banner ehm-rev">
+				<div class="ehm-comp-banner__flag" aria-hidden="true">🇦🇪</div>
+				<div class="ehm-tag" style="margin-bottom:14px"><span class="ehm-dot"></span>UAE Compliance</div>
+				<h2 style="margin:0">Built for UAE.<br><span class="ehm-glow">From day one.</span></h2>
+				<p style="font-size:14px;color:var(--ehm-mid);max-width:520px;margin:12px auto 0;line-height:1.7">Designed with UAE tax law, FTA requirements, and Peppol e-invoicing at its core.</p>
+			</div>
+			<div class="ehm-comp-grid">
+				@foreach (var c in Compliance)
+				{
+					<div class="ehm-comp-card ehm-rev @c.RevClass"><div class="ehm-comp-ico">@c.Ico</div><h3 class="ehm-comp-title">@c.Title</h3><p class="ehm-comp-desc">@c.Desc</p><ul class="ehm-comp-li">@foreach (var li in c.Items){<li>@li</li>}</ul></div>
+				}
+			</div>
+		</div>
+	</section>
+
+	<section id="supercp" class="ehm-sec ehm-sec--alt">
+		<div class="ehm-wrap">
+			<div class="ehm-cp-intro">
+				<div class="ehm-rev">
+					<div class="ehm-tag"><span class="ehm-dot"></span>Super CP — Operator Console</div>
+					<h2 style="margin:14px 0">One console.<br><span class="ehm-glow">Every tenant.</span></h2>
+					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;max-width:480px;margin:0">Agencies and platform operators onboard clients, deploy templates, monitor health, and govern every site from one workspace.</p>
+					<div class="ehm-cp-stats">
+						<div class="ehm-cp-stat"><div class="ehm-cp-stat-n">6</div><div class="ehm-cp-stat-l">Live tenants</div></div>
+						<div class="ehm-cp-stat"><div class="ehm-cp-stat-n">112</div><div class="ehm-cp-stat-l">CP modules</div></div>
+						<div class="ehm-cp-stat"><div class="ehm-cp-stat-n">17+</div><div class="ehm-cp-stat-l">Quick actions</div></div>
+						<div class="ehm-cp-stat"><div class="ehm-cp-stat-n">24h</div><div class="ehm-cp-stat-l">Client go-live</div></div>
+					</div>
+					<p style="margin-top:18px"><a class="ehm-btn ehm-btn--p" href="@EcomaeMarketingPages.SuperCpUrl"><i class="fa fa-cloud"></i> Open Super CP</a></p>
+				</div>
+				<div class="ehm-rev ehm-rev--2">
+					<div class="ehm-cp-feat-grid">
+						@foreach (var f in CpFeats)
+						{
+							<div class="ehm-cp-feat"><div class="ehm-cp-feat-ico">@f.Ico</div><div class="ehm-cp-feat-name">@f.Name</div><div class="ehm-cp-feat-sub">@f.Sub</div></div>
+						}
+					</div>
+				</div>
+			</div>
+			<div class="ehm-rev">
+				<div class="ehm-cp-tabs" id="ehmCpTabs" role="tablist">
+					@for (var i = 0; i < CpScreens.Length; i++)
+					{
+						var scr = CpScreens[i];
+						<button type="button" class="ehm-cp-tab@(i == 0 ? " is-on" : "")" role="tab" data-target="@scr.Id" aria-selected="@(i == 0 ? "true" : "false")">@scr.Tab</button>
+					}
+				</div>
+				<div class="ehm-cp-screens">
+					@for (var i = 0; i < CpScreens.Length; i++)
+					{
+						var scr = CpScreens[i];
+						<div class="ehm-cp-screen@(i == 0 ? " is-on" : "")" id="@scr.Id" role="tabpanel">
+							<div class="ehm-ss">
+								<img src="@(ImgBase + "/" + scr.Img)" alt="@scr.Alt" loading="lazy" />
+								<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt">@((MarkupString)scr.CapHtml)</p></div>
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section id="orderplanning" class="ehm-sec">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>Order Planning · Demand &amp; Replenishment</div>
+				<h2>Plan stock<br><span class="ehm-glow">with precision.</span></h2>
+				<p>A demand-driven planning engine built into the Blockchain BOS Enterprise System: it forecasts demand from your sale-out history, computes safety stock and reorder point per item × warehouse, and recommends exactly how much to order — with ABC/XYZ inventory policy, inter-warehouse redistribution, exceptions and KPIs.</p>
+			</div>
+			<div class="ehm-badges ehm-rev">
+				@foreach (var b in OpBadges){<span class="ehm-badge-pill">@b</span>}
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-bottom:22px">
+				<img src="@(OpBase)op_recommend.png@(OpVer)" alt="Order line recommendations grid" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Order-line recommendations.</strong> Per item × warehouse: forecast, lead-time demand, safety stock, reorder point, recommended order qty (ROQ), days-of-cover, value and demand class — confirm or reject each line.</p></div>
+			</div>
+			<div class="ehm-sf-pair ehm-rev">
+				<div class="ehm-ss">
+					<img src="@(OpBase)op_policy.png@(OpVer)" alt="Inventory policy ABC/XYZ" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Inventory policy (ABC/XYZ).</strong> Classifies items by annual value and demand variability, with a recommended service level driving safety stock.</p></div>
+				</div>
+				<div class="ehm-ss">
+					<img src="@(OpBase)op_exceptions.png@(OpVer)" alt="Exceptions and alerts" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Exceptions &amp; alerts.</strong> Severity-ranked stock-out risk, below-safety, dead-stock and excess — act before you run out or over-buy.</p></div>
+				</div>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-top:22px">
+				<img src="@(OpBase)op_kpi.png@(OpVer)" alt="Stock analysis and KPIs" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Stock analysis &amp; KPIs.</strong> Inventory value, inventory turns, average days-of-cover, fill rate and ABC distribution at a glance.</p></div>
+			</div>
+		</div>
+	</section>
+
+	<section id="workflow" class="ehm-sec">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>Process Flow · Workflow Automation</div>
+				<h2>See where work<br><span class="ehm-glow">has reached.</span></h2>
+				<p>Define any business process as a chain of steps — each step auto-hands the case to the next person or department head, with SLAs. Real work tracks itself: customer orders, purchase orders, supplier payments and staff expense claims each auto-create a case and advance through their stages automatically. Watch it move on a live, GPS-style map across departments, employees and branches — and measure every employee by the real tasks they actually handled.</p>
+			</div>
+			<div class="ehm-badges ehm-rev">
+				@foreach (var b in WfBadges){<span class="ehm-badge-pill">@b</span>}
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-bottom:22px">
+				<img src="@(OpBase)pf_orgmap.png@(OpVer)" alt="Organization process map" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Live organization process map.</strong> Every process flows left-to-right through nodes with animated arrows and live case counts. Switch level — Overall, Legal entity, Business unit, Department, User, Task or Location — to zoom in, with employee photos showing exactly who is holding each case.</p></div>
+			</div>
+			<div class="ehm-sf-pair ehm-rev">
+				<div class="ehm-ss">
+					<img src="@(OpBase)pf_tracker.png@(OpVer)" alt="GPS-style case tracker" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>GPS-style case tracker.</strong> Open any case to see its route like a parcel: completed stops, a pulsing "you are here" marker, the staff member at each step and the full audit timeline.</p></div>
+				</div>
+				<div class="ehm-ss">
+					<img src="@(OpBase)pf_workforce.png@(OpVer)" alt="Workforce board" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Workforce board.</strong> Your entire team in one view — who's busy and on which task, grouped by department, location or task, with photos and busy/idle status.</p></div>
+				</div>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-top:22px">
+				<img src="@(OpBase)pf_location.png@(OpVer)" alt="Process map by location" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Across every branch.</strong> The same processes mapped by location — follow work as it physically moves between sites, with live counts at each branch.</p></div>
+			</div>
+		</div>
+	</section>
+
+	<section id="storefront" class="ehm-sec">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag" style="background:rgba(0,255,178,.07);border-color:rgba(0,255,178,.2);color:var(--ehm-m)"><span class="ehm-dot"></span>See The Result — eParts Cart Live</div>
+				<h2>This is what<br><span class="ehm-glow-a">client gets on Frontend.</span></h2>
+				<p>eParts Cart is a live ECOM AE tenant — auto spare parts B2B/B2C store running Storefront + CP + ERP on one database.</p>
+			</div>
+			<div class="ehm-badges ehm-rev">
+				<span class="ehm-badge-pill ehm-live-tag">● Live on ecomae.com</span>
+				<span class="ehm-badge-pill ehm-avail-tag">Auto Spare Parts</span>
+				<span class="ehm-badge-pill" style="background:rgba(255,184,48,.07);border:1px solid rgba(255,184,48,.18);color:var(--ehm-a)">Dubai, UAE · AED / USD / EUR</span>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-bottom:22px">
+				<img src="@(ImgBase)/ep_01_home_clean_002d71635c0b47ac83319c7f292601ad.png" alt="eParts Cart Homepage" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>eParts Cart — Live Homepage.</strong> Multi-tab search, AI Parts Expert chat, WhatsApp, Excel bulk upload, multi-currency — all on ECOM AE.</p></div>
+			</div>
+			<div class="ehm-sf-pair ehm-rev">
+				<div class="ehm-ss">
+					<img src="@(ImgBase)/ep_02_parts_0b611ca02fc2409bb49698c824b493f7.png" alt="Parts Search" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Parts Search.</strong> OE code lookup — live pricing, availability, add-to-cart, brand filters.</p></div>
+				</div>
+				<div class="ehm-ss">
+					<img src="@(ImgBase)/ep_03_catalog_97ad7d47f81d449d81c7b068733d26a8.png" alt="Vehicle Catalog" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Vehicle Catalog.</strong> 708 brands, VIN search, A-Z manufacturer index.</p></div>
+				</div>
+			</div>
+			<div class="ehm-sf-feat-grid ehm-rev">
+				@foreach (var f in SfFeats)
+				{
+					<div class="ehm-sf-feat"><div class="ehm-sf-feat-ico">@f.Ico</div><div class="ehm-sf-feat-name">@f.Name</div><div class="ehm-sf-feat-sub">@f.Sub</div></div>
+				}
+			</div>
+			<div class="ehm-pipeline ehm-rev">
+				<p class="ehm-pipeline-label">The complete loop — Super CP to live tenant</p>
+				<div class="ehm-pipe-row">
+					@for (var i = 0; i < PipeSteps.Length; i++)
+					{
+						var s = PipeSteps[i];
+						<div class="ehm-pipe-step"><div class="ehm-pipe-ico">@s.Ico</div><div class="ehm-pipe-name ehm-pipe-name--@s.Tone">@s.Name</div><div class="ehm-pipe-sub">@s.Sub</div></div>
+						@if (i < PipeSteps.Length - 1)
+						{
+							<div class="ehm-pipe-arr">→</div>
+						}
+					}
+				</div>
+				<p class="ehm-pipeline-note">All above runs on a <strong style="color:var(--ehm-wh)">single isolated MySQL database per tenant</strong> — orders, inventory, ERP journals, VAT entries, and CRM pipeline sharing one source of truth, managed from the Super CP.</p>
+			</div>
+			<p style="text-align:center;margin-top:24px" class="ehm-rev">
+				<a href="https://www.epartscart.com/" class="ehm-btn ehm-btn--g" target="_blank" rel="noopener" style="margin-right:10px">Visit epartscart.com</a>
+				<a href="@DemoUrl" class="ehm-btn ehm-btn--p">Start Your Own Store</a>
+			</p>
+		</div>
+	</section>
+
+	<section id="how" class="ehm-sec ehm-sec--alt">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>Getting Started</div>
+				<h2>Three steps to<br><span class="ehm-glow">go live.</span></h2>
+				<p>From first contact to live store — most clients running in under 24 hours.</p>
+			</div>
+			<div class="ehm-steps">
+				<div class="ehm-step ehm-rev"><div class="ehm-step-n">1</div><h3>Start Your Free Demo</h3><p>Meet Layla — @EcomaeMarketingPages.DemoDays-day sandbox tailored to your industry. No credit card.</p></div>
+				<div class="ehm-step ehm-rev ehm-rev--2"><div class="ehm-step-n">2</div><h3>Configure Your Stack</h3><p>Pick industry template, domain, UAE compliance. Team handles DNS, SSL, and health checks.</p></div>
+				<div class="ehm-step ehm-rev ehm-rev--3"><div class="ehm-step-n">3</div><h3>Go Live &amp; Scale</h3><p>Storefront, ERP, and CRM on your domain — one database. Add staff, integrate payments, sell.</p></div>
+			</div>
+		</div>
+	</section>
+
+	<section class="ehm-sec" style="padding-top:0" aria-label="Live tenants">
+		<div class="ehm-wrap">
+			<p style="text-align:center;font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--ehm-mt);margin:0 0 22px">Live Tenants on ECOM AE</p>
+			<div class="ehm-tenant-grid ehm-rev">
+				@foreach (var t in Tenants)
+				{
+					<a class="ehm-tenant-card" href="@t.Href" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="ehm-tenant-emo">@t.Emo</div><div class="ehm-tenant-name">@t.Name</div><div class="ehm-tenant-url">@t.Url</div><span class="ehm-live-tag">@t.Tag</span></a>
+				}
+			</div>
+		</div>
+	</section>
+
+	<section id="cta" class="ehm-sec ehm-sec--alt">
+		<div class="ehm-wrap">
+			<div class="ehm-cta-box ehm-rev">
+				<div class="ehm-cta-badge">🎁 @EcomaeMarketingPages.DemoDays-Day Free Demo · No Credit Card</div>
+				<h2 style="margin:0">Ready to run your entire<br><span class="ehm-glow">business on one cloud?</span></h2>
+				<p style="font-size:15px;color:var(--ehm-mid);max-width:480px;margin:12px auto 28px;line-height:1.7">Start your free sandbox today. Layla guides you through every feature relevant to your industry.</p>
+				<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
+					<a href="@DemoUrl" class="ehm-btn ehm-btn--p">Start Free Demo</a>
+					<a href="@PlatformUrl" class="ehm-btn ehm-btn--g">View Full Platform</a>
+				</div>
+				<div class="ehm-cta-check-row">
+					<span class="ehm-cc">@EcomaeMarketingPages.DemoDays-day free sandbox</span>
+					<span class="ehm-cc">No credit card</span>
+					<span class="ehm-cc">Go live in 24 hours</span>
+					<span class="ehm-cc">UAE compliance built-in</span>
+					<span class="ehm-cc">112 CP modules</span>
+					<span class="ehm-cc">19+ industry packs</span>
+				</div>
+			</div>
+		</div>
+	</section>
+</div>
+@((MarkupString)RevealAndTabsScript)
+
+@code {
+    private const string ImgBase = "https://skyagent-artifacts.skywork.ai/router/agent/2026-06-08/prod_agent_49d6676e-ad03-4cf8-a857-2305c7b5c262";
+    private const string OpBase = "/epc-static.php?f=content/general_pages/marketing_screens/";
+    private const string OpVer = "&v=20260610b";
+    private const string VerifyUrl = "/epc-blockchain-verify.php";
+
+    private static string Base => EcomaeMarketingPages.LiveBase;
+    private static string DemoUrl => Base + "platform/demo";
+    private static string PlatformUrl => Base + "platform";
+    private static string IndustriesUrl => Base + "platform/industries";
+    private static string BlockchainUrl => Base.TrimEnd('/') + "/blockchain";
+
+    private const string RevealAndTabsScript = """
+<script defer>
+(function(){
+	var rev=document.querySelectorAll('#ehm-home-sections .ehm-rev');
+	if(rev.length&&'IntersectionObserver' in window){
+		var ro=new IntersectionObserver(function(entries){
+			entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-vis');}});
+		},{threshold:0.07,rootMargin:'0px 0px -30px 0px'});
+		rev.forEach(function(el){ro.observe(el);});
+	}else{rev.forEach(function(el){el.classList.add('is-vis');});}
+	var tabs=document.querySelectorAll('#ehm-home-sections .ehm-cp-tab');
+	tabs.forEach(function(tab){
+		tab.addEventListener('click',function(){
+			var id=tab.getAttribute('data-target');
+			tabs.forEach(function(t){t.classList.remove('is-on');t.setAttribute('aria-selected','false');});
+			document.querySelectorAll('#ehm-home-sections .ehm-cp-screen').forEach(function(s){s.classList.remove('is-on');});
+			tab.classList.add('is-on');
+			tab.setAttribute('aria-selected','true');
+			var panel=document.getElementById(id);
+			if(panel)panel.classList.add('is-on');
+		});
+	});
+})();
+</script>
+""";
+
+    private static readonly ClientCard[] Clients =
+    [
+        new("https://www.epartscart.com", "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75", "Automotive", "epartscart.com", "Automotive Parts · UAE"),
+        new("https://www.electronicae.com", "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=75", "Electronics", "electronicae.com", "Consumer Electronics · UAE"),
+        new("https://www.stylenlook.com", "https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75", "Fashion", "stylenlook.com", "Fashion & Beauty · UAE"),
+        new("https://www.thejewellerytrend.com", "https://images.unsplash.com/photo-1515562141589-67f0d72cec37?w=400&q=75", "Jewellery", "thejewellerytrend.com", "Gold & Diamond Jewellery · UAE"),
+        new("https://www.taxofinca.com", "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&q=75", "Professional Services", "taxofinca.com", "Tax & Financial Advisory · UAE"),
+    ];
+
+    private static readonly LayerRow[] Layers =
+    [
+        new("1", "Commerce Layer", "Storefront, catalogue, checkout, B2B portal, multi-currency payments, WhatsApp."),
+        new("2", "Operations Layer", "Inventory ledger with lot, serial and barcode traceability, warehouses, procurement, RMA, delivery workflows."),
+        new("3", "Finance & Compliance", "GL with immutable posting and period locking, AR/AP, bank reconciliation, multi-currency revaluation, multi-company consolidation, UAE VAT and Peppol e-invoicing."),
+        new("4", "Intelligence Layer", "Intelligent Blockchain BOS AI advisor — revenue and cash-flow forecasting, predictive inventory, KPI recommendations — plus CRM pipeline and commerce AI."),
+        new("5", "Blockchain Proof Layer", "SHA-256 business-fact hashes, Merkle batch anchoring and public verify — tamper-evident integrity without moving ERP off MySQL."),
+    ];
+
+    private static readonly EcoNode[] EcoNodes =
+    [
+        new("🏢", "Super CP", "Operator console · All tenants", "OPERATOR", false),
+        new("☁️", "ECOM AE Cloud", "One cloud · Isolated tenants", "CORE", true),
+        new("🛒", "Storefront", "www.client.com", "TENANT", false),
+        new("⚙️", "Control Panel", "client.com/cp", "TENANT", false),
+        new("📊", "ERP + Finance", "client.com/erp", "TENANT", false),
+    ];
+
+    private static readonly FeatureCard[] Features =
+    [
+        new("🛒", "E-Commerce & Catalogue", "SKU management, variants, bulk CSV, B2B pricing, promo codes, multi-currency checkout.", "", ["Storefront", "B2B Portal", "Multi-Currency"]),
+        new("📦", "Inventory & Logistics", "Multi-warehouse stock with a full inventory ledger, lot/serial/batch and barcode traceability, pick/pack/ship, RMA.", "ehm-rev--1", ["Inventory Ledger", "Lot / Serial", "Barcode"]),
+        new("📊", "ERP & Finance", "Double-entry GL with immutable posting & period locking, AR/AP, bank reconciliation, multi-currency revaluation, multi-company consolidation, UAE VAT.", "ehm-rev--2", ["Immutable Posting", "Period Locking", "Consolidation"]),
+        new("🤝", "CRM & Customers", "Kanban pipeline, lead capture, 360° customer view, segments, approval workflows.", "", ["Kanban", "Leads", "360° View"]),
+        new("🔧", "Procurement", "Supplier directory, purchase requisitions, RFQ & vendor comparison, purchase orders, goods receipt, 3-way match.", "ehm-rev--1", ["Requisition", "RFQ", "Vendor Compare"]),
+        new("🛡️", "Compliance & Governance", "Tax regimes, e-invoicing, filing calendar, database-level integrity, and an enriched audit trail (old/new value, user, IP, device).", "ehm-rev--2", ["Audit Trail", "Data Integrity", "e-Invoice"]),
+        new("⚡", "Workflow Automation", "Approval chains, spend thresholds, multi-step routing and triggers across orders, POs, journals and vouchers.", "", ["Approvals", "Thresholds", "Triggers"]),
+        new("🧠", "Intelligent Blockchain BOS & AI", "The AI advisor that runs and advises the business — revenue & cash-flow forecasting, predictive inventory, KPI recommendations, plus per-industry dashboards.", "ehm-rev--1", ["AI Advisor", "Forecasting", "Recommendations"]),
+        new("🔗", "Blockchain Proof", "Hash critical invoices, GRNs, RMAs and certificates; Merkle-anchor batches; verify authenticity publicly — enterprise trust built into the BOS. <a href=\"/blockchain\" style=\"color:var(--ehm-m)\">How it works →</a> · <a href=\"/epc-blockchain-verify.php\" style=\"color:var(--ehm-m)\">Verify a proof →</a>", "ehm-rev--2", ["SHA-256 Proofs", "Merkle Anchor", "Public Verify"]),
+        new("⚖️", "HR & Labour Law", "Country-aware employment-law engine — gratuity / end-of-service, leave, notice, probation, working hours & WPS — across 25+ countries, with a per-employee compliance monitor that flags issues and accrued liability.", "", ["UAE Labour Law", "Worldwide", "Compliance Monitor"]),
+        new("🏢", "Multi-Tenant SaaS", "Super CP for agencies — onboard tenants, push templates, monitor health, deploy industry packs.", "ehm-rev--2", ["Super CP", "Health Monitor", "Templates"]),
+    ];
+
+    private static readonly IndustryCard[] Industries =
+    [
+        new("🔧", "Auto Parts", "VIN · OEM · B2B", "● Live", "ehm-live-tag", IndustriesUrl + "/auto_parts"),
+        new("👗", "Fashion & Beauty", "Variants · Lookbooks", "● Live", "ehm-live-tag", IndustriesUrl + "/fashion"),
+        new("📱", "Electronics", "SKU-heavy · RMA", "● Live", "ehm-live-tag", IndustriesUrl + "/electronics"),
+        new("💎", "Jewellery", "Gallery · Certs", "● Live", "ehm-live-tag", IndustriesUrl + "/jewellery"),
+        new("🏥", "Medical", "Batch · Expiry", "Available", "ehm-avail-tag", null),
+        new("📋", "Tax & Advisory", "CRM · VAT · Docs", "● Live", "ehm-live-tag", IndustriesUrl + "/tax_advisory"),
+        new("🏗️", "Consultancy", "Projects · Billing", "Available", "ehm-avail-tag", null),
+        new("🔑", "Rental Ops", "Daily/Monthly", "Available", "ehm-avail-tag", null),
+    ];
+
+    private static readonly AiCard[] AiCards =
+    [
+        new("🧠", "AI Advisor", "Ask the Blockchain BOS in plain English — revenue, cash, stock, receivables — answered from your live data."),
+        new("📈", "Forecasting", "Revenue and cash-flow forecasts from your ledger — trend, confidence and liquidity alerts."),
+        new("📦", "Predictive Inventory", "Consumption rate → days of cover → recommended reorder quantity and value, per item."),
+        new("✅", "Automated Recommendations", "KPI- and forecast-driven actions, prioritised by severity — decision support, not dashboards alone."),
+    ];
+
+    private static readonly CompCard[] Compliance =
+    [
+        new("📋", "Peppol / PINT-AE E-Invoicing", "Generate, validate, and export Peppol-ready e-invoices aligned with UAE PINT-AE.", "", ["PINT-AE e-invoice generation", "FTA XML & JSON export", "Validate before submission"]),
+        new("💸", "UAE VAT & TRN Invoicing", "Full VAT lifecycle from storefront through FTA return preparation with TRN-aware invoices.", "ehm-rev--1", ["VAT return data preparation", "TRN on all documents", "Tax-inclusive pricing"]),
+        new("🌍", "Worldwide Tax Toolkit", "Business taxation for 195+ countries — VAT/GST, CIT, customs, withholding.", "ehm-rev--2", ["195+ tax jurisdictions", "One-click FTA legislation update", "GCC cross-border ready"]),
+    ];
+
+    private static readonly CpFeat[] CpFeats =
+    [
+        new("🏢", "Tenant Hub", "Registry, DNS, SSL"),
+        new("📝", "Client Onboarding", "Form → stack in 24h"),
+        new("❤️", "Platform Health", "Probes · SSL · Backup"),
+        new("🏪", "Industry Settings", "8 verticals · module packs"),
+        new("🔑", "Tenant Control", "Access · credentials"),
+        new("🎨", "Visual Editor", "Live branding & preview"),
+        new("👥", "Customer Board", "Cross-tenant CRM links"),
+        new("💲", "Price Configs", "API markup & catalogue rules"),
+        new("⚖️", "Governance", "Platform-wide compliance"),
+    ];
+
+    private static readonly CpScreen[] CpScreens =
+    [
+        new("cp0", "Dashboard", "cp_01_dashboard_30cbbb4714994afc9968d85c50f433cd.png", "Super CP Dashboard", "<strong>Operator Console Dashboard.</strong> Live tenants, CP modules, and sandbox demos — quick-action tiles for every cross-tenant workflow."),
+        new("cp1", "Tenant Hub", "cp_02_tenant_hub_9b5e91773a67434fbf300181dbfec704.png", "Tenant Hub", "<strong>Tenant Hub &amp; DNS.</strong> Platform IP, DNS counts, client intro form, A-record guide, SSL issuance — all operator-driven."),
+        new("cp2", "Onboarding", "cp_04_onboarding_642e2167134c416a8555f67e28bf7569.png", "Client Onboarding", "<strong>Client Onboarding Form.</strong> One form provisions storefront, ERP, and CRM on isolated MySQL — form to stack in 24 hours."),
+        new("cp3", "Health Check", "cp_03_platform_health_13f2374391ca4c73b0491bf25740c1cd.png", "Platform Health", "<strong>Platform Health Checkup.</strong> Probes across tenants — URL response, SSL expiry, DB isolation, backup age. Export CSV for SLA reporting."),
+        new("cp4", "Industry", "cp_05_industry_0a31163a2d594abaa1fc6364904e626e.png", "Industry Settings", "<strong>Industry &amp; Module Settings.</strong> Select vertical, visual theme, company names — deploy the full module pack in one step."),
+        new("cp5", "Tenant Control", "cp_06_tenant_control_fa554969a8444633bfaf793f94980b38.png", "Tenant Control", "<strong>Tenant Control Center.</strong> Set credentials per tenant, mark demos, manage access — drill from stats to individual tenants."),
+        new("cp6", "Visual Editor", "cp_07_visual_editor_9c6d17340ece4513bff2baa3bac58a51.png", "Visual Editor", "<strong>Visual Page Editor.</strong> Brand colours, headlines, live preview — real-time storefront design from the operator console."),
+    ];
+
+    private static readonly string[] OpBadges = ["Demand forecasting", "Safety stock & reorder point", "Recommended order qty", "ABC / XYZ classes", "Redistribution", "Service-level targets"];
+    private static readonly string[] WfBadges = ["Build your own processes", "Auto-tracked orders, POs, payments & expenses", "Automatic hand-off & routing", "GPS-style case tracking", "Org map: entity / BU / dept / user / task / location", "Employee performance leaderboard", "Workforce board", "SLA & overdue alerts"];
+
+    private static readonly NamedSub[] SfFeats =
+    [
+        new("🔍", "Part No. Search", "OE & cross-ref lookup"),
+        new("🚗", "VIN Decode", "Exact vehicle & parts"),
+        new("📖", "708 Brands", "Passenger / Commercial"),
+        new("🤖", "AI Parts Expert", "24/7 chat assistant"),
+        new("💱", "Multi-Currency", "AED · USD · EUR"),
+        new("💬", "WhatsApp", "Direct line + callback"),
+        new("📊", "Excel Bulk Upload", "B2B order sheets"),
+        new("🏦", "B2B Balance", "Trade accounts"),
+        new("🔖", "Quotes & Saves", "Quote requests"),
+        new("🌍", "3 Languages", "EN · AR · RU"),
+    ];
+
+    private static readonly PipeStep[] PipeSteps =
+    [
+        new("🏢", "Super CP", "Operator onboards", "c"),
+        new("⚙️", "Industry Pack", "Auto Parts deployed", "c"),
+        new("🌐", "DNS + SSL", "Domain goes live", "c"),
+        new("🛒", "Storefront", "epartscart.com", "m"),
+        new("📦", "Inventory", "Stock managed", "m"),
+        new("📊", "ERP + CRM", "Orders → finance", "m"),
+    ];
+
+    private static readonly TenantCard[] Tenants =
+    [
+        new("https://www.epartscart.com/", "🔧", "eParts Cart", "epartscart.com", "Auto Parts"),
+        new("https://www.thejewellerytrend.com/", "💎", "Jewellery Trend", "thejewellerytrend.com", "Jewellery"),
+        new("https://www.electronicae.com/", "📱", "Electronicae", "electronicae.com", "Electronics"),
+        new("https://www.taxofinca.com/", "📋", "Taxofinca", "taxofinca.com", "Tax Advisory"),
+        new("https://www.stylenlook.com/", "👗", "Style N Look", "stylenlook.com", "Fashion"),
+    ];
+
+    private sealed record ClientCard(string Href, string Img, string Alt, string Name, string Meta);
+    private sealed record LayerRow(string Num, string Title, string Body);
+    private sealed record EcoNode(string Ico, string Name, string Sub, string Badge, bool Core);
+    private sealed record FeatureCard(string Ico, string Title, string BodyHtml, string RevClass, string[] Pills);
+    private sealed record IndustryCard(string Emo, string Name, string Sub, string Tag, string TagClass, string? Href);
+    private sealed record AiCard(string Ico, string Title, string Body);
+    private sealed record CompCard(string Ico, string Title, string Desc, string RevClass, string[] Items);
+    private sealed record CpFeat(string Ico, string Name, string Sub);
+    private sealed record CpScreen(string Id, string Tab, string Img, string Alt, string CapHtml);
+    private sealed record NamedSub(string Ico, string Name, string Sub);
+    private sealed record PipeStep(string Ico, string Name, string Sub, string Tone);
+    private sealed record TenantCard(string Href, string Emo, string Name, string Url, string Tag);
+}

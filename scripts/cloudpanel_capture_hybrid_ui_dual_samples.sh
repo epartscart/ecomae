@@ -191,6 +191,7 @@ TARGETS = [
     ("bos-fleet-summary", "bos", "/bos/fleet-summary-app", "/bos/fleet-summary", "/BOS/", "BosFleetSummaryApp", "PhpBosDesktopChrome", "admin"),
     ("sf-search", "storefront", "/storefront/search-app", "/storefront/search", "https://epartscart.com/shop/part_search", "StorefrontSearchApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-cart", "storefront", "/storefront/cart-app", "/storefront/cart", "https://epartscart.com/shop/cart", "StorefrontCartApp", "PhpStorefrontDesktopChrome", "customer"),
+    ("sf-checkout", "storefront", "/storefront/checkout-app", "/storefront/checkout", "https://epartscart.com/shop/checkout/how_get", "StorefrontCheckoutApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-orders", "storefront", "/storefront/orders-app", "/storefront/orders", "https://epartscart.com/shop/orders", "StorefrontOrdersApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-garage", "storefront", "/storefront/garage-app", "/storefront/garage", "https://epartscart.com/shop/part_search", "StorefrontGarageApp", "PhpStorefrontDesktopChrome", "customer"),
     ("sf-profile", "storefront", "/storefront/profile-app", "/storefront/profile", "https://epartscart.com/users/profile", "StorefrontProfileApp", "PhpStorefrontDesktopChrome", "customer"),

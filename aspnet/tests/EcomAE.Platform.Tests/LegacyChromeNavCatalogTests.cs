@@ -164,6 +164,8 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Search PHP" && item.Href.Contains("part_search", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Cart" && item.Href == "/storefront/cart-app");
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Cart PHP" && item.Href.Contains("/shop/cart", StringComparison.Ordinal));
+        Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Checkout" && item.Href == "/storefront/checkout-app");
+        Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Checkout PHP" && item.Href.Contains("checkout", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "My orders" && item.Href == "/storefront/orders-app");
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Orders PHP" && item.Href.Contains("/shop/orders", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Garage" && item.Href == "/storefront/garage-app");
@@ -172,6 +174,5 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Profile PHP" && item.Href.Contains("/users/profile", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Account summary" && item.Href == "/storefront/account-summary-app");
         Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Account PHP" && item.Href.Contains("/users/", StringComparison.Ordinal));
-        Assert.Contains(LegacyChromeNavCatalog.Storefront, item => item.Label == "Checkout PHP" && item.Href.Contains("checkout", StringComparison.Ordinal));
     }
 }

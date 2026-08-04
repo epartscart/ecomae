@@ -203,7 +203,7 @@ for path in "${SF_ROUTES[@]}"; do
   if [[ "$code" == "401" ]] && grep -qE '"unauthorized"|unauthorized' /tmp/area.body && ! grep -qi '<html\|<!doctype' /tmp/area.body; then
     record "public${path}-exact-route" pass "ASP.NET storefront digest exact-route shadow (401 unauthorized without customer cookie)"
     SF_LIVE_PASS=$((SF_LIVE_PASS + 1))
-  elif [[ "$path" == "/storefront/search" || "$path" == "/storefront/cart" ]]; then
+  elif [[ "$path" == "/storefront/search" || "$path" == "/storefront/cart" || "$path" == "/storefront/checkout" ]]; then
     # Newly wired digests: design allowlist includes them before public nginx shadow install.
     record "public${path}-exact-route" blocked "wired awaiting storefront digest shadow install (HTTP $code)"
   else

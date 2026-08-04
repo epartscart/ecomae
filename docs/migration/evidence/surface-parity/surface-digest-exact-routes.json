@@ -2,16 +2,16 @@
   "role": "surface-digest-exact-routes",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 134,
+  "routeCount": 135,
   "surfaceDigestCount": 127,
-  "storefrontDigestCount": 6,
+  "storefrontDigestCount": 7,
   "ordersDigestCount": 1,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf",
     "deploy/aspnet/nginx-storefront-digests-shadow-example.conf",
     "scripts/cloudpanel_capture_digest_dual_samples.sh"
   ],
-  "note": "Design/inventory only for digest dual-sample floor (134). Surface digests wired 127. Never invents RELEASE_OWNER_APPROVAL.md.",
+  "note": "Design/inventory only for digest dual-sample floor (135). Surface digests wired 127. Never invents RELEASE_OWNER_APPROVAL.md.",
   "routes": [
     "/bos/audit-log",
     "/bos/fleet-health",
@@ -143,6 +143,7 @@
     "/erp/workspace-favorites",
     "/storefront/account-summary",
     "/storefront/cart",
+    "/storefront/checkout",
     "/storefront/garage",
     "/storefront/orders",
     "/storefront/profile",
