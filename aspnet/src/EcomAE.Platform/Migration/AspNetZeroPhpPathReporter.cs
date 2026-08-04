@@ -13,7 +13,7 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             new("1-inventory", "Route/job inventory", "complete", "Inventory + digest contracts tracked; cp-debug-console holdout intentional."),
             new("2-scaffold", "ASP.NET digests + hybrid shells", "complete", "128 surface digests + storefront digests + ~184 presentation apps on www (incl. ERP on-premises + legal aliases)."),
             new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Marketing solutions+resources+full legal alias set+brochure-cp scaffolded; CP/ERP/BOS/storefront hybrid on www; ERP on-premises overview scaffolded; tenants PHP-primary under parity gate."),
-            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; cart/quote-manual/garage check-car/checkout/OMS fulfillment + ERP purchase-amend/so-delete/customer-master/RMA + on-premises dry-runs; write-dryrun dual-sample operator floor; live writes still PHP."),
+            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; cart/quote/garage/OMS fulfillment+refresh-cost + ERP period/settlement/FX/fiscal + purchase-from-order + on-premises dry-runs; write-dryrun dual-sample operator floor; live writes still PHP."),
             new("5-tenant-exact-route", "Staged exact-route cutover on live tenants", "blocked-on-parity", "Default refuse on named tenants; ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW unlocks parity shadows only."),
             new("6-php-removal", "Disable PHP + remove runtime", "blocked", "Requires dual-sample + human RELEASE_OWNER_APPROVAL.md — never invent that file. Includes on-premises installer pack (not only SaaS)."),
         ];
@@ -23,10 +23,11 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             Status: "building-toward-zero-php",
             CutoverAllowed: false,
             ReadyForPhpRemoval: false,
-            HonestCompletionPct: 74,
+            HonestCompletionPct: 76,
             Phases: phases,
             NextBuilds:
             [
+                "Dual-sample OMS refresh-cost + ERP period soft-close/lock + settlements/FX/fiscal + purchase-from-order vs PHP ajax.",
                 "Dual-sample OMS fulfillment + quote-manual + garage check-car + ERP amend/so-delete/RMA dry-runs vs PHP ajax.",
                 "Dual-sample /erp/on-premises-app + licenses digest + health/activate dry-runs vs PHP.",
                 "ASP.NET Core on-prem installer pack (replace deploy/on-premises PHP runtime).",

@@ -450,6 +450,8 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsFulfillmentSetStage = "/cp/orders/fulfillment-set-stage";
     /// <summary>Wave B dry-run OMS supplier_fulfillment_advance (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
     public const string ControlPanelOmsFulfillmentAdvance = "/cp/orders/fulfillment-advance";
+    /// <summary>Wave B dry-run OMS refresh_item_cost (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    public const string ControlPanelOmsRefreshItemCost = "/cp/orders/refresh-item-cost";
 
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
@@ -500,6 +502,20 @@ public static class EcomAeRoutes
     public const string ErpCustomersMasterSave = "/erp/customers/master-save";
     /// <summary>Wave B dry-run for PHP as_rma_create (writes=0).</summary>
     public const string ErpAftersalesRmaCreate = "/erp/aftersales/rma-create";
+    /// <summary>Wave B dry-run for PHP purchase_from_order (writes=0).</summary>
+    public const string ErpPurchasesFromOrder = "/erp/purchases/from-order";
+    /// <summary>Wave B dry-run for PHP ccy_set_rate (writes=0).</summary>
+    public const string ErpCcySetRate = "/erp/currency/set-rate";
+    /// <summary>Wave B dry-run for PHP period_soft_close (writes=0).</summary>
+    public const string ErpPeriodSoftClose = "/erp/periods/soft-close";
+    /// <summary>Wave B dry-run for PHP period_lock (writes=0).</summary>
+    public const string ErpPeriodLock = "/erp/periods/lock";
+    /// <summary>Wave B dry-run for PHP customer_settlement (writes=0).</summary>
+    public const string ErpCustomerSettlement = "/erp/customers/settlement";
+    /// <summary>Wave B dry-run for PHP supplier_settlement (writes=0).</summary>
+    public const string ErpSupplierSettlement = "/erp/suppliers/settlement";
+    /// <summary>Wave B dry-run for PHP fiscal_set_lock (writes=0).</summary>
+    public const string ErpFiscalSetLock = "/erp/fiscal/set-lock";
     /// <summary>Wave B dry-run for PHP invoice_delete draft (writes=0).</summary>
     public const string ErpInvoicesDelete = "/erp/invoices/delete";
     /// <summary>Wave B dry-run for PHP create_account cash/bank (writes=0).</summary>
