@@ -22,4 +22,7 @@ bash scripts/cloudpanel_run_digest_dual_sample_operator.sh
 python3 scripts/validate_surface_digest_allowlist_sync.py
 ```
 
+Checked-in digest exact-route inventory (35 = surface 30 + storefront 4 + orders-digest):
+`docs/migration/evidence/surface-parity/surface-digest-exact-routes.json`
+
 Expect `cutoverAllowed=false`. Never invent `RELEASE_OWNER_APPROVAL.md`.
