@@ -1,8 +1,8 @@
 {
-  "pairsChecked": 78,
-  "hybridUiSamplesOk": 75,
+  "pairsChecked": 80,
+  "hybridUiSamplesOk": 79,
   "phpInventoryOk": true,
-  "failed": 2,
+  "failed": 0,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "contractOnly": true,
@@ -139,6 +139,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-crm-tickets-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-crm-tickets",
+      "appRoute": "/cp/crm-tickets-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-crosses-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-crosses",
@@ -199,6 +209,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-einvoice-documents-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-einvoice-documents",
+      "appRoute": "/cp/einvoice-documents-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-groups-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-groups",
@@ -239,6 +259,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-jewellery-repairs-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-jewellery-repairs",
+      "appRoute": "/cp/jewellery-repairs-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-jewellery-retail-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-jewellery-retail",
@@ -253,6 +283,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-marketing-broadcast",
       "appRoute": "/cp/marketing-broadcast-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-marketing-growth-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-marketing-growth",
+      "appRoute": "/cp/marketing-growth-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -756,24 +796,6 @@
       "httpStatus": null,
       "ok": true,
       "errors": [],
-      "warnings": []
-    },
-    {
-      "file": "hybrid-directory-full-catalog-floor.json",
-      "role": "hybrid-directory-full-catalog-floor",
-      "ok": false,
-      "errors": [
-        "hybrid-directory-full-catalog-floor.json: unknown role 'hybrid-directory-full-catalog-floor'"
-      ],
-      "warnings": []
-    },
-    {
-      "file": "php-full-catalog-deeplink-floor.json",
-      "role": "php-full-catalog-deeplink-floor",
-      "ok": false,
-      "errors": [
-        "php-full-catalog-deeplink-floor.json: unknown role 'php-full-catalog-deeplink-floor'"
-      ],
       "warnings": []
     },
     {

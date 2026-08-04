@@ -1248,4 +1248,90 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>E-invoice document KPIs from epc_einvoice_documents (CREATE TABLE in epc_einvoice_schema.php).</summary>
+    public const string SelectCpEinvoiceDocumentStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE IFNULL(`active`,0)=1) AS document_count,
+            (SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE IFNULL(`active`,0)=1 AND IFNULL(`status`,'') IN ('draft','validated','queued')) AS open_count,
+            (SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE IFNULL(`active`,0)=1 AND IFNULL(`status`,'') IN ('submitted','accepted')) AS submitted_count,
+            (SELECT IFNULL(SUM(`total_incl_vat`),0) FROM `epc_einvoice_documents` WHERE IFNULL(`active`,0)=1) AS total_incl_vat
+        """;
+
+    /// <summary>E-invoice documents — omits seller_json/buyer_json/xml/validation/tax_breakdown payloads.</summary>
+    public const string SelectCpEinvoiceDocuments = """
+        SELECT `id`, IFNULL(`uuid`,'') AS uuid, IFNULL(`invoice_number`,'') AS invoice_number,
+               IFNULL(`order_id`,0) AS order_id, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`doc_category`,'') AS doc_category, IFNULL(`issue_date`,0) AS issue_date,
+               IFNULL(`currency_code`,'') AS currency_code, IFNULL(`status`,'') AS status,
+               IFNULL(`total_incl_vat`,0) AS total_incl_vat, IFNULL(`validation_ok`,0) AS validation_ok,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_einvoice_documents`
+        WHERE IFNULL(`active`,0)=1
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Jewellery repair KPIs from epc_jewel_repair (CREATE TABLE in epc_erp_jewellery.php).</summary>
+    public const string SelectCpJewelleryRepairStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_jewel_repair`) AS repair_count,
+            (SELECT COUNT(*) FROM `epc_jewel_repair` WHERE IFNULL(`status`,'') IN ('received','in_progress','workshop')) AS open_count,
+            (SELECT COUNT(*) FROM `epc_jewel_repair` WHERE IFNULL(`authorized`,0)=1) AS authorized_count,
+            (SELECT COUNT(*) FROM `epc_jewel_repair_items`) AS item_count
+        """;
+
+    /// <summary>Jewellery repairs — omits mobile/email/tel/remarks/narration/customer PII.</summary>
+    public const string SelectCpJewelleryRepairs = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`branch`,'') AS branch,
+               IFNULL(`voc_type`,'') AS voc_type, IFNULL(`voc_date`,'') AS voc_date,
+               IFNULL(`voc_no`,0) AS voc_no, IFNULL(`customer_name`,'') AS customer_name,
+               IFNULL(`status`,'') AS status, IFNULL(`currency`,'') AS currency,
+               IFNULL(`delivery_date`,'') AS delivery_date, IFNULL(`authorized`,0) AS authorized,
+               IFNULL(`created_at`,'') AS created_at
+        FROM `epc_jewel_repair`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>CRM ticket KPIs from epc_crm_tickets (CREATE TABLE in epc_crm_schema.php).</summary>
+    public const string SelectCpCrmTicketStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_crm_tickets` WHERE IFNULL(`active`,0)=1) AS ticket_count,
+            (SELECT COUNT(*) FROM `epc_crm_tickets` WHERE IFNULL(`active`,0)=1 AND IFNULL(`status`,'') IN ('open','pending')) AS open_count,
+            (SELECT COUNT(*) FROM `epc_crm_tickets` WHERE IFNULL(`active`,0)=1 AND IFNULL(`priority`,'') IN ('high','urgent')) AS high_priority_count,
+            (SELECT COUNT(*) FROM `epc_crm_ticket_messages`) AS message_count
+        """;
+
+    /// <summary>CRM tickets — subject/status only (message bodies omitted).</summary>
+    public const string SelectCpCrmTickets = """
+        SELECT `id`, IFNULL(`customer_user_id`,0) AS customer_user_id, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`subject`,'') AS subject, IFNULL(`status`,'') AS status,
+               IFNULL(`priority`,'') AS priority, IFNULL(`assigned_user_id`,0) AS assigned_user_id,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated,
+               IFNULL(`active`,0) AS active
+        FROM `epc_crm_tickets`
+        WHERE IFNULL(`active`,0)=1
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Marketing growth KPIs from epc_marketing_* (CREATE TABLE in epc_marketing_schema.php).</summary>
+    public const string SelectCpMarketingGrowthStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_marketing_task_progress`) AS task_count,
+            (SELECT COUNT(*) FROM `epc_marketing_task_progress` WHERE IFNULL(`is_done`,0)=1) AS tasks_done,
+            (SELECT COUNT(*) FROM `epc_marketing_kpi_log`) AS kpi_log_count,
+            (SELECT COUNT(*) FROM `epc_marketing_reviews`) AS review_count
+        """;
+
+    /// <summary>Marketing growth reviews — omits notes.</summary>
+    public const string SelectCpMarketingGrowthReviews = """
+        SELECT `id`, IFNULL(`strategy_key`,'') AS strategy_key, IFNULL(`review_type`,'') AS review_type,
+               IFNULL(`score`,0) AS score, IFNULL(`created_at`,0) AS created_at,
+               IFNULL(`created_by`,0) AS created_by
+        FROM `epc_marketing_reviews`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

@@ -1459,3 +1459,111 @@ public sealed record CpPlatformGovernanceDigestResult(
     string Source,
     string Message);
 
+public sealed record CpEinvoiceDocumentsSummary(
+    int DocumentCount,
+    int OpenCount,
+    int SubmittedCount,
+    decimal TotalInclVat,
+    string Source,
+    string Message);
+
+public sealed record CpEinvoiceDocumentDigest(
+    long Id,
+    string Uuid,
+    string InvoiceNumber,
+    long OrderId,
+    long UserId,
+    string DocCategory,
+    long IssueDate,
+    string CurrencyCode,
+    string Status,
+    decimal TotalInclVat,
+    bool ValidationOk,
+    long TimeCreated);
+
+public sealed record CpEinvoiceDocumentsDigestResult(
+    CpEinvoiceDocumentsSummary Summary,
+    IReadOnlyList<CpEinvoiceDocumentDigest> Documents,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryRepairsSummary(
+    int RepairCount,
+    int OpenCount,
+    int AuthorizedCount,
+    int ItemCount,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryRepairDigest(
+    long Id,
+    long CompanyId,
+    string Branch,
+    string VocType,
+    string VocDate,
+    long VocNo,
+    string CustomerName,
+    string Status,
+    string Currency,
+    string DeliveryDate,
+    bool Authorized,
+    string CreatedAt);
+
+public sealed record CpJewelleryRepairsDigestResult(
+    CpJewelleryRepairsSummary Summary,
+    IReadOnlyList<CpJewelleryRepairDigest> Repairs,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpCrmTicketsSummary(
+    int TicketCount,
+    int OpenCount,
+    int HighPriorityCount,
+    int MessageCount,
+    string Source,
+    string Message);
+
+public sealed record CpCrmTicketDigest(
+    long Id,
+    long CustomerUserId,
+    long OrderId,
+    string Subject,
+    string Status,
+    string Priority,
+    long AssignedUserId,
+    long TimeCreated,
+    long TimeUpdated,
+    bool Active);
+
+public sealed record CpCrmTicketsDigestResult(
+    CpCrmTicketsSummary Summary,
+    IReadOnlyList<CpCrmTicketDigest> Tickets,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpMarketingGrowthSummary(
+    int TaskCount,
+    int TasksDone,
+    int KpiLogCount,
+    int ReviewCount,
+    string Source,
+    string Message);
+
+public sealed record CpMarketingGrowthReviewDigest(
+    long Id,
+    string StrategyKey,
+    string ReviewType,
+    int Score,
+    long CreatedAt,
+    long CreatedBy);
+
+public sealed record CpMarketingGrowthDigestResult(
+    CpMarketingGrowthSummary Summary,
+    IReadOnlyList<CpMarketingGrowthReviewDigest> Reviews,
+    int Count,
+    string Source,
+    string Message);
+

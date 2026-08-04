@@ -1,0 +1,131 @@
+@page "/cp/einvoice-documents-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>E-invoice documents · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-ei-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0b3d2e 0%,#0f766e 50%,#14b8a6 100%);
+        }
+        .epc-ei-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-ei-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-ei-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-ei-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0b3d2e; background:#ccfbf1;
+        }
+        .epc-ei-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-ei-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-ei-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-ei-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-ei-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-ei-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-ei-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-ei-table th, .epc-ei-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-ei-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-ei-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdfa; border:1px solid #5eead4; border-radius:.45rem; color:#115e59; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-ei-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-ei-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>E-invoice documents</h1>
+        <p>Read-only e-invoice KPIs + documents from <code>/cp/einvoice-documents</code>. XML/JSON payloads and FTA submit stay on live PHP.</p>
+        <div class="epc-ei-cta">
+            <a href="@_phpTab">Open PHP</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-ei-kpis" aria-label="E-invoice documents stats">
+        <div class="epc-ei-kpi"><strong>@_summary.DocumentCount.ToString(CultureInfo.InvariantCulture)</strong><span>Documents</span></div>
+        <div class="epc-ei-kpi"><strong>@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open</span></div>
+        <div class="epc-ei-kpi"><strong>@_summary.SubmittedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Submitted</span></div>
+        <div class="epc-ei-kpi"><strong>@_summary.TotalInclVat.ToString("0.00", CultureInfo.InvariantCulture)</strong><span>Total incl VAT</span></div>
+    </div>
+
+    <div class="epc-ei-table-wrap">
+        <table class="epc-ei-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Invoice</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>CCY</th>
+                    <th>Total</th>
+                    <th>Valid</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_rows.Count == 0)
+                {
+                    <tr><td colspan="8">No rows in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _rows)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.InvoiceNumber) ? row.InvoiceNumber : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.DocCategory) ? row.DocCategory : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.CurrencyCode) ? row.CurrencyCode : "—")</td>
+                            <td>@row.TotalInclVat.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                            <td>@(row.ValidationOk ? "yes" : "no")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-ei-note">
+        Read-only preview · JSON digest <a href="/cp/einvoice-documents?limit=200">/cp/einvoice-documents</a>. PHP tax einvoice tab remains authoritative · payloads omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=einvoice";
+    private bool _isAdmin;
+    private CpEinvoiceDocumentsSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpEinvoiceDocumentDigest> _rows = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpEinvoiceDocumentsDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _rows = result.Documents;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

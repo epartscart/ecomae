@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "repairCount": 1,
+    "openCount": 1,
+    "authorizedCount": 0,
+    "itemCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; repairs[] sentinel; PII omitted; PHP jw_repairs authoritative; cutoverAllowed=false",
+  "repairs": [
+    {
+      "id": 1,
+      "companyId": 0,
+      "branch": "HO",
+      "vocType": "REP",
+      "vocDate": "2024-01-01",
+      "vocNo": 1,
+      "customerName": "Migration customer",
+      "status": "received",
+      "currency": "AED",
+      "deliveryDate": "",
+      "authorized": false,
+      "createdAt": ""
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

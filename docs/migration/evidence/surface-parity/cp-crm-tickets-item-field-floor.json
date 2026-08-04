@@ -1,0 +1,31 @@
+{
+  "role": "cp-crm-tickets-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-crm-tickets",
+  "collectionKey": "tickets",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "ticketCount",
+    "openCount",
+    "highPriorityCount",
+    "messageCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "customerUserId",
+    "orderId",
+    "subject",
+    "status",
+    "priority",
+    "assignedUserId",
+    "timeCreated",
+    "timeUpdated",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-crm-tickets digest summary+tickets[] floors. CRM ticket floors. PHP CRM shell remains authoritative. cutoverAllowed=false."
+}
