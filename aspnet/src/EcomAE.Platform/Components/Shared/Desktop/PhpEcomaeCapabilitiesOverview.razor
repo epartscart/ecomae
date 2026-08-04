@@ -1,0 +1,50 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_capabilities() — hero + category teasers.
+  Full searchable catalog remains PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-capabilities-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407 0%,#5a0f16 42%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-th"></i> Capability catalog</div>
+			<h1>Super CP — full capability catalog</h1>
+			<p class="lead">Every module your tenants can run: pricing, UAE e-invoice, fulfilment, ERP, AI, logistics, CRM, and industry templates — disclosed for agencies evaluating the platform.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/capabilities?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/capabilities"))">Open full PHP catalog (hybrid)</a>
+				<a class="epm-btn epm-btn--ghost" href="@(EcomaeMarketingPages.LiveBase)platform/demo">Book @EcomaeMarketingPages.DemoDays-day demo</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-percent"></i>
+			<strong>Pricing &amp; catalogue</strong>
+			<p>Auto Price AI, price lists, UMAPI fills, crosses.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-file-text"></i>
+			<strong>UAE e-invoice</strong>
+			<p>Peppol / PINT-AE in ERP Finance with fiscal periods.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-truck"></i>
+			<strong>Fulfilment &amp; logistics</strong>
+			<p>OMS, carriers, storages, courier VAT.</p>
+		</div>
+	</div>
+
+	<div class="epm-highlight">
+		<h3>Browse every capability</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">Category filters and the searchable Super CP catalog remain on live PHP until dual-sample.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/capabilities?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/capabilities"))">Open capabilities catalog</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET capabilities overview scaffold — dual-sample against live PHP <code>/platform/capabilities</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

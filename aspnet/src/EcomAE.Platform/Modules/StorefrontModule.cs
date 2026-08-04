@@ -361,6 +361,34 @@ public sealed class StorefrontModule : ISurfaceModule
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontGarageNotepadAdd, async (
+            HttpContext context,
+            StorefrontGarageNotepadAddBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontGarageNotepadAddDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for garage notepad-add dry-run.");
+            }
+
+            body ??= new StorefrontGarageNotepadAddBody(0, null, null, null, 0, 0, false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontGarageNotepadAddRequest(
+                    body.GarageId,
+                    body.Manufacturer,
+                    body.Article,
+                    body.Name,
+                    body.Exist,
+                    body.Price,
+                    body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
     }
 
     private sealed record StorefrontCartChangeCountNeedBody(int Id, decimal CountNeed, bool ConfirmWrites = false);
@@ -374,6 +402,14 @@ public sealed class StorefrontModule : ISurfaceModule
         decimal Price,
         decimal MinOrder = 0,
         decimal Exist = 0,
+        bool ConfirmWrites = false);
+    private sealed record StorefrontGarageNotepadAddBody(
+        long GarageId,
+        string? Manufacturer,
+        string? Article,
+        string? Name = null,
+        int Exist = 0,
+        decimal Price = 0,
         bool ConfirmWrites = false);
 
     private static IResult Unauthorized(string message) => Results.Json(
