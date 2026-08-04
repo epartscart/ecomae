@@ -8,7 +8,20 @@ namespace EcomAE.Platform.Presentation;
 /// </summary>
 public static class LegacyDesktopChromeCatalog
 {
-    public sealed record MegaGroup(string Id, string Label, IReadOnlyList<PhpModuleCatalog.ModuleLink> Links);
+    public sealed record MegaAreaColumn(
+        string Id,
+        string Label,
+        string? Icon,
+        IReadOnlyList<PhpModuleCatalog.ModuleLink> Tabs);
+
+    public sealed record MegaGroup(
+        string Id,
+        string Label,
+        IReadOnlyList<PhpModuleCatalog.ModuleLink> Links,
+        string? Icon = null,
+        string? ShortLabel = null,
+        string? HubHref = null,
+        IReadOnlyList<MegaAreaColumn>? Columns = null);
 
     /// <summary>
     /// Category → ERP area ids from php_module_catalog.json / erp_nav_areas.php category config.
@@ -31,32 +44,89 @@ public static class LegacyDesktopChromeCatalog
             ["setup_admin"] = ["setup", "enterprise", "common"],
         };
 
-    /// <summary>Keyword buckets for BOS topnav sections (modules have no section field in catalog).</summary>
-    private static readonly IReadOnlyDictionary<string, string[]> BosSectionKeywords =
+    /// <summary>Short labels from <c>epc_erp_nav_categories_config</c>.</summary>
+    private static readonly IReadOnlyDictionary<string, string> ErpCategoryShort =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["home"] = "Home",
+            ["record_to_report"] = "R2R",
+            ["procure_to_pay"] = "P2P",
+            ["order_to_cash"] = "O2C",
+            ["cash_treasury"] = "Cash",
+            ["inventory_fulfilment"] = "Stock",
+            ["hr_payroll"] = "HR",
+            ["compliance_tax"] = "Tax",
+            ["setup_admin"] = "Setup",
+        };
+
+    /// <summary>
+    /// Explicit section → module ids from <c>epc_bos_*_items()</c> in epc_bos_unified.php
+    /// (no keyword heuristics; no artificial per-section caps).
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, string[]> BosSectionModuleIds =
         new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
         {
-            ["fleet-command"] = ["command_center", "fleet_cp", "fleet_erp", "platform_health", "failover"],
-            ["tenant-operations"] = ["tenant", "isolation", "governance", "customer_board", "industry"],
+            ["fleet"] =
+            [
+                "command_center", "fleet_cp", "fleet_erp", "platform_health", "governance", "audit_log",
+                "failover", "isolation_audit", "modern_auth", "tenant_email", "integrations", "credit_limit",
+                "order_erp_pipeline", "po_approval", "api_clients", "fulfillment_queue", "power_bi",
+                "auto_price", "industry_consol", "license_trends", "inventory_forecast", "multi_currency_gl",
+                "wps_payroll", "collections_dunning", "warranty_rma", "customer_board", "config_edit",
+                "sms_turning", "ai_copilot", "nl_reporting", "industry_packs", "multi_entity",
+                "promotions_engine", "config_sandbox", "import_orchestrator", "document_vault",
+                "subscription_billing", "soc2_compliance", "marketplace", "ai_service", "metabase_embed",
+                "power_bi_guide", "isolation_anomaly"
+            ],
+            ["tenants"] =
+            [
+                "tenant_hub", "tenant_control", "tenant_features", "demo_tenants", "industry_packs",
+                "customer_board", "integrations", "design_tokens"
+            ],
             ["commerce"] =
             [
-                "order", "fulfillment", "multivendor", "pos", "credit_limit", "promotions", "subscription"
+                "orders", "customers", "payments", "returns", "quotes", "channels", "pos", "statistics"
             ],
-            ["catalogue"] = ["catalogue", "catalog", "stock", "price", "cross", "import", "pim"],
-            ["logistics"] = ["logistics", "warehouse", "shipping", "fulfillment_queue", "landed"],
-            ["marketing"] = ["marketing", "promo", "pixel", "tracker", "sms"],
-            ["professional"] = ["ai_", "nl_", "power_bi", "copilot", "document_vault", "sandbox"],
-            ["erp-finance"] =
+            ["catalogue"] =
             [
-                "finance", "payroll", "currency", "collections", "warranty", "gl", "invoice", "po_approval",
-                "order_erp"
+                "products", "sku_media", "prices_edit", "prices_upload", "multivendor", "prices_guide",
+                "prices_send", "pricing"
             ],
-            ["auto-parts"] = ["auto_parts", "parts", "vin", "umapi", "laximo", "article"],
-            ["tax-advisory"] = ["tax", "soc2", "compliance", "advisory"],
+            ["logistics"] = ["logistics", "procurement"],
+            ["marketing_cp"] = ["marketing", "broadcast", "social", "seo"],
+            ["marketing"] = ["marketing", "broadcast", "social", "seo"],
+            ["professional"] = ["crm", "documents", "parts_agent"],
+            ["erp"] =
+            [
+                "erp_home", "erp_gl", "erp_ap", "erp_ar", "erp_cash", "erp_tax", "erp_sales",
+                "erp_purchasing", "erp_inventory", "erp_hr", "erp_payroll", "erp_production",
+                "erp_projects", "erp_warehouse", "erp_fixed_assets", "erp_budgeting"
+            ],
+            ["auto_parts"] = ["crosses", "demand", "auto_price", "synonyms"],
+            ["tax_advisory"] = ["tax_toolkit", "free_tools"],
             ["platform"] =
             [
-                "api_clients", "config", "integrations", "auth", "license", "audit_log", "modern_auth",
-                "industry_packs"
+                "portal_settings", "modern_auth", "communication", "data_policy", "api_docs",
+                "operator_guide"
             ],
+        };
+
+    /// <summary>Section icons from <c>epc_bos_build_sections</c>.</summary>
+    private static readonly IReadOnlyDictionary<string, string> BosSectionIcons =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["fleet"] = "fa-tachometer",
+            ["tenants"] = "fa-sitemap",
+            ["commerce"] = "fa-shopping-cart",
+            ["catalogue"] = "fa-cube",
+            ["logistics"] = "fa-truck",
+            ["marketing_cp"] = "fa-bullhorn",
+            ["marketing"] = "fa-bullhorn",
+            ["professional"] = "fa-briefcase",
+            ["erp"] = "fa-university",
+            ["auto_parts"] = "fa-car",
+            ["tax_advisory"] = "fa-calculator",
+            ["platform"] = "fa-cogs",
         };
 
     /// <summary>CP topnav groups ≈ epc_cp_build_nav_tabs short labels + brochure samples.</summary>
@@ -85,78 +155,113 @@ public static class LegacyDesktopChromeCatalog
         return groups;
     }
 
-    /// <summary>ERP topnav: categories → tabs for that category's areas (erp_main topnav-only).</summary>
+    /// <summary>
+    /// ERP topnav: categories → area columns → tabs (mirrors <c>epc_erp_render_top_nav</c>).
+    /// No artificial tab caps — every catalogued tab appears under its area column.
+    /// </summary>
     public static IReadOnlyList<MegaGroup> ErpTopnav()
     {
+        var areasById = PhpModuleCatalog.ErpAreas.ToDictionary(a => a.Id, StringComparer.OrdinalIgnoreCase);
+
         return PhpModuleCatalog.ErpCategories.Select(cat =>
         {
             var areaIds = ErpCategoryAreas.TryGetValue(cat.Id, out var mapped)
                 ? mapped
                 : [ExtractQuery(cat.Href, "area") ?? "overview"];
 
-            var tabs = PhpModuleCatalog.ErpTabs
-                .Where(t => areaIds.Contains(t.Group ?? "", StringComparer.OrdinalIgnoreCase))
-                .Take(36)
-                .ToList();
+            var columns = new List<MegaAreaColumn>();
+            var allTabs = new List<PhpModuleCatalog.ModuleLink>();
 
-            if (tabs.Count == 0)
+            foreach (var areaId in areaIds)
             {
-                tabs = PhpModuleCatalog.ErpAreas
-                    .Where(a => areaIds.Contains(a.Id, StringComparer.OrdinalIgnoreCase))
-                    .Select(a => new PhpModuleCatalog.ModuleLink(a.Id, a.Label, a.Href, a.Icon, cat.Id))
+                var tabs = PhpModuleCatalog.ErpTabs
+                    .Where(t => string.Equals(t.Group, areaId, StringComparison.OrdinalIgnoreCase))
                     .ToList();
+
+                if (tabs.Count == 0)
+                {
+                    continue;
+                }
+
+                areasById.TryGetValue(areaId, out var area);
+                columns.Add(new MegaAreaColumn(
+                    areaId,
+                    area?.Label ?? areaId,
+                    area?.Icon ?? "fa-folder-o",
+                    tabs));
+                allTabs.AddRange(tabs);
             }
 
-            if (tabs.Count == 0)
+            if (columns.Count == 0)
             {
-                tabs =
-                [
-                    new PhpModuleCatalog.ModuleLink(cat.Id, cat.Label, cat.Href, cat.Icon, cat.Id)
-                ];
+                var fallback = new PhpModuleCatalog.ModuleLink(cat.Id, cat.Label, cat.Href, cat.Icon, cat.Id);
+                allTabs.Add(fallback);
+                columns.Add(new MegaAreaColumn(cat.Id, cat.Label, cat.Icon, [fallback]));
             }
 
-            return new MegaGroup(cat.Id, cat.Label, tabs);
+            var shortLabel = ErpCategoryShort.TryGetValue(cat.Id, out var s) ? s : cat.Label;
+            var hubHref = allTabs[0].Href;
+
+            return new MegaGroup(
+                cat.Id,
+                cat.Label,
+                allTabs,
+                cat.Icon,
+                shortLabel,
+                hubHref,
+                columns);
         }).ToList();
     }
 
-    /// <summary>BOS topnav sections with module flyouts (keyword + remainder fill).</summary>
+    /// <summary>
+    /// BOS topnav sections with module flyouts from explicit PHP section→module maps
+    /// (<c>epc_bos_unified.php</c>).
+    /// </summary>
     public static IReadOnlyList<MegaGroup> BosTopnav()
     {
-        var sections = LegacyChromeNavCatalog.Bos;
-        var remaining = PhpModuleCatalog.BosModules.ToList();
+        var modulesById = PhpModuleCatalog.BosModules
+            .GroupBy(m => m.Id, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
         var groups = new List<MegaGroup>();
-
-        foreach (var section in sections)
+        foreach (var section in PhpModuleCatalog.BosSections)
         {
-            var slug = Slug(section.Label);
-            var keywords = BosSectionKeywords.TryGetValue(slug, out var keys) ? keys : [slug];
-            var matched = remaining
-                .Where(m => keywords.Any(k =>
-                    m.Id.Contains(k, StringComparison.OrdinalIgnoreCase)
-                    || m.Label.Contains(k, StringComparison.OrdinalIgnoreCase)
-                    || m.Href.Contains(k, StringComparison.OrdinalIgnoreCase)))
-                .Take(16)
-                .ToList();
+            var ids = BosSectionModuleIds.TryGetValue(section.Id, out var mapped)
+                ? mapped
+                : Array.Empty<string>();
 
-            foreach (var m in matched)
+            var links = new List<PhpModuleCatalog.ModuleLink>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var id in ids)
             {
-                remaining.Remove(m);
+                if (!seen.Add(id))
+                {
+                    continue;
+                }
+
+                if (modulesById.TryGetValue(id, out var mod))
+                {
+                    links.Add(mod);
+                }
             }
 
-            if (matched.Count == 0)
+            if (links.Count == 0)
             {
-                matched.Add(new PhpModuleCatalog.ModuleLink(slug, section.Label, section.Href, null, section.Label));
+                links.Add(new PhpModuleCatalog.ModuleLink(
+                    section.Id, section.Label, section.Href, section.Icon, section.Id));
             }
 
-            groups.Add(new MegaGroup(slug, section.Label, matched));
-        }
-
-        // Append leftovers into Platform so nothing is orphaned from mega-nav.
-        if (remaining.Count > 0 && groups.Count > 0)
-        {
-            var platform = groups[^1];
-            var merged = platform.Links.Concat(remaining.Take(24)).ToList();
-            groups[^1] = new MegaGroup(platform.Id, platform.Label, merged);
+            var icon = BosSectionIcons.TryGetValue(section.Id, out var ic) ? ic : (section.Icon ?? "fa-th-large");
+            groups.Add(new MegaGroup(
+                section.Id,
+                section.Label,
+                links,
+                icon,
+                section.Label,
+                links[0].Href,
+                [
+                    new MegaAreaColumn(section.Id, "Modules", icon, links)
+                ]));
         }
 
         return groups;
@@ -167,8 +272,16 @@ public static class LegacyDesktopChromeCatalog
         => surface.Trim().ToLowerInvariant() switch
         {
             "cp" => ["#header", ".epc-cp-topnav", ".epc-cp-topnav-panel"],
-            "erp" => [".epc-erp-topbar", ".epc-erp-topnav", ".epc-erp-topnav-panel"],
-            "bos" => [".bos-topnav", ".bos-main", ".bos-topnav__panel"],
+            "erp" =>
+            [
+                ".epc-erp-topbar", ".epc-erp-topnav", ".epc-erp-topnav-panel",
+                ".epc-erp-topnav-cols", ".epc-erp-topnav-col", ".epc-erp-topnav-panel-hub"
+            ],
+            "bos" =>
+            [
+                ".bos-topnav", ".bos-main", ".bos-topnav__panel",
+                ".bos-topnav__panel-hub", ".bos-topnav__cols"
+            ],
             "storefront" => ["#header-full-top", ".header_search_form_1", "#header"],
             _ => []
         };

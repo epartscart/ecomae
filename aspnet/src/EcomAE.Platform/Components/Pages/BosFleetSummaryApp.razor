@@ -50,11 +50,14 @@
     </section>
 
     <div class="epc-fs-kpis" aria-label="Fleet summary KPIs">
-        <div class="epc-fs-kpi"><strong>@_tenants.ToString(CultureInfo.InvariantCulture)</strong><span>Portal tenants</span></div>
+        <div class="epc-fs-kpi"><strong>@_tenants.ToString(CultureInfo.InvariantCulture)</strong><span>Total tenants</span></div>
+        <div class="epc-fs-kpi"><strong>@_commerce.ToString(CultureInfo.InvariantCulture)</strong><span>Commerce</span></div>
+        <div class="epc-fs-kpi"><strong>@_erpOnly.ToString(CultureInfo.InvariantCulture)</strong><span>ERP only</span></div>
+        <div class="epc-fs-kpi"><strong>@_demo.ToString(CultureInfo.InvariantCulture)</strong><span>Demo</span></div>
+        <div class="epc-fs-kpi"><strong>@_platform.ToString(CultureInfo.InvariantCulture)</strong><span>Platform</span></div>
         <div class="epc-fs-kpi"><strong>@_active.ToString(CultureInfo.InvariantCulture)</strong><span>Active tenants</span></div>
-        <div class="epc-fs-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Admin sessions</span></div>
         <div class="epc-fs-kpi"><strong>@_withDb.ToString(CultureInfo.InvariantCulture)</strong><span>With database</span></div>
-        <div class="epc-fs-kpi"><strong>@_erpOnly.ToString(CultureInfo.InvariantCulture)</strong><span>ERP-only</span></div>
+        <div class="epc-fs-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Admin sessions</span></div>
         <div class="epc-fs-kpi"><strong>@_source</strong><span>Digest source</span></div>
     </div>
 
@@ -74,6 +77,9 @@
     private int _sessions;
     private int _withDb;
     private int _erpOnly;
+    private int _commerce;
+    private int _demo;
+    private int _platform;
     private string _source = "n/a";
     private string _message = "";
 
@@ -96,6 +102,9 @@
         _sessions = summary.AdminSessions;
         _withDb = summary.WithDatabase;
         _erpOnly = summary.ErpOnly;
+        _commerce = summary.CommerceTenants;
+        _demo = summary.DemoTenants;
+        _platform = summary.PlatformTenants;
         _source = summary.Source;
         _message = summary.Message;
     }

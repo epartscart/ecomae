@@ -49,23 +49,75 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         if (!_connections.IsConfigured)
         {
-            return new(0, 0, 0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+            return EmptyErpSummary("migration", "TenantRegistry DB is not configured.");
         }
 
         try
         {
             await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var monthStart = new DateTimeOffset(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, TimeSpan.Zero)
+                .ToUnixTimeSeconds();
+            var periodKey = DateTime.UtcNow.ToString("yyyy-MM", CultureInfo.InvariantCulture);
+            var overdueBefore = now - (86400L * 30);
+
             var cash = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumCashBankTotal, cancellationToken).ConfigureAwait(false);
             var credit = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumSupplierCredit, cancellationToken).ConfigureAwait(false);
             var debit = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumSupplierDebit, cancellationToken).ConfigureAwait(false);
             var cashAccounts = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCashAccounts, cancellationToken).ConfigureAwait(false);
             var suppliers = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountActiveSuppliers, cancellationToken).ConfigureAwait(false);
             var purchases = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountActivePurchases, cancellationToken).ConfigureAwait(false);
-            return new(cash, credit, debit, credit - debit, cashAccounts, suppliers, purchases, "database", string.Empty);
+
+            var receivables = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpDashboardReceivables, cancellationToken).ConfigureAwait(false);
+            var payables = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpDashboardPayables, cancellationToken).ConfigureAwait(false);
+            var stockValue = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpDashboardStockValue, cancellationToken).ConfigureAwait(false);
+
+            var revenue = await ScalarDecimalParamSafeAsync(
+                connection, LegacySurfaceDashboardSql.SumErpCcRevenueExVat, cancellationToken,
+                ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
+            var orders = await ScalarIntParamSafeAsync(
+                connection, LegacySurfaceDashboardSql.CountErpCcOrders, cancellationToken,
+                ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
+            var arBalance = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpCcArBalance, cancellationToken).ConfigureAwait(false);
+            var apBalance = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumErpCcApBalance, cancellationToken).ConfigureAwait(false);
+            var vatOut = await ScalarDecimalParamSafeAsync(
+                connection, LegacySurfaceDashboardSql.SumErpCcVatOut, cancellationToken,
+                ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
+            var vatIn = await ScalarDecimalParamSafeAsync(
+                connection, LegacySurfaceDashboardSql.SumErpCcVatIn, cancellationToken,
+                ("@dateFrom", monthStart), ("@dateTo", now)).ConfigureAwait(false);
+            var inventoryItems = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcInventoryItems, cancellationToken).ConfigureAwait(false);
+            var periodStatus = await ScalarStringParamSafeAsync(
+                connection, LegacySurfaceDashboardSql.SelectErpCcPeriodStatus, "open", cancellationToken,
+                ("@periodKey", periodKey)).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(periodStatus))
+            {
+                periodStatus = "open";
+            }
+
+            var draftSo = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcDraftSalesOrders, cancellationToken).ConfigureAwait(false);
+            var pendingPo = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcPendingPurchaseOrders, cancellationToken).ConfigureAwait(false);
+            var unpostedGl = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcUnpostedGlJournals, cancellationToken).ConfigureAwait(false);
+            var overdueInv = await ScalarIntParamSafeAsync(
+                connection, LegacySurfaceDashboardSql.CountErpCcOverdueInvoices, cancellationToken,
+                ("@overdueBefore", overdueBefore)).ConfigureAwait(false);
+            var lowStock = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcLowStockItems, cancellationToken).ConfigureAwait(false);
+            var pendingEinv = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcPendingEinvoices, cancellationToken).ConfigureAwait(false);
+            var processOpen = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessOpen, cancellationToken).ConfigureAwait(false);
+            var processDone = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessDone, cancellationToken).ConfigureAwait(false);
+            var processOverdue = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpCcProcessOverdue, cancellationToken).ConfigureAwait(false);
+
+            return new(
+                cash, credit, debit, credit - debit, cashAccounts, suppliers, purchases,
+                receivables, payables, stockValue,
+                revenue, orders, arBalance, apBalance, vatOut - vatIn, periodStatus, inventoryItems,
+                draftSo, pendingPo, unpostedGl, overdueInv, lowStock, pendingEinv,
+                processOpen, processDone, processOverdue,
+                "database", string.Empty);
         }
         catch (Exception ex)
         {
-            return new(0, 0, 0, 0, 0, 0, 0, "database-error", ex.Message);
+            return EmptyErpSummary("database-error", ex.Message);
         }
     }
 
@@ -77,7 +129,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         if (!_connections.IsConfigured)
         {
-            return new(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+            return EmptyBosSummary("migration", "TenantRegistry DB is not configured.");
         }
 
         try
@@ -90,7 +142,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
         catch (Exception ex)
         {
-            return new(0, 0, 0, 0, 0, "database-error", ex.Message);
+            return EmptyBosSummary("database-error", ex.Message);
         }
     }
 
@@ -145,7 +197,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var safeLimit = Math.Clamp(sampleLimit, 1, 100);
         if (!_connections.IsConfigured)
         {
-            return new(new(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured."), [], "migration", "TenantRegistry DB is not configured.");
+            var empty = EmptyBosSummary("migration", "TenantRegistry DB is not configured.");
+            return new(empty, [], empty.Source, empty.Message);
         }
 
         try
@@ -159,7 +212,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
         catch (Exception ex)
         {
-            return new(new(0, 0, 0, 0, 0, "database-error", ex.Message), [], "database-error", ex.Message);
+            var err = EmptyBosSummary("database-error", ex.Message);
+            return new(err, [], err.Source, err.Message);
         }
     }
 
@@ -5201,14 +5255,81 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     }
 
     private static BosFleetSummary SummarizeFleet(IReadOnlyList<PortalTenantDigest> tenants, int adminSessions, string source, string message)
-        => new(
+    {
+        var commerce = 0;
+        var erpOnly = 0;
+        var demo = 0;
+        var platform = 0;
+        foreach (var t in tenants)
+        {
+            switch (ResolveBosTenantType(t))
+            {
+                case "erp_only":
+                    erpOnly++;
+                    break;
+                case "demo":
+                    demo++;
+                    break;
+                case "platform":
+                    platform++;
+                    break;
+                default:
+                    commerce++;
+                    break;
+            }
+        }
+
+        return new(
             tenants.Count,
             tenants.Count(item => item.IsActive),
             adminSessions,
             tenants.Count(item => item.HasDb),
-            tenants.Count(item => item.ErpOnly),
+            erpOnly,
+            commerce,
+            demo,
+            platform,
             source,
             message);
+    }
+
+    /// <summary>Mirrors PHP <c>epc_bos_resolve_tenant_type</c>.</summary>
+    private static string ResolveBosTenantType(PortalTenantDigest t)
+    {
+        if (t.ErpOnly)
+        {
+            return "erp_only";
+        }
+
+        if (string.Equals(t.Status, "demo", StringComparison.OrdinalIgnoreCase)
+            || t.SiteKey.StartsWith("demo_", StringComparison.OrdinalIgnoreCase))
+        {
+            return "demo";
+        }
+
+        if (string.Equals(t.IndustryCode, "platform_host", StringComparison.OrdinalIgnoreCase))
+        {
+            return "platform";
+        }
+
+        if (string.Equals(t.IndustryCode, "erp_standalone", StringComparison.OrdinalIgnoreCase))
+        {
+            return "erp_only";
+        }
+
+        return "commerce";
+    }
+
+    private static ErpDashboardSummary EmptyErpSummary(string source, string message)
+        => new(
+            0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+            0, 0, 0, 0, 0, "open", 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+            source, message);
+
+    private static BosFleetSummary EmptyBosSummary(string source, string message)
+        => new(0, 0, 0, 0, 0, 0, 0, 0, source, message);
 
     private static async Task<IReadOnlyList<PortalTenantDigest>> ReadTenantsAsync(
         DbConnection connection,
@@ -5288,6 +5409,80 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         catch
         {
             return 0m;
+        }
+    }
+
+    private static async Task<decimal> ScalarDecimalParamSafeAsync(
+        DbConnection connection,
+        string sql,
+        CancellationToken cancellationToken,
+        params (string Name, object Value)[] parameters)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            foreach (var (name, value) in parameters)
+            {
+                AddParameter(command, name, value);
+            }
+
+            var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return Convert.ToDecimal(result ?? 0m, CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            return 0m;
+        }
+    }
+
+    private static async Task<int> ScalarIntParamSafeAsync(
+        DbConnection connection,
+        string sql,
+        CancellationToken cancellationToken,
+        params (string Name, object Value)[] parameters)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            foreach (var (name, value) in parameters)
+            {
+                AddParameter(command, name, value);
+            }
+
+            var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return Convert.ToInt32(result ?? 0, CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    private static async Task<string> ScalarStringParamSafeAsync(
+        DbConnection connection,
+        string sql,
+        string fallback,
+        CancellationToken cancellationToken,
+        params (string Name, object Value)[] parameters)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            foreach (var (name, value) in parameters)
+            {
+                AddParameter(command, name, value);
+            }
+
+            var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var text = Convert.ToString(result, CultureInfo.InvariantCulture);
+            return string.IsNullOrWhiteSpace(text) ? fallback : text;
+        }
+        catch
+        {
+            return fallback;
         }
     }
 

@@ -103,8 +103,14 @@ public sealed class SurfaceFieldParityReporterTests
     public void DashboardSummaryRecordsExposeContractedCamelCaseNames()
     {
         var cp = new ControlPanelDashboardSummary(1, 2, 3, 2, "migration", "");
-        var erp = new ErpDashboardSummary(1, 2, 3, -1, 4, 5, 6, "migration", "");
-        var bos = new BosFleetSummary(1, 1, 1, 1, 0, "migration", "");
+        var erp = new ErpDashboardSummary(
+            1, 2, 3, -1, 4, 5, 6,
+            10, 11, 12,
+            13, 14, 15, 16, 17, "open", 18,
+            1, 2, 3, 4, 5, 6,
+            7, 8, 9,
+            "migration", "");
+        var bos = new BosFleetSummary(1, 1, 1, 1, 0, 1, 0, 0, "migration", "");
         var sf = new StorefrontAccountSummary(9, 1, 1, 1, "migration", "");
 
         Assert.Equal(1, cp.Users);

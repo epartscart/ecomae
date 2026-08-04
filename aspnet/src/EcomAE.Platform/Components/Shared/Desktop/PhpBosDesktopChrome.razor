@@ -2,6 +2,7 @@
 @using EcomAE.Platform.Presentation
 @*
   Mirrors bos/index.php topnav mega + main content region (bos-body--topnav).
+  White mega panels, Open first hub, section icons — bos/epc_bos_shell.css.
   Full module UX still requires PHP $_SESSION on /BOS/.
 *@
 
@@ -16,23 +17,39 @@
                 @foreach (var group in LegacyDesktopChromeCatalog.BosTopnav())
                 {
                     <li class="bos-topnav__item" data-bos-group="@group.Id" role="none">
-                        <button type="button" class="bos-topnav__btn" data-bos-topnav-toggle role="menuitem">@group.Label</button>
+                        <button type="button" class="bos-topnav__btn" data-bos-topnav-toggle role="menuitem" aria-haspopup="true">
+                            @if (!string.IsNullOrWhiteSpace(group.Icon))
+                            {
+                                <i class="fa @group.Icon" aria-hidden="true"></i>
+                            }
+                            <span>@group.Label</span>
+                            <i class="fa fa-angle-down bos-topnav__caret" aria-hidden="true"></i>
+                        </button>
                         <div class="bos-topnav__panel" data-bos-topnav-panel="@group.Id">
-                            <div class="bos-topnav__panel-hd">@group.Label</div>
+                            <div class="bos-topnav__panel-hd">
+                                <div class="bos-topnav__panel-title">
+                                    @if (!string.IsNullOrWhiteSpace(group.Icon))
+                                    {
+                                        <i class="fa @group.Icon"></i>
+                                    }
+                                    @group.Label
+                                </div>
+                                <a class="bos-topnav__panel-hub" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", group.HubHref ?? group.Links[0].Href)">
+                                    Open first <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                                </a>
+                            </div>
                             <div class="bos-topnav__cols">
                                 <div class="bos-topnav__col">
+                                    <div class="bos-topnav__col-hd">Modules</div>
                                     <ul class="bos-topnav__links">
                                         @foreach (var link in group.Links)
                                         {
                                             <li>
                                                 <a class="bos-topnav__link" data-module="@link.Id" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", link.Href)">
-                                                    @if (!string.IsNullOrWhiteSpace(link.Icon))
-                                                    {
-                                                        <i class="fa @link.Icon"></i>
-                                                    }
+                                                    <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
                                                     @link.Label
                                                 </a>
-                                                <a class="bos-topnav__php" href="@link.Href">PHP</a>
+                                                <a class="bos-topnav__php" href="@link.Href" title="Open live PHP module">PHP</a>
                                             </li>
                                         }
                                     </ul>
@@ -71,24 +88,39 @@
 </div>
 
 <style>
-    .bos-body--topnav { --bos-topbar-height:52px; --bos-bg:#f4f4f5; --bos-ink:#111; min-height:100vh; background:var(--bos-bg); color:var(--bos-ink); font-family: @(LegacyPhpFontAssets.StackFor("bos")); }
+    .bos-body--topnav { --bos-topbar-height:52px; --bos-bg:#f4f4f5; --bos-ink:#111; --bos-topnav-hover:#1a1a1a; --bos-topnav-active:#262626; min-height:100vh; background:var(--bos-bg); color:var(--bos-ink); font-family: @(LegacyPhpFontAssets.StackFor("bos")); }
     .bos-body--topnav a { color:inherit; text-decoration:none; }
     .bos-topnav { position:sticky; top:0; z-index:50; height:var(--bos-topbar-height); background:#0b0b0b; color:#f5f5f5; }
-    .bos-topnav__inner { display:flex; align-items:stretch; gap:.35rem; height:100%; padding:0 .5rem; overflow:auto; }
+    .bos-topnav__inner { display:flex; align-items:stretch; gap:.35rem; height:100%; padding:0 .5rem; overflow:visible; }
     .bos-topnav__brand { display:flex; align-items:center; gap:.45rem; padding:0 .65rem; font-weight:800; letter-spacing:.04em; white-space:nowrap; }
     .bos-topnav__brand img { height:26px; background:#fff; border-radius:4px; padding:1px; }
-    .bos-topnav__list { list-style:none; margin:0; padding:0; display:flex; }
+    .bos-topnav__list { list-style:none; margin:0; padding:0; display:flex; overflow-x:auto; }
     .bos-topnav__item { position:relative; }
-    .bos-topnav__btn { appearance:none; border:0; background:transparent; color:#f5f5f5; font:inherit; font-size:.78rem; font-weight:700; padding:0 .7rem; height:100%; cursor:pointer; white-space:nowrap; opacity:.9; }
-    .bos-topnav__item:hover .bos-topnav__btn, .bos-topnav__item:focus-within .bos-topnav__btn { opacity:1; background:#1a1a1a; }
-    .bos-topnav__panel { display:none; position:absolute; left:0; top:100%; z-index:60; min-width:280px; max-width:min(520px,92vw); background:#151515; color:#f5f5f5; border:1px solid #2a2a2a; border-radius:0 0 .45rem .45rem; box-shadow:0 16px 36px rgba(0,0,0,.45); }
+    .bos-topnav__btn { appearance:none; border:0; background:transparent; color:#f5f5f5; font:inherit; font-size:.78rem; font-weight:700; padding:0 .7rem; height:100%; cursor:pointer; white-space:nowrap; opacity:.9; display:inline-flex; align-items:center; gap:.35rem; border-bottom:3px solid transparent; }
+    .bos-topnav__btn .fa { color:#a3a3a3; font-size:13px; }
+    .bos-topnav__caret { font-size:11px; opacity:.85; margin-left:2px; }
+    .bos-topnav__item:hover .bos-topnav__btn, .bos-topnav__item:focus-within .bos-topnav__btn { opacity:1; background:var(--bos-topnav-hover); border-bottom-color:#fff; }
+    .bos-topnav__panel {
+        display:none; position:absolute; left:0; top:100%; z-index:60;
+        min-width:300px; max-width:min(880px, calc(100vw - 24px)); max-height:min(70vh, 520px); overflow:auto;
+        background:#ffffff; color:#0a0a0a; border:1px solid #e5e5e5; border-radius:0 0 12px 12px;
+        box-shadow:0 16px 40px rgba(0,0,0,.22);
+    }
     .bos-topnav__item:hover .bos-topnav__panel, .bos-topnav__item:focus-within .bos-topnav__panel { display:block; }
-    .bos-topnav__panel-hd { padding:.5rem .75rem; font-size:.75rem; font-weight:700; color:#a3a3a3; border-bottom:1px solid #2a2a2a; }
-    .bos-topnav__links { list-style:none; margin:0; padding:.3rem 0; max-height:340px; overflow:auto; }
-    .bos-topnav__links li { display:flex; gap:.4rem; align-items:center; padding:.35rem .75rem; font-size:.8rem; }
-    .bos-topnav__link { flex:1; font-weight:600; }
-    .bos-topnav__link:hover { color:#facc15; }
-    .bos-topnav__php { flex:0; color:#fbbf24; font-size:.7rem; font-weight:700; }
+    .bos-topnav__panel-hd { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border-bottom:1px solid #eee; background:#fafafa; }
+    .bos-topnav__panel-title { font-weight:800; font-size:13px; color:#0a0a0a; display:flex; align-items:center; gap:8px; }
+    .bos-topnav__panel-title .fa { color:#171717; }
+    .bos-topnav__panel-hub { font-size:12px; font-weight:700; color:#171717 !important; white-space:nowrap; }
+    .bos-topnav__panel-hub:hover { text-decoration:underline !important; }
+    .bos-topnav__cols { display:flex; flex-wrap:wrap; gap:4px 18px; padding:12px 16px 16px; }
+    .bos-topnav__col { min-width:180px; flex:1 1 180px; }
+    .bos-topnav__col-hd { font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#737373; margin:4px 0 8px; }
+    .bos-topnav__links { list-style:none; margin:0; padding:0; }
+    .bos-topnav__links li { display:flex; gap:.4rem; align-items:center; }
+    .bos-topnav__link { flex:1; display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:8px; color:#262626 !important; font-size:12.5px; font-weight:600; }
+    .bos-topnav__link:hover { background:#f5f5f5; color:#0a0a0a !important; }
+    .bos-topnav__link .fa { width:16px; text-align:center; color:#525252; }
+    .bos-topnav__php { flex:0; color:#b45309; font-size:.68rem; font-weight:700; padding-right:4px; }
     .bos-topnav__right { margin-left:auto; display:flex; align-items:center; gap:.75rem; padding:0 .65rem; font-size:.8rem; font-weight:600; white-space:nowrap; }
     .bos-topnav__login { color:#facc15 !important; }
     .bos-main { margin-top:0; width:min(1400px, calc(100% - 1.5rem)); margin-left:auto; margin-right:auto; padding:1.1rem 0 2.5rem; }

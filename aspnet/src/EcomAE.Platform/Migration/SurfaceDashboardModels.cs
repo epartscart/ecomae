@@ -8,6 +8,11 @@ public sealed record ControlPanelDashboardSummary(
     string Source,
     string Message);
 
+/// <summary>
+/// ERP dashboard digest fields aligned to PHP <c>erp_dashboard.php</c> executive tiles
+/// plus <c>epc_erp_cc_kpi_tiles</c> / approval-queue counts from the command center.
+/// Missing tables degrade to zeros / "open" via safe SQL.
+/// </summary>
 public sealed record ErpDashboardSummary(
     decimal CashPosition,
     decimal SupplierCredit,
@@ -16,15 +21,41 @@ public sealed record ErpDashboardSummary(
     int CashAccounts,
     int ActiveSuppliers,
     int ActivePurchases,
+    decimal Receivables,
+    decimal Payables,
+    decimal StockValue,
+    decimal RevenueExVat,
+    int OrdersCount,
+    decimal ArBalance,
+    decimal ApBalance,
+    decimal VatNetPayable,
+    string PeriodStatus,
+    int InventoryItems,
+    int DraftSalesOrders,
+    int PendingPurchaseOrders,
+    int UnpostedGlJournals,
+    int OverdueInvoices,
+    int LowStockItems,
+    int PendingEinvoices,
+    int ProcessOpen,
+    int ProcessDone,
+    int ProcessOverdue,
     string Source,
     string Message);
 
+/// <summary>
+/// BOS fleet summary aligned to PHP Fleet Command Center stats
+/// (Total / Commerce / ERP Only / Demo) plus platform + session digests.
+/// </summary>
 public sealed record BosFleetSummary(
     int PortalTenants,
     int ActivePortalTenants,
     int AdminSessions,
     int WithDatabase,
     int ErpOnly,
+    int CommerceTenants,
+    int DemoTenants,
+    int PlatformTenants,
     string Source,
     string Message);
 

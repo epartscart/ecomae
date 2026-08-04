@@ -32,13 +32,13 @@
         <div class="epc-erp-grid">
             <section class="epc-erp-card">
                 <h2 style="margin:.1rem 0 .4rem;font-size:1.05rem">ADMINISTRATION CENTRE — Operations</h2>
-                <p style="margin:0;color:#64748b;font-size:.9rem">Batch 2: <code>epc-erp-topbar</code> + <code>epc-erp-topnav</code> mega panels (erp_desktop / erp_main). Tab bodies stay PHP.</p>
+                <p style="margin:0;color:#64748b;font-size:.9rem">PHP-matching <code>epc-erp-topnav</code> area-column mega panels (<code>epc_erp_render_top_nav</code>). Tab bodies stay PHP.</p>
             </section>
             <section class="epc-erp-metrics">
-                <div class="epc-erp-card epc-erp-metric"><strong>@_cash.ToString("N2")</strong><span>CASH &amp; BANK</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_purchases</strong><span>ACTIVE PURCHASES</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_suppliers</strong><span>ACTIVE SUPPLIERS</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_accounts</strong><span>CASH ACCOUNTS</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.CashPosition.ToString("N2")</strong><span>CASH POSITION</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.Receivables.ToString("N2")</strong><span>RECEIVABLES</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.Payables.ToString("N2")</strong><span>PAYABLES</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.StockValue.ToString("N2")</strong><span>STOCK VALUE</span></div>
             </section>
         </div>
 
@@ -50,13 +50,23 @@
         </div>
 
         <section>
-            <h2 style="font-size:1.05rem">Operational KPIs — @_source</h2>
+            <h2 style="font-size:1.05rem">Command center KPIs — @_s.Source</h2>
             <div class="epc-erp-kpis">
-                <div class="epc-erp-card epc-erp-metric"><strong>@_cash.ToString("N2")</strong><span>Cash position</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_credit.ToString("N2")</strong><span>Supplier credit</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_debit.ToString("N2")</strong><span>Supplier debit</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_net.ToString("N2")</strong><span>Supplier net</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>TOPNAV</strong><span>epc-erp-topnav</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.RevenueExVat.ToString("N2")</strong><span>Revenue (ex. VAT)</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.OrdersCount</strong><span>Orders</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.ArBalance.ToString("N2")</strong><span>AR balance</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.ApBalance.ToString("N2")</strong><span>AP balance</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.VatNetPayable.ToString("N2")</strong><span>VAT net</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.PeriodStatus</strong><span>Period</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.InventoryItems</strong><span>Active items</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.DraftSalesOrders</strong><span>Draft SOs</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.PendingPurchaseOrders</strong><span>Pending POs</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.UnpostedGlJournals</strong><span>Unposted GL</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.OverdueInvoices</strong><span>Overdue invoices</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.LowStockItems</strong><span>Low stock</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.PendingEinvoices</strong><span>Pending e-inv</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.ProcessOpen / @_s.ProcessDone / @_s.ProcessOverdue</strong><span>Process open/done/overdue</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.SupplierNet.ToString("N2")</strong><span>Supplier net</span></div>
             </div>
         </section>
 
@@ -85,14 +95,13 @@
 </PhpErpDesktopChrome>
 
 @code {
-    private decimal _cash;
-    private decimal _credit;
-    private decimal _debit;
-    private decimal _net;
-    private int _accounts;
-    private int _suppliers;
-    private int _purchases;
-    private string _source = "n/a";
+    private ErpDashboardSummary _s = new(
+        0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0,
+        0, 0, 0, 0, 0, "open", 0,
+        0, 0, 0, 0, 0, 0,
+        0, 0, 0,
+        "n/a", "");
     private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
     private string? _phpHref;
@@ -112,15 +121,7 @@
             return;
         }
         _isAdmin = true;
-        var summary = await Dashboards.BuildErpAsync(ctx.RequestAborted);
-        _cash = summary.CashPosition;
-        _credit = summary.SupplierCredit;
-        _debit = summary.SupplierDebit;
-        _net = summary.SupplierNet;
-        _accounts = summary.CashAccounts;
-        _suppliers = summary.ActiveSuppliers;
-        _purchases = summary.ActivePurchases;
-        _source = summary.Source;
-        _note = "Admin session detected — KPIs from ASP.NET ERP digest reporter. ";
+        _s = await Dashboards.BuildErpAsync(ctx.RequestAborted);
+        _note = "Admin session detected — KPIs from ASP.NET ERP digest reporter (PHP erp_dashboard + command center field set). ";
     }
 }
