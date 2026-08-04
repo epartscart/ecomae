@@ -81,9 +81,9 @@
                 {
                     <tr>
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—"</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—"</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.MarketplaceId) ? row.MarketplaceId : "—"</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.MarketplaceId) ? row.MarketplaceId : "—")</td>
                             <td>@row.Active.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.DemoMode.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.LastSyncAt.ToString(CultureInfo.InvariantCulture)</td>

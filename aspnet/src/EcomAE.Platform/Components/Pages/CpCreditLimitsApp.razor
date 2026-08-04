@@ -82,12 +82,12 @@
                 {
                     <tr>
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—"</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
                             <td>@row.CustomerId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.CreditLimit.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.BalanceUsed.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.Currency) ? row.Currency : "—"</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—"</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Currency) ? row.Currency : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@row.RiskScore.ToString(CultureInfo.InvariantCulture)</td>
                             <td><a href="@_phpTab">Open in PHP</a></td>
                     </tr>

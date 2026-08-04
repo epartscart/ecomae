@@ -76,8 +76,8 @@
                 @foreach (var row in _rows)
                 {
                     <tr>
-                            <td>@!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—"</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—"</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
                             <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
                             <td><a href="@_phpTab">Open in PHP</a></td>
                     </tr>

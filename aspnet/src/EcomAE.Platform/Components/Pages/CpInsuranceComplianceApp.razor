@@ -82,12 +82,12 @@
                 {
                     <tr>
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.PolicyNo) ? row.PolicyNo : "—"</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.Class) ? row.Class : "—"</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—"</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.Insurer) ? row.Insurer : "—"</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.PolicyNo) ? row.PolicyNo : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Class) ? row.Class : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Insurer) ? row.Insurer : "—")</td>
                             <td>@row.SumInsured.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—"</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@row.ExpiryDate.ToString(CultureInfo.InvariantCulture)</td>
                             <td><a href="@_phpTab">Open in PHP</a></td>
                     </tr>
