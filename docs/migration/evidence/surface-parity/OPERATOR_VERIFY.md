@@ -36,6 +36,12 @@ Expect `cutoverAllowed=false`. Never invent `RELEASE_OWNER_APPROVAL.md`.
 `scripts/compare_digest_dual_samples.py` (`LIST_ITEM_FIELDS` + `LIST_NONEMPTY_MIGRATION`)
 and documented in `cp-menus-item-field-floor.json`.
 
+## CP orders-digest hybrid list item-field floor
+
+`cp-orders-digest` keeps KPI summary fields plus a non-empty `orders[]` sentinel
+(`id`/`timeUnix`/`userId`/`status`/`paid`/…/`orderSum`). Documented in
+`cp-orders-item-field-floor.json`. Writes remain PHP OMS.
+
 ## List digest item-field floor (25 stems)
 
 All list digests under `LIST_CONTRACTS` require non-empty migration item-field

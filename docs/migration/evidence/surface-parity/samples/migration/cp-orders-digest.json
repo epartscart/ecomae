@@ -12,9 +12,22 @@
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode contract sample; PHP OMS remains authoritative; cutoverAllowed=false",
-  "orders": [],
-  "count": 0,
+  "note": "migration-mode contract sample; orders[] item-field sentinel locked; PHP OMS remains authoritative; cutoverAllowed=false",
+  "orders": [
+    {
+      "id": 1,
+      "timeUnix": 0,
+      "userId": 9,
+      "status": 0,
+      "paid": 0,
+      "paidType": 0,
+      "officeId": 0,
+      "successfullyCreated": 1,
+      "countItems": 0,
+      "orderSum": 0.0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "dualSampleBaseline": "migration-contract-golden",

@@ -218,6 +218,8 @@ check_file "catalog manufacturers item-field floor evidence" \
   "$ROOT/docs/migration/evidence/catalog-api/manufacturers-item-field-floor.json"
 check_file "catalog list item-field floor evidence" \
   "$ROOT/docs/migration/evidence/catalog-api/list-item-field-floor.json"
+check_file "cp orders item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-orders-item-field-floor.json"
 
 if [[ "$FAIL" -ne 0 ]]; then
   printf 'FAIL: Enterprise BOS scaffold guardrails\n'
