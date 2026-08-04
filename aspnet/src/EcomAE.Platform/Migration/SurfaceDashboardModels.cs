@@ -3009,3 +3009,23 @@ public sealed record CpServerIpDigestResult(
     string Source,
     string Message);
 
+/// <summary>On-premises license digest row — license_key is masked; notes/fingerprint/ip omitted.</summary>
+public sealed record OnPremisesLicenseDigest(
+    long Id,
+    string LicenseKeyPreview,
+    string CustomerName,
+    string Tier,
+    int UsersMax,
+    string Status,
+    string Hostname,
+    long IssuedAt,
+    long ActivatedAt,
+    long LastSeenAt,
+    long ExpiresAt);
+
+public sealed record OnPremisesLicenseListResult(
+    IReadOnlyList<OnPremisesLicenseDigest> Licenses,
+    int Count,
+    string Source,
+    string Message);
+

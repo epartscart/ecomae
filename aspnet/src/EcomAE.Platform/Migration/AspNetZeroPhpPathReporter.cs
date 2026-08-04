@@ -23,12 +23,12 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             Status: "building-toward-zero-php",
             CutoverAllowed: false,
             ReadyForPhpRemoval: false,
-            HonestCompletionPct: 64,
+            HonestCompletionPct: 65,
             Phases: phases,
             NextBuilds:
             [
-                "Dual-sample /erp/on-premises-app + health/activate dry-runs vs PHP on_premises tab / health.php / activate.php.",
-                "On-premises license read digest (omit secrets/notes); ASP.NET Core installer pack (replace deploy/on-premises PHP runtime).",
+                "Dual-sample /erp/on-premises-app + licenses digest + health/activate dry-runs vs PHP.",
+                "ASP.NET Core on-prem installer pack (replace deploy/on-premises PHP runtime).",
                 "Dual-sample marketing legal aliases + remaining PHP legal slugs; brochure-cp scaffold.",
                 "Paired PHP ajax vs ASP.NET write dry-run samples via write-dryrun operator, then promote.",
                 "Capture dual-sample evidence per surface; only then staged exact-route on tenants.",

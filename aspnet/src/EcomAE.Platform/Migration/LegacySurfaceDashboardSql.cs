@@ -2516,5 +2516,22 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// On-premises license registry metadata — never selects notes, fingerprint, ip, or modules_json.
+    /// License keys are masked in the reporter (not returned raw).
+    /// </summary>
+    public const string SelectOnPremisesLicenses = """
+        SELECT `id`, IFNULL(`license_key`, '') AS license_key,
+               IFNULL(`customer_name`, '') AS customer_name, IFNULL(`tier`, '') AS tier,
+               IFNULL(`users_max`, 0) AS users_max, IFNULL(`status`, '') AS status,
+               IFNULL(`hostname`, '') AS hostname,
+               IFNULL(`issued_at`, 0) AS issued_at,
+               IFNULL(`activated_at`, 0) AS activated_at,
+               IFNULL(`last_seen_at`, 0) AS last_seen_at,
+               IFNULL(`expires_at`, 0) AS expires_at
+        FROM `epc_onprem_licenses`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
 
 }

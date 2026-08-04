@@ -57,6 +57,35 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload());
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpOnPremisesLicenses, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for on-premises licenses digest.");
+            }
+
+            var result = await dashboards.ListOnPremisesLicensesAsync(limit ?? 100, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "on-premises",
+                licenses = result.Licenses,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                cutoverAllowed = false,
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+                note = "Read-only epc_onprem_licenses digest. notes/fingerprint/ip omitted; license keys masked. PHP activate/health + registry remain authoritative. Not in surface-digest exact-route allowlist until dual-sample."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpDashboardSummary, async (
             HttpContext context,
             ILegacySessionValidator validator,

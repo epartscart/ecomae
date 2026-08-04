@@ -176,6 +176,9 @@ public sealed class LiveSurfaceLinkReporterTests
             link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/erp/on-premises/license-activate-dry-run");
         Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/on-premises/licenses");
+        Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/marketing/terms");
         Assert.Contains(report.Links, link =>

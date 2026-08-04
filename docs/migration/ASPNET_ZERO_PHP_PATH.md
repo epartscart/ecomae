@@ -27,7 +27,7 @@ PHP ships a **self-hosted ERP option** (`deploy/on-premises/*`, `erp_tabs_on_pre
 | --- | --- | --- |
 | ERP-only SaaS mode | Mode mapping + digests | Keep dual-sampling; no invented cutover |
 | On-premises installer | PHP authoritative | Replace with ASP.NET Core pack later; until then PHP |
-| License/health APIs | Health + activate dry-runs (`POST /erp/on-premises/health-dry-run`, `POST /erp/on-premises/license-activate-dry-run`, writes=0) | PHP activate/health remain authoritative |
+| License/health APIs | Health + activate dry-runs + read digest (`GET /erp/on-premises/licenses`, keys masked) | PHP activate/health/registry remain authoritative |
 | Operator tab | `/erp/on-premises-app` overview scaffold | Dual-sample vs PHP tab before exact-route |
 
 Live board: `GET /migration/on-premises-parity`
@@ -55,6 +55,7 @@ curl -sS -X POST https://www.ecomae.com/erp/on-premises/health-dry-run \
 curl -sS -X POST https://www.ecomae.com/erp/on-premises/license-activate-dry-run \
   -H 'content-type: application/json' \
   -d '{"licenseKey":"LIC-2026-ABCD-EFGH","fingerprint":"fp-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","confirmWrites":false}'
+curl -sS https://www.ecomae.com/erp/on-premises/licenses | jq .
 
 # Marketing ASP.NET scaffold vs live PHP
 curl -sS https://www.ecomae.com/marketing/app
