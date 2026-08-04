@@ -91,9 +91,13 @@ Exporters (OTLP → Prometheus/Grafana/Seq) are not registered in this scaffoldi
 - Scaffold types: `EcomAePollyScaffoldOptions`, `IResiliencePipelineScaffold` (`RegisterPipelines=false`).
 - Do not register pipelines in `Program.cs` until staging policy composition is approved.
 
-## Hybrid UI dual-sample operator helper
+## Dual-sample operator helpers
 
-- `bash scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh`
+- All families: `bash scripts/cloudpanel_run_all_dual_sample_operators.sh`
+- Hybrid UI: `bash scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh`
+- Login cookie (Batch 3): `bash scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh`
+- Catalog miss (Batch 5): `bash scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh`
+- Digest (cookie capture or migration contract-only): `bash scripts/cloudpanel_run_digest_dual_sample_operator.sh`
 - Asserts compare-result keeps `cutoverAllowed=false`.
 
 ## GraphQL / gRPC (not exposed)

@@ -392,6 +392,19 @@ check 'Polly scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform
 check 'Polly scaffold defaults do not register pipelines' contains "$ROOT/aspnet/src/EcomAE.Platform/Resilience/EcomAePollyScaffoldOptions.cs" 'RegisterPipelines'
 check 'hybrid UI dual-sample operator helper exists' test -f "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh"
 check 'hybrid UI dual-sample operator asserts cutover false' contains "$ROOT/scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh" 'cutoverAllowed'
+check 'login-cookie dual-sample operator helper exists' test -f "$ROOT/scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh"
+check 'login-cookie dual-sample operator is executable' test -x "$ROOT/scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh"
+check 'login-cookie dual-sample operator asserts cutover false' contains "$ROOT/scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh" 'cutoverAllowed'
+check 'catalog-miss dual-sample operator helper exists' test -f "$ROOT/scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh"
+check 'catalog-miss dual-sample operator is executable' test -x "$ROOT/scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh"
+check 'catalog-miss dual-sample operator asserts cutover false' contains "$ROOT/scripts/cloudpanel_run_catalog_miss_dual_sample_operator.sh" 'cutoverAllowed'
+check 'digest dual-sample operator helper exists' test -f "$ROOT/scripts/cloudpanel_run_digest_dual_sample_operator.sh"
+check 'digest dual-sample operator is executable' test -x "$ROOT/scripts/cloudpanel_run_digest_dual_sample_operator.sh"
+check 'digest dual-sample operator supports contract-only without cookie' contains "$ROOT/scripts/cloudpanel_run_digest_dual_sample_operator.sh" 'contract-only'
+check 'all dual-sample operators helper exists' test -f "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh"
+check 'all dual-sample operators helper is executable' test -x "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh"
+check 'catalog miss compare skips dry-run report' contains "$ROOT/scripts/compare_catalog_miss_dual_samples.py" 'miss-fill-dry-run-report.json'
+check 'digest compare supports --out result path' contains "$ROOT/scripts/compare_digest_dual_samples.py" '--out'
 check 'YARP storefront digests design example exists' test -f "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json"
 check 'YARP storefront digests design blocks cutover' contains "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" '"cutoverAllowed": false'
 check 'YARP storefront digests routeCount is 4' contains "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" '"routeCount": 4'
@@ -586,6 +599,10 @@ check 'hybrid UI inventory blocks tenant chrome cutover' contains "$ROOT/docs/mi
 check 'deploy packs hybrid UI compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_hybrid_ui_dual_samples.py'
 check 'deploy packs hybrid UI capture' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_capture_hybrid_ui_dual_samples.sh'
 check 'deploy packs hybrid UI dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
+check 'deploy packs login-cookie dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_login_cookie_dual_sample_operator.sh'
+check 'deploy packs catalog-miss dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_catalog_miss_dual_sample_operator.sh'
+check 'deploy packs digest dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_digest_dual_sample_operator.sh'
+check 'deploy packs all dual-sample operators helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_all_dual_sample_operators.sh'
 check 'deploy packs scaffold options example' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ecomae-scaffold-options.example.json'
 check 'deploy packs scaffold options validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_scaffold_options_example.py'
 check 'deploy packs enterprise BOS scaffold guardrails' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_enterprise_bos_scaffold_guardrails.sh'

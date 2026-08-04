@@ -111,6 +111,12 @@ def main() -> int:
         help="Directory containing php-*.json / aspnet-*.json / migration/",
     )
     parser.add_argument("--contract-only", action="store_true", help="Compare field presence only")
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="Optional compare-result JSON path (always cutoverAllowed=false)",
+    )
     args = parser.parse_args()
     samples = Path(args.samples_dir)
     if not samples.is_dir():
@@ -217,8 +223,15 @@ def main() -> int:
         "failed": failed,
         "migrationBaselinePairs": used_migration,
         "cutoverAllowed": False,
+        "readyForPhpRemoval": False,
+        "contractOnly": bool(args.contract_only) or used_migration > 0,
+        "note": "Digest dual-sample contract floor. Never invents RELEASE_OWNER_APPROVAL.md.",
     }
-    print(json.dumps(report))
+    text = json.dumps(report, indent=2) + "\n"
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(text, encoding="utf-8")
+    print(text, end="")
     if pairs == 0:
         print("No dual php-/aspnet- digest sample pairs found (not a failure).")
         print("Capture ASP.NET samples: bash scripts/cloudpanel_capture_digest_dual_samples.sh")
