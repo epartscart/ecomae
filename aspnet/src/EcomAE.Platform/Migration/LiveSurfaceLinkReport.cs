@@ -5,4 +5,6 @@ public sealed record LiveSurfaceLinkReport(
     string PlatformHost,
     IReadOnlyCollection<LiveSurfaceLink> Links,
     IReadOnlyCollection<string> CutoverRules,
-    IReadOnlyCollection<string> NextActions);
+    IReadOnlyCollection<string> NextActions,
+    bool CutoverAllowed = false,
+    bool ReadyForPhpRemoval = false);

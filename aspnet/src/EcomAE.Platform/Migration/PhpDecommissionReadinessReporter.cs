@@ -25,7 +25,9 @@ public sealed record PhpDecommissionReadinessReport(
     IReadOnlyCollection<PhpDecommissionChecklistItem> Checklist,
     IReadOnlyCollection<string> Blockers,
     IReadOnlyCollection<string> RequiredEvidence,
-    IReadOnlyCollection<string> NextActions);
+    IReadOnlyCollection<string> NextActions,
+    bool CutoverAllowed = false,
+    bool ReadyForPhpRemoval = false);
 
 /// <summary>
 /// Tracks the final Zero-PHP gate via an evidence checklist.
@@ -187,7 +189,9 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
                 "Operator rollback command validation",
                 "Release-owner APPROVED_TO_REMOVE_PHP_FALLBACK artifact"
             ],
-            nextActions);
+            nextActions,
+            CutoverAllowed: false,
+            ReadyForPhpRemoval: false);
     }
 
     private bool HasTenantPhpChromeSafetyControls()

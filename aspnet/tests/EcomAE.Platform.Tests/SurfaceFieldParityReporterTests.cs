@@ -14,6 +14,7 @@ public sealed class SurfaceFieldParityReporterTests
         var report = new SurfaceFieldParityReporter().BuildReport();
 
         Assert.False(report.CutoverAllowed);
+        Assert.False(report.ReadyForPhpRemoval);
         Assert.Contains("cutover-blocked", report.Status, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(SurfacePayloadContractCatalog.All.Count, report.ContractCount);
         Assert.True(report.ContractCount >= 40);

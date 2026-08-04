@@ -106,6 +106,8 @@ with open(src, encoding="utf-8") as fh:
         })
 payload = {
     "capturedAtUtc": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+    "cutoverAllowed": False,
+    "readyForPhpRemoval": False,
     "note": "Public probe only. Does not authorize PHP removal or broad cutover.",
     "routes": rows,
 }

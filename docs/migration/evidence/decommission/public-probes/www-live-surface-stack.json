@@ -1,5 +1,7 @@
 {
   "capturedAtUtc": "2026-08-03T05:45:57Z",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "note": "Public probe only. Does not authorize PHP removal or broad cutover.",
   "routes": [
     {

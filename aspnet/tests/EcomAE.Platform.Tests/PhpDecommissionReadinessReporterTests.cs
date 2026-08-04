@@ -16,6 +16,8 @@ public sealed class PhpDecommissionReadinessReporterTests
 
         Assert.Equal("blocked-not-ready-for-php-removal", report.Status);
         Assert.False(report.ReadyToRemovePhp);
+        Assert.False(report.CutoverAllowed);
+        Assert.False(report.ReadyForPhpRemoval);
         Assert.True(report.ChecklistTotalCount >= 10);
         Assert.True(report.BlockerCount >= 1);
         Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "missing");

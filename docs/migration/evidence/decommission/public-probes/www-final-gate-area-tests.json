@@ -1,9 +1,11 @@
 {
   "capturedAtUtc": "2026-08-03T05:45:34Z",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "readyToRemovePhp": false,
   "passed": 20,
   "failed": 0,
   "blocked": 3,
-  "readyToRemovePhp": false,
   "note": "PHP must remain. Loopback staging smoke is attached; public CP/ERP/BOS chrome is still PHP; surface/presentation parity not reached; RELEASE_OWNER_APPROVAL.md absent.",
   "results": [
     {

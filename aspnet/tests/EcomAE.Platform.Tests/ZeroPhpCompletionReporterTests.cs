@@ -17,6 +17,8 @@ public sealed class ZeroPhpCompletionReporterTests
         Assert.Equal(95, report.OverallCompletePercent);
         Assert.Equal(5, report.OverallPendingPercent);
         Assert.Equal("not-ready-for-php-removal", report.Status);
+        Assert.False(report.CutoverAllowed);
+        Assert.False(report.ReadyForPhpRemoval);
         Assert.Contains(report.Areas, area => area.Name == "Foundation, deployment, and diagnostics" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "PHP runtime decommission" && area.CompletePercent == 0 && area.Status == "blocked");
         Assert.Contains(report.Areas, area => area.Name == "Route inventory and cutover ownership" && area.CompletePercent == 100);

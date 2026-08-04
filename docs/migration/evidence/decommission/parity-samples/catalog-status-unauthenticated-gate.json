@@ -1,8 +1,10 @@
 {
+  "capturedAtUtc": "2026-08-03T03:37:22Z",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "route": "/api/v1/catalog/status",
   "legacyPhpEntry": "api/v1/catalog.php?action=status",
   "aspNetRoute": "/api/v1/catalog/status",
-  "capturedAtUtc": "2026-08-03T03:37:22Z",
   "comparison": "loopback-unauthenticated",
   "aspnet": {
     "status": 401,

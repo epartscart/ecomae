@@ -1,5 +1,7 @@
 {
   "status": "catalogued-php-authoritative-except-allowlisted-aspnet",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "platformHost": "www.ecomae.com",
   "links": [
     {
@@ -136,7 +138,7 @@
       "url": "https://www.ecomae.com/migration/surface-field-parity",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/migration/surface-field-parity",
-      "notes": "Field/function contracts for all wired digests \u002B catalog routes."
+      "notes": "Field/function contracts for all wired digests + catalog routes."
     },
     {
       "hostClass": "aspnet-diagnostics",
@@ -244,7 +246,7 @@
     },
     {
       "hostClass": "industry-frontend",
-      "surface": "Home \u0026 living frontend",
+      "surface": "Home & living frontend",
       "url": "https://homeliving.ecomae.com/",
       "stackToday": "php",
       "aspNetRouteHint": "/",
@@ -680,7 +682,7 @@
       "url": "https://www.ecomae.com/api/v1/catalog/status",
       "stackToday": "php-fallback",
       "aspNetRouteHint": "/api/v1/catalog/status",
-      "notes": "Needs exact-route nginx shadow \u002B API key smoke."
+      "notes": "Needs exact-route nginx shadow + API key smoke."
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
@@ -688,7 +690,7 @@
       "url": "https://www.ecomae.com/api/v1/catalog/manufacturers?section=passenger",
       "stackToday": "php-fallback",
       "aspNetRouteHint": "/api/v1/catalog/manufacturers",
-      "notes": "Wave-1 after status; compare_catalog_list_parity.py \u002B nginx-catalog-manufacturers-shadow-example.conf."
+      "notes": "Wave-1 after status; compare_catalog_list_parity.py + nginx-catalog-manufacturers-shadow-example.conf."
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
@@ -800,7 +802,7 @@
       "url": "https://www.ecomae.com/api/v1/catalog/articles",
       "stackToday": "php-fallback",
       "aspNetRouteHint": "/api/v1/catalog/articles",
-      "notes": "UMAPI/cache path; promote after smoke \u002B dual sample."
+      "notes": "UMAPI/cache path; promote after smoke + dual sample."
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
@@ -816,7 +818,7 @@
       "url": "https://www.ecomae.com/api/v1/catalog/brand-parts",
       "stackToday": "php-fallback",
       "aspNetRouteHint": "/api/v1/catalog/brand-parts",
-      "notes": "compare_catalog_brand_parts_parity.py \u002B nginx-catalog-brand-parts-shadow-example.conf."
+      "notes": "compare_catalog_brand_parts_parity.py + nginx-catalog-brand-parts-shadow-example.conf."
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
@@ -824,7 +826,7 @@
       "url": "https://www.ecomae.com/storefront/account-summary",
       "stackToday": "php-fallback",
       "aspNetRouteHint": "/storefront/account-summary",
-      "notes": "Optional customer digest; needs ECOMAE_CUSTOMER_COOKIE_* \u002B nginx-storefront-digests-shadow-example.conf."
+      "notes": "Optional customer digest; needs ECOMAE_CUSTOMER_COOKIE_* + nginx-storefront-digests-shadow-example.conf."
     },
     {
       "hostClass": "aspnet-digest-pending-shadow",
@@ -855,16 +857,16 @@
     "Broad /, /api, /cp, /erp, /bos, storefront nginx cutover remains forbidden.",
     "Only approved location = exact-route shadows may be enabled after staging smoke.",
     "Keep MigrationRouteCutover StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final gate.",
-    "ReadyToRemovePhp stays false without staging-smoke artifacts \u002B RELEASE_OWNER_APPROVAL.md."
+    "ReadyToRemovePhp stays false without staging-smoke artifacts + RELEASE_OWNER_APPROVAL.md."
   ],
   "nextActions": [
-    "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh \u2014 then apply DDL (clpctl) or use_php_dp_config_as_tenant_registry.sh if CREATE denied.",
+    "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh — then apply DDL (clpctl) or use_php_dp_config_as_tenant_registry.sh if CREATE denied.",
     "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
     "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
     "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh (or bash scripts/cloudpanel_prepare_smoke_secrets.sh).",
-    "source /etc/ecomae-aspnet/platform.env \u0026\u0026 bash scripts/cloudpanel_capture_final_gate_artifacts.sh \u0026\u0026 bash scripts/cloudpanel_commit_final_gate_smoke.sh",
-    "Optional storefront digests: set ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=\u003Cdigits\u003E (not required for ReadyToRemovePhp).",
+    "source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh",
+    "Optional storefront digests: set ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits> (not required for ReadyToRemovePhp).",
     "Extract one path: bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status (then manufacturers via nginx-catalog-*-shadow-example.conf).",
-    "Dual-sample: python3 scripts/compare_catalog_list_parity.py manufacturers php.json aspnet.json \u2014 then human APPROVED_TO_REMOVE_PHP_FALLBACK."
+    "Dual-sample: python3 scripts/compare_catalog_list_parity.py manufacturers php.json aspnet.json — then human APPROVED_TO_REMOVE_PHP_FALLBACK."
   ]
 }

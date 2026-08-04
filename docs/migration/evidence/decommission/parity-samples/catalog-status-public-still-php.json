@@ -1,8 +1,10 @@
 {
+  "capturedAtUtc": "2026-08-02T18:35:32Z",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "route": "/api/v1/catalog/status",
   "legacyPhpEntry": "api/v1/catalog.php?action=status",
   "aspNetRoute": "/api/v1/catalog/status",
-  "capturedAtUtc": "2026-08-02T18:35:32Z",
   "comparison": "public-unauthenticated",
   "publicHost": {
     "status": 404,

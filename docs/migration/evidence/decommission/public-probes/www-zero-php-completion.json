@@ -1,7 +1,9 @@
 {
+  "status": "not-ready-for-php-removal",
   "overallCompletePercent": 95,
   "overallPendingPercent": 5,
-  "status": "not-ready-for-php-removal",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "areas": [
     {
       "name": "Foundation, deployment, and diagnostics",
@@ -86,6 +88,6 @@
     "Optional: ECOMAE_CUSTOMER_COOKIE_HEADER for storefront digests (not required for ReadyToRemovePhp).",
     "Promote one location = shadow at a time; compare_catalog_status_parity.py / compare_catalog_list_parity.py before more catalog paths.",
     "Follow ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md for EF Core/PG17/YARP/OTel tracks without broad cutover.",
-    "The remaining 5% is PHP runtime decommission only \u2014 obtain human RELEASE_OWNER_APPROVAL.md (APPROVED_TO_REMOVE_PHP_FALLBACK); do not invent approval or remove PHP."
+    "The remaining 5% is PHP runtime decommission only — obtain human RELEASE_OWNER_APPROVAL.md (APPROVED_TO_REMOVE_PHP_FALLBACK); do not invent approval or remove PHP."
   ]
 }
