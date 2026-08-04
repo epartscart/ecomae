@@ -3,7 +3,7 @@
   "stem": "sf-cart",
   "surface": "storefront",
   "appRoute": "/storefront/cart-app",
-  "digestRoute": null,
+  "digestRoute": "/storefront/cart",
   "phpAuthoritativePath": "https://epartscart.com/shop/cart",
   "blazorMarker": "StorefrontCartApp",
   "chromeShell": "PhpStorefrontDesktopChrome",

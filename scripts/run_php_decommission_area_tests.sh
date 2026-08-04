@@ -189,21 +189,32 @@ for path in "${DIGEST_ROUTES[@]}"; do
   fi
 done
 
-# Storefront digest exact-routes (4/4) expect ASP.NET 401 unauthorized JSON (customer cookie for 200).
+# Storefront digest exact-routes (wired 6; live may still be 4/6 until search/cart shadows install).
+# Expect ASP.NET 401 unauthorized JSON (customer cookie for 200) when shadow is live.
 mapfile -t SF_ROUTES < <(grep -E '^location = /storefront/' "$ROOT/deploy/aspnet/nginx-storefront-digests-shadow-example.conf" | sed -E 's/^location = ([^ {]+).*/\1/')
-if [[ "${#SF_ROUTES[@]}" -ne 4 ]]; then
-  record "storefront-digest-route-inventory" fail "expected 4 storefront digest routes, found ${#SF_ROUTES[@]}"
+if [[ "${#SF_ROUTES[@]}" -ne 6 ]]; then
+  record "storefront-digest-route-inventory" fail "expected 6 storefront digest routes, found ${#SF_ROUTES[@]}"
 else
-  record "storefront-digest-route-inventory" pass "4 storefront digest exact-routes in shadow example"
+  record "storefront-digest-route-inventory" pass "6 storefront digest exact-routes in shadow example"
 fi
+SF_LIVE_PASS=0
 for path in "${SF_ROUTES[@]}"; do
   code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"
   if [[ "$code" == "401" ]] && grep -qE '"unauthorized"|unauthorized' /tmp/area.body && ! grep -qi '<html\|<!doctype' /tmp/area.body; then
     record "public${path}-exact-route" pass "ASP.NET storefront digest exact-route shadow (401 unauthorized without customer cookie)"
+    SF_LIVE_PASS=$((SF_LIVE_PASS + 1))
+  elif [[ "$path" == "/storefront/search" || "$path" == "/storefront/cart" ]]; then
+    # Newly wired digests: design allowlist includes them before public nginx shadow install.
+    record "public${path}-exact-route" blocked "wired awaiting storefront digest shadow install (HTTP $code)"
   else
     record "public${path}-exact-route" fail "expected ASP.NET 401 unauthorized (HTTP $code)"
   fi
 done
+if [[ "$SF_LIVE_PASS" -ge 4 ]]; then
+  record "storefront-digest-live-floor" pass "storefront digests live ${SF_LIVE_PASS}/6 (wired 6)"
+else
+  record "storefront-digest-live-floor" fail "expected at least 4/6 live storefront digests, found ${SF_LIVE_PASS}"
+fi
 
 # Blazor SSR Zero-PHP console (served under existing /migration proxy after redeploy)
 code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' https://www.ecomae.com/migration/console || echo 000)"

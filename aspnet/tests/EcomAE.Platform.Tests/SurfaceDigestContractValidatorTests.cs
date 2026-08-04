@@ -160,6 +160,31 @@ public sealed class SurfaceDigestContractValidatorTests
                 message = "x",
                 session = new { kind = "Customer", user_id = 9, email = "c@example.com", group_ids = Array.Empty<int>(), capabilities = new[] { "storefront_account" }, permissions = Array.Empty<string>() },
                 note = "contract validation"
+            },
+            ["/storefront/search"] = new
+            {
+                ok = true,
+                surface = "storefront",
+                article = "0986424590",
+                rows = (await reporter.SearchStorefrontPartsAsync("0986424590", 10)).Rows,
+                count = 0,
+                source = "migration",
+                message = "x",
+                session = new { kind = "Customer", user_id = 9, email = "c@example.com", group_ids = Array.Empty<int>(), capabilities = new[] { "storefront_account" }, permissions = Array.Empty<string>() },
+                note = "contract validation"
+            },
+            ["/storefront/cart"] = new
+            {
+                ok = true,
+                surface = "storefront",
+                user_id = 9,
+                summary = (await reporter.ListStorefrontCartAsync(9, 10)).Summary,
+                lines = (await reporter.ListStorefrontCartAsync(9, 10)).Lines,
+                count = 0,
+                source = "migration",
+                message = "x",
+                session = new { kind = "Customer", user_id = 9, email = "c@example.com", group_ids = Array.Empty<int>(), capabilities = new[] { "storefront_account" }, permissions = Array.Empty<string>() },
+                note = "contract validation"
             }
         };
 
@@ -245,7 +270,7 @@ public sealed class SurfaceDigestContractValidatorTests
             ["/api/v1/catalog/article"] = """{"ok":true,"action":"article","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
             ["/api/v1/catalog/articles"] = """{"ok":true,"action":"articles","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
             ["/api/v1/catalog/engine"] = """{"ok":true,"action":"engine","section":"passenger","rows":0,"source":"migration","stale":true,"data":{}}""",
-            ["/api/v1/catalog/vin"] = """{"ok":true,"source":"migration","stale":true,"vin":"WBAXG1103CDW29096","language":"en","region":"WWW","vehicle_count":0,"payload":{}}""",
+            ["/api/v1/catalog/vin"] = """{"ok":true,"source":"migration","stale":true,"cached_at":null,"vin":"WBAXG1103CDW29096","language":"en","region":"WWW","vehicle_count":0,"manufacturer":"","model_label":"","payload":{}}""",
             ["/api/v1/catalog/brand-parts"] = """{"ok":true,"brand":"BOSCH","rows":0,"source":"migration","data":[],"message":"x"}"""
         };
 

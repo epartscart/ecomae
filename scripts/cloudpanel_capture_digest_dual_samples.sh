@@ -67,6 +67,8 @@ declare -A ROUTES=(
   [storefront-orders]="/storefront/orders?limit=5"
   [storefront-garage]="/storefront/garage?limit=5"
   [storefront-profile]="/storefront/profile"
+  [storefront-search]="/storefront/search?article=0986424590&limit=5"
+  [storefront-cart]="/storefront/cart?limit=5"
 )
 
 capture() {

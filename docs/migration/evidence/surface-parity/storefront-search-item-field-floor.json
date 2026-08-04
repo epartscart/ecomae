@@ -1,0 +1,22 @@
+{
+  "role": "storefront-search-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "storefront-search",
+  "collectionKey": "rows",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredItemFields": [
+    "priceId",
+    "priceList",
+    "manufacturer",
+    "article",
+    "articleShow",
+    "name",
+    "price",
+    "exist",
+    "storage"
+  ],
+  "source": "StorefrontPartOfferDigest",
+  "note": "Storefront search digest locks non-empty rows[] item-field sentinel. PHP /shop/part_search tabs/VIN/cart remain authoritative. Never invents RELEASE_OWNER_APPROVAL.md."
+}

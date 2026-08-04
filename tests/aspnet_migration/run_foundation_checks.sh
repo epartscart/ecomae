@@ -412,7 +412,7 @@ check 'catalog miss compare skips dry-run report' contains "$ROOT/scripts/compar
 check 'digest compare supports --out result path' contains "$ROOT/scripts/compare_digest_dual_samples.py" '--out'
 check 'YARP storefront digests design example exists' test -f "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json"
 check 'YARP storefront digests design blocks cutover' contains "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" '"cutoverAllowed": false'
-check 'YARP storefront digests routeCount is 4' contains "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" '"routeCount": 4'
+check 'YARP storefront digests routeCount is 6' contains "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" '"routeCount": 6'
 check 'YARP catalog-api design example exists' test -f "$ROOT/deploy/aspnet/yarp-catalog-api-example.json"
 check 'YARP catalog-api design blocks cutover' contains "$ROOT/deploy/aspnet/yarp-catalog-api-example.json" '"cutoverAllowed": false'
 check 'YARP catalog-api design blocks PHP removal' contains "$ROOT/deploy/aspnet/yarp-catalog-api-example.json" '"readyForPhpRemoval": false'
@@ -444,7 +444,7 @@ check 'cp menus item-field floor omits raw structure' contains "$ROOT/docs/migra
 check 'cp menus item-field floor requires nodeCount' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"nodeCount"'
 check 'list digest item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json"
 check 'list digest item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"cutoverAllowed": false'
-check 'list digest item-field floor tracks 25 stems' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"listStemCount": 25'
+check 'list digest item-field floor tracks 26 stems' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"listStemCount": 26'
 check 'list digest item-field floor requires nonempty sentinels' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"requireNonemptyMigrationSentinel": true'
 check 'digest dual-sample locks all list item fields' python3 -c 'from pathlib import Path; t=Path("scripts/compare_digest_dual_samples.py").read_text(); assert "LIST_NONEMPTY_MIGRATION = frozenset(LIST_ITEM_FIELDS)" in t'
 check 'cp tenants migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-tenants.json" '"siteKey": "www"'
@@ -487,11 +487,11 @@ check 'module-function coverage consistency matches 725' contains "$ROOT/docs/mi
 check 'module-function coverage consistency blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"cutoverAllowed": false'
 check 'surface-field operator rebuilds php catalog coverage board' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'build_surface_field_catalog_coverage_board.py'
 check 'surface-field operator floors contracts at 54' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'expected >=54'
-check 'surface-field board contractCount is 54' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 54'
+check 'surface-field board contractCount is 56' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 56'
 check 'surface-field board includes orders-digest' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"/cp/orders-digest"'
 check 'PhpModuleCatalog rejects aspnet preview deeplinks' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'IsAllowedPhpDeeplink'
 check 'surface-digest exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json"
-check 'surface-digest exact-route inventory routeCount is 35' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"routeCount": 35'
+check 'surface-digest exact-route inventory routeCount is 37' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"routeCount": 37'
 check 'surface-digest exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"cutoverAllowed": false'
 check 'surface digest allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_surface_digest_allowlist_sync.py" 'surface-digest-exact-routes.json'
 check 'live surface probe references surface-digest inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'surface-parity/surface-digest-exact-routes.json'
@@ -564,7 +564,7 @@ check 'migration digest generator includes cp-orders-digest' contains "$ROOT/scr
 check 'digest dual-sample contracts cover full allowlist' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'storefront-profile'
 check 'digest dual-sample capture covers cp-users' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'cp-users'
 check 'digest dual-sample capture covers storefront-profile' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'storefront-profile'
-check 'digest compare-result reports 35 contracts' contains "$ROOT/docs/migration/evidence/surface-parity/digest-compare-result.json" '"contractsRegistered": 35'
+check 'digest compare-result reports 37 contracts' contains "$ROOT/docs/migration/evidence/surface-parity/digest-compare-result.json" '"contractsRegistered": 37'
 check 'enterprise BOS scaffold guardrails script exists' test -f "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
 check 'enterprise BOS scaffold guardrails is executable' test -x "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
 check 'enterprise BOS scaffold guardrails pass' bash "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
@@ -697,7 +697,7 @@ check 'deploy packs surface digest batch probe' contains "$ROOT/scripts/deploy_a
 check 'storefront digest batch installer exists' test -x "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh"
 check 'storefront digest batch probe exists' test -x "$ROOT/scripts/cloudpanel_probe_storefront_digest_shadows.sh"
 check 'storefront digest batch installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh" 'ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS'
-check 'storefront digest batch installer expects 4 routes' contains "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh" 'expected 4 storefront digest locations'
+check 'storefront digest batch installer expects 6 routes' contains "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh" 'expected 6 storefront digest locations'
 check 'deploy packs storefront digest batch installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_storefront_digest_shadows.sh'
 check 'deploy packs storefront digest batch probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_storefront_digest_shadows.sh'
 check 'digest dual-sample capture helper exists' test -x "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh"
@@ -973,6 +973,16 @@ check 'digest dual-sample locks bos-fleet-health sampleTenants' contains "$ROOT/
 check 'bos fleet-health sampleTenants floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/bos-fleet-health-sample-tenants-floor.json"
 check 'bos fleet-health sampleTenants floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/bos-fleet-health-sample-tenants-floor.json" '"cutoverAllowed": false'
 check 'bos fleet-health migration golden has sample tenant sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/bos-fleet-health.json" '"siteKey": "www"'
+check 'storefront search item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/storefront-search-item-field-floor.json"
+check 'storefront search item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/storefront-search-item-field-floor.json" '"cutoverAllowed": false'
+check 'storefront search migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/storefront-search.json" '"articleShow": "0 986 424 590"'
+check 'storefront cart item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/storefront-cart-item-field-floor.json"
+check 'storefront cart item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/storefront-cart-item-field-floor.json" '"cutoverAllowed": false'
+check 'storefront cart migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/storefront-cart.json" '"countNeed": 1.0'
+check 'digest dual-sample locks storefront-search list items' contains "$ROOT/scripts/compare_digest_dual_samples.py" '"storefront-search"'
+check 'digest dual-sample locks storefront-cart hybrid list items' contains "$ROOT/scripts/compare_digest_dual_samples.py" '"storefront-cart"'
+check 'storefront search digest route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'StorefrontSearch ='
+check 'storefront cart digest route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'StorefrontCart ='
 check 'catalog manufacturers contract requires MFA_ID' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'MFA_ID'
 check 'catalog manufacturers migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-manufacturers.json" '"MFA_ID": 1'
 check 'catalog api contract floor locks manufacturer item fields' contains "$ROOT/scripts/compare_catalog_api_contract_floor.py" 'LIST_ITEM_FIELDS'
@@ -995,8 +1005,8 @@ check 'orders digest migration golden exists' test -f "$ROOT/docs/migration/evid
 check 'digest dual compare accepts migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migrationBaselinePairs'
 check 'digest dual compare detects seeded migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migration-contract-golden'
 check 'digest dual capture cleans seeded php baselines' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'CLEAN seeded baseline'
-check 'progress status reports storefront digests 4/4' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" '4 / 4'
-check 'progress json reports storefrontDigestExactRoutesLive 4' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" '"storefrontDigestExactRoutesLive": 4'
+check 'progress status reports storefront digests 4/6' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" '4 / 6'
+check 'progress json reports storefrontDigestExactRoutesWired 6' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" '"storefrontDigestExactRoutesWired": 6'
 check 'pre-PHP-removal parity verdict helper exists' test -x "$ROOT/scripts/verify_pre_php_removal_parity.sh"
 check 'pre-PHP-removal verdict never removes PHP' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'NEVER removes PHP'
 check 'pre-PHP-removal verdict skips nested heavy area suite' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'ECOMAE_AREA_SKIP_HEAVY=1'
@@ -1136,7 +1146,7 @@ check 'public decommission probes attached' test -f "$ROOT/docs/migration/eviden
 check 'public decommission readiness probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
 check 'surface field parity public probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json"
 check 'surface field parity probe tracks catalog vin contract' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '/api/v1/catalog/vin'
-check 'surface field parity probe contractCount is current' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"contractCount": 54'
+check 'surface field parity probe contractCount is current' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"contractCount": 56'
 check 'surface field parity probe includes orders-digest' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"/cp/orders-digest"'
 check 'live surface links probe includes field parity route' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/migration/surface-field-parity'
 check 'live surface links probe includes catalog brand-parts' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/api/v1/catalog/brand-parts'

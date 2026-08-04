@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "surface": "storefront",
+  "user_id": 9,
+  "summary": {
+    "count": 1,
+    "sum": 0.0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "lines": [
+    {
+      "id": 1,
+      "price": 0.0,
+      "countNeed": 1.0,
+      "checkedForOrder": false,
+      "productType": 1,
+      "manufacturer": "BOSCH",
+      "article": "0986424590",
+      "name": "Migration cart line",
+      "timeToExe": "0",
+      "timeToExeGuaranteed": "0",
+      "minOrder": 1.0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "session": {
+    "kind": "Customer",
+    "user_id": 9
+  },
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "migration-mode contract sample; lines[] item-field sentinel locked; qty/guest/checkout remain PHP; cutoverAllowed=false"
+}

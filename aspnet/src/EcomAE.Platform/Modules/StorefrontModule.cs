@@ -171,6 +171,64 @@ public sealed class StorefrontModule : ISurfaceModule
                 note = "Read-only users/users_profiles digest. PHP DP_User::getUserProfile remains authoritative."
             });
         });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontSearch, async (
+            HttpContext context,
+            string? article,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer)
+            {
+                return Unauthorized("Customer session required for storefront search digest.");
+            }
+
+            var result = await dashboards.SearchStorefrontPartsAsync(article ?? string.Empty, limit ?? 25, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "storefront",
+                article = result.Article,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only warehouse offer digest (pyapi SQL parity). PHP /shop/part_search tabs/VIN/cart remain authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontCart, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for storefront cart digest.");
+            }
+
+            var result = await dashboards.ListStorefrontCartAsync(session.UserId, limit ?? 50, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "storefront",
+                user_id = result.UserId,
+                summary = result.Summary,
+                lines = result.Lines,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only authenticated shop_carts digest. Qty/guest cart/checkout writes remain PHP /shop/cart."
+            });
+        });
     }
 
     private static IResult Unauthorized(string message) => Results.Json(

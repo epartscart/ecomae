@@ -1,0 +1,25 @@
+{
+  "role": "storefront-cart-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "storefront-cart",
+  "collectionKey": "lines",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": ["count", "sum", "source", "message"],
+  "requiredItemFields": [
+    "id",
+    "price",
+    "countNeed",
+    "checkedForOrder",
+    "productType",
+    "manufacturer",
+    "article",
+    "name",
+    "timeToExe",
+    "timeToExeGuaranteed",
+    "minOrder"
+  ],
+  "source": "StorefrontCartLineDigest + StorefrontCartSummary",
+  "note": "Storefront cart digest keeps cart summary fields plus a non-empty lines[] item-field sentinel. Qty/guest cart/checkout writes remain PHP. Never invents RELEASE_OWNER_APPROVAL.md."
+}

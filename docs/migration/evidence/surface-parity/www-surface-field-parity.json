@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 54,
+  "contractCount": 56,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -1056,6 +1056,69 @@
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
+      "surface": "storefront",
+      "aspNetRoute": "/storefront/search",
+      "legacyPhpAuthority": "shop/part_search warehouse offers",
+      "authRequired": "customer",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "article",
+        "rows",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "priceId",
+        "priceList",
+        "manufacturer",
+        "article",
+        "articleShow",
+        "name",
+        "price",
+        "exist",
+        "storage"
+      ],
+      "functionsCovered": [
+        "warehouse offer search digest"
+      ],
+      "presentationChrome": "templates/modex/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "storefront",
+      "aspNetRoute": "/storefront/cart",
+      "legacyPhpAuthority": "shop_carts authenticated",
+      "authRequired": "customer",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "user_id",
+        "summary",
+        "lines",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "count",
+        "sum",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "authenticated cart summary\u002Blines digest",
+        "qty/guest/checkout writes remain PHP"
+      ],
+      "presentationChrome": "templates/modex/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
       "surface": "api",
       "aspNetRoute": "/api/v1/price/lookup",
       "legacyPhpAuthority": "api/v1/price/lookup.php",
@@ -1790,24 +1853,24 @@
     },
     {
       "surface": "storefront",
-      "phpFunctionOrEntry": "account/orders/garage/profile",
-      "aspNetRouteOrCapability": "/storefront/account-summary|/storefront/orders|/storefront/garage|/storefront/profile",
+      "phpFunctionOrEntry": "account/orders/garage/profile/search/cart",
+      "aspNetRouteOrCapability": "/storefront/account-summary|/storefront/orders|/storefront/garage|/storefront/profile|/storefront/search|/storefront/cart",
       "status": "digest-wired-awaiting-dual-sample",
-      "notes": "Customer session digests; PHP account remains authoritative."
+      "notes": "Customer session digests; PHP account/part_search/cart remain authoritative."
     },
     {
       "surface": "storefront",
       "phpFunctionOrEntry": "part_search Blazor results",
       "aspNetRouteOrCapability": "/storefront/search-app",
       "status": "digest-wired-awaiting-dual-sample",
-      "notes": "Batch 4 read-only warehouse offers (pyapi SQL parity); full PHP part_search tabs/cart remain authoritative."
+      "notes": "Read UI over /storefront/search digest (warehouse offers); full PHP part_search tabs/VIN/cart remain authoritative."
     },
     {
       "surface": "storefront",
       "phpFunctionOrEntry": "cart Blazor summary",
       "aspNetRouteOrCapability": "/storefront/cart-app",
       "status": "digest-wired-awaiting-dual-sample",
-      "notes": "Batch 4 authenticated shop_carts read UI; qty/guest cart/checkout writes remain PHP."
+      "notes": "Read UI over /storefront/cart digest; qty/guest cart/checkout writes remain PHP."
     },
     {
       "surface": "storefront",
