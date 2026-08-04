@@ -2,7 +2,7 @@
 
 Authoritative product chrome remains **PHP** until intentional exact-route cutover + dual-sample evidence + human `RELEASE_OWNER_APPROVAL.md`. This matrix tracks hybrid strengthen work so CP (platform + tenants), ERP, BOS, and login present/work without removing PHP.
 
-**Same-to-same / absolute presentation lock:** epartscart, electronicae, stylenlook, thejewellerytrend, taxofinca must keep storefront + CP + ERP **identical to PHP** (theme, colour, structure, fonts, hero/splash, fields). Digests/Blazor previews on www never replace live tenant UX. Verify: `bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh`. Catalog: `GET /migration/live-tenant-presentation-lock`.
+**Same-to-same parity gate (target 100% ASP.NET / 0 PHP):** epartscart, electronicae, stylenlook, thejewellerytrend, taxofinca stay PHP-primary until ASP.NET matches PHP (theme, colour, structure, fonts, hero/splash, fields) via dual-sample, then exact-route cutover. Unlock: `ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES`. Verify: `bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh`. Catalog: `GET /migration/live-tenant-presentation-lock`. Path: `GET /migration/aspnet-zero-php-path`.
 
 **Full parity plan:** `docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md` — Batch 0 ships complete PHP-sourced module directories on `/cp|/erp|/bos|/storefront/app` (`GET /migration/php-module-catalog`).
 

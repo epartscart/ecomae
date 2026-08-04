@@ -42,11 +42,13 @@ public sealed class EcomaeMarketingPagesTests
     public void MarketingPresentationLockForbidsCutover()
     {
         var report = new MarketingPresentationLockReporter().BuildReport();
-        Assert.Equal("php-authoritative", report.Status);
+        Assert.Contains("parity-gate", report.Status, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("100%-aspnet-core-0-php", report.TargetEndState);
         Assert.False(report.CutoverAllowed);
         Assert.False(report.ReadyForPhpRemoval);
         Assert.Equal("/marketing/app", report.AspNetPreviewRoute);
         Assert.Contains(report.RequiredLiveMarkers, m => m.Contains("epm-hub", StringComparison.Ordinal));
+        Assert.NotEmpty(report.UnlockCriteria);
         Assert.True(report.MarketingPageFloor >= 30);
     }
 

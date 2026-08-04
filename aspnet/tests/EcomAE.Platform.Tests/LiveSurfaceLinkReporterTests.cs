@@ -511,12 +511,15 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_live_tenant_php_chrome.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("TENANT_MIGRATION_SAFETY.md", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action =>
-            action.Contains("HARD-REFUSE", StringComparison.OrdinalIgnoreCase)
-            || action.Contains("LIVE LOCK", StringComparison.OrdinalIgnoreCase)
-            || action.Contains("named live tenants", StringComparison.OrdinalIgnoreCase));
+            action.Contains("ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW", StringComparison.Ordinal)
+            || action.Contains("named live tenants", StringComparison.OrdinalIgnoreCase)
+            || action.Contains("aspnet-zero-php-path", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link =>
             link.AspNetRouteHint == "/migration/live-tenant-presentation-lock");
-        Assert.Contains(report.CutoverRules, note => note.Contains("ABSOLUTE PRESENTATION LOCK", StringComparison.Ordinal));
+        Assert.Contains(report.Links, link =>
+            link.AspNetRouteHint == "/migration/aspnet-zero-php-path");
+        Assert.Contains(report.CutoverRules, note => note.Contains("PARITY GATE", StringComparison.Ordinal)
+            && note.Contains("100% ASP.NET", StringComparison.Ordinal));
     }
 
     [Fact]

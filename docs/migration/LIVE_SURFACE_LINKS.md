@@ -30,7 +30,7 @@ Evidence:
 
 | Surface | Live URL | Stack today |
 | --- | --- | --- |
-| Frontend / marketing | https://www.ecomae.com/ | PHP (animated `epm-hub` authoritative) |
+| Frontend / marketing | https://www.ecomae.com/ | PHP-primary until ASP.NET `/marketing/app` cutover (`epm-hub`) |
 | Control Panel | https://www.ecomae.com/CP/ | PHP |
 | Control Panel alias | https://www.ecomae.com/cp/ | PHP |
 | ERP | https://www.ecomae.com/ERP/ | PHP |
@@ -51,7 +51,8 @@ Evidence:
 | Live surface links | https://www.ecomae.com/migration/live-surface-links | JSON |
 | Presentation parity | https://www.ecomae.com/migration/presentation-parity | JSON |
 | CP / ERP / BOS / storefront / marketing shells | `/cp/app` · `/erp/app` · `/bos/app` · `/storefront/app` · `/marketing/app` | Hybrid preview (not cutover) |
-| Marketing presentation lock | https://www.ecomae.com/migration/marketing-presentation-lock | JSON — live `/` stays PHP |
+| Marketing presentation lock | https://www.ecomae.com/migration/marketing-presentation-lock | Parity gate — target ASP.NET; live `/` PHP-primary until cutover |
+| ASP.NET zero-PHP path | https://www.ecomae.com/migration/aspnet-zero-php-path | Phase board toward 100% ASP.NET / 0 PHP |
 | Sample apps live | `/cp/users-app`, `/cp/groups-app`, `/cp/orders`, `/erp/sales-orders-app`, BOS fleet apps, storefront search/cart apps | Exact-route shadows |
 | Price lookup API | https://www.ecomae.com/api/v1/price/lookup | Allowlisted |
 

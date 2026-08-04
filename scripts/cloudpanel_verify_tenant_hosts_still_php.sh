@@ -16,13 +16,13 @@ mkdir -p "$OUT_DIR"
 
 say() { printf '%s\n' "$*"; }
 
-say "== Same-to-same tenant verify (invisible PHP→ASP.NET migration) =="
-say "Law: frontend / CP / ERP / BOS / storefront product chrome stays PHP until"
-say "     dual-sample evidence + human RELEASE_OWNER_APPROVAL.md."
-say "ABSOLUTE PRESENTATION LOCK (named live tenants):"
+say "== Same-to-same tenant verify (parity gate → 100% ASP.NET / 0 PHP) =="
+say "TARGET: ASP.NET Core owns all traffic; PHP removed after dual-sample + approval."
+say "INTERIM: named live tenants stay PHP-primary until same-to-same evidence."
+say "Unlock parity shadows: ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES"
 say "  epartscart / electronicae / stylenlook / thejewellerytrend / taxofinca"
-say "  → theme/colour/structure/fonts/hero/fields identical to PHP; no ASP.NET hybrid."
-say "Digests and /cp|/erp|/bos|/storefront/app previews must NEVER replace tenant UX."
+say "  → theme/colour/structure/fonts/hero/fields must match PHP during cutover."
+say "Path board: GET /migration/aspnet-zero-php-path"
 say ""
 
 fail=0

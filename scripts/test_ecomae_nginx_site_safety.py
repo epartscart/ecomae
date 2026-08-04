@@ -47,7 +47,8 @@ class NginxSiteSafetyTests(unittest.TestCase):
                 confirm_tenant="",
             )
 
-    def test_live_tenant_exact_route_hard_refuse_even_with_confirm(self):
+    def test_live_tenant_exact_route_refuses_generic_confirm(self):
+        """Named live tenants ignore ECOMAE_CONFIRM_TENANT_HOST_SHADOW alone."""
         for conf in (
             "/etc/nginx/sites-enabled/epartscart.com.conf",
             "/etc/nginx/sites-enabled/www.electronicae.com.conf",
@@ -62,7 +63,17 @@ class NginxSiteSafetyTests(unittest.TestCase):
                     confirm_tenant="YES",
                 )
 
-    def test_live_tenant_presentation_hard_refuse_even_with_confirm(self):
+    def test_live_tenant_exact_route_allows_parity_confirm(self):
+        import os
+
+        conf = "/etc/nginx/sites-enabled/epartscart.com.conf"
+        os.environ["ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW"] = "YES"
+        try:
+            self.m.assert_shadow_target_allowed(conf, purpose="exact-route", confirm_tenant="")
+        finally:
+            os.environ.pop("ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW", None)
+
+    def test_live_tenant_presentation_refuses_generic_confirm(self):
         with self.assertRaises(SystemExit):
             self.m.assert_shadow_target_allowed(
                 "/etc/nginx/sites-enabled/epartscart.com.conf",
@@ -70,12 +81,19 @@ class NginxSiteSafetyTests(unittest.TestCase):
                 confirm_tenant="YES",
                 confirm_tenant_presentation="YES",
             )
-        with self.assertRaises(SystemExit):
+
+    def test_live_tenant_presentation_allows_parity_confirm(self):
+        import os
+
+        os.environ["ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW"] = "YES"
+        try:
             self.m.assert_shadow_target_allowed(
                 "/etc/nginx/sites-enabled/www.taxofinca.com.conf",
                 purpose="presentation",
-                confirm_tenant_presentation="YES",
+                confirm_tenant_presentation="",
             )
+        finally:
+            os.environ.pop("ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW", None)
 
     def test_live_production_hosts_listed(self):
         hosts = {h.lower() for h in self.m.LIVE_PRODUCTION_TENANT_HOSTS}

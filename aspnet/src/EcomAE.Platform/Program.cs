@@ -127,6 +127,7 @@ builder.Services.AddSingleton<IZeroPhpCompletionReporter, ZeroPhpCompletionRepor
 builder.Services.AddSingleton<IPhpDecommissionReadinessReporter, PhpDecommissionReadinessReporter>();
 builder.Services.AddSingleton<ILiveSurfaceLinkReporter, LiveSurfaceLinkReporter>();
 builder.Services.AddSingleton<IMarketingPresentationLockReporter, MarketingPresentationLockReporter>();
+builder.Services.AddSingleton<IAspNetZeroPhpPathReporter, AspNetZeroPhpPathReporter>();
 builder.Services.AddSingleton<ISurfaceFieldParityReporter, SurfaceFieldParityReporter>();
 builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryReporter>();
 builder.Services.AddSingleton<IPlatformJobsSummaryReporter, PlatformJobsSummaryReporter>();
@@ -218,6 +219,8 @@ app.MapGet(EcomAeRoutes.PhpModuleCatalog, () => Results.Ok(PhpModuleCatalog.Buil
 app.MapGet(EcomAeRoutes.LiveSurfaceLinks, (ILiveSurfaceLinkReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.LiveTenantPresentationLock, () => Results.Ok(LiveTenantPresentationLock.BuildSummary()));
+
+app.MapGet(EcomAeRoutes.AspNetZeroPhpPath, (IAspNetZeroPhpPathReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.MarketingPresentationLock, (IMarketingPresentationLockReporter reporter) => Results.Ok(reporter.BuildReport()));
 

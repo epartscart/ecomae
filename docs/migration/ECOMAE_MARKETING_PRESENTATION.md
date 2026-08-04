@@ -1,39 +1,30 @@
-# ecomae.com marketing presentation (PHP ↔ ASP.NET)
+# ecomae.com marketing → ASP.NET (parity path)
 
-**Hard law:** Live `https://www.ecomae.com/` and all marketing pages stay **PHP** until dual-sample evidence + human `RELEASE_OWNER_APPROVAL.md`. Never broad `location /` cutover.
+**Target:** ASP.NET Core serves all marketing pages (including animated `epm-hub`); PHP removed.
 
-## Authoritative PHP stack
+**Interim:** Live `https://www.ecomae.com/` stays PHP-primary until `/marketing/app` dual-samples same-to-same. That is a **parity gate**, not a permanent ban. Never broad `location /` without approval.
+
+## PHP sources (until cutover)
 
 | Piece | Path |
 | --- | --- |
 | Entry | `index.php` → `epc_render_ecomae_marketing_home_and_exit()` |
 | Router | `content/general_pages/epc_ecomae_platform_router.php` |
-| Animated hero | `epc_ecomae_platform_hub()` in `epc_ecomae_platform_layout.php` |
-| Shared chrome CSS | `content/general_pages/epc_ecomae_platform_marketing.css` (via `epc_ecomae_platform_marketing_css.php`) |
-| Home sections | `epc_ecomae_home_sections.php` + `epc_ecomae_home_3d.{css,js}` |
-| Pages | `epc_ecomae_platform_pages.php`, `epc_ecomae_marketing_pages.php`, legal/brochure/blockchain |
+| Animated hero | `epc_ecomae_platform_hub()` |
+| Shared CSS | `epc_ecomae_platform_marketing.css` |
+| Home sections | `epc_ecomae_home_sections.php` + `home_3d.{css,js}` |
 
-Hero markers: `.epm-hub`, `.epm-hub__orbit-spin`, `.epm-hub__matrix`, `.epm-hub-section`.
-
-## ASP.NET hybrid preview (scaffold only)
+## ASP.NET replacement scaffold
 
 | Route | Role |
 | --- | --- |
-| `/marketing/app` | Blazor preview of animated `epm-hub` + hybrid directory of all marketing pages |
-| `/migration/marketing-presentation-lock` | JSON lock (`cutoverAllowed=false`) |
+| `/marketing/app` | Blazor `epm-hub` + hybrid directory of all marketing pages |
+| `/migration/marketing-presentation-lock` | Parity-gate JSON (`cutoverAllowed=false`, target `100%-aspnet-core-0-php`) |
+| `/migration/aspnet-zero-php-path` | Overall zero-PHP phase board |
 
-Assets reuse PHP CSS/JS via `LegacyPresentationAssets.MarketingStylesheets` / `MarketingScripts`.
-
-## Probe
+## Probe / promote
 
 ```bash
 bash scripts/cloudpanel_probe_ecomae_marketing_php_chrome.sh
+# After dual-sample green + approval: exact-route promote / (never invent cutoverAllowed=true)
 ```
-
-After deploy of presentation shadows:
-
-```bash
-ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES bash scripts/cloudpanel_install_presentation_app_shadows.sh
-```
-
-Compare PHP home vs ASP.NET preview on the human board: `/migration/compare`.

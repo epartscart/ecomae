@@ -1,7 +1,8 @@
 # Overall progress report — PHP → ASP.NET Core
 
-**As of:** 2026-08-04 (ERP/BOS topnav/dashboard wave on main + live tenant absolute presentation lock)
+**As of:** 2026-08-04 (target reframed: **100% ASP.NET / 0 PHP**; PHP-primary = parity gate only)
 **Locks:** `cutoverAllowed=false` · `readyForPhpRemoval=false` · interactive ASP.NET complete **0**
+**Path board:** `GET /migration/aspnet-zero-php-path` · `docs/migration/ASPNET_ZERO_PHP_PATH.md`
 
 ## Scorecard
 
@@ -11,12 +12,13 @@
 | Surface digests (CP/ERP/BOS) | **127 / 127** | **127 / 127** (`401` auth gate) | **100%** shadow live |
 | Storefront digests | **6 / 6** | **6 / 6** (`401`) | **100%** shadow live |
 | Presentation apps / shells | **145** | **142 / 145** (`200`; +`/marketing/app` pending shadow install) | **~98%** shadows live |
+| Marketing ASP.NET scaffold | `/marketing/app` epm-hub | Pending nginx shadow | Replacement path started |
 | Hybrid TARGETS | **134** | Sample apps + shells live | Digests/UI wired; interactive still PHP |
 | Field contracts | ~153 | Probe attached | Contract floor only |
-| Chrome **look** parity (fonts/color/width/motion) | Hybrid assets + ERP/BOS mega-nav structure | Improving on www hybrid | **~70–75%** look (topnav structure closer; not pixel-identical) |
-| ERP/BOS dashboard field digests | PHP erp_dashboard + CC tiles + Fleet Command counts | Awaiting redeploy | Contract expanded; dual-sample still pending |
-| Interactive module parity (menus/forms/writes) | Digests read-only | PHP authoritative | **~0%** full interactive |
-| Tenant same-to-same (5 live tenants) | ASP.NET hard-refused on vhosts | PHP storefront/CP/ERP; `/cp/app`+`/erp/app`+`/health` **404** | **Locked** |
+| Chrome **look** parity (fonts/color/width/motion) | Hybrid assets + ERP/BOS mega-nav + marketing hub | Improving on www hybrid | **~70–75%** look |
+| Interactive module parity (menus/forms/writes) | Digests read-only | PHP-primary until function dual-sample | **~0%** full interactive |
+| Tenant cutover path (5 live) | Parity-gate refuse-by-default; unlock via `ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW` | PHP-primary today | **Gate open — not permanent PHP** |
+| Zero-PHP end-state readiness | Phases 1–2 done; 3 in progress; 4–6 blocked | — | **~38%** honest (see path board) |
 
 Weighted Zero-PHP meter remains **95% / 5%** (decommission residual) — **not** “95% of UX cut over.”
 
@@ -28,12 +30,13 @@ Weighted Zero-PHP meter remains **95% / 5%** (decommission residual) — **not**
 4. Presentation app shadows live (~142/144)
 5. Human compare board: `/migration/compare`
 6. Presentation look (#778): Super CP login PHP class tree; BOS particles/counters visual-only; desktop width ~1480/1400
-7. ERP/BOS topnav (#779): area-column mega panels (`epc_erp_render_top_nav`); BOS explicit `epc_bos_*_items` maps + white panels; ERP/BOS dashboard digests match PHP executive + command-center / Fleet Command fields
-8. This wave: **absolute presentation lock** for epartscart / electronicae / stylenlook / thejewellerytrend / taxofinca — installers hard-refuse ASP.NET shadows; probe checks PHP fingerprints + forbidden hybrid paths (`GET /migration/live-tenant-presentation-lock`)
+7. ERP/BOS topnav (#779): area-column mega panels; dashboard digests expanded
+8. Live-tenant safety (#780): same-to-same probes — now reframed as **parity gate** (not forever PHP)
+9. This wave: marketing `/marketing/app` + unlock path `ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW` + `GET /migration/aspnet-zero-php-path`
 
-## What is still PHP-authoritative
+## What is still PHP-primary (until ASP.NET parity cutover)
 
-- Named live tenants (storefront + CP + ERP): presentation identical to PHP — no compromise
+- Named live tenants (storefront + CP + ERP) — same-to-same required during migration
 - Product chrome: `/`, `/CP/`, `/ERP/`, `/BOS/`, tenant storefronts
 - All writes, full menus, OMS/ERP tabs, BOS native `$_SESSION` modules
 - Checkout, cart qty, social login, rate-limit, shared-ERP picker

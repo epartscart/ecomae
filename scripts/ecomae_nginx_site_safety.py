@@ -118,21 +118,35 @@ def assert_shadow_target_allowed(
         if confirm_tenant_presentation is not None
         else os.environ.get("ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW", "")
     )
+    confirm_live_parity = os.environ.get(
+        "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW", ""
+    )
 
     if kind == "platform":
         return
 
+    name = Path(conf_path).name.lower()
+    is_named_live = any(marker in name for marker in LIVE_PRODUCTION_TENANT_MARKERS)
+
     if purpose == "presentation":
-        name = Path(conf_path).name.lower()
-        if any(marker in name for marker in LIVE_PRODUCTION_TENANT_MARKERS):
+        if is_named_live:
+            if confirm_live_parity == "YES":
+                print(
+                    f"WARNING: presentation/login parity shadow on NAMED live tenant "
+                    f"{conf_path} (ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES). "
+                    "TARGET is 100% ASP.NET / 0 PHP — but same-to-same dual-sample must be proven. "
+                    "Never broad location / /cp /erp. Prefer www.ecomae.com until parity green.",
+                    file=sys.stderr,
+                )
+                return
             raise SystemExit(
-                f"ERROR: HARD REFUSE presentation/login shadow on live production tenant "
-                f"site conf {conf_path}. "
+                f"ERROR: refusing presentation/login shadow on live production tenant "
+                f"site conf {conf_path} (parity gate). "
                 "epartscart / electronicae / stylenlook / thejewellerytrend / taxofinca "
-                "must keep PHP storefront + CP + ERP presentation identical "
-                "(theme, colour, structure, fonts, hero/splash, fields). "
-                "ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW cannot override live tenants. "
-                "ASP.NET hybrid previews stay on www.ecomae.com only."
+                "stay PHP-primary until ASP.NET same-to-same evidence. "
+                "Unlock ONLY with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES "
+                "(not ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW). "
+                "Default scaffolding host remains www.ecomae.com."
             )
         if kind in {"tenant", "industry", "unknown", "platform-optional"}:
             if confirm_tenant_presentation == "YES" and kind in {"tenant", "industry"}:
@@ -145,10 +159,9 @@ def assert_shadow_target_allowed(
                 return
             raise SystemExit(
                 f"ERROR: refusing presentation/login shadow on {kind} site conf {conf_path}. "
-                "Live tenant/industry frontend, CP, ERP must stay PHP. "
                 "Use default ECOMAE_NGINX_SITE_CONF=/etc/nginx/sites-enabled/www.ecomae.com.conf. "
-                "Override only with ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW=YES (not recommended). "
-                "Named live production tenants cannot be overridden at all."
+                "Override with ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW=YES (non-named tenants). "
+                "Named live tenants require ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES."
             )
         return
 
@@ -165,32 +178,39 @@ def assert_shadow_target_allowed(
             "ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES. Default target is www.ecomae.com only."
         )
 
-    name = Path(conf_path).name.lower()
-    if any(marker in name for marker in LIVE_PRODUCTION_TENANT_MARKERS):
+    if is_named_live:
+        if confirm_live_parity == "YES":
+            print(
+                f"WARNING: exact-route ASP.NET parity shadow on NAMED live tenant "
+                f"{conf_path} (ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES). "
+                "End-state is 100% ASP.NET / 0 PHP. Exact-route only — never broad cutover. "
+                "Require dual-sample same-to-same before traffic promotion.",
+                file=sys.stderr,
+            )
+            return
         raise SystemExit(
-            f"ERROR: HARD REFUSE ASP.NET exact-route shadow on live production tenant "
-            f"site conf {conf_path}. "
-            "Named live tenants (epartscart / electronicae / stylenlook / "
-            "thejewellerytrend / taxofinca) keep 100% PHP product chrome — "
-            "no digest or app shadows on those vhosts. "
-            "ECOMAE_CONFIRM_TENANT_HOST_SHADOW cannot override. "
-            "Use www.ecomae.com for migration scaffolding only."
+            f"ERROR: refusing ASP.NET exact-route shadow on live production tenant "
+            f"site conf {conf_path} (parity gate — not a permanent PHP ban). "
+            "Named live tenants stay PHP-primary until ASP.NET same-to-same evidence. "
+            "Unlock exact-route parity shadows with "
+            "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES. "
+            "ECOMAE_CONFIRM_TENANT_HOST_SHADOW alone is not enough for named live tenants. "
+            "Default scaffolding host remains www.ecomae.com."
         )
 
     if kind in {"tenant", "industry", "unknown"}:
         if confirm_tenant == "YES":
             print(
                 f"WARNING: exact-route shadow on {kind} host {conf_path}. "
-                "Product chrome (/ /CP/ /ERP/ /BOS/) must remain PHP — never broad locations.",
+                "Exact-route only — never broad locations. Target end-state: ASP.NET.",
                 file=sys.stderr,
             )
             return
         raise SystemExit(
             f"ERROR: refusing ASP.NET shadow install on {kind} site conf {conf_path}. "
-            "Live tenants must keep PHP presentation/functionality. "
             "Shadows default to www.ecomae.com only. "
             "Set ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES only for an approved exact-route on that host. "
-            "Named live production tenants cannot be overridden at all."
+            "Named live tenants require ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES."
         )
 
 

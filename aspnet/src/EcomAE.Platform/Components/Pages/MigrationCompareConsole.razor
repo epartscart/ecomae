@@ -128,7 +128,8 @@
     <strong>Safety:</strong> Tenant hosts (<code>epartscart.com</code> / <code>www.epartscart.com</code>) must keep PHP chrome.
     ASP.NET <code>/cp/app</code>, <code>/health</code>, digests on tenants should stay <strong>404</strong>.
     Compare ASP.NET only on <code>www.ecomae.com</code>.
-    Locks: <code>cutoverAllowed=false</code>, <code>readyForPhpRemoval=false</code>.
+    Target: <strong>100% ASP.NET / 0 PHP</strong>. Interim locks: <code>cutoverAllowed=false</code>, <code>readyForPhpRemoval=false</code> until dual-sample + approval.
+    Path: <a href="/migration/aspnet-zero-php-path">/migration/aspnet-zero-php-path</a>.
 </div>
 
 <div class="meter">
