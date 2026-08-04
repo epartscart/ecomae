@@ -1,0 +1,43 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_business_continuity() — hero + hybrid for body.
+*@
+
+<div class="epm-wrap" id="ehm-business-continuity-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407 0%,#5a0f16 42%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-shield"></i> Business continuity</div>
+			<h1>Keep commerce and ERP running when it matters</h1>
+			<p class="lead">Hosted multi-tenant isolation, backup discipline, and go-live playbooks so agencies and operators stay online across GCC markets.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/business-continuity?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/business-continuity"))">Open full PHP continuity page (hybrid)</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/contact">Contact sales</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-database"></i>
+			<strong>Tenant isolation</strong>
+			<p>Per-tenant MySQL + hostname routing — one outage does not cascade.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-refresh"></i>
+			<strong>Recovery playbooks</strong>
+			<p>DNS, Super CP onboarding, and 24-hour go-live paths documented.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-lock"></i>
+			<strong>Compliance continuity</strong>
+			<p>E-invoice and fiscal packs stay with the tenant through upgrades.</p>
+		</div>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET business-continuity overview scaffold — dual-sample against live PHP <code>/platform/business-continuity</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>
