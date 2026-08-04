@@ -65,6 +65,8 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 ## Scaffold guardrails
 
 - `scripts/validate_scaffold_options_example.py` — fails if dangerous Replace/Allow/Register flags are true.
+- `scripts/validate_migration_evidence_cutover_locks.py` — evidence JSON cannot claim cutover/PHP removal; approval/pass files must stay absent.
+- `scripts/validate_presentation_hybrid_allowlist_sync.py` — presentation nginx, hybrid TARGETS, installer expected, and YARP routeCount stay aligned.
 - `scripts/validate_enterprise_bos_scaffold_guardrails.sh` — Program.cs must omit production clients; YARP/Helm/Argo stay `cutoverAllowed=false`.
 - `deploy/aspnet/platform.env.example` documents disabled `EcomAe__*` scaffold keys only.
 

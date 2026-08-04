@@ -429,6 +429,12 @@ check 'AI sidecar scaffold forbids business writes' contains "$ROOT/aspnet/src/E
 check 'scaffold options example validator exists' test -f "$ROOT/scripts/validate_scaffold_options_example.py"
 check 'scaffold options example validator is executable' test -x "$ROOT/scripts/validate_scaffold_options_example.py"
 check 'scaffold options example validator passes' python3 "$ROOT/scripts/validate_scaffold_options_example.py"
+check 'migration evidence cutover locks validator exists' test -f "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"
+check 'migration evidence cutover locks validator is executable' test -x "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"
+check 'migration evidence cutover locks pass' python3 "$ROOT/scripts/validate_migration_evidence_cutover_locks.py"
+check 'presentation/hybrid allowlist sync validator exists' test -f "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"
+check 'presentation/hybrid allowlist sync validator is executable' test -x "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"
+check 'presentation/hybrid allowlist sync passes' python3 "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py"
 check 'enterprise BOS scaffold guardrails script exists' test -f "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
 check 'enterprise BOS scaffold guardrails is executable' test -x "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
 check 'enterprise BOS scaffold guardrails pass' bash "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
@@ -606,6 +612,8 @@ check 'deploy packs all dual-sample operators helper' contains "$ROOT/scripts/de
 check 'deploy packs scaffold options example' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ecomae-scaffold-options.example.json'
 check 'deploy packs scaffold options validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_scaffold_options_example.py'
 check 'deploy packs enterprise BOS scaffold guardrails' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_enterprise_bos_scaffold_guardrails.sh'
+check 'deploy packs evidence cutover locks validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_migration_evidence_cutover_locks.py'
+check 'deploy packs presentation/hybrid allowlist sync validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_presentation_hybrid_allowlist_sync.py'
 check 'deploy packs YARP all-packs generator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'generate_all_yarp_design_examples.sh'
 check 'parity plan documents hybrid UI dual-sample packs' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'dual-sample evidence packs for hybrid UIs'
 check 'tenant safety law documents same-to-same' contains "$ROOT/docs/migration/TENANT_MIGRATION_SAFETY.md" 'Same-to-same / invisible migration'
