@@ -1,0 +1,100 @@
+@page "/erp/inventory-stock-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Inventory Stock · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Inventory Stock" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Stock KPIs">
+    <style>
+        .epc-inv-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#14532d 0%,#1e3a2f 45%,#0f172a 100%);
+        }
+        .epc-inv-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-inv-hero p { margin:0; color:#bbf7d0; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-inv-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-inv-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#14532d; background:#a3e635;
+        }
+        .epc-inv-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-inv-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-inv-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-inv-kpi strong { display:block; font-size:1.25rem; font-variant-numeric:tabular-nums; word-break:break-all; }
+        .epc-inv-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-inv-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:.45rem; color:#14532d; font-size:.86rem; }
+        @@media (max-width:1100px){ .epc-inv-kpis{grid-template-columns:1fr 1fr;} }
+        @@media (max-width:700px){ .epc-inv-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-inv-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Inventory Stock</h1>
+        <p>Read-only stock KPIs from <code>/erp/inventory-stock</code> digest under PHP ERP desktop chrome. Moves, adjustments, and warehouse writes stay on live PHP inventory — same-to-same for tenants.</p>
+        <div class="epc-inv-cta">
+            <a href="@_phpTab">Open PHP inventory</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/erp/warehouses-app">Warehouses</a>
+            <a class="ghost" href="/erp/purchases-app">Purchases</a>
+            <a class="ghost" href="/erp/app">ERP dashboard</a>
+        </div>
+    </section>
+
+    <div class="epc-inv-kpis" aria-label="Inventory stock KPIs">
+        <div class="epc-inv-kpi"><strong>@_rowCount.ToString("N0", CultureInfo.InvariantCulture)</strong><span>Stock rows</span></div>
+        <div class="epc-inv-kpi"><strong>@_qtyOnHand.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Qty on hand</span></div>
+        <div class="epc-inv-kpi"><strong>@_stockValue.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Stock value</span></div>
+        <div class="epc-inv-kpi"><strong>@_warehouseCount.ToString(CultureInfo.InvariantCulture)</strong><span>Warehouses</span></div>
+        <div class="epc-inv-kpi"><strong>@_itemCount.ToString(CultureInfo.InvariantCulture)</strong><span>Items</span></div>
+    </div>
+
+    <div class="epc-inv-note">
+        Read-only preview · JSON digest <a href="/erp/inventory-stock">/erp/inventory-stock</a>.
+        PHP <code>epc_erp_inv_stock</code> / inventory tab remain authoritative for stock moves and writes.
+        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
+        Source: <code>@_source</code>@(!string.IsNullOrWhiteSpace(_message) ? $" · {_message}" : "").
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory";
+    private bool _isAdmin;
+    private long _rowCount;
+    private decimal _qtyOnHand;
+    private decimal _stockValue;
+    private int _warehouseCount;
+    private int _itemCount;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildErpInventoryStockSummaryAsync(ctx.RequestAborted);
+        _rowCount = result.RowCount;
+        _qtyOnHand = result.QtyOnHand;
+        _stockValue = result.StockValue;
+        _warehouseCount = result.WarehouseCount;
+        _itemCount = result.ItemCount;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}
