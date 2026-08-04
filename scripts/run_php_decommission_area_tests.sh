@@ -234,6 +234,14 @@ for path in /api/v1/catalog/status /api/v1/catalog/manufacturers /api/v1/catalog
   fi
 done
 
+# Named functional flows (warehouse offers, ERP reports, e-invoice, CT/UMAPI, process flow, OMS, Super CP).
+# Static floors/evidence must exist; live auth smokes may be blocked — PHP must remain.
+if ECOMAE_FUNC_SKIP_PHP=1 bash "$ROOT/scripts/run_pre_decommission_functional_suite.sh" >/tmp/area-functional.out 2>&1; then
+  record "pre-decommission-functional-suite" pass "7 named functional flows: floors/evidence present (live smoke may still be blocked)"
+else
+  record "pre-decommission-functional-suite" fail "functional suite missing required floors/evidence (see /tmp/area-functional.out)"
+fi
+
 # epartscart.com frontend + CP contract coverage (same-to-same PHP; no tenant hybrid)
 if bash "$ROOT/scripts/run_epartscart_tenant_parity.sh" >/tmp/area-epartscart.out 2>&1; then
   record "epartscart-frontend-cp-parity" pass "epartscart.com storefront+CP floors/samples/hybrids complete (live dual-sample may still block)"
@@ -263,11 +271,14 @@ with open(src, encoding='utf-8') as fh:
         rows.append({"area": area, "status": status, "detail": detail})
 payload={
   "capturedAtUtc": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace('+00:00','Z'),
+  "cutoverAllowed": False,
+  "readyForPhpRemoval": False,
+  "aspNetInteractiveComplete": 0,
   "passed": p,
   "failed": f,
   "blocked": b,
   "readyToRemovePhp": False,
-  "note": "PHP must remain. Loopback staging smoke is attached; public CP/ERP/BOS chrome is still PHP; surface/presentation parity not reached; RELEASE_OWNER_APPROVAL.md absent.",
+  "note": "PHP must remain. Loopback staging smoke is attached; public CP/ERP/BOS chrome is still PHP; surface/presentation parity not reached; RELEASE_OWNER_APPROVAL.md absent. Named functional suite (warehouse/ERP reports/einvoice/CT/OMS/Super CP) must be green before removal.",
   "results": rows,
 }
 with open(out,'w',encoding='utf-8') as fh:
