@@ -412,6 +412,87 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Metabase URL/active only — never selects secret_key.</summary>
+    public const string SelectCpMetabaseConfig = """
+        SELECT IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`metabase_url`, '') AS metabase_url,
+               `active`
+        FROM `epc_metabase_config`
+        ORDER BY CASE WHEN `site_key` = '__platform__' THEN 0 ELSE 1 END, `id` ASC
+        LIMIT 1
+        """;
+
+    public const string SelectCpMetabaseDashboards = """
+        SELECT `id`, IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`dashboard_id`, 0) AS dashboard_id,
+               IFNULL(`dashboard_name`, '') AS dashboard_name,
+               IFNULL(`category`, '') AS category,
+               `active`
+        FROM `epc_metabase_dashboards`
+        ORDER BY `category` ASC, `dashboard_name` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>NL report definitions metadata — omits query_template / recipients JSON.</summary>
+    public const string SelectCpNlReportDefinitions = """
+        SELECT `id`, IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`name`, '') AS name,
+               IFNULL(`description`, '') AS description,
+               IFNULL(`report_type`, '') AS report_type,
+               IFNULL(`schedule`, '') AS schedule,
+               IFNULL(`format`, '') AS format,
+               `active`,
+               IFNULL(`created_by`, 0) AS created_by
+        FROM `epc_report_definitions`
+        ORDER BY `name` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpMarketingBroadcastStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_marketing_broadcast_campaigns`) AS campaigns,
+            (SELECT IFNULL(SUM(`sent_ok`),0) FROM `epc_marketing_broadcast_campaigns` WHERE `channel` = 'email') AS emails_sent,
+            (SELECT IFNULL(SUM(`sent_ok`),0) FROM `epc_marketing_broadcast_campaigns` WHERE `channel` = 'whatsapp') AS whatsapp_sent
+        """;
+
+    /// <summary>Campaign metadata — omits body_html / body_text.</summary>
+    public const string SelectCpMarketingBroadcastCampaigns = """
+        SELECT `id`, IFNULL(`created_at`, 0) AS created_at,
+               IFNULL(`channel`, '') AS channel,
+               IFNULL(`template_key`, '') AS template_key,
+               IFNULL(`subject`, '') AS subject,
+               IFNULL(`preview`, '') AS preview,
+               IFNULL(`audience_mode`, '') AS audience_mode,
+               IFNULL(`audience_meta`, '') AS audience_meta,
+               IFNULL(`total_targets`, 0) AS total_targets,
+               IFNULL(`sent_ok`, 0) AS sent_ok,
+               IFNULL(`sent_fail`, 0) AS sent_fail,
+               IFNULL(`status`, '') AS status,
+               IFNULL(`operator_id`, 0) AS operator_id
+        FROM `epc_marketing_broadcast_campaigns`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Demo tenant registry — no passwords / temp credentials.</summary>
+    public const string SelectCpDemoTenants = """
+        SELECT IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`hostname`, '') AS hostname,
+               IFNULL(`industry_code`, '') AS industry_code,
+               IFNULL(`status`, '') AS status,
+               IFNULL(`trade_name`, '') AS trade_name,
+               IFNULL(`hub_name`, '') AS hub_name,
+               IFNULL(`hosted_on`, '') AS hosted_on,
+               IFNULL(`erp_only_shared`, 0) AS erp_only_shared,
+               IFNULL(`is_active`, 0) AS is_active,
+               IFNULL(`demo_expires_at`, 0) AS demo_expires_at,
+               IFNULL(`demo_contact_email`, '') AS demo_contact_email
+        FROM `epc_portal_tenants`
+        WHERE `is_demo` = 1 AND IFNULL(`site_key`, '') != ''
+        ORDER BY `demo_expires_at` ASC, `trade_name` ASC
+        LIMIT @limit
+        """;
+
     /// <summary>Mobile apps config blob from portal site settings (JSON; secrets stripped in reporter).</summary>
     public const string SelectCpMobileAppsIntegrationsJson = """
         SELECT IFNULL(`integrations_json`, '') AS integrations_json

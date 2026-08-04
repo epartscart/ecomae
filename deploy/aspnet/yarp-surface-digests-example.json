@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 32,
+  "routeCount": 36,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -137,6 +137,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-mobile-apps-shadow-approved"
+          }
+        ]
+      },
+      "cp-metabase": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/metabase"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-metabase-shadow-approved"
+          }
+        ]
+      },
+      "cp-nl-reporting": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/nl-reporting"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-nl-reporting-shadow-approved"
+          }
+        ]
+      },
+      "cp-marketing-broadcast": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/marketing-broadcast"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-marketing-broadcast-shadow-approved"
+          }
+        ]
+      },
+      "cp-demo-tenants": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/demo-tenants"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-demo-tenants-shadow-approved"
           }
         ]
       },

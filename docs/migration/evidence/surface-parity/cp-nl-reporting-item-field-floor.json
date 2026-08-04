@@ -1,0 +1,22 @@
+{
+  "role": "cp-nl-reporting-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-nl-reporting",
+  "collectionKey": "definitions",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "name",
+    "description",
+    "reportType",
+    "schedule",
+    "format",
+    "active",
+    "createdBy"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py LIST_ITEM_FIELDS",
+  "note": "Locks NL reporting definitions[] floors. query_template/recipients omitted. Writes remain PHP. cutoverAllowed=false."
+}

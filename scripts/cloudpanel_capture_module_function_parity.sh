@@ -133,6 +133,15 @@ CP_FEATURE_HYBRID_BY_ID = {
     "power-bi-guide": "cp-power-bi",
     "mobile-apps": "cp-mobile-apps",
     "epc-mobile-apps": "cp-mobile-apps",
+    "metabase": "cp-metabase",
+    "metabase-embed": "cp-metabase",
+    "epc-metabase-embed": "cp-metabase",
+    "nl-reporting": "cp-nl-reporting",
+    "epc-nl-reporting": "cp-nl-reporting",
+    "marketing-broadcast": "cp-marketing-broadcast",
+    "epc-marketing-broadcast": "cp-marketing-broadcast",
+    "demo-tenants": "cp-demo-tenants",
+    "epc-demo-tenants-manage": "cp-demo-tenants",
 }
 ERP_AREA_HYBRID_BY_ID = {
     "banking": "erp-accounts-summary",
@@ -167,6 +176,11 @@ BOS_MODULE_HYBRID_BY_ID = {
     "erp_warehouse": "erp-warehouses",
     "power_bi": "cp-power-bi",
     "power_bi_guide": "cp-power-bi",
+    "metabase_embed": "cp-metabase",
+    "nl_reporting": "cp-nl-reporting",
+    "marketing": "cp-marketing-broadcast",
+    "broadcast": "cp-marketing-broadcast",
+    "demo_tenants": "cp-demo-tenants",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}

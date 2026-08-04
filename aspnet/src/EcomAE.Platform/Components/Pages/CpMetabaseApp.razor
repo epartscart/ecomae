@@ -1,0 +1,131 @@
+@page "/cp/metabase-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Metabase · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-mb-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c4a6e 0%,#155e75 55%,#0f766e 100%);
+        }
+        .epc-mb-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-mb-hero p { margin:0; color:#a5f3fc; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-mb-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-mb-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0f172a; background:#67e8f9;
+        }
+        .epc-mb-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-mb-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-mb-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-mb-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-mb-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-mb-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-mb-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-mb-table th, .epc-mb-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-mb-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-mb-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #a5f3fc; border-radius:.45rem; color:#155e75; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-mb-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-mb-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Metabase</h1>
+        <p>Read-only <code>epc_metabase_config</code> + <code>epc_metabase_dashboards</code> from <code>/cp/metabase</code>. <code>secret_key</code> never returned — configure stays on live PHP.</p>
+        <div class="epc-mb-cta">
+            <a href="@_phpTab">Open PHP Metabase</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/power-bi-app">Power BI</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-mb-kpis" aria-label="Metabase config">
+        <div class="epc-mb-kpi"><strong>@(_summary.Active ? "active" : "off")</strong><span>Config (@(string.IsNullOrWhiteSpace(_summary.SiteKey) ? "—" : _summary.SiteKey))</span></div>
+        <div class="epc-mb-kpi"><strong>@(string.IsNullOrWhiteSpace(_summary.MetabaseUrl) ? "—" : _summary.MetabaseUrl)</strong><span>Metabase URL</span></div>
+        <div class="epc-mb-kpi"><strong>@_dashboards.Count.ToString(CultureInfo.InvariantCulture)</strong><span>Dashboards shown</span></div>
+    </div>
+
+    <div class="epc-mb-table-wrap">
+        <table class="epc-mb-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Site</th>
+                    <th>Dashboard</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Active</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_dashboards.Count == 0)
+                {
+                    <tr><td colspan="7">No Metabase dashboards in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var d in _dashboards)
+                    {
+                        <tr>
+                            <td><strong>@d.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(d.SiteKey) ? "—" : d.SiteKey)</td>
+                            <td>@d.DashboardId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(d.DashboardName) ? "—" : d.DashboardName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(d.Category) ? "—" : d.Category)</td>
+                            <td>@(d.Active ? "yes" : "no")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-mb-note">
+        Read-only preview · JSON digest <a href="/cp/metabase?limit=200">/cp/metabase</a>.
+        PHP <code>epc_metabase_embed</code> remains authoritative for configure/embed.
+        Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/general_pages/epc_metabase_embed";
+    private bool _isAdmin;
+    private CpMetabaseConfigSummary _summary = new("", "", false, 0, "n/a", "");
+    private IReadOnlyList<CpMetabaseDashboardDigest> _dashboards = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpMetabaseDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _dashboards = result.Dashboards;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

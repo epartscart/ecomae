@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-marketing-broadcast",
+  "surface": "cp",
+  "appRoute": "/cp/marketing-broadcast-app",
+  "digestRoute": "/cp/marketing-broadcast",
+  "phpAuthoritativePath": "/CP/control/portal/epc_marketing_broadcast",
+  "blazorComponent": "CpMarketingBroadcastApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-marketing-broadcast. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T05:31:11Z"
+}

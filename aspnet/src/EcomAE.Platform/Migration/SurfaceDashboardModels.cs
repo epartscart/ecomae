@@ -518,6 +518,94 @@ public sealed record CpMobileAppsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpMetabaseConfigSummary(
+    string SiteKey,
+    string MetabaseUrl,
+    bool Active,
+    int DashboardCount,
+    string Source,
+    string Message);
+
+public sealed record CpMetabaseDashboardDigest(
+    long Id,
+    string SiteKey,
+    int DashboardId,
+    string DashboardName,
+    string Category,
+    bool Active);
+
+public sealed record CpMetabaseDigestResult(
+    CpMetabaseConfigSummary Summary,
+    IReadOnlyList<CpMetabaseDashboardDigest> Dashboards,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpNlReportDefinitionDigest(
+    long Id,
+    string SiteKey,
+    string Name,
+    string Description,
+    string ReportType,
+    string Schedule,
+    string Format,
+    bool Active,
+    long CreatedBy);
+
+public sealed record CpNlReportingDigestResult(
+    IReadOnlyList<CpNlReportDefinitionDigest> Definitions,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpMarketingBroadcastSummary(
+    int Campaigns,
+    int EmailsSent,
+    int WhatsappSent,
+    string Source,
+    string Message);
+
+public sealed record CpMarketingBroadcastCampaignDigest(
+    long Id,
+    long CreatedAt,
+    string Channel,
+    string TemplateKey,
+    string Subject,
+    string Preview,
+    string AudienceMode,
+    string AudienceMeta,
+    int TotalTargets,
+    int SentOk,
+    int SentFail,
+    string Status,
+    long OperatorId);
+
+public sealed record CpMarketingBroadcastDigestResult(
+    CpMarketingBroadcastSummary Summary,
+    IReadOnlyList<CpMarketingBroadcastCampaignDigest> Campaigns,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpDemoTenantDigest(
+    string SiteKey,
+    string Hostname,
+    string IndustryCode,
+    string Status,
+    string TradeName,
+    string HubName,
+    string HostedOn,
+    bool ErpOnly,
+    bool IsActive,
+    long DemoExpiresAt,
+    string DemoContactEmail);
+
+public sealed record CpDemoTenantsDigestResult(
+    IReadOnlyList<CpDemoTenantDigest> Tenants,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontPartOfferDigest(
     int PriceId,
     string PriceList,

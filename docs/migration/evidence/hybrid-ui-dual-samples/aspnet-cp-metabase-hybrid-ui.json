@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-metabase",
+  "surface": "cp",
+  "appRoute": "/cp/metabase-app",
+  "digestRoute": "/cp/metabase",
+  "phpAuthoritativePath": "/CP/general_pages/epc_metabase_embed",
+  "blazorComponent": "CpMetabaseApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-metabase. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T05:31:11Z"
+}

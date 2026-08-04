@@ -260,6 +260,58 @@
       "phpAuthoritative": true,
       "wwwPreviewOnly": true,
       "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-metabase",
+      "surface": "cp",
+      "appRoute": "/cp/metabase-app",
+      "digestRoute": "/cp/metabase",
+      "phpAuthoritativePath": "/CP/general_pages/epc_metabase_embed",
+      "blazorMarker": "CpMetabaseApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-nl-reporting",
+      "surface": "cp",
+      "appRoute": "/cp/nl-reporting-app",
+      "digestRoute": "/cp/nl-reporting",
+      "phpAuthoritativePath": "/CP/control/portal/epc_nl_reporting",
+      "blazorMarker": "CpNlReportingApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-marketing-broadcast",
+      "surface": "cp",
+      "appRoute": "/cp/marketing-broadcast-app",
+      "digestRoute": "/cp/marketing-broadcast",
+      "phpAuthoritativePath": "/CP/control/portal/epc_marketing_broadcast",
+      "blazorMarker": "CpMarketingBroadcastApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-demo-tenants",
+      "surface": "cp",
+      "appRoute": "/cp/demo-tenants-app",
+      "digestRoute": "/cp/demo-tenants",
+      "phpAuthoritativePath": "/CP/control/portal/epc_demo_tenants_manage",
+      "blazorMarker": "CpDemoTenantsApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

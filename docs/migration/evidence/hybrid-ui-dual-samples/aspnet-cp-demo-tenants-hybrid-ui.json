@@ -1,0 +1,16 @@
+{
+  "role": "aspnet-hybrid-ui-stub",
+  "stem": "cp-demo-tenants",
+  "surface": "cp",
+  "appRoute": "/cp/demo-tenants-app",
+  "digestRoute": "/cp/demo-tenants",
+  "phpAuthoritativePath": "/CP/control/portal/epc_demo_tenants_manage",
+  "blazorComponent": "CpDemoTenantsApp",
+  "chrome": "PhpCpDesktopChrome",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "status": "digest-wired-awaiting-dual-sample",
+  "note": "Hybrid UI stub for cp-demo-tenants. Interactive product chrome remains PHP. Dual-sample capture awaits operator cookies.",
+  "capturedAtUtc": "2026-08-04T05:31:11Z"
+}

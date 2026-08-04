@@ -1,0 +1,24 @@
+{
+  "role": "cp-demo-tenants-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-demo-tenants",
+  "collectionKey": "tenants",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredItemFields": [
+    "siteKey",
+    "hostname",
+    "industryCode",
+    "status",
+    "tradeName",
+    "hubName",
+    "hostedOn",
+    "erpOnly",
+    "isActive",
+    "demoExpiresAt",
+    "demoContactEmail"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py LIST_ITEM_FIELDS",
+  "note": "Locks demo tenants[] floors. Passwords never returned. Provision remains PHP. cutoverAllowed=false."
+}

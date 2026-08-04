@@ -144,6 +144,32 @@ public sealed class SurfaceDigestContractValidatorTests
                 session,
                 note = "contract validation"
             },
+            ["/cp/metabase"] = new
+            {
+                ok = true,
+                surface = "cp",
+                summary = (await reporter.BuildCpMetabaseDigestAsync(10)).Summary,
+                dashboards = (await reporter.BuildCpMetabaseDigestAsync(10)).Dashboards,
+                count = 0,
+                source = "migration",
+                message = "x",
+                session,
+                note = "contract validation"
+            },
+            ["/cp/nl-reporting"] = Envelope("cp", "definitions", await reporter.ListCpNlReportDefinitionsAsync(10), session),
+            ["/cp/marketing-broadcast"] = new
+            {
+                ok = true,
+                surface = "cp",
+                summary = (await reporter.BuildCpMarketingBroadcastDigestAsync(10)).Summary,
+                campaigns = (await reporter.BuildCpMarketingBroadcastDigestAsync(10)).Campaigns,
+                count = 0,
+                source = "migration",
+                message = "x",
+                session,
+                note = "contract validation"
+            },
+            ["/cp/demo-tenants"] = Envelope("cp", "tenants", await reporter.ListCpDemoTenantsAsync(10), session),
             ["/cp/config-items"] = Envelope("cp", "items", await reporter.ListCpConfigItemsMetaAsync(10), session),
             ["/cp/admin-sessions"] = Envelope("cp", "sessions", await reporter.ListCpAdminSessionsAsync(10), session),
             ["/cp/storages"] = Envelope("cp", "storages", await reporter.ListCpStoragesAsync(10), session),
