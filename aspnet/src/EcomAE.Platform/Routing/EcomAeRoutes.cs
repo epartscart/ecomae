@@ -444,6 +444,9 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsUpdateItem = "/cp/orders/update-item";
     /// <summary>Wave B dry-run for PHP ajax_order_pay_refund.php (writes=0; PHP authoritative).</summary>
     public const string ControlPanelOmsPayRefund = "/cp/orders/pay-refund";
+    /// <summary>Wave B dry-run for PHP OMS update_items bulk (writes=0).</summary>
+    public const string ControlPanelOmsUpdateItems = "/cp/orders/update-items";
+
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
     /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>
@@ -487,6 +490,11 @@ public static class EcomAeRoutes
     public const string ErpPurchasesDelete = "/erp/purchases/delete";
     /// <summary>Wave B dry-run for PHP invoice_delete draft (writes=0).</summary>
     public const string ErpInvoicesDelete = "/erp/invoices/delete";
+    /// <summary>Wave B dry-run for PHP create_account cash/bank (writes=0).</summary>
+    public const string ErpCashAccountsCreate = "/erp/cash-accounts/create";
+    /// <summary>Wave B dry-run for PHP create_coa (writes=0).</summary>
+    public const string ErpCoaAccountsCreate = "/erp/coa-accounts/create";
+
 
     /// <summary>Wave B dry-run GL manual journal (PHP gl_manual_entry remains authoritative).</summary>
     public const string ErpGlJournalsManual = "/erp/gl-journals/manual";

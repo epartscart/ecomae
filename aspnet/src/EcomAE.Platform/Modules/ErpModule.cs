@@ -411,6 +411,40 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ErpCashAccountsCreate, async (
+            HttpContext context,
+            ErpCashAccountCreateBody? body,
+            ILegacySessionValidator validator,
+            IErpCashAccountCreateDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for cash account create dry-run.");
+            }
+            body ??= new ErpCashAccountCreateBody(null, "cash", false);
+            var result = dryRun.Evaluate(new ErpCashAccountCreateRequest(body.Name, body.AccountType, body.ConfirmWrites));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpCoaAccountsCreate, async (
+            HttpContext context,
+            ErpCoaCreateBody? body,
+            ILegacySessionValidator validator,
+            IErpCoaCreateDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for COA create dry-run.");
+            }
+            body ??= new ErpCoaCreateBody(null, null, "expense", false);
+            var result = dryRun.Evaluate(new ErpCoaCreateRequest(body.Code, body.Name, body.AccountType, body.ConfirmWrites));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapPost(EcomAeRoutes.ErpGlJournalsManual, async (
             HttpContext context,
             ErpGlManualEntryBody? body,
@@ -945,6 +979,8 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPurchaseCreateBody(long SupplierId, decimal AmountExVat, bool ConfirmWrites = false);
     private sealed record ErpPurchaseDeleteBody(long PurchaseId, bool ConfirmWrites = false);
     private sealed record ErpInvoiceDeleteBody(long InvoiceId, bool ConfirmWrites = false);
+    private sealed record ErpCashAccountCreateBody(string? Name, string? AccountType = "cash", bool ConfirmWrites = false);
+    private sealed record ErpCoaCreateBody(string? Code, string? Name, string? AccountType = "expense", bool ConfirmWrites = false);
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
     private sealed record ErpGlManualEntryBody(IReadOnlyList<ErpGlManualLineBody>? Lines, string? Reference, string? Description, bool ConfirmWrites = false);
     private sealed record ErpGlReverseJournalBody(long JournalId, string? Note, bool ConfirmWrites = false);
