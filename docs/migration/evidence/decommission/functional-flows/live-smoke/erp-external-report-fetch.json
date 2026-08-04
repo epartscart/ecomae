@@ -1,0 +1,16 @@
+{
+  "role": "functional-flow-live-smoke-stub",
+  "flowId": "erp-external-report-fetch",
+  "title": "ERP external report fetch",
+  "status": "blocked",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "requiredProbes": [
+    "Named report fetch (sales|inventory|vat|ar-aging) totals match PHP report-center/export",
+    "Worker ErpReportsDryRun remains writes=0 until dual-sample promotes live generation"
+  ],
+  "capturedEvidence": [],
+  "blockedReason": "CloudPanel authenticated dual-sample not yet captured",
+  "note": "Stub only. Flip status to captured when live evidence lands. Never invent RELEASE_OWNER_APPROVAL.md."
+}

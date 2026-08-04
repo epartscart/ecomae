@@ -1,0 +1,17 @@
+{
+  "role": "functional-flow-live-smoke-stub",
+  "flowId": "ct-catalog-umapi",
+  "title": "CT / catalog fetch + UMAPI miss-fill reporting",
+  "status": "blocked",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "requiredProbes": [
+    "Auth catalog status connected=true (staging-smoke)",
+    "Miss \u2192 PHP UMAPI fill \u2192 ASP.NET cache hit dual-sample without inventing cutover",
+    "18/18 catalog exact-route auth gates remain ASP.NET JSON"
+  ],
+  "capturedEvidence": [],
+  "blockedReason": "CloudPanel authenticated dual-sample not yet captured",
+  "note": "Stub only. Flip status to captured when live evidence lands. Never invent RELEASE_OWNER_APPROVAL.md."
+}

@@ -135,10 +135,20 @@ def main() -> int:
                     warnings.append(detail)
 
         live = flow.get("liveSmokeRequiredForPhpRemoval") or []
+        stub_path = evidence / "decommission/functional-flows/live-smoke" / f"{fid}.json"
         if live:
-            warnings.append(
-                f"{len(live)} live smoke item(s) still required before PHP removal"
-            )
+            if not stub_path.is_file():
+                errors.append(f"missing live-smoke stub live-smoke/{fid}.json")
+            else:
+                stub = load_json(stub_path)
+                assert_cutover_false(stub, f"live-smoke/{fid}.json", errors)
+                stub_status = stub.get("status") or "blocked"
+                if stub_status == "captured" and stub.get("capturedEvidence"):
+                    warnings.append(f"live smoke stub captured ({len(stub.get('capturedEvidence') or [])} artifacts) — still require human approval")
+                else:
+                    warnings.append(
+                        f"{len(live)} live smoke item(s) still blocked (stub status={stub_status})"
+                    )
 
         if errors:
             status = "fail"

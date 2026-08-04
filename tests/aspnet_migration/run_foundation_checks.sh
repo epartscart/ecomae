@@ -967,6 +967,9 @@ check 'same-to-same verify refuses cutover' contains "$ROOT/scripts/cloudpanel_v
 check 'same-to-same look gap validator exists' test -x "$ROOT/scripts/validate_same_to_same_look_gaps.py"
 check 'php color scheme validator exists' test -x "$ROOT/scripts/validate_php_color_scheme.py"
 check 'marketing app shadow probe exists' test -x "$ROOT/scripts/cloudpanel_probe_marketing_app_shadows.sh"
+check 'marketing app shadow installer exists' test -x "$ROOT/scripts/cloudpanel_install_marketing_app_shadows.sh"
+check 'ERP ajax dual-sample compare exists' test -x "$ROOT/scripts/compare_erp_ajax_dual_samples.py"
+check 'BOS ajax dual-sample compare exists' test -x "$ROOT/scripts/compare_bos_ajax_dual_samples.py"
 check 'storefront digest install expects 7 routes' contains "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh" 'expected 7 storefront digest locations'
 check 'storefront digest probe expects 7 routes' contains "$ROOT/scripts/cloudpanel_probe_storefront_digest_shadows.sh" 'expected 7 storefront digest routes'
 check 'tenant chrome probe rejects Batch 4 Blazor markers' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'StorefrontCartApp'

@@ -1,0 +1,17 @@
+{
+  "role": "functional-flow-live-smoke-stub",
+  "flowId": "warehouse-search-offers",
+  "title": "epartscart warehouse frontend \u2014 stock / search offers",
+  "status": "blocked",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "requiredProbes": [
+    "Authenticated /storefront/search with non-empty offer rows (storage/exist/price)",
+    "epartscart.com warehouse frontend stock result parity vs ASP.NET digest (part_search / ajax_getProductsOfBunch)",
+    "ERP inventory-stock digest same fields as PHP warehouse stock listing"
+  ],
+  "capturedEvidence": [],
+  "blockedReason": "CloudPanel authenticated dual-sample not yet captured",
+  "note": "Stub only. Flip status to captured when live evidence lands. Never invent RELEASE_OWNER_APPROVAL.md."
+}

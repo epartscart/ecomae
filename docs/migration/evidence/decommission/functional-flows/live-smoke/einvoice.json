@@ -1,0 +1,16 @@
+{
+  "role": "functional-flow-live-smoke-stub",
+  "flowId": "einvoice",
+  "title": "E-invoice documents + submit/poll readiness",
+  "status": "blocked",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "requiredProbes": [
+    "Authenticated /cp/einvoice-documents digest field parity",
+    "Create\u2192validate\u2192submit\u2192poll dry-run sequence paired with PHP (writes=0 until approval)"
+  ],
+  "capturedEvidence": [],
+  "blockedReason": "CloudPanel authenticated dual-sample not yet captured",
+  "note": "Stub only. Flip status to captured when live evidence lands. Never invent RELEASE_OWNER_APPROVAL.md."
+}

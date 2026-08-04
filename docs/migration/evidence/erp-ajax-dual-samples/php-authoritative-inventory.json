@@ -1,0 +1,12 @@
+{
+  "role": "php-erp-ajax-authoritative-inventory",
+  "generatedAtUnix": 1785865672,
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "actionCount": 321,
+  "dedicatedCount": 321,
+  "registryCount": 0,
+  "note": "PHP erp ajax remains authoritative. ASP.NET dry-run goldens are writes=0 contract stubs."
+}

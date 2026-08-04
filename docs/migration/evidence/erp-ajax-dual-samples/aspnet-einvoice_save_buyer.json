@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "action": "einvoice_save_buyer",
+  "kind": "dedicated",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "Migration-mode erp ajax dry-run golden; PHP remains authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}
