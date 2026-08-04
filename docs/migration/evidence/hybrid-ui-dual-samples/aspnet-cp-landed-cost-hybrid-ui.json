@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "cp-landed-cost",
+  "surface": "cp",
+  "appRoute": "/cp/landed-cost-app",
+  "digestRoute": "/cp/landed-cost",
+  "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost",
+  "blazorMarker": "CpLandedCostApp",
+  "chromeShell": "PhpCpDesktopChrome",
+  "authKind": "admin",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T07:30:00Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Contract stub. Re-run on CloudPanel with cookies + ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1."
+}

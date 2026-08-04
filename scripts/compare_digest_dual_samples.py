@@ -228,6 +228,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "proofCount,pendingCount,anchoredCount,batchCount,source,message",
     ),
+    "cp-landed-cost": (
+        "summary",
+        "sheetCount,postedCount,expenseCount,lineCount,source,message",
+    ),
+    "cp-warehouse-wms": (
+        "summary",
+        "locationCount,lpCount,waveCount,openWorkCount,source,message",
+    ),
+    "cp-ai-service": (
+        "summary",
+        "queryCount,successCount,blockedCount,providerCount,source,message",
+    ),
+    "cp-returns-rma": (
+        "summary",
+        "rmaCount,openCount,activeWarrantyCount,itemCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -728,6 +744,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-blockchain-proofs": (
         "proofs",
         ["id", "proofUid", "tenantKey", "recordType", "recordId", "payloadHash", "status", "batchId", "anchorRef", "createdAt"],
+    ),
+    "cp-landed-cost": (
+        "sheets",
+        ["id", "companyId", "sheetNo", "poReference", "grnReference", "supplierId", "supplierName", "goodsValue", "totalExpenses", "distributionMethod", "currency", "status", "timeCreated"],
+    ),
+    "cp-warehouse-wms": (
+        "work",
+        ["id", "companyId", "workType", "reference", "waveId", "item", "qty", "status", "assignedTo", "timeCreated"],
+    ),
+    "cp-ai-service": (
+        "queries",
+        ["id", "siteKey", "userId", "service", "intent", "tokensUsed", "executionMs", "piiStripped", "status", "createdAt"],
+    ),
+    "cp-returns-rma": (
+        "requests",
+        ["id", "siteKey", "rmaNumber", "warrantyId", "customerId", "customerName", "reason", "status", "resolutionType", "createdAt"],
     ),
     "cp-orders-digest": (
         "orders",

@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 102,
+  "contractCount": 106,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -3056,6 +3056,133 @@
         "pendingCount",
         "anchoredCount",
         "batchCount",
+        "source",
+        "message"
+      ]
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/landed-cost",
+      "legacyPhpAuthority": "epc_landed_cost_sheets + expenses/lines",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "sheets",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "functionsCovered": [
+        "Landed cost KPIs + sheets",
+        "notes omitted",
+        "PHP landed_cost_area remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample",
+      "requiredSummaryOrItemFields": [
+        "sheetCount",
+        "postedCount",
+        "expenseCount",
+        "lineCount",
+        "source",
+        "message"
+      ]
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/warehouse-wms",
+      "legacyPhpAuthority": "epc_erp_wms_locations + lp/waves/work",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "work",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "functionsCovered": [
+        "WMS KPIs + work pool",
+        "PHP warehouse/mhei WMS remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample",
+      "requiredSummaryOrItemFields": [
+        "locationCount",
+        "lpCount",
+        "waveCount",
+        "openWorkCount",
+        "source",
+        "message"
+      ]
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/ai-service",
+      "legacyPhpAuthority": "epc_ai_queries + providers",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "queries",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "functionsCovered": [
+        "AI service KPIs + queries",
+        "input_text/output_text omitted",
+        "PHP epc_ai_service remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample",
+      "requiredSummaryOrItemFields": [
+        "queryCount",
+        "successCount",
+        "blockedCount",
+        "providerCount",
+        "source",
+        "message"
+      ]
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/returns-rma",
+      "legacyPhpAuthority": "epc_rma_requests + warranties/items",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "requests",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "functionsCovered": [
+        "Returns/RMA KPIs + requests",
+        "description/resolution_notes omitted",
+        "PHP returns-manager remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample",
+      "requiredSummaryOrItemFields": [
+        "rmaCount",
+        "openCount",
+        "activeWarrantyCount",
+        "itemCount",
         "source",
         "message"
       ]

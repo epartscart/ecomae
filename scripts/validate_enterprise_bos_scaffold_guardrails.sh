@@ -317,6 +317,14 @@ check_file "cp fin-advanced item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-fin-advanced-item-field-floor.json"
 check_file "cp blockchain-proofs item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-blockchain-proofs-item-field-floor.json"
+check_file "cp landed-cost item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-landed-cost-item-field-floor.json"
+check_file "cp warehouse-wms item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-warehouse-wms-item-field-floor.json"
+check_file "cp ai-service item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-ai-service-item-field-floor.json"
+check_file "cp returns-rma item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-returns-rma-item-field-floor.json"
 check_file "cp auto-price item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
 check_file "cp uae-tax-compliance item-field floor evidence" \

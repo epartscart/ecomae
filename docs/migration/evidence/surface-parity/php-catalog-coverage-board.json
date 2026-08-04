@@ -32,39 +32,39 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 484,
-    "php-only-deeplink": 242
+    "digest-contract": 535,
+    "php-only-deeplink": 191
   },
   "coverageByKind": {
     "bos-module": {
-      "digest-contract": 67,
-      "php-only-deeplink": 32
+      "digest-contract": 72,
+      "php-only-deeplink": 27
     },
     "bos-section": {
-      "digest-contract": 7,
-      "php-only-deeplink": 4
+      "digest-contract": 8,
+      "php-only-deeplink": 3
     },
     "cp-feature": {
-      "digest-contract": 255,
-      "php-only-deeplink": 150
+      "digest-contract": 280,
+      "php-only-deeplink": 125
     },
     "erp-area": {
-      "digest-contract": 27,
-      "php-only-deeplink": 8
+      "digest-contract": 31,
+      "php-only-deeplink": 4
     },
     "erp-category": {
       "digest-contract": 9
     },
     "erp-tab": {
-      "digest-contract": 110,
-      "php-only-deeplink": 44
+      "digest-contract": 124,
+      "php-only-deeplink": 30
     },
     "storefront-surface": {
-      "php-only-deeplink": 4,
-      "digest-contract": 9
+      "php-only-deeplink": 2,
+      "digest-contract": 11
     }
   },
-  "digestContractRouteCount": 102,
+  "digestContractRouteCount": 106,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -162,10 +162,10 @@
       "kind": "erp-tab",
       "label": "Vendor setup",
       "phpPath": "/ERP/?epc_erp_shell=1&area=ap&tab=ap_setup",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -173,10 +173,10 @@
       "kind": "erp-area",
       "label": "Accounts receivable",
       "phpPath": "/ERP/?epc_erp_shell=1&area=ar",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -184,10 +184,10 @@
       "kind": "erp-tab",
       "label": "Receivables",
       "phpPath": "/ERP/?epc_erp_shell=1&area=ar&tab=receivables",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -195,10 +195,10 @@
       "kind": "erp-tab",
       "label": "Customer setup",
       "phpPath": "/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -437,10 +437,10 @@
       "kind": "erp-tab",
       "label": "AI advisor",
       "phpPath": "/ERP/?epc_erp_shell=1&area=common&tab=ai_advisor",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -580,10 +580,10 @@
       "kind": "erp-area",
       "label": "Expense management",
       "phpPath": "/ERP/?epc_erp_shell=1&area=expense",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -591,10 +591,10 @@
       "kind": "erp-tab",
       "label": "Expense reports",
       "phpPath": "/ERP/?epc_erp_shell=1&area=expense&tab=expense_reports",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -734,10 +734,10 @@
       "kind": "erp-tab",
       "label": "Accounting automation",
       "phpPath": "/ERP/?epc_erp_shell=1&area=finance&tab=accounting_automation",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -1053,10 +1053,10 @@
       "kind": "erp-area",
       "label": "Landed cost",
       "phpPath": "/ERP/?epc_erp_shell=1&area=landed_cost_area",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -1064,10 +1064,10 @@
       "kind": "erp-tab",
       "label": "Landed cost",
       "phpPath": "/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -1152,10 +1152,10 @@
       "kind": "erp-area",
       "label": "Material handling equipment interface",
       "phpPath": "/ERP/?epc_erp_shell=1&area=mhei",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -1163,10 +1163,10 @@
       "kind": "erp-tab",
       "label": "Warehouse management",
       "phpPath": "/ERP/?epc_erp_shell=1&area=mhei&tab=wms",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -1273,10 +1273,10 @@
       "kind": "erp-tab",
       "label": "Supplier portal",
       "phpPath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=supplier_portal",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -1328,10 +1328,10 @@
       "kind": "erp-tab",
       "label": "3-way match",
       "phpPath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=three_way_match",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -1603,10 +1603,10 @@
       "kind": "erp-tab",
       "label": "Delivery notes",
       "phpPath": "/ERP/?epc_erp_shell=1&area=sales&tab=delivery_notes",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -1933,10 +1933,10 @@
       "kind": "erp-tab",
       "label": "Devin AI assistant",
       "phpPath": "/ERP/?epc_erp_shell=1&area=setup&tab=ai_assistant",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -1977,10 +1977,10 @@
       "kind": "erp-tab",
       "label": "Accounting automation",
       "phpPath": "/ERP/?epc_erp_shell=1&area=setup&tab=accounting_automation",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -2142,10 +2142,10 @@
       "kind": "erp-tab",
       "label": "Warehouse management",
       "phpPath": "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -2296,10 +2296,10 @@
       "kind": "bos-section",
       "label": "Logistics",
       "phpPath": "/BOS/?section=logistics",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -2681,10 +2681,10 @@
       "kind": "bos-module",
       "label": "AI Copilot",
       "phpPath": "/CP/control/portal/epc_ai_copilot",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -2747,10 +2747,10 @@
       "kind": "bos-module",
       "label": "Imports",
       "phpPath": "/CP/control/portal/epc_import_orchestrator",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -2802,10 +2802,10 @@
       "kind": "bos-module",
       "label": "AI Service",
       "phpPath": "/CP/general_pages/epc_ai_service",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -2835,10 +2835,10 @@
       "kind": "bos-module",
       "label": "Anomaly AI",
       "phpPath": "/CP/general_pages/epc_isolation_anomaly",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -3209,10 +3209,10 @@
       "kind": "bos-module",
       "label": "Accounts Receivable",
       "phpPath": "/ERP/?epc_erp_shell=1&area=ar",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -3880,10 +3880,10 @@
       "kind": "cp-feature",
       "label": "Vendor & sourcing (fleet)",
       "phpPath": "/CP/control/portal/epc_boc_vendor_control",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -3891,10 +3891,10 @@
       "kind": "cp-feature",
       "label": "Warehouse & inventory (fleet)",
       "phpPath": "/CP/control/portal/epc_boc_warehouse_control",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -4232,10 +4232,10 @@
       "kind": "cp-feature",
       "label": "Account operations",
       "phpPath": "/CP/shop/finance/account_operations",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -4254,10 +4254,10 @@
       "kind": "cp-feature",
       "label": "Branch offices",
       "phpPath": "/CP/shop/logistics/offices",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -4496,10 +4496,10 @@
       "kind": "cp-feature",
       "label": "Returns & RMA handling",
       "phpPath": "/CP/shop/returns-manager",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -4507,10 +4507,10 @@
       "kind": "cp-feature",
       "label": "Returns manager",
       "phpPath": "/CP/shop/returns-manager",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -4793,10 +4793,10 @@
       "kind": "cp-feature",
       "label": "Stock levels",
       "phpPath": "/CP/shop/logistics/stock",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -4936,10 +4936,10 @@
       "kind": "cp-feature",
       "label": "Branch & office list",
       "phpPath": "/CP/shop/logistics/offices",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -5123,10 +5123,10 @@
       "kind": "cp-feature",
       "label": "Procurement & suppliers",
       "phpPath": "/CP/shop/procurement/procurement",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -5167,10 +5167,10 @@
       "kind": "cp-feature",
       "label": "Supplier directory",
       "phpPath": "/CP/shop/procurement/procurement",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -5178,10 +5178,10 @@
       "kind": "cp-feature",
       "label": "Supplier payables",
       "phpPath": "/CP/shop/procurement/procurement",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -5189,10 +5189,10 @@
       "kind": "cp-feature",
       "label": "Accounts receivable",
       "phpPath": "/CP/shop/finance/erp?area=ar&tab=receivables&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -5431,10 +5431,10 @@
       "kind": "cp-feature",
       "label": "Accounts payable: Vendor setup",
       "phpPath": "/CP/shop/finance/erp?area=ap&tab=ap_setup&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -5453,10 +5453,10 @@
       "kind": "cp-feature",
       "label": "Accounts receivable: Receivables",
       "phpPath": "/CP/shop/finance/erp?area=ar&tab=receivables&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -5607,10 +5607,10 @@
       "kind": "cp-feature",
       "label": "Common: AI advisor",
       "phpPath": "/CP/shop/finance/erp?area=common&tab=ai_advisor&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -5728,10 +5728,10 @@
       "kind": "cp-feature",
       "label": "Expense management: Expense reports",
       "phpPath": "/CP/shop/finance/erp?area=expense&tab=expense_reports&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -6157,10 +6157,10 @@
       "kind": "cp-feature",
       "label": "Landed cost: Landed cost",
       "phpPath": "/CP/shop/finance/erp?area=landed_cost_area&tab=landed_cost&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -6190,10 +6190,10 @@
       "kind": "cp-feature",
       "label": "Logistics: Procurement CP",
       "phpPath": "/CP/shop/finance/erp?area=logistics&tab=procurement_link&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -6212,10 +6212,10 @@
       "kind": "cp-feature",
       "label": "Material handling equipment interface: Warehouse management",
       "phpPath": "/CP/shop/finance/erp?area=mhei&tab=wms&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -6289,10 +6289,10 @@
       "kind": "cp-feature",
       "label": "Procurement and sourcing: 3-way match",
       "phpPath": "/CP/shop/finance/erp?area=purchasing&tab=three_way_match&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -6399,10 +6399,10 @@
       "kind": "cp-feature",
       "label": "Procurement and sourcing: Supplier portal",
       "phpPath": "/CP/shop/finance/erp?area=purchasing&tab=supplier_portal&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/landed-cost",
+      "aspnetRoute": "/cp/landed-cost-app",
       "aspnetComplete": false
     },
     {
@@ -6828,10 +6828,10 @@
       "kind": "cp-feature",
       "label": "System administration: Devin AI assistant",
       "phpPath": "/CP/shop/finance/erp?area=setup&tab=ai_assistant&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -7026,10 +7026,10 @@
       "kind": "cp-feature",
       "label": "Warehouse management: Warehouse management",
       "phpPath": "/CP/shop/finance/erp?area=warehouse&tab=wms&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/warehouse-wms",
+      "aspnetRoute": "/cp/warehouse-wms-app",
       "aspnetComplete": false
     },
     {
@@ -7433,10 +7433,10 @@
       "kind": "cp-feature",
       "label": "AI VIN decode assistance",
       "phpPath": "/CP/shop/parts_agent_chats",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/ai-service",
+      "aspnetRoute": "/cp/ai-service-app",
       "aspnetComplete": false
     },
     {
@@ -7785,10 +7785,10 @@
       "kind": "cp-feature",
       "label": "Storefront theme packages",
       "phpPath": "/CP/templates/templates_manager",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -8027,10 +8027,10 @@
       "kind": "storefront-surface",
       "label": "Returns",
       "phpPath": "https://epartscart.com/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     },
     {
@@ -8049,10 +8049,10 @@
       "kind": "storefront-surface",
       "label": "Support",
       "phpPath": "https://epartscart.com/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/returns-rma",
+      "aspnetRoute": "/cp/returns-rma-app",
       "aspnetComplete": false
     }
   ],

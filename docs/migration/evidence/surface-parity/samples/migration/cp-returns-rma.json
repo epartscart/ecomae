@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "rmaCount": 1,
+    "openCount": 1,
+    "activeWarrantyCount": 0,
+    "itemCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; requests[] sentinel; description/notes omitted; PHP returns-manager authoritative; cutoverAllowed=false",
+  "requests": [
+    {
+      "id": 1,
+      "siteKey": "mig",
+      "rmaNumber": "RMA-1",
+      "warrantyId": null,
+      "customerId": 1,
+      "customerName": "Migration customer",
+      "reason": "defective",
+      "status": "pending",
+      "resolutionType": "none",
+      "createdAt": ""
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

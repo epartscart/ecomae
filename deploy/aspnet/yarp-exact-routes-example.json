@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 93,
+  "routeCount": 97,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -1121,6 +1121,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-blockchain-proofs-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-landed-cost-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/landed-cost-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-landed-cost-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-warehouse-wms-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/warehouse-wms-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-warehouse-wms-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-ai-service-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/ai-service-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-ai-service-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-returns-rma-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/returns-rma-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-returns-rma-app-shadow-approved"
           }
         ]
       }

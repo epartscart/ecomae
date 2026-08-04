@@ -1,0 +1,31 @@
+{
+  "role": "cp-ai-service-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-ai-service",
+  "collectionKey": "queries",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "queryCount",
+    "successCount",
+    "blockedCount",
+    "providerCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "userId",
+    "service",
+    "intent",
+    "tokensUsed",
+    "executionMs",
+    "piiStripped",
+    "status",
+    "createdAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-ai-service digest summary+queries[] floors. Input/output text omitted. PHP epc_ai_service remains authoritative. cutoverAllowed=false."
+}

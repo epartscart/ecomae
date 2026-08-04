@@ -1,0 +1,31 @@
+{
+  "role": "cp-returns-rma-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-returns-rma",
+  "collectionKey": "requests",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "rmaCount",
+    "openCount",
+    "activeWarrantyCount",
+    "itemCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "rmaNumber",
+    "warrantyId",
+    "customerId",
+    "customerName",
+    "reason",
+    "status",
+    "resolutionType",
+    "createdAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-returns-rma digest summary+requests[] floors. Description/notes omitted. PHP returns-manager remains authoritative. cutoverAllowed=false."
+}

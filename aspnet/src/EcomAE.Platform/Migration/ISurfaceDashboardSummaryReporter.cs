@@ -194,6 +194,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only blockchain proofs (payload/merkle JSON omitted).</summary>
     Task<CpBlockchainProofsDigestResult> BuildCpBlockchainProofsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only landed cost sheets (notes omitted).</summary>
+    Task<CpLandedCostDigestResult> BuildCpLandedCostDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only WMS work pool.</summary>
+    Task<CpWarehouseWmsDigestResult> BuildCpWarehouseWmsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only AI service queries (input/output text omitted).</summary>
+    Task<CpAiServiceDigestResult> BuildCpAiServiceDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only returns/RMA requests (description/notes omitted).</summary>
+    Task<CpReturnsRmaDigestResult> BuildCpReturnsRmaDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only bank statement lines for reconciliation.</summary>
     Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
 

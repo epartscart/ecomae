@@ -232,6 +232,22 @@ public static class EcomAeRoutes
     public const string ControlPanelBlockchainProofs = "/cp/blockchain-proofs";
     /// <summary>CP blockchain proofs Blazor list (JSON digest remains <see cref="ControlPanelBlockchainProofs"/>).</summary>
     public const string ControlPanelBlockchainProofsApp = "/cp/blockchain-proofs-app";
+    /// <summary>CP landed cost sheets (notes omitted).</summary>
+    public const string ControlPanelLandedCost = "/cp/landed-cost";
+    /// <summary>CP landed-cost Blazor list (JSON digest remains <see cref="ControlPanelLandedCost"/>).</summary>
+    public const string ControlPanelLandedCostApp = "/cp/landed-cost-app";
+    /// <summary>CP warehouse WMS work pool.</summary>
+    public const string ControlPanelWarehouseWms = "/cp/warehouse-wms";
+    /// <summary>CP warehouse-wms Blazor list (JSON digest remains <see cref="ControlPanelWarehouseWms"/>).</summary>
+    public const string ControlPanelWarehouseWmsApp = "/cp/warehouse-wms-app";
+    /// <summary>CP AI service queries (input/output text omitted).</summary>
+    public const string ControlPanelAiService = "/cp/ai-service";
+    /// <summary>CP AI service Blazor list (JSON digest remains <see cref="ControlPanelAiService"/>).</summary>
+    public const string ControlPanelAiServiceApp = "/cp/ai-service-app";
+    /// <summary>CP returns/RMA requests (description/notes omitted).</summary>
+    public const string ControlPanelReturnsRma = "/cp/returns-rma";
+    /// <summary>CP returns-rma Blazor list (JSON digest remains <see cref="ControlPanelReturnsRma"/>).</summary>
+    public const string ControlPanelReturnsRmaApp = "/cp/returns-rma-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

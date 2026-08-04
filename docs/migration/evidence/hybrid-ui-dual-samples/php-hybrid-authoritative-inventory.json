@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-04T07:10:00Z",
+  "capturedAt": "2026-08-04T07:30:00Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -510,6 +510,30 @@
       "appRoute": "/cp/blockchain-proofs-app",
       "digestRoute": "/cp/blockchain-proofs",
       "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs"
+    },
+    {
+      "stem": "cp-landed-cost",
+      "appRoute": "/cp/landed-cost-app",
+      "digestRoute": "/cp/landed-cost",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost"
+    },
+    {
+      "stem": "cp-warehouse-wms",
+      "appRoute": "/cp/warehouse-wms-app",
+      "digestRoute": "/cp/warehouse-wms",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms"
+    },
+    {
+      "stem": "cp-ai-service",
+      "appRoute": "/cp/ai-service-app",
+      "digestRoute": "/cp/ai-service",
+      "phpAuthoritativePath": "/CP/general_pages/epc_ai_service"
+    },
+    {
+      "stem": "cp-returns-rma",
+      "appRoute": "/cp/returns-rma-app",
+      "digestRoute": "/cp/returns-rma",
+      "phpAuthoritativePath": "/CP/shop/returns-manager"
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

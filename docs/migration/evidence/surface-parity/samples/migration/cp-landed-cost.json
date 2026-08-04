@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "sheetCount": 1,
+    "postedCount": 0,
+    "expenseCount": 0,
+    "lineCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; sheets[] sentinel; notes omitted; PHP landed_cost authoritative; cutoverAllowed=false",
+  "sheets": [
+    {
+      "id": 1,
+      "companyId": 0,
+      "sheetNo": "LC-1",
+      "poReference": "PO-1",
+      "grnReference": "",
+      "supplierId": 1,
+      "supplierName": "Migration supplier",
+      "goodsValue": 100.0,
+      "totalExpenses": 10.0,
+      "distributionMethod": "value",
+      "currency": "AED",
+      "status": "draft",
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}
