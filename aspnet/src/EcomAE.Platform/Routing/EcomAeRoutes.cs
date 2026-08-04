@@ -428,6 +428,8 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsSetItemStatus = "/cp/orders/set-item-status";
     /// <summary>Wave B dry-run OMS set_items_status bulk (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
     public const string ControlPanelOmsSetItemsStatus = "/cp/orders/set-items-status";
+    /// <summary>Wave B dry-run OMS send_message (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    public const string ControlPanelOmsSendMessage = "/cp/orders/send-message";
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
     /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>
@@ -459,6 +461,8 @@ public static class EcomAeRoutes
     public const string ErpCashEntriesVoid = "/erp/cash-entries/void";
     /// <summary>Wave B dry-run GL manual journal (PHP gl_manual_entry remains authoritative).</summary>
     public const string ErpGlJournalsManual = "/erp/gl-journals/manual";
+    /// <summary>Wave B dry-run GL reverse journal (PHP gl_reverse_journal remains authoritative).</summary>
+    public const string ErpGlJournalsReverse = "/erp/gl-journals/reverse";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
@@ -571,6 +575,8 @@ public static class EcomAeRoutes
     public const string StorefrontCartAdd = "/storefront/cart/add";
     /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
     public const string MarketingPlatformApp = "/marketing/platform";
+    /// <summary>Marketing about Blazor scaffold (PHP /platform/about remains primary until dual-sample).</summary>
+    public const string MarketingAboutApp = "/marketing/about";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
