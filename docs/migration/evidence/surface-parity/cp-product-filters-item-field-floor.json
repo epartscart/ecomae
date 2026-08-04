@@ -1,0 +1,29 @@
+{
+  "role": "cp-product-filters-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-product-filters",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-product-filters digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "filterCount",
+    "withStorageScope",
+    "withPriceBand",
+    "withTimeBand",
+    "source",
+    "message"
+  ],
+  "collectionKey": "filters",
+  "requiredItemFields": [
+    "id",
+    "manufacturer",
+    "article",
+    "name",
+    "minPrice",
+    "maxPrice",
+    "minTime",
+    "maxTime"
+  ]
+}

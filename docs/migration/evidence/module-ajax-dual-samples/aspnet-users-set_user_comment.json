@@ -1,8 +1,8 @@
 {
   "ok": true,
   "surface": "cp",
-  "module": "procurement",
-  "action": "create_supplier",
+  "module": "users",
+  "action": "set_user_comment",
   "status": "dry-run-validated",
   "writes": 0,
   "writesBlocked": true,

@@ -1,0 +1,80 @@
+{
+  "role": "menu-field-parity-built-vs-pending",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "menus": {
+    "totalTracked": 726,
+    "digestContract": 725,
+    "phpOnlyHoldout": 1,
+    "holdoutId": "cp-debug-console",
+    "holdoutNote": "Intentional LFI surface \u2014 PHP deeplink only, no digest/app"
+  },
+  "fieldFloors": {
+    "summaryContractStems": 107,
+    "hybridListStems": 98,
+    "listItemStems": 28,
+    "objectStems": 1,
+    "floorsCreatedThisRun": [
+      "bos-fleet-readiness",
+      "bos-fleet-summary",
+      "cp-abandoned-carts",
+      "cp-additional-texts",
+      "cp-communications-test",
+      "cp-dashboard-summary",
+      "cp-design-tokens",
+      "cp-failover-status",
+      "cp-file-manager",
+      "cp-geo-regions",
+      "cp-languages",
+      "cp-mobile-apps",
+      "cp-ops-guides",
+      "cp-parts-agent-chats",
+      "cp-plugins-manager",
+      "cp-product-filters",
+      "cp-search-tabs",
+      "cp-server-ip",
+      "cp-sitemap",
+      "cp-slider-banners",
+      "cp-structure-dumps",
+      "cp-system-requests",
+      "cp-templates-manager",
+      "erp-accounts-summary",
+      "erp-dashboard-summary",
+      "erp-inventory-stock",
+      "storefront-account-summary",
+      "storefront-checkout"
+    ],
+    "floorsCreatedCount": 28,
+    "coveredContractStems": 136,
+    "totalContractStems": 136,
+    "missingContractStems": []
+  },
+  "pendingTowardZeroPhp": [
+    "aspNetInteractiveComplete remains 0 \u2014 live writes still PHP",
+    "Module-ajax dual-sample pairs still thin (need CloudPanel cookies for PHP ajax field samples)",
+    "Authenticated digest dual-sample capture for core CP/ERP still required",
+    "Exact-route shadows + RELEASE_OWNER_APPROVAL.md before PHP removal \u2014 never invent approval"
+  ],
+  "ok": true,
+  "moduleAjaxDualSamples": {
+    "samplesChecked": 20,
+    "catalogTotalActions": 394,
+    "dedicatedDryRuns": 249,
+    "coveragePct": 100
+  },
+  "built": [
+    "Menu catalog 725/726 digest-contract (1 intentional holdout: cp-debug-console)",
+    "Field floors cover 136/136 digest contract stems",
+    "CP module-ajax write catalog 394 actions @ 100% dry-run coverage (writes=0)",
+    "Module-ajax dual-sample dry-run goldens: 20 curated actions",
+    "ERP ajax_erp catalog 321 dedicated dry-runs; BOS ajax 231"
+  ],
+  "pending": [
+    "aspNetInteractiveComplete=0 \u2014 no live write cutover",
+    "Paired PHP\u2194ASP.NET ajax field dual-samples on CloudPanel (cookies) still required",
+    "Authenticated digest dual-sample capture for core CP/ERP",
+    "Exact-route shadows + human RELEASE_OWNER_APPROVAL.md before PHP decommission",
+    "Live /CP/ /ERP/ /BOS/ / storefront chrome remains PHP-primary for tenants"
+  ]
+}

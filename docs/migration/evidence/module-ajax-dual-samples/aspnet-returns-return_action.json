@@ -1,8 +1,8 @@
 {
   "ok": true,
   "surface": "cp",
-  "module": "procurement",
-  "action": "create_supplier",
+  "module": "returns",
+  "action": "return_action",
   "status": "dry-run-validated",
   "writes": 0,
   "writesBlocked": true,

@@ -1,9 +1,9 @@
 {
   "role": "module-ajax-dual-sample-compare",
-  "generatedAtUnix": 1785860623,
+  "generatedAtUnix": 1785862939,
   "ok": true,
-  "samplesChecked": 1,
-  "samplesOk": 1,
+  "samplesChecked": 20,
+  "samplesOk": 20,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,

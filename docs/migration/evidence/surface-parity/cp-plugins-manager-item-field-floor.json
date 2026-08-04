@@ -1,0 +1,27 @@
+{
+  "role": "cp-plugins-manager-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-plugins-manager",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-plugins-manager digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "pluginCount",
+    "activatedCount",
+    "frontendCount",
+    "lockedCount",
+    "source",
+    "message"
+  ],
+  "collectionKey": "plugins",
+  "requiredItemFields": [
+    "id",
+    "caption",
+    "sortOrder",
+    "activated",
+    "isFrontend",
+    "controlLock"
+  ]
+}

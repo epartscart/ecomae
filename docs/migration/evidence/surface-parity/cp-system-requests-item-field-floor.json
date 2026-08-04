@@ -1,0 +1,25 @@
+{
+  "role": "cp-system-requests-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-system-requests",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-system-requests digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "requestCount",
+    "unviewedCount",
+    "viewedCount",
+    "withUserCount",
+    "source",
+    "message"
+  ],
+  "collectionKey": "requests",
+  "requiredItemFields": [
+    "id",
+    "timeUnix",
+    "userId",
+    "viewed"
+  ]
+}

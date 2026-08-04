@@ -1,0 +1,16 @@
+{
+  "role": "storefront-checkout-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "storefront-checkout",
+  "requireNonemptyMigrationSentinel": false,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks storefront-checkout digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "count",
+    "sum",
+    "source",
+    "message"
+  ]
+}

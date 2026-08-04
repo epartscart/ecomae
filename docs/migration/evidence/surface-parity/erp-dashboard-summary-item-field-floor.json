@@ -1,0 +1,21 @@
+{
+  "role": "erp-dashboard-summary-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "erp-dashboard-summary",
+  "requireNonemptyMigrationSentinel": false,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks erp-dashboard-summary digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "cashPosition",
+    "supplierCredit",
+    "supplierDebit",
+    "supplierNet",
+    "cashAccounts",
+    "activeSuppliers",
+    "activePurchases",
+    "source",
+    "message"
+  ]
+}

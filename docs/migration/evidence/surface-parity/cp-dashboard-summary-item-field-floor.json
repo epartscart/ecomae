@@ -1,0 +1,18 @@
+{
+  "role": "cp-dashboard-summary-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-dashboard-summary",
+  "requireNonemptyMigrationSentinel": false,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-dashboard-summary digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "users",
+    "adminSessions",
+    "portalTenants",
+    "activePortalTenants",
+    "source",
+    "message"
+  ]
+}

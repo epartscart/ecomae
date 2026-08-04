@@ -1,0 +1,24 @@
+{
+  "role": "cp-languages-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-languages",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-languages digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "languageCount",
+    "activeCount",
+    "defaultCount",
+    "inactiveCount",
+    "source",
+    "message"
+  ],
+  "collectionKey": "languages",
+  "requiredItemFields": [
+    "langCode",
+    "active",
+    "isDefault"
+  ]
+}

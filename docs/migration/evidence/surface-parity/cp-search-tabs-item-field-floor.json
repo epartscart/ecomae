@@ -1,0 +1,25 @@
+{
+  "role": "cp-search-tabs-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-search-tabs",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-search-tabs digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "tabCount",
+    "enabledCount",
+    "disabledCount",
+    "maxOrder",
+    "source",
+    "message"
+  ],
+  "collectionKey": "tabs",
+  "requiredItemFields": [
+    "id",
+    "caption",
+    "sortOrder",
+    "enabled"
+  ]
+}

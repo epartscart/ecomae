@@ -1,0 +1,24 @@
+{
+  "role": "storefront-profile-object-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "storefront-profile",
+  "requiredObjectFields": [
+    "ok",
+    "surface",
+    "user_id",
+    "email",
+    "email_confirmed",
+    "phone",
+    "phone_confirmed",
+    "reg_variant",
+    "profile_fields",
+    "source",
+    "message",
+    "session",
+    "note"
+  ],
+  "source": "OBJECT_CONTRACTS + generate_missing_item_field_floors.py",
+  "note": "Locks storefront-profile object envelope fields. cutoverAllowed=false."
+}
