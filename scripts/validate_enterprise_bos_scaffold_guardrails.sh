@@ -228,6 +228,14 @@ check_file "storefront search item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/storefront-search-item-field-floor.json"
 check_file "storefront cart item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/storefront-cart-item-field-floor.json"
+check_file "cp power-bi item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-power-bi-item-field-floor.json"
+check_file "cp mobile-apps summary field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-mobile-apps-summary-field-floor.json"
+check_file "feature family coverage board builder" \
+  "$ROOT/scripts/build_feature_family_coverage_board.py"
+check_file "feature family coverage board evidence" \
+  "$ROOT/docs/migration/evidence/module-function-parity/feature-family-coverage-board.json"
 check_file "catalog offline-cache nested item-field floor evidence" \
   "$ROOT/docs/migration/evidence/catalog-api/offline-cache-nested-item-field-floor.json"
 

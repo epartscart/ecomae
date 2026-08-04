@@ -284,6 +284,61 @@ def main() -> None:
                 }
             ],
         ),
+        "cp-power-bi.json": {
+            **summary(
+                "cp",
+                {
+                    "siteKey": "__platform__",
+                    "workspaceId": "ws-migration",
+                    "azureTenantId": "tenant-migration",
+                    "defaultReportId": "rpt-1",
+                    "defaultDatasetId": "ds-1",
+                    "embedUrl": "https://app.powerbi.com/reportEmbed?reportId=rpt-1",
+                    "embedMode": "report",
+                    "notes": "migration golden",
+                    "active": True,
+                    "reportCount": 1,
+                },
+            ),
+            "reports": [
+                {
+                    "id": 1,
+                    "siteKey": "__platform__",
+                    "reportId": "rpt-1",
+                    "reportName": "Migration Finance",
+                    "datasetId": "ds-1",
+                    "category": "finance",
+                    "embedUrl": "https://app.powerbi.com/reportEmbed?reportId=rpt-1",
+                    "active": True,
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": (
+                "migration-mode contract sample; reports[] item-field sentinel locked; "
+                "PHP epc_power_bi remains authoritative; cutoverAllowed=false"
+            ),
+        },
+        "cp-mobile-apps.json": summary(
+            "cp",
+            {
+                "enabled": True,
+                "appName": "eParts Cart",
+                "bundleId": "com.epartscart.app",
+                "deepLinkScheme": "epartscart://",
+                "deepLinkDomain": "epartscart.com",
+                "apiBaseUrl": "https://www.ecomae.com",
+                "playStoreUrl": "https://play.google.com/store/apps/details?id=com.epartscart.app",
+                "appStoreUrl": "https://apps.apple.com/app/id000000000",
+                "pwaEnabled": True,
+                "firebaseProjectId": "epartscart-migration",
+                "pushEnabled": False,
+            },
+        ),
         "cp-config-items.json": list_digest(
             "cp",
             "items",

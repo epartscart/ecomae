@@ -52,6 +52,14 @@ SUMMARY_CONTRACTS = {
         "summary",
         "count,sum,source,message",
     ),
+    "cp-power-bi": (
+        "summary",
+        "siteKey,workspaceId,azureTenantId,defaultReportId,defaultDatasetId,embedUrl,embedMode,notes,active,reportCount,source,message",
+    ),
+    "cp-mobile-apps": (
+        "summary",
+        "enabled,appName,bundleId,deepLinkScheme,deepLinkDomain,apiBaseUrl,playStoreUrl,appStoreUrl,pwaEnabled,firebaseProjectId,pushEnabled,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -288,6 +296,19 @@ LIST_NONEMPTY_MIGRATION = frozenset(LIST_ITEM_FIELDS)
 
 # Summary+list hybrid digests: KPI summary already in SUMMARY_CONTRACTS; also lock list item fields.
 HYBRID_LIST_ITEM_FIELDS = {
+    "cp-power-bi": (
+        "reports",
+        [
+            "id",
+            "siteKey",
+            "reportId",
+            "reportName",
+            "datasetId",
+            "category",
+            "embedUrl",
+            "active",
+        ],
+    ),
     "cp-orders-digest": (
         "orders",
         [

@@ -67,6 +67,14 @@ public static class EcomAeRoutes
     public const string ControlPanelApiClients = "/cp/api-clients";
     /// <summary>CP API clients Blazor list (JSON digest remains <see cref="ControlPanelApiClients"/>; key hashes never returned).</summary>
     public const string ControlPanelApiClientsApp = "/cp/api-clients-app";
+    /// <summary>CP Power BI config + reports metadata (Azure secrets never returned; writes remain PHP).</summary>
+    public const string ControlPanelPowerBi = "/cp/power-bi";
+    /// <summary>CP Power BI Blazor list (JSON digest remains <see cref="ControlPanelPowerBi"/>).</summary>
+    public const string ControlPanelPowerBiApp = "/cp/power-bi-app";
+    /// <summary>CP mobile apps config from integrations_json (push secrets never returned; writes remain PHP).</summary>
+    public const string ControlPanelMobileApps = "/cp/mobile-apps";
+    /// <summary>CP mobile apps Blazor summary (JSON digest remains <see cref="ControlPanelMobileApps"/>).</summary>
+    public const string ControlPanelMobileAppsApp = "/cp/mobile-apps-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

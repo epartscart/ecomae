@@ -73,6 +73,8 @@ TARGETS = [
     ("cp-storages", "cp", "/cp/storages-app", "/cp/storages", "/CP/shop/logistics/storages", "CpStoragesApp", "PhpCpDesktopChrome", "admin"),
     ("cp-admin-sessions", "cp", "/cp/admin-sessions-app", "/cp/admin-sessions", "/CP/control/users", "CpAdminSessionsApp", "PhpCpDesktopChrome", "admin"),
     ("cp-api-clients", "cp", "/cp/api-clients-app", "/cp/api-clients", "/CP/control/portal/epc_api_clients_manage", "CpApiClientsApp", "PhpCpDesktopChrome", "admin"),
+    ("cp-power-bi", "cp", "/cp/power-bi-app", "/cp/power-bi", "/CP/control/portal/epc_power_bi", "CpPowerBiApp", "PhpCpDesktopChrome", "admin"),
+    ("cp-mobile-apps", "cp", "/cp/mobile-apps-app", "/cp/mobile-apps", "/CP/control/portal/epc_mobile_apps", "CpMobileAppsApp", "PhpCpDesktopChrome", "admin"),
     ("cp-config-items", "cp", "/cp/config-items-app", "/cp/config-items", "/CP/control/config_edit", "CpConfigItemsApp", "PhpCpDesktopChrome", "admin"),
     ("erp-sales-orders", "erp", "/erp/sales-orders-app", "/erp/sales-orders", "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "ErpSalesOrdersApp", "PhpErpDesktopChrome", "admin"),
     ("erp-purchase-orders", "erp", "/erp/purchase-orders-app", "/erp/purchase-orders", "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders", "ErpPurchaseOrdersApp", "PhpErpDesktopChrome", "admin"),

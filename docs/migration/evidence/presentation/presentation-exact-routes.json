@@ -2,7 +2,7 @@
   "role": "presentation-exact-route-inventory",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 47,
+  "routeCount": 49,
   "generatedFrom": "deploy/aspnet/nginx-presentation-app-shadow-example.conf",
   "note": "Design/inventory only. Not product chrome cutover. Never invents RELEASE_OWNER_APPROVAL.md.",
   "routes": [
@@ -20,6 +20,8 @@
     "/cp/storages-app",
     "/cp/admin-sessions-app",
     "/cp/api-clients-app",
+    "/cp/power-bi-app",
+    "/cp/mobile-apps-app",
     "/cp/config-items-app",
     "/erp/app",
     "/erp/sales-orders-app",

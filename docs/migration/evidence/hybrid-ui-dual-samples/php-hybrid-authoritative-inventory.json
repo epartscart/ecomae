@@ -234,6 +234,32 @@
       "appRoute": "/storefront/account-summary-app",
       "digestRoute": "/storefront/account-summary",
       "phpAuthoritativePath": "https://epartscart.com/users/"
+    },
+    {
+      "stem": "cp-power-bi",
+      "surface": "cp",
+      "appRoute": "/cp/power-bi-app",
+      "digestRoute": "/cp/power-bi",
+      "phpAuthoritativePath": "/CP/control/portal/epc_power_bi",
+      "blazorMarker": "CpPowerBiApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-mobile-apps",
+      "surface": "cp",
+      "appRoute": "/cp/mobile-apps-app",
+      "digestRoute": "/cp/mobile-apps",
+      "phpAuthoritativePath": "/CP/control/portal/epc_mobile_apps",
+      "blazorMarker": "CpMobileAppsApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

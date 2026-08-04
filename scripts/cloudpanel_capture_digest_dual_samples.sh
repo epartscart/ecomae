@@ -41,6 +41,8 @@ declare -A ROUTES=(
   [cp-pages]="/cp/pages?limit=5"
   [cp-currencies]="/cp/currencies?limit=5"
   [cp-api-clients]="/cp/api-clients?limit=5"
+  [cp-power-bi]="/cp/power-bi?limit=5"
+  [cp-mobile-apps]="/cp/mobile-apps"
   [cp-config-items]="/cp/config-items?limit=5"
   [cp-admin-sessions]="/cp/admin-sessions?limit=5"
   [cp-storages]="/cp/storages?limit=5"

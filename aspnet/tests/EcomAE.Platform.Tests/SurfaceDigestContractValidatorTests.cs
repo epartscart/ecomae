@@ -122,6 +122,28 @@ public sealed class SurfaceDigestContractValidatorTests
             ["/cp/pages"] = Envelope("cp", "pages", await reporter.ListCpPagesAsync(10), session),
             ["/cp/currencies"] = Envelope("cp", "currencies", await reporter.ListCpCurrenciesAsync(10), session),
             ["/cp/api-clients"] = Envelope("cp", "clients", await reporter.ListCpApiClientsMetaAsync(10), session),
+            ["/cp/power-bi"] = new
+            {
+                ok = true,
+                surface = "cp",
+                summary = (await reporter.BuildCpPowerBiDigestAsync(10)).Summary,
+                reports = (await reporter.BuildCpPowerBiDigestAsync(10)).Reports,
+                count = 0,
+                source = "migration",
+                message = "x",
+                session,
+                note = "contract validation"
+            },
+            ["/cp/mobile-apps"] = new
+            {
+                ok = true,
+                surface = "cp",
+                summary = (await reporter.BuildCpMobileAppsDigestAsync()).Summary,
+                source = "migration",
+                message = "x",
+                session,
+                note = "contract validation"
+            },
             ["/cp/config-items"] = Envelope("cp", "items", await reporter.ListCpConfigItemsMetaAsync(10), session),
             ["/cp/admin-sessions"] = Envelope("cp", "sessions", await reporter.ListCpAdminSessionsAsync(10), session),
             ["/cp/storages"] = Envelope("cp", "storages", await reporter.ListCpStoragesAsync(10), session),

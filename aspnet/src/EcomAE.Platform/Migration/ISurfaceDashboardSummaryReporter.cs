@@ -71,6 +71,12 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<CpApiClientMetaListResult> ListCpApiClientsMetaAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only Power BI config + reports (configure/embed writes remain PHP).</summary>
+    Task<CpPowerBiDigestResult> BuildCpPowerBiDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only mobile apps integrations_json.mobile (save_mobile writes remain PHP).</summary>
+    Task<CpMobileAppsDigestResult> BuildCpMobileAppsDigestAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

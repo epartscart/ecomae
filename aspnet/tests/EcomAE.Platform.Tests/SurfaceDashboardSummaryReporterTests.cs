@@ -43,6 +43,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var inventoryStock = await reporter.BuildErpInventoryStockSummaryAsync();
         var currencies = await reporter.ListCpCurrenciesAsync(10);
         var apiClients = await reporter.ListCpApiClientsMetaAsync(10);
+        var powerBi = await reporter.BuildCpPowerBiDigestAsync(10);
+        var mobileApps = await reporter.BuildCpMobileAppsDigestAsync();
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -87,6 +89,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", inventoryStock.Source);
         Assert.Equal("migration", currencies.Source);
         Assert.Equal("migration", apiClients.Source);
+        Assert.Equal("migration", powerBi.Source);
+        Assert.Equal("migration", mobileApps.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
@@ -126,6 +130,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SelectErpInventoryStockSummary, StringComparison.Ordinal);
         Assert.Contains("shop_currencies", LegacySurfaceDashboardSql.SelectCpCurrencies, StringComparison.Ordinal);
         Assert.Contains("epc_api_clients", LegacySurfaceDashboardSql.SelectCpApiClientsMeta, StringComparison.Ordinal);
+        Assert.Contains("epc_power_bi_config", LegacySurfaceDashboardSql.SelectCpPowerBiConfig, StringComparison.Ordinal);
+        Assert.Contains("epc_power_bi_reports", LegacySurfaceDashboardSql.SelectCpPowerBiReports, StringComparison.Ordinal);
+        Assert.Contains("integrations_json", LegacySurfaceDashboardSql.SelectCpMobileAppsIntegrationsJson, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("article_search", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("shop_carts", LegacySurfaceDashboardSql.SelectStorefrontCartSummary, StringComparison.Ordinal);

@@ -1,0 +1,95 @@
+@page "/cp/mobile-apps-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Mobile Apps · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-mapp-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#111827 0%,#1f2937 45%,#065f46 100%);
+        }
+        .epc-mapp-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-mapp-hero p { margin:0; color:#a7f3d0; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-mapp-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-mapp-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#064e3b; background:#34d399;
+        }
+        .epc-mapp-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-mapp-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
+        .epc-mapp-card { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.9rem 1rem; }
+        .epc-mapp-card span { display:block; color:#64748b; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; margin-bottom:.25rem; }
+        .epc-mapp-card strong { font-size:.95rem; word-break:break-word; }
+        .epc-mapp-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:.45rem; color:#065f46; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-mapp-grid{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-mapp-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Mobile Apps</h1>
+        <p>Read-only <code>integrations_json.mobile</code> from <code>/cp/mobile-apps</code>. Store URLs, deep links, and PWA flags — save stays on live PHP.</p>
+        <div class="epc-mapp-cta">
+            <a href="@_phpTab">Open PHP mobile apps</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/power-bi-app">Power BI</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-mapp-grid" aria-label="Mobile apps config">
+        <div class="epc-mapp-card"><span>Enabled</span><strong>@(_summary.Enabled ? "yes" : "no")</strong></div>
+        <div class="epc-mapp-card"><span>App name</span><strong>@(string.IsNullOrWhiteSpace(_summary.AppName) ? "—" : _summary.AppName)</strong></div>
+        <div class="epc-mapp-card"><span>Bundle id</span><strong>@(string.IsNullOrWhiteSpace(_summary.BundleId) ? "—" : _summary.BundleId)</strong></div>
+        <div class="epc-mapp-card"><span>PWA</span><strong>@(_summary.PwaEnabled ? "yes" : "no")</strong></div>
+        <div class="epc-mapp-card"><span>Deep link scheme</span><strong>@(string.IsNullOrWhiteSpace(_summary.DeepLinkScheme) ? "—" : _summary.DeepLinkScheme)</strong></div>
+        <div class="epc-mapp-card"><span>Deep link domain</span><strong>@(string.IsNullOrWhiteSpace(_summary.DeepLinkDomain) ? "—" : _summary.DeepLinkDomain)</strong></div>
+        <div class="epc-mapp-card"><span>API base URL</span><strong>@(string.IsNullOrWhiteSpace(_summary.ApiBaseUrl) ? "—" : _summary.ApiBaseUrl)</strong></div>
+        <div class="epc-mapp-card"><span>Push</span><strong>@(_summary.PushEnabled ? "yes" : "no")</strong></div>
+        <div class="epc-mapp-card"><span>Play Store</span><strong>@(string.IsNullOrWhiteSpace(_summary.PlayStoreUrl) ? "—" : _summary.PlayStoreUrl)</strong></div>
+        <div class="epc-mapp-card"><span>App Store</span><strong>@(string.IsNullOrWhiteSpace(_summary.AppStoreUrl) ? "—" : _summary.AppStoreUrl)</strong></div>
+        <div class="epc-mapp-card"><span>Firebase project</span><strong>@(string.IsNullOrWhiteSpace(_summary.FirebaseProjectId) ? "—" : _summary.FirebaseProjectId)</strong></div>
+    </div>
+
+    <div class="epc-mapp-note">
+        Read-only preview · JSON digest <a href="/cp/mobile-apps">/cp/mobile-apps</a>.
+        PHP <code>epc_mobile_apps</code> remains authoritative for save_mobile.
+        Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>. @_message
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/portal/epc_mobile_apps";
+    private bool _isAdmin;
+    private CpMobileAppsSummary _summary = new(false, "", "", "", "", "", "", "", true, "", false, "n/a", "");
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpMobileAppsDigestAsync(ctx.RequestAborted);
+        _summary = result.Summary;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

@@ -467,6 +467,57 @@ public sealed record CpApiClientMetaListResult(
     string Source,
     string Message);
 
+public sealed record CpPowerBiConfigSummary(
+    string SiteKey,
+    string WorkspaceId,
+    string AzureTenantId,
+    string DefaultReportId,
+    string DefaultDatasetId,
+    string EmbedUrl,
+    string EmbedMode,
+    string Notes,
+    bool Active,
+    int ReportCount,
+    string Source,
+    string Message);
+
+public sealed record CpPowerBiReportDigest(
+    long Id,
+    string SiteKey,
+    string ReportId,
+    string ReportName,
+    string DatasetId,
+    string Category,
+    string EmbedUrl,
+    bool Active);
+
+public sealed record CpPowerBiDigestResult(
+    CpPowerBiConfigSummary Summary,
+    IReadOnlyList<CpPowerBiReportDigest> Reports,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpMobileAppsSummary(
+    bool Enabled,
+    string AppName,
+    string BundleId,
+    string DeepLinkScheme,
+    string DeepLinkDomain,
+    string ApiBaseUrl,
+    string PlayStoreUrl,
+    string AppStoreUrl,
+    bool PwaEnabled,
+    string FirebaseProjectId,
+    bool PushEnabled,
+    string Source,
+    string Message);
+
+public sealed record CpMobileAppsDigestResult(
+    CpMobileAppsSummary Summary,
+    string Source,
+    string Message);
+
 public sealed record StorefrontPartOfferDigest(
     int PriceId,
     string PriceList,
