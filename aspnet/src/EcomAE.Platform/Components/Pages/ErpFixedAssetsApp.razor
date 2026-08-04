@@ -1,0 +1,136 @@
+@page "/erp/fixed-assets-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Fixed assets · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Fixed assets" BreadcrumbArea="Fixed assets" BreadcrumbTab="Register">
+    <style>
+        .epc-fa-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#1e3a5f 0%,#1d4ed8 50%,#0ea5e9 100%);
+        }
+        .epc-fa-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-fa-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-fa-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-fa-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#1e3a5f; background:#dbeafe;
+        }
+        .epc-fa-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-fa-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-fa-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-fa-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-fa-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-fa-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-fa-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-fa-table th, .epc-fa-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-fa-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-fa-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a5f; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-fa-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-fa-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Fixed assets</h1>
+        <p>Read-only register KPIs + rows from <code>/erp/fixed-assets</code>. Depreciation runs and writes stay on live PHP.</p>
+        <div class="epc-fa-cta">
+            <a href="@_phpTab">Open PHP</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/erp/app">ERP dashboard</a>
+        </div>
+    </section>
+
+    <div class="epc-fa-kpis" aria-label="Fixed assets stats">
+        <div class="epc-fa-kpi"><strong>@_summary.AssetCount.ToString(CultureInfo.InvariantCulture)</strong><span>Assets</span></div>
+        <div class="epc-fa-kpi"><strong>@_summary.ActiveCount.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
+        <div class="epc-fa-kpi"><strong>@_summary.DisposedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Disposed</span></div>
+        <div class="epc-fa-kpi"><strong>@_summary.CostTotal.ToString("0.00", CultureInfo.InvariantCulture)</strong><span>Cost</span></div>
+        <div class="epc-fa-kpi"><strong>@_summary.BookValueTotal.ToString("0.00", CultureInfo.InvariantCulture)</strong><span>Book value</span></div>
+    </div>
+
+    <div class="epc-fa-table-wrap">
+        <table class="epc-fa-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Acquired</th>
+                    <th>Cost</th>
+                    <th>Book</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_assets.Count == 0)
+                {
+                    <tr><td colspan="10">No rows in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _assets)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.AssetCode) ? row.AssetCode : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
+                            <td>@row.CategoryId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.AcquisitionDate) ? row.AcquisitionDate : "—")</td>
+                            <td>@row.Cost.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                            <td>@row.BookValue.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.DepreciationMethod) ? row.DepreciationMethod : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-fa-note">
+        Read-only preview · JSON digest <a href="/erp/fixed-assets?limit=200">/erp/fixed-assets</a>. PHP fixed_assets tab remains authoritative · note omitted · Not a broad /erp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=fixed_assets&tab=fixed_assets";
+    private bool _isAdmin;
+    private ErpFixedAssetsSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<ErpFixedAssetDigest> _assets = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildErpFixedAssetsDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _assets = result.Assets;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

@@ -477,6 +477,34 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpFixedAssets, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for fixed-assets digest.");
+            }
+
+            var result = await dashboards.BuildErpFixedAssetsDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                summary = result.Summary,
+                assets = result.Assets,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_erp_fa_assets KPIs + assets (note omitted). PHP fixed_assets tab remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ErpAliases)
         {
             endpoints.MapGet(route, async (

@@ -1,0 +1,129 @@
+@page "/cp/page-builder-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Page builder · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-pb-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0f172a 0%,#334155 50%,#64748b 100%);
+        }
+        .epc-pb-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-pb-hero p { margin:0; color:rgba(255,255,255,.85); max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-pb-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-pb-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0f172a; background:#e2e8f0;
+        }
+        .epc-pb-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-pb-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-pb-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-pb-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-pb-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-pb-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-pb-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-pb-table th, .epc-pb-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-pb-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-pb-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#0f172a; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-pb-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-pb-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Page builder</h1>
+        <p>Read-only layout KPIs + rows from <code>/cp/page-builder</code>. Layout JSON and brand packs stay off this digest.</p>
+        <div class="epc-pb-cta">
+            <a href="@_phpTab">Open PHP</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-pb-kpis" aria-label="Page builder stats">
+        <div class="epc-pb-kpi"><strong>@_summary.LayoutCount.ToString(CultureInfo.InvariantCulture)</strong><span>Layouts</span></div>
+        <div class="epc-pb-kpi"><strong>@_summary.PublishedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Published</span></div>
+        <div class="epc-pb-kpi"><strong>@_summary.DraftCount.ToString(CultureInfo.InvariantCulture)</strong><span>Drafts</span></div>
+        <div class="epc-pb-kpi"><strong>@_summary.SiteCount.ToString(CultureInfo.InvariantCulture)</strong><span>Sites</span></div>
+    </div>
+
+    <div class="epc-pb-table-wrap">
+        <table class="epc-pb-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Site</th>
+                    <th>Page</th>
+                    <th>Published</th>
+                    <th>Updated</th>
+                    <th>Published at</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_layouts.Count == 0)
+                {
+                    <tr><td colspan="7">No rows in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _layouts)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.PageKey) ? row.PageKey : "—")</td>
+                            <td>@(row.IsPublished ? "yes" : "no")</td>
+                            <td>@row.UpdatedAt.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.PublishedAt.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-pb-note">
+        Read-only preview · JSON digest <a href="/cp/page-builder?limit=200">/cp/page-builder</a>. PHP epc_visual_page_editor remains authoritative. layout_json/brand_json omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/control/portal/epc_visual_page_editor";
+    private bool _isAdmin;
+    private CpPageBuilderSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpPageBuilderLayoutDigest> _layouts = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpPageBuilderDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _layouts = result.Layouts;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

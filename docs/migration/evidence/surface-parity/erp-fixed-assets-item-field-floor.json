@@ -1,0 +1,36 @@
+{
+  "role": "erp-fixed-assets-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "erp-fixed-assets",
+  "collectionKey": "assets",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "assetCount",
+    "activeCount",
+    "disposedCount",
+    "costTotal",
+    "bookValueTotal",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "assetCode",
+    "name",
+    "categoryId",
+    "acquisitionDate",
+    "cost",
+    "salvageValue",
+    "usefulLifeMonths",
+    "depreciationMethod",
+    "accumulatedDepreciation",
+    "bookValue",
+    "location",
+    "status",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks fixed-assets digest summary+assets[] floors. PHP fixed_assets remains authoritative. cutoverAllowed=false."
+}

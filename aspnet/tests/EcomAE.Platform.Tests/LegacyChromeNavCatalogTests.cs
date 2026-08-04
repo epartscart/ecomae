@@ -58,6 +58,9 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Promotions" && item.Href == "/cp/promotions-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "CRM opportunities" && item.Href == "/cp/crm-opportunities-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Integrations" && item.Href == "/cp/integrations-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Page builder" && item.Href == "/cp/page-builder-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Product catalogue" && item.Href == "/cp/product-catalogue-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Platform governance" && item.Href == "/cp/platform-governance-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "API clients PHP" && item.Href == "/CP/control/portal/epc_api_clients_manage");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Config items list" && item.Href == "/cp/config-items-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Site config PHP" && item.Href == "/CP/control/config_edit");
@@ -97,6 +100,7 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Stock transfers" && item.Href == "/erp/stock-transfers-app");
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Sales quotations" && item.Href == "/erp/sales-quotations-app");
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Workspace favorites" && item.Href == "/erp/workspace-favorites-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Fixed assets" && item.Href == "/erp/fixed-assets-app");
     }
 
     [Fact]

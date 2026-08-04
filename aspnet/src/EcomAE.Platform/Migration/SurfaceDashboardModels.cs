@@ -1356,3 +1356,106 @@ public sealed record ErpWorkspaceFavoritesDigestResult(
     string Source,
     string Message);
 
+public sealed record ErpFixedAssetsSummary(
+    int AssetCount,
+    int ActiveCount,
+    int DisposedCount,
+    decimal CostTotal,
+    decimal BookValueTotal,
+    string Source,
+    string Message);
+
+public sealed record ErpFixedAssetDigest(
+    long Id,
+    string AssetCode,
+    string Name,
+    long CategoryId,
+    string AcquisitionDate,
+    decimal Cost,
+    decimal SalvageValue,
+    int UsefulLifeMonths,
+    string DepreciationMethod,
+    decimal AccumulatedDepreciation,
+    decimal BookValue,
+    string Location,
+    string Status,
+    long TimeCreated);
+
+public sealed record ErpFixedAssetsDigestResult(
+    ErpFixedAssetsSummary Summary,
+    IReadOnlyList<ErpFixedAssetDigest> Assets,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPageBuilderSummary(
+    int LayoutCount,
+    int PublishedCount,
+    int DraftCount,
+    int SiteCount,
+    string Source,
+    string Message);
+
+public sealed record CpPageBuilderLayoutDigest(
+    long Id,
+    string SiteKey,
+    string PageKey,
+    bool IsPublished,
+    long UpdatedAt,
+    long PublishedAt);
+
+public sealed record CpPageBuilderDigestResult(
+    CpPageBuilderSummary Summary,
+    IReadOnlyList<CpPageBuilderLayoutDigest> Layouts,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpProductCatalogueSummary(
+    int ProductCount,
+    int PublishedCount,
+    int UnpublishedCount,
+    int CategoryCount,
+    string Source,
+    string Message);
+
+public sealed record CpProductCatalogueDigest(
+    long Id,
+    long CategoryId,
+    string Caption,
+    string Alias,
+    bool PublishedFlag);
+
+public sealed record CpProductCatalogueDigestResult(
+    CpProductCatalogueSummary Summary,
+    IReadOnlyList<CpProductCatalogueDigest> Products,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPlatformGovernanceSummary(
+    int RuleCount,
+    int ActiveCount,
+    int RequiredCount,
+    int CategoryCount,
+    string Source,
+    string Message);
+
+public sealed record CpPlatformGovernanceRuleDigest(
+    long Id,
+    string RuleKey,
+    string Category,
+    string Title,
+    string Enforcement,
+    string Scope,
+    string ModuleLink,
+    bool Active,
+    long TimeUpdated);
+
+public sealed record CpPlatformGovernanceDigestResult(
+    CpPlatformGovernanceSummary Summary,
+    IReadOnlyList<CpPlatformGovernanceRuleDigest> Rules,
+    int Count,
+    string Source,
+    string Message);
+

@@ -1,0 +1,26 @@
+{
+  "role": "cp-product-catalogue-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-product-catalogue",
+  "collectionKey": "products",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "productCount",
+    "publishedCount",
+    "unpublishedCount",
+    "categoryCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "categoryId",
+    "caption",
+    "alias",
+    "publishedFlag"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks product-catalogue digest summary+products[] floors. PHP catalogue editor remains authoritative. cutoverAllowed=false."
+}

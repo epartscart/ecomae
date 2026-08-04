@@ -139,7 +139,7 @@ def main() -> int:
         )
 
     installer = args.surface_installer.read_text(encoding="utf-8")
-    if "expected 64 digest locations" not in installer and "!= 64" not in installer:
+    if "expected 68 digest locations" not in installer and "!= 68" not in installer:
         # Accept either style used by installer.
         if "32" not in installer:
             errors.append("surface digest installer does not lock expected count 32")

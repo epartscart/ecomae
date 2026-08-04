@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 81,
+  "routeCount": 85,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -977,6 +977,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "erp-workspace-favorites-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-fixed-assets-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/fixed-assets-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-fixed-assets-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-page-builder-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/page-builder-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-page-builder-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-product-catalogue-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/product-catalogue-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-product-catalogue-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-platform-governance-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/platform-governance-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-platform-governance-app-read-ui-preview"
           }
         ]
       }

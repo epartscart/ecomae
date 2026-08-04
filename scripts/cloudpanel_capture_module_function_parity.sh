@@ -123,6 +123,8 @@ STOREFRONT_HYBRID_BY_ID = {
     # Wave 7 — checkout/payments attach to CP payment-gateways digest (read-only handlers)
     "checkout": "cp-payment-gateways",
     "payments": "cp-payment-gateways",
+    # Wave 10 — catalogue storefront id → product catalogue digest
+    "catalog": "cp-product-catalogue",
 }
 
 # Explicit catalog-id maps where PHP paths diverge from hybrid TARGET paths.
@@ -319,6 +321,35 @@ CP_FEATURE_HYBRID_BY_ID = {
     "system-administration-accounting-setup": "erp-workspace-favorites",
     "system-administration-data-import": "erp-workspace-favorites",
     "enterprise-modules-d365-style": "erp-workspace-favorites",
+    # Wave 10 — finance-gl / fixed assets
+    "asset-management-fixed-assets": "erp-fixed-assets",
+    "fixed-assets-depreciation": "erp-fixed-assets",
+    "fixed-assets-fixed-assets": "erp-fixed-assets",
+    "erp_fixed_assets": "erp-fixed-assets",
+    # Wave 10 — document-control / page builder content pages
+    "epc-visual-page-editor": "cp-page-builder",
+    "epc-visual-page-editor__cp-control-portal-epc-visual-page-editor": "cp-page-builder",
+    "visual-page-editor": "cp-page-builder",
+    "content-tree": "cp-page-builder",
+    # Wave 10 — pricing-catalog-cp / product catalogue
+    "product-catalogue": "cp-product-catalogue",
+    "products": "cp-product-catalogue",
+    "catalogue-tree": "cp-product-catalogue",
+    "categories-attributes": "cp-product-catalogue",
+    "homepage-products": "cp-product-catalogue",
+    "related-products": "cp-product-catalogue",
+    "variant-skus-size-colour-spec": "cp-product-catalogue",
+    "line-lists": "cp-product-catalogue",
+    "tree-lists": "cp-product-catalogue",
+    "featured-collections-banners": "cp-product-catalogue",
+    "special-searches": "cp-product-catalogue",
+    "vehicle-fitment-catalogue": "cp-product-catalogue",
+    # Wave 10 — platform-ops-bos / governance
+    "system-administration-platform-services": "cp-platform-governance",
+    "operator-guide": "cp-platform-governance",
+    "epc-super-cp-operator-guide": "cp-platform-governance",
+    "command-center": "cp-platform-governance",
+    "operator-audit-platform-settings": "cp-platform-governance",
 }
 ERP_AREA_HYBRID_BY_ID = {
     "banking": "erp-accounts-summary",
@@ -344,6 +375,8 @@ ERP_AREA_HYBRID_BY_ID = {
     "common": "erp-workspace-favorites",
     "enterprise": "erp-workspace-favorites",
     "setup": "erp-workspace-favorites",
+    "fixed_assets": "erp-fixed-assets",
+    "asset_mgmt": "erp-fixed-assets",
 }
 ERP_TAB_HYBRID_BY_ID = {
     ("overview", "dashboard"): "erp-dashboard-summary",
@@ -437,6 +470,9 @@ ERP_TAB_HYBRID_BY_ID = {
     ("enterprise", "org_admin"): "erp-workspace-favorites",
     ("setup", "data_import"): "erp-workspace-favorites",
     ("setup", "erp_setup"): "erp-workspace-favorites",
+    ("fixed_assets", "fixed_assets"): "erp-fixed-assets",
+    ("asset_mgmt", "fixed_assets"): "erp-fixed-assets",
+    ("setup", "platform"): "cp-platform-governance",
 }
 ERP_CATEGORY_HYBRID_BY_ID = {
     "cash_treasury": "erp-cash-accounts",
@@ -453,6 +489,7 @@ BOS_SECTION_HYBRID_BY_ID = {
     "platform": "bos-fleet-readiness",
     "erp": "erp-dashboard-summary",
     "tax_advisory": "cp-uae-tax-compliance",
+    "catalogue": "cp-product-catalogue",
 }
 BOS_MODULE_HYBRID_BY_ID = {
     "fleet_cp": "bos-fleet-summary",
@@ -502,6 +539,15 @@ BOS_MODULE_HYBRID_BY_ID = {
     "orders": "erp-sales-quotations",
     "subscription_billing": "erp-sales-quotations",
     "inventory_forecast": "erp-stock-transfers",
+    "erp_fixed_assets": "erp-fixed-assets",
+    "products": "cp-product-catalogue",
+    "section-catalogue": "cp-product-catalogue",
+    "sku_media": "cp-product-catalogue",
+    "synonyms": "cp-product-catalogue",
+    "data_policy": "cp-platform-governance",
+    "operator_guide": "cp-platform-governance",
+    "command_center": "cp-platform-governance",
+    "platform_health": "cp-platform-governance",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}

@@ -6,8 +6,8 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 403,
-    "php-only-deeplink": 323
+    "digest-contract": 443,
+    "php-only-deeplink": 283
   },
   "families": [
     {
@@ -157,9 +157,9 @@
     {
       "family": "document-control",
       "total": 22,
-      "digestContract": 8,
-      "phpOnlyDeeplink": 14,
-      "digestPercent": 36.4,
+      "digestContract": 12,
+      "phpOnlyDeeplink": 10,
+      "digestPercent": 54.5,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-api_docs",
@@ -234,9 +234,9 @@
     {
       "family": "finance-gl",
       "total": 37,
-      "digestContract": 13,
-      "phpOnlyDeeplink": 24,
-      "digestPercent": 35.1,
+      "digestContract": 20,
+      "phpOnlyDeeplink": 17,
+      "digestPercent": 54.1,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_budgeting",
@@ -434,9 +434,9 @@
     {
       "family": "other-unclassified",
       "total": 58,
-      "digestContract": 4,
-      "phpOnlyDeeplink": 54,
-      "digestPercent": 6.9,
+      "digestContract": 5,
+      "phpOnlyDeeplink": 53,
+      "digestPercent": 8.6,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-accessories-marketplace",
@@ -502,9 +502,9 @@
     {
       "family": "platform-ops-bos",
       "total": 68,
-      "digestContract": 23,
-      "phpOnlyDeeplink": 45,
-      "digestPercent": 33.8,
+      "digestContract": 31,
+      "phpOnlyDeeplink": 37,
+      "digestPercent": 45.6,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-audit_log",
@@ -678,9 +678,9 @@
     {
       "family": "pricing-catalog-cp",
       "total": 42,
-      "digestContract": 22,
-      "phpOnlyDeeplink": 20,
-      "digestPercent": 52.4,
+      "digestContract": 39,
+      "phpOnlyDeeplink": 3,
+      "digestPercent": 92.9,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-multivendor",
@@ -927,9 +927,9 @@
     {
       "family": "tax-compliance",
       "total": 62,
-      "digestContract": 26,
-      "phpOnlyDeeplink": 36,
-      "digestPercent": 41.9,
+      "digestContract": 29,
+      "phpOnlyDeeplink": 33,
+      "digestPercent": 46.8,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_tax",

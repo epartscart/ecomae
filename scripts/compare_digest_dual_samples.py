@@ -180,6 +180,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "shortcutCount,pinnedCount,userCount,erpSurfaceCount,source,message",
     ),
+    "erp-fixed-assets": (
+        "summary",
+        "assetCount,activeCount,disposedCount,costTotal,bookValueTotal,source,message",
+    ),
+    "cp-page-builder": (
+        "summary",
+        "layoutCount,publishedCount,draftCount,siteCount,source,message",
+    ),
+    "cp-product-catalogue": (
+        "summary",
+        "productCount,publishedCount,unpublishedCount,categoryCount,source,message",
+    ),
+    "cp-platform-governance": (
+        "summary",
+        "ruleCount,activeCount,requiredCount,categoryCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -632,6 +648,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "erp-workspace-favorites": (
         "favorites",
         ["id", "companyId", "userId", "surface", "shortcutKey", "label", "iconClass", "targetUrl", "targetTab", "sortOrder", "isPinned", "timeCreated"],
+    ),
+    "erp-fixed-assets": (
+        "assets",
+        ["id", "assetCode", "name", "categoryId", "acquisitionDate", "cost", "salvageValue", "usefulLifeMonths", "depreciationMethod", "accumulatedDepreciation", "bookValue", "location", "status", "timeCreated"],
+    ),
+    "cp-page-builder": (
+        "layouts",
+        ["id", "siteKey", "pageKey", "isPublished", "updatedAt", "publishedAt"],
+    ),
+    "cp-product-catalogue": (
+        "products",
+        ["id", "categoryId", "caption", "alias", "publishedFlag"],
+    ),
+    "cp-platform-governance": (
+        "rules",
+        ["id", "ruleKey", "category", "title", "enforcement", "scope", "moduleLink", "active", "timeUpdated"],
     ),
     "cp-orders-digest": (
         "orders",

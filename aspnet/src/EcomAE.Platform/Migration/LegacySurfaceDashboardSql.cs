@@ -1166,4 +1166,86 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Fixed asset KPIs — omits note.</summary>
+    public const string SelectErpFixedAssetStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_fa_assets`) AS asset_count,
+            (SELECT COUNT(*) FROM `epc_erp_fa_assets` WHERE IFNULL(`status`,'')='active') AS active_count,
+            (SELECT COUNT(*) FROM `epc_erp_fa_assets` WHERE IFNULL(`status`,'')='disposed') AS disposed_count,
+            (SELECT IFNULL(SUM(`cost`),0) FROM `epc_erp_fa_assets`) AS cost_total,
+            (SELECT IFNULL(SUM(`book_value`),0) FROM `epc_erp_fa_assets`) AS book_value_total
+        """;
+
+    /// <summary>Fixed assets register — omits note.</summary>
+    public const string SelectErpFixedAssets = """
+        SELECT `id`, IFNULL(`asset_code`,'') AS asset_code, IFNULL(`name`,'') AS name,
+               IFNULL(`category_id`,0) AS category_id, IFNULL(`acquisition_date`,'') AS acquisition_date,
+               IFNULL(`cost`,0) AS cost, IFNULL(`salvage_value`,0) AS salvage_value,
+               IFNULL(`useful_life_months`,0) AS useful_life_months,
+               IFNULL(`depreciation_method`,'') AS depreciation_method,
+               IFNULL(`accumulated_depreciation`,0) AS accumulated_depreciation,
+               IFNULL(`book_value`,0) AS book_value, IFNULL(`location`,'') AS location,
+               IFNULL(`status`,'') AS status, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_fa_assets`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Page builder layout KPIs — omits layout_json/brand_json.</summary>
+    public const string SelectCpPageBuilderStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_page_builder_layouts`) AS layout_count,
+            (SELECT COUNT(*) FROM `epc_page_builder_layouts` WHERE IFNULL(`is_published`,0)=1) AS published_count,
+            (SELECT COUNT(*) FROM `epc_page_builder_layouts` WHERE IFNULL(`is_published`,0)=0) AS draft_count,
+            (SELECT COUNT(DISTINCT `site_key`) FROM `epc_page_builder_layouts`) AS site_count
+        """;
+
+    /// <summary>Page builder layouts — omits layout_json/brand_json.</summary>
+    public const string SelectCpPageBuilderLayouts = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`page_key`,'') AS page_key,
+               IFNULL(`is_published`,0) AS is_published, IFNULL(`updated_at`,0) AS updated_at,
+               IFNULL(`published_at`,0) AS published_at
+        FROM `epc_page_builder_layouts`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Product catalogue KPIs from shop_catalogue_products.</summary>
+    public const string SelectCpProductCatalogueStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_catalogue_products`) AS product_count,
+            (SELECT COUNT(*) FROM `shop_catalogue_products` WHERE IFNULL(`published_flag`,0)=1) AS published_count,
+            (SELECT COUNT(*) FROM `shop_catalogue_products` WHERE IFNULL(`published_flag`,0)=0) AS unpublished_count,
+            (SELECT COUNT(DISTINCT `category_id`) FROM `shop_catalogue_products`) AS category_count
+        """;
+
+    /// <summary>Product catalogue rows — safe columns only.</summary>
+    public const string SelectCpProductCatalogue = """
+        SELECT `id`, IFNULL(`category_id`,0) AS category_id, IFNULL(`caption`,'') AS caption,
+               IFNULL(`alias`,'') AS alias, IFNULL(`published_flag`,0) AS published_flag
+        FROM `shop_catalogue_products`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Platform governance KPIs — omits description/config_json.</summary>
+    public const string SelectCpPlatformGovernanceStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_platform_governance_rules`) AS rule_count,
+            (SELECT COUNT(*) FROM `epc_platform_governance_rules` WHERE IFNULL(`active`,0)=1) AS active_count,
+            (SELECT COUNT(*) FROM `epc_platform_governance_rules` WHERE IFNULL(`enforcement`,'')='required') AS required_count,
+            (SELECT COUNT(DISTINCT `category`) FROM `epc_platform_governance_rules`) AS category_count
+        """;
+
+    /// <summary>Platform governance rules — omits description/config_json.</summary>
+    public const string SelectCpPlatformGovernanceRules = """
+        SELECT `id`, IFNULL(`rule_key`,'') AS rule_key, IFNULL(`category`,'') AS category,
+               IFNULL(`title`,'') AS title, IFNULL(`enforcement`,'') AS enforcement,
+               IFNULL(`scope`,'') AS scope, IFNULL(`module_link`,'') AS module_link,
+               IFNULL(`active`,0) AS active, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_platform_governance_rules`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }
