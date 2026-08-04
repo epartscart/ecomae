@@ -6,8 +6,8 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 552,
-    "php-only-deeplink": 174
+    "digest-contract": 561,
+    "php-only-deeplink": 165
   },
   "families": [
     {
@@ -44,9 +44,9 @@
     {
       "family": "auth-sessions-users",
       "total": 13,
-      "digestContract": 5,
-      "phpOnlyDeeplink": 8,
-      "digestPercent": 38.5,
+      "digestContract": 8,
+      "phpOnlyDeeplink": 5,
+      "digestPercent": 61.5,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-modern_auth",
@@ -434,9 +434,9 @@
     {
       "family": "other-unclassified",
       "total": 58,
-      "digestContract": 10,
-      "phpOnlyDeeplink": 48,
-      "digestPercent": 17.2,
+      "digestContract": 13,
+      "phpOnlyDeeplink": 45,
+      "digestPercent": 22.4,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-accessories-marketplace",
@@ -502,9 +502,9 @@
     {
       "family": "platform-ops-bos",
       "total": 68,
-      "digestContract": 36,
-      "phpOnlyDeeplink": 32,
-      "digestPercent": 52.9,
+      "digestContract": 37,
+      "phpOnlyDeeplink": 31,
+      "digestPercent": 54.4,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-audit_log",
@@ -927,9 +927,9 @@
     {
       "family": "tax-compliance",
       "total": 62,
-      "digestContract": 36,
-      "phpOnlyDeeplink": 26,
-      "digestPercent": 58.1,
+      "digestContract": 38,
+      "phpOnlyDeeplink": 24,
+      "digestPercent": 61.3,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_tax",

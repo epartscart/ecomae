@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 110,
+  "contractCount": 114,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -1887,6 +1887,134 @@
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
+      "surface": "cp",
+      "aspNetRoute": "/cp/crm-activities",
+      "legacyPhpAuthority": "epc_crm_activities",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "activities",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "activityCount",
+        "openCount",
+        "overdueCount",
+        "doneCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "CRM activity KPIs \u002B rows",
+        "notes omitted",
+        "PHP CRM activities remain authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/auth-mfa",
+      "legacyPhpAuthority": "epc_mfa_secrets \u002B policy/backup",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "secrets",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "secretCount",
+        "confirmedCount",
+        "backupUnusedCount",
+        "policyCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Auth MFA KPIs \u002B enrollments",
+        "secret/webauthn material omitted",
+        "PHP auth settings remain authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/electronic-reporting",
+      "legacyPhpAuthority": "epc_er_format \u002B field/run",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "formats",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "formatCount",
+        "fieldCount",
+        "runCount",
+        "outputTypeCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Electronic reporting KPIs \u002B formats",
+        "run preview omitted",
+        "PHP tax elec_reporting remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/collections-dunning",
+      "legacyPhpAuthority": "epc_dunning_queue \u002B profiles/log",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "queue",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "queueCount",
+        "openCount",
+        "profileCount",
+        "logCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Collections/dunning KPIs \u002B queue",
+        "notes omitted",
+        "PHP collections/dunning remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
       "surface": "erp",
       "aspNetRoute": "/erp/bank-reconciliation",
       "legacyPhpAuthority": "epc_erp_bank_statement_lines",
@@ -3749,6 +3877,34 @@
       "aspNetRouteOrCapability": "/cp/consolidations-app",
       "status": "digest-wired-awaiting-dual-sample",
       "notes": "Read UI over /cp/consolidations digest; PHP consolidations area remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "crm-activities Blazor list",
+      "aspNetRouteOrCapability": "/cp/crm-activities-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/crm-activities digest; notes omitted; PHP CRM activities remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "auth-mfa Blazor list",
+      "aspNetRouteOrCapability": "/cp/auth-mfa-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/auth-mfa digest; secrets omitted; PHP auth settings remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "electronic-reporting Blazor list",
+      "aspNetRouteOrCapability": "/cp/electronic-reporting-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/electronic-reporting digest; preview omitted; PHP tax elec_reporting remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "collections-dunning Blazor list",
+      "aspNetRouteOrCapability": "/cp/collections-dunning-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/collections-dunning digest; notes omitted; PHP collections/dunning remains authoritative; tenant chrome stays PHP."
     },
     {
       "surface": "cp",

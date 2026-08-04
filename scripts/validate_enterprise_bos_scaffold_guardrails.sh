@@ -333,6 +333,14 @@ check_file "cp jewellery-masters item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-jewellery-masters-item-field-floor.json"
 check_file "cp consolidations item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-consolidations-item-field-floor.json"
+check_file "cp crm-activities item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-crm-activities-item-field-floor.json"
+check_file "cp auth-mfa item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-auth-mfa-item-field-floor.json"
+check_file "cp electronic-reporting item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-electronic-reporting-item-field-floor.json"
+check_file "cp collections-dunning item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-collections-dunning-item-field-floor.json"
 check_file "cp auto-price item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
 check_file "cp uae-tax-compliance item-field floor evidence" \

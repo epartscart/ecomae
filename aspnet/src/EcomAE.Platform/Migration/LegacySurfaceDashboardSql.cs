@@ -1583,4 +1583,87 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>CRM activity KPIs from epc_crm_activities (CREATE TABLE in epc_crm_schema.php).</summary>
+    public const string SelectCpCrmActivitiesStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_crm_activities` WHERE IFNULL(`active`,1)=1) AS activity_count,
+            (SELECT COUNT(*) FROM `epc_crm_activities` WHERE IFNULL(`active`,1)=1 AND IFNULL(`done`,0)=0) AS open_count,
+            (SELECT COUNT(*) FROM `epc_crm_activities` WHERE IFNULL(`active`,1)=1 AND IFNULL(`done`,0)=0 AND IFNULL(`due_date`,0)>0 AND `due_date` <= UNIX_TIMESTAMP()) AS overdue_count,
+            (SELECT COUNT(*) FROM `epc_crm_activities` WHERE IFNULL(`active`,1)=1 AND IFNULL(`done`,0)=1) AS done_count
+        """;
+
+    /// <summary>CRM activities — omits notes.</summary>
+    public const string SelectCpCrmActivities = """
+        SELECT `id`, IFNULL(`activity_type`,'') AS activity_type,
+               IFNULL(`related_type`,'') AS related_type, IFNULL(`related_id`,0) AS related_id,
+               IFNULL(`due_date`,0) AS due_date, IFNULL(`done`,0) AS done,
+               IFNULL(`owner_user_id`,0) AS owner_user_id,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`active`,1) AS active
+        FROM `epc_crm_activities`
+        WHERE IFNULL(`active`,1)=1
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Auth MFA KPIs from epc_mfa_* (CREATE TABLE in epc_auth_mfa.php).</summary>
+    public const string SelectCpAuthMfaStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_mfa_secrets`) AS secret_count,
+            (SELECT COUNT(*) FROM `epc_mfa_secrets` WHERE IFNULL(`confirmed`,0)=1) AS confirmed_count,
+            (SELECT COUNT(*) FROM `epc_mfa_backup_codes` WHERE IFNULL(`used`,0)=0) AS backup_unused_count,
+            (SELECT COUNT(*) FROM `epc_mfa_policy`) AS policy_count
+        """;
+
+    /// <summary>MFA secrets — omits secret/webauthn credential material.</summary>
+    public const string SelectCpAuthMfaSecrets = """
+        SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`method`,'') AS method,
+               IFNULL(`confirmed`,0) AS confirmed, IFNULL(`label`,'') AS label,
+               IFNULL(`created_at`,'') AS created_at, IFNULL(`last_used_at`,'') AS last_used_at
+        FROM `epc_mfa_secrets`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Electronic reporting KPIs from epc_er_* (CREATE TABLE in epc_erp_elec_reporting.php).</summary>
+    public const string SelectCpElectronicReportingStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_er_format` WHERE IFNULL(`active`,1)=1) AS format_count,
+            (SELECT COUNT(*) FROM `epc_er_field`) AS field_count,
+            (SELECT COUNT(*) FROM `epc_er_run`) AS run_count,
+            (SELECT COUNT(DISTINCT `output_type`) FROM `epc_er_format`) AS output_type_count
+        """;
+
+    /// <summary>Electronic reporting formats — preview lives on runs, omitted.</summary>
+    public const string SelectCpElectronicReportingFormats = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`code`,'') AS code,
+               IFNULL(`name`,'') AS name, IFNULL(`output_type`,'') AS output_type,
+               IFNULL(`root_element`,'') AS root_element, IFNULL(`row_element`,'') AS row_element,
+               IFNULL(`active`,0) AS active, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_er_format`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Collections/dunning KPIs from epc_dunning_* (CREATE TABLE in epc_collections_dunning.php).</summary>
+    public const string SelectCpCollectionsDunningStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_dunning_queue`) AS queue_count,
+            (SELECT COUNT(*) FROM `epc_dunning_queue` WHERE IFNULL(`status`,'') IN ('open','in_progress','promised','partial','disputed')) AS open_count,
+            (SELECT COUNT(*) FROM `epc_dunning_profiles` WHERE IFNULL(`active`,0)=1) AS profile_count,
+            (SELECT COUNT(*) FROM `epc_dunning_log`) AS log_count
+        """;
+
+    /// <summary>Dunning queue — omits notes.</summary>
+    public const string SelectCpCollectionsDunningQueue = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`customer_name`,'') AS customer_name, IFNULL(`invoice_ref`,'') AS invoice_ref,
+               IFNULL(`invoice_amount`,0) AS invoice_amount, IFNULL(`amount_due`,0) AS amount_due,
+               IFNULL(`due_date`,'') AS due_date, IFNULL(`days_overdue`,0) AS days_overdue,
+               IFNULL(`dunning_step`,0) AS dunning_step, IFNULL(`status`,'') AS status,
+               IFNULL(`updated_at`,'') AS updated_at
+        FROM `epc_dunning_queue`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

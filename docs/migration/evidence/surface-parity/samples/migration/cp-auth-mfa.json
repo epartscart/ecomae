@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "secretCount": 1,
+    "confirmedCount": 1,
+    "backupUnusedCount": 0,
+    "policyCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; secrets[] sentinel; secret/webauthn omitted; PHP auth settings authoritative; cutoverAllowed=false",
+  "secrets": [
+    {
+      "id": 1,
+      "userId": 1,
+      "method": "totp",
+      "confirmed": 1,
+      "label": "default",
+      "createdAt": "",
+      "lastUsedAt": ""
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

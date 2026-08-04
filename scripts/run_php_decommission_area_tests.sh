@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Exercises every final-gate area that can be tested without inventing secrets.
 # Never removes PHP.
-# Presentation exact-route inventory (101): docs/migration/evidence/presentation/presentation-exact-routes.json
+# Presentation exact-route inventory (105): docs/migration/evidence/presentation/presentation-exact-routes.json
 # Kept in sync by scripts/validate_presentation_hybrid_allowlist_sync.py.
 # Surface-digest exact-route inventory (35): docs/migration/evidence/surface-parity/surface-digest-exact-routes.json
 # Kept in sync by scripts/validate_surface_digest_allowlist_sync.py.
@@ -175,8 +175,8 @@ done
 
 # Live surface digest exact-routes (68/68) expect ASP.NET 401 unauthorized JSON (admin cookie for 200).
 mapfile -t DIGEST_ROUTES < <(grep -E '^location = /(cp|erp|bos)/' "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" | sed -E 's/^location = ([^ {]+).*/\1/')
-if [[ "${#DIGEST_ROUTES[@]}" -ne 84 ]]; then
-  record "surface-digest-route-inventory" fail "expected 84 digest routes, found ${#DIGEST_ROUTES[@]}"
+if [[ "${#DIGEST_ROUTES[@]}" -ne 88 ]]; then
+  record "surface-digest-route-inventory" fail "expected 88 digest routes, found ${#DIGEST_ROUTES[@]}"
 else
   record "surface-digest-route-inventory" pass "32 CP/ERP/BOS digest exact-routes in shadow example"
 fi

@@ -279,7 +279,7 @@ CP_FEATURE_HYBRID_BY_ID = {
     "leads-opportunities": "cp-crm-opportunities",
     "sales-and-marketing-opportunities": "cp-crm-opportunities",
     "sales-and-marketing-prospects-leads": "cp-crm-opportunities",
-    "activities-follow-ups": "cp-crm-opportunities",
+    "activities-follow-ups": "cp-crm-activities",
     # Wave 8 — integrations-api
     "epc-integrations-hub": "cp-integrations",
     "integrations-hub": "cp-integrations",
@@ -420,6 +420,11 @@ CP_FEATURE_HYBRID_BY_ID = {
     "inventory-management-retail-barcode": "cp-jewellery-masters",
     "consolidations-consolidation": "cp-consolidations",
     "consolidations-multi-entity": "cp-consolidations",
+    # Wave 15 — crm / auth / tax / collections
+    "cp-auth-settings": "cp-auth-mfa",
+    "epc-cp-auth-settings": "cp-auth-mfa",
+    "tax-electronic-reporting": "cp-electronic-reporting",
+    "credit-and-collections-collections": "cp-collections-dunning",
 }
 
 ERP_AREA_HYBRID_BY_ID = {
@@ -431,6 +436,7 @@ ERP_AREA_HYBRID_BY_ID = {
     "mhei": "cp-warehouse-wms",
     "ar": "cp-returns-rma",
     "consolidations": "cp-consolidations",
+    "credit_coll": "cp-collections-dunning",
     "banking": "erp-accounts-summary",
     "finance": "erp-coa-accounts",
     "sales": "erp-sales-orders",
@@ -537,6 +543,8 @@ ERP_TAB_HYBRID_BY_ID = {
     ("inventory_mgmt", "retail_barcode"): "cp-jewellery-masters",
     ("consolidations", "consolidation_bu"): "cp-consolidations",
     ("consolidations", "multi_entity"): "cp-consolidations",
+    ("tax", "elec_reporting"): "cp-electronic-reporting",
+    ("credit_coll", "collections"): "cp-collections-dunning",
     ("budgeting", "budgeting"): "cp-budgets",
     ("budgeting", "budget_planning"): "cp-budgets",
     ("logistics", "custom_shipping"): "cp-carriers",
@@ -610,6 +618,8 @@ BOS_MODULE_HYBRID_BY_ID = {
     "industry_consol": "cp-consolidations",
     "multi_entity": "cp-consolidations",
     "license_trends": "cp-consolidations",
+    "modern_auth": "cp-auth-mfa",
+    "collections_dunning": "cp-collections-dunning",
     "social": "cp-marketing-growth",
     "fleet_cp": "bos-fleet-summary",
     "fleet_erp": "bos-fleet-summary",

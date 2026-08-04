@@ -1,0 +1,28 @@
+{
+  "role": "cp-auth-mfa-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-auth-mfa",
+  "collectionKey": "secrets",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "secretCount",
+    "confirmedCount",
+    "backupUnusedCount",
+    "policyCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "userId",
+    "method",
+    "confirmed",
+    "label",
+    "createdAt",
+    "lastUsedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-auth-mfa digest summary+secrets[] floors. secret/webauthn omitted. PHP auth settings remain authoritative. cutoverAllowed=false."
+}

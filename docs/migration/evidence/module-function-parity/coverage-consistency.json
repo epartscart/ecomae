@@ -7,12 +7,12 @@
   "coverageBoardRows": 726,
   "matchedIds": 726,
   "coverageCounts": {
-    "digest-contract": 552,
-    "php-only-deeplink": 174
+    "digest-contract": 561,
+    "php-only-deeplink": 165
   },
   "inventoryStatusCounts": {
-    "php-only": 174,
-    "digest-only+hybrid-deeplink": 552,
+    "php-only": 165,
+    "digest-only+hybrid-deeplink": 561,
     "hybrid-deeplink": 0
   },
   "ok": true,

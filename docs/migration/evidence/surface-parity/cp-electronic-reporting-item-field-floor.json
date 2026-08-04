@@ -1,0 +1,30 @@
+{
+  "role": "cp-electronic-reporting-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-electronic-reporting",
+  "collectionKey": "formats",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "formatCount",
+    "fieldCount",
+    "runCount",
+    "outputTypeCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "code",
+    "name",
+    "outputType",
+    "rootElement",
+    "rowElement",
+    "active",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-electronic-reporting digest summary+formats[] floors. preview omitted. PHP tax elec_reporting remains authoritative. cutoverAllowed=false."
+}

@@ -1880,3 +1880,108 @@ public sealed record CpConsolidationsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpCrmActivitiesSummary(
+    int ActivityCount,
+    int OpenCount,
+    int OverdueCount,
+    int DoneCount,
+    string Source,
+    string Message);
+
+public sealed record CpCrmActivitiesActivityDigest(
+    long Id,
+    string ActivityType,
+    string RelatedType,
+    long RelatedId,
+    long DueDate,
+    int Done,
+    long OwnerUserId,
+    long TimeCreated,
+    int Active);
+
+public sealed record CpCrmActivitiesDigestResult(
+    CpCrmActivitiesSummary Summary,
+    IReadOnlyList<CpCrmActivitiesActivityDigest> Activities,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpAuthMfaSummary(
+    int SecretCount,
+    int ConfirmedCount,
+    int BackupUnusedCount,
+    int PolicyCount,
+    string Source,
+    string Message);
+
+public sealed record CpAuthMfaSecretDigest(
+    long Id,
+    long UserId,
+    string Method,
+    int Confirmed,
+    string Label,
+    string CreatedAt,
+    string LastUsedAt);
+
+public sealed record CpAuthMfaDigestResult(
+    CpAuthMfaSummary Summary,
+    IReadOnlyList<CpAuthMfaSecretDigest> Secrets,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpElectronicReportingSummary(
+    int FormatCount,
+    int FieldCount,
+    int RunCount,
+    int OutputTypeCount,
+    string Source,
+    string Message);
+
+public sealed record CpElectronicReportingFormatDigest(
+    long Id,
+    long CompanyId,
+    string Code,
+    string Name,
+    string OutputType,
+    string RootElement,
+    string RowElement,
+    int Active,
+    long TimeCreated);
+
+public sealed record CpElectronicReportingDigestResult(
+    CpElectronicReportingSummary Summary,
+    IReadOnlyList<CpElectronicReportingFormatDigest> Formats,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpCollectionsDunningSummary(
+    int QueueCount,
+    int OpenCount,
+    int ProfileCount,
+    int LogCount,
+    string Source,
+    string Message);
+
+public sealed record CpCollectionsDunningQueueDigest(
+    long Id,
+    string SiteKey,
+    long CustomerId,
+    string CustomerName,
+    string InvoiceRef,
+    decimal InvoiceAmount,
+    decimal AmountDue,
+    string DueDate,
+    int DaysOverdue,
+    int DunningStep,
+    string Status,
+    string UpdatedAt);
+
+public sealed record CpCollectionsDunningDigestResult(
+    CpCollectionsDunningSummary Summary,
+    IReadOnlyList<CpCollectionsDunningQueueDigest> Queue,
+    int Count,
+    string Source,
+    string Message);
+

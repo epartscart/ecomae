@@ -218,6 +218,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only consolidation group entities.</summary>
     Task<CpConsolidationsDigestResult> BuildCpConsolidationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only CRM activities (notes omitted).</summary>
+    Task<CpCrmActivitiesDigestResult> BuildCpCrmActivitiesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only auth MFA enrollments (secrets/hashes omitted).</summary>
+    Task<CpAuthMfaDigestResult> BuildCpAuthMfaDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only electronic reporting formats (preview omitted).</summary>
+    Task<CpElectronicReportingDigestResult> BuildCpElectronicReportingDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only collections/dunning queue (notes omitted).</summary>
+    Task<CpCollectionsDunningDigestResult> BuildCpCollectionsDunningDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only bank statement lines for reconciliation.</summary>
     Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
 
