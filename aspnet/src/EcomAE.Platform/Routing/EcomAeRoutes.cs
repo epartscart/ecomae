@@ -20,6 +20,7 @@ public static class EcomAeRoutes
     public const string PhpModuleCatalog = "/migration/php-module-catalog";
     public const string LiveSurfaceLinks = "/migration/live-surface-links";
     public const string MigrationConsole = "/migration/console";
+    public const string MigrationCompare = "/migration/compare";
     public const string SurfaceFieldParity = "/migration/surface-field-parity";
     public const string TenantContext = "/tenant/context";
     public const string TenantWorkspaceParity = "/tenant/workspace/parity";
