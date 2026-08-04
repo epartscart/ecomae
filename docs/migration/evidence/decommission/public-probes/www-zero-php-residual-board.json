@@ -14,7 +14,7 @@
   },
   "whatThePercentsMean": {
     "100_scaffold": "Menus 726/726, field floors 137/137, ajax dry-run catalogs/goldens, tenant/industry gates, security headers + compression are built. This is NOT UX cutover.",
-    "95_weighted": "Legacy weighted area board in www-zero-php-completion.json — residual 5% is PHP runtime decommission + approval.",
+    "95_weighted": "Legacy weighted area board in www-zero-php-completion.json \u2014 residual 5% is PHP runtime decommission + approval.",
     "0_interactive": "Live product writes/menus still PHP. aspNetInteractiveComplete stays 0 until CloudPanel dual-sample + human approval. User-facing look must stay same-to-same."
   },
   "remainingWork": [
@@ -58,7 +58,7 @@
       "id": "release-owner-approval",
       "weightOfResidual": "blocker",
       "status": "missing",
-      "detail": "Human RELEASE_OWNER_APPROVAL.md — never invent."
+      "detail": "Human RELEASE_OWNER_APPROVAL.md \u2014 never invent."
     },
     {
       "id": "php-runtime-removal",
@@ -77,7 +77,10 @@
     "MarketingPreviewApp cleared of stack-reveal; same-to-same validator includes it",
     "Host-aware storefront industry attrs/titles",
     "Functional suite static floors green",
-    "Marketing install/probe floor ready"
+    "Marketing install/probe floor ready",
+    "Font URL %20 encoding so Open Sans probes pass",
+    "Storefront Clarity xoflbamawu + homepage depth component",
+    "ERP login inline CSS serve + PHP body class bridges"
   ],
   "liveLag": {
     "storefrontDigestsLive": "6/7 (checkout shadow not installed on www yet)",

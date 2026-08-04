@@ -43,12 +43,18 @@ public static class LegacyPresentationAssets
     /// <summary>Renderable animated cart logo fragment (HTML/SVG), matches PHP storefront/CP embeds.</summary>
     public const string AnimatedEpartsCartFragmentUrl = "/content/general_pages/animated_epartscart_logo.php";
 
-    /// <summary>PHP CP login hero/panel CSS reused by ASP.NET /cp/login /erp/login.</summary>
+    /// <summary>PHP CP login hero/panel CSS reused by ASP.NET /cp/login.</summary>
     public static readonly IReadOnlyList<string> LoginStylesheets =
     [
         "/content/general_pages/epc_cp_login_css.php",
         "/content/general_pages/epc_cp_login_hero_css.php",
         "/content/general_pages/epc_ecomae_hub_logo_css.php"
+    ];
+
+    /// <summary>Standalone ERP portal login shell (bos-hero, particles, glass panel).</summary>
+    public static readonly IReadOnlyList<string> ErpLoginStylesheets =
+    [
+        "/content/shop/finance/epc_erp_portal_inline_css_serve.php"
     ];
 
     /// <summary>BOS login matrix/particle JS (PHP bos/epc_bos_shell.js).</summary>
@@ -114,7 +120,7 @@ public static class LegacyPresentationAssets
         => surface.Trim().ToLowerInvariant() switch
         {
             "cp" => [".ech-hub", "#epcCpParticles", "epc-cp-login-hero"],
-            "erp" => [".ech-hub", "epc-cp-login-hero"],
+            "erp" => [".ech-hub", "epc-erp-portal-bg", "epc-erp-bos-hero", "#erpPortalParticles"],
             "bos" => [".bos-login__bg", "#bosParticles", ".bos-login__glow"],
             "storefront" => [".epc-engine-animation", ".epc-asp-piston-banner", "epc-home-pro"],
             "marketing" => [".epm-hub", ".epm-hub__orbit-spin", ".epm-hub__matrix", ".epm-hub-section"],
@@ -129,6 +135,17 @@ public static class LegacyPresentationAssets
         "storefront" => "epc-storefront-shell",
         "marketing" => "epm-body",
         _ => "epc-migration-shell"
+    };
+
+    /// <summary>document.body classes for PHP login/chrome bridges (matches live PHP templates).</summary>
+    public static string LoginBodyClassFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
+    {
+        "cp" => "blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super fixed-navbar fixed-sidebar",
+        "erp" => "epc-erp-standalone",
+        "bos" => "epc-bos-shell",
+        "storefront" => "epc-storefront-shell",
+        "marketing" => "epm-body",
+        _ => BodyClassFor(surfaceKey)
     };
 
     public static string LegacyChromeSourceFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch

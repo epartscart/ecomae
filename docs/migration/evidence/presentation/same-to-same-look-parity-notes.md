@@ -21,3 +21,10 @@ python3 scripts/validate_same_to_same_look_gaps.py
 ```
 
 Operator consoles (`MigrationCompareConsole`, `ZeroPhpConsole`) and on-prem installer remain excluded — they may still name stacks.
+
+## Chrome marker fixes (Batch look)
+
+- Font URLs use `%20` encoding so Blazor does not emit `&#x2B;` and presentation probes detect Open Sans / PT Sans.
+- Storefront GA4 + Clarity (`xoflbamawu`) match PHP epartscart map.
+- Storefront homepage depth component expands `/storefront/app` scaffold toward PHP hard floors without changing brand look.
+- Live redeploy required before `php-vs-aspnet-recheck.json` can go green on chrome markers; functionality failure remains until dual-sample cutover.

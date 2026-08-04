@@ -1544,6 +1544,10 @@ check 'zero PHP inventory script reports php-only status' contains "$ROOT/script
 check 'zero PHP inventory script emits surface counts' contains "$ROOT/scripts/inventory_php_routes.sh" 'surfaceCounts'
 check 'zero PHP inventory script excludes vendor dependencies' contains "$ROOT/scripts/inventory_php_routes.sh" "-not -path './vendor/*'"
 check 'security headers middleware exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Security/SecurityHeadersMiddleware.cs"
+check 'php font assets use percent encoding' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/LegacyPhpFontAssets.cs" 'Open%20Sans'
+check 'storefront analytics clarity matches epartscart' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/StorefrontAnalytics.razor" 'xoflbamawu'
+check 'storefront home depth component exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontHomeDepth.razor"
+check 'presentation compare accepts encoded Open Sans' contains "$ROOT/scripts/compare_php_aspnet_presentation.py" 'open%20sans'
 check 'program wires security headers middleware' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'SecurityHeadersMiddleware'
 check 'program registers response compression' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'AddResponseCompression'
 check 'program uses response compression' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'UseResponseCompression'
