@@ -200,6 +200,49 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ErpCashEntriesVoid, async (
+            HttpContext context,
+            ErpCashVoucherVoidBody? body,
+            ILegacySessionValidator validator,
+            IErpCashVoucherVoidDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for cash voucher void dry-run.");
+            }
+
+            body ??= new ErpCashVoucherVoidBody(0, null, false);
+            var result = await dryRun.EvaluateAsync(
+                new ErpCashVoucherVoidRequest(body.EntryId, body.Reason, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpGlJournalsManual, async (
+            HttpContext context,
+            ErpGlManualEntryBody? body,
+            ILegacySessionValidator validator,
+            IErpGlManualEntryDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for GL manual entry dry-run.");
+            }
+
+            body ??= new ErpGlManualEntryBody([], null, null, false);
+            var lines = (body.Lines ?? [])
+                .Select(l => new ErpGlManualLine(l.CoaId, l.Debit, l.Credit, l.LineNote))
+                .ToList();
+            var result = await dryRun.EvaluateAsync(
+                new ErpGlManualEntryRequest(lines, body.Reference, body.Description, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpInvoices, async (
             HttpContext context,
             int? limit,
@@ -569,4 +612,7 @@ public sealed class ErpModule : ISurfaceModule
     };
 
     private sealed record ErpCashVoucherAmendBody(long EntryId, string? Reference, string? Note, bool ConfirmWrites = false);
+    private sealed record ErpCashVoucherVoidBody(long EntryId, string? Reason, bool ConfirmWrites = false);
+    private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
+    private sealed record ErpGlManualEntryBody(IReadOnlyList<ErpGlManualLineBody>? Lines, string? Reference, string? Description, bool ConfirmWrites = false);
 }

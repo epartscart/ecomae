@@ -455,6 +455,10 @@ public static class EcomAeRoutes
     public const string ErpCashEntriesApp = "/erp/cash-entries-app";
     /// <summary>Wave B dry-run cash voucher amend (PHP cash_voucher_amend remains authoritative).</summary>
     public const string ErpCashEntriesAmend = "/erp/cash-entries/amend";
+    /// <summary>Wave B dry-run cash voucher void (PHP cash_voucher_void remains authoritative).</summary>
+    public const string ErpCashEntriesVoid = "/erp/cash-entries/void";
+    /// <summary>Wave B dry-run GL manual journal (PHP gl_manual_entry remains authoritative).</summary>
+    public const string ErpGlJournalsManual = "/erp/gl-journals/manual";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
@@ -563,6 +567,10 @@ public static class EcomAeRoutes
     public const string StorefrontCartCheckForOrder = "/storefront/cart/check-for-order";
     /// <summary>Wave B dry-run cart delete (PHP ajax_delete_cart_record.php remains authoritative).</summary>
     public const string StorefrontCartDelete = "/storefront/cart/delete";
+    /// <summary>Wave B dry-run add-to-cart type-2 (PHP ajax_add_to_basket.php remains authoritative).</summary>
+    public const string StorefrontCartAdd = "/storefront/cart/add";
+    /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
+    public const string MarketingPlatformApp = "/marketing/platform";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
