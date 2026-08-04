@@ -32,39 +32,39 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 552,
-    "php-only-deeplink": 174
+    "digest-contract": 561,
+    "php-only-deeplink": 165
   },
   "coverageByKind": {
     "bos-module": {
-      "digest-contract": 76,
-      "php-only-deeplink": 23
+      "digest-contract": 78,
+      "php-only-deeplink": 21
     },
     "bos-section": {
       "digest-contract": 8,
       "php-only-deeplink": 3
     },
     "cp-feature": {
-      "digest-contract": 288,
-      "php-only-deeplink": 117
+      "digest-contract": 292,
+      "php-only-deeplink": 113
     },
     "erp-area": {
-      "digest-contract": 32,
-      "php-only-deeplink": 3
+      "digest-contract": 33,
+      "php-only-deeplink": 2
     },
     "erp-category": {
       "digest-contract": 9
     },
     "erp-tab": {
-      "digest-contract": 128,
-      "php-only-deeplink": 26
+      "digest-contract": 130,
+      "php-only-deeplink": 24
     },
     "storefront-surface": {
       "php-only-deeplink": 2,
       "digest-contract": 11
     }
   },
-  "digestContractRouteCount": 110,
+  "digestContractRouteCount": 114,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -558,10 +558,10 @@
       "kind": "erp-area",
       "label": "Credit and collections",
       "phpPath": "/ERP/?epc_erp_shell=1&area=credit_coll",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/collections-dunning",
+      "aspnetRoute": "/cp/collections-dunning-app",
       "aspnetComplete": false
     },
     {
@@ -569,10 +569,10 @@
       "kind": "erp-tab",
       "label": "Collections",
       "phpPath": "/ERP/?epc_erp_shell=1&area=credit_coll&tab=collections",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/collections-dunning",
+      "aspnetRoute": "/cp/collections-dunning-app",
       "aspnetComplete": false
     },
     {
@@ -2087,10 +2087,10 @@
       "kind": "erp-tab",
       "label": "Electronic reporting",
       "phpPath": "/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/electronic-reporting",
+      "aspnetRoute": "/cp/electronic-reporting-app",
       "aspnetComplete": false
     },
     {
@@ -2461,10 +2461,10 @@
       "kind": "bos-module",
       "label": "Modern Auth / MFA",
       "phpPath": "/CP/control/portal/epc_cp_auth_settings",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/auth-mfa",
+      "aspnetRoute": "/cp/auth-mfa-app",
       "aspnetComplete": false
     },
     {
@@ -2626,10 +2626,10 @@
       "kind": "bos-module",
       "label": "Collections",
       "phpPath": "/CP/shop/finance/epc_collections_dunning",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/collections-dunning",
+      "aspnetRoute": "/cp/collections-dunning-app",
       "aspnetComplete": false
     },
     {
@@ -3924,10 +3924,10 @@
       "kind": "cp-feature",
       "label": "Epc Cp Auth Settings",
       "phpPath": "/CP/control/portal/epc_cp_auth_settings",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/auth-mfa",
+      "aspnetRoute": "/cp/auth-mfa-app",
       "aspnetComplete": false
     },
     {
@@ -4034,10 +4034,10 @@
       "kind": "cp-feature",
       "label": "CP auth settings",
       "phpPath": "/CP/control/portal/epc_cp_auth_settings",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/auth-mfa",
+      "aspnetRoute": "/cp/auth-mfa-app",
       "aspnetComplete": false
     },
     {
@@ -5717,10 +5717,10 @@
       "kind": "cp-feature",
       "label": "Credit and collections: Collections",
       "phpPath": "/CP/shop/finance/erp?area=credit_coll&tab=collections&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/collections-dunning",
+      "aspnetRoute": "/cp/collections-dunning-app",
       "aspnetComplete": false
     },
     {
@@ -6949,10 +6949,10 @@
       "kind": "cp-feature",
       "label": "Tax: Electronic reporting",
       "phpPath": "/CP/shop/finance/erp?area=tax&tab=elec_reporting&epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/electronic-reporting",
+      "aspnetRoute": "/cp/electronic-reporting-app",
       "aspnetComplete": false
     },
     {
@@ -7270,8 +7270,8 @@
       "phpPath": "/CP/shop/customer_mgmt/customer_mgmt",
       "coverage": "digest-contract",
       "moduleStatus": "digest-only+hybrid-deeplink",
-      "digestRoute": "/cp/crm-opportunities",
-      "aspnetRoute": "/cp/crm-opportunities-app",
+      "digestRoute": "/cp/crm-activities",
+      "aspnetRoute": "/cp/crm-activities-app",
       "aspnetComplete": false
     },
     {

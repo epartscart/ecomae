@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 92,
-  "hybridUiSamplesOk": 91,
+  "pairsChecked": 96,
+  "hybridUiSamplesOk": 95,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -99,6 +99,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-auth-mfa-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-auth-mfa",
+      "appRoute": "/cp/auth-mfa-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-auto-price-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-auto-price",
@@ -139,6 +149,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-collections-dunning-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-collections-dunning",
+      "appRoute": "/cp/collections-dunning-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-config-items-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-config-items",
@@ -163,6 +183,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-cost-models",
       "appRoute": "/cp/cost-models-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-crm-activities-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-crm-activities",
+      "appRoute": "/cp/crm-activities-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -263,6 +293,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-einvoice-documents",
       "appRoute": "/cp/einvoice-documents-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-electronic-reporting-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-electronic-reporting",
+      "appRoute": "/cp/electronic-reporting-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

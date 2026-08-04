@@ -1,0 +1,30 @@
+{
+  "role": "cp-crm-activities-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-crm-activities",
+  "collectionKey": "activities",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "activityCount",
+    "openCount",
+    "overdueCount",
+    "doneCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "activityType",
+    "relatedType",
+    "relatedId",
+    "dueDate",
+    "done",
+    "ownerUserId",
+    "timeCreated",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-crm-activities digest summary+activities[] floors. notes omitted. PHP CRM activities remain authoritative. cutoverAllowed=false."
+}

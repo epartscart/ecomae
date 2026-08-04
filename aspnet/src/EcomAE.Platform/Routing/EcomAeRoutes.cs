@@ -264,6 +264,22 @@ public static class EcomAeRoutes
     public const string ControlPanelConsolidations = "/cp/consolidations";
     /// <summary>CP consolidations Blazor list (JSON digest remains <see cref="ControlPanelConsolidations"/>).</summary>
     public const string ControlPanelConsolidationsApp = "/cp/consolidations-app";
+    /// <summary>CP CRM activities (notes omitted).</summary>
+    public const string ControlPanelCrmActivities = "/cp/crm-activities";
+    /// <summary>CP CRM activities Blazor list (JSON digest remains <see cref="ControlPanelCrmActivities"/>).</summary>
+    public const string ControlPanelCrmActivitiesApp = "/cp/crm-activities-app";
+    /// <summary>CP auth MFA enrollment/policy (secrets/hashes omitted).</summary>
+    public const string ControlPanelAuthMfa = "/cp/auth-mfa";
+    /// <summary>CP auth MFA Blazor list (JSON digest remains <see cref="ControlPanelAuthMfa"/>).</summary>
+    public const string ControlPanelAuthMfaApp = "/cp/auth-mfa-app";
+    /// <summary>CP electronic reporting formats (preview omitted).</summary>
+    public const string ControlPanelElectronicReporting = "/cp/electronic-reporting";
+    /// <summary>CP electronic reporting Blazor list (JSON digest remains <see cref="ControlPanelElectronicReporting"/>).</summary>
+    public const string ControlPanelElectronicReportingApp = "/cp/electronic-reporting-app";
+    /// <summary>CP collections/dunning queue (notes omitted).</summary>
+    public const string ControlPanelCollectionsDunning = "/cp/collections-dunning";
+    /// <summary>CP collections/dunning Blazor list (JSON digest remains <see cref="ControlPanelCollectionsDunning"/>).</summary>
+    public const string ControlPanelCollectionsDunningApp = "/cp/collections-dunning-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

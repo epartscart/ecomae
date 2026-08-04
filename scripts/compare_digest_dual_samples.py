@@ -260,6 +260,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "entityCount,figureCount,icCount,openIcCount,source,message",
     ),
+    "cp-crm-activities": (
+        "summary",
+        "activityCount,openCount,overdueCount,doneCount,source,message",
+    ),
+    "cp-auth-mfa": (
+        "summary",
+        "secretCount,confirmedCount,backupUnusedCount,policyCount,source,message",
+    ),
+    "cp-electronic-reporting": (
+        "summary",
+        "formatCount,fieldCount,runCount,outputTypeCount,source,message",
+    ),
+    "cp-collections-dunning": (
+        "summary",
+        "queueCount,openCount,profileCount,logCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -792,6 +808,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-consolidations": (
         "entities",
         ["id", "code", "name", "currencyCode", "ownershipPct", "isHome", "parentCode", "active", "timeCreated"],
+    ),
+    "cp-crm-activities": (
+        "activities",
+        ["id", "activityType", "relatedType", "relatedId", "dueDate", "done", "ownerUserId", "timeCreated", "active"],
+    ),
+    "cp-auth-mfa": (
+        "secrets",
+        ["id", "userId", "method", "confirmed", "label", "createdAt", "lastUsedAt"],
+    ),
+    "cp-electronic-reporting": (
+        "formats",
+        ["id", "companyId", "code", "name", "outputType", "rootElement", "rowElement", "active", "timeCreated"],
+    ),
+    "cp-collections-dunning": (
+        "queue",
+        ["id", "siteKey", "customerId", "customerName", "invoiceRef", "invoiceAmount", "amountDue", "dueDate", "daysOverdue", "dunningStep", "status", "updatedAt"],
     ),
     "cp-orders-digest": (
         "orders",

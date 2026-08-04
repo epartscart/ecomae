@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 101,
+  "routeCount": 105,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -1217,6 +1217,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-consolidations-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-crm-activities-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/crm-activities-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-crm-activities-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-auth-mfa-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/auth-mfa-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-auth-mfa-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-electronic-reporting-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/electronic-reporting-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-electronic-reporting-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-collections-dunning-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/collections-dunning-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-collections-dunning-app-shadow-approved"
           }
         ]
       }
