@@ -1,0 +1,40 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_about() — hero + who-we-are split + EW Group card.
+*@
+
+<div class="epm-wrap" id="ehm-about">
+	<div class="epm-hero" style="min-height:220px">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#5a0f16 50%,#0a0a0a)"></div>
+		<div class="epm-hero__content">
+			<h1>About ECOM AE</h1>
+			<p class="lead">Built by Electronic World Group in Dubai — one cloud for commerce, ERP, CRM, and UAE e-invoicing.</p>
+		</div>
+	</div>
+	<div class="epm-split">
+		<div>
+			<h2 class="epm-section-title" style="margin-top:0">Who we are</h2>
+			<p class="epm-section-lead">ECOM AE is the hosted operator platform behind live tenants including eParts Cart, Taxofinca, Electronicae, Stylenlook, and The Jewellery Trend. We provision isolated MySQL databases, industry themes, and Super CP onboarding so agencies go live in as little as 24 hours after DNS.</p>
+			<ul class="epm-feature-list">
+				<li>Multi-tenant Model C — one nginx docroot, hostname routing</li>
+				<li>Super CP (operator control panel) at ecomae.com/cp</li>
+				<li>Client CP and storefront on each client domain</li>
+				<li>Peppol / PINT-AE e-invoice in ERP Finance</li>
+			</ul>
+		</div>
+		<div class="epm-card epm-card--accent">
+			<h4>Electronic World Group</h4>
+			<p>Dubai, UAE · B2B SaaS and commerce infrastructure for the GCC.</p>
+			<div class="epm-cta" style="margin-top:12px">
+				<a class="epm-btn epm-btn--primary epm-btn--sm" href="@(EcomaeMarketingPages.LiveBase)platform/contact">Contact us</a>
+				<a class="epm-btn epm-btn--ghost epm-btn--sm" href="@(EcomaeMarketingPages.LiveBase)platform/customer-results">Customer results</a>
+			</div>
+		</div>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET about scaffold — dual-sample against live PHP <code>/platform/about</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>
