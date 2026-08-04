@@ -144,5 +144,28 @@ probe_post "/erp/sales-orders/cancel" '{"salesOrderId":1,"reason":"dry-run","con
 probe_post "/cp/orders/delete" '{"orderIds":[1],"confirmWrites":false}' "$ADMIN_COOKIE" "oms delete-orders"
 probe_post "/erp/purchase-orders/delete" '{"purchaseOrderId":1,"confirmWrites":false}' "$ADMIN_COOKIE" "erp purchase-orders delete"
 
+
+# Wave B ajax_erp registry + high-value dedicated (catalog long-tail; PHP authoritative)
+probe_post "/erp/ajax-writes/dry-run/edit_lock_acquire" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp ajax registry edit_lock_acquire"
+probe_post "/erp/ajax-writes/dry-run/bos_wf_decide" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp ajax registry bos_wf_decide"
+probe_post "/erp/ajax-writes/dry-run/agenda_save" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp ajax registry agenda_save"
+probe_post "/erp/on-premises/setup-wizard-dry-run" '{"tenantCode":"demo","confirmWrites":false}' "" "on-premises setup-wizard"
+probe_post "/erp/on-premises/backup-dry-run" '{"label":"dry-run","confirmWrites":false}' "" "on-premises backup"
+probe_post "/erp/ajax/edit-lock-acquire" '{"resourceKey":"so:1","confirmWrites":false}' "$ADMIN_COOKIE" "erp edit_lock_acquire"
+probe_post "/erp/ajax/bos-wf-decide" '{"id":1,"approve":true,"confirmWrites":false}' "$ADMIN_COOKIE" "erp bos_wf_decide"
+probe_post "/erp/ajax/bos-compliance-file" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp bos_compliance_file"
+probe_post "/erp/ajax/opl-params-save" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp opl_params_save"
+probe_post "/erp/ajax/pf-case-start" '{"id":1,"confirmWrites":false}' "$ADMIN_COOKIE" "erp pf_case_start"
+probe_post "/erp/ajax/sub-generate" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp sub_generate"
+probe_post "/erp/ajax/coll-dunning-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp coll_dunning_run"
+probe_post "/erp/ajax/proc-req-convert" '{"id":1,"confirmWrites":false}' "$ADMIN_COOKIE" "erp proc_req_convert"
+probe_post "/erp/ajax/bank-reconcile" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp bank_reconcile"
+probe_post "/erp/ajax/aml-kyc-save" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp aml_kyc_save"
+probe_post "/erp/ajax/bplan-save" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp bplan_save"
+probe_post "/erp/ajax/supplier-payment" '{"id":1,"confirmWrites":false}' "$ADMIN_COOKIE" "erp supplier_payment"
+probe_post "/erp/ajax/fx-post-revaluation" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp fx_post_revaluation"
+probe_post "/erp/ajax/presence-heartbeat" '{"resourceKey":"so:1","confirmWrites":false}' "$ADMIN_COOKIE" "erp presence_heartbeat"
+probe_post "/erp/ajax/bos-intel-toggle-control" '{"controlKey":"vat","enabled":true,"confirmWrites":false}' "$ADMIN_COOKIE" "erp bos_intel_toggle_control"
+
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]

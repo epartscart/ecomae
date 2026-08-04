@@ -862,6 +862,17 @@ check 'ASP.NET zero-PHP path doc mentions on-premises' contains "$ROOT/docs/migr
 check 'Wave B write dry-run probe covers SO cancel' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/sales-orders/cancel'
 check 'Wave B write dry-run probe covers OMS delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/orders/delete'
 check 'Wave B write dry-run probe covers PO delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/purchase-orders/delete'
+check 'Wave B ERP ajax write catalog route wired' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpAjaxWriteCatalog'
+check 'Wave B ERP ajax registry dry-run route wired' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpAjaxWriteRegistryDryRun'
+check 'Wave B write dry-run probe covers ajax registry' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax-writes/dry-run/'
+check 'Wave B write dry-run probe covers on-premises setup-wizard' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/on-premises/setup-wizard-dry-run'
+check 'Wave B write dry-run probe covers on-premises backup' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/on-premises/backup-dry-run'
+check 'on-premises ASP.NET installer scaffold README exists' test -f "$ROOT/deploy/on-premises-aspnet/README.md"
+check 'on-premises ASP.NET scaffold keeps PHP authoritative' contains "$ROOT/deploy/on-premises-aspnet/README.md" 'PHP'
+check 'ERP ajax write catalog covers ajax_erp' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/ErpAjaxWriteCatalog.cs" 'ajax_erp.php'
+check 'Wave B write dry-run probe covers edit_lock_acquire' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/edit-lock-acquire'
+check 'Wave B write dry-run probe covers bos_wf_decide' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/bos-wf-decide'
+
 check 'Wave B write dry-run dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh"
 check 'Wave B write dry-run dual-sample operator refuses cutover' contains "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh" 'cutoverAllowed'
 check 'all dual-sample operators include write-dryrun' contains "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh" 'write-dryrun'
