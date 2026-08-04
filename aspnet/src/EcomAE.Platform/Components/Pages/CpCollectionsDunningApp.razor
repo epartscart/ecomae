@@ -82,7 +82,7 @@
                     <tr>
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CustomerName) ? row.CustomerName : row.CustomerId.ToString(CultureInfo.InvariantCulture))</td>
+                            <td>@row.CustomerId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.InvoiceRef) ? row.InvoiceRef : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.DueDate) ? row.DueDate : "—")</td>
                             <td>@row.DaysOverdue.ToString(CultureInfo.InvariantCulture)</td>

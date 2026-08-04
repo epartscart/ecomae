@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 116,
-  "hybridUiSamplesOk": 115,
+  "pairsChecked": 118,
+  "hybridUiSamplesOk": 117,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -283,6 +283,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-dashboard-summary",
       "appRoute": "/cp/dashboard-summary-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-data-migrations-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-data-migrations",
+      "appRoute": "/cp/data-migrations-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -693,6 +703,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-po-approvals",
       "appRoute": "/cp/po-approvals-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-portal-settings-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-portal-settings",
+      "appRoute": "/cp/portal-settings-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

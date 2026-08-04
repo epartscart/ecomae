@@ -330,7 +330,7 @@ SUMMARY_CONTRACTS = {
     ),
     "cp-quote-requests": (
         "summary",
-        "quoteCount,draftCount,submittedCount,itemCount,source,message",
+        "quoteCount,draftCount,submittedCount,quotedCount,acceptedCount,itemCount,source,message",
     ),
     "cp-platform-communication": (
         "summary",
@@ -355,6 +355,14 @@ SUMMARY_CONTRACTS = {
     "cp-notifications": (
         "summary",
         "notificationCount,unreadCount,prefCount,channelCount,source,message",
+    ),
+    "cp-portal-settings": (
+        "summary",
+        "siteCount,industryCount,accessModeCount,deployTargetCount,source,message",
+    ),
+    "cp-data-migrations": (
+        "summary",
+        "migrationCount,completedCount,failedCount,rowCount,source,message",
     ),
     "erp-inventory-stock": (
         "summary",
@@ -903,7 +911,7 @@ HYBRID_LIST_ITEM_FIELDS = {
     ),
     "cp-collections-dunning": (
         "queue",
-        ["id", "siteKey", "customerId", "customerName", "invoiceRef", "invoiceAmount", "amountDue", "dueDate", "daysOverdue", "dunningStep", "status", "updatedAt"],
+        ["id", "siteKey", "customerId", "invoiceRef", "invoiceAmount", "amountDue", "dueDate", "daysOverdue", "dunningStep", "status", "updatedAt"],
     ),
     "cp-marketplace-channels": (
         "channels",
@@ -923,7 +931,7 @@ HYBRID_LIST_ITEM_FIELDS = {
     ),
     "cp-audit-trail": (
         "entries",
-        ["id", "timeUnix", "adminId", "action", "entityType", "entityId", "summary", "ipAddress"],
+        ["id", "timeUnix", "adminId", "action", "entityType", "entityId", "summary"],
     ),
     "cp-doc-expiry": (
         "documents",
@@ -984,6 +992,14 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-notifications": (
         "notifications",
         ["id", "tenantKey", "userId", "channel", "category", "severity", "title", "isRead", "createdAt"],
+    ),
+    "cp-portal-settings": (
+        "sites",
+        ["host", "industryCode", "systemName", "hubName", "tagline", "domainPath", "themeTemplate", "accessMode", "cpDefaultLang", "countryCode", "updatedAt"],
+    ),
+    "cp-data-migrations": (
+        "migrations",
+        ["id", "companyId", "migrationType", "entityType", "fileName", "totalRows", "validRows", "errorRows", "importedRows", "status", "importedByName", "timeCreated", "timeCompleted"],
     ),
     "cp-orders-digest": (
         "orders",

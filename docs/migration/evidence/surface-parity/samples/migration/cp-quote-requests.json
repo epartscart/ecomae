@@ -5,6 +5,8 @@
     "quoteCount": 1,
     "draftCount": 1,
     "submittedCount": 0,
+    "quotedCount": 0,
+    "acceptedCount": 0,
     "itemCount": 0,
     "source": "migration",
     "message": "TenantRegistry DB is not configured."
@@ -13,7 +15,7 @@
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode; quotes[] sentinel; admin_note/customer_note/product_object_json omitted; PHP quote requests remain authoritative; cutoverAllowed=false",
+  "note": "migration-mode; quotes[] sentinel; distinct status KPIs; notes omitted; PHP quote requests remain authoritative; cutoverAllowed=false",
   "quotes": [
     {
       "id": 1,

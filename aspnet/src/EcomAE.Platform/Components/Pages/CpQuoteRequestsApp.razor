@@ -53,6 +53,8 @@
         <div class="epc-w19-kpi"><strong>@_summary.QuoteCount.ToString(CultureInfo.InvariantCulture)</strong><span>Quotes</span></div>
         <div class="epc-w19-kpi"><strong>@_summary.DraftCount.ToString(CultureInfo.InvariantCulture)</strong><span>Draft</span></div>
         <div class="epc-w19-kpi"><strong>@_summary.SubmittedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Submitted</span></div>
+        <div class="epc-w19-kpi"><strong>@_summary.QuotedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Quoted</span></div>
+        <div class="epc-w19-kpi"><strong>@_summary.AcceptedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Accepted</span></div>
         <div class="epc-w19-kpi"><strong>@_summary.ItemCount.ToString(CultureInfo.InvariantCulture)</strong><span>Items</span></div>
     </div>
 
@@ -102,7 +104,7 @@
 @code {
     private const string _phpTab = "/CP/shop/quote-requests";
     private bool _isAdmin;
-    private CpQuoteRequestsSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private CpQuoteRequestsSummary _summary = new(0, 0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpQuoteRequestsRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";

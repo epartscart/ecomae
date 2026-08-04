@@ -10,6 +10,8 @@
     "quoteCount",
     "draftCount",
     "submittedCount",
+    "quotedCount",
+    "acceptedCount",
     "itemCount",
     "source",
     "message"
@@ -25,5 +27,5 @@
     "acceptedOrderId"
   ],
   "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
-  "note": "Locks cp-quote-requests digest summary+quotes[] floors. admin_note/customer_note/product_object_json omitted; PHP quote requests remain authoritative. cutoverAllowed=false."
+  "note": "Locks quote-requests digest with distinct status KPIs. cutoverAllowed=false."
 }

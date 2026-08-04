@@ -118,6 +118,8 @@ declare -A ROUTES=(
   [cp-config-sandbox]="/cp/config-sandbox?limit=5"
   [cp-marketplace-apps]="/cp/marketplace-apps?limit=5"
   [cp-notifications]="/cp/notifications?limit=5"
+  [cp-portal-settings]="/cp/portal-settings?limit=5"
+  [cp-data-migrations]="/cp/data-migrations?limit=5"
   [cp-einvoice-documents]="/cp/einvoice-documents?limit=5"
   [cp-config-items]="/cp/config-items?limit=5"
   [cp-admin-sessions]="/cp/admin-sessions?limit=5"

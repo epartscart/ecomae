@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-04T08:08:51Z",
+  "capturedAt": "2026-08-04T08:37:46Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -584,24 +584,6 @@
       "phpAuthoritativePath": "/CP/control/portal/epc_web_tracker"
     },
     {
-      "stem": "cp-quote-requests",
-      "appRoute": "/cp/quote-requests-app",
-      "digestRoute": "/cp/quote-requests",
-      "phpAuthoritativePath": "/CP/shop/quote-requests"
-    },
-    {
-      "stem": "cp-platform-communication",
-      "appRoute": "/cp/platform-communication-app",
-      "digestRoute": "/cp/platform-communication",
-      "phpAuthoritativePath": "/CP/control/portal/epc_super_cp_communication"
-    },
-    {
-      "stem": "cp-info-blocks",
-      "appRoute": "/cp/info-blocks-app",
-      "digestRoute": "/cp/info-blocks",
-      "phpAuthoritativePath": "/CP/control/portal/epc_super_cp_info_blocks"
-    },
-    {
       "stem": "cp-free-tools",
       "appRoute": "/cp/free-tools-app",
       "digestRoute": "/cp/free-tools",
@@ -624,6 +606,36 @@
       "appRoute": "/cp/notifications-app",
       "digestRoute": "/cp/notifications",
       "phpAuthoritativePath": "/CP/control/notifications_settings"
+    },
+    {
+      "stem": "cp-portal-settings",
+      "appRoute": "/cp/portal-settings-app",
+      "digestRoute": "/cp/portal-settings",
+      "phpAuthoritativePath": "/CP/control/portal/portal"
+    },
+    {
+      "stem": "cp-data-migrations",
+      "appRoute": "/cp/data-migrations-app",
+      "digestRoute": "/cp/data-migrations",
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=setup&tab=data_import&epc_erp_shell=1"
+    },
+    {
+      "stem": "cp-quote-requests",
+      "appRoute": "/cp/quote-requests-app",
+      "digestRoute": "/cp/quote-requests",
+      "phpAuthoritativePath": "/CP/shop/quote-requests"
+    },
+    {
+      "stem": "cp-platform-communication",
+      "appRoute": "/cp/platform-communication-app",
+      "digestRoute": "/cp/platform-communication",
+      "phpAuthoritativePath": "/CP/control/portal/epc_super_cp_communication"
+    },
+    {
+      "stem": "cp-info-blocks",
+      "appRoute": "/cp/info-blocks-app",
+      "digestRoute": "/cp/info-blocks",
+      "phpAuthoritativePath": "/CP/control/portal/epc_super_cp_info_blocks"
     },
     {
       "stem": "erp-accounts-summary",

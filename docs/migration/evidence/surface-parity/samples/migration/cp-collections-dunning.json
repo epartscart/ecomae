@@ -13,13 +13,12 @@
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode; queue[] sentinel; notes omitted; PHP collections/dunning authoritative; cutoverAllowed=false",
+  "note": "migration-mode; queue[] sentinel; notes/customer_name omitted; PHP collections/dunning authoritative; cutoverAllowed=false",
   "queue": [
     {
       "id": 1,
       "siteKey": "demo",
       "customerId": 1,
-      "customerName": "Acme",
       "invoiceRef": "INV-1",
       "invoiceAmount": 100.0,
       "amountDue": 100.0,

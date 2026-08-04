@@ -160,6 +160,8 @@ TARGETS = [
     ("cp-config-sandbox", "cp", "/cp/config-sandbox-app", "/cp/config-sandbox", "/CP/control/portal/epc_config_sandbox", "CpConfigSandboxApp", "PhpCpDesktopChrome", "admin"),
     ("cp-marketplace-apps", "cp", "/cp/marketplace-apps-app", "/cp/marketplace-apps", "/CP/control/portal/epc_marketplace", "CpMarketplaceAppsApp", "PhpCpDesktopChrome", "admin"),
     ("cp-notifications", "cp", "/cp/notifications-app", "/cp/notifications", "/CP/control/notifications_settings", "CpNotificationsApp", "PhpCpDesktopChrome", "admin"),
+    ("cp-portal-settings", "cp", "/cp/portal-settings-app", "/cp/portal-settings", "/CP/control/portal/portal", "CpPortalSettingsApp", "PhpCpDesktopChrome", "admin"),
+    ("cp-data-migrations", "cp", "/cp/data-migrations-app", "/cp/data-migrations", "/CP/shop/finance/erp?area=setup&tab=data_import&epc_erp_shell=1", "CpDataMigrationsApp", "PhpCpDesktopChrome", "admin"),
     ("cp-quote-requests", "cp", "/cp/quote-requests-app", "/cp/quote-requests", "/CP/shop/quote-requests", "CpQuoteRequestsApp", "PhpCpDesktopChrome", "admin"),
     ("cp-platform-communication", "cp", "/cp/platform-communication-app", "/cp/platform-communication", "/CP/control/portal/epc_super_cp_communication", "CpPlatformCommunicationApp", "PhpCpDesktopChrome", "admin"),
     ("cp-info-blocks", "cp", "/cp/info-blocks-app", "/cp/info-blocks", "/CP/control/portal/epc_super_cp_info_blocks", "CpInfoBlocksApp", "PhpCpDesktopChrome", "admin"),

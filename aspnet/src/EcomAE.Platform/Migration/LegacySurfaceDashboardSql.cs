@@ -1638,7 +1638,7 @@ public static class LegacySurfaceDashboardSql
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`code`,'') AS code,
                IFNULL(`name`,'') AS name, IFNULL(`output_type`,'') AS output_type,
                IFNULL(`root_element`,'') AS root_element, IFNULL(`row_element`,'') AS row_element,
-               IFNULL(`active`,0) AS active, IFNULL(`time_created`,0) AS time_created
+               IFNULL(`active`,1) AS active, IFNULL(`time_created`,0) AS time_created
         FROM `epc_er_format`
         ORDER BY `id` DESC
         LIMIT @limit
@@ -1653,10 +1653,10 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_dunning_log`) AS log_count
         """;
 
-    /// <summary>Dunning queue — omits notes.</summary>
+    /// <summary>Dunning queue — omits notes and customer_name (PII).</summary>
     public const string SelectCpCollectionsDunningQueue = """
         SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`customer_id`,0) AS customer_id,
-               IFNULL(`customer_name`,'') AS customer_name, IFNULL(`invoice_ref`,'') AS invoice_ref,
+               IFNULL(`invoice_ref`,'') AS invoice_ref,
                IFNULL(`invoice_amount`,0) AS invoice_amount, IFNULL(`amount_due`,0) AS amount_due,
                IFNULL(`due_date`,'') AS due_date, IFNULL(`days_overdue`,0) AS days_overdue,
                IFNULL(`dunning_step`,0) AS dunning_step, IFNULL(`status`,'') AS status,
@@ -1757,12 +1757,11 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(DISTINCT `entity_type`) FROM `epc_erp_audit_log` WHERE IFNULL(`entity_type`,'')<>'') AS entity_type_count
         """;
 
-    /// <summary>ERP audit trail rows — omits detail_json/old_json/new_json/user_agent.</summary>
+    /// <summary>ERP audit trail rows — omits detail_json/old_json/new_json/user_agent/ip_address.</summary>
     public const string SelectCpAuditTrailEntries = """
         SELECT `id`, IFNULL(`time`,0) AS time_unix, IFNULL(`admin_id`,0) AS admin_id,
                IFNULL(`action`,'') AS action, IFNULL(`entity_type`,'') AS entity_type,
-               IFNULL(`entity_id`,0) AS entity_id, IFNULL(`summary`,'') AS summary,
-               IFNULL(`ip_address`,'') AS ip_address
+               IFNULL(`entity_id`,0) AS entity_id, IFNULL(`summary`,'') AS summary
         FROM `epc_erp_audit_log`
         ORDER BY `id` DESC
         LIMIT @limit
@@ -1810,12 +1809,12 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>Jewellery stock verification KPIs from epc_jewel_stock_verification* (CREATE TABLE in epc_erp_jewellery.php).</summary>
+    /// <summary>Jewellery stock verification KPIs. Open = in_progress/Draft (PHP schema default + save path); complete = remaining_pcs=0 (PHP INSERT/schema status vocabulary is inconsistent).</summary>
     public const string SelectCpJewelleryStockVerificationStats = """
         SELECT
             (SELECT COUNT(*) FROM `epc_jewel_stock_verification`) AS verification_count,
-            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE IFNULL(`status`,'')='in_progress') AS in_progress_count,
-            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE IFNULL(`status`,'') IN ('complete','completed','closed')) AS complete_count,
+            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE IFNULL(`status`,'') IN ('in_progress','Draft','draft')) AS in_progress_count,
+            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE IFNULL(`remaining_pcs`,0)=0 AND IFNULL(`total_pcs`,0)>0) AS complete_count,
             (SELECT COUNT(*) FROM `epc_jewel_stock_verification_lines`) AS line_count
         """;
 
@@ -1897,14 +1896,14 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>Jewellery fixing KPIs from epc_jewel_fixing + epc_fix_unfix_* + epc_jewel_petty_cash (CREATE TABLE unused cluster).</summary>
+    /// <summary>Jewellery fixing KPIs. Petty-cash count uses epc_jewel_voucher PCV (PHP save path); epc_jewel_petty_cash is a stale/empty helper table.</summary>
     public const string SelectCpJewelleryFixingStats = """
         SELECT
             (SELECT COUNT(*) FROM `epc_jewel_fixing`) AS fixing_count,
             (SELECT COUNT(*) FROM `epc_jewel_fixing` WHERE IFNULL(`status`,'')='open') AS open_fixing_count,
             (SELECT COUNT(*) FROM `epc_fix_unfix_purchases`) AS purchase_fix_count,
             (SELECT COUNT(*) FROM `epc_fix_unfix_settlements`) AS settlement_count,
-            (SELECT COUNT(*) FROM `epc_jewel_petty_cash`) AS petty_cash_count
+            (SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE IFNULL(`voc_type`,'')='PCV') AS petty_cash_count
         """;
 
     /// <summary>Jewellery fixing rows — remarks/notes omitted.</summary>
@@ -1942,12 +1941,14 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>Quote request KPIs from shop_quote_requests/items (CREATE TABLE in install_shop_quotes.sql).</summary>
+    /// <summary>Quote request KPIs — status stages are distinct in PHP (draft→submitted→quoted→accepted).</summary>
     public const string SelectCpQuoteRequestsStats = """
         SELECT
             (SELECT COUNT(*) FROM `shop_quote_requests`) AS quote_count,
             (SELECT COUNT(*) FROM `shop_quote_requests` WHERE IFNULL(`status`,'')='draft') AS draft_count,
-            (SELECT COUNT(*) FROM `shop_quote_requests` WHERE IFNULL(`status`,'') IN ('submitted','quoted','accepted')) AS submitted_count,
+            (SELECT COUNT(*) FROM `shop_quote_requests` WHERE IFNULL(`status`,'')='submitted') AS submitted_count,
+            (SELECT COUNT(*) FROM `shop_quote_requests` WHERE IFNULL(`status`,'')='quoted') AS quoted_count,
+            (SELECT COUNT(*) FROM `shop_quote_requests` WHERE IFNULL(`status`,'')='accepted') AS accepted_count,
             (SELECT COUNT(*) FROM `shop_quote_items`) AS item_count
         """;
 
@@ -2003,13 +2004,13 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>Free tools KPIs from epc_free_tool_* (CREATE TABLE in epc_ecomae_free_tools.php).</summary>
+    /// <summary>Free tools KPIs — active = seen in last 30 days (matches PHP epc_ecomae_free_tools.php admin KPI).</summary>
     public const string SelectCpFreeToolsStats = """
         SELECT
             (SELECT COUNT(*) FROM `epc_free_tool_accounts`) AS account_count,
             (SELECT COUNT(*) FROM `epc_free_tool_saves`) AS save_count,
             (SELECT COUNT(*) FROM `epc_free_tool_settings`) AS setting_count,
-            (SELECT COUNT(*) FROM `epc_free_tool_accounts` WHERE IFNULL(`use_count`,0)>0 OR IFNULL(`login_count`,0)>0) AS active_account_count
+            (SELECT COUNT(*) FROM `epc_free_tool_accounts` WHERE IFNULL(`time_last_seen`,0) >= UNIX_TIMESTAMP() - 30*86400) AS active_account_count
         """;
 
     /// <summary>Free tool account rows — token/pass_hash/del_code_hash/payload omitted.</summary>
@@ -2083,6 +2084,50 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`severity`,'') AS severity, IFNULL(`title`,'') AS title,
                IFNULL(`is_read`,0) AS is_read, IFNULL(CAST(`created_at` AS CHAR),'') AS created_at
         FROM `epc_notifications`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Portal site settings KPIs (CREATE in content/general_pages/epc_portal_db.php).</summary>
+    public const string SelectCpPortalSettingsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_portal_site_settings`) AS site_count,
+            (SELECT COUNT(DISTINCT IFNULL(`industry_code`,'')) FROM `epc_portal_site_settings`) AS industry_count,
+            (SELECT COUNT(DISTINCT IFNULL(`access_mode`,'')) FROM `epc_portal_site_settings`) AS access_mode_count,
+            (SELECT COUNT(*) FROM `epc_portal_deploy_targets` WHERE IFNULL(`active`,0)=1) AS deploy_target_count
+        """;
+
+    /// <summary>Portal site settings rows — contact_json/enabled_packs_json/theme_json/cp_menu_json/erp_modules_json omitted.</summary>
+    public const string SelectCpPortalSettingsRows = """
+        SELECT IFNULL(`host`,'') AS host, IFNULL(`industry_code`,'') AS industry_code,
+               IFNULL(`system_name`,'') AS system_name, IFNULL(`hub_name`,'') AS hub_name,
+               IFNULL(`tagline`,'') AS tagline, IFNULL(`domain_path`,'') AS domain_path,
+               IFNULL(`theme_template`,'') AS theme_template, IFNULL(`access_mode`,'') AS access_mode,
+               IFNULL(`cp_default_lang`,'') AS cp_default_lang, IFNULL(`country_code`,'') AS country_code,
+               IFNULL(`updated_at`,0) AS updated_at
+        FROM `epc_portal_site_settings`
+        ORDER BY `updated_at` DESC, `host` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Data migration KPIs from epc_data_migrations + epc_data_migration_rows (CREATE in epc_erp_data_migration.php).</summary>
+    public const string SelectCpDataMigrationsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_data_migrations`) AS migration_count,
+            (SELECT COUNT(*) FROM `epc_data_migrations` WHERE IFNULL(`status`,'')='completed') AS completed_count,
+            (SELECT COUNT(*) FROM `epc_data_migrations` WHERE IFNULL(`status`,'') IN ('failed','rolled_back')) AS failed_count,
+            (SELECT COUNT(*) FROM `epc_data_migration_rows`) AS row_count
+        """;
+
+    /// <summary>Data migration rows — file_path/column_mapping/validation_errors/options/raw_data/mapped_data omitted.</summary>
+    public const string SelectCpDataMigrationsRows = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`migration_type`,'') AS migration_type,
+               IFNULL(`entity_type`,'') AS entity_type, IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`total_rows`,0) AS total_rows, IFNULL(`valid_rows`,0) AS valid_rows,
+               IFNULL(`error_rows`,0) AS error_rows, IFNULL(`imported_rows`,0) AS imported_rows,
+               IFNULL(`status`,'') AS status, IFNULL(`imported_by_name`,'') AS imported_by_name,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_completed`,0) AS time_completed
+        FROM `epc_data_migrations`
         ORDER BY `id` DESC
         LIMIT @limit
         """;
