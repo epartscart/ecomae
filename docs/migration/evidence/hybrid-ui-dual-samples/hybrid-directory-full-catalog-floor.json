@@ -1,0 +1,58 @@
+{
+  "role": "hybrid-directory-full-catalog-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "totalTracked": 714,
+  "floors": {
+    "erpCategories": 9,
+    "erpAreas": 35,
+    "erpTabs": 154,
+    "bosModules": 99,
+    "cpBrochureFeatures": 405,
+    "storefrontSurfaces": 12
+  },
+  "counts": {
+    "erpCategories": 9,
+    "erpAreas": 35,
+    "erpTabs": 154,
+    "bosModules": 99,
+    "cpBrochureFeatures": 405,
+    "storefrontSurfaces": 12
+  },
+  "shellRequirements": {
+    "aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor": {
+      "required": [
+        "PhpModuleCatalog.CpBrochureFeatures",
+        "PhpHybridModuleDirectory"
+      ],
+      "ok": true
+    },
+    "aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor": {
+      "required": [
+        "PhpModuleCatalog.ErpCategories",
+        "PhpModuleCatalog.ErpAreas",
+        "PhpModuleCatalog.ErpTabs",
+        "PhpHybridModuleDirectory"
+      ],
+      "ok": true
+    },
+    "aspnet/src/EcomAE.Platform/Components/Pages/BosFleetApp.razor": {
+      "required": [
+        "PhpModuleCatalog.BosModules",
+        "PhpHybridModuleDirectory"
+      ],
+      "ok": true
+    },
+    "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor": {
+      "required": [
+        "PhpModuleCatalog.StorefrontSurfaces",
+        "PhpHybridModuleDirectory"
+      ],
+      "ok": true
+    }
+  },
+  "ok": true,
+  "errors": [],
+  "note": "Hybrid Blazor shells must expose the full PHP catalog directories (CP features, ERP categories/areas/tabs, BOS modules, storefront surfaces). Never invents RELEASE_OWNER_APPROVAL.md."
+}

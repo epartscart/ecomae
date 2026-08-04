@@ -29,7 +29,14 @@ public sealed class PhpModuleCatalogTests
         var summary = PhpModuleCatalog.BuildSummary();
         Assert.Equal("hybrid-deeplink-to-php-until-aspnet-module-complete", summary["policy"]);
         Assert.Equal(0, summary["aspNetInteractiveComplete"]);
-        Assert.True((int)summary["totalTracked"] > 500);
+        Assert.False((bool)summary["cutoverAllowed"]);
+        Assert.False((bool)summary["readyForPhpRemoval"]);
+        Assert.True((int)summary["totalTracked"] >= 714);
+        Assert.True((bool)summary["deeplinkFloorOk"]);
+        var coverage = Assert.IsType<Dictionary<string, object>>(summary["directoryCoverage"]);
+        Assert.Equal(714, coverage["fullCatalogFloor"]);
+        Assert.Equal("ErpCategories+ErpAreas+ErpTabs", coverage["erpDashboard"]);
+        Assert.Empty(Assert.IsType<string[]>(coverage["omittedKinds"]));
     }
 
     [Fact]

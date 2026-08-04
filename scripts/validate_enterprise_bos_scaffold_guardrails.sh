@@ -145,6 +145,11 @@ if python3 "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"; then
 else
   fail "php catalog surface-field coverage board"
 fi
+if python3 "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"; then
+  pass "hybrid directory full catalog floor"
+else
+  fail "hybrid directory full catalog floor"
+fi
 
 # YARP regenerator still green.
 if bash "$ROOT/scripts/generate_all_yarp_design_examples.sh" >/tmp/ecomae-yarp-guardrails.log 2>&1; then
@@ -196,6 +201,10 @@ check_file "cp menus item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json"
 check_file "list digest item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json"
+check_file "hybrid directory full catalog floor validator" \
+  "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"
+check_file "hybrid directory full catalog floor evidence" \
+  "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json"
 
 if [[ "$FAIL" -ne 0 ]]; then
   printf 'FAIL: Enterprise BOS scaffold guardrails\n'
