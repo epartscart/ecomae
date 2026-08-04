@@ -26,9 +26,10 @@ PHP ships a **self-hosted ERP option** (`deploy/on-premises/*`, `erp_tabs_on_pre
 | Track | ASP.NET today | Mandate |
 | --- | --- | --- |
 | ERP-only SaaS mode | Mode mapping + digests | Keep dual-sampling; no invented cutover |
-| On-premises installer | PHP authoritative | Replace with ASP.NET Core pack later; until then PHP |
-| License/health APIs | Health + activate dry-runs + read digest (`GET /erp/on-premises/licenses`, keys masked) | PHP activate/health/registry remain authoritative |
+| On-premises installer | Scaffold `deploy/on-premises-aspnet/` + setup-wizard/backup dry-runs | PHP pack remains authoritative until dual-sample |
+| License/health APIs | Health + activate + setup-wizard + backup dry-runs + read digest (`GET /erp/on-premises/licenses`, keys masked) | PHP activate/health/registry remain authoritative |
 | Operator tab | `/erp/on-premises-app` overview scaffold | Dual-sample vs PHP tab before exact-route |
+| ERP ajax writes | Full `ajax_erp.php` catalog via dedicated + `POST /erp/ajax-writes/dry-run/{action}` registry | Live writes remain PHP; `aspNetInteractiveComplete=0` |
 
 Live board: `GET /migration/on-premises-parity`
 
@@ -37,7 +38,7 @@ Live board: `GET /migration/on-premises-parity`
 1. Inventory — done  
 2. Digests + hybrid shells — done on www  
 3. Presentation parity (heroes/fonts/menus) — in progress (`/marketing/app` hub+home; solutions+resources+legal aliases; CP/ERP/BOS/storefront chrome; `/erp/on-premises-app`)  
-4. Function parity (writes/menus) — in progress (`POST` dry-runs incl. quote-manual/garage check-car/OMS fulfillment + ERP purchase-amend/so-delete/customer-master/RMA + on-premises health/activate + write-dryrun dual-sample operator floor; `aspNetInteractiveComplete=0` until human dual-sample pass)  
+4. Function parity (writes/menus) — in progress (full `ajax_erp.php` catalog dedicated+registry; concurrency/BOS/OPL/PF/AML/bank dry-runs; quote/garage/OMS + on-premises health/activate/setup-wizard/backup; write-dryrun dual-sample operator floor; `aspNetInteractiveComplete=0` until human dual-sample pass)  
 5. Tenant exact-route cutover — blocked on parity  
 6. PHP removal — blocked on approval (SaaS **and** on-premises installer pack)  
 
@@ -56,6 +57,18 @@ curl -sS -X POST https://www.ecomae.com/erp/on-premises/license-activate-dry-run
   -H 'content-type: application/json' \
   -d '{"licenseKey":"LIC-2026-ABCD-EFGH","fingerprint":"fp-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","confirmWrites":false}'
 curl -sS https://www.ecomae.com/erp/on-premises/licenses | jq .
+curl -sS -X POST https://www.ecomae.com/erp/on-premises/setup-wizard-dry-run \
+  -H 'content-type: application/json' \
+  -d '{"tenantCode":"demo","confirmWrites":false}'
+curl -sS -X POST https://www.ecomae.com/erp/on-premises/backup-dry-run \
+  -H 'content-type: application/json' \
+  -d '{"label":"dry-run","confirmWrites":false}'
+
+# Full ERP ajax_erp.php coverage board (dedicated + registry)
+curl -sS https://www.ecomae.com/erp/ajax-writes/catalog | jq '{totalActions,dedicatedDryRuns,registryDryRuns,coveragePct,cutoverAllowed}'
+curl -sS -X POST https://www.ecomae.com/erp/ajax-writes/dry-run/agenda_save \
+  -H 'content-type: application/json' -H "Cookie: $ADMIN_COOKIE" \
+  -d '{"confirmWrites":false}'
 
 # Marketing ASP.NET scaffold vs live PHP
 curl -sS https://www.ecomae.com/marketing/app
