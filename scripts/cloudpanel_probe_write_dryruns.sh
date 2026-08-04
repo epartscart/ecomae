@@ -75,6 +75,7 @@ probe_post "/cp/orders/send-message" '{"orderId":1,"text":"dry-run","itemId":0,"
 probe_post "/cp/orders/set-courier" '{"orderId":1,"deliveryPrice":25,"country":"AE","confirmWrites":false}' "$ADMIN_COOKIE" "oms set-courier"
 probe_post "/erp/gl-journals/reverse" '{"journalId":1,"note":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp gl-journals reverse"
 probe_post "/erp/purchases/void" '{"purchaseId":1,"reason":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp purchases void"
+probe_post "/erp/invoices/cancel" '{"invoiceId":1,"reason":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp invoices cancel"
 
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]
