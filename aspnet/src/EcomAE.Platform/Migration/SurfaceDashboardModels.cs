@@ -1968,7 +1968,6 @@ public sealed record CpCollectionsDunningQueueDigest(
     long Id,
     string SiteKey,
     long CustomerId,
-    string CustomerName,
     string InvoiceRef,
     decimal InvoiceAmount,
     decimal AmountDue,
@@ -2101,8 +2100,7 @@ public sealed record CpAuditTrailEntryDigest(
     string Action,
     string EntityType,
     long EntityId,
-    string Summary,
-    string IpAddress);
+    string Summary);
 
 public sealed record CpAuditTrailDigestResult(
     CpAuditTrailSummary Summary,
@@ -2337,6 +2335,8 @@ public sealed record CpQuoteRequestsSummary(
     int QuoteCount,
     int DraftCount,
     int SubmittedCount,
+    int QuotedCount,
+    int AcceptedCount,
     int ItemCount,
     string Source,
     string Message);
@@ -2514,6 +2514,64 @@ public sealed record CpNotificationsRowDigest(
 public sealed record CpNotificationsDigestResult(
     CpNotificationsSummary Summary,
     IReadOnlyList<CpNotificationsRowDigest> Notifications,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPortalSettingsSummary(
+    int SiteCount,
+    int IndustryCount,
+    int AccessModeCount,
+    int DeployTargetCount,
+    string Source,
+    string Message);
+
+public sealed record CpPortalSettingsRowDigest(
+    string Host,
+    string IndustryCode,
+    string SystemName,
+    string HubName,
+    string Tagline,
+    string DomainPath,
+    string ThemeTemplate,
+    string AccessMode,
+    string CpDefaultLang,
+    string CountryCode,
+    long UpdatedAt);
+
+public sealed record CpPortalSettingsDigestResult(
+    CpPortalSettingsSummary Summary,
+    IReadOnlyList<CpPortalSettingsRowDigest> Sites,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpDataMigrationsSummary(
+    int MigrationCount,
+    int CompletedCount,
+    int FailedCount,
+    int RowCount,
+    string Source,
+    string Message);
+
+public sealed record CpDataMigrationsRowDigest(
+    long Id,
+    long CompanyId,
+    string MigrationType,
+    string EntityType,
+    string FileName,
+    long TotalRows,
+    long ValidRows,
+    long ErrorRows,
+    long ImportedRows,
+    string Status,
+    string ImportedByName,
+    long TimeCreated,
+    long TimeCompleted);
+
+public sealed record CpDataMigrationsDigestResult(
+    CpDataMigrationsSummary Summary,
+    IReadOnlyList<CpDataMigrationsRowDigest> Migrations,
     int Count,
     string Source,
     string Message);

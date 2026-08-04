@@ -32,20 +32,20 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 700,
-    "php-only-deeplink": 26
+    "digest-contract": 703,
+    "php-only-deeplink": 23
   },
   "coverageByKind": {
     "bos-module": {
-      "digest-contract": 96,
-      "php-only-deeplink": 3
+      "digest-contract": 97,
+      "php-only-deeplink": 2
     },
     "bos-section": {
       "digest-contract": 11
     },
     "cp-feature": {
-      "digest-contract": 382,
-      "php-only-deeplink": 23
+      "digest-contract": 384,
+      "php-only-deeplink": 21
     },
     "erp-area": {
       "digest-contract": 35
@@ -60,7 +60,7 @@
       "digest-contract": 13
     }
   },
-  "digestContractRouteCount": 134,
+  "digestContractRouteCount": 136,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -1887,8 +1887,8 @@
       "phpPath": "/ERP/?epc_erp_shell=1&area=setup&tab=data_import",
       "coverage": "digest-contract",
       "moduleStatus": "digest-only+hybrid-deeplink",
-      "digestRoute": "/erp/workspace-favorites",
-      "aspnetRoute": "/erp/workspace-favorites-app",
+      "digestRoute": "/cp/data-migrations",
+      "aspnetRoute": "/cp/data-migrations-app",
       "aspnetComplete": false
     },
     {
@@ -3403,10 +3403,10 @@
       "kind": "bos-module",
       "label": "Portal Settings",
       "phpPath": "/CP/control/portal/portal",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/portal-settings",
+      "aspnetRoute": "/cp/portal-settings-app",
       "aspnetComplete": false
     },
     {
@@ -4657,10 +4657,10 @@
       "kind": "cp-feature",
       "label": "Data migration",
       "phpPath": "/CP/shop/perenos-dannyx",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/data-migrations",
+      "aspnetRoute": "/cp/data-migrations-app",
       "aspnetComplete": false
     },
     {
@@ -5306,10 +5306,10 @@
       "kind": "cp-feature",
       "label": "ERP guide",
       "phpPath": "/CP/shop/finance/erp/guide?epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/dashboard-summary",
+      "aspnetRoute": "/erp/dashboard-summary-app",
       "aspnetComplete": false
     },
     {

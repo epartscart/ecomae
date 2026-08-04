@@ -18,7 +18,6 @@
     "id",
     "siteKey",
     "customerId",
-    "customerName",
     "invoiceRef",
     "invoiceAmount",
     "amountDue",
@@ -29,5 +28,5 @@
     "updatedAt"
   ],
   "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
-  "note": "Locks cp-collections-dunning digest summary+queue[] floors. notes omitted. PHP collections/dunning remains authoritative. cutoverAllowed=false."
+  "note": "Locks collections-dunning digest; customer_name omitted (PII). cutoverAllowed=false."
 }

@@ -350,6 +350,12 @@ public static class EcomAeRoutes
     public const string ControlPanelNotifications = "/cp/notifications";
     /// <summary>CP Notifications Blazor list (JSON digest remains <see cref="ControlPanelNotifications"/>).</summary>
     public const string ControlPanelNotificationsApp = "/cp/notifications-app";
+    public const string ControlPanelPortalSettings = "/cp/portal-settings";
+    /// <summary>CP Portal settings Blazor list (JSON digest remains <see cref="ControlPanelPortalSettings"/>).</summary>
+    public const string ControlPanelPortalSettingsApp = "/cp/portal-settings-app";
+    public const string ControlPanelDataMigrations = "/cp/data-migrations";
+    /// <summary>CP Data migrations Blazor list (JSON digest remains <see cref="ControlPanelDataMigrations"/>).</summary>
+    public const string ControlPanelDataMigrationsApp = "/cp/data-migrations-app";
 
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";

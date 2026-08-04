@@ -898,10 +898,10 @@ def main() -> None:
         },
         "cp-collections-dunning.json": {
             **summary("cp", {"queueCount": 1, "openCount": 1, "profileCount": 1, "logCount": 0}),
-            "queue": [{"id": 1, "siteKey": "demo", "customerId": 1, "customerName": "Acme", "invoiceRef": "INV-1", "invoiceAmount": 100.0, "amountDue": 100.0, "dueDate": "2026-01-01", "daysOverdue": 10, "dunningStep": 1, "status": "open", "updatedAt": ""}],
+            "queue": [{"id": 1, "siteKey": "demo", "customerId": 1, "invoiceRef": "INV-1", "invoiceAmount": 100.0, "amountDue": 100.0, "dueDate": "2026-01-01", "daysOverdue": 10, "dunningStep": 1, "status": "open", "updatedAt": ""}],
             "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
-            "note": "migration-mode; queue[] sentinel; notes omitted; PHP collections/dunning authoritative; cutoverAllowed=false",
+            "note": "migration-mode; queue[] sentinel; notes/customer_name omitted; PHP collections/dunning authoritative; cutoverAllowed=false",
         },
         "cp-marketplace-channels.json": {
             **summary("cp", {"channelCount": 1, "activeCount": 1, "skuMapCount": 0, "orderCount": 0}),
@@ -933,10 +933,10 @@ def main() -> None:
         },
         "cp-audit-trail.json": {
             **summary("cp", {"entryCount": 1, "actionCount": 1, "adminCount": 1, "entityTypeCount": 1}),
-            "entries": [{"id": 1, "timeUnix": 0, "adminId": 1, "action": "gl.post", "entityType": "journal", "entityId": 1, "summary": "Posted journal", "ipAddress": "127.0.0.1"}],
+            "entries": [{"id": 1, "timeUnix": 0, "adminId": 1, "action": "gl.post", "entityType": "journal", "entityId": 1, "summary": "Posted journal"}],
             "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
-            "note": "migration-mode; entries[] sentinel; detail JSON omitted; PHP audit workbench authoritative; cutoverAllowed=false",
+            "note": "migration-mode; entries[] sentinel; detail JSON/ip_address omitted; PHP audit workbench authoritative; cutoverAllowed=false",
         },
         "cp-doc-expiry.json": {
             **summary("cp", {"documentCount": 1, "activeCount": 1, "expiredCount": 0, "reminderCount": 0}),
@@ -997,11 +997,11 @@ def main() -> None:
             "note": "migration-mode; sessions[] sentinel; ip/ua/meta_json omitted; PHP web tracker remains authoritative; cutoverAllowed=false",
         },
         "cp-quote-requests.json": {
-            **summary("cp", {"quoteCount": 1, "draftCount": 1, "submittedCount": 0, "itemCount": 0}),
+            **summary("cp", {"quoteCount": 1, "draftCount": 1, "submittedCount": 0, "quotedCount": 0, "acceptedCount": 0, "itemCount": 0}),
             "quotes": [{"id": 1, "userId": 1, "sessionId": 0, "status": "draft", "timeCreated": 0, "timeUpdated": 0, "timeSubmitted": 0, "acceptedOrderId": 0}],
             "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
-            "note": "migration-mode; quotes[] sentinel; admin_note/customer_note/product_object_json omitted; PHP quote requests remain authoritative; cutoverAllowed=false",
+            "note": "migration-mode; quotes[] sentinel; distinct status KPIs; notes omitted; PHP quote requests remain authoritative; cutoverAllowed=false",
         },
         "cp-platform-communication.json": {
             **summary("cp", {"settingCount": 1, "taskCount": 1, "openTaskCount": 1, "highPriorityCount": 0}),
@@ -1044,6 +1044,20 @@ def main() -> None:
             "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
             "note": "migration-mode; notifications[] sentinel; body/metadata omitted; PHP notification settings remain authoritative; cutoverAllowed=false",
+        },
+        "cp-portal-settings.json": {
+            **summary("cp", {"siteCount": 1, "industryCount": 1, "accessModeCount": 1, "deployTargetCount": 1}),
+            "sites": [{"host": "www.ecomae.com", "industryCode": "auto_parts", "systemName": "ECOM AE", "hubName": "Hub", "tagline": "Platform", "domainPath": "/", "themeTemplate": "classic", "accessMode": "full", "cpDefaultLang": "en", "countryCode": "AE", "updatedAt": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; sites[] sentinel; contact_json/enabled_packs_json/theme_json/cp_menu_json/erp_modules_json omitted; PHP portal settings remain authoritative; cutoverAllowed=false",
+        },
+        "cp-data-migrations.json": {
+            **summary("cp", {"migrationCount": 1, "completedCount": 0, "failedCount": 0, "rowCount": 1}),
+            "migrations": [{"id": 1, "companyId": 1, "migrationType": "open_balance", "entityType": "customers", "fileName": "customers.csv", "totalRows": 10, "validRows": 9, "errorRows": 1, "importedRows": 0, "status": "validated", "importedByName": "Admin", "timeCreated": 0, "timeCompleted": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; migrations[] sentinel; file_path/column_mapping/validation_errors/options/raw_data/mapped_data omitted; PHP data migration remains authoritative; cutoverAllowed=false",
         },
 
         "cp-consolidations.json": {

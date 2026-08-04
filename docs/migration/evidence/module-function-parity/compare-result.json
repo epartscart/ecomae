@@ -3,9 +3,9 @@
   "ok": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "moduleCount": 761,
-  "hybridPreviewCount": 121,
-  "phpOnlyCount": 640,
+  "moduleCount": 826,
+  "hybridPreviewCount": 803,
+  "phpOnlyCount": 23,
   "aspnetCompleteCount": 0,
   "kindCounts": {
     "erp-area": 35,
@@ -14,8 +14,8 @@
     "bos-section": 11,
     "bos-module": 99,
     "cp-feature": 405,
-    "storefront-surface": 12,
-    "hybrid-preview": 36
+    "storefront-surface": 13,
+    "hybrid-preview": 100
   },
   "phpCatalogCounts": {
     "erpAreas": 35,
@@ -24,7 +24,7 @@
     "bosModules": 99,
     "bosSections": 11,
     "cpBrochureFeatures": 405,
-    "storefrontSurfaces": 12
+    "storefrontSurfaces": 13
   },
   "phpCatalogFloors": {
     "cpBrochureFeatures": 405,
@@ -33,11 +33,11 @@
     "erpCategories": 9,
     "bosSections": 11,
     "bosModules": 99,
-    "storefrontSurfaces": 12
+    "storefrontSurfaces": 13
   },
   "statusCounts": {
-    "digest-only+hybrid-deeplink": 121,
-    "php-only": 640
+    "digest-only+hybrid-deeplink": 803,
+    "php-only": 23
   },
   "errors": [],
   "note": "Full PHP catalog inventory floor. Hybrid previews upgrade a subset; interactive aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists. Never invents approval."

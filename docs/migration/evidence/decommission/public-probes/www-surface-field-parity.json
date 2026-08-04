@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 134,
+  "contractCount": 136,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -2008,7 +2008,7 @@
       ],
       "functionsCovered": [
         "Collections/dunning KPIs + queue",
-        "notes omitted",
+        "notes/customer_name omitted (PII)",
         "PHP collections/dunning remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
@@ -2167,7 +2167,7 @@
       ],
       "functionsCovered": [
         "ERP audit trail KPIs + entries",
-        "detail/old/new JSON omitted",
+        "detail/old/new JSON and ip_address omitted",
         "PHP audit workbench remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
@@ -2370,7 +2370,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/jewellery-fixing",
-      "legacyPhpAuthority": "epc_jewel_fixing + epc_fix_unfix_* + epc_jewel_petty_cash",
+      "legacyPhpAuthority": "epc_jewel_fixing + epc_fix_unfix_* + voucher PCV",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -2394,8 +2394,8 @@
       ],
       "functionsCovered": [
         "Jewellery fixing KPIs + fixings",
-        "remarks/notes omitted",
-        "PHP jewellery fixing / purchase window remains authoritative"
+        "pettyCashCount from epc_jewel_voucher PCV (PHP save path)",
+        "PHP jewellery fixing remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -2430,7 +2430,7 @@
         "PHP web tracker remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked"
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
       "surface": "cp",
@@ -2452,17 +2452,19 @@
         "quoteCount",
         "draftCount",
         "submittedCount",
+        "quotedCount",
+        "acceptedCount",
         "itemCount",
         "source",
         "message"
       ],
       "functionsCovered": [
         "Quote request KPIs + quotes",
-        "admin_note/customer_note/product_object_json omitted",
+        "distinct draft/submitted/quoted/accepted stages",
         "PHP quote requests remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked"
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
       "surface": "cp",
@@ -2494,7 +2496,7 @@
         "PHP super CP communication remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked"
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
       "surface": "cp",
@@ -2526,7 +2528,7 @@
         "PHP info blocks CMS remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked"
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
       "surface": "cp",
@@ -2558,7 +2560,7 @@
         "PHP free tools admin remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked"
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
       "surface": "cp",
@@ -2590,7 +2592,7 @@
         "PHP config sandbox remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked"
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
       "surface": "cp",
@@ -2623,7 +2625,7 @@
         "PHP marketplace portal remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked"
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
       "surface": "cp",
@@ -2655,7 +2657,71 @@
         "PHP notification settings remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked"
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/portal-settings",
+      "legacyPhpAuthority": "epc_portal_site_settings + epc_portal_deploy_targets",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "sites",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "siteCount",
+        "industryCount",
+        "accessModeCount",
+        "deployTargetCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Portal settings KPIs + sites",
+        "contact_json/enabled_packs_json/theme_json/cp_menu_json/erp_modules_json omitted",
+        "PHP portal settings remain authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/data-migrations",
+      "legacyPhpAuthority": "epc_data_migrations + epc_data_migration_rows",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "migrations",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "migrationCount",
+        "completedCount",
+        "failedCount",
+        "rowCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Data migration KPIs + migrations",
+        "file_path/column_mapping/validation_errors/options/raw_data/mapped_data omitted",
+        "PHP data migration remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
       "surface": "erp",
@@ -4637,29 +4703,71 @@
       "surface": "cp",
       "phpFunctionOrEntry": "web-tracker Blazor list",
       "aspNetRouteOrCapability": "/cp/web-tracker-app",
-      "notes": "Read UI over /cp/web-tracker digest; ip/ua/meta_json omitted; PHP web tracker remains authoritative; tenant chrome stays PHP.",
-      "status": "digest-wired-awaiting-dual-sample"
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/web-tracker digest; ip/ua/meta_json omitted; PHP web tracker remains authoritative; tenant chrome stays PHP."
     },
     {
       "surface": "cp",
       "phpFunctionOrEntry": "quote-requests Blazor list",
       "aspNetRouteOrCapability": "/cp/quote-requests-app",
-      "notes": "Read UI over /cp/quote-requests digest; admin_note/customer_note/product_object_json omitted; PHP quote requests remain authoritative; tenant chrome stays PHP.",
-      "status": "digest-wired-awaiting-dual-sample"
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/quote-requests digest; admin_note/customer_note/product_object_json omitted; PHP quote requests remain authoritative; tenant chrome stays PHP."
     },
     {
       "surface": "cp",
       "phpFunctionOrEntry": "platform-communication Blazor list",
       "aspNetRouteOrCapability": "/cp/platform-communication-app",
-      "notes": "Read UI over /cp/platform-communication digest; description omitted; PHP super CP communication remains authoritative; tenant chrome stays PHP.",
-      "status": "digest-wired-awaiting-dual-sample"
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/platform-communication digest; description omitted; PHP super CP communication remains authoritative; tenant chrome stays PHP."
     },
     {
       "surface": "cp",
       "phpFunctionOrEntry": "info-blocks Blazor list",
       "aspNetRouteOrCapability": "/cp/info-blocks-app",
-      "notes": "Read UI over /cp/info-blocks digest; content_html omitted; PHP info blocks CMS remains authoritative; tenant chrome stays PHP.",
-      "status": "digest-wired-awaiting-dual-sample"
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /cp/info-blocks digest; content_html omitted; PHP info blocks CMS remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "free-tools Blazor list",
+      "aspNetRouteOrCapability": "/cp/free-tools-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/free-tools digest; token/pass_hash/payload omitted; PHP free tools admin remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "config-sandbox Blazor list",
+      "aspNetRouteOrCapability": "/cp/config-sandbox-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/config-sandbox digest; config_data omitted; PHP config sandbox remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "marketplace-apps Blazor list",
+      "aspNetRouteOrCapability": "/cp/marketplace-apps-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/marketplace-apps digest; review_text/config omitted; PHP marketplace portal remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "notifications Blazor list",
+      "aspNetRouteOrCapability": "/cp/notifications-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/notifications digest; body/metadata omitted; PHP notification settings remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "portal-settings Blazor list",
+      "aspNetRouteOrCapability": "/cp/portal-settings-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/portal-settings digest; contact_json/theme_json/menu packs omitted; PHP portal settings remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "data-migrations Blazor list",
+      "aspNetRouteOrCapability": "/cp/data-migrations-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/data-migrations digest; file_path/mapping/errors/options/raw payloads omitted; PHP data migration remains authoritative; tenant chrome stays PHP."
     },
     {
       "surface": "cp",
@@ -4975,30 +5083,6 @@
       "aspNetRouteOrCapability": "/api/v1/catalog/* miss \u2192 404",
       "status": "digest-wired-awaiting-dual-sample",
       "notes": "Batch 5: ASP.NET returns cache_miss/vin_cache_miss; catalog-miss-fill dry-run outbound/writes blocked; live UMAPI fill remains PHP (cutoverAllowed=false)."
-    },
-    {
-      "phpFunctionOrEntry": "free-tools Blazor list",
-      "aspNetRouteOrCapability": "/cp/free-tools-app",
-      "parityStatus": "presentation-shell-scaffolded",
-      "notes": "Read UI over /cp/free-tools digest; token/pass_hash/payload omitted; PHP free tools admin remains authoritative; tenant chrome stays PHP."
-    },
-    {
-      "phpFunctionOrEntry": "config-sandbox Blazor list",
-      "aspNetRouteOrCapability": "/cp/config-sandbox-app",
-      "parityStatus": "presentation-shell-scaffolded",
-      "notes": "Read UI over /cp/config-sandbox digest; config_data omitted; PHP config sandbox remains authoritative; tenant chrome stays PHP."
-    },
-    {
-      "phpFunctionOrEntry": "marketplace-apps Blazor list",
-      "aspNetRouteOrCapability": "/cp/marketplace-apps-app",
-      "parityStatus": "presentation-shell-scaffolded",
-      "notes": "Read UI over /cp/marketplace-apps digest; review_text/config omitted; PHP marketplace portal remains authoritative; tenant chrome stays PHP."
-    },
-    {
-      "phpFunctionOrEntry": "notifications Blazor list",
-      "aspNetRouteOrCapability": "/cp/notifications-app",
-      "parityStatus": "presentation-shell-scaffolded",
-      "notes": "Read UI over /cp/notifications digest; body/metadata omitted; PHP notification settings remain authoritative; tenant chrome stays PHP."
     }
   ],
   "guarantees": [

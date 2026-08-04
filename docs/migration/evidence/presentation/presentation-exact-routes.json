@@ -2,11 +2,11 @@
   "role": "presentation-exact-routes",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 125,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
-  "note": "Design/inventory only for presentation app/login exact-route shadows. Never invents RELEASE_OWNER_APPROVAL.md.",
+  "routeCount": 127,
+  "note": "Design/inventory only for presentation Blazor *-app + login exact-routes. Never invents RELEASE_OWNER_APPROVAL.md.",
   "routes": [
     "/cp/app",
     "/cp/orders",
@@ -132,6 +132,8 @@
     "/cp/free-tools-app",
     "/cp/config-sandbox-app",
     "/cp/marketplace-apps-app",
-    "/cp/notifications-app"
+    "/cp/notifications-app",
+    "/cp/portal-settings-app",
+    "/cp/data-migrations-app"
   ]
 }

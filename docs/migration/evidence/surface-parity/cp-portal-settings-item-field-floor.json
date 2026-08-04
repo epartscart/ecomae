@@ -1,0 +1,32 @@
+{
+  "role": "cp-portal-settings-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-portal-settings",
+  "collectionKey": "sites",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "siteCount",
+    "industryCount",
+    "accessModeCount",
+    "deployTargetCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "host",
+    "industryCode",
+    "systemName",
+    "hubName",
+    "tagline",
+    "domainPath",
+    "themeTemplate",
+    "accessMode",
+    "cpDefaultLang",
+    "countryCode",
+    "updatedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-portal-settings digest summary+sites[] floors. contact_json/enabled_packs_json/theme_json/cp_menu_json/erp_modules_json omitted; PHP portal settings remain authoritative. cutoverAllowed=false."
+}

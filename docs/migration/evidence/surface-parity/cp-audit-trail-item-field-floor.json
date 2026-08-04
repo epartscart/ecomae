@@ -21,9 +21,8 @@
     "action",
     "entityType",
     "entityId",
-    "summary",
-    "ipAddress"
+    "summary"
   ],
   "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
-  "note": "Locks cp-audit-trail digest summary+entries[] floors. detail/old/new JSON omitted. PHP audit workbench remains authoritative. cutoverAllowed=false."
+  "note": "Locks audit-trail digest; ip_address omitted. cutoverAllowed=false."
 }

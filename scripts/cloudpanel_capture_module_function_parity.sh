@@ -530,6 +530,10 @@ CP_FEATURE_HYBRID_BY_ID = {
     "erp-dashboard-kpis": "erp-dashboard-summary",
     "multi-company-erp-access": "erp-dashboard-summary",
     "netsuite-dashboard-d365-forms": "erp-dashboard-summary",
+
+    # Wave 21a — portal settings / data migrations + brochure aliases
+    "data-migration": "cp-data-migrations",
+    "erp-guide": "erp-dashboard-summary",
 }
 
 ERP_AREA_HYBRID_BY_ID = {
@@ -658,6 +662,7 @@ ERP_TAB_HYBRID_BY_ID = {
     ("risk", "doc_expiry"): "cp-doc-expiry",
     ("tax", "document_control"): "cp-doc-expiry",
     ("setup", "tenant_config"): "cp-tenant-config",
+    ("setup", "data_migration"): "cp-data-migrations",
     ("setup", "print_designer"): "cp-document-control",
     ("inventory_mgmt", "jw_stock_verification"): "cp-jewellery-stock-verification",
     ("setup", "security_roles"): "cp-platform-governance",
@@ -702,7 +707,7 @@ ERP_TAB_HYBRID_BY_ID = {
     ("enterprise", "contracts"): "erp-workspace-favorites",
     ("enterprise", "listing"): "erp-workspace-favorites",
     ("enterprise", "org_admin"): "erp-workspace-favorites",
-    ("setup", "data_import"): "erp-workspace-favorites",
+    ("setup", "data_import"): "cp-data-migrations",
     ("setup", "erp_setup"): "erp-workspace-favorites",
     ("fixed_assets", "fixed_assets"): "erp-fixed-assets",
     ("asset_mgmt", "fixed_assets"): "erp-fixed-assets",
@@ -840,6 +845,7 @@ BOS_MODULE_HYBRID_BY_ID = {
     "marketplace": "cp-marketplace-apps",
     "statistics": "cp-platform-governance",
     "communication": "cp-platform-communication",
+    "portal_settings": "cp-portal-settings",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}
