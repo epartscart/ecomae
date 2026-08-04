@@ -25,6 +25,7 @@ FLOORS = {
     "erpAreas": 35,
     "erpTabs": 154,
     "erpCategories": 9,
+    "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
     "storefrontSurfaces": 12,
@@ -102,6 +103,16 @@ def collect_catalog_rows(catalog: dict) -> list[dict]:
                 "kind": "erp-category",
                 "label": str(cat.get("label") or cat_id),
                 "phpPath": str(cat.get("href") or ""),
+            }
+        )
+    for sec in catalog.get("bosSections") or []:
+        sec_id = str(sec.get("id") or "")
+        rows.append(
+            {
+                "id": f"bos-section-{sec_id}",
+                "kind": "bos-section",
+                "label": str(sec.get("label") or sec_id),
+                "phpPath": str(sec.get("href") or f"/BOS/?section={sec_id}"),
             }
         )
     for bos in catalog.get("bosModules") or []:
@@ -278,7 +289,7 @@ def main() -> int:
         "errors": errors,
         "items": items,
         "note": (
-            "Full PHP catalog (714) coverage board. digest-contract means a locked "
+            "Full PHP catalog (725) coverage board. digest-contract means a locked "
             "surface-field digest route exists for a hybrid TARGET match. "
             "Interactive aspNetInteractiveComplete stays 0 until human "
             "MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."

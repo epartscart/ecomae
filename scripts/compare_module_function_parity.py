@@ -29,16 +29,18 @@ PHP_CATALOG_FLOORS = {
     "erpAreas": 35,
     "erpTabs": 154,
     "erpCategories": 9,
+    "bosSections": 11,
     "bosModules": 99,
     "storefrontSurfaces": 12,
 }
-# ERP areas + tabs + categories + BOS + CP + storefront = 714
+# ERP areas + tabs + categories + BOS sections/modules + CP + storefront = 725
 MIN_FULL_MODULE_COUNT = sum(PHP_CATALOG_FLOORS.values())
 MIN_HYBRID_PREVIEW_COUNT = 37
 REQUIRED_KINDS = {
     "erp-area": 35,
     "erp-tab": 154,
     "erp-category": 9,
+    "bos-section": 11,
     "bos-module": 99,
     "cp-feature": 405,
     "storefront-surface": 12,

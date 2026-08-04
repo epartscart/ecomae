@@ -5,7 +5,7 @@
   "readyForPhpRemoval": false,
   "contractCount": 54,
   "boardStatus": "field-function-presentation-contracts-locked-cutover-blocked",
-  "phpCatalogCoverageTracked": 714,
+  "phpCatalogCoverageTracked": 725,
   "errors": [],
   "note": "Offline surface-field floor + full PHP catalog coverage board. Live harness remains optional via ECOMAE_SURFACE_FIELD_LIVE=1. Never invents RELEASE_OWNER_APPROVAL.md."
 }

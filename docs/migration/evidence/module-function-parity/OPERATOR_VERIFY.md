@@ -11,9 +11,9 @@ bash scripts/cloudpanel_run_module_function_parity_operator.sh
 python3 scripts/compare_module_function_parity.py
 ```
 
-Expect `moduleCount >= 714`, `cutoverAllowed=false`, `readyForPhpRemoval=false`.
+Expect `moduleCount >= 725`, `cutoverAllowed=false`, `readyForPhpRemoval=false`.
 
-Consistency with the surface-field coverage board (same 714 unique catalog ids):
+Consistency with the surface-field coverage board (same 725 unique catalog ids):
 
 ```bash
 python3 scripts/build_surface_field_catalog_coverage_board.py

@@ -12,6 +12,7 @@ public sealed class PhpModuleCatalogTests
         Assert.True(PhpModuleCatalog.ErpAreaCount >= 35);
         Assert.True(PhpModuleCatalog.ErpTabCount >= 140);
         Assert.True(PhpModuleCatalog.ErpCategoryCount >= 8);
+        Assert.True(PhpModuleCatalog.BosSectionCount >= 11);
         Assert.True(PhpModuleCatalog.BosModuleCount >= 90);
         Assert.True(PhpModuleCatalog.StorefrontSurfaceCount >= 10);
 
@@ -19,6 +20,7 @@ public sealed class PhpModuleCatalogTests
         Assert.Equal(PhpModuleCatalog.ErpAreaCount, PhpModuleCatalog.ErpAreas.Count);
         Assert.Equal(PhpModuleCatalog.ErpTabCount, PhpModuleCatalog.ErpTabs.Count);
         Assert.Equal(PhpModuleCatalog.ErpCategoryCount, PhpModuleCatalog.ErpCategories.Count);
+        Assert.Equal(PhpModuleCatalog.BosSectionCount, PhpModuleCatalog.BosSections.Count);
         Assert.Equal(PhpModuleCatalog.BosModuleCount, PhpModuleCatalog.BosModules.Count);
         Assert.Equal(PhpModuleCatalog.StorefrontSurfaceCount, PhpModuleCatalog.StorefrontSurfaces.Count);
     }
@@ -31,11 +33,12 @@ public sealed class PhpModuleCatalogTests
         Assert.Equal(0, summary["aspNetInteractiveComplete"]);
         Assert.False((bool)summary["cutoverAllowed"]);
         Assert.False((bool)summary["readyForPhpRemoval"]);
-        Assert.True((int)summary["totalTracked"] >= 714);
+        Assert.True((int)summary["totalTracked"] >= 725);
         Assert.True((bool)summary["deeplinkFloorOk"]);
         var coverage = Assert.IsType<Dictionary<string, object>>(summary["directoryCoverage"]);
-        Assert.Equal(714, coverage["fullCatalogFloor"]);
+        Assert.Equal(725, coverage["fullCatalogFloor"]);
         Assert.Equal("ErpCategories+ErpAreas+ErpTabs", coverage["erpDashboard"]);
+        Assert.Equal("BosSections+BosModules", coverage["bosFleet"]);
         Assert.Empty(Assert.IsType<string[]>(coverage["omittedKinds"]));
     }
 
@@ -61,7 +64,7 @@ public sealed class PhpModuleCatalogTests
     [Fact]
     public void EveryTrackedCatalogHrefIsAllowedPhpDeeplink()
     {
-        Assert.True(PhpModuleCatalog.TotalTrackedCount >= 714);
+        Assert.True(PhpModuleCatalog.TotalTrackedCount >= 725);
         var bad = PhpModuleCatalog.AllTrackedLinks()
             .Where(link => !PhpModuleCatalog.IsAllowedPhpDeeplink(link.Href))
             .Select(link => $"{link.Id}:{link.Href}")
@@ -84,10 +87,11 @@ public sealed class PhpModuleCatalogTests
         AssertUnique(PhpModuleCatalog.ErpCategories, "ErpCategories");
         AssertUnique(PhpModuleCatalog.ErpAreas, "ErpAreas");
         AssertUnique(PhpModuleCatalog.ErpTabs, "ErpTabs");
+        AssertUnique(PhpModuleCatalog.BosSections, "BosSections");
         AssertUnique(PhpModuleCatalog.BosModules, "BosModules");
         AssertUnique(PhpModuleCatalog.CpBrochureFeatures, "CpBrochureFeatures");
         AssertUnique(PhpModuleCatalog.StorefrontSurfaces, "StorefrontSurfaces");
-        Assert.True(PhpModuleCatalog.TotalTrackedCount >= 714);
+        Assert.True(PhpModuleCatalog.TotalTrackedCount >= 725);
     }
 
     [Fact]

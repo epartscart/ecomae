@@ -16,6 +16,7 @@ FLOORS = {
     "erpCategories": 9,
     "erpAreas": 35,
     "erpTabs": 154,
+    "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,
     "storefrontSurfaces": 12,
@@ -34,6 +35,7 @@ SHELL_REQUIREMENTS = {
         "PhpHybridModuleDirectory",
     ],
     "aspnet/src/EcomAE.Platform/Components/Pages/BosFleetApp.razor": [
+        "PhpModuleCatalog.BosSections",
         "PhpModuleCatalog.BosModules",
         "PhpHybridModuleDirectory",
     ],
@@ -85,6 +87,7 @@ def main() -> int:
     for needle in (
         "directoryCoverage",
         "ErpCategories+ErpAreas+ErpTabs",
+        "BosSections+BosModules",
         "fullCatalogFloor",
         "omittedKinds",
     ):

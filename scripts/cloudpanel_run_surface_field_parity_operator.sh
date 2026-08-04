@@ -85,8 +85,8 @@ else:
         errors.append("coverage board must keep cutoverAllowed/readyForPhpRemoval false")
     if cov.get("aspNetInteractiveComplete") not in (0, False):
         errors.append("coverage board aspNetInteractiveComplete must stay 0")
-    if coverage_tracked < 714:
-        errors.append(f"coverage board totalTracked={coverage_tracked} expected >=714")
+    if coverage_tracked < 725:
+        errors.append(f"coverage board totalTracked={coverage_tracked} expected >=725")
     if int(cov.get("missingCount") or 0) != 0:
         errors.append(f"coverage board missingCount={cov.get('missingCount')} expected 0")
 

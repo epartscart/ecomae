@@ -1344,57 +1344,79 @@
     {
       "key": "fleet",
       "id": "fleet",
-      "label": "Fleet Command"
+      "label": "Fleet Command",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=fleet"
     },
     {
       "key": "tenants",
       "id": "tenants",
-      "label": "Tenant Operations"
+      "label": "Tenant Operations",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=tenants"
     },
     {
       "key": "commerce",
       "id": "commerce",
-      "label": "Commerce"
+      "label": "Commerce",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=commerce"
     },
     {
       "key": "catalogue",
       "id": "catalogue",
-      "label": "Catalogue"
+      "label": "Catalogue",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=catalogue"
     },
     {
       "key": "logistics",
       "id": "logistics",
-      "label": "Logistics"
+      "label": "Logistics",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=logistics"
     },
     {
       "key": "marketing_cp",
       "id": "marketing_cp",
-      "label": "Marketing"
+      "label": "Marketing",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=marketing_cp"
     },
     {
       "key": "professional",
       "id": "professional",
-      "label": "Professional"
+      "label": "Professional",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=professional"
     },
     {
       "key": "erp",
       "id": "erp",
-      "label": "ERP Finance"
+      "label": "ERP Finance",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=erp"
     },
     {
       "key": "auto_parts",
       "id": "auto_parts",
-      "label": "Auto Parts"
+      "label": "Auto Parts",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=auto_parts"
     },
     {
       "key": "tax_advisory",
       "id": "tax_advisory",
-      "label": "Tax & Advisory"
+      "label": "Tax & Advisory",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=tax_advisory"
     },
     {
       "key": "platform",
       "id": "platform",
-      "label": "Platform"
+      "label": "Platform",
+      "icon": "fa-th-large",
+      "href": "/BOS/?section=platform"
     }
   ],
   "bosModules": [

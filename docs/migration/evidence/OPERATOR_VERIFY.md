@@ -10,8 +10,8 @@ All helpers keep `cutoverAllowed=false` / `readyForPhpRemoval=false`. Never inve
 | Presentation recheck | `bash scripts/cloudpanel_run_presentation_recheck_operator.sh` | `presentation/OPERATOR_VERIFY.md` |
 | Hybrid UI | `bash scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh` | `hybrid-ui-dual-samples/OPERATOR_VERIFY.md` |
 | Digest + surface-field | `bash scripts/cloudpanel_run_digest_dual_sample_operator.sh` / `cloudpanel_run_surface_field_parity_operator.sh` | `surface-parity/OPERATOR_VERIFY.md` |
-| PHP catalog coverage board (714) | `python3 scripts/build_surface_field_catalog_coverage_board.py` | `surface-parity/php-catalog-coverage-board.json` |
-| Hybrid directory full catalog (714) | `python3 scripts/validate_hybrid_directory_full_catalog_floor.py` | `hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json` |
+| PHP catalog coverage board (725) | `python3 scripts/build_surface_field_catalog_coverage_board.py` | `surface-parity/php-catalog-coverage-board.json` |
+| Hybrid directory full catalog (725) | `python3 scripts/validate_hybrid_directory_full_catalog_floor.py` | `hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json` |
 | Module-function ↔ coverage consistency | `python3 scripts/validate_module_function_coverage_consistency.py` | `module-function-parity/coverage-consistency.json` |
 | Price lookup | `bash scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh` | `price-lookup/OPERATOR_VERIFY.md` |
 | Catalog/API contract floor | `bash scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh` | `catalog-api/OPERATOR_VERIFY.md` |

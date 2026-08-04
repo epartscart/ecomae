@@ -456,14 +456,14 @@ check 'php module catalog deeplink floor validator is executable' test -x "$ROOT
 check 'php module catalog deeplink floor passes' python3 "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
 check 'php full catalog deeplink floor evidence exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json"
 check 'php full catalog deeplink floor blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"cutoverAllowed": false'
-check 'php full catalog deeplink floor tracks 714' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"totalTracked": 714'
+check 'php full catalog deeplink floor tracks 725' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"totalTracked": 725'
 check 'php catalog coverage board builder exists' test -f "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board builder is executable' test -x "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board passes' python3 "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
 check 'php catalog coverage board blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"cutoverAllowed": false'
 check 'php catalog coverage board blocks PHP removal' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"readyForPhpRemoval": false'
-check 'php catalog coverage board tracks 714' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"totalTracked": 714'
+check 'php catalog coverage board tracks 725' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"totalTracked": 725'
 check 'php catalog coverage board missingCount is zero' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"missingCount": 0'
 check 'php catalog coverage board keeps interactive complete at zero' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"aspNetInteractiveComplete": 0'
 check 'php catalog coverage board uses digest-contract status' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"digest-contract"'
@@ -473,15 +473,17 @@ check 'hybrid directory full catalog floor validator is executable' test -x "$RO
 check 'hybrid directory full catalog floor passes' python3 "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"
 check 'hybrid directory full catalog floor evidence exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json"
 check 'hybrid directory full catalog floor blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"cutoverAllowed": false'
-check 'hybrid directory full catalog floor tracks 714' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"totalTracked": 714'
+check 'hybrid directory full catalog floor tracks 725' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"totalTracked": 725'
 check 'ERP dashboard lists ErpCategories directory' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor" 'PhpModuleCatalog.ErpCategories'
+check 'BOS fleet lists BosSections directory' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosFleetApp.razor" 'PhpModuleCatalog.BosSections'
 check 'PhpModuleCatalog summary exposes directoryCoverage' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'directoryCoverage'
+check 'PhpModuleCatalog summary floors full catalog at 725' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'fullCatalogFloor"] = 725'
 check 'php module catalog generator uniquifies duplicate ids' contains "$ROOT/scripts/generate_php_module_catalog.py" 'uniquify_ids'
 check 'module-function coverage consistency validator exists' test -f "$ROOT/scripts/validate_module_function_coverage_consistency.py"
 check 'module-function coverage consistency validator is executable' test -x "$ROOT/scripts/validate_module_function_coverage_consistency.py"
 check 'module-function coverage consistency passes' python3 "$ROOT/scripts/validate_module_function_coverage_consistency.py"
 check 'module-function coverage consistency evidence exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json"
-check 'module-function coverage consistency matches 714' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"matchedIds": 714'
+check 'module-function coverage consistency matches 725' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"matchedIds": 725'
 check 'module-function coverage consistency blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"cutoverAllowed": false'
 check 'surface-field operator rebuilds php catalog coverage board' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'build_surface_field_catalog_coverage_board.py'
 check 'surface-field operator floors contracts at 54' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'expected >=54'
@@ -729,7 +731,9 @@ check 'module function compare enforces full catalog module floor' contains "$RO
 check 'module function inventory enumerates cp-feature rows' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"kind": "cp-feature"'
 check 'module function inventory enumerates erp-tab rows' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"kind": "erp-tab"'
 check 'module function inventory enumerates bos-module rows' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"kind": "bos-module"'
-check 'module function inventory moduleCount covers full catalog' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert d["moduleCount"]>=714, d["moduleCount"]' "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json"
+check 'module function inventory moduleCount covers full catalog' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert d["moduleCount"]>=725, d["moduleCount"]' "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json"
+check 'module function inventory enumerates bos-section rows' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"kind": "bos-section"'
+check 'module function inventory floors BOS sections' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"bosSections": 11'
 check 'presentation php_module_catalog evidence has erpAreas list' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert isinstance(d.get("erpAreas"), list) and len(d["erpAreas"])>=35' "$ROOT/docs/migration/evidence/presentation/php_module_catalog.json"
 check 'presentation php_module_catalog evidence has cp features list' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert isinstance(d.get("cpBrochureFeatures"), list) and len(d["cpBrochureFeatures"])>=405' "$ROOT/docs/migration/evidence/presentation/php_module_catalog.json"
 check 'generate_php_module_catalog writes evidence catalog' contains "$ROOT/scripts/generate_php_module_catalog.py" 'evidence_catalog_path'

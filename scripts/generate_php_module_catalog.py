@@ -108,7 +108,17 @@ def parse_bos_modules(text: str) -> tuple[list[dict], list[dict]]:
         r"\$sections\['([^']+)'\]\s*=\s*array\s*\(\s*'id'\s*=>\s*'([^']+)'\s*,\s*'label'\s*=>\s*'([^']+)'",
         text,
     ):
-        sections.append({"key": m.group(1), "id": m.group(2), "label": m.group(3)})
+        sid = m.group(2)
+        sections.append(
+            {
+                "key": m.group(1),
+                "id": sid,
+                "label": m.group(3),
+                "icon": "fa-th-large",
+                # Section nav groups open the live BOS shell; module bodies stay PHP.
+                "href": f"/BOS/?section={sid}",
+            }
+        )
 
     items: list[dict] = []
     seen: set[str] = set()
@@ -198,6 +208,7 @@ def uniquify_ids(rows: list[dict], key: str = "id") -> list[dict]:
 def write_csharp(catalog: dict, path: Path) -> None:
     areas = catalog["erpAreas"]
     cats = catalog.get("erpCategories") or []
+    bos_sections = catalog.get("bosSections") or []
     bos = catalog["bosModules"]
     cp = catalog["cpBrochureFeatures"]
     sf = catalog["storefrontSurfaces"]
@@ -215,6 +226,7 @@ def write_csharp(catalog: dict, path: Path) -> None:
         f"    public const int ErpAreaCount = {len(areas)};",
         f"    public const int ErpTabCount = {sum(len(a['tabs']) for a in areas)};",
         f"    public const int ErpCategoryCount = {len(cats)};",
+        f"    public const int BosSectionCount = {len(bos_sections)};",
         f"    public const int BosModuleCount = {len(bos)};",
         f"    public const int CpBrochureFeatureCount = {len(cp)};",
         f"    public const int StorefrontSurfaceCount = {len(sf)};",
@@ -237,6 +249,11 @@ def write_csharp(catalog: dict, path: Path) -> None:
             lines.append(
                 f'        new("{cs_escape(a["id"])}/{cs_escape(t["id"])}", "{cs_escape(t["label"])}", "{cs_escape(t["href"])}", "{cs_escape(t["icon"])}", "{cs_escape(a["id"])}"),'
             )
+    lines += ["    ];", "", "    public static readonly IReadOnlyList<ModuleLink> BosSections =", "    ["]
+    for s in bos_sections:
+        lines.append(
+            f'        new("{cs_escape(s["id"])}", "{cs_escape(s["label"])}", "{cs_escape(s.get("href") or "/BOS/")}", "{cs_escape(s.get("icon") or "fa-th-large")}", "bos-section"),'
+        )
     lines += ["    ];", "", "    public static readonly IReadOnlyList<ModuleLink> BosModules =", "    ["]
     for b in bos:
         lines.append(

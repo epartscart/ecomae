@@ -194,6 +194,21 @@ for cat in catalog.get("erpCategories") or []:
         )
     )
 
+for sec in catalog.get("bosSections") or []:
+    if not isinstance(sec, dict):
+        continue
+    sec_id = str(sec.get("id") or "")
+    modules.append(
+        entry(
+            entry_id=f"bos-section-{sec_id}",
+            surface="bos",
+            kind="bos-section",
+            label=str(sec.get("label") or sec_id),
+            php_path=str(sec.get("href") or f"/BOS/?section={sec_id}"),
+            extra={"sectionKey": sec.get("key")},
+        )
+    )
+
 for bos in catalog.get("bosModules") or []:
     if not isinstance(bos, dict):
         continue

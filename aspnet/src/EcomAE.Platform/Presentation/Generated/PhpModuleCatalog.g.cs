@@ -11,6 +11,7 @@ public static partial class PhpModuleCatalog
     public const int ErpAreaCount = 35;
     public const int ErpTabCount = 154;
     public const int ErpCategoryCount = 9;
+    public const int BosSectionCount = 11;
     public const int BosModuleCount = 99;
     public const int CpBrochureFeatureCount = 405;
     public const int StorefrontSurfaceCount = 12;
@@ -223,6 +224,21 @@ public static partial class PhpModuleCatalog
         new("tax/jw_tourist_vat", "Tourist VAT refund (jewellery)", "/ERP/?epc_erp_shell=1&area=tax&tab=jw_tourist_vat", "fa-plane", "tax"),
         new("tax/aml_compliance", "AML Compliance", "/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance", "fa-shield", "tax"),
         new("warehouse/wms", "Warehouse management", "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms", "fa-cubes", "warehouse"),
+    ];
+
+    public static readonly IReadOnlyList<ModuleLink> BosSections =
+    [
+        new("fleet", "Fleet Command", "/BOS/?section=fleet", "fa-th-large", "bos-section"),
+        new("tenants", "Tenant Operations", "/BOS/?section=tenants", "fa-th-large", "bos-section"),
+        new("commerce", "Commerce", "/BOS/?section=commerce", "fa-th-large", "bos-section"),
+        new("catalogue", "Catalogue", "/BOS/?section=catalogue", "fa-th-large", "bos-section"),
+        new("logistics", "Logistics", "/BOS/?section=logistics", "fa-th-large", "bos-section"),
+        new("marketing_cp", "Marketing", "/BOS/?section=marketing_cp", "fa-th-large", "bos-section"),
+        new("professional", "Professional", "/BOS/?section=professional", "fa-th-large", "bos-section"),
+        new("erp", "ERP Finance", "/BOS/?section=erp", "fa-th-large", "bos-section"),
+        new("auto_parts", "Auto Parts", "/BOS/?section=auto_parts", "fa-th-large", "bos-section"),
+        new("tax_advisory", "Tax & Advisory", "/BOS/?section=tax_advisory", "fa-th-large", "bos-section"),
+        new("platform", "Platform", "/BOS/?section=platform", "fa-th-large", "bos-section"),
     ];
 
     public static readonly IReadOnlyList<ModuleLink> BosModules =

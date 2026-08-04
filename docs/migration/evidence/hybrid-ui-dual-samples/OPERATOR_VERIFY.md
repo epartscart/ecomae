@@ -18,7 +18,7 @@ ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1 \
   bash scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh
 ```
 
-Full PHP catalog deeplink floor (714 hrefs must be hybrid-iframe safe):
+Full PHP catalog deeplink floor (725 hrefs must be hybrid-iframe safe, includes BOS sections):
 
 ```bash
 python3 scripts/validate_php_module_catalog_deeplink_floor.py
