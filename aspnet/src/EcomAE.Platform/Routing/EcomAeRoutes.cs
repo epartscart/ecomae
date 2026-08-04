@@ -436,6 +436,8 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsDeleteOrders = "/cp/orders/delete";
     /// <summary>Wave B dry-run OMS add comment to log (PHP ajax_add_comment_to_log.php remains authoritative).</summary>
     public const string ControlPanelOmsAddComment = "/cp/orders/add-comment";
+    /// <summary>Wave B dry-run OMS set orders viewed (PHP ajax_set_orders_viewed.php remains authoritative).</summary>
+    public const string ControlPanelOmsSetViewed = "/cp/orders/set-viewed";
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
     /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>
@@ -633,6 +635,10 @@ public static class EcomAeRoutes
     public const string MarketingBrochureApp = "/marketing/brochure";
     /// <summary>Marketing legal Blazor scaffold (PHP /legal remains primary until dual-sample).</summary>
     public const string MarketingLegalApp = "/marketing/legal";
+    /// <summary>Marketing BOS knowledge Blazor scaffold (PHP /bos remains primary until dual-sample; not product /BOS/).</summary>
+    public const string MarketingBosApp = "/marketing/bos";
+    /// <summary>Marketing blockchain Blazor scaffold (PHP /blockchain remains primary until dual-sample).</summary>
+    public const string MarketingBlockchainApp = "/marketing/blockchain";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>

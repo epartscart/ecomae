@@ -1,0 +1,29 @@
+@page "/marketing/blockchain"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>ECOM AE — Blockchain BOS (PHP parity preview)</PageTitle>
+<PhpChromeStyles Surface="marketing" />
+
+<PhpEcomaeMarketingChrome ActiveKey="blockchain">
+    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/blockchain" />
+
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <PhpEcomaeBlockchainOverview />
+    }
+</PhpEcomaeMarketingChrome>
+
+@code {
+    private string? _phpHref;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
+        {
+            _phpHref = php.ToString();
+        }
+    }
+}

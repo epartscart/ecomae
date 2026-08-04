@@ -82,6 +82,7 @@ probe_post "/storefront/quotes/accept" '{"quoteId":1,"confirmWrites":false}' "$C
 probe_post "/storefront/garage/set-active" '{"carId":1,"confirmWrites":false}' "$COOKIE" "garage set-active"
 probe_post "/cp/orders/add-comment" '{"orderId":1,"text":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "oms add-comment"
 probe_post "/storefront/orders/send-message" '{"orderId":1,"text":"dry-run","confirmWrites":false}' "$COOKIE" "storefront order send-message"
+probe_post "/cp/orders/set-viewed" '{"orderIds":[1],"viewedFlag":1,"confirmWrites":false}' "$ADMIN_COOKIE" "oms set-viewed"
 probe_post "/erp/sales-orders/cancel" '{"salesOrderId":1,"reason":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp sales-orders cancel"
 probe_post "/cp/orders/delete" '{"orderIds":[1],"confirmWrites":false}' "$ADMIN_COOKIE" "oms delete-orders"
 probe_post "/erp/purchase-orders/delete" '{"purchaseOrderId":1,"confirmWrites":false}' "$ADMIN_COOKIE" "erp purchase-orders delete"

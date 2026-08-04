@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 165,
+  "routeCount": 167,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -1987,7 +1987,32 @@
             "Set": "marketing-legal-presentation-preview"
           }
         ]
+      },
+      "marketing-bos": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/bos"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-bos-presentation-preview"
+          }
+        ]
+      },
+      "marketing-blockchain": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/marketing/blockchain"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "marketing-blockchain-presentation-preview"
+          }
+        ]
       }
+
     },
     "Clusters": {
       "ecomae-platform": {
