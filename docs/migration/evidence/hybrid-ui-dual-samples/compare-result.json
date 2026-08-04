@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 35,
-  "hybridUiSamplesOk": 34,
+  "pairsChecked": 36,
+  "hybridUiSamplesOk": 35,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -203,6 +203,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "erp-coa-accounts",
       "appRoute": "/erp/coa-accounts-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-erp-dashboard-summary-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "erp-dashboard-summary",
+      "appRoute": "/erp/dashboard-summary-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

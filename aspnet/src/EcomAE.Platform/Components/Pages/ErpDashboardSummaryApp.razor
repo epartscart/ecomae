@@ -1,0 +1,107 @@
+@page "/erp/dashboard-summary-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>ERP Dashboard Summary · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard Summary" BreadcrumbArea="Home" BreadcrumbTab="Dashboard KPIs">
+    <style>
+        .epc-eds-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0f172a 0%,#1e293b 48%,#0c4a6e 100%);
+        }
+        .epc-eds-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-eds-hero p { margin:0; color:#bae6fd; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-eds-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-eds-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0f172a; background:#67e8f9;
+        }
+        .epc-eds-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-eds-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-eds-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-eds-kpi strong { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; word-break:break-all; }
+        .epc-eds-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-eds-note { margin-top:1rem; padding:.75rem .9rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:.45rem; color:#0c4a6e; font-size:.86rem; }
+        @@media (max-width:1100px){ .epc-eds-kpis{grid-template-columns:1fr 1fr;} }
+        @@media (max-width:700px){ .epc-eds-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-eds-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>ERP Dashboard Summary</h1>
+        <p>Read-only operational KPIs from <code>/erp/dashboard-summary</code> digest under PHP ERP desktop chrome. Full dashboard widgets and posting stay on live PHP — same-to-same for tenants.</p>
+        <div class="epc-eds-cta">
+            <a href="@_phpTab">Open PHP ERP dashboard</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/erp/accounts-summary-app">Accounts summary</a>
+            <a class="ghost" href="/erp/cash-accounts-app">Cash accounts</a>
+            <a class="ghost" href="/erp/app">ERP shell</a>
+        </div>
+    </section>
+
+    <div class="epc-eds-kpis" aria-label="ERP dashboard KPIs">
+        <div class="epc-eds-kpi"><strong>@_cash.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cash position</span></div>
+        <div class="epc-eds-kpi"><strong>@_credit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier credit</span></div>
+        <div class="epc-eds-kpi"><strong>@_debit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier debit</span></div>
+        <div class="epc-eds-kpi"><strong>@_net.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier net</span></div>
+        <div class="epc-eds-kpi"><strong>@_accounts.ToString(CultureInfo.InvariantCulture)</strong><span>Cash accounts</span></div>
+        <div class="epc-eds-kpi"><strong>@_suppliers.ToString(CultureInfo.InvariantCulture)</strong><span>Active suppliers</span></div>
+        <div class="epc-eds-kpi"><strong>@_purchases.ToString(CultureInfo.InvariantCulture)</strong><span>Active purchases</span></div>
+        <div class="epc-eds-kpi"><strong>@_source</strong><span>Digest source</span></div>
+    </div>
+
+    <div class="epc-eds-note">
+        Read-only preview · JSON digest <a href="/erp/dashboard-summary">/erp/dashboard-summary</a>.
+        PHP <code>erp_dashboard.php</code> remains authoritative for interactive widgets.
+        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
+        @(!string.IsNullOrWhiteSpace(_message) ? _message : "")
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=overview";
+    private bool _isAdmin;
+    private decimal _cash;
+    private decimal _credit;
+    private decimal _debit;
+    private decimal _net;
+    private int _accounts;
+    private int _suppliers;
+    private int _purchases;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var summary = await Dashboards.BuildErpAsync(ctx.RequestAborted);
+        _cash = summary.CashPosition;
+        _credit = summary.SupplierCredit;
+        _debit = summary.SupplierDebit;
+        _net = summary.SupplierNet;
+        _accounts = summary.CashAccounts;
+        _suppliers = summary.ActiveSuppliers;
+        _purchases = summary.ActivePurchases;
+        _source = summary.Source;
+        _message = summary.Message;
+    }
+}
