@@ -8,17 +8,21 @@
     var completion = Completion.BuildReport();
     var readiness = Readiness.BuildReport();
     var links = LiveLinks.BuildReport();
-    var digestLive = links.Links.Count(l =>
+    // Catalog link rows are "wired" inventory; live www probe (2026-08-04) is lower until CloudPanel installs remaining shadows.
+    var digestWired = links.Links.Count(l =>
         l.HostClass == "aspnet-exact-route-shadow-live"
         && (l.AspNetRouteHint.StartsWith("/cp/", StringComparison.Ordinal)
             || l.AspNetRouteHint.StartsWith("/erp/", StringComparison.Ordinal)
             || l.AspNetRouteHint.StartsWith("/bos/", StringComparison.Ordinal)));
-    var storefrontLive = links.Links.Count(l =>
+    var storefrontWired = links.Links.Count(l =>
         l.HostClass == "aspnet-exact-route-shadow-live"
         && l.AspNetRouteHint.StartsWith("/storefront/", StringComparison.Ordinal));
-    var catalogLive = links.Links.Count(l =>
+    var catalogWired = links.Links.Count(l =>
         l.HostClass == "aspnet-exact-route-shadow-live"
         && l.AspNetRouteHint.StartsWith("/api/v1/catalog/", StringComparison.Ordinal));
+    var presentationWired = links.Links.Count(l => l.HostClass == "aspnet-presentation-preview");
+    const int digestLiveProbe = 35;
+    const int presentationLiveProbe = 19;
 }
 
 <style>
@@ -103,7 +107,8 @@
 <h1>Zero-PHP cutover board</h1>
 
 <div class="cta-row">
-    <a class="cta cta-primary" href="/migration/php-decommission-readiness">Readiness JSON</a>
+    <a class="cta cta-primary" href="/migration/compare">Human compare board</a>
+    <a class="cta cta-ghost" href="/migration/php-decommission-readiness">Readiness JSON</a>
     <a class="cta cta-ghost" href="/migration/live-surface-links">Live surface links</a>
     <a class="cta cta-ghost" href="/migration/zero-php-completion">Completion meter</a>
 </div>
@@ -114,18 +119,23 @@
         <span>Weighted meter</span>
     </div>
     <div class="metric">
-        <strong>@digestLive/30</strong>
-        <span>Surface digests</span>
+        <strong>@digestLiveProbe/@digestWired</strong>
+        <span>Digests live / wired</span>
     </div>
     <div class="metric">
-        <strong>@catalogLive/18</strong>
-        <span>Catalog APIs</span>
+        <strong>@presentationLiveProbe/@presentationWired</strong>
+        <span>Apps live / wired</span>
     </div>
     <div class="metric">
-        <strong>@storefrontLive/4</strong>
-        <span>Storefront digests</span>
+        <strong>@catalogWired</strong>
+        <span>Catalog APIs wired</span>
     </div>
 </div>
+<p style="color:var(--muted);font-size:0.86rem;margin:-1rem 0 1.75rem;line-height:1.5">
+    Storefront digests wired: @storefrontWired. Live www probe evidence:
+    <code>docs/migration/evidence/presentation/www-live-exact-route-probe.json</code>.
+    Product chrome stays PHP until dual samples + <code>RELEASE_OWNER_APPROVAL.md</code>.
+</p>
 
 <section class="section">
     <h2>Decommission gate</h2>

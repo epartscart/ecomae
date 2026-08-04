@@ -1,0 +1,32 @@
+{
+  "role": "cp-collections-dunning-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-collections-dunning",
+  "collectionKey": "queue",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "queueCount",
+    "openCount",
+    "profileCount",
+    "logCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "customerId",
+    "invoiceRef",
+    "invoiceAmount",
+    "amountDue",
+    "dueDate",
+    "daysOverdue",
+    "dunningStep",
+    "status",
+    "updatedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks collections-dunning digest; customer_name omitted (PII). cutoverAllowed=false."
+}

@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "templateCount": 1,
+    "frontendCount": 1,
+    "currentFrontendCount": 1,
+    "currentBackendCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; templates[] sentinel; data_value JSON + FS delete; PHP Templates manager remains authoritative; cutoverAllowed=false",
+  "templates": [
+    {
+      "id": 1,
+      "caption": "migration",
+      "name": "migration",
+      "current": 1,
+      "isFrontend": 1,
+      "phoneSupport": 1,
+      "tabletSupport": 1
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

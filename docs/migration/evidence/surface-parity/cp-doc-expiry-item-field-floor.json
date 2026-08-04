@@ -1,0 +1,33 @@
+{
+  "role": "cp-doc-expiry-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-doc-expiry",
+  "collectionKey": "documents",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "documentCount",
+    "activeCount",
+    "expiredCount",
+    "reminderCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "category",
+    "docType",
+    "title",
+    "refNo",
+    "owner",
+    "issuer",
+    "expiryDate",
+    "sourceModule",
+    "active",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-doc-expiry digest summary+documents[] floors. notes/emails/paths omitted. PHP doc expiry remains authoritative. cutoverAllowed=false."
+}

@@ -1,0 +1,33 @@
+{
+  "role": "cp-jewellery-repairs-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-jewellery-repairs",
+  "collectionKey": "repairs",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "repairCount",
+    "openCount",
+    "authorizedCount",
+    "itemCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "branch",
+    "vocType",
+    "vocDate",
+    "vocNo",
+    "customerName",
+    "status",
+    "currency",
+    "deliveryDate",
+    "authorized",
+    "createdAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-jewellery-repairs digest summary+repairs[] floors. Jewellery repair floors. PHP jw_repairs remains authoritative. cutoverAllowed=false."
+}

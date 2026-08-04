@@ -284,6 +284,87 @@ check_file "cp crm-opportunities item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-crm-opportunities-item-field-floor.json"
 check_file "cp integrations item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-integrations-item-field-floor.json"
+check_file "erp bank-reconciliation item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/erp-bank-reconciliation-item-field-floor.json"
+check_file "erp stock-transfers item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/erp-stock-transfers-item-field-floor.json"
+check_file "erp sales-quotations item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/erp-sales-quotations-item-field-floor.json"
+check_file "erp workspace-favorites item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/erp-workspace-favorites-item-field-floor.json"
+check_file "erp fixed-assets item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/erp-fixed-assets-item-field-floor.json"
+check_file "cp page-builder item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-page-builder-item-field-floor.json"
+check_file "cp product-catalogue item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-product-catalogue-item-field-floor.json"
+check_file "cp platform-governance item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-platform-governance-item-field-floor.json"
+check_file "cp einvoice-documents item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-einvoice-documents-item-field-floor.json"
+check_file "cp jewellery-repairs item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-jewellery-repairs-item-field-floor.json"
+check_file "cp crm-tickets item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-crm-tickets-item-field-floor.json"
+check_file "cp marketing-growth item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-marketing-growth-item-field-floor.json"
+
+check_file "cp soc2-compliance item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-soc2-compliance-item-field-floor.json"
+check_file "cp cost-models item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-cost-models-item-field-floor.json"
+check_file "cp fin-advanced item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-fin-advanced-item-field-floor.json"
+check_file "cp blockchain-proofs item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-blockchain-proofs-item-field-floor.json"
+check_file "cp landed-cost item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-landed-cost-item-field-floor.json"
+check_file "cp warehouse-wms item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-warehouse-wms-item-field-floor.json"
+check_file "cp ai-service item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-ai-service-item-field-floor.json"
+check_file "cp returns-rma item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-returns-rma-item-field-floor.json"
+check_file "cp isolation-audit item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-isolation-audit-item-field-floor.json"
+check_file "cp aml-compliance item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-aml-compliance-item-field-floor.json"
+check_file "cp jewellery-masters item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-jewellery-masters-item-field-floor.json"
+check_file "cp consolidations item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-consolidations-item-field-floor.json"
+check_file "cp crm-activities item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-crm-activities-item-field-floor.json"
+check_file "cp auth-mfa item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-auth-mfa-item-field-floor.json"
+check_file "cp electronic-reporting item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-electronic-reporting-item-field-floor.json"
+check_file "cp collections-dunning item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-collections-dunning-item-field-floor.json"
+check_file "cp marketplace-channels item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-marketplace-channels-item-field-floor.json"
+check_file "cp demand-intelligence item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-demand-intelligence-item-field-floor.json"
+check_file "cp credit-limits item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-credit-limits-item-field-floor.json"
+check_file "cp insurance-compliance item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-insurance-compliance-item-field-floor.json"
+check_file "cp audit-trail item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-audit-trail-item-field-floor.json"
+check_file "cp doc-expiry item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-doc-expiry-item-field-floor.json"
+check_file "cp tenant-config item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-tenant-config-item-field-floor.json"
+check_file "cp jewellery-stock-verification item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-jewellery-stock-verification-item-field-floor.json"
+check_file "cp tax-external-reporting item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-tax-external-reporting-item-field-floor.json"
+check_file "cp po-approvals item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-po-approvals-item-field-floor.json"
+check_file "cp finance-close item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-finance-close-item-field-floor.json"
+check_file "cp jewellery-fixing item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-jewellery-fixing-item-field-floor.json"
 check_file "cp auto-price item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
 check_file "cp uae-tax-compliance item-field floor evidence" \

@@ -1,0 +1,27 @@
+{
+  "role": "cp-page-builder-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-page-builder",
+  "collectionKey": "layouts",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "layoutCount",
+    "publishedCount",
+    "draftCount",
+    "siteCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "pageKey",
+    "isPublished",
+    "updatedAt",
+    "publishedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks page-builder digest summary+layouts[] floors. layout_json/brand_json omitted. PHP visual page editor remains authoritative. cutoverAllowed=false."
+}

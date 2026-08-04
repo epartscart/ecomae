@@ -58,6 +58,54 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Promotions" && item.Href == "/cp/promotions-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "CRM opportunities" && item.Href == "/cp/crm-opportunities-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Integrations" && item.Href == "/cp/integrations-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Page builder" && item.Href == "/cp/page-builder-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Product catalogue" && item.Href == "/cp/product-catalogue-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Platform governance" && item.Href == "/cp/platform-governance-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "E-invoice documents" && item.Href == "/cp/einvoice-documents-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Jewellery repairs" && item.Href == "/cp/jewellery-repairs-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "CRM tickets" && item.Href == "/cp/crm-tickets-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Marketing growth" && item.Href == "/cp/marketing-growth-app");
+
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "SOC 2 compliance" && item.Href == "/cp/soc2-compliance-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Cost models" && item.Href == "/cp/cost-models-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Fin advanced" && item.Href == "/cp/fin-advanced-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Blockchain proofs" && item.Href == "/cp/blockchain-proofs-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Landed cost" && item.Href == "/cp/landed-cost-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Warehouse WMS" && item.Href == "/cp/warehouse-wms-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "AI service" && item.Href == "/cp/ai-service-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Returns RMA" && item.Href == "/cp/returns-rma-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Isolation audit" && item.Href == "/cp/isolation-audit-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "AML compliance" && item.Href == "/cp/aml-compliance-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Jewellery masters" && item.Href == "/cp/jewellery-masters-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Consolidations" && item.Href == "/cp/consolidations-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "CRM activities" && item.Href == "/cp/crm-activities-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Auth MFA" && item.Href == "/cp/auth-mfa-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Electronic reporting" && item.Href == "/cp/electronic-reporting-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Collections dunning" && item.Href == "/cp/collections-dunning-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Marketplace channels" && item.Href == "/cp/marketplace-channels-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Demand intelligence" && item.Href == "/cp/demand-intelligence-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Credit limits" && item.Href == "/cp/credit-limits-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Insurance compliance" && item.Href == "/cp/insurance-compliance-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Audit trail" && item.Href == "/cp/audit-trail-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Doc expiry" && item.Href == "/cp/doc-expiry-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Tenant config" && item.Href == "/cp/tenant-config-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Jewellery stock verification" && item.Href == "/cp/jewellery-stock-verification-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Tax external reporting" && item.Href == "/cp/tax-external-reporting-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "PO approvals" && item.Href == "/cp/po-approvals-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Finance close" && item.Href == "/cp/finance-close-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Jewellery fixing" && item.Href == "/cp/jewellery-fixing-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Web tracker" && item.Href == "/cp/web-tracker-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Free tools" && item.Href == "/cp/free-tools-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Config sandbox" && item.Href == "/cp/config-sandbox-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Marketplace apps" && item.Href == "/cp/marketplace-apps-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Notifications" && item.Href == "/cp/notifications-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Portal settings" && item.Href == "/cp/portal-settings-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Geo / regions" && item.Href == "/cp/geo-regions-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Languages" && item.Href == "/cp/languages-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Data migrations" && item.Href == "/cp/data-migrations-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Quote requests" && item.Href == "/cp/quote-requests-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Platform communication" && item.Href == "/cp/platform-communication-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Info blocks" && item.Href == "/cp/info-blocks-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "API clients PHP" && item.Href == "/CP/control/portal/epc_api_clients_manage");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Config items list" && item.Href == "/cp/config-items-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Site config PHP" && item.Href == "/CP/control/config_edit");
@@ -92,6 +140,12 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Payables PHP" && item.Href.Contains("tab=payables", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Purchases list" && item.Href == "/erp/purchases-app");
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Purchases PHP" && item.Href.Contains("tab=purchases", StringComparison.Ordinal));
+
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Bank reconciliation" && item.Href == "/erp/bank-reconciliation-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Stock transfers" && item.Href == "/erp/stock-transfers-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Sales quotations" && item.Href == "/erp/sales-quotations-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Workspace favorites" && item.Href == "/erp/workspace-favorites-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Fixed assets" && item.Href == "/erp/fixed-assets-app");
     }
 
     [Fact]

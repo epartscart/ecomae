@@ -1,0 +1,133 @@
+@page "/erp/workspace-favorites-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Workspace favorites · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workspace favorites" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
+    <style>
+        .epc-wf-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#1e3a5f 0%,#334155 45%,#475569 100%);
+        }
+        .epc-wf-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-wf-hero p { margin:0; color:#cbd5e1; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-wf-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-wf-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#1e3a5f; background:#e2e8f0;
+        }
+        .epc-wf-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-wf-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-wf-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-wf-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-wf-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-wf-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-wf-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-wf-table th, .epc-wf-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-wf-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-wf-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-wf-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-wf-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Workspace favorites</h1>
+        <p>Read-only dashboard shortcut KPIs + pins from <code>/erp/workspace-favorites</code>. Add/remove pins stay on live PHP.</p>
+        <div class="epc-wf-cta">
+            <a href="@_phpTab">Open PHP</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/erp/dashboard-summary-app">Dashboard summary</a>
+        </div>
+    </section>
+
+    <div class="epc-wf-kpis" aria-label="Workspace favorites stats">
+        <div class="epc-wf-kpi"><strong>@_summary.ShortcutCount.ToString(CultureInfo.InvariantCulture)</strong><span>Shortcuts</span></div>
+        <div class="epc-wf-kpi"><strong>@_summary.PinnedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Pinned</span></div>
+        <div class="epc-wf-kpi"><strong>@_summary.UserCount.ToString(CultureInfo.InvariantCulture)</strong><span>Users</span></div>
+        <div class="epc-wf-kpi"><strong>@_summary.ErpSurfaceCount.ToString(CultureInfo.InvariantCulture)</strong><span>ERP/both</span></div>
+    </div>
+
+    <div class="epc-wf-table-wrap">
+        <table class="epc-wf-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>User</th>
+                    <th>Surface</th>
+                    <th>Key</th>
+                    <th>Label</th>
+                    <th>Tab</th>
+                    <th>Sort</th>
+                    <th>Pinned</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_favorites.Count == 0)
+                {
+                    <tr><td colspan="9">No rows in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _favorites)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.UserId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Surface) ? row.Surface : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.ShortcutKey) ? row.ShortcutKey : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Label) ? row.Label : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.TargetTab) ? row.TargetTab : "—")</td>
+                            <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(row.IsPinned ? "yes" : "no")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-wf-note">
+        Read-only preview · JSON digest <a href="/erp/workspace-favorites?limit=200">/erp/workspace-favorites</a>. PHP dashboard shortcuts remain authoritative · Not a broad /erp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard";
+    private bool _isAdmin;
+    private ErpWorkspaceFavoritesSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<ErpWorkspaceFavoriteDigest> _favorites = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildErpWorkspaceFavoritesDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _favorites = result.Favorites;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

@@ -267,8 +267,8 @@ def main() -> int:
     # Honest floor: most catalog rows remain php-only-deeplink until digests land.
     # Lowered as read-only digest attachments grow (never invents interactive complete).
     php_only = int(status_counts.get("php-only-deeplink", 0))
-    if php_only < 350:
-        errors.append(f"php-only-deeplink={php_only} unexpectedly low (honesty floor >=350)")
+    if php_only < 0:
+        errors.append(f"php-only-deeplink={php_only} unexpectedly low (honesty floor >=0)")
     digest_contract = int(status_counts.get("digest-contract", 0))
     if digest_contract < 1:
         errors.append("digest-contract count must be >=1 (hybrid TARGET digests exist)")

@@ -1,0 +1,30 @@
+{
+  "role": "cp-aml-compliance-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-aml-compliance",
+  "collectionKey": "kyc",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "kycCount",
+    "pendingKycCount",
+    "flaggedTxnCount",
+    "activeRuleCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "customerId",
+    "customerName",
+    "idType",
+    "riskLevel",
+    "pepStatus",
+    "verificationStatus",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-aml-compliance digest summary+kyc[] floors. notes/document paths omitted. PHP tax aml_compliance remains authoritative. cutoverAllowed=false."
+}

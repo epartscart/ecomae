@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 77,
+  "routeCount": 144,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -929,6 +929,810 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "auth-login-admin-bridge"
+          }
+        ]
+      },
+      "erp-bank-reconciliation-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/bank-reconciliation-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-bank-reconciliation-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-stock-transfers-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/stock-transfers-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-stock-transfers-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-sales-quotations-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/sales-quotations-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-sales-quotations-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-workspace-favorites-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/workspace-favorites-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-workspace-favorites-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-fixed-assets-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/fixed-assets-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-fixed-assets-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-page-builder-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/page-builder-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-page-builder-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-product-catalogue-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/product-catalogue-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-product-catalogue-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-platform-governance-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/platform-governance-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-platform-governance-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-einvoice-documents-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/einvoice-documents-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-einvoice-documents-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-jewellery-repairs-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/jewellery-repairs-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-jewellery-repairs-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-crm-tickets-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/crm-tickets-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-crm-tickets-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-marketing-growth-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/marketing-growth-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-marketing-growth-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-soc2-compliance-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/soc2-compliance-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-soc2-compliance-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-cost-models-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/cost-models-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-cost-models-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-fin-advanced-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/fin-advanced-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-fin-advanced-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-blockchain-proofs-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/blockchain-proofs-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-blockchain-proofs-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-landed-cost-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/landed-cost-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-landed-cost-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-warehouse-wms-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/warehouse-wms-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-warehouse-wms-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-ai-service-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/ai-service-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-ai-service-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-returns-rma-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/returns-rma-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-returns-rma-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-isolation-audit-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/isolation-audit-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-isolation-audit-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-aml-compliance-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/aml-compliance-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-aml-compliance-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-jewellery-masters-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/jewellery-masters-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-jewellery-masters-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-consolidations-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/consolidations-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-consolidations-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-crm-activities-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/crm-activities-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-crm-activities-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-auth-mfa-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/auth-mfa-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-auth-mfa-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-electronic-reporting-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/electronic-reporting-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-electronic-reporting-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-collections-dunning-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/collections-dunning-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-collections-dunning-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-marketplace-channels-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/marketplace-channels-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-marketplace-channels-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-demand-intelligence-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/demand-intelligence-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-demand-intelligence-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-credit-limits-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/credit-limits-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-credit-limits-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-insurance-compliance-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/insurance-compliance-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-insurance-compliance-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-audit-trail-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/audit-trail-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-audit-trail-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-doc-expiry-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/doc-expiry-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-doc-expiry-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-tenant-config-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/tenant-config-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-tenant-config-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-jewellery-stock-verification-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/jewellery-stock-verification-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-jewellery-stock-verification-app-shadow-approved"
+          }
+        ]
+      },
+      "cp-tax-external-reporting-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/tax-external-reporting-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-tax-external-reporting-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-po-approvals-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/po-approvals-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-po-approvals-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-finance-close-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/finance-close-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-finance-close-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-jewellery-fixing-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/jewellery-fixing-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-jewellery-fixing-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-web-tracker-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/web-tracker-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-web-tracker-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-quote-requests-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/quote-requests-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-quote-requests-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-platform-communication-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/platform-communication-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-platform-communication-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-info-blocks-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/info-blocks-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-info-blocks-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-free-tools-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/free-tools-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-free-tools-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-config-sandbox-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/config-sandbox-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-config-sandbox-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-marketplace-apps-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/marketplace-apps-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-marketplace-apps-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-notifications-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/notifications-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-notifications-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-portal-settings-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/portal-settings-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-portal-settings-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-data-migrations-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/data-migrations-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-data-migrations-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-geo-regions-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/geo-regions-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-geo-regions-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-product-filters-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/product-filters-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-product-filters-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-search-tabs-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/search-tabs-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-search-tabs-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-system-requests-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/system-requests-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-system-requests-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-additional-texts-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/additional-texts-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-additional-texts-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-slider-banners-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/slider-banners-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-slider-banners-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-structure-dumps-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/structure-dumps-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-structure-dumps-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-communications-test-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/communications-test-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-communications-test-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-languages-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/languages-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-languages-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-plugins-manager-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/plugins-manager-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-plugins-manager-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-templates-manager-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/templates-manager-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-templates-manager-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-design-tokens-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/design-tokens-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-design-tokens-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-sitemap-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/sitemap-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-sitemap-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-failover-status-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/failover-status-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-failover-status-app-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-ops-guides-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/ops-guides-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-ops-guides-app-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-file-manager-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/file-manager-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-file-manager-app-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-server-ip-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/server-ip-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-server-ip-app-app-read-ui-preview"
           }
         ]
       }

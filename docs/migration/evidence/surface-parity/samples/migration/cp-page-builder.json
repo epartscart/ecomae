@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "layoutCount": 1,
+    "publishedCount": 0,
+    "draftCount": 1,
+    "siteCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; layouts[] sentinel; layout_json/brand_json omitted; PHP visual page editor authoritative; cutoverAllowed=false",
+  "layouts": [
+    {
+      "id": 1,
+      "siteKey": "platform",
+      "pageKey": "homepage",
+      "isPublished": false,
+      "updatedAt": 0,
+      "publishedAt": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

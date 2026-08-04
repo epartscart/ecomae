@@ -1,0 +1,31 @@
+{
+  "role": "cp-info-blocks-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-info-blocks",
+  "collectionKey": "blocks",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "blockCount",
+    "activeCount",
+    "placementCount",
+    "localeCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "blockKey",
+    "title",
+    "scope",
+    "siteKey",
+    "placement",
+    "locale",
+    "active",
+    "sortOrder",
+    "updatedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-info-blocks digest summary+blocks[] floors. content_html omitted; PHP info blocks CMS remains authoritative. cutoverAllowed=false."
+}

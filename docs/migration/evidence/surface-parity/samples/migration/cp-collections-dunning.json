@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "queueCount": 1,
+    "openCount": 1,
+    "profileCount": 1,
+    "logCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; queue[] sentinel; notes/customer_name omitted; PHP collections/dunning authoritative; cutoverAllowed=false",
+  "queue": [
+    {
+      "id": 1,
+      "siteKey": "demo",
+      "customerId": 1,
+      "invoiceRef": "INV-1",
+      "invoiceAmount": 100.0,
+      "amountDue": 100.0,
+      "dueDate": "2026-01-01",
+      "daysOverdue": 10,
+      "dunningStep": 1,
+      "status": "open",
+      "updatedAt": ""
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

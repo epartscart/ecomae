@@ -164,6 +164,274 @@ SUMMARY_CONTRACTS = {
         "summary",
         "webhookCount,activeWebhooks,deliveryCount,failedDeliveries,source,message",
     ),
+    "erp-bank-reconciliation": (
+        "summary",
+        "lineCount,unmatchedCount,matchedCount,creditTotal,debitTotal,source,message",
+    ),
+    "erp-stock-transfers": (
+        "summary",
+        "transferCount,draftCount,inTransitCount,receivedCount,totalQty,source,message",
+    ),
+    "erp-sales-quotations": (
+        "summary",
+        "quoteCount,draftCount,sentCount,acceptedCount,subtotalSum,source,message",
+    ),
+    "erp-workspace-favorites": (
+        "summary",
+        "shortcutCount,pinnedCount,userCount,erpSurfaceCount,source,message",
+    ),
+    "erp-fixed-assets": (
+        "summary",
+        "assetCount,activeCount,disposedCount,costTotal,bookValueTotal,source,message",
+    ),
+    "cp-page-builder": (
+        "summary",
+        "layoutCount,publishedCount,draftCount,siteCount,source,message",
+    ),
+    "cp-product-catalogue": (
+        "summary",
+        "productCount,publishedCount,unpublishedCount,categoryCount,source,message",
+    ),
+    "cp-platform-governance": (
+        "summary",
+        "ruleCount,activeCount,requiredCount,categoryCount,source,message",
+    ),
+    "cp-einvoice-documents": (
+        "summary",
+        "documentCount,openCount,submittedCount,totalInclVat,source,message",
+    ),
+    "cp-jewellery-repairs": (
+        "summary",
+        "repairCount,openCount,authorizedCount,itemCount,source,message",
+    ),
+    "cp-crm-tickets": (
+        "summary",
+        "ticketCount,openCount,highPriorityCount,messageCount,source,message",
+    ),
+    "cp-marketing-growth": (
+        "summary",
+        "taskCount,tasksDone,kpiLogCount,reviewCount,source,message",
+    ),
+    "cp-soc2-compliance": (
+        "summary",
+        "controlCount,implementedCount,evidenceCount,policyCount,source,message",
+    ),
+    "cp-cost-models": (
+        "summary",
+        "itemCount,txnCount,closeCount,modelCount,source,message",
+    ),
+    "cp-fin-advanced": (
+        "summary",
+        "periodCount,openPeriodCount,allocRuleCount,accrualCount,source,message",
+    ),
+    "cp-blockchain-proofs": (
+        "summary",
+        "proofCount,pendingCount,anchoredCount,batchCount,source,message",
+    ),
+    "cp-landed-cost": (
+        "summary",
+        "sheetCount,postedCount,expenseCount,lineCount,source,message",
+    ),
+    "cp-warehouse-wms": (
+        "summary",
+        "locationCount,lpCount,waveCount,openWorkCount,source,message",
+    ),
+    "cp-ai-service": (
+        "summary",
+        "queryCount,successCount,blockedCount,providerCount,source,message",
+    ),
+    "cp-returns-rma": (
+        "summary",
+        "rmaCount,openCount,activeWarrantyCount,itemCount,source,message",
+    ),
+    "cp-isolation-audit": (
+        "summary",
+        "runCount,failedRunCount,violationCount,siteCount,source,message",
+    ),
+    "cp-aml-compliance": (
+        "summary",
+        "kycCount,pendingKycCount,flaggedTxnCount,activeRuleCount,source,message",
+    ),
+    "cp-jewellery-masters": (
+        "summary",
+        "karatCount,rateTypeCount,barcodeCount,diamondCount,source,message",
+    ),
+    "cp-consolidations": (
+        "summary",
+        "entityCount,figureCount,icCount,openIcCount,source,message",
+    ),
+    "cp-crm-activities": (
+        "summary",
+        "activityCount,openCount,overdueCount,doneCount,source,message",
+    ),
+    "cp-auth-mfa": (
+        "summary",
+        "secretCount,confirmedCount,backupUnusedCount,policyCount,source,message",
+    ),
+    "cp-electronic-reporting": (
+        "summary",
+        "formatCount,fieldCount,runCount,outputTypeCount,source,message",
+    ),
+    "cp-collections-dunning": (
+        "summary",
+        "queueCount,openCount,profileCount,logCount,source,message",
+    ),
+    "cp-marketplace-channels": (
+        "summary",
+        "channelCount,activeCount,skuMapCount,orderCount,source,message",
+    ),
+    "cp-demand-intelligence": (
+        "summary",
+        "countryCount,articleDemandCount,priceListDemandCount,userDemandCount,source,message",
+    ),
+    "cp-credit-limits": (
+        "summary",
+        "limitCount,activeCount,heldCount,txnCount,source,message",
+    ),
+    "cp-insurance-compliance": (
+        "summary",
+        "policyCount,activeCount,claimCount,documentCount,source,message",
+    ),
+    "cp-audit-trail": (
+        "summary",
+        "entryCount,actionCount,adminCount,entityTypeCount,source,message",
+    ),
+    "cp-doc-expiry": (
+        "summary",
+        "documentCount,activeCount,expiredCount,reminderCount,source,message",
+    ),
+    "cp-tenant-config": (
+        "summary",
+        "configCount,groupCount,editableCount,historyCount,source,message",
+    ),
+    "cp-jewellery-stock-verification": (
+        "summary",
+        "verificationCount,inProgressCount,completeCount,lineCount,source,message",
+    ),
+    "cp-tax-external-reporting": (
+        "summary",
+        "ruleCount,activeCount,stagingCount,auditCount,source,message",
+    ),
+    "cp-po-approvals": (
+        "summary",
+        "requestCount,pendingCount,approvedCount,stepCount,source,message",
+    ),
+    "cp-finance-close": (
+        "summary",
+        "batchCount,postedBatchCount,openingLineCount,periodCount,closedPeriodCount,closeLogCount,source,message",
+    ),
+    "cp-jewellery-fixing": (
+        "summary",
+        "fixingCount,openFixingCount,purchaseFixCount,settlementCount,pettyCashCount,source,message",
+    ),
+    "cp-web-tracker": (
+        "summary",
+        "sessionCount,pageviewCount,eventCount,countryCount,source,message",
+    ),
+    "cp-quote-requests": (
+        "summary",
+        "quoteCount,draftCount,submittedCount,quotedCount,acceptedCount,itemCount,source,message",
+    ),
+    "cp-platform-communication": (
+        "summary",
+        "settingCount,taskCount,openTaskCount,highPriorityCount,source,message",
+    ),
+    "cp-info-blocks": (
+        "summary",
+        "blockCount,activeCount,placementCount,localeCount,source,message",
+    ),
+    "cp-free-tools": (
+        "summary",
+        "accountCount,saveCount,settingCount,activeAccountCount,source,message",
+    ),
+    "cp-config-sandbox": (
+        "summary",
+        "snapshotCount,activeSnapshotCount,promotedSnapshotCount,changeCount,source,message",
+    ),
+    "cp-marketplace-apps": (
+        "summary",
+        "appCount,publishedCount,installCount,activeInstallCount,reviewCount,source,message",
+    ),
+    "cp-notifications": (
+        "summary",
+        "notificationCount,unreadCount,prefCount,channelCount,source,message",
+    ),
+    "cp-portal-settings": (
+        "summary",
+        "siteCount,industryCount,accessModeCount,deployTargetCount,source,message",
+    ),
+    "cp-data-migrations": (
+        "summary",
+        "migrationCount,completedCount,failedCount,rowCount,source,message",
+    ),
+    "cp-geo-regions": (
+        "summary",
+        "nodeCount,level1Count,level2Count,mappedOfficeCount,source,message",
+    ),
+    "cp-product-filters": (
+        "summary",
+        "filterCount,withStorageScope,withPriceBand,withTimeBand,source,message",
+    ),
+    "cp-search-tabs": (
+        "summary",
+        "tabCount,enabledCount,disabledCount,maxOrder,source,message",
+    ),
+    "cp-system-requests": (
+        "summary",
+        "requestCount,unviewedCount,viewedCount,withUserCount,source,message",
+    ),
+    "cp-additional-texts": (
+        "summary",
+        "textCount,beforeMainCount,withTitleCount,withDescriptionCount,source,message",
+    ),
+    "cp-slider-banners": (
+        "summary",
+        "imageCount,connected,cntImg,cntImgNext,source,message",
+    ),
+    "cp-structure-dumps": (
+        "summary",
+        "dumpCount,totalRecords,latestTimeCreated,withFileCount,source,message",
+    ),
+    "cp-communications-test": (
+        "summary",
+        "smsActiveCount,smsTotalCount,emailLastStatus,smsLastStatus,source,message",
+    ),
+    "cp-languages": (
+        "summary",
+        "languageCount,activeCount,defaultCount,inactiveCount,source,message",
+    ),
+    "cp-plugins-manager": (
+        "summary",
+        "pluginCount,activatedCount,frontendCount,lockedCount,source,message",
+    ),
+    "cp-templates-manager": (
+        "summary",
+        "templateCount,frontendCount,currentFrontendCount,currentBackendCount,source,message",
+    ),
+    "cp-design-tokens": (
+        "summary",
+        "tokenCount,tenantCount,whiteLabelCount,updatedRecentCount,source,message",
+    ),
+    "cp-failover-status": (
+        "summary",
+        "modeFilePresent,statusJsonPresent,configPresent,backupMode,source,message",
+    ),
+    "cp-ops-guides": (
+        "summary",
+        "groupCount,itemCount,showAnywayCount,urlItemCount,source,message",
+    ),
+    "cp-file-manager": (
+        "summary",
+        "rootPresent,fileCount,dirCount,totalBytes,source,message",
+    ),
+    "cp-server-ip": (
+        "summary",
+        "addressCount,hasIpv4,hasIpv6,loopbackOnly,source,message",
+    ),
+    "cp-sitemap": (
+        "summary",
+        "contentUrlCount,categoryCount,productCount,frontendContentCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -600,6 +868,274 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-integrations": (
         "integrations",
         ["id", "tenantKey", "url", "active", "description", "createdAt"],
+    ),
+    "erp-bank-reconciliation": (
+        "lines",
+        ["id", "accountId", "lineDate", "description", "reference", "amount", "direction", "matchedEntryId", "importBatch", "timeCreated"],
+    ),
+    "erp-stock-transfers": (
+        "transfers",
+        ["id", "companyId", "transferNo", "fromWarehouseId", "toWarehouseId", "reason", "status", "totalItems", "totalQty", "shippedAt", "receivedAt", "createdBy", "timeCreated"],
+    ),
+    "erp-sales-quotations": (
+        "quotations",
+        ["id", "opportunityId", "leadId", "customerUserId", "quoteNumber", "status", "currencyCode", "subtotal", "shopOrderId", "timeCreated", "active"],
+    ),
+    "erp-workspace-favorites": (
+        "favorites",
+        ["id", "companyId", "userId", "surface", "shortcutKey", "label", "iconClass", "targetUrl", "targetTab", "sortOrder", "isPinned", "timeCreated"],
+    ),
+    "erp-fixed-assets": (
+        "assets",
+        ["id", "assetCode", "name", "categoryId", "acquisitionDate", "cost", "salvageValue", "usefulLifeMonths", "depreciationMethod", "accumulatedDepreciation", "bookValue", "location", "status", "timeCreated"],
+    ),
+    "cp-page-builder": (
+        "layouts",
+        ["id", "siteKey", "pageKey", "isPublished", "updatedAt", "publishedAt"],
+    ),
+    "cp-product-catalogue": (
+        "products",
+        ["id", "categoryId", "caption", "alias", "publishedFlag"],
+    ),
+    "cp-platform-governance": (
+        "rules",
+        ["id", "ruleKey", "category", "title", "enforcement", "scope", "moduleLink", "active", "timeUpdated"],
+    ),
+    "cp-einvoice-documents": (
+        "documents",
+        ["id", "uuid", "invoiceNumber", "orderId", "userId", "docCategory", "issueDate", "currencyCode", "status", "totalInclVat", "validationOk", "timeCreated"],
+    ),
+    "cp-jewellery-repairs": (
+        "repairs",
+        ["id", "companyId", "branch", "vocType", "vocDate", "vocNo", "customerName", "status", "currency", "deliveryDate", "authorized", "createdAt"],
+    ),
+    "cp-crm-tickets": (
+        "tickets",
+        ["id", "customerUserId", "orderId", "subject", "status", "priority", "assignedUserId", "timeCreated", "timeUpdated", "active"],
+    ),
+    "cp-marketing-growth": (
+        "reviews",
+        ["id", "strategyKey", "reviewType", "score", "createdAt", "createdBy"],
+    ),
+    "cp-soc2-compliance": (
+        "controls",
+        ["id", "controlId", "category", "title", "status", "owner", "frequency", "riskLevel"],
+    ),
+    "cp-cost-models": (
+        "items",
+        ["id", "companyId", "itemId", "model", "stdCost", "timeUpdated"],
+    ),
+    "cp-fin-advanced": (
+        "periods",
+        ["id", "companyId", "fy", "periodNo", "startDate", "endDate", "status", "timeCreated"],
+    ),
+    "cp-blockchain-proofs": (
+        "proofs",
+        ["id", "proofUid", "tenantKey", "recordType", "recordId", "payloadHash", "status", "batchId", "anchorRef", "createdAt"],
+    ),
+    "cp-landed-cost": (
+        "sheets",
+        ["id", "companyId", "sheetNo", "poReference", "grnReference", "supplierId", "supplierName", "goodsValue", "totalExpenses", "distributionMethod", "currency", "status", "timeCreated"],
+    ),
+    "cp-warehouse-wms": (
+        "work",
+        ["id", "companyId", "workType", "reference", "waveId", "item", "qty", "status", "assignedTo", "timeCreated"],
+    ),
+    "cp-ai-service": (
+        "queries",
+        ["id", "siteKey", "userId", "service", "intent", "tokensUsed", "executionMs", "piiStripped", "status", "createdAt"],
+    ),
+    "cp-returns-rma": (
+        "requests",
+        ["id", "siteKey", "rmaNumber", "warrantyId", "customerId", "customerName", "reason", "status", "resolutionType", "createdAt"],
+    ),
+    "cp-isolation-audit": (
+        "runs",
+        ["id", "runAt", "totalTenants", "passed", "failed", "warnings", "triggeredBy"],
+    ),
+    "cp-aml-compliance": (
+        "kyc",
+        ["id", "companyId", "customerId", "customerName", "idType", "riskLevel", "pepStatus", "verificationStatus", "timeCreated"],
+    ),
+    "cp-jewellery-masters": (
+        "karats",
+        ["id", "companyId", "karatCode", "stdPurity", "rangeFrom", "rangeTo", "spGravity", "division", "createdAt"],
+    ),
+    "cp-consolidations": (
+        "entities",
+        ["id", "code", "name", "currencyCode", "ownershipPct", "isHome", "parentCode", "active", "timeCreated"],
+    ),
+    "cp-crm-activities": (
+        "activities",
+        ["id", "activityType", "relatedType", "relatedId", "dueDate", "done", "ownerUserId", "timeCreated", "active"],
+    ),
+    "cp-auth-mfa": (
+        "secrets",
+        ["id", "userId", "method", "confirmed", "label", "createdAt", "lastUsedAt"],
+    ),
+    "cp-electronic-reporting": (
+        "formats",
+        ["id", "companyId", "code", "name", "outputType", "rootElement", "rowElement", "active", "timeCreated"],
+    ),
+    "cp-collections-dunning": (
+        "queue",
+        ["id", "siteKey", "customerId", "invoiceRef", "invoiceAmount", "amountDue", "dueDate", "daysOverdue", "dunningStep", "status", "updatedAt"],
+    ),
+    "cp-marketplace-channels": (
+        "channels",
+        ["id", "code", "name", "marketplaceId", "active", "demoMode", "lastSyncAt", "timeCreated"],
+    ),
+    "cp-demand-intelligence": (
+        "countries",
+        ["code", "name", "sortOrder"],
+    ),
+    "cp-credit-limits": (
+        "limits",
+        ["id", "siteKey", "customerId", "creditLimit", "balanceUsed", "currency", "status", "riskScore", "paymentTerms", "updatedAt"],
+    ),
+    "cp-insurance-compliance": (
+        "policies",
+        ["id", "companyId", "policyNo", "class", "title", "insurer", "sumInsured", "premium", "currency", "expiryDate", "status", "timeCreated"],
+    ),
+    "cp-audit-trail": (
+        "entries",
+        ["id", "timeUnix", "adminId", "action", "entityType", "entityId", "summary"],
+    ),
+    "cp-doc-expiry": (
+        "documents",
+        ["id", "companyId", "category", "docType", "title", "refNo", "owner", "issuer", "expiryDate", "sourceModule", "active", "timeCreated"],
+    ),
+    "cp-tenant-config": (
+        "entries",
+        ["id", "siteKey", "configGroup", "configKey", "valueType", "label", "editable", "updatedBy", "updatedAt"],
+    ),
+    "cp-jewellery-stock-verification": (
+        "verifications",
+        ["id", "companyId", "branch", "vocType", "vocDate", "vocNo", "location", "totalPcs", "scannedPcs", "remainingPcs", "status", "createdBy"],
+    ),
+    "cp-tax-external-reporting": (
+        "rules",
+        ["id", "country", "ruleKey", "version", "status", "ruleSource", "validFrom", "validTo"],
+    ),
+    "cp-po-approvals": (
+        "requests",
+        ["id", "siteKey", "poNumber", "requesterId", "vendorName", "currency", "total", "status", "currentTier", "priority", "createdAt"],
+    ),
+    "cp-finance-close": (
+        "batches",
+        ["id", "module", "asOfDate", "reference", "status", "adminId", "timeCreated", "timePosted"],
+    ),
+    "cp-jewellery-fixing": (
+        "fixings",
+        ["id", "companyId", "branch", "fixType", "fixDate", "fixNo", "partyCode", "partyName", "metal", "karat", "fixQtyGms", "fixAmount", "status", "createdBy"],
+    ),
+    "cp-web-tracker": (
+        "sessions",
+        ["id", "sessionUid", "siteKey", "pageviewCount", "eventCount", "countryCode", "deviceType", "browser", "firstSeenAt", "lastSeenAt"],
+    ),
+    "cp-quote-requests": (
+        "quotes",
+        ["id", "userId", "sessionId", "status", "timeCreated", "timeUpdated", "timeSubmitted", "acceptedOrderId"],
+    ),
+    "cp-platform-communication": (
+        "tasks",
+        ["id", "title", "assignedTo", "siteKey", "category", "status", "priority", "dueAt", "createdAt"],
+    ),
+    "cp-info-blocks": (
+        "blocks",
+        ["id", "blockKey", "title", "scope", "siteKey", "placement", "locale", "active", "sortOrder", "updatedAt"],
+    ),
+    "cp-free-tools": (
+        "accounts",
+        ["id", "email", "company", "country", "useCount", "loginCount", "timeCreated", "timeLastSeen"],
+    ),
+    "cp-config-sandbox": (
+        "snapshots",
+        ["id", "siteKey", "snapshotName", "status", "createdBy", "createdAt", "promotedAt"],
+    ),
+    "cp-marketplace-apps": (
+        "apps",
+        ["id", "appKey", "name", "shortDesc", "category", "developer", "version", "pricing", "priceMonthly", "downloads", "avgRating", "reviewCount", "status", "publishedAt"],
+    ),
+    "cp-notifications": (
+        "notifications",
+        ["id", "tenantKey", "userId", "channel", "category", "severity", "title", "isRead", "createdAt"],
+    ),
+    "cp-portal-settings": (
+        "sites",
+        ["host", "industryCode", "systemName", "hubName", "tagline", "domainPath", "themeTemplate", "accessMode", "cpDefaultLang", "countryCode", "updatedAt"],
+    ),
+    "cp-data-migrations": (
+        "migrations",
+        ["id", "companyId", "migrationType", "entityType", "fileName", "totalRows", "validRows", "errorRows", "importedRows", "status", "importedByName", "timeCreated", "timeCompleted"],
+    ),
+    "cp-geo-regions": (
+        "nodes",
+        ["id", "level", "parent", "sortOrder", "childCount", "valueLangId"],
+    ),
+    "cp-product-filters": (
+        "filters",
+        ["id", "manufacturer", "article", "name", "minPrice", "maxPrice", "minTime", "maxTime"],
+    ),
+    "cp-search-tabs": (
+        "tabs",
+        ["id", "caption", "sortOrder", "enabled"],
+    ),
+    "cp-system-requests": (
+        "requests",
+        ["id", "timeUnix", "userId", "viewed"],
+    ),
+    "cp-additional-texts": (
+        "texts",
+        ["id", "url", "beforeMain", "titleTag", "keywordsTag"],
+    ),
+    "cp-slider-banners": (
+        "images",
+        ["id", "sortOrder", "link", "href"],
+    ),
+    "cp-structure-dumps": (
+        "dumps",
+        ["id", "timeCreated", "fieldsInDump", "fileName", "recordsCount"],
+    ),
+    "cp-communications-test": (
+        "channels",
+        ["name", "active", "isSelectable", "handler"],
+    ),
+    "cp-languages": (
+        "languages",
+        ["langCode", "active", "isDefault"],
+    ),
+    "cp-plugins-manager": (
+        "plugins",
+        ["id", "caption", "sortOrder", "activated", "isFrontend", "controlLock"],
+    ),
+    "cp-templates-manager": (
+        "templates",
+        ["id", "caption", "name", "current", "isFrontend", "phoneSupport", "tabletSupport"],
+    ),
+    "cp-design-tokens": (
+        "tokens",
+        ["siteKey", "settingKey", "updatedAt"],
+    ),
+    "cp-failover-status": (
+        "signals",
+        ["path", "present", "kind"],
+    ),
+    "cp-ops-guides": (
+        "items",
+        ["id", "itemsGroup", "caption", "url", "showAnyway", "sortOrder"],
+    ),
+    "cp-file-manager": (
+        "entries",
+        ["name", "isDirectory", "sizeBytes", "extension"],
+    ),
+    "cp-server-ip": (
+        "addresses",
+        ["address", "addressFamily", "isLoopback"],
+    ),
+    "cp-sitemap": (
+        "pages",
+        ["id", "alias", "valueLangId", "isFrontend", "publishedFlag"],
     ),
     "cp-orders-digest": (
         "orders",

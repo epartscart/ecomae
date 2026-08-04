@@ -1,0 +1,30 @@
+{
+  "role": "cp-tenant-config-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-tenant-config",
+  "collectionKey": "entries",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "configCount",
+    "groupCount",
+    "editableCount",
+    "historyCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "configGroup",
+    "configKey",
+    "valueType",
+    "label",
+    "editable",
+    "updatedBy",
+    "updatedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-tenant-config digest summary+entries[] floors. config_value omitted. PHP tenant configuration remains authoritative. cutoverAllowed=false."
+}

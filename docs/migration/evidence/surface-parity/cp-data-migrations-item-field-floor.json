@@ -1,0 +1,34 @@
+{
+  "role": "cp-data-migrations-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-data-migrations",
+  "collectionKey": "migrations",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "migrationCount",
+    "completedCount",
+    "failedCount",
+    "rowCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "migrationType",
+    "entityType",
+    "fileName",
+    "totalRows",
+    "validRows",
+    "errorRows",
+    "importedRows",
+    "status",
+    "importedByName",
+    "timeCreated",
+    "timeCompleted"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-data-migrations digest summary+migrations[] floors. file_path/column_mapping/validation_errors/options/raw_data/mapped_data omitted; PHP data migration remains authoritative. cutoverAllowed=false."
+}

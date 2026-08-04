@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "smsActiveCount": 1,
+    "smsTotalCount": 1,
+    "emailLastStatus": "",
+    "smsLastStatus": "",
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; channels[] sentinel; debug_result blobs + sms parameters_values secrets; PHP Communications test remains authoritative; cutoverAllowed=false",
+  "channels": [
+    {
+      "name": "migration",
+      "active": 1,
+      "isSelectable": 1,
+      "handler": "migration"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

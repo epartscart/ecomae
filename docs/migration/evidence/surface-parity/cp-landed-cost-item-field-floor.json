@@ -1,0 +1,34 @@
+{
+  "role": "cp-landed-cost-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-landed-cost",
+  "collectionKey": "sheets",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "sheetCount",
+    "postedCount",
+    "expenseCount",
+    "lineCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "sheetNo",
+    "poReference",
+    "grnReference",
+    "supplierId",
+    "supplierName",
+    "goodsValue",
+    "totalExpenses",
+    "distributionMethod",
+    "currency",
+    "status",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-landed-cost digest summary+sheets[] floors. Notes omitted. PHP landed_cost_area remains authoritative. cutoverAllowed=false."
+}

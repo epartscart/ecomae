@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "summary": {
+    "shortcutCount": 1,
+    "pinnedCount": 1,
+    "userCount": 1,
+    "erpSurfaceCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; favorites[] sentinel; PHP dashboard shortcuts authoritative; cutoverAllowed=false",
+  "favorites": [
+    {
+      "id": 1,
+      "companyId": 0,
+      "userId": 1,
+      "surface": "erp",
+      "shortcutKey": "dashboard",
+      "label": "Dashboard",
+      "iconClass": "fa fa-star",
+      "targetUrl": "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard",
+      "targetTab": "dashboard",
+      "sortOrder": 0,
+      "isPinned": true,
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

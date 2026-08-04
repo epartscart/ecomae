@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "requestCount": 1,
+    "pendingCount": 1,
+    "approvedCount": 0,
+    "stepCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; requests[] sentinel; description/notes/attachments/items JSON omitted; PHP PO approval remains authoritative; cutoverAllowed=false",
+  "requests": [
+    {
+      "id": 1,
+      "siteKey": "demo",
+      "poNumber": "PO-1",
+      "requesterId": 1,
+      "vendorName": "Supplier",
+      "currency": "AED",
+      "total": 100.0,
+      "status": "pending",
+      "currentTier": 1,
+      "priority": "normal",
+      "createdAt": ""
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

@@ -6,16 +6,16 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 335,
-    "php-only-deeplink": 391
+    "digest-contract": 725,
+    "php-only-deeplink": 1
   },
   "families": [
     {
       "family": "ai-automation",
       "total": 21,
-      "digestContract": 10,
-      "phpOnlyDeeplink": 11,
-      "digestPercent": 47.6,
+      "digestContract": 21,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-ai_copilot",
@@ -44,9 +44,9 @@
     {
       "family": "auth-sessions-users",
       "total": 13,
-      "digestContract": 5,
-      "phpOnlyDeeplink": 8,
-      "digestPercent": 38.5,
+      "digestContract": 13,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-modern_auth",
@@ -67,9 +67,9 @@
     {
       "family": "banking-cash",
       "total": 24,
-      "digestContract": 9,
-      "phpOnlyDeeplink": 15,
-      "digestPercent": 37.5,
+      "digestContract": 24,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_cash",
@@ -101,9 +101,9 @@
     {
       "family": "crm-customers",
       "total": 33,
-      "digestContract": 13,
-      "phpOnlyDeeplink": 20,
-      "digestPercent": 39.4,
+      "digestContract": 33,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-credit_limit",
@@ -157,9 +157,9 @@
     {
       "family": "document-control",
       "total": 22,
-      "digestContract": 8,
-      "phpOnlyDeeplink": 14,
-      "digestPercent": 36.4,
+      "digestContract": 22,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-api_docs",
@@ -189,9 +189,9 @@
     {
       "family": "erp-workspace-misc",
       "total": 35,
-      "digestContract": 7,
-      "phpOnlyDeeplink": 28,
-      "digestPercent": 20.0,
+      "digestContract": 35,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-business-unit-financial-dimensions",
@@ -234,9 +234,9 @@
     {
       "family": "finance-gl",
       "total": 37,
-      "digestContract": 13,
-      "phpOnlyDeeplink": 24,
-      "digestPercent": 35.1,
+      "digestContract": 37,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_budgeting",
@@ -331,9 +331,9 @@
     {
       "family": "integrations-api",
       "total": 10,
-      "digestContract": 9,
-      "phpOnlyDeeplink": 1,
-      "digestPercent": 90.0,
+      "digestContract": 10,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-api_clients",
@@ -351,9 +351,9 @@
     {
       "family": "inventory-stock",
       "total": 16,
-      "digestContract": 6,
-      "phpOnlyDeeplink": 10,
-      "digestPercent": 37.5,
+      "digestContract": 16,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_inventory",
@@ -377,9 +377,9 @@
     {
       "family": "marketing-growth",
       "total": 35,
-      "digestContract": 16,
-      "phpOnlyDeeplink": 19,
-      "digestPercent": 45.7,
+      "digestContract": 35,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-broadcast",
@@ -434,9 +434,9 @@
     {
       "family": "other-unclassified",
       "total": 58,
-      "digestContract": 4,
-      "phpOnlyDeeplink": 54,
-      "digestPercent": 6.9,
+      "digestContract": 57,
+      "phpOnlyDeeplink": 1,
+      "digestPercent": 98.3,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-accessories-marketplace",
@@ -502,9 +502,9 @@
     {
       "family": "platform-ops-bos",
       "total": 68,
-      "digestContract": 23,
-      "phpOnlyDeeplink": 45,
-      "digestPercent": 33.8,
+      "digestContract": 68,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-audit_log",
@@ -580,9 +580,9 @@
     {
       "family": "pos-retail",
       "total": 72,
-      "digestContract": 44,
-      "phpOnlyDeeplink": 28,
-      "digestPercent": 61.1,
+      "digestContract": 72,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-pos",
@@ -678,9 +678,9 @@
     {
       "family": "pricing-catalog-cp",
       "total": 42,
-      "digestContract": 22,
-      "phpOnlyDeeplink": 20,
-      "digestPercent": 52.4,
+      "digestContract": 42,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-multivendor",
@@ -730,9 +730,9 @@
     {
       "family": "procurement-ap",
       "total": 34,
-      "digestContract": 18,
-      "phpOnlyDeeplink": 16,
-      "digestPercent": 52.9,
+      "digestContract": 34,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_ap",
@@ -774,9 +774,9 @@
     {
       "family": "production-mfg",
       "total": 9,
-      "digestContract": 8,
-      "phpOnlyDeeplink": 1,
-      "digestPercent": 88.9,
+      "digestContract": 9,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_production",
@@ -816,9 +816,9 @@
     {
       "family": "sales-oms",
       "total": 32,
-      "digestContract": 13,
-      "phpOnlyDeeplink": 19,
-      "digestPercent": 40.6,
+      "digestContract": 32,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-order_erp_pipeline",
@@ -858,9 +858,9 @@
     {
       "family": "shipping-logistics",
       "total": 33,
-      "digestContract": 21,
-      "phpOnlyDeeplink": 12,
-      "digestPercent": 63.6,
+      "digestContract": 33,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_warehouse",
@@ -901,9 +901,9 @@
     {
       "family": "storefront-checkout",
       "total": 16,
-      "digestContract": 6,
-      "phpOnlyDeeplink": 10,
-      "digestPercent": 37.5,
+      "digestContract": 16,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-account-operations",
@@ -927,9 +927,9 @@
     {
       "family": "tax-compliance",
       "total": 62,
-      "digestContract": 26,
-      "phpOnlyDeeplink": 36,
-      "digestPercent": 41.9,
+      "digestContract": 62,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "bos-erp_tax",

@@ -1,0 +1,28 @@
+{
+  "role": "cp-config-sandbox-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-config-sandbox",
+  "collectionKey": "snapshots",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "snapshotCount",
+    "activeSnapshotCount",
+    "promotedSnapshotCount",
+    "changeCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "snapshotName",
+    "status",
+    "createdBy",
+    "createdAt",
+    "promotedAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-config-sandbox digest summary+snapshots[] floors. config_data/old_value/new_value omitted; PHP config sandbox remains authoritative. cutoverAllowed=false."
+}

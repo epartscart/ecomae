@@ -1,0 +1,31 @@
+{
+  "role": "cp-quote-requests-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-quote-requests",
+  "collectionKey": "quotes",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "quoteCount",
+    "draftCount",
+    "submittedCount",
+    "quotedCount",
+    "acceptedCount",
+    "itemCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "userId",
+    "sessionId",
+    "status",
+    "timeCreated",
+    "timeUpdated",
+    "timeSubmitted",
+    "acceptedOrderId"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks quote-requests digest with distinct status KPIs. cutoverAllowed=false."
+}

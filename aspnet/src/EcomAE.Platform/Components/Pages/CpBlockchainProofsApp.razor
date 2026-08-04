@@ -1,0 +1,129 @@
+@page "/cp/blockchain-proofs-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Blockchain proofs · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-bc-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#1e1b4b 0%,#3730a3 50%,#818cf8 100%);
+        }
+        .epc-bc-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-bc-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-bc-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-bc-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#1e1b4b; background:#fff;
+        }
+        .epc-bc-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-bc-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-bc-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-bc-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-bc-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-bc-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-bc-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-bc-table th, .epc-bc-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-bc-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-bc-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-bc-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-bc-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Blockchain proofs</h1>
+        <p>Read-only blockchain proof KPIs + rows from <code>/cp/blockchain-proofs</code>. Payload/merkle JSON stays on live PHP.</p>
+        <div class="epc-bc-cta">
+            <a href="@_phpTab">Open PHP</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-bc-kpis" aria-label="Blockchain proofs stats">
+        <div class="epc-bc-kpi"><strong>@_summary.ProofCount.ToString(CultureInfo.InvariantCulture)</strong><span>Proofs</span></div>
+        <div class="epc-bc-kpi"><strong>@_summary.PendingCount.ToString(CultureInfo.InvariantCulture)</strong><span>Pending</span></div>
+        <div class="epc-bc-kpi"><strong>@_summary.AnchoredCount.ToString(CultureInfo.InvariantCulture)</strong><span>Anchored</span></div>
+        <div class="epc-bc-kpi"><strong>@_summary.BatchCount.ToString(CultureInfo.InvariantCulture)</strong><span>Batches</span></div>
+    </div>
+
+    <div class="epc-bc-table-wrap">
+        <table class="epc-bc-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Proof UID</th>
+                    <th>Type</th>
+                    <th>Record</th>
+                    <th>Status</th>
+                    <th>Hash</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_rows.Count == 0)
+                {
+                    <tr><td colspan="7">No rows in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _rows)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.ProofUid) ? row.ProofUid : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.RecordType) ? row.RecordType : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.RecordId) ? row.RecordId : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.PayloadHash) ? row.PayloadHash : "—")</td>
+                            <td><a href="@_phpTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-bc-note">
+        Read-only preview · JSON digest <a href="/cp/blockchain-proofs?limit=200">/cp/blockchain-proofs</a>. PHP tax/audit_wb blockchain_proofs remains authoritative · payload/merkle JSON omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs";
+    private bool _isAdmin;
+    private CpBlockchainProofsSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpBlockchainProofDigest> _rows = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpBlockchainProofsDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _rows = result.Proofs;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

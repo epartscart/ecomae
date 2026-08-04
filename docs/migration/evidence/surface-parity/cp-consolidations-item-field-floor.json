@@ -1,0 +1,30 @@
+{
+  "role": "cp-consolidations-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-consolidations",
+  "collectionKey": "entities",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "entityCount",
+    "figureCount",
+    "icCount",
+    "openIcCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "code",
+    "name",
+    "currencyCode",
+    "ownershipPct",
+    "isHome",
+    "parentCode",
+    "active",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-consolidations digest summary+entities[] floors. PHP consolidations area remains authoritative. cutoverAllowed=false."
+}

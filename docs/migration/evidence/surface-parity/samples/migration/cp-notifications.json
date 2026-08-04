@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "notificationCount": 1,
+    "unreadCount": 1,
+    "prefCount": 1,
+    "channelCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; notifications[] sentinel; body/metadata omitted; PHP notification settings remain authoritative; cutoverAllowed=false",
+  "notifications": [
+    {
+      "id": 1,
+      "tenantKey": "__platform__",
+      "userId": 1,
+      "channel": "in_app",
+      "category": "system",
+      "severity": "info",
+      "title": "Welcome",
+      "isRead": 0,
+      "createdAt": "2026-08-04 00:00:00"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

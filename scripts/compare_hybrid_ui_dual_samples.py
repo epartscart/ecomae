@@ -12,7 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-SKIP_NAMES = frozenset({"README.md", "compare-result.json"})
+SKIP_NAMES = frozenset({"README.md", "compare-result.json", "hybrid-directory-full-catalog-floor.json", "php-full-catalog-deeplink-floor.json"})
 REQUIRED_AUTH = frozenset({"admin", "customer"})
 REQUIRED_SURFACES = frozenset({"cp", "erp", "bos", "storefront"})
 

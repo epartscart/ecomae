@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "contentUrlCount": 1,
+    "categoryCount": 1,
+    "productCount": 1,
+    "frontendContentCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; pages[] sentinel; sitemap.xml file artifact (generation remains PHP); content HTML omitted; PHP Sitemap remains authoritative; cutoverAllowed=false",
+  "pages": [
+    {
+      "id": 1,
+      "alias": "migration",
+      "valueLangId": 1,
+      "isFrontend": 1,
+      "publishedFlag": 1
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

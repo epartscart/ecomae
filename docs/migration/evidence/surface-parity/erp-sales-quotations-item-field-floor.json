@@ -1,0 +1,33 @@
+{
+  "role": "erp-sales-quotations-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "erp-sales-quotations",
+  "collectionKey": "quotations",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "quoteCount",
+    "draftCount",
+    "sentCount",
+    "acceptedCount",
+    "subtotalSum",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "opportunityId",
+    "leadId",
+    "customerUserId",
+    "quoteNumber",
+    "status",
+    "currencyCode",
+    "subtotal",
+    "shopOrderId",
+    "timeCreated",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks sales-quotations digest summary+quotations[] floors. notes omitted. PHP sales proposals remains authoritative. cutoverAllowed=false."
+}

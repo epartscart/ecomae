@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "periodCount": 1,
+    "openPeriodCount": 1,
+    "allocRuleCount": 0,
+    "accrualCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; periods[] sentinel; JSON payloads omitted; PHP fin_advanced authoritative; cutoverAllowed=false",
+  "periods": [
+    {
+      "id": 1,
+      "companyId": 0,
+      "fy": 2024,
+      "periodNo": 1,
+      "startDate": 0,
+      "endDate": 0,
+      "status": "open",
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

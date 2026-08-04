@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "erp-fixed-assets",
+  "surface": "erp",
+  "appRoute": "/erp/fixed-assets-app",
+  "digestRoute": "/erp/fixed-assets",
+  "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=fixed_assets&tab=fixed_assets",
+  "blazorMarker": "ErpFixedAssetsApp",
+  "chromeShell": "PhpErpDesktopChrome",
+  "authKind": "admin",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T08:37:46Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Contract stub. Re-run on CloudPanel with cookies + ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1."
+}

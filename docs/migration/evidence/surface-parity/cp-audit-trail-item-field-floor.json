@@ -1,0 +1,28 @@
+{
+  "role": "cp-audit-trail-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-audit-trail",
+  "collectionKey": "entries",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "entryCount",
+    "actionCount",
+    "adminCount",
+    "entityTypeCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "timeUnix",
+    "adminId",
+    "action",
+    "entityType",
+    "entityId",
+    "summary"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks audit-trail digest; ip_address omitted. cutoverAllowed=false."
+}

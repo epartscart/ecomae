@@ -1,7 +1,5 @@
 {
   "status": "catalogued-php-authoritative-except-allowlisted-aspnet",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
   "platformHost": "www.ecomae.com",
   "links": [
     {
@@ -110,11 +108,1035 @@
     },
     {
       "hostClass": "aspnet-diagnostics",
+      "surface": "Zero-PHP Blazor console",
+      "url": "https://www.ecomae.com/migration/console",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/console",
+      "notes": "Blazor SSR operator console (interim improvement UI). Not product chrome cutover."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Command Centre (Blazor preview)",
+      "url": "https://www.ecomae.com/cp/app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/app",
+      "notes": "Hybrid chrome preview (PHP CSS \u002B PHP-linked nav). Live UI remains https://www.ecomae.com/CP/ (PHP)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Ecom BOS (Blazor preview)",
+      "url": "https://www.ecomae.com/erp/app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/app",
+      "notes": "Hybrid chrome preview (PHP CSS \u002B PHP ERP areas). Live UI remains https://www.ecomae.com/ERP/ (PHP)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "BOS fleet (Blazor preview)",
+      "url": "https://www.ecomae.com/bos/app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/bos/app",
+      "notes": "Hybrid chrome preview. Live UI remains https://www.ecomae.com/BOS/ (PHP)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "BOS Audit Log read UI",
+      "url": "https://www.ecomae.com/bos/audit-log-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/bos/audit-log-app",
+      "notes": "Blazor list over /bos/audit-log digest under PhpBosDesktopChrome. PHP epc_boc_audit_log remains authoritative (append-only). Native /BOS/ session still required for full modules."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "BOS Fleet Tenants read UI",
+      "url": "https://www.ecomae.com/bos/tenants-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/bos/tenants-app",
+      "notes": "Blazor list over /bos/tenants digest under PhpBosDesktopChrome. Provisioning remains PHP epc_tenant_control_center. Native /BOS/ session still required for full modules."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "BOS Fleet Health KPI UI",
+      "url": "https://www.ecomae.com/bos/fleet-health-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/bos/fleet-health-app",
+      "notes": "Blazor KPIs \u002B sample tenants over /bos/fleet-health digest under PhpBosDesktopChrome. Live health checks remain PHP epc_platform_health_checkup. Native /BOS/ session still required for full modules."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "BOS Fleet Readiness KPI UI",
+      "url": "https://www.ecomae.com/bos/fleet-readiness-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/bos/fleet-readiness-app",
+      "notes": "Blazor pass/warn/fail scoring over /bos/fleet-readiness digest under PhpBosDesktopChrome. Live health checks remain PHP. Native /BOS/ session still required for full modules."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "BOS Fleet Summary KPI UI",
+      "url": "https://www.ecomae.com/bos/fleet-summary-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/bos/fleet-summary-app",
+      "notes": "Blazor KPIs over /bos/fleet-summary digest under PhpBosDesktopChrome. Command center remains PHP bos/index.php. Native /BOS/ session still required for full modules."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Storefront (Blazor preview)",
+      "url": "https://www.ecomae.com/storefront/app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/app",
+      "notes": "Hybrid chrome preview. Live storefront remains https://epartscart.com/ (PHP)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Dashboard Summary KPI UI",
+      "url": "https://www.ecomae.com/cp/dashboard-summary-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/dashboard-summary-app",
+      "notes": "Blazor KPIs over /cp/dashboard-summary digest under PhpCpDesktopChrome. Interactive widgets remain PHP /CP/. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Orders/OMS read UI",
+      "url": "https://www.ecomae.com/cp/orders",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders",
+      "notes": "Batch 4 read-only shop_orders list under PhpCpDesktopChrome. Writes/full console remain PHP /CP/shop/orders/orders."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Orders digest",
+      "url": "https://www.ecomae.com/cp/orders-digest",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders-digest",
+      "notes": "Batch 4 read-only KPI\u002Blist digest (admin CP). Not counted in surface digests 44/44 inventory."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Users read UI",
+      "url": "https://www.ecomae.com/cp/users-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/users-app",
+      "notes": "Batch 4 Blazor list over /cp/users digest. JSON digest stays at /cp/users. Writes remain PHP /CP/control/users."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Groups read UI",
+      "url": "https://www.ecomae.com/cp/groups-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/groups-app",
+      "notes": "Batch 4 Blazor list over /cp/groups digest. JSON digest stays at /cp/groups. Writes remain PHP /CP/users/usergroups."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Modules read UI",
+      "url": "https://www.ecomae.com/cp/modules-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/modules-app",
+      "notes": "Blazor list over /cp/modules digest under PhpCpDesktopChrome. Writes remain PHP /CP/modules/modules_manager. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Pages read UI",
+      "url": "https://www.ecomae.com/cp/pages-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/pages-app",
+      "notes": "Blazor list over /cp/pages digest under PhpCpDesktopChrome. Writes remain PHP /CP/content/content_manager. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Menus read UI",
+      "url": "https://www.ecomae.com/cp/menus-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/menus-app",
+      "notes": "Blazor list over /cp/menus digest under PhpCpDesktopChrome. Writes remain PHP /CP/menu/menu_manager. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Tenants read UI",
+      "url": "https://www.ecomae.com/cp/tenants-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/tenants-app",
+      "notes": "Blazor list over /cp/tenants digest under PhpCpDesktopChrome. Writes remain PHP epc_tenant_control_center. Tenant product chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Currencies read UI",
+      "url": "https://www.ecomae.com/cp/currencies-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/currencies-app",
+      "notes": "Blazor list over /cp/currencies digest under PhpCpDesktopChrome. Writes remain PHP nastrojka-kursov-valyut. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Storages read UI",
+      "url": "https://www.ecomae.com/cp/storages-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/storages-app",
+      "notes": "Blazor list over /cp/storages digest under PhpCpDesktopChrome. Writes remain PHP /CP/shop/logistics/storages. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Admin Sessions read UI",
+      "url": "https://www.ecomae.com/cp/admin-sessions-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/admin-sessions-app",
+      "notes": "Blazor list over /cp/admin-sessions digest under PhpCpDesktopChrome. Tokens never returned. User/session admin remains PHP /CP/control/users. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP API Clients read UI",
+      "url": "https://www.ecomae.com/cp/api-clients-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/api-clients-app",
+      "notes": "Blazor list over /cp/api-clients digest under PhpCpDesktopChrome. Key hashes never returned. Writes remain PHP epc_api_clients_manage. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Power BI read UI",
+      "url": "https://www.ecomae.com/cp/power-bi-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/power-bi-app",
+      "notes": "Blazor list over /cp/power-bi digest under PhpCpDesktopChrome. Configure/embed writes remain PHP epc_power_bi. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Mobile Apps read UI",
+      "url": "https://www.ecomae.com/cp/mobile-apps-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/mobile-apps-app",
+      "notes": "Blazor summary over /cp/mobile-apps digest under PhpCpDesktopChrome. save_mobile writes remain PHP epc_mobile_apps. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Metabase read UI",
+      "url": "https://www.ecomae.com/cp/metabase-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/metabase-app",
+      "notes": "Blazor list over /cp/metabase digest under PhpCpDesktopChrome. secret_key never returned. Writes remain PHP epc_metabase_embed. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP NL Reporting read UI",
+      "url": "https://www.ecomae.com/cp/nl-reporting-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/nl-reporting-app",
+      "notes": "Blazor list over /cp/nl-reporting digest under PhpCpDesktopChrome. query_template/recipients omitted. Writes remain PHP epc_nl_reporting. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Marketing Broadcast read UI",
+      "url": "https://www.ecomae.com/cp/marketing-broadcast-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/marketing-broadcast-app",
+      "notes": "Blazor list over /cp/marketing-broadcast digest under PhpCpDesktopChrome. Bodies omitted. Send remains PHP epc_marketing_broadcast. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Demo Tenants read UI",
+      "url": "https://www.ecomae.com/cp/demo-tenants-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/demo-tenants-app",
+      "notes": "Blazor list over /cp/demo-tenants digest under PhpCpDesktopChrome. Passwords never returned. Provision remains PHP epc_demo_tenants_manage. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Parts Agent chats read UI",
+      "url": "https://www.ecomae.com/cp/parts-agent-chats-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/parts-agent-chats-app",
+      "notes": "Blazor list over /cp/parts-agent-chats digest under PhpCpDesktopChrome. system_prompt/client_ip omitted. Chat UX remains PHP parts_agent. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP POS overview read UI",
+      "url": "https://www.ecomae.com/cp/pos-overview-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/pos-overview-app",
+      "notes": "Blazor list over /cp/pos-overview digest under PhpCpDesktopChrome. Terminal writes remain PHP epc_pos_terminal. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Tax toolkits read UI",
+      "url": "https://www.ecomae.com/cp/tax-toolkits-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/tax-toolkits-app",
+      "notes": "Blazor list over /cp/tax-toolkits digest under PhpCpDesktopChrome. rules_json/reg_number omitted. Install remains PHP epc_tax_toolkit_manage. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP SMS/WhatsApp read UI",
+      "url": "https://www.ecomae.com/cp/sms-whatsapp-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/sms-whatsapp-app",
+      "notes": "Blazor list over /cp/sms-whatsapp digest under PhpCpDesktopChrome. Secrets/raw phone omitted. Configure/send remains PHP. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP CRM board read UI",
+      "url": "https://www.ecomae.com/cp/crm-board-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/crm-board-app",
+      "notes": "Blazor list over /cp/crm-board digest under PhpCpDesktopChrome. Email/phone/notes omitted. CRM UX remains PHP. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Document control read UI",
+      "url": "https://www.ecomae.com/cp/document-control-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/document-control-app",
+      "notes": "Blazor list over /cp/document-control digest under PhpCpDesktopChrome. HTML/bank secrets omitted. Print remains PHP. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Delivery methods read UI",
+      "url": "https://www.ecomae.com/cp/delivery-methods-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/delivery-methods-app",
+      "notes": "Blazor list over /cp/delivery-methods digest under PhpCpDesktopChrome. parameters_values omitted. Configure remains PHP. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Crosses read UI",
+      "url": "https://www.ecomae.com/cp/crosses-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/crosses-app",
+      "notes": "Blazor list over /cp/crosses digest under PhpCpDesktopChrome. Import/edit remains PHP /CP/shop/crosses. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP HR overview read UI",
+      "url": "https://www.ecomae.com/cp/hr-overview-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/hr-overview-app",
+      "notes": "Blazor list over /cp/hr-overview digest under PhpCpDesktopChrome. Salary/allowances/currency/payslip omitted. PHP people/HR shell remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Production overview read UI",
+      "url": "https://www.ecomae.com/cp/production-overview-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/production-overview-app",
+      "notes": "Blazor list over /cp/production-overview digest under PhpCpDesktopChrome. Cost columns omitted. PHP production/manufacturing shell remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Projects overview read UI",
+      "url": "https://www.ecomae.com/cp/projects-overview-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/projects-overview-app",
+      "notes": "Blazor list over /cp/projects-overview digest under PhpCpDesktopChrome. Timesheet rates omitted. PHP projects shell remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Industry packs read UI",
+      "url": "https://www.ecomae.com/cp/industry-packs-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/industry-packs-app",
+      "notes": "Blazor list over /cp/industry-packs digest under PhpCpDesktopChrome. JSON blobs omitted. PHP industry_settings remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Jewellery retail read UI",
+      "url": "https://www.ecomae.com/cp/jewellery-retail-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/jewellery-retail-app",
+      "notes": "Blazor list over /cp/jewellery-retail digest under PhpCpDesktopChrome. PII/cost omitted. PHP retail/jewellery shell remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Price lists read UI",
+      "url": "https://www.ecomae.com/cp/price-lists-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/price-lists-app",
+      "notes": "Blazor list over /cp/price-lists digest under PhpCpDesktopChrome. stats_json/error_text/stored_relpath omitted. PHP /CP/shop/prices remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Auto price read UI",
+      "url": "https://www.ecomae.com/cp/auto-price-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/auto-price-app",
+      "notes": "Blazor list over /cp/auto-price digest under PhpCpDesktopChrome. config_json/notes/meta omitted. PHP epc_auto_price_engine remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP UAE tax compliance read UI",
+      "url": "https://www.ecomae.com/cp/uae-tax-compliance-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/uae-tax-compliance-app",
+      "notes": "Blazor list over /cp/uae-tax-compliance digest under PhpCpDesktopChrome. erp_summary/pdf/passport omitted. PHP uae-tax-compliance remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Budgets read UI",
+      "url": "https://www.ecomae.com/cp/budgets-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/budgets-app",
+      "notes": "Blazor list over /cp/budgets digest under PhpCpDesktopChrome. note omitted. PHP budgeting shell remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Carriers read UI",
+      "url": "https://www.ecomae.com/cp/carriers-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/carriers-app",
+      "notes": "Blazor list over /cp/carriers digest under PhpCpDesktopChrome. contact PII omitted. PHP /CP/shop/logistics/carriers remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Payment gateways read UI",
+      "url": "https://www.ecomae.com/cp/payment-gateways-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/payment-gateways-app",
+      "notes": "Blazor list over /cp/payment-gateways digest under PhpCpDesktopChrome. parameters/credentials omitted. PHP /CP/shop/payments/payments remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Workflows read UI",
+      "url": "https://www.ecomae.com/cp/workflows-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/workflows-app",
+      "notes": "Blazor list over /cp/workflows digest under PhpCpDesktopChrome. trigger_config/JSON omitted. PHP workflow automation remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Purchase requests read UI",
+      "url": "https://www.ecomae.com/cp/purchase-requests-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/purchase-requests-app",
+      "notes": "Blazor list over /cp/purchase-requests digest under PhpCpDesktopChrome. justification/decision_note omitted. PHP purchase requisitions shell remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Promotions read UI",
+      "url": "https://www.ecomae.com/cp/promotions-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/promotions-app",
+      "notes": "Blazor list over /cp/promotions digest under PhpCpDesktopChrome. PHP epc_promotions_engine remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP CRM opportunities read UI",
+      "url": "https://www.ecomae.com/cp/crm-opportunities-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/crm-opportunities-app",
+      "notes": "Blazor list over /cp/crm-opportunities digest under PhpCpDesktopChrome. notes omitted. PHP sales opportunities / CRM shell remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Integrations read UI",
+      "url": "https://www.ecomae.com/cp/integrations-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/integrations-app",
+      "notes": "Blazor list over /cp/integrations digest under PhpCpDesktopChrome. secrets/events omitted. PHP epc_integrations_hub remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Page Builder read UI",
+      "url": "https://www.ecomae.com/cp/page-builder-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/page-builder-app",
+      "notes": "Blazor list over /cp/page-builder digest under PhpCpDesktopChrome. layout_json/brand_json omitted. PHP epc_visual_page_editor remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Product Catalogue read UI",
+      "url": "https://www.ecomae.com/cp/product-catalogue-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/product-catalogue-app",
+      "notes": "Blazor list over /cp/product-catalogue digest under PhpCpDesktopChrome. PHP catalogue editor remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Platform Governance read UI",
+      "url": "https://www.ecomae.com/cp/platform-governance-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/platform-governance-app",
+      "notes": "Blazor list over /cp/platform-governance digest under PhpCpDesktopChrome. description/config_json omitted. PHP epc_platform_governance remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP E-invoice documents read UI",
+      "url": "https://www.ecomae.com/cp/einvoice-documents-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/einvoice-documents-app",
+      "notes": "Blazor list over /cp/einvoice-documents digest under PhpCpDesktopChrome. Payloads omitted. PHP tax einvoice tab remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Jewellery repairs read UI",
+      "url": "https://www.ecomae.com/cp/jewellery-repairs-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/jewellery-repairs-app",
+      "notes": "Blazor list over /cp/jewellery-repairs digest under PhpCpDesktopChrome. PII omitted. PHP service_mgmt jw_repairs remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP CRM tickets read UI",
+      "url": "https://www.ecomae.com/cp/crm-tickets-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/crm-tickets-app",
+      "notes": "Blazor list over /cp/crm-tickets digest under PhpCpDesktopChrome. Message bodies omitted. PHP CRM shell remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Marketing growth read UI",
+      "url": "https://www.ecomae.com/cp/marketing-growth-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/marketing-growth-app",
+      "notes": "Blazor list over /cp/marketing-growth digest under PhpCpDesktopChrome. Notes omitted. PHP marketing growth / campaigns hub remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP SOC 2 compliance read UI",
+      "url": "https://www.ecomae.com/cp/soc2-compliance-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/soc2-compliance-app",
+      "notes": "Blazor list over /cp/soc2-compliance digest under PhpCpDesktopChrome. Description/implementation omitted. PHP epc_soc2_compliance remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Cost models read UI",
+      "url": "https://www.ecomae.com/cp/cost-models-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/cost-models-app",
+      "notes": "Blazor list over /cp/cost-models digest under PhpCpDesktopChrome. detail_json omitted. PHP cost_mgmt cost_models remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Fin advanced read UI",
+      "url": "https://www.ecomae.com/cp/fin-advanced-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/fin-advanced-app",
+      "notes": "Blazor list over /cp/fin-advanced digest under PhpCpDesktopChrome. Allocation/accrual JSON omitted. PHP cost_acct/finance fin_advanced remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Blockchain proofs read UI",
+      "url": "https://www.ecomae.com/cp/blockchain-proofs-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/blockchain-proofs-app",
+      "notes": "Blazor list over /cp/blockchain-proofs digest under PhpCpDesktopChrome. Payload/merkle JSON omitted. PHP tax/audit_wb blockchain_proofs remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Landed cost read UI",
+      "url": "https://www.ecomae.com/cp/landed-cost-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/landed-cost-app",
+      "notes": "Blazor list over /cp/landed-cost digest under PhpCpDesktopChrome. Notes omitted. PHP landed_cost_area remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Warehouse WMS read UI",
+      "url": "https://www.ecomae.com/cp/warehouse-wms-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/warehouse-wms-app",
+      "notes": "Blazor list over /cp/warehouse-wms digest under PhpCpDesktopChrome. PHP warehouse/mhei WMS remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP AI service read UI",
+      "url": "https://www.ecomae.com/cp/ai-service-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/ai-service-app",
+      "notes": "Blazor list over /cp/ai-service digest under PhpCpDesktopChrome. Input/output text omitted. PHP epc_ai_service remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Returns RMA read UI",
+      "url": "https://www.ecomae.com/cp/returns-rma-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/returns-rma-app",
+      "notes": "Blazor list over /cp/returns-rma digest under PhpCpDesktopChrome. Description/notes omitted. PHP returns-manager remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Isolation audit read UI",
+      "url": "https://www.ecomae.com/cp/isolation-audit-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/isolation-audit-app",
+      "notes": "Blazor list over /cp/isolation-audit digest under PhpCpDesktopChrome. report_json omitted. PHP commerce isolation audit remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP AML compliance read UI",
+      "url": "https://www.ecomae.com/cp/aml-compliance-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/aml-compliance-app",
+      "notes": "Blazor list over /cp/aml-compliance digest under PhpCpDesktopChrome. notes/document paths omitted. PHP tax aml_compliance remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Jewellery masters read UI",
+      "url": "https://www.ecomae.com/cp/jewellery-masters-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/jewellery-masters-app",
+      "notes": "Blazor list over /cp/jewellery-masters digest under PhpCpDesktopChrome. description omitted. PHP jewellery masters remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Consolidations read UI",
+      "url": "https://www.ecomae.com/cp/consolidations-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/consolidations-app",
+      "notes": "Blazor list over /cp/consolidations digest under PhpCpDesktopChrome. PHP consolidations area remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP CRM activities read UI",
+      "url": "https://www.ecomae.com/cp/crm-activities-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/crm-activities-app",
+      "notes": "Blazor list over /cp/crm-activities digest under PhpCpDesktopChrome. Notes omitted. PHP CRM activities remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Auth MFA read UI",
+      "url": "https://www.ecomae.com/cp/auth-mfa-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/auth-mfa-app",
+      "notes": "Blazor list over /cp/auth-mfa digest under PhpCpDesktopChrome. Secrets omitted. PHP auth settings remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Electronic reporting read UI",
+      "url": "https://www.ecomae.com/cp/electronic-reporting-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/electronic-reporting-app",
+      "notes": "Blazor list over /cp/electronic-reporting digest under PhpCpDesktopChrome. Preview omitted. PHP tax elec_reporting remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Collections dunning read UI",
+      "url": "https://www.ecomae.com/cp/collections-dunning-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/collections-dunning-app",
+      "notes": "Blazor list over /cp/collections-dunning digest under PhpCpDesktopChrome. Notes omitted. PHP collections/dunning remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Marketplace channels read UI",
+      "url": "https://www.ecomae.com/cp/marketplace-channels-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/marketplace-channels-app",
+      "notes": "Blazor list over /cp/marketplace-channels digest under PhpCpDesktopChrome. Config omitted. PHP marketplace/channels remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Demand intelligence read UI",
+      "url": "https://www.ecomae.com/cp/demand-intelligence-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/demand-intelligence-app",
+      "notes": "Blazor list over /cp/demand-intelligence digest under PhpCpDesktopChrome. PHP demand countries remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Credit limits read UI",
+      "url": "https://www.ecomae.com/cp/credit-limits-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/credit-limits-app",
+      "notes": "Blazor list over /cp/credit-limits digest under PhpCpDesktopChrome. Notes omitted. PHP credit limit engine remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Insurance compliance read UI",
+      "url": "https://www.ecomae.com/cp/insurance-compliance-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/insurance-compliance-app",
+      "notes": "Blazor list over /cp/insurance-compliance digest under PhpCpDesktopChrome. Notes/emails omitted. PHP risk insurance remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Audit trail read UI",
+      "url": "https://www.ecomae.com/cp/audit-trail-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/audit-trail-app",
+      "notes": "Blazor list over /cp/audit-trail digest under PhpCpDesktopChrome. Detail JSON omitted. PHP audit workbench remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Doc expiry read UI",
+      "url": "https://www.ecomae.com/cp/doc-expiry-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/doc-expiry-app",
+      "notes": "Blazor list over /cp/doc-expiry digest under PhpCpDesktopChrome. Notes/emails omitted. PHP doc expiry remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Tenant config read UI",
+      "url": "https://www.ecomae.com/cp/tenant-config-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/tenant-config-app",
+      "notes": "Blazor list over /cp/tenant-config digest under PhpCpDesktopChrome. Config values omitted. PHP tenant configuration remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Jewellery stock verification read UI",
+      "url": "https://www.ecomae.com/cp/jewellery-stock-verification-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/jewellery-stock-verification-app",
+      "notes": "Blazor list over /cp/jewellery-stock-verification digest under PhpCpDesktopChrome. Remarks omitted. PHP jewellery stock verification remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Tax external reporting read UI",
+      "url": "https://www.ecomae.com/cp/tax-external-reporting-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/tax-external-reporting-app",
+      "notes": "Blazor list over /cp/tax-external-reporting digest under PhpCpDesktopChrome. value_json/notes omitted. PHP tax external reporting remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP PO approvals read UI",
+      "url": "https://www.ecomae.com/cp/po-approvals-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/po-approvals-app",
+      "notes": "Blazor list over /cp/po-approvals digest under PhpCpDesktopChrome. description/notes/attachments/items JSON omitted. PHP PO approval remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Finance close read UI",
+      "url": "https://www.ecomae.com/cp/finance-close-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/finance-close-app",
+      "notes": "Blazor list over /cp/finance-close digest under PhpCpDesktopChrome. batch notes/meta_json/checklist omitted. PHP opening balances / year-end close remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Jewellery fixing read UI",
+      "url": "https://www.ecomae.com/cp/jewellery-fixing-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/jewellery-fixing-app",
+      "notes": "Blazor list over /cp/jewellery-fixing digest under PhpCpDesktopChrome. remarks/notes omitted. PHP jewellery fixing / purchase window remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Web tracker read UI",
+      "url": "https://www.ecomae.com/cp/web-tracker-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/web-tracker-app",
+      "notes": "Blazor list over /cp/web-tracker digest under PhpCpDesktopChrome. ip/ua/meta_json omitted. PHP web tracker remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Quote requests read UI",
+      "url": "https://www.ecomae.com/cp/quote-requests-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/quote-requests-app",
+      "notes": "Blazor list over /cp/quote-requests digest under PhpCpDesktopChrome. admin_note/customer_note/product_object_json omitted. PHP quote requests remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Platform communication read UI",
+      "url": "https://www.ecomae.com/cp/platform-communication-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/platform-communication-app",
+      "notes": "Blazor list over /cp/platform-communication digest under PhpCpDesktopChrome. description omitted. PHP super CP communication remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Info blocks read UI",
+      "url": "https://www.ecomae.com/cp/info-blocks-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/info-blocks-app",
+      "notes": "Blazor list over /cp/info-blocks digest under PhpCpDesktopChrome. content_html omitted. PHP info blocks CMS remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Free tools read UI",
+      "url": "https://www.ecomae.com/cp/free-tools-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/free-tools-app",
+      "notes": "Blazor list over /cp/free-tools digest under PhpCpDesktopChrome. token/pass_hash/payload omitted. PHP free tools admin remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Config sandbox read UI",
+      "url": "https://www.ecomae.com/cp/config-sandbox-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/config-sandbox-app",
+      "notes": "Blazor list over /cp/config-sandbox digest under PhpCpDesktopChrome. config_data omitted. PHP config sandbox remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Marketplace apps read UI",
+      "url": "https://www.ecomae.com/cp/marketplace-apps-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/marketplace-apps-app",
+      "notes": "Blazor list over /cp/marketplace-apps digest under PhpCpDesktopChrome. review_text/config omitted. PHP marketplace portal remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Notifications read UI",
+      "url": "https://www.ecomae.com/cp/notifications-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/notifications-app",
+      "notes": "Blazor list over /cp/notifications digest under PhpCpDesktopChrome. body/metadata omitted. PHP notification settings remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Portal settings read UI",
+      "url": "https://www.ecomae.com/cp/portal-settings-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/portal-settings-app",
+      "notes": "Blazor list over /cp/portal-settings digest under PhpCpDesktopChrome. contact_json/theme_json/menu packs omitted. PHP portal settings remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Data migrations read UI",
+      "url": "https://www.ecomae.com/cp/data-migrations-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/data-migrations-app",
+      "notes": "Blazor list over /cp/data-migrations digest under PhpCpDesktopChrome. file_path/mapping/errors/options/raw payloads omitted. PHP data migration remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Config Items read UI",
+      "url": "https://www.ecomae.com/cp/config-items-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/config-items-app",
+      "notes": "Blazor list over /cp/config-items digest under PhpCpDesktopChrome. Secret values never returned. Writes remain PHP config_edit. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Sales Orders read UI",
+      "url": "https://www.ecomae.com/erp/sales-orders-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/sales-orders-app",
+      "notes": "Batch 4 Blazor list over /erp/sales-orders digest. JSON digest stays at /erp/sales-orders. Writes remain PHP erp_tabs_sales_orders."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Purchase Orders read UI",
+      "url": "https://www.ecomae.com/erp/purchase-orders-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/purchase-orders-app",
+      "notes": "Blazor list over /erp/purchase-orders digest under PhpErpDesktopChrome. Writes remain PHP erp_tabs_purchase_orders. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Invoices read UI",
+      "url": "https://www.ecomae.com/erp/invoices-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/invoices-app",
+      "notes": "Blazor list over /erp/invoices digest under PhpErpDesktopChrome. Writes remain PHP erp_tabs_invoices. Tenant chrome stays PHP (same-to-same). ASP.NET Core owns hybrid read surface toward Enterprise BOS."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Cash \u0026 Bank read UI",
+      "url": "https://www.ecomae.com/erp/cash-accounts-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/cash-accounts-app",
+      "notes": "Blazor accounts\u002Bentries over /erp/cash-accounts|/erp/cash-entries digests under PhpErpDesktopChrome. Writes remain PHP erp_tabs_cash_bank. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Cash Entries ledger UI",
+      "url": "https://www.ecomae.com/erp/cash-entries-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/cash-entries-app",
+      "notes": "Blazor ledger list over /erp/cash-entries digest under PhpErpDesktopChrome. Writes remain PHP erp_tabs_cash_bank. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Chart of Accounts read UI",
+      "url": "https://www.ecomae.com/erp/coa-accounts-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/coa-accounts-app",
+      "notes": "Blazor list over /erp/coa-accounts digest under PhpErpDesktopChrome. Writes remain PHP erp_tabs_accounting (tab=coa). Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP GL Journals read UI",
+      "url": "https://www.ecomae.com/erp/gl-journals-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/gl-journals-app",
+      "notes": "Blazor list over /erp/gl-journals digest under PhpErpDesktopChrome. Writes remain PHP erp_tabs_accounting (tab=gl). Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Warehouses read UI",
+      "url": "https://www.ecomae.com/erp/warehouses-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/warehouses-app",
+      "notes": "Blazor list over /erp/warehouses digest under PhpErpDesktopChrome. Writes remain PHP erp_tabs_inventory. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Suppliers read UI",
+      "url": "https://www.ecomae.com/erp/suppliers-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/suppliers-app",
+      "notes": "Blazor list over /erp/suppliers digest under PhpErpDesktopChrome. Writes remain PHP AP payables / epc_erp_list_suppliers. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Purchases read UI",
+      "url": "https://www.ecomae.com/erp/purchases-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/purchases-app",
+      "notes": "Blazor list over /erp/purchases digest under PhpErpDesktopChrome. Writes remain PHP purchasing/purchases / epc_erp_list_purchases. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Inventory Stock KPI UI",
+      "url": "https://www.ecomae.com/erp/inventory-stock-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/inventory-stock-app",
+      "notes": "Blazor KPIs over /erp/inventory-stock digest under PhpErpDesktopChrome. Stock moves remain PHP inventory tab. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Bank Reconciliation read UI",
+      "url": "https://www.ecomae.com/erp/bank-reconciliation-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/bank-reconciliation-app",
+      "notes": "Blazor list over /erp/bank-reconciliation digest under PhpErpDesktopChrome. PHP bank_recon tab remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Stock Transfers read UI",
+      "url": "https://www.ecomae.com/erp/stock-transfers-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/stock-transfers-app",
+      "notes": "Blazor list over /erp/stock-transfers digest under PhpErpDesktopChrome. notes omitted. PHP warehouse transfer UX remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Sales Quotations read UI",
+      "url": "https://www.ecomae.com/erp/sales-quotations-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/sales-quotations-app",
+      "notes": "Blazor list over /erp/sales-quotations digest under PhpErpDesktopChrome. notes omitted. PHP sales proposals/quotations shell remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Workspace Favorites read UI",
+      "url": "https://www.ecomae.com/erp/workspace-favorites-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/workspace-favorites-app",
+      "notes": "Blazor list over /erp/workspace-favorites digest under PhpErpDesktopChrome. PHP dashboard shortcuts remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Fixed Assets read UI",
+      "url": "https://www.ecomae.com/erp/fixed-assets-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/fixed-assets-app",
+      "notes": "Blazor list over /erp/fixed-assets digest under PhpErpDesktopChrome. note omitted. PHP fixed_assets tab remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Accounts Summary KPI UI",
+      "url": "https://www.ecomae.com/erp/accounts-summary-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/accounts-summary-app",
+      "notes": "Blazor cash/supplier KPIs over /erp/accounts-summary digest under PhpErpDesktopChrome. Posting remains PHP cash/bank. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Dashboard Summary KPI UI",
+      "url": "https://www.ecomae.com/erp/dashboard-summary-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/dashboard-summary-app",
+      "notes": "Blazor KPIs over /erp/dashboard-summary digest under PhpErpDesktopChrome. Interactive widgets remain PHP erp_dashboard. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Storefront part search read UI",
+      "url": "https://www.ecomae.com/storefront/search-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/search-app",
+      "notes": "Read UI over /storefront/search digest under PhpStorefrontDesktopChrome. Full PHP part_search tabs/VIN/cart remain authoritative on epartscart.com."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Storefront cart read UI",
+      "url": "https://www.ecomae.com/storefront/cart-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/cart-app",
+      "notes": "Read UI over /storefront/cart digest under PhpStorefrontDesktopChrome. Qty/guest cart/checkout remain PHP on epartscart.com."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Storefront orders read UI",
+      "url": "https://www.ecomae.com/storefront/orders-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/orders-app",
+      "notes": "Blazor list over /storefront/orders digest under PhpStorefrontDesktopChrome. Detail/reorder remain PHP /shop/orders on epartscart.com."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Storefront garage read UI",
+      "url": "https://www.ecomae.com/storefront/garage-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/garage-app",
+      "notes": "Blazor list over /storefront/garage digest under PhpStorefrontDesktopChrome. Add/edit remain PHP part_search garage on epartscart.com."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Storefront profile read UI",
+      "url": "https://www.ecomae.com/storefront/profile-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/profile-app",
+      "notes": "Blazor read over /storefront/profile digest under PhpStorefrontDesktopChrome. Edits remain PHP /users/profile on epartscart.com."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Storefront account summary read UI",
+      "url": "https://www.ecomae.com/storefront/account-summary-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/account-summary-app",
+      "notes": "Blazor KPIs over /storefront/account-summary digest under PhpStorefrontDesktopChrome. Account tools remain PHP /users/ on epartscart.com."
+    },
+    {
+      "hostClass": "aspnet-login-bridge",
+      "surface": "CP login bridge",
+      "url": "https://www.ecomae.com/cp/login",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/login",
+      "notes": "Opt-in PHP-compatible admin session mint when EcomAE__SecretSuccession set. PHP /CP/ login remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-login-bridge",
+      "surface": "ERP login bridge",
+      "url": "https://www.ecomae.com/erp/login",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/login",
+      "notes": "Opt-in admin session mint for ERP digests/shell. PHP ERP routers remain authoritative."
+    },
+    {
+      "hostClass": "aspnet-login-bridge",
+      "surface": "BOS login bridge",
+      "url": "https://www.ecomae.com/bos/login",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/bos/login",
+      "notes": "Batch 3 decision: admin-cookie bridge for digests//bos/app only. Native BOS $_SESSION remains PHP-authoritative on /BOS/."
+    },
+    {
+      "hostClass": "aspnet-login-bridge",
+      "surface": "Storefront login bridge",
+      "url": "https://www.ecomae.com/storefront/login",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/login",
+      "notes": "Batch 3: customer session/u_id mint (md5 contact\u002BuserId\u002Btime\u002Bsecret). Cart/checkout remain PHP."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
       "surface": "Presentation parity",
       "url": "https://www.ecomae.com/migration/presentation-parity",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/migration/presentation-parity",
       "notes": "PHP chrome asset contract for ASP.NET shells."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "PHP module catalog",
+      "url": "https://www.ecomae.com/migration/php-module-catalog",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/php-module-catalog",
+      "notes": "Full CP/ERP/BOS/storefront module directory counts (hybrid deeplink inventory)."
     },
     {
       "hostClass": "aspnet-diagnostics",
@@ -138,7 +1160,7 @@
       "url": "https://www.ecomae.com/migration/surface-field-parity",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/migration/surface-field-parity",
-      "notes": "Field/function contracts for all wired digests + catalog routes."
+      "notes": "Field/function contracts for all wired digests \u002B catalog routes."
     },
     {
       "hostClass": "aspnet-diagnostics",
@@ -246,7 +1268,7 @@
     },
     {
       "hostClass": "industry-frontend",
-      "surface": "Home & living frontend",
+      "surface": "Home \u0026 living frontend",
       "url": "https://homeliving.ecomae.com/",
       "stackToday": "php",
       "aspNetRouteHint": "/",
@@ -437,436 +1459,1118 @@
       "notes": "www alias for ePartsCart."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP dashboard digest",
       "url": "https://www.ecomae.com/cp/dashboard-summary",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/dashboard-summary",
-      "notes": "Needs exact-route nginx shadow after smoke; currently PHP 404 HTML."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized; admin cookie for 200)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP tenants digest",
       "url": "https://www.ecomae.com/cp/tenants",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/tenants",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP users digest",
       "url": "https://www.ecomae.com/cp/users",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/users",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). CDN may briefly cache prior PHP HTML."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP groups digest",
       "url": "https://www.ecomae.com/cp/groups",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/groups",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP modules digest",
       "url": "https://www.ecomae.com/cp/modules",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/modules",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP menus digest",
       "url": "https://www.ecomae.com/cp/menus",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/menus",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP pages digest",
       "url": "https://www.ecomae.com/cp/pages",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/pages",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP currencies digest",
       "url": "https://www.ecomae.com/cp/currencies",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/currencies",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP api-clients digest",
       "url": "https://www.ecomae.com/cp/api-clients",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/api-clients",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP power-bi digest",
+      "url": "https://www.ecomae.com/cp/power-bi",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/power-bi",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP mobile-apps digest",
+      "url": "https://www.ecomae.com/cp/mobile-apps",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/mobile-apps",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP metabase digest",
+      "url": "https://www.ecomae.com/cp/metabase",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/metabase",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP nl-reporting digest",
+      "url": "https://www.ecomae.com/cp/nl-reporting",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/nl-reporting",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP marketing-broadcast digest",
+      "url": "https://www.ecomae.com/cp/marketing-broadcast",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/marketing-broadcast",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP demo-tenants digest",
+      "url": "https://www.ecomae.com/cp/demo-tenants",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/demo-tenants",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP parts-agent-chats digest",
+      "url": "https://www.ecomae.com/cp/parts-agent-chats",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/parts-agent-chats",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP pos-overview digest",
+      "url": "https://www.ecomae.com/cp/pos-overview",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/pos-overview",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP tax-toolkits digest",
+      "url": "https://www.ecomae.com/cp/tax-toolkits",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/tax-toolkits",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP sms-whatsapp digest",
+      "url": "https://www.ecomae.com/cp/sms-whatsapp",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/sms-whatsapp",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP crm-board digest",
+      "url": "https://www.ecomae.com/cp/crm-board",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/crm-board",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP document-control digest",
+      "url": "https://www.ecomae.com/cp/document-control",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/document-control",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP delivery-methods digest",
+      "url": "https://www.ecomae.com/cp/delivery-methods",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/delivery-methods",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP crosses digest",
+      "url": "https://www.ecomae.com/cp/crosses",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/crosses",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP hr-overview digest",
+      "url": "https://www.ecomae.com/cp/hr-overview",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/hr-overview",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 48/48 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP production-overview digest",
+      "url": "https://www.ecomae.com/cp/production-overview",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/production-overview",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 48/48 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP projects-overview digest",
+      "url": "https://www.ecomae.com/cp/projects-overview",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/projects-overview",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 48/48 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP industry-packs digest",
+      "url": "https://www.ecomae.com/cp/industry-packs",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/industry-packs",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 48/48 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP jewellery-retail digest",
+      "url": "https://www.ecomae.com/cp/jewellery-retail",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/jewellery-retail",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 52/52 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP price-lists digest",
+      "url": "https://www.ecomae.com/cp/price-lists",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/price-lists",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 52/52 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP auto-price digest",
+      "url": "https://www.ecomae.com/cp/auto-price",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/auto-price",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 52/52 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP uae-tax-compliance digest",
+      "url": "https://www.ecomae.com/cp/uae-tax-compliance",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/uae-tax-compliance",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 52/52 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP budgets digest",
+      "url": "https://www.ecomae.com/cp/budgets",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/budgets",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 64/64 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP carriers digest",
+      "url": "https://www.ecomae.com/cp/carriers",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/carriers",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 64/64 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP payment-gateways digest",
+      "url": "https://www.ecomae.com/cp/payment-gateways",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/payment-gateways",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 64/64 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP workflows digest",
+      "url": "https://www.ecomae.com/cp/workflows",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/workflows",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 64/64 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP purchase-requests digest",
+      "url": "https://www.ecomae.com/cp/purchase-requests",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/purchase-requests",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 64/64 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP promotions digest",
+      "url": "https://www.ecomae.com/cp/promotions",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/promotions",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 64/64 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP crm-opportunities digest",
+      "url": "https://www.ecomae.com/cp/crm-opportunities",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/crm-opportunities",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 64/64 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP integrations digest",
+      "url": "https://www.ecomae.com/cp/integrations",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/integrations",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 68/68 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP page-builder digest",
+      "url": "https://www.ecomae.com/cp/page-builder",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/page-builder",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 68/68 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP product-catalogue digest",
+      "url": "https://www.ecomae.com/cp/product-catalogue",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/product-catalogue",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 68/68 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP platform-governance digest",
+      "url": "https://www.ecomae.com/cp/platform-governance",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/platform-governance",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 68/68 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP einvoice-documents digest",
+      "url": "https://www.ecomae.com/cp/einvoice-documents",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/einvoice-documents",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 72/72 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP jewellery-repairs digest",
+      "url": "https://www.ecomae.com/cp/jewellery-repairs",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/jewellery-repairs",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 72/72 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP crm-tickets digest",
+      "url": "https://www.ecomae.com/cp/crm-tickets",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/crm-tickets",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 72/72 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP marketing-growth digest",
+      "url": "https://www.ecomae.com/cp/marketing-growth",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/marketing-growth",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 72/72 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP soc2-compliance digest",
+      "url": "https://www.ecomae.com/cp/soc2-compliance",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/soc2-compliance",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 76/76 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP cost-models digest",
+      "url": "https://www.ecomae.com/cp/cost-models",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/cost-models",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 76/76 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP fin-advanced digest",
+      "url": "https://www.ecomae.com/cp/fin-advanced",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/fin-advanced",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 76/76 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP blockchain-proofs digest",
+      "url": "https://www.ecomae.com/cp/blockchain-proofs",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/blockchain-proofs",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 76/76 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP landed-cost digest",
+      "url": "https://www.ecomae.com/cp/landed-cost",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/landed-cost",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 80/80 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP warehouse-wms digest",
+      "url": "https://www.ecomae.com/cp/warehouse-wms",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/warehouse-wms",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 80/80 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP ai-service digest",
+      "url": "https://www.ecomae.com/cp/ai-service",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/ai-service",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 80/80 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP returns-rma digest",
+      "url": "https://www.ecomae.com/cp/returns-rma",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/returns-rma",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 80/80 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP isolation-audit digest",
+      "url": "https://www.ecomae.com/cp/isolation-audit",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/isolation-audit",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 84/84 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP aml-compliance digest",
+      "url": "https://www.ecomae.com/cp/aml-compliance",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/aml-compliance",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 84/84 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP jewellery-masters digest",
+      "url": "https://www.ecomae.com/cp/jewellery-masters",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/jewellery-masters",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 84/84 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP consolidations digest",
+      "url": "https://www.ecomae.com/cp/consolidations",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/consolidations",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 84/84 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP crm-activities digest",
+      "url": "https://www.ecomae.com/cp/crm-activities",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/crm-activities",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 92/92 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP auth-mfa digest",
+      "url": "https://www.ecomae.com/cp/auth-mfa",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/auth-mfa",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 92/92 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP electronic-reporting digest",
+      "url": "https://www.ecomae.com/cp/electronic-reporting",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/electronic-reporting",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 92/92 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP collections-dunning digest",
+      "url": "https://www.ecomae.com/cp/collections-dunning",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/collections-dunning",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 92/92 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP marketplace-channels digest",
+      "url": "https://www.ecomae.com/cp/marketplace-channels",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/marketplace-channels",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 96/96 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP demand-intelligence digest",
+      "url": "https://www.ecomae.com/cp/demand-intelligence",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/demand-intelligence",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 96/96 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP credit-limits digest",
+      "url": "https://www.ecomae.com/cp/credit-limits",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/credit-limits",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 96/96 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP insurance-compliance digest",
+      "url": "https://www.ecomae.com/cp/insurance-compliance",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/insurance-compliance",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 96/96 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP audit-trail digest",
+      "url": "https://www.ecomae.com/cp/audit-trail",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/audit-trail",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 96/96 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP doc-expiry digest",
+      "url": "https://www.ecomae.com/cp/doc-expiry",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/doc-expiry",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 96/96 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP tenant-config digest",
+      "url": "https://www.ecomae.com/cp/tenant-config",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/tenant-config",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 96/96 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP jewellery-stock-verification digest",
+      "url": "https://www.ecomae.com/cp/jewellery-stock-verification",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/jewellery-stock-verification",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 96/96 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP tax-external-reporting digest",
+      "url": "https://www.ecomae.com/cp/tax-external-reporting",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/tax-external-reporting",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 104/104 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP po-approvals digest",
+      "url": "https://www.ecomae.com/cp/po-approvals",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/po-approvals",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 104/104 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP finance-close digest",
+      "url": "https://www.ecomae.com/cp/finance-close",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/finance-close",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 104/104 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP jewellery-fixing digest",
+      "url": "https://www.ecomae.com/cp/jewellery-fixing",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/jewellery-fixing",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 104/104 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP web-tracker digest",
+      "url": "https://www.ecomae.com/cp/web-tracker",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/web-tracker",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 104/104 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP quote-requests digest",
+      "url": "https://www.ecomae.com/cp/quote-requests",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/quote-requests",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 104/104 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP platform-communication digest",
+      "url": "https://www.ecomae.com/cp/platform-communication",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/platform-communication",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 104/104 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP info-blocks digest",
+      "url": "https://www.ecomae.com/cp/info-blocks",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/info-blocks",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 108/108 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP free-tools digest",
+      "url": "https://www.ecomae.com/cp/free-tools",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/free-tools",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 108/108 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP config-sandbox digest",
+      "url": "https://www.ecomae.com/cp/config-sandbox",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/config-sandbox",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 108/108 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP marketplace-apps digest",
+      "url": "https://www.ecomae.com/cp/marketplace-apps",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/marketplace-apps",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 108/108 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP notifications digest",
+      "url": "https://www.ecomae.com/cp/notifications",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/notifications",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 108/108 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP portal-settings digest",
+      "url": "https://www.ecomae.com/cp/portal-settings",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/portal-settings",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 110/110 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP data-migrations digest",
+      "url": "https://www.ecomae.com/cp/data-migrations",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/data-migrations",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 110/110 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "ERP bank-reconciliation digest",
+      "url": "https://www.ecomae.com/erp/bank-reconciliation",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/bank-reconciliation",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 68/68 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "ERP stock-transfers digest",
+      "url": "https://www.ecomae.com/erp/stock-transfers",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/stock-transfers",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 68/68 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "ERP sales-quotations digest",
+      "url": "https://www.ecomae.com/erp/sales-quotations",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/sales-quotations",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 68/68 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "ERP workspace-favorites digest",
+      "url": "https://www.ecomae.com/erp/workspace-favorites",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/workspace-favorites",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 68/68 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "ERP fixed-assets digest",
+      "url": "https://www.ecomae.com/erp/fixed-assets",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/fixed-assets",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 68/68 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP config-items digest",
       "url": "https://www.ecomae.com/cp/config-items",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/config-items",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP admin-sessions digest",
       "url": "https://www.ecomae.com/cp/admin-sessions",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/admin-sessions",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP storages digest",
       "url": "https://www.ecomae.com/cp/storages",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/storages",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP dashboard digest",
       "url": "https://www.ecomae.com/erp/dashboard-summary",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/dashboard-summary",
-      "notes": "Needs exact-route nginx shadow after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP accounts-summary digest",
       "url": "https://www.ecomae.com/erp/accounts-summary",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/accounts-summary",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP suppliers digest",
       "url": "https://www.ecomae.com/erp/suppliers",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/suppliers",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP purchases digest",
       "url": "https://www.ecomae.com/erp/purchases",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/purchases",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP cash-accounts digest",
       "url": "https://www.ecomae.com/erp/cash-accounts",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/cash-accounts",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP cash-entries digest",
       "url": "https://www.ecomae.com/erp/cash-entries",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/cash-entries",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP COA accounts digest",
       "url": "https://www.ecomae.com/erp/coa-accounts",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/coa-accounts",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP warehouses digest",
       "url": "https://www.ecomae.com/erp/warehouses",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/warehouses",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP sales-orders digest",
       "url": "https://www.ecomae.com/erp/sales-orders",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/sales-orders",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP purchase-orders digest",
       "url": "https://www.ecomae.com/erp/purchase-orders",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/purchase-orders",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP inventory-stock digest",
       "url": "https://www.ecomae.com/erp/inventory-stock",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/inventory-stock",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP invoices digest",
       "url": "https://www.ecomae.com/erp/invoices",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/invoices",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "ERP GL journals digest",
       "url": "https://www.ecomae.com/erp/gl-journals",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/gl-journals",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "BOS fleet digest",
       "url": "https://www.ecomae.com/bos/fleet-summary",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/bos/fleet-summary",
-      "notes": "Needs exact-route nginx shadow after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "BOS tenants digest",
       "url": "https://www.ecomae.com/bos/tenants",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/bos/tenants",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "BOS fleet-health digest",
       "url": "https://www.ecomae.com/bos/fleet-health",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/bos/fleet-health",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "BOS fleet-readiness digest",
       "url": "https://www.ecomae.com/bos/fleet-readiness",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/bos/fleet-readiness",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "BOS audit-log digest",
       "url": "https://www.ecomae.com/bos/audit-log",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/bos/audit-log",
-      "notes": "Covered by nginx-surface-digests-shadow-example.conf after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog status",
       "url": "https://www.ecomae.com/api/v1/catalog/status",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/status",
-      "notes": "Needs exact-route nginx shadow + API key smoke."
+      "notes": "Live exact-route nginx shadow on www (401/200 ASP.NET JSON). PHP remains for chrome/digests."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog manufacturers",
       "url": "https://www.ecomae.com/api/v1/catalog/manufacturers?section=passenger",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/manufacturers",
-      "notes": "Wave-1 after status; compare_catalog_list_parity.py + nginx-catalog-manufacturers-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (401/200; section=passenger). Dual-sample compare still recommended before more list routes."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog models",
-      "url": "https://www.ecomae.com/api/v1/catalog/models",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/models?section=passenger\u0026mfa_id=1",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/models",
-      "notes": "List envelope; nginx-catalog-models-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth needs section\u002Bmfa_id\u003E0 for 200; row keys MFA_ID). Dual-sample compare still recommended."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog modifications",
-      "url": "https://www.ecomae.com/api/v1/catalog/modifications",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/modifications?section=passenger\u0026ms_id=1",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/modifications",
-      "notes": "List envelope; nginx-catalog-modifications-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth needs section\u002Bms_id\u003E0 for 200; row keys MS_ID). Dual-sample compare still recommended."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog brands",
       "url": "https://www.ecomae.com/api/v1/catalog/brands",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/brands",
-      "notes": "List envelope contracted; promote one path after smoke."
+      "notes": "Live exact-route nginx shadow on www (401/200 ASP.NET JSON; no mfa_id/ms_id required). Dual-sample compare still recommended."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog suppliers",
       "url": "https://www.ecomae.com/api/v1/catalog/suppliers",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/suppliers",
-      "notes": "List envelope; nginx-catalog-suppliers-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (401/200; brands-table alias, 1314 rows). Dual-sample compare still recommended."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog VIN",
-      "url": "https://www.ecomae.com/api/v1/catalog/vin",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/vin?vin=WBAXG1103CDW29096",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/vin",
-      "notes": "Offline VIN decode; compare_catalog_vin_parity.py after dual sample."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth cache hit 200 / miss 404 vin_cache_miss). PHP/UMAPI remains for live fills."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog engines",
-      "url": "https://www.ecomae.com/api/v1/catalog/engines",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/engines?section=passenger\u0026mfa_id=16",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/engines",
-      "notes": "Offline-cache; compare_catalog_offline_cache_parity.py."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth needs section\u002Bmfa_id; cache miss 404 remains PHP/UMAPI)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog analogs",
-      "url": "https://www.ecomae.com/api/v1/catalog/analogs",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/analogs?section=passenger\u0026article=0986424590\u0026brand=BOSCH",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/analogs",
-      "notes": "Offline-cache; nginx-catalog-analogs-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth needs article\u002Bbrand; cache miss 404 remains PHP/UMAPI)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog article-brands",
-      "url": "https://www.ecomae.com/api/v1/catalog/article-brands",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/article-brands?section=passenger\u0026article=0986424590",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/article-brands",
-      "notes": "Offline-cache; nginx-catalog-article-brands-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth needs article; UMAPI action=brands cache; miss 404 remains PHP)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog categories",
-      "url": "https://www.ecomae.com/api/v1/catalog/categories",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/categories?section=passenger\u0026id=1",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/categories",
-      "notes": "Offline-cache; nginx-catalog-categories-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth optional id; cache miss 404 remains PHP/UMAPI)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog products",
-      "url": "https://www.ecomae.com/api/v1/catalog/products",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/products?section=passenger\u0026category_id=1\u0026id=1",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/products",
-      "notes": "Offline-cache; nginx-catalog-products-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth needs category/id params for cache hit; miss 404 remains PHP/UMAPI)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog engine-search",
-      "url": "https://www.ecomae.com/api/v1/catalog/engine-search",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/engine-search?section=passenger\u0026code=3L\u0026mfa_id=0",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/engine-search",
-      "notes": "Offline-cache; nginx-catalog-engine-search-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth needs engine_search in allowed_actions_json \u2014 smoke key may 403 until re-issue; miss 404 remains PHP)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog article-links",
-      "url": "https://www.ecomae.com/api/v1/catalog/article-links",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/article-links?section=passenger\u0026id=123",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/article-links",
-      "notes": "Offline-cache; nginx-catalog-article-links-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth uses catalog action=article; offline-cache miss 404 remains PHP/UMAPI). Installer may FAIL on CDN lag while location= is already inserted \u2014 re-probe public."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog article",
-      "url": "https://www.ecomae.com/api/v1/catalog/article",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/article?section=passenger\u0026id=123",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/article",
-      "notes": "UMAPI/cache path; nginx-catalog-article-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth needs id \u002B action=article; offline-cache miss 404 remains PHP/UMAPI). Exact-match installer fix required so article is not confused with article-links."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog articles",
-      "url": "https://www.ecomae.com/api/v1/catalog/articles",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/articles?section=passenger\u0026CATEGORY_ID=1",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/articles",
-      "notes": "UMAPI/cache path; promote after smoke + dual sample."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth action=articles; opportunistic cache, miss 404 remains PHP/UMAPI)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog engine",
-      "url": "https://www.ecomae.com/api/v1/catalog/engine",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/engine?section=passenger\u0026id=1",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/engine",
-      "notes": "UMAPI/cache path; nginx-catalog-engine-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth uses engines action; offline-cache miss 404 remains PHP/UMAPI). Exact-match installer avoids false hit on engines/engine-search."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Catalog brand-parts",
-      "url": "https://www.ecomae.com/api/v1/catalog/brand-parts",
-      "stackToday": "php-fallback",
+      "url": "https://www.ecomae.com/api/v1/catalog/brand-parts?section=passenger\u0026brand=BOSCH",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/api/v1/catalog/brand-parts",
-      "notes": "compare_catalog_brand_parts_parity.py + nginx-catalog-brand-parts-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401; auth needs brand/params; miss 404 remains PHP). Completes wired catalog API exact-route set (18/18)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Storefront account summary",
       "url": "https://www.ecomae.com/storefront/account-summary",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/storefront/account-summary",
-      "notes": "Optional customer digest; needs ECOMAE_CUSTOMER_COOKIE_* + nginx-storefront-digests-shadow-example.conf."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized; customer cookie for 200). Storefront digests live 4/6."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Storefront orders",
       "url": "https://www.ecomae.com/storefront/orders",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/storefront/orders",
-      "notes": "Optional customer digest; not required for ReadyToRemovePhp."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized; customer cookie for 200)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Storefront garage",
       "url": "https://www.ecomae.com/storefront/garage",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/storefront/garage",
-      "notes": "Optional customer digest after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized; customer cookie for 200)."
     },
     {
-      "hostClass": "aspnet-digest-pending-shadow",
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "Storefront profile",
       "url": "https://www.ecomae.com/storefront/profile",
-      "stackToday": "php-fallback",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/storefront/profile",
-      "notes": "Optional customer digest after smoke."
+      "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized; customer cookie for 200). Storefront digests live 4/6."
+    },
+    {
+      "hostClass": "aspnet-digest-wired-awaiting-shadow",
+      "surface": "Storefront search digest",
+      "url": "https://www.ecomae.com/storefront/search",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/search",
+      "notes": "JSON digest wired (rows[] item-field floor). Awaiting exact-route nginx shadow install; PHP /shop/part_search remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-digest-wired-awaiting-shadow",
+      "surface": "Storefront cart digest",
+      "url": "https://www.ecomae.com/storefront/cart",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/cart",
+      "notes": "JSON digest wired (summary\u002Blines[] item-field floor). Awaiting exact-route nginx shadow install; qty/checkout remain PHP."
     }
   ],
   "cutoverRules": [
+    "Live tenant and industry frontend/CP/ERP must remain PHP \u2014 migration shadows default to www.ecomae.com only (see docs/migration/TENANT_MIGRATION_SAFETY.md).",
     "Broad /, /api, /cp, /erp, /bos, storefront nginx cutover remains forbidden.",
     "Only approved location = exact-route shadows may be enabled after staging smoke.",
     "Keep MigrationRouteCutover StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final gate.",
-    "ReadyToRemovePhp stays false without staging-smoke artifacts + RELEASE_OWNER_APPROVAL.md."
+    "ReadyToRemovePhp stays false without staging-smoke artifacts \u002B RELEASE_OWNER_APPROVAL.md.",
+    "cutoverAllowed=false and readyForPhpRemoval=false until exact-route shadows \u002B dual-sample parity \u002B human RELEASE_OWNER_APPROVAL.md."
   ],
   "nextActions": [
-    "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh — then apply DDL (clpctl) or use_php_dp_config_as_tenant_registry.sh if CREATE denied.",
+    "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh \u2014 then apply DDL (clpctl) or use_php_dp_config_as_tenant_registry.sh if CREATE denied.",
     "On CloudPanel: ECOMAE_CONFIRM_CREATE_API_CLIENTS_TABLE=YES bash scripts/cloudpanel_ensure_epc_api_clients_table.sh",
     "Then: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
     "Validate (redacted): bash scripts/cloudpanel_validate_final_gate_env.sh (or bash scripts/cloudpanel_prepare_smoke_secrets.sh).",
-    "source /etc/ecomae-aspnet/platform.env && bash scripts/cloudpanel_capture_final_gate_artifacts.sh && bash scripts/cloudpanel_commit_final_gate_smoke.sh",
-    "Optional storefront digests: set ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits> (not required for ReadyToRemovePhp).",
-    "Extract one path: bash scripts/cloudpanel_extract_exact_route_shadow.sh /api/v1/catalog/status (then manufacturers via nginx-catalog-*-shadow-example.conf).",
-    "Dual-sample: python3 scripts/compare_catalog_list_parity.py manufacturers php.json aspnet.json — then human APPROVED_TO_REMOVE_PHP_FALLBACK."
-  ]
+    "source /etc/ecomae-aspnet/platform.env \u0026\u0026 bash scripts/cloudpanel_capture_final_gate_artifacts.sh \u0026\u0026 bash scripts/cloudpanel_commit_final_gate_smoke.sh",
+    "Auth chain probe: source /etc/ecomae-aspnet/platform.env \u0026\u0026 bash scripts/cloudpanel_probe_catalog_vehicle_chain.sh",
+    "Warm VIN probe: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh vin",
+    "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi engine_search",
+    "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article_links",
+    "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article",
+    "Batch 5 catalog miss probe: bash scripts/cloudpanel_probe_catalog_miss_path.sh (expect 401 unauth / 404 cache_miss|vin_cache_miss; cutoverAllowed=false).",
+    "Batch 5 miss dual-sample: bash scripts/cloudpanel_capture_catalog_miss_dual_samples.sh \u0026\u0026 python3 scripts/compare_catalog_miss_dual_samples.py (PHP fill remains authoritative).",
+    "Batch 5 miss-fill dry-run: worker job catalog-miss-fill (sample_actions); outbound/writes blocked; see docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json.",
+    "If engine-search/article auth 403 action_not_allowed: re-issue smoke creds (allowlist now includes engine_search\u002Barticle) via ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
+    "Wired catalog exact-routes complete (18/18). Surface digests: wired 110 (live until operator installs wave-21a portal-settings/data-migrations digest shadows). Storefront digests: 4/6 live (wired 6; search/cart awaiting shadow; never broad /storefront).",
+    "Storefront batch: ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh",
+    "Storefront probe: bash scripts/cloudpanel_probe_storefront_digest_shadows.sh",
+    "Blazor SSR console live: /migration/console. Digest dual-sample contract compare: pairsChecked=185 failed=0 (cutoverAllowed=false).",
+    "Presentation \u002B login exact-routes: /cp|/erp|/bos|/storefront/{app,login} \u002B POST /auth/login/admin \u2014 ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES bash scripts/cloudpanel_install_presentation_app_shadows.sh",
+    "Login bridge needs EcomAE__SecretSuccession (= PHP secret_succession) in platform.env; verify with scripts/cloudpanel_verify_secret_succession_configured.sh (never prints secret); without it UI falls back to PHP login.",
+    "Login cookie dual-sample: scripts/cloudpanel_capture_login_cookie_dual_samples.sh \u002B compare_login_cookie_dual_samples.py (cutoverAllowed=false).",
+    "Hybrid UI dual-sample: bash scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh \u0026\u0026 python3 scripts/compare_hybrid_ui_dual_samples.py (www previews only; cutoverAllowed=false; see docs/migration/evidence/hybrid-ui-dual-samples/).",
+    "Hybrid chrome: ASP.NET shells link PHP modules (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /CP/ /ERP/ /BOS/ remain PHP.",
+    "Same-to-same tenant verify: bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh (PHP chrome on tenant / /CP/ /ERP/ \u002B BOS spot-check; cutoverAllowed=false).",
+    "Tenant safety probe: bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh (expect PHP HTML on tenant / /CP/ /ERP/).",
+    "Shadow installers refuse tenant vhosts unless ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES; presentation shadows refuse tenants by default.",
+    "Invisible migration law: docs/migration/TENANT_MIGRATION_SAFETY.md \u2014 digests/previews never replace tenant UX.",
+    "PHP-level parity plan: docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md \u2014 regenerate catalogs via python3 scripts/generate_php_module_catalog.py.",
+    "Hybrid module directories on /cp|/erp|/bos|/storefront/app; counts at GET /migration/php-module-catalog.",
+    "Human RELEASE_OWNER_APPROVAL.md is the final ReadyToRemovePhp blocker \u2014 do not remove PHP while chrome is PHP-authoritative."
+  ],
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
 }

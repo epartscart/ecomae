@@ -1,0 +1,31 @@
+{
+  "role": "cp-warehouse-wms-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-warehouse-wms",
+  "collectionKey": "work",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "locationCount",
+    "lpCount",
+    "waveCount",
+    "openWorkCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "workType",
+    "reference",
+    "waveId",
+    "item",
+    "qty",
+    "status",
+    "assignedTo",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-warehouse-wms digest summary+work[] floors. PHP warehouse/mhei WMS remains authoritative. cutoverAllowed=false."
+}

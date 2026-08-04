@@ -23,10 +23,7 @@
     .bos-login .epc-login-error { background:#450a0a; color:#fecaca; border:1px solid #7f1d1d; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
     .bos-login .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
     .bos-login .epc-login-php { color:#93c5fd; font-weight:700; }
-    .bos-login .epc-bos-bridge-warn {
-        margin:0 0 1rem; padding:.65rem .75rem; border:1px solid #854d0e; background:#422006; color:#fde68a;
-        border-radius:.45rem; font-size:.82rem; line-height:1.4;
-    }
+    .bos-login .bos-login__secure a.epc-login-php { color:#93c5fd; font-weight:700; }
 </style>
 
 <div class="bos-login">
@@ -121,13 +118,12 @@
             </div>
             <h2 class="bos-login__panel-title">Operator Access</h2>
             <p class="bos-login__panel-sub">Manage your entire tenant fleet from one dashboard.</p>
-            <div class="epc-bos-bridge-warn">
-                Batch 3 decision: this form mints <strong>MySQL admin cookies</strong> for ASP.NET digests and <code>/bos/app</code> only.
-                It is <strong>not</strong> PHP <code>$_SESSION['epc_bos_context']</code>. Full tenant module UX stays on
-                <a class="epc-login-php" href="/BOS/">live /BOS/</a> (PHP-authoritative).
-            </div>
-            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/BOS/" ErrorMessage="@_error" SubmitLabel="Sign In (admin bridge)" Accent="blue" />
-            <p class="bos-login__secure"><i class="fa fa-lock"></i> Graphical chrome from PHP bos-login · Native BOS session remains PHP</p>
+            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/BOS/" ErrorMessage="@_error" SubmitLabel="Sign In" Accent="blue" />
+            <p class="bos-login__secure">
+                <i class="fa fa-lock"></i>
+                Full BOS modules stay on <a class="epc-login-php" href="/BOS/">live /BOS/</a> (PHP).
+                This bridge opens hybrid digests only.
+            </p>
         </div>
     </div>
 </div>

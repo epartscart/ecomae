@@ -1,0 +1,27 @@
+{
+  "role": "cp-marketing-growth-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-marketing-growth",
+  "collectionKey": "reviews",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "taskCount",
+    "tasksDone",
+    "kpiLogCount",
+    "reviewCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "strategyKey",
+    "reviewType",
+    "score",
+    "createdAt",
+    "createdBy"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-marketing-growth digest summary+reviews[] floors. Marketing growth floors. PHP marketing growth remains authoritative. cutoverAllowed=false."
+}

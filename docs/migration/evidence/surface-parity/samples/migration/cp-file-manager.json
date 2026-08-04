@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "rootPresent": 1,
+    "fileCount": 1,
+    "dirCount": 1,
+    "totalBytes": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "entries": [
+    {
+      "name": "migration",
+      "isDirectory": 1,
+      "sizeBytes": 1,
+      "extension": "migration"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "migration-mode; file contents; cutoverAllowed=false"
+}

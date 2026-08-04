@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "channelCount": 1,
+    "activeCount": 1,
+    "skuMapCount": 0,
+    "orderCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; channels[] sentinel; config_json omitted; PHP marketplace/channels authoritative; cutoverAllowed=false",
+  "channels": [
+    {
+      "id": 1,
+      "code": "amazon_ae",
+      "name": "Amazon AE",
+      "marketplaceId": "A2VIGQ35RCS4UG",
+      "active": 1,
+      "demoMode": 1,
+      "lastSyncAt": 0,
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

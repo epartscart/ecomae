@@ -1,0 +1,30 @@
+{
+  "role": "cp-platform-communication-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-platform-communication",
+  "collectionKey": "tasks",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "settingCount",
+    "taskCount",
+    "openTaskCount",
+    "highPriorityCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "title",
+    "assignedTo",
+    "siteKey",
+    "category",
+    "status",
+    "priority",
+    "dueAt",
+    "createdAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-platform-communication digest summary+tasks[] floors. description omitted; PHP super CP communication remains authoritative. cutoverAllowed=false."
+}

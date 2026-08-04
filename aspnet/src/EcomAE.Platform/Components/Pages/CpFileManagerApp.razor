@@ -1,0 +1,82 @@
+@page "/cp/file-manager-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>File manager · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-w23-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 45%,#0ea5e9 100%); }
+        .epc-w23-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-w23-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; }
+        .epc-w23-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-w23-cta a { display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem; text-decoration:none; color:#0f172a; background:#fff; }
+        .epc-w23-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-w23-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-w23-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-w23-kpi strong { display:block; font-size:1.2rem; }
+        .epc-w23-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-w23-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-w23-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-w23-table th, .epc-w23-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-w23-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
+        .epc-w23-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-w23-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+    <section class="epc-w23-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>File manager</h1>
+        <p>Read-only /content/files inventory. No elFinder writes.</p>
+        <div class="epc-w23-cta">
+            <a href="@_phpTab">Open PHP</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+    <div class="epc-w23-kpis">
+        <div class="epc-w23-kpi"><strong>@_summary.RootPresent.ToString(CultureInfo.InvariantCulture)</strong><span>Root OK</span></div>
+        <div class="epc-w23-kpi"><strong>@_summary.FileCount.ToString(CultureInfo.InvariantCulture)</strong><span>Files</span></div>
+        <div class="epc-w23-kpi"><strong>@_summary.DirCount.ToString(CultureInfo.InvariantCulture)</strong><span>Dirs</span></div>
+        <div class="epc-w23-kpi"><strong>@_summary.TotalBytes.ToString(CultureInfo.InvariantCulture)</strong><span>Bytes</span></div>
+    </div>
+    <div class="epc-w23-table-wrap"><table class="epc-w23-table">
+        <thead><tr><th>Name</th><th>Dir</th><th>Bytes</th><th>Ext</th><th></th></tr></thead>
+        <tbody>
+        @if (_rows.Count==0) { <tr><td colspan="5">No rows (@_source). @_message</td></tr> }
+        else { @foreach (var row in _rows) { <tr><td>@row.Name</td><td>@row.IsDirectory</td><td>@row.SizeBytes</td><td>@row.Extension</td><td><a href="@_phpTab">Open in PHP</a></td></tr> } }
+        </tbody>
+    </table></div>
+    <div class="epc-w23-note">Read-only · <a href="/cp/file-manager?limit=200">/cp/file-manager</a> · file contents · PHP remains authoritative · Source <code>@_source</code></div>
+</PhpCpDesktopChrome>
+@code {
+    private const string _phpTab = "/CP/filemanager";
+    private bool _isAdmin;
+    private CpFileManagerSummary _summary = new(0, 0, 0, 0L, "n/a", "");
+    private IReadOnlyList<CpFileManagerRowDigest> _rows = [];
+    private string _source = "n/a";
+    private string _message = "";
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpFileManagerDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _rows = result.Entries;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

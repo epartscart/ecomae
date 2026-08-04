@@ -15,7 +15,7 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Equal("www.ecomae.com", report.PlatformHost);
         Assert.False(report.CutoverAllowed);
         Assert.False(report.ReadyForPhpRemoval);
-        Assert.True(report.Links.Count >= 105);
+        Assert.True(report.Links.Count >= 109);
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/BOS/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/CP/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/ERP/", StringComparison.OrdinalIgnoreCase));
@@ -141,7 +141,7 @@ public sealed class LiveSurfaceLinkReporterTests
             link.HostClass == "aspnet-exact-route-shadow-live"
             && link.AspNetRouteHint == "/bos/audit-log"
             && link.StackToday == "aspnet");
-        Assert.Equal(60, report.Links.Count(link =>
+        Assert.Equal(127, report.Links.Count(link =>
             link.HostClass == "aspnet-exact-route-shadow-live"
             && (link.AspNetRouteHint.StartsWith("/cp/", StringComparison.Ordinal)
                 || link.AspNetRouteHint.StartsWith("/erp/", StringComparison.Ordinal)
@@ -164,7 +164,79 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Equal(4, report.Links.Count(link =>
             link.HostClass == "aspnet-exact-route-shadow-live"
             && link.AspNetRouteHint.StartsWith("/storefront/", StringComparison.Ordinal)));
-        Assert.Equal(72, report.Links.Count(link => link.HostClass == "aspnet-presentation-preview"));
+        Assert.Equal(139, report.Links.Count(link => link.HostClass == "aspnet-presentation-preview"));
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/audit-trail-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/doc-expiry-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/tenant-config-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/jewellery-stock-verification-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/audit-trail");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/doc-expiry");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/tenant-config");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/jewellery-stock-verification");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/tax-external-reporting-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/po-approvals-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/finance-close-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/jewellery-fixing-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/tax-external-reporting");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/po-approvals");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/finance-close");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/jewellery-fixing");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/geo-regions-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/geo-regions");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/product-filters-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/product-filters");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/search-tabs-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/search-tabs");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/system-requests-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-exact-route-shadow-live"
+            && link.AspNetRouteHint == "/cp/system-requests");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/bos/audit-log-app");
@@ -300,6 +372,103 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/cp/integrations-app");
+
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/erp/bank-reconciliation-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/erp/stock-transfers-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/erp/sales-quotations-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/erp/workspace-favorites-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/erp/fixed-assets-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/page-builder-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/product-catalogue-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/platform-governance-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/einvoice-documents-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/jewellery-repairs-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/crm-tickets-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/marketing-growth-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/soc2-compliance-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/cost-models-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/fin-advanced-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/blockchain-proofs-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/landed-cost-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/warehouse-wms-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/ai-service-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/returns-rma-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/isolation-audit-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/aml-compliance-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/jewellery-masters-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/consolidations-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/crm-activities-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/auth-mfa-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/electronic-reporting-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/collections-dunning-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/marketplace-channels-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/demand-intelligence-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/credit-limits-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/insurance-compliance-app");
         Assert.Equal(4, report.Links.Count(link => link.HostClass == "aspnet-login-bridge"));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
 
@@ -318,12 +487,12 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("hybrid-ui-dual-samples", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("action_not_allowed", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("Wired catalog exact-routes complete", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("Surface digests: wired 60", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("Surface digests: wired 127", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("Storefront digests: 4/6", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_storefront_digest_shadows.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_storefront_digest_shadows.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("/migration/console", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("pairsChecked=97", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("pairsChecked=185", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("/cp/login", StringComparison.Ordinal)
             || action.Contains("/cp|/erp|/bos|/storefront/{app,login}", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_presentation_app_shadows.sh", StringComparison.Ordinal));

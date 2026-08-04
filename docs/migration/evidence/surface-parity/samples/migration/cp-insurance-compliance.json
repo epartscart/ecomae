@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "policyCount": 1,
+    "activeCount": 1,
+    "claimCount": 0,
+    "documentCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; policies[] sentinel; notes/emails omitted; PHP risk insurance authoritative; cutoverAllowed=false",
+  "policies": [
+    {
+      "id": 1,
+      "companyId": 0,
+      "policyNo": "POL-1",
+      "class": "marine",
+      "title": "Marine cargo",
+      "insurer": "Demo Insure",
+      "sumInsured": 100000.0,
+      "premium": 1200.0,
+      "currency": "AED",
+      "expiryDate": 0,
+      "status": "active",
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

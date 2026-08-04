@@ -1,0 +1,27 @@
+{
+  "role": "cp-cost-models-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-cost-models",
+  "collectionKey": "items",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "itemCount",
+    "txnCount",
+    "closeCount",
+    "modelCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "itemId",
+    "model",
+    "stdCost",
+    "timeUpdated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-cost-models digest summary+items[] floors. detail_json omitted. PHP cost_mgmt cost_models remains authoritative. cutoverAllowed=false."
+}

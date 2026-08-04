@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "taskCount": 1,
+    "tasksDone": 0,
+    "kpiLogCount": 0,
+    "reviewCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; reviews[] sentinel; notes omitted; PHP marketing growth authoritative; cutoverAllowed=false",
+  "reviews": [
+    {
+      "id": 1,
+      "strategyKey": "growth",
+      "reviewType": "weekly",
+      "score": 3,
+      "createdAt": 0,
+      "createdBy": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

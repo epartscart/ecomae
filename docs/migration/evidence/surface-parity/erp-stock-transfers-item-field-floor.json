@@ -1,0 +1,35 @@
+{
+  "role": "erp-stock-transfers-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "erp-stock-transfers",
+  "collectionKey": "transfers",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "transferCount",
+    "draftCount",
+    "inTransitCount",
+    "receivedCount",
+    "totalQty",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "transferNo",
+    "fromWarehouseId",
+    "toWarehouseId",
+    "reason",
+    "status",
+    "totalItems",
+    "totalQty",
+    "shippedAt",
+    "receivedAt",
+    "createdBy",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks stock-transfers digest summary+transfers[] floors. notes omitted. PHP warehouse transfers remains authoritative. cutoverAllowed=false."
+}
