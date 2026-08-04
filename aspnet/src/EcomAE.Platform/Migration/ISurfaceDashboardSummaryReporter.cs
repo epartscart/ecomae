@@ -306,4 +306,7 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpOpsGuidesDigestResult> BuildCpOpsGuidesDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpFileManagerDigestResult> BuildCpFileManagerDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpServerIpDigestResult> BuildCpServerIpDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only on-premises license registry (notes/fingerprint/ip omitted; license keys masked).</summary>
+    Task<OnPremisesLicenseListResult> ListOnPremisesLicensesAsync(int limit, CancellationToken cancellationToken = default);
 }

@@ -1,0 +1,57 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold for a top-level PHP legal alias (terms / cookie-policy / security-policy).
+  Full policy body remains PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-legal-alias-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,@GradientStart 0%,@GradientMid 45%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa @Icon"></i> @Badge</div>
+			<h1>@Title</h1>
+			<p class="lead">@Lead</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/legal">Legal hub</a>
+				<a class="epm-btn epm-btn--ghost" href="@AspNetRoute?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + PhpSlug))">Open full PHP @Title.ToLowerInvariant() (hybrid)</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/contact">Contact</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-file-text-o"></i>
+			<strong>Overview</strong>
+			<p>@CardOne</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-link"></i>
+			<strong>Related policies</strong>
+			<p>Privacy, terms, cookies, and security stay linked from the legal hub.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-exchange"></i>
+			<strong>Hybrid workspace</strong>
+			<p>Use <code>?php=</code> to dual-sample the live PHP article beside this scaffold.</p>
+		</div>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET @Title.ToLowerInvariant() overview scaffold — dual-sample against live PHP <code>/@PhpSlug</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter, EditorRequired] public string Badge { get; set; } = "";
+    [Parameter, EditorRequired] public string Lead { get; set; } = "";
+    [Parameter, EditorRequired] public string PhpSlug { get; set; } = "";
+    [Parameter, EditorRequired] public string AspNetRoute { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "fa-gavel";
+    [Parameter] public string GradientStart { get; set; } = "#1e293b";
+    [Parameter] public string GradientMid { get; set; } = "#334155";
+    [Parameter] public string CardOne { get; set; } = "Full policy text remains on live PHP until dual-sample.";
+}
