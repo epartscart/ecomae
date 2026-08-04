@@ -216,6 +216,8 @@ app.MapGet(EcomAeRoutes.PhpModuleCatalog, () => Results.Ok(PhpModuleCatalog.Buil
 
 app.MapGet(EcomAeRoutes.LiveSurfaceLinks, (ILiveSurfaceLinkReporter reporter) => Results.Ok(reporter.BuildReport()));
 
+app.MapGet(EcomAeRoutes.LiveTenantPresentationLock, () => Results.Ok(LiveTenantPresentationLock.BuildSummary()));
+
 app.MapGet(EcomAeRoutes.SurfaceFieldParity, (ISurfaceFieldParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.TenantContext, (HttpContext context) =>

@@ -47,21 +47,43 @@ class NginxSiteSafetyTests(unittest.TestCase):
                 confirm_tenant="",
             )
 
-    def test_tenant_exact_route_with_confirm(self):
-        self.m.assert_shadow_target_allowed(
+    def test_live_tenant_exact_route_hard_refuse_even_with_confirm(self):
+        for conf in (
             "/etc/nginx/sites-enabled/epartscart.com.conf",
-            purpose="exact-route",
-            confirm_tenant="YES",
-        )
+            "/etc/nginx/sites-enabled/www.electronicae.com.conf",
+            "/etc/nginx/sites-enabled/www.stylenlook.com.conf",
+            "/etc/nginx/sites-enabled/www.thejewellerytrend.com.conf",
+            "/etc/nginx/sites-enabled/www.taxofinca.com.conf",
+        ):
+            with self.assertRaises(SystemExit):
+                self.m.assert_shadow_target_allowed(
+                    conf,
+                    purpose="exact-route",
+                    confirm_tenant="YES",
+                )
 
-    def test_tenant_presentation_hard_refuse(self):
+    def test_live_tenant_presentation_hard_refuse_even_with_confirm(self):
         with self.assertRaises(SystemExit):
             self.m.assert_shadow_target_allowed(
                 "/etc/nginx/sites-enabled/epartscart.com.conf",
                 purpose="presentation",
                 confirm_tenant="YES",
-                confirm_tenant_presentation="",
+                confirm_tenant_presentation="YES",
             )
+        with self.assertRaises(SystemExit):
+            self.m.assert_shadow_target_allowed(
+                "/etc/nginx/sites-enabled/www.taxofinca.com.conf",
+                purpose="presentation",
+                confirm_tenant_presentation="YES",
+            )
+
+    def test_live_production_hosts_listed(self):
+        hosts = {h.lower() for h in self.m.LIVE_PRODUCTION_TENANT_HOSTS}
+        self.assertIn("epartscart.com", hosts)
+        self.assertIn("www.electronicae.com", hosts)
+        self.assertIn("www.stylenlook.com", hosts)
+        self.assertIn("www.thejewellerytrend.com", hosts)
+        self.assertIn("www.taxofinca.com", hosts)
 
     def test_scan_broad_cutovers(self):
         text = "server {\n  location /cp {\n    proxy_pass http://127.0.0.1:5100;\n  }\n}\n"

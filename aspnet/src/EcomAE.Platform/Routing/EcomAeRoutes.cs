@@ -19,6 +19,8 @@ public static class EcomAeRoutes
     public const string PresentationParity = "/migration/presentation-parity";
     public const string PhpModuleCatalog = "/migration/php-module-catalog";
     public const string LiveSurfaceLinks = "/migration/live-surface-links";
+    /// <summary>Named live tenants that must keep PHP presentation identical (no ASP.NET hybrid).</summary>
+    public const string LiveTenantPresentationLock = "/migration/live-tenant-presentation-lock";
     public const string MigrationConsole = "/migration/console";
     public const string MigrationCompare = "/migration/compare";
     public const string SurfaceFieldParity = "/migration/surface-field-parity";

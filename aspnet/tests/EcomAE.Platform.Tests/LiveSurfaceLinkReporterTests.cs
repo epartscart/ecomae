@@ -503,7 +503,13 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_verify_tenant_hosts_still_php.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_live_tenant_php_chrome.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("TENANT_MIGRATION_SAFETY.md", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("ECOMAE_CONFIRM_TENANT_HOST_SHADOW", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action =>
+            action.Contains("HARD-REFUSE", StringComparison.OrdinalIgnoreCase)
+            || action.Contains("LIVE LOCK", StringComparison.OrdinalIgnoreCase)
+            || action.Contains("named live tenants", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.Links, link =>
+            link.AspNetRouteHint == "/migration/live-tenant-presentation-lock");
+        Assert.Contains(report.CutoverRules, note => note.Contains("ABSOLUTE PRESENTATION LOCK", StringComparison.Ordinal));
     }
 
     [Fact]

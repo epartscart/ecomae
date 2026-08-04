@@ -19,6 +19,9 @@ say() { printf '%s\n' "$*"; }
 say "== Same-to-same tenant verify (invisible PHP→ASP.NET migration) =="
 say "Law: frontend / CP / ERP / BOS / storefront product chrome stays PHP until"
 say "     dual-sample evidence + human RELEASE_OWNER_APPROVAL.md."
+say "ABSOLUTE PRESENTATION LOCK (named live tenants):"
+say "  epartscart / electronicae / stylenlook / thejewellerytrend / taxofinca"
+say "  → theme/colour/structure/fonts/hero/fields identical to PHP; no ASP.NET hybrid."
 say "Digests and /cp|/erp|/bos|/storefront/app previews must NEVER replace tenant UX."
 say ""
 
@@ -108,7 +111,18 @@ doc = {
     "generatedAtUtc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     "status": status,
     "policy": "same-to-same-invisible-migration",
-    "mandate": "Tenants must not feel PHP→ASP.NET change. Frontend/CP/ERP/BOS/storefront product chrome stays PHP.",
+    "mandate": (
+        "Tenants must not feel PHP→ASP.NET change. Frontend/CP/ERP/BOS/storefront product chrome stays PHP. "
+        "Named live tenants (epartscart, electronicae, stylenlook, thejewellerytrend, taxofinca) "
+        "keep presentation identical — theme, colour, structure, fonts, hero/splash, fields."
+    ),
+    "liveProductionTenants": [
+        "epartscart.com",
+        "electronicae.com",
+        "stylenlook.com",
+        "thejewellerytrend.com",
+        "taxofinca.com",
+    ],
     "cutoverAllowed": False,
     "readyForPhpRemoval": False,
     "tenantChromeProbe": {
