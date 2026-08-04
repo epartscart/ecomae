@@ -3023,6 +3023,27 @@ public sealed record CpServerIpDigestResult(
     string Source,
     string Message);
 
+public sealed record CpDebugConsoleSummary(
+    int FileCount,
+    int TmpRootPresent,
+    int AllowlistOnly,
+    long TotalBytes,
+    string Source,
+    string Message);
+
+public sealed record CpDebugConsoleRowDigest(
+    string Basename,
+    long SizeBytes,
+    long LastModifiedUnix,
+    int Allowlisted);
+
+public sealed record CpDebugConsoleDigestResult(
+    CpDebugConsoleSummary Summary,
+    IReadOnlyList<CpDebugConsoleRowDigest> Files,
+    int Count,
+    string Source,
+    string Message);
+
 /// <summary>On-premises license digest row — license_key is masked; notes/fingerprint/ip omitted.</summary>
 public sealed record OnPremisesLicenseDigest(
     long Id,

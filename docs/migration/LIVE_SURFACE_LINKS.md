@@ -11,7 +11,7 @@ Human side-by-side compare board: `https://www.ecomae.com/migration/compare` (af
 
 | Meter | Wired in tip | Live on www.ecomae.com (probe 2026-08-04) |
 | --- | --- | --- |
-| Catalog digest-contract | **725 / 726** (~99.9%; `cp-debug-console` php-only by design) | Catalog APIs still allowlisted; not full tip redeploy |
+| Catalog digest-contract | **726 / 726** (cp-debug-console safe metadata-only) | Catalog APIs still allowlisted; not full tip redeploy |
 | Surface digests | **127** | **127 / 127** healthy (unauth **401**) |
 | Presentation apps | **144** | **142 / 144** **200** |
 | Storefront digests | **6** | **6 / 6** healthy (unauth **401**) |
@@ -132,4 +132,4 @@ Never broad `/api|/cp|/erp|/bos|/storefront`. Never tenant vhosts without `ECOMA
 
 ## Final PHP cutover gate
 
-Weighted meter still **95% / 5%** (PHP runtime decommission residual). That is **not** “95% of routes live on www.” Catalog contract **725/726** on tip; live www shadows lag. Remaining work: install remaining exact-route shadows + dual samples + human `RELEASE_OWNER_APPROVAL.md`. Do not remove PHP-FPM/cron/rewrites until `/migration/php-decommission-readiness` reports ready with approval attached.
+Weighted meter still **95% / 5%** (PHP runtime decommission residual). That is **not** “95% of routes live on www.” Catalog contract **726/726** on tip; live www shadows lag. Remaining work: install remaining exact-route shadows + dual samples + human `RELEASE_OWNER_APPROVAL.md`. Do not remove PHP-FPM/cron/rewrites until `/migration/php-decommission-readiness` reports ready with approval attached.

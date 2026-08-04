@@ -4,7 +4,7 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "generatedAtUnix": 1785864718,
+  "generatedAtUnix": 1785867066,
   "storefront": {
     "digestSurfacesRequired": 7,
     "digestSurfacesComplete": 7,
@@ -172,25 +172,23 @@
   },
   "cp": {
     "menusTracked": 726,
-    "menusDigestContract": 725,
-    "phpOnlyHoldout": 1,
-    "holdoutId": "cp-debug-console",
-    "fieldFloorsCovered": 136,
-    "fieldFloorsTotal": 136,
-    "cpSamplesWithFloorCoverage": 106,
-    "cpSamplesTotal": 106,
-    "cpHybridStubs": 105,
+    "menusDigestContract": 726,
+    "phpOnlyHoldout": 0,
+    "holdoutId": null,
+    "fieldFloorsCovered": 137,
+    "fieldFloorsTotal": 137,
+    "cpSamplesWithFloorCoverage": 107,
+    "cpSamplesTotal": 107,
+    "cpHybridStubs": 108,
     "cpModulesInInventory": 479,
-    "phpOnlyModules": [
-      "cp-debug-console"
-    ]
+    "phpOnlyModules": []
   },
   "moduleInventoryStorefrontCount": 19,
   "built": [
     "Storefront digest surfaces 7/7 contract-complete",
-    "CP menus 725/726 digest-contract",
-    "Field floors 136/136",
-    "CP hybrid stubs 105",
+    "CP menus 726/726 digest-contract",
+    "Field floors 137/137",
+    "CP hybrid stubs 108",
     "PHP chrome locks declared for 11 epartscart pages"
   ],
   "pendingBeforePhpRemoval": [

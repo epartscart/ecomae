@@ -7353,6 +7353,80 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public Task<CpDebugConsoleDigestResult> BuildCpDebugConsoleDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpDebugConsoleSummary(0, 0, 1, 0, "migration", "Debug tmp root not found.");
+        try
+        {
+            var root = CpDebugConsoleAllowlist.FindTmpRoot();
+            if (root is null)
+            {
+                return Task.FromResult(new CpDebugConsoleDigestResult(empty, [], 0, "migration", empty.Message));
+            }
+
+            var rootFull = Path.GetFullPath(root);
+            var rows = new List<CpDebugConsoleRowDigest>();
+            var fileCount = 0;
+            long totalBytes = 0;
+            foreach (var entry in Directory.EnumerateFiles(rootFull))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                string entryFull;
+                try
+                {
+                    entryFull = Path.GetFullPath(entry);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                // Confine to tmp root — never follow escapes outside the allowlisted directory.
+                if (!entryFull.StartsWith(rootFull + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                    && !string.Equals(entryFull, rootFull, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var basename = Path.GetFileName(entryFull);
+                if (!CpDebugConsoleAllowlist.IsAllowedBasename(basename))
+                {
+                    continue;
+                }
+
+                fileCount++;
+                long size = 0;
+                long mtime = 0;
+                try
+                {
+                    var info = new FileInfo(entryFull);
+                    // Metadata only — never open/read file contents (no LFI).
+                    size = info.Length;
+                    totalBytes += size;
+                    mtime = new DateTimeOffset(info.LastWriteTimeUtc).ToUnixTimeSeconds();
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (rows.Count < safeLimit)
+                {
+                    rows.Add(new CpDebugConsoleRowDigest(basename, size, mtime, 1));
+                }
+            }
+
+            var summary = new CpDebugConsoleSummary(fileCount, 1, 1, totalBytes, "filesystem", string.Empty);
+            return Task.FromResult(new CpDebugConsoleDigestResult(summary, rows, rows.Count, "filesystem", string.Empty));
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "filesystem-error", Message = ex.Message };
+            return Task.FromResult(new CpDebugConsoleDigestResult(err, [], 0, "filesystem-error", ex.Message));
+        }
+    }
+
     public async Task<OnPremisesLicenseListResult> ListOnPremisesLicensesAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

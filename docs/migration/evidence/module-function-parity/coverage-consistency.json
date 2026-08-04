@@ -8,11 +8,11 @@
   "matchedIds": 726,
   "coverageCounts": {
     "digest-contract": 725,
-    "php-only-deeplink": 1
+    "hybrid-directory-only": 1
   },
   "inventoryStatusCounts": {
-    "php-only": 1,
-    "digest-only+hybrid-deeplink": 725,
+    "php-only": 0,
+    "digest-only+hybrid-deeplink": 726,
     "hybrid-deeplink": 0
   },
   "ok": true,

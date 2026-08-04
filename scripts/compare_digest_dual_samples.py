@@ -436,6 +436,10 @@ SUMMARY_CONTRACTS = {
         "summary",
         "addressCount,hasIpv4,hasIpv6,loopbackOnly,source,message",
     ),
+    "cp-debug-console": (
+        "summary",
+        "fileCount,tmpRootPresent,allowlistOnly,totalBytes,source,message",
+    ),
     "cp-sitemap": (
         "summary",
         "contentUrlCount,categoryCount,productCount,frontendContentCount,source,message",
@@ -1144,6 +1148,10 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-server-ip": (
         "addresses",
         ["address", "addressFamily", "isLoopback"],
+    ),
+    "cp-debug-console": (
+        "files",
+        ["basename", "sizeBytes", "lastModifiedUnix", "allowlisted"],
     ),
     "cp-sitemap": (
         "pages",

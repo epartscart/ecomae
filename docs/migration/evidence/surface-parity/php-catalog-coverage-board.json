@@ -33,7 +33,7 @@
   },
   "coverageCounts": {
     "digest-contract": 725,
-    "php-only-deeplink": 1
+    "hybrid-directory-only": 1
   },
   "coverageByKind": {
     "bos-module": {
@@ -44,7 +44,7 @@
     },
     "cp-feature": {
       "digest-contract": 404,
-      "php-only-deeplink": 1
+      "hybrid-directory-only": 1
     },
     "erp-area": {
       "digest-contract": 35
@@ -7659,10 +7659,10 @@
       "kind": "cp-feature",
       "label": "Debug console",
       "phpPath": "/CP/system/debug",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "hybrid-directory-only",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/debug-console",
+      "aspnetRoute": "/cp/debug-console-app",
       "aspnetComplete": false
     },
     {

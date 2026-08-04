@@ -3,7 +3,7 @@
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
 
-<PageTitle>eParts Cart (Autoparts)</PageTitle>
+<PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
@@ -45,10 +45,12 @@
 
 @code {
     private string? _phpHref;
+    private string _pageTitle = "eParts Cart (Autoparts)";
 
     protected override void OnInitialized()
     {
         var ctx = Http.HttpContext;
+        _pageTitle = StorefrontIndustryHostResolver.ResolveStorefrontTitle(ctx?.Request.Host.Host);
         if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
         {
             _phpHref = php.ToString();

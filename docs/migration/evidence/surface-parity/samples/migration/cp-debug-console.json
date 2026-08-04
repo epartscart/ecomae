@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "fileCount": 1,
+    "tmpRootPresent": 1,
+    "allowlistOnly": 1,
+    "totalBytes": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; files[] sentinel; metadata-only allowlisted basenames; no LFI; PHP Debug console remains authoritative; cutoverAllowed=false",
+  "files": [
+    {
+      "basename": "01012026_0000.php",
+      "sizeBytes": 1,
+      "lastModifiedUnix": 0,
+      "allowlisted": 1
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

@@ -196,10 +196,10 @@ def main() -> int:
         "aspNetInteractiveComplete": 0,
         "menus": {
             "totalTracked": 726,
-            "digestContract": 725,
-            "phpOnlyHoldout": 1,
-            "holdoutId": "cp-debug-console",
-            "holdoutNote": "Intentional LFI surface — PHP deeplink only, no digest/app",
+            "digestContract": 726,
+            "phpOnlyHoldout": 0,
+            "holdoutId": None,
+            "holdoutNote": "cp-debug-console ported as safe metadata-only digest (no LFI)",
         },
         "fieldFloors": {
             "summaryContractStems": len(summary),

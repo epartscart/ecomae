@@ -3,7 +3,7 @@
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
 
-<PageTitle>ECOM AE — Marketing (PHP parity preview)</PageTitle>
+<PageTitle>ECOM AE — Marketing</PageTitle>
 <PhpChromeStyles Surface="marketing" />
 
 <PhpEcomaeMarketingChrome ActiveKey="home">
@@ -16,15 +16,9 @@
         <PhpEcomaeHomeSections />
 
         <div class="epm-wrap" style="padding:24px var(--epm-pad-x,20px) 40px;max-width:var(--epm-max-w,1440px);margin:0 auto;box-sizing:border-box">
-            <p style="margin:0 0 12px;font-size:.9rem;color:var(--epm-muted,#b3b3b3)">
-                <strong>Target: 100% ASP.NET / 0 PHP.</strong>
-                Live <a href="https://www.ecomae.com/" style="color:var(--epm-cyan,#0ea5e9)">www.ecomae.com</a> is PHP-primary until this scaffold dual-samples same-to-same (animated <code>epm-hub</code> + <code>#ehm-home-sections</code>), then exact-route cutover.
-                Not a permanent PHP lock — see <a href="/migration/aspnet-zero-php-path" style="color:var(--epm-cyan,#0ea5e9)">/migration/aspnet-zero-php-path</a>.
-            </p>
-
             <PhpHybridModuleDirectory
                 Title="Ecomae.com marketing pages"
-                Subtitle="@($"{EcomaeMarketingPages.Count} PHP marketing routes — open in hybrid workspace (iframe) or full page")"
+                Subtitle="@($"{EcomaeMarketingPages.Count} marketing routes — open in workspace or full page")"
                 Links="@MarketingModuleLinks"
                 PhpWorkspaceBase="/marketing/app" />
         </div>

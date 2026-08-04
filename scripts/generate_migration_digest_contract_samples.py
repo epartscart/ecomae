@@ -1178,6 +1178,13 @@ def main() -> None:
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
             "note": "migration-mode; addresses[] sentinel; no outbound ipify; PHP Server IP remains authoritative; cutoverAllowed=false",
         },
+        "cp-debug-console.json": {
+            **summary("cp", {"fileCount": 1, "tmpRootPresent": 1, "allowlistOnly": 1, "totalBytes": 1}),
+            "files": [{"basename": "migration", "sizeBytes": 1, "lastModifiedUnix": 0, "allowlisted": 1}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; files[] sentinel; metadata-only allowlisted basenames; no LFI; PHP Debug console remains authoritative; cutoverAllowed=false",
+        },
         "cp-data-migrations.json": {
             **summary("cp", {"migrationCount": 1, "completedCount": 0, "failedCount": 0, "rowCount": 1}),
             "migrations": [{"id": 1, "companyId": 1, "migrationType": "open_balance", "entityType": "customers", "fileName": "customers.csv", "totalRows": 10, "validRows": 9, "errorRows": 1, "importedRows": 0, "status": "validated", "importedByName": "Admin", "timeCreated": 0, "timeCompleted": 0}],

@@ -11,6 +11,8 @@ using EcomAE.Platform.Routing;
 using EcomAE.Platform.Security;
 using EcomAE.Platform.Services;
 using EcomAE.Platform.Surfaces;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents();
@@ -594,10 +596,30 @@ builder.Services.AddSingleton<IStorefrontCheckoutCreateDryRun, StorefrontCheckou
 builder.Services.AddSingleton<IStorefrontOrderSendMessageDryRun, StorefrontOrderSendMessageDryRun>();
 builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+    [
+        "application/json",
+        "application/javascript",
+        "text/css",
+        "text/html",
+        "text/plain",
+        "text/json",
+        "image/svg+xml"
+    ]);
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
+app.UseResponseCompression();
+app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseMiddleware<RouteCutoverDecisionMiddleware>();
 // Required for Blazor SSR endpoints (MapRazorComponents adds antiforgery metadata).

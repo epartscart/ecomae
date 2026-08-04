@@ -144,6 +144,7 @@ declare -A ROUTES=(
   [cp-ops-guides]="/cp/ops-guides?limit=5"
   [cp-file-manager]="/cp/file-manager?limit=5"
   [cp-server-ip]="/cp/server-ip?limit=5"
+  [cp-debug-console]="/cp/debug-console?limit=5"
   [cp-einvoice-documents]="/cp/einvoice-documents?limit=5"
   [cp-config-items]="/cp/config-items?limit=5"
   [cp-admin-sessions]="/cp/admin-sessions?limit=5"

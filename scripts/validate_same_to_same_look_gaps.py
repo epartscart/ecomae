@@ -5,7 +5,7 @@ import json, re, sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 PAGES=ROOT/"aspnet/src/EcomAE.Platform/Components"
-SKIP_FILES={"MigrationCompareConsole.razor","ZeroPhpConsole.razor","ErpOnPremisesApp.razor","MarketingPreviewApp.razor"}
+SKIP_FILES={"MigrationCompareConsole.razor","ZeroPhpConsole.razor","ErpOnPremisesApp.razor"}
 FORBIDDEN=re.compile(
     r"Open PHP|Hybrid workspace · PHP|JSON digest|Not a broad|/cp cutover|/erp cutover|/bos cutover|"
     r"same-to-same|ASP\.NET preview|Target: 100% ASP\.NET|title=\"Open PHP|title=\"Open live PHP|>PHP</a>|"

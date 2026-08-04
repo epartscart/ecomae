@@ -39,7 +39,7 @@ ECOMAE_EPARTSCART_LIVE=1 bash scripts/run_epartscart_tenant_parity.sh
 
 - **7 storefront digest surfaces** (search/cart/checkout/orders/garage/profile/account-summary) — floor + sample + hybrid stub required
 - **11 PHP chrome locks** (home/catalog/VIN/quotes/wishlist/compare/…) — must stay PHP on tenant hosts
-- **CP menus 725/726** digest-contract + field floors 136/136
+- **CP menus 726/726** digest-contract + field floors 137/137
 
 Live dual-sample + `aspNetInteractiveComplete` stay blocked until CloudPanel cookies + human approval. Never invent `RELEASE_OWNER_APPROVAL.md`.
 

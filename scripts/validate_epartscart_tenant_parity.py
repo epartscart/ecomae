@@ -334,11 +334,8 @@ def main() -> int:
     sf_mods = [m for m in mods if m.get("surface") == "storefront"]
     cp_mods = [m for m in mods if m.get("surface") == "cp"]
     php_only_cp = [m["id"] for m in cp_mods if m.get("status") == "php-only"]
-    if php_only_cp != ["cp-debug-console"]:
-        # allow only the intentional holdout
-        unexpected = [x for x in php_only_cp if x != "cp-debug-console"]
-        if unexpected:
-            errors.append(f"unexpected CP php-only modules: {unexpected[:10]}")
+    if php_only_cp:
+        errors.append(f"unexpected CP php-only modules: {php_only_cp[:10]}")
 
     # Tenant safety floors
     for rel in (
