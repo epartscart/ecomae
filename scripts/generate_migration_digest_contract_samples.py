@@ -142,10 +142,32 @@ def main() -> None:
                 "erpOnly": 0,
             },
         ),
-        "storefront-account-summary.json": summary(
-            "storefront",
-            {"userId": 9, "orders": 0, "sessions": 0, "garageVehicles": 0},
-        ),
+        "storefront-account-summary.json": {
+            **summary(
+                "storefront",
+                {"userId": 9, "orders": 0, "sessions": 0, "garageVehicles": 0},
+            ),
+            "recentOrders": [
+                {
+                    "id": 1,
+                    "timeUnix": 0,
+                    "paid": 0,
+                    "successfullyCreated": 1,
+                    "status": 0,
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "session": {"kind": "Customer", "user_id": 9},
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": (
+                "migration-mode contract sample; recentOrders[] item-field sentinel locked; "
+                "PHP /users/ remains authoritative; cutoverAllowed=false"
+            ),
+        },
         "erp-inventory-stock.json": {
             **summary(
                 "erp",

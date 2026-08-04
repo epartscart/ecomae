@@ -147,16 +147,19 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<StorefrontAccountSummary> BuildStorefrontAccountAsync(int userId, CancellationToken cancellationToken = default)
+    public async Task<StorefrontAccountDigestResult> BuildStorefrontAccountAsync(int userId, int recentLimit = 10, CancellationToken cancellationToken = default)
     {
+        var safeRecent = Math.Clamp(recentLimit, 1, 50);
         if (!_connections.IsConfigured)
         {
-            return new(userId, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+            var mig = new StorefrontAccountSummary(userId, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+            return new(mig, [], 0, "migration", mig.Message);
         }
 
         if (userId <= 0)
         {
-            return new(0, 0, 0, 0, "rejected", "Valid customer user id is required.");
+            var rejected = new StorefrontAccountSummary(0, 0, 0, 0, "rejected", "Valid customer user id is required.");
+            return new(rejected, [], 0, "rejected", rejected.Message);
         }
 
         try
@@ -165,11 +168,31 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var orders = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerOrders, userId, cancellationToken).ConfigureAwait(false);
             var sessions = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerSessionsForUser, userId, cancellationToken).ConfigureAwait(false);
             var garage = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerGarage, userId, cancellationToken).ConfigureAwait(false);
-            return new(userId, orders, sessions, garage, "database", string.Empty);
+            var recent = new List<StorefrontOrderDigest>();
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = LegacySurfaceDashboardSql.SelectCustomerOrders;
+                AddParameter(command, "@userId", userId);
+                AddParameter(command, "@limit", safeRecent);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    recent.Add(new StorefrontOrderDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time"] is DBNull ? 0 : reader["time"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["paid"] is DBNull ? 0 : reader["paid"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["successfully_created"] is DBNull ? 0 : reader["successfully_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["status"] is DBNull ? 0 : reader["status"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var summary = new StorefrontAccountSummary(userId, orders, sessions, garage, "database", string.Empty);
+            return new(summary, recent, recent.Count, "database", string.Empty);
         }
         catch (Exception ex)
         {
-            return new(userId, 0, 0, 0, "database-error", ex.Message);
+            var err = new StorefrontAccountSummary(userId, 0, 0, 0, "database-error", ex.Message);
+            return new(err, [], 0, "database-error", ex.Message);
         }
     }
 

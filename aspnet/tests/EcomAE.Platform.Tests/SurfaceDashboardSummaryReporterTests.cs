@@ -269,8 +269,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
 
         var account = await reporter.BuildStorefrontAccountAsync(9);
         Assert.Equal("migration", account.Source);
-        Assert.Equal(9, account.UserId);
-        Assert.Equal(0, account.GarageVehicles);
+        Assert.Equal(9, account.Summary.UserId);
+        Assert.Equal(0, account.Summary.GarageVehicles);
+        Assert.Empty(account.RecentOrders);
+        Assert.Equal(0, account.Count);
     }
 
     [Fact]
@@ -297,6 +299,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_inv_items", LegacySurfaceDashboardSql.SelectErpInventoryStockRows, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_warehouses", LegacySurfaceDashboardSql.SelectErpInventoryStockRows, StringComparison.Ordinal);
         Assert.Contains("reorder_level", LegacySurfaceDashboardSql.SelectErpInventoryLowStockRows, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_inv_items", LegacySurfaceDashboardSql.CountErpCcInventoryItems, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_erp_items", LegacySurfaceDashboardSql.CountErpCcInventoryItems, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.CountErpCcLowStockItems, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_inv_items", LegacySurfaceDashboardSql.CountErpCcLowStockItems, StringComparison.Ordinal);
+        Assert.DoesNotContain("`epc_erp_items`", LegacySurfaceDashboardSql.CountErpCcLowStockItems, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_movements", LegacySurfaceDashboardSql.SelectErpInventoryMovements, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SumErpDashboardStockValue, StringComparison.Ordinal);
         Assert.Contains("epc_erp_gl_lines", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);

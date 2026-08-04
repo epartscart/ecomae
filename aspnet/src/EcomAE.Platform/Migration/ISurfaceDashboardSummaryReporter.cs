@@ -8,7 +8,7 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<BosFleetSummary> BuildBosAsync(CancellationToken cancellationToken = default);
 
-    Task<StorefrontAccountSummary> BuildStorefrontAccountAsync(int userId, CancellationToken cancellationToken = default);
+    Task<StorefrontAccountDigestResult> BuildStorefrontAccountAsync(int userId, int recentLimit = 10, CancellationToken cancellationToken = default);
 
     Task<PortalTenantListResult> ListPortalTenantsAsync(int limit, CancellationToken cancellationToken = default);
 

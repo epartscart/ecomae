@@ -12,7 +12,7 @@
   },
   "fieldFloors": {
     "summaryContractStems": 112,
-    "hybridListStems": 105,
+    "hybridListStems": 106,
     "listItemStems": 28,
     "objectStems": 1,
     "floorsCreatedThisRun": [
@@ -52,10 +52,10 @@
     "missingContractStems": []
   },
   "pendingTowardZeroPhp": [
-    "aspNetInteractiveComplete remains 0 \u2014 live writes still PHP",
+    "aspNetInteractiveComplete remains 0 — live writes still PHP",
     "Module-ajax dual-sample pairs still thin (need CloudPanel cookies for PHP ajax field samples)",
     "Authenticated digest dual-sample capture for core CP/ERP still required",
-    "Exact-route shadows + RELEASE_OWNER_APPROVAL.md before PHP removal \u2014 never invent approval"
+    "Exact-route shadows + RELEASE_OWNER_APPROVAL.md before PHP removal — never invent approval"
   ],
   "ok": true,
   "moduleAjaxDualSamples": {
@@ -76,8 +76,8 @@
     "Marketing /marketing/* install+probe floor (37 routes)"
   ],
   "pending": [
-    "aspNetInteractiveComplete=0 \u2014 no live write cutover",
-    "Paired PHP\u2194ASP.NET ajax field dual-samples on CloudPanel (cookies) still required",
+    "aspNetInteractiveComplete=0 — no live write cutover",
+    "Paired PHP↔ASP.NET ajax field dual-samples on CloudPanel (cookies) still required",
     "Authenticated digest dual-sample capture for core CP/ERP",
     "Exact-route shadows + human RELEASE_OWNER_APPROVAL.md before PHP decommission",
     "Live /CP/ /ERP/ /BOS/ / storefront chrome remains PHP-primary for tenants"

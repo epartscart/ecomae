@@ -1240,6 +1240,16 @@ HYBRID_LIST_ITEM_FIELDS = {
             "minOrder",
         ],
     ),
+    "storefront-account-summary": (
+        "recentOrders",
+        [
+            "id",
+            "timeUnix",
+            "paid",
+            "successfullyCreated",
+            "status",
+        ],
+    ),
     "storefront-checkout": (
         "php_steps",
         [
