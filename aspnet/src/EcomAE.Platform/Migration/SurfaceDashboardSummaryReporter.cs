@@ -197,7 +197,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var safeLimit = Math.Clamp(sampleLimit, 1, 100);
         if (!_connections.IsConfigured)
         {
-            return new(new(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured."), [], "migration", "TenantRegistry DB is not configured.");
+            var empty = EmptyBosSummary("migration", "TenantRegistry DB is not configured.");
+            return new(empty, [], empty.Source, empty.Message);
         }
 
         try
@@ -211,7 +212,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
         catch (Exception ex)
         {
-            return new(new(0, 0, 0, 0, 0, "database-error", ex.Message), [], "database-error", ex.Message);
+            var err = EmptyBosSummary("database-error", ex.Message);
+            return new(err, [], err.Source, err.Message);
         }
     }
 
