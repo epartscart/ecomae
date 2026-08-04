@@ -1,8 +1,17 @@
 {
   "ok": true,
   "surface": "erp",
-  "orders": [],
-  "count": 0,
+  "orders": [
+    {
+      "id": 1,
+      "soNo": "SO-1",
+      "customerUserId": 9,
+      "totalAmount": 0.0,
+      "status": "draft",
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

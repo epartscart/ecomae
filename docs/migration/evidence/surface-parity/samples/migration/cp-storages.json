@@ -1,8 +1,15 @@
 {
   "ok": true,
   "surface": "cp",
-  "storages": [],
-  "count": 0,
+  "storages": [
+    {
+      "id": 1,
+      "name": "Main warehouse",
+      "shortName": "MAIN",
+      "hidden": false
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

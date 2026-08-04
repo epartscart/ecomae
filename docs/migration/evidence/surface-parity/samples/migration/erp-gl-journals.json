@@ -1,8 +1,18 @@
 {
   "ok": true,
   "surface": "erp",
-  "journals": [],
-  "count": 0,
+  "journals": [
+    {
+      "id": 1,
+      "journalNo": "J-1",
+      "journalDate": "1970-01-01",
+      "sourceType": "manual",
+      "sourceId": 0,
+      "status": "draft",
+      "totalDebit": 0.0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

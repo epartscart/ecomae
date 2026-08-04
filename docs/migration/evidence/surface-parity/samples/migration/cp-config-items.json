@@ -1,8 +1,17 @@
 {
   "ok": true,
   "surface": "cp",
-  "items": [],
-  "count": 0,
+  "items": [
+    {
+      "name": "site_name",
+      "caption": "Site name",
+      "type": "string",
+      "configGroup": "general",
+      "visible": true,
+      "order": 1
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

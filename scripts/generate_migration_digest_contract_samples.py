@@ -132,10 +132,68 @@ def main() -> None:
                 "erpOnly": 0,
             }
         ),
-        "cp-tenants.json": list_digest("cp", "tenants"),
-        "cp-users.json": list_digest("cp", "users"),
-        "cp-groups.json": list_digest("cp", "groups"),
-        "cp-modules.json": list_digest("cp", "modules"),
+        "cp-tenants.json": list_digest(
+            "cp",
+            "tenants",
+            [
+                {
+                    "siteKey": "www",
+                    "hostname": "www.ecomae.com",
+                    "industryCode": "auto",
+                    "status": "active",
+                    "tradeName": "EcomAE",
+                    "hubName": "hub",
+                    "hostedOn": "cloudpanel",
+                    "erpOnly": False,
+                    "isActive": True,
+                    "hasDb": True,
+                }
+            ],
+        ),
+        "cp-users.json": list_digest(
+            "cp",
+            "users",
+            [
+                {
+                    "userId": 1,
+                    "email": "migration@example.com",
+                    "phone": "",
+                    "unlocked": True,
+                    "timeRegistered": 0,
+                    "timeLastVisit": 0,
+                }
+            ],
+        ),
+        "cp-groups.json": list_digest(
+            "cp",
+            "groups",
+            [
+                {
+                    "id": 1,
+                    "value": "Administrators",
+                    "forBackend": True,
+                    "forGuests": False,
+                    "forRegistrated": True,
+                    "unblocked": True,
+                    "parent": 0,
+                    "level": 1,
+                }
+            ],
+        ),
+        "cp-modules.json": list_digest(
+            "cp",
+            "modules",
+            [
+                {
+                    "id": 1,
+                    "caption": "Migration module",
+                    "activated": True,
+                    "isFrontend": False,
+                    "isPrototype": False,
+                    "controlAvailable": True,
+                }
+            ],
+        ),
         "cp-menus.json": {
             **list_digest(
                 "cp",
@@ -162,12 +220,78 @@ def main() -> None:
                 "raw structure JSON omitted; PHP remains authoritative"
             ),
         },
-        "cp-pages.json": list_digest("cp", "pages"),
-        "cp-currencies.json": list_digest("cp", "currencies"),
-        "cp-api-clients.json": list_digest("cp", "clients"),
-        "cp-config-items.json": list_digest("cp", "items"),
-        "cp-admin-sessions.json": list_digest("cp", "sessions"),
-        "cp-storages.json": list_digest("cp", "storages"),
+        "cp-pages.json": list_digest(
+            "cp",
+            "pages",
+            [
+                {
+                    "id": 1,
+                    "caption": "Home",
+                    "url": "/",
+                    "alias": "home",
+                    "isFrontend": True,
+                    "published": True,
+                    "level": 1,
+                    "sortOrder": 1,
+                }
+            ],
+        ),
+        "cp-currencies.json": list_digest(
+            "cp",
+            "currencies",
+            [
+                {
+                    "id": 1,
+                    "isoCode": "AED",
+                    "isoName": "UAE Dirham",
+                    "captionShort": "AED",
+                    "rate": 1.0,
+                    "available": True,
+                    "sortOrder": 1,
+                }
+            ],
+        ),
+        "cp-api-clients.json": list_digest(
+            "cp",
+            "clients",
+            [
+                {
+                    "id": 1,
+                    "clientKeyPrefix": "mig_",
+                    "product": "catalog",
+                    "label": "Migration client",
+                    "contactEmail": "migration@example.com",
+                    "active": True,
+                    "dailyLimit": 1000,
+                    "callsToday": 0,
+                    "timeCreated": 0,
+                }
+            ],
+        ),
+        "cp-config-items.json": list_digest(
+            "cp",
+            "items",
+            [
+                {
+                    "name": "site_name",
+                    "caption": "Site name",
+                    "type": "string",
+                    "configGroup": "general",
+                    "visible": True,
+                    "order": 1,
+                }
+            ],
+        ),
+        "cp-admin-sessions.json": list_digest(
+            "cp",
+            "sessions",
+            [{"userId": 1, "email": "migration@example.com", "type": "admin", "sessionCount": 1}],
+        ),
+        "cp-storages.json": list_digest(
+            "cp",
+            "storages",
+            [{"id": 1, "name": "Main warehouse", "shortName": "MAIN", "hidden": False}],
+        ),
         "erp-accounts-summary.json": summary(
             "erp",
             {
@@ -181,18 +305,182 @@ def main() -> None:
             },
         )
         | {"source": "migration", "message": "TenantRegistry DB is not configured."},
-        "erp-suppliers.json": list_digest("erp", "suppliers"),
-        "erp-purchases.json": list_digest("erp", "purchases"),
-        "erp-cash-accounts.json": list_digest("erp", "accounts"),
-        "erp-cash-entries.json": list_digest("erp", "entries"),
-        "erp-coa-accounts.json": list_digest("erp", "accounts"),
-        "erp-warehouses.json": list_digest("erp", "warehouses"),
-        "erp-sales-orders.json": list_digest("erp", "orders"),
-        "erp-purchase-orders.json": list_digest("erp", "orders"),
-        "erp-invoices.json": list_digest("erp", "invoices"),
-        "erp-gl-journals.json": list_digest("erp", "journals"),
-        "bos-tenants.json": list_digest("bos", "tenants"),
-        "bos-audit-log.json": list_digest("bos", "entries"),
+        "erp-suppliers.json": list_digest(
+            "erp",
+            "suppliers",
+            [{"id": 1, "name": "Migration supplier", "storageId": 1, "balance": 0.0}],
+        ),
+        "erp-purchases.json": list_digest(
+            "erp",
+            "purchases",
+            [
+                {
+                    "id": 1,
+                    "supplierId": 1,
+                    "supplierName": "Migration supplier",
+                    "purchaseDate": "1970-01-01",
+                    "invoiceNumber": "MIG-1",
+                    "totalAmount": 0.0,
+                    "status": "draft",
+                    "orderId": 0,
+                }
+            ],
+        ),
+        "erp-cash-accounts.json": list_digest(
+            "erp",
+            "accounts",
+            [
+                {
+                    "id": 1,
+                    "name": "Cash",
+                    "accountType": "cash",
+                    "currencyCode": "AED",
+                    "openingBalance": 0.0,
+                    "balance": 0.0,
+                }
+            ],
+        ),
+        "erp-cash-entries.json": list_digest(
+            "erp",
+            "entries",
+            [
+                {
+                    "id": 1,
+                    "accountId": 1,
+                    "accountName": "Cash",
+                    "accountType": "cash",
+                    "timeUnix": 0,
+                    "direction": "in",
+                    "amount": 0.0,
+                    "reference": "migration",
+                    "note": "sentinel",
+                }
+            ],
+        ),
+        "erp-coa-accounts.json": list_digest(
+            "erp",
+            "accounts",
+            [
+                {
+                    "id": 1,
+                    "code": "1000",
+                    "name": "Cash",
+                    "accountType": "asset",
+                    "normalSide": "debit",
+                    "parentId": 0,
+                    "openingBalance": 0.0,
+                    "active": True,
+                }
+            ],
+        ),
+        "erp-warehouses.json": list_digest(
+            "erp",
+            "warehouses",
+            [
+                {
+                    "id": 1,
+                    "storageId": 1,
+                    "code": "MAIN",
+                    "name": "Main warehouse",
+                    "active": True,
+                    "timeCreated": 0,
+                }
+            ],
+        ),
+        "erp-sales-orders.json": list_digest(
+            "erp",
+            "orders",
+            [
+                {
+                    "id": 1,
+                    "soNo": "SO-1",
+                    "customerUserId": 9,
+                    "totalAmount": 0.0,
+                    "status": "draft",
+                    "timeCreated": 0,
+                }
+            ],
+        ),
+        "erp-purchase-orders.json": list_digest(
+            "erp",
+            "orders",
+            [
+                {
+                    "id": 1,
+                    "poNo": "PO-1",
+                    "supplierId": 1,
+                    "title": "Migration PO",
+                    "totalAmount": 0.0,
+                    "status": "draft",
+                    "timeCreated": 0,
+                }
+            ],
+        ),
+        "erp-invoices.json": list_digest(
+            "erp",
+            "invoices",
+            [
+                {
+                    "id": 1,
+                    "invoiceNumber": "INV-1",
+                    "orderId": 1,
+                    "userId": 9,
+                    "customerEmail": "migration@example.com",
+                    "issueDate": "1970-01-01",
+                    "status": "draft",
+                    "totalInclVat": 0.0,
+                }
+            ],
+        ),
+        "erp-gl-journals.json": list_digest(
+            "erp",
+            "journals",
+            [
+                {
+                    "id": 1,
+                    "journalNo": "J-1",
+                    "journalDate": "1970-01-01",
+                    "sourceType": "manual",
+                    "sourceId": 0,
+                    "status": "draft",
+                    "totalDebit": 0.0,
+                }
+            ],
+        ),
+        "bos-tenants.json": list_digest(
+            "bos",
+            "tenants",
+            [
+                {
+                    "siteKey": "www",
+                    "hostname": "www.ecomae.com",
+                    "industryCode": "auto",
+                    "status": "active",
+                    "tradeName": "EcomAE",
+                    "hubName": "hub",
+                    "hostedOn": "cloudpanel",
+                    "erpOnly": False,
+                    "isActive": True,
+                    "hasDb": True,
+                }
+            ],
+        ),
+        "bos-audit-log.json": list_digest(
+            "bos",
+            "entries",
+            [
+                {
+                    "id": 1,
+                    "ts": 0,
+                    "userId": 1,
+                    "actor": "migration",
+                    "area": "platform",
+                    "action": "read",
+                    "target": "sentinel",
+                    "ip": "127.0.0.1",
+                }
+            ],
+        ),
         "bos-fleet-health.json": {
             "ok": True,
             "surface": "bos",
@@ -215,23 +503,41 @@ def main() -> None:
             "ok": True,
             "surface": "storefront",
             "user_id": 9,
-            "orders": [],
-            "count": 0,
+            "orders": [
+                {
+                    "id": 1,
+                    "timeUnix": 0,
+                    "paid": False,
+                    "successfullyCreated": True,
+                    "status": "new",
+                }
+            ],
+            "count": 1,
             "source": "migration",
             "message": "TenantRegistry DB is not configured.",
             "session": {"kind": "Customer", "user_id": 9},
-            "note": "migration-mode contract sample; PHP remains authoritative",
+            "note": "migration-mode contract sample; item-field sentinel; PHP remains authoritative",
         },
         "storefront-garage.json": {
             "ok": True,
             "surface": "storefront",
             "user_id": 9,
-            "vehicles": [],
-            "count": 0,
+            "vehicles": [
+                {
+                    "id": 1,
+                    "caption": "Migration vehicle",
+                    "marka": "Demo",
+                    "model": "Car",
+                    "year": 2020,
+                    "vin": "MIGRATIONVIN000001",
+                    "active": True,
+                }
+            ],
+            "count": 1,
             "source": "migration",
             "message": "TenantRegistry DB is not configured.",
             "session": {"kind": "Customer", "user_id": 9},
-            "note": "migration-mode contract sample; PHP remains authoritative",
+            "note": "migration-mode contract sample; item-field sentinel; PHP remains authoritative",
         },
         "storefront-profile.json": {
             "ok": True,

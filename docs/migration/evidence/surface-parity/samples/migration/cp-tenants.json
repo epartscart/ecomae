@@ -1,8 +1,21 @@
 {
   "ok": true,
   "surface": "cp",
-  "tenants": [],
-  "count": 0,
+  "tenants": [
+    {
+      "siteKey": "www",
+      "hostname": "www.ecomae.com",
+      "industryCode": "auto",
+      "status": "active",
+      "tradeName": "EcomAE",
+      "hubName": "hub",
+      "hostedOn": "cloudpanel",
+      "erpOnly": false,
+      "isActive": true,
+      "hasDb": true
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

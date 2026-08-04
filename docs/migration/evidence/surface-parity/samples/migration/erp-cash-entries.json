@@ -1,8 +1,20 @@
 {
   "ok": true,
   "surface": "erp",
-  "entries": [],
-  "count": 0,
+  "entries": [
+    {
+      "id": 1,
+      "accountId": 1,
+      "accountName": "Cash",
+      "accountType": "cash",
+      "timeUnix": 0,
+      "direction": "in",
+      "amount": 0.0,
+      "reference": "migration",
+      "note": "sentinel"
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

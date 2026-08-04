@@ -1,8 +1,15 @@
 {
   "ok": true,
   "surface": "erp",
-  "suppliers": [],
-  "count": 0,
+  "suppliers": [
+    {
+      "id": 1,
+      "name": "Migration supplier",
+      "storageId": 1,
+      "balance": 0.0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

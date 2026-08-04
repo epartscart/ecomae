@@ -1,8 +1,18 @@
 {
   "ok": true,
   "surface": "erp",
-  "orders": [],
-  "count": 0,
+  "orders": [
+    {
+      "id": 1,
+      "poNo": "PO-1",
+      "supplierId": 1,
+      "title": "Migration PO",
+      "totalAmount": 0.0,
+      "status": "draft",
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

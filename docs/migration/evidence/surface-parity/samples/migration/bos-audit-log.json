@@ -1,8 +1,19 @@
 {
   "ok": true,
   "surface": "bos",
-  "entries": [],
-  "count": 0,
+  "entries": [
+    {
+      "id": 1,
+      "ts": 0,
+      "userId": 1,
+      "actor": "migration",
+      "area": "platform",
+      "action": "read",
+      "target": "sentinel",
+      "ip": "127.0.0.1"
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {

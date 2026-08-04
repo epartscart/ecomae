@@ -1,8 +1,17 @@
 {
   "ok": true,
   "surface": "cp",
-  "modules": [],
-  "count": 0,
+  "modules": [
+    {
+      "id": 1,
+      "caption": "Migration module",
+      "activated": true,
+      "isFrontend": false,
+      "isPrototype": false,
+      "controlAvailable": true
+    }
+  ],
+  "count": 1,
   "source": "migration",
   "message": "TenantRegistry DB is not configured.",
   "session": {
