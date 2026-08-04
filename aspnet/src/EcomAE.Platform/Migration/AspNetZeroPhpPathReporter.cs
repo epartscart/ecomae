@@ -11,9 +11,9 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
         AspNetZeroPhpPhase[] phases =
         [
             new("1-inventory", "Route/job inventory", "complete", "Inventory + digest contracts tracked; cp-debug-console holdout intentional."),
-            new("2-scaffold", "ASP.NET digests + hybrid shells", "complete", "128 surface digests + storefront digests + ~149 presentation apps on www."),
-            new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Marketing hub+home+/platform+/about scaffolded; CP/ERP/BOS/storefront hybrid on www; tenants PHP-primary under parity gate."),
-            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; cart + OMS status/message + ERP cash/GL manual/reverse dry-runs; live writes still PHP."),
+            new("2-scaffold", "ASP.NET digests + hybrid shells", "complete", "128 surface digests + storefront digests + ~150 presentation apps on www."),
+            new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Marketing hub+home+/platform+/about+/faq scaffolded; CP/ERP/BOS/storefront hybrid on www; tenants PHP-primary under parity gate."),
+            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; cart + OMS status/message + ERP cash/GL/purchase void dry-runs; live writes still PHP."),
             new("5-tenant-exact-route", "Staged exact-route cutover on live tenants", "blocked-on-parity", "Default refuse on named tenants; ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW unlocks parity shadows only."),
             new("6-php-removal", "Disable PHP + remove runtime", "blocked", "Requires dual-sample + human RELEASE_OWNER_APPROVAL.md — never invent that file."),
         ];
@@ -23,14 +23,14 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             Status: "building-toward-zero-php",
             CutoverAllowed: false,
             ReadyForPhpRemoval: false,
-            HonestCompletionPct: 48,
+            HonestCompletionPct: 49,
             Phases: phases,
             NextBuilds:
             [
-                "Dual-sample /marketing/app + /platform + /about vs live PHP → exact-route candidates.",
+                "Dual-sample /marketing/app + /platform + /about + /faq vs live PHP → exact-route candidates.",
                 "Dual-sample cart write dry-runs vs PHP ajax, then promote type-2 add/qty/delete writes.",
-                "Dual-sample OMS send_message + ERP GL reverse vs PHP ajax, then promote.",
-                "Marketing FAQ/industries scaffolds; per-tenant storefront theme parity (epartscart first).",
+                "Dual-sample OMS send_message + ERP GL reverse + purchase void vs PHP ajax, then promote.",
+                "Marketing industries/pricing scaffolds; per-tenant storefront theme parity (epartscart first).",
                 "Capture dual-sample evidence per surface; only then staged exact-route on tenants.",
             ],
             Notes:

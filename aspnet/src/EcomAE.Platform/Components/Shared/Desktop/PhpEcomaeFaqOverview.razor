@@ -1,0 +1,51 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_faq_render_page() — hero + module teaser.
+  Full searchable FAQ modules remain PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-faq-overview">
+	<div class="epm-hero epm-faq-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407 0%,#5a0f16 42%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-question-circle"></i> FAQ overview</div>
+			<h1>Frequently Asked Questions</h1>
+			<p class="lead">Honest answers from the ECOM AE platform — automotive catalog, B2B, supply chain, UAE ERP, AI, infrastructure, and licensing. Status badges show what is live today vs roadmap.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/faq?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/faq"))">Open full PHP FAQ (hybrid)</a>
+				<a class="epm-btn epm-btn--ghost" href="@(EcomaeMarketingPages.LiveBase)platform/demo">Book @EcomaeMarketingPages.DemoDays-day demo</a>
+				<a class="epm-btn epm-btn--outline" href="@(EcomaeMarketingPages.LiveBase)platform/contact">Contact</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-car"></i>
+			<strong>Automotive &amp; catalog</strong>
+			<p>UMAPI, crosses, VIN, supplier feeds — what is live vs planned.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-building"></i>
+			<strong>UAE ERP &amp; e-invoice</strong>
+			<p>Peppol / PINT-AE, fiscal periods, multi-company GL.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-cloud"></i>
+			<strong>Hosting &amp; licensing</strong>
+			<p>Model C multi-tenant, Super CP onboarding, monthly rental.</p>
+		</div>
+	</div>
+
+	<div class="epm-highlight">
+		<h3>Searchable FAQ modules</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">The full accordion FAQ with Yes/Partial/Planned badges remains on live PHP until dual-sample promotes this route.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/faq?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/faq"))">Browse all FAQ modules</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET FAQ overview scaffold — module Q&amp;A content dual-samples against live PHP <code>/platform/faq</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

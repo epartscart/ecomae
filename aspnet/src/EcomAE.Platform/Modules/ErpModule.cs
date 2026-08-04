@@ -263,6 +263,26 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ErpPurchasesVoid, async (
+            HttpContext context,
+            ErpPurchaseVoidBody? body,
+            ILegacySessionValidator validator,
+            IErpPurchaseVoidDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for purchase void dry-run.");
+            }
+
+            body ??= new ErpPurchaseVoidBody(0, null, false);
+            var result = await dryRun.EvaluateAsync(
+                new ErpPurchaseVoidRequest(body.PurchaseId, body.Reason, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpInvoices, async (
             HttpContext context,
             int? limit,
@@ -636,4 +656,5 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
     private sealed record ErpGlManualEntryBody(IReadOnlyList<ErpGlManualLineBody>? Lines, string? Reference, string? Description, bool ConfirmWrites = false);
     private sealed record ErpGlReverseJournalBody(long JournalId, string? Note, bool ConfirmWrites = false);
+    private sealed record ErpPurchaseVoidBody(long PurchaseId, string? Reason, bool ConfirmWrites = false);
 }
