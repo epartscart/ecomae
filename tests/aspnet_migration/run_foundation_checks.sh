@@ -903,6 +903,8 @@ check 'Wave E write dry-run probe covers classic form product' contains "$ROOT/s
 check 'CP module ajax catalog covers parts_agent' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/CpModuleAjaxWriteCatalog.cs" 'ajax_epc_parts_agent_cp.php'
 check 'CP module ajax catalog covers free_tools' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/CpModuleAjaxWriteCatalog.cs" 'ajax_epc_free_tools.php'
 check 'Wave F write dry-run probe covers parts_agent save_config' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/module-ajax/parts_agent/save_config/dry-run'
+check 'CP module ajax catalog covers pos ajax' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/CpModuleAjaxWriteCatalog.cs" 'ajax_pos.php'
+check 'Wave F write dry-run probe covers pos complete_sale' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/module-ajax/pos/complete_sale/dry-run'
 
 
 check 'Wave B write dry-run dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh"

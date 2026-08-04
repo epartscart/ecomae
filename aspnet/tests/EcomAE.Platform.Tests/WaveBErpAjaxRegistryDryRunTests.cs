@@ -106,13 +106,13 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     {
         var catalog = new CpModuleAjaxWriteCatalog();
         var report = catalog.BuildReport();
-        Assert.Equal(321, report.TotalActions);
+        Assert.Equal(390, report.TotalActions);
         Assert.Equal(100, report.CoveragePct);
         Assert.False(report.CutoverAllowed);
         Assert.False(report.ReadyForPhpRemoval);
         Assert.True(report.PhpAuthoritative);
-        Assert.Equal(201, report.DedicatedDryRuns);
-        Assert.Equal(120, report.RegistryDryRuns);
+        Assert.Equal(245, report.DedicatedDryRuns);
+        Assert.Equal(145, report.RegistryDryRuns);
         Assert.True(catalog.TryGet("procurement", "create_supplier", out var entry));
         Assert.Equal("dedicated", entry.Coverage);
         Assert.True(catalog.TryGet("crm", "crm_save_lead", out var crm));
@@ -151,7 +151,7 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     public void PathBoardMentionsAjaxCatalogAndStaysBelow100()
     {
         var report = new AspNetZeroPhpPathReporter().BuildReport();
-        Assert.InRange(report.HonestCompletionPct, 98, 99);
+        Assert.InRange(report.HonestCompletionPct, 99, 99);
         Assert.False(report.CutoverAllowed);
         Assert.Contains(report.Phases, p => p.Id == "4-function-parity" && p.Detail.Contains("ajax_erp", StringComparison.Ordinal));
         Assert.Contains(report.Phases, p => p.Id == "4-function-parity" && p.Detail.Contains("module ajax", StringComparison.OrdinalIgnoreCase));
