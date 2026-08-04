@@ -14,7 +14,7 @@
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode; stock[] sentinel from epc_erp_inventory_stock_report; PHP epc_erp_inventory.php authoritative; cutoverAllowed=false",
+  "note": "migration-mode; stock[] + lowStock[] sentinels; PHP epc_erp_inventory.php authoritative; cutoverAllowed=false",
   "stock": [
     {
       "id": 1,
@@ -38,5 +38,18 @@
   "message": "TenantRegistry DB is not configured.",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": false,
+  "lowStock": [
+    {
+      "id": 1,
+      "warehouseId": 1,
+      "itemId": 1,
+      "sku": "MIG-SKU-1",
+      "name": "Migration item",
+      "warehouseName": "Main",
+      "qtyOnHand": 2,
+      "reorderLevel": 5,
+      "avgUnitCost": 10
+    }
+  ]
 }

@@ -5,7 +5,7 @@
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
-  "routeCount": 187,
+  "routeCount": 189,
   "note": "Exact-route presentation/app shadows for www.ecomae.com only. Not product cutover. Live marketing / remains PHP.",
   "routes": [
     "/auth/login/admin",
@@ -127,6 +127,7 @@
     "/cp/web-tracker-app",
     "/cp/workflows-app",
     "/erp/accounts-summary-app",
+    "/erp/aging-app",
     "/erp/app",
     "/erp/bank-reconciliation-app",
     "/erp/cash-accounts-app",
@@ -145,6 +146,7 @@
     "/erp/report-center-app",
     "/erp/sales-orders-app",
     "/erp/sales-quotations-app",
+    "/erp/stock-movements-app",
     "/erp/stock-transfers-app",
     "/erp/suppliers-app",
     "/erp/warehouses-app",

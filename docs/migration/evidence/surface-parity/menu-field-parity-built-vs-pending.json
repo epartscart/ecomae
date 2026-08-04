@@ -11,8 +11,8 @@
     "holdoutNote": "cp-debug-console ported as safe metadata-only digest (no LFI)"
   },
   "fieldFloors": {
-    "summaryContractStems": 110,
-    "hybridListStems": 103,
+    "summaryContractStems": 112,
+    "hybridListStems": 105,
     "listItemStems": 28,
     "objectStems": 1,
     "floorsCreatedThisRun": [
@@ -47,8 +47,8 @@
       "storefront-checkout"
     ],
     "floorsCreatedCount": 29,
-    "coveredContractStems": 139,
-    "totalContractStems": 139,
+    "coveredContractStems": 141,
+    "totalContractStems": 141,
     "missingContractStems": []
   },
   "pendingTowardZeroPhp": [
@@ -68,7 +68,7 @@
   },
   "built": [
     "Menu catalog 726/726 digest-contract (cp-debug-console safe metadata-only)",
-    "Field floors cover 139/139 digest contract stems",
+    "Field floors cover 141/141 digest contract stems",
     "CP module-ajax write catalog 394 actions @ 100% dry-run coverage (writes=0); goldens 254",
     "ERP ajax_erp catalog 321/321 dedicated dry-run goldens",
     "BOS ajax catalog 231/231 dry-run goldens",

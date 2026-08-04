@@ -1,0 +1,10 @@
+{
+  "role": "php-hybrid-ui-authoritative",
+  "stem": "erp-aging",
+  "surface": "erp",
+  "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=aging",
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "PHP remains authoritative until dual-sample + human RELEASE_OWNER_APPROVAL.md."
+}

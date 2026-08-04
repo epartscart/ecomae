@@ -1,0 +1,79 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "summary": {
+    "boundary1": 30,
+    "boundary2": 60,
+    "boundary3": 90,
+    "arGrand": 100,
+    "apGrand": 50,
+    "inventoryGrand": 25,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; arRows[] sentinel from epc_erp_aging.php; PHP authoritative; cutoverAllowed=false",
+  "arLabels": [
+    "Not due",
+    "1-30",
+    "31-60",
+    "61-90",
+    "90+"
+  ],
+  "apLabels": [
+    "Not due",
+    "1-30",
+    "31-60",
+    "61-90",
+    "90+"
+  ],
+  "inventoryLabels": [
+    "0-30",
+    "31-60",
+    "61-90",
+    "91-180",
+    "180+"
+  ],
+  "arRows": [
+    {
+      "name": "Migration customer",
+      "bucket0": 0,
+      "bucket1": 100,
+      "bucket2": 0,
+      "bucket3": 0,
+      "bucket4": 0,
+      "total": 100
+    }
+  ],
+  "apRows": [
+    {
+      "name": "Migration supplier",
+      "bucket0": 0,
+      "bucket1": 50,
+      "bucket2": 0,
+      "bucket3": 0,
+      "bucket4": 0,
+      "total": 50
+    }
+  ],
+  "inventoryRows": [
+    {
+      "name": "MIG-SKU \u00b7 Migration item",
+      "bucket0": 25,
+      "bucket1": 0,
+      "bucket2": 0,
+      "bucket3": 0,
+      "bucket4": 0,
+      "total": 25
+    }
+  ],
+  "count": 3,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

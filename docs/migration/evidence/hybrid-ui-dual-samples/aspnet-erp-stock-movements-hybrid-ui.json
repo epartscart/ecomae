@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "erp-stock-movements",
+  "surface": "erp",
+  "appRoute": "/erp/stock-movements-app",
+  "digestRoute": "/erp/stock-movements",
+  "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory",
+  "blazorMarker": "ErpStockMovementsApp",
+  "chromeShell": "PhpErpDesktopChrome",
+  "authKind": "admin",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T20:30:00Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Stub until live hybrid capture. PHP remains authoritative."
+}

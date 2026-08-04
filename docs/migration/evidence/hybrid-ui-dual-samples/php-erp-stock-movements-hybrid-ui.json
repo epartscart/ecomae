@@ -1,0 +1,10 @@
+{
+  "role": "php-hybrid-ui-authoritative",
+  "stem": "erp-stock-movements",
+  "surface": "erp",
+  "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory",
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "PHP remains authoritative until dual-sample + human RELEASE_OWNER_APPROVAL.md."
+}

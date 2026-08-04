@@ -1,0 +1,30 @@
+{
+  "role": "erp-aging-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "erp-aging",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_migration_digest_contract_samples.py",
+  "note": "Locks erp-aging digest vs PHP epc_erp_aging.php. Interactive aging remains PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "boundary1",
+    "boundary2",
+    "boundary3",
+    "arGrand",
+    "apGrand",
+    "inventoryGrand",
+    "source",
+    "message"
+  ],
+  "collectionKey": "arRows",
+  "requiredItemFields": [
+    "name",
+    "bucket0",
+    "bucket1",
+    "bucket2",
+    "bucket3",
+    "bucket4",
+    "total"
+  ]
+}

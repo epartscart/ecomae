@@ -6,7 +6,7 @@
   "stem": "erp-inventory-stock",
   "requireNonemptyMigrationSentinel": true,
   "source": "scripts/compare_digest_dual_samples.py + generate_migration_digest_contract_samples.py",
-  "note": "Locks erp-inventory-stock digest field floors for PHP↔ASP.NET dual-sample against epc_erp_inventory_stock_report. Interactive stock writes remain PHP. cutoverAllowed=false.",
+  "note": "Locks erp-inventory-stock digest field floors (stock[] + lowStock[] envelope). Interactive stock writes remain PHP. cutoverAllowed=false.",
   "requiredSummaryFields": [
     "rowCount",
     "qtyOnHand",

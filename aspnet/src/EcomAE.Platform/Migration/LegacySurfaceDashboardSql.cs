@@ -74,9 +74,16 @@ public static class LegacySurfaceDashboardSql
         WHERE `status` <> 'paid'
         """;
 
-    /// <summary>PHP <c>erp_dashboard.php</c> stock value tile.</summary>
+    /// <summary>
+    /// PHP <c>erp_dashboard.php</c> stock value tile — prefer modern <c>epc_erp_inv_stock</c>,
+    /// fall back to legacy <c>epc_inventory_stock</c> when modern table is empty/missing.
+    /// </summary>
     public const string SumErpDashboardStockValue = """
-        SELECT COALESCE(SUM(`quantity` * `avg_cost`), 0) FROM `epc_inventory_stock`
+        SELECT IF(
+            EXISTS(SELECT 1 FROM `epc_erp_inv_stock` LIMIT 1),
+            (SELECT COALESCE(SUM(`qty_on_hand` * `avg_unit_cost`), 0) FROM `epc_erp_inv_stock`),
+            (SELECT COALESCE(SUM(`quantity` * `avg_cost`), 0) FROM `epc_inventory_stock`)
+        )
         """;
 
     /// <summary>PHP <c>epc_erp_cc_kpi_tiles</c> revenue (ex. VAT) for current month.</summary>
@@ -402,14 +409,28 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>COA with current balance (PHP <c>epc_erp_gl_list_coa</c> signed balance).</summary>
     public const string SelectErpCoaAccounts = """
-        SELECT `id`, IFNULL(`code`, '') AS code, IFNULL(`name`, '') AS name,
-               IFNULL(`account_type`, '') AS account_type, IFNULL(`normal_side`, '') AS normal_side,
-               IFNULL(`parent_id`, 0) AS parent_id, IFNULL(`opening_balance`, 0) AS opening_balance,
-               `active`
-        FROM `epc_erp_coa_accounts`
-        WHERE `active` = 1
-        ORDER BY `code` ASC
+        SELECT a.`id`, IFNULL(a.`code`, '') AS code, IFNULL(a.`name`, '') AS name,
+               IFNULL(a.`account_type`, '') AS account_type, IFNULL(a.`normal_side`, '') AS normal_side,
+               IFNULL(a.`parent_id`, 0) AS parent_id, IFNULL(a.`opening_balance`, 0) AS opening_balance,
+               CASE
+                 WHEN IFNULL(a.`normal_side`, 'debit') = 'credit'
+                 THEN IFNULL(a.`opening_balance`, 0) + IFNULL(x.credits, 0) - IFNULL(x.debits, 0)
+                 ELSE IFNULL(a.`opening_balance`, 0) + IFNULL(x.debits, 0) - IFNULL(x.credits, 0)
+               END AS balance,
+               a.`active`
+        FROM `epc_erp_coa_accounts` a
+        LEFT JOIN (
+            SELECT l.`coa_id`,
+                   IFNULL(SUM(l.`debit`), 0) AS debits,
+                   IFNULL(SUM(l.`credit`), 0) AS credits
+            FROM `epc_erp_gl_lines` l
+            INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1
+            GROUP BY l.`coa_id`
+        ) x ON x.`coa_id` = a.`id`
+        WHERE a.`active` = 1
+        ORDER BY a.`code` ASC
         LIMIT @limit
         """;
 
@@ -522,6 +543,163 @@ public static class LegacySurfaceDashboardSql
         INNER JOIN `epc_erp_inv_warehouses` w ON w.`id` = s.`warehouse_id`
         WHERE (@warehouseId = 0 OR s.`warehouse_id` = @warehouseId)
         ORDER BY w.`name`, i.`sku`, s.`batch_no`
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_inventory_low_stock_lines</c>.</summary>
+    public const string SelectErpInventoryLowStockRows = """
+        SELECT s.`id`, s.`warehouse_id`, s.`item_id`,
+               IFNULL(i.`sku`, '') AS sku, IFNULL(i.`name`, '') AS name,
+               IFNULL(w.`name`, '') AS warehouse_name,
+               IFNULL(s.`qty_on_hand`, 0) AS qty_on_hand,
+               IFNULL(i.`reorder_level`, 0) AS reorder_level,
+               IFNULL(s.`avg_unit_cost`, 0) AS avg_unit_cost
+        FROM `epc_erp_inv_stock` s
+        INNER JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id` AND i.`active` = 1
+        INNER JOIN `epc_erp_inv_warehouses` w ON w.`id` = s.`warehouse_id`
+        WHERE i.`reorder_level` > 0 AND s.`qty_on_hand` <= i.`reorder_level`
+          AND (@warehouseId = 0 OR s.`warehouse_id` = @warehouseId)
+        ORDER BY (s.`qty_on_hand` / NULLIF(i.`reorder_level`, 0)) ASC, i.`sku` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_inventory_ledger</c> movement rows (running balance computed in reporter).</summary>
+    public const string SelectErpInventoryMovements = """
+        SELECT m.`id`, IFNULL(m.`movement_type`, '') AS movement_type,
+               IFNULL(m.`warehouse_id`, 0) AS warehouse_id, IFNULL(m.`item_id`, 0) AS item_id,
+               IFNULL(m.`qty`, 0) AS qty, IFNULL(m.`unit_cost`, 0) AS unit_cost,
+               IFNULL(m.`total_cost`, 0) AS total_cost, IFNULL(m.`batch_no`, '') AS batch_no,
+               IFNULL(m.`reference`, '') AS reference, IFNULL(m.`movement_date`, 0) AS movement_date,
+               IFNULL(i.`sku`, '') AS sku, IFNULL(i.`name`, '') AS item_name,
+               IFNULL(w.`name`, '') AS warehouse_name
+        FROM `epc_erp_inv_movements` m
+        LEFT JOIN `epc_erp_inv_items` i ON i.`id` = m.`item_id`
+        LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = m.`warehouse_id`
+        WHERE m.`active` = 1
+          AND (@itemId = 0 OR m.`item_id` = @itemId)
+          AND (@warehouseId = 0 OR m.`warehouse_id` = @warehouseId)
+        ORDER BY m.`movement_date` ASC, m.`id` ASC
+        LIMIT @limit
+        """;
+
+    public const string CountErpInventoryMovements = """
+        SELECT COUNT(*) FROM `epc_erp_inv_movements` WHERE `active` = 1
+        """;
+
+    /// <summary>Report-center / aging: AR outstanding from einvoice documents (bucketed in reporter).</summary>
+    public const string SelectErpAgingArDocuments = """
+        SELECT d.`user_id`, IFNULL(u.`email`, '') AS email,
+               IFNULL(d.`issue_date`, 0) AS issue_date,
+               IFNULL(d.`payment_due_date`, 0) AS payment_due_date,
+               IFNULL(d.`total_incl_vat`, 0) AS total_incl_vat,
+               IFNULL(d.`paid_amount`, 0) AS paid_amount
+        FROM `epc_einvoice_documents` d
+        LEFT JOIN `users` u ON u.`user_id` = d.`user_id`
+        WHERE d.`active` = 1 AND d.`status` <> 'cancelled'
+          AND d.`doc_category` IN ('tax_invoice','commercial_invoice')
+        LIMIT 2000
+        """;
+
+    /// <summary>Report-center / aging: AP outstanding from purchases.</summary>
+    public const string SelectErpAgingApDocuments = """
+        SELECT p.`id`, p.`supplier_id`, IFNULL(s.`name`, '') AS name,
+               IFNULL(p.`purchase_date`, 0) AS purchase_date,
+               IFNULL(p.`total_amount`, 0) AS total_amount,
+               IFNULL((SELECT SUM(a.`amount`) FROM `epc_erp_supplier_accounting` a
+                       WHERE a.`purchase_id` = p.`id` AND a.`active` = 1 AND a.`is_credit` = 0), 0) AS paid
+        FROM `epc_erp_purchases` p
+        LEFT JOIN `epc_erp_suppliers` s ON s.`id` = p.`supplier_id`
+        WHERE p.`active` = 1 AND p.`status` <> 'draft'
+        LIMIT 2000
+        """;
+
+    /// <summary>Inventory aging value by item (age from last inbound movement).</summary>
+    public const string SelectErpAgingInventoryRows = """
+        SELECT st.`item_id`, IFNULL(it.`sku`, '') AS sku, IFNULL(it.`name`, '') AS name,
+               IFNULL(st.`qty_on_hand`, 0) AS qty_on_hand,
+               IFNULL(st.`avg_unit_cost`, 0) AS avg_unit_cost,
+               IFNULL(st.`time_updated`, 0) AS time_updated,
+               IFNULL((SELECT MAX(m.`movement_date`) FROM `epc_erp_inv_movements` m
+                       WHERE m.`item_id` = st.`item_id` AND m.`active` = 1
+                         AND m.`movement_type` IN ('opening','purchase_in','transfer_in','return_in')), 0) AS last_in
+        FROM `epc_erp_inv_stock` st
+        INNER JOIN `epc_erp_inv_items` it ON it.`id` = st.`item_id` AND it.`active` = 1
+        WHERE st.`qty_on_hand` > 0
+        LIMIT 2000
+        """;
+
+    public const string SelectErpCreditProfiles = """
+        SELECT `customer_id`, IFNULL(`customer_account`, '') AS customer_account,
+               IFNULL(`customer_name`, '') AS customer_name,
+               IFNULL(`customer_group`, '') AS customer_group,
+               IFNULL(`currency_code`, '') AS currency_code,
+               IFNULL(`credit_limit`, 0) AS credit_limit,
+               IFNULL(`terms_days`, 0) AS terms_days,
+               IFNULL(`risk_band`, '') AS risk_band,
+               IFNULL(`on_hold`, 0) AS on_hold
+        FROM `epc_credit_profiles`
+        ORDER BY `customer_id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpCreditHolds = """
+        SELECT `customer_id`, IFNULL(`customer_name`, '') AS customer_name,
+               IFNULL(`credit_limit`, 0) AS credit_limit,
+               IFNULL(`terms_days`, 0) AS terms_days,
+               IFNULL(`risk_band`, '') AS risk_band
+        FROM `epc_credit_profiles`
+        WHERE `on_hold` = 1
+        ORDER BY `customer_id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpReportCenterWorkingCapital = """
+        SELECT
+          (SELECT COALESCE(SUM(`total_amount`), 0) FROM `epc_erp_sales_orders`
+           WHERE `status` IN ('confirmed','partial') AND `active` = 1) AS ar,
+          (SELECT COALESCE(SUM(`total_amount`), 0) FROM `epc_erp_purchases`
+           WHERE `status` IN ('confirmed','partial') AND `active` = 1) AS ap,
+          (SELECT COALESCE(SUM(`qty_on_hand` * `avg_unit_cost`), 0) FROM `epc_erp_inv_stock`) AS inventory,
+          (
+            (SELECT COALESCE(SUM(`opening_balance`), 0) FROM `epc_erp_cash_bank_accounts` WHERE `active` = 1)
+            + (SELECT COALESCE(SUM(CASE WHEN `direction` = 1 THEN `amount` ELSE -`amount` END), 0)
+               FROM `epc_erp_cash_bank_entries` WHERE `active` = 1)
+          ) AS cash
+        """;
+
+    public const string SelectErpReportCenterArAgingExec = """
+        SELECT `total_amount`, `order_date`
+        FROM `epc_erp_sales_orders`
+        WHERE `status` IN ('confirmed','partial') AND `active` = 1
+        """;
+
+    public const string SelectErpReportCenterCashHistory = """
+        SELECT
+          COALESCE(SUM(CASE WHEN `direction` = 1 THEN `amount` ELSE 0 END), 0) AS inflow,
+          COALESCE(SUM(CASE WHEN `direction` = 0 THEN `amount` ELSE 0 END), 0) AS outflow
+        FROM `epc_erp_cash_bank_entries`
+        WHERE `active` = 1 AND `time` BETWEEN @from AND @to
+        """;
+
+    public const string SelectErpTrialBalanceRows = """
+        SELECT IFNULL(a.`code`, '') AS code, IFNULL(a.`name`, '') AS name,
+               IFNULL(a.`account_type`, '') AS account_type, IFNULL(a.`normal_side`, '') AS normal_side,
+               CASE
+                 WHEN IFNULL(a.`normal_side`, 'debit') = 'credit'
+                 THEN IFNULL(a.`opening_balance`, 0) + IFNULL(x.credits, 0) - IFNULL(x.debits, 0)
+                 ELSE IFNULL(a.`opening_balance`, 0) + IFNULL(x.debits, 0) - IFNULL(x.credits, 0)
+               END AS balance
+        FROM `epc_erp_coa_accounts` a
+        LEFT JOIN (
+            SELECT l.`coa_id`,
+                   IFNULL(SUM(l.`debit`), 0) AS debits,
+                   IFNULL(SUM(l.`credit`), 0) AS credits
+            FROM `epc_erp_gl_lines` l
+            INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1
+            GROUP BY l.`coa_id`
+        ) x ON x.`coa_id` = a.`id`
+        WHERE a.`active` = 1
+        ORDER BY a.`code` ASC
         LIMIT @limit
         """;
 

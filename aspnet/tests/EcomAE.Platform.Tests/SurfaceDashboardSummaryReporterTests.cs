@@ -80,6 +80,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var fixedAssets = await reporter.BuildErpFixedAssetsDigestAsync(10);
         var processFlowTasks = await reporter.BuildErpProcessFlowTasksDigestAsync(10);
         var reportCenter = await reporter.BuildErpReportCenterDigestAsync(null, 10);
+        var aging = await reporter.BuildErpAgingDigestAsync(10);
+        var stockMovements = await reporter.BuildErpInventoryMovementsDigestAsync(10);
         var pageBuilder = await reporter.BuildCpPageBuilderDigestAsync(10);
         var productCatalogue = await reporter.BuildCpProductCatalogueDigestAsync(10);
         var platformGovernance = await reporter.BuildCpPlatformGovernanceDigestAsync(10);
@@ -210,6 +212,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal(33, reportCenter.Summary.ReportCount);
         Assert.Equal(19, reportCenter.Summary.AreaCount);
         Assert.Equal(33, reportCenter.Reports.Count);
+        Assert.Equal("migration", aging.Source);
+        Assert.Equal("migration", stockMovements.Source);
+        Assert.Empty(inventoryStock.LowStock);
         Assert.Equal("migration", pageBuilder.Source);
         Assert.Equal("migration", productCatalogue.Source);
         Assert.Equal("migration", platformGovernance.Source);
@@ -291,6 +296,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SelectErpInventoryStockSummary, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_items", LegacySurfaceDashboardSql.SelectErpInventoryStockRows, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_warehouses", LegacySurfaceDashboardSql.SelectErpInventoryStockRows, StringComparison.Ordinal);
+        Assert.Contains("reorder_level", LegacySurfaceDashboardSql.SelectErpInventoryLowStockRows, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_inv_movements", LegacySurfaceDashboardSql.SelectErpInventoryMovements, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SumErpDashboardStockValue, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_gl_lines", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);
         Assert.Contains("shop_currencies", LegacySurfaceDashboardSql.SelectCpCurrencies, StringComparison.Ordinal);
         Assert.Contains("epc_api_clients", LegacySurfaceDashboardSql.SelectCpApiClientsMeta, StringComparison.Ordinal);
         Assert.Contains("epc_power_bi_config", LegacySurfaceDashboardSql.SelectCpPowerBiConfig, StringComparison.Ordinal);
