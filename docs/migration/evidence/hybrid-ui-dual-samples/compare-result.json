@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 84,
-  "hybridUiSamplesOk": 83,
+  "pairsChecked": 88,
+  "hybridUiSamplesOk": 87,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -63,6 +63,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-admin-sessions",
       "appRoute": "/cp/admin-sessions-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-ai-service-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-ai-service",
+      "appRoute": "/cp/ai-service-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -309,6 +319,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-landed-cost-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-landed-cost",
+      "appRoute": "/cp/landed-cost-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-marketing-broadcast-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-marketing-broadcast",
@@ -519,6 +539,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-returns-rma-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-returns-rma",
+      "appRoute": "/cp/returns-rma-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-sms-whatsapp-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-sms-whatsapp",
@@ -583,6 +613,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-users",
       "appRoute": "/cp/users-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-warehouse-wms-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-warehouse-wms",
+      "appRoute": "/cp/warehouse-wms-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

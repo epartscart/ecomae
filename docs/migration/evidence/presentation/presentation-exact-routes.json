@@ -2,7 +2,7 @@
   "role": "presentation-exact-route-inventory",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 93,
+  "routeCount": 97,
   "generatedFrom": "deploy/aspnet/nginx-presentation-app-shadow-example.conf",
   "note": "Design/inventory only. Not product chrome cutover. Never invents RELEASE_OWNER_APPROVAL.md.",
   "routes": [
@@ -98,6 +98,10 @@
     "/cp/soc2-compliance-app",
     "/cp/cost-models-app",
     "/cp/fin-advanced-app",
-    "/cp/blockchain-proofs-app"
+    "/cp/blockchain-proofs-app",
+    "/cp/landed-cost-app",
+    "/cp/warehouse-wms-app",
+    "/cp/ai-service-app",
+    "/cp/returns-rma-app"
   ]
 }

@@ -125,6 +125,9 @@ STOREFRONT_HYBRID_BY_ID = {
     "payments": "cp-payment-gateways",
     # Wave 10 — catalogue storefront id → product catalogue digest
     "catalog": "cp-product-catalogue",
+    # Wave 13 — returns/support attach to returns-rma digest
+    "returns": "cp-returns-rma",
+    "support": "cp-returns-rma",
 }
 
 # Explicit catalog-id maps where PHP paths diverge from hybrid TARGET paths.
@@ -381,12 +384,42 @@ CP_FEATURE_HYBRID_BY_ID = {
     "general-ledger-financial-depth": "cp-fin-advanced",
     "tax-blockchain-proofs": "cp-blockchain-proofs",
     "audit-workbench-blockchain-proofs": "cp-blockchain-proofs",
+    # Wave 13 — procurement-ap / shipping-logistics / ai-automation / storefront-checkout
+    "landed-cost-landed-cost": "cp-landed-cost",
+    "expense-management-expense-reports": "cp-landed-cost",
+    "procurement-and-sourcing-3-way-match": "cp-landed-cost",
+    "procurement-and-sourcing-supplier-portal": "cp-landed-cost",
+    "accounts-payable-vendor-setup": "cp-landed-cost",
+    "vendor-sourcing-fleet": "cp-landed-cost",
+    "procurement-suppliers": "cp-landed-cost",
+    "supplier-directory": "cp-landed-cost",
+    "supplier-payables": "cp-landed-cost",
+    "material-handling-equipment-interface-warehouse-management": "cp-warehouse-wms",
+    "warehouse-management-warehouse-management": "cp-warehouse-wms",
+    "warehouse-inventory-fleet": "cp-warehouse-wms",
+    "branch-offices": "cp-warehouse-wms",
+    "branch-office-list": "cp-warehouse-wms",
+    "stock-levels": "cp-warehouse-wms",
+    "logistics-procurement-cp": "cp-warehouse-wms",
+    "common-ai-advisor": "cp-ai-service",
+    "system-administration-devin-ai-assistant": "cp-ai-service",
+    "ai-vin-decode-assistance": "cp-ai-service",
+    "returns-rma-handling": "cp-returns-rma",
+    "returns-manager": "cp-returns-rma",
+    "account-operations": "cp-returns-rma",
+    "accounts-receivable": "cp-returns-rma",
+    "accounts-receivable-receivables": "cp-returns-rma",
+    "storefront-theme-packages": "cp-returns-rma",
 }
 
 ERP_AREA_HYBRID_BY_ID = {
 
     "cost_acct": "cp-fin-advanced",
     "cost_mgmt": "cp-cost-models",
+    "landed_cost_area": "cp-landed-cost",
+    "expense": "cp-landed-cost",
+    "mhei": "cp-warehouse-wms",
+    "ar": "cp-returns-rma",
     "banking": "erp-accounts-summary",
     "finance": "erp-coa-accounts",
     "sales": "erp-sales-orders",
@@ -475,6 +508,20 @@ ERP_TAB_HYBRID_BY_ID = {
     ("cost_mgmt", "cost_models"): "cp-cost-models",
     ("tax", "blockchain_proofs"): "cp-blockchain-proofs",
     ("audit_wb", "blockchain_proofs"): "cp-blockchain-proofs",
+    ("landed_cost_area", "landed_cost"): "cp-landed-cost",
+    ("expense", "expense_reports"): "cp-landed-cost",
+    ("purchasing", "three_way_match"): "cp-landed-cost",
+    ("purchasing", "supplier_portal"): "cp-landed-cost",
+    ("ap", "ap_setup"): "cp-landed-cost",
+    ("mhei", "wms"): "cp-warehouse-wms",
+    ("warehouse", "wms"): "cp-warehouse-wms",
+    ("sales", "delivery_notes"): "cp-warehouse-wms",
+    ("common", "ai_advisor"): "cp-ai-service",
+    ("finance", "accounting_automation"): "cp-ai-service",
+    ("setup", "ai_assistant"): "cp-ai-service",
+    ("setup", "accounting_automation"): "cp-ai-service",
+    ("ar", "receivables"): "cp-returns-rma",
+    ("ar", "ar_setup"): "cp-returns-rma",
     ("budgeting", "budgeting"): "cp-budgets",
     ("budgeting", "budget_planning"): "cp-budgets",
     ("logistics", "custom_shipping"): "cp-carriers",
@@ -527,6 +574,7 @@ ERP_CATEGORY_HYBRID_BY_ID = {
     "compliance_tax": "cp-uae-tax-compliance",
 }
 BOS_SECTION_HYBRID_BY_ID = {
+    "logistics": "cp-warehouse-wms",
     "marketing_cp": "cp-marketing-growth",
     "fleet": "bos-fleet-health",
     "tenants": "bos-tenants",
@@ -539,6 +587,10 @@ BOS_MODULE_HYBRID_BY_ID = {
     "seo": "cp-marketing-growth",
 
     "soc2_compliance": "cp-soc2-compliance",
+    "ai_copilot": "cp-ai-service",
+    "ai_service": "cp-ai-service",
+    "import_orchestrator": "cp-ai-service",
+    "isolation_anomaly": "cp-ai-service",
     "social": "cp-marketing-growth",
     "fleet_cp": "bos-fleet-summary",
     "fleet_erp": "bos-fleet-summary",

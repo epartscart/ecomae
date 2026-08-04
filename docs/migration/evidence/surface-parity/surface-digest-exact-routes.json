@@ -2,8 +2,8 @@
   "role": "surface-digest-exact-route-inventory",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 83,
-  "surfaceDigestCount": 76,
+  "routeCount": 87,
+  "surfaceDigestCount": 80,
   "storefrontDigestCount": 6,
   "ordersDigestCount": 1,
   "generatedFrom": [
@@ -11,7 +11,7 @@
     "deploy/aspnet/nginx-storefront-digests-shadow-example.conf",
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf (/cp/orders-digest)"
   ],
-  "note": "Design/inventory only for digest dual-sample floor (83). Storefront search/cart digests wired (live shadows still 4/6). Surface digests wired 76 (live until operator install). Never invents RELEASE_OWNER_APPROVAL.md.",
+  "note": "Design/inventory only for digest dual-sample floor (87). Storefront search/cart digests wired (live shadows still 4/6). Surface digests wired 80 (live until operator install). Never invents RELEASE_OWNER_APPROVAL.md.",
   "routes": [
     "/cp/dashboard-summary",
     "/cp/tenants",
@@ -85,16 +85,20 @@
     "/cp/jewellery-repairs",
     "/cp/crm-tickets",
     "/cp/marketing-growth",
+    "/cp/soc2-compliance",
+    "/cp/cost-models",
+    "/cp/fin-advanced",
+    "/cp/blockchain-proofs",
+    "/cp/landed-cost",
+    "/cp/warehouse-wms",
+    "/cp/ai-service",
+    "/cp/returns-rma",
     "/storefront/account-summary",
     "/storefront/orders",
     "/storefront/garage",
     "/storefront/profile",
     "/storefront/search",
     "/storefront/cart",
-    "/cp/orders-digest",
-    "/cp/soc2-compliance",
-    "/cp/cost-models",
-    "/cp/fin-advanced",
-    "/cp/blockchain-proofs"
+    "/cp/orders-digest"
   ]
 }

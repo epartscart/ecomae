@@ -1667,3 +1667,114 @@ public sealed record CpBlockchainProofsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpLandedCostSummary(
+    int SheetCount,
+    int PostedCount,
+    int ExpenseCount,
+    int LineCount,
+    string Source,
+    string Message);
+
+public sealed record CpLandedCostSheetDigest(
+    long Id,
+    long CompanyId,
+    string SheetNo,
+    string PoReference,
+    string GrnReference,
+    long SupplierId,
+    string SupplierName,
+    decimal GoodsValue,
+    decimal TotalExpenses,
+    string DistributionMethod,
+    string Currency,
+    string Status,
+    long TimeCreated);
+
+public sealed record CpLandedCostDigestResult(
+    CpLandedCostSummary Summary,
+    IReadOnlyList<CpLandedCostSheetDigest> Sheets,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpWarehouseWmsSummary(
+    int LocationCount,
+    int LpCount,
+    int WaveCount,
+    int OpenWorkCount,
+    string Source,
+    string Message);
+
+public sealed record CpWarehouseWmsWorkDigest(
+    long Id,
+    long CompanyId,
+    string WorkType,
+    string Reference,
+    long WaveId,
+    string Item,
+    decimal Qty,
+    string Status,
+    string AssignedTo,
+    long TimeCreated);
+
+public sealed record CpWarehouseWmsDigestResult(
+    CpWarehouseWmsSummary Summary,
+    IReadOnlyList<CpWarehouseWmsWorkDigest> Work,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpAiServiceSummary(
+    int QueryCount,
+    int SuccessCount,
+    int BlockedCount,
+    int ProviderCount,
+    string Source,
+    string Message);
+
+public sealed record CpAiServiceQueryDigest(
+    long Id,
+    string SiteKey,
+    long UserId,
+    string Service,
+    string Intent,
+    int TokensUsed,
+    int ExecutionMs,
+    int PiiStripped,
+    string Status,
+    string CreatedAt);
+
+public sealed record CpAiServiceDigestResult(
+    CpAiServiceSummary Summary,
+    IReadOnlyList<CpAiServiceQueryDigest> Queries,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpReturnsRmaSummary(
+    int RmaCount,
+    int OpenCount,
+    int ActiveWarrantyCount,
+    int ItemCount,
+    string Source,
+    string Message);
+
+public sealed record CpReturnsRmaRequestDigest(
+    long Id,
+    string SiteKey,
+    string RmaNumber,
+    long? WarrantyId,
+    long CustomerId,
+    string CustomerName,
+    string Reason,
+    string Status,
+    string ResolutionType,
+    string CreatedAt);
+
+public sealed record CpReturnsRmaDigestResult(
+    CpReturnsRmaSummary Summary,
+    IReadOnlyList<CpReturnsRmaRequestDigest> Requests,
+    int Count,
+    string Source,
+    string Message);
+

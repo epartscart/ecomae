@@ -1414,4 +1414,90 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+
+    /// <summary>Landed-cost KPIs from epc_landed_cost_* (CREATE TABLE in epc_erp_landed_cost_v2.php).</summary>
+    public const string SelectCpLandedCostStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_landed_cost_sheets`) AS sheet_count,
+            (SELECT COUNT(*) FROM `epc_landed_cost_sheets` WHERE IFNULL(`status`,'') IN ('calculated','posted')) AS posted_count,
+            (SELECT COUNT(*) FROM `epc_landed_cost_expenses`) AS expense_count,
+            (SELECT COUNT(*) FROM `epc_landed_cost_lines`) AS line_count
+        """;
+
+    /// <summary>Landed cost sheets — omits notes.</summary>
+    public const string SelectCpLandedCostSheets = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`sheet_no`,'') AS sheet_no,
+               IFNULL(`po_reference`,'') AS po_reference, IFNULL(`grn_reference`,'') AS grn_reference,
+               IFNULL(`supplier_id`,0) AS supplier_id, IFNULL(`supplier_name`,'') AS supplier_name,
+               IFNULL(`goods_value`,0) AS goods_value, IFNULL(`total_expenses`,0) AS total_expenses,
+               IFNULL(`distribution_method`,'') AS distribution_method, IFNULL(`currency`,'') AS currency,
+               IFNULL(`status`,'') AS status, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_landed_cost_sheets`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>WMS KPIs from epc_erp_wms_* (CREATE TABLE in epc_erp_wms.php).</summary>
+    public const string SelectCpWarehouseWmsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_wms_locations` WHERE IFNULL(`active`,0)=1) AS location_count,
+            (SELECT COUNT(*) FROM `epc_erp_wms_lp` WHERE IFNULL(`status`,'')='active') AS lp_count,
+            (SELECT COUNT(*) FROM `epc_erp_wms_waves`) AS wave_count,
+            (SELECT COUNT(*) FROM `epc_erp_wms_work` WHERE IFNULL(`status`,'') IN ('open','assigned')) AS open_work_count
+        """;
+
+    /// <summary>WMS work pool — status/type overview.</summary>
+    public const string SelectCpWarehouseWmsWork = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`work_type`,'') AS work_type,
+               IFNULL(`reference`,'') AS reference, IFNULL(`wave_id`,0) AS wave_id,
+               IFNULL(`item`,'') AS item, IFNULL(`qty`,0) AS qty,
+               IFNULL(`status`,'') AS status, IFNULL(`assigned_to`,'') AS assigned_to,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_wms_work`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>AI service KPIs from epc_ai_* (CREATE TABLE in epc_ai_service.php).</summary>
+    public const string SelectCpAiServiceStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_ai_queries`) AS query_count,
+            (SELECT COUNT(*) FROM `epc_ai_queries` WHERE IFNULL(`status`,'')='success') AS success_count,
+            (SELECT COUNT(*) FROM `epc_ai_queries` WHERE IFNULL(`status`,'') IN ('refused','pii_blocked','error')) AS blocked_count,
+            (SELECT COUNT(*) FROM `epc_ai_providers` WHERE IFNULL(`active`,0)=1) AS provider_count
+        """;
+
+    /// <summary>AI queries — omits input_text/output_text (PII).</summary>
+    public const string SelectCpAiServiceQueries = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`service`,'') AS service, IFNULL(`intent`,'') AS intent,
+               IFNULL(`tokens_used`,0) AS tokens_used, IFNULL(`execution_ms`,0) AS execution_ms,
+               IFNULL(`pii_stripped`,0) AS pii_stripped, IFNULL(`status`,'') AS status,
+               IFNULL(`created_at`,'') AS created_at
+        FROM `epc_ai_queries`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Returns/RMA KPIs from epc_warranties/epc_rma_* (CREATE TABLE in epc_warranty_rma.php).</summary>
+    public const string SelectCpReturnsRmaStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_rma_requests`) AS rma_count,
+            (SELECT COUNT(*) FROM `epc_rma_requests` WHERE IFNULL(`status`,'') IN ('pending','approved','received','inspecting','repair','replacement','refund')) AS open_count,
+            (SELECT COUNT(*) FROM `epc_warranties` WHERE IFNULL(`status`,'')='active') AS active_warranty_count,
+            (SELECT COUNT(*) FROM `epc_rma_items`) AS item_count
+        """;
+
+    /// <summary>RMA requests — omits description/resolution_notes.</summary>
+    public const string SelectCpReturnsRmaRequests = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`rma_number`,'') AS rma_number,
+               `warranty_id`, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`customer_name`,'') AS customer_name, IFNULL(`reason`,'') AS reason,
+               IFNULL(`status`,'') AS status, IFNULL(`resolution_type`,'') AS resolution_type,
+               IFNULL(`created_at`,'') AS created_at
+        FROM `epc_rma_requests`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }
