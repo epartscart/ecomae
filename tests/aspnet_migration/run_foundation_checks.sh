@@ -965,6 +965,10 @@ check 'ERP suppliers Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platfo
 check 'ERP purchases Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpPurchasesApp.razor"
 check 'ERP sales-orders Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesOrdersApp.razor"
 check 'orders digest contract catalogued' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" '/cp/orders-digest'
+check 'cp orders item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/cp-orders-item-field-floor.json"
+check 'cp orders item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-orders-item-field-floor.json" '"cutoverAllowed": false'
+check 'cp orders migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-orders-digest.json" '"orderSum": 0.0'
+check 'digest dual-sample locks cp-orders hybrid list items' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'HYBRID_LIST_ITEM_FIELDS'
 check 'catalog manufacturers contract requires MFA_ID' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'MFA_ID'
 check 'catalog manufacturers migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-manufacturers.json" '"MFA_ID": 1'
 check 'catalog api contract floor locks manufacturer item fields' contains "$ROOT/scripts/compare_catalog_api_contract_floor.py" 'LIST_ITEM_FIELDS'

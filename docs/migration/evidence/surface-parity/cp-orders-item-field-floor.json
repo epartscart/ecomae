@@ -1,0 +1,24 @@
+{
+  "role": "cp-orders-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-orders-digest",
+  "collectionKey": "orders",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": ["open", "today", "pendingShip", "source", "message"],
+  "requiredItemFields": [
+    "id",
+    "timeUnix",
+    "userId",
+    "status",
+    "paid",
+    "paidType",
+    "officeId",
+    "successfullyCreated",
+    "countItems",
+    "orderSum"
+  ],
+  "source": "CpShopOrderDigest + CpOrdersSummary",
+  "note": "CP orders-digest keeps KPI summary fields plus a non-empty orders[] item-field sentinel. Writes remain PHP OMS. Never invents RELEASE_OWNER_APPROVAL.md."
+}

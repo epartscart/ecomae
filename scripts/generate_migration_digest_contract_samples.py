@@ -76,14 +76,30 @@ def main() -> None:
         ),
         "cp-orders-digest.json": {
             **summary("cp", {"open": 0, "today": 0, "pendingShip": 0}),
-            "orders": [],
-            "count": 0,
+            "orders": [
+                {
+                    "id": 1,
+                    "timeUnix": 0,
+                    "userId": 9,
+                    "status": 0,
+                    "paid": 0,
+                    "paidType": 0,
+                    "officeId": 0,
+                    "successfullyCreated": 1,
+                    "countItems": 0,
+                    "orderSum": 0.0,
+                }
+            ],
+            "count": 1,
             "source": "migration",
             "message": "TenantRegistry DB is not configured.",
             "dualSampleBaseline": "migration-contract-golden",
             "cutoverAllowed": False,
             "readyForPhpRemoval": False,
-            "note": "migration-mode contract sample; PHP OMS remains authoritative; cutoverAllowed=false",
+            "note": (
+                "migration-mode contract sample; orders[] item-field sentinel locked; "
+                "PHP OMS remains authoritative; cutoverAllowed=false"
+            ),
         },
         "erp-dashboard-summary.json": summary(
             "erp",

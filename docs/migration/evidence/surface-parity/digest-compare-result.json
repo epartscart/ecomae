@@ -1,5 +1,5 @@
 {
-  "pairsChecked": 35,
+  "pairsChecked": 36,
   "failed": 0,
   "migrationBaselinePairs": 0,
   "contractsRegistered": 35,
@@ -61,5 +61,8 @@
     "storefront-garage",
     "storefront-orders"
   ],
-  "note": "Digest dual-sample contract floor. All list digests require non-empty migration item-field sentinels matching SurfacePayloadContractCatalog. Never invents RELEASE_OWNER_APPROVAL.md."
+  "hybridListItemFieldStems": [
+    "cp-orders-digest"
+  ],
+  "note": "Digest dual-sample contract floor. All list digests require non-empty migration item-field sentinels; cp-orders-digest also locks orders[] items. Never invents RELEASE_OWNER_APPROVAL.md."
 }

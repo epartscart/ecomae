@@ -270,6 +270,25 @@ LIST_ITEM_FIELDS = {
 }
 LIST_NONEMPTY_MIGRATION = frozenset(LIST_ITEM_FIELDS)
 
+# Summary+list hybrid digests: KPI summary already in SUMMARY_CONTRACTS; also lock list item fields.
+HYBRID_LIST_ITEM_FIELDS = {
+    "cp-orders-digest": (
+        "orders",
+        [
+            "id",
+            "timeUnix",
+            "userId",
+            "status",
+            "paid",
+            "paidType",
+            "officeId",
+            "successfullyCreated",
+            "countItems",
+            "orderSum",
+        ],
+    ),
+}
+
 # Object digests without a collection array (top-level envelope fields).
 OBJECT_CONTRACTS = {
     "storefront-profile": [
@@ -405,6 +424,36 @@ def main() -> int:
         else:
             print(f"PASS {label}")
 
+    def check_hybrid_list_items(path: Path, stem: str, label: str) -> None:
+        nonlocal pairs, failed
+        spec = HYBRID_LIST_ITEM_FIELDS.get(stem)
+        if not spec:
+            return
+        key, item_fields = spec
+        pairs += 1
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as ex:  # noqa: BLE001
+            failed += 1
+            print(f"FAIL {label}: {ex}")
+            return
+        rows = doc.get(key)
+        if not isinstance(rows, list) or len(rows) < 1:
+            failed += 1
+            print(f"FAIL {label}: expected non-empty {key}[] item-field sentinel")
+            return
+        first = rows[0]
+        if not isinstance(first, dict):
+            failed += 1
+            print(f"FAIL {label}: {key}[0] must be object")
+            return
+        missing = [f for f in item_fields if f not in first]
+        if missing:
+            failed += 1
+            print(f"FAIL {label}: missing item fields {missing}")
+            return
+        print(f"PASS {label}")
+
     for stem, (path_key, require) in SUMMARY_CONTRACTS.items():
         left, from_mig = resolve_left(samples, stem)
         asp = samples / f"aspnet-{stem}.json"
@@ -437,6 +486,12 @@ def main() -> int:
             failed += 1
             print(f"FAIL {label}")
             print(proc.stdout or proc.stderr)
+        if stem in HYBRID_LIST_ITEM_FIELDS and left is not None:
+            check_hybrid_list_items(
+                left, stem, f"{'migration' if from_mig else 'php'}-{stem}-orders-items"
+            )
+            if asp.exists():
+                check_hybrid_list_items(asp, stem, f"aspnet-{stem}-orders-items")
 
     for stem, key in LIST_CONTRACTS.items():
         left, from_mig = resolve_left(samples, stem)
@@ -491,6 +546,8 @@ def main() -> int:
                 failed += 1
                 print(f"FAIL migration/{stem}")
                 print(proc.stdout or proc.stderr)
+            if stem in HYBRID_LIST_ITEM_FIELDS:
+                check_hybrid_list_items(path, stem, f"migration/{stem}-orders-items")
         for stem, key in LIST_CONTRACTS.items():
             if stem in checked_stems:
                 continue
@@ -519,9 +576,10 @@ def main() -> int:
         "contractOnly": bool(args.contract_only) or used_migration > 0,
         "listItemFieldStems": sorted(LIST_ITEM_FIELDS),
         "listNonemptyMigrationStems": sorted(LIST_NONEMPTY_MIGRATION),
+        "hybridListItemFieldStems": sorted(HYBRID_LIST_ITEM_FIELDS),
         "note": (
             "Digest dual-sample contract floor. All list digests require non-empty "
-            "migration item-field sentinels matching SurfacePayloadContractCatalog. "
+            "migration item-field sentinels; cp-orders-digest also locks orders[] items. "
             "Never invents RELEASE_OWNER_APPROVAL.md."
         ),
     }
