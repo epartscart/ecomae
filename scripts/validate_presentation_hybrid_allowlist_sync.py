@@ -50,6 +50,7 @@ SHELLS_LOGINS_AUTH = frozenset(
         "/marketing/legal",
         "/marketing/bos",
         "/marketing/blockchain",
+        "/marketing/documentation",
         "/cp/login",
         "/erp/login",
         "/bos/login",
