@@ -1,6 +1,4 @@
 {
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
   "counts": {
     "erpAreas": 35,
     "erpTabs": 154,
@@ -10,5 +8,7 @@
     "cpBrochureFeatures": 405,
     "storefrontSurfaces": 12
   },
-  "policy": "hybrid-deeplink-to-php-until-aspnet-module-complete"
+  "policy": "hybrid-deeplink-to-php-until-aspnet-module-complete",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
 }

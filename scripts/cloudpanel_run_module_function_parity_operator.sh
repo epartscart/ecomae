@@ -34,7 +34,10 @@ if int(doc.get("aspnetCompleteCount") or 0) != 0:
 if not doc.get("ok"):
     raise SystemExit("FAIL: module-function compare not ok")
 print(
-    f"PASS: moduleCount={doc.get('moduleCount')} aspnetCompleteCount={doc.get('aspnetCompleteCount')} "
+    f"PASS: moduleCount={doc.get('moduleCount')} "
+    f"hybridPreviewCount={doc.get('hybridPreviewCount')} "
+    f"phpOnlyCount={doc.get('phpOnlyCount')} "
+    f"aspnetCompleteCount={doc.get('aspnetCompleteCount')} "
     f"cutoverAllowed={doc.get('cutoverAllowed')}"
 )
 PY

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare module-function parity inventory/samples (contract floor).
+"""Compare module-function parity inventory/samples (full PHP catalog floor).
 
 Does NOT authorize PHP removal. Always emits cutoverAllowed=false.
 Never invents MODULE_FUNCTION_TEST_PASS.md / RELEASE_OWNER_APPROVAL.md.
@@ -28,10 +28,21 @@ PHP_CATALOG_FLOORS = {
     "cpBrochureFeatures": 405,
     "erpAreas": 35,
     "erpTabs": 154,
+    "erpCategories": 9,
     "bosModules": 99,
     "storefrontSurfaces": 12,
 }
+# ERP areas + tabs + categories + BOS + CP + storefront = 714
+MIN_FULL_MODULE_COUNT = sum(PHP_CATALOG_FLOORS.values())
 MIN_HYBRID_PREVIEW_COUNT = 37
+REQUIRED_KINDS = {
+    "erp-area": 35,
+    "erp-tab": 154,
+    "erp-category": 9,
+    "bos-module": 99,
+    "cp-feature": 405,
+    "storefront-surface": 12,
+}
 
 
 def main() -> int:
@@ -60,9 +71,10 @@ def main() -> int:
     modules = inventory.get("modules") or []
     if not isinstance(modules, list) or not modules:
         errors.append("inventory.modules must be a non-empty list")
-    elif len(modules) < MIN_HYBRID_PREVIEW_COUNT:
+    elif len(modules) < MIN_FULL_MODULE_COUNT:
         errors.append(
-            f"inventory.modules count={len(modules)} expected >={MIN_HYBRID_PREVIEW_COUNT} hybrid previews"
+            f"inventory.modules count={len(modules)} expected >={MIN_FULL_MODULE_COUNT} "
+            "(full PHP catalog enumeration)"
         )
 
     php_counts = inventory.get("phpCatalogCounts")
@@ -83,24 +95,51 @@ def main() -> int:
 
     complete = 0
     status_counts: dict[str, int] = {}
+    kind_counts: dict[str, int] = {}
+    hybrid_preview_count = 0
     for idx, mod in enumerate(modules):
         if not isinstance(mod, dict):
             errors.append(f"modules[{idx}] must be object")
             continue
         status = str(mod.get("status") or "")
         status_counts[status] = status_counts.get(status, 0) + 1
+        kind = str(mod.get("kind") or "")
+        if kind:
+            kind_counts[kind] = kind_counts.get(kind, 0) + 1
         if status not in ALLOWED_STATUS:
             errors.append(f"modules[{idx}].status invalid: {status!r}")
-        if not mod.get("id") or not mod.get("surface") or not mod.get("aspnetRoute"):
-            errors.append(f"modules[{idx}] requires id/surface/aspnetRoute")
+        if not mod.get("id") or not mod.get("surface"):
+            errors.append(f"modules[{idx}] requires id/surface")
+        if not mod.get("phpPath") and not mod.get("aspnetRoute"):
+            errors.append(f"modules[{idx}] requires phpPath or aspnetRoute")
+        if mod.get("aspnetComplete") is True:
+            errors.append(f"modules[{idx}].aspnetComplete must stay false without human pass evidence")
+        if status != "php-only":
+            hybrid_preview_count += 1
         if status == "aspnet-complete":
             complete += 1
             if mod.get("writesRemainPhp") is not True:
-                # Interactive complete still usually keeps some PHP writes; require explicit note.
                 if not mod.get("humanFunctionalEvidence"):
                     errors.append(
                         f"modules[{idx}] aspnet-complete requires humanFunctionalEvidence or writesRemainPhp=true"
                     )
+
+    for kind, floor in REQUIRED_KINDS.items():
+        got = kind_counts.get(kind, 0)
+        if got < floor:
+            errors.append(f"modules kind {kind} count={got} expected >={floor}")
+
+    if hybrid_preview_count < MIN_HYBRID_PREVIEW_COUNT:
+        errors.append(
+            f"non-php-only modules={hybrid_preview_count} expected >={MIN_HYBRID_PREVIEW_COUNT} "
+            "(hybrid TARGET coverage)"
+        )
+
+    declared_hybrid = inventory.get("hybridPreviewCount")
+    if declared_hybrid is not None and int(declared_hybrid) != hybrid_preview_count:
+        errors.append(
+            f"inventory.hybridPreviewCount={declared_hybrid} != computed {hybrid_preview_count}"
+        )
 
     # Contract floor: repo stubs must not claim interactive completion without the human pass file.
     pass_path = Path("docs/migration/evidence/presentation/MODULE_FUNCTION_TEST_PASS.md")
@@ -121,9 +160,6 @@ def main() -> int:
         errors.append(
             f"inventory.aspnetCompleteCount={declared_complete} != computed complete={complete}"
         )
-    if complete != 0 and not pass_path.is_file():
-        # already errored above; keep aspnetCompleteCount floor honest in compare-result
-        pass
 
     out = {
         "role": "compare-result",
@@ -131,15 +167,17 @@ def main() -> int:
         "cutoverAllowed": False,
         "readyForPhpRemoval": False,
         "moduleCount": len(modules) if isinstance(modules, list) else 0,
-        "hybridPreviewCount": len(modules) if isinstance(modules, list) else 0,
+        "hybridPreviewCount": hybrid_preview_count,
+        "phpOnlyCount": status_counts.get("php-only", 0),
         "aspnetCompleteCount": complete,
+        "kindCounts": kind_counts,
         "phpCatalogCounts": php_counts if isinstance(php_counts, dict) else {},
         "phpCatalogFloors": PHP_CATALOG_FLOORS,
         "statusCounts": status_counts,
         "errors": errors,
         "note": (
-            "Contract floor only. Hybrid previews != full PHP catalog scope. "
-            "Interactive aspnet-complete remains 0 until human "
+            "Full PHP catalog inventory floor. Hybrid previews upgrade a subset; "
+            "interactive aspnet-complete remains 0 until human "
             "MODULE_FUNCTION_TEST_PASS.md exists. Never invents approval."
         ),
     }
@@ -156,8 +194,8 @@ def main() -> int:
             print(f"  - {err}", file=sys.stderr)
         return 1
     print(
-        f"PASS: moduleCount={out['moduleCount']} aspnetCompleteCount={complete} "
-        f"cutoverAllowed=false",
+        f"PASS: moduleCount={out['moduleCount']} hybridPreviewCount={hybrid_preview_count} "
+        f"aspnetCompleteCount={complete} cutoverAllowed=false",
         file=sys.stderr,
     )
     return 0

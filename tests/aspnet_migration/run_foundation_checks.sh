@@ -665,6 +665,14 @@ check 'module function parity inventory floors CP brochure features' contains "$
 check 'module function parity inventory floors ERP tabs' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"erpTabs": 154'
 check 'module function parity inventory floors BOS modules' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"bosModules": 99'
 check 'module function compare enforces php catalog floors' contains "$ROOT/scripts/compare_module_function_parity.py" 'PHP_CATALOG_FLOORS'
+check 'module function compare enforces full catalog module floor' contains "$ROOT/scripts/compare_module_function_parity.py" 'MIN_FULL_MODULE_COUNT'
+check 'module function inventory enumerates cp-feature rows' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"kind": "cp-feature"'
+check 'module function inventory enumerates erp-tab rows' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"kind": "erp-tab"'
+check 'module function inventory enumerates bos-module rows' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"kind": "bos-module"'
+check 'module function inventory moduleCount covers full catalog' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert d["moduleCount"]>=714, d["moduleCount"]' "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json"
+check 'presentation php_module_catalog evidence has erpAreas list' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert isinstance(d.get("erpAreas"), list) and len(d["erpAreas"])>=35' "$ROOT/docs/migration/evidence/presentation/php_module_catalog.json"
+check 'presentation php_module_catalog evidence has cp features list' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert isinstance(d.get("cpBrochureFeatures"), list) and len(d["cpBrochureFeatures"])>=405' "$ROOT/docs/migration/evidence/presentation/php_module_catalog.json"
+check 'generate_php_module_catalog writes evidence catalog' contains "$ROOT/scripts/generate_php_module_catalog.py" 'evidence_catalog_path'
 check 'module function parity compare helper exists' test -f "$ROOT/scripts/compare_module_function_parity.py"
 check 'module function parity compare is executable' test -x "$ROOT/scripts/compare_module_function_parity.py"
 check 'module function parity operator exists' test -f "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh"

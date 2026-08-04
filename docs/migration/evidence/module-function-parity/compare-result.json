@@ -3,9 +3,19 @@
   "ok": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "moduleCount": 37,
-  "hybridPreviewCount": 37,
+  "moduleCount": 750,
+  "hybridPreviewCount": 77,
+  "phpOnlyCount": 673,
   "aspnetCompleteCount": 0,
+  "kindCounts": {
+    "erp-area": 35,
+    "erp-tab": 154,
+    "erp-category": 9,
+    "bos-module": 99,
+    "cp-feature": 405,
+    "storefront-surface": 12,
+    "hybrid-preview": 36
+  },
   "phpCatalogCounts": {
     "erpAreas": 35,
     "erpTabs": 154,
@@ -19,13 +29,15 @@
     "cpBrochureFeatures": 405,
     "erpAreas": 35,
     "erpTabs": 154,
+    "erpCategories": 9,
     "bosModules": 99,
     "storefrontSurfaces": 12
   },
   "statusCounts": {
-    "digest-only+hybrid-deeplink": 35,
+    "digest-only+hybrid-deeplink": 75,
+    "php-only": 673,
     "hybrid-deeplink": 2
   },
   "errors": [],
-  "note": "Contract floor only. Hybrid previews != full PHP catalog scope. Interactive aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists. Never invents approval."
+  "note": "Full PHP catalog inventory floor. Hybrid previews upgrade a subset; interactive aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists. Never invents approval."
 }
