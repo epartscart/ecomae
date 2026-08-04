@@ -1,0 +1,45 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of PHP /brochure/cp — full CP brochure overview.
+  Full brochure body remains PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-brochure-cp-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 45%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-book"></i> Full CP brochure</div>
+			<h1>Control Panel product brochure</h1>
+			<p class="lead">Deep-dive brochure for the ECOM AE Control Panel and commerce stack. Full brochure content remains on live PHP until dual-sample.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/brochure">Product brochure</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/brochure-cp?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "brochure/cp"))">Open full PHP CP brochure (hybrid)</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/contact">Contact</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-cogs"></i>
+			<strong>CP modules</strong>
+			<p>Orders, catalog, CRM, and platform tools covered in the live PHP brochure.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-building"></i>
+			<strong>ERP + BOS</strong>
+			<p>How Control Panel connects to ERP and Blockchain BOS for operators.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-exchange"></i>
+			<strong>Hybrid workspace</strong>
+			<p>Use <code>?php=</code> to dual-sample the live PHP brochure beside this scaffold.</p>
+		</div>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET brochure-cp overview scaffold — dual-sample against live PHP <code>/brochure/cp</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

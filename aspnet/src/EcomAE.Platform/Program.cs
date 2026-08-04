@@ -143,6 +143,8 @@ builder.Services.AddSingleton<ICpOmsSetItemsStatusDryRun, CpOmsSetItemsStatusDry
 builder.Services.AddSingleton<ICpOmsSendMessageDryRun, CpOmsSendMessageDryRun>();
 builder.Services.AddSingleton<ICpOmsAddCommentDryRun, CpOmsAddCommentDryRun>();
 builder.Services.AddSingleton<ICpOmsSetViewedDryRun, CpOmsSetViewedDryRun>();
+builder.Services.AddSingleton<ICpOmsUpdateItemDryRun, CpOmsUpdateItemDryRun>();
+builder.Services.AddSingleton<ICpOmsPayRefundDryRun, CpOmsPayRefundDryRun>();
 builder.Services.AddSingleton<ICpOmsSetCourierDryRun, CpOmsSetCourierDryRun>();
 builder.Services.AddSingleton<ICpOmsDeleteOrdersDryRun, CpOmsDeleteOrdersDryRun>();
 builder.Services.AddSingleton<IErpCashVoucherAmendDryRun, ErpCashVoucherAmendDryRun>();
@@ -160,6 +162,7 @@ builder.Services.AddSingleton<IStorefrontQuoteAcceptDryRun, StorefrontQuoteAccep
 builder.Services.AddSingleton<IStorefrontQuoteAddItemDryRun, StorefrontQuoteAddItemDryRun>();
 builder.Services.AddSingleton<IStorefrontGarageSetActiveDryRun, StorefrontGarageSetActiveDryRun>();
 builder.Services.AddSingleton<IStorefrontGarageDeleteDryRun, StorefrontGarageDeleteDryRun>();
+builder.Services.AddSingleton<IStorefrontCheckoutCreateDryRun, StorefrontCheckoutCreateDryRun>();
 builder.Services.AddSingleton<IStorefrontOrderSendMessageDryRun, StorefrontOrderSendMessageDryRun>();
 builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);

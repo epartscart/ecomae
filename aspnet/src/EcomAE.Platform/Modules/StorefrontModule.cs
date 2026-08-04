@@ -500,6 +500,28 @@ public sealed class StorefrontModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.StorefrontCheckoutCreate, async (
+            HttpContext context,
+            StorefrontCheckoutCreateBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontCheckoutCreateDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for checkout create dry-run.");
+            }
+
+            body ??= new StorefrontCheckoutCreateBody(0, null, null, null, false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontCheckoutCreateRequest(
+                    body.HowGetMode, body.OfficeId, body.PhoneNotAuth, body.EmailNotAuth, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapPost(EcomAeRoutes.StorefrontOrderSendMessage, async (
             HttpContext context,
             StorefrontOrderSendMessageBody? body,
@@ -552,6 +574,12 @@ public sealed class StorefrontModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record StorefrontGarageSetActiveBody(long CarId, bool ConfirmWrites = false);
     private sealed record StorefrontGarageDeleteBody(long CarId, bool ConfirmWrites = false);
+    private sealed record StorefrontCheckoutCreateBody(
+        int HowGetMode,
+        int? OfficeId = null,
+        string? PhoneNotAuth = null,
+        string? EmailNotAuth = null,
+        bool ConfirmWrites = false);
     private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
 
     private static IResult Unauthorized(string message) => Results.Json(

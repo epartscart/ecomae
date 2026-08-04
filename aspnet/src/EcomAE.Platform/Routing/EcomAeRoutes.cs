@@ -440,6 +440,10 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsAddComment = "/cp/orders/add-comment";
     /// <summary>Wave B dry-run OMS set orders viewed (PHP ajax_set_orders_viewed.php remains authoritative).</summary>
     public const string ControlPanelOmsSetViewed = "/cp/orders/set-viewed";
+    /// <summary>Wave B dry-run for PHP OMS update_item (writes=0; PHP authoritative).</summary>
+    public const string ControlPanelOmsUpdateItem = "/cp/orders/update-item";
+    /// <summary>Wave B dry-run for PHP ajax_order_pay_refund.php (writes=0; PHP authoritative).</summary>
+    public const string ControlPanelOmsPayRefund = "/cp/orders/pay-refund";
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
     /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>
@@ -611,6 +615,8 @@ public static class EcomAeRoutes
     public const string StorefrontGarageSetActive = "/storefront/garage/set-active";
     /// <summary>Wave B dry-run garage delete (PHP ajax_operations_cars.php action=delete_car remains authoritative).</summary>
     public const string StorefrontGarageDelete = "/storefront/garage/delete";
+    /// <summary>Wave B dry-run for PHP ajax_checkout_create.php (writes=0; PHP authoritative).</summary>
+    public const string StorefrontCheckoutCreate = "/storefront/checkout/create";
     /// <summary>Wave B dry-run customer order message (PHP ajax_send_message.php customer path remains authoritative).</summary>
     public const string StorefrontOrderSendMessage = "/storefront/orders/send-message";
     /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
@@ -665,6 +671,26 @@ public static class EcomAeRoutes
     public const string MarketingCookiePolicyApp = "/marketing/cookie-policy";
     /// <summary>Marketing security-policy Blazor scaffold (PHP /security-policy remains primary until dual-sample).</summary>
     public const string MarketingSecurityPolicyApp = "/marketing/security-policy";
+    /// <summary>Marketing right to use Blazor scaffold (PHP /right-to-use remains primary until dual-sample).</summary>
+    public const string MarketingRightToUseApp = "/marketing/right-to-use";
+    /// <summary>Marketing trademark Blazor scaffold (PHP /trademark remains primary until dual-sample).</summary>
+    public const string MarketingTrademarkApp = "/marketing/trademark";
+    /// <summary>Marketing copyright Blazor scaffold (PHP /copyright remains primary until dual-sample).</summary>
+    public const string MarketingCopyrightApp = "/marketing/copyright";
+    /// <summary>Marketing data protection Blazor scaffold (PHP /data-protection remains primary until dual-sample).</summary>
+    public const string MarketingDataProtectionApp = "/marketing/data-protection";
+    /// <summary>Marketing acceptable use Blazor scaffold (PHP /acceptable-use remains primary until dual-sample).</summary>
+    public const string MarketingAcceptableUseApp = "/marketing/acceptable-use";
+    /// <summary>Marketing confidentiality Blazor scaffold (PHP /confidentiality remains primary until dual-sample).</summary>
+    public const string MarketingConfidentialityApp = "/marketing/confidentiality";
+    /// <summary>Marketing intellectual property Blazor scaffold (PHP /intellectual-property remains primary until dual-sample).</summary>
+    public const string MarketingIntellectualPropertyApp = "/marketing/intellectual-property";
+    /// <summary>Marketing blockchain disclaimer Blazor scaffold (PHP /blockchain-disclaimer remains primary until dual-sample).</summary>
+    public const string MarketingBlockchainDisclaimerApp = "/marketing/blockchain-disclaimer";
+    /// <summary>Marketing dmca Blazor scaffold (PHP /dmca remains primary until dual-sample).</summary>
+    public const string MarketingDmcaApp = "/marketing/dmca";
+    /// <summary>Marketing full CP brochure Blazor scaffold (PHP /brochure/cp remains primary until dual-sample).</summary>
+    public const string MarketingBrochureCpApp = "/marketing/brochure-cp";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
