@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DIR = ROOT / "docs/migration/evidence/on-premises-dual-samples"
-MIN_ACTIONS = 6
+MIN_ACTIONS = 7
 
 CONTRACT_KEYS = (
     "ok",

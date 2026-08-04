@@ -45,8 +45,8 @@ for m in re.finditer(r"(?m)^(location = (/marketing/[^\s{]+)\s*\{.*?\n\})", exam
         raise SystemExit(f"ERROR: invalid double braces in block for {route}")
     indented = "\n".join(("  " + line if line.strip() else line) for line in block_raw.splitlines())
     blocks.append((route, indented.rstrip() + "\n"))
-if len(blocks) < 30:
-    raise SystemExit(f"ERROR: expected >=30 /marketing/* routes, found {len(blocks)}")
+if len(blocks) != 37:
+    raise SystemExit(f"ERROR: expected 37 /marketing/* routes, found {len(blocks)}")
 inserted, already = [], []
 for route, block in blocks:
     if re.search(rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{", text):

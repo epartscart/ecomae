@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "surface": "erp-on-premises",
+  "action": "licenses",
+  "aspNetRoute": "/erp/on-premises/licenses",
+  "phpAuthoritativePath": "epc_onprem_licenses",
+  "status": "digest-wired-awaiting-live-dual-sample",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "licenses": [
+    {
+      "id": 1,
+      "licenseKey": "LIC-\u2026DEMO",
+      "customerName": "Migration Sentinel",
+      "tier": "standard",
+      "usersMax": 5,
+      "status": "active",
+      "hostname": "onprem-demo",
+      "issuedAt": 0,
+      "activatedAt": 0,
+      "lastSeenAt": 0,
+      "expiresAt": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "Keys masked; notes/fingerprint/ip omitted. PHP registry authoritative.",
+  "note": "On-premises licenses digest golden (read-only). Not surface-digest exact-route until live dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

@@ -1,0 +1,20 @@
+{
+  "role": "php-login-bridge-contract-sample",
+  "surface": "storefront",
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "dualSampleBaseline": "migration-contract-golden",
+  "pairedAspNetGolden": "aspnet-storefront-login-bridge.json",
+  "setCookie": [
+    "session=STUB; path=/; httponly; samesite=lax",
+    "u_id=0; path=/; httponly; samesite=lax"
+  ],
+  "probe": {
+    "kind": "Customer",
+    "has_backend_access": false
+  },
+  "generatedAtUnix": 1785870874,
+  "note": "Seeded from aspnet login-bridge golden for contract-only compare. Live PHP login/session remains authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

@@ -1,17 +1,19 @@
 {
   "role": "php-on-premises-authoritative-inventory",
-  "generatedAtUnix": 1785869600,
+  "generatedAtUnix": 1785870874,
   "phpAuthoritative": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
+  "totalActions": 7,
   "actions": [
-    "health",
-    "license-activate",
-    "setup-wizard",
-    "backup",
     "activate-license-cli",
-    "health-check-pack"
+    "backup",
+    "health",
+    "health-check-pack",
+    "license-activate",
+    "licenses",
+    "setup-wizard"
   ],
-  "note": "PHP on-premises pack remains authoritative. Contract floor covers 6 dry-runs; licenses digest awaiting live dual-sample."
+  "note": "PHP on-premises pack remains authoritative for dry-runs + licenses registry."
 }

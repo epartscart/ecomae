@@ -947,8 +947,8 @@ check 'on-premises dual-sample operator exists' test -x "$ROOT/scripts/cloudpane
 check 'on-premises digest-hybrid-onprem floors runner exists' test -x "$ROOT/scripts/cloudpanel_run_all_digest_hybrid_onprem_floors.sh"
 check 'on-premises dual-sample evidence dir exists' test -d "$ROOT/docs/migration/evidence/on-premises-dual-samples"
 check 'on-premises dual-sample compare blocks cutover' contains "$ROOT/docs/migration/evidence/on-premises-dual-samples/compare-result.json" '"cutoverAllowed": false'
-check 'on-premises contract pairs are 6/6' contains "$ROOT/docs/migration/evidence/on-premises-dual-samples/compare-result.json" '"contractPairsOk": 6'
-check 'on-premises catalog totalActions is 6' contains "$ROOT/docs/migration/evidence/on-premises-dual-samples/aspnet-catalog.json" '"totalActions": 6'
+check 'on-premises contract pairs are 7/7' contains "$ROOT/docs/migration/evidence/on-premises-dual-samples/compare-result.json" '"contractPairsOk": 7'
+check 'on-premises catalog totalActions is 7' contains "$ROOT/docs/migration/evidence/on-premises-dual-samples/aspnet-catalog.json" '"totalActions": 7'
 check 'on-premises compare supports contract-only' contains "$ROOT/scripts/compare_on_premises_dual_samples.py" 'contractOnly'
 check 'on-premises operator seeds contract samples' contains "$ROOT/scripts/cloudpanel_run_on_premises_dual_sample_operator.sh" 'generate_on_premises_contract_samples.py'
 check 'hybrid inventory targetCount is 137' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-hybrid-authoritative-inventory.json" '"targetCount": 137'
@@ -992,6 +992,8 @@ check 'deploy packs hybrid UI compare' contains "$ROOT/scripts/deploy_aspnet_fou
 check 'deploy packs hybrid UI capture' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_capture_hybrid_ui_dual_samples.sh'
 check 'deploy packs hybrid UI dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'deploy packs login-cookie dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_login_cookie_dual_sample_operator.sh'
+check 'deploy packs login-cookie contract generator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'generate_login_cookie_contract_samples.py'
+check 'deploy packs marketing allowlist sync validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_marketing_app_allowlist_sync.py'
 check 'deploy packs catalog-miss dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_catalog_miss_dual_sample_operator.sh'
 check 'deploy packs digest dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_digest_dual_sample_operator.sh'
 check 'deploy packs all dual-sample operators helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_all_dual_sample_operators.sh'
@@ -1028,6 +1030,15 @@ check 'same-to-same look gap validator exists' test -x "$ROOT/scripts/validate_s
 check 'php color scheme validator exists' test -x "$ROOT/scripts/validate_php_color_scheme.py"
 check 'marketing app shadow probe exists' test -x "$ROOT/scripts/cloudpanel_probe_marketing_app_shadows.sh"
 check 'marketing app shadow installer exists' test -x "$ROOT/scripts/cloudpanel_install_marketing_app_shadows.sh"
+check 'marketing app dual-sample floor routeCount is 37' contains "$ROOT/docs/migration/evidence/presentation/marketing-app-dual-sample-floor.json" '"routeCount": 37'
+check 'marketing app dual-sample floor lists 37 routes' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert len(d.get("aspNetPreviewRoutes") or [])==37 and d.get("phpHomeMustRemainEpmHub") is True and d.get("cutoverAllowed") is False' "$ROOT/docs/migration/evidence/presentation/marketing-app-dual-sample-floor.json"
+check 'marketing installer expects exactly 37 routes' contains "$ROOT/scripts/cloudpanel_install_marketing_app_shadows.sh" 'expected 37 /marketing/* routes'
+check 'marketing probe expects exactly 37 routes' contains "$ROOT/scripts/cloudpanel_probe_marketing_app_shadows.sh" 'expected 37 /marketing/* routes'
+check 'marketing allowlist sync validator exists' test -x "$ROOT/scripts/validate_marketing_app_allowlist_sync.py"
+check 'marketing allowlist sync passes' python3 "$ROOT/scripts/validate_marketing_app_allowlist_sync.py"
+check 'residual board reports marketing routes wired 37' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"marketingExactRoutesWired": 37'
+check 'residual board reports login-cookie pairs 4' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"loginCookieContractPairsOk": 4'
+check 'residual board reports on-premises pairs 7' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-residual-board.json" '"onPremisesContractPairsOk": 7'
 check 'ERP ajax dual-sample compare exists' test -x "$ROOT/scripts/compare_erp_ajax_dual_samples.py"
 check 'BOS ajax dual-sample compare exists' test -x "$ROOT/scripts/compare_bos_ajax_dual_samples.py"
 check 'storefront digest install expects 7 routes' contains "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh" 'expected 7 storefront digest locations'

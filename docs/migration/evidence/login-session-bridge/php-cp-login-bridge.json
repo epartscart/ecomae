@@ -1,0 +1,20 @@
+{
+  "role": "php-login-bridge-contract-sample",
+  "surface": "cp",
+  "phpAuthoritative": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "dualSampleBaseline": "migration-contract-golden",
+  "pairedAspNetGolden": "aspnet-cp-login-bridge.json",
+  "setCookie": [
+    "admin_session=STUB; path=/; httponly; samesite=lax",
+    "admin_u_id=0; path=/; httponly; samesite=lax"
+  ],
+  "probe": {
+    "kind": "Admin",
+    "has_backend_access": true
+  },
+  "generatedAtUnix": 1785870874,
+  "note": "Seeded from aspnet login-bridge golden for contract-only compare. Live PHP login/session remains authoritative until field dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

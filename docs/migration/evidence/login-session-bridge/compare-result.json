@@ -1,10 +1,14 @@
 {
+  "contractOnly": true,
+  "contractPairs": 4,
+  "contractPairsOk": 4,
   "cutoverAllowed": false,
+  "missingPhpSides": [],
   "ok": true,
   "policy": "login-bridge-hybrid-batch3; PHP chrome authoritative; BOS $_SESSION stays PHP",
   "readyForPhpRemoval": false,
   "role": "compare-result",
-  "sampleCount": 4,
+  "sampleCount": 8,
   "samples": [
     {
       "cookieNames": [
@@ -51,6 +55,56 @@
       ],
       "errors": [],
       "file": "aspnet-storefront-login-bridge.json",
+      "ok": true,
+      "probeKind": "Customer",
+      "surface": "storefront",
+      "warnings": []
+    },
+    {
+      "cookieNames": [
+        "admin_session",
+        "admin_u_id"
+      ],
+      "errors": [],
+      "file": "php-bos-login-bridge.json",
+      "ok": true,
+      "probeKind": "Admin",
+      "surface": "bos",
+      "warnings": [
+        "BOS decision: admin cookies \u2260 PHP $_SESSION epc_bos_context; /BOS/ remains PHP-authoritative"
+      ]
+    },
+    {
+      "cookieNames": [
+        "admin_session",
+        "admin_u_id"
+      ],
+      "errors": [],
+      "file": "php-cp-login-bridge.json",
+      "ok": true,
+      "probeKind": "Admin",
+      "surface": "cp",
+      "warnings": []
+    },
+    {
+      "cookieNames": [
+        "admin_session",
+        "admin_u_id"
+      ],
+      "errors": [],
+      "file": "php-erp-login-bridge.json",
+      "ok": true,
+      "probeKind": "Admin",
+      "surface": "erp",
+      "warnings": []
+    },
+    {
+      "cookieNames": [
+        "session",
+        "u_id"
+      ],
+      "errors": [],
+      "file": "php-storefront-login-bridge.json",
       "ok": true,
       "probeKind": "Customer",
       "surface": "storefront",
