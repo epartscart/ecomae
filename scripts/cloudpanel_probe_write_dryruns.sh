@@ -67,6 +67,7 @@ probe_post "/storefront/cart/check-for-order" '{"records":[1],"confirmWrites":fa
 probe_post "/storefront/cart/delete" '{"recordsToDel":[1],"confirmWrites":false}' "$COOKIE" "cart delete"
 probe_post "/cp/orders/set-item-status" '{"orderId":1,"itemId":1,"status":2,"confirmWrites":false}' "$ADMIN_COOKIE" "oms set-item-status"
 probe_post "/cp/orders/set-items-status" '{"orderId":1,"status":2,"itemIds":[1,2],"confirmWrites":false}' "$ADMIN_COOKIE" "oms set-items-status"
+probe_post "/erp/cash-entries/amend" '{"entryId":1,"reference":"dry-run","note":"wave-b","confirmWrites":false}' "$ADMIN_COOKIE" "erp cash-entries amend"
 
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]
