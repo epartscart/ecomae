@@ -111,10 +111,14 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - Exact-route www preview only — live epartscart.com / tenant storefronts stay PHP (same-to-same).
 - Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 
-### Hybrid ERP continue ← current
-- ✅ Core ERP list digests through purchases; warehouses shipped earlier
-- **This PR:** `/erp/inventory-stock-app` over `/erp/inventory-stock` digest; PHP inventory tab authoritative.
+### Hybrid ERP continue
+- ✅ Core ERP list digests through purchases + inventory-stock-app (#692 track)
 - Exact-route www preview only — tenant ERP stays PHP (same-to-same).
+
+### Hybrid BOS continue ← current
+- ✅ Audit-log-app; fleet KPIs on `/bos/app`
+- **This PR:** `/bos/tenants-app` over `/bos/tenants` digest; PHP tenant control authoritative.
+- Exact-route www preview only — native `/BOS/` session stays PHP.
 
 ### Dual-sample evidence packs for hybrid UIs
 - dual-sample evidence packs for hybrid UIs ✅ (#690): `cloudpanel_capture_hybrid_ui_dual_samples.sh` + `compare_hybrid_ui_dual_samples.py` + evidence under `hybrid-ui-dual-samples/` (`cutoverAllowed=false`).

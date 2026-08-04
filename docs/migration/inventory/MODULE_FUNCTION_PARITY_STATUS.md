@@ -54,7 +54,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | Cash & bank tab | `erp_tabs_cash_bank.php` | `/erp/cash-accounts-app` over cash-accounts + cash-entries digests | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Chart of accounts | `erp_tabs_accounting.php` (`tab=coa`) | `/erp/coa-accounts-app` over `/erp/coa-accounts` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | General ledger | `erp_tabs_accounting.php` (`tab=gl`) | `/erp/gl-journals-app` over `/erp/gl-journals` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
-| Warehouses / inventory | `erp_tabs_inventory.php` | `/erp/warehouses-app` over `/erp/warehouses` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
+| Warehouses / inventory | `erp_tabs_inventory.php` | `/erp/warehouses-app` + `/erp/inventory-stock-app` over digests | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Suppliers / AP payables | `erp_main.php` payables / `epc_erp_list_suppliers` | `/erp/suppliers-app` over `/erp/suppliers` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Purchases | `erp_main.php` purchases / `epc_erp_list_purchases` | `/erp/purchases-app` over `/erp/purchases` digest | digest-only + hybrid-deeplink (writes PHP; tenant chrome PHP) |
 | Writes / ajax_erp / print | PHP | — | php-only |
@@ -66,7 +66,7 @@ Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells wit
 | --- | --- | --- | --- |
 | Login (`$_SESSION`) | `/BOS/?action=login` | `/bos/login` admin-cookie bridge only | hybrid-deeplink (Batch 3 decision: keep `/BOS/` PHP-authoritative) |
 | Fleet / tenant ops / commerce / catalogue / … | ~99–116 module IDs | `/bos/app` + `PhpBosDesktopChrome` topnav + directory → PHP | hybrid-deeplink (Batch 2 desktop; session model still PHP) |
-| Digests | — | fleet-summary/tenants/health/… | digest-only |
+| Digests | — | fleet-summary/tenants/health/… | digest-only (+ `/bos/tenants-app` Blazor list; audit-log-app) |
 
 ## Storefront (epartscart + tenants)
 
