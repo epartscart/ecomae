@@ -8,7 +8,7 @@
       "brand": "TOYOTA",
       "article": "04465-0K020",
       "name": "Brake Pad Set",
-      "price": 120.00,
+      "price": 120.0,
       "currency": "AED",
       "stockHint": 8,
       "leadTime": "same day"
@@ -18,12 +18,14 @@
       "brand": "TOYOTA",
       "article": "04465-0K020",
       "name": "Brake Pad Set",
-      "price": 150.00,
+      "price": 150.0,
       "currency": "AED",
       "stockHint": 4,
       "leadTime": "2 days"
     }
   ],
   "migrationStatus": "php-baseline",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
   "message": "Captured PHP baseline sample for api/v1/price/lookup style behavior."
 }
