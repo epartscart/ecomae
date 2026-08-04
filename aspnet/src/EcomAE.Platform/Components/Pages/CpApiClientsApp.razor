@@ -45,13 +45,11 @@
     <section class="epc-ac-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>API Clients</h1>
-        <p>Read-only <code>epc_api_clients</code> metadata from <code>/cp/api-clients</code> digest under PHP CP desktop chrome. Key hashes never returned. Create/edit stay on live PHP API client manager — same-to-same for tenants.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-ac-cta">
-            <a href="@_phpTab">Open PHP API clients</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/admin-sessions-app">Admin sessions</a>
             <a class="ghost" href="/cp/tenants-app">Tenants list</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -80,7 +78,7 @@
             <tbody>
                 @if (_clients.Count == 0)
                 {
-                    <tr><td colspan="10">No API clients in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="10">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -96,7 +94,7 @@
                             <td>@c.DailyLimit.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@c.CallsToday.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@FormatTs(c.TimeCreated)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -104,12 +102,6 @@
         </table>
     </div>
 
-    <div class="epc-ac-note">
-        Read-only preview · JSON digest <a href="/cp/api-clients?limit=200">/cp/api-clients</a> (<code>client_key_hash</code> never returned).
-        PHP <code>epc_api_clients_manage</code> remains authoritative for create/edit.
-        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

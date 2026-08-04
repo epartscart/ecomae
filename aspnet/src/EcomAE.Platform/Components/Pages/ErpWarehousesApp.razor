@@ -43,11 +43,10 @@
     <section class="epc-wh-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Warehouses</h1>
-        <p>Read-only inventory warehouses from <code>/erp/warehouses</code> digest under PHP ERP desktop chrome. Full tab UI (<code>erp_tabs_inventory.php</code>), stock moves, and writes stay on live PHP — same-to-same for tenants.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-wh-cta">
-            <a href="@_phpTab">Open PHP inventory</a>
-            <a class="ghost" href="@_phpWms">Open PHP WMS</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
+            <a class="ghost" href="@_phpWms">Open WMS</a>
             <a class="ghost" href="/erp/gl-journals-app">GL journals</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
         </div>
@@ -74,7 +73,7 @@
             <tbody>
                 @if (_warehouses.Count == 0)
                 {
-                    <tr><td colspan="6">No warehouses in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="6">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -86,7 +85,7 @@
                             <td>@(w.StorageId > 0 ? w.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@FormatTime(w.TimeCreated)</td>
                             <td><span class="epc-wh-badge">@(w.Active ? "active" : "inactive")</span></td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -94,12 +93,6 @@
         </table>
     </div>
 
-    <div class="epc-wh-note">
-        Read-only preview · JSON digest <a href="/erp/warehouses?limit=200">/erp/warehouses</a>.
-        PHP tab <code>erp_tabs_inventory.php</code> remains authoritative for warehouse create/sync/stock moves.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

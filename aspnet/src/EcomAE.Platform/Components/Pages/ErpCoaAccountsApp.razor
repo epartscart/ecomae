@@ -43,10 +43,9 @@
     <section class="epc-coa-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Chart of Accounts</h1>
-        <p>Read-only COA from <code>/erp/coa-accounts</code> digest under PHP ERP desktop chrome. Full tab UI (<code>erp_tabs_accounting.php</code> · <code>tab=coa</code>), create/edit, and writes stay on live PHP — same-to-same for tenants.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-coa-cta">
-            <a href="@_phpTab">Open PHP chart of accounts</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/cash-accounts-app">Cash &amp; bank</a>
             <a class="ghost" href="/erp/invoices-app">Invoices</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -76,7 +75,7 @@
             <tbody>
                 @if (_accounts.Count == 0)
                 {
-                    <tr><td colspan="8">No COA accounts in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -90,7 +89,7 @@
                             <td>@(a.ParentId > 0 ? a.ParentId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(a.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -98,12 +97,6 @@
         </table>
     </div>
 
-    <div class="epc-coa-note">
-        Read-only preview · JSON digest <a href="/erp/coa-accounts?limit=300">/erp/coa-accounts</a>.
-        PHP tab <code>erp_tabs_accounting.php</code> (<code>tab=coa</code>) remains authoritative for create/edit/deactivate.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

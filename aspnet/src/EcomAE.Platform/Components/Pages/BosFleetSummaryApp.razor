@@ -38,14 +38,12 @@
     <section class="epc-fs-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Fleet Summary</h1>
-        <p>Read-only fleet KPIs from <code>/bos/fleet-summary</code> digest under PHP BOS desktop chrome. Provisioning and live health stay on PHP — native <code>/BOS/</code> session still required for full module UX.</p>
+        <p>Fleet provisioning and live health overview.</p>
         <div class="epc-fs-cta">
-            <a href="@_phpTab">Open PHP BOS</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/bos/fleet-health-app">Fleet health</a>
             <a class="ghost" href="/bos/fleet-readiness-app">Fleet readiness</a>
             <a class="ghost" href="/bos/tenants-app">Fleet tenants</a>
-            <a class="ghost" href="/bos/app">Fleet command</a>
         </div>
     </section>
 
@@ -58,15 +56,8 @@
         <div class="epc-fs-kpi"><strong>@_active.ToString(CultureInfo.InvariantCulture)</strong><span>Active tenants</span></div>
         <div class="epc-fs-kpi"><strong>@_withDb.ToString(CultureInfo.InvariantCulture)</strong><span>With database</span></div>
         <div class="epc-fs-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Admin sessions</span></div>
-        <div class="epc-fs-kpi"><strong>@_source</strong><span>Digest source</span></div>
-    </div>
+</div>
 
-    <div class="epc-fs-note">
-        Read-only preview · JSON digest <a href="/bos/fleet-summary">/bos/fleet-summary</a>.
-        PHP <code>bos/index.php</code> command center remains authoritative.
-        Not a broad /bos cutover · native BOS <code>$_SESSION</code> modules stay PHP.
-        @(!string.IsNullOrWhiteSpace(_message) ? _message : "")
-    </div>
 </PhpBosDesktopChrome>
 
 @code {

@@ -36,12 +36,10 @@
     <section class="epc-nl-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>NL Reporting</h1>
-        <p>Read-only <code>epc_report_definitions</code> from <code>/cp/nl-reporting</code>. Query templates and recipients stay off this digest — edits remain PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-nl-cta">
-            <a href="@_phpTab">Open PHP NL reporting</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/metabase-app">Metabase</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -62,7 +60,7 @@
             <tbody>
                 @if (_definitions.Count == 0)
                 {
-                    <tr><td colspan="8">No NL report definitions in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -76,7 +74,7 @@
                             <td>@(string.IsNullOrWhiteSpace(d.Schedule) ? "—" : d.Schedule)</td>
                             <td>@(string.IsNullOrWhiteSpace(d.Format) ? "—" : d.Format)</td>
                             <td>@(d.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -84,12 +82,6 @@
         </table>
     </div>
 
-    <div class="epc-nl-note">
-        Read-only preview · JSON digest <a href="/cp/nl-reporting?limit=200">/cp/nl-reporting</a>.
-        PHP <code>epc_nl_reporting</code> remains authoritative for create/run/schedule.
-        Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>. Count: @_definitions.Count.ToString(CultureInfo.InvariantCulture).
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

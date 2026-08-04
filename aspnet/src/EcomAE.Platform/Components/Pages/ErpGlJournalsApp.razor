@@ -43,10 +43,9 @@
     <section class="epc-gl-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>General Ledger Journals</h1>
-        <p>Read-only GL journals from <code>/erp/gl-journals</code> digest under PHP ERP desktop chrome. Full tab UI (<code>erp_tabs_accounting.php</code> · <code>tab=gl</code>), posting, and writes stay on live PHP — same-to-same for tenants.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-gl-cta">
-            <a href="@_phpTab">Open PHP general ledger</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/coa-accounts-app">Chart of accounts</a>
             <a class="ghost" href="/erp/cash-accounts-app">Cash &amp; bank</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -74,7 +73,7 @@
             <tbody>
                 @if (_journals.Count == 0)
                 {
-                    <tr><td colspan="6">No GL journals in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="6">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -87,7 +86,7 @@
                             <td>@(string.IsNullOrWhiteSpace(j.SourceType) ? "—" : j.SourceType)@(j.SourceId > 0 ? $" #{j.SourceId}" : "")</td>
                             <td><span class="epc-gl-badge">@j.Status</span></td>
                             <td>@j.TotalDebit.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@phpHref">Open in PHP</a></td>
+                            <td><a href="@phpHref">Open</a></td>
                         </tr>
                     }
                 }
@@ -95,12 +94,6 @@
         </table>
     </div>
 
-    <div class="epc-gl-note">
-        Read-only preview · JSON digest <a href="/erp/gl-journals?limit=200">/erp/gl-journals</a>.
-        PHP tab <code>erp_tabs_accounting.php</code> (<code>tab=gl</code>) remains authoritative for create/post/void.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

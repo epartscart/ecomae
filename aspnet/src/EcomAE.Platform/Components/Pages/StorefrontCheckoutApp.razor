@@ -50,21 +50,21 @@
     <section class="epc-sf-co-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
         <h1>Checkout readiness</h1>
-        <p>Wave B read-only checkout scaffold. Cart summary and step map live here; obtain mode, confirm, and payment stay on live PHP until dual-sample write parity.</p>
+        <p>Review your cart and continue to delivery and payment.</p>
         <div class="epc-sf-co-cta">
-            <a href="https://epartscart.com/shop/checkout/how_get">PHP how-get</a>
-            <a class="ghost" href="https://epartscart.com/shop/checkout/confirm">PHP confirm</a>
-            <a class="ghost" href="/storefront/cart-app">Cart summary</a>
-            <a class="ghost" href="/storefront/login">Customer login</a>
+            <a href="https://epartscart.com/shop/checkout/how_get">Delivery options</a>
+            <a class="ghost" href="https://epartscart.com/shop/checkout/confirm">Confirm order</a>
+            <a class="ghost" href="/storefront/cart-app">Cart</a>
+            <a class="ghost" href="/storefront/login">Sign in</a>
         </div>
     </section>
 
     @if (!_isCustomer)
     {
         <div class="epc-sf-co-gate">
-            <p style="margin:0 0 .75rem;color:#334155">Sign in with a customer session to load checkout readiness from your authenticated cart. Guest checkout remains on PHP.</p>
-            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#16a34a;color:#fff;font-weight:700;text-decoration:none">Customer login bridge</a>
-            <a href="https://epartscart.com/shop/checkout/login_offer" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">PHP login offer</a>
+            <p style="margin:0 0 .75rem;color:#334155">Sign in to continue checkout with your cart, or continue as a guest.</p>
+            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#16a34a;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
+            <a href="https://epartscart.com/shop/checkout/login_offer" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Guest checkout</a>
         </div>
     }
     else
@@ -81,31 +81,26 @@
                 <span class="epc-sf-co-step__n">1</span>
                 <div>
                     <h3>Review cart</h3>
-                    <p>@_summary.Count line(s) · source <code>@_source</code>. <a href="/storefront/cart-app">Open cart summary</a> · <a href="https://epartscart.com/shop/cart">PHP cart</a></p>
+                    <p>@_summary.Count line(s). <a href="/storefront/cart-app">Open cart</a> · <a href="https://epartscart.com/shop/cart">Checkout cart</a></p>
                 </div>
             </div>
             <div class="epc-sf-co-step">
                 <span class="epc-sf-co-step__n">2</span>
                 <div>
                     <h3>How to obtain</h3>
-                    <p>Delivery / pickup mode selection stays on PHP. <a href="https://epartscart.com/shop/checkout/how_get">Open how_get</a></p>
+                    <p>Choose delivery or pickup. <a href="https://epartscart.com/shop/checkout/how_get">Select method</a></p>
                 </div>
             </div>
             <div class="epc-sf-co-step">
                 <span class="epc-sf-co-step__n">3</span>
                 <div>
                     <h3>Confirm &amp; pay</h3>
-                    <p>Order confirm and payment remain PHP-authoritative. <a href="https://epartscart.com/shop/checkout/confirm">Open confirm</a></p>
+                    <p>Confirm the order and complete payment. <a href="https://epartscart.com/shop/checkout/confirm">Confirm</a></p>
                 </div>
             </div>
         </div>
     }
 
-    <div class="epc-sf-co-note">
-        Read-only Wave B scaffold · reuses authenticated <code>shop_carts</code> digest (<code>/storefront/checkout</code>).
-        Writes stay <a href="https://epartscart.com/shop/checkout/how_get">PHP checkout</a>.
-        Does not set <code>aspNetInteractiveComplete</code> or cutover flags.
-    </div>
 </PhpStorefrontDesktopChrome>
 
 @code {

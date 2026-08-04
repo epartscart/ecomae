@@ -78,7 +78,7 @@
                 <PhpEcomaeHubLogo Variant="login" ShortTagline="true" AriaLabel="ECOM AE ERP hub" OrbitDuration="32s" />
             </div>
             <h1>ERP Finance</h1>
-            <p class="sub">Unified Blockchain BOS Enterprise System · PHP hub orbit + login hero CSS</p>
+            <p class="sub">Unified Blockchain BOS Enterprise System</p>
         </section>
 
         <div class="modules">
@@ -86,7 +86,7 @@
             {
                 <a class="mod" href="@cat.Href" style="color:inherit;text-decoration:none">
                     <strong><i class="fa @cat.Icon"></i> @cat.Label</strong>
-                    <span>Open live PHP ERP · @cat.Id</span>
+                    <span>Open ERP · @cat.Id</span>
                 </a>
             }
         </div>
@@ -94,14 +94,14 @@
             <span>@PhpModuleCatalog.ErpAreaCount AREAS</span>
             <span>@PhpModuleCatalog.ErpTabCount TABS</span>
             <span>@PhpModuleCatalog.ErpCategoryCount CATEGORIES</span>
-            <span>PHP AUTHORITATIVE</span>
+            <span>LIVE WORKSPACE</span>
         </div>
         <div class="modules" style="margin-top:.75rem;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
             @foreach (var area in PhpModuleCatalog.ErpAreas.Take(16))
             {
                 <a class="mod" href="@area.Href" style="color:inherit;text-decoration:none">
                     <strong><i class="fa @area.Icon"></i> @area.Label</strong>
-                    <span>PHP area @area.Id</span>
+                    <span>Area @area.Id</span>
                 </a>
             }
         </div>

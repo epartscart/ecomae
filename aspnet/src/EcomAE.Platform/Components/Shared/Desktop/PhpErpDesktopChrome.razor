@@ -26,7 +26,7 @@
                 {
                     <span>Admin session</span>
                 }
-                <a href="/ERP/">PHP ERP</a>
+                <a href="/ERP/">ERP workspace</a>
             </div>
         </div>
     </header>
@@ -60,7 +60,7 @@
                                             }
                                             @group.Label
                                         </div>
-                                        <a class="epc-erp-topnav-panel-hub" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", group.HubHref ?? group.Links[0].Href)">
+                                        <a class="epc-erp-topnav-panel-hub" href="@(group.HubHref ?? group.Links[0].Href)">
                                             Open first module <i class="fa fa-arrow-right"></i>
                                         </a>
                                     </div>
@@ -79,11 +79,10 @@
                                                     @foreach (var link in col.Tabs)
                                                     {
                                                         <li>
-                                                            <a href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", link.Href)">
+                                                            <a href="@link.Href">
                                                                 <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
                                                                 @link.Label
                                                             </a>
-                                                            <a class="epc-erp-topnav-php" href="@link.Href" title="Open live PHP tab">PHP</a>
                                                         </li>
                                                     }
                                                 </ul>
@@ -122,7 +121,7 @@
             </div>
         </div>
     </main>
-    <footer class="epc-erp-foot">Hybrid ERP chrome · PHP tab bodies authoritative · <a href="/ERP/">/ERP/</a></footer>
+    <footer class="epc-erp-foot">ERP · <a href="/ERP/">Open ERP</a></footer>
 </div>
 
 <style>

@@ -41,12 +41,10 @@
     <section class="epc-pos-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>POS Overview</h1>
-        <p>Read-only shop POS sales + session KPIs from <code>/cp/pos-overview</code>. Checkout and register control stays on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pos-cta">
-            <a href="@_phpTab">Open PHP POS</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/tax-toolkits-app">Tax toolkits</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -77,7 +75,7 @@
             <tbody>
                 @if (_sales.Count == 0)
                 {
-                    <tr><td colspan="12">No POS sales in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="12">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -95,7 +93,7 @@
                             <td>@(string.IsNullOrWhiteSpace(s.TaxKitCode) ? "—" : s.TaxKitCode)</td>
                             <td>@(string.IsNullOrWhiteSpace(s.Status) ? "—" : s.Status)</td>
                             <td>@(s.TimeCreated > 0 ? s.TimeCreated.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -103,12 +101,6 @@
         </table>
     </div>
 
-    <div class="epc-pos-note">
-        Read-only preview · JSON digest <a href="/cp/pos-overview?limit=200">/cp/pos-overview</a>.
-        PHP <code>shop/pos</code> remains authoritative for register and checkout.
-        Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

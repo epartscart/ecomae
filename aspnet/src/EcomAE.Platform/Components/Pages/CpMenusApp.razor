@@ -43,13 +43,11 @@
     <section class="epc-mn-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Menus</h1>
-        <p>Read-only CP menu metadata + structure summary from <code>/cp/menus</code> digest under PHP CP desktop chrome. Raw structure JSON omitted. Create/edit stay on live PHP menu manager — same-to-same for tenants.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-mn-cta">
-            <a href="@_phpTab">Open PHP menu manager</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/pages-app">Pages list</a>
             <a class="ghost" href="/cp/modules-app">Modules list</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -75,7 +73,7 @@
             <tbody>
                 @if (_menus.Count == 0)
                 {
-                    <tr><td colspan="7">No menus in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -89,7 +87,7 @@
                             <td>@(m.StructurePresent ? m.NodeCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(m.StructurePresent ? m.MaxDepth.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@m.UrlLinkCount / @m.ContentLinkCount</td>
-                            <td><a href="@phpHref">Open in PHP</a></td>
+                            <td><a href="@phpHref">Open</a></td>
                         </tr>
                     }
                 }
@@ -97,12 +95,6 @@
         </table>
     </div>
 
-    <div class="epc-mn-note">
-        Read-only preview · JSON digest <a href="/cp/menus?limit=200">/cp/menus</a> (structure summary only; raw tree omitted).
-        PHP <code>menu_manager</code> / <code>menu_edit</code> remain authoritative for create/edit.
-        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

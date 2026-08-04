@@ -43,10 +43,9 @@
     <section class="epc-inv-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Invoices</h1>
-        <p>Read-only ERP e-invoices from <code>/erp/invoices</code> digest under PHP ERP desktop chrome. Full tab UI (<code>erp_tabs_invoices.php</code>), posting, and writes stay on live PHP — same-to-same for tenants. ASP.NET Core owns this hybrid read surface on the path to Enterprise BOS.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-inv-cta">
-            <a href="@_phpTab">Open PHP invoices</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
             <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -75,7 +74,7 @@
             <tbody>
                 @if (_invoices.Count == 0)
                 {
-                    <tr><td colspan="7">No invoices in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -89,7 +88,7 @@
                             <td>@(string.IsNullOrWhiteSpace(inv.CustomerEmail) ? $"user {inv.UserId}" : inv.CustomerEmail)</td>
                             <td><span class="epc-inv-badge">@inv.Status</span></td>
                             <td>@inv.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@phpHref">Open in PHP</a></td>
+                            <td><a href="@phpHref">Open</a></td>
                         </tr>
                     }
                 }
@@ -97,12 +96,6 @@
         </table>
     </div>
 
-    <div class="epc-inv-note">
-        Read-only preview · JSON digest <a href="/erp/invoices?limit=150">/erp/invoices</a>.
-        PHP tab <code>erp_tabs_invoices.php</code> remains authoritative for create/edit/post.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

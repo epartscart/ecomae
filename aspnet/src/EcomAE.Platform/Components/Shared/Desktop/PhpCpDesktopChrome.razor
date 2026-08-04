@@ -2,7 +2,7 @@
 @using EcomAE.Platform.Presentation
 @*
   Mirrors cp/templates/bootstrap_admin/desktop.php chrome classes (topnav-only hybrid).
-  Module bodies stay PHP via ChildContent / PhpHybridWorkspaceFrame.
+  Product module bodies render via ChildContent / workspace frame.
 *@
 
 <div class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root">
@@ -19,7 +19,7 @@
                 </nav>
             </div>
             <nav class="epc-cp-header-actions" aria-label="CP header actions">
-                <a href="/CP/">PHP CP</a>
+                <a href="/CP/">Control panel</a>
                 @if (!IsAdmin)
                 {
                     <a class="epc-cp-header-login" href="/cp/login">Sign in</a>
@@ -41,15 +41,14 @@
                     <li class="epc-cp-topnav-item" data-group="@group.Id" role="none">
                         <button type="button" class="epc-cp-topnav-btn" role="menuitem" aria-haspopup="true">@group.Label</button>
                         <div class="epc-cp-topnav-panel" data-topnav-panel="@group.Id">
-                            <div class="epc-cp-topnav-panel-hd">@group.Label · PHP modules</div>
+                            <div class="epc-cp-topnav-panel-hd">@group.Label</div>
                             <div class="epc-cp-topnav-cols">
                                 <div class="epc-cp-topnav-col">
                                     <ul class="epc-cp-topnav-links">
                                         @foreach (var link in group.Links)
                                         {
                                             <li>
-                                                <a href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", link.Href)">@link.Label</a>
-                                                <a class="epc-cp-topnav-php" href="@link.Href" title="Open PHP full page">PHP</a>
+                                                <a href="@link.Href">@link.Label</a>
                                             </li>
                                         }
                                     </ul>
@@ -73,7 +72,7 @@
             </div>
         </div>
         <footer class="footer">
-            <div>Hybrid CP chrome · PHP authoritative for modules · <a href="/CP/">Open live /CP/</a></div>
+            <div>Control Panel · <a href="/CP/">Open control panel</a></div>
         </footer>
     </div>
 </div>

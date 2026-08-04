@@ -1,18 +1,17 @@
 @using EcomAE.Platform.Presentation
 
 @*
-  Full PHP-sourced module directory for hybrid shells.
-  Every listed item deeplinks to live PHP so design/function remain available
-  while ASP.NET chrome is brought to PHP level.
+  Full module directory for product shells.
+  Every listed item deeplinks to the live module so design/function remain available.
 *@
 
 <div class="epc-moddir">
     <div class="epc-moddir-head">
         <h2>@Title</h2>
-        <p>@Subtitle — <strong>@_links.Count</strong> PHP modules linked (hybrid). Nothing omitted from this directory.</p>
+        <p>@Subtitle — <strong>@_links.Count</strong> modules.</p>
         @if (!string.IsNullOrWhiteSpace(PhpWorkspaceBase))
         {
-            <p class="epc-moddir-hint">Open in hybrid workspace (ASP.NET chrome + PHP iframe) or jump straight to PHP.</p>
+            <p class="epc-moddir-hint">Open a module, or open it in the workspace panel.</p>
         }
     </div>
 
@@ -37,10 +36,10 @@
                         {
                             <i class="fa @item.Icon" aria-hidden="true"></i>
                         }
-                        <a class="epc-moddir-php" href="@item.Href" title="Open live PHP module">@item.Label</a>
+                        <a class="epc-moddir-php" href="@item.Href" title="Open module">@item.Label</a>
                         @if (!string.IsNullOrWhiteSpace(PhpWorkspaceBase))
                         {
-                            <a class="epc-moddir-hybrid" href="@PhpModuleCatalog.HybridWorkspaceHref(PhpWorkspaceBase!, item.Href)" title="Hybrid workspace">workspace</a>
+                            <a class="epc-moddir-hybrid" href="@PhpModuleCatalog.HybridWorkspaceHref(PhpWorkspaceBase!, item.Href)" title="Open in workspace">workspace</a>
                         }
                     </div>
                 }
@@ -53,7 +52,7 @@
     .epc-moddir { margin-top:1.25rem; }
     .epc-moddir-head h2 { margin:0 0 .35rem; font-size:1.1rem; }
     .epc-moddir-head p { margin:0 0 .55rem; color:#64748b; font-size:.88rem; line-height:1.4; }
-    .epc-moddir-hint { color:#92400e !important; }
+    .epc-moddir-hint { color:#475569 !important; }
     .epc-moddir-search { width:100%; max-width:28rem; padding:.55rem .7rem; border:1px solid #e2e8f0; border-radius:.4rem; margin-bottom:.85rem; font:inherit; }
     .epc-moddir-group { margin:0 0 1rem; }
     .epc-moddir-group h3 { margin:0 0 .45rem; font-size:.92rem; color:#334155; }
@@ -63,13 +62,13 @@
     .epc-moddir-item i { color:#64748b; width:1rem; text-align:center; }
     .epc-moddir-php { flex:1; font-weight:600; color:#0f172a; text-decoration:none; }
     .epc-moddir-php:hover { text-decoration:underline; color:#1d4ed8; }
-    .epc-moddir-hybrid { font-size:.72rem; color:#b45309; text-decoration:none; white-space:nowrap; }
+    .epc-moddir-hybrid { font-size:.72rem; color:#334155; text-decoration:none; white-space:nowrap; }
     .epc-moddir-hybrid:hover { text-decoration:underline; }
 </style>
 
 @code {
     [Parameter] public string Title { get; set; } = "Module directory";
-    [Parameter] public string Subtitle { get; set; } = "PHP-authoritative modules";
+    [Parameter] public string Subtitle { get; set; } = "All modules";
     [Parameter] public IReadOnlyList<PhpModuleCatalog.ModuleLink> Links { get; set; } = Array.Empty<PhpModuleCatalog.ModuleLink>();
     [Parameter] public string? PhpWorkspaceBase { get; set; }
     [Parameter] public string Search { get; set; } = "";

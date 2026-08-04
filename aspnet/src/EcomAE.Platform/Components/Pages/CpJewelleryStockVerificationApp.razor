@@ -41,11 +41,9 @@
     <section class="epc-w17-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Jewellery stock verification</h1>
-        <p>Read-only stock verification KPIs + vouchers from <code>/cp/jewellery-stock-verification</code>. Remarks stay on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-w17-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
+            <a href="@_phpTab">Open module</a>
         </div>
     </section>
 
@@ -75,7 +73,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="10">No rows in digest (@_source). @_message</td></tr>
+                <tr><td colspan="10">Nothing to show yet.</td></tr>
             }
             else
             {
@@ -91,7 +89,7 @@
                             <td>@row.TotalPcs.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.ScannedPcs.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                     </tr>
                 }
             }
@@ -99,10 +97,6 @@
     </table>
     </div>
 
-    <div class="epc-w17-note">
-        Read-only preview · JSON digest <a href="/cp/jewellery-stock-verification?limit=200">/cp/jewellery-stock-verification</a>. PHP jewellery stock verification remains authoritative · Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>. Tables: <code>epc_jewel_stock_verification, epc_jewel_stock_verification_lines</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

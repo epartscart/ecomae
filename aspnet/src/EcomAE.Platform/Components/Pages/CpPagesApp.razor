@@ -46,13 +46,11 @@
     <section class="epc-pg-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Content Pages</h1>
-        <p>Read-only CP content pages metadata from <code>/cp/pages</code> digest under PHP CP desktop chrome. Body HTML omitted. Create/edit/publish stay on live PHP content manager — same-to-same for tenants.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pg-cta">
-            <a href="@_phpTab">Open PHP content manager</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/modules-app">Modules list</a>
             <a class="ghost" href="/cp/users-app">Users list</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -80,7 +78,7 @@
             <tbody>
                 @if (_pages.Count == 0)
                 {
-                    <tr><td colspan="9">No pages in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="9">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -105,7 +103,7 @@
                                 }
                             </td>
                             <td><span class="epc-pg-badge epc-pg-badge--info">@(p.IsFrontend ? "yes" : "no")</span></td>
-                            <td><a href="@phpHref">Open in PHP</a></td>
+                            <td><a href="@phpHref">Open</a></td>
                         </tr>
                     }
                 }
@@ -113,12 +111,6 @@
         </table>
     </div>
 
-    <div class="epc-pg-note">
-        Read-only preview · JSON digest <a href="/cp/pages?limit=200">/cp/pages</a> (body omitted).
-        PHP <code>content_manager</code> remains authoritative for create/edit/publish.
-        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

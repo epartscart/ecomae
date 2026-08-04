@@ -33,11 +33,9 @@
     <section class="epc-w23-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Failover status</h1>
-        <p>Read-only failover signal files. Exposes presence/mode without LFI.</p>
+        <p>Manage store operations from the control panel.</p>
         <div class="epc-w23-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
+            <a href="@_phpTab">Open module</a>
         </div>
     </section>
     <div class="epc-w23-kpis">
@@ -49,11 +47,11 @@
     <div class="epc-w23-table-wrap"><table class="epc-w23-table">
         <thead><tr><th>Path</th><th>Present</th><th>Kind</th><th></th></tr></thead>
         <tbody>
-        @if (_rows.Count==0) { <tr><td colspan="4">No rows (@_source). @_message</td></tr> }
-        else { @foreach (var row in _rows) { <tr><td>@row.Path</td><td>@row.Present</td><td>@row.Kind</td><td><a href="@_phpTab">Open in PHP</a></td></tr> } }
+        @if (_rows.Count==0) { <tr><td colspan="4">Nothing to show yet.</td></tr> }
+        else { @foreach (var row in _rows) { <tr><td>@row.Path</td><td>@row.Present</td><td>@row.Kind</td><td><a href="@_phpTab">Open</a></td></tr> } }
         </tbody>
     </table></div>
-    <div class="epc-w23-note">Read-only · <a href="/cp/failover-status?limit=200">/cp/failover-status</a> · secrets inside failover config · PHP remains authoritative · Source <code>@_source</code></div>
+
 </PhpCpDesktopChrome>
 @code {
     private const string _phpTab = "/CP/control/portal/epc_platform_failover_guide";

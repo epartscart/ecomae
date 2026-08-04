@@ -45,13 +45,13 @@
     <section class="epc-sf-search-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
         <h1>Part search</h1>
-        <p>Batch 4 read-only warehouse offers under modex chrome. Full PHP part_search tabs, VIN, CHPU product pages, and cart/checkout stay on epartscart.com.</p>
+        <p>Search warehouse offers by article and brand.</p>
         <form class="epc-sf-search-form" method="get" action="/storefront/search-app">
             <input type="search" name="article" value="@_articleInput" placeholder="Part number or OE code" aria-label="Part number" />
             <button type="submit">Search</button>
         </form>
         <div class="epc-sf-search-cta">
-            <a href="@PhpPartSearchHref(_normalized)">Open full PHP search</a>
+            <a href="@PhpPartSearchHref(_normalized)">Open full search</a>
             <a href="/storefront/app">Storefront preview</a>
             <a href="https://epartscart.com/">Live storefront</a>
         </div>
@@ -60,8 +60,7 @@
     <div class="epc-sf-search-kpis" aria-label="Search KPIs">
         <div class="epc-sf-search-kpi"><strong>@(_normalized.Length == 0 ? "—" : _normalized)</strong><span>Normalized article</span></div>
         <div class="epc-sf-search-kpi"><strong>@_rows.Count</strong><span>Offers shown</span></div>
-        <div class="epc-sf-search-kpi"><strong>@_source</strong><span>Source</span></div>
-    </div>
+</div>
 
     <div class="epc-sf-search-table-wrap">
         <table class="epc-sf-search-table">
@@ -84,7 +83,7 @@
                 }
                 else if (_rows.Count == 0)
                 {
-                    <tr><td colspan="8">No offers for <strong>@_normalized</strong> (@_source). @_message Open PHP search for full supplier tabs.</td></tr>
+                    <tr><td colspan="8">No offers for <strong>@_normalized</strong>. Try another article or brand.</td></tr>
                 }
                 else
                 {
@@ -100,7 +99,7 @@
                             <td>@row.Exist</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.PriceList) ? "—" : row.PriceList)</td>
-                            <td><a href="@phpHref">Open in PHP</a></td>
+                            <td><a href="@phpHref">Open module</a></td>
                         </tr>
                     }
                 }
@@ -108,11 +107,6 @@
         </table>
     </div>
 
-    <div class="epc-sf-search-note">
-        Read-only preview · SQL mirrors pyapi <code>/pyapi/v1/search</code>.
-        Live commerce UX remains <a href="https://epartscart.com/shop/part_search">epartscart.com/shop/part_search</a>.
-        Not a broad storefront or <code>/</code> cutover.
-    </div>
 </PhpStorefrontDesktopChrome>
 
 @code {

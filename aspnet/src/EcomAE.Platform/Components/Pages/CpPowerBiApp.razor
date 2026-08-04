@@ -41,12 +41,10 @@
     <section class="epc-pbi-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Power BI</h1>
-        <p>Read-only <code>epc_power_bi_config</code> + <code>epc_power_bi_reports</code> from <code>/cp/power-bi</code>. Configure and embed stay on live PHP — same-to-same for tenants.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pbi-cta">
-            <a href="@_phpTab">Open PHP Power BI</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/mobile-apps-app">Mobile apps</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -73,7 +71,7 @@
             <tbody>
                 @if (_reports.Count == 0)
                 {
-                    <tr><td colspan="8">No Power BI reports in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -87,7 +85,7 @@
                             <td>@(string.IsNullOrWhiteSpace(r.ReportId) ? "—" : r.ReportId)</td>
                             <td>@(string.IsNullOrWhiteSpace(r.DatasetId) ? "—" : r.DatasetId)</td>
                             <td>@(r.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -95,12 +93,6 @@
         </table>
     </div>
 
-    <div class="epc-pbi-note">
-        Read-only preview · JSON digest <a href="/cp/power-bi?limit=200">/cp/power-bi</a>.
-        PHP <code>epc_power_bi</code> remains authoritative for configure/register/embed.
-        Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

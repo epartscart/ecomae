@@ -46,13 +46,11 @@
     <section class="epc-ci-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Config Items</h1>
-        <p>Read-only <code>config_items</code> metadata from <code>/cp/config-items</code> digest under PHP CP desktop chrome. Secret values never returned. Edits stay on live PHP site config — same-to-same for tenants.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-ci-cta">
-            <a href="@_phpTab">Open PHP site config</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/CP/control/config">PHP configuration</a>
+            <a href="@_phpTab">Open module</a>
+            <a class="ghost" href="/CP/control/config">Configuration</a>
             <a class="ghost" href="/cp/api-clients-app">API clients</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -78,7 +76,7 @@
             <tbody>
                 @if (_items.Count == 0)
                 {
-                    <tr><td colspan="7">No config items in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -91,7 +89,7 @@
                             <td>@(string.IsNullOrWhiteSpace(item.ConfigGroup) ? "—" : item.ConfigGroup)</td>
                             <td><span class="epc-ci-badge @(item.Visible ? "epc-ci-badge--ok" : "epc-ci-badge--off")">@(item.Visible ? "yes" : "no")</span></td>
                             <td>@item.Order.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -99,12 +97,6 @@
         </table>
     </div>
 
-    <div class="epc-ci-note">
-        Read-only preview · JSON digest <a href="/cp/config-items?limit=200">/cp/config-items</a> (secret values never returned).
-        PHP <code>config_edit</code> / <code>/CP/control/config</code> remain authoritative for edits.
-        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

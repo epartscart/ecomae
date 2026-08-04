@@ -45,10 +45,9 @@
     <section class="epc-cash-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Cash &amp; Bank</h1>
-        <p>Read-only cash accounts from <code>/erp/cash-accounts</code> (and recent entries from <code>/erp/cash-entries</code>) under PHP ERP desktop chrome. Full tab UI (<code>erp_tabs_cash_bank.php</code>), transfers, and writes stay on live PHP — same-to-same for tenants.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-cash-cta">
-            <a href="@_phpTab">Open PHP cash &amp; bank</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/cash-entries-app">Cash ledger</a>
             <a class="ghost" href="/erp/invoices-app">Invoices</a>
             <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
@@ -79,7 +78,7 @@
                 <tbody>
                     @if (_accounts.Count == 0)
                     {
-                        <tr><td colspan="6">No cash accounts in digest (@_accountsSource). @_accountsMessage</td></tr>
+                        <tr><td colspan="6">No cash accounts yet.</td></tr>
                     }
                     else
                     {
@@ -92,7 +91,7 @@
                                 <td>@(string.IsNullOrWhiteSpace(a.CurrencyCode) ? "—" : a.CurrencyCode)</td>
                                 <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td><a href="@phpHref">Open in PHP</a></td>
+                                <td><a href="@phpHref">Open</a></td>
                             </tr>
                         }
                     }
@@ -119,7 +118,7 @@
                 <tbody>
                     @if (_entries.Count == 0)
                     {
-                        <tr><td colspan="7">No cash entries in digest (@_entriesSource). @_entriesMessage</td></tr>
+                        <tr><td colspan="7">No cash entries yet.</td></tr>
                     }
                     else
                     {
@@ -133,7 +132,7 @@
                                 <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
-                                <td><a href="@phpHref">Open in PHP</a></td>
+                                <td><a href="@phpHref">Open</a></td>
                             </tr>
                         }
                     }
@@ -142,12 +141,6 @@
         </div>
     </div>
 
-    <div class="epc-cash-note">
-        Read-only preview · JSON digests <a href="/erp/cash-accounts?limit=200">/erp/cash-accounts</a>
-        · <a href="/erp/cash-entries?limit=100">/erp/cash-entries</a>.
-        PHP tab <code>erp_tabs_cash_bank.php</code> remains authoritative for transfers/reconcile/post.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

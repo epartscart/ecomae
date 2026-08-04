@@ -43,11 +43,9 @@
     <section class="epc-al-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Audit Log</h1>
-        <p>Read-only Super BOS audit entries from <code>/bos/audit-log</code> digest under PHP BOS desktop chrome. Meta omitted. Append-only PHP log remains authoritative — native <code>/BOS/</code> session still required for full module UX.</p>
+        <p>Append-only audit trail for operator actions.</p>
         <div class="epc-al-cta">
-            <a href="@_phpTab">Open PHP audit log</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/bos/app">Fleet command</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/BOS/?m=audit_log">Native BOS module</a>
         </div>
     </section>
@@ -75,7 +73,7 @@
             <tbody>
                 @if (_entries.Count == 0)
                 {
-                    <tr><td colspan="8">No audit entries in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -92,7 +90,7 @@
                             <td>@(string.IsNullOrWhiteSpace(e.Action) ? "—" : e.Action)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Target) ? "—" : e.Target)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Ip) ? "—" : e.Ip)</td>
-                            <td><a href="@areaHref">Open in PHP</a></td>
+                            <td><a href="@areaHref">Open</a></td>
                         </tr>
                     }
                 }
@@ -100,12 +98,6 @@
         </table>
     </div>
 
-    <div class="epc-al-note">
-        Read-only preview · JSON digest <a href="/bos/audit-log?limit=100">/bos/audit-log</a> (meta omitted).
-        PHP <code>epc_boc_audit_log</code> / <code>epc_boc_audit_recent</code> remain authoritative (append-only).
-        Not a broad /bos cutover · <code>/BOS/</code> PHP session remains required for native modules.
-        Source: <code>@_source</code>.
-    </div>
 </PhpBosDesktopChrome>
 
 @code {

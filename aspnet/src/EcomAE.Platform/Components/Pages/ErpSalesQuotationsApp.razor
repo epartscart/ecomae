@@ -41,10 +41,9 @@
     <section class="epc-sq-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Sales quotations</h1>
-        <p>Read-only quotation KPIs + headers from <code>/erp/sales-quotations</code>. Accept/convert writes stay on live PHP.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-sq-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
         </div>
     </section>
@@ -75,7 +74,7 @@
             <tbody>
                 @if (_quotations.Count == 0)
                 {
-                    <tr><td colspan="9">No rows in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="9">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -90,7 +89,7 @@
                             <td>@(row.OpportunityId > 0 ? row.OpportunityId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.ShopOrderId > 0 ? row.ShopOrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -98,10 +97,6 @@
         </table>
     </div>
 
-    <div class="epc-sq-note">
-        Read-only preview · JSON digest <a href="/erp/sales-quotations?limit=200">/erp/sales-quotations</a>. PHP sales proposals/quotations shell remains authoritative. notes omitted · Not a broad /erp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

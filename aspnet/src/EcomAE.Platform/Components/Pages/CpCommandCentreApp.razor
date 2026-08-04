@@ -35,15 +35,13 @@
             <section class="epc-cc-panel">
                 <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
                 <h1>CONTROL COMMAND CENTRE</h1>
-                <p>Batch 2 desktop chrome: PHP <code>desktop.php</code> header + topnav mega-panels. Module bodies open via hybrid workspace or live PHP.</p>
+                <p>Control panel shortcuts and module directory.</p>
             </section>
             <section class="epc-cc-kpis">
-                <div class="epc-cc-kpi"><strong>@_users</strong><span>Admin users (digest)</span></div>
+                <div class="epc-cc-kpi"><strong>@_users</strong><span>Admin users</span></div>
                 <div class="epc-cc-kpi"><strong>@_sessions</strong><span>Admin sessions</span></div>
                 <div class="epc-cc-kpi"><strong>@_tenants</strong><span>Portal tenants</span></div>
                 <div class="epc-cc-kpi"><strong>@_active</strong><span>Active portal tenants</span></div>
-                <div class="epc-cc-kpi"><strong>@_source</strong><span>Digest source</span></div>
-                <div class="epc-cc-kpi"><strong>TOPNAV</strong><span>epc-cp-topnav mega</span></div>
             </section>
         </div>
 
@@ -56,18 +54,18 @@
             @foreach (var item in LegacyChromeNavCatalog.ControlPanelQuickActions)
             {
                 var color = colors[i++ % colors.Length];
-                <a class="epc-cc-tile" style="background:@color" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", item.Href)">@item.Label</a>
+                <a class="epc-cc-tile" style="background:@color" href="@item.Href">@item.Label</a>
             }
         </div>
 
         <PhpHybridModuleDirectory
             Title="Complete Control Panel module directory"
-            Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} brochure features from PHP inventory")"
+            Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} control panel modules")"
             Links="@PhpModuleCatalog.CpBrochureFeatures"
             PhpWorkspaceBase="/cp/app" />
 
         <div class="epc-cc-note">
-            @_note Live PHP UI remains at <a href="/CP/">/CP/</a>. Topnav uses PHP class names from desktop.php. Not a broad /cp cutover.
+            Open any module below to continue in the control panel.
         </div>
     }
 </PhpCpDesktopChrome>
@@ -77,8 +75,6 @@
     private int _sessions;
     private int _tenants;
     private int _active;
-    private string _source = "n/a";
-    private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
     private string? _phpHref;
 
@@ -108,7 +104,5 @@
         _sessions = summary.AdminSessions;
         _tenants = summary.PortalTenants;
         _active = summary.ActivePortalTenants;
-        _source = summary.Source;
-        _note = "Admin session detected — KPIs from ASP.NET digest reporter. ";
     }
 }

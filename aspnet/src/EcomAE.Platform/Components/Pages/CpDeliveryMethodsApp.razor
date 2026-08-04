@@ -41,12 +41,10 @@
     <section class="epc-del-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Delivery Methods</h1>
-        <p>Read-only logistics delivery modes from <code>/cp/delivery-methods</code>. Configure handlers and pickup stays on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-del-cta">
-            <a href="@_phpTab">Open PHP delivery methods</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Manage methods</a>
             <a class="ghost" href="/cp/orders-app">Orders</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -71,7 +69,7 @@
             <tbody>
                 @if (_modes.Count == 0)
                 {
-                    <tr><td colspan="7">No delivery methods in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -84,7 +82,7 @@
                             <td>@(m.Available ? "yes" : "no")</td>
                             <td>@(m.ControlAvailable ? "yes" : "no")</td>
                             <td>@m.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open module</a></td>
                         </tr>
                     }
                 }
@@ -92,12 +90,6 @@
         </table>
     </div>
 
-    <div class="epc-del-note">
-        Read-only preview · JSON digest <a href="/cp/delivery-methods?limit=200">/cp/delivery-methods</a>.
-        PHP <code>shop/logistics/sposoby-polucheniya</code> remains authoritative for delivery configuration.
-        Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

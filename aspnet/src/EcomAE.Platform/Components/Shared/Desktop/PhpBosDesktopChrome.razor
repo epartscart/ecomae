@@ -3,7 +3,7 @@
 @*
   Mirrors bos/index.php topnav mega + main content region (bos-body--topnav).
   White mega panels, Open first hub, section icons — bos/epc_bos_shell.css.
-  Full module UX still requires PHP $_SESSION on /BOS/.
+  Fleet Command topnav mirrors live BOS mega panels.
 *@
 
 <div class="bos-body bos-body--topnav epc-php-font-root">
@@ -34,7 +34,7 @@
                                     }
                                     @group.Label
                                 </div>
-                                <a class="bos-topnav__panel-hub" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", group.HubHref ?? group.Links[0].Href)">
+                                <a class="bos-topnav__panel-hub" href="@(group.HubHref ?? group.Links[0].Href)">
                                     Open first <i class="fa fa-arrow-right" aria-hidden="true"></i>
                                 </a>
                             </div>
@@ -45,11 +45,10 @@
                                         @foreach (var link in group.Links)
                                         {
                                             <li>
-                                                <a class="bos-topnav__link" data-module="@link.Id" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", link.Href)">
+                                                <a class="bos-topnav__link" data-module="@link.Id" href="@link.Href">
                                                     <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
                                                     @link.Label
                                                 </a>
-                                                <a class="bos-topnav__php" href="@link.Href" title="Open live PHP module">PHP</a>
                                             </li>
                                         }
                                     </ul>
@@ -68,7 +67,7 @@
                 {
                     <span class="bos-topnav__user">Admin session</span>
                 }
-                <a class="bos-topnav__logout" href="/BOS/">PHP BOS</a>
+                <a class="bos-topnav__logout" href="/BOS/">BOS home</a>
             </div>
         </div>
     </nav>
@@ -77,8 +76,7 @@
         <div class="bos-main__header" id="bosMainHeader">
             <div class="bos-main__breadcrumb">BOS / Fleet / @Title</div>
             <div class="bos-main__tenant-bar">
-                <span class="bos-tag">Hybrid chrome</span>
-                <span class="bos-tag bos-tag--warn">PHP $_SESSION modules on /BOS/</span>
+                <span class="bos-tag">Fleet</span>
             </div>
         </div>
         <div class="bos-main__content" id="bosContent">

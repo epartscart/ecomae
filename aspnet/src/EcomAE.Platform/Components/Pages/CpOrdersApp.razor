@@ -47,12 +47,10 @@
         <div>
             <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
             <h1>Orders · OMS</h1>
-            <p>Batch 4 read-only shop_orders digest under PHP CP desktop chrome. Full OMS console, filters, and writes stay on live PHP.</p>
+            <p>Open orders, track payment status, and move paid lines to ship.</p>
             <div class="epc-oms-cta">
-                <a href="/CP/shop/orders/orders">Open full PHP OMS</a>
-                <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", "/CP/shop/orders/orders")">Hybrid workspace</a>
-                <a class="ghost" href="/cp/app">Command centre</a>
-            </div>
+                <a href="/CP/shop/orders/orders">Open orders</a>
+</div>
         </div>
     </section>
 
@@ -80,7 +78,7 @@
             <tbody>
                 @if (_orders.Count == 0)
                 {
-                    <tr><td colspan="9">No orders in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="9">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -96,7 +94,7 @@
                             <td>@o.OfficeId</td>
                             <td>@o.CountItems</td>
                             <td>@o.OrderSum.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@phpHref">Open in PHP</a></td>
+                            <td><a href="@phpHref">Open module</a></td>
                         </tr>
                     }
                 }
@@ -104,12 +102,6 @@
         </table>
     </div>
 
-    <div class="epc-oms-note">
-        Read-only preview · source <code>@_source</code> · count @_orders.Count.
-        PHP OMS remains authoritative for status changes, payments, messages, and office ACL.
-        Digest JSON: <a href="/cp/orders-digest?limit=50">/cp/orders-digest</a>.
-        Not a broad /cp cutover.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

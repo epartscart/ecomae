@@ -1,0 +1,9 @@
+{
+  "role": "same-to-same-look-gap-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "forbiddenHits": 0,
+  "hits": [],
+  "note": "Product CP/ERP/BOS/storefront chrome must not advertise stack/cutover. Operator consoles excluded."
+}

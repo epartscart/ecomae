@@ -42,20 +42,17 @@
     <section class="epc-groups-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Groups &amp; roles</h1>
-        <p>Batch 4 read-only groups list from <code>/cp/groups</code> digest. ACL binds, module access edits, and group create/delete stay on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-groups-cta">
-            <a href="/CP/users/usergroups">Open PHP groups</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", "/CP/users/usergroups")">Hybrid workspace</a>
+            <a href="/CP/users/usergroups">Open module</a>
             <a class="ghost" href="/cp/users-app">Users list</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
     <div class="epc-groups-kpis" aria-label="Groups KPIs">
         <div class="epc-groups-kpi"><strong>@_groups.Count</strong><span>Shown</span></div>
         <div class="epc-groups-kpi"><strong>@_backend</strong><span>Backend groups</span></div>
-        <div class="epc-groups-kpi"><strong>@_source</strong><span>Digest source</span></div>
-    </div>
+</div>
 
     <div class="epc-groups-table-wrap">
         <table class="epc-groups-table">
@@ -75,7 +72,7 @@
             <tbody>
                 @if (_groups.Count == 0)
                 {
-                    <tr><td colspan="9">No groups in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="9">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -90,7 +87,7 @@
                             <td>@(g.Unblocked ? "yes" : "no")</td>
                             <td>@g.Parent</td>
                             <td><span class="epc-groups-badge">L@g.Level</span></td>
-                            <td><a href="/CP/users/usergroups">Open in PHP</a></td>
+                            <td><a href="/CP/users/usergroups">Open</a></td>
                         </tr>
                     }
                 }
@@ -98,10 +95,6 @@
         </table>
     </div>
 
-    <div class="epc-groups-note">
-        Read-only preview · JSON digest <a href="/cp/groups?limit=100">/cp/groups</a> (live exact-route).
-        PHP group manager remains authoritative for ACL writes. Not a broad /cp cutover.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

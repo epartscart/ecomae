@@ -121,8 +121,7 @@
             <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/BOS/" ErrorMessage="@_error" SubmitLabel="Sign In" Accent="blue" />
             <p class="bos-login__secure">
                 <i class="fa fa-lock"></i>
-                Full BOS modules stay on <a class="epc-login-php" href="/BOS/">live /BOS/</a> (PHP).
-                This bridge opens hybrid digests only.
+                Secure operator access to your tenant fleet.
             </p>
         </div>
     </div>
@@ -130,7 +129,7 @@
 
 @*
   PHP epc_bos_shell.js only starts particles/counters when #bosLoginForm exists.
-  Keep ASP.NET bridge form IDs different; run visual-only init here (no PHP login hijack).
+  Keep  bridge form IDs different; run visual-only init here (no PHP login hijack).
 *@
 <script>
 (function () {

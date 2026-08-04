@@ -42,13 +42,11 @@
     <section class="epc-sms-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>SMS &amp; WhatsApp</h1>
-        <p>Read-only SMS operators + WhatsApp delivery log from <code>/cp/sms-whatsapp</code>. Routing and send stays on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-sms-cta">
-            <a href="@_phpSmsTab">Open PHP SMS routing</a>
+            <a href="@_phpSmsTab">Open module</a>
             <a class="ghost" href="@_phpWhatsappTab">WhatsApp guide</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpSmsTab)">Hybrid workspace</a>
             <a class="ghost" href="/cp/marketing-broadcast-app">Marketing broadcast</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -75,7 +73,7 @@
             <tbody>
                 @if (_operators.Count == 0)
                 {
-                    <tr><td colspan="7">No SMS operators in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -88,7 +86,7 @@
                             <td>@(string.IsNullOrWhiteSpace(o.Description) ? "—" : o.Description)</td>
                             <td>@(o.Active ? "yes" : "no")</td>
                             <td>@(o.ControlAvailable ? "yes" : "no")</td>
-                            <td><a href="@_phpSmsTab">Open in PHP</a></td>
+                            <td><a href="@_phpSmsTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -113,7 +111,7 @@
             <tbody>
                 @if (_whatsappLogs.Count == 0)
                 {
-                    <tr><td colspan="7">No WhatsApp log rows in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -134,13 +132,6 @@
         </table>
     </div>
 
-    <div class="epc-sms-note">
-        Read-only preview · JSON digest <a href="/cp/sms-whatsapp?limit=50">/cp/sms-whatsapp</a>.
-        PHP <code>sms_turning</code> remains authoritative for SMS routing.
-        WhatsApp setup remains PHP <code>whatsapp_guide</code>.
-        Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

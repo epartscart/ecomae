@@ -38,10 +38,9 @@
     <section class="epc-inv-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Inventory Stock</h1>
-        <p>Read-only stock KPIs from <code>/erp/inventory-stock</code> digest under PHP ERP desktop chrome. Moves, adjustments, and warehouse writes stay on live PHP inventory — same-to-same for tenants.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-inv-cta">
-            <a href="@_phpTab">Open PHP inventory</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/warehouses-app">Warehouses</a>
             <a class="ghost" href="/erp/purchases-app">Purchases</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -56,12 +55,6 @@
         <div class="epc-inv-kpi"><strong>@_itemCount.ToString(CultureInfo.InvariantCulture)</strong><span>Items</span></div>
     </div>
 
-    <div class="epc-inv-note">
-        Read-only preview · JSON digest <a href="/erp/inventory-stock">/erp/inventory-stock</a>.
-        PHP <code>epc_erp_inv_stock</code> / inventory tab remain authoritative for stock moves and writes.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>@(!string.IsNullOrWhiteSpace(_message) ? $" · {_message}" : "").
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

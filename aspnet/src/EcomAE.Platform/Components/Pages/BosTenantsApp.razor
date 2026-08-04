@@ -46,13 +46,11 @@
     <section class="epc-bt-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Fleet Tenants</h1>
-        <p>Read-only portal tenant registry from <code>/bos/tenants</code> digest under PHP BOS desktop chrome. Provisioning stays on live PHP tenant control — native <code>/BOS/</code> session still required for full module UX.</p>
+        <p>Platform fleet overview across tenants, sessions, and health.</p>
         <div class="epc-bt-cta">
-            <a href="@_phpTab">Open PHP tenant control</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/bos/audit-log-app">Audit log</a>
             <a class="ghost" href="/cp/tenants-app">CP tenants</a>
-            <a class="ghost" href="/bos/app">Fleet command</a>
         </div>
     </section>
 
@@ -83,7 +81,7 @@
             <tbody>
                 @if (_tenants.Count == 0)
                 {
-                    <tr><td colspan="11">No tenants in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="11">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -100,7 +98,7 @@
                             <td><span class="epc-bt-badge @(t.IsActive ? "epc-bt-badge--ok" : "epc-bt-badge--off")">@(t.IsActive ? "yes" : "no")</span></td>
                             <td><span class="epc-bt-badge @(t.HasDb ? "epc-bt-badge--ok" : "epc-bt-badge--off")">@(t.HasDb ? "yes" : "no")</span></td>
                             <td><span class="epc-bt-badge epc-bt-badge--info">@(t.ErpOnly ? "yes" : "no")</span></td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -108,12 +106,6 @@
         </table>
     </div>
 
-    <div class="epc-bt-note">
-        Read-only preview · JSON digest <a href="/bos/tenants?limit=100">/bos/tenants</a>.
-        PHP <code>epc_tenant_control_center</code> / <code>/BOS/?m=fleet_cp</code> remain authoritative.
-        Not a broad /bos cutover · native BOS <code>$_SESSION</code> modules stay PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpBosDesktopChrome>
 
 @code {

@@ -33,11 +33,9 @@
     <section class="epc-w23-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Ops guides</h1>
-        <p>Read-only CP menu map for guideline + ERP-only onboard deeplinks.</p>
+        <p>Manage store operations from the control panel.</p>
         <div class="epc-w23-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
+            <a href="@_phpTab">Open module</a>
         </div>
     </section>
     <div class="epc-w23-kpis">
@@ -49,11 +47,11 @@
     <div class="epc-w23-table-wrap"><table class="epc-w23-table">
         <thead><tr><th>Id</th><th>Group</th><th>Caption</th><th>URL</th><th>Show anyway</th><th></th></tr></thead>
         <tbody>
-        @if (_rows.Count==0) { <tr><td colspan="6">No rows (@_source). @_message</td></tr> }
-        else { @foreach (var row in _rows) { <tr><td>@row.Id</td><td>@row.ItemsGroup</td><td>@row.Caption</td><td>@row.Url</td><td>@row.ShowAnyway</td><td><a href="@_phpTab">Open in PHP</a></td></tr> } }
+        @if (_rows.Count==0) { <tr><td colspan="6">Nothing to show yet.</td></tr> }
+        else { @foreach (var row in _rows) { <tr><td>@row.Id</td><td>@row.ItemsGroup</td><td>@row.Caption</td><td>@row.Url</td><td>@row.ShowAnyway</td><td><a href="@_phpTab">Open</a></td></tr> } }
         </tbody>
     </table></div>
-    <div class="epc-w23-note">Read-only · <a href="/cp/ops-guides?limit=200">/cp/ops-guides</a> · guide HTML bodies · PHP remains authoritative · Source <code>@_source</code></div>
+
 </PhpCpDesktopChrome>
 @code {
     private const string _phpTab = "/CP/control/cp-guideline";

@@ -36,12 +36,10 @@
     <section class="epc-mapp-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Mobile Apps</h1>
-        <p>Read-only <code>integrations_json.mobile</code> from <code>/cp/mobile-apps</code>. Store URLs, deep links, and PWA flags — save stays on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-mapp-cta">
-            <a href="@_phpTab">Open PHP mobile apps</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/power-bi-app">Power BI</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -59,12 +57,6 @@
         <div class="epc-mapp-card"><span>Firebase project</span><strong>@(string.IsNullOrWhiteSpace(_summary.FirebaseProjectId) ? "—" : _summary.FirebaseProjectId)</strong></div>
     </div>
 
-    <div class="epc-mapp-note">
-        Read-only preview · JSON digest <a href="/cp/mobile-apps">/cp/mobile-apps</a>.
-        PHP <code>epc_mobile_apps</code> remains authoritative for save_mobile.
-        Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>. @_message
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

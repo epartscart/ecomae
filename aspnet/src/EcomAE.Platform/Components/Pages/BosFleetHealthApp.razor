@@ -47,13 +47,11 @@
     <section class="epc-fh-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Fleet Health</h1>
-        <p>Read-only fleet health KPIs + sample tenants from <code>/bos/fleet-health</code> digest under PHP BOS desktop chrome. Live health checks stay on PHP — native <code>/BOS/</code> session still required for full module UX.</p>
+        <p>Platform fleet overview across tenants, sessions, and health.</p>
         <div class="epc-fh-cta">
-            <a href="@_phpTab">Open PHP platform health</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open platform health</a>
             <a class="ghost" href="/bos/tenants-app">Fleet tenants</a>
             <a class="ghost" href="/bos/audit-log-app">Audit log</a>
-            <a class="ghost" href="/bos/app">Fleet command</a>
         </div>
     </section>
 
@@ -85,7 +83,7 @@
             <tbody>
                 @if (_sample.Count == 0)
                 {
-                    <tr><td colspan="8">No sample tenants in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -99,7 +97,7 @@
                             <td><span class="epc-fh-badge @(t.IsActive ? "epc-fh-badge--ok" : "epc-fh-badge--off")">@(t.IsActive ? "yes" : "no")</span></td>
                             <td><span class="epc-fh-badge @(t.HasDb ? "epc-fh-badge--ok" : "epc-fh-badge--off")">@(t.HasDb ? "yes" : "no")</span></td>
                             <td><span class="epc-fh-badge epc-fh-badge--info">@(t.ErpOnly ? "yes" : "no")</span></td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open module</a></td>
                         </tr>
                     }
                 }
@@ -107,12 +105,6 @@
         </table>
     </div>
 
-    <div class="epc-fh-note">
-        Read-only preview · JSON digest <a href="/bos/fleet-health?limit=25">/bos/fleet-health</a>.
-        PHP <code>epc_bos_health_check</code> / <code>epc_platform_health_checkup</code> remain authoritative.
-        Not a broad /bos cutover · native BOS <code>$_SESSION</code> modules stay PHP.
-        Source: <code>@_source</code>@(!string.IsNullOrWhiteSpace(_message) ? $" · {_message}" : "").
-    </div>
 </PhpBosDesktopChrome>
 
 @code {

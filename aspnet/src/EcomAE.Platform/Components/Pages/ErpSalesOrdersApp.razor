@@ -43,10 +43,9 @@
     <section class="epc-so-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Sales Orders</h1>
-        <p>Batch 4 read-only ERP sales orders from <code>/erp/sales-orders</code> digest under PHP ERP desktop chrome. Full tab UI (<code>erp_tabs_sales_orders.php</code>), posting, and writes stay on live PHP.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-so-cta">
-            <a href="@_phpTab">Open PHP sales orders</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
         </div>
     </section>
@@ -72,7 +71,7 @@
             <tbody>
                 @if (_orders.Count == 0)
                 {
-                    <tr><td colspan="6">No sales orders in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="6">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -85,7 +84,7 @@
                             <td>@o.CustomerUserId</td>
                             <td><span class="epc-so-badge">@o.Status</span></td>
                             <td>@o.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@phpHref">Open in PHP</a></td>
+                            <td><a href="@phpHref">Open</a></td>
                         </tr>
                     }
                 }
@@ -93,11 +92,6 @@
         </table>
     </div>
 
-    <div class="epc-so-note">
-        Read-only preview · JSON digest <a href="/erp/sales-orders?limit=200">/erp/sales-orders</a> (live exact-route when shadowed).
-        PHP tab <code>erp_tabs_sales_orders.php</code> remains authoritative for create/edit/post. Not a broad /erp cutover.
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

@@ -38,10 +38,9 @@
     <section class="epc-as-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Accounts Summary</h1>
-        <p>Read-only cash/supplier KPIs from <code>/erp/accounts-summary</code> digest under PHP ERP desktop chrome. Posting and cash moves stay on live PHP — same-to-same for tenants.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-as-cta">
-            <a href="@_phpCash">Open PHP cash &amp; bank</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpCash)">Hybrid workspace</a>
+            <a href="@_phpCash">Open module</a>
             <a class="ghost" href="/erp/cash-accounts-app">Cash accounts</a>
             <a class="ghost" href="/erp/suppliers-app">Suppliers</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -56,15 +55,8 @@
         <div class="epc-as-kpi"><strong>@_cashAccounts.ToString(CultureInfo.InvariantCulture)</strong><span>Cash accounts</span></div>
         <div class="epc-as-kpi"><strong>@_activeSuppliers.ToString(CultureInfo.InvariantCulture)</strong><span>Active suppliers</span></div>
         <div class="epc-as-kpi"><strong>@_activePurchases.ToString(CultureInfo.InvariantCulture)</strong><span>Active purchases</span></div>
-        <div class="epc-as-kpi"><strong>@_source</strong><span>Digest source</span></div>
-    </div>
+</div>
 
-    <div class="epc-as-note">
-        Read-only preview · JSON digest <a href="/erp/accounts-summary">/erp/accounts-summary</a>.
-        PHP cash/bank and AP posting remain authoritative.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        @(!string.IsNullOrWhiteSpace(_message) ? _message : "")
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

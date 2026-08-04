@@ -41,10 +41,9 @@
     <section class="epc-wf-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Workspace favorites</h1>
-        <p>Read-only dashboard shortcut KPIs + pins from <code>/erp/workspace-favorites</code>. Add/remove pins stay on live PHP.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-wf-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/dashboard-summary-app">Dashboard summary</a>
         </div>
     </section>
@@ -74,7 +73,7 @@
             <tbody>
                 @if (_favorites.Count == 0)
                 {
-                    <tr><td colspan="9">No rows in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="9">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -89,7 +88,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.TargetTab) ? row.TargetTab : "—")</td>
                             <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(row.IsPinned ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -97,10 +96,6 @@
         </table>
     </div>
 
-    <div class="epc-wf-note">
-        Read-only preview · JSON digest <a href="/erp/workspace-favorites?limit=200">/erp/workspace-favorites</a>. PHP dashboard shortcuts remain authoritative · Not a broad /erp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

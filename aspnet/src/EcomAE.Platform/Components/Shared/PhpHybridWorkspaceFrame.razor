@@ -1,8 +1,7 @@
 @*
-  Optional iframe that loads a live PHP module inside ASP.NET product chrome.
+  Optional iframe that loads a live module inside product chrome.
   Activated via ?php=/CP/... (or /ERP/ /BOS/ or www.ecomae.com marketing URLs)
   on /cp/app|/erp/app|/bos/app|/storefront/app|/marketing/app.
-  PHP remains authoritative for the module body; this is presentation scaffolding only.
 *@
 @using EcomAE.Platform.Presentation
 
@@ -10,11 +9,11 @@
 {
     <section class="epc-hybrid-frame">
         <div class="epc-hybrid-frame-bar">
-            <span>Hybrid workspace · PHP module</span>
-            <a href="@SafePhpHref" target="_blank" rel="noopener">Open PHP full page</a>
-            <a href="@ClearHref">Close workspace</a>
+            <span>Workspace</span>
+            <a href="@SafePhpHref" target="_blank" rel="noopener">Open full page</a>
+            <a href="@ClearHref">Close</a>
         </div>
-        <iframe class="epc-hybrid-iframe" src="@SafePhpHref" title="PHP module workspace" loading="lazy"></iframe>
+        <iframe class="epc-hybrid-iframe" src="@SafePhpHref" title="Module workspace" loading="lazy"></iframe>
     </section>
 }
 
@@ -39,7 +38,7 @@
             return null;
         }
 
-        // Allow same-origin PHP chrome paths and known live tenant storefront absolute URLs.
+        // Allow same-origin product chrome paths and known live tenant storefront absolute URLs.
         if (href.StartsWith("/CP/", StringComparison.OrdinalIgnoreCase)
             || href.StartsWith("/ERP/", StringComparison.OrdinalIgnoreCase)
             || href.StartsWith("/BOS/", StringComparison.OrdinalIgnoreCase)
