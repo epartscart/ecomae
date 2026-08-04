@@ -28,7 +28,7 @@
     {
       "id": "process-flow",
       "status": "static-floors-green",
-      "covers": "cp-workflows floor + flow/automation PHP tests"
+      "covers": "cp-workflows floor + /erp/process-flow-tasks (epc_pf_cases) floor + flow/automation PHP tests"
     },
     {
       "id": "oms-checkout",
@@ -46,7 +46,7 @@
     "ERP named external report fetch dual-sample (sales|inventory|vat|ar-aging)",
     "E-invoice create→validate→submit→poll dry-run paired with PHP (writes=0 until approval)",
     "CT/catalog miss → UMAPI fill → ASP.NET cache hit with auth cookies",
-    "Process-flow task digest dual-sample vs PHP epc_erp_processflow_tasks",
+    "Process-flow task digest dual-sample vs PHP epc_pf_cases (/erp/process-flow-tasks)",
     "OMS + storefront checkout path dual-sample (writes=0 until approval)",
     "Super CP → tenant CP onboard/isolation live smoke",
     "aspNetInteractiveComplete remains 0 until dual-samples promote live writes",

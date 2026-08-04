@@ -152,17 +152,46 @@ public static class LegacySurfaceDashboardSql
         WHERE `status` IN ('draft', 'queued')
         """;
 
+    /// <summary>PHP process-flow cases live in <c>epc_pf_cases</c> (not a tasks alias table).</summary>
     public const string CountErpCcProcessOpen = """
-        SELECT COUNT(*) FROM `epc_erp_processflow_tasks` WHERE `status` = 'open'
+        SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` = 'open'
         """;
 
     public const string CountErpCcProcessDone = """
-        SELECT COUNT(*) FROM `epc_erp_processflow_tasks` WHERE `status` = 'done'
+        SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` = 'done'
         """;
 
     public const string CountErpCcProcessOverdue = """
-        SELECT COUNT(*) FROM `epc_erp_processflow_tasks`
+        SELECT COUNT(*) FROM `epc_pf_cases`
         WHERE `status` = 'open' AND `due_at` > 0 AND `due_at` < UNIX_TIMESTAMP()
+        """;
+
+    /// <summary>Process-flow case KPIs aligned to PHP <c>epc_erp_processflow.php</c> / <c>epc_pf_cases</c>.</summary>
+    public const string SelectErpProcessFlowTaskStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_pf_cases`) AS task_count,
+            (SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` = 'open') AS open_count,
+            (SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` = 'done') AS done_count,
+            (SELECT COUNT(*) FROM `epc_pf_cases`
+             WHERE `status` = 'open' AND `due_at` > 0 AND `due_at` < UNIX_TIMESTAMP()) AS overdue_count,
+            (SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` IN ('cancelled','rejected')) AS cancelled_count
+        """;
+
+    /// <summary>Process-flow cases — omits comments/step detail; PHP processflow UI remains authoritative.</summary>
+    public const string SelectErpProcessFlowTasks = """
+        SELECT `id`, IFNULL(`process_id`,0) AS process_id, IFNULL(`title`,'') AS title,
+               IFNULL(`reference`,'') AS reference, IFNULL(`priority`,'') AS priority,
+               IFNULL(`status`,'') AS status, IFNULL(`current_step_no`,0) AS current_step_no,
+               IFNULL(`current_assignee_id`,0) AS current_assignee_id,
+               IFNULL(`current_department`,'') AS current_department,
+               IFNULL(`initiator_id`,0) AS initiator_id,
+               IFNULL(`subject_type`,'') AS subject_type, IFNULL(`subject_id`,0) AS subject_id,
+               IFNULL(`started_at`,0) AS started_at, IFNULL(`due_at`,0) AS due_at,
+               IFNULL(`completed_at`,0) AS completed_at,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_pf_cases`
+        ORDER BY `id` DESC
+        LIMIT @limit
         """;
 
     public const string CountCustomerOrders = """

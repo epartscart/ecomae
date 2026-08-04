@@ -84,6 +84,7 @@
   ],
   "nextActions": [
     "Scaffold contract 100%; interactive cutover still 0% \u2014 see residual board.",
+    "Redeploy tip via bash scripts/cloudpanel_redeploy_final_gate_branch.sh (or foundation deploy) before live dual-sample.",
     "Redeploy tip + install marketing/checkout shadows on www only.",
     "Run presentation recheck until status=pass (do not invent).",
     "Dual-sample digests/ajax with admin+customer cookies; capture functional live-smoke.",

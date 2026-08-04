@@ -3409,6 +3409,72 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new ErpProcessFlowTasksSummary(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var tasks = 0; var open = 0; var done = 0; var overdue = 0; var cancelled = 0;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectErpProcessFlowTaskStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    tasks = Convert.ToInt32(reader["task_count"] is DBNull ? 0 : reader["task_count"], CultureInfo.InvariantCulture);
+                    open = Convert.ToInt32(reader["open_count"] is DBNull ? 0 : reader["open_count"], CultureInfo.InvariantCulture);
+                    done = Convert.ToInt32(reader["done_count"] is DBNull ? 0 : reader["done_count"], CultureInfo.InvariantCulture);
+                    overdue = Convert.ToInt32(reader["overdue_count"] is DBNull ? 0 : reader["overdue_count"], CultureInfo.InvariantCulture);
+                    cancelled = Convert.ToInt32(reader["cancelled_count"] is DBNull ? 0 : reader["cancelled_count"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<ErpProcessFlowTaskDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectErpProcessFlowTasks;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new ErpProcessFlowTaskDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["process_id"] is DBNull ? 0 : reader["process_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["reference"] is DBNull ? string.Empty : reader["reference"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["priority"] is DBNull ? string.Empty : reader["priority"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["current_step_no"] is DBNull ? 0 : reader["current_step_no"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["current_assignee_id"] is DBNull ? 0 : reader["current_assignee_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["current_department"] is DBNull ? string.Empty : reader["current_department"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["initiator_id"] is DBNull ? 0 : reader["initiator_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["subject_type"] is DBNull ? string.Empty : reader["subject_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["subject_id"] is DBNull ? 0 : reader["subject_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["started_at"] is DBNull ? 0 : reader["started_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["due_at"] is DBNull ? 0 : reader["due_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["completed_at"] is DBNull ? 0 : reader["completed_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var summary = new ErpProcessFlowTasksSummary(tasks, open, done, overdue, cancelled, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpPageBuilderDigestResult> BuildCpPageBuilderDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

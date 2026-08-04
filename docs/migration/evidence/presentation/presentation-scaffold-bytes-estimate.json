@@ -1,6 +1,6 @@
 {
   "role": "presentation-scaffold-bytes-estimate",
-  "generatedAt": "2026-08-04T19:26:28.255014+00:00",
+  "generatedAt": "2026-08-04T19:42:03.256185+00:00",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
@@ -13,7 +13,7 @@
   "floors": {
     "storefront_app": {
       "floorBytes": 40558,
-      "estimatedCombinedBytes": 64345,
+      "estimatedCombinedBytes": 64261,
       "meetsFloor": true,
       "note": "Combined storefront/app chrome + piston + home depth offline estimate"
     },
@@ -49,10 +49,10 @@
     },
     "storefront_app": {
       "path": "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor",
-      "markupBytes": 939,
+      "markupBytes": 855,
       "foreachLoops": 0,
       "expansionBonusBytes": 0,
-      "estimatedSsrMarkupBytes": 939,
+      "estimatedSsrMarkupBytes": 855,
       "markersExpected": [],
       "markersMissing": [],
       "markersOk": true
@@ -97,10 +97,10 @@
     },
     "cp_login": {
       "path": "aspnet/src/EcomAE.Platform/Components/Pages/CpLoginApp.razor",
-      "markupBytes": 6907,
+      "markupBytes": 6852,
       "foreachLoops": 0,
       "expansionBonusBytes": 0,
-      "estimatedSsrMarkupBytes": 6907,
+      "estimatedSsrMarkupBytes": 6852,
       "markersExpected": [
         "epc-cp-login-hero",
         "epcCpParticles"

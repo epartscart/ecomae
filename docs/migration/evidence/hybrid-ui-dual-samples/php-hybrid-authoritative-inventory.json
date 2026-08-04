@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-04T18:57:59Z",
+  "capturedAt": "2026-08-04T19:40:40Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -372,6 +372,12 @@
       "appRoute": "/erp/fixed-assets-app",
       "digestRoute": "/erp/fixed-assets",
       "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=fixed_assets&tab=fixed_assets"
+    },
+    {
+      "stem": "erp-process-flow-tasks",
+      "appRoute": "/erp/process-flow-tasks-app",
+      "digestRoute": "/erp/process-flow-tasks",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=overview&tab=processflow"
     },
     {
       "stem": "cp-page-builder",
@@ -837,5 +843,5 @@
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP.",
-  "targetCount": 137
+  "targetCount": 138
 }

@@ -1430,6 +1430,42 @@ public sealed record ErpFixedAssetsDigestResult(
     string Source,
     string Message);
 
+/// <summary>Process-flow case KPIs from PHP <c>epc_pf_cases</c> (digest route keeps -tasks stem).</summary>
+public sealed record ErpProcessFlowTasksSummary(
+    int TaskCount,
+    int OpenCount,
+    int DoneCount,
+    int OverdueCount,
+    int CancelledCount,
+    string Source,
+    string Message);
+
+public sealed record ErpProcessFlowTaskDigest(
+    long Id,
+    long ProcessId,
+    string Title,
+    string Reference,
+    string Priority,
+    string Status,
+    int CurrentStepNo,
+    long CurrentAssigneeId,
+    string CurrentDepartment,
+    long InitiatorId,
+    string SubjectType,
+    long SubjectId,
+    long StartedAt,
+    long DueAt,
+    long CompletedAt,
+    long TimeCreated,
+    long TimeUpdated);
+
+public sealed record ErpProcessFlowTasksDigestResult(
+    ErpProcessFlowTasksSummary Summary,
+    IReadOnlyList<ErpProcessFlowTaskDigest> Tasks,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record CpPageBuilderSummary(
     int LayoutCount,
     int PublishedCount,

@@ -269,6 +269,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only fixed assets register (note omitted).</summary>
     Task<ErpFixedAssetsDigestResult> BuildErpFixedAssetsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only process-flow cases from PHP <c>epc_pf_cases</c> (writes remain PHP).</summary>
+    Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

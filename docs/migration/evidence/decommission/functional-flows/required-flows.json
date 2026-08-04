@@ -105,14 +105,16 @@
         "tests/erp_advanced/run_automation_centre_tests.php"
       ],
       "requiredFloors": [
-        "surface-parity/cp-workflows-item-field-floor.json"
+        "surface-parity/cp-workflows-item-field-floor.json",
+        "surface-parity/erp-process-flow-tasks-item-field-floor.json"
       ],
       "requiredEvidenceAny": [
         "surface-parity/samples/migration/cp-workflows.json",
+        "surface-parity/samples/migration/erp-process-flow-tasks.json",
         "decommission/staging-smoke/surface-digests-aspnet.json"
       ],
       "liveSmokeRequiredForPhpRemoval": [
-        "Process-flow task digest (open/done/overdue + rows) dual-sample vs PHP epc_erp_processflow_tasks",
+        "Process-flow task digest (open/done/overdue + rows) dual-sample vs PHP epc_pf_cases (/erp/process-flow-tasks)",
         "Industry step-chain posting parity (jewellery/trading/construction/POS)"
       ]
     },

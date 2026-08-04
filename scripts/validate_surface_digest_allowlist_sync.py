@@ -147,17 +147,17 @@ def main() -> int:
         )
 
     installer = args.surface_installer.read_text(encoding="utf-8")
-    if "!= 129" not in installer or "expected 129 digest locations" not in installer:
-        errors.append("surface digest installer must lock expected count 129")
+    if "!= 130" not in installer or "expected 130 digest locations" not in installer:
+        errors.append("surface digest installer must lock expected count 130")
 
     probe_path = args.scripts_dir / "cloudpanel_probe_surface_digest_shadows.sh"
     if not probe_path.is_file():
         errors.append("missing scripts/cloudpanel_probe_surface_digest_shadows.sh")
     else:
         probe = probe_path.read_text(encoding="utf-8")
-        if probe.count("-ne 129") < 2:
+        if probe.count("-ne 130") < 2:
             errors.append(
-                "surface digest probe must lock ROUTES length and PASS count to 129"
+                "surface digest probe must lock ROUTES length and PASS count to 130"
             )
 
     missing_capture = sorted(expected_stems - capture_stems)

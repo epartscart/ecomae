@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "summary": {
+    "taskCount": 1,
+    "openCount": 1,
+    "doneCount": 0,
+    "overdueCount": 0,
+    "cancelledCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; tasks[] sentinel from epc_pf_cases; PHP epc_erp_processflow.php authoritative; cutoverAllowed=false",
+  "tasks": [
+    {
+      "id": 1,
+      "processId": 1,
+      "title": "Migration case",
+      "reference": "MIG-1",
+      "priority": "normal",
+      "status": "open",
+      "currentStepNo": 1,
+      "currentAssigneeId": 1,
+      "currentDepartment": "finance",
+      "initiatorId": 1,
+      "subjectType": "shop_order",
+      "subjectId": 1,
+      "startedAt": 0,
+      "dueAt": 0,
+      "completedAt": 0,
+      "timeCreated": 0,
+      "timeUpdated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

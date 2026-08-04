@@ -36,7 +36,7 @@ INDUSTRY_HOSTS = (
     ("logistics", "Logistics"),
     ("manufacturing", "Manufacturing"),
     ("media", "Media"),
-    ("nonprofit", "Nonprofit"),
+    ("nonprofit", "Non-Profit"),
     ("pet", "Pet"),
     ("printing", "Printing"),
     ("professional", "Professional"),

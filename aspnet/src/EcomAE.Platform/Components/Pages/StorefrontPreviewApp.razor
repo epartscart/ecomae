@@ -6,7 +6,7 @@
 <PageTitle>@_pageTitle</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
 <PhpChromeBodyClass Surface="storefront" />
-<StorefrontAnalytics Enabled="false" IncludeClarity="true" ClarityId="xoflbamawu" />
+@* GA4 + Clarity emit via PhpSurfaceHead IncludeStorefrontAnalytics (Clarity in initial HTML for probes). *@
 
 <PhpStorefrontDesktopChrome>
     <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/storefront/app" />
