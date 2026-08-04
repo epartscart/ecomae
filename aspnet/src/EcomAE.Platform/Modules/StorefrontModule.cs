@@ -269,7 +269,30 @@ public sealed class StorefrontModule : ISurfaceModule
                 note = "Wave B read-only checkout readiness over shop_carts. Obtain/confirm/payment writes remain PHP."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontCartChangeCountNeed, async (
+            HttpContext context,
+            StorefrontCartChangeCountNeedBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontCartChangeCountNeedDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for cart qty dry-run.");
+            }
+
+            body ??= new StorefrontCartChangeCountNeedBody(0, 0, false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontCartChangeCountNeedRequest(body.Id, body.CountNeed, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
     }
+
+    private sealed record StorefrontCartChangeCountNeedBody(int Id, decimal CountNeed, bool ConfirmWrites = false);
 
     private static IResult Unauthorized(string message) => Results.Json(
         new { ok = false, error = new { code = "unauthorized", message } },

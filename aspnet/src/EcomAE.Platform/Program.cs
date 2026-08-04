@@ -132,6 +132,7 @@ builder.Services.AddSingleton<ISurfaceFieldParityReporter, SurfaceFieldParityRep
 builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryReporter>();
 builder.Services.AddSingleton<IPlatformJobsSummaryReporter, PlatformJobsSummaryReporter>();
 builder.Services.AddSingleton<ISurfaceDashboardSummaryReporter, SurfaceDashboardSummaryReporter>();
+builder.Services.AddSingleton<IStorefrontCartChangeCountNeedDryRun, StorefrontCartChangeCountNeedDryRun>();
 builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();

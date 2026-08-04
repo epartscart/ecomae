@@ -1061,7 +1061,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
                     Convert.ToString(reader["time_to_exe"] is DBNull ? string.Empty : reader["time_to_exe"], CultureInfo.InvariantCulture) ?? string.Empty,
                     Convert.ToString(reader["time_to_exe_guaranteed"] is DBNull ? string.Empty : reader["time_to_exe_guaranteed"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToDecimal(reader["min_order"] is DBNull ? 0m : reader["min_order"], CultureInfo.InvariantCulture)));
+                    Convert.ToDecimal(reader["min_order"] is DBNull ? 0m : reader["min_order"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["t2_exist"] is DBNull ? 0m : reader["t2_exist"], CultureInfo.InvariantCulture)));
             }
 
             var summary = new StorefrontCartSummary(count, sum, "database", string.Empty);
