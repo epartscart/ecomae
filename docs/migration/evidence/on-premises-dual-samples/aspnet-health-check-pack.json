@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "surface": "erp-on-premises",
+  "action": "health-check-pack",
+  "aspNetRoute": "/erp/on-premises/health-check-pack-dry-run",
+  "phpAuthoritativePath": "deploy/on-premises/health-check.php",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "On-premises health-check pack dry-run golden. PHP deploy/on-premises remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md."
+}

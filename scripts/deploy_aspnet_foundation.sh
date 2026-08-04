@@ -165,6 +165,10 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_run_all_ajax_contract_floors.sh" \
   "$ROOT/scripts/generate_ajax_surface_contract_samples.py" \
   "$ROOT/scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh" \
+  "$ROOT/scripts/generate_on_premises_contract_samples.py" \
+  "$ROOT/scripts/compare_on_premises_dual_samples.py" \
+  "$ROOT/scripts/cloudpanel_run_on_premises_dual_sample_operator.sh" \
+  "$ROOT/scripts/cloudpanel_run_all_digest_hybrid_onprem_floors.sh" \
   "$ROOT/scripts/cloudpanel_www_shadow_closeout_operator.sh" \
   "$ROOT/scripts/compare_catalog_api_contract_floor.py" \
   "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" \

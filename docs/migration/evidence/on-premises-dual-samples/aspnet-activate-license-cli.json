@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "surface": "erp-on-premises",
+  "action": "activate-license-cli",
+  "aspNetRoute": "/erp/on-premises/activate-license-cli-dry-run",
+  "phpAuthoritativePath": "deploy/on-premises/activate-license.php",
+  "status": "dry-run-validated",
+  "writes": 0,
+  "writesBlocked": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritative": true,
+  "dualSampleBaseline": "migration-contract-golden",
+  "note": "On-premises activate-license CLI dry-run golden. PHP deploy/on-premises remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md."
+}
