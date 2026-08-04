@@ -248,6 +248,22 @@ public static class EcomAeRoutes
     public const string ControlPanelReturnsRma = "/cp/returns-rma";
     /// <summary>CP returns-rma Blazor list (JSON digest remains <see cref="ControlPanelReturnsRma"/>).</summary>
     public const string ControlPanelReturnsRmaApp = "/cp/returns-rma-app";
+    /// <summary>CP commerce isolation audit (report_json omitted).</summary>
+    public const string ControlPanelIsolationAudit = "/cp/isolation-audit";
+    /// <summary>CP isolation-audit Blazor list (JSON digest remains <see cref="ControlPanelIsolationAudit"/>).</summary>
+    public const string ControlPanelIsolationAuditApp = "/cp/isolation-audit-app";
+    /// <summary>CP AML compliance KYC/transactions (notes/document paths omitted).</summary>
+    public const string ControlPanelAmlCompliance = "/cp/aml-compliance";
+    /// <summary>CP aml-compliance Blazor list (JSON digest remains <see cref="ControlPanelAmlCompliance"/>).</summary>
+    public const string ControlPanelAmlComplianceApp = "/cp/aml-compliance-app";
+    /// <summary>CP jewellery masters (karat/rate/barcode).</summary>
+    public const string ControlPanelJewelleryMasters = "/cp/jewellery-masters";
+    /// <summary>CP jewellery-masters Blazor list (JSON digest remains <see cref="ControlPanelJewelleryMasters"/>).</summary>
+    public const string ControlPanelJewelleryMastersApp = "/cp/jewellery-masters-app";
+    /// <summary>CP consolidations group entities (memo omitted).</summary>
+    public const string ControlPanelConsolidations = "/cp/consolidations";
+    /// <summary>CP consolidations Blazor list (JSON digest remains <see cref="ControlPanelConsolidations"/>).</summary>
+    public const string ControlPanelConsolidationsApp = "/cp/consolidations-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

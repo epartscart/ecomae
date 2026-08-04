@@ -1,0 +1,30 @@
+{
+  "role": "cp-jewellery-masters-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-jewellery-masters",
+  "collectionKey": "karats",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "karatCount",
+    "rateTypeCount",
+    "barcodeCount",
+    "diamondCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "companyId",
+    "karatCode",
+    "stdPurity",
+    "rangeFrom",
+    "rangeTo",
+    "spGravity",
+    "division",
+    "createdAt"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks cp-jewellery-masters digest summary+karats[] floors. description omitted. PHP jewellery masters remain authoritative. cutoverAllowed=false."
+}

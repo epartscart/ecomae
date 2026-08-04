@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "entityCount": 1,
+    "figureCount": 0,
+    "icCount": 0,
+    "openIcCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; entities[] sentinel; PHP consolidations authoritative; cutoverAllowed=false",
+  "entities": [
+    {
+      "id": 1,
+      "code": "HOME",
+      "name": "Migration entity",
+      "currencyCode": "AED",
+      "ownershipPct": 100.0,
+      "isHome": 1,
+      "parentCode": "",
+      "active": 1,
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

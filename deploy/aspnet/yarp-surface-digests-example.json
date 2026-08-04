@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 80,
+  "routeCount": 84,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -965,6 +965,54 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-returns-rma-shadow-approved"
+          }
+        ]
+      },
+      "cp-isolation-audit": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/isolation-audit"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-isolation-audit-shadow-approved"
+          }
+        ]
+      },
+      "cp-aml-compliance": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/aml-compliance"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-aml-compliance-shadow-approved"
+          }
+        ]
+      },
+      "cp-jewellery-masters": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/jewellery-masters"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-jewellery-masters-shadow-approved"
+          }
+        ]
+      },
+      "cp-consolidations": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/consolidations"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-consolidations-shadow-approved"
           }
         ]
       }

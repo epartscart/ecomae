@@ -141,7 +141,7 @@ public sealed class LiveSurfaceLinkReporterTests
             link.HostClass == "aspnet-exact-route-shadow-live"
             && link.AspNetRouteHint == "/bos/audit-log"
             && link.StackToday == "aspnet");
-        Assert.Equal(80, report.Links.Count(link =>
+        Assert.Equal(84, report.Links.Count(link =>
             link.HostClass == "aspnet-exact-route-shadow-live"
             && (link.AspNetRouteHint.StartsWith("/cp/", StringComparison.Ordinal)
                 || link.AspNetRouteHint.StartsWith("/erp/", StringComparison.Ordinal)
@@ -164,7 +164,7 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Equal(4, report.Links.Count(link =>
             link.HostClass == "aspnet-exact-route-shadow-live"
             && link.AspNetRouteHint.StartsWith("/storefront/", StringComparison.Ordinal)));
-        Assert.Equal(92, report.Links.Count(link => link.HostClass == "aspnet-presentation-preview"));
+        Assert.Equal(96, report.Links.Count(link => link.HostClass == "aspnet-presentation-preview"));
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/bos/audit-log-app");
@@ -361,6 +361,18 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/cp/returns-rma-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/isolation-audit-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/aml-compliance-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/jewellery-masters-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/cp/consolidations-app");
         Assert.Equal(4, report.Links.Count(link => link.HostClass == "aspnet-login-bridge"));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
 
@@ -379,12 +391,12 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.NextActions, action => action.Contains("hybrid-ui-dual-samples", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("action_not_allowed", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("Wired catalog exact-routes complete", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("Surface digests: wired 80", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("Surface digests: wired 84", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("Storefront digests: 4/6", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_storefront_digest_shadows.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_storefront_digest_shadows.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("/migration/console", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("pairsChecked=137", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("pairsChecked=145", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("/cp/login", StringComparison.Ordinal)
             || action.Contains("/cp|/erp|/bos|/storefront/{app,login}", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_presentation_app_shadows.sh", StringComparison.Ordinal));

@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "kycCount": 1,
+    "pendingKycCount": 1,
+    "flaggedTxnCount": 0,
+    "activeRuleCount": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; kyc[] sentinel; notes/document paths omitted; PHP aml_compliance authoritative; cutoverAllowed=false",
+  "kyc": [
+    {
+      "id": 1,
+      "companyId": 0,
+      "customerId": 1,
+      "customerName": "Migration customer",
+      "idType": "emirates_id",
+      "riskLevel": "low",
+      "pepStatus": 0,
+      "verificationStatus": "pending",
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

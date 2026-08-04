@@ -1500,4 +1500,87 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Isolation audit KPIs from epc_ci_* (CREATE TABLE in epc_commerce_isolation.php).</summary>
+    public const string SelectCpIsolationAuditStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_ci_audit_runs`) AS run_count,
+            (SELECT COUNT(*) FROM `epc_ci_audit_runs` WHERE IFNULL(`failed`,0)>0) AS failed_run_count,
+            (SELECT COUNT(*) FROM `epc_ci_violations`) AS violation_count,
+            (SELECT COUNT(DISTINCT `site_key`) FROM `epc_ci_violations`) AS site_count
+        """;
+
+    /// <summary>Isolation audit runs — omits report_json.</summary>
+    public const string SelectCpIsolationAuditRuns = """
+        SELECT `id`, IFNULL(`run_at`,'') AS run_at,
+               IFNULL(`total_tenants`,0) AS total_tenants,
+               IFNULL(`passed`,0) AS passed, IFNULL(`failed`,0) AS failed,
+               IFNULL(`warnings`,0) AS warnings,
+               IFNULL(`triggered_by`,'') AS triggered_by
+        FROM `epc_ci_audit_runs`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>AML KPIs from epc_aml_* (CREATE TABLE in epc_erp_aml_compliance.php).</summary>
+    public const string SelectCpAmlComplianceStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_aml_kyc`) AS kyc_count,
+            (SELECT COUNT(*) FROM `epc_aml_kyc` WHERE IFNULL(`verification_status`,'')='pending') AS pending_kyc_count,
+            (SELECT COUNT(*) FROM `epc_aml_transactions` WHERE IFNULL(`flagged`,0)=1) AS flagged_txn_count,
+            (SELECT COUNT(*) FROM `epc_aml_rules` WHERE IFNULL(`is_active`,0)=1) AS active_rule_count
+        """;
+
+    /// <summary>AML KYC rows — omits notes/id_document_path.</summary>
+    public const string SelectCpAmlComplianceKyc = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`customer_name`,'') AS customer_name, IFNULL(`id_type`,'') AS id_type,
+               IFNULL(`risk_level`,'') AS risk_level, IFNULL(`pep_status`,0) AS pep_status,
+               IFNULL(`verification_status`,'') AS verification_status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_aml_kyc`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Jewellery master KPIs from epc_jewel_* masters (CREATE TABLE in epc_erp_jewellery.php).</summary>
+    public const string SelectCpJewelleryMastersStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_jewel_karat_master`) AS karat_count,
+            (SELECT COUNT(*) FROM `epc_jewel_rate_type`) AS rate_type_count,
+            (SELECT COUNT(*) FROM `epc_jewel_barcode`) AS barcode_count,
+            (SELECT COUNT(*) FROM `epc_jewel_diamond_master`) AS diamond_count
+        """;
+
+    /// <summary>Jewellery karat masters — omits description.</summary>
+    public const string SelectCpJewelleryMastersKarats = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`karat_code`,'') AS karat_code,
+               IFNULL(`std_purity`,0) AS std_purity, IFNULL(`range_from`,0) AS range_from,
+               IFNULL(`range_to`,0) AS range_to, IFNULL(`sp_gravity`,0) AS sp_gravity,
+               IFNULL(`division`,'') AS division, IFNULL(`created_at`,'') AS created_at
+        FROM `epc_jewel_karat_master`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Consolidation KPIs from epc_cons_* (CREATE TABLE in epc_erp_consolidation.php).</summary>
+    public const string SelectCpConsolidationsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_cons_entities` WHERE IFNULL(`active`,0)=1) AS entity_count,
+            (SELECT COUNT(*) FROM `epc_cons_figures`) AS figure_count,
+            (SELECT COUNT(*) FROM `epc_cons_ic`) AS ic_count,
+            (SELECT COUNT(*) FROM `epc_cons_ic` WHERE IFNULL(`reconciled`,0)=0) AS open_ic_count
+        """;
+
+    /// <summary>Consolidation entities — group members.</summary>
+    public const string SelectCpConsolidationsEntities = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`currency_code`,'') AS currency_code,
+               IFNULL(`ownership_pct`,0) AS ownership_pct,
+               IFNULL(`is_home`,0) AS is_home, IFNULL(`parent_code`,'') AS parent_code,
+               IFNULL(`active`,0) AS active, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_cons_entities`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

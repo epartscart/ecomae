@@ -206,6 +206,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only returns/RMA requests (description/notes omitted).</summary>
     Task<CpReturnsRmaDigestResult> BuildCpReturnsRmaDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only commerce isolation audit runs (report_json omitted).</summary>
+    Task<CpIsolationAuditDigestResult> BuildCpIsolationAuditDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only AML KYC rows (notes/document paths omitted).</summary>
+    Task<CpAmlComplianceDigestResult> BuildCpAmlComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only jewellery karat/rate/barcode masters.</summary>
+    Task<CpJewelleryMastersDigestResult> BuildCpJewelleryMastersDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only consolidation group entities.</summary>
+    Task<CpConsolidationsDigestResult> BuildCpConsolidationsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only bank statement lines for reconciliation.</summary>
     Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
 

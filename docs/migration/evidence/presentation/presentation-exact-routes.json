@@ -1,10 +1,12 @@
 {
-  "role": "presentation-exact-route-inventory",
+  "role": "presentation-exact-routes",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 97,
-  "generatedFrom": "deploy/aspnet/nginx-presentation-app-shadow-example.conf",
-  "note": "Design/inventory only. Not product chrome cutover. Never invents RELEASE_OWNER_APPROVAL.md.",
+  "routeCount": 101,
+  "generatedFrom": [
+    "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
+  ],
+  "note": "Design/inventory only for presentation app/login exact-route shadows. Never invents RELEASE_OWNER_APPROVAL.md.",
   "routes": [
     "/cp/app",
     "/cp/orders",
@@ -102,6 +104,10 @@
     "/cp/landed-cost-app",
     "/cp/warehouse-wms-app",
     "/cp/ai-service-app",
-    "/cp/returns-rma-app"
+    "/cp/returns-rma-app",
+    "/cp/isolation-audit-app",
+    "/cp/aml-compliance-app",
+    "/cp/jewellery-masters-app",
+    "/cp/consolidations-app"
   ]
 }
