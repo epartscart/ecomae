@@ -32,21 +32,21 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 86,
-    "php-only-deeplink": 640
+    "digest-contract": 92,
+    "php-only-deeplink": 634
   },
   "coverageByKind": {
     "bos-module": {
-      "php-only-deeplink": 85,
-      "digest-contract": 14
+      "php-only-deeplink": 83,
+      "digest-contract": 16
     },
     "bos-section": {
       "digest-contract": 4,
       "php-only-deeplink": 7
     },
     "cp-feature": {
-      "digest-contract": 37,
-      "php-only-deeplink": 368
+      "digest-contract": 41,
+      "php-only-deeplink": 364
     },
     "erp-area": {
       "digest-contract": 8,
@@ -65,7 +65,7 @@
       "digest-contract": 6
     }
   },
-  "digestContractRouteCount": 56,
+  "digestContractRouteCount": 58,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -2550,10 +2550,10 @@
       "kind": "bos-module",
       "label": "Power BI",
       "phpPath": "/CP/control/portal/epc_power_bi",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/power-bi",
+      "aspnetRoute": "/cp/power-bi-app",
       "aspnetComplete": false
     },
     {
@@ -2825,10 +2825,10 @@
       "kind": "bos-module",
       "label": "Power BI guide",
       "phpPath": "/CP/control/portal/epc_power_bi_guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/power-bi",
+      "aspnetRoute": "/cp/power-bi-app",
       "aspnetComplete": false
     },
     {
@@ -4068,10 +4068,10 @@
       "kind": "cp-feature",
       "label": "Power BI",
       "phpPath": "/CP/control/portal/epc_power_bi",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/power-bi",
+      "aspnetRoute": "/cp/power-bi-app",
       "aspnetComplete": false
     },
     {
@@ -4079,10 +4079,10 @@
       "kind": "cp-feature",
       "label": "Power BI guide",
       "phpPath": "/CP/control/portal/epc_power_bi_guide",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/power-bi",
+      "aspnetRoute": "/cp/power-bi-app",
       "aspnetComplete": false
     },
     {
@@ -4145,10 +4145,10 @@
       "kind": "cp-feature",
       "label": "Epc Mobile Apps",
       "phpPath": "/CP/control/portal/epc_mobile_apps",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/mobile-apps",
+      "aspnetRoute": "/cp/mobile-apps-app",
       "aspnetComplete": false
     },
     {
@@ -4189,10 +4189,10 @@
       "kind": "cp-feature",
       "label": "Mobile apps",
       "phpPath": "/CP/control/portal/epc_mobile_apps",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/mobile-apps",
+      "aspnetRoute": "/cp/mobile-apps-app",
       "aspnetComplete": false
     },
     {

@@ -129,6 +129,10 @@ CP_FEATURE_HYBRID_BY_ID = {
     # Prefer CP tenants digest for CP brochure rows; BOS module keeps /bos/tenants via path.
     "tenant-control-center": "cp-tenants",
     "epc-tenant-control-center": "cp-tenants",
+    "power-bi": "cp-power-bi",
+    "power-bi-guide": "cp-power-bi",
+    "mobile-apps": "cp-mobile-apps",
+    "epc-mobile-apps": "cp-mobile-apps",
 }
 ERP_AREA_HYBRID_BY_ID = {
     "banking": "erp-accounts-summary",
@@ -161,6 +165,8 @@ BOS_MODULE_HYBRID_BY_ID = {
     "fleet_erp": "bos-fleet-summary",
     "erp_cash": "erp-cash-accounts",
     "erp_warehouse": "erp-warehouses",
+    "power_bi": "cp-power-bi",
+    "power_bi_guide": "cp-power-bi",
 }
 
 hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}

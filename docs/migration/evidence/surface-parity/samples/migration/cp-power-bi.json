@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "siteKey": "__platform__",
+    "workspaceId": "ws-migration",
+    "azureTenantId": "tenant-migration",
+    "defaultReportId": "rpt-1",
+    "defaultDatasetId": "ds-1",
+    "embedUrl": "https://app.powerbi.com/reportEmbed?reportId=rpt-1",
+    "embedMode": "report",
+    "notes": "migration golden",
+    "active": true,
+    "reportCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode contract sample; reports[] item-field sentinel locked; PHP epc_power_bi remains authoritative; cutoverAllowed=false",
+  "reports": [
+    {
+      "id": 1,
+      "siteKey": "__platform__",
+      "reportId": "rpt-1",
+      "reportName": "Migration Finance",
+      "datasetId": "ds-1",
+      "category": "finance",
+      "embedUrl": "https://app.powerbi.com/reportEmbed?reportId=rpt-1",
+      "active": true
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

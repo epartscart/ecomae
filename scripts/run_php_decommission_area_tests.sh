@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Exercises every final-gate area that can be tested without inventing secrets.
 # Never removes PHP.
-# Presentation exact-route inventory (47): docs/migration/evidence/presentation/presentation-exact-routes.json
+# Presentation exact-route inventory (49): docs/migration/evidence/presentation/presentation-exact-routes.json
 # Kept in sync by scripts/validate_presentation_hybrid_allowlist_sync.py.
 # Surface-digest exact-route inventory (35): docs/migration/evidence/surface-parity/surface-digest-exact-routes.json
 # Kept in sync by scripts/validate_surface_digest_allowlist_sync.py.
@@ -173,12 +173,12 @@ for path in /CP/ /ERP/ /BOS/; do
   fi
 done
 
-# Live surface digest exact-routes (30/30) expect ASP.NET 401 unauthorized JSON (admin cookie for 200).
+# Live surface digest exact-routes (32/32) expect ASP.NET 401 unauthorized JSON (admin cookie for 200).
 mapfile -t DIGEST_ROUTES < <(grep -E '^location = /(cp|erp|bos)/' "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" | sed -E 's/^location = ([^ {]+).*/\1/')
-if [[ "${#DIGEST_ROUTES[@]}" -ne 30 ]]; then
-  record "surface-digest-route-inventory" fail "expected 30 digest routes, found ${#DIGEST_ROUTES[@]}"
+if [[ "${#DIGEST_ROUTES[@]}" -ne 32 ]]; then
+  record "surface-digest-route-inventory" fail "expected 32 digest routes, found ${#DIGEST_ROUTES[@]}"
 else
-  record "surface-digest-route-inventory" pass "30 CP/ERP/BOS digest exact-routes in shadow example"
+  record "surface-digest-route-inventory" pass "32 CP/ERP/BOS digest exact-routes in shadow example"
 fi
 for path in "${DIGEST_ROUTES[@]}"; do
   code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"

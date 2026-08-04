@@ -382,6 +382,44 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Power BI workspace/report metadata — no Azure client secrets.</summary>
+    public const string SelectCpPowerBiConfig = """
+        SELECT IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`workspace_id`, '') AS workspace_id,
+               IFNULL(`azure_tenant_id`, '') AS azure_tenant_id,
+               IFNULL(`default_report_id`, '') AS default_report_id,
+               IFNULL(`default_dataset_id`, '') AS default_dataset_id,
+               IFNULL(`embed_url`, '') AS embed_url,
+               IFNULL(`embed_mode`, '') AS embed_mode,
+               IFNULL(`notes`, '') AS notes,
+               `active`
+        FROM `epc_power_bi_config`
+        ORDER BY CASE WHEN `site_key` = '__platform__' THEN 0 ELSE 1 END, `id` ASC
+        LIMIT 1
+        """;
+
+    /// <summary>Power BI registered reports metadata (read-only).</summary>
+    public const string SelectCpPowerBiReports = """
+        SELECT `id`, IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`report_id`, '') AS report_id,
+               IFNULL(`report_name`, '') AS report_name,
+               IFNULL(`dataset_id`, '') AS dataset_id,
+               IFNULL(`category`, '') AS category,
+               IFNULL(`embed_url`, '') AS embed_url,
+               `active`
+        FROM `epc_power_bi_reports`
+        ORDER BY `category` ASC, `report_name` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Mobile apps config blob from portal site settings (JSON; secrets stripped in reporter).</summary>
+    public const string SelectCpMobileAppsIntegrationsJson = """
+        SELECT IFNULL(`integrations_json`, '') AS integrations_json
+        FROM `epc_portal_site_settings`
+        ORDER BY `id` ASC
+        LIMIT 1
+        """;
+
     /// <summary>
     /// Batch 4 storefront part search (mirrors pyapi <c>part_search</c> / warehouse offers).
     /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.

@@ -139,10 +139,10 @@ def main() -> int:
         )
 
     installer = args.surface_installer.read_text(encoding="utf-8")
-    if "expected 30 digest locations" not in installer and "!= 30" not in installer:
+    if "expected 32 digest locations" not in installer and "!= 32" not in installer:
         # Accept either style used by installer.
-        if "30" not in installer:
-            errors.append("surface digest installer does not lock expected count 30")
+        if "32" not in installer:
+            errors.append("surface digest installer does not lock expected count 32")
 
     missing_capture = sorted(expected_stems - capture_stems)
     extra_capture = sorted(capture_stems - expected_stems)

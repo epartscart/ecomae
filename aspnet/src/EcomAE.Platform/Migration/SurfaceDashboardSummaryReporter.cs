@@ -1356,6 +1356,188 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpPowerBiDigestResult> BuildCpPowerBiDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var emptySummary = new CpPowerBiConfigSummary(
+            string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
+            string.Empty, "none", string.Empty, false, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(emptySummary, [], 0, "migration", emptySummary.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+
+            string siteKey = string.Empty, workspaceId = string.Empty, azureTenantId = string.Empty;
+            string defaultReportId = string.Empty, defaultDatasetId = string.Empty, embedUrl = string.Empty;
+            string embedMode = "none", notes = string.Empty;
+            var active = false;
+
+            await using (var configCmd = connection.CreateCommand())
+            {
+                configCmd.CommandText = LegacySurfaceDashboardSql.SelectCpPowerBiConfig;
+                await using var configReader = await configCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await configReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siteKey = Convert.ToString(configReader["site_key"] is DBNull ? string.Empty : configReader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    workspaceId = Convert.ToString(configReader["workspace_id"] is DBNull ? string.Empty : configReader["workspace_id"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    azureTenantId = Convert.ToString(configReader["azure_tenant_id"] is DBNull ? string.Empty : configReader["azure_tenant_id"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    defaultReportId = Convert.ToString(configReader["default_report_id"] is DBNull ? string.Empty : configReader["default_report_id"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    defaultDatasetId = Convert.ToString(configReader["default_dataset_id"] is DBNull ? string.Empty : configReader["default_dataset_id"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    embedUrl = Convert.ToString(configReader["embed_url"] is DBNull ? string.Empty : configReader["embed_url"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    embedMode = Convert.ToString(configReader["embed_mode"] is DBNull ? "none" : configReader["embed_mode"], CultureInfo.InvariantCulture) ?? "none";
+                    notes = Convert.ToString(configReader["notes"] is DBNull ? string.Empty : configReader["notes"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    active = Convert.ToInt32(configReader["active"] is DBNull ? 0 : configReader["active"], CultureInfo.InvariantCulture) != 0;
+                }
+            }
+
+            var reports = new List<CpPowerBiReportDigest>();
+            await using (var reportCmd = connection.CreateCommand())
+            {
+                reportCmd.CommandText = LegacySurfaceDashboardSql.SelectCpPowerBiReports;
+                AddParameter(reportCmd, "@limit", safeLimit);
+                await using var reportReader = await reportCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reportReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    reports.Add(new CpPowerBiReportDigest(
+                        Convert.ToInt64(reportReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reportReader["site_key"] is DBNull ? string.Empty : reportReader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reportReader["report_id"] is DBNull ? string.Empty : reportReader["report_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reportReader["report_name"] is DBNull ? string.Empty : reportReader["report_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reportReader["dataset_id"] is DBNull ? string.Empty : reportReader["dataset_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reportReader["category"] is DBNull ? string.Empty : reportReader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reportReader["embed_url"] is DBNull ? string.Empty : reportReader["embed_url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reportReader["active"] is DBNull ? 0 : reportReader["active"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+
+            var summary = new CpPowerBiConfigSummary(
+                siteKey, workspaceId, azureTenantId, defaultReportId, defaultDatasetId,
+                embedUrl, embedMode, notes, active, reports.Count, "database", string.Empty);
+            return new(summary, reports, reports.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = emptySummary with { Source = "database-error", Message = ex.Message, ReportCount = 0 };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpMobileAppsDigestResult> BuildCpMobileAppsDigestAsync(CancellationToken cancellationToken = default)
+    {
+        var empty = new CpMobileAppsSummary(
+            false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
+            string.Empty, string.Empty, true, string.Empty, false,
+            "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCpMobileAppsIntegrationsJson;
+            var raw = Convert.ToString(await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false), CultureInfo.InvariantCulture) ?? string.Empty;
+            var summary = ParseMobileAppsSummary(raw, "database", string.Empty);
+            return new(summary, summary.Source, summary.Message);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, "database-error", ex.Message);
+        }
+    }
+
+    private static CpMobileAppsSummary ParseMobileAppsSummary(string integrationsJson, string source, string message)
+    {
+        var enabled = false;
+        var appName = string.Empty;
+        var bundleId = string.Empty;
+        var deepLinkScheme = string.Empty;
+        var deepLinkDomain = string.Empty;
+        var apiBaseUrl = string.Empty;
+        var playStoreUrl = string.Empty;
+        var appStoreUrl = string.Empty;
+        var pwaEnabled = true;
+        var firebaseProjectId = string.Empty;
+        var pushEnabled = false;
+
+        if (!string.IsNullOrWhiteSpace(integrationsJson))
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(integrationsJson);
+                if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object
+                    && doc.RootElement.TryGetProperty("mobile", out var mobile)
+                    && mobile.ValueKind == System.Text.Json.JsonValueKind.Object)
+                {
+                    enabled = ReadJsonBool(mobile, "enabled");
+                    appName = ReadJsonString(mobile, "app_name");
+                    bundleId = ReadJsonString(mobile, "bundle_id");
+                    deepLinkScheme = ReadJsonString(mobile, "deep_link_scheme");
+                    deepLinkDomain = ReadJsonString(mobile, "deep_link_domain");
+                    apiBaseUrl = ReadJsonString(mobile, "api_base_url");
+                    playStoreUrl = ReadJsonString(mobile, "play_store_url");
+                    appStoreUrl = ReadJsonString(mobile, "app_store_url");
+                    pwaEnabled = mobile.TryGetProperty("pwa_enabled", out _) ? ReadJsonBool(mobile, "pwa_enabled") : true;
+                    firebaseProjectId = ReadJsonString(mobile, "firebase_project_id");
+                    pushEnabled = ReadJsonBool(mobile, "push_enabled");
+                }
+            }
+            catch (System.Text.Json.JsonException ex)
+            {
+                return new(
+                    false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
+                    string.Empty, string.Empty, true, string.Empty, false,
+                    "database-error", $"integrations_json.mobile parse failed: {ex.Message}");
+            }
+        }
+
+        return new(
+            enabled, appName, bundleId, deepLinkScheme, deepLinkDomain, apiBaseUrl,
+            playStoreUrl, appStoreUrl, pwaEnabled, firebaseProjectId, pushEnabled,
+            source, message);
+    }
+
+    private static string ReadJsonString(System.Text.Json.JsonElement obj, string name)
+    {
+        if (!obj.TryGetProperty(name, out var prop))
+        {
+            return string.Empty;
+        }
+
+        return prop.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.String => prop.GetString() ?? string.Empty,
+            System.Text.Json.JsonValueKind.Number => prop.ToString(),
+            System.Text.Json.JsonValueKind.True => "true",
+            System.Text.Json.JsonValueKind.False => "false",
+            _ => string.Empty
+        };
+    }
+
+    private static bool ReadJsonBool(System.Text.Json.JsonElement obj, string name)
+    {
+        if (!obj.TryGetProperty(name, out var prop))
+        {
+            return false;
+        }
+
+        return prop.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.True => true,
+            System.Text.Json.JsonValueKind.False => false,
+            System.Text.Json.JsonValueKind.Number => prop.TryGetInt32(out var n) && n != 0,
+            System.Text.Json.JsonValueKind.String => bool.TryParse(prop.GetString(), out var b) && b,
+            _ => false
+        };
+    }
+
     private static BosFleetSummary SummarizeFleet(IReadOnlyList<PortalTenantDigest> tenants, int adminSessions, string source, string message)
         => new(
             tenants.Count,

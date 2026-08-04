@@ -1,0 +1,25 @@
+{
+  "role": "cp-mobile-apps-summary-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-mobile-apps",
+  "requireNonemptyMigrationSentinel": false,
+  "requiredSummaryFields": [
+    "enabled",
+    "appName",
+    "bundleId",
+    "deepLinkScheme",
+    "deepLinkDomain",
+    "apiBaseUrl",
+    "playStoreUrl",
+    "appStoreUrl",
+    "pwaEnabled",
+    "firebaseProjectId",
+    "pushEnabled",
+    "source",
+    "message"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py SUMMARY_CONTRACTS",
+  "note": "Locks mobile apps summary digest floor. save_mobile writes remain PHP. cutoverAllowed=false."
+}

@@ -1,0 +1,35 @@
+{
+  "role": "cp-power-bi-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-power-bi",
+  "collectionKey": "reports",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "siteKey",
+    "workspaceId",
+    "azureTenantId",
+    "defaultReportId",
+    "defaultDatasetId",
+    "embedUrl",
+    "embedMode",
+    "notes",
+    "active",
+    "reportCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "siteKey",
+    "reportId",
+    "reportName",
+    "datasetId",
+    "category",
+    "embedUrl",
+    "active"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks Power BI digest summary+reports[] floors. Configure/embed writes remain PHP. cutoverAllowed=false."
+}
