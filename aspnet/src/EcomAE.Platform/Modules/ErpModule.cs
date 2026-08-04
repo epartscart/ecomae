@@ -595,6 +595,147 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ErpPeriodReopen, async (
+            HttpContext context,
+            ErpPeriodReopenBody? body,
+            ILegacySessionValidator validator,
+            IErpPeriodReopenDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for period reopen dry-run.");
+            }
+            body ??= new ErpPeriodReopenBody(null, null, false);
+            var result = dryRun.Evaluate(new ErpPeriodReopenRequest(body.YearMonth, body.Note, body.ConfirmWrites));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpPurchasesAdjust, async (
+            HttpContext context,
+            ErpPurchaseAdjustmentBody? body,
+            ILegacySessionValidator validator,
+            IErpPurchaseAdjustmentDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for purchase adjust dry-run.");
+            }
+            body ??= new ErpPurchaseAdjustmentBody(0, 0, null, false);
+            var result = await dryRun.EvaluateAsync(
+                new ErpPurchaseAdjustmentRequest(body.PurchaseId, body.DeltaExVat, body.Note, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpOrderSettlement, async (
+            HttpContext context,
+            ErpOrderSettlementBody? body,
+            ILegacySessionValidator validator,
+            IErpOrderSettlementDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for order settlement dry-run.");
+            }
+            body ??= new ErpOrderSettlementBody(0, 0, "credit", false);
+            var result = await dryRun.EvaluateAsync(
+                new ErpOrderSettlementRequest(body.OrderId, body.Amount, body.Direction, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpSuppliersSync, async (
+            HttpContext context,
+            ErpSyncSuppliersBody? body,
+            ILegacySessionValidator validator,
+            IErpSyncSuppliersDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for suppliers sync dry-run.");
+            }
+            body ??= new ErpSyncSuppliersBody(false);
+            var result = dryRun.Evaluate(new ErpSyncSuppliersRequest(body.ConfirmWrites));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpGlPostSales, async (
+            HttpContext context,
+            ErpGlPostSalesBody? body,
+            ILegacySessionValidator validator,
+            IErpGlPostSalesDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for GL post-sales dry-run.");
+            }
+            body ??= new ErpGlPostSalesBody(null, null, false);
+            var result = dryRun.Evaluate(new ErpGlPostSalesRequest(body.DateFromUnix, body.DateToUnix, body.ConfirmWrites));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpGlSyncUnposted, async (
+            HttpContext context,
+            ErpGlSyncUnpostedBody? body,
+            ILegacySessionValidator validator,
+            IErpGlSyncUnpostedDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for GL sync-unposted dry-run.");
+            }
+            body ??= new ErpGlSyncUnpostedBody(false);
+            var result = dryRun.Evaluate(new ErpGlSyncUnpostedRequest(body.ConfirmWrites));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpWorkflowStatus, async (
+            HttpContext context,
+            ErpWorkflowStatusBody? body,
+            ILegacySessionValidator validator,
+            IErpWorkflowStatusDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for workflow status dry-run.");
+            }
+            body ??= new ErpWorkflowStatusBody(0, "done", false);
+            var result = dryRun.Evaluate(new ErpWorkflowStatusRequest(body.TaskId, body.Status, body.ConfirmWrites));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpWorkflowCreate, async (
+            HttpContext context,
+            ErpWorkflowCreateBody? body,
+            ILegacySessionValidator validator,
+            IErpWorkflowCreateDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for workflow create dry-run.");
+            }
+            body ??= new ErpWorkflowCreateBody(null, "admin", "normal", 0, false);
+            var result = dryRun.Evaluate(new ErpWorkflowCreateRequest(
+                body.Title, body.DepartmentCode, body.Priority, body.OrderId, body.ConfirmWrites));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapPost(EcomAeRoutes.ErpInvoicesDelete, async (
             HttpContext context,
             ErpInvoiceDeleteBody? body,
@@ -1221,6 +1362,19 @@ public sealed class ErpModule : ISurfaceModule
         string? Direction = "decrease",
         bool ConfirmWrites = false);
     private sealed record ErpFiscalSetLockBody(long LockDateUnix = 0, string? Note = null, bool ConfirmWrites = false);
+    private sealed record ErpPeriodReopenBody(string? YearMonth, string? Note = null, bool ConfirmWrites = false);
+    private sealed record ErpPurchaseAdjustmentBody(long PurchaseId, decimal DeltaExVat, string? Note = null, bool ConfirmWrites = false);
+    private sealed record ErpOrderSettlementBody(long OrderId, decimal Amount, string? Direction = "credit", bool ConfirmWrites = false);
+    private sealed record ErpSyncSuppliersBody(bool ConfirmWrites = false);
+    private sealed record ErpGlPostSalesBody(long? DateFromUnix = null, long? DateToUnix = null, bool ConfirmWrites = false);
+    private sealed record ErpGlSyncUnpostedBody(bool ConfirmWrites = false);
+    private sealed record ErpWorkflowStatusBody(long TaskId, string? Status = "done", bool ConfirmWrites = false);
+    private sealed record ErpWorkflowCreateBody(
+        string? Title,
+        string? DepartmentCode = "admin",
+        string? Priority = "normal",
+        long OrderId = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
     private sealed record ErpGlManualEntryBody(IReadOnlyList<ErpGlManualLineBody>? Lines, string? Reference, string? Description, bool ConfirmWrites = false);
     private sealed record ErpGlReverseJournalBody(long JournalId, string? Note, bool ConfirmWrites = false);
