@@ -83,9 +83,11 @@
     }
   ],
   "nextActions": [
-    "See www-zero-php-residual-board.json for honest residual % (scaffold ~99% / weighted ~95% / interactive 0%).",
+    "See www-zero-php-residual-board.json for honest residual % (scaffold contract 100% / weighted ~95% / interactive 0%).",
     "Install marketing shadows: ECOMAE_CONFIRM_INSTALL_MARKETING_APP_SHADOWS=YES bash scripts/cloudpanel_install_marketing_app_shadows.sh",
-    "CloudPanel dual-sample: module-ajax + ERP/BOS ajax + authenticated digests (cookies).",
+    "Install storefront checkout digest shadow (6/7 live) + probe.",
+    "CloudPanel dual-sample: module-ajax + ERP/BOS ajax + authenticated digests (admin + customer cookies).",
+    "Prove same-to-same look on login/chrome/industry hosts before any tenant exact-route cutover.",
     "Flip functional live-smoke stubs to captured when evidence lands.",
     "The remaining weighted 5% is PHP runtime decommission — obtain human RELEASE_OWNER_APPROVAL.md (APPROVED_TO_REMOVE_PHP_FALLBACK); do not invent approval or remove PHP."
   ],

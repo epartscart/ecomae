@@ -12,7 +12,6 @@ PAGES = ROOT / "aspnet/src/EcomAE.Platform/Components/Pages"
 SKIP = {
     "MigrationCompareConsole.razor",
     "ZeroPhpConsole.razor",
-    "MarketingPreviewApp.razor",
     "ErpOnPremisesApp.razor",
 }
 

@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "cp-debug-console",
+  "surface": "cp",
+  "appRoute": "/cp/debug-console-app",
+  "digestRoute": "/cp/debug-console",
+  "phpAuthoritativePath": "/CP/system/debug",
+  "blazorMarker": "CpDebugConsoleApp",
+  "chromeShell": "PhpCpDesktopChrome",
+  "authKind": "admin",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T18:05:00Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Contract stub. Safe metadata-only digest (allowlisted dmY_Hi.php basenames; no LFI). Re-run on CloudPanel with cookies + ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1."
+}

@@ -1543,6 +1543,15 @@ check 'zero PHP inventory script exists' test -x "$ROOT/scripts/inventory_php_ro
 check 'zero PHP inventory script reports php-only status' contains "$ROOT/scripts/inventory_php_routes.sh" 'inventory-required-for-zero-php'
 check 'zero PHP inventory script emits surface counts' contains "$ROOT/scripts/inventory_php_routes.sh" 'surfaceCounts'
 check 'zero PHP inventory script excludes vendor dependencies' contains "$ROOT/scripts/inventory_php_routes.sh" "-not -path './vendor/*'"
+check 'security headers middleware exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Security/SecurityHeadersMiddleware.cs"
+check 'program wires security headers middleware' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'SecurityHeadersMiddleware'
+check 'program registers response compression' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'AddResponseCompression'
+check 'program uses response compression' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'UseResponseCompression'
+check 'cp debug console digest route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/debug-console'
+check 'cp debug console app page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpDebugConsoleApp.razor"
+check 'same-to-same look validator includes MarketingPreviewApp' bash -c 'grep -Fq -- "MarketingPreviewApp.razor" "$1" && exit 1 || exit 0' _ "$ROOT/scripts/validate_same_to_same_look_gaps.py"
+check 'storefront industry host resolver exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Presentation/StorefrontIndustryHostResolver.cs"
+check 'cp debug console item field floor exists' test -f "$ROOT/docs/migration/evidence/surface-parity/cp-debug-console-item-field-floor.json"
 
 echo "----------------------------"
 echo "Passed: $pass  Failed: $fail"

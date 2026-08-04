@@ -18,7 +18,6 @@ PAGES = ROOT / "aspnet/src/EcomAE.Platform/Components/Pages"
 SKIP_NAMES = {
     "MigrationCompareConsole.razor",
     "ZeroPhpConsole.razor",
-    "MarketingPreviewApp.razor",  # marketing preview can keep operator language
     "ErpOnPremisesApp.razor",  # on-prem installer surface — operator-facing
 }
 

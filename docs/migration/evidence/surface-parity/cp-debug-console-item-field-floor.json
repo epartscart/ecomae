@@ -1,0 +1,25 @@
+{
+  "role": "cp-debug-console-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-debug-console",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
+  "note": "Locks cp-debug-console digest field floors for PHP↔ASP.NET dual-sample. Metadata-only allowlisted basenames; no LFI. Interactive writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "fileCount",
+    "tmpRootPresent",
+    "allowlistOnly",
+    "totalBytes",
+    "source",
+    "message"
+  ],
+  "collectionKey": "files",
+  "requiredItemFields": [
+    "basename",
+    "sizeBytes",
+    "lastModifiedUnix",
+    "allowlisted"
+  ]
+}

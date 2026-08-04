@@ -1194,6 +1194,16 @@
       "authKind": "admin"
     },
     {
+      "id": "cp-debug-console",
+      "surface": "cp",
+      "appRoute": "/cp/debug-console-app",
+      "digestRoute": "/cp/debug-console",
+      "phpAuthoritativePath": "/CP/system/debug",
+      "blazorMarker": "CpDebugConsoleApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin"
+    },
+    {
       "id": "cp-quote-requests",
       "surface": "cp",
       "appRoute": "/cp/quote-requests-app",

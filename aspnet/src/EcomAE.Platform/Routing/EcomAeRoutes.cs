@@ -421,6 +421,9 @@ public static class EcomAeRoutes
     public const string ControlPanelServerIp = "/cp/server-ip";
     /// <summary>CP Server IP Blazor list (JSON digest remains <see cref="ControlPanelServerIp"/>).</summary>
     public const string ControlPanelServerIpApp = "/cp/server-ip-app";
+    public const string ControlPanelDebugConsole = "/cp/debug-console";
+    /// <summary>CP Debug console Blazor list (JSON digest remains <see cref="ControlPanelDebugConsole"/>).</summary>
+    public const string ControlPanelDebugConsoleApp = "/cp/debug-console-app";
 
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";

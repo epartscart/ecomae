@@ -3470,6 +3470,34 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelDebugConsole, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for debug-console digest.");
+            }
+
+            var result = await dashboards.BuildCpDebugConsoleDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                files = result.Files,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only metadata for allowlisted debug tmp basenames (dmY_Hi.php). No file contents; no LFI. PHP Debug console remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ControlPanelAliases)
         {
             endpoints.MapGet(route, async (

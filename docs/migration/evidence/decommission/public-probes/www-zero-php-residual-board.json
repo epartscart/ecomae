@@ -1,28 +1,28 @@
 {
   "role": "www-zero-php-residual-board",
-  "generatedAtUnix": 1785866000,
+  "generatedAtUnix": 1785867000,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
   "meters": {
-    "scaffoldContractCompletePercent": 99,
-    "scaffoldContractRemainingPercent": 1,
+    "scaffoldContractCompletePercent": 100,
+    "scaffoldContractRemainingPercent": 0,
     "weightedDecommissionBoardCompletePercent": 95,
     "weightedDecommissionBoardRemainingPercent": 5,
     "interactiveWriteCutoverPercent": 0,
     "checklistCompletePercent": 88.9
   },
   "whatThePercentsMean": {
-    "99_scaffold": "Digests, hybrid shells, ajax dry-run catalogs/goldens, menus/fields, tenant/industry gates are built. This is NOT UX cutover.",
-    "95_weighted": "Legacy weighted area board in www-zero-php-completion.json \u2014 residual 5% is PHP runtime decommission + approval.",
-    "0_interactive": "Live product writes/menus still PHP. aspNetInteractiveComplete stays 0 until CloudPanel dual-sample + human approval."
+    "100_scaffold": "Menus 726/726, field floors 137/137, ajax dry-run catalogs/goldens, tenant/industry gates, security headers + compression are built. This is NOT UX cutover.",
+    "95_weighted": "Legacy weighted area board in www-zero-php-completion.json — residual 5% is PHP runtime decommission + approval.",
+    "0_interactive": "Live product writes/menus still PHP. aspNetInteractiveComplete stays 0 until CloudPanel dual-sample + human approval. User-facing look must stay same-to-same."
   },
   "remainingWork": [
     {
       "id": "marketing-shadows",
       "weightOfResidual": "high",
       "status": "blocked-awaiting-cloudpanel",
-      "detail": "Install www /marketing/* exact-route shadows (37 routes currently 0/37 live). Nginx example braces fixed for /marketing/bos + /marketing/blockchain; installer refuses {{/}}."
+      "detail": "Install www /marketing/* exact-route shadows (37 routes currently 0/37 live)."
     },
     {
       "id": "ajax-field-dual-sample",
@@ -35,6 +35,12 @@
       "weightOfResidual": "high",
       "status": "blocked-awaiting-cookies",
       "detail": "Authenticated digest dual-samples for core CP/ERP/storefront (0 live aspnet samples today)."
+    },
+    {
+      "id": "same-to-same-look-live",
+      "weightOfResidual": "high",
+      "status": "blocked-on-parity",
+      "detail": "Login/chrome body parity + industry host same-to-same must pass before tenant exact-route cutover. Speed/security only may improve."
     },
     {
       "id": "functional-live-smoke",
@@ -52,7 +58,7 @@
       "id": "release-owner-approval",
       "weightOfResidual": "blocker",
       "status": "missing",
-      "detail": "Human RELEASE_OWNER_APPROVAL.md \u2014 never invent."
+      "detail": "Human RELEASE_OWNER_APPROVAL.md — never invent."
     },
     {
       "id": "php-runtime-removal",
@@ -62,17 +68,16 @@
     }
   ],
   "builtAlready": [
-    "Menus 725/726 digest-contract",
-    "Field floors 136/136",
+    "Menus 726/726 digest-contract (cp-debug-console safe metadata-only, no LFI)",
+    "Field floors 137/137",
     "CP ajax goldens 254; ERP 321; BOS 231 (all writes=0)",
     "Storefront digests wired 7/7",
     "epartscart + industry *.ecomae.com gates",
+    "Security headers middleware + response compression (Brotli/Gzip)",
+    "MarketingPreviewApp cleared of stack-reveal; same-to-same validator includes it",
+    "Host-aware storefront industry attrs/titles",
     "Functional suite static floors green",
-    "Marketing install/probe floor ready",
-    "Marketing nginx example braces fixed (bos/blockchain)",
-    "Digest capture splits admin vs customer cookies",
-    "Storefront smoke covers all 7 digests",
-    "Checkout php_steps hybrid contract locked"
+    "Marketing install/probe floor ready"
   ],
   "liveLag": {
     "storefrontDigestsLive": "6/7 (checkout shadow not installed on www yet)",
@@ -80,6 +85,6 @@
     "digestLiveAspNetSamples": "0 core stems",
     "functionalLiveSmoke": "0/7 captured"
   },
-  "honestAnswer": "About 1% scaffold residual / 5% weighted decommission residual remain \u2014 but interactive cutover is still 0%. Do not remove PHP until dual-sample + approval.",
+  "honestAnswer": "Scaffold contract is 100% (726/726 menus). Weighted decommission residual ~5% and interactive cutover still 0%. Same-to-same look + CloudPanel dual-sample + human approval required before PHP removal. Speed/security may improve; look must not change for users.",
   "note": "Never invent cutoverAllowed=true or RELEASE_OWNER_APPROVAL.md."
 }

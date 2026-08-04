@@ -1,7 +1,7 @@
 {
   "role": "epartscart-frontend-cp-parity-suite",
   "tenant": "epartscart.com",
-  "generatedAtUnix": 1785864718,
+  "generatedAtUnix": 1785867066,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "readyToRemovePhp": false,
@@ -19,7 +19,7 @@
   "liveProbeCount": 0,
   "liveProbeFails": 0,
   "liveProbes": [],
-  "matrixRef": "/workspace/docs/migration/evidence/tenant-safety/epartscart-coverage-matrix.json",
+  "matrixRef": "docs/migration/evidence/tenant-safety/epartscart-coverage-matrix.json",
   "phpRemovalBlockedReason": "epartscart.com remains PHP-primary until live dual-sample + human approval. Never invent RELEASE_OWNER_APPROVAL.md.",
   "note": "Fail-closed tenant gate for epartscart.com storefront + CP."
 }

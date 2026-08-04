@@ -180,6 +180,7 @@ TARGETS = [
     ("cp-ops-guides", "cp", "/cp/ops-guides-app", "/cp/ops-guides", "/CP/control/cp-guideline", "CpOpsGuidesApp", "PhpCpDesktopChrome", "admin"),
     ("cp-file-manager", "cp", "/cp/file-manager-app", "/cp/file-manager", "/CP/filemanager", "CpFileManagerApp", "PhpCpDesktopChrome", "admin"),
     ("cp-server-ip", "cp", "/cp/server-ip-app", "/cp/server-ip", "/content/usefull/ip.php", "CpServerIpApp", "PhpCpDesktopChrome", "admin"),
+    ("cp-debug-console", "cp", "/cp/debug-console-app", "/cp/debug-console", "/CP/system/debug", "CpDebugConsoleApp", "PhpCpDesktopChrome", "admin"),
     ("cp-quote-requests", "cp", "/cp/quote-requests-app", "/cp/quote-requests", "/CP/shop/quote-requests", "CpQuoteRequestsApp", "PhpCpDesktopChrome", "admin"),
     ("cp-platform-communication", "cp", "/cp/platform-communication-app", "/cp/platform-communication", "/CP/control/portal/epc_super_cp_communication", "CpPlatformCommunicationApp", "PhpCpDesktopChrome", "admin"),
     ("cp-info-blocks", "cp", "/cp/info-blocks-app", "/cp/info-blocks", "/CP/control/portal/epc_super_cp_info_blocks", "CpInfoBlocksApp", "PhpCpDesktopChrome", "admin"),

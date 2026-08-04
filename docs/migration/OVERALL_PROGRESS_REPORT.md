@@ -8,7 +8,7 @@
 
 | Area | Wired | Live on www.ecomae.com | Honest % |
 | --- | ---: | ---: | ---: |
-| Catalog digest-contract | **725 / 726** | Catalog APIs allowlisted | **~99.9%** contract (holdout: `cp-debug-console` php-only) |
+| Catalog digest-contract | **726 / 726** | Catalog APIs allowlisted | **100%** contract (cp-debug-console safe metadata-only) |
 | Surface digests (CP/ERP/BOS) | **128 / 128** | **128 / 128** (`401` auth gate) | **100%** shadow live |
 | Storefront digests | **7 / 7** | Live auth-gate may lag install (`401`) | **100%** wired (incl. checkout) |
 | Presentation apps / shells | **145** | **142 / 145** (`200`; +`/marketing/app` pending shadow install) | **~98%** shadows live |
@@ -40,7 +40,7 @@ Weighted Zero-PHP meter remains **95% / 5%** (decommission residual) — **not**
 - Product chrome: `/`, `/CP/`, `/ERP/`, `/BOS/`, tenant storefronts
 - All writes, full menus, OMS/ERP tabs, BOS native `$_SESSION` modules
 - Checkout, cart qty, social login, rate-limit, shared-ERP picker
-- `cp-debug-console` intentionally not ported (LFI risk)
+- Security headers + response compression (UX-neutral speed/security)
 
 ## Look / presentation status by area
 
