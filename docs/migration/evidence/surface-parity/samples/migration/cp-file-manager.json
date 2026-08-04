@@ -9,6 +9,11 @@
     "source": "migration",
     "message": "TenantRegistry DB is not configured."
   },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; entries[] sentinel; file contents; PHP File manager remains authoritative; cutoverAllowed=false",
   "entries": [
     {
       "name": "migration",
@@ -22,6 +27,5 @@
   "message": "TenantRegistry DB is not configured.",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
-  "note": "migration-mode; file contents; cutoverAllowed=false"
+  "readyForPhpRemoval": false
 }

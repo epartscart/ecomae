@@ -7,12 +7,12 @@
   "routeJobParityPercent": 0.0,
   "routeJobShadowOrBetterPercent": 0.0,
   "liveCutoverScorecard": {
-    "asOfUtc": "2026-08-03",
+    "asOfUtc": "2026-08-04",
     "catalogExactRoutesLive": 18,
     "catalogExactRoutesWired": 18,
     "catalogExactRoutesPending": [],
     "surfaceDigestExactRoutesLive": 30,
-    "surfaceDigestExactRoutesWired": 30,
+    "surfaceDigestExactRoutesWired": 127,
     "storefrontDigestExactRoutesLive": 4,
     "storefrontDigestExactRoutesWired": 6,
     "blazorMigrationConsole": "/migration/console",
@@ -24,9 +24,10 @@
     "notes": [
       "Weighted 95%/5% meter is not percent of public routes cut over.",
       "Wired catalog API exact-routes complete (18/18).",
-      "Surface digests 30/30 and storefront digests 4/6 live (wired 6) via batch exact-route installers.",
-      "Blazor SSR Zero-PHP console at /migration/console (ops UI; not product chrome).",
-      "Digest dual-sample contract compare pairsChecked=19 failed=0 (migration baseline + live ASP.NET).",
+      "Surface digests wired 127/127; live www ~30/127 until ASP.NET republish after foundation checks (nginx shadows already inserted).",
+      "Storefront digests wired 6; live shadows 4/6 (search/cart need ASP.NET republish).",
+      "Blazor SSR Zero-PHP console at /migration/console; human compare at /migration/compare.",
+      "Digest dual-sample contract compare pairsChecked=231 failed=0 (cutoverAllowed=false).",
       "Product chrome still PHP; human RELEASE_OWNER_APPROVAL.md still required for PHP removal."
     ]
   },
@@ -66,14 +67,14 @@
     "field/function/presentation parity contracts + harness (cutover blocked)",
     "migration-mode digest contract validator + golden samples (no secrets)",
     "PHP decommission readiness reporter + final-gate checklist/smoke kit (blocked)",
-    "public exact-route catalog 18/18; surface digests 30/30; storefront digests 4/6 live (wired 6)",
+    "public exact-route catalog 18/18; surface digests wired 127/127; storefront digests 4/6 live (wired 6)",
     "EF Core stub entities (unwired) + Enterprise BOS compliance docs"
   ],
   "architectureComplianceDoc": "docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md",
   "pathTo100Percent": [
     "Authenticated staging smoke attached (PR #612) for price/catalog/surface digests",
     "Wired catalog exact-routes complete (18/18)",
-    "Surface digests 30/30 + storefront digests 4/6 live (wired 6)",
+    "Surface digests wired 127/127 + storefront digests 4/6 live (wired 6)",
     "Digest dual-sample contract parity attached (19/19 pass; cutoverAllowed=false)",
     "Human RELEASE_OWNER_APPROVAL.md before PHP decommission (remaining 5% meter)",
     "Product chrome cutover remains a separate intentional step (Blazor console is not chrome)"

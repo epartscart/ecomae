@@ -389,7 +389,7 @@ check 'Consolidated scaffold options example exists' test -f "$ROOT/deploy/aspne
 check 'Consolidated scaffold options block cutover' contains "$ROOT/deploy/aspnet/ecomae-scaffold-options.example.json" '"cutoverAllowed": false'
 check 'YARP surface digests design example exists' test -f "$ROOT/deploy/aspnet/yarp-surface-digests-example.json"
 check 'YARP surface digests design blocks cutover' contains "$ROOT/deploy/aspnet/yarp-surface-digests-example.json" '"cutoverAllowed": false'
-check 'YARP surface digests routeCount is 30' contains "$ROOT/deploy/aspnet/yarp-surface-digests-example.json" '"routeCount": 30'
+check 'YARP surface digests routeCount is 127' contains "$ROOT/deploy/aspnet/yarp-surface-digests-example.json" '"routeCount": 127'
 check 'RabbitMQ scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Messaging/EcomAeRabbitMqScaffoldOptions.cs"
 check 'RabbitMQ scaffold defaults disallow publish' contains "$ROOT/aspnet/src/EcomAE.Platform/Messaging/EcomAeRabbitMqScaffoldOptions.cs" 'AllowPublish'
 check 'Polly scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Resilience/EcomAePollyScaffoldOptions.cs"
@@ -422,7 +422,7 @@ check 'catalog allowlist sync mirrors live surface probe' contains "$ROOT/script
 check 'catalog allowlist sync mirrors decommission area tests' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'run_php_decommission_area_tests.sh'
 check 'catalog allowlist sync mirrors pre-php-removal parity' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'verify_pre_php_removal_parity.sh'
 check 'presentation exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json"
-check 'presentation exact-route inventory routeCount is 47' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 47'
+check 'presentation exact-route inventory routeCount is 144' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 144'
 check 'presentation exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"cutoverAllowed": false'
 check 'presentation allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" 'presentation-exact-routes.json'
 check 'live surface probe references presentation inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'presentation/presentation-exact-routes.json'
@@ -456,14 +456,14 @@ check 'php module catalog deeplink floor validator is executable' test -x "$ROOT
 check 'php module catalog deeplink floor passes' python3 "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
 check 'php full catalog deeplink floor evidence exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json"
 check 'php full catalog deeplink floor blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"cutoverAllowed": false'
-check 'php full catalog deeplink floor tracks 725' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"totalTracked": 725'
+check 'php full catalog deeplink floor tracks 726' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"totalTracked": 726'
 check 'php catalog coverage board builder exists' test -f "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board builder is executable' test -x "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board passes' python3 "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
 check 'php catalog coverage board blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"cutoverAllowed": false'
 check 'php catalog coverage board blocks PHP removal' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"readyForPhpRemoval": false'
-check 'php catalog coverage board tracks 725' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"totalTracked": 725'
+check 'php catalog coverage board tracks 726' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"totalTracked": 726'
 check 'php catalog coverage board missingCount is zero' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"missingCount": 0'
 check 'php catalog coverage board keeps interactive complete at zero' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"aspNetInteractiveComplete": 0'
 check 'php catalog coverage board uses digest-contract status' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"digest-contract"'
@@ -473,7 +473,7 @@ check 'hybrid directory full catalog floor validator is executable' test -x "$RO
 check 'hybrid directory full catalog floor passes' python3 "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"
 check 'hybrid directory full catalog floor evidence exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json"
 check 'hybrid directory full catalog floor blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"cutoverAllowed": false'
-check 'hybrid directory full catalog floor tracks 725' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"totalTracked": 725'
+check 'hybrid directory full catalog floor tracks 726' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"totalTracked": 726'
 check 'ERP dashboard lists ErpCategories directory' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor" 'PhpModuleCatalog.ErpCategories'
 check 'BOS fleet lists BosSections directory' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosFleetApp.razor" 'PhpModuleCatalog.BosSections'
 check 'PhpModuleCatalog summary exposes directoryCoverage' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'directoryCoverage'
@@ -483,15 +483,15 @@ check 'module-function coverage consistency validator exists' test -f "$ROOT/scr
 check 'module-function coverage consistency validator is executable' test -x "$ROOT/scripts/validate_module_function_coverage_consistency.py"
 check 'module-function coverage consistency passes' python3 "$ROOT/scripts/validate_module_function_coverage_consistency.py"
 check 'module-function coverage consistency evidence exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json"
-check 'module-function coverage consistency matches 725' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"matchedIds": 725'
+check 'module-function coverage consistency matches 726' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"matchedIds": 726'
 check 'module-function coverage consistency blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"cutoverAllowed": false'
 check 'surface-field operator rebuilds php catalog coverage board' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'build_surface_field_catalog_coverage_board.py'
 check 'surface-field operator floors contracts at 54' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'expected >=54'
-check 'surface-field board contractCount is 70' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 70'
+check 'surface-field board contractCount is 153' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 153'
 check 'surface-field board includes orders-digest' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"/cp/orders-digest"'
 check 'PhpModuleCatalog rejects aspnet preview deeplinks' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'IsAllowedPhpDeeplink'
 check 'surface-digest exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json"
-check 'surface-digest exact-route inventory routeCount is 37' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"routeCount": 37'
+check 'surface-digest exact-route inventory routeCount is 134' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"routeCount": 134'
 check 'surface-digest exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"cutoverAllowed": false'
 check 'surface digest allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_surface_digest_allowlist_sync.py" 'surface-digest-exact-routes.json'
 check 'live surface probe references surface-digest inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'surface-parity/surface-digest-exact-routes.json'
@@ -564,7 +564,7 @@ check 'migration digest generator includes cp-orders-digest' contains "$ROOT/scr
 check 'digest dual-sample contracts cover full allowlist' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'storefront-profile'
 check 'digest dual-sample capture covers cp-users' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'cp-users'
 check 'digest dual-sample capture covers storefront-profile' contains "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" 'storefront-profile'
-check 'digest compare-result reports 37 contracts' contains "$ROOT/docs/migration/evidence/surface-parity/digest-compare-result.json" '"contractsRegistered": 37'
+check 'digest compare-result reports 134 contracts' contains "$ROOT/docs/migration/evidence/surface-parity/digest-compare-result.json" '"contractsRegistered": 134'
 check 'enterprise BOS scaffold guardrails script exists' test -f "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
 check 'enterprise BOS scaffold guardrails is executable' test -x "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
 check 'enterprise BOS scaffold guardrails pass' bash "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
@@ -595,7 +595,7 @@ check 'surface-field board blocks PHP removal' contains "$ROOT/docs/migration/ev
 check 'platform.env.example documents dual-sample operator helper' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'platform.env.example documents offline migration gate' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_offline_migration_gate.sh'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
-check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 47'
+check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 144'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
 check 'YARP exact-routes design example exists' test -f "$ROOT/deploy/aspnet/yarp-exact-routes-example.json"
 check 'YARP design example blocks cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": false'
@@ -690,8 +690,8 @@ check 'surface digest batch installer exists' test -x "$ROOT/scripts/cloudpanel_
 check 'surface digest batch probe exists' test -x "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh"
 check 'surface digest batch installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'ECOMAE_CONFIRM_INSTALL_SURFACE_DIGEST_SHADOWS'
 check 'surface digest batch installer refuses broad paths' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'refusing broad path'
-check 'surface digest batch installer expects 30 routes' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'expected 48 digest locations'
-check 'surface digest batch probe expects PASS=30' contains "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh" 'expected 48 digest routes'
+check 'surface digest batch installer expects 127 routes' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'expected 127 digest locations'
+check 'surface digest batch probe expects PASS=127' contains "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh" 'expected 127 digest routes'
 check 'deploy packs surface digest batch installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_surface_digest_shadows.sh'
 check 'deploy packs surface digest batch probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_surface_digest_shadows.sh'
 check 'storefront digest batch installer exists' test -x "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh"
@@ -839,7 +839,7 @@ check 'live tenant probe writes cutoverAllowed false' contains "$ROOT/scripts/cl
 check 'presentation parity states digests not tenant UX' contains "$ROOT/docs/migration/PRESENTATION_PARITY.md" 'not** tenant product chrome'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 47'
+check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 144'
 check 'tenant chrome probe rejects erp cash-entries-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'ErpCashEntriesApp'
 check 'presentation nginx includes /erp/cash-entries-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/cash-entries-app'
 check 'erp cash-entries-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpCashEntriesApp'
@@ -1030,7 +1030,7 @@ check 'pre-PHP-removal verdict skips nested heavy area suite' contains "$ROOT/sc
 check 'area tests honor ECOMAE_AREA_SKIP_HEAVY' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'ECOMAE_AREA_SKIP_HEAVY'
 check 'area tests validate attached staging smoke' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'attached-staging-smoke'
 check 'area tests require live surface digests from example' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'nginx-surface-digests-shadow-example.conf'
-check 'area tests require 30 digest inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'expected 48 digest routes'
+check 'area tests require 127 digest inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'expected 127 digest routes'
 check 'live surface links mark CP dashboard digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP dashboard digest"'
 check 'live surface links mark CP tenants digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP tenants digest"'
 check 'live surface links mark CP users digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP users digest"'
@@ -1038,8 +1038,8 @@ check 'live surface links mark CP groups digest shadow live' contains "$ROOT/asp
 check 'live surface links mark CP modules digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP modules digest"'
 check 'live surface links mark ERP dashboard digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "ERP dashboard digest"'
 check 'live surface links mark BOS audit-log digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "BOS audit-log digest"'
-check 'progress status reports surface digests 44/44' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" '30 / 30'
-check 'progress json reports surfaceDigestExactRoutesLive 30' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" '"surfaceDigestExactRoutesLive": 36'
+check 'progress status reports surface digests 127 wired' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" '127 / 127'
+check 'progress json reports surfaceDigestExactRoutesWired 127' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" '"surfaceDigestExactRoutesWired": 127'
 check 'exact-route installer retries CDN-cached PHP HTML' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'cache-bust'
 check 'exact-route installer soft-OK when loopback ASP.NET' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'treating as soft-OK'
 check 'area tests probe catalog status exact-route' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" '/api/v1/catalog/status'
@@ -1163,7 +1163,7 @@ check 'public decommission probes attached' test -f "$ROOT/docs/migration/eviden
 check 'public decommission readiness probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
 check 'surface field parity public probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json"
 check 'surface field parity probe tracks catalog vin contract' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '/api/v1/catalog/vin'
-check 'surface field parity probe contractCount is current' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"contractCount": 70'
+check 'surface field parity probe contractCount is current' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"contractCount": 149'
 check 'surface field parity probe includes orders-digest' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"/cp/orders-digest"'
 check 'live surface links probe includes field parity route' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/migration/surface-field-parity'
 check 'live surface links probe includes catalog brand-parts' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/api/v1/catalog/brand-parts'
