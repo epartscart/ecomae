@@ -30,7 +30,7 @@ PHP ships a **self-hosted ERP option** (`deploy/on-premises/*`, `erp_tabs_on_pre
 | License/health APIs | Health + activate + setup-wizard + backup dry-runs + read digest (`GET /erp/on-premises/licenses`, keys masked) | PHP activate/health/registry remain authoritative |
 | Operator tab | `/erp/on-premises-app` overview scaffold | Dual-sample vs PHP tab before exact-route |
 | ERP ajax writes | Full `ajax_erp.php` catalog: **321/321 dedicated** dry-runs (+ registry gate retained) | Live writes remain PHP; `aspNetInteractiveComplete=0` |
-| CP module ajax | Wave C catalog: procurement / document_control / customer_mgmt / auto_price / CRM (**96** actions; **51** dedicated write dry-runs + registry) | Live writes remain PHP; dual-sample pending |
+| CP module ajax | Wave C/D catalog: procurement/CRM/bulk/marketing/catalogue/crosses/prices/portal leftovers (**192** actions; **110** dedicated write dry-runs + registry) | Live writes remain PHP; dual-sample pending |
 
 Live board: `GET /migration/on-premises-parity`
 
@@ -39,7 +39,7 @@ Live board: `GET /migration/on-premises-parity`
 1. Inventory — done  
 2. Digests + hybrid shells — done on www  
 3. Presentation parity (heroes/fonts/menus) — in progress (`/marketing/app` hub+home; solutions+resources+legal aliases; CP/ERP/BOS/storefront chrome; `/erp/on-premises-app`)  
-4. Function parity (writes/menus) — in progress (full `ajax_erp.php` catalog dedicated+registry; concurrency/BOS/OPL/PF/AML/bank dry-runs; quote/garage/OMS + on-premises health/activate/setup-wizard/backup; write-dryrun dual-sample operator floor; `aspNetInteractiveComplete=0` until human dual-sample pass)  
+4. Function parity (writes/menus) — in progress (full `ajax_erp.php` catalog dedicated; BOS ajax catalog; CP module ajax catalog; concurrency/BOS/OPL/PF/AML/bank dry-runs; quote/garage/OMS + on-premises health/activate/setup-wizard/backup; write-dryrun dual-sample operator floor; `aspNetInteractiveComplete=0` until human dual-sample pass)  
 5. Tenant exact-route cutover — blocked on parity  
 6. PHP removal — blocked on approval (SaaS **and** on-premises installer pack)  
 
