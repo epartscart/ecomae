@@ -53,16 +53,37 @@ LIVE_PRODUCTION_TENANT_HOSTS = (
     "taxofinca.com",
 )
 
+# Full industry showcase set (epc_industry_seo_host_map / EcomaeIndustryShowcaseHosts).
+# Any other *.ecomae.com (except www/cp) also classifies as industry below.
 INDUSTRY_ECOMAE_MARKERS = (
+    "agriculture.ecomae.com",
+    "automotive.ecomae.com",
+    "beauty.ecomae.com",
+    "cleaning.ecomae.com",
+    "construction.ecomae.com",
+    "education.ecomae.com",
+    "electronics.ecomae.com",
+    "energy.ecomae.com",
+    "fashion.ecomae.com",
+    "finance.ecomae.com",
+    "food.ecomae.com",
     "healthcare.ecomae.com",
     "homeliving.ecomae.com",
-    "retail.ecomae.com",
-    "fashion.ecomae.com",
+    "hospitality.ecomae.com",
     "jewellery.ecomae.com",
-    "food.ecomae.com",
-    "beauty.ecomae.com",
-    "sports.ecomae.com",
+    "logistics.ecomae.com",
+    "manufacturing.ecomae.com",
+    "media.ecomae.com",
+    "nonprofit.ecomae.com",
     "pet.ecomae.com",
+    "printing.ecomae.com",
+    "professional.ecomae.com",
+    "rental.ecomae.com",
+    "retail.ecomae.com",
+    "security.ecomae.com",
+    "sports.ecomae.com",
+    "technology.ecomae.com",
+    "wholesale.ecomae.com",
 )
 
 BROAD_LOCATION_PATTERNS = (

@@ -1,0 +1,406 @@
+{
+  "role": "industry-ecomae-frontend-coverage-matrix",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "generatedAtUnix": 1785864597,
+  "hostCount": 28,
+  "phpHomeOk": 28,
+  "hosts": [
+    {
+      "slug": "agriculture",
+      "homeUrl": "https://agriculture.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 173119,
+      "title": "Agriculture &amp; Farming \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "automotive",
+      "homeUrl": "https://automotive.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 163376,
+      "title": "Automotive &amp; Vehicles \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "beauty",
+      "homeUrl": "https://beauty.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 153099,
+      "title": "Beauty &amp; Personal Care \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "cleaning",
+      "homeUrl": "https://cleaning.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 153979,
+      "title": "Cleaning &amp; Maintenance \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "construction",
+      "homeUrl": "https://construction.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 173527,
+      "title": "Construction &amp; Real Estate \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "education",
+      "homeUrl": "https://education.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 158076,
+      "title": "Education &amp; Training \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "electronics",
+      "homeUrl": "https://electronics.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 162167,
+      "title": "Electronics &amp; Technology \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "energy",
+      "homeUrl": "https://energy.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 156993,
+      "title": "Energy &amp; Utilities \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "fashion",
+      "homeUrl": "https://fashion.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 161012,
+      "title": "Fashion &amp; Apparel \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "finance",
+      "homeUrl": "https://finance.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 158319,
+      "title": "Financial Services &amp; Insurance \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "food",
+      "homeUrl": "https://food.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 170648,
+      "title": "Food &amp; Beverage \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "healthcare",
+      "homeUrl": "https://healthcare.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 174154,
+      "title": "Healthcare &amp; Medical \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "homeliving",
+      "homeUrl": "https://homeliving.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 160158,
+      "title": "Home &amp; Living \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "hospitality",
+      "homeUrl": "https://hospitality.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 164546,
+      "title": "Hospitality &amp; Travel \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "jewellery",
+      "homeUrl": "https://jewellery.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 154970,
+      "title": "Jewellery &amp; Luxury Goods \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "logistics",
+      "homeUrl": "https://logistics.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 160331,
+      "title": "Logistics &amp; Transport \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "manufacturing",
+      "homeUrl": "https://manufacturing.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 169811,
+      "title": "Manufacturing &amp; Industrial \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "media",
+      "homeUrl": "https://media.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 157210,
+      "title": "Media &amp; Entertainment \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "nonprofit",
+      "homeUrl": "https://nonprofit.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 154176,
+      "title": "Non-Profit &amp; Government \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "pet",
+      "homeUrl": "https://pet.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 151658,
+      "title": "Pet &amp; Animal Services \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "printing",
+      "homeUrl": "https://printing.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 154188,
+      "title": "Printing &amp; Signage \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "professional",
+      "homeUrl": "https://professional.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 166815,
+      "title": "Professional &amp; Business Services \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "rental",
+      "homeUrl": "https://rental.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 153852,
+      "title": "Rental &amp; Leasing \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "retail",
+      "homeUrl": "https://retail.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 163135,
+      "title": "Retail &amp; E-commerce \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "security",
+      "homeUrl": "https://security.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 153176,
+      "title": "Security &amp; Safety \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "sports",
+      "homeUrl": "https://sports.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 153685,
+      "title": "Sports &amp; Fitness \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "technology",
+      "homeUrl": "https://technology.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 156638,
+      "title": "IT &amp; Software \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    },
+    {
+      "slug": "wholesale",
+      "homeUrl": "https://wholesale.ecomae.com/",
+      "status": "php-live-ok",
+      "errors": [],
+      "aspNetPreviewPaths": [
+        "/storefront/app"
+      ],
+      "httpStatus": 200,
+      "bytes": 153691,
+      "title": "Wholesale &amp; Trading \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform"
+    }
+  ],
+  "aspNetPreviewRoutes": [
+    "https://www.ecomae.com/marketing/app",
+    "https://www.ecomae.com/marketing/industries"
+  ],
+  "phpAuthorityRoutes": [
+    "https://www.ecomae.com/",
+    "https://www.ecomae.com/platform/industries"
+  ],
+  "built": [
+    "Catalogued 28 industry showcase hosts (*.ecomae.com)",
+    "ASP.NET EcomaeIndustryShowcaseHosts + MarketingIndustriesApp grid",
+    "Nginx industry classification for *.ecomae.com"
+  ],
+  "pendingBeforePhpRemoval": [
+    "Install www exact-route shadows for /marketing/app and /marketing/industries",
+    "Dual-sample PHP /platform/industries + each industry home vs ASP.NET preview look",
+    "Industry hosts currently expose /storefront/app Blazor SSR \u2014 must match PHP `/` look or be removed until approved",
+    "Same epm-hub / industry hero tokens on ASP.NET as PHP",
+    "Human RELEASE_OWNER_APPROVAL.md before any industry host cutover"
+  ],
+  "ok": true,
+  "errors": [],
+  "warnings": [
+    "agriculture/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "automotive/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "beauty/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "cleaning/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "construction/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "education/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "electronics/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "energy/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "fashion/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "finance/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "food/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "healthcare/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "homeliving/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "hospitality/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "jewellery/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "logistics/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "manufacturing/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "media/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "nonprofit: title needle 'Nonprofit' not in 'Non-Profit &amp; Government \u2014 ERP, Control Panel &amp; Storefront | ecomae Platform'",
+    "nonprofit/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "pet/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "printing/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "professional/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "rental/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "retail/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "security/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "sports/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "technology/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "wholesale/storefront/app: ASP.NET preview on industry host (bytes=18667) \u2014 dual-sample vs PHP `/` look before cutover",
+    "ASP.NET marketing preview not live yet: https://www.ecomae.com/marketing/app (status=404 title='404 Page not found - eParts Cart (Autoparts)') \u2014 install nginx exact-route shadow",
+    "ASP.NET marketing preview not live yet: https://www.ecomae.com/marketing/industries (status=404 title='404 Page not found - eParts Cart (Autoparts)') \u2014 install nginx exact-route shadow",
+    "www /marketing/app and /marketing/industries shadows not installed \u2014 cannot dual-sample industry look on ASP.NET until CloudPanel shadow install",
+    "Industry *.ecomae.com stay PHP-primary until dual-sample + human approval",
+    "aspNetInteractiveComplete=0 \u2014 never invent RELEASE_OWNER_APPROVAL.md"
+  ],
+  "note": "There is no industry.ecomae.com host \u2014 industries are [slug].ecomae.com. Trading maps to wholesale.ecomae.com. Live chrome stays PHP; ASP.NET compare on www only."
+}

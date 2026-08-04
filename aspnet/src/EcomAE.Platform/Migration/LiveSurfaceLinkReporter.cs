@@ -369,7 +369,8 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("aspnet-diagnostics", "Price parity board", "https://www.ecomae.com/api/v1/price/parity", "aspnet", "/api/v1/price/parity", "Price lookup RemainingGaps (loopback or after price shadow)."),
             Link("aspnet-api", "Price lookup", "https://www.ecomae.com/api/v1/price/lookup", "aspnet", "/api/v1/price/lookup", "Already on ASP.NET; unauthenticated returns JSON missing_api_key."),
 
-            // Industry showcase frontends (*.ecomae.com) — not dedicated client tenants
+            // Industry showcase frontends (*.ecomae.com) — not dedicated client tenants.
+            // Full catalog: EcomaeIndustryShowcaseHosts (28). PHP-primary until dual-sample.
             Link("industry-frontend", "Healthcare frontend", "https://healthcare.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
             Link("industry-frontend", "Healthcare CP", "https://healthcare.ecomae.com/CP/", "php", "/cp", "Industry CP chrome (PHP)."),
             Link("industry-frontend", "Healthcare ERP", "https://healthcare.ecomae.com/ERP/", "php", "/erp", "Industry ERP chrome (PHP)."),
@@ -381,6 +382,26 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
             Link("industry-frontend", "Beauty frontend", "https://beauty.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
             Link("industry-frontend", "Sports frontend", "https://sports.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
             Link("industry-frontend", "Pet frontend", "https://pet.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Automotive frontend", "https://automotive.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Construction frontend", "https://construction.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Wholesale & trading frontend", "https://wholesale.ecomae.com/", "php", "/", "Industry subdomain showcase (trading via wholesale)."),
+            Link("industry-frontend", "Electronics frontend", "https://electronics.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Manufacturing frontend", "https://manufacturing.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Hospitality frontend", "https://hospitality.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Education frontend", "https://education.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Energy frontend", "https://energy.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Logistics frontend", "https://logistics.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Finance frontend", "https://finance.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Technology frontend", "https://technology.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Media frontend", "https://media.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Professional frontend", "https://professional.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Agriculture frontend", "https://agriculture.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Cleaning frontend", "https://cleaning.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Nonprofit frontend", "https://nonprofit.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Printing frontend", "https://printing.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Rental frontend", "https://rental.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("industry-frontend", "Security frontend", "https://security.ecomae.com/", "php", "/", "Industry subdomain showcase storefront."),
+            Link("aspnet-diagnostics", "ASP.NET industries preview", "https://www.ecomae.com/marketing/industries", "aspnet", "/marketing/industries", "www-only Blazor industries overview vs PHP /platform/industries. Exact-route shadow required; industry vhosts stay PHP."),
 
             // Named live production tenants — absolute PHP presentation lock (same-to-same).
             Link("tenant", "Electronicae frontend", "https://www.electronicae.com/", "php", "/", "PHP-primary until ASP.NET same-to-same (parity gate). Target: ASP.NET storefront."),

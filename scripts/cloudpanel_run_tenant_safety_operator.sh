@@ -64,6 +64,12 @@ print(
 )
 PY
 
+# Industry *.ecomae.com frontend catalog + optional live probe
+if [[ "${ECOMAE_INDUSTRY_LIVE:-}" == "1" || "$LIVE" == "1" ]]; then
+  export ECOMAE_INDUSTRY_LIVE=1
+fi
+bash "$ROOT/scripts/run_industry_ecomae_frontend_parity.sh"
+
 # epartscart.com frontend + CP contract coverage (always; optional live via ECOMAE_EPARTSCART_LIVE)
 if [[ "$LIVE" == "1" ]]; then
   export ECOMAE_EPARTSCART_LIVE=1
