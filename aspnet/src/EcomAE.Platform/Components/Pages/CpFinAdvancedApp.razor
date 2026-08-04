@@ -16,7 +16,7 @@
     <style>
         .epc-finadv-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#052e16 0%,#166534 50%,#22c55e 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-finadv-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-finadv-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
@@ -41,11 +41,9 @@
     <section class="epc-finadv-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Financial depth</h1>
-        <p>Read-only financial-depth KPIs + periods from <code>/cp/fin-advanced</code>. Allocation/accrual/FX JSON stays on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-finadv-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
+            <a href="@_phpTab">Open module</a>
         </div>
     </section>
 
@@ -73,7 +71,7 @@
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="8">No rows in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -87,7 +85,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@row.StartDate.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.EndDate.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -95,10 +93,6 @@
         </table>
     </div>
 
-    <div class="epc-finadv-note">
-        Read-only preview · JSON digest <a href="/cp/fin-advanced?limit=200">/cp/fin-advanced</a>. PHP cost_acct/finance fin_advanced remains authoritative · basis/schedule/lines JSON omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

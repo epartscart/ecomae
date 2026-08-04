@@ -16,14 +16,14 @@
     <style>
         .epc-jw-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#7c2d12 0%,#b45309 50%,#d97706 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-jw-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-jw-hero p { margin:0; color:#ffedd5; max-width:44rem; font-size:.92rem; line-height:1.45; }
         .epc-jw-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-jw-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#7c2d12; background:#fde68a;
+            text-decoration:none; color:#7c2d12; background:#e0f2fe;
         }
         .epc-jw-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-jw-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -41,12 +41,10 @@
     <section class="epc-jw-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Jewellery Retail</h1>
-        <p>Read-only jewellery vouchers + retail KPIs from <code>/cp/jewellery-retail</code>. Posting, tags, and metal stock edits stay on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-jw-cta">
-            <a href="@_phpTab">Open PHP retail</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/pos-overview-app">POS overview</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -76,7 +74,7 @@
             <tbody>
                 @if (_vouchers.Count == 0)
                 {
-                    <tr><td colspan="10">No vouchers in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="10">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -92,7 +90,7 @@
                             <td>@v.NetAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@v.VatAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@v.TotalWithVat.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -100,12 +98,6 @@
         </table>
     </div>
 
-    <div class="epc-jw-note">
-        Read-only preview · JSON digest <a href="/cp/jewellery-retail?limit=200">/cp/jewellery-retail</a>.
-        PHP retail/jewellery shell remains authoritative for POS and metal workflows.
-        Mobile/email/tel/passport/remarks/narration/customer PII/cost omitted · Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

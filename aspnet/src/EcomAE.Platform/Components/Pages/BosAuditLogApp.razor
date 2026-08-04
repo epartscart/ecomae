@@ -16,7 +16,7 @@
     <style>
         .epc-al-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c0a09 0%,#1c1917 45%,#3f3f46 100%);
+            background:linear-gradient(135deg,#000000 0%,#0c4a6e 55%,#0ea5e9 100%);
         }
         .epc-al-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-al-hero p { margin:0; color:#d4d4d8; max-width:42rem; font-size:.92rem; line-height:1.45; }
@@ -35,7 +35,7 @@
         .epc-al-table th, .epc-al-table td { padding:.55rem .7rem; border-bottom:1px solid #f4f4f5; text-align:left; white-space:nowrap; }
         .epc-al-table th { background:#fafafa; color:#52525b; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-al-table a { color:#b45309; font-weight:700; text-decoration:none; }
-        .epc-al-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#fef3c7; color:#78350f; }
+        .epc-al-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#e0f2fe; color:#78350f; }
         .epc-al-note { margin-top:1rem; padding:.75rem .9rem; background:#fafaf9; border:1px solid #d6d3d1; border-radius:.45rem; color:#44403c; font-size:.86rem; }
         @@media (max-width:900px){ .epc-al-kpis{grid-template-columns:1fr;} }
     </style>
@@ -43,11 +43,9 @@
     <section class="epc-al-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Audit Log</h1>
-        <p>Read-only Super BOS audit entries from <code>/bos/audit-log</code> digest under PHP BOS desktop chrome. Meta omitted. Append-only PHP log remains authoritative — native <code>/BOS/</code> session still required for full module UX.</p>
+        <p>Append-only audit trail for operator actions.</p>
         <div class="epc-al-cta">
-            <a href="@_phpTab">Open PHP audit log</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/bos/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/bos/app">Fleet command</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/BOS/?m=audit_log">Native BOS module</a>
         </div>
     </section>
@@ -75,7 +73,7 @@
             <tbody>
                 @if (_entries.Count == 0)
                 {
-                    <tr><td colspan="8">No audit entries in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -92,7 +90,7 @@
                             <td>@(string.IsNullOrWhiteSpace(e.Action) ? "—" : e.Action)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Target) ? "—" : e.Target)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Ip) ? "—" : e.Ip)</td>
-                            <td><a href="@areaHref">Open in PHP</a></td>
+                            <td><a href="@areaHref">Open</a></td>
                         </tr>
                     }
                 }
@@ -100,12 +98,6 @@
         </table>
     </div>
 
-    <div class="epc-al-note">
-        Read-only preview · JSON digest <a href="/bos/audit-log?limit=100">/bos/audit-log</a> (meta omitted).
-        PHP <code>epc_boc_audit_log</code> / <code>epc_boc_audit_recent</code> remain authoritative (append-only).
-        Not a broad /bos cutover · <code>/BOS/</code> PHP session remains required for native modules.
-        Source: <code>@_source</code>.
-    </div>
 </PhpBosDesktopChrome>
 
 @code {

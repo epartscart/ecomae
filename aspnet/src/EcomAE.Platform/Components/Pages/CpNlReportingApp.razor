@@ -16,14 +16,14 @@
     <style>
         .epc-nl-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4c1d95 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-nl-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-nl-hero p { margin:0; color:#ddd6fe; max-width:44rem; font-size:.92rem; line-height:1.45; }
         .epc-nl-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-nl-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#1e1b4b; background:#c4b5fd;
+            text-decoration:none; color:#1e1b4b; background:#e0f2fe;
         }
         .epc-nl-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-nl-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
@@ -36,12 +36,10 @@
     <section class="epc-nl-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>NL Reporting</h1>
-        <p>Read-only <code>epc_report_definitions</code> from <code>/cp/nl-reporting</code>. Query templates and recipients stay off this digest — edits remain PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-nl-cta">
-            <a href="@_phpTab">Open PHP NL reporting</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/metabase-app">Metabase</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -62,7 +60,7 @@
             <tbody>
                 @if (_definitions.Count == 0)
                 {
-                    <tr><td colspan="8">No NL report definitions in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -76,7 +74,7 @@
                             <td>@(string.IsNullOrWhiteSpace(d.Schedule) ? "—" : d.Schedule)</td>
                             <td>@(string.IsNullOrWhiteSpace(d.Format) ? "—" : d.Format)</td>
                             <td>@(d.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -84,12 +82,6 @@
         </table>
     </div>
 
-    <div class="epc-nl-note">
-        Read-only preview · JSON digest <a href="/cp/nl-reporting?limit=200">/cp/nl-reporting</a>.
-        PHP <code>epc_nl_reporting</code> remains authoritative for create/run/schedule.
-        Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>. Count: @_definitions.Count.ToString(CultureInfo.InvariantCulture).
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

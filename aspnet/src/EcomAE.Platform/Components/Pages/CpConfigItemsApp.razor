@@ -16,14 +16,14 @@
     <style>
         .epc-ci-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#18181b 0%,#27272a 50%,#3f3f46 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-ci-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-ci-hero p { margin:0; color:#d4d4d8; max-width:42rem; font-size:.92rem; line-height:1.45; }
         .epc-ci-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-ci-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#18181b; background:#a3e635;
+            text-decoration:none; color:#18181b; background:#e0f2fe;
         }
         .epc-ci-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-ci-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -46,13 +46,11 @@
     <section class="epc-ci-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Config Items</h1>
-        <p>Read-only <code>config_items</code> metadata from <code>/cp/config-items</code> digest under PHP CP desktop chrome. Secret values never returned. Edits stay on live PHP site config — same-to-same for tenants.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-ci-cta">
-            <a href="@_phpTab">Open PHP site config</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
-            <a class="ghost" href="/CP/control/config">PHP configuration</a>
+            <a href="@_phpTab">Open module</a>
+            <a class="ghost" href="/CP/control/config">Configuration</a>
             <a class="ghost" href="/cp/api-clients-app">API clients</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -78,7 +76,7 @@
             <tbody>
                 @if (_items.Count == 0)
                 {
-                    <tr><td colspan="7">No config items in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -91,7 +89,7 @@
                             <td>@(string.IsNullOrWhiteSpace(item.ConfigGroup) ? "—" : item.ConfigGroup)</td>
                             <td><span class="epc-ci-badge @(item.Visible ? "epc-ci-badge--ok" : "epc-ci-badge--off")">@(item.Visible ? "yes" : "no")</span></td>
                             <td>@item.Order.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -99,12 +97,6 @@
         </table>
     </div>
 
-    <div class="epc-ci-note">
-        Read-only preview · JSON digest <a href="/cp/config-items?limit=200">/cp/config-items</a> (secret values never returned).
-        PHP <code>config_edit</code> / <code>/CP/control/config</code> remain authoritative for edits.
-        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

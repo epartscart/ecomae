@@ -19,7 +19,7 @@
     .bos-login .epc-login-field input, .bos-login .epc-login-field select {
         width:100%; padding:.65rem .75rem; border:1px solid #334155; border-radius:.5rem; background:#111827; color:#f8fafc;
     }
-    .bos-login .epc-login-submit { width:100%; margin-top:.4rem; padding:.8rem 1rem; border:0; border-radius:.5rem; background:#2563eb; color:#fff; font-weight:700; cursor:pointer; }
+    .bos-login .epc-login-submit { width:100%; margin-top:.4rem; padding:.8rem 1rem; border:0; border-radius:.5rem; background:#0ea5e9; color:#fff; font-weight:700; cursor:pointer; }
     .bos-login .epc-login-error { background:#450a0a; color:#fecaca; border:1px solid #7f1d1d; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
     .bos-login .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
     .bos-login .epc-login-php { color:#93c5fd; font-weight:700; }
@@ -121,8 +121,7 @@
             <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/BOS/" ErrorMessage="@_error" SubmitLabel="Sign In" Accent="blue" />
             <p class="bos-login__secure">
                 <i class="fa fa-lock"></i>
-                Full BOS modules stay on <a class="epc-login-php" href="/BOS/">live /BOS/</a> (PHP).
-                This bridge opens hybrid digests only.
+                Secure operator access to your tenant fleet.
             </p>
         </div>
     </div>
@@ -130,7 +129,7 @@
 
 @*
   PHP epc_bos_shell.js only starts particles/counters when #bosLoginForm exists.
-  Keep ASP.NET bridge form IDs different; run visual-only init here (no PHP login hijack).
+  Keep  bridge form IDs different; run visual-only init here (no PHP login hijack).
 *@
 <script>
 (function () {

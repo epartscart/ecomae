@@ -16,7 +16,7 @@
     <style>
         .epc-fa-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#1e3a5f 0%,#1d4ed8 50%,#0ea5e9 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
         }
         .epc-fa-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-fa-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
@@ -41,10 +41,9 @@
     <section class="epc-fa-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Fixed assets</h1>
-        <p>Read-only register KPIs + rows from <code>/erp/fixed-assets</code>. Depreciation runs and writes stay on live PHP.</p>
+        <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-fa-cta">
-            <a href="@_phpTab">Open PHP</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
         </div>
     </section>
@@ -76,7 +75,7 @@
             <tbody>
                 @if (_assets.Count == 0)
                 {
-                    <tr><td colspan="10">No rows in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="10">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -92,7 +91,7 @@
                             <td>@row.BookValue.ToString("0.00", CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.DepreciationMethod) ? row.DepreciationMethod : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -100,10 +99,6 @@
         </table>
     </div>
 
-    <div class="epc-fa-note">
-        Read-only preview · JSON digest <a href="/erp/fixed-assets?limit=200">/erp/fixed-assets</a>. PHP fixed_assets tab remains authoritative · note omitted · Not a broad /erp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

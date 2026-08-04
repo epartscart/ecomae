@@ -16,14 +16,14 @@
     <style>
         .epc-sf-acc-hero {
             margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#1c1917 0%,#78350f 48%,#365314 100%);
+            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
         }
         .epc-sf-acc-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
         .epc-sf-acc-hero p { margin:0; color:#fde68a; max-width:40rem; font-size:.92rem; line-height:1.45; }
         .epc-sf-acc-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sf-acc-cta a {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#1c1917; background:#fbbf24;
+            text-decoration:none; color:#1c1917; background:#fee2e2;
         }
         .epc-sf-acc-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-sf-acc-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -44,9 +44,9 @@
     <section class="epc-sf-acc-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
         <h1>Account</h1>
-        <p>Read-only account KPIs from <code>/storefront/account-summary</code> digest under PHP storefront chrome. Profile edits and account tools stay on live PHP <code>/users/</code> — same-to-same for tenants.</p>
+        <p>Browse parts, manage your garage, and track recent orders.</p>
         <div class="epc-sf-acc-cta">
-            <a href="@_phpAccount">Open PHP account</a>
+            <a href="@_phpAccount">Open module</a>
             <a class="ghost" href="/storefront/orders-app">My orders</a>
             <a class="ghost" href="/storefront/garage-app">Garage</a>
             <a class="ghost" href="/storefront/profile-app">Profile</a>
@@ -57,9 +57,9 @@
     @if (!_isCustomer)
     {
         <div class="epc-sf-acc-gate">
-            <p style="margin:0 0 .75rem;color:#44403c">Sign in with a customer session to load account KPIs. Edits remain on PHP.</p>
-            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#b45309;color:#fff;font-weight:700;text-decoration:none">Customer login bridge</a>
-            <a href="@_phpAccount" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d6d3d1;color:#111;font-weight:700;text-decoration:none">PHP account</a>
+            <p style="margin:0 0 .75rem;color:#44403c">Sign in with your store account to load account summary.</p>
+            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
+            <a href="@_phpAccount" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d6d3d1;color:#111;font-weight:700;text-decoration:none">Account</a>
         </div>
     }
     else
@@ -75,17 +75,11 @@
             <a href="/storefront/orders-app">Orders list</a>
             <a href="/storefront/garage-app">Garage list</a>
             <a href="/storefront/profile-app">Profile read</a>
-            <a href="@_phpAccount">PHP account hub</a>
-            <a href="https://epartscart.com/users/profile">PHP profile</a>
+            <a href="@_phpAccount">Account hub</a>
+            <a href="https://epartscart.com/users/profile">Profile</a>
         </div>
     }
 
-    <div class="epc-sf-acc-note">
-        Read-only preview · JSON digest <a href="/storefront/account-summary">/storefront/account-summary</a> (customer session required).
-        PHP <code>content/users/</code> / <code>/users/</code> remain authoritative for account tools.
-        Not a broad storefront or <code>/</code> cutover · live epartscart.com stays PHP (same-to-same).
-        Source: <code>@_source</code>@(!string.IsNullOrWhiteSpace(_message) ? $" · {_message}" : "").
-    </div>
 </PhpStorefrontDesktopChrome>
 
 @code {

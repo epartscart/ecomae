@@ -16,7 +16,7 @@
     <style>
         .epc-sf-cart-hero {
             margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0f172a 0%,#1e293b 45%,#7f1d1d 100%);
+            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
         }
         .epc-sf-cart-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
         .epc-sf-cart-hero p { margin:0; color:#fecaca; max-width:40rem; font-size:.92rem; line-height:1.45; }
@@ -45,10 +45,10 @@
     <section class="epc-sf-cart-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
         <h1>Cart</h1>
-        <p>Batch 4 read-only cart summary for authenticated customers. Qty changes, guest carts, obtain modes, confirm, and payment stay on live PHP checkout.</p>
+        <p>Lines in your cart ready for checkout.</p>
         <div class="epc-sf-cart-cta">
-            <a href="https://epartscart.com/shop/cart">Open PHP cart</a>
-            <a class="ghost" href="https://epartscart.com/shop/checkout/how_get">PHP checkout</a>
+            <a href="https://epartscart.com/shop/cart">Open module</a>
+            <a class="ghost" href="https://epartscart.com/shop/checkout/how_get">Checkout</a>
             <a class="ghost" href="/storefront/search-app">Search parts</a>
             <a class="ghost" href="/storefront/login">Customer login</a>
         </div>
@@ -57,9 +57,9 @@
     @if (!_isCustomer)
     {
         <div class="epc-sf-cart-gate">
-            <p style="margin:0 0 .75rem;color:#334155">Sign in with a customer session to load your authenticated cart lines. Guest carts remain on PHP.</p>
-            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Customer login bridge</a>
-            <a href="https://epartscart.com/shop/checkout/login_offer" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">PHP login offer</a>
+            <p style="margin:0 0 .75rem;color:#334155">Sign in with your store account to load your cart lines.</p>
+            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
+            <a href="https://epartscart.com/shop/checkout/login_offer" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Login offer</a>
         </div>
     }
     else
@@ -67,8 +67,7 @@
         <div class="epc-sf-cart-kpis" aria-label="Cart KPIs">
             <div class="epc-sf-cart-kpi"><strong>@_summary.Count</strong><span>Lines in cart</span></div>
             <div class="epc-sf-cart-kpi"><strong>@_summary.Sum.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cart sum</span></div>
-            <div class="epc-sf-cart-kpi"><strong>@_source</strong><span>Source</span></div>
-        </div>
+</div>
 
         <div class="epc-sf-cart-table-wrap">
             <table class="epc-sf-cart-table">
@@ -88,7 +87,7 @@
                 <tbody>
                     @if (_lines.Count == 0)
                     {
-                        <tr><td colspan="9">Cart is empty (@_source). @_message Use PHP cart to add items.</td></tr>
+                        <tr><td colspan="9">Your cart is empty.</td></tr>
                     }
                     else
                     {
@@ -113,7 +112,7 @@
                                         <span class="epc-sf-cart-badge">No</span>
                                     }
                                 </td>
-                                <td><a href="https://epartscart.com/shop/cart">Open in PHP</a></td>
+                                <td><a href="https://epartscart.com/shop/cart">Open</a></td>
                             </tr>
                         }
                     }
@@ -122,11 +121,6 @@
         </div>
     }
 
-    <div class="epc-sf-cart-note">
-        Read-only preview · authenticated <code>shop_carts</code> only (<code>session_id = 0</code>).
-        Checkout confirm/payment remain <a href="https://epartscart.com/shop/checkout/confirm">PHP</a>.
-        Not a broad storefront or <code>/</code> cutover.
-    </div>
 </PhpStorefrontDesktopChrome>
 
 @code {

@@ -16,14 +16,14 @@
     <style>
         .epc-eds-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0f172a 0%,#1e293b 48%,#0c4a6e 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
         }
         .epc-eds-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-eds-hero p { margin:0; color:#bae6fd; max-width:42rem; font-size:.92rem; line-height:1.45; }
         .epc-eds-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-eds-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#67e8f9;
+            text-decoration:none; color:#0f172a; background:#dbeafe;
         }
         .epc-eds-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-eds-sec { margin:0 0 .45rem; font-size:.95rem; color:#0f172a; }
@@ -39,17 +39,15 @@
     <section class="epc-eds-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>ERP Dashboard Summary</h1>
-        <p>Read-only operational KPIs from <code>/erp/dashboard-summary</code> matching PHP <code>erp_dashboard.php</code> executive tiles and <code>epc_erp_cc_kpi_tiles</code> / approval queue. Interactive widgets stay on live PHP.</p>
+        <p>Cash, receivables, payables, stock, and approval queues for this company.</p>
         <div class="epc-eds-cta">
-            <a href="@_phpTab">Open PHP ERP dashboard</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open dashboard</a>
             <a class="ghost" href="/erp/accounts-summary-app">Accounts summary</a>
             <a class="ghost" href="/erp/cash-accounts-app">Cash accounts</a>
-            <a class="ghost" href="/erp/app">ERP shell</a>
         </div>
     </section>
 
-    <h2 class="epc-eds-sec">Executive tiles (erp_dashboard.php)</h2>
+    <h2 class="epc-eds-sec">Executive tiles</h2>
     <div class="epc-eds-kpis" aria-label="ERP executive KPIs">
         <div class="epc-eds-kpi"><strong>@_s.CashPosition.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cash position</span></div>
         <div class="epc-eds-kpi"><strong>@_s.Receivables.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Receivables</span></div>
@@ -57,7 +55,7 @@
         <div class="epc-eds-kpi"><strong>@_s.StockValue.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Stock value</span></div>
     </div>
 
-    <h2 class="epc-eds-sec">Command center tiles (epc_erp_cc_kpi_tiles)</h2>
+    <h2 class="epc-eds-sec">Command center tiles</h2>
     <div class="epc-eds-kpis" aria-label="ERP command center KPIs">
         <div class="epc-eds-kpi"><strong>@_s.RevenueExVat.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Revenue (ex. VAT)</span></div>
         <div class="epc-eds-kpi"><strong>@_s.OrdersCount.ToString(CultureInfo.InvariantCulture)</strong><span>Orders</span></div>
@@ -69,7 +67,7 @@
         <div class="epc-eds-kpi"><strong>@_s.InventoryItems.ToString(CultureInfo.InvariantCulture)</strong><span>Active items</span></div>
     </div>
 
-    <h2 class="epc-eds-sec">Cash / supplier ledger digests</h2>
+    <h2 class="epc-eds-sec">Cash / supplier ledger</h2>
     <div class="epc-eds-kpis" aria-label="ERP cash supplier KPIs">
         <div class="epc-eds-kpi"><strong>@_s.SupplierCredit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier credit</span></div>
         <div class="epc-eds-kpi"><strong>@_s.SupplierDebit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier debit</span></div>
@@ -77,8 +75,7 @@
         <div class="epc-eds-kpi"><strong>@_s.CashAccounts.ToString(CultureInfo.InvariantCulture)</strong><span>Cash accounts</span></div>
         <div class="epc-eds-kpi"><strong>@_s.ActiveSuppliers.ToString(CultureInfo.InvariantCulture)</strong><span>Active suppliers</span></div>
         <div class="epc-eds-kpi"><strong>@_s.ActivePurchases.ToString(CultureInfo.InvariantCulture)</strong><span>Active purchases</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.Source</strong><span>Digest source</span></div>
-    </div>
+</div>
 
     <h2 class="epc-eds-sec">Approval queue counts</h2>
     <div class="epc-eds-kpis" aria-label="ERP approval queue">
@@ -97,12 +94,6 @@
         <div class="epc-eds-kpi"><strong>@_s.ProcessOverdue.ToString(CultureInfo.InvariantCulture)</strong><span>Overdue tasks</span></div>
     </div>
 
-    <div class="epc-eds-note">
-        Read-only preview · JSON digest <a href="/erp/dashboard-summary">/erp/dashboard-summary</a>.
-        PHP <code>erp_dashboard.php</code> remains authoritative for interactive widgets.
-        Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        @(!string.IsNullOrWhiteSpace(_s.Message) ? _s.Message : "")
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

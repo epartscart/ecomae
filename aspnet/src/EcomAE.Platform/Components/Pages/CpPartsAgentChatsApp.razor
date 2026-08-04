@@ -16,14 +16,14 @@
     <style>
         .epc-pa-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#4c1d95 0%,#5b21b6 50%,#6d28d9 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-pa-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-pa-hero p { margin:0; color:#ddd6fe; max-width:44rem; font-size:.92rem; line-height:1.45; }
         .epc-pa-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-pa-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#4c1d95; background:#c4b5fd;
+            text-decoration:none; color:#4c1d95; background:#e0f2fe;
         }
         .epc-pa-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-pa-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -41,12 +41,10 @@
     <section class="epc-pa-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Parts Agent Chats</h1>
-        <p>Read-only AI parts agent sessions from <code>/cp/parts-agent-chats</code>. Message bodies truncated — chat control stays on live PHP.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pa-cta">
-            <a href="@_phpTab">Open PHP parts agent chats</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/metabase-app">Metabase</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -73,7 +71,7 @@
             <tbody>
                 @if (_sessions.Count == 0)
                 {
-                    <tr><td colspan="8">No parts agent sessions in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -87,7 +85,7 @@
                             <td>@(s.UserId > 0 ? s.UserId.ToString(CultureInfo.InvariantCulture) : "guest")</td>
                             <td>@(string.IsNullOrWhiteSpace(s.LastUserText) ? "—" : s.LastUserText)</td>
                             <td>@(string.IsNullOrWhiteSpace(s.LastAgentText) ? "—" : s.LastAgentText)</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -95,12 +93,6 @@
         </table>
     </div>
 
-    <div class="epc-pa-note">
-        Read-only preview · JSON digest <a href="/cp/parts-agent-chats?limit=200">/cp/parts-agent-chats</a>.
-        PHP <code>parts_agent_chats</code> remains authoritative for chat control.
-        Not a broad /cp cutover · tenant product chrome stays PHP.
-        Source: <code>@_source</code>. Domain: @(string.IsNullOrWhiteSpace(_summary.Domain) ? "—" : _summary.Domain).
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

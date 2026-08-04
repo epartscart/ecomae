@@ -1,0 +1,29 @@
+{
+  "role": "php-color-scheme-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "forbiddenHits": 0,
+  "hits": [],
+  "tokens": {
+    "cp": {
+      "body": "#f0f9ff",
+      "primary": "#2563eb",
+      "accent": "#0ea5e9",
+      "topnav": "white/#dc2626"
+    },
+    "erp": {
+      "body": "#f0f9ff",
+      "primary": "#2563eb"
+    },
+    "bos": {
+      "body": "#f0f2f5",
+      "primary": "#0ea5e9",
+      "topnav": "#000000"
+    },
+    "storefront": {
+      "primary": "#dc2626",
+      "modex": "#ff8040"
+    }
+  }
+}

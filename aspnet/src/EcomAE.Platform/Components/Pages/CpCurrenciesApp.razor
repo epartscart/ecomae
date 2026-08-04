@@ -16,7 +16,7 @@
     <style>
         .epc-cu-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-cu-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-cu-hero p { margin:0; color:#cbd5e1; max-width:42rem; font-size:.92rem; line-height:1.45; }
@@ -45,13 +45,11 @@
     <section class="epc-cu-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Currencies</h1>
-        <p>Read-only <code>shop_currencies</code> rates from <code>/cp/currencies</code> digest under PHP CP desktop chrome. Rate edits stay on live PHP currency manager — same-to-same for tenants.</p>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-cu-cta">
-            <a href="@_phpTab">Open PHP currency rates</a>
-            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpTab)">Hybrid workspace</a>
+            <a href="@_phpTab">Open module</a>
             <a class="ghost" href="/cp/tenants-app">Tenants list</a>
             <a class="ghost" href="/cp/menus-app">Menus list</a>
-            <a class="ghost" href="/cp/app">Command centre</a>
         </div>
     </section>
 
@@ -78,7 +76,7 @@
             <tbody>
                 @if (_currencies.Count == 0)
                 {
-                    <tr><td colspan="8">No currencies in digest (@_source). @_message</td></tr>
+                    <tr><td colspan="8">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -92,7 +90,7 @@
                             <td>@c.Rate.ToString("0.####", CultureInfo.InvariantCulture)</td>
                             <td><span class="epc-cu-badge @(c.Available ? "epc-cu-badge--ok" : "epc-cu-badge--off")">@(c.Available ? "yes" : "no")</span></td>
                             <td>@c.SortOrder</td>
-                            <td><a href="@_phpTab">Open in PHP</a></td>
+                            <td><a href="@_phpTab">Open</a></td>
                         </tr>
                     }
                 }
@@ -100,12 +98,6 @@
         </table>
     </div>
 
-    <div class="epc-cu-note">
-        Read-only preview · JSON digest <a href="/cp/currencies?limit=200">/cp/currencies</a>.
-        PHP currency rates (<code>nastrojka-kursov-valyut</code>) remain authoritative for create/edit.
-        Not a broad /cp cutover · tenant product chrome stays PHP (same-to-same).
-        Source: <code>@_source</code>.
-    </div>
 </PhpCpDesktopChrome>
 
 @code {

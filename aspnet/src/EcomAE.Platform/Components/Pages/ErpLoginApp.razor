@@ -23,7 +23,7 @@
     .epc-asp-login-erp .hero { text-align:center; margin:1rem 0 1.4rem; }
     .epc-asp-login-erp .hero-icon {
         width:64px; height:64px; margin:0 auto .75rem; border-radius:1rem;
-        background:linear-gradient(135deg,#2563eb,#38bdf8); display:flex; align-items:center; justify-content:center;
+        background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%); display:flex; align-items:center; justify-content:center;
         font-size:1.6rem; box-shadow:0 10px 30px rgba(37,99,235,.35);
     }
     .epc-asp-login-erp h1 { margin:.2rem 0 .35rem; font-size:clamp(1.8rem,4vw,2.4rem); }
@@ -78,7 +78,7 @@
                 <PhpEcomaeHubLogo Variant="login" ShortTagline="true" AriaLabel="ECOM AE ERP hub" OrbitDuration="32s" />
             </div>
             <h1>ERP Finance</h1>
-            <p class="sub">Unified Blockchain BOS Enterprise System · PHP hub orbit + login hero CSS</p>
+            <p class="sub">Unified Blockchain BOS Enterprise System</p>
         </section>
 
         <div class="modules">
@@ -86,7 +86,7 @@
             {
                 <a class="mod" href="@cat.Href" style="color:inherit;text-decoration:none">
                     <strong><i class="fa @cat.Icon"></i> @cat.Label</strong>
-                    <span>Open live PHP ERP · @cat.Id</span>
+                    <span>Open ERP · @cat.Id</span>
                 </a>
             }
         </div>
@@ -94,14 +94,14 @@
             <span>@PhpModuleCatalog.ErpAreaCount AREAS</span>
             <span>@PhpModuleCatalog.ErpTabCount TABS</span>
             <span>@PhpModuleCatalog.ErpCategoryCount CATEGORIES</span>
-            <span>PHP AUTHORITATIVE</span>
+            <span>LIVE WORKSPACE</span>
         </div>
         <div class="modules" style="margin-top:.75rem;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
             @foreach (var area in PhpModuleCatalog.ErpAreas.Take(16))
             {
                 <a class="mod" href="@area.Href" style="color:inherit;text-decoration:none">
                     <strong><i class="fa @area.Icon"></i> @area.Label</strong>
-                    <span>PHP area @area.Id</span>
+                    <span>Area @area.Id</span>
                 </a>
             }
         </div>

@@ -14,11 +14,10 @@
     @if (!LoginService.IsConfigured)
     {
         <p class="epc-login-bridge-note">
-            ASP.NET login bridge needs <code>EcomAE__SecretSuccession</code> (PHP <code>secret_succession</code>) on the host.
-            Until then, use the live PHP login — same credentials and presentation.
+            Sign-in is temporarily unavailable on this host. Use the live @SurfaceLabel login with the same credentials.
         </p>
         <p>
-            <a class="epc-login-php" href="@PhpLoginHref">Open PHP @SurfaceLabel login</a>
+            <a class="epc-login-php" href="@PhpLoginHref">Open @SurfaceLabel login</a>
         </p>
     }
     else
@@ -48,11 +47,8 @@
             </div>
             <button type="submit" class="epc-login-submit epc-login-submit-@Accent">@SubmitLabel</button>
         </form>
-        <p class="epc-login-bridge-note">
-            Bridge writes PHP-compatible <code>sessions</code> + cookies. Full menus remain on PHP until intentional cutover.
-        </p>
         <p>
-            <a class="epc-login-php" href="@PhpLoginHref">Prefer PHP login</a>
+            <a class="epc-login-php" href="@PhpLoginHref">Open classic @SurfaceLabel login</a>
         </p>
     }
 </div>
