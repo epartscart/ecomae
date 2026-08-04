@@ -13,7 +13,7 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             new("1-inventory", "Route/job inventory", "complete", "Inventory + digest contracts tracked; cp-debug-console holdout intentional."),
             new("2-scaffold", "ASP.NET digests + hybrid shells", "complete", "128 surface digests + storefront digests + ~147 presentation apps on www."),
             new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Marketing epm-hub + #ehm-home-sections scaffolded on /marketing/app; CP/ERP/BOS/storefront hybrid on www; tenants PHP-primary under parity gate."),
-            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; abandoned-carts + checkout readiness + cart read scaffolds exist; write dual-sample still required."),
+            new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; POST /storefront/cart/change-count-need dry-run (type-2) + checkout/abandoned-carts reads; live writes still PHP."),
             new("5-tenant-exact-route", "Staged exact-route cutover on live tenants", "blocked-on-parity", "Default refuse on named tenants; ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW unlocks parity shadows only."),
             new("6-php-removal", "Disable PHP + remove runtime", "blocked", "Requires dual-sample + human RELEASE_OWNER_APPROVAL.md — never invent that file."),
         ];
@@ -28,7 +28,7 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             NextBuilds:
             [
                 "Dual-sample /marketing/app (hub + home sections) vs live PHP / → exact-route marketing cutover candidates.",
-                "Deepen storefront checkout writes (qty/how_get/confirm) behind hybrid after dual-sample harness.",
+                "Promote POST /storefront/cart/change-count-need from dry-run to live type-2 write after dual-sample vs PHP ajax_change_count_need.php.",
                 "Per-tenant storefront theme parity scaffolds (epartscart piston first) on www, then dual-sample.",
                 "Capture dual-sample evidence per surface; only then staged exact-route on tenants.",
             ],

@@ -1254,7 +1254,8 @@ public sealed record StorefrontCartLineDigest(
     string Name,
     string TimeToExe,
     string TimeToExeGuaranteed,
-    decimal MinOrder);
+    decimal MinOrder,
+    decimal T2Exist = 0m);
 
 public sealed record StorefrontCartSummary(
     int Count,

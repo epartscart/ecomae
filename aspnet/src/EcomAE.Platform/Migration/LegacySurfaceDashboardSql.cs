@@ -1171,7 +1171,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`t2_manufacturer`, '') AS manufacturer, IFNULL(`t2_article`, '') AS article,
                IFNULL(`t2_name`, '') AS name, IFNULL(`t2_time_to_exe`, '') AS time_to_exe,
                IFNULL(`t2_time_to_exe_guaranteed`, '') AS time_to_exe_guaranteed,
-               IFNULL(`t2_min_order`, 0) AS min_order
+               IFNULL(`t2_min_order`, 0) AS min_order, IFNULL(`t2_exist`, 0) AS t2_exist
         FROM `shop_carts`
         WHERE `user_id` = @userId
           AND `session_id` = 0

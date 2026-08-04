@@ -551,6 +551,8 @@ public static class EcomAeRoutes
     public const string StorefrontCheckoutApp = "/storefront/checkout-app";
     /// <summary>Storefront checkout readiness JSON digest over authenticated cart.</summary>
     public const string StorefrontCheckout = "/storefront/checkout";
+    /// <summary>Wave B dry-run cart qty write (PHP ajax_change_count_need.php remains authoritative).</summary>
+    public const string StorefrontCartChangeCountNeed = "/storefront/cart/change-count-need";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
