@@ -613,6 +613,10 @@ public static class EcomAeRoutes
     public const string MarketingCustomerResultsApp = "/marketing/customer-results";
     /// <summary>Marketing business-continuity Blazor scaffold (PHP /platform/business-continuity remains primary until dual-sample).</summary>
     public const string MarketingBusinessContinuityApp = "/marketing/business-continuity";
+    /// <summary>Marketing API services Blazor scaffold (PHP /platform/api-services remains primary until dual-sample).</summary>
+    public const string MarketingApiServicesApp = "/marketing/api-services";
+    /// <summary>Marketing API documentation Blazor scaffold (PHP /platform/api-documentation remains primary until dual-sample).</summary>
+    public const string MarketingApiDocumentationApp = "/marketing/api-documentation";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
