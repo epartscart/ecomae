@@ -996,6 +996,13 @@ def main() -> None:
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
             "note": "migration-mode; sessions[] sentinel; ip/ua/meta_json omitted; PHP web tracker remains authoritative; cutoverAllowed=false",
         },
+        "cp-abandoned-carts.json": {
+            **summary("cp", {"lineCount": 1, "guestLineCount": 1, "userLineCount": 0, "guestSessionCount": 1, "userCartCount": 0, "cartSum": 0}),
+            "carts": [{"id": 1, "userId": 0, "sessionId": 42, "price": 0, "countNeed": 1, "checkedForOrder": 0, "productType": 2, "manufacturer": "ACME", "article": "A1", "name": "Sample", "timeUnix": 0, "priceSum": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; carts[] sentinel; guest/session preferred; PHP abandoned carts remain authoritative; cutoverAllowed=false",
+        },
         "cp-quote-requests.json": {
             **summary("cp", {"quoteCount": 1, "draftCount": 1, "submittedCount": 0, "quotedCount": 0, "acceptedCount": 0, "itemCount": 0}),
             "quotes": [{"id": 1, "userId": 1, "sessionId": 0, "status": "draft", "timeCreated": 0, "timeUpdated": 0, "timeSubmitted": 0, "acceptedOrderId": 0}],
@@ -1520,6 +1527,32 @@ def main() -> None:
                 "migration-mode contract sample; rows[] item-field sentinel locked; "
                 "PHP /shop/part_search remains authoritative; cutoverAllowed=false"
             ),
+        },
+        "storefront-checkout.json": {
+            "ok": True,
+            "surface": "storefront",
+            "user_id": 9,
+            "summary": {
+                "count": 1,
+                "sum": 0.0,
+                "source": "migration",
+                "message": "TenantRegistry DB is not configured.",
+            },
+            "checked_for_order": 0,
+            "readiness": "cart-has-lines",
+            "php_steps": [
+                {"id": "how_get", "href": "https://epartscart.com/shop/checkout/how_get"},
+                {"id": "login_offer", "href": "https://epartscart.com/shop/checkout/login_offer"},
+                {"id": "confirm", "href": "https://epartscart.com/shop/checkout/confirm"},
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "session": {"kind": "Customer", "user_id": 9},
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": "migration-mode; checkout readiness sentinel; how_get/confirm/payment remain PHP; cutoverAllowed=false",
         },
         "storefront-cart.json": {
             "ok": True,
