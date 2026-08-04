@@ -32,8 +32,8 @@
     "storefront-surface": 12
   },
   "coverageCounts": {
-    "digest-contract": 41,
-    "php-only-deeplink": 684
+    "digest-contract": 44,
+    "php-only-deeplink": 681
   },
   "coverageByKind": {
     "bos-module": {
@@ -60,8 +60,8 @@
       "digest-contract": 9
     },
     "storefront-surface": {
-      "php-only-deeplink": 10,
-      "digest-contract": 2
+      "php-only-deeplink": 7,
+      "digest-contract": 5
     }
   },
   "digestContractRouteCount": 56,
@@ -7930,8 +7930,8 @@
       "phpPath": "https://epartscart.com/shop/part_search",
       "coverage": "digest-contract",
       "moduleStatus": "digest-only+hybrid-deeplink",
-      "digestRoute": "/storefront/garage",
-      "aspnetRoute": "/storefront/garage-app",
+      "digestRoute": "/storefront/search",
+      "aspnetRoute": "/storefront/search-app",
       "aspnetComplete": false
     },
     {
@@ -7939,10 +7939,10 @@
       "kind": "storefront-surface",
       "label": "VIN / vehicle search",
       "phpPath": "https://epartscart.com/shop/part_search",
-      "coverage": "digest-contract",
-      "moduleStatus": "digest-only+hybrid-deeplink",
-      "digestRoute": "/storefront/garage",
-      "aspnetRoute": "/storefront/garage-app",
+      "coverage": "php-only-deeplink",
+      "moduleStatus": "php-only",
+      "digestRoute": null,
+      "aspnetRoute": null,
       "aspnetComplete": false
     },
     {
@@ -7960,18 +7960,18 @@
       "id": "storefront-cart",
       "kind": "storefront-surface",
       "label": "Cart",
-      "phpPath": "https://epartscart.com/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "phpPath": "https://epartscart.com/shop/cart",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/storefront/cart",
+      "aspnetRoute": "/storefront/cart-app",
       "aspnetComplete": false
     },
     {
       "id": "storefront-checkout",
       "kind": "storefront-surface",
       "label": "Checkout",
-      "phpPath": "https://epartscart.com/",
+      "phpPath": "https://epartscart.com/shop/checkout",
       "coverage": "php-only-deeplink",
       "moduleStatus": "php-only",
       "digestRoute": null,
@@ -7982,33 +7982,33 @@
       "id": "storefront-account",
       "kind": "storefront-surface",
       "label": "Account",
-      "phpPath": "https://epartscart.com/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "phpPath": "https://epartscart.com/users/",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/storefront/account-summary",
+      "aspnetRoute": "/storefront/account-summary-app",
       "aspnetComplete": false
     },
     {
       "id": "storefront-garage",
       "kind": "storefront-surface",
       "label": "Garage",
-      "phpPath": "https://epartscart.com/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "phpPath": "https://epartscart.com/shop/part_search",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/storefront/garage",
+      "aspnetRoute": "/storefront/garage-app",
       "aspnetComplete": false
     },
     {
       "id": "storefront-orders",
       "kind": "storefront-surface",
       "label": "Orders",
-      "phpPath": "https://epartscart.com/",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "phpPath": "https://epartscart.com/shop/orders",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/storefront/orders",
+      "aspnetRoute": "/storefront/orders-app",
       "aspnetComplete": false
     },
     {

@@ -88,7 +88,30 @@ for hybrid in hybrid_modules:
     hybrid_by_php[key] = hybrid
 
 
-def match_hybrid(php_href: str | None, app_hint: str | None = None) -> dict | None:
+# Storefront catalog ids → hybrid TARGET stems (path-only matching collides:
+# part_search is shared by sf-search + sf-garage).
+STOREFRONT_HYBRID_BY_ID = {
+    "part_search": "sf-search",
+    "cart": "sf-cart",
+    "orders": "sf-orders",
+    "garage": "sf-garage",
+    "account": "sf-account-summary",
+}
+
+hybrid_by_stem = {str(h.get("id")): h for h in hybrid_modules}
+
+
+def match_hybrid(
+    php_href: str | None,
+    app_hint: str | None = None,
+    *,
+    storefront_id: str | None = None,
+) -> dict | None:
+    # Storefront surfaces only match via explicit id → TARGET stem.
+    # Path-only matching is unsafe (part_search is shared by search + garage).
+    if storefront_id is not None:
+        stem = STOREFRONT_HYBRID_BY_ID.get(storefront_id)
+        return hybrid_by_stem.get(stem) if stem else None
     # Never match catalog rows by aspnetRoute alone — only concrete PHP paths.
     if not php_href:
         return None
@@ -108,8 +131,9 @@ def entry(
     aspnet_route: str | None = None,
     digest_route: str | None = None,
     extra: dict | None = None,
+    storefront_id: str | None = None,
 ) -> dict:
-    hybrid = match_hybrid(php_path, aspnet_route)
+    hybrid = match_hybrid(php_path, aspnet_route, storefront_id=storefront_id)
     if hybrid:
         status = hybrid["status"]
         aspnet_route = hybrid.get("aspnetRoute") or aspnet_route
@@ -254,6 +278,7 @@ for sf in catalog.get("storefrontSurfaces") or []:
             kind="storefront-surface",
             label=str(sf.get("label") or sf_id),
             php_path=str(sf.get("href") or "https://epartscart.com/"),
+            storefront_id=sf_id,
         )
     )
 
