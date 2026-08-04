@@ -1,0 +1,33 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_demo() — hero + CTA.
+  Layla wizard / tenant provisioning remains PHP until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-demo-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1e1b4b 0%,#7c3aed 45%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-magic"></i> AI demo wizard</div>
+			<h1>@EcomaeMarketingPages.DemoDays-day industry demo</h1>
+			<p class="lead">Layla provisions an isolated tenant with <strong>storefront, control panel, and ERP</strong> in minutes. Choose an industry preset — ERP + CRM + e-commerce in one cloud.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/demo?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/demo"))">Open PHP demo wizard (hybrid)</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/pricing">View rental plans</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/contact">Contact sales</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-highlight">
+		<h3>Provisioning stays on PHP for now</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">Industry presets, sandbox creation, and the Layla wizard remain live PHP until dual-sample promotes this route.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/demo?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/demo"))">Start demo wizard</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET demo overview scaffold — dual-sample against live PHP <code>/platform/demo</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

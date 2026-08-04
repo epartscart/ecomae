@@ -467,6 +467,8 @@ public static class EcomAeRoutes
     public const string ErpGlJournalsReverse = "/erp/gl-journals/reverse";
     /// <summary>Wave B dry-run purchase void (PHP purchase_void remains authoritative).</summary>
     public const string ErpPurchasesVoid = "/erp/purchases/void";
+    /// <summary>Wave B dry-run invoice cancel (PHP invoice_cancel remains authoritative).</summary>
+    public const string ErpInvoicesCancel = "/erp/invoices/cancel";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
@@ -577,6 +579,8 @@ public static class EcomAeRoutes
     public const string StorefrontCartDelete = "/storefront/cart/delete";
     /// <summary>Wave B dry-run add-to-cart type-2 (PHP ajax_add_to_basket.php remains authoritative).</summary>
     public const string StorefrontCartAdd = "/storefront/cart/add";
+    /// <summary>Wave B dry-run garage notepad add (PHP ajax_add_to_notepad.php remains authoritative).</summary>
+    public const string StorefrontGarageNotepadAdd = "/storefront/garage/notepad-add";
     /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
     public const string MarketingPlatformApp = "/marketing/platform";
     /// <summary>Marketing about Blazor scaffold (PHP /platform/about remains primary until dual-sample).</summary>
@@ -585,6 +589,14 @@ public static class EcomAeRoutes
     public const string MarketingFaqApp = "/marketing/faq";
     /// <summary>Marketing pricing Blazor scaffold (PHP /platform/pricing remains primary until dual-sample).</summary>
     public const string MarketingPricingApp = "/marketing/pricing";
+    /// <summary>Marketing contact Blazor scaffold (PHP /platform/contact remains primary until dual-sample).</summary>
+    public const string MarketingContactApp = "/marketing/contact";
+    /// <summary>Marketing industries Blazor scaffold (PHP /platform/industries remains primary until dual-sample).</summary>
+    public const string MarketingIndustriesApp = "/marketing/industries";
+    /// <summary>Marketing capabilities Blazor scaffold (PHP /platform/capabilities remains primary until dual-sample).</summary>
+    public const string MarketingCapabilitiesApp = "/marketing/capabilities";
+    /// <summary>Marketing demo Blazor scaffold (PHP /platform/demo remains primary until dual-sample).</summary>
+    public const string MarketingDemoApp = "/marketing/demo";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>

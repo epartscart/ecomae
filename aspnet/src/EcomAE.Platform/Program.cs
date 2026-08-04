@@ -144,7 +144,9 @@ builder.Services.AddSingleton<IErpCashVoucherVoidDryRun, ErpCashVoucherVoidDryRu
 builder.Services.AddSingleton<IErpGlManualEntryDryRun, ErpGlManualEntryDryRun>();
 builder.Services.AddSingleton<IErpGlReverseJournalDryRun, ErpGlReverseJournalDryRun>();
 builder.Services.AddSingleton<IErpPurchaseVoidDryRun, ErpPurchaseVoidDryRun>();
+builder.Services.AddSingleton<IErpInvoiceCancelDryRun, ErpInvoiceCancelDryRun>();
 builder.Services.AddSingleton<IStorefrontCartAddDryRun, StorefrontCartAddDryRun>();
+builder.Services.AddSingleton<IStorefrontGarageNotepadAddDryRun, StorefrontGarageNotepadAddDryRun>();
 builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHealthChecks();
