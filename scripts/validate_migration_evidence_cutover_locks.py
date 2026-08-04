@@ -50,6 +50,12 @@ MUST_DECLARE_TREE_GLOBS = (
     "login-session-bridge/*.json",
     "catalog-miss-umapi/*.json",
     "price-lookup/*.json",
+    "presentation/*.json",
+    "module-function-parity/*.json",
+    "catalog-api/*.json",
+    "tenant-safety/*.json",
+    # Top-level surface-parity reports only (sample fixtures/goldens have dedicated validators).
+    "surface-parity/*.json",
 )
 
 
