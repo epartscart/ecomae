@@ -66,7 +66,7 @@ for m in re.finditer(
     )
     blocks.append((route, indented.rstrip() + "\n"))
 
-if len(blocks) != 6:
+if len(blocks) != 7:
     raise SystemExit(f"ERROR: expected 7 storefront digest locations, found {len(blocks)}")
 
 inserted = []

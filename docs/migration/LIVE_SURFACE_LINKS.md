@@ -94,14 +94,14 @@ These are industry marketing/showcase hosts (not dedicated client DB tenants).
 
 ## Exact-route shadows on www (installed)
 
-Surface digests **127/127**, storefront digests **6/6**, presentation apps **~142/144** live after CloudPanel install + `:5080→:5100` repair.
+Surface digests **128/128**, storefront digests **7 wired** (search/cart/checkout/orders/garage/profile/account-summary; live auth-gate count may lag until CloudPanel install), presentation apps **~142/144** after `:5080→:5100` repair.
 
 Re-probe anytime:
 
 ```bash
 cd /opt/ecomae-aspnet-source
 bash scripts/cloudpanel_probe_surface_digest_shadows.sh      # expect 127× 401
-bash scripts/cloudpanel_probe_storefront_digest_shadows.sh   # expect 6× 401
+bash scripts/cloudpanel_probe_storefront_digest_shadows.sh   # expect 7× 401
 ```
 
 Never broad `/api|/cp|/erp|/bos|/storefront`. Never tenant vhosts without `ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES`.

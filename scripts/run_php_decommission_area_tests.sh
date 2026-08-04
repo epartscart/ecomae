@@ -192,10 +192,10 @@ done
 # Storefront digest exact-routes (wired 6; live may still be 4/6 until search/cart shadows install).
 # Expect ASP.NET 401 unauthorized JSON (customer cookie for 200) when shadow is live.
 mapfile -t SF_ROUTES < <(grep -E '^location = /storefront/' "$ROOT/deploy/aspnet/nginx-storefront-digests-shadow-example.conf" | sed -E 's/^location = ([^ {]+).*/\1/')
-if [[ "${#SF_ROUTES[@]}" -ne 6 ]]; then
-  record "storefront-digest-route-inventory" fail "expected 6 storefront digest routes, found ${#SF_ROUTES[@]}"
+if [[ "${#SF_ROUTES[@]}" -ne 7 ]]; then
+  record "storefront-digest-route-inventory" fail "expected 7 storefront digest routes, found ${#SF_ROUTES[@]}"
 else
-  record "storefront-digest-route-inventory" pass "6 storefront digest exact-routes in shadow example"
+  record "storefront-digest-route-inventory" pass "7 storefront digest exact-routes in shadow example (incl. checkout)"
 fi
 SF_LIVE_PASS=0
 for path in "${SF_ROUTES[@]}"; do
@@ -211,9 +211,9 @@ for path in "${SF_ROUTES[@]}"; do
   fi
 done
 if [[ "$SF_LIVE_PASS" -ge 4 ]]; then
-  record "storefront-digest-live-floor" pass "storefront digests live ${SF_LIVE_PASS}/6 (wired 6)"
+  record "storefront-digest-live-floor" pass "storefront digests live ${SF_LIVE_PASS}/7 (wired 7)"
 else
-  record "storefront-digest-live-floor" fail "expected at least 4/6 live storefront digests, found ${SF_LIVE_PASS}"
+  record "storefront-digest-live-floor" fail "expected at least 4/7 live storefront digests, found ${SF_LIVE_PASS}"
 fi
 
 # Blazor SSR Zero-PHP console (served under existing /migration proxy after redeploy)
@@ -233,6 +233,13 @@ for path in /api/v1/catalog/status /api/v1/catalog/manufacturers /api/v1/catalog
     record "public${path}-exact-route" fail "expected ASP.NET 401 missing_api_key (HTTP $code)"
   fi
 done
+
+# Marketing /marketing/* shadow inventory (www only; live / stays PHP epm-hub)
+if ECOMAE_MARKETING_PROBE_OFFLINE=1 bash "$ROOT/scripts/cloudpanel_probe_marketing_app_shadows.sh" >/tmp/area-marketing.out 2>&1; then
+  record "marketing-app-shadow-inventory" pass "marketing /marketing/* routes inventoried (>=30); live install may still be blocked"
+else
+  record "marketing-app-shadow-inventory" fail "marketing shadow probe failed (see /tmp/area-marketing.out)"
+fi
 
 # Named functional flows (warehouse offers, ERP reports, e-invoice, CT/UMAPI, process flow, OMS, Super CP).
 # Static floors/evidence must exist; live auth smokes may be blocked — PHP must remain.

@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "cp-abandoned-carts",
+  "surface": "cp",
+  "appRoute": "/cp/abandoned-carts-app",
+  "digestRoute": "/cp/abandoned-carts",
+  "phpAuthoritativePath": "/CP/shop/orders/carts",
+  "blazorMarker": "CpAbandonedCartsApp",
+  "chromeShell": "PhpCpDesktopChrome",
+  "authKind": "admin",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T17:40:00Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Contract stub. Re-run on CloudPanel with cookies + ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1."
+}

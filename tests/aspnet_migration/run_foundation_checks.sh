@@ -964,6 +964,11 @@ check 'parity plan hard rule same-to-same' contains "$ROOT/docs/migration/PHP_LE
 check 'parity plan blocks Batch 6 premature cutover' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'blocked / premature'
 check 'same-to-same tenant verify script exists' test -x "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh"
 check 'same-to-same verify refuses cutover' contains "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh" 'cutoverAllowed=false'
+check 'same-to-same look gap validator exists' test -x "$ROOT/scripts/validate_same_to_same_look_gaps.py"
+check 'php color scheme validator exists' test -x "$ROOT/scripts/validate_php_color_scheme.py"
+check 'marketing app shadow probe exists' test -x "$ROOT/scripts/cloudpanel_probe_marketing_app_shadows.sh"
+check 'storefront digest install expects 7 routes' contains "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh" 'expected 7 storefront digest locations'
+check 'storefront digest probe expects 7 routes' contains "$ROOT/scripts/cloudpanel_probe_storefront_digest_shadows.sh" 'expected 7 storefront digest routes'
 check 'tenant chrome probe rejects Batch 4 Blazor markers' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'StorefrontCartApp'
 check 'tenant chrome probe rejects storefront orders-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'StorefrontOrdersApp'
 check 'tenant chrome probe rejects storefront garage-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'StorefrontGarageApp'

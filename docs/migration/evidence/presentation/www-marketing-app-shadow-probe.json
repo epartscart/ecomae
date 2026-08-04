@@ -1,0 +1,238 @@
+{
+  "role": "www-marketing-app-shadow-probe",
+  "generatedAtUnix": 1785865318,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "routeCount": 37,
+  "passed": 0,
+  "failed": 0,
+  "blocked": 37,
+  "ok": true,
+  "phpHomeMustRemainEpmHub": true,
+  "results": [
+    {
+      "route": "/marketing/about",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/acceptable-use",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/api-documentation",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/api-services",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/app",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/auto-price-ai",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/blockchain",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/blockchain-disclaimer",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/bos",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/brochure",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/brochure-cp",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/business-continuity",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/capabilities",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/compare",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/confidentiality",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/contact",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/cookie-policy",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/copyright",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/customer-results",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/data-protection",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/demo",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/dmca",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/documentation",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/faq",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/free-tools",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/industries",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/intellectual-property",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/legal",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/platform",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/platform-guides",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/pricing",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/privacy",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/right-to-use",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/security-policy",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/solutions",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/terms",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    },
+    {
+      "route": "/marketing/trademark",
+      "httpStatus": 404,
+      "result": "blocked-awaiting-shadow-install",
+      "stack": "php-404"
+    }
+  ],
+  "note": "Exact-route /marketing/* shadows on www only. Live / stays PHP epm-hub until dual-sample + RELEASE_OWNER_APPROVAL.md. Never invent cutover."
+}

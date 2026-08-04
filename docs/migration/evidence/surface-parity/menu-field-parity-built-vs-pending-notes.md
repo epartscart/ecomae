@@ -36,3 +36,9 @@ Every menu item has an ASP.NET digest/app route or intentional PHP deeplink. **N
 4. Only then `cutoverAllowed` / `readyForPhpRemoval` / interactive complete  
 
 Honest path stays **99%** until those gates clear — UI/menus are catalog-complete; interactive write cutover is not.
+
+## Sprint update
+
+- Module-ajax dedicated dry-run goldens expanded to **254** (writes=0).
+- Storefront digest shadows inventory **7/7** (incl. checkout).
+- Marketing `/marketing/*` probe: 37 routes inventoried; live shadows blocked awaiting CloudPanel install.
