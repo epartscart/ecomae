@@ -9,6 +9,8 @@ Expect `compare-result.json` with `ok=true`, `catalogGoldensChecked=18`, `cutove
 
 Wave-1 catalog list goldens must keep non-empty `data[]` item-field sentinels
 (`list-item-field-floor.json`: manufacturers/models/modifications/brands/suppliers/brand-parts).
+VIN envelope floor (`vin-envelope-floor.json`) requires `manufacturer`/`model_label`/`cached_at`
+plus object `payload`. Offline-cache action goldens require object `data` blobs.
 Price-lookup contract-only requires non-empty `offers[]`.
 
 Live API-key captures remain CloudPanel/staging work. Never invent `RELEASE_OWNER_APPROVAL.md`.

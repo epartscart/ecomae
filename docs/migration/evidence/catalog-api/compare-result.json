@@ -14,6 +14,19 @@
     "api-catalog-modifications",
     "api-catalog-suppliers"
   ],
+  "offlineCacheObjectDataStems": [
+    "api-catalog-analogs",
+    "api-catalog-article",
+    "api-catalog-article-brands",
+    "api-catalog-article-links",
+    "api-catalog-articles",
+    "api-catalog-categories",
+    "api-catalog-engine",
+    "api-catalog-engine-search",
+    "api-catalog-engines",
+    "api-catalog-products"
+  ],
+  "vinEnvelopeExpanded": true,
   "results": [
     {
       "stem": "api-catalog-status",
@@ -124,5 +137,5 @@
       "errors": []
     }
   ],
-  "note": "Catalog/API contract floor only. Wave-1 list goldens (manufacturers/models/modifications/brands/suppliers/brand-parts) keep non-empty item-field sentinels. Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "Catalog/API contract floor only. Wave-1 list goldens keep non-empty item-field sentinels; VIN envelope requires manufacturer/model_label/cached_at; offline-cache action goldens require object data blobs. Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
 }

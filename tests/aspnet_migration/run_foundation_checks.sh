@@ -982,6 +982,11 @@ check 'catalog brands migration golden has item sentinel' contains "$ROOT/docs/m
 check 'catalog brand-parts migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-brand-parts.json" '"article_show": "0 986 479 001"'
 check 'catalog models contract requires model_series' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'model_series'
 check 'catalog brand-parts contract requires article_show' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'article_show'
+check 'catalog VIN contract requires manufacturer envelope field' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'manufacturer", "model_label", "payload"'
+check 'catalog VIN migration golden includes manufacturer' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-vin.json" '"manufacturer"'
+check 'catalog VIN envelope floor evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-api/vin-envelope-floor.json"
+check 'catalog VIN envelope floor blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-api/vin-envelope-floor.json" '"cutoverAllowed": false'
+check 'catalog api contract floor locks offline-cache object data' contains "$ROOT/scripts/compare_catalog_api_contract_floor.py" 'OFFLINE_CACHE_OBJECT_DATA'
 check 'orders digest migration golden exists' test -f "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-orders-digest.json"
 check 'digest dual compare accepts migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migrationBaselinePairs'
 check 'digest dual compare detects seeded migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migration-contract-golden'

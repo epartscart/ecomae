@@ -276,7 +276,7 @@ public static class SurfacePayloadContractCatalog
             ["offline-cache engine by id"],
             "n/a-json-api"),
         Contract("api", "/api/v1/catalog/vin", "api/v1/catalog.php vin", "api-key",
-            ["ok", "source", "stale", "vin", "language", "region", "vehicle_count", "payload"],
+            ["ok", "source", "stale", "cached_at", "vin", "language", "region", "vehicle_count", "manufacturer", "model_label", "payload"],
             [],
             ["offline VIN decode envelope"],
             "n/a-json-api"),

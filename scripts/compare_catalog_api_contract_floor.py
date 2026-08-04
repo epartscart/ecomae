@@ -36,14 +36,33 @@ ENVELOPES: dict[str, list[str]] = {
         "ok",
         "source",
         "stale",
+        "cached_at",
         "vin",
         "language",
         "region",
         "vehicle_count",
+        "manufacturer",
+        "model_label",
         "payload",
     ],
     "api-catalog-brand-parts": ["ok", "brand", "rows", "source", "data", "message"],
 }
+
+# Offline-cache action goldens: data may be object blob (not typed items yet).
+OFFLINE_CACHE_OBJECT_DATA = frozenset(
+    {
+        "api-catalog-engines",
+        "api-catalog-analogs",
+        "api-catalog-article-brands",
+        "api-catalog-categories",
+        "api-catalog-products",
+        "api-catalog-engine-search",
+        "api-catalog-article-links",
+        "api-catalog-article",
+        "api-catalog-articles",
+        "api-catalog-engine",
+    }
+)
 
 STATUS_COUNT_FIELDS = ["manufacturers", "models", "modifications", "brands", "vins"]
 
@@ -145,6 +164,15 @@ def main() -> int:
                     for field in item_fields:
                         if field not in first:
                             entry["errors"].append(f"data[0] missing {field}")
+        if stem in OFFLINE_CACHE_OBJECT_DATA:
+            data = doc.get("data")
+            if not isinstance(data, dict):
+                entry["errors"].append("offline-cache data must be object (JSON blob envelope)")
+        if stem == "api-catalog-vin":
+            if not isinstance(doc.get("payload"), dict):
+                entry["errors"].append("vin.payload must be object")
+            if not str(doc.get("vin") or "").strip():
+                entry["errors"].append("vin must be non-empty string")
         entry["ok"] = not entry["errors"]
         if not entry["ok"]:
             failed += 1
@@ -178,12 +206,14 @@ def main() -> int:
         "failed": failed,
         "priceLookupOk": price_ok if not args.skip_price else None,
         "listItemFieldStems": sorted(LIST_ITEM_FIELDS),
+        "offlineCacheObjectDataStems": sorted(OFFLINE_CACHE_OBJECT_DATA),
+        "vinEnvelopeExpanded": True,
         "results": results,
         "note": (
-            "Catalog/API contract floor only. Wave-1 list goldens "
-            "(manufacturers/models/modifications/brands/suppliers/brand-parts) keep "
-            "non-empty item-field sentinels. Exact-route shadows remain operator-gated. "
-            "Never invents RELEASE_OWNER_APPROVAL.md."
+            "Catalog/API contract floor only. Wave-1 list goldens keep non-empty "
+            "item-field sentinels; VIN envelope requires manufacturer/model_label/cached_at; "
+            "offline-cache action goldens require object data blobs. "
+            "Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
         ),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
