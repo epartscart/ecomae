@@ -26,6 +26,7 @@
             text-decoration:none; color:#0f172a; background:#67e8f9;
         }
         .epc-eds-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-eds-sec { margin:0 0 .45rem; font-size:.95rem; color:#0f172a; }
         .epc-eds-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
         .epc-eds-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
         .epc-eds-kpi strong { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; word-break:break-all; }
@@ -38,7 +39,7 @@
     <section class="epc-eds-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>ERP Dashboard Summary</h1>
-        <p>Read-only operational KPIs from <code>/erp/dashboard-summary</code> digest under PHP ERP desktop chrome. Full dashboard widgets and posting stay on live PHP — same-to-same for tenants.</p>
+        <p>Read-only operational KPIs from <code>/erp/dashboard-summary</code> matching PHP <code>erp_dashboard.php</code> executive tiles and <code>epc_erp_cc_kpi_tiles</code> / approval queue. Interactive widgets stay on live PHP.</p>
         <div class="epc-eds-cta">
             <a href="@_phpTab">Open PHP ERP dashboard</a>
             <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", _phpTab)">Hybrid workspace</a>
@@ -48,37 +49,72 @@
         </div>
     </section>
 
-    <div class="epc-eds-kpis" aria-label="ERP dashboard KPIs">
-        <div class="epc-eds-kpi"><strong>@_cash.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cash position</span></div>
-        <div class="epc-eds-kpi"><strong>@_credit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier credit</span></div>
-        <div class="epc-eds-kpi"><strong>@_debit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier debit</span></div>
-        <div class="epc-eds-kpi"><strong>@_net.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier net</span></div>
-        <div class="epc-eds-kpi"><strong>@_accounts.ToString(CultureInfo.InvariantCulture)</strong><span>Cash accounts</span></div>
-        <div class="epc-eds-kpi"><strong>@_suppliers.ToString(CultureInfo.InvariantCulture)</strong><span>Active suppliers</span></div>
-        <div class="epc-eds-kpi"><strong>@_purchases.ToString(CultureInfo.InvariantCulture)</strong><span>Active purchases</span></div>
-        <div class="epc-eds-kpi"><strong>@_source</strong><span>Digest source</span></div>
+    <h2 class="epc-eds-sec">Executive tiles (erp_dashboard.php)</h2>
+    <div class="epc-eds-kpis" aria-label="ERP executive KPIs">
+        <div class="epc-eds-kpi"><strong>@_s.CashPosition.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cash position</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.Receivables.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Receivables</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.Payables.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Payables</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.StockValue.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Stock value</span></div>
+    </div>
+
+    <h2 class="epc-eds-sec">Command center tiles (epc_erp_cc_kpi_tiles)</h2>
+    <div class="epc-eds-kpis" aria-label="ERP command center KPIs">
+        <div class="epc-eds-kpi"><strong>@_s.RevenueExVat.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Revenue (ex. VAT)</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.OrdersCount.ToString(CultureInfo.InvariantCulture)</strong><span>Orders</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.ArBalance.ToString("N2", CultureInfo.InvariantCulture)</strong><span>AR balance</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.ApBalance.ToString("N2", CultureInfo.InvariantCulture)</strong><span>AP balance</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.CashPosition.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cash &amp; bank</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.VatNetPayable.ToString("N2", CultureInfo.InvariantCulture)</strong><span>VAT net payable</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.PeriodStatus</strong><span>Period status</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.InventoryItems.ToString(CultureInfo.InvariantCulture)</strong><span>Active items</span></div>
+    </div>
+
+    <h2 class="epc-eds-sec">Cash / supplier ledger digests</h2>
+    <div class="epc-eds-kpis" aria-label="ERP cash supplier KPIs">
+        <div class="epc-eds-kpi"><strong>@_s.SupplierCredit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier credit</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.SupplierDebit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier debit</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.SupplierNet.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier net</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.CashAccounts.ToString(CultureInfo.InvariantCulture)</strong><span>Cash accounts</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.ActiveSuppliers.ToString(CultureInfo.InvariantCulture)</strong><span>Active suppliers</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.ActivePurchases.ToString(CultureInfo.InvariantCulture)</strong><span>Active purchases</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.Source</strong><span>Digest source</span></div>
+    </div>
+
+    <h2 class="epc-eds-sec">Approval queue counts</h2>
+    <div class="epc-eds-kpis" aria-label="ERP approval queue">
+        <div class="epc-eds-kpi"><strong>@_s.DraftSalesOrders.ToString(CultureInfo.InvariantCulture)</strong><span>Draft sales orders</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.PendingPurchaseOrders.ToString(CultureInfo.InvariantCulture)</strong><span>Pending POs</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.UnpostedGlJournals.ToString(CultureInfo.InvariantCulture)</strong><span>Unposted GL journals</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.OverdueInvoices.ToString(CultureInfo.InvariantCulture)</strong><span>Overdue invoices (30+)</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.LowStockItems.ToString(CultureInfo.InvariantCulture)</strong><span>Low stock items</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.PendingEinvoices.ToString(CultureInfo.InvariantCulture)</strong><span>Pending e-invoices</span></div>
+    </div>
+
+    <h2 class="epc-eds-sec">Process flow</h2>
+    <div class="epc-eds-kpis" aria-label="ERP process flow">
+        <div class="epc-eds-kpi"><strong>@_s.ProcessOpen.ToString(CultureInfo.InvariantCulture)</strong><span>Open tasks</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.ProcessDone.ToString(CultureInfo.InvariantCulture)</strong><span>Done tasks</span></div>
+        <div class="epc-eds-kpi"><strong>@_s.ProcessOverdue.ToString(CultureInfo.InvariantCulture)</strong><span>Overdue tasks</span></div>
     </div>
 
     <div class="epc-eds-note">
         Read-only preview · JSON digest <a href="/erp/dashboard-summary">/erp/dashboard-summary</a>.
         PHP <code>erp_dashboard.php</code> remains authoritative for interactive widgets.
         Not a broad /erp cutover · tenant product chrome stays PHP (same-to-same).
-        @(!string.IsNullOrWhiteSpace(_message) ? _message : "")
+        @(!string.IsNullOrWhiteSpace(_s.Message) ? _s.Message : "")
     </div>
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=overview";
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard";
     private bool _isAdmin;
-    private decimal _cash;
-    private decimal _credit;
-    private decimal _debit;
-    private decimal _net;
-    private int _accounts;
-    private int _suppliers;
-    private int _purchases;
-    private string _source = "n/a";
-    private string _message = "";
+    private ErpDashboardSummary _s = new(
+        0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0,
+        0, 0, 0, 0, 0, "open", 0,
+        0, 0, 0, 0, 0, 0,
+        0, 0, 0,
+        "n/a", "");
 
     protected override async Task OnInitializedAsync()
     {
@@ -93,15 +129,6 @@
         }
 
         _isAdmin = true;
-        var summary = await Dashboards.BuildErpAsync(ctx.RequestAborted);
-        _cash = summary.CashPosition;
-        _credit = summary.SupplierCredit;
-        _debit = summary.SupplierDebit;
-        _net = summary.SupplierNet;
-        _accounts = summary.CashAccounts;
-        _suppliers = summary.ActiveSuppliers;
-        _purchases = summary.ActivePurchases;
-        _source = summary.Source;
-        _message = summary.Message;
+        _s = await Dashboards.BuildErpAsync(ctx.RequestAborted);
     }
 }

@@ -1,6 +1,6 @@
 # Overall progress report — PHP → ASP.NET Core
 
-**As of:** 2026-08-04 (post digests 127/127 live + presentation chrome look wave)  
+**As of:** 2026-08-04 (ERP/BOS topnav area-columns + dashboard field completeness wave)  
 **Locks:** `cutoverAllowed=false` · `readyForPhpRemoval=false` · interactive ASP.NET complete **0**
 
 ## Scorecard
@@ -13,7 +13,8 @@
 | Presentation apps / shells | **144** | **142 / 144** (`200`) | **~99%** shadows live |
 | Hybrid TARGETS | **134** | Sample apps + shells live | Digests/UI wired; interactive still PHP |
 | Field contracts | ~153 | Probe attached | Contract floor only |
-| Chrome **look** parity (fonts/color/width/motion) | Hybrid assets + login/desktop strengthen | Improving on www hybrid | **~65–70%** look (not pixel-identical) |
+| Chrome **look** parity (fonts/color/width/motion) | Hybrid assets + ERP/BOS mega-nav structure | Improving on www hybrid | **~70–75%** look (topnav structure closer; not pixel-identical) |
+| ERP/BOS dashboard field digests | PHP erp_dashboard + CC tiles + Fleet Command counts | Awaiting redeploy | Contract expanded; dual-sample still pending |
 | Interactive module parity (menus/forms/writes) | Digests read-only | PHP authoritative | **~0%** full interactive |
 | Tenant same-to-same (epartscart.com) | ASP.NET off by design | PHP chrome; `/cp/app`+`/health` **404** | **Safe** |
 
@@ -26,7 +27,8 @@ Weighted Zero-PHP meter remains **95% / 5%** (decommission residual) — **not**
 3. Digest nginx `:5080` → `:5100` (**#777**); live sed repair → **PASS=127 FAIL=0**
 4. Presentation app shadows live (~142/144)
 5. Human compare board: `/migration/compare`
-6. This wave: Super CP login uses PHP class tree; BOS particles/counters visual-only; desktop content width closer to PHP fluid layout
+6. Presentation look (#778): Super CP login PHP class tree; BOS particles/counters visual-only; desktop width ~1480/1400
+7. This wave: ERP topnav area-column mega panels (`epc_erp_render_top_nav`); BOS explicit `epc_bos_*_items` maps + white panels; ERP/BOS dashboard digests match PHP executive + command-center / Fleet Command fields
 
 ## What is still PHP-authoritative
 
@@ -42,7 +44,7 @@ Weighted Zero-PHP meter remains **95% / 5%** (decommission residual) — **not**
 | CP login (`/cp/login`) | PHP login + hero CSS | Super CP centered 440px (matches PHP `--super`) | Particles + hub orbit | Strong hybrid |
 | ERP login (`/erp/login`) | PHP login CSS + hub | Wide hero panel | Hub orbit | Good; not full PHP ERP router page |
 | BOS login (`/bos/login`) | `epc_bos_shell.css` | Full-bleed PHP shell | Particles + rings + counters (visual JS) | Strong hybrid |
-| CP/ERP/BOS `*-app` chrome | PHP admin/BOS CSS | Widened ~1480/1400 fluid | Topnav hybrid | Shell OK; module body still PHP iframe/deeplink |
+| CP/ERP/BOS `*-app` chrome | PHP admin/BOS CSS | Widened ~1480/1400 fluid | ERP area columns + BOS white mega + Open first | Shell structure closer to PHP; module body still PHP iframe/deeplink |
 | Storefront app | Modex + spareparts CSS | ~1280 container | Piston banner | Partial vs live epartscart.com |
 | Tenant ePartsCart | PHP only | PHP | PHP 3D/parts | Must stay PHP |
 

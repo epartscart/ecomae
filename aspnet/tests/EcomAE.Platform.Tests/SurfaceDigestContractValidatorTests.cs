@@ -429,7 +429,7 @@ public sealed class SurfaceDigestContractValidatorTests
         var payloads = new Dictionary<string, string>
         {
             ["/storefront/profile"] = """{"ok":true,"surface":"storefront","user_id":9,"email":"a@b.c","email_confirmed":false,"phone":"","phone_confirmed":false,"reg_variant":"email","profile_fields":{},"source":"migration","message":"x","session":{},"note":"x"}""",
-            ["/bos/fleet-health"] = """{"ok":true,"surface":"bos","summary":{"portalTenants":0,"activePortalTenants":0,"adminSessions":0,"withDatabase":0,"erpOnly":0,"source":"migration","message":"x"},"sampleTenants":[],"source":"migration","message":"x","session":{},"note":"x"}"""
+            ["/bos/fleet-health"] = """{"ok":true,"surface":"bos","summary":{"portalTenants":0,"activePortalTenants":0,"adminSessions":0,"withDatabase":0,"erpOnly":0,"commerceTenants":0,"demoTenants":0,"platformTenants":0,"source":"migration","message":"x"},"sampleTenants":[],"source":"migration","message":"x","session":{},"note":"x"}"""
         };
         foreach (var (route, json) in payloads)
         {

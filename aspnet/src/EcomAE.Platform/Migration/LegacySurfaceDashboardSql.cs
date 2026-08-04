@@ -62,6 +62,109 @@ public static class LegacySurfaceDashboardSql
         WHERE `active` = 1 AND `is_credit` = 0
         """;
 
+    /// <summary>PHP <c>erp_dashboard.php</c> receivables tile (<c>epc_invoices</c>).</summary>
+    public const string SumErpDashboardReceivables = """
+        SELECT COALESCE(SUM(`total_amount` - `paid_amount`), 0) FROM `epc_invoices`
+        WHERE `status` <> 'paid'
+        """;
+
+    /// <summary>PHP <c>erp_dashboard.php</c> payables tile (<c>epc_bills</c>).</summary>
+    public const string SumErpDashboardPayables = """
+        SELECT COALESCE(SUM(`total_amount` - `paid_amount`), 0) FROM `epc_bills`
+        WHERE `status` <> 'paid'
+        """;
+
+    /// <summary>PHP <c>erp_dashboard.php</c> stock value tile.</summary>
+    public const string SumErpDashboardStockValue = """
+        SELECT COALESCE(SUM(`quantity` * `avg_cost`), 0) FROM `epc_inventory_stock`
+        """;
+
+    /// <summary>PHP <c>epc_erp_cc_kpi_tiles</c> revenue (ex. VAT) for current month.</summary>
+    public const string SumErpCcRevenueExVat = """
+        SELECT IFNULL(SUM(CASE WHEN `successfully_created` = 1 THEN `price_total_wt` - `price_total_wt_vat` ELSE 0 END), 0)
+        FROM `shop_orders`
+        WHERE `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    /// <summary>PHP <c>epc_erp_cc_kpi_tiles</c> orders count for current month.</summary>
+    public const string CountErpCcOrders = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    /// <summary>PHP command-center AR balance from shop user accounting.</summary>
+    public const string SumErpCcArBalance = """
+        SELECT IFNULL(SUM(CASE WHEN `income` = 1 THEN `amount` ELSE -`amount` END), 0)
+        FROM `shop_users_accounting` WHERE `active` = 1
+        """;
+
+    /// <summary>PHP command-center AP balance from supplier balances.</summary>
+    public const string SumErpCcApBalance = """
+        SELECT IFNULL(SUM(`balance`), 0) FROM `epc_erp_suppliers` WHERE `active` = 1
+        """;
+
+    public const string SumErpCcVatOut = """
+        SELECT IFNULL(SUM(`price_total_wt_vat`), 0) FROM `shop_orders`
+        WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    public const string SumErpCcVatIn = """
+        SELECT IFNULL(SUM(`vat_amount`), 0) FROM `epc_erp_purchases`
+        WHERE `active` = 1 AND `purchase_date` >= @dateFrom AND `purchase_date` <= @dateTo
+        """;
+
+    public const string CountErpCcInventoryItems = """
+        SELECT COUNT(*) FROM `epc_erp_items` WHERE `active` = 1
+        """;
+
+    public const string SelectErpCcPeriodStatus = """
+        SELECT `status` FROM `epc_erp_periods`
+        WHERE `period_key` = @periodKey
+        LIMIT 1
+        """;
+
+    public const string CountErpCcDraftSalesOrders = """
+        SELECT COUNT(*) FROM `epc_erp_sales_orders` WHERE `status` = 'draft'
+        """;
+
+    public const string CountErpCcPendingPurchaseOrders = """
+        SELECT COUNT(*) FROM `epc_erp_purchase_orders`
+        WHERE `status` IN ('draft', 'pending')
+        """;
+
+    public const string CountErpCcUnpostedGlJournals = """
+        SELECT COUNT(*) FROM `epc_erp_gl_journals`
+        WHERE `status` = 'draft' AND `active` = 1
+        """;
+
+    public const string CountErpCcOverdueInvoices = """
+        SELECT COUNT(*) FROM `epc_erp_sales_invoices`
+        WHERE `status` = 'unpaid' AND `due_date` < @overdueBefore
+        """;
+
+    public const string CountErpCcLowStockItems = """
+        SELECT COUNT(*) FROM `epc_erp_items`
+        WHERE `active` = 1 AND `qty_on_hand` > 0 AND `qty_on_hand` <= `reorder_level`
+        """;
+
+    public const string CountErpCcPendingEinvoices = """
+        SELECT COUNT(*) FROM `epc_einvoice_documents`
+        WHERE `status` IN ('draft', 'queued')
+        """;
+
+    public const string CountErpCcProcessOpen = """
+        SELECT COUNT(*) FROM `epc_erp_processflow_tasks` WHERE `status` = 'open'
+        """;
+
+    public const string CountErpCcProcessDone = """
+        SELECT COUNT(*) FROM `epc_erp_processflow_tasks` WHERE `status` = 'done'
+        """;
+
+    public const string CountErpCcProcessOverdue = """
+        SELECT COUNT(*) FROM `epc_erp_processflow_tasks`
+        WHERE `status` = 'open' AND `due_at` > 0 AND `due_at` < UNIX_TIMESTAMP()
+        """;
+
     public const string CountCustomerOrders = """
         SELECT COUNT(*) FROM `shop_orders` WHERE `user_id` = @userId
         """;
