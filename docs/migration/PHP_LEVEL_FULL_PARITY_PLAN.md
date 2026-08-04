@@ -144,7 +144,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Catalog/API allowlist sync (19) + contract-floor operator (#716)
 - ✅ Tenant-safety cached operator + explicit cutover locks (#717)
 - ✅ Migration golden cutover locks (53) + pack YARP/OPERATOR_VERIFY (#718)
-- **This PR:** Offline migration gate + platform.env ↔ scaffold options key parity
+- ✅ Offline migration gate + platform.env ↔ scaffold options key parity (#719)
+- **This PR:** Surface-field parity offline operator (board + digest/catalog floors)
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)

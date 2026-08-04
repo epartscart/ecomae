@@ -9,7 +9,7 @@ All helpers keep `cutoverAllowed=false` / `readyForPhpRemoval=false`. Never inve
 | All dual-sample + module-function | `bash scripts/cloudpanel_run_all_dual_sample_operators.sh` | — |
 | Presentation recheck | `bash scripts/cloudpanel_run_presentation_recheck_operator.sh` | `presentation/OPERATOR_VERIFY.md` |
 | Hybrid UI | `bash scripts/cloudpanel_run_hybrid_ui_dual_sample_operator.sh` | `hybrid-ui-dual-samples/OPERATOR_VERIFY.md` |
-| Digest dual-sample | `bash scripts/cloudpanel_run_digest_dual_sample_operator.sh` | `surface-parity/OPERATOR_VERIFY.md` |
+| Digest + surface-field | `bash scripts/cloudpanel_run_digest_dual_sample_operator.sh` / `cloudpanel_run_surface_field_parity_operator.sh` | `surface-parity/OPERATOR_VERIFY.md` |
 | Price lookup | `bash scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh` | `price-lookup/OPERATOR_VERIFY.md` |
 | Catalog/API contract floor | `bash scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh` | `catalog-api/OPERATOR_VERIFY.md` |
 | Login cookie | `bash scripts/cloudpanel_run_login_cookie_dual_sample_operator.sh` | `login-session-bridge/OPERATOR_VERIFY.md` |

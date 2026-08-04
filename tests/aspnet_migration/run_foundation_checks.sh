@@ -479,9 +479,14 @@ check 'platform.env scaffold key parity passes' python3 "$ROOT/scripts/validate_
 check 'offline migration gate exists' test -f "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh"
 check 'offline migration gate is executable' test -x "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh"
 check 'offline migration gate runs dual-sample suite' contains "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh" 'cloudpanel_run_all_dual_sample_operators.sh'
+check 'offline migration gate runs surface-field parity' contains "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh" 'cloudpanel_run_surface_field_parity_operator.sh'
 check 'offline migration gate runs presentation recheck' contains "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh" 'cloudpanel_run_presentation_recheck_operator.sh'
 check 'offline migration gate runs tenant safety' contains "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh" 'cloudpanel_run_tenant_safety_operator.sh'
 check 'offline migration gate runs scaffold guardrails' contains "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh" 'validate_enterprise_bos_scaffold_guardrails.sh'
+check 'surface-field parity operator exists' test -f "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh"
+check 'surface-field parity operator is executable' test -x "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh"
+check 'surface-field board blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"cutoverAllowed": false'
+check 'surface-field board blocks PHP removal' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"readyForPhpRemoval": false'
 check 'platform.env.example documents dual-sample operator helper' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'platform.env.example documents offline migration gate' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_offline_migration_gate.sh'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
@@ -700,6 +705,7 @@ check 'tenant chrome probe rejects storefront account-summary-app marker' contai
 check 'deploy packs same-to-same tenant verify' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_verify_tenant_hosts_still_php.sh'
 check 'deploy packs tenant-safety operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_tenant_safety_operator.sh'
 check 'deploy packs offline migration gate' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_offline_migration_gate.sh'
+check 'deploy packs surface-field parity operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_surface_field_parity_operator.sh'
 check 'deploy packs platform.env scaffold key parity validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_platform_env_scaffold_key_parity.py'
 check 'deploy packs live tenant chrome probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_live_tenant_php_chrome.sh'
 check 'tenant safety operator verify note exists' test -f "$ROOT/docs/migration/evidence/tenant-safety/OPERATOR_VERIFY.md"

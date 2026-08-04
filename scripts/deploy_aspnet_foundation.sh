@@ -115,6 +115,7 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh" \
   "$ROOT/scripts/cloudpanel_run_tenant_safety_operator.sh" \
   "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh" \
+  "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" \
   "$ROOT/scripts/compare_php_aspnet_presentation.py" \
   "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh" \
   "$ROOT/scripts/cloudpanel_probe_catalog_vehicle_chain.sh" \

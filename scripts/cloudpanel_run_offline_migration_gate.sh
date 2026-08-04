@@ -32,6 +32,7 @@ echo "== EcomAE offline migration gate =="
 echo "Law: same-to-same tenant chrome stays PHP; cutoverAllowed=false; no invented approval."
 
 run_one "dual-sample operators" bash "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh"
+run_one "surface-field parity" bash "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh"
 run_one "presentation recheck" bash "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh"
 run_one "tenant safety" bash "$ROOT/scripts/cloudpanel_run_tenant_safety_operator.sh"
 run_one "enterprise BOS scaffold guardrails" bash "$ROOT/scripts/validate_enterprise_bos_scaffold_guardrails.sh"
