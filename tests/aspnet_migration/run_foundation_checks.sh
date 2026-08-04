@@ -565,6 +565,16 @@ check 'presentation parity mentions login bridge' contains "$ROOT/aspnet/src/Eco
 check 'chrome parity gap matrix exists' test -f "$ROOT/docs/migration/CHROME_PARITY_GAP_MATRIX.md"
 check 'detailed PHP vs ASP.NET recheck doc exists' test -f "$ROOT/docs/migration/PHP_VS_ASPNET_DETAILED_RECHECK.md"
 check 'module function parity inventory exists' test -f "$ROOT/docs/migration/inventory/MODULE_FUNCTION_PARITY_STATUS.md"
+check 'module function parity evidence dir exists' test -d "$ROOT/docs/migration/evidence/module-function-parity"
+check 'module function parity inventory JSON exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json"
+check 'module function parity inventory blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cutoverAllowed": false'
+check 'module function parity inventory keeps aspnet-complete at zero' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"aspnetCompleteCount": 0'
+check 'module function parity compare helper exists' test -f "$ROOT/scripts/compare_module_function_parity.py"
+check 'module function parity compare is executable' test -x "$ROOT/scripts/compare_module_function_parity.py"
+check 'module function parity operator exists' test -f "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh"
+check 'module function parity operator is executable' test -x "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh"
+check 'module function parity operator asserts complete zero' contains "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh" 'aspnetCompleteCount'
+check 'module function parity human pass file absent' bash -c '! test -f "$ROOT/docs/migration/evidence/presentation/MODULE_FUNCTION_TEST_PASS.md"'
 check 'presentation parity probe script exists' test -x "$ROOT/scripts/cloudpanel_probe_php_presentation_parity.sh"
 check 'presentation compare helper exists' test -f "$ROOT/scripts/compare_php_aspnet_presentation.py"
 check 'login bridge service exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Auth/DbLegacyAdminLoginService.cs"
@@ -609,6 +619,8 @@ check 'deploy packs login-cookie dual-sample operator' contains "$ROOT/scripts/d
 check 'deploy packs catalog-miss dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_catalog_miss_dual_sample_operator.sh'
 check 'deploy packs digest dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_digest_dual_sample_operator.sh'
 check 'deploy packs all dual-sample operators helper' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_all_dual_sample_operators.sh'
+check 'deploy packs module-function parity operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_module_function_parity_operator.sh'
+check 'deploy packs module-function parity compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_module_function_parity.py'
 check 'deploy packs scaffold options example' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ecomae-scaffold-options.example.json'
 check 'deploy packs scaffold options validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_scaffold_options_example.py'
 check 'deploy packs enterprise BOS scaffold guardrails' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_enterprise_bos_scaffold_guardrails.sh'
