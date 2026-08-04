@@ -78,6 +78,7 @@ probe_post "/erp/purchases/void" '{"purchaseId":1,"reason":"dry-run","confirmWri
 probe_post "/erp/invoices/cancel" '{"invoiceId":1,"reason":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp invoices cancel"
 probe_post "/storefront/garage/notepad-add" '{"garageId":1,"manufacturer":"Bosch","article":"0986","name":"Pad","exist":2,"price":12,"confirmWrites":false}' "$COOKIE" "garage notepad-add"
 probe_post "/storefront/quotes/submit" '{"quoteId":1,"customerNote":"dry-run","confirmWrites":false}' "$COOKIE" "quote submit"
+probe_post "/storefront/quotes/accept" '{"quoteId":1,"confirmWrites":false}' "$COOKIE" "quote accept"
 probe_post "/erp/sales-orders/cancel" '{"salesOrderId":1,"reason":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp sales-orders cancel"
 probe_post "/cp/orders/delete" '{"orderIds":[1],"confirmWrites":false}' "$ADMIN_COOKIE" "oms delete-orders"
 probe_post "/erp/purchase-orders/delete" '{"purchaseOrderId":1,"confirmWrites":false}' "$ADMIN_COOKIE" "erp purchase-orders delete"
