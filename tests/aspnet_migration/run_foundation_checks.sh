@@ -872,6 +872,13 @@ check 'on-premises ASP.NET scaffold keeps PHP authoritative' contains "$ROOT/dep
 check 'ERP ajax write catalog covers ajax_erp' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/ErpAjaxWriteCatalog.cs" 'ajax_erp.php'
 check 'Wave B write dry-run probe covers edit_lock_acquire' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/edit-lock-acquire'
 check 'Wave B write dry-run probe covers bos_wf_decide' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/bos-wf-decide'
+check 'Wave B write dry-run probe covers inv sync warehouses' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/inv-sync-warehouses'
+check 'Wave B write dry-run probe covers hr emp save' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/hr-emp-save'
+check 'Wave B write dry-run probe covers einvoice create' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/einvoice-create'
+check 'Wave B write dry-run probe covers newsletter subscribe' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/newsletter/subscribe'
+check 'Wave B write dry-run probe covers CP return action' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/returns/action'
+check 'Wave B write dry-run probe covers storefront set-my-city' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/geo/set-my-city'
+
 
 check 'Wave B write dry-run dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh"
 check 'Wave B write dry-run dual-sample operator refuses cutover' contains "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh" 'cutoverAllowed'

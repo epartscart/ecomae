@@ -167,5 +167,31 @@ probe_post "/erp/ajax/fx-post-revaluation" '{"confirmWrites":false}' "$ADMIN_COO
 probe_post "/erp/ajax/presence-heartbeat" '{"resourceKey":"so:1","confirmWrites":false}' "$ADMIN_COOKIE" "erp presence_heartbeat"
 probe_post "/erp/ajax/bos-intel-toggle-control" '{"controlKey":"vat","enabled":true,"confirmWrites":false}' "$ADMIN_COOKIE" "erp bos_intel_toggle_control"
 
+
+# Wave B promote inv/hr/einvoice/mfg + storefront/CP leftovers
+probe_post "/erp/ajax/inv-sync-warehouses" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp inv_sync_warehouses"
+probe_post "/erp/ajax/hr-emp-save" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp hr_emp_save"
+probe_post "/erp/ajax/einvoice-create" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp einvoice_create"
+probe_post "/erp/ajax/order-fulfillment-bootstrap" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp order_fulfillment_bootstrap"
+probe_post "/erp/ajax/mfgr-mrp-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp mfgr_mrp_run"
+probe_post "/erp/ajax/qm-plan-save" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp qm_plan_save"
+probe_post "/erp/ajax/rbac-priv-save" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp rbac_priv_save"
+probe_post "/erp/ajax/pm-save" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp pm_save"
+probe_post "/erp/ajax/hr-leave-status" '{"id":1,"targetStatus":"open","confirmWrites":false}' "$ADMIN_COOKIE" "erp hr_leave_status"
+probe_post "/erp/ajax/inv-create-item" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp inv_create_item"
+probe_post "/storefront/newsletter/subscribe" '{"email":"dry-run","confirmWrites":false}' "" "StorefrontNewsletterSubscribe"
+probe_post "/storefront/evaluations/add" '{"productId":1,"5":5,"confirmWrites":false}' "$ADMIN_COOKIE" "StorefrontAddEvaluation"
+probe_post "/storefront/finance/create-operation" '{"amount":1,"kind":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "StorefrontCreateOperation"
+probe_post "/storefront/orders/check-not-authorized" '{"orderId":1,"confirmWrites":false}' "$ADMIN_COOKIE" "StorefrontCheckOrderNotAuthorized"
+probe_post "/storefront/users/set-option" '{"optionKey":"dry-run","optionValue":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "StorefrontSetUserOption"
+probe_post "/storefront/geo/set-my-city" '{"cityId":1,"confirmWrites":false}' "$ADMIN_COOKIE" "StorefrontSetMyCity"
+probe_post "/storefront/login/send-code" '{"phone":"dry-run","confirmWrites":false}' "" "StorefrontLoginSendCode"
+probe_post "/storefront/login/check-code" '{"code":"dry-run","confirmWrites":false}' "" "StorefrontLoginCheckCode"
+probe_post "/cp/returns/action" '{"returnId":1,"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpReturnAction"
+probe_post "/cp/requests/set-vin-viewed" '{"requestId":1,"confirmWrites":false}' "$ADMIN_COOKIE" "CpSetUsersVinViewed"
+probe_post "/cp/users/set-comment" '{"userId":1,"comment":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpSetUserComment"
+probe_post "/cp/prices/import-csv" '{"sessionId":1,"confirmWrites":false}' "$ADMIN_COOKIE" "CpPricesImportCsv"
+probe_post "/cp/prices/complete-session" '{"sessionId":1,"confirmWrites":false}' "$ADMIN_COOKIE" "CpPricesCompleteSession"
+
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]
