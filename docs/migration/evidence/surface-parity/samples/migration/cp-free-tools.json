@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "accountCount": 1,
+    "saveCount": 1,
+    "settingCount": 1,
+    "activeAccountCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; accounts[] sentinel; token/pass_hash/del_code_hash/payload omitted; PHP free tools admin remains authoritative; cutoverAllowed=false",
+  "accounts": [
+    {
+      "id": 1,
+      "email": "demo@example.com",
+      "company": "Demo Co",
+      "country": "AE",
+      "useCount": 3,
+      "loginCount": 1,
+      "timeCreated": 0,
+      "timeLastSeen": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

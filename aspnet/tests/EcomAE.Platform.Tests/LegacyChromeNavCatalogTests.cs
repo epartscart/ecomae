@@ -95,6 +95,10 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Finance close" && item.Href == "/cp/finance-close-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Jewellery fixing" && item.Href == "/cp/jewellery-fixing-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Web tracker" && item.Href == "/cp/web-tracker-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Free tools" && item.Href == "/cp/free-tools-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Config sandbox" && item.Href == "/cp/config-sandbox-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Marketplace apps" && item.Href == "/cp/marketplace-apps-app");
+        Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Notifications" && item.Href == "/cp/notifications-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Quote requests" && item.Href == "/cp/quote-requests-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Platform communication" && item.Href == "/cp/platform-communication-app");
         Assert.Contains(LegacyChromeNavCatalog.ControlPanelQuickActions, item => item.Label == "Info blocks" && item.Href == "/cp/info-blocks-app");

@@ -602,6 +602,30 @@
       "phpAuthoritativePath": "/CP/control/portal/epc_super_cp_info_blocks"
     },
     {
+      "stem": "cp-free-tools",
+      "appRoute": "/cp/free-tools-app",
+      "digestRoute": "/cp/free-tools",
+      "phpAuthoritativePath": "/CP/control/portal/epc_free_tools_admin"
+    },
+    {
+      "stem": "cp-config-sandbox",
+      "appRoute": "/cp/config-sandbox-app",
+      "digestRoute": "/cp/config-sandbox",
+      "phpAuthoritativePath": "/CP/control/portal/epc_config_sandbox"
+    },
+    {
+      "stem": "cp-marketplace-apps",
+      "appRoute": "/cp/marketplace-apps-app",
+      "digestRoute": "/cp/marketplace-apps",
+      "phpAuthoritativePath": "/CP/control/portal/epc_marketplace"
+    },
+    {
+      "stem": "cp-notifications",
+      "appRoute": "/cp/notifications-app",
+      "digestRoute": "/cp/notifications",
+      "phpAuthoritativePath": "/CP/control/notifications_settings"
+    },
+    {
       "stem": "erp-accounts-summary",
       "appRoute": "/erp/accounts-summary-app",
       "digestRoute": "/erp/accounts-summary",

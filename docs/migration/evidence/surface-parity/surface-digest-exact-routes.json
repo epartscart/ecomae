@@ -2,8 +2,8 @@
   "role": "surface-digest-exact-routes",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 111,
-  "surfaceDigestCount": 104,
+  "routeCount": 115,
+  "surfaceDigestCount": 108,
   "storefrontDigestCount": 6,
   "ordersDigestCount": 1,
   "generatedFrom": [
@@ -11,7 +11,7 @@
     "deploy/aspnet/nginx-storefront-digests-shadow-example.conf",
     "scripts/cloudpanel_capture_digest_dual_samples.sh"
   ],
-  "note": "Design/inventory only for digest dual-sample floor (107). Storefront search/cart digests wired (live shadows still 4/6). Surface digests wired 100 (live until operator install). Never invents RELEASE_OWNER_APPROVAL.md.",
+  "note": "Design/inventory only for digest dual-sample floor (115). Storefront search/cart digests wired (live shadows still 4/6). Surface digests wired 108 (live until operator install). Never invents RELEASE_OWNER_APPROVAL.md.",
   "routes": [
     "/cp/dashboard-summary",
     "/cp/tenants",
@@ -117,6 +117,10 @@
     "/cp/quote-requests",
     "/cp/platform-communication",
     "/cp/info-blocks",
+    "/cp/free-tools",
+    "/cp/config-sandbox",
+    "/cp/marketplace-apps",
+    "/cp/notifications",
     "/storefront/account-summary",
     "/storefront/orders",
     "/storefront/garage",

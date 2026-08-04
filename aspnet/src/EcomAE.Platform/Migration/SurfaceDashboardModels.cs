@@ -2411,3 +2411,110 @@ public sealed record CpInfoBlocksDigestResult(
     string Source,
     string Message);
 
+public sealed record CpFreeToolsSummary(
+    int AccountCount,
+    int SaveCount,
+    int SettingCount,
+    int ActiveAccountCount,
+    string Source,
+    string Message);
+
+public sealed record CpFreeToolsRowDigest(
+    long Id,
+    string Email,
+    string Company,
+    string Country,
+    long UseCount,
+    long LoginCount,
+    long TimeCreated,
+    long TimeLastSeen);
+
+public sealed record CpFreeToolsDigestResult(
+    CpFreeToolsSummary Summary,
+    IReadOnlyList<CpFreeToolsRowDigest> Accounts,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpConfigSandboxSummary(
+    int SnapshotCount,
+    int ActiveSnapshotCount,
+    int PromotedSnapshotCount,
+    int ChangeCount,
+    string Source,
+    string Message);
+
+public sealed record CpConfigSandboxRowDigest(
+    long Id,
+    string SiteKey,
+    string SnapshotName,
+    string Status,
+    long CreatedBy,
+    string CreatedAt,
+    string PromotedAt);
+
+public sealed record CpConfigSandboxDigestResult(
+    CpConfigSandboxSummary Summary,
+    IReadOnlyList<CpConfigSandboxRowDigest> Snapshots,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpMarketplaceAppsSummary(
+    int AppCount,
+    int PublishedCount,
+    int InstallCount,
+    int ActiveInstallCount,
+    int ReviewCount,
+    string Source,
+    string Message);
+
+public sealed record CpMarketplaceAppsRowDigest(
+    long Id,
+    string AppKey,
+    string Name,
+    string ShortDesc,
+    string Category,
+    string Developer,
+    string Version,
+    string Pricing,
+    decimal PriceMonthly,
+    long Downloads,
+    decimal AvgRating,
+    long ReviewCount,
+    string Status,
+    string PublishedAt);
+
+public sealed record CpMarketplaceAppsDigestResult(
+    CpMarketplaceAppsSummary Summary,
+    IReadOnlyList<CpMarketplaceAppsRowDigest> Apps,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpNotificationsSummary(
+    int NotificationCount,
+    int UnreadCount,
+    int PrefCount,
+    int ChannelCount,
+    string Source,
+    string Message);
+
+public sealed record CpNotificationsRowDigest(
+    long Id,
+    string TenantKey,
+    long UserId,
+    string Channel,
+    string Category,
+    string Severity,
+    string Title,
+    int IsRead,
+    string CreatedAt);
+
+public sealed record CpNotificationsDigestResult(
+    CpNotificationsSummary Summary,
+    IReadOnlyList<CpNotificationsRowDigest> Notifications,
+    int Count,
+    string Source,
+    string Message);
+

@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 112,
-  "hybridUiSamplesOk": 111,
+  "pairsChecked": 116,
+  "hybridUiSamplesOk": 115,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -173,6 +173,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-config-items",
       "appRoute": "/cp/config-items-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-config-sandbox-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-config-sandbox",
+      "appRoute": "/cp/config-sandbox-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -369,6 +379,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-free-tools-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-free-tools",
+      "appRoute": "/cp/free-tools-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-groups-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-groups",
@@ -519,6 +539,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-marketplace-apps-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-marketplace-apps",
+      "appRoute": "/cp/marketplace-apps-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-marketplace-channels-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-marketplace-channels",
@@ -573,6 +603,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-nl-reporting",
       "appRoute": "/cp/nl-reporting-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-notifications-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-notifications",
+      "appRoute": "/cp/notifications-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

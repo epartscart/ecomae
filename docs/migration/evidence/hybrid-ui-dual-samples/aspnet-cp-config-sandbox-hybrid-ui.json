@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "cp-config-sandbox",
+  "surface": "cp",
+  "appRoute": "/cp/config-sandbox-app",
+  "digestRoute": "/cp/config-sandbox",
+  "phpAuthoritativePath": "/CP/control/portal/epc_config_sandbox",
+  "blazorMarker": "CpConfigSandboxApp",
+  "chromeShell": "PhpCpDesktopChrome",
+  "authKind": "admin",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T08:14:23Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Contract stub. Re-run on CloudPanel with cookies + ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1."
+}

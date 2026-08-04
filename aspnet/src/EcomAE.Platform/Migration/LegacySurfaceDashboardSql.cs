@@ -2003,4 +2003,88 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Free tools KPIs from epc_free_tool_* (CREATE TABLE in epc_ecomae_free_tools.php).</summary>
+    public const string SelectCpFreeToolsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_free_tool_accounts`) AS account_count,
+            (SELECT COUNT(*) FROM `epc_free_tool_saves`) AS save_count,
+            (SELECT COUNT(*) FROM `epc_free_tool_settings`) AS setting_count,
+            (SELECT COUNT(*) FROM `epc_free_tool_accounts` WHERE IFNULL(`use_count`,0)>0 OR IFNULL(`login_count`,0)>0) AS active_account_count
+        """;
+
+    /// <summary>Free tool account rows — token/pass_hash/del_code_hash/payload omitted.</summary>
+    public const string SelectCpFreeToolsRows = """
+        SELECT `id`, IFNULL(`email`,'') AS email, IFNULL(`company`,'') AS company,
+               IFNULL(`country`,'') AS country, IFNULL(`use_count`,0) AS use_count,
+               IFNULL(`login_count`,0) AS login_count, IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_last_seen`,0) AS time_last_seen
+        FROM `epc_free_tool_accounts`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Config sandbox KPIs from epc_config_snapshots/changes (CREATE TABLE in epc_config_sandbox.php).</summary>
+    public const string SelectCpConfigSandboxStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_config_snapshots`) AS snapshot_count,
+            (SELECT COUNT(*) FROM `epc_config_snapshots` WHERE IFNULL(`status`,'')='active') AS active_snapshot_count,
+            (SELECT COUNT(*) FROM `epc_config_snapshots` WHERE IFNULL(`status`,'')='promoted') AS promoted_snapshot_count,
+            (SELECT COUNT(*) FROM `epc_sandbox_changes`) AS change_count
+        """;
+
+    /// <summary>Config sandbox snapshot rows — config_data omitted.</summary>
+    public const string SelectCpConfigSandboxRows = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`snapshot_name`,'') AS snapshot_name,
+               IFNULL(`status`,'') AS status, IFNULL(`created_by`,0) AS created_by,
+               IFNULL(CAST(`created_at` AS CHAR),'') AS created_at,
+               IFNULL(CAST(`promoted_at` AS CHAR),'') AS promoted_at
+        FROM `epc_config_snapshots`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Marketplace portal KPIs from epc_marketplace_* (CREATE TABLE in epc_marketplace.php).</summary>
+    public const string SelectCpMarketplaceAppsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_marketplace_apps`) AS app_count,
+            (SELECT COUNT(*) FROM `epc_marketplace_apps` WHERE IFNULL(`status`,'')='published') AS published_count,
+            (SELECT COUNT(*) FROM `epc_marketplace_installs`) AS install_count,
+            (SELECT COUNT(*) FROM `epc_marketplace_installs` WHERE IFNULL(`status`,'')='active') AS active_install_count,
+            (SELECT COUNT(*) FROM `epc_marketplace_reviews`) AS review_count
+        """;
+
+    /// <summary>Marketplace app rows — description/features/requirements/screenshots/config/review_text omitted.</summary>
+    public const string SelectCpMarketplaceAppsRows = """
+        SELECT `id`, IFNULL(`app_key`,'') AS app_key, IFNULL(`name`,'') AS name,
+               IFNULL(`short_desc`,'') AS short_desc, IFNULL(`category`,'') AS category,
+               IFNULL(`developer`,'') AS developer, IFNULL(`version`,'') AS version,
+               IFNULL(`pricing`,'') AS pricing, IFNULL(`price_monthly`,0) AS price_monthly,
+               IFNULL(`downloads`,0) AS downloads, IFNULL(`avg_rating`,0) AS avg_rating,
+               IFNULL(`review_count`,0) AS review_count, IFNULL(`status`,'') AS status,
+               IFNULL(CAST(`published_at` AS CHAR),'') AS published_at
+        FROM `epc_marketplace_apps`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Notifications KPIs from epc_notifications/prefs (CREATE TABLE in epc_notifications.php).</summary>
+    public const string SelectCpNotificationsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_notifications`) AS notification_count,
+            (SELECT COUNT(*) FROM `epc_notifications` WHERE IFNULL(`is_read`,0)=0) AS unread_count,
+            (SELECT COUNT(*) FROM `epc_notification_prefs`) AS pref_count,
+            (SELECT COUNT(DISTINCT `channel`) FROM `epc_notifications`) AS channel_count
+        """;
+
+    /// <summary>Notification rows — body/metadata/action_url omitted.</summary>
+    public const string SelectCpNotificationsRows = """
+        SELECT `id`, IFNULL(`tenant_key`,'') AS tenant_key, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`channel`,'') AS channel, IFNULL(`category`,'') AS category,
+               IFNULL(`severity`,'') AS severity, IFNULL(`title`,'') AS title,
+               IFNULL(`is_read`,0) AS is_read, IFNULL(CAST(`created_at` AS CHAR),'') AS created_at
+        FROM `epc_notifications`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

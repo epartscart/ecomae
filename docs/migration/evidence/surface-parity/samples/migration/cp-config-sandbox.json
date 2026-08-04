@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "snapshotCount": 1,
+    "activeSnapshotCount": 1,
+    "promotedSnapshotCount": 0,
+    "changeCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; snapshots[] sentinel; config_data/old_value/new_value omitted; PHP config sandbox remains authoritative; cutoverAllowed=false",
+  "snapshots": [
+    {
+      "id": 1,
+      "siteKey": "demo",
+      "snapshotName": "draft-1",
+      "status": "active",
+      "createdBy": 1,
+      "createdAt": "2026-08-04 00:00:00",
+      "promotedAt": ""
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

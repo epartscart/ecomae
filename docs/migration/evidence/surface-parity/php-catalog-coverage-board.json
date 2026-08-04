@@ -32,20 +32,20 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 693,
-    "php-only-deeplink": 33
+    "digest-contract": 700,
+    "php-only-deeplink": 26
   },
   "coverageByKind": {
     "bos-module": {
-      "digest-contract": 94,
-      "php-only-deeplink": 5
+      "digest-contract": 96,
+      "php-only-deeplink": 3
     },
     "bos-section": {
       "digest-contract": 11
     },
     "cp-feature": {
-      "digest-contract": 377,
-      "php-only-deeplink": 28
+      "digest-contract": 382,
+      "php-only-deeplink": 23
     },
     "erp-area": {
       "digest-contract": 35
@@ -60,7 +60,7 @@
       "digest-contract": 13
     }
   },
-  "digestContractRouteCount": 130,
+  "digestContractRouteCount": 134,
   "missingCount": 0,
   "ok": true,
   "errors": [],
@@ -2732,10 +2732,10 @@
       "kind": "bos-module",
       "label": "Sandbox",
       "phpPath": "/CP/control/portal/epc_config_sandbox",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/config-sandbox",
+      "aspnetRoute": "/cp/config-sandbox-app",
       "aspnetComplete": false
     },
     {
@@ -2787,10 +2787,10 @@
       "kind": "bos-module",
       "label": "Marketplace",
       "phpPath": "/CP/control/portal/epc_marketplace",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/marketplace-apps",
+      "aspnetRoute": "/cp/marketplace-apps-app",
       "aspnetComplete": false
     },
     {
@@ -3394,8 +3394,8 @@
       "phpPath": "/CP/control/portal/epc_free_tools_admin",
       "coverage": "digest-contract",
       "moduleStatus": "digest-only+hybrid-deeplink",
-      "digestRoute": "/cp/platform-governance",
-      "aspnetRoute": "/cp/platform-governance-app",
+      "digestRoute": "/cp/free-tools",
+      "aspnetRoute": "/cp/free-tools-app",
       "aspnetComplete": false
     },
     {
@@ -3601,10 +3601,10 @@
       "kind": "cp-feature",
       "label": "Free Tools admin",
       "phpPath": "/CP/control/portal/epc_free_tools_admin",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/free-tools",
+      "aspnetRoute": "/cp/free-tools-app",
       "aspnetComplete": false
     },
     {
@@ -5295,10 +5295,10 @@
       "kind": "cp-feature",
       "label": "ERP dashboard & KPIs",
       "phpPath": "/CP/shop/finance/erp?epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/dashboard-summary",
+      "aspnetRoute": "/erp/dashboard-summary-app",
       "aspnetComplete": false
     },
     {
@@ -5350,10 +5350,10 @@
       "kind": "cp-feature",
       "label": "Multi-company ERP access",
       "phpPath": "/CP/shop/finance/erp?epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/dashboard-summary",
+      "aspnetRoute": "/erp/dashboard-summary-app",
       "aspnetComplete": false
     },
     {
@@ -5361,10 +5361,10 @@
       "kind": "cp-feature",
       "label": "NetSuite dashboard + D365 forms",
       "phpPath": "/CP/shop/finance/erp?epc_erp_shell=1",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/dashboard-summary",
+      "aspnetRoute": "/erp/dashboard-summary-app",
       "aspnetComplete": false
     },
     {
@@ -7693,10 +7693,10 @@
       "kind": "cp-feature",
       "label": "Notification settings",
       "phpPath": "/CP/control/notifications_settings",
-      "coverage": "php-only-deeplink",
-      "moduleStatus": "php-only",
-      "digestRoute": null,
-      "aspnetRoute": null,
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/notifications",
+      "aspnetRoute": "/cp/notifications-app",
       "aspnetComplete": false
     },
     {

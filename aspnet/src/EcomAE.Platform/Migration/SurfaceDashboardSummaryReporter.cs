@@ -5765,4 +5765,235 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(err, [], 0, "database-error", ex.Message);
         }
     }
+
+    public async Task<CpFreeToolsDigestResult> BuildCpFreeToolsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpFreeToolsSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var accountCount = 0; var saveCount = 0; var settingCount = 0; var activeAccountCount = 0;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectCpFreeToolsStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    accountCount = Convert.ToInt32(reader["account_count"] is DBNull ? 0 : reader["account_count"], CultureInfo.InvariantCulture);
+                    saveCount = Convert.ToInt32(reader["save_count"] is DBNull ? 0 : reader["save_count"], CultureInfo.InvariantCulture);
+                    settingCount = Convert.ToInt32(reader["setting_count"] is DBNull ? 0 : reader["setting_count"], CultureInfo.InvariantCulture);
+                    activeAccountCount = Convert.ToInt32(reader["active_account_count"] is DBNull ? 0 : reader["active_account_count"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<CpFreeToolsRowDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpFreeToolsRows;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new CpFreeToolsRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["email"] is DBNull ? string.Empty : reader["email"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["company"] is DBNull ? string.Empty : reader["company"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["country"] is DBNull ? string.Empty : reader["country"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["use_count"] is DBNull ? 0 : reader["use_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["login_count"] is DBNull ? 0 : reader["login_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_last_seen"] is DBNull ? 0 : reader["time_last_seen"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var summary = new CpFreeToolsSummary(accountCount, saveCount, settingCount, activeAccountCount, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpConfigSandboxDigestResult> BuildCpConfigSandboxDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpConfigSandboxSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var snapshotCount = 0; var activeSnapshotCount = 0; var promotedSnapshotCount = 0; var changeCount = 0;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectCpConfigSandboxStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    snapshotCount = Convert.ToInt32(reader["snapshot_count"] is DBNull ? 0 : reader["snapshot_count"], CultureInfo.InvariantCulture);
+                    activeSnapshotCount = Convert.ToInt32(reader["active_snapshot_count"] is DBNull ? 0 : reader["active_snapshot_count"], CultureInfo.InvariantCulture);
+                    promotedSnapshotCount = Convert.ToInt32(reader["promoted_snapshot_count"] is DBNull ? 0 : reader["promoted_snapshot_count"], CultureInfo.InvariantCulture);
+                    changeCount = Convert.ToInt32(reader["change_count"] is DBNull ? 0 : reader["change_count"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<CpConfigSandboxRowDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpConfigSandboxRows;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new CpConfigSandboxRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["snapshot_name"] is DBNull ? string.Empty : reader["snapshot_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["created_by"] is DBNull ? 0 : reader["created_by"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["promoted_at"] is DBNull ? string.Empty : reader["promoted_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            var summary = new CpConfigSandboxSummary(snapshotCount, activeSnapshotCount, promotedSnapshotCount, changeCount, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpMarketplaceAppsDigestResult> BuildCpMarketplaceAppsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpMarketplaceAppsSummary(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var appCount = 0; var publishedCount = 0; var installCount = 0; var activeInstallCount = 0; var reviewCount = 0;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectCpMarketplaceAppsStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    appCount = Convert.ToInt32(reader["app_count"] is DBNull ? 0 : reader["app_count"], CultureInfo.InvariantCulture);
+                    publishedCount = Convert.ToInt32(reader["published_count"] is DBNull ? 0 : reader["published_count"], CultureInfo.InvariantCulture);
+                    installCount = Convert.ToInt32(reader["install_count"] is DBNull ? 0 : reader["install_count"], CultureInfo.InvariantCulture);
+                    activeInstallCount = Convert.ToInt32(reader["active_install_count"] is DBNull ? 0 : reader["active_install_count"], CultureInfo.InvariantCulture);
+                    reviewCount = Convert.ToInt32(reader["review_count"] is DBNull ? 0 : reader["review_count"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<CpMarketplaceAppsRowDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpMarketplaceAppsRows;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new CpMarketplaceAppsRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["app_key"] is DBNull ? string.Empty : reader["app_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["short_desc"] is DBNull ? string.Empty : reader["short_desc"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["developer"] is DBNull ? string.Empty : reader["developer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["version"] is DBNull ? string.Empty : reader["version"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["pricing"] is DBNull ? string.Empty : reader["pricing"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["price_monthly"] is DBNull ? 0 : reader["price_monthly"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["downloads"] is DBNull ? 0 : reader["downloads"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["avg_rating"] is DBNull ? 0 : reader["avg_rating"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["review_count"] is DBNull ? 0 : reader["review_count"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["published_at"] is DBNull ? string.Empty : reader["published_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            var summary = new CpMarketplaceAppsSummary(appCount, publishedCount, installCount, activeInstallCount, reviewCount, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpNotificationsDigestResult> BuildCpNotificationsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpNotificationsSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var notificationCount = 0; var unreadCount = 0; var prefCount = 0; var channelCount = 0;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectCpNotificationsStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    notificationCount = Convert.ToInt32(reader["notification_count"] is DBNull ? 0 : reader["notification_count"], CultureInfo.InvariantCulture);
+                    unreadCount = Convert.ToInt32(reader["unread_count"] is DBNull ? 0 : reader["unread_count"], CultureInfo.InvariantCulture);
+                    prefCount = Convert.ToInt32(reader["pref_count"] is DBNull ? 0 : reader["pref_count"], CultureInfo.InvariantCulture);
+                    channelCount = Convert.ToInt32(reader["channel_count"] is DBNull ? 0 : reader["channel_count"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<CpNotificationsRowDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpNotificationsRows;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new CpNotificationsRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["tenant_key"] is DBNull ? string.Empty : reader["tenant_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["channel"] is DBNull ? string.Empty : reader["channel"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["severity"] is DBNull ? string.Empty : reader["severity"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["is_read"] is DBNull ? 0 : reader["is_read"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            var summary = new CpNotificationsSummary(notificationCount, unreadCount, prefCount, channelCount, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
 }

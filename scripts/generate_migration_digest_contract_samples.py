@@ -1017,6 +1017,34 @@ def main() -> None:
             "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
             "note": "migration-mode; blocks[] sentinel; content_html omitted; PHP info blocks CMS remains authoritative; cutoverAllowed=false",
         },
+        "cp-free-tools.json": {
+            **summary("cp", {"accountCount": 1, "saveCount": 1, "settingCount": 1, "activeAccountCount": 1}),
+            "accounts": [{"id": 1, "email": "demo@example.com", "company": "Demo Co", "country": "AE", "useCount": 3, "loginCount": 1, "timeCreated": 0, "timeLastSeen": 0}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; accounts[] sentinel; token/pass_hash/del_code_hash/payload omitted; PHP free tools admin remains authoritative; cutoverAllowed=false",
+        },
+        "cp-config-sandbox.json": {
+            **summary("cp", {"snapshotCount": 1, "activeSnapshotCount": 1, "promotedSnapshotCount": 0, "changeCount": 1}),
+            "snapshots": [{"id": 1, "siteKey": "demo", "snapshotName": "draft-1", "status": "active", "createdBy": 1, "createdAt": "2026-08-04 00:00:00", "promotedAt": ""}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; snapshots[] sentinel; config_data/old_value/new_value omitted; PHP config sandbox remains authoritative; cutoverAllowed=false",
+        },
+        "cp-marketplace-apps.json": {
+            **summary("cp", {"appCount": 1, "publishedCount": 1, "installCount": 0, "activeInstallCount": 0, "reviewCount": 0}),
+            "apps": [{"id": 1, "appKey": "advanced_analytics", "name": "Advanced Analytics", "shortDesc": "Deep-dive dashboards", "category": "analytics", "developer": "ECOM AE", "version": "1.0.0", "pricing": "freemium", "priceMonthly": 0.0, "downloads": 10, "avgRating": 4.5, "reviewCount": 0, "status": "published", "publishedAt": "2026-08-04 00:00:00"}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; apps[] sentinel; description/features/config/review_text omitted; PHP marketplace portal remains authoritative; cutoverAllowed=false",
+        },
+        "cp-notifications.json": {
+            **summary("cp", {"notificationCount": 1, "unreadCount": 1, "prefCount": 1, "channelCount": 1}),
+            "notifications": [{"id": 1, "tenantKey": "__platform__", "userId": 1, "channel": "in_app", "category": "system", "severity": "info", "title": "Welcome", "isRead": 0, "createdAt": "2026-08-04 00:00:00"}],
+            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,
+            "note": "migration-mode; notifications[] sentinel; body/metadata omitted; PHP notification settings remain authoritative; cutoverAllowed=false",
+        },
 
         "cp-consolidations.json": {
             **summary("cp", {"entityCount": 1, "figureCount": 0, "icCount": 0, "openIcCount": 0}),

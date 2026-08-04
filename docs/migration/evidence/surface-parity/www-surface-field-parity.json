@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 130,
+  "contractCount": 134,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -2529,6 +2529,135 @@
       "parityStatus": "contract-locked"
     },
     {
+      "surface": "cp",
+      "aspNetRoute": "/cp/free-tools",
+      "legacyPhpAuthority": "epc_free_tool_accounts/saves/settings",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "accounts",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "accountCount",
+        "saveCount",
+        "settingCount",
+        "activeAccountCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Free tools KPIs + accounts",
+        "token/pass_hash/del_code_hash/payload omitted",
+        "PHP free tools admin remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/config-sandbox",
+      "legacyPhpAuthority": "epc_config_snapshots + epc_sandbox_changes",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "snapshots",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "snapshotCount",
+        "activeSnapshotCount",
+        "promotedSnapshotCount",
+        "changeCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Config sandbox KPIs + snapshots",
+        "config_data/old_value/new_value omitted",
+        "PHP config sandbox remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/marketplace-apps",
+      "legacyPhpAuthority": "epc_marketplace_apps/installs/reviews",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "apps",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "appCount",
+        "publishedCount",
+        "installCount",
+        "activeInstallCount",
+        "reviewCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Marketplace apps KPIs + apps",
+        "description/features/config/review_text omitted",
+        "PHP marketplace portal remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/notifications",
+      "legacyPhpAuthority": "epc_notifications + epc_notification_prefs",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "notifications",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "notificationCount",
+        "unreadCount",
+        "prefCount",
+        "channelCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Notifications KPIs + notifications",
+        "body/metadata omitted",
+        "PHP notification settings remain authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked"
+    },
+    {
       "surface": "erp",
       "aspNetRoute": "/erp/bank-reconciliation",
       "legacyPhpAuthority": "epc_erp_bank_statement_lines",
@@ -4846,6 +4975,30 @@
       "aspNetRouteOrCapability": "/api/v1/catalog/* miss \u2192 404",
       "status": "digest-wired-awaiting-dual-sample",
       "notes": "Batch 5: ASP.NET returns cache_miss/vin_cache_miss; catalog-miss-fill dry-run outbound/writes blocked; live UMAPI fill remains PHP (cutoverAllowed=false)."
+    },
+    {
+      "phpFunctionOrEntry": "free-tools Blazor list",
+      "aspNetRouteOrCapability": "/cp/free-tools-app",
+      "parityStatus": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/free-tools digest; token/pass_hash/payload omitted; PHP free tools admin remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "phpFunctionOrEntry": "config-sandbox Blazor list",
+      "aspNetRouteOrCapability": "/cp/config-sandbox-app",
+      "parityStatus": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/config-sandbox digest; config_data omitted; PHP config sandbox remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "phpFunctionOrEntry": "marketplace-apps Blazor list",
+      "aspNetRouteOrCapability": "/cp/marketplace-apps-app",
+      "parityStatus": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/marketplace-apps digest; review_text/config omitted; PHP marketplace portal remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "phpFunctionOrEntry": "notifications Blazor list",
+      "aspNetRouteOrCapability": "/cp/notifications-app",
+      "parityStatus": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/notifications digest; body/metadata omitted; PHP notification settings remain authoritative; tenant chrome stays PHP."
     }
   ],
   "guarantees": [

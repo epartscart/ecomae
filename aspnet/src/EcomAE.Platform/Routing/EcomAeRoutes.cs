@@ -338,6 +338,19 @@ public static class EcomAeRoutes
     /// <summary>CP Info blocks Blazor list (JSON digest remains <see cref="ControlPanelInfoBlocks"/>).</summary>
     public const string ControlPanelInfoBlocksApp = "/cp/info-blocks-app";
 
+    public const string ControlPanelFreeTools = "/cp/free-tools";
+    /// <summary>CP Free tools Blazor list (JSON digest remains <see cref="ControlPanelFreeTools"/>).</summary>
+    public const string ControlPanelFreeToolsApp = "/cp/free-tools-app";
+    public const string ControlPanelConfigSandbox = "/cp/config-sandbox";
+    /// <summary>CP Config sandbox Blazor list (JSON digest remains <see cref="ControlPanelConfigSandbox"/>).</summary>
+    public const string ControlPanelConfigSandboxApp = "/cp/config-sandbox-app";
+    public const string ControlPanelMarketplaceApps = "/cp/marketplace-apps";
+    /// <summary>CP Marketplace apps Blazor list (JSON digest remains <see cref="ControlPanelMarketplaceApps"/>).</summary>
+    public const string ControlPanelMarketplaceAppsApp = "/cp/marketplace-apps-app";
+    public const string ControlPanelNotifications = "/cp/notifications";
+    /// <summary>CP Notifications Blazor list (JSON digest remains <see cref="ControlPanelNotifications"/>).</summary>
+    public const string ControlPanelNotificationsApp = "/cp/notifications-app";
+
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

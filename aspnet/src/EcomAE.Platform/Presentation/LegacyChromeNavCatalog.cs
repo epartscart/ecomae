@@ -174,6 +174,10 @@ public static class LegacyChromeNavCatalog
         new("Quote requests", "/cp/quote-requests-app"),
         new("Platform communication", "/cp/platform-communication-app"),
         new("Info blocks", "/cp/info-blocks-app"),
+        new("Free tools", "/cp/free-tools-app"),
+        new("Config sandbox", "/cp/config-sandbox-app"),
+        new("Marketplace apps", "/cp/marketplace-apps-app"),
+        new("Notifications", "/cp/notifications-app"),
 
         new("Collections dunning PHP", "/CP/shop/finance/epc_collections_dunning"),
         new("Config items list", "/cp/config-items-app"),
