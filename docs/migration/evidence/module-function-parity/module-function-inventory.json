@@ -1,6 +1,6 @@
 {
   "role": "module-function-inventory",
-  "capturedAt": "2026-08-04T03:09:40Z",
+  "capturedAt": "2026-08-04T03:26:35Z",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspnetCompleteCount": 0,
@@ -5528,7 +5528,7 @@
       "does": "Open from left CP menu."
     },
     {
-      "id": "cp-epc-visual-page-editor",
+      "id": "cp-epc-visual-page-editor__cp-control-portal-epc-visual-page-editor",
       "surface": "cp",
       "kind": "cp-feature",
       "label": "Epc Visual Page Editor",
@@ -7143,7 +7143,7 @@
       "does": "Operational reports on fulfilment throughput, carrier performance, and stock by location. Export-friendly views for warehouse\u2026"
     },
     {
-      "id": "cp-oms-orders",
+      "id": "cp-oms-orders__cp-shop-orders-orders",
       "surface": "cp",
       "kind": "cp-feature",
       "label": "OMS \u00b7 Orders",
@@ -7534,7 +7534,7 @@
       "does": "UAE customs declarations in ERP."
     },
     {
-      "id": "cp-custom-shipping-guide",
+      "id": "cp-custom-shipping-guide__cp-shop-finance-erp-custom-shipping-guide-epc-erp-shell-1",
       "surface": "cp",
       "kind": "cp-feature",
       "label": "Custom & Shipping guide",
@@ -10883,7 +10883,7 @@
       "does": "AI-assisted VIN decode narrows vehicle context before catalogue browse \u2014 fewer wrong-fit orders and faster workshop self-service."
     },
     {
-      "id": "cp-auto-price-ai",
+      "id": "cp-auto-price-ai__cp-control-portal-epc-auto-price-engine",
       "surface": "cp",
       "kind": "cp-feature",
       "label": "Auto Price AI",

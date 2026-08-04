@@ -3849,7 +3849,7 @@
       "aspnetComplete": false
     },
     {
-      "id": "cp-epc-visual-page-editor",
+      "id": "cp-epc-visual-page-editor__cp-control-portal-epc-visual-page-editor",
       "kind": "cp-feature",
       "label": "Epc Visual Page Editor",
       "phpPath": "/CP/control/portal/epc_visual_page_editor",
@@ -4894,7 +4894,7 @@
       "aspnetComplete": false
     },
     {
-      "id": "cp-oms-orders",
+      "id": "cp-oms-orders__cp-shop-orders-orders",
       "kind": "cp-feature",
       "label": "OMS \u00b7 Orders",
       "phpPath": "/CP/shop/orders/orders",
@@ -5147,7 +5147,7 @@
       "aspnetComplete": false
     },
     {
-      "id": "cp-custom-shipping-guide",
+      "id": "cp-custom-shipping-guide__cp-shop-finance-erp-custom-shipping-guide-epc-erp-shell-1",
       "kind": "cp-feature",
       "label": "Custom & Shipping guide",
       "phpPath": "/CP/shop/finance/erp/custom-shipping-guide?epc_erp_shell=1",
@@ -7314,7 +7314,7 @@
       "aspnetComplete": false
     },
     {
-      "id": "cp-auto-price-ai",
+      "id": "cp-auto-price-ai__cp-control-portal-epc-auto-price-engine",
       "kind": "cp-feature",
       "label": "Auto Price AI",
       "phpPath": "/CP/control/portal/epc_auto_price_engine",

@@ -2470,7 +2470,7 @@
       "category": "Portal"
     },
     {
-      "id": "epc-visual-page-editor",
+      "id": "epc-visual-page-editor__cp-control-portal-epc-visual-page-editor",
       "name": "Epc Visual Page Editor",
       "does": "Open from left CP menu.",
       "href": "/CP/control/portal/epc_visual_page_editor",
@@ -3230,7 +3230,7 @@
       "category": "Logistics"
     },
     {
-      "id": "oms-orders",
+      "id": "oms-orders__cp-shop-orders-orders",
       "name": "OMS \u00b7 Orders",
       "does": "Customer orders shortcut from Logistics.",
       "href": "/CP/shop/orders/orders",
@@ -3414,7 +3414,7 @@
       "category": "ERP / Finance"
     },
     {
-      "id": "custom-shipping-guide",
+      "id": "custom-shipping-guide__cp-shop-finance-erp-custom-shipping-guide-epc-erp-shell-1",
       "name": "Custom & Shipping guide",
       "does": "Customs how-to.",
       "href": "/CP/shop/finance/erp/custom-shipping-guide?epc_erp_shell=1",
@@ -4990,7 +4990,7 @@
       "category": "AI"
     },
     {
-      "id": "auto-price-ai",
+      "id": "auto-price-ai__cp-control-portal-epc-auto-price-engine",
       "name": "Auto Price AI",
       "does": "Discover, compare, and import products across market sources \u2014 buy from retailers or wholesalers, sell on Noon, Amazon, and\u2026",
       "href": "/CP/control/portal/epc_auto_price_engine",

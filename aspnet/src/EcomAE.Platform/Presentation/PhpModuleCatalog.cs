@@ -27,6 +27,15 @@ public static partial class PhpModuleCatalog
         ["cpBrochureFeatures"] = CpBrochureFeatureCount,
         ["storefrontSurfaces"] = StorefrontSurfaceCount,
         ["totalTracked"] = TotalTrackedCount,
+        ["directoryCoverage"] = new Dictionary<string, object>
+        {
+            ["cpCommandCentre"] = "CpBrochureFeatures",
+            ["erpDashboard"] = "ErpCategories+ErpAreas+ErpTabs",
+            ["bosFleet"] = "BosModules",
+            ["storefrontPreview"] = "StorefrontSurfaces",
+            ["omittedKinds"] = Array.Empty<string>(),
+            ["fullCatalogFloor"] = 714,
+        },
         ["aspNetInteractiveComplete"] = 0,
         ["cutoverAllowed"] = false,
         ["readyForPhpRemoval"] = false,
@@ -35,6 +44,7 @@ public static partial class PhpModuleCatalog
         {
             "Live product chrome remains PHP (/CP/ /ERP/ /BOS/ storefront hosts).",
             "ASP.NET /cp|/erp|/bos|/storefront/app shells expose this full directory via hybrid deeplinks.",
+            "ERP shells list categories + areas + tabs; CP lists all brochure features; BOS all modules; storefront all surfaces.",
             "Tenant hosts must not receive presentation shadows (see TENANT_MIGRATION_SAFETY.md)."
         }
     };

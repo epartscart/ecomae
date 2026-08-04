@@ -24,5 +24,12 @@ Full PHP catalog deeplink floor (714 hrefs must be hybrid-iframe safe):
 python3 scripts/validate_php_module_catalog_deeplink_floor.py
 ```
 
+Hybrid Blazor shells must expose the full catalog directories (CP features, ERP
+categories/areas/tabs, BOS modules, storefront surfaces):
+
+```bash
+python3 scripts/validate_hybrid_directory_full_catalog_floor.py
+```
+
 Expect compare `cutoverAllowed=false` and `aspNetInteractiveComplete=0`.
 Never invent `RELEASE_OWNER_APPROVAL.md`.

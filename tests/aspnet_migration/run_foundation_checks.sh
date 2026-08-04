@@ -468,6 +468,21 @@ check 'php catalog coverage board missingCount is zero' contains "$ROOT/docs/mig
 check 'php catalog coverage board keeps interactive complete at zero' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"aspNetInteractiveComplete": 0'
 check 'php catalog coverage board uses digest-contract status' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"digest-contract"'
 check 'php catalog coverage board uses php-only-deeplink status' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"php-only-deeplink"'
+check 'hybrid directory full catalog floor validator exists' test -f "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"
+check 'hybrid directory full catalog floor validator is executable' test -x "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"
+check 'hybrid directory full catalog floor passes' python3 "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"
+check 'hybrid directory full catalog floor evidence exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json"
+check 'hybrid directory full catalog floor blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"cutoverAllowed": false'
+check 'hybrid directory full catalog floor tracks 714' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"totalTracked": 714'
+check 'ERP dashboard lists ErpCategories directory' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor" 'PhpModuleCatalog.ErpCategories'
+check 'PhpModuleCatalog summary exposes directoryCoverage' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'directoryCoverage'
+check 'php module catalog generator uniquifies duplicate ids' contains "$ROOT/scripts/generate_php_module_catalog.py" 'uniquify_ids'
+check 'module-function coverage consistency validator exists' test -f "$ROOT/scripts/validate_module_function_coverage_consistency.py"
+check 'module-function coverage consistency validator is executable' test -x "$ROOT/scripts/validate_module_function_coverage_consistency.py"
+check 'module-function coverage consistency passes' python3 "$ROOT/scripts/validate_module_function_coverage_consistency.py"
+check 'module-function coverage consistency evidence exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json"
+check 'module-function coverage consistency matches 714' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"matchedIds": 714'
+check 'module-function coverage consistency blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"cutoverAllowed": false'
 check 'surface-field operator rebuilds php catalog coverage board' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'build_surface_field_catalog_coverage_board.py'
 check 'surface-field operator floors contracts at 54' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'expected >=54'
 check 'surface-field board contractCount is 54' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 54'

@@ -29,7 +29,14 @@ public sealed class PhpModuleCatalogTests
         var summary = PhpModuleCatalog.BuildSummary();
         Assert.Equal("hybrid-deeplink-to-php-until-aspnet-module-complete", summary["policy"]);
         Assert.Equal(0, summary["aspNetInteractiveComplete"]);
-        Assert.True((int)summary["totalTracked"] > 500);
+        Assert.False((bool)summary["cutoverAllowed"]);
+        Assert.False((bool)summary["readyForPhpRemoval"]);
+        Assert.True((int)summary["totalTracked"] >= 714);
+        Assert.True((bool)summary["deeplinkFloorOk"]);
+        var coverage = Assert.IsType<Dictionary<string, object>>(summary["directoryCoverage"]);
+        Assert.Equal(714, coverage["fullCatalogFloor"]);
+        Assert.Equal("ErpCategories+ErpAreas+ErpTabs", coverage["erpDashboard"]);
+        Assert.Empty(Assert.IsType<string[]>(coverage["omittedKinds"]));
     }
 
     [Fact]
@@ -61,6 +68,26 @@ public sealed class PhpModuleCatalogTests
             .Take(20)
             .ToArray();
         Assert.True(bad.Length == 0, "disallowed deeplinks: " + string.Join(", ", bad));
+    }
+
+    [Fact]
+    public void CatalogIdsAreUniqueWithinEachDirectoryList()
+    {
+        // Cross-kind id reuse is allowed (e.g. ERP area "logistics" vs storefront surface);
+        // each hybrid directory list must still be unique so nothing is omitted/overwritten.
+        static void AssertUnique(IReadOnlyList<PhpModuleCatalog.ModuleLink> links, string label)
+        {
+            var ids = links.Select(link => link.Id).ToArray();
+            Assert.True(ids.Length == ids.Distinct(StringComparer.Ordinal).Count(), $"{label} has duplicate ModuleLink ids");
+        }
+
+        AssertUnique(PhpModuleCatalog.ErpCategories, "ErpCategories");
+        AssertUnique(PhpModuleCatalog.ErpAreas, "ErpAreas");
+        AssertUnique(PhpModuleCatalog.ErpTabs, "ErpTabs");
+        AssertUnique(PhpModuleCatalog.BosModules, "BosModules");
+        AssertUnique(PhpModuleCatalog.CpBrochureFeatures, "CpBrochureFeatures");
+        AssertUnique(PhpModuleCatalog.StorefrontSurfaces, "StorefrontSurfaces");
+        Assert.True(PhpModuleCatalog.TotalTrackedCount >= 714);
     }
 
     [Fact]

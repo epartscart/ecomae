@@ -61,6 +61,12 @@
         </section>
 
         <PhpHybridModuleDirectory
+            Title="Complete ERP category directory"
+            Subtitle="@($"{PhpModuleCatalog.ErpCategoryCount} categories from PHP erp_nav_areas.php")"
+            Links="@PhpModuleCatalog.ErpCategories"
+            PhpWorkspaceBase="/erp/app" />
+
+        <PhpHybridModuleDirectory
             Title="Complete ERP area directory"
             Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} areas · {PhpModuleCatalog.ErpTabCount} tabs from PHP erp_nav_areas.php")"
             Links="@PhpModuleCatalog.ErpAreas"
