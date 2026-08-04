@@ -161,6 +161,15 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only integrations/webhooks (secrets/events omitted).</summary>
     Task<CpIntegrationsDigestResult> BuildCpIntegrationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only page builder layouts (layout_json/brand_json omitted).</summary>
+    Task<CpPageBuilderDigestResult> BuildCpPageBuilderDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only product catalogue (shop_catalogue_products).</summary>
+    Task<CpProductCatalogueDigestResult> BuildCpProductCatalogueDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only platform governance rules (description/config_json omitted).</summary>
+    Task<CpPlatformGovernanceDigestResult> BuildCpPlatformGovernanceDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only bank statement lines for reconciliation.</summary>
     Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
 
@@ -172,6 +181,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only ERP workspace favorites/shortcuts.</summary>
     Task<ErpWorkspaceFavoritesDigestResult> BuildErpWorkspaceFavoritesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only fixed assets register (note omitted).</summary>
+    Task<ErpFixedAssetsDigestResult> BuildErpFixedAssetsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);

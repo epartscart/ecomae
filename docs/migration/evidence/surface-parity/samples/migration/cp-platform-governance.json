@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "ruleCount": 1,
+    "activeCount": 1,
+    "requiredCount": 1,
+    "categoryCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; rules[] sentinel; description/config_json omitted; PHP platform governance authoritative; cutoverAllowed=false",
+  "rules": [
+    {
+      "id": 1,
+      "ruleKey": "mig_rule",
+      "category": "tenant",
+      "title": "Migration rule",
+      "enforcement": "required",
+      "scope": "all_tenants",
+      "moduleLink": "",
+      "active": true,
+      "timeUpdated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

@@ -188,6 +188,18 @@ public static class EcomAeRoutes
     public const string ControlPanelIntegrations = "/cp/integrations";
     /// <summary>CP integrations Blazor list (JSON digest remains <see cref="ControlPanelIntegrations"/>).</summary>
     public const string ControlPanelIntegrationsApp = "/cp/integrations-app";
+    /// <summary>CP page builder layouts (layout_json/brand_json omitted).</summary>
+    public const string ControlPanelPageBuilder = "/cp/page-builder";
+    /// <summary>CP page builder Blazor list (JSON digest remains <see cref="ControlPanelPageBuilder"/>).</summary>
+    public const string ControlPanelPageBuilderApp = "/cp/page-builder-app";
+    /// <summary>CP product catalogue (shop_catalogue_products safe columns).</summary>
+    public const string ControlPanelProductCatalogue = "/cp/product-catalogue";
+    /// <summary>CP product catalogue Blazor list (JSON digest remains <see cref="ControlPanelProductCatalogue"/>).</summary>
+    public const string ControlPanelProductCatalogueApp = "/cp/product-catalogue-app";
+    /// <summary>CP platform governance rules (description/config_json omitted).</summary>
+    public const string ControlPanelPlatformGovernance = "/cp/platform-governance";
+    /// <summary>CP platform governance Blazor list (JSON digest remains <see cref="ControlPanelPlatformGovernance"/>).</summary>
+    public const string ControlPanelPlatformGovernanceApp = "/cp/platform-governance-app";
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>
@@ -254,6 +266,10 @@ public static class EcomAeRoutes
     public const string ErpWorkspaceFavorites = "/erp/workspace-favorites";
     /// <summary>ERP workspace favorites Blazor list (JSON digest remains <see cref="ErpWorkspaceFavorites"/>).</summary>
     public const string ErpWorkspaceFavoritesApp = "/erp/workspace-favorites-app";
+    /// <summary>ERP fixed assets register (note omitted).</summary>
+    public const string ErpFixedAssets = "/erp/fixed-assets";
+    /// <summary>ERP fixed assets Blazor list (JSON digest remains <see cref="ErpFixedAssets"/>).</summary>
+    public const string ErpFixedAssetsApp = "/erp/fixed-assets-app";
     public const string Bos = "/bos";
     public const string BosApp = "/bos/app";
     public const string BosParity = "/bos/parity";

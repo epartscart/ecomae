@@ -292,6 +292,14 @@ check_file "erp sales-quotations item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/erp-sales-quotations-item-field-floor.json"
 check_file "erp workspace-favorites item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/erp-workspace-favorites-item-field-floor.json"
+check_file "erp fixed-assets item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/erp-fixed-assets-item-field-floor.json"
+check_file "cp page-builder item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-page-builder-item-field-floor.json"
+check_file "cp product-catalogue item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-product-catalogue-item-field-floor.json"
+check_file "cp platform-governance item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-platform-governance-item-field-floor.json"
 check_file "cp auto-price item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-auto-price-item-field-floor.json"
 check_file "cp uae-tax-compliance item-field floor evidence" \

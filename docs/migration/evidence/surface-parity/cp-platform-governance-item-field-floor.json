@@ -1,0 +1,30 @@
+{
+  "role": "cp-platform-governance-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-platform-governance",
+  "collectionKey": "rules",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "ruleCount",
+    "activeCount",
+    "requiredCount",
+    "categoryCount",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "ruleKey",
+    "category",
+    "title",
+    "enforcement",
+    "scope",
+    "moduleLink",
+    "active",
+    "timeUpdated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks platform-governance digest summary+rules[] floors. description/config_json omitted. PHP epc_platform_governance remains authoritative. cutoverAllowed=false."
+}
