@@ -115,6 +115,7 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_probe_marketing_app_shadows.sh" \
   "$ROOT/scripts/cloudpanel_probe_ecomae_marketing_php_chrome.sh" \
   "$ROOT/scripts/estimate_presentation_scaffold_bytes.py" \
+  "$ROOT/scripts/validate_presentation_scaffold_bytes.py" \
   "$ROOT/scripts/validate_login_chrome_body_parity.py" \
   "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" \
   "$ROOT/scripts/cloudpanel_validate_final_gate_env.sh" \
