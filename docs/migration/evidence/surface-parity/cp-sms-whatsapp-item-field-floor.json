@@ -1,0 +1,27 @@
+{
+  "role": "cp-sms-whatsapp-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-sms-whatsapp",
+  "collectionKey": "operators",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "smsOperators",
+    "activeOperator",
+    "whatsappSent",
+    "whatsappFailed",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "name",
+    "handler",
+    "description",
+    "active",
+    "controlAvailable"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks SMS/WhatsApp digest summary+operators[] floors. whatsappLogs[] also carries id, createdAt, notifyName, phoneMasked, status, messagePreview. Routing remains PHP sms_turning. cutoverAllowed=false."
+}

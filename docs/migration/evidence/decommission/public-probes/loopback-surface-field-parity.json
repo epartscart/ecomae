@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 62,
+  "contractCount": 66,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -515,6 +515,139 @@
         "Demo tenants registry",
         "passwords never returned",
         "provision remains PHP"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/parts-agent-chats",
+      "legacyPhpAuthority": "cp/content/shop/parts_agent/parts_agent_chats.php",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "sessions",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "totalSessions",
+        "sessionsToday",
+        "messagesToday",
+        "loggedInSessions",
+        "guestSessions",
+        "enabled",
+        "agentName",
+        "domain",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "AI Parts Agent sessions metadata",
+        "system_prompt/client_ip omitted",
+        "chat UX remains PHP"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/pos-overview",
+      "legacyPhpAuthority": "cp/content/shop/pos/epc_pos_terminal.php",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "sales",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "posEnabled",
+        "registerName",
+        "openSessions",
+        "salesToday",
+        "salesTotalToday",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "POS overview + recent sales",
+        "terminal writes remain PHP"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/tax-toolkits",
+      "legacyPhpAuthority": "cp/content/control/portal/epc_tax_toolkit_manage.php",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "toolkits",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "toolkitCount",
+        "installCount",
+        "tenantCountry",
+        "tenantKitCode",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Tax toolkit catalog + tenant kit",
+        "rules_json/reg_number omitted",
+        "install remains PHP"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/sms-whatsapp",
+      "legacyPhpAuthority": "cp/content/control/sms_turning.php",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "operators",
+        "whatsappLog",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "smsOperators",
+        "activeOperator",
+        "whatsappSent",
+        "whatsappFailed",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "SMS operators + WhatsApp log",
+        "parameters_values/tokens/raw phone omitted",
+        "configure/send remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -2178,6 +2311,34 @@
       "aspNetRoute": "/cp/demo-tenants-app",
       "status": "digest-wired-awaiting-dual-sample",
       "note": "Read UI over /cp/demo-tenants; PHP epc_demo_tenants_manage remains authoritative."
+    },
+    {
+      "surface": "cp",
+      "label": "parts-agent-chats Blazor list",
+      "aspNetRoute": "/cp/parts-agent-chats-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "note": "Read UI over /cp/parts-agent-chats; PHP parts_agent remains authoritative."
+    },
+    {
+      "surface": "cp",
+      "label": "pos-overview Blazor list",
+      "aspNetRoute": "/cp/pos-overview-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "note": "Read UI over /cp/pos-overview; PHP POS terminal remains authoritative."
+    },
+    {
+      "surface": "cp",
+      "label": "tax-toolkits Blazor list",
+      "aspNetRoute": "/cp/tax-toolkits-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "note": "Read UI over /cp/tax-toolkits; PHP epc_tax_toolkit_manage remains authoritative."
+    },
+    {
+      "surface": "cp",
+      "label": "sms-whatsapp Blazor list",
+      "aspNetRoute": "/cp/sms-whatsapp-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "note": "Read UI over /cp/sms-whatsapp; PHP sms_turning/whatsapp_guide remain authoritative."
     },
     {
       "surface": "cp",

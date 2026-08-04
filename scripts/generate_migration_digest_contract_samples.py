@@ -443,6 +443,143 @@ def main() -> None:
                 }
             ],
         ),
+
+        "cp-parts-agent-chats.json": {
+            **summary(
+                "cp",
+                {
+                    "totalSessions": 2,
+                    "sessionsToday": 1,
+                    "messagesToday": 3,
+                    "loggedInSessions": 1,
+                    "guestSessions": 1,
+                    "enabled": True,
+                    "agentName": "Parts Expert",
+                    "domain": "auto",
+                },
+            ),
+            "sessions": [
+                {
+                    "sessionId": "sess-migration-1",
+                    "updatedAt": 0,
+                    "messageCount": 2,
+                    "countryCode": "AE",
+                    "countryName": "United Arab Emirates",
+                    "userId": 1,
+                    "ipHash": "abc",
+                    "lastUserText": "brake pads",
+                    "lastAgentText": "Here are options",
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": "migration-mode contract sample; sessions[] sentinel; PHP parts_agent remains authoritative; cutoverAllowed=false",
+        },
+        "cp-pos-overview.json": {
+            **summary(
+                "cp",
+                {
+                    "posEnabled": True,
+                    "registerName": "Register 1",
+                    "openSessions": 1,
+                    "salesToday": 1,
+                    "salesTotalToday": 10.5,
+                },
+            ),
+            "sales": [
+                {
+                    "id": 1,
+                    "saleNo": "POS-1",
+                    "sessionId": 1,
+                    "customerLabel": "Walk-in guest",
+                    "subtotalEx": 10.0,
+                    "vatAmount": 0.5,
+                    "totalAmount": 10.5,
+                    "paymentMethod": "cash",
+                    "taxKitCode": "ae_vat",
+                    "status": "completed",
+                    "timeCreated": 0,
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": "migration-mode contract sample; sales[] sentinel; PHP POS remains authoritative; cutoverAllowed=false",
+        },
+        "cp-tax-toolkits.json": {
+            **summary(
+                "cp",
+                {
+                    "toolkitCount": 1,
+                    "installCount": 1,
+                    "tenantCountry": "AE",
+                    "tenantKitCode": "ae_vat",
+                },
+            ),
+            "toolkits": [
+                {
+                    "id": 1,
+                    "kitCode": "ae_vat",
+                    "name": "UAE VAT",
+                    "jurisdiction": "AE",
+                    "taxType": "vat",
+                    "isSystem": True,
+                    "active": True,
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": "migration-mode contract sample; toolkits[] sentinel; PHP tax toolkit remains authoritative; cutoverAllowed=false",
+        },
+        "cp-sms-whatsapp.json": {
+            **summary(
+                "cp",
+                {
+                    "smsOperators": 1,
+                    "activeOperator": "sms_ru",
+                    "whatsappSent": 1,
+                    "whatsappFailed": 0,
+                },
+            ),
+            "operators": [
+                {
+                    "id": 1,
+                    "name": "sms.ru",
+                    "handler": "sms_ru",
+                    "description": "migration golden",
+                    "active": True,
+                    "controlAvailable": True,
+                }
+            ],
+            "whatsappLog": [
+                {
+                    "id": 1,
+                    "createdAt": 0,
+                    "notifyName": "order_status",
+                    "phoneMasked": "****1234",
+                    "status": 1,
+                    "messagePreview": "Order update",
+                }
+            ],
+            "count": 1,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": "migration-mode contract sample; operators[] sentinel; PHP sms/whatsapp remains authoritative; cutoverAllowed=false",
+        },
         "cp-config-items.json": list_digest(
             "cp",
             "items",

@@ -534,6 +534,119 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelPartsAgentChats, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for parts-agent-chats digest.");
+            }
+
+            var result = await dashboards.BuildCpPartsAgentDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                sessions = result.Sessions,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_parts_agent_* metadata (system_prompt/client_ip omitted). Chat UX remains PHP parts_agent."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelPosOverview, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for pos-overview digest.");
+            }
+
+            var result = await dashboards.BuildCpPosOverviewDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                sales = result.Sales,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_pos_settings + epc_pos_sales. Terminal sales writes remain PHP epc_pos_terminal."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelTaxToolkits, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for tax-toolkits digest.");
+            }
+
+            var result = await dashboards.BuildCpTaxToolkitsDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                toolkits = result.Toolkits,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_tax_toolkits metadata (rules_json/reg_number omitted). Install/configure remains PHP epc_tax_toolkit_manage."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelSmsWhatsapp, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for sms-whatsapp digest.");
+            }
+
+            var result = await dashboards.BuildCpSmsWhatsappDigestAsync(limit ?? 50, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                operators = result.Operators,
+                whatsappLog = result.WhatsappLog,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only sms_api + epc_whatsapp_notify_log (parameters_values/tokens/raw phone omitted). Configure/send remains PHP."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ControlPanelAliases)
         {
             endpoints.MapGet(route, async (

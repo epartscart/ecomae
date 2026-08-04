@@ -68,6 +68,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "campaigns,emailsSent,whatsappSent,source,message",
     ),
+    "cp-parts-agent-chats": (
+        "summary",
+        "totalSessions,sessionsToday,messagesToday,loggedInSessions,guestSessions,enabled,agentName,domain,source,message",
+    ),
+    "cp-pos-overview": (
+        "summary",
+        "posEnabled,registerName,openSessions,salesToday,salesTotalToday,source,message",
+    ),
+    "cp-tax-toolkits": (
+        "summary",
+        "toolkitCount,installCount,tenantCountry,tenantKitCode,source,message",
+    ),
+    "cp-sms-whatsapp": (
+        "summary",
+        "smsOperators,activeOperator,whatsappSent,whatsappFailed,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -370,6 +386,59 @@ HYBRID_LIST_ITEM_FIELDS = {
             "sentFail",
             "status",
             "operatorId",
+        ],
+    ),
+    "cp-parts-agent-chats": (
+        "sessions",
+        [
+            "sessionId",
+            "updatedAt",
+            "messageCount",
+            "countryCode",
+            "countryName",
+            "userId",
+            "ipHash",
+            "lastUserText",
+            "lastAgentText",
+        ],
+    ),
+    "cp-pos-overview": (
+        "sales",
+        [
+            "id",
+            "saleNo",
+            "sessionId",
+            "customerLabel",
+            "subtotalEx",
+            "vatAmount",
+            "totalAmount",
+            "paymentMethod",
+            "taxKitCode",
+            "status",
+            "timeCreated",
+        ],
+    ),
+    "cp-tax-toolkits": (
+        "toolkits",
+        [
+            "id",
+            "kitCode",
+            "name",
+            "jurisdiction",
+            "taxType",
+            "isSystem",
+            "active",
+        ],
+    ),
+    "cp-sms-whatsapp": (
+        "operators",
+        [
+            "id",
+            "name",
+            "handler",
+            "description",
+            "active",
+            "controlAvailable",
         ],
     ),
     "cp-orders-digest": (

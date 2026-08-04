@@ -312,6 +312,58 @@
       "phpAuthoritative": true,
       "wwwPreviewOnly": true,
       "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-parts-agent-chats",
+      "surface": "cp",
+      "appRoute": "/cp/parts-agent-chats-app",
+      "digestRoute": "/cp/parts-agent-chats",
+      "phpAuthoritativePath": "/CP/shop/parts_agent/parts_agent_chats",
+      "blazorMarker": "CpPartsAgentChatsApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-pos-overview",
+      "surface": "cp",
+      "appRoute": "/cp/pos-overview-app",
+      "digestRoute": "/cp/pos-overview",
+      "phpAuthoritativePath": "/CP/control/shop/pos",
+      "blazorMarker": "CpPosOverviewApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-tax-toolkits",
+      "surface": "cp",
+      "appRoute": "/cp/tax-toolkits-app",
+      "digestRoute": "/cp/tax-toolkits",
+      "phpAuthoritativePath": "/CP/control/portal/epc_tax_toolkit_manage",
+      "blazorMarker": "CpTaxToolkitsApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
+    },
+    {
+      "stem": "cp-sms-whatsapp",
+      "surface": "cp",
+      "appRoute": "/cp/sms-whatsapp-app",
+      "digestRoute": "/cp/sms-whatsapp",
+      "phpAuthoritativePath": "/CP/control/sms_turning",
+      "blazorMarker": "CpSmsWhatsappApp",
+      "chromeShell": "PhpCpDesktopChrome",
+      "authKind": "admin",
+      "phpAuthoritative": true,
+      "wwwPreviewOnly": true,
+      "tenantChromePhp": true
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."

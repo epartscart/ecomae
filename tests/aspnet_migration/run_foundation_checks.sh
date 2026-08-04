@@ -487,7 +487,7 @@ check 'module-function coverage consistency matches 725' contains "$ROOT/docs/mi
 check 'module-function coverage consistency blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"cutoverAllowed": false'
 check 'surface-field operator rebuilds php catalog coverage board' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'build_surface_field_catalog_coverage_board.py'
 check 'surface-field operator floors contracts at 54' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'expected >=54'
-check 'surface-field board contractCount is 62' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 62'
+check 'surface-field board contractCount is 66' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 66'
 check 'surface-field board includes orders-digest' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"/cp/orders-digest"'
 check 'PhpModuleCatalog rejects aspnet preview deeplinks' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'IsAllowedPhpDeeplink'
 check 'surface-digest exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json"
@@ -690,8 +690,8 @@ check 'surface digest batch installer exists' test -x "$ROOT/scripts/cloudpanel_
 check 'surface digest batch probe exists' test -x "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh"
 check 'surface digest batch installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'ECOMAE_CONFIRM_INSTALL_SURFACE_DIGEST_SHADOWS'
 check 'surface digest batch installer refuses broad paths' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'refusing broad path'
-check 'surface digest batch installer expects 30 routes' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'expected 36 digest locations'
-check 'surface digest batch probe expects PASS=30' contains "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh" 'expected 36 digest routes'
+check 'surface digest batch installer expects 30 routes' contains "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh" 'expected 40 digest locations'
+check 'surface digest batch probe expects PASS=30' contains "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh" 'expected 40 digest routes'
 check 'deploy packs surface digest batch installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_surface_digest_shadows.sh'
 check 'deploy packs surface digest batch probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_surface_digest_shadows.sh'
 check 'storefront digest batch installer exists' test -x "$ROOT/scripts/cloudpanel_install_storefront_digest_shadows.sh"
@@ -1030,7 +1030,7 @@ check 'pre-PHP-removal verdict skips nested heavy area suite' contains "$ROOT/sc
 check 'area tests honor ECOMAE_AREA_SKIP_HEAVY' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'ECOMAE_AREA_SKIP_HEAVY'
 check 'area tests validate attached staging smoke' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'attached-staging-smoke'
 check 'area tests require live surface digests from example' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'nginx-surface-digests-shadow-example.conf'
-check 'area tests require 30 digest inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'expected 36 digest routes'
+check 'area tests require 30 digest inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'expected 40 digest routes'
 check 'live surface links mark CP dashboard digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP dashboard digest"'
 check 'live surface links mark CP tenants digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP tenants digest"'
 check 'live surface links mark CP users digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP users digest"'
@@ -1038,7 +1038,7 @@ check 'live surface links mark CP groups digest shadow live' contains "$ROOT/asp
 check 'live surface links mark CP modules digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "CP modules digest"'
 check 'live surface links mark ERP dashboard digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "ERP dashboard digest"'
 check 'live surface links mark BOS audit-log digest shadow live' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs" 'aspnet-exact-route-shadow-live", "BOS audit-log digest"'
-check 'progress status reports surface digests 36/36' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" '30 / 30'
+check 'progress status reports surface digests 40/40' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" '30 / 30'
 check 'progress json reports surfaceDigestExactRoutesLive 30' contains "$ROOT/docs/migration/inventory/zero-php-progress-status.json" '"surfaceDigestExactRoutesLive": 36'
 check 'exact-route installer retries CDN-cached PHP HTML' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'cache-bust'
 check 'exact-route installer soft-OK when loopback ASP.NET' contains "$ROOT/scripts/cloudpanel_install_exact_route_shadow.sh" 'treating as soft-OK'
@@ -1163,7 +1163,7 @@ check 'public decommission probes attached' test -f "$ROOT/docs/migration/eviden
 check 'public decommission readiness probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json"
 check 'surface field parity public probe attached' test -f "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json"
 check 'surface field parity probe tracks catalog vin contract' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '/api/v1/catalog/vin'
-check 'surface field parity probe contractCount is current' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"contractCount": 62'
+check 'surface field parity probe contractCount is current' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"contractCount": 66'
 check 'surface field parity probe includes orders-digest' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-surface-field-parity.json" '"/cp/orders-digest"'
 check 'live surface links probe includes field parity route' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/migration/surface-field-parity'
 check 'live surface links probe includes catalog brand-parts' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '/api/v1/catalog/brand-parts'

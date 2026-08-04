@@ -170,6 +170,55 @@ public sealed class SurfaceDigestContractValidatorTests
                 note = "contract validation"
             },
             ["/cp/demo-tenants"] = Envelope("cp", "tenants", await reporter.ListCpDemoTenantsAsync(10), session),
+            ["/cp/parts-agent-chats"] = new
+            {
+                ok = true,
+                surface = "cp",
+                summary = (await reporter.BuildCpPartsAgentDigestAsync(10)).Summary,
+                sessions = (await reporter.BuildCpPartsAgentDigestAsync(10)).Sessions,
+                count = 0,
+                source = "migration",
+                message = "x",
+                session,
+                note = "contract validation"
+            },
+            ["/cp/pos-overview"] = new
+            {
+                ok = true,
+                surface = "cp",
+                summary = (await reporter.BuildCpPosOverviewDigestAsync(10)).Summary,
+                sales = (await reporter.BuildCpPosOverviewDigestAsync(10)).Sales,
+                count = 0,
+                source = "migration",
+                message = "x",
+                session,
+                note = "contract validation"
+            },
+            ["/cp/tax-toolkits"] = new
+            {
+                ok = true,
+                surface = "cp",
+                summary = (await reporter.BuildCpTaxToolkitsDigestAsync(10)).Summary,
+                toolkits = (await reporter.BuildCpTaxToolkitsDigestAsync(10)).Toolkits,
+                count = 0,
+                source = "migration",
+                message = "x",
+                session,
+                note = "contract validation"
+            },
+            ["/cp/sms-whatsapp"] = new
+            {
+                ok = true,
+                surface = "cp",
+                summary = (await reporter.BuildCpSmsWhatsappDigestAsync(10)).Summary,
+                operators = (await reporter.BuildCpSmsWhatsappDigestAsync(10)).Operators,
+                whatsappLog = (await reporter.BuildCpSmsWhatsappDigestAsync(10)).WhatsappLog,
+                count = 0,
+                source = "migration",
+                message = "x",
+                session,
+                note = "contract validation"
+            },
             ["/cp/config-items"] = Envelope("cp", "items", await reporter.ListCpConfigItemsMetaAsync(10), session),
             ["/cp/admin-sessions"] = Envelope("cp", "sessions", await reporter.ListCpAdminSessionsAsync(10), session),
             ["/cp/storages"] = Envelope("cp", "storages", await reporter.ListCpStoragesAsync(10), session),

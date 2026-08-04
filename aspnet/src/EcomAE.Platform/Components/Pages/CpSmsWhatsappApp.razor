@@ -1,0 +1,176 @@
+@page "/cp/sms-whatsapp-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>SMS &amp; WhatsApp · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-sms-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#065f46 0%,#047857 50%,#059669 100%);
+        }
+        .epc-sms-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-sms-hero p { margin:0; color:#a7f3d0; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-sms-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-sms-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#065f46; background:#6ee7b7;
+        }
+        .epc-sms-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-sms-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-sms-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-sms-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-sms-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-sms-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; margin-bottom:1rem; }
+        .epc-sms-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-sms-table th, .epc-sms-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-sms-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-sms-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfdf5; border:1px solid #6ee7b7; border-radius:.45rem; color:#047857; font-size:.86rem; }
+        .epc-sms-section { margin:.5rem 0 .35rem; font-size:.9rem; font-weight:700; color:#334155; }
+        @@media (max-width:900px){ .epc-sms-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-sms-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>SMS &amp; WhatsApp</h1>
+        <p>Read-only SMS operators + WhatsApp delivery log from <code>/cp/sms-whatsapp</code>. Routing and send stays on live PHP.</p>
+        <div class="epc-sms-cta">
+            <a href="@_phpSmsTab">Open PHP SMS routing</a>
+            <a class="ghost" href="@_phpWhatsappTab">WhatsApp guide</a>
+            <a class="ghost" href="@PhpModuleCatalog.HybridWorkspaceHref("/cp/app", _phpSmsTab)">Hybrid workspace</a>
+            <a class="ghost" href="/cp/marketing-broadcast-app">Marketing broadcast</a>
+            <a class="ghost" href="/cp/app">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-sms-kpis" aria-label="SMS and WhatsApp stats">
+        <div class="epc-sms-kpi"><strong>@_summary.SmsOperators.ToString(CultureInfo.InvariantCulture)</strong><span>SMS operators · active: @(string.IsNullOrWhiteSpace(_summary.ActiveOperator) ? "—" : _summary.ActiveOperator)</span></div>
+        <div class="epc-sms-kpi"><strong>@_summary.WhatsappSent.ToString(CultureInfo.InvariantCulture)</strong><span>WhatsApp sent (ok)</span></div>
+        <div class="epc-sms-kpi"><strong>@_summary.WhatsappFailed.ToString(CultureInfo.InvariantCulture)</strong><span>WhatsApp failed</span></div>
+    </div>
+
+    <p class="epc-sms-section">SMS operators</p>
+    <div class="epc-sms-table-wrap">
+        <table class="epc-sms-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Handler</th>
+                    <th>Description</th>
+                    <th>Active</th>
+                    <th>Control</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_operators.Count == 0)
+                {
+                    <tr><td colspan="7">No SMS operators in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var o in _operators)
+                    {
+                        <tr>
+                            <td><strong>@o.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(o.Name) ? "—" : o.Name)</td>
+                            <td>@(string.IsNullOrWhiteSpace(o.Handler) ? "—" : o.Handler)</td>
+                            <td>@(string.IsNullOrWhiteSpace(o.Description) ? "—" : o.Description)</td>
+                            <td>@(o.Active ? "yes" : "no")</td>
+                            <td>@(o.ControlAvailable ? "yes" : "no")</td>
+                            <td><a href="@_phpSmsTab">Open in PHP</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <p class="epc-sms-section">WhatsApp delivery log</p>
+    <div class="epc-sms-table-wrap">
+        <table class="epc-sms-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Created</th>
+                    <th>Notify</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Preview</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_whatsappLogs.Count == 0)
+                {
+                    <tr><td colspan="7">No WhatsApp log rows in digest (@_source). @_message</td></tr>
+                }
+                else
+                {
+                    @foreach (var w in _whatsappLogs)
+                    {
+                        <tr>
+                            <td><strong>@w.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(w.CreatedAt > 0 ? w.CreatedAt.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@(string.IsNullOrWhiteSpace(w.NotifyName) ? "—" : w.NotifyName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(w.PhoneMasked) ? "—" : w.PhoneMasked)</td>
+                            <td>@(w.Status == 1 ? "sent" : w.Status.ToString(CultureInfo.InvariantCulture))</td>
+                            <td>@(string.IsNullOrWhiteSpace(w.MessagePreview) ? "—" : w.MessagePreview)</td>
+                            <td><a href="@_phpWhatsappTab">Open guide</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-sms-note">
+        Read-only preview · JSON digest <a href="/cp/sms-whatsapp?limit=50">/cp/sms-whatsapp</a>.
+        PHP <code>sms_turning</code> remains authoritative for SMS routing.
+        WhatsApp setup remains PHP <code>whatsapp_guide</code>.
+        Not a broad /cp cutover · tenant product chrome stays PHP.
+        Source: <code>@_source</code>.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpSmsTab = "/CP/control/sms_turning";
+    private const string _phpWhatsappTab = "/CP/shop/order_process/whatsapp_guide";
+    private bool _isAdmin;
+    private CpSmsWhatsappSummary _summary = new(0, "", 0, 0, "n/a", "");
+    private IReadOnlyList<CpSmsOperatorDigest> _operators = [];
+    private IReadOnlyList<CpWhatsappLogDigest> _whatsappLogs = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            Nav.NavigateTo("/cp/login", forceLoad: true);
+            return;
+        }
+
+        _isAdmin = true;
+        var result = await Dashboards.BuildCpSmsWhatsappDigestAsync(50, ctx.RequestAborted);
+        _summary = result.Summary;
+        _operators = result.Operators;
+        _whatsappLogs = result.WhatsappLog;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

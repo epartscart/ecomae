@@ -1,9 +1,9 @@
 {
-  "pairsChecked": 49,
+  "pairsChecked": 57,
   "failed": 0,
   "migrationBaselinePairs": 0,
-  "contractsRegistered": 43,
-  "stemsChecked": 43,
+  "contractsRegistered": 47,
+  "stemsChecked": 47,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "contractOnly": true,
@@ -72,7 +72,11 @@
     "cp-marketing-broadcast",
     "cp-metabase",
     "cp-orders-digest",
+    "cp-parts-agent-chats",
+    "cp-pos-overview",
     "cp-power-bi",
+    "cp-sms-whatsapp",
+    "cp-tax-toolkits",
     "storefront-cart"
   ],
   "note": "Digest dual-sample contract floor. All list digests require non-empty migration item-field sentinels; hybrid summary digests also lock cp-orders-digest orders[] and bos-fleet-health sampleTenants[]. Never invents RELEASE_OWNER_APPROVAL.md."

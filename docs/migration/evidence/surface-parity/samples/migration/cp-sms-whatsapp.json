@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "smsOperators": 1,
+    "activeOperator": "sms_ru",
+    "whatsappSent": 1,
+    "whatsappFailed": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode contract sample; operators[] sentinel; PHP sms/whatsapp remains authoritative; cutoverAllowed=false",
+  "operators": [
+    {
+      "id": 1,
+      "name": "sms.ru",
+      "handler": "sms_ru",
+      "description": "migration golden",
+      "active": true,
+      "controlAvailable": true
+    }
+  ],
+  "whatsappLog": [
+    {
+      "id": 1,
+      "createdAt": 0,
+      "notifyName": "order_status",
+      "phoneMasked": "****1234",
+      "status": 1,
+      "messagePreview": "Order update"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

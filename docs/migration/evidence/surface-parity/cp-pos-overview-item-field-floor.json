@@ -1,0 +1,33 @@
+{
+  "role": "cp-pos-overview-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "cp-pos-overview",
+  "collectionKey": "sales",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "posEnabled",
+    "registerName",
+    "openSessions",
+    "salesToday",
+    "salesTotalToday",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "saleNo",
+    "sessionId",
+    "customerLabel",
+    "subtotalEx",
+    "vatAmount",
+    "totalAmount",
+    "paymentMethod",
+    "taxKitCode",
+    "status",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks POS overview digest summary+sales[] floors. Register/checkout remains PHP shop/pos. cutoverAllowed=false."
+}

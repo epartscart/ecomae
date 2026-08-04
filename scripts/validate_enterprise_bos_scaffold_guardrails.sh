@@ -240,6 +240,14 @@ check_file "cp marketing-broadcast item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-marketing-broadcast-item-field-floor.json"
 check_file "cp demo-tenants item-field floor evidence" \
   "$ROOT/docs/migration/evidence/surface-parity/cp-demo-tenants-item-field-floor.json"
+check_file "cp parts-agent item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-parts-agent-item-field-floor.json"
+check_file "cp pos-overview item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-pos-overview-item-field-floor.json"
+check_file "cp tax-toolkits item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-tax-toolkits-item-field-floor.json"
+check_file "cp sms-whatsapp item-field floor evidence" \
+  "$ROOT/docs/migration/evidence/surface-parity/cp-sms-whatsapp-item-field-floor.json"
 check_file "feature family coverage board builder" \
   "$ROOT/scripts/build_feature_family_coverage_board.py"
 check_file "feature family coverage board evidence" \

@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "posEnabled": true,
+    "registerName": "Register 1",
+    "openSessions": 1,
+    "salesToday": 1,
+    "salesTotalToday": 10.5,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode contract sample; sales[] sentinel; PHP POS remains authoritative; cutoverAllowed=false",
+  "sales": [
+    {
+      "id": 1,
+      "saleNo": "POS-1",
+      "sessionId": 1,
+      "customerLabel": "Walk-in guest",
+      "subtotalEx": 10.0,
+      "vatAmount": 0.5,
+      "totalAmount": 10.5,
+      "paymentMethod": "cash",
+      "taxKitCode": "ae_vat",
+      "status": "completed",
+      "timeCreated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}
