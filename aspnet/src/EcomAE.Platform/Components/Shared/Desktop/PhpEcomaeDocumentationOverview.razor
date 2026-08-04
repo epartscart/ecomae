@@ -1,0 +1,45 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of PHP /documentation hub — overview + CTA.
+  Per-topic articles remain PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-documentation-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1e3a5f 0%,#0f172a 45%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-book"></i> Documentation</div>
+			<h1>ECOM AE operator &amp; platform docs</h1>
+			<p class="lead">Guides for Super CP, Client CP, storefront, ERP, and Blockchain BOS — the full article tree remains on live PHP until dual-sample.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/platform-guides">Super CP guides</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/documentation?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "documentation"))">Open full PHP docs (hybrid)</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/api-documentation">Tenant ERP API</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-cogs"></i>
+			<strong>Operator guides</strong>
+			<p>Day-to-day Super CP and Client CP workflows.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-plug"></i>
+			<strong>API references</strong>
+			<p>Catalog/Price and tenant ERP API entry points.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-link"></i>
+			<strong>BOS &amp; proof</strong>
+			<p>Blockchain BOS knowledge links into the marketing hub.</p>
+		</div>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET documentation overview scaffold — dual-sample against live PHP <code>/documentation</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

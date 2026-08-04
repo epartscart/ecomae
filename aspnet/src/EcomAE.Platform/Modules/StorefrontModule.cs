@@ -432,6 +432,32 @@ public sealed class StorefrontModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.StorefrontQuoteAddItem, async (
+            HttpContext context,
+            StorefrontQuoteAddItemBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontQuoteAddItemDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for quote add-item dry-run.");
+            }
+
+            body ??= new StorefrontQuoteAddItemBody(2, null, null, 1, false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontQuoteAddItemRequest(
+                    body.ProductType,
+                    body.Manufacturer,
+                    body.Article,
+                    body.CountNeed,
+                    body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapPost(EcomAeRoutes.StorefrontGarageSetActive, async (
             HttpContext context,
             StorefrontGarageSetActiveBody? body,
@@ -449,6 +475,27 @@ public sealed class StorefrontModule : ISurfaceModule
             var result = await dryRun.EvaluateAsync(
                 session.UserId,
                 new StorefrontGarageSetActiveRequest(body.CarId, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontGarageDelete, async (
+            HttpContext context,
+            StorefrontGarageDeleteBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontGarageDeleteDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for garage delete dry-run.");
+            }
+
+            body ??= new StorefrontGarageDeleteBody(0, false);
+            var result = await dryRun.EvaluateAsync(
+                session.UserId,
+                new StorefrontGarageDeleteRequest(body.CarId, body.ConfirmWrites),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
@@ -497,7 +544,14 @@ public sealed class StorefrontModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record StorefrontQuoteSubmitBody(long QuoteId, string? CustomerNote = null, bool ConfirmWrites = false);
     private sealed record StorefrontQuoteAcceptBody(long QuoteId, bool ConfirmWrites = false);
+    private sealed record StorefrontQuoteAddItemBody(
+        int ProductType,
+        string? Manufacturer,
+        string? Article,
+        int CountNeed = 1,
+        bool ConfirmWrites = false);
     private sealed record StorefrontGarageSetActiveBody(long CarId, bool ConfirmWrites = false);
+    private sealed record StorefrontGarageDeleteBody(long CarId, bool ConfirmWrites = false);
     private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
 
     private static IResult Unauthorized(string message) => Results.Json(
