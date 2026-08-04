@@ -1,0 +1,50 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_legal() — hub overview.
+  Per-policy articles remain PHP deeplink until dual-sample.
+*@
+
+<div class="epm-wrap" id="ehm-legal-overview">
+	<div class="epm-hero">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1e293b 0%,#334155 45%,#0a0a0a 100%)"></div>
+		<div class="epm-hero__content">
+			<div class="epm-badge"><i class="fa fa-gavel"></i> Legal policies</div>
+			<h1>Legal &amp; trust for ECOM AE</h1>
+			<p class="lead">Transparent policies for the Blockchain BOS Enterprise System — privacy, terms, security, and acceptable use. Full policy text remains on live PHP until dual-sample.</p>
+			<div class="epm-cta">
+				<a class="epm-btn epm-btn--primary" href="/marketing/contact">Contact legal / sales</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/legal?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "legal"))">Open full PHP legal hub (hybrid)</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="epm-model-cards">
+		<div class="epm-model-card">
+			<i class="fa fa-shield"></i>
+			<strong>Privacy &amp; data</strong>
+			<p>How we handle tenant and buyer data across the hosted platform.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-file-text-o"></i>
+			<strong>Terms &amp; use</strong>
+			<p>Commercial terms, acceptable use, and right-to-use notices.</p>
+		</div>
+		<div class="epm-model-card">
+			<i class="fa fa-lock"></i>
+			<strong>Security</strong>
+			<p>Security policy and related operator trust pages stay on PHP.</p>
+		</div>
+	</div>
+
+	<div class="epm-highlight">
+		<h3>Policy catalog</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">Individual policy articles remain on live PHP <code>/legal/*</code> until dual-sample.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/legal?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "legal"))">Open legal catalog</a>
+	</div>
+
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET legal overview scaffold — dual-sample against live PHP <code>/legal</code> before exact-route cutover.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>

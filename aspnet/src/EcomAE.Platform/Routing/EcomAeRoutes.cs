@@ -434,6 +434,8 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsSetCourier = "/cp/orders/set-courier";
     /// <summary>Wave B dry-run OMS delete orders (PHP ajax_delete_orders.php remains authoritative).</summary>
     public const string ControlPanelOmsDeleteOrders = "/cp/orders/delete";
+    /// <summary>Wave B dry-run OMS add comment to log (PHP ajax_add_comment_to_log.php remains authoritative).</summary>
+    public const string ControlPanelOmsAddComment = "/cp/orders/add-comment";
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
     /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>
@@ -593,6 +595,8 @@ public static class EcomAeRoutes
     public const string StorefrontQuoteAccept = "/storefront/quotes/accept";
     /// <summary>Wave B dry-run garage set-active (PHP ajax_operations_cars.php action=active_car remains authoritative).</summary>
     public const string StorefrontGarageSetActive = "/storefront/garage/set-active";
+    /// <summary>Wave B dry-run customer order message (PHP ajax_send_message.php customer path remains authoritative).</summary>
+    public const string StorefrontOrderSendMessage = "/storefront/orders/send-message";
     /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
     public const string MarketingPlatformApp = "/marketing/platform";
     /// <summary>Marketing about Blazor scaffold (PHP /platform/about remains primary until dual-sample).</summary>
@@ -627,6 +631,8 @@ public static class EcomAeRoutes
     public const string MarketingCompareApp = "/marketing/compare";
     /// <summary>Marketing brochure Blazor scaffold (PHP /brochure remains primary until dual-sample).</summary>
     public const string MarketingBrochureApp = "/marketing/brochure";
+    /// <summary>Marketing legal Blazor scaffold (PHP /legal remains primary until dual-sample).</summary>
+    public const string MarketingLegalApp = "/marketing/legal";
     public const string StorefrontAccount = "/storefront/account";
     public const string StorefrontAccountSummary = "/storefront/account-summary";
     /// <summary>Storefront account summary Blazor KPI UI (JSON digest remains <see cref="StorefrontAccountSummary"/>).</summary>
