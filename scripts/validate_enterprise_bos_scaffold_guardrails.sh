@@ -131,6 +131,8 @@ check_file "module-function parity compare helper" \
   "$ROOT/scripts/compare_module_function_parity.py"
 check_file "presentation recheck operator helper" \
   "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh"
+check_file "price-lookup dual-sample operator helper" \
+  "$ROOT/scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh"
 check_file "operator verify index" \
   "$ROOT/docs/migration/evidence/OPERATOR_VERIFY.md"
 check_file "YARP all-packs generator helper" \

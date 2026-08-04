@@ -176,6 +176,11 @@ check 'price lookup fixture CSV exists' test -f "$ROOT/tests/fixtures/price_look
 check 'price lookup parity script exists' test -x "$ROOT/scripts/compare_price_lookup_parity.py"
 check 'price lookup PHP baseline sample exists' test -f "$ROOT/docs/migration/evidence/price-lookup/php-baseline-sample.json"
 check 'price lookup ASP.NET output sample exists' test -f "$ROOT/docs/migration/evidence/price-lookup/aspnet-output-sample.json"
+check 'price lookup dual-sample operator exists' test -f "$ROOT/scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh"
+check 'price lookup dual-sample operator is executable' test -x "$ROOT/scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh"
+check 'price lookup dual-sample operator asserts cutover false' contains "$ROOT/scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh" 'cutoverAllowed'
+check 'price lookup OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/price-lookup/OPERATOR_VERIFY.md"
+check 'price lookup compare supports --out' contains "$ROOT/scripts/compare_price_lookup_parity.py" '--out'
 check 'price lookup evidence runbook names exact route' contains "$ROOT/docs/migration/evidence/price-lookup/README.md" '/api/v1/price/lookup'
 check 'price lookup evidence documents DB repository' contains "$ROOT/docs/migration/evidence/price-lookup/README.md" 'DbPriceOfferRepository'
 check 'price lookup smoke script exists' test -x "$ROOT/tests/live_smoke/run_price_lookup_exact_route_smoke.sh"
@@ -639,6 +644,7 @@ check 'deploy packs all dual-sample operators helper' contains "$ROOT/scripts/de
 check 'deploy packs module-function parity operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_module_function_parity_operator.sh'
 check 'deploy packs module-function parity compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_module_function_parity.py'
 check 'deploy packs presentation recheck operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_presentation_recheck_operator.sh'
+check 'deploy packs price-lookup dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_price_lookup_dual_sample_operator.sh'
 check 'deploy packs scaffold options example' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ecomae-scaffold-options.example.json'
 check 'deploy packs scaffold options validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_scaffold_options_example.py'
 check 'deploy packs enterprise BOS scaffold guardrails' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_enterprise_bos_scaffold_guardrails.sh'
