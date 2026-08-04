@@ -401,7 +401,7 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Batch 5 miss dual-sample: bash scripts/cloudpanel_capture_catalog_miss_dual_samples.sh && python3 scripts/compare_catalog_miss_dual_samples.py (PHP fill remains authoritative).",
                 "Batch 5 miss-fill dry-run: worker job catalog-miss-fill (sample_actions); outbound/writes blocked; see docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json.",
                 "If engine-search/article auth 403 action_not_allowed: re-issue smoke creds (allowlist now includes engine_search+article) via ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
-                "Wired catalog exact-routes complete (18/18). Surface digests: wired 127; live www probe ~35/127 (401 auth gate) until operator installs remaining exact-route digest shadows (waves ~9–23). Storefront digests: 4/6 live (wired 6; search/cart awaiting shadow; never broad /storefront).",
+                "Wired catalog exact-routes complete (18/18). Surface digests: wired 127; live www soft-probe ~30/127 PASS until operator runs cloudpanel_install_surface_digest_shadows.sh (installer/probe now lock 127, not stale 110). Storefront digests: 4/6 live (wired 6; search/cart awaiting shadow; never broad /storefront).",
                 "Presentation apps: wired ~144; live www probe ~19/144 (200). See docs/migration/evidence/presentation/www-live-exact-route-probe.json.",
                 "Human compare board: /migration/compare — Super CP + epartscart PHP vs www ASP.NET hybrid.",
                 "Storefront batch: ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh",

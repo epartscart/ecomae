@@ -1,6 +1,6 @@
 {
-  "pairsChecked": 118,
-  "hybridUiSamplesOk": 117,
+  "pairsChecked": 135,
+  "hybridUiSamplesOk": 134,
   "phpInventoryOk": true,
   "failed": 0,
   "cutoverAllowed": false,
@@ -53,6 +53,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "bos-tenants",
       "appRoute": "/bos/tenants-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-additional-texts-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-additional-texts",
+      "appRoute": "/cp/additional-texts-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -163,6 +173,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-collections-dunning",
       "appRoute": "/cp/collections-dunning-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-communications-test-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-communications-test",
+      "appRoute": "/cp/communications-test-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -329,6 +349,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-design-tokens-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-design-tokens",
+      "appRoute": "/cp/design-tokens-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-doc-expiry-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-doc-expiry",
@@ -369,6 +399,26 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-failover-status-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-failover-status",
+      "appRoute": "/cp/failover-status-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-file-manager-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-file-manager",
+      "appRoute": "/cp/file-manager-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-fin-advanced-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-fin-advanced",
@@ -393,6 +443,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-free-tools",
       "appRoute": "/cp/free-tools-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-geo-regions-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-geo-regions",
+      "appRoute": "/cp/geo-regions-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -529,6 +589,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-languages-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-languages",
+      "appRoute": "/cp/languages-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-marketing-broadcast-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-marketing-broadcast",
@@ -629,6 +699,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-ops-guides-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-ops-guides",
+      "appRoute": "/cp/ops-guides-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-orders-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-orders",
@@ -699,6 +779,16 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-plugins-manager-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-plugins-manager",
+      "appRoute": "/cp/plugins-manager-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-po-approvals-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-po-approvals",
@@ -753,6 +843,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-product-catalogue",
       "appRoute": "/cp/product-catalogue-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-product-filters-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-product-filters",
+      "appRoute": "/cp/product-filters-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],
@@ -819,6 +919,46 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-search-tabs-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-search-tabs",
+      "appRoute": "/cp/search-tabs-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-server-ip-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-server-ip",
+      "appRoute": "/cp/server-ip-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-sitemap-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-sitemap",
+      "appRoute": "/cp/sitemap-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-slider-banners-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-slider-banners",
+      "appRoute": "/cp/slider-banners-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-sms-whatsapp-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-sms-whatsapp",
@@ -849,6 +989,26 @@
       "warnings": []
     },
     {
+      "file": "aspnet-cp-structure-dumps-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-structure-dumps",
+      "appRoute": "/cp/structure-dumps-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-system-requests-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-system-requests",
+      "appRoute": "/cp/system-requests-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
       "file": "aspnet-cp-tax-external-reporting-hybrid-ui.json",
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-tax-external-reporting",
@@ -863,6 +1023,16 @@
       "role": "aspnet-hybrid-ui-sample",
       "stem": "cp-tax-toolkits",
       "appRoute": "/cp/tax-toolkits-app",
+      "httpStatus": null,
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "aspnet-cp-templates-manager-hybrid-ui.json",
+      "role": "aspnet-hybrid-ui-sample",
+      "stem": "cp-templates-manager",
+      "appRoute": "/cp/templates-manager-app",
       "httpStatus": null,
       "ok": true,
       "errors": [],

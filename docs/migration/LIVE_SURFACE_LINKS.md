@@ -91,10 +91,13 @@ These are industry marketing/showcase hosts (not dedicated client DB tenants).
 
 ## Exact-route shadows pending on www
 
-Most Wave ~9–23 digests/apps still **404** until CloudPanel:
+Most Wave ~9–23 digests/apps still **404** until CloudPanel. Soft probe after installer lock fix (127 routes): surface digests **~30 PASS / 97 FAIL** on www (FAIL = nginx shadow not installed yet).
+
+Installer/probe now lock **127** surface digest locations (was stale **110**, which blocked full Wave 9–23 install).
 
 ```bash
 ECOMAE_CONFIRM_INSTALL_SURFACE_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_surface_digest_shadows.sh
+bash scripts/cloudpanel_probe_surface_digest_shadows.sh   # expect 127× ASP.NET 401
 ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES bash scripts/cloudpanel_install_presentation_app_shadows.sh
 ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh
 ```
