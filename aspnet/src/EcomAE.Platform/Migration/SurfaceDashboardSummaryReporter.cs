@@ -43,6 +43,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     public async Task<ErpDashboardSummary> BuildErpAsync(CancellationToken cancellationToken = default)
     {
+        using var activity = EcomAeActivitySources.Surfaces.StartActivity("surface.erp.dashboard-summary");
+        activity?.SetTag("ecomae.surface", "erp");
+        activity?.SetTag("ecomae.digest", "/erp/dashboard-summary");
+
         if (!_connections.IsConfigured)
         {
             return new(0, 0, 0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
@@ -67,6 +71,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     public async Task<BosFleetSummary> BuildBosAsync(CancellationToken cancellationToken = default)
     {
+        using var activity = EcomAeActivitySources.Surfaces.StartActivity("surface.bos.fleet-summary");
+        activity?.SetTag("ecomae.surface", "bos");
+        activity?.SetTag("ecomae.digest", "/bos/fleet-summary");
+
         if (!_connections.IsConfigured)
         {
             return new(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
@@ -77,6 +85,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
             var list = await ReadTenantsAsync(connection, 500, cancellationToken).ConfigureAwait(false);
             var adminSessions = await ScalarIntAsync(connection, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            activity?.SetTag("ecomae.row_count", list.Count);
             return SummarizeFleet(list, adminSessions, "database", string.Empty);
         }
         catch (Exception ex)

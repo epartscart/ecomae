@@ -34,14 +34,14 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 | ASP.NET Core owns enterprise app | 🔶 migration in progress | Exact-route ASP.NET ownership; PHP temporary fallback |
 | No new non-.NET backends | ✅ | No Java/Node/Go introduced |
 | Python AI-only | 🔶 partial | Hybrid roadmap states AI-only; legacy `docs/PYTHON_MIGRATION.md` is superseded for business APIs |
-| EF Core 10 primary ORM | 🔶 package + bounded-context stubs | `Microsoft.EntityFrameworkCore` 10.0.0 referenced; Catalog/TenantRegistry/Identity stubs on `EcomAeScaffoldDbContext` (not registered in `Program.cs`); production still uses `MySqlConnector` ADO |
+| EF Core 10 primary ORM | 🔶 package + bounded-context stubs | `Microsoft.EntityFrameworkCore` 10.0.0 referenced; Catalog/TenantRegistry/Identity/ERP stubs on `EcomAeScaffoldDbContext` (not registered in `Program.cs`); production still uses `MySqlConnector` ADO |
 | PostgreSQL 17 primary SoR | ❌ not migrated | Legacy MySQL/MariaDB remains SoR during Zero-PHP; PG17 is target after parity |
-| Redis 8 | ❌ not wired | Documented in scaffolding notes; PHP cookies remain authoritative |
+| Redis 8 | 🔶 options scaffold | `EcomAeRedisScaffoldOptions` + `IDistributedCacheScaffold` unwired; PHP cookies remain authoritative (`ReplacePhpSessionCookies=false`) |
 | Kafka 4 (or RabbitMQ) | ❌ not wired | Event architecture planned; not claimed live |
 | OpenSearch 3 | ❌ not wired | Future search track |
 | Object storage (Blob/S3/MinIO) | ❌ not wired | Future file track |
-| YARP / Kong gateway | 🔶 design example | Nginx edge today; `deploy/aspnet/yarp-exact-routes-example.json` design-only (not loaded); never catch-all |
-| OpenTelemetry / Serilog | 🔶 scaffolding | `EcomAeActivitySources` names reserved (+ Data); Surfaces activity on cash-entries digest; exporters not registered |
+| YARP / Kong gateway | 🔶 design example | Nginx edge today; YARP JSON generated from presentation nginx allowlist (`generate_yarp_exact_routes_example.py`); not loaded; never catch-all |
+| OpenTelemetry / Serilog | 🔶 scaffolding | `EcomAeActivitySources` names reserved (+ Data); Auth + Surfaces activities on session validate / ERP+BOS digests; exporters not registered |
 | Vault / Key Vault | ❌ not wired | Env files used in CloudPanel deploy today |
 | K8s / Helm / GitOps | 🔶 roadmap | Advanced architecture roadmap exists; CloudPanel VM is current host |
 | Angular 20 / React 19 | ❌ not started | Target SPA later; interim UI is Blazor SSR hybrid chrome on exact-routes only |
@@ -63,7 +63,7 @@ Forbidden unless explicitly requested: Java Spring Boot, Node.js backend, Go bac
 1. CloudPanel operator: live hybrid UI dual-sample captures after presentation shadows (`cutoverAllowed=false` always).
 2. Introduce EF Core 10 against current DB bridge (register DbContext only after approved repository cutover), then plan PostgreSQL 17 cutover.
 3. Wire OpenTelemetry exporters + Serilog sinks; keep ActivitySource names stable.
-4. Optionally place YARP behind Nginx for approved exact routes only (design example in-repo; not enabled).
-5. Redis session/cache sidecar after cookie parity evidence.
+4. Optionally place YARP behind Nginx for approved exact routes only (regenerate design JSON from nginx allowlist; not enabled).
+5. Redis cache/rate-limit sidecar after cookie parity — keep `ReplacePhpSessionCookies=false` until evidence.
 6. Kafka domain events for workers after dry-run parity samples.
 7. SPA admin/storefront (Angular 20 or React 19) against ASP.NET Core APIs only — after Blazor hybrid parity evidence.

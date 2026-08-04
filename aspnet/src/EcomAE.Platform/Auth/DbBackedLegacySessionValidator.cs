@@ -1,3 +1,4 @@
+using EcomAE.Platform.Observability;
 using EcomAE.Platform.Security;
 
 namespace EcomAE.Platform.Auth;
@@ -28,6 +29,8 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
 
     public async ValueTask<LegacySessionContext> ValidateAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
     {
+        using var activity = EcomAeActivitySources.Auth.StartActivity("auth.legacy-session.validate");
+
         var adminSession = httpContext.Request.Cookies["admin_session"];
         var adminUser = ParseInt(httpContext.Request.Cookies["admin_u_id"]);
         if (!string.IsNullOrWhiteSpace(adminSession) && adminUser > 0)
@@ -37,15 +40,18 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                 var exists = await _sessions.AdminSessionExistsAsync(adminSession, adminUser, cancellationToken).ConfigureAwait(false);
                 if (!exists)
                 {
+                    activity?.SetTag("ecomae.session.kind", "anonymous");
                     return Anonymous();
                 }
 
                 var identity = await _sessions.GetAdminIdentityAsync(adminUser, cancellationToken).ConfigureAwait(false);
                 if (identity is null || !identity.HasBackendAccess)
                 {
+                    activity?.SetTag("ecomae.session.kind", "anonymous");
                     return Anonymous();
                 }
 
+                activity?.SetTag("ecomae.session.kind", "admin");
                 return new LegacySessionContext(
                     LegacySessionKind.Admin,
                     adminUser,
@@ -57,6 +63,7 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                     ModuleAcl: identity.Modules);
             }
 
+            activity?.SetTag("ecomae.session.kind", "admin");
             return new LegacySessionContext(
                 LegacySessionKind.Admin,
                 adminUser,
@@ -74,10 +81,12 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                 var exists = await _sessions.CustomerSessionExistsAsync(customerSession, customerUser, cancellationToken).ConfigureAwait(false);
                 if (!exists)
                 {
+                    activity?.SetTag("ecomae.session.kind", "anonymous");
                     return Anonymous();
                 }
             }
 
+            activity?.SetTag("ecomae.session.kind", "customer");
             return new LegacySessionContext(
                 LegacySessionKind.Customer,
                 customerUser,
@@ -90,6 +99,7 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
         var parsedApiKey = LegacyApiClientKeyParser.Parse(apiKey);
         if (parsedApiKey is not null)
         {
+            activity?.SetTag("ecomae.session.kind", "api-key");
             return new LegacySessionContext(
                 LegacySessionKind.ApiKey,
                 0,
@@ -97,6 +107,7 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                 [EcomAePermissions.ApiAccess]);
         }
 
+        activity?.SetTag("ecomae.session.kind", "anonymous");
         return Anonymous();
     }
 

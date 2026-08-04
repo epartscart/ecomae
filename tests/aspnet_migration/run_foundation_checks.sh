@@ -349,6 +349,14 @@ check 'EF Core 10 package referenced by platform' contains "$ROOT/aspnet/src/Eco
 check 'EF Core scaffold DbContext exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/EcomAeScaffoldDbContext.cs"
 check 'EF tenant registry stub exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/TenantRegistryStub.cs"
 check 'EF identity admin stub exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/IdentityAdminStub.cs"
+check 'EF ERP cash account stub exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ErpCashAccountStub.cs"
+check 'EF ERP cash entry stub exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ErpCashEntryStub.cs"
+check 'EF ERP scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/IErpScaffoldRepository.cs"
+check 'Redis scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Caching/EcomAeRedisScaffoldOptions.cs"
+check 'Redis scaffold contract exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Caching/IDistributedCacheScaffold.cs"
+check 'Redis scaffold defaults do not replace PHP cookies' contains "$ROOT/aspnet/src/EcomAE.Platform/Caching/EcomAeRedisScaffoldOptions.cs" 'ReplacePhpSessionCookies'
+check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
+check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 47'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
 check 'YARP exact-routes design example exists' test -f "$ROOT/deploy/aspnet/yarp-exact-routes-example.json"
 check 'YARP design example blocks cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": false'

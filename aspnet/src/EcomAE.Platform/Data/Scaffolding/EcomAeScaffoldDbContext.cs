@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Data.Scaffolding;
 /// EF Core 10 scaffold for Enterprise BOS readiness.
 /// Not registered in <c>Program.cs</c> and must not connect to production until
 /// repository/domain cutover is approved. Legacy digests continue to use MySqlConnector.
-/// Bounded-context stubs: Catalog, TenantRegistry, Identity.
+/// Bounded-context stubs: Catalog, TenantRegistry, Identity, ERP.
 /// </summary>
 public sealed class EcomAeScaffoldDbContext : DbContext
 {
@@ -22,6 +22,10 @@ public sealed class EcomAeScaffoldDbContext : DbContext
     public DbSet<TenantRegistryStub> TenantRegistry => Set<TenantRegistryStub>();
 
     public DbSet<IdentityAdminStub> IdentityAdmins => Set<IdentityAdminStub>();
+
+    public DbSet<ErpCashAccountStub> ErpCashAccounts => Set<ErpCashAccountStub>();
+
+    public DbSet<ErpCashEntryStub> ErpCashEntries => Set<ErpCashEntryStub>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,6 +53,20 @@ public sealed class EcomAeScaffoldDbContext : DbContext
         {
             entity.HasKey(item => item.Id);
             entity.Property(item => item.Email).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<ErpCashAccountStub>(entity =>
+        {
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.Name).HasMaxLength(128);
+            entity.Property(item => item.AccountType).HasMaxLength(64);
+            entity.Property(item => item.CurrencyCode).HasMaxLength(16);
+        });
+
+        modelBuilder.Entity<ErpCashEntryStub>(entity =>
+        {
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.Reference).HasMaxLength(128);
         });
 
         base.OnModelCreating(modelBuilder);
