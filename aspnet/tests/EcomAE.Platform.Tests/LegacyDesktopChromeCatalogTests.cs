@@ -15,24 +15,47 @@ public sealed class LegacyDesktopChromeCatalogTests
     }
 
     [Fact]
-    public void ErpTopnavUsesCategoryAreaMapNotArbitrarySlice()
+    public void ErpTopnavUsesCategoryAreaColumnsNotFlatCap()
     {
         var groups = LegacyDesktopChromeCatalog.ErpTopnav();
         Assert.Equal(PhpModuleCatalog.ErpCategoryCount, groups.Count);
 
         var r2r = Assert.Single(groups, g => g.Id == "record_to_report");
+        Assert.NotNull(r2r.Columns);
+        Assert.Contains(r2r.Columns!, c => string.Equals(c.Id, "finance", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(r2r.Links, l => string.Equals(l.Group, "finance", StringComparison.OrdinalIgnoreCase));
+        Assert.False(string.IsNullOrWhiteSpace(r2r.HubHref));
+        Assert.Equal("fa-university", r2r.Icon);
+        Assert.Equal("R2R", r2r.ShortLabel);
 
         var o2c = Assert.Single(groups, g => g.Id == "order_to_cash");
+        Assert.Contains(o2c.Columns!, c => string.Equals(c.Id, "sales", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(o2c.Links, l => string.Equals(l.Group, "sales", StringComparison.OrdinalIgnoreCase));
+
+        // No artificial Take(36) — every catalogued tab under mapped areas is listed.
+        var allTabIds = groups.SelectMany(g => g.Links).Select(l => l.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.True(allTabIds.Count >= PhpModuleCatalog.ErpTabCount);
+        Assert.Contains(groups, g => (g.Columns?.Count ?? 0) > 1);
     }
 
     [Fact]
-    public void BosTopnavHasSectionPanelsAndPhpReachableLinks()
+    public void BosTopnavUsesExplicitPhpSectionModuleMaps()
     {
         var groups = LegacyDesktopChromeCatalog.BosTopnav();
-        Assert.Equal(LegacyChromeNavCatalog.Bos.Count, groups.Count);
+        Assert.Equal(PhpModuleCatalog.BosSectionCount, groups.Count);
         Assert.All(groups, g => Assert.NotEmpty(g.Links));
+        Assert.All(groups, g => Assert.False(string.IsNullOrWhiteSpace(g.HubHref)));
+        Assert.All(groups, g => Assert.False(string.IsNullOrWhiteSpace(g.Icon)));
+
+        var fleet = Assert.Single(groups, g => g.Id == "fleet");
+        Assert.Contains(fleet.Links, l => l.Id == "command_center");
+        Assert.Contains(fleet.Links, l => l.Id == "platform_health");
+        Assert.True(fleet.Links.Count >= 40, $"Fleet section should list PHP fleet items, got {fleet.Links.Count}");
+
+        var commerce = Assert.Single(groups, g => g.Id == "commerce");
+        Assert.Contains(commerce.Links, l => l.Id == "orders");
+        Assert.DoesNotContain(commerce.Links, l => l.Id == "command_center");
+
         Assert.Contains(groups.SelectMany(g => g.Links), l =>
             l.Href.StartsWith("/BOS/", StringComparison.OrdinalIgnoreCase)
             || l.Href.StartsWith("/CP/", StringComparison.OrdinalIgnoreCase)
@@ -42,7 +65,9 @@ public sealed class LegacyDesktopChromeCatalogTests
     [Theory]
     [InlineData("cp", "#header")]
     [InlineData("erp", ".epc-erp-topnav")]
+    [InlineData("erp", ".epc-erp-topnav-panel-hub")]
     [InlineData("bos", ".bos-topnav")]
+    [InlineData("bos", ".bos-topnav__panel-hub")]
     [InlineData("storefront", "#header-full-top")]
     public void RequiredStructuralSelectorsDocumentProbeTargets(string surface, string expected)
     {

@@ -24,13 +24,16 @@
             .epc-bosapp-note { margin-top:1rem; padding:.8rem; border:1px solid #e4e4e7; border-radius:.45rem; background:#fff; color:#52525b; font-size:.88rem; }
         </style>
 
-        <p style="color:#52525b;max-width:40rem">Batch 2: <code>bos-topnav</code> mega panels matching <code>bos/index.php</code>. Fleet digests below; full module UX still needs PHP <code>$_SESSION</code> on <a href="/BOS/">/BOS/</a>.</p>
+        <p style="color:#52525b;max-width:40rem">PHP-matching <code>bos-topnav</code> mega panels (<code>bos/index.php</code> + <code>epc_bos_unified.php</code> section maps). Fleet Command Center stats below; full module UX still needs PHP <code>$_SESSION</code> on <a href="/BOS/">/BOS/</a>.</p>
         <div class="epc-bosapp-grid">
-            <div class="epc-bosapp-card"><strong>@_tenants</strong><span>Portal tenants</span></div>
+            <div class="epc-bosapp-card"><strong>@_tenants</strong><span>Total tenants</span></div>
+            <div class="epc-bosapp-card"><strong>@_commerce</strong><span>Commerce</span></div>
+            <div class="epc-bosapp-card"><strong>@_erpOnly</strong><span>ERP only</span></div>
+            <div class="epc-bosapp-card"><strong>@_demo</strong><span>Demo</span></div>
+            <div class="epc-bosapp-card"><strong>@_platform</strong><span>Platform</span></div>
             <div class="epc-bosapp-card"><strong>@_active</strong><span>Active tenants</span></div>
-            <div class="epc-bosapp-card"><strong>@_sessions</strong><span>Admin sessions</span></div>
             <div class="epc-bosapp-card"><strong>@_withDb</strong><span>With database</span></div>
-            <div class="epc-bosapp-card"><strong>@_erpOnly</strong><span>ERP-only</span></div>
+            <div class="epc-bosapp-card"><strong>@_sessions</strong><span>Admin sessions</span></div>
             <div class="epc-bosapp-card"><strong>@_source</strong><span>Digest source</span></div>
         </div>
 
@@ -51,7 +54,7 @@
 </PhpBosDesktopChrome>
 
 @code {
-    private int _tenants, _active, _sessions, _withDb, _erpOnly;
+    private int _tenants, _active, _sessions, _withDb, _erpOnly, _commerce, _demo, _platform;
     private string _source = "n/a";
     private string _note = "Admin session required for digest KPIs. ";
     private bool _isAdmin;
@@ -78,7 +81,10 @@
         _sessions = summary.AdminSessions;
         _withDb = summary.WithDatabase;
         _erpOnly = summary.ErpOnly;
+        _commerce = summary.CommerceTenants;
+        _demo = summary.DemoTenants;
+        _platform = summary.PlatformTenants;
         _source = summary.Source;
-        _note = "Admin session detected — fleet KPIs from ASP.NET BOS digests. ";
+        _note = "Admin session detected — fleet KPIs from ASP.NET BOS digests (PHP Fleet Command field set). ";
     }
 }

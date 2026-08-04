@@ -58,11 +58,14 @@
     </section>
 
     <div class="epc-fh-kpis" aria-label="Fleet health KPIs">
-        <div class="epc-fh-kpi"><strong>@_portalTenants.ToString(CultureInfo.InvariantCulture)</strong><span>Portal tenants</span></div>
+        <div class="epc-fh-kpi"><strong>@_portalTenants.ToString(CultureInfo.InvariantCulture)</strong><span>Total tenants</span></div>
+        <div class="epc-fh-kpi"><strong>@_commerce.ToString(CultureInfo.InvariantCulture)</strong><span>Commerce</span></div>
+        <div class="epc-fh-kpi"><strong>@_erpOnly.ToString(CultureInfo.InvariantCulture)</strong><span>ERP only</span></div>
+        <div class="epc-fh-kpi"><strong>@_demo.ToString(CultureInfo.InvariantCulture)</strong><span>Demo</span></div>
+        <div class="epc-fh-kpi"><strong>@_platform.ToString(CultureInfo.InvariantCulture)</strong><span>Platform</span></div>
         <div class="epc-fh-kpi"><strong>@_active.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
-        <div class="epc-fh-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Admin sessions</span></div>
         <div class="epc-fh-kpi"><strong>@_withDb.ToString(CultureInfo.InvariantCulture)</strong><span>With database</span></div>
-        <div class="epc-fh-kpi"><strong>@_erpOnly.ToString(CultureInfo.InvariantCulture)</strong><span>ERP-only</span></div>
+        <div class="epc-fh-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Admin sessions</span></div>
     </div>
 
     <div class="epc-fh-table-wrap">
@@ -120,6 +123,9 @@
     private int _sessions;
     private int _withDb;
     private int _erpOnly;
+    private int _commerce;
+    private int _demo;
+    private int _platform;
     private IReadOnlyList<PortalTenantDigest> _sample = [];
     private int _limit = 25;
     private string _source = "n/a";
@@ -144,6 +150,9 @@
         _sessions = result.Summary.AdminSessions;
         _withDb = result.Summary.WithDatabase;
         _erpOnly = result.Summary.ErpOnly;
+        _commerce = result.Summary.CommerceTenants;
+        _demo = result.Summary.DemoTenants;
+        _platform = result.Summary.PlatformTenants;
         _sample = result.SampleTenants;
         _source = result.Source;
         _message = result.Message;

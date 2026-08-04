@@ -560,14 +560,26 @@ public static class SurfacePayloadContractCatalog
             ["shop storages digest"],
             "cp/templates/bootstrap_admin/desktop.php"),
 
-        Contract("erp", "/erp/dashboard-summary", "cp/content/shop/finance/erp/erp_dashboard.php", "admin",
+        Contract("erp", "/erp/dashboard-summary", "cp/content/shop/finance/erp/erp_dashboard.php + epc_erp_command_center.php", "admin",
             ["ok", "surface", "summary", "session", "note"],
-            ["cashPosition", "supplierCredit", "supplierDebit", "supplierNet", "cashAccounts", "activeSuppliers", "activePurchases", "source", "message"],
+            [
+                "cashPosition", "supplierCredit", "supplierDebit", "supplierNet", "cashAccounts", "activeSuppliers", "activePurchases",
+                "receivables", "payables", "stockValue", "revenueExVat", "ordersCount", "arBalance", "apBalance", "vatNetPayable",
+                "periodStatus", "inventoryItems", "draftSalesOrders", "pendingPurchaseOrders", "unpostedGlJournals",
+                "overdueInvoices", "lowStockItems", "pendingEinvoices", "processOpen", "processDone", "processOverdue",
+                "source", "message"
+            ],
             ["ERP finance KPI read"],
             "cp/templates/bootstrap_admin/erp_desktop.php"),
         Contract("erp", "/erp/accounts-summary", "ERP cash/supplier KPI digest", "admin-erp",
             ["ok", "surface", "summary", "source", "message", "session", "note"],
-            ["cashPosition", "supplierCredit", "supplierDebit", "supplierNet", "cashAccounts", "activeSuppliers", "activePurchases", "source", "message"],
+            [
+                "cashPosition", "supplierCredit", "supplierDebit", "supplierNet", "cashAccounts", "activeSuppliers", "activePurchases",
+                "receivables", "payables", "stockValue", "revenueExVat", "ordersCount", "arBalance", "apBalance", "vatNetPayable",
+                "periodStatus", "inventoryItems", "draftSalesOrders", "pendingPurchaseOrders", "unpostedGlJournals",
+                "overdueInvoices", "lowStockItems", "pendingEinvoices", "processOpen", "processDone", "processOverdue",
+                "source", "message"
+            ],
             ["ERP accounts KPI digest"],
             "cp/templates/bootstrap_admin/erp_desktop.php"),
         Contract("erp", "/erp/suppliers", "ERP suppliers", "admin-erp",
@@ -628,7 +640,7 @@ public static class SurfacePayloadContractCatalog
 
         Contract("bos", "/bos/fleet-summary", "bos/index.php command center", "admin",
             ["ok", "surface", "summary", "session", "note"],
-            ["portalTenants", "activePortalTenants", "adminSessions", "withDatabase", "erpOnly", "source", "message"],
+            ["portalTenants", "activePortalTenants", "adminSessions", "withDatabase", "erpOnly", "commerceTenants", "demoTenants", "platformTenants", "source", "message"],
             ["BOS fleet KPI read"],
             "bos/index.php + bos/epc_bos_shell.css"),
         Contract("bos", "/bos/tenants", "BOS portal tenant digest", "admin-bos",
@@ -638,7 +650,7 @@ public static class SurfacePayloadContractCatalog
             "bos/index.php + bos/epc_bos_shell.css"),
         Contract("bos", "/bos/fleet-health", "BOS fleet health", "admin-bos",
             ["ok", "surface", "summary", "sampleTenants", "source", "message", "session", "note"],
-            ["portalTenants", "activePortalTenants", "adminSessions", "withDatabase", "erpOnly", "source", "message"],
+            ["portalTenants", "activePortalTenants", "adminSessions", "withDatabase", "erpOnly", "commerceTenants", "demoTenants", "platformTenants", "source", "message"],
             ["fleet health sample tenants"],
             "bos/index.php + bos/epc_bos_shell.css"),
         Contract("bos", "/bos/fleet-readiness", "BOS fleet readiness scoring", "admin-bos",
