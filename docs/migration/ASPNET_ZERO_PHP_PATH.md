@@ -14,23 +14,44 @@ Related: `docs/migration/ZERO_PHP_PRODUCTION_CUTOVER_ROADMAP.md`
 | Named live tenants (5) | PHP product chrome | Same-to-same dual-sample | `ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES` for exact-route parity shadows → then staged cutover |
 | www marketing `/` | PHP `epm-hub` | ASP.NET `/marketing/app` dual-sample | Exact-route promotion after approval |
 | www hybrid apps | ASP.NET scaffold | Function dual-sample | Per-route exact-route promotion |
+| On-premises ERP pack | PHP `deploy/on-premises/*` + license/health APIs | Dual-sample vs ASP.NET scaffolds/dry-runs | Exact-route + ASP.NET installer pack after approval |
+| SaaS ERP-only tenants | `TenantMode.ErpOnlyTenant` mapped | Navigation/storefront-denial dual-sample | Staged cutover (≠ on-prem installer) |
 
 `cutoverAllowed` and `readyForPhpRemoval` stay **false** until dual-sample + human `RELEASE_OWNER_APPROVAL.md` (never invent that file).
+
+## On-premises ERP (mandatory for 0 PHP)
+
+PHP ships a **self-hosted ERP option** (`deploy/on-premises/*`, `erp_tabs_on_premises.php`, `api/v1/on-premises/health.php`, `api/v1/licenses/activate.php`, `epc_onprem_licenses`). This is **not** the same as SaaS ERP-only tenants (`erp_only` / `TenantMode.ErpOnlyTenant`).
+
+| Track | ASP.NET today | Mandate |
+| --- | --- | --- |
+| ERP-only SaaS mode | Mode mapping + digests | Keep dual-sampling; no invented cutover |
+| On-premises installer | PHP authoritative | Replace with ASP.NET Core pack later; until then PHP |
+| License/health APIs | Health dry-run only (`POST /erp/on-premises/health-dry-run`, writes=0) | PHP activate/health remain authoritative |
+| Operator tab | `/erp/on-premises-app` overview scaffold | Dual-sample vs PHP tab before exact-route |
+
+Live board: `GET /migration/on-premises-parity`
 
 ## Phases
 
 1. Inventory — done  
 2. Digests + hybrid shells — done on www  
-3. Presentation parity (heroes/fonts/menus) — in progress (`/marketing/app` hub+home; solutions+resources nav largely scaffolded incl. API/docs/solutions/privacy/auto-price-ai/compare/brochure/legal/bos/blockchain/free-tools/guides/results/continuity; CP/ERP/BOS/storefront chrome)  
-4. Function parity (writes/menus) — in progress (`POST` dry-runs incl. quote submit/accept/add-item + garage set-active/delete + order message + OMS add-comment/set-viewed + write-dryrun dual-sample operator floor; `aspNetInteractiveComplete=0` until human dual-sample pass)  
+3. Presentation parity (heroes/fonts/menus) — in progress (`/marketing/app` hub+home; solutions+resources nav largely scaffolded; CP/ERP/BOS/storefront chrome; `/erp/on-premises-app`)  
+4. Function parity (writes/menus) — in progress (`POST` dry-runs incl. quote/garage/OMS + on-premises health dry-run + write-dryrun dual-sample operator floor; `aspNetInteractiveComplete=0` until human dual-sample pass)  
 5. Tenant exact-route cutover — blocked on parity  
-6. PHP removal — blocked on approval  
+6. PHP removal — blocked on approval (SaaS **and** on-premises installer pack)  
 
 ## Operator commands
 
 ```bash
 # Path board (after deploy)
 curl -sS https://www.ecomae.com/migration/aspnet-zero-php-path | jq .
+
+# On-premises ERP track (installer ≠ ERP-only SaaS)
+curl -sS https://www.ecomae.com/migration/on-premises-parity | jq .
+curl -sS -X POST https://www.ecomae.com/erp/on-premises/health-dry-run \
+  -H 'content-type: application/json' \
+  -d '{"licenseKey":"DEMO-KEY-XXXX","status":"ok","confirmWrites":false}'
 
 # Marketing ASP.NET scaffold vs live PHP
 curl -sS https://www.ecomae.com/marketing/app

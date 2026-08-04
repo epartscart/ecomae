@@ -23,6 +23,24 @@ public sealed class ErpModule : ISurfaceModule
     {
         endpoints.MapGet(EcomAeRoutes.ErpParity, (IErpParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
+        endpoints.MapPost(EcomAeRoutes.ErpOnPremisesHealthDryRun, (
+            OnPremisesHealthBody? body,
+            IOnPremisesHealthDryRun dryRun) =>
+        {
+            body ??= new OnPremisesHealthBody(null, null, null, null, null, null, null, null, false);
+            var result = dryRun.Evaluate(new OnPremisesHealthRequest(
+                body.LicenseKey,
+                body.Status,
+                body.Uptime,
+                body.DiskFreeGb,
+                body.MemoryUsageMb,
+                body.PhpVersion,
+                body.DbSizeMb,
+                body.LastBackup,
+                body.ConfirmWrites));
+            return Results.Ok(result.ToPayload());
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpDashboardSummary, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -711,6 +729,16 @@ public sealed class ErpModule : ISurfaceModule
         permissions = session.Permissions
     };
 
+    private sealed record OnPremisesHealthBody(
+        string? LicenseKey,
+        string? Status,
+        string? Uptime,
+        decimal? DiskFreeGb,
+        decimal? MemoryUsageMb,
+        string? PhpVersion,
+        decimal? DbSizeMb,
+        string? LastBackup,
+        bool ConfirmWrites = false);
     private sealed record ErpCashVoucherAmendBody(long EntryId, string? Reference, string? Note, bool ConfirmWrites = false);
     private sealed record ErpCashVoucherVoidBody(long EntryId, string? Reason, bool ConfirmWrites = false);
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
