@@ -779,6 +779,7 @@ check 'Wave B write dry-run probe exists' test -x "$ROOT/scripts/cloudpanel_prob
 check 'Wave B write dry-run probe refuses cutover' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" 'cutoverAllowed=false'
 check 'Wave B write dry-run probe covers cart delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/cart/delete'
 check 'Wave B write dry-run probe covers OMS status' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/orders/set-item-status'
+check 'Wave B write dry-run probe covers ERP amend' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/cash-entries/amend'
 check 'catalog miss evidence dir exists' test -d "$ROOT/docs/migration/evidence/catalog-miss-umapi"
 check 'catalog miss evidence keeps PHP fill authoritative' contains "$ROOT/docs/migration/evidence/catalog-miss-umapi/README.md" 'Live fills remain PHP'
 check 'catalog miss compare refuses cutover' contains "$ROOT/scripts/compare_catalog_miss_dual_samples.py" 'cutoverAllowed=false'

@@ -180,6 +180,26 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapPost(EcomAeRoutes.ErpCashEntriesAmend, async (
+            HttpContext context,
+            ErpCashVoucherAmendBody? body,
+            ILegacySessionValidator validator,
+            IErpCashVoucherAmendDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for cash voucher amend dry-run.");
+            }
+
+            body ??= new ErpCashVoucherAmendBody(0, null, null, false);
+            var result = await dryRun.EvaluateAsync(
+                new ErpCashVoucherAmendRequest(body.EntryId, body.Reference, body.Note, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpInvoices, async (
             HttpContext context,
             int? limit,
@@ -547,4 +567,6 @@ public sealed class ErpModule : ISurfaceModule
         module_acl = session.Modules,
         permissions = session.Permissions
     };
+
+    private sealed record ErpCashVoucherAmendBody(long EntryId, string? Reference, string? Note, bool ConfirmWrites = false);
 }
