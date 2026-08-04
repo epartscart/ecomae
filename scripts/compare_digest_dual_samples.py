@@ -292,6 +292,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "policyCount,activeCount,claimCount,documentCount,source,message",
     ),
+    "cp-audit-trail": (
+        "summary",
+        "entryCount,actionCount,adminCount,entityTypeCount,source,message",
+    ),
+    "cp-doc-expiry": (
+        "summary",
+        "documentCount,activeCount,expiredCount,reminderCount,source,message",
+    ),
+    "cp-tenant-config": (
+        "summary",
+        "configCount,groupCount,editableCount,historyCount,source,message",
+    ),
+    "cp-jewellery-stock-verification": (
+        "summary",
+        "verificationCount,inProgressCount,completeCount,lineCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -856,6 +872,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-insurance-compliance": (
         "policies",
         ["id", "companyId", "policyNo", "class", "title", "insurer", "sumInsured", "premium", "currency", "expiryDate", "status", "timeCreated"],
+    ),
+    "cp-audit-trail": (
+        "entries",
+        ["id", "timeUnix", "adminId", "action", "entityType", "entityId", "summary", "ipAddress"],
+    ),
+    "cp-doc-expiry": (
+        "documents",
+        ["id", "companyId", "category", "docType", "title", "refNo", "owner", "issuer", "expiryDate", "sourceModule", "active", "timeCreated"],
+    ),
+    "cp-tenant-config": (
+        "entries",
+        ["id", "siteKey", "configGroup", "configKey", "valueType", "label", "editable", "updatedBy", "updatedAt"],
+    ),
+    "cp-jewellery-stock-verification": (
+        "verifications",
+        ["id", "companyId", "branch", "vocType", "vocDate", "vocNo", "location", "totalPcs", "scannedPcs", "remainingPcs", "status", "createdBy"],
     ),
     "cp-orders-digest": (
         "orders",

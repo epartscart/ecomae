@@ -2086,3 +2086,112 @@ public sealed record CpInsuranceComplianceDigestResult(
     string Source,
     string Message);
 
+public sealed record CpAuditTrailSummary(
+    int EntryCount,
+    int ActionCount,
+    int AdminCount,
+    int EntityTypeCount,
+    string Source,
+    string Message);
+
+public sealed record CpAuditTrailEntryDigest(
+    long Id,
+    long TimeUnix,
+    long AdminId,
+    string Action,
+    string EntityType,
+    long EntityId,
+    string Summary,
+    string IpAddress);
+
+public sealed record CpAuditTrailDigestResult(
+    CpAuditTrailSummary Summary,
+    IReadOnlyList<CpAuditTrailEntryDigest> Entries,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpDocExpirySummary(
+    int DocumentCount,
+    int ActiveCount,
+    int ExpiredCount,
+    int ReminderCount,
+    string Source,
+    string Message);
+
+public sealed record CpDocExpiryDocumentDigest(
+    long Id,
+    long CompanyId,
+    string Category,
+    string DocType,
+    string Title,
+    string RefNo,
+    string Owner,
+    string Issuer,
+    long ExpiryDate,
+    string SourceModule,
+    int Active,
+    long TimeCreated);
+
+public sealed record CpDocExpiryDigestResult(
+    CpDocExpirySummary Summary,
+    IReadOnlyList<CpDocExpiryDocumentDigest> Documents,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpTenantConfigSummary(
+    int ConfigCount,
+    int GroupCount,
+    int EditableCount,
+    int HistoryCount,
+    string Source,
+    string Message);
+
+public sealed record CpTenantConfigEntryDigest(
+    long Id,
+    string SiteKey,
+    string ConfigGroup,
+    string ConfigKey,
+    string ValueType,
+    string Label,
+    int Editable,
+    long UpdatedBy,
+    string UpdatedAt);
+
+public sealed record CpTenantConfigDigestResult(
+    CpTenantConfigSummary Summary,
+    IReadOnlyList<CpTenantConfigEntryDigest> Entries,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryStockVerificationSummary(
+    int VerificationCount,
+    int InProgressCount,
+    int CompleteCount,
+    int LineCount,
+    string Source,
+    string Message);
+
+public sealed record CpJewelleryStockVerificationRowDigest(
+    long Id,
+    long CompanyId,
+    string Branch,
+    string VocType,
+    string VocDate,
+    long VocNo,
+    string Location,
+    int TotalPcs,
+    int ScannedPcs,
+    int RemainingPcs,
+    string Status,
+    string CreatedBy);
+
+public sealed record CpJewelleryStockVerificationDigestResult(
+    CpJewelleryStockVerificationSummary Summary,
+    IReadOnlyList<CpJewelleryStockVerificationRowDigest> Verifications,
+    int Count,
+    string Source,
+    string Message);
+

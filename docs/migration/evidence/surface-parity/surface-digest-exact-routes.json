@@ -2,8 +2,8 @@
   "role": "surface-digest-exact-routes",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 99,
-  "surfaceDigestCount": 92,
+  "routeCount": 103,
+  "surfaceDigestCount": 96,
   "storefrontDigestCount": 6,
   "ordersDigestCount": 1,
   "generatedFrom": [
@@ -11,7 +11,7 @@
     "deploy/aspnet/nginx-storefront-digests-shadow-example.conf",
     "scripts/cloudpanel_capture_digest_dual_samples.sh"
   ],
-  "note": "Design/inventory only for digest dual-sample floor (99). Storefront search/cart digests wired (live shadows still 4/6). Surface digests wired 92 (live until operator install). Never invents RELEASE_OWNER_APPROVAL.md.",
+  "note": "Design/inventory only for digest dual-sample floor (103). Storefront search/cart digests wired (live shadows still 4/6). Surface digests wired 96 (live until operator install). Never invents RELEASE_OWNER_APPROVAL.md.",
   "routes": [
     "/cp/dashboard-summary",
     "/cp/tenants",
@@ -111,6 +111,10 @@
     "/cp/marketplace-channels",
     "/cp/demand-intelligence",
     "/cp/credit-limits",
-    "/cp/insurance-compliance"
+    "/cp/insurance-compliance",
+    "/cp/audit-trail",
+    "/cp/doc-expiry",
+    "/cp/tenant-config",
+    "/cp/jewellery-stock-verification"
   ]
 }

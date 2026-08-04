@@ -242,6 +242,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only insurance policies (notes/emails omitted).</summary>
     Task<CpInsuranceComplianceDigestResult> BuildCpInsuranceComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only ERP audit trail (detail/old/new JSON omitted).</summary>
+    Task<CpAuditTrailDigestResult> BuildCpAuditTrailDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only document expiry register (notes/emails/paths omitted).</summary>
+    Task<CpDocExpiryDigestResult> BuildCpDocExpiryDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only tenant config keys (config_value omitted).</summary>
+    Task<CpTenantConfigDigestResult> BuildCpTenantConfigDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only jewellery stock verification vouchers (remarks omitted).</summary>
+    Task<CpJewelleryStockVerificationDigestResult> BuildCpJewelleryStockVerificationDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only bank statement lines for reconciliation.</summary>
     Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
 

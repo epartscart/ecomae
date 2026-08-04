@@ -162,6 +162,11 @@ public static class LegacyChromeNavCatalog
         new("Demand intelligence", "/cp/demand-intelligence-app"),
         new("Credit limits", "/cp/credit-limits-app"),
         new("Insurance compliance", "/cp/insurance-compliance-app"),
+        new("Audit trail", "/cp/audit-trail-app"),
+        new("Doc expiry", "/cp/doc-expiry-app"),
+        new("Tenant config", "/cp/tenant-config-app"),
+        new("Jewellery stock verification", "/cp/jewellery-stock-verification-app"),
+
         new("Collections dunning PHP", "/CP/shop/finance/epc_collections_dunning"),
         new("Config items list", "/cp/config-items-app"),
         new("Site config PHP", "/CP/control/config_edit"),

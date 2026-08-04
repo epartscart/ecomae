@@ -128,6 +128,9 @@ STOREFRONT_HYBRID_BY_ID = {
     # Wave 13 — returns/support attach to returns-rma digest
     "returns": "cp-returns-rma",
     "support": "cp-returns-rma",
+    # Wave 17 — near-complete storefront leftovers
+    "home": "sf-account-summary",
+    "vin_search": "sf-search",
 }
 
 # Explicit catalog-id maps where PHP paths diverge from hybrid TARGET paths.
@@ -441,9 +444,38 @@ CP_FEATURE_HYBRID_BY_ID = {
     "sales-and-marketing-delivery-notes": "cp-warehouse-wms",
     "sales-and-marketing-fulfilment": "erp-sales-quotations",
     "sales-and-marketing-revenue": "erp-sales-quotations",
+    # Wave 17 — audit / doc-expiry / tenant-config / jewellery stock + near-complete leftovers
+    "audit-workbench-audit-trail": "cp-audit-trail",
+    "compliance-document-expiry": "cp-doc-expiry",
+    "tax-document-control": "cp-doc-expiry",
+    "system-administration-tenant-configuration": "cp-tenant-config",
+    "tenant-features": "cp-tenant-config",
+    "epc-tenant-features": "cp-tenant-config",
+    "tenant-hub": "cp-tenant-config",
+    "epc-tenant-email-settings": "cp-tenant-config",
+    "tenant-e-mail-smtp": "cp-tenant-config",
+    "multi-tenant-hostname-routing": "cp-tenant-config",
+    "ssl-dns-onboarding-assist": "cp-tenant-config",
+    "inventory-management-stock-verification-jw": "cp-jewellery-stock-verification",
+    "system-administration-print-designer": "cp-document-control",
+    "common-documents": "cp-document-control",
+    "organization-administration-document-formats": "cp-document-control",
+    "online-cash-registers": "cp-pos-overview",
+    "api-key-settings": "cp-integrations",
+    "packs-setup-upload": "cp-industry-packs",
+    "system-administration-security-roles": "cp-platform-governance",
+    "registration-fields": "cp-auth-mfa",
+    "registration-options": "cp-auth-mfa",
+    "vin-oem-number-search": "cp-product-catalogue",
+    "electronics-retail-template": "cp-industry-packs",
+    "sales-and-marketing-retail-sales-pos-jw": "cp-jewellery-retail",
+    "sales-and-marketing-sales-analysis-weight-jw": "cp-jewellery-retail",
+    "sales-and-marketing-sales-forming-jw": "cp-jewellery-retail",
+    "sales-and-marketing-sales-return-jw": "cp-jewellery-retail",
 }
 
 ERP_AREA_HYBRID_BY_ID = {
+    "audit_wb": "cp-audit-trail",
 
     "cost_acct": "cp-fin-advanced",
     "cost_mgmt": "cp-cost-models",
@@ -562,6 +594,18 @@ ERP_TAB_HYBRID_BY_ID = {
     ("tax", "elec_reporting"): "cp-electronic-reporting",
     ("credit_coll", "collections"): "cp-collections-dunning",
     ("risk", "insurance"): "cp-insurance-compliance",
+    ("audit_wb", "audit"): "cp-audit-trail",
+    ("risk", "doc_expiry"): "cp-doc-expiry",
+    ("tax", "document_control"): "cp-doc-expiry",
+    ("setup", "tenant_config"): "cp-tenant-config",
+    ("setup", "print_designer"): "cp-document-control",
+    ("inventory_mgmt", "jw_stock_verification"): "cp-jewellery-stock-verification",
+    ("setup", "security_roles"): "cp-platform-governance",
+    ("sales", "gold_scheme"): "cp-jewellery-retail",
+    ("common", "documents"): "cp-document-control",
+    ("enterprise", "doc_formats"): "cp-document-control",
+    ("sales", "marketing"): "cp-marketing-growth",
+
     ("budgeting", "budgeting"): "cp-budgets",
     ("budgeting", "budget_planning"): "cp-budgets",
     ("logistics", "custom_shipping"): "cp-carriers",
@@ -640,6 +684,10 @@ BOS_MODULE_HYBRID_BY_ID = {
     "channels": "cp-marketplace-channels",
     "demand": "cp-demand-intelligence",
     "credit_limit": "cp-credit-limits",
+    "tenant_features": "cp-tenant-config",
+    "tenant_hub": "cp-tenant-config",
+    "tenant_email": "cp-tenant-config",
+
     "social": "cp-marketing-growth",
     "fleet_cp": "bos-fleet-summary",
     "fleet_erp": "bos-fleet-summary",

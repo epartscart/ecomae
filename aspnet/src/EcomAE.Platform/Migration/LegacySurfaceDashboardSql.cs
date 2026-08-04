@@ -1748,5 +1748,89 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>ERP audit trail KPIs from epc_erp_audit_log (CREATE TABLE in epc_erp_audit.php).</summary>
+    public const string SelectCpAuditTrailStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_audit_log`) AS entry_count,
+            (SELECT COUNT(DISTINCT `action`) FROM `epc_erp_audit_log`) AS action_count,
+            (SELECT COUNT(DISTINCT `admin_id`) FROM `epc_erp_audit_log`) AS admin_count,
+            (SELECT COUNT(DISTINCT `entity_type`) FROM `epc_erp_audit_log` WHERE IFNULL(`entity_type`,'')<>'') AS entity_type_count
+        """;
+
+    /// <summary>ERP audit trail rows — omits detail_json/old_json/new_json/user_agent.</summary>
+    public const string SelectCpAuditTrailEntries = """
+        SELECT `id`, IFNULL(`time`,0) AS time_unix, IFNULL(`admin_id`,0) AS admin_id,
+               IFNULL(`action`,'') AS action, IFNULL(`entity_type`,'') AS entity_type,
+               IFNULL(`entity_id`,0) AS entity_id, IFNULL(`summary`,'') AS summary,
+               IFNULL(`ip_address`,'') AS ip_address
+        FROM `epc_erp_audit_log`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Document expiry KPIs from epc_erp_doc_expiry* (CREATE TABLE in epc_erp_doc_expiry.php).</summary>
+    public const string SelectCpDocExpiryStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_doc_expiry`) AS document_count,
+            (SELECT COUNT(*) FROM `epc_erp_doc_expiry` WHERE IFNULL(`active`,0)=1) AS active_count,
+            (SELECT COUNT(*) FROM `epc_erp_doc_expiry` WHERE IFNULL(`active`,0)=1 AND IFNULL(`expiry_date`,0)>0 AND `expiry_date` < UNIX_TIMESTAMP()) AS expired_count,
+            (SELECT COUNT(*) FROM `epc_erp_doc_expiry_reminders`) AS reminder_count
+        """;
+
+    /// <summary>Document expiry rows — omits note/owner_email/attachment_path.</summary>
+    public const string SelectCpDocExpiryDocuments = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`category`,'') AS category,
+               IFNULL(`doc_type`,'') AS doc_type, IFNULL(`title`,'') AS title,
+               IFNULL(`ref_no`,'') AS ref_no, IFNULL(`owner`,'') AS owner,
+               IFNULL(`issuer`,'') AS issuer, IFNULL(`expiry_date`,0) AS expiry_date,
+               IFNULL(`source_module`,'') AS source_module, IFNULL(`active`,0) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_doc_expiry`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Tenant config KPIs from epc_tenant_config* (CREATE TABLE in epc_tenant_config.php).</summary>
+    public const string SelectCpTenantConfigStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_tenant_config`) AS config_count,
+            (SELECT COUNT(DISTINCT `config_group`) FROM `epc_tenant_config`) AS group_count,
+            (SELECT COUNT(*) FROM `epc_tenant_config` WHERE IFNULL(`editable`,0)=1) AS editable_count,
+            (SELECT COUNT(*) FROM `epc_tenant_config_history`) AS history_count
+        """;
+
+    /// <summary>Tenant config rows — omits config_value.</summary>
+    public const string SelectCpTenantConfigEntries = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`config_group`,'') AS config_group,
+               IFNULL(`config_key`,'') AS config_key, IFNULL(`value_type`,'') AS value_type,
+               IFNULL(`label`,'') AS label, IFNULL(`editable`,0) AS editable,
+               IFNULL(`updated_by`,0) AS updated_by, IFNULL(`updated_at`,'') AS updated_at
+        FROM `epc_tenant_config`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Jewellery stock verification KPIs from epc_jewel_stock_verification* (CREATE TABLE in epc_erp_jewellery.php).</summary>
+    public const string SelectCpJewelleryStockVerificationStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_jewel_stock_verification`) AS verification_count,
+            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE IFNULL(`status`,'')='in_progress') AS in_progress_count,
+            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE IFNULL(`status`,'') IN ('complete','completed','closed')) AS complete_count,
+            (SELECT COUNT(*) FROM `epc_jewel_stock_verification_lines`) AS line_count
+        """;
+
+    /// <summary>Jewellery stock verification rows — omits remarks.</summary>
+    public const string SelectCpJewelleryStockVerificationRows = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`branch`,'') AS branch,
+               IFNULL(`voc_type`,'') AS voc_type, IFNULL(`voc_date`,'') AS voc_date,
+               IFNULL(`voc_no`,0) AS voc_no, IFNULL(`location`,'') AS location,
+               IFNULL(`total_pcs`,0) AS total_pcs, IFNULL(`scanned_pcs`,0) AS scanned_pcs,
+               IFNULL(`remaining_pcs`,0) AS remaining_pcs, IFNULL(`status`,'') AS status,
+               IFNULL(`created_by`,'') AS created_by
+        FROM `epc_jewel_stock_verification`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 
 }
