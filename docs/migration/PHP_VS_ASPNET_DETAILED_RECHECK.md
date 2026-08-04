@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** ERP cash-entries Blazor ledger UI (`/erp/cash-entries-app`) on www preview only; PHP erp_tabs_cash_bank remains authoritative. BOS/CP digest apps and prior slices shipped/tracked. Live CloudPanel cookie captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** Enterprise BOS scaffolding (EF Core bounded-context stubs, YARP exact-route design example, ActivitySource Data name). Hybrid digest `*-app` wave complete on tip; live CloudPanel cookie captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 

@@ -111,9 +111,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - Exact-route www preview only — live epartscart.com / tenant storefronts stay PHP (same-to-same).
 - Destination: ASP.NET Core 10 Enterprise BOS; Blazor SSR is interim hybrid presentation (target SPA Angular/React later).
 
-### Hybrid ERP continue ← current
-- ✅ Core ERP list digests through purchases + inventory-stock + accounts-summary + dashboard-summary apps
-- **This PR:** `/erp/cash-entries-app` over `/erp/cash-entries` digest; PHP erp_tabs_cash_bank authoritative.
+### Hybrid ERP continue
+- ✅ Core ERP list digests through purchases + inventory-stock + accounts/dashboard-summary + cash-accounts/entries apps
 - Exact-route www preview only — tenant ERP stays PHP (same-to-same).
 
 ### Hybrid BOS continue
@@ -122,8 +121,13 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 
 ### Dual-sample evidence packs for hybrid UIs
 - dual-sample evidence packs for hybrid UIs ✅ (#690): `cloudpanel_capture_hybrid_ui_dual_samples.sh` + `compare_hybrid_ui_dual_samples.py` + evidence under `hybrid-ui-dual-samples/` (`cutoverAllowed=false`).
+- ✅ Hybrid surface digest `*-app` wave complete on tip (#692–#700 stack): every tracked CP/ERP/BOS/storefront digest has a www exact-route Blazor preview.
 - Next: CloudPanel operator live captures (admin/customer cookies + `ECOMAE_OVERWRITE_HYBRID_UI_SAMPLES=1`) after presentation shadows; keep tenant verify `cutoverAllowed=false`.
 - Stubs are CI floor only — never invent live pass results or `RELEASE_OWNER_APPROVAL.md`.
+
+### Enterprise BOS scaffolding continue ← current
+- **This PR:** expand EF Core bounded-context stubs (TenantRegistry/Identity) + YARP exact-route design example + ActivitySource `EcomAE.Platform.Data` (exporters still unwired).
+- Still not live: `AddDbContext`, OTLP exporters, YARP process, PG17/Redis/Kafka.
 
 ### Batch 6 — Decommission gate (**blocked / premature**)
 Do **not** start Batch 6 cutover while interactive `aspnet-complete` is still 0 and tenants must remain same-to-same on PHP chrome.
