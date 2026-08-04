@@ -669,6 +669,14 @@ public sealed class StorefrontModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new StorefrontLoginCheckCodeRequest(body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.StorefrontBulkUploadProcess, async (HttpContext context, StorefrontBulkUploadProcessBody? body, ILegacySessionValidator validator, IStorefrontBulkUploadProcessDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0) return Unauthorized("Customer session required.");
+            body ??= new StorefrontBulkUploadProcessBody(null, false);
+            return Results.Ok(dryRun.Evaluate(new StorefrontBulkUploadProcessRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapPost(EcomAeRoutes.StorefrontOrderSendMessage, async (
             HttpContext context,
             StorefrontOrderSendMessageBody? body,
@@ -734,6 +742,7 @@ public sealed class StorefrontModule : ISurfaceModule
         string? EmailNotAuth = null,
         bool ConfirmWrites = false);
     private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
+    private sealed record StorefrontBulkUploadProcessBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontNewsletterSubscribeBody(string? Email, bool ConfirmWrites = false);
     private sealed record StorefrontAddEvaluationBody(long ProductId, int Rating = 5, bool ConfirmWrites = false);
     private sealed record StorefrontCreateOperationBody(decimal Amount, string? Kind, bool ConfirmWrites = false);

@@ -193,5 +193,19 @@ probe_post "/cp/users/set-comment" '{"userId":1,"comment":"dry-run","confirmWrit
 probe_post "/cp/prices/import-csv" '{"sessionId":1,"confirmWrites":false}' "$ADMIN_COOKIE" "CpPricesImportCsv"
 probe_post "/cp/prices/complete-session" '{"sessionId":1,"confirmWrites":false}' "$ADMIN_COOKIE" "CpPricesCompleteSession"
 
+
+# Wave B promote ins/fin/automation + CP leftover ajax
+probe_post "/erp/ajax/ins-save" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp ins_save"
+probe_post "/erp/ajax/docx-save" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp docx_save"
+probe_post "/erp/ajax/fin-alloc-run" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp fin_alloc_run"
+probe_post "/erp/ajax/pf-case-cancel" '{"id":1,"confirmWrites":false}' "$ADMIN_COOKIE" "erp pf_case_cancel"
+probe_post "/erp/ajax/opl-autoplan" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp opl_autoplan"
+probe_post "/cp/content/create-sitemap" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpCreateSitemap"
+probe_post "/cp/lang/save-translation" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangSaveTranslation"
+probe_post "/cp/lang/save-description" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangSaveDescription"
+probe_post "/cp/lang/create-string" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangCreateString"
+probe_post "/cp/lang/delete-not-used" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangDeleteNotUsed"
+probe_post "/cp/packs/delete" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpPacksDelete"
+
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]

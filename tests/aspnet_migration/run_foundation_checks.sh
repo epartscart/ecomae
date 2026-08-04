@@ -878,6 +878,9 @@ check 'Wave B write dry-run probe covers einvoice create' contains "$ROOT/script
 check 'Wave B write dry-run probe covers newsletter subscribe' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/newsletter/subscribe'
 check 'Wave B write dry-run probe covers CP return action' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/returns/action'
 check 'Wave B write dry-run probe covers storefront set-my-city' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/geo/set-my-city'
+check 'Wave B write dry-run probe covers ins save' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/ins-save'
+check 'Wave B write dry-run probe covers CP channels' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/channels/write'
+check 'Wave B write dry-run probe covers CP lang translation' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/lang/save-translation'
 
 
 check 'Wave B write dry-run dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh"
