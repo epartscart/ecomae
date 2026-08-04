@@ -398,6 +398,10 @@ public sealed class CpModuleAjaxWriteCatalog : ICpModuleAjaxWriteCatalog
         new("classic_form", "shop_kkt_kkt_root_page", "dedicated", "/cp/module-ajax/classic_form/shop_kkt_kkt_root_page/dry-run", "cp/content/shop/kkt/kkt_root_page.php"),
         new("classic_form", "shop_logistics_stock_control", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_stock_control/dry-run", "cp/content/shop/logistics/stock_control.php"),
         new("classic_form", "shop_payments_payments_main", "dedicated", "/cp/module-ajax/classic_form/shop_payments_payments_main/dry-run", "cp/content/shop/payments/payments_main.php"),
+        new("classic_form", "shop_payments_payments_configure", "dedicated", "/cp/module-ajax/classic_form/shop_payments_payments_configure/dry-run", "cp/content/shop/payments/payments_configure.php"),
+        new("classic_form", "shop_logistics_logistics_carriers", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_logistics_carriers/dry-run", "cp/content/shop/logistics/logistics_carriers.php"),
+        new("classic_form", "shop_logistics_obtaining_mode", "dedicated", "/cp/module-ajax/classic_form/shop_logistics_obtaining_mode/dry-run", "cp/content/shop/logistics/obtaining_mode.php"),
+        new("classic_form", "control_portal_epc_integrations_hub", "dedicated", "/cp/module-ajax/classic_form/control_portal_epc_integrations_hub/dry-run", "cp/content/control/portal/epc_integrations_hub.php"),
         new("classic_form", "shop_prices_upload_for_pyprices_for_cron_create_edit_cron_task", "dedicated", "/cp/module-ajax/classic_form/shop_prices_upload_for_pyprices_for_cron_create_edit_cron_task/dry-run", "cp/content/shop/prices_upload/for_pyprices/for_cron/create_edit_cron_task.php"),
         new("classic_form", "shop_tenant_hub_tenant_hub_main", "dedicated", "/cp/module-ajax/classic_form/shop_tenant_hub_tenant_hub_main/dry-run", "cp/content/shop/tenant_hub/tenant_hub_main.php"),
         new("classic_form", "templates_control_template_edit", "dedicated", "/cp/module-ajax/classic_form/templates_control_template_edit/dry-run", "cp/content/templates_control/template_edit.php"),
@@ -449,6 +453,7 @@ public sealed class CpModuleAjaxWriteCatalog : ICpModuleAjaxWriteCatalog
                 "Dedicated routes cover classified write/mutate actions; registry covers reads via POST /cp/module-ajax/dry-run/{module}/{action}.",
                 "classic_form entries gate classic CP form POST pages (not ajax_*.php).",
                 "Wave F adds free_tools/parts_agent/currency/garage/demand/ingest + POS/channels/logistics/payments/workshop holdouts.",
+                "Integrations field-parity adds classic_form gates for carriers hub, integrations hub, obtaining_mode, payments_configure.",
                 "cutoverAllowed stays false until dual-sample + human RELEASE_OWNER_APPROVAL.md.",
             ]);
     }

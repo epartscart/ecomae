@@ -142,11 +142,11 @@ SUMMARY_CONTRACTS = {
     ),
     "cp-carriers": (
         "summary",
-        "carrierCount,activeCarriers,rateCount,openShipments,source,message",
+        "carrierCount,activeCarriers,shipmentCount,openShipments,source,message",
     ),
     "cp-payment-gateways": (
         "summary",
-        "gatewayCount,activeGateways,selectableGateways,accountCount,source,message",
+        "gatewayCount,enabledGateways,activeGateways,selectableGateways,accountCount,source,message",
     ),
     "cp-workflows": (
         "summary",
@@ -166,7 +166,7 @@ SUMMARY_CONTRACTS = {
     ),
     "cp-integrations": (
         "summary",
-        "webhookCount,activeWebhooks,deliveryCount,failedDeliveries,source,message",
+        "catalogCount,activeCount,guideCount,categoryCount,source,message",
     ),
     "erp-bank-reconciliation": (
         "summary",
@@ -851,11 +851,11 @@ HYBRID_LIST_ITEM_FIELDS = {
     ),
     "cp-carriers": (
         "carriers",
-        ["id", "code", "name", "mode", "currency", "rating", "active"],
+        ["id", "code", "name", "active", "demoMode", "timeCreated", "region", "blurb"],
     ),
     "cp-payment-gateways": (
         "gateways",
-        ["id", "name", "handler", "active", "isSelectable"],
+        ["id", "name", "handler", "anable", "active", "isSelectable"],
     ),
     "cp-workflows": (
         "workflows",
@@ -875,7 +875,7 @@ HYBRID_LIST_ITEM_FIELDS = {
     ),
     "cp-integrations": (
         "integrations",
-        ["id", "tenantKey", "url", "active", "description", "createdAt"],
+        ["key", "label", "blurb", "category", "active", "configureUrl", "guide", "icon", "color"],
     ),
     "erp-bank-reconciliation": (
         "lines",
@@ -991,7 +991,7 @@ HYBRID_LIST_ITEM_FIELDS = {
     ),
     "cp-marketplace-channels": (
         "channels",
-        ["id", "code", "name", "marketplaceId", "active", "demoMode", "lastSyncAt", "timeCreated"],
+        ["id", "code", "name", "marketplaceId", "active", "demoMode", "lastSyncAt", "timeCreated", "family", "region", "api", "blurb"],
     ),
     "cp-demand-intelligence": (
         "countries",

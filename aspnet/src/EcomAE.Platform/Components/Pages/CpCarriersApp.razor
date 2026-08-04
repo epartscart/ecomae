@@ -23,7 +23,7 @@
         .epc-car-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-car-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#1e3a5f; background:#93c5fd;
+            text-decoration:none; color:#0c4a6e; background:#e0f2fe;
         }
         .epc-car-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-car-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
@@ -34,74 +34,68 @@
         .epc-car-table { width:100%; border-collapse:collapse; font-size:.86rem; }
         .epc-car-table th, .epc-car-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
         .epc-car-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-car-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a5f; font-size:.86rem; }
         @@media (max-width:900px){ .epc-car-kpis{grid-template-columns:1fr 1fr;} }
     </style>
 
     <section class="epc-car-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Carriers</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>Connect courier partners, toggle demo mode, and track open shipments across MENA, Europe, and beyond.</p>
         <div class="epc-car-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@_configureHref">Manage carriers</a>
+            <a class="ghost" href="@_deliveryHref">Delivery methods</a>
         </div>
     </section>
 
     <div class="epc-car-kpis" aria-label="Carriers stats">
         <div class="epc-car-kpi"><strong>@_summary.CarrierCount.ToString(CultureInfo.InvariantCulture)</strong><span>Carriers</span></div>
         <div class="epc-car-kpi"><strong>@_summary.ActiveCarriers.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
-        <div class="epc-car-kpi"><strong>@_summary.RateCount.ToString(CultureInfo.InvariantCulture)</strong><span>Rates</span></div>
-        <div class="epc-car-kpi"><strong>@_summary.OpenShipments.ToString(CultureInfo.InvariantCulture)</strong><span>Open shipments</span></div>
+        <div class="epc-car-kpi"><strong>@_summary.ShipmentCount.ToString(CultureInfo.InvariantCulture)</strong><span>Shipments</span></div>
+        <div class="epc-car-kpi"><strong>@_summary.OpenShipments.ToString(CultureInfo.InvariantCulture)</strong><span>Open</span></div>
     </div>
 
     <div class="epc-car-table-wrap">
         <table class="epc-car-table">
             <thead>
                 <tr>
-                    <th>Id</th>
                     <th>Code</th>
                     <th>Name</th>
-                    <th>Mode</th>
-                    <th>Currency</th>
-                    <th>Rating</th>
+                    <th>Region</th>
                     <th>Active</th>
+                    <th>Demo</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_carriers.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="6">No courier accounts yet. Seed partners from Manage carriers.</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _carriers)
                     {
                         <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Mode) ? row.Mode : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Currency) ? row.Currency : "—")</td>
-                            <td>@row.Rating.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Region) ? row.Region : "—")</td>
                             <td>@(row.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td>@(row.DemoMode ? "yes" : "no")</td>
+                            <td><a href="@_configureHref">Configure</a></td>
                         </tr>
                     }
                 }
             </tbody>
         </table>
     </div>
-
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/logistics/carriers";
+    private const string _configureHref = "/CP/shop/logistics/carriers";
+    private const string _deliveryHref = "/CP/shop/logistics/sposoby-polucheniya";
     private bool _isAdmin;
     private CpCarriersSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpCarrierDigest> _carriers = [];
-    private string _source = "n/a";
-    private string _message = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -119,7 +113,5 @@
         var result = await Dashboards.BuildCpCarriersDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _carriers = result.Carriers;
-        _source = result.Source;
-        _message = result.Message;
     }
 }

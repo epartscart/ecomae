@@ -1529,7 +1529,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_carriers KPIs + carriers (contact_name/phone/email/tax_id omitted). PHP /CP/shop/logistics/carriers remains authoritative."
+                note = "Read-only epc_carrier_accounts + epc_carrier_shipments KPIs + carriers (config_json omitted; catalog region/blurb). PHP /CP/shop/logistics/carriers remains authoritative."
             });
         });
 
@@ -1557,7 +1557,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_payment_systems KPIs + gateways (parameters/parameters_values/description omitted). PHP /CP/shop/payments/payments remains authoritative."
+                note = "Read-only shop_payment_systems KPIs + gateways (anable=Enabled; active=Default; parameters/credentials omitted). PHP /CP/shop/payments/payments remains authoritative."
             });
         });
 
@@ -1697,7 +1697,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_webhooks KPIs + integrations (secret_hash/secret_encrypted/events omitted). PHP epc_integrations_hub remains authoritative."
+                note = "Read-only Integrations Hub catalog (key/label/blurb/category/configure_url; feature flags overlay). Not epc_webhooks. PHP epc_integrations_hub remains authoritative."
             });
         });
 
@@ -2370,7 +2370,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_marketplace_* KPIs + channels (config_json omitted). PHP marketplace/channels remain authoritative."
+                note = "Read-only epc_marketplace_* KPIs + channels (config_json omitted; catalog family/region/api/blurb). PHP marketplace/channels remain authoritative."
             });
         });
 
