@@ -473,6 +473,12 @@ public static class EcomAeRoutes
     public const string ErpCashEntriesAmend = "/erp/cash-entries/amend";
     /// <summary>Wave B dry-run cash voucher void (PHP cash_voucher_void remains authoritative).</summary>
     public const string ErpCashEntriesVoid = "/erp/cash-entries/void";
+    /// <summary>Wave B dry-run for PHP cash_entry create (writes=0; PHP authoritative).</summary>
+    public const string ErpCashEntriesCreate = "/erp/cash-entries/create";
+    /// <summary>Wave B dry-run for PHP receipt_voucher (writes=0; PHP authoritative).</summary>
+    public const string ErpCashEntriesReceiptVoucher = "/erp/cash-entries/receipt-voucher";
+    /// <summary>Wave B dry-run for PHP payment_voucher (writes=0; PHP authoritative).</summary>
+    public const string ErpCashEntriesPaymentVoucher = "/erp/cash-entries/payment-voucher";
     /// <summary>Wave B dry-run GL manual journal (PHP gl_manual_entry remains authoritative).</summary>
     public const string ErpGlJournalsManual = "/erp/gl-journals/manual";
     /// <summary>Wave B dry-run GL reverse journal (PHP gl_reverse_journal remains authoritative).</summary>

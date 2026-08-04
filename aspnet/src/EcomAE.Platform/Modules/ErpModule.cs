@@ -283,6 +283,66 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ErpCashEntriesCreate, async (
+            HttpContext context,
+            ErpCashEntryCreateBody? body,
+            ILegacySessionValidator validator,
+            IErpCashEntryCreateDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for cash entry create dry-run.");
+            }
+
+            body ??= new ErpCashEntryCreateBody(0, 0, false, null, null, null, false);
+            var result = await dryRun.EvaluateAsync(
+                new ErpCashEntryCreateRequest(
+                    body.AccountId, body.Amount, body.Direction, body.EntryType,
+                    body.Reference, body.Note, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpCashEntriesReceiptVoucher, async (
+            HttpContext context,
+            ErpReceiptVoucherBody? body,
+            ILegacySessionValidator validator,
+            IErpReceiptVoucherDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for receipt voucher dry-run.");
+            }
+
+            body ??= new ErpReceiptVoucherBody(0, 0, 0, null, false);
+            var result = dryRun.Evaluate(
+                new ErpReceiptVoucherRequest(body.UserId, body.AccountId, body.Amount, body.SalesOrderId, body.ConfirmWrites));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
+        endpoints.MapPost(EcomAeRoutes.ErpCashEntriesPaymentVoucher, async (
+            HttpContext context,
+            ErpPaymentVoucherBody? body,
+            ILegacySessionValidator validator,
+            IErpPaymentVoucherDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for payment voucher dry-run.");
+            }
+
+            body ??= new ErpPaymentVoucherBody(0, 0, 0, false);
+            var result = dryRun.Evaluate(
+                new ErpPaymentVoucherRequest(body.SupplierId, body.AccountId, body.Amount, body.ConfirmWrites));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapPost(EcomAeRoutes.ErpGlJournalsManual, async (
             HttpContext context,
             ErpGlManualEntryBody? body,
@@ -794,6 +854,25 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpCashVoucherAmendBody(long EntryId, string? Reference, string? Note, bool ConfirmWrites = false);
     private sealed record ErpCashVoucherVoidBody(long EntryId, string? Reason, bool ConfirmWrites = false);
+    private sealed record ErpCashEntryCreateBody(
+        long AccountId,
+        decimal Amount,
+        bool Direction = false,
+        string? EntryType = null,
+        string? Reference = null,
+        string? Note = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpReceiptVoucherBody(
+        long UserId,
+        long AccountId,
+        decimal Amount,
+        long? SalesOrderId = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpPaymentVoucherBody(
+        long SupplierId,
+        long AccountId,
+        decimal Amount,
+        bool ConfirmWrites = false);
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
     private sealed record ErpGlManualEntryBody(IReadOnlyList<ErpGlManualLineBody>? Lines, string? Reference, string? Description, bool ConfirmWrites = false);
     private sealed record ErpGlReverseJournalBody(long JournalId, string? Note, bool ConfirmWrites = false);
