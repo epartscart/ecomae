@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 110,
+  "routeCount": 127,
   "generatedFrom": [
     "deploy/aspnet/nginx-surface-digests-shadow-example.conf"
   ],
@@ -1325,6 +1325,210 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-data-migrations-shadow-approved"
+          }
+        ]
+      },
+      "cp-geo-regions": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/geo-regions"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-geo-regions-shadow-approved"
+          }
+        ]
+      },
+      "cp-product-filters": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/product-filters"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-product-filters-shadow-approved"
+          }
+        ]
+      },
+      "cp-search-tabs": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/search-tabs"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-search-tabs-shadow-approved"
+          }
+        ]
+      },
+      "cp-system-requests": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/system-requests"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-system-requests-shadow-approved"
+          }
+        ]
+      },
+      "cp-additional-texts": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/additional-texts"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-additional-texts-shadow-approved"
+          }
+        ]
+      },
+      "cp-slider-banners": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/slider-banners"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-slider-banners-shadow-approved"
+          }
+        ]
+      },
+      "cp-structure-dumps": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/structure-dumps"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-structure-dumps-shadow-approved"
+          }
+        ]
+      },
+      "cp-communications-test": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/communications-test"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-communications-test-shadow-approved"
+          }
+        ]
+      },
+      "cp-languages": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/languages"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-languages-shadow-approved"
+          }
+        ]
+      },
+      "cp-plugins-manager": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/plugins-manager"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-plugins-manager-shadow-approved"
+          }
+        ]
+      },
+      "cp-templates-manager": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/templates-manager"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-templates-manager-shadow-approved"
+          }
+        ]
+      },
+      "cp-design-tokens": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/design-tokens"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-design-tokens-shadow-approved"
+          }
+        ]
+      },
+      "cp-sitemap": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/sitemap"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-sitemap-shadow-approved"
+          }
+        ]
+      },
+      "cp-failover-status": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/failover-status"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-failover-status-shadow-approved"
+          }
+        ]
+      },
+      "cp-ops-guides": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/ops-guides"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-ops-guides-shadow-approved"
+          }
+        ]
+      },
+      "cp-file-manager": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/file-manager"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-file-manager-shadow-approved"
+          }
+        ]
+      },
+      "cp-server-ip": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/server-ip"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-server-ip-shadow-approved"
           }
         ]
       }

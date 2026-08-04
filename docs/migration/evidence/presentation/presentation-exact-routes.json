@@ -5,7 +5,7 @@
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
-  "routeCount": 127,
+  "routeCount": 144,
   "note": "Design/inventory only for presentation Blazor *-app + login exact-routes. Never invents RELEASE_OWNER_APPROVAL.md.",
   "routes": [
     "/cp/app",
@@ -134,6 +134,23 @@
     "/cp/marketplace-apps-app",
     "/cp/notifications-app",
     "/cp/portal-settings-app",
-    "/cp/data-migrations-app"
+    "/cp/data-migrations-app",
+    "/cp/geo-regions-app",
+    "/cp/product-filters-app",
+    "/cp/search-tabs-app",
+    "/cp/system-requests-app",
+    "/cp/additional-texts-app",
+    "/cp/slider-banners-app",
+    "/cp/structure-dumps-app",
+    "/cp/communications-test-app",
+    "/cp/languages-app",
+    "/cp/plugins-manager-app",
+    "/cp/templates-manager-app",
+    "/cp/design-tokens-app",
+    "/cp/sitemap-app",
+    "/cp/failover-status-app",
+    "/cp/ops-guides-app",
+    "/cp/file-manager-app",
+    "/cp/server-ip-app"
   ]
 }

@@ -2132,4 +2132,256 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+
+    // ---- Wave 22 CMS/platform leftover digests ----
+    public const string CountCpGeoRegionsNodeCount = "SELECT COUNT(*) FROM `shop_geo`";
+    public const string CountCpGeoRegionsLevel1Count = "SELECT COUNT(*) FROM `shop_geo` WHERE IFNULL(`level`,0)=1";
+    public const string CountCpGeoRegionsLevel2Count = "SELECT COUNT(*) FROM `shop_geo` WHERE IFNULL(`level`,0)=2";
+    public const string CountCpGeoRegionsMappedOfficeCount = "SELECT COUNT(DISTINCT `office_id`) FROM `shop_offices_geo_map`";
+
+    /// <summary>Wave 22 geo-regions rows — raw lang string bodies; value stored as lang id.</summary>
+    public const string SelectCpGeoRegionsRows = """
+        SELECT `id`, IFNULL(`level`,0) AS level, IFNULL(`parent`,0) AS parent,
+        IFNULL(`order`,0) AS sort_order, IFNULL(`count`,0) AS child_count,
+        IFNULL(`value`,0) AS value_lang_id
+        FROM `shop_geo`
+        ORDER BY `level` ASC, `order` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Wave 22 product-filters KPIs (shop_docpart_filter).</summary>
+    public const string SelectCpProductFiltersStats = """
+        SELECT
+        COUNT(*) AS filter_count,
+        SUM(CASE WHEN IFNULL(`list_storages`,'') NOT IN ('','[]','null') THEN 1 ELSE 0 END) AS with_storage_scope,
+        SUM(CASE WHEN IFNULL(`min_price`,0)>0 OR IFNULL(`max_price`,0)>0 THEN 1 ELSE 0 END) AS with_price_band,
+        SUM(CASE WHEN IFNULL(`min_time`,0)>0 OR IFNULL(`max_time`,0)>0 THEN 1 ELSE 0 END) AS with_time_band
+        FROM `shop_docpart_filter`
+        """;
+
+    /// <summary>Wave 22 product-filters rows — list_storages JSON.</summary>
+    public const string SelectCpProductFiltersRows = """
+        SELECT `id`, IFNULL(`manufacturer`,'') AS manufacturer, IFNULL(`article`,'') AS article,
+        IFNULL(`name`,'') AS name,
+        IFNULL(`min_price`,0) AS min_price, IFNULL(`max_price`,0) AS max_price,
+        IFNULL(`min_time`,0) AS min_time, IFNULL(`max_time`,0) AS max_time
+        FROM `shop_docpart_filter`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Wave 22 search-tabs KPIs (shop_docpart_search_tabs).</summary>
+    public const string SelectCpSearchTabsStats = """
+        SELECT
+        COUNT(*) AS tab_count,
+        SUM(CASE WHEN IFNULL(`enabled`,0)=1 THEN 1 ELSE 0 END) AS enabled_count,
+        SUM(CASE WHEN IFNULL(`enabled`,0)=0 THEN 1 ELSE 0 END) AS disabled_count,
+        IFNULL(MAX(`order`),0) AS max_order
+        FROM `shop_docpart_search_tabs`
+        """;
+
+    /// <summary>Wave 22 search-tabs rows — parameters_values JSON.</summary>
+    public const string SelectCpSearchTabsRows = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`order`,0) AS sort_order,
+        IFNULL(`enabled`,0) AS enabled
+        FROM `shop_docpart_search_tabs`
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Wave 22 system-requests KPIs (users_vin).</summary>
+    public const string SelectCpSystemRequestsStats = """
+        SELECT
+        COUNT(*) AS request_count,
+        SUM(CASE WHEN IFNULL(`viewed`,0)=0 THEN 1 ELSE 0 END) AS unviewed_count,
+        SUM(CASE WHEN IFNULL(`viewed`,0)=1 THEN 1 ELSE 0 END) AS viewed_count,
+        SUM(CASE WHEN IFNULL(`user_id`,0)>0 THEN 1 ELSE 0 END) AS with_user_count
+        FROM `users_vin`
+        """;
+
+    /// <summary>Wave 22 system-requests rows — VIN request text body (injection-prone PHP cookie filters not ported).</summary>
+    public const string SelectCpSystemRequestsRows = """
+        SELECT `id`, IFNULL(`time`,0) AS time_unix, IFNULL(`user_id`,0) AS user_id,
+        IFNULL(`viewed`,0) AS viewed
+        FROM `users_vin`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Wave 22 additional-texts KPIs (text_for_url).</summary>
+    public const string SelectCpAdditionalTextsStats = """
+        SELECT
+        COUNT(*) AS text_count,
+        SUM(CASE WHEN IFNULL(`before_main`,0)=1 THEN 1 ELSE 0 END) AS before_main_count,
+        SUM(CASE WHEN IFNULL(`title_tag`,'')!='' THEN 1 ELSE 0 END) AS with_title_count,
+        SUM(CASE WHEN IFNULL(`description_tag`,'')!='' THEN 1 ELSE 0 END) AS with_description_count
+        FROM `text_for_url`
+        """;
+
+    /// <summary>Wave 22 additional-texts rows — content HTML + description_tag bodies in rows (title/keywords only).</summary>
+    public const string SelectCpAdditionalTextsRows = """
+        SELECT `id`, IFNULL(`url`,'') AS url, IFNULL(`before_main`,0) AS before_main,
+        IFNULL(`title_tag`,'') AS title_tag, IFNULL(`keywords_tag`,'') AS keywords_tag
+        FROM `text_for_url`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string CountCpSliderBannersImageCount = "SELECT COUNT(*) FROM `slider_images`";
+    public const string CountCpSliderBannersConnected = "SELECT IFNULL(`connected`,0) FROM `slider_setings` LIMIT 1";
+    public const string CountCpSliderBannersCntImg = "SELECT IFNULL(`cnt_img`,0) FROM `slider_setings` LIMIT 1";
+    public const string CountCpSliderBannersCntImgNext = "SELECT IFNULL(`cnt_img_next`,0) FROM `slider_setings` LIMIT 1";
+
+    /// <summary>Wave 22 slider-banners rows — none critical (paths only).</summary>
+    public const string SelectCpSliderBannersRows = """
+        SELECT `id`, IFNULL(`orders`,0) AS sort_order, IFNULL(`link`,'') AS link,
+        IFNULL(`href`,'') AS href
+        FROM `slider_images`
+        ORDER BY `orders` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Wave 22 structure-dumps KPIs (content_structure_dumps).</summary>
+    public const string SelectCpStructureDumpsStats = """
+        SELECT
+        COUNT(*) AS dump_count,
+        IFNULL(SUM(`records_count`),0) AS total_records,
+        IFNULL(MAX(`time_created`),0) AS latest_time_created,
+        SUM(CASE WHEN IFNULL(`file_name`,'')!='' THEN 1 ELSE 0 END) AS with_file_count
+        FROM `content_structure_dumps`
+        """;
+
+    /// <summary>Wave 22 structure-dumps rows — dump file bodies.</summary>
+    public const string SelectCpStructureDumpsRows = """
+        SELECT `id`, IFNULL(`time_created`,0) AS time_created, IFNULL(`fields_in_dump`,'') AS fields_in_dump,
+        IFNULL(`file_name`,'') AS file_name, IFNULL(`records_count`,0) AS records_count
+        FROM `content_structure_dumps`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string CountCpCommunicationsTestSmsActiveCount = "SELECT COUNT(*) FROM `sms_api` WHERE IFNULL(`active`,0)=1";
+    public const string CountCpCommunicationsTestSmsTotalCount = "SELECT COUNT(*) FROM `sms_api`";
+
+    public const string SelectCpCommunicationsTestEmailLastStatus = "SELECT IFNULL(`status`,'') FROM `debug_results` WHERE `name`='email' ORDER BY `time` DESC LIMIT 1";
+    public const string SelectCpCommunicationsTestSmsLastStatus = "SELECT IFNULL(`status`,'') FROM `debug_results` WHERE `name`='sms' ORDER BY `time` DESC LIMIT 1";
+
+    /// <summary>Wave 22 communications-test rows — debug_result blobs + sms parameters_values secrets.</summary>
+    public const string SelectCpCommunicationsTestRows = """
+        SELECT IFNULL(`name`,'') AS name, IFNULL(`active`,0) AS active,
+        IFNULL(`is_selectable`,0) AS is_selectable, IFNULL(`handler`,'') AS handler
+        FROM `sms_api`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Wave 22 languages KPIs (lang_languages).</summary>
+    public const string SelectCpLanguagesStats = """
+        SELECT
+        COUNT(*) AS language_count,
+        SUM(CASE WHEN IFNULL(`active`,0)=1 THEN 1 ELSE 0 END) AS active_count,
+        SUM(CASE WHEN IFNULL(`is_default`,0)=1 THEN 1 ELSE 0 END) AS default_count,
+        SUM(CASE WHEN IFNULL(`active`,0)=0 THEN 1 ELSE 0 END) AS inactive_count
+        FROM `lang_languages`
+        """;
+
+    /// <summary>Wave 22 languages rows — translation string bodies.</summary>
+    public const string SelectCpLanguagesRows = """
+        SELECT IFNULL(`lang_code`,'') AS lang_code, IFNULL(`active`,0) AS active,
+        IFNULL(`is_default`,0) AS is_default
+        FROM `lang_languages`
+        ORDER BY `is_default` DESC, `active` DESC, `lang_code` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Wave 22 plugins-manager KPIs (plugins).</summary>
+    public const string SelectCpPluginsManagerStats = """
+        SELECT
+        COUNT(*) AS plugin_count,
+        SUM(CASE WHEN IFNULL(`activated`,0)=1 THEN 1 ELSE 0 END) AS activated_count,
+        SUM(CASE WHEN IFNULL(`is_frontend`,0)=1 THEN 1 ELSE 0 END) AS frontend_count,
+        SUM(CASE WHEN IFNULL(`control_lock`,0)=1 THEN 1 ELSE 0 END) AS locked_count
+        FROM `plugins`
+        """;
+
+    /// <summary>Wave 22 plugins-manager rows — data_value JSON + filesystem delete side-effects.</summary>
+    public const string SelectCpPluginsManagerRows = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`order`,0) AS sort_order,
+        IFNULL(`activated`,0) AS activated, IFNULL(`is_frontend`,0) AS is_frontend,
+        IFNULL(`control_lock`,0) AS control_lock
+        FROM `plugins`
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Wave 22 templates-manager KPIs (templates).</summary>
+    public const string SelectCpTemplatesManagerStats = """
+        SELECT
+        COUNT(*) AS template_count,
+        SUM(CASE WHEN IFNULL(`is_frontend`,0)=1 THEN 1 ELSE 0 END) AS frontend_count,
+        SUM(CASE WHEN IFNULL(`is_frontend`,0)=1 AND IFNULL(`current`,0)=1 THEN 1 ELSE 0 END) AS current_frontend_count,
+        SUM(CASE WHEN IFNULL(`is_frontend`,0)=0 AND IFNULL(`current`,0)=1 THEN 1 ELSE 0 END) AS current_backend_count
+        FROM `templates`
+        """;
+
+    /// <summary>Wave 22 templates-manager rows — data_value JSON + FS delete.</summary>
+    public const string SelectCpTemplatesManagerRows = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`name`,'') AS name,
+        IFNULL(`current`,0) AS current_flag, IFNULL(`is_frontend`,0) AS is_frontend,
+        IFNULL(`phone_support`,0) AS phone_support, IFNULL(`tablet_support`,0) AS tablet_support
+        FROM `templates`
+        ORDER BY `is_frontend` DESC, `current` DESC, `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string CountCpDesignTokensTokenCount = "SELECT COUNT(*) FROM `epc_settings` WHERE `setting_key` LIKE 'brand_%' OR `setting_key`='white_label_login'";
+    public const string CountCpDesignTokensTenantCount = "SELECT COUNT(DISTINCT IFNULL(`site_key`,'')) FROM `epc_settings` WHERE `setting_key` LIKE 'brand_%' OR `setting_key`='white_label_login'";
+    public const string CountCpDesignTokensWhiteLabelCount = "SELECT COUNT(*) FROM `epc_settings` WHERE `setting_key`='white_label_login' AND IFNULL(`setting_value`,'') NOT IN ('','0','false')";
+    public const string CountCpDesignTokensUpdatedRecentCount = "SELECT COUNT(*) FROM `epc_settings` WHERE (`setting_key` LIKE 'brand_%' OR `setting_key`='white_label_login') AND `updated_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+
+    /// <summary>Wave 22 design-tokens rows — setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs.</summary>
+    public const string SelectCpDesignTokensRows = """
+        SELECT IFNULL(`site_key`,'') AS site_key, IFNULL(`setting_key`,'') AS setting_key,
+        IFNULL(CAST(`updated_at` AS CHAR),'') AS updated_at
+        FROM `epc_settings`
+        WHERE `setting_key` LIKE 'brand_%' OR `setting_key`='white_label_login'
+        ORDER BY `updated_at` DESC, `site_key` ASC, `setting_key` ASC
+        LIMIT @limit
+        """;
+
+    public const string CountCpSitemapContentUrlCount = "SELECT COUNT(*) FROM `content` WHERE IFNULL(`alias`,'')!=''";
+    public const string CountCpSitemapCategoryCount = "SELECT COUNT(*) FROM `shop_catalogue_categories`";
+    public const string CountCpSitemapProductCount = "SELECT COUNT(*) FROM `shop_catalogue_products`";
+    public const string CountCpSitemapFrontendContentCount = "SELECT COUNT(*) FROM `content` WHERE IFNULL(`is_frontend`,0)=1";
+
+    /// <summary>Wave 22 sitemap rows — sitemap.xml file artifact (generation remains PHP); content HTML omitted.</summary>
+    public const string SelectCpSitemapRows = """
+        SELECT `id`, IFNULL(`alias`,'') AS alias, IFNULL(`value`,0) AS value_lang_id,
+        IFNULL(`is_frontend`,0) AS is_frontend, IFNULL(`published_flag`,0) AS published_flag
+        FROM `content`
+        WHERE IFNULL(`is_frontend`,0)=1
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+
+    // ---- Wave 23 ops guides / remaining surfaces ----
+public const string SelectCpOpsGuidesStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `control_groups`) AS group_count,
+            (SELECT COUNT(*) FROM `control_items`) AS item_count,
+            (SELECT COUNT(*) FROM `control_items` WHERE IFNULL(`show_anyway`,0)=1) AS show_anyway_count,
+            (SELECT COUNT(*) FROM `control_items` WHERE IFNULL(`url`,'')!='') AS url_item_count
+        """;
+
+    /// <summary>Wave 23 ops-guides rows — guide HTML omitted; caption may be lang id.</summary>
+    public const string SelectCpOpsGuidesRows = """
+        SELECT `id`, IFNULL(`items_group`,0) AS items_group, IFNULL(`caption`,'') AS caption,
+               IFNULL(`url`,'') AS url, IFNULL(`show_anyway`,0) AS show_anyway, IFNULL(`order`,0) AS sort_order
+        FROM `control_items`
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+
 }

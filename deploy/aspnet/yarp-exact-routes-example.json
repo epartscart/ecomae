@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 127,
+  "routeCount": 144,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -1529,6 +1529,210 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-data-migrations-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-geo-regions-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/geo-regions-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-geo-regions-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-product-filters-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/product-filters-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-product-filters-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-search-tabs-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/search-tabs-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-search-tabs-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-system-requests-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/system-requests-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-system-requests-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-additional-texts-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/additional-texts-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-additional-texts-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-slider-banners-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/slider-banners-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-slider-banners-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-structure-dumps-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/structure-dumps-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-structure-dumps-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-communications-test-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/communications-test-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-communications-test-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-languages-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/languages-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-languages-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-plugins-manager-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/plugins-manager-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-plugins-manager-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-templates-manager-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/templates-manager-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-templates-manager-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-design-tokens-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/design-tokens-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-design-tokens-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-sitemap-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/sitemap-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-sitemap-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-failover-status-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/failover-status-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-failover-status-app-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-ops-guides-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/ops-guides-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-ops-guides-app-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-file-manager-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/file-manager-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-file-manager-app-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-server-ip-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/server-ip-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-server-ip-app-app-read-ui-preview"
           }
         ]
       }

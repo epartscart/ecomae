@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 136,
+  "contractCount": 153,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -30,7 +30,7 @@
         "tenant/user/session counts"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -63,7 +63,7 @@
         "portal tenant registry list"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -94,7 +94,7 @@
         "writes remain PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -123,7 +123,7 @@
         "user_manager read digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -154,7 +154,7 @@
         "groups ACL digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -183,7 +183,7 @@
         "modules list digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -218,7 +218,7 @@
         "menu metadata + structure summary digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -249,7 +249,7 @@
         "pages metadata digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -279,7 +279,7 @@
         "currency list digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -311,7 +311,7 @@
         "API client metadata (no key hashes)"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -348,7 +348,7 @@
         "configure/embed writes remain PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -384,7 +384,7 @@
         "save_mobile writes remain PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -416,7 +416,7 @@
         "writes remain PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -450,7 +450,7 @@
         "writes remain PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -481,7 +481,7 @@
         "send remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -517,7 +517,7 @@
         "provision remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -553,7 +553,7 @@
         "chat UX remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -585,7 +585,7 @@
         "terminal writes remain PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -617,7 +617,7 @@
         "install remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -650,7 +650,7 @@
         "configure/send remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -682,7 +682,7 @@
         "CRM UX remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -713,7 +713,7 @@
         "print remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -743,7 +743,7 @@
         "configure remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -772,7 +772,7 @@
         "import/edit remains PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -804,7 +804,7 @@
         "PHP people/HR shell remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -835,7 +835,7 @@
         "PHP production/manufacturing shell remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -866,7 +866,7 @@
         "PHP projects shell remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -897,7 +897,7 @@
         "PHP industry_settings remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -929,7 +929,7 @@
         "PHP retail/jewellery shell remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -960,7 +960,7 @@
         "PHP /CP/shop/prices remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -991,7 +991,7 @@
         "PHP epc_auto_price_engine remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1022,7 +1022,7 @@
         "PHP uae-tax-compliance remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1054,7 +1054,7 @@
         "PHP budgeting shell remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1086,7 +1086,7 @@
         "PHP /CP/shop/logistics/carriers remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1118,7 +1118,7 @@
         "PHP /CP/shop/payments/payments remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1150,7 +1150,7 @@
         "PHP workflow automation remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1183,7 +1183,7 @@
         "PHP purchase requisitions shell remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1214,7 +1214,7 @@
         "PHP epc_promotions_engine remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1246,7 +1246,7 @@
         "PHP sales opportunities / CRM shell remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1278,7 +1278,7 @@
         "PHP epc_integrations_hub remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1310,7 +1310,7 @@
         "PHP epc_visual_page_editor remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1342,7 +1342,7 @@
         "PHP catalogue editor remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1374,7 +1374,7 @@
         "PHP epc_platform_governance remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1406,7 +1406,7 @@
         "PHP tax einvoice tab remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1438,7 +1438,7 @@
         "PHP service_mgmt jw_repairs remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1470,7 +1470,7 @@
         "PHP CRM shell remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1502,7 +1502,7 @@
         "PHP marketing growth / campaigns hub remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1534,7 +1534,7 @@
         "PHP epc_soc2_compliance remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1566,7 +1566,7 @@
         "PHP cost_mgmt cost_models remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1598,7 +1598,7 @@
         "PHP cost_acct/finance fin_advanced remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1630,7 +1630,7 @@
         "PHP tax/audit_wb blockchain_proofs remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1662,7 +1662,7 @@
         "PHP landed_cost_area remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1693,7 +1693,7 @@
         "PHP warehouse/mhei WMS remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1725,7 +1725,7 @@
         "PHP epc_ai_service remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1757,7 +1757,7 @@
         "PHP returns-manager remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1789,7 +1789,7 @@
         "PHP commerce isolation audit remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1821,7 +1821,7 @@
         "PHP tax aml_compliance remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1853,7 +1853,7 @@
         "PHP jewellery masters remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1884,7 +1884,7 @@
         "PHP consolidations area remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1916,7 +1916,7 @@
         "PHP CRM activities remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1948,7 +1948,7 @@
         "PHP auth settings remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -1980,7 +1980,7 @@
         "PHP tax elec_reporting remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2012,7 +2012,7 @@
         "PHP collections/dunning remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2044,7 +2044,7 @@
         "PHP marketplace/channels remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2075,7 +2075,7 @@
         "PHP demand countries remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2107,7 +2107,7 @@
         "PHP credit limit engine remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2139,7 +2139,7 @@
         "PHP risk insurance remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2171,7 +2171,7 @@
         "PHP audit workbench remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2203,7 +2203,7 @@
         "PHP doc expiry remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2235,7 +2235,7 @@
         "PHP tenant configuration remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2267,7 +2267,7 @@
         "PHP jewellery stock verification remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2299,7 +2299,7 @@
         "PHP tax external reporting remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2331,7 +2331,7 @@
         "PHP PO approval remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2365,7 +2365,7 @@
         "PHP opening balances / year-end close remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2398,7 +2398,7 @@
         "PHP jewellery fixing remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2430,7 +2430,7 @@
         "PHP web tracker remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2464,7 +2464,7 @@
         "PHP quote requests remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2496,7 +2496,7 @@
         "PHP super CP communication remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2528,7 +2528,7 @@
         "PHP info blocks CMS remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2560,7 +2560,7 @@
         "PHP free tools admin remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2592,7 +2592,7 @@
         "PHP config sandbox remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2625,7 +2625,7 @@
         "PHP marketplace portal remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2657,7 +2657,7 @@
         "PHP notification settings remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2689,7 +2689,7 @@
         "PHP portal settings remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2721,7 +2721,551 @@
         "PHP data migration remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/geo-regions",
+      "legacyPhpAuthority": "shop_geo + shop_offices_geo_map",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "nodes",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "nodeCount",
+        "level1Count",
+        "level2Count",
+        "mappedOfficeCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Geo / regions KPIs + nodes",
+        "raw lang string bodies; value stored as lang id",
+        "PHP Geo / regions remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/product-filters",
+      "legacyPhpAuthority": "shop_docpart_filter",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "filters",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "filterCount",
+        "withStorageScope",
+        "withPriceBand",
+        "withTimeBand",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Product filters KPIs + filters",
+        "list_storages JSON",
+        "PHP Product filters remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/search-tabs",
+      "legacyPhpAuthority": "shop_docpart_search_tabs",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "tabs",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "tabCount",
+        "enabledCount",
+        "disabledCount",
+        "maxOrder",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Search tabs KPIs + tabs",
+        "parameters_values JSON",
+        "PHP Search tabs remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/system-requests",
+      "legacyPhpAuthority": "users_vin",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "requests",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "requestCount",
+        "unviewedCount",
+        "viewedCount",
+        "withUserCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "System requests KPIs + requests",
+        "VIN request text body (injection-prone PHP cookie filters not ported)",
+        "PHP System requests remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/additional-texts",
+      "legacyPhpAuthority": "text_for_url",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "texts",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "textCount",
+        "beforeMainCount",
+        "withTitleCount",
+        "withDescriptionCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Additional texts KPIs + texts",
+        "content HTML + description_tag bodies in rows (title/keywords only)",
+        "PHP Additional texts remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/slider-banners",
+      "legacyPhpAuthority": "slider_images + slider_setings",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "images",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "imageCount",
+        "connected",
+        "cntImg",
+        "cntImgNext",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Slider / banners KPIs + images",
+        "none critical (paths only)",
+        "PHP Slider / banners remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/structure-dumps",
+      "legacyPhpAuthority": "content_structure_dumps",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "dumps",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "dumpCount",
+        "totalRecords",
+        "latestTimeCreated",
+        "withFileCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Structure dumps KPIs + dumps",
+        "dump file bodies",
+        "PHP Structure dumps remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/communications-test",
+      "legacyPhpAuthority": "debug_results + sms_api",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "channels",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "smsActiveCount",
+        "smsTotalCount",
+        "emailLastStatus",
+        "smsLastStatus",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Communications test KPIs + channels",
+        "debug_result blobs + sms parameters_values secrets",
+        "PHP Communications test remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/languages",
+      "legacyPhpAuthority": "lang_languages",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "languages",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "languageCount",
+        "activeCount",
+        "defaultCount",
+        "inactiveCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Languages KPIs + languages",
+        "translation string bodies",
+        "PHP Languages remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/plugins-manager",
+      "legacyPhpAuthority": "plugins",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "plugins",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "pluginCount",
+        "activatedCount",
+        "frontendCount",
+        "lockedCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Plugins manager KPIs + plugins",
+        "data_value JSON + filesystem delete side-effects",
+        "PHP Plugins manager remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/templates-manager",
+      "legacyPhpAuthority": "templates",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "templates",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "templateCount",
+        "frontendCount",
+        "currentFrontendCount",
+        "currentBackendCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Templates manager KPIs + templates",
+        "data_value JSON + FS delete",
+        "PHP Templates manager remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/design-tokens",
+      "legacyPhpAuthority": "epc_settings (brand_*)",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "tokens",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "tokenCount",
+        "tenantCount",
+        "whiteLabelCount",
+        "updatedRecentCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Design tokens KPIs + tokens",
+        "setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs",
+        "PHP Design tokens remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/sitemap",
+      "legacyPhpAuthority": "content + shop_catalogue_categories + shop_catalogue_products",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "pages",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "contentUrlCount",
+        "categoryCount",
+        "productCount",
+        "frontendContentCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Sitemap KPIs + pages",
+        "sitemap.xml file artifact (generation remains PHP); content HTML omitted",
+        "PHP Sitemap remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/failover-status",
+      "legacyPhpAuthority": "filesystem epc-platform-status.*",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "signals",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "modeFilePresent",
+        "statusJsonPresent",
+        "configPresent",
+        "backupMode",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Failover status KPIs + signals",
+        "secrets inside failover config",
+        "PHP Failover status remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/ops-guides",
+      "legacyPhpAuthority": "control_groups + control_items",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "items",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "groupCount",
+        "itemCount",
+        "showAnywayCount",
+        "urlItemCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Ops guides KPIs + items",
+        "guide HTML bodies",
+        "PHP Ops guides remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/file-manager",
+      "legacyPhpAuthority": "filesystem /content/files",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "entries",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "rootPresent",
+        "fileCount",
+        "dirCount",
+        "totalBytes",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "File manager KPIs + entries",
+        "file contents",
+        "PHP File manager remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/server-ip",
+      "legacyPhpAuthority": "runtime host",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "addresses",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "addressCount",
+        "hasIpv4",
+        "hasIpv6",
+        "loopbackOnly",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Server IP KPIs + addresses",
+        "no outbound ipify",
+        "PHP Server IP remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -2753,7 +3297,7 @@
         "PHP bank_recon tab remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -2786,7 +3330,7 @@
         "PHP warehouse transfer UX remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -2819,7 +3363,7 @@
         "PHP sales proposals/quotations shell remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -2850,7 +3394,7 @@
         "PHP dashboard shortcuts remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -2883,7 +3427,7 @@
         "PHP fixed_assets tab remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2912,7 +3456,7 @@
         "config_items metadata (no secret values)"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2939,7 +3483,7 @@
         "admin session counts (tokens never returned)"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "cp",
@@ -2966,7 +3510,7 @@
         "shop storages digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -2995,7 +3539,7 @@
         "ERP finance KPI read"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3026,7 +3570,7 @@
         "ERP accounts KPI digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3053,7 +3597,7 @@
         "supplier balances digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3084,7 +3628,7 @@
         "purchase list digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3113,7 +3657,7 @@
         "cash/bank accounts digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3145,7 +3689,7 @@
         "cash entries digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3176,7 +3720,7 @@
         "chart of accounts digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3205,7 +3749,7 @@
         "warehouse digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3234,7 +3778,7 @@
         "sales order digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3264,7 +3808,7 @@
         "purchase order digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3291,7 +3835,7 @@
         "inventory stock KPI digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3322,7 +3866,7 @@
         "invoice digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "erp",
@@ -3352,7 +3896,7 @@
         "GL journal digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "bos",
@@ -3379,7 +3923,7 @@
         "BOS fleet KPI read"
       ],
       "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "bos",
@@ -3412,7 +3956,7 @@
         "portal tenant registry list"
       ],
       "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "bos",
@@ -3442,7 +3986,7 @@
         "fleet health sample tenants"
       ],
       "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "bos",
@@ -3471,7 +4015,7 @@
         "platform-DB readiness scoring"
       ],
       "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "bos",
@@ -3502,7 +4046,7 @@
         "audit log digest"
       ],
       "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "storefront",
@@ -3528,7 +4072,7 @@
         "customer account KPI read"
       ],
       "presentationChrome": "templates/modex/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "storefront",
@@ -3557,7 +4101,7 @@
         "customer orders digest"
       ],
       "presentationChrome": "templates/modex/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "storefront",
@@ -3588,7 +4132,7 @@
         "customer garage digest"
       ],
       "presentationChrome": "templates/modex/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "storefront",
@@ -3625,7 +4169,7 @@
         "customer profile digest"
       ],
       "presentationChrome": "templates/modex/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "storefront",
@@ -3658,7 +4202,7 @@
         "warehouse offer search digest"
       ],
       "presentationChrome": "templates/modex/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "storefront",
@@ -3688,7 +4232,7 @@
         "qty/guest/checkout writes remain PHP"
       ],
       "presentationChrome": "templates/modex/desktop.php",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3715,7 +4259,7 @@
         "price lookup offers"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3740,7 +4284,7 @@
         "catalog status"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3768,7 +4312,7 @@
         "cached manufacturers list"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3795,7 +4339,7 @@
         "cached models list"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3825,7 +4369,7 @@
         "cached modifications list"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3850,7 +4394,7 @@
         "cached brands list"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3875,7 +4419,7 @@
         "cached suppliers list (brand suppliers)"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3897,7 +4441,7 @@
         "nested data.data[] ENG_ID/ENGINE_CODE item floor"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3919,7 +4463,7 @@
         "nested data.data[] ART_ID/BRAND item floor"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3941,7 +4485,7 @@
         "nested data.data[] BRAND/ARTICLE item floor"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3963,7 +4507,7 @@
         "nested data.data[] STR_ID/CATEGORY_NAME item floor"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -3985,7 +4529,7 @@
         "nested data.data[] ART_ARTICLE_NR item floor"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -4007,7 +4551,7 @@
         "nested data.data[] ENGINE_CODE item floor"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -4029,7 +4573,7 @@
         "PC[] fitment CI_FROM/CI_TO item floor"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -4051,7 +4595,7 @@
         "object ART_ID/TITLE item floor"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -4073,7 +4617,7 @@
         "nested data.data[] ART_ARTICLE_NR item floor"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -4095,7 +4639,7 @@
         "object ENG_ID/ENGINE_CODE item floor"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -4120,7 +4664,7 @@
         "offline VIN decode envelope"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     },
     {
       "surface": "api",
@@ -4149,7 +4693,7 @@
         "brand parts page"
       ],
       "presentationChrome": "n/a-json-api",
-      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+      "parityStatus": "contract-locked-awaiting-dual-sample"
     }
   ],
   "functions": [
@@ -4768,6 +5312,125 @@
       "aspNetRouteOrCapability": "/cp/data-migrations-app",
       "status": "presentation-shell-scaffolded",
       "notes": "Read UI over /cp/data-migrations digest; file_path/mapping/errors/options/raw payloads omitted; PHP data migration remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "geo-regions Blazor list",
+      "aspNetRouteOrCapability": "/cp/geo-regions-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/geo-regions digest; raw lang string bodies; value stored as lang id; PHP Geo / regions remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "product-filters Blazor list",
+      "aspNetRouteOrCapability": "/cp/product-filters-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/product-filters digest; list_storages JSON; PHP Product filters remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "search-tabs Blazor list",
+      "aspNetRouteOrCapability": "/cp/search-tabs-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/search-tabs digest; parameters_values JSON; PHP Search tabs remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "system-requests Blazor list",
+      "aspNetRouteOrCapability": "/cp/system-requests-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/system-requests digest; VIN request text body (injection-prone PHP cookie filters not ported); PHP System requests remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "additional-texts Blazor list",
+      "aspNetRouteOrCapability": "/cp/additional-texts-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/additional-texts digest; content HTML + description_tag bodies in rows (title/keywords only); PHP Additional texts remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "slider-banners Blazor list",
+      "aspNetRouteOrCapability": "/cp/slider-banners-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/slider-banners digest; none critical (paths only); PHP Slider / banners remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "structure-dumps Blazor list",
+      "aspNetRouteOrCapability": "/cp/structure-dumps-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/structure-dumps digest; dump file bodies; PHP Structure dumps remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "communications-test Blazor list",
+      "aspNetRouteOrCapability": "/cp/communications-test-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/communications-test digest; debug_result blobs + sms parameters_values secrets; PHP Communications test remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "languages Blazor list",
+      "aspNetRouteOrCapability": "/cp/languages-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/languages digest; translation string bodies; PHP Languages remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "plugins-manager Blazor list",
+      "aspNetRouteOrCapability": "/cp/plugins-manager-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/plugins-manager digest; data_value JSON + filesystem delete side-effects; PHP Plugins manager remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "templates-manager Blazor list",
+      "aspNetRouteOrCapability": "/cp/templates-manager-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/templates-manager digest; data_value JSON + FS delete; PHP Templates manager remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "design-tokens Blazor list",
+      "aspNetRouteOrCapability": "/cp/design-tokens-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/design-tokens digest; setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs; PHP Design tokens remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "sitemap Blazor list",
+      "aspNetRouteOrCapability": "/cp/sitemap-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/sitemap digest; sitemap.xml file artifact (generation remains PHP); content HTML omitted; PHP Sitemap remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "failover-status Blazor list",
+      "aspNetRouteOrCapability": "/cp/failover-status-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/failover-status digest; secrets inside failover config; PHP Failover status remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "ops-guides Blazor list",
+      "aspNetRouteOrCapability": "/cp/ops-guides-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/ops-guides digest; guide HTML bodies; PHP Ops guides remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "file-manager Blazor list",
+      "aspNetRouteOrCapability": "/cp/file-manager-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/file-manager digest; file contents; PHP File manager remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "cp",
+      "phpFunctionOrEntry": "server-ip Blazor list",
+      "aspNetRouteOrCapability": "/cp/server-ip-app",
+      "status": "presentation-shell-scaffolded",
+      "notes": "Read UI over /cp/server-ip digest; no outbound ipify; PHP Server IP remains authoritative; tenant chrome stays PHP."
     },
     {
       "surface": "cp",

@@ -2576,3 +2576,373 @@ public sealed record CpDataMigrationsDigestResult(
     string Source,
     string Message);
 
+// ---- Wave 22 CMS/platform leftover digests ----
+public sealed record CpGeoRegionsSummary(
+    int NodeCount,
+    int Level1Count,
+    int Level2Count,
+    int MappedOfficeCount,
+    string Source,
+    string Message);
+
+public sealed record CpGeoRegionsRowDigest(
+    long Id,
+    int Level,
+    long Parent,
+    int SortOrder,
+    int ChildCount,
+    long ValueLangId);
+
+public sealed record CpGeoRegionsDigestResult(
+    CpGeoRegionsSummary Summary,
+    IReadOnlyList<CpGeoRegionsRowDigest> Nodes,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpProductFiltersSummary(
+    int FilterCount,
+    int WithStorageScope,
+    int WithPriceBand,
+    int WithTimeBand,
+    string Source,
+    string Message);
+
+public sealed record CpProductFiltersRowDigest(
+    long Id,
+    string Manufacturer,
+    string Article,
+    string Name,
+    decimal MinPrice,
+    decimal MaxPrice,
+    int MinTime,
+    int MaxTime);
+
+public sealed record CpProductFiltersDigestResult(
+    CpProductFiltersSummary Summary,
+    IReadOnlyList<CpProductFiltersRowDigest> Filters,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpSearchTabsSummary(
+    int TabCount,
+    int EnabledCount,
+    int DisabledCount,
+    int MaxOrder,
+    string Source,
+    string Message);
+
+public sealed record CpSearchTabsRowDigest(
+    long Id,
+    string Caption,
+    int SortOrder,
+    int Enabled);
+
+public sealed record CpSearchTabsDigestResult(
+    CpSearchTabsSummary Summary,
+    IReadOnlyList<CpSearchTabsRowDigest> Tabs,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpSystemRequestsSummary(
+    int RequestCount,
+    int UnviewedCount,
+    int ViewedCount,
+    int WithUserCount,
+    string Source,
+    string Message);
+
+public sealed record CpSystemRequestsRowDigest(
+    long Id,
+    long TimeUnix,
+    long UserId,
+    int Viewed);
+
+public sealed record CpSystemRequestsDigestResult(
+    CpSystemRequestsSummary Summary,
+    IReadOnlyList<CpSystemRequestsRowDigest> Requests,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpAdditionalTextsSummary(
+    int TextCount,
+    int BeforeMainCount,
+    int WithTitleCount,
+    int WithDescriptionCount,
+    string Source,
+    string Message);
+
+public sealed record CpAdditionalTextsRowDigest(
+    long Id,
+    string Url,
+    int BeforeMain,
+    string TitleTag,
+    string KeywordsTag);
+
+public sealed record CpAdditionalTextsDigestResult(
+    CpAdditionalTextsSummary Summary,
+    IReadOnlyList<CpAdditionalTextsRowDigest> Texts,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpSliderBannersSummary(
+    int ImageCount,
+    int Connected,
+    int CntImg,
+    int CntImgNext,
+    string Source,
+    string Message);
+
+public sealed record CpSliderBannersRowDigest(
+    long Id,
+    int SortOrder,
+    string Link,
+    string Href);
+
+public sealed record CpSliderBannersDigestResult(
+    CpSliderBannersSummary Summary,
+    IReadOnlyList<CpSliderBannersRowDigest> Images,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpStructureDumpsSummary(
+    int DumpCount,
+    int TotalRecords,
+    int LatestTimeCreated,
+    int WithFileCount,
+    string Source,
+    string Message);
+
+public sealed record CpStructureDumpsRowDigest(
+    long Id,
+    long TimeCreated,
+    string FieldsInDump,
+    string FileName,
+    long RecordsCount);
+
+public sealed record CpStructureDumpsDigestResult(
+    CpStructureDumpsSummary Summary,
+    IReadOnlyList<CpStructureDumpsRowDigest> Dumps,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpCommunicationsTestSummary(
+    int SmsActiveCount,
+    int SmsTotalCount,
+    string EmailLastStatus,
+    string SmsLastStatus,
+    string Source,
+    string Message);
+
+public sealed record CpCommunicationsTestRowDigest(
+    string Name,
+    int Active,
+    int IsSelectable,
+    string Handler);
+
+public sealed record CpCommunicationsTestDigestResult(
+    CpCommunicationsTestSummary Summary,
+    IReadOnlyList<CpCommunicationsTestRowDigest> Channels,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpLanguagesSummary(
+    int LanguageCount,
+    int ActiveCount,
+    int DefaultCount,
+    int InactiveCount,
+    string Source,
+    string Message);
+
+public sealed record CpLanguagesRowDigest(
+    string LangCode,
+    int Active,
+    int IsDefault);
+
+public sealed record CpLanguagesDigestResult(
+    CpLanguagesSummary Summary,
+    IReadOnlyList<CpLanguagesRowDigest> Languages,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpPluginsManagerSummary(
+    int PluginCount,
+    int ActivatedCount,
+    int FrontendCount,
+    int LockedCount,
+    string Source,
+    string Message);
+
+public sealed record CpPluginsManagerRowDigest(
+    long Id,
+    string Caption,
+    int SortOrder,
+    int Activated,
+    int IsFrontend,
+    int ControlLock);
+
+public sealed record CpPluginsManagerDigestResult(
+    CpPluginsManagerSummary Summary,
+    IReadOnlyList<CpPluginsManagerRowDigest> Plugins,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpTemplatesManagerSummary(
+    int TemplateCount,
+    int FrontendCount,
+    int CurrentFrontendCount,
+    int CurrentBackendCount,
+    string Source,
+    string Message);
+
+public sealed record CpTemplatesManagerRowDigest(
+    long Id,
+    string Caption,
+    string Name,
+    int Current,
+    int IsFrontend,
+    int PhoneSupport,
+    int TabletSupport);
+
+public sealed record CpTemplatesManagerDigestResult(
+    CpTemplatesManagerSummary Summary,
+    IReadOnlyList<CpTemplatesManagerRowDigest> Templates,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpDesignTokensSummary(
+    int TokenCount,
+    int TenantCount,
+    int WhiteLabelCount,
+    int UpdatedRecentCount,
+    string Source,
+    string Message);
+
+public sealed record CpDesignTokensRowDigest(
+    string SiteKey,
+    string SettingKey,
+    string UpdatedAt);
+
+public sealed record CpDesignTokensDigestResult(
+    CpDesignTokensSummary Summary,
+    IReadOnlyList<CpDesignTokensRowDigest> Tokens,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpSitemapSummary(
+    int ContentUrlCount,
+    int CategoryCount,
+    int ProductCount,
+    int FrontendContentCount,
+    string Source,
+    string Message);
+
+public sealed record CpSitemapRowDigest(
+    long Id,
+    string Alias,
+    long ValueLangId,
+    int IsFrontend,
+    int PublishedFlag);
+
+public sealed record CpSitemapDigestResult(
+    CpSitemapSummary Summary,
+    IReadOnlyList<CpSitemapRowDigest> Pages,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpFailoverStatusSummary(
+    int ModeFilePresent,
+    int StatusJsonPresent,
+    int ConfigPresent,
+    int BackupMode,
+    string Source,
+    string Message);
+
+public sealed record CpFailoverStatusRowDigest(
+    string Path,
+    int Present,
+    string Kind);
+
+public sealed record CpFailoverStatusDigestResult(
+    CpFailoverStatusSummary Summary,
+    IReadOnlyList<CpFailoverStatusRowDigest> Signals,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpOpsGuidesSummary(
+    int GroupCount,
+    int ItemCount,
+    int ShowAnywayCount,
+    int UrlItemCount,
+    string Source,
+    string Message);
+
+public sealed record CpOpsGuidesRowDigest(
+    long Id,
+    long ItemsGroup,
+    string Caption,
+    string Url,
+    int ShowAnyway,
+    int SortOrder);
+
+public sealed record CpOpsGuidesDigestResult(
+    CpOpsGuidesSummary Summary,
+    IReadOnlyList<CpOpsGuidesRowDigest> Items,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpFileManagerSummary(
+    int RootPresent,
+    int FileCount,
+    int DirCount,
+    long TotalBytes,
+    string Source,
+    string Message);
+
+public sealed record CpFileManagerRowDigest(
+    string Name,
+    int IsDirectory,
+    long SizeBytes,
+    string Extension);
+
+public sealed record CpFileManagerDigestResult(
+    CpFileManagerSummary Summary,
+    IReadOnlyList<CpFileManagerRowDigest> Entries,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpServerIpSummary(
+    int AddressCount,
+    int HasIpv4,
+    int HasIpv6,
+    int LoopbackOnly,
+    string Source,
+    string Message);
+
+public sealed record CpServerIpRowDigest(
+    string Address,
+    string AddressFamily,
+    int IsLoopback);
+
+public sealed record CpServerIpDigestResult(
+    CpServerIpSummary Summary,
+    IReadOnlyList<CpServerIpRowDigest> Addresses,
+    int Count,
+    string Source,
+    string Message);
+

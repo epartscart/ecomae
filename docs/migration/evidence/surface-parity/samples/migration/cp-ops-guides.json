@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "groupCount": 1,
+    "itemCount": 1,
+    "showAnywayCount": 1,
+    "urlItemCount": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "items": [
+    {
+      "id": 1,
+      "itemsGroup": 1,
+      "caption": "migration",
+      "url": "migration",
+      "showAnyway": 1,
+      "sortOrder": 1
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "migration-mode; guide HTML bodies; cutoverAllowed=false"
+}

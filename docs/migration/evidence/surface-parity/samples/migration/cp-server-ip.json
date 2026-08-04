@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "surface": "cp",
+  "summary": {
+    "addressCount": 1,
+    "hasIpv4": 1,
+    "hasIpv6": 1,
+    "loopbackOnly": 1,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "addresses": [
+    {
+      "address": "migration",
+      "addressFamily": "migration",
+      "isLoopback": 1
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "note": "migration-mode; no outbound ipify; cutoverAllowed=false"
+}
