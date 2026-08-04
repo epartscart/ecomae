@@ -77,6 +77,8 @@ probe_post "/erp/gl-journals/reverse" '{"journalId":1,"note":"dry-run","confirmW
 probe_post "/erp/purchases/void" '{"purchaseId":1,"reason":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp purchases void"
 probe_post "/erp/invoices/cancel" '{"invoiceId":1,"reason":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp invoices cancel"
 probe_post "/storefront/garage/notepad-add" '{"garageId":1,"manufacturer":"Bosch","article":"0986","name":"Pad","exist":2,"price":12,"confirmWrites":false}' "$COOKIE" "garage notepad-add"
+probe_post "/storefront/quotes/submit" '{"quoteId":1,"customerNote":"dry-run","confirmWrites":false}' "$COOKIE" "quote submit"
+probe_post "/erp/sales-orders/cancel" '{"salesOrderId":1,"reason":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "erp sales-orders cancel"
 
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]

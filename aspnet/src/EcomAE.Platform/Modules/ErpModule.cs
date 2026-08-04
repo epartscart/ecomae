@@ -303,6 +303,26 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.ErpSalesOrdersCancel, async (
+            HttpContext context,
+            ErpSalesOrderCancelBody? body,
+            ILegacySessionValidator validator,
+            IErpSalesOrderCancelDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for sales-order cancel dry-run.");
+            }
+
+            body ??= new ErpSalesOrderCancelBody(0, null, false);
+            var result = await dryRun.EvaluateAsync(
+                new ErpSalesOrderCancelRequest(body.SalesOrderId, body.Reason, body.ConfirmWrites),
+                cancellationToken);
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpInvoices, async (
             HttpContext context,
             int? limit,
@@ -678,4 +698,5 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpGlReverseJournalBody(long JournalId, string? Note, bool ConfirmWrites = false);
     private sealed record ErpPurchaseVoidBody(long PurchaseId, string? Reason, bool ConfirmWrites = false);
     private sealed record ErpInvoiceCancelBody(long InvoiceId, string? Reason, bool ConfirmWrites = false);
+    private sealed record ErpSalesOrderCancelBody(long SalesOrderId, string? Reason, bool ConfirmWrites = false);
 }
