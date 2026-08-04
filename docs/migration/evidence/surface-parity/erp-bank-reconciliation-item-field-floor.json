@@ -1,0 +1,32 @@
+{
+  "role": "erp-bank-reconciliation-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "erp-bank-reconciliation",
+  "collectionKey": "lines",
+  "requireNonemptyMigrationSentinel": true,
+  "requiredSummaryFields": [
+    "lineCount",
+    "unmatchedCount",
+    "matchedCount",
+    "creditTotal",
+    "debitTotal",
+    "source",
+    "message"
+  ],
+  "requiredItemFields": [
+    "id",
+    "accountId",
+    "lineDate",
+    "description",
+    "reference",
+    "amount",
+    "direction",
+    "matchedEntryId",
+    "importBatch",
+    "timeCreated"
+  ],
+  "source": "scripts/compare_digest_dual_samples.py HYBRID_LIST_ITEM_FIELDS + SUMMARY_CONTRACTS",
+  "note": "Locks bank-reconciliation digest summary+lines[] floors. PHP bank_recon remains authoritative. cutoverAllowed=false."
+}

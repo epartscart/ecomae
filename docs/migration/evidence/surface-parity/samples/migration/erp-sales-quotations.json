@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "summary": {
+    "quoteCount": 1,
+    "draftCount": 1,
+    "sentCount": 0,
+    "acceptedCount": 0,
+    "subtotalSum": 0.0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; quotations[] sentinel; notes omitted; PHP sales proposals authoritative; cutoverAllowed=false",
+  "quotations": [
+    {
+      "id": 1,
+      "opportunityId": 0,
+      "leadId": 0,
+      "customerUserId": 0,
+      "quoteNumber": "Q-1",
+      "status": "draft",
+      "currencyCode": "AED",
+      "subtotal": 0.0,
+      "shopOrderId": 0,
+      "timeCreated": 0,
+      "active": true
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

@@ -92,6 +92,11 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Payables PHP" && item.Href.Contains("tab=payables", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Purchases list" && item.Href == "/erp/purchases-app");
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Purchases PHP" && item.Href.Contains("tab=purchases", StringComparison.Ordinal));
+
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Bank reconciliation" && item.Href == "/erp/bank-reconciliation-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Stock transfers" && item.Href == "/erp/stock-transfers-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Sales quotations" && item.Href == "/erp/sales-quotations-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Workspace favorites" && item.Href == "/erp/workspace-favorites-app");
     }
 
     [Fact]

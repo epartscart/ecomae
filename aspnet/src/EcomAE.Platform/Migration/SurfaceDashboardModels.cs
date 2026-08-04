@@ -1238,3 +1238,121 @@ public sealed record StorefrontCartListResult(
     int Count,
     string Source,
     string Message);
+
+public sealed record ErpBankReconciliationSummary(
+    int LineCount,
+    int UnmatchedCount,
+    int MatchedCount,
+    decimal CreditTotal,
+    decimal DebitTotal,
+    string Source,
+    string Message);
+
+public sealed record ErpBankStatementLineDigest(
+    long Id,
+    long AccountId,
+    long LineDate,
+    string Description,
+    string Reference,
+    decimal Amount,
+    int Direction,
+    long MatchedEntryId,
+    string ImportBatch,
+    long TimeCreated);
+
+public sealed record ErpBankReconciliationDigestResult(
+    ErpBankReconciliationSummary Summary,
+    IReadOnlyList<ErpBankStatementLineDigest> Lines,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpStockTransfersSummary(
+    int TransferCount,
+    int DraftCount,
+    int InTransitCount,
+    int ReceivedCount,
+    decimal TotalQty,
+    string Source,
+    string Message);
+
+public sealed record ErpStockTransferDigest(
+    long Id,
+    long CompanyId,
+    string TransferNo,
+    long FromWarehouseId,
+    long ToWarehouseId,
+    string Reason,
+    string Status,
+    int TotalItems,
+    decimal TotalQty,
+    string ShippedAt,
+    string ReceivedAt,
+    long CreatedBy,
+    long TimeCreated);
+
+public sealed record ErpStockTransfersDigestResult(
+    ErpStockTransfersSummary Summary,
+    IReadOnlyList<ErpStockTransferDigest> Transfers,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpSalesQuotationsSummary(
+    int QuoteCount,
+    int DraftCount,
+    int SentCount,
+    int AcceptedCount,
+    decimal SubtotalSum,
+    string Source,
+    string Message);
+
+public sealed record ErpSalesQuotationDigest(
+    long Id,
+    long OpportunityId,
+    long LeadId,
+    long CustomerUserId,
+    string QuoteNumber,
+    string Status,
+    string CurrencyCode,
+    decimal Subtotal,
+    long ShopOrderId,
+    long TimeCreated,
+    bool Active);
+
+public sealed record ErpSalesQuotationsDigestResult(
+    ErpSalesQuotationsSummary Summary,
+    IReadOnlyList<ErpSalesQuotationDigest> Quotations,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpWorkspaceFavoritesSummary(
+    int ShortcutCount,
+    int PinnedCount,
+    int UserCount,
+    int ErpSurfaceCount,
+    string Source,
+    string Message);
+
+public sealed record ErpWorkspaceFavoriteDigest(
+    long Id,
+    long CompanyId,
+    long UserId,
+    string Surface,
+    string ShortcutKey,
+    string Label,
+    string IconClass,
+    string TargetUrl,
+    string TargetTab,
+    int SortOrder,
+    bool IsPinned,
+    long TimeCreated);
+
+public sealed record ErpWorkspaceFavoritesDigestResult(
+    ErpWorkspaceFavoritesSummary Summary,
+    IReadOnlyList<ErpWorkspaceFavoriteDigest> Favorites,
+    int Count,
+    string Source,
+    string Message);
+

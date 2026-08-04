@@ -238,6 +238,22 @@ public static class EcomAeRoutes
     public const string ErpInventoryStock = "/erp/inventory-stock";
     /// <summary>ERP inventory stock Blazor KPI UI (JSON digest remains <see cref="ErpInventoryStock"/>).</summary>
     public const string ErpInventoryStockApp = "/erp/inventory-stock-app";
+    /// <summary>ERP bank reconciliation (statement lines; matched_entry joins omitted).</summary>
+    public const string ErpBankReconciliation = "/erp/bank-reconciliation";
+    /// <summary>ERP bank reconciliation Blazor list (JSON digest remains <see cref="ErpBankReconciliation"/>).</summary>
+    public const string ErpBankReconciliationApp = "/erp/bank-reconciliation-app";
+    /// <summary>ERP stock transfers (notes omitted).</summary>
+    public const string ErpStockTransfers = "/erp/stock-transfers";
+    /// <summary>ERP stock transfers Blazor list (JSON digest remains <see cref="ErpStockTransfers"/>).</summary>
+    public const string ErpStockTransfersApp = "/erp/stock-transfers-app";
+    /// <summary>ERP sales quotations (notes omitted).</summary>
+    public const string ErpSalesQuotations = "/erp/sales-quotations";
+    /// <summary>ERP sales quotations Blazor list (JSON digest remains <see cref="ErpSalesQuotations"/>).</summary>
+    public const string ErpSalesQuotationsApp = "/erp/sales-quotations-app";
+    /// <summary>ERP workspace favorites/shortcuts.</summary>
+    public const string ErpWorkspaceFavorites = "/erp/workspace-favorites";
+    /// <summary>ERP workspace favorites Blazor list (JSON digest remains <see cref="ErpWorkspaceFavorites"/>).</summary>
+    public const string ErpWorkspaceFavoritesApp = "/erp/workspace-favorites-app";
     public const string Bos = "/bos";
     public const string BosApp = "/bos/app";
     public const string BosParity = "/bos/parity";

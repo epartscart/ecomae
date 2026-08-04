@@ -73,6 +73,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var promotions = await reporter.BuildCpPromotionsDigestAsync(10);
         var crmOpportunities = await reporter.BuildCpCrmOpportunitiesDigestAsync(10);
         var integrations = await reporter.BuildCpIntegrationsDigestAsync(10);
+        var bankRecon = await reporter.BuildErpBankReconciliationDigestAsync(10);
+        var stockTransfers = await reporter.BuildErpStockTransfersDigestAsync(10);
+        var salesQuotations = await reporter.BuildErpSalesQuotationsDigestAsync(10);
+        var workspaceFavorites = await reporter.BuildErpWorkspaceFavoritesDigestAsync(10);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -147,6 +151,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", promotions.Source);
         Assert.Equal("migration", crmOpportunities.Source);
         Assert.Equal("migration", integrations.Source);
+        Assert.Equal("migration", bankRecon.Source);
+        Assert.Equal("migration", stockTransfers.Source);
+        Assert.Equal("migration", salesQuotations.Source);
+        Assert.Equal("migration", workspaceFavorites.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(tenants.Tenants);
@@ -238,6 +246,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_crm_opportunities", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.Contains("epc_webhooks", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
+
+        Assert.Contains("epc_erp_bank_statement_lines", LegacySurfaceDashboardSql.SelectErpBankReconciliationLines, StringComparison.Ordinal);
+        Assert.Contains("epc_warehouse_transfers", LegacySurfaceDashboardSql.SelectErpStockTransfers, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpStockTransfers, StringComparison.Ordinal);
+        Assert.Contains("epc_crm_quotes", LegacySurfaceDashboardSql.SelectErpSalesQuotations, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpSalesQuotations, StringComparison.Ordinal);
+        Assert.Contains("epc_user_shortcuts", LegacySurfaceDashboardSql.SelectErpWorkspaceFavorites, StringComparison.Ordinal);
         Assert.DoesNotContain("secret_hash", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
         Assert.DoesNotContain("secret_encrypted", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);
         Assert.DoesNotContain("`events`", LegacySurfaceDashboardSql.SelectCpIntegrations, StringComparison.Ordinal);

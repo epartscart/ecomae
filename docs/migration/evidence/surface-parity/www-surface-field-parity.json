@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 86,
+  "contractCount": 90,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -68,7 +68,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/orders-digest",
-      "legacyPhpAuthority": "cp/content/shop/order_process/orders.php KPI\u002Blist",
+      "legacyPhpAuthority": "cp/content/shop/order_process/orders.php KPI+list",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -215,7 +215,7 @@
         "unknownLinkCount"
       ],
       "functionsCovered": [
-        "menu metadata \u002B structure summary digest"
+        "menu metadata + structure summary digest"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
@@ -316,7 +316,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/power-bi",
-      "legacyPhpAuthority": "epc_power_bi_config \u002B epc_power_bi_reports",
+      "legacyPhpAuthority": "epc_power_bi_config + epc_power_bi_reports",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -344,7 +344,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Power BI config \u002B reports metadata",
+        "Power BI config + reports metadata",
         "configure/embed writes remain PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
@@ -389,7 +389,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/metabase",
-      "legacyPhpAuthority": "epc_metabase_config \u002B epc_metabase_dashboards",
+      "legacyPhpAuthority": "epc_metabase_config + epc_metabase_dashboards",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -411,7 +411,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Metabase config \u002B dashboards metadata",
+        "Metabase config + dashboards metadata",
         "secret_key never returned",
         "writes remain PHP"
       ],
@@ -522,7 +522,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/parts-agent-chats",
-      "legacyPhpAuthority": "epc_parts_agent_config \u002B sessions",
+      "legacyPhpAuthority": "epc_parts_agent_config + sessions",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -558,7 +558,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/pos-overview",
-      "legacyPhpAuthority": "epc_pos_settings \u002B epc_pos_sales",
+      "legacyPhpAuthority": "epc_pos_settings + epc_pos_sales",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -581,7 +581,7 @@
         "message"
       ],
       "functionsCovered": [
-        "POS overview \u002B recent sales",
+        "POS overview + recent sales",
         "terminal writes remain PHP"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
@@ -612,7 +612,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Tax toolkit catalog \u002B tenant kit",
+        "Tax toolkit catalog + tenant kit",
         "rules_json/reg_number omitted",
         "install remains PHP"
       ],
@@ -622,7 +622,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/sms-whatsapp",
-      "legacyPhpAuthority": "sms_api \u002B epc_whatsapp_notify_log",
+      "legacyPhpAuthority": "sms_api + epc_whatsapp_notify_log",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -645,7 +645,7 @@
         "message"
       ],
       "functionsCovered": [
-        "SMS operators \u002B WhatsApp log",
+        "SMS operators + WhatsApp log",
         "parameters_values/tokens/raw phone omitted",
         "configure/send remains PHP"
       ],
@@ -655,7 +655,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/crm-board",
-      "legacyPhpAuthority": "epc_crm KPIs \u002B leads",
+      "legacyPhpAuthority": "epc_crm KPIs + leads",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -677,7 +677,7 @@
         "message"
       ],
       "functionsCovered": [
-        "CRM board KPIs \u002B leads",
+        "CRM board KPIs + leads",
         "email/phone/notes omitted",
         "CRM UX remains PHP"
       ],
@@ -777,7 +777,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/hr-overview",
-      "legacyPhpAuthority": "epc_hr KPIs \u002B employees",
+      "legacyPhpAuthority": "epc_hr KPIs + employees",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -799,7 +799,7 @@
         "message"
       ],
       "functionsCovered": [
-        "HR overview KPIs \u002B employees",
+        "HR overview KPIs + employees",
         "salary/allowances/currency/payslip omitted",
         "PHP people/HR shell remains authoritative"
       ],
@@ -809,7 +809,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/production-overview",
-      "legacyPhpAuthority": "epc_mfg KPIs \u002B work orders",
+      "legacyPhpAuthority": "epc_mfg KPIs + work orders",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -830,7 +830,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Production overview KPIs \u002B work orders",
+        "Production overview KPIs + work orders",
         "cost columns omitted",
         "PHP production/manufacturing shell remains authoritative"
       ],
@@ -840,7 +840,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/projects-overview",
-      "legacyPhpAuthority": "epc_prj KPIs \u002B projects",
+      "legacyPhpAuthority": "epc_prj KPIs + projects",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -861,7 +861,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Projects overview KPIs \u002B projects",
+        "Projects overview KPIs + projects",
         "timesheet rates omitted",
         "PHP projects shell remains authoritative"
       ],
@@ -902,7 +902,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/jewellery-retail",
-      "legacyPhpAuthority": "epc_jewel KPIs \u002B vouchers",
+      "legacyPhpAuthority": "epc_jewel KPIs + vouchers",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -924,7 +924,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Jewellery retail KPIs \u002B vouchers",
+        "Jewellery retail KPIs + vouchers",
         "PII/cost omitted",
         "PHP retail/jewellery shell remains authoritative"
       ],
@@ -934,7 +934,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/price-lists",
-      "legacyPhpAuthority": "epc_pl_lists \u002B prices",
+      "legacyPhpAuthority": "epc_pl_lists + prices",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -955,7 +955,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Price lists KPIs \u002B lists",
+        "Price lists KPIs + lists",
         "stats_json/error_text/stored_relpath omitted",
         "PHP /CP/shop/prices remains authoritative"
       ],
@@ -986,7 +986,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Auto-price KPIs \u002B rules",
+        "Auto-price KPIs + rules",
         "config_json/notes/meta omitted",
         "PHP epc_auto_price_engine remains authoritative"
       ],
@@ -1017,7 +1017,7 @@
         "message"
       ],
       "functionsCovered": [
-        "UAE tax legislation KPIs \u002B items",
+        "UAE tax legislation KPIs + items",
         "erp_summary/pdf/passport omitted",
         "PHP uae-tax-compliance remains authoritative"
       ],
@@ -1027,7 +1027,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/budgets",
-      "legacyPhpAuthority": "epc_erp_pm_budgets \u002B lines/dimensions",
+      "legacyPhpAuthority": "epc_erp_pm_budgets + lines/dimensions",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -1049,7 +1049,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Budget KPIs \u002B headers",
+        "Budget KPIs + headers",
         "note omitted",
         "PHP budgeting shell remains authoritative"
       ],
@@ -1059,7 +1059,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/carriers",
-      "legacyPhpAuthority": "epc_erp_carriers \u002B rates/shipments",
+      "legacyPhpAuthority": "epc_erp_carriers + rates/shipments",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -1081,7 +1081,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Carrier KPIs \u002B directory",
+        "Carrier KPIs + directory",
         "contact PII omitted",
         "PHP /CP/shop/logistics/carriers remains authoritative"
       ],
@@ -1091,7 +1091,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/payment-gateways",
-      "legacyPhpAuthority": "shop_payment_systems \u002B epc_payment_accounts",
+      "legacyPhpAuthority": "shop_payment_systems + epc_payment_accounts",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -1113,7 +1113,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Payment gateway KPIs \u002B handlers",
+        "Payment gateway KPIs + handlers",
         "parameters/credentials omitted",
         "PHP /CP/shop/payments/payments remains authoritative"
       ],
@@ -1123,7 +1123,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/workflows",
-      "legacyPhpAuthority": "epc_workflows \u002B runs",
+      "legacyPhpAuthority": "epc_workflows + runs",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -1145,7 +1145,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Workflow KPIs \u002B definitions",
+        "Workflow KPIs + definitions",
         "trigger_config/JSON omitted",
         "PHP workflow automation remains authoritative"
       ],
@@ -1155,7 +1155,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/purchase-requests",
-      "legacyPhpAuthority": "epc_proc_req \u002B lines/categories",
+      "legacyPhpAuthority": "epc_proc_req + lines/categories",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -1178,7 +1178,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Purchase requisition KPIs \u002B headers",
+        "Purchase requisition KPIs + headers",
         "justification/decision_note omitted",
         "PHP purchase requisitions shell remains authoritative"
       ],
@@ -1188,7 +1188,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/promotions",
-      "legacyPhpAuthority": "epc_promo_promotions \u002B loyalty accounts",
+      "legacyPhpAuthority": "epc_promo_promotions + loyalty accounts",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -1210,7 +1210,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Promotion KPIs \u002B codes",
+        "Promotion KPIs + codes",
         "PHP epc_promotions_engine remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
@@ -1241,7 +1241,7 @@
         "message"
       ],
       "functionsCovered": [
-        "CRM opportunity KPIs \u002B pipeline",
+        "CRM opportunity KPIs + pipeline",
         "notes omitted",
         "PHP sales opportunities / CRM shell remains authoritative"
       ],
@@ -1251,7 +1251,7 @@
     {
       "surface": "cp",
       "aspNetRoute": "/cp/integrations",
-      "legacyPhpAuthority": "epc_webhooks \u002B deliveries",
+      "legacyPhpAuthority": "epc_webhooks + deliveries",
       "authRequired": "admin-cp",
       "requiredEnvelopeFields": [
         "ok",
@@ -1273,7 +1273,7 @@
         "message"
       ],
       "functionsCovered": [
-        "Integrations/webhook KPIs \u002B endpoints",
+        "Integrations/webhook KPIs + endpoints",
         "secrets/events omitted",
         "PHP epc_integrations_hub remains authoritative"
       ],
@@ -1690,6 +1690,135 @@
     },
     {
       "surface": "erp",
+      "aspNetRoute": "/erp/workspace-favorites",
+      "legacyPhpAuthority": "epc_user_shortcuts",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "favorites",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "shortcutCount",
+        "pinnedCount",
+        "userCount",
+        "erpSurfaceCount",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Workspace favorite/shortcut KPIs + pins",
+        "PHP dashboard shortcuts remain authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/sales-quotations",
+      "legacyPhpAuthority": "epc_crm_quotes",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "quotations",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "quoteCount",
+        "draftCount",
+        "sentCount",
+        "acceptedCount",
+        "subtotalSum",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Sales quotation KPIs + headers",
+        "notes omitted",
+        "PHP sales proposals/quotations shell remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/stock-transfers",
+      "legacyPhpAuthority": "epc_warehouse_transfers",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "transfers",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "transferCount",
+        "draftCount",
+        "inTransitCount",
+        "receivedCount",
+        "totalQty",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Stock transfer KPIs + headers",
+        "notes omitted",
+        "PHP warehouse transfer UX remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/bank-reconciliation",
+      "legacyPhpAuthority": "epc_erp_bank_statement_lines",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "lines",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "lineCount",
+        "unmatchedCount",
+        "matchedCount",
+        "creditTotal",
+        "debitTotal",
+        "source",
+        "message"
+      ],
+      "functionsCovered": [
+        "Bank statement line KPIs + lines",
+        "PHP bank_recon tab remains authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-live-dual-sample"
+    },
+    {
+      "surface": "erp",
       "aspNetRoute": "/erp/invoices",
       "legacyPhpAuthority": "ERP e-invoices",
       "authRequired": "admin-erp",
@@ -1773,7 +1902,7 @@
       "functionsCovered": [
         "BOS fleet KPI read"
       ],
-      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -1806,7 +1935,7 @@
       "functionsCovered": [
         "portal tenant registry list"
       ],
-      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -1836,7 +1965,7 @@
       "functionsCovered": [
         "fleet health sample tenants"
       ],
-      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -1865,7 +1994,7 @@
       "functionsCovered": [
         "platform-DB readiness scoring"
       ],
-      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -1896,7 +2025,7 @@
       "functionsCovered": [
         "audit log digest"
       ],
-      "presentationChrome": "bos/index.php \u002B bos/epc_bos_shell.css",
+      "presentationChrome": "bos/index.php + bos/epc_bos_shell.css",
       "parityStatus": "contract-locked-awaiting-live-dual-sample"
     },
     {
@@ -2079,7 +2208,7 @@
         "message"
       ],
       "functionsCovered": [
-        "authenticated cart summary\u002Blines digest",
+        "authenticated cart summary+lines digest",
         "qty/guest/checkout writes remain PHP"
       ],
       "presentationChrome": "templates/modex/desktop.php",
@@ -2572,9 +2701,9 @@
     {
       "surface": "cp",
       "phpFunctionOrEntry": "Orders/OMS shop_orders read",
-      "aspNetRouteOrCapability": "/cp/orders \u002B /cp/orders-digest",
+      "aspNetRouteOrCapability": "/cp/orders + /cp/orders-digest",
       "status": "digest-wired-awaiting-dual-sample",
-      "notes": "Batch 4 read UI \u002B KPI digest; PHP OMS console and writes remain authoritative."
+      "notes": "Batch 4 read UI + KPI digest; PHP OMS console and writes remain authoritative."
     },
     {
       "surface": "cp",
@@ -2872,10 +3001,10 @@
     },
     {
       "surface": "erp",
-      "phpFunctionOrEntry": "erp_desktop.php \u002B erp_dashboard.php",
-      "aspNetRouteOrCapability": "/erp?format=html \u002B /erp/dashboard-summary",
+      "phpFunctionOrEntry": "erp_desktop.php + erp_dashboard.php",
+      "aspNetRouteOrCapability": "/erp?format=html + /erp/dashboard-summary",
       "status": "presentation-and-digest-scaffolded",
-      "notes": "Chrome CSS \u002B KPI fields contracted; full voucher/posting UX still PHP."
+      "notes": "Chrome CSS + KPI fields contracted; full voucher/posting UX still PHP."
     },
     {
       "surface": "erp",
@@ -2956,6 +3085,34 @@
     },
     {
       "surface": "erp",
+      "phpFunctionOrEntry": "workspace-favorites Blazor list",
+      "aspNetRouteOrCapability": "/erp/workspace-favorites-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/workspace-favorites digest; PHP dashboard shortcuts remain authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "sales-quotations Blazor list",
+      "aspNetRouteOrCapability": "/erp/sales-quotations-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/sales-quotations digest; notes omitted; PHP sales proposals/quotations shell remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "stock-transfers Blazor list",
+      "aspNetRouteOrCapability": "/erp/stock-transfers-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/stock-transfers digest; notes omitted; PHP warehouse transfer UX remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
+      "phpFunctionOrEntry": "bank-reconciliation Blazor list",
+      "aspNetRouteOrCapability": "/erp/bank-reconciliation-app",
+      "status": "digest-wired-awaiting-dual-sample",
+      "notes": "Read UI over /erp/bank-reconciliation digest; PHP bank_recon tab remains authoritative; tenant chrome stays PHP."
+    },
+    {
+      "surface": "erp",
       "phpFunctionOrEntry": "accounts-summary Blazor KPIs",
       "aspNetRouteOrCapability": "/erp/accounts-summary-app",
       "status": "digest-wired-awaiting-dual-sample",
@@ -2977,15 +3134,15 @@
     },
     {
       "surface": "erp",
-      "phpFunctionOrEntry": "accounts-summary / cash accounts\u002Bentries",
+      "phpFunctionOrEntry": "accounts-summary / cash accounts+entries",
       "aspNetRouteOrCapability": "/erp/accounts-summary|/erp/cash-accounts|/erp/cash-entries",
       "status": "digest-wired-awaiting-dual-sample",
       "notes": "Cash KPI/ledger digests; posting remains PHP."
     },
     {
       "surface": "bos",
-      "phpFunctionOrEntry": "bos/index.php \u002B epc_bos_shell.css",
-      "aspNetRouteOrCapability": "/bos?format=html \u002B /bos/fleet-summary",
+      "phpFunctionOrEntry": "bos/index.php + epc_bos_shell.css",
+      "aspNetRouteOrCapability": "/bos?format=html + /bos/fleet-summary",
       "status": "presentation-and-digest-scaffolded",
       "notes": "BOS shell CSS must match; privileged ops remain PHP."
     },
@@ -3106,21 +3263,21 @@
       "phpFunctionOrEntry": "catalog status",
       "aspNetRouteOrCapability": "/api/v1/catalog/status",
       "status": "awaiting-exact-route-shadow",
-      "notes": "Contract ready; public host still PHP until shadow \u002B smoke."
+      "notes": "Contract ready; public host still PHP until shadow + smoke."
     },
     {
       "surface": "api",
       "phpFunctionOrEntry": "catalog manufacturers/models/modifications/brands/suppliers",
       "aspNetRouteOrCapability": "/api/v1/catalog/manufacturers|\u2026|/suppliers",
       "status": "digest-wired-awaiting-dual-sample",
-      "notes": "Envelope contracts \u002B compare_catalog_list_parity.py; one-path nginx-catalog-*-shadow after smoke."
+      "notes": "Envelope contracts + compare_catalog_list_parity.py; one-path nginx-catalog-*-shadow after smoke."
     },
     {
       "surface": "api",
-      "phpFunctionOrEntry": "catalog offline-cache \u002B vin \u002B brand-parts",
+      "phpFunctionOrEntry": "catalog offline-cache + vin + brand-parts",
       "aspNetRouteOrCapability": "/api/v1/catalog/engines|analogs|\u2026|vin|brand-parts",
       "status": "digest-wired-awaiting-dual-sample",
-      "notes": "Offline-cache envelopes \u002B compare_catalog_offline_cache_parity.py / compare_catalog_vin_parity.py."
+      "notes": "Offline-cache envelopes + compare_catalog_offline_cache_parity.py / compare_catalog_vin_parity.py."
     },
     {
       "surface": "api",
@@ -3139,7 +3296,7 @@
     "CutoverAllowed is false; AdminAspNetEnabled/StorefrontAspNetEnabled must remain false; RequirePhpFallback must remain true."
   ],
   "remainingGaps": [
-    "Capture authenticated ASP.NET \u002B PHP (or shared-DB fixture) dual samples for each contracted digest route.",
+    "Capture authenticated ASP.NET + PHP (or shared-DB fixture) dual samples for each contracted digest route.",
     "Run scripts/run_surface_parity_harness.sh and attach match=true samples under docs/migration/evidence/surface-parity/samples/.",
     "Do not enable broad /cp /erp /bos / storefront nginx cutover until every contract has match=true evidence.",
     "Storefront cart/checkout/SEO HTML and ERP voucher posting UX are still PHP-authoritative gaps.",

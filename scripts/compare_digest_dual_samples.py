@@ -164,6 +164,22 @@ SUMMARY_CONTRACTS = {
         "summary",
         "webhookCount,activeWebhooks,deliveryCount,failedDeliveries,source,message",
     ),
+    "erp-bank-reconciliation": (
+        "summary",
+        "lineCount,unmatchedCount,matchedCount,creditTotal,debitTotal,source,message",
+    ),
+    "erp-stock-transfers": (
+        "summary",
+        "transferCount,draftCount,inTransitCount,receivedCount,totalQty,source,message",
+    ),
+    "erp-sales-quotations": (
+        "summary",
+        "quoteCount,draftCount,sentCount,acceptedCount,subtotalSum,source,message",
+    ),
+    "erp-workspace-favorites": (
+        "summary",
+        "shortcutCount,pinnedCount,userCount,erpSurfaceCount,source,message",
+    ),
     "erp-inventory-stock": (
         "summary",
         "rowCount,qtyOnHand,stockValue,warehouseCount,itemCount,source,message",
@@ -600,6 +616,22 @@ HYBRID_LIST_ITEM_FIELDS = {
     "cp-integrations": (
         "integrations",
         ["id", "tenantKey", "url", "active", "description", "createdAt"],
+    ),
+    "erp-bank-reconciliation": (
+        "lines",
+        ["id", "accountId", "lineDate", "description", "reference", "amount", "direction", "matchedEntryId", "importBatch", "timeCreated"],
+    ),
+    "erp-stock-transfers": (
+        "transfers",
+        ["id", "companyId", "transferNo", "fromWarehouseId", "toWarehouseId", "reason", "status", "totalItems", "totalQty", "shippedAt", "receivedAt", "createdBy", "timeCreated"],
+    ),
+    "erp-sales-quotations": (
+        "quotations",
+        ["id", "opportunityId", "leadId", "customerUserId", "quoteNumber", "status", "currencyCode", "subtotal", "shopOrderId", "timeCreated", "active"],
+    ),
+    "erp-workspace-favorites": (
+        "favorites",
+        ["id", "companyId", "userId", "surface", "shortcutKey", "label", "iconClass", "targetUrl", "targetTab", "sortOrder", "isPinned", "timeCreated"],
     ),
     "cp-orders-digest": (
         "orders",

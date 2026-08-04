@@ -5,7 +5,7 @@
   "tenantChromePhp": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "capturedAt": "2026-08-04T06:29:35Z",
+  "capturedAt": "2026-08-04T06:38:51Z",
   "surfaces": {
     "cp": "/CP/",
     "erp": "/ERP/",
@@ -15,874 +15,429 @@
   "hybridUiTargets": [
     {
       "stem": "cp-orders",
-      "surface": "cp",
       "appRoute": "/cp/orders",
       "digestRoute": "/cp/orders-digest",
-      "phpAuthoritativePath": "/CP/shop/orders/orders",
-      "blazorMarker": "CpOrdersApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/orders/orders"
     },
     {
       "stem": "cp-dashboard-summary",
-      "surface": "cp",
       "appRoute": "/cp/dashboard-summary-app",
       "digestRoute": "/cp/dashboard-summary",
-      "phpAuthoritativePath": "/CP/",
-      "blazorMarker": "CpDashboardSummaryApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/"
     },
     {
       "stem": "cp-users",
-      "surface": "cp",
       "appRoute": "/cp/users-app",
       "digestRoute": "/cp/users",
-      "phpAuthoritativePath": "/CP/control/users",
-      "blazorMarker": "CpUsersApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/users"
     },
     {
       "stem": "cp-groups",
-      "surface": "cp",
       "appRoute": "/cp/groups-app",
       "digestRoute": "/cp/groups",
-      "phpAuthoritativePath": "/CP/users/usergroups",
-      "blazorMarker": "CpGroupsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/users/usergroups"
     },
     {
       "stem": "cp-modules",
-      "surface": "cp",
       "appRoute": "/cp/modules-app",
       "digestRoute": "/cp/modules",
-      "phpAuthoritativePath": "/CP/modules/modules_manager",
-      "blazorMarker": "CpModulesApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/modules/modules_manager"
     },
     {
       "stem": "cp-pages",
-      "surface": "cp",
       "appRoute": "/cp/pages-app",
       "digestRoute": "/cp/pages",
-      "phpAuthoritativePath": "/CP/content/content_manager",
-      "blazorMarker": "CpPagesApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/content/content_manager"
     },
     {
       "stem": "cp-menus",
-      "surface": "cp",
       "appRoute": "/cp/menus-app",
       "digestRoute": "/cp/menus",
-      "phpAuthoritativePath": "/CP/menu/menu_manager",
-      "blazorMarker": "CpMenusApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/menu/menu_manager"
     },
     {
       "stem": "cp-tenants",
-      "surface": "cp",
       "appRoute": "/cp/tenants-app",
       "digestRoute": "/cp/tenants",
-      "phpAuthoritativePath": "/CP/control/portal/epc_tenant_control_center",
-      "blazorMarker": "CpTenantsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_tenant_control_center"
     },
     {
       "stem": "cp-currencies",
-      "surface": "cp",
       "appRoute": "/cp/currencies-app",
       "digestRoute": "/cp/currencies",
-      "phpAuthoritativePath": "/CP/shop/finance/nastrojka-kursov-valyut",
-      "blazorMarker": "CpCurrenciesApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/finance/nastrojka-kursov-valyut"
     },
     {
       "stem": "cp-storages",
-      "surface": "cp",
       "appRoute": "/cp/storages-app",
       "digestRoute": "/cp/storages",
-      "phpAuthoritativePath": "/CP/shop/logistics/storages",
-      "blazorMarker": "CpStoragesApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/logistics/storages"
     },
     {
       "stem": "cp-admin-sessions",
-      "surface": "cp",
       "appRoute": "/cp/admin-sessions-app",
       "digestRoute": "/cp/admin-sessions",
-      "phpAuthoritativePath": "/CP/control/users",
-      "blazorMarker": "CpAdminSessionsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/users"
     },
     {
       "stem": "cp-api-clients",
-      "surface": "cp",
       "appRoute": "/cp/api-clients-app",
       "digestRoute": "/cp/api-clients",
-      "phpAuthoritativePath": "/CP/control/portal/epc_api_clients_manage",
-      "blazorMarker": "CpApiClientsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_api_clients_manage"
     },
     {
       "stem": "cp-power-bi",
-      "surface": "cp",
       "appRoute": "/cp/power-bi-app",
       "digestRoute": "/cp/power-bi",
-      "phpAuthoritativePath": "/CP/control/portal/epc_power_bi",
-      "blazorMarker": "CpPowerBiApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_power_bi"
     },
     {
       "stem": "cp-mobile-apps",
-      "surface": "cp",
       "appRoute": "/cp/mobile-apps-app",
       "digestRoute": "/cp/mobile-apps",
-      "phpAuthoritativePath": "/CP/control/portal/epc_mobile_apps",
-      "blazorMarker": "CpMobileAppsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_mobile_apps"
     },
     {
       "stem": "cp-metabase",
-      "surface": "cp",
       "appRoute": "/cp/metabase-app",
       "digestRoute": "/cp/metabase",
-      "phpAuthoritativePath": "/CP/general_pages/epc_metabase_embed",
-      "blazorMarker": "CpMetabaseApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/general_pages/epc_metabase_embed"
     },
     {
       "stem": "cp-nl-reporting",
-      "surface": "cp",
       "appRoute": "/cp/nl-reporting-app",
       "digestRoute": "/cp/nl-reporting",
-      "phpAuthoritativePath": "/CP/control/portal/epc_nl_reporting",
-      "blazorMarker": "CpNlReportingApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_nl_reporting"
     },
     {
       "stem": "cp-marketing-broadcast",
-      "surface": "cp",
       "appRoute": "/cp/marketing-broadcast-app",
       "digestRoute": "/cp/marketing-broadcast",
-      "phpAuthoritativePath": "/CP/control/portal/epc_marketing_broadcast",
-      "blazorMarker": "CpMarketingBroadcastApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_marketing_broadcast"
     },
     {
       "stem": "cp-demo-tenants",
-      "surface": "cp",
       "appRoute": "/cp/demo-tenants-app",
       "digestRoute": "/cp/demo-tenants",
-      "phpAuthoritativePath": "/CP/control/portal/epc_demo_tenants_manage",
-      "blazorMarker": "CpDemoTenantsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_demo_tenants_manage"
     },
     {
       "stem": "cp-parts-agent-chats",
-      "surface": "cp",
       "appRoute": "/cp/parts-agent-chats-app",
       "digestRoute": "/cp/parts-agent-chats",
-      "phpAuthoritativePath": "/CP/shop/parts_agent/parts_agent_chats",
-      "blazorMarker": "CpPartsAgentChatsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/parts_agent/parts_agent_chats"
     },
     {
       "stem": "cp-pos-overview",
-      "surface": "cp",
       "appRoute": "/cp/pos-overview-app",
       "digestRoute": "/cp/pos-overview",
-      "phpAuthoritativePath": "/CP/control/shop/pos",
-      "blazorMarker": "CpPosOverviewApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/shop/pos"
     },
     {
       "stem": "cp-tax-toolkits",
-      "surface": "cp",
       "appRoute": "/cp/tax-toolkits-app",
       "digestRoute": "/cp/tax-toolkits",
-      "phpAuthoritativePath": "/CP/control/portal/epc_tax_toolkit_manage",
-      "blazorMarker": "CpTaxToolkitsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_tax_toolkit_manage"
     },
     {
       "stem": "cp-sms-whatsapp",
-      "surface": "cp",
       "appRoute": "/cp/sms-whatsapp-app",
       "digestRoute": "/cp/sms-whatsapp",
-      "phpAuthoritativePath": "/CP/control/sms_turning",
-      "blazorMarker": "CpSmsWhatsappApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/sms_turning"
     },
     {
       "stem": "cp-crm-board",
-      "surface": "cp",
       "appRoute": "/cp/crm-board-app",
       "digestRoute": "/cp/crm-board",
-      "phpAuthoritativePath": "/CP/shop/crm/crm_main",
-      "blazorMarker": "CpCrmBoardApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/crm/crm_main"
     },
     {
       "stem": "cp-document-control",
-      "surface": "cp",
       "appRoute": "/cp/document-control-app",
       "digestRoute": "/cp/document-control",
-      "phpAuthoritativePath": "/CP/shop/document_control/document_control",
-      "blazorMarker": "CpDocumentControlApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/document_control/document_control"
     },
     {
       "stem": "cp-delivery-methods",
-      "surface": "cp",
       "appRoute": "/cp/delivery-methods-app",
       "digestRoute": "/cp/delivery-methods",
-      "phpAuthoritativePath": "/CP/shop/logistics/sposoby-polucheniya",
-      "blazorMarker": "CpDeliveryMethodsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/logistics/sposoby-polucheniya"
     },
     {
       "stem": "cp-crosses",
-      "surface": "cp",
       "appRoute": "/cp/crosses-app",
       "digestRoute": "/cp/crosses",
-      "phpAuthoritativePath": "/CP/shop/crosses",
-      "blazorMarker": "CpCrossesApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/crosses"
     },
     {
       "stem": "cp-hr-overview",
-      "surface": "cp",
       "appRoute": "/cp/hr-overview-app",
       "digestRoute": "/cp/hr-overview",
-      "phpAuthoritativePath": "/CP/shop/finance/erp?area=people&tab=hr&epc_erp_shell=1",
-      "blazorMarker": "CpHrOverviewApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=people&tab=hr&epc_erp_shell=1"
     },
     {
       "stem": "cp-production-overview",
-      "surface": "cp",
       "appRoute": "/cp/production-overview-app",
       "digestRoute": "/cp/production-overview",
-      "phpAuthoritativePath": "/CP/shop/finance/erp?area=production&tab=manufacturing&epc_erp_shell=1",
-      "blazorMarker": "CpProductionOverviewApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=production&tab=manufacturing&epc_erp_shell=1"
     },
     {
       "stem": "cp-projects-overview",
-      "surface": "cp",
       "appRoute": "/cp/projects-overview-app",
       "digestRoute": "/cp/projects-overview",
-      "phpAuthoritativePath": "/CP/shop/finance/erp?area=projects&tab=projects&epc_erp_shell=1",
-      "blazorMarker": "CpProjectsOverviewApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=projects&tab=projects&epc_erp_shell=1"
     },
     {
       "stem": "cp-industry-packs",
-      "surface": "cp",
       "appRoute": "/cp/industry-packs-app",
       "digestRoute": "/cp/industry-packs",
-      "phpAuthoritativePath": "/CP/control/portal/industry_settings",
-      "blazorMarker": "CpIndustryPacksApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/industry_settings"
     },
     {
       "stem": "cp-jewellery-retail",
-      "surface": "cp",
       "appRoute": "/cp/jewellery-retail-app",
       "digestRoute": "/cp/jewellery-retail",
-      "phpAuthoritativePath": "/CP/shop/finance/erp?area=retail&tab=retail_commerce&epc_erp_shell=1",
-      "blazorMarker": "CpJewelleryRetailApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=retail&tab=retail_commerce&epc_erp_shell=1"
     },
     {
       "stem": "cp-price-lists",
-      "surface": "cp",
       "appRoute": "/cp/price-lists-app",
       "digestRoute": "/cp/price-lists",
-      "phpAuthoritativePath": "/CP/shop/prices",
-      "blazorMarker": "CpPriceListsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/prices"
     },
     {
       "stem": "cp-auto-price",
-      "surface": "cp",
       "appRoute": "/cp/auto-price-app",
       "digestRoute": "/cp/auto-price",
-      "phpAuthoritativePath": "/CP/control/portal/epc_auto_price_engine",
-      "blazorMarker": "CpAutoPriceApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_auto_price_engine"
     },
     {
       "stem": "cp-uae-tax-compliance",
-      "surface": "cp",
       "appRoute": "/cp/uae-tax-compliance-app",
       "digestRoute": "/cp/uae-tax-compliance",
-      "phpAuthoritativePath": "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1",
-      "blazorMarker": "CpUaeTaxComplianceApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1"
     },
     {
       "stem": "cp-budgets",
-      "surface": "cp",
       "appRoute": "/cp/budgets-app",
       "digestRoute": "/cp/budgets",
-      "phpAuthoritativePath": "/CP/shop/finance/erp?area=budgeting&tab=budgeting&epc_erp_shell=1",
-      "blazorMarker": "CpBudgetsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=budgeting&tab=budgeting&epc_erp_shell=1"
     },
     {
       "stem": "cp-carriers",
-      "surface": "cp",
       "appRoute": "/cp/carriers-app",
       "digestRoute": "/cp/carriers",
-      "phpAuthoritativePath": "/CP/shop/logistics/carriers",
-      "blazorMarker": "CpCarriersApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/logistics/carriers"
     },
     {
       "stem": "cp-payment-gateways",
-      "surface": "cp",
       "appRoute": "/cp/payment-gateways-app",
       "digestRoute": "/cp/payment-gateways",
-      "phpAuthoritativePath": "/CP/shop/payments/payments",
-      "blazorMarker": "CpPaymentGatewaysApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/payments/payments"
     },
     {
       "stem": "cp-workflows",
-      "surface": "cp",
       "appRoute": "/cp/workflows-app",
       "digestRoute": "/cp/workflows",
-      "phpAuthoritativePath": "/CP/shop/finance/erp?area=setup&tab=workflow_automation&epc_erp_shell=1",
-      "blazorMarker": "CpWorkflowsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=setup&tab=workflow_automation&epc_erp_shell=1"
     },
     {
       "stem": "cp-purchase-requests",
-      "surface": "cp",
       "appRoute": "/cp/purchase-requests-app",
       "digestRoute": "/cp/purchase-requests",
-      "phpAuthoritativePath": "/CP/shop/finance/erp?area=purchasing&tab=purchase_requisitions&epc_erp_shell=1",
-      "blazorMarker": "CpPurchaseRequestsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=purchasing&tab=purchase_requisitions&epc_erp_shell=1"
     },
     {
       "stem": "cp-promotions",
-      "surface": "cp",
       "appRoute": "/cp/promotions-app",
       "digestRoute": "/cp/promotions",
-      "phpAuthoritativePath": "/CP/control/portal/epc_promotions_engine",
-      "blazorMarker": "CpPromotionsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_promotions_engine"
     },
     {
       "stem": "cp-crm-opportunities",
-      "surface": "cp",
       "appRoute": "/cp/crm-opportunities-app",
       "digestRoute": "/cp/crm-opportunities",
-      "phpAuthoritativePath": "/CP/shop/finance/erp?area=sales&tab=opportunities&epc_erp_shell=1",
-      "blazorMarker": "CpCrmOpportunitiesApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/shop/finance/erp?area=sales&tab=opportunities&epc_erp_shell=1"
     },
     {
       "stem": "cp-integrations",
-      "surface": "cp",
       "appRoute": "/cp/integrations-app",
       "digestRoute": "/cp/integrations",
-      "phpAuthoritativePath": "/CP/control/portal/epc_integrations_hub",
-      "blazorMarker": "CpIntegrationsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_integrations_hub"
     },
     {
       "stem": "cp-config-items",
-      "surface": "cp",
       "appRoute": "/cp/config-items-app",
       "digestRoute": "/cp/config-items",
-      "phpAuthoritativePath": "/CP/control/config_edit",
-      "blazorMarker": "CpConfigItemsApp",
-      "chromeShell": "PhpCpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/config_edit"
     },
     {
       "stem": "erp-sales-orders",
-      "surface": "erp",
       "appRoute": "/erp/sales-orders-app",
       "digestRoute": "/erp/sales-orders",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders",
-      "blazorMarker": "ErpSalesOrdersApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders"
     },
     {
       "stem": "erp-purchase-orders",
-      "surface": "erp",
       "appRoute": "/erp/purchase-orders-app",
       "digestRoute": "/erp/purchase-orders",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders",
-      "blazorMarker": "ErpPurchaseOrdersApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders"
     },
     {
       "stem": "erp-invoices",
-      "surface": "erp",
       "appRoute": "/erp/invoices-app",
       "digestRoute": "/erp/invoices",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=sales&tab=invoices",
-      "blazorMarker": "ErpInvoicesApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=sales&tab=invoices"
     },
     {
       "stem": "erp-cash-accounts",
-      "surface": "erp",
       "appRoute": "/erp/cash-accounts-app",
       "digestRoute": "/erp/cash-accounts",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank",
-      "blazorMarker": "ErpCashAccountsApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
     },
     {
       "stem": "erp-cash-entries",
-      "surface": "erp",
       "appRoute": "/erp/cash-entries-app",
       "digestRoute": "/erp/cash-entries",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank",
-      "blazorMarker": "ErpCashEntriesApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
     },
     {
       "stem": "erp-coa-accounts",
-      "surface": "erp",
       "appRoute": "/erp/coa-accounts-app",
       "digestRoute": "/erp/coa-accounts",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=coa",
-      "blazorMarker": "ErpCoaAccountsApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=coa"
     },
     {
       "stem": "erp-gl-journals",
-      "surface": "erp",
       "appRoute": "/erp/gl-journals-app",
       "digestRoute": "/erp/gl-journals",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=gl",
-      "blazorMarker": "ErpGlJournalsApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=gl"
     },
     {
       "stem": "erp-warehouses",
-      "surface": "erp",
       "appRoute": "/erp/warehouses-app",
       "digestRoute": "/erp/warehouses",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory",
-      "blazorMarker": "ErpWarehousesApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory"
     },
     {
       "stem": "erp-suppliers",
-      "surface": "erp",
       "appRoute": "/erp/suppliers-app",
       "digestRoute": "/erp/suppliers",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=ap&tab=payables",
-      "blazorMarker": "ErpSuppliersApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=ap&tab=payables"
     },
     {
       "stem": "erp-purchases",
-      "surface": "erp",
       "appRoute": "/erp/purchases-app",
       "digestRoute": "/erp/purchases",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchases",
-      "blazorMarker": "ErpPurchasesApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchases"
     },
     {
       "stem": "erp-inventory-stock",
-      "surface": "erp",
       "appRoute": "/erp/inventory-stock-app",
       "digestRoute": "/erp/inventory-stock",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory",
-      "blazorMarker": "ErpInventoryStockApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory"
+    },
+    {
+      "stem": "erp-bank-reconciliation",
+      "appRoute": "/erp/bank-reconciliation-app",
+      "digestRoute": "/erp/bank-reconciliation",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon"
+    },
+    {
+      "stem": "erp-stock-transfers",
+      "appRoute": "/erp/stock-transfers-app",
+      "digestRoute": "/erp/stock-transfers",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inv_groups"
+    },
+    {
+      "stem": "erp-sales-quotations",
+      "appRoute": "/erp/sales-quotations-app",
+      "digestRoute": "/erp/sales-quotations",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=sales&tab=proposals"
+    },
+    {
+      "stem": "erp-workspace-favorites",
+      "appRoute": "/erp/workspace-favorites-app",
+      "digestRoute": "/erp/workspace-favorites",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard"
     },
     {
       "stem": "erp-accounts-summary",
-      "surface": "erp",
       "appRoute": "/erp/accounts-summary-app",
       "digestRoute": "/erp/accounts-summary",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank",
-      "blazorMarker": "ErpAccountsSummaryApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
     },
     {
       "stem": "erp-dashboard-summary",
-      "surface": "erp",
       "appRoute": "/erp/dashboard-summary-app",
       "digestRoute": "/erp/dashboard-summary",
-      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=overview",
-      "blazorMarker": "ErpDashboardSummaryApp",
-      "chromeShell": "PhpErpDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=overview"
     },
     {
       "stem": "bos-audit-log",
-      "surface": "bos",
       "appRoute": "/bos/audit-log-app",
       "digestRoute": "/bos/audit-log",
-      "phpAuthoritativePath": "/CP/control/portal/epc_boc_audit_log",
-      "blazorMarker": "BosAuditLogApp",
-      "chromeShell": "PhpBosDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_boc_audit_log"
     },
     {
       "stem": "bos-tenants",
-      "surface": "bos",
       "appRoute": "/bos/tenants-app",
       "digestRoute": "/bos/tenants",
-      "phpAuthoritativePath": "/CP/control/portal/epc_tenant_control_center",
-      "blazorMarker": "BosTenantsApp",
-      "chromeShell": "PhpBosDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_tenant_control_center"
     },
     {
       "stem": "bos-fleet-health",
-      "surface": "bos",
       "appRoute": "/bos/fleet-health-app",
       "digestRoute": "/bos/fleet-health",
-      "phpAuthoritativePath": "/CP/control/portal/epc_platform_health_checkup",
-      "blazorMarker": "BosFleetHealthApp",
-      "chromeShell": "PhpBosDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_platform_health_checkup"
     },
     {
       "stem": "bos-fleet-readiness",
-      "surface": "bos",
       "appRoute": "/bos/fleet-readiness-app",
       "digestRoute": "/bos/fleet-readiness",
-      "phpAuthoritativePath": "/CP/control/portal/epc_platform_health_checkup",
-      "blazorMarker": "BosFleetReadinessApp",
-      "chromeShell": "PhpBosDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/CP/control/portal/epc_platform_health_checkup"
     },
     {
       "stem": "bos-fleet-summary",
-      "surface": "bos",
       "appRoute": "/bos/fleet-summary-app",
       "digestRoute": "/bos/fleet-summary",
-      "phpAuthoritativePath": "/BOS/",
-      "blazorMarker": "BosFleetSummaryApp",
-      "chromeShell": "PhpBosDesktopChrome",
-      "authKind": "admin",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "/BOS/"
     },
     {
       "stem": "sf-search",
-      "surface": "storefront",
       "appRoute": "/storefront/search-app",
       "digestRoute": "/storefront/search",
-      "phpAuthoritativePath": "https://epartscart.com/shop/part_search",
-      "blazorMarker": "StorefrontSearchApp",
-      "chromeShell": "PhpStorefrontDesktopChrome",
-      "authKind": "customer",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "https://epartscart.com/shop/part_search"
     },
     {
       "stem": "sf-cart",
-      "surface": "storefront",
       "appRoute": "/storefront/cart-app",
       "digestRoute": "/storefront/cart",
-      "phpAuthoritativePath": "https://epartscart.com/shop/cart",
-      "blazorMarker": "StorefrontCartApp",
-      "chromeShell": "PhpStorefrontDesktopChrome",
-      "authKind": "customer",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "https://epartscart.com/shop/cart"
     },
     {
       "stem": "sf-orders",
-      "surface": "storefront",
       "appRoute": "/storefront/orders-app",
       "digestRoute": "/storefront/orders",
-      "phpAuthoritativePath": "https://epartscart.com/shop/orders",
-      "blazorMarker": "StorefrontOrdersApp",
-      "chromeShell": "PhpStorefrontDesktopChrome",
-      "authKind": "customer",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "https://epartscart.com/shop/orders"
     },
     {
       "stem": "sf-garage",
-      "surface": "storefront",
       "appRoute": "/storefront/garage-app",
       "digestRoute": "/storefront/garage",
-      "phpAuthoritativePath": "https://epartscart.com/shop/part_search",
-      "blazorMarker": "StorefrontGarageApp",
-      "chromeShell": "PhpStorefrontDesktopChrome",
-      "authKind": "customer",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "https://epartscart.com/shop/part_search"
     },
     {
       "stem": "sf-profile",
-      "surface": "storefront",
       "appRoute": "/storefront/profile-app",
       "digestRoute": "/storefront/profile",
-      "phpAuthoritativePath": "https://epartscart.com/users/profile",
-      "blazorMarker": "StorefrontProfileApp",
-      "chromeShell": "PhpStorefrontDesktopChrome",
-      "authKind": "customer",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "https://epartscart.com/users/profile"
     },
     {
       "stem": "sf-account-summary",
-      "surface": "storefront",
       "appRoute": "/storefront/account-summary-app",
       "digestRoute": "/storefront/account-summary",
-      "phpAuthoritativePath": "https://epartscart.com/users/",
-      "blazorMarker": "StorefrontAccountSummaryApp",
-      "chromeShell": "PhpStorefrontDesktopChrome",
-      "authKind": "customer",
-      "phpAuthoritative": true,
-      "wwwPreviewOnly": true,
-      "tenantChromePhp": true
+      "phpAuthoritativePath": "https://epartscart.com/users/"
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP."
