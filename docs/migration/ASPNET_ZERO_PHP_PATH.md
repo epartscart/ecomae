@@ -30,6 +30,7 @@ PHP ships a **self-hosted ERP option** (`deploy/on-premises/*`, `erp_tabs_on_pre
 | License/health APIs | Health + activate + setup-wizard + backup dry-runs + read digest (`GET /erp/on-premises/licenses`, keys masked) | PHP activate/health/registry remain authoritative |
 | Operator tab | `/erp/on-premises-app` overview scaffold | Dual-sample vs PHP tab before exact-route |
 | ERP ajax writes | Full `ajax_erp.php` catalog: **321/321 dedicated** dry-runs (+ registry gate retained) | Live writes remain PHP; `aspNetInteractiveComplete=0` |
+| CP module ajax | Wave C catalog: procurement / document_control / customer_mgmt / auto_price / CRM (**96** actions; **51** dedicated write dry-runs + registry) | Live writes remain PHP; dual-sample pending |
 
 Live board: `GET /migration/on-premises-parity`
 

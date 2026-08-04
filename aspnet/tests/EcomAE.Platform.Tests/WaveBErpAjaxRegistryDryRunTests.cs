@@ -102,13 +102,55 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     }
 
     [Fact]
+    public void CpModuleCatalogCoversAjaxWithoutCutover()
+    {
+        var catalog = new CpModuleAjaxWriteCatalog();
+        var report = catalog.BuildReport();
+        Assert.Equal(96, report.TotalActions);
+        Assert.Equal(100, report.CoveragePct);
+        Assert.False(report.CutoverAllowed);
+        Assert.False(report.ReadyForPhpRemoval);
+        Assert.True(report.PhpAuthoritative);
+        Assert.Equal(51, report.DedicatedDryRuns);
+        Assert.Equal(45, report.RegistryDryRuns);
+        Assert.True(catalog.TryGet("procurement", "create_supplier", out var entry));
+        Assert.Equal("dedicated", entry.Coverage);
+        Assert.True(catalog.TryGet("crm", "crm_save_lead", out var crm));
+        Assert.Equal("dedicated", crm.Coverage);
+    }
+
+    [Fact]
+    public void CpModuleRegistryAndDedicatedBlockWrites()
+    {
+        var catalog = new CpModuleAjaxWriteCatalog();
+        var registry = new CpModuleAjaxWriteRegistryDryRun(catalog);
+        var dedicated = new CpModuleAjaxWriteDedicatedDryRun(catalog);
+
+        var ok = registry.Evaluate(new CpModuleAjaxWriteRegistryRequest("procurement", "create_supplier"));
+        Assert.Equal("dry-run-validated", ok.Status);
+        Assert.Equal(0, ok.Writes);
+        Assert.False(ok.CutoverAllowed);
+
+        var refused = dedicated.Evaluate(new CpModuleAjaxWriteDedicatedRequest("crm", "crm_save_lead", ConfirmWrites: true));
+        Assert.Equal("dry-run-confirm-refused", refused.Status);
+        Assert.Equal(0, refused.Writes);
+        Assert.False(refused.CutoverAllowed);
+
+        var unknown = registry.Evaluate(new CpModuleAjaxWriteRegistryRequest("procurement", "not_a_real_action_zz"));
+        Assert.Equal("dry-run-unknown-action", unknown.Status);
+        Assert.Equal(0, unknown.Writes);
+    }
+
+    [Fact]
     public void PathBoardMentionsAjaxCatalogAndStaysBelow100()
     {
         var report = new AspNetZeroPhpPathReporter().BuildReport();
-        Assert.InRange(report.HonestCompletionPct, 94, 99);
+        Assert.InRange(report.HonestCompletionPct, 95, 99);
         Assert.False(report.CutoverAllowed);
         Assert.Contains(report.Phases, p => p.Id == "4-function-parity" && p.Detail.Contains("ajax_erp", StringComparison.Ordinal));
+        Assert.Contains(report.Phases, p => p.Id == "4-function-parity" && p.Detail.Contains("module ajax", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.NextBuilds, n => n.Contains("on-premises-aspnet", StringComparison.OrdinalIgnoreCase)
-            || n.Contains("setup-wizard", StringComparison.OrdinalIgnoreCase));
+            || n.Contains("setup-wizard", StringComparison.OrdinalIgnoreCase)
+            || n.Contains("module ajax", StringComparison.OrdinalIgnoreCase));
     }
 }

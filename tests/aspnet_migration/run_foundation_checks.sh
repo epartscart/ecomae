@@ -886,6 +886,13 @@ check 'BOS ajax write catalog route wired' contains "$ROOT/aspnet/src/EcomAE.Pla
 check 'Wave B write dry-run probe covers BOS ajax registry' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/bos/ajax-writes/dry-run/'
 check 'Wave B write dry-run probe covers POS complete-sale' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/pos/complete-sale'
 check 'Wave B write dry-run probe covers on-prem activate-license CLI' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/on-premises/activate-license-cli-dry-run'
+check 'Wave C CP module ajax write catalog route wired' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'CpModuleAjaxWriteCatalog'
+check 'Wave C CP module ajax registry dry-run route wired' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'CpModuleAjaxWriteRegistryDryRun'
+check 'Wave C CP module ajax dedicated dry-run route wired' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'CpModuleAjaxWriteDedicatedDryRun'
+check 'CP module ajax write catalog covers procurement' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/CpModuleAjaxWriteCatalog.cs" 'ajax_procurement.php'
+check 'CP module ajax write catalog covers CRM helpers path' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/CpModuleAjaxWriteCatalog.cs" 'ajax_crm.php'
+check 'Wave C write dry-run probe covers CP module ajax registry' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/module-ajax/dry-run/'
+check 'Wave C write dry-run probe covers CP module ajax dedicated' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/module-ajax/procurement/create_supplier/dry-run'
 
 
 check 'Wave B write dry-run dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh"
