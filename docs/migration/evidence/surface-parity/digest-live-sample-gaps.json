@@ -1,6 +1,6 @@
 {
   "role": "digest-live-sample-gaps",
-  "generatedAtUnix": 1785865996,
+  "generatedAtUnix": 1785866318,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
@@ -100,5 +100,5 @@
     }
   ],
   "migrationGoldenCount": 154,
-  "note": "Contract goldens exist; live authenticated aspnet samples still 0 for core stems. Capture via cloudpanel_capture_digest_dual_samples.sh."
+  "note": "Contract goldens exist; live authenticated aspnet samples still pending for listed core stems. Capture via cloudpanel_capture_digest_dual_samples.sh (admin + customer cookies)."
 }

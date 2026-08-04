@@ -6,8 +6,10 @@
 # compare uses migration/ contract goldens as the left baseline (contract-only)
 # against live aspnet-*.json. Do not invent live PHP JSON after shadows land.
 #
-# Requires admin cookie (CP/ERP/BOS digests):
+# Requires admin cookie (CP/ERP/BOS digests) and customer cookie (storefront-*):
 #   set -a; source /etc/ecomae-aspnet/platform.env; set +a
+#   # ECOMAE_ADMIN_COOKIE_HEADER=admin_session=...; admin_u_id=...
+#   # ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=...
 #   bash scripts/cloudpanel_capture_digest_dual_samples.sh
 #
 # Then compare (auto unless ECOMAE_DIGEST_DUAL_COMPARE=0):
@@ -18,14 +20,18 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="${ECOMAE_DIGEST_SAMPLES_DIR:-$ROOT/docs/migration/evidence/surface-parity/samples}"
 ASPNET_BASE="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:5100}"
 PHP_BASE="${ECOMAE_PHP_DIGEST_BASE_URL:-}"
-COOKIE="${ECOMAE_ADMIN_COOKIE_HEADER:-}"
+ADMIN_COOKIE="${ECOMAE_ADMIN_COOKIE_HEADER:-}"
+CUSTOMER_COOKIE="${ECOMAE_CUSTOMER_COOKIE_HEADER:-}"
 RUN_COMPARE="${ECOMAE_DIGEST_DUAL_COMPARE:-1}"
 
-if [[ -z "$COOKIE" ]]; then
+if [[ -z "$ADMIN_COOKIE" ]]; then
   printf 'ERROR: set ECOMAE_ADMIN_COOKIE_HEADER (admin session cookie)\n' >&2
   printf 'Hint: ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES \\\n' >&2
   printf '        bash scripts/cloudpanel_issue_smoke_credentials.sh\n' >&2
   exit 2
+fi
+if [[ -z "$CUSTOMER_COOKIE" ]]; then
+  printf 'WARN: ECOMAE_CUSTOMER_COOKIE_HEADER unset — storefront-* digests will FAIL (need session=...; u_id=...)\n' >&2
 fi
 
 mkdir -p "$OUT"
@@ -170,11 +176,24 @@ declare -A ROUTES=(
   [storefront-checkout]="/storefront/checkout?limit=5"
 )
 
+cookie_for_stem() {
+  local stem="$1"
+  if [[ "$stem" == storefront-* ]]; then
+    printf '%s' "$CUSTOMER_COOKIE"
+  else
+    printf '%s' "$ADMIN_COOKIE"
+  fi
+}
+
 capture() {
-  local label="$1" base="$2" path="$3" out="$4"
+  local label="$1" base="$2" path="$3" out="$4" cookie="$5"
   local code
+  if [[ -z "$cookie" ]]; then
+    printf 'FAIL %s %s missing cookie (storefront needs ECOMAE_CUSTOMER_COOKIE_HEADER)\n' "$label" "$path" >&2
+    return 1
+  fi
   code="$(curl -sS -m 30 \
-    -H "Cookie: $COOKIE" \
+    -H "Cookie: $cookie" \
     -H 'Accept: application/json' \
     -A 'Mozilla/5.0 EcomAE-digest-dual-sample' \
     -o "$out" -w '%{http_code}' \
@@ -203,13 +222,14 @@ ok=0
 fail=0
 for stem in "${!ROUTES[@]}"; do
   path="${ROUTES[$stem]}"
-  if capture aspnet "$ASPNET_BASE" "$path" "$OUT/aspnet-${stem}.json"; then
+  cookie="$(cookie_for_stem "$stem")"
+  if capture aspnet "$ASPNET_BASE" "$path" "$OUT/aspnet-${stem}.json" "$cookie"; then
     ok=$((ok + 1))
   else
     fail=$((fail + 1))
   fi
   if [[ -n "$PHP_BASE" ]]; then
-    if capture php "$PHP_BASE" "$path" "$OUT/php-${stem}.json"; then
+    if capture php "$PHP_BASE" "$path" "$OUT/php-${stem}.json" "$cookie"; then
       ok=$((ok + 1))
     else
       printf 'WARN: PHP sample missing for %s\n' "$stem" >&2
