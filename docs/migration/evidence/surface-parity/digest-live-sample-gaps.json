@@ -1,0 +1,104 @@
+{
+  "role": "digest-live-sample-gaps",
+  "generatedAtUnix": 1785865996,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "coreStemsRequired": [
+    "cp-dashboard-summary",
+    "cp-users",
+    "cp-tenants",
+    "cp-menus",
+    "cp-orders-digest",
+    "erp-dashboard-summary",
+    "erp-accounts-summary",
+    "erp-inventory-stock",
+    "storefront-search",
+    "storefront-cart",
+    "storefront-checkout",
+    "storefront-orders",
+    "storefront-garage",
+    "storefront-profile",
+    "storefront-account-summary"
+  ],
+  "missingLiveAspNetCount": 15,
+  "missingLiveAspNet": [
+    {
+      "stem": "cp-dashboard-summary",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "cp-users",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "cp-tenants",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "cp-menus",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "cp-orders-digest",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "erp-dashboard-summary",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "erp-accounts-summary",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "erp-inventory-stock",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "storefront-search",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "storefront-cart",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "storefront-checkout",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "storefront-orders",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "storefront-garage",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "storefront-profile",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    },
+    {
+      "stem": "storefront-account-summary",
+      "migrationGolden": true,
+      "liveAspNetSample": false
+    }
+  ],
+  "migrationGoldenCount": 154,
+  "note": "Contract goldens exist; live authenticated aspnet samples still 0 for core stems. Capture via cloudpanel_capture_digest_dual_samples.sh."
+}
