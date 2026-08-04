@@ -2,11 +2,15 @@
   "ok": true,
   "action": "article",
   "section": "passenger",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": {},
+  "data": {
+    "ART_ID": 1,
+    "TITLE": "Migration article"
+  },
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": false,
+  "message": "migration-mode article object item-field sentinel; OfflineCacheOk object blob"
 }

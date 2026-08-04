@@ -2,11 +2,25 @@
   "ok": true,
   "action": "article_links",
   "section": "passenger",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": {},
+  "data": {
+    "PC": [
+      {
+        "CI_FROM": 0,
+        "CI_TO": 0,
+        "POWER_KW": 0,
+        "FUEL_TYPE": "Petrol"
+      }
+    ],
+    "CV": [],
+    "Motorcycle": [],
+    "source": "migration",
+    "stale": true
+  },
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": false,
+  "message": "migration-mode article-links PC[] fitment item-field sentinel; OfflineCacheOk object blob"
 }

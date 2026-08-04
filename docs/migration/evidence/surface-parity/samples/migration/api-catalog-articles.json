@@ -2,11 +2,20 @@
   "ok": true,
   "action": "articles",
   "section": "passenger",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": {},
+  "data": {
+    "data": [
+      {
+        "ART_ARTICLE_NR": "0986424590",
+        "SUP_BRAND": "BOSCH",
+        "ART_PRODUCT_NAME": "Migration articles row"
+      }
+    ]
+  },
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": false,
+  "message": "migration-mode articles nested data.data[] item-field sentinel; OfflineCacheOk object blob"
 }

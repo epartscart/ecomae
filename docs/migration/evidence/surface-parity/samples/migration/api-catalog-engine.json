@@ -2,11 +2,15 @@
   "ok": true,
   "action": "engine",
   "section": "passenger",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": {},
+  "data": {
+    "ENG_ID": 1,
+    "ENGINE_CODE": "N47D20"
+  },
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": false,
+  "message": "migration-mode engine object item-field sentinel; OfflineCacheOk object blob"
 }

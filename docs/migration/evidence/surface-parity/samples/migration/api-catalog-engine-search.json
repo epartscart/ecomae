@@ -2,11 +2,26 @@
   "ok": true,
   "action": "engine_search",
   "section": "passenger",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": {},
+  "data": {
+    "code": "N47D20",
+    "rows": 1,
+    "data": [
+      {
+        "ENG_ID": 1,
+        "ENGINE_CODE": "N47D20",
+        "POWER_KW": 0,
+        "CAPACITY_LT": 0.0,
+        "FUEL_TYPE": "Diesel"
+      }
+    ],
+    "scanned_brands": 0,
+    "truncated": false
+  },
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": false,
+  "message": "migration-mode engine-search nested data.data[] item-field sentinel; OfflineCacheOk object blob"
 }
