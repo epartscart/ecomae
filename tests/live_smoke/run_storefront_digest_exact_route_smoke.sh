@@ -33,6 +33,9 @@ routes=(
   "/storefront/orders?limit=5"
   "/storefront/garage?limit=5"
   "/storefront/profile"
+  "/storefront/search?article=0986424590&limit=5"
+  "/storefront/cart?limit=5"
+  "/storefront/checkout?limit=5"
 )
 
 pass=0

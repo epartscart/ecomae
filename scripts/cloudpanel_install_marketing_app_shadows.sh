@@ -21,6 +21,11 @@ fi
 [[ -f "$EXAMPLE" ]] || { printf 'ERROR: missing %s\n' "$EXAMPLE" >&2; exit 1; }
 ecomae_assert_nginx_shadow_target_allowed "$CONF" presentation
 
+if grep -qE '\{\{|}}' "$EXAMPLE"; then
+  printf 'ERROR: %s has invalid nginx double braces {{/}} — refuse install\n' "$EXAMPLE" >&2
+  exit 1
+fi
+
 bak="/root/$(basename "$CONF").bak.marketing-apps.$(date -u +%Y%m%d%H%M%S)"
 cp -a "$CONF" "$bak"
 printf 'Backup: %s\n' "$bak"
@@ -31,9 +36,13 @@ import re, sys
 conf_path, example_path = Path(sys.argv[1]), Path(sys.argv[2])
 text = conf_path.read_text(encoding="utf-8")
 example = example_path.read_text(encoding="utf-8")
+if "{{" in example or "}}" in example:
+    raise SystemExit("ERROR: example conf has invalid nginx double braces {{/}}")
 blocks = []
 for m in re.finditer(r"(?m)^(location = (/marketing/[^\s{]+)\s*\{.*?\n\})", example, flags=re.S):
     block_raw, route = m.group(1), m.group(2)
+    if "{{" in block_raw or "}}" in block_raw:
+        raise SystemExit(f"ERROR: invalid double braces in block for {route}")
     indented = "\n".join(("  " + line if line.strip() else line) for line in block_raw.splitlines())
     blocks.append((route, indented.rstrip() + "\n"))
 if len(blocks) < 30:

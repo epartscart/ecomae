@@ -153,3 +153,39 @@ bash scripts/deploy_aspnet_foundation.sh
 ```
 
 Then expose only `/health` and allowlisted `/migration/*` through CloudPanel/Nginx. Do not proxy broad CP/ERP/BOS/API/storefront routes until route-level parity is approved. Never set `ECOMAE_ENABLE_PRICE_LOOKUP_SHADOW=1` in the one-shot script; that flag is rejected until staging smoke evidence exists.
+
+## 7. Exact-route shadow installs (compare only — PHP stays live)
+
+These install **exact-route** nginx shadows for ASP.NET dual-sample compare. They never flip broad cutover and never remove PHP.
+
+**Storefront digests (need 7/7; checkout often the missing one):**
+
+```bash
+cd /opt/ecomae-aspnet-source   # or your real repo path
+git fetch origin main && git checkout -f main && git reset --hard origin/main
+ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh
+bash scripts/cloudpanel_probe_storefront_digest_shadows.sh
+# Checkout-only if the batch already has 6/7:
+# ECOMAE_CONFIRM_INSTALL_EXACT_ROUTE_SHADOW=YES bash scripts/cloudpanel_install_exact_route_shadow.sh /storefront/checkout
+```
+
+**Marketing `/marketing/*` presentation shadows (37 routes; live `/` must stay PHP epm-hub):**
+
+```bash
+ECOMAE_CONFIRM_INSTALL_MARKETING_APP_SHADOWS=YES bash scripts/cloudpanel_install_marketing_app_shadows.sh
+bash scripts/cloudpanel_probe_marketing_app_shadows.sh
+bash scripts/cloudpanel_probe_ecomae_marketing_php_chrome.sh   # / must remain PHP
+```
+
+**Digest dual-sample capture (admin + customer cookies):**
+
+```bash
+# Admin: admin_session=...; admin_u_id=...
+# Customer: session=...; u_id=...
+export ECOMAE_ADMIN_COOKIE_HEADER='...'
+export ECOMAE_CUSTOMER_COOKIE_HEADER='...'
+bash scripts/cloudpanel_run_digest_dual_sample_operator.sh
+python3 scripts/report_digest_live_sample_gaps.py
+```
+
+Do **not** invent `RELEASE_OWNER_APPROVAL.md` or set `cutoverAllowed=true`.

@@ -1195,6 +1195,22 @@ HYBRID_LIST_ITEM_FIELDS = {
             "minOrder",
         ],
     ),
+    "storefront-checkout": (
+        "php_steps",
+        [
+            "id",
+            "href",
+        ],
+    ),
+}
+
+# Extra top-level keys required alongside SUMMARY_CONTRACTS (hybrid digests).
+SUMMARY_TOP_LEVEL_FIELDS = {
+    "storefront-checkout": [
+        "readiness",
+        "checked_for_order",
+        "php_steps",
+    ],
 }
 
 # Object digests without a collection array (top-level envelope fields).
@@ -1400,6 +1416,25 @@ def main() -> int:
             )
             if asp.exists():
                 check_hybrid_list_items(asp, stem, f"aspnet-{stem}-list-items")
+        top_fields = SUMMARY_TOP_LEVEL_FIELDS.get(stem) or []
+        if top_fields:
+            for side_path, side_label in (
+                (left, f"{'migration' if from_mig else 'php'}-{stem}-top"),
+                (asp, f"aspnet-{stem}-top"),
+            ):
+                pairs += 1
+                try:
+                    side_doc = json.loads(side_path.read_text(encoding="utf-8"))
+                except Exception as ex:  # noqa: BLE001
+                    failed += 1
+                    print(f"FAIL {side_label}: {ex}")
+                    continue
+                missing_top = [f for f in top_fields if f not in side_doc]
+                if missing_top:
+                    failed += 1
+                    print(f"FAIL {side_label}: missing top-level {missing_top}")
+                else:
+                    print(f"PASS {side_label}")
 
     for stem, key in LIST_CONTRACTS.items():
         left, from_mig = resolve_left(samples, stem)
@@ -1456,6 +1491,21 @@ def main() -> int:
                 print(proc.stdout or proc.stderr)
             if stem in HYBRID_LIST_ITEM_FIELDS:
                 check_hybrid_list_items(path, stem, f"migration/{stem}-list-items")
+            top_fields = SUMMARY_TOP_LEVEL_FIELDS.get(stem) or []
+            if top_fields:
+                pairs += 1
+                try:
+                    side_doc = json.loads(path.read_text(encoding="utf-8"))
+                except Exception as ex:  # noqa: BLE001
+                    failed += 1
+                    print(f"FAIL migration/{stem}-top: {ex}")
+                else:
+                    missing_top = [f for f in top_fields if f not in side_doc]
+                    if missing_top:
+                        failed += 1
+                        print(f"FAIL migration/{stem}-top: missing top-level {missing_top}")
+                    else:
+                        print(f"PASS migration/{stem}-top")
         for stem, key in LIST_CONTRACTS.items():
             if stem in checked_stems:
                 continue

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # CloudPanel operator helper: capture (when cookie present) + compare digest dual samples.
 # Without ECOMAE_ADMIN_COOKIE_HEADER, runs migration contract-only compare (CI floor).
+# Storefront stems need ECOMAE_CUSTOMER_COOKIE_HEADER (session=...; u_id=...).
 # Always asserts cutoverAllowed=false. Never invents RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 
@@ -19,9 +20,14 @@ fi
 
 export ECOMAE_ASPNET_BASE_URL="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:5100}"
 COOKIE="${ECOMAE_ADMIN_COOKIE_HEADER:-}"
+CUSTOMER="${ECOMAE_CUSTOMER_COOKIE_HEADER:-}"
 
 if [[ -n "$COOKIE" ]]; then
-  echo "digest dual-sample operator: capture with admin cookie (compare deferred)"
+  if [[ -n "$CUSTOMER" ]]; then
+    echo "digest dual-sample operator: capture with admin + customer cookies (compare deferred)"
+  else
+    echo "digest dual-sample operator: capture with admin cookie; storefront stems need ECOMAE_CUSTOMER_COOKIE_HEADER"
+  fi
   ECOMAE_DIGEST_DUAL_COMPARE=0 bash "$ROOT/scripts/cloudpanel_capture_digest_dual_samples.sh"
   CONTRACT_ONLY_FLAG=()
 else
