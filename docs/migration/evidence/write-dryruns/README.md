@@ -7,4 +7,7 @@ Includes storefront quote submit (`ajax_quote_submit.php`) and quote accept (`aj
 
 Operator: `scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh`
 
+Module ajax companion: `scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh`
+Evidence: `docs/migration/evidence/module-ajax-dual-samples/`
+
 Never invent `RELEASE_OWNER_APPROVAL.md`.

@@ -25,7 +25,7 @@ public sealed class OnPremisesParityReporter : IOnPremisesParityReporter
                 "on-prem-installer",
                 "Self-hosted installer pack",
                 "scaffold",
-                "PHP deploy/on-premises/* remains authoritative. ASP.NET scaffold under deploy/on-premises-aspnet/ + setup-wizard/backup dry-runs (writes=0). Dual-sample required before replacing PHP runtime."),
+                "PHP deploy/on-premises/* remains authoritative. ASP.NET scaffold under deploy/on-premises-aspnet/ (setup/backup/health/license/install + compose scaffold) + dry-runs (writes=0). Dual-sample required before replacing PHP runtime."),
             new(
                 "on-prem-license-api",
                 "License activate + health intake APIs",

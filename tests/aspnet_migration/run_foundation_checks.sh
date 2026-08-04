@@ -910,6 +910,15 @@ check 'Wave F write dry-run probe covers pos complete_sale' contains "$ROOT/scri
 check 'Wave B write dry-run dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh"
 check 'Wave B write dry-run dual-sample operator refuses cutover' contains "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh" 'cutoverAllowed'
 check 'all dual-sample operators include write-dryrun' contains "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh" 'write-dryrun'
+check 'all dual-sample operators include module-ajax' contains "$ROOT/scripts/cloudpanel_run_all_dual_sample_operators.sh" 'module-ajax'
+check 'module ajax dual-sample capture exists' test -x "$ROOT/scripts/cloudpanel_capture_module_ajax_dual_samples.sh"
+check 'module ajax dual-sample compare exists' test -x "$ROOT/scripts/compare_module_ajax_dual_samples.py"
+check 'module ajax dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh"
+check 'module ajax dual-sample evidence dir exists' test -d "$ROOT/docs/migration/evidence/module-ajax-dual-samples"
+check 'module ajax dual-sample compare blocks cutover' contains "$ROOT/docs/migration/evidence/module-ajax-dual-samples/compare-result.json" '"cutoverAllowed": false'
+check 'module ajax dual-sample README keeps PHP authoritative' contains "$ROOT/docs/migration/evidence/module-ajax-dual-samples/README.md" 'PHP ajax/forms remain authoritative'
+check 'on-premises ASP.NET install scaffold exists' test -f "$ROOT/deploy/on-premises-aspnet/Install.Scaffold.md"
+check 'on-premises ASP.NET compose scaffold exists' test -f "$ROOT/deploy/on-premises-aspnet/docker-compose.scaffold.yml"
 check 'write dry-run evidence README keeps PHP authoritative' contains "$ROOT/docs/migration/evidence/write-dryruns/README.md" 'PHP ajax endpoints remain authoritative'
 check 'catalog miss evidence dir exists' test -d "$ROOT/docs/migration/evidence/catalog-miss-umapi"
 check 'catalog miss evidence keeps PHP fill authoritative' contains "$ROOT/docs/migration/evidence/catalog-miss-umapi/README.md" 'Live fills remain PHP'
@@ -938,6 +947,8 @@ check 'deploy packs module-function parity compare' contains "$ROOT/scripts/depl
 check 'deploy packs presentation recheck operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_presentation_recheck_operator.sh'
 check 'deploy packs price-lookup dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_price_lookup_dual_sample_operator.sh'
 check 'deploy packs catalog-api dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_catalog_api_dual_sample_operator.sh'
+check 'deploy packs module-ajax dual-sample operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_run_module_ajax_dual_sample_operator.sh'
+check 'deploy packs module-ajax dual-sample compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_module_ajax_dual_samples.py'
 check 'deploy packs catalog/API allowlist sync validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_catalog_api_allowlist_sync.py'
 check 'deploy packs scaffold options example' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'ecomae-scaffold-options.example.json'
 check 'deploy packs scaffold options validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_scaffold_options_example.py'

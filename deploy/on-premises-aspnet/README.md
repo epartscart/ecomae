@@ -7,11 +7,11 @@ It is **not** the same as SaaS ERP-only tenant mode (`TenantMode.ErpOnlyTenant`)
 
 | PHP (authoritative today) | ASP.NET scaffold |
 | --- | --- |
-| `deploy/on-premises/setup-wizard.php` | `POST /erp/on-premises/setup-wizard-dry-run` (writes=0) |
-| `deploy/on-premises/backup.php` | `POST /erp/on-premises/backup-dry-run` (writes=0) |
-| `deploy/on-premises/health-check.php` | `POST /erp/on-premises/health-dry-run` (writes=0) |
-| `deploy/on-premises/activate-license.php` | `POST /erp/on-premises/license-activate-dry-run` (writes=0) |
-| `docker-compose.yml` / `install.sh` | Future ASP.NET hosted pack — not cut over |
+| `deploy/on-premises/setup-wizard.php` | `POST /erp/on-premises/setup-wizard-dry-run` (writes=0) · `SetupWizard.Scaffold.md` |
+| `deploy/on-premises/backup.php` | `POST /erp/on-premises/backup-dry-run` (writes=0) · `Backup.Scaffold.md` |
+| `deploy/on-premises/health-check.php` | `POST /erp/on-premises/health-dry-run` (writes=0) · `HealthCheck.Scaffold.md` |
+| `deploy/on-premises/activate-license.php` | `POST /erp/on-premises/license-activate-dry-run` (writes=0) · `ActivateLicense.Scaffold.md` |
+| `docker-compose.yml` / `install.sh` | `Install.Scaffold.md` + `docker-compose.scaffold.yml` (profile scaffold-not-for-production) |
 
 `cutoverAllowed` stays **false**. Never invent `RELEASE_OWNER_APPROVAL.md`.
 
