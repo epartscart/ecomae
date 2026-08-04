@@ -4,11 +4,22 @@
   "section": "passenger",
   "mfa_id": null,
   "ms_id": 1,
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": [],
-  "message": "TenantRegistry DB is not configured.",
+  "data": [
+    {
+      "MS_ID": 10,
+      "modification_id": 100,
+      "title": "Migration Mod",
+      "year_from": 2020,
+      "year_to": 2024,
+      "power_kw": 100,
+      "capacity_lt": 2.0,
+      "fuel_type": "petrol"
+    }
+  ],
+  "message": "migration-mode modifications item-field sentinel; PHP/cache remain authoritative",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false

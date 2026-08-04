@@ -1,0 +1,18 @@
+{
+  "role": "catalog-list-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "listStemCount": 6,
+  "stems": [
+    "api-catalog-manufacturers",
+    "api-catalog-models",
+    "api-catalog-modifications",
+    "api-catalog-brands",
+    "api-catalog-suppliers",
+    "api-catalog-brand-parts"
+  ],
+  "requireNonemptyMigrationSentinel": true,
+  "source": "CatalogManufacturerService + CatalogVehicleCacheService + CatalogBrandPartsService",
+  "note": "Wave-1 catalog list routes keep non-empty migration data[] item-field sentinels. Offline-cache JSON blobs remain envelope-only until typed item DTOs exist. Never invents RELEASE_OWNER_APPROVAL.md."
+}

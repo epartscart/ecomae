@@ -2,11 +2,17 @@
   "ok": true,
   "action": "brands",
   "section": "all",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
   "stale": true,
-  "data": [],
-  "message": "TenantRegistry DB is not configured.",
+  "data": [
+    {
+      "sup_id": 1,
+      "brand": "BOSCH",
+      "full_name": "Robert Bosch GmbH"
+    }
+  ],
+  "message": "migration-mode brands item-field sentinel; PHP/cache remain authoritative",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false

@@ -7,7 +7,12 @@
   "failed": 0,
   "priceLookupOk": true,
   "listItemFieldStems": [
-    "api-catalog-manufacturers"
+    "api-catalog-brand-parts",
+    "api-catalog-brands",
+    "api-catalog-manufacturers",
+    "api-catalog-models",
+    "api-catalog-modifications",
+    "api-catalog-suppliers"
   ],
   "results": [
     {
@@ -119,5 +124,5 @@
       "errors": []
     }
   ],
-  "note": "Catalog/API contract floor only. Manufacturers migration golden keeps non-empty item-field sentinel. Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "Catalog/API contract floor only. Wave-1 list goldens (manufacturers/models/modifications/brands/suppliers/brand-parts) keep non-empty item-field sentinels. Exact-route shadows remain operator-gated. Never invents RELEASE_OWNER_APPROVAL.md."
 }

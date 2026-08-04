@@ -58,6 +58,29 @@ LIST_ITEM_FIELDS: dict[str, list[str]] = {
         "popular",
         "is_logo",
     ],
+    "api-catalog-models": ["MFA_ID", "MS_ID", "model_series", "year_from", "year_to"],
+    "api-catalog-modifications": [
+        "MS_ID",
+        "modification_id",
+        "title",
+        "year_from",
+        "year_to",
+        "power_kw",
+        "capacity_lt",
+        "fuel_type",
+    ],
+    "api-catalog-brands": ["sup_id", "brand", "full_name"],
+    "api-catalog-suppliers": ["sup_id", "brand", "full_name"],
+    "api-catalog-brand-parts": [
+        "manufacturer",
+        "article_show",
+        "article",
+        "name",
+        "exist",
+        "price",
+        "time_to_exe",
+        "storage",
+    ],
 }
 LIST_NONEMPTY_DATA = frozenset(LIST_ITEM_FIELDS)
 
@@ -157,8 +180,9 @@ def main() -> int:
         "listItemFieldStems": sorted(LIST_ITEM_FIELDS),
         "results": results,
         "note": (
-            "Catalog/API contract floor only. Manufacturers migration golden keeps "
-            "non-empty item-field sentinel. Exact-route shadows remain operator-gated. "
+            "Catalog/API contract floor only. Wave-1 list goldens "
+            "(manufacturers/models/modifications/brands/suppliers/brand-parts) keep "
+            "non-empty item-field sentinels. Exact-route shadows remain operator-gated. "
             "Never invents RELEASE_OWNER_APPROVAL.md."
         ),
     }

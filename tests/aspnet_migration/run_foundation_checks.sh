@@ -967,6 +967,13 @@ check 'catalog api contract floor locks manufacturer item fields' contains "$ROO
 check 'price lookup contract-only requires nonempty offers' contains "$ROOT/scripts/compare_price_lookup_parity.py" 'non-empty for contract floor sentinel'
 check 'catalog manufacturers item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-api/manufacturers-item-field-floor.json"
 check 'catalog manufacturers item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-api/manufacturers-item-field-floor.json" '"cutoverAllowed": false'
+check 'catalog list item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-api/list-item-field-floor.json"
+check 'catalog list item-field floor tracks 6 stems' contains "$ROOT/docs/migration/evidence/catalog-api/list-item-field-floor.json" '"listStemCount": 6'
+check 'catalog models migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-models.json" '"model_series": "Migration Series"'
+check 'catalog brands migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-brands.json" '"sup_id": 1'
+check 'catalog brand-parts migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-brand-parts.json" '"article_show": "0 986 479 001"'
+check 'catalog models contract requires model_series' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'model_series'
+check 'catalog brand-parts contract requires article_show' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'article_show'
 check 'orders digest migration golden exists' test -f "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-orders-digest.json"
 check 'digest dual compare accepts migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migrationBaselinePairs'
 check 'digest dual compare detects seeded migration baseline' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'migration-contract-golden'

@@ -1,10 +1,21 @@
 {
   "ok": true,
   "brand": "BOSCH",
-  "rows": 0,
+  "rows": 1,
   "source": "migration",
-  "data": [],
-  "message": "TenantRegistry DB is not configured.",
+  "data": [
+    {
+      "manufacturer": "BOSCH",
+      "article_show": "0 986 479 001",
+      "article": "0986479001",
+      "name": "Migration part",
+      "exist": 1,
+      "price": 0.0,
+      "time_to_exe": 0,
+      "storage": "MAIN"
+    }
+  ],
+  "message": "migration-mode brand-parts item-field sentinel; PHP/cache remain authoritative",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false
