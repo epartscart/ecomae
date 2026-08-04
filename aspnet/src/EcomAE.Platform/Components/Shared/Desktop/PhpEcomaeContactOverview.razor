@@ -1,0 +1,48 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Scaffold of epc_ecomae_platform_page_contact() — hero + channels.
+  Contact form POST remains PHP until dual-sample / write path.
+*@
+
+<div class="epm-wrap" id="ehm-contact-overview">
+	<div class="epm-hero" style="min-height:200px">
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#5a0f16)"></div>
+		<div class="epm-hero__content">
+			<h1>Contact ECOM AE</h1>
+			<p class="lead">Demo requests, rental quotes, and operator support. Response within one business day.</p>
+		</div>
+	</div>
+	<div class="epm-grid">
+		<div class="epm-card">
+			<h4><i class="fa fa-phone text-primary"></i> Phone</h4>
+			<p><a href="tel:+971567607011" style="color:var(--epm-cyan)">+971 56 760 7011</a></p>
+		</div>
+		<div class="epm-card">
+			<h4><i class="fa fa-whatsapp text-primary"></i> WhatsApp</h4>
+			<p><a href="https://wa.me/971567607011?text=@(Uri.EscapeDataString("Hello ECOM AE — I would like to discuss platform rental or a demo."))" style="color:var(--epm-cyan)" target="_blank" rel="noopener">Chat on WhatsApp</a></p>
+		</div>
+		<div class="epm-card">
+			<h4><i class="fa fa-envelope text-primary"></i> Email</h4>
+			<p><a href="mailto:hello@ecomae.com" style="color:var(--epm-cyan)">hello@ecomae.com</a></p>
+		</div>
+		<div class="epm-card">
+			<h4><i class="fa fa-th-large text-primary"></i> Super CP</h4>
+			<p><a href="@EcomaeMarketingPages.SuperCpUrl" style="color:var(--epm-cyan)">Operator control panel</a></p>
+			<p class="text-muted" style="font-size:13px">Tenant hub, onboard client, DNS checklist.</p>
+		</div>
+	</div>
+	<div class="epm-highlight">
+		<h3>Send a message</h3>
+		<p style="color:var(--epm-muted);margin-bottom:14px">The enquiry form posts to live PHP until ASP.NET contact write dual-sample. Use hybrid frame for the full form.</p>
+		<a class="epm-btn epm-btn--primary" href="/marketing/contact?php=@(Uri.EscapeDataString(EcomaeMarketingPages.LiveBase + "platform/contact"))">Open PHP contact form (hybrid)</a>
+	</div>
+	<div class="epm-cta">
+		<a class="epm-btn epm-btn--primary" href="@(EcomaeMarketingPages.LiveBase)platform/demo">Request demo</a>
+		<a class="epm-btn epm-btn--outline" href="/marketing/industries">Browse industries</a>
+	</div>
+	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+		ASP.NET contact scaffold — form POST stays PHP-authoritative until dual-sample.
+		Target: 100% ASP.NET / 0 PHP.
+	</p>
+</div>
