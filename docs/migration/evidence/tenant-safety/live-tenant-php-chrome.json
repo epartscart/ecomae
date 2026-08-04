@@ -1,10 +1,18 @@
 {
-  "generatedAtUtc": "2026-08-03T12:34:45Z",
+  "generatedAtUtc": "2026-08-04T11:34:24Z",
   "status": "pass",
-  "policy": "live-tenant-product-chrome-must-remain-php",
+  "policy": "live-tenant-presentation-identical-to-php",
+  "mandate": "Named live tenants (epartscart, electronicae, stylenlook, thejewellerytrend, taxofinca) must keep storefront + CP + ERP presentation same-to-same with PHP \u2014 theme, colouring, structure, fonts, hero/splash, fields. No ASP.NET hybrid on those hosts.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "passCount": 21,
+  "liveProductionTenants": [
+    "epartscart.com",
+    "electronicae.com",
+    "stylenlook.com",
+    "thejewellerytrend.com",
+    "taxofinca.com"
+  ],
+  "passCount": 143,
   "failCount": 0,
   "probes": [
     {
@@ -14,8 +22,9 @@
       "contentType": "text/html",
       "bytes": 506568,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://epartscart.com/CP/",
@@ -24,8 +33,9 @@
       "contentType": "text/html",
       "bytes": 36246,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://epartscart.com/ERP/",
@@ -34,8 +44,130 @@
       "contentType": "text/html",
       "bytes": 178499,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://epartscart.com/cp/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://epartscart.com/erp/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://epartscart.com/bos/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://epartscart.com/storefront/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://epartscart.com/cp/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://epartscart.com/erp/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://epartscart.com/bos/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://epartscart.com/storefront/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://epartscart.com/health",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://epartscart.com/cp/dashboard-summary",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://epartscart.com/erp/dashboard-summary",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
     },
     {
       "url": "https://www.epartscart.com/",
@@ -44,8 +176,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 506568,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.epartscart.com/CP/",
@@ -54,8 +187,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 36246,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.epartscart.com/ERP/",
@@ -64,8 +198,130 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 178499,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://www.epartscart.com/cp/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 36386,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.epartscart.com/erp/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 354232,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.epartscart.com/bos/app",
+      "httpStatus": 200,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365,
+      "hostClass": "tenant",
+      "reason": "html-not-blazor",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.epartscart.com/storefront/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 354330,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.epartscart.com/cp/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 36388,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.epartscart.com/erp/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 354258,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.epartscart.com/bos/login",
+      "httpStatus": 200,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365,
+      "hostClass": "tenant",
+      "reason": "html-not-blazor",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.epartscart.com/storefront/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 354356,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.epartscart.com/health",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 354174,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.epartscart.com/cp/dashboard-summary",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 36400,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.epartscart.com/erp/dashboard-summary",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 354414,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
     },
     {
       "url": "https://www.electronicae.com/",
@@ -74,8 +330,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 289900,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.electronicae.com/CP/",
@@ -84,8 +341,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 29663,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.electronicae.com/ERP/",
@@ -94,8 +352,284 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 167803,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://www.electronicae.com/cp/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29695,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.electronicae.com/erp/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 268976,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.electronicae.com/bos/app",
+      "httpStatus": 200,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365,
+      "hostClass": "tenant",
+      "reason": "html-not-blazor",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.electronicae.com/storefront/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 269004,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.electronicae.com/cp/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29697,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.electronicae.com/erp/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 268982,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.electronicae.com/bos/login",
+      "httpStatus": 200,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365,
+      "hostClass": "tenant",
+      "reason": "html-not-blazor",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.electronicae.com/storefront/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 269010,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.electronicae.com/health",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 268928,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.electronicae.com/cp/dashboard-summary",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29709,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.electronicae.com/erp/dashboard-summary",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 269018,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 289900,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://electronicae.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 29663,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://electronicae.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 167803,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://electronicae.com/cp/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/erp/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/bos/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/storefront/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/cp/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/erp/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/bos/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/storefront/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/health",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/cp/dashboard-summary",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://electronicae.com/erp/dashboard-summary",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
     },
     {
       "url": "https://www.stylenlook.com/",
@@ -104,8 +638,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 278895,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.stylenlook.com/CP/",
@@ -114,8 +649,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 29606,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.stylenlook.com/ERP/",
@@ -124,8 +660,284 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 167771,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://www.stylenlook.com/cp/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29643,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.stylenlook.com/erp/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 249572,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.stylenlook.com/bos/app",
+      "httpStatus": 200,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365,
+      "hostClass": "tenant",
+      "reason": "html-not-blazor",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.stylenlook.com/storefront/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 249600,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.stylenlook.com/cp/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29645,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.stylenlook.com/erp/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 249578,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.stylenlook.com/bos/login",
+      "httpStatus": 200,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365,
+      "hostClass": "tenant",
+      "reason": "html-not-blazor",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.stylenlook.com/storefront/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 249606,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.stylenlook.com/health",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 249524,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.stylenlook.com/cp/dashboard-summary",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29657,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.stylenlook.com/erp/dashboard-summary",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 249614,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 278895,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://stylenlook.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 29606,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://stylenlook.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 167771,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://stylenlook.com/cp/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/erp/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/bos/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/storefront/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/cp/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/erp/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/bos/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/storefront/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/health",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/cp/dashboard-summary",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://stylenlook.com/erp/dashboard-summary",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
     },
     {
       "url": "https://www.thejewellerytrend.com/",
@@ -134,8 +946,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 315033,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.thejewellerytrend.com/CP/",
@@ -144,8 +957,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 29740,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.thejewellerytrend.com/ERP/",
@@ -154,8 +968,284 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 167888,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/cp/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29759,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/erp/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 285398,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/bos/app",
+      "httpStatus": 200,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365,
+      "hostClass": "tenant",
+      "reason": "html-not-blazor",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/storefront/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 285426,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/cp/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29761,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/erp/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 285404,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/bos/login",
+      "httpStatus": 200,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365,
+      "hostClass": "tenant",
+      "reason": "html-not-blazor",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/storefront/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 285432,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/health",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 285350,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/cp/dashboard-summary",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29773,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.thejewellerytrend.com/erp/dashboard-summary",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 285440,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 315033,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://thejewellerytrend.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 29740,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://thejewellerytrend.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 167888,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://thejewellerytrend.com/cp/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/erp/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/bos/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/storefront/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/cp/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/erp/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/bos/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/storefront/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/health",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/cp/dashboard-summary",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://thejewellerytrend.com/erp/dashboard-summary",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
     },
     {
       "url": "https://www.taxofinca.com/",
@@ -164,8 +1254,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 269466,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.taxofinca.com/CP/",
@@ -174,8 +1265,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 29612,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.taxofinca.com/ERP/",
@@ -184,8 +1276,284 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 167778,
       "hostClass": "tenant",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://www.taxofinca.com/cp/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29715,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.taxofinca.com/erp/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 238533,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.taxofinca.com/bos/app",
+      "httpStatus": 200,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365,
+      "hostClass": "tenant",
+      "reason": "html-not-blazor",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.taxofinca.com/storefront/app",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 238561,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.taxofinca.com/cp/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29717,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.taxofinca.com/erp/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 238539,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.taxofinca.com/bos/login",
+      "httpStatus": 200,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 32365,
+      "hostClass": "tenant",
+      "reason": "html-not-blazor",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.taxofinca.com/storefront/login",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 238567,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.taxofinca.com/health",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 238485,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.taxofinca.com/cp/dashboard-summary",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 29729,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://www.taxofinca.com/erp/dashboard-summary",
+      "httpStatus": 404,
+      "stack": "php-absent",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 238575,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 269466,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://taxofinca.com/CP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 29612,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://taxofinca.com/ERP/",
+      "httpStatus": 200,
+      "stack": "php-html",
+      "contentType": "text/html",
+      "bytes": 167778,
+      "hostClass": "tenant",
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
+    },
+    {
+      "url": "https://taxofinca.com/cp/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/erp/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/bos/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/storefront/app",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/cp/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/erp/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/bos/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/storefront/login",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/health",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/cp/dashboard-summary",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
+    },
+    {
+      "url": "https://taxofinca.com/erp/dashboard-summary",
+      "httpStatus": 301,
+      "stack": "php-absent",
+      "contentType": "text/html",
+      "bytes": 162,
+      "hostClass": "tenant",
+      "reason": "no-aspnet-shadow",
+      "result": "pass",
+      "probeKind": "forbidden"
     },
     {
       "url": "https://www.ecomae.com/",
@@ -194,8 +1562,9 @@
       "contentType": "text/html; charset=utf-8",
       "bytes": 239599,
       "hostClass": "platform",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.ecomae.com/CP/",
@@ -204,8 +1573,9 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 29888,
       "hostClass": "platform",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     },
     {
       "url": "https://www.ecomae.com/ERP/",
@@ -214,14 +1584,15 @@
       "contentType": "text/html; charset=UTF-8",
       "bytes": 170253,
       "hostClass": "platform",
-      "reason": "html-chrome-markers",
-      "result": "pass"
+      "reason": "presentation-fingerprints",
+      "result": "pass",
+      "probeKind": "product"
     }
   ],
   "notes": [
-    "ASP.NET exact-route digests/APIs on www.ecomae.com are intentional and out of scope here.",
-    "This probe fails if / /CP/ /ERP/ on live tenant hosts look like Blazor scaffolds or JSON digests.",
-    "php-plain (e.g. PHP license/domain_path text) is not ASP.NET cutover; industry hosts are optional.",
+    "ASP.NET exact-route digests/APIs and Blazor previews are intentional only on www.ecomae.com.",
+    "Product paths (/ /CP/ /ERP/) must return PHP HTML with presentation fingerprints.",
+    "Forbidden paths (/cp/app /erp/app /storefront/app /health digests) must not serve ASP.NET on tenants.",
     "Do not remove PHP while live tenants depend on PHP chrome.",
     "Never invent RELEASE_OWNER_APPROVAL.md."
   ]
