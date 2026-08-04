@@ -870,6 +870,7 @@ check 'Wave B write dry-run probe covers on-premises backup' contains "$ROOT/scr
 check 'on-premises ASP.NET installer scaffold README exists' test -f "$ROOT/deploy/on-premises-aspnet/README.md"
 check 'on-premises ASP.NET scaffold keeps PHP authoritative' contains "$ROOT/deploy/on-premises-aspnet/README.md" 'PHP'
 check 'ERP ajax write catalog covers ajax_erp' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/ErpAjaxWriteCatalog.cs" 'ajax_erp.php'
+check 'ERP ajax write catalog fully dedicated floor' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/ErpAjaxWriteCatalog.cs" 'DedicatedDryRuns'
 check 'Wave B write dry-run probe covers edit_lock_acquire' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/edit-lock-acquire'
 check 'Wave B write dry-run probe covers bos_wf_decide' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/bos-wf-decide'
 check 'Wave B write dry-run probe covers inv sync warehouses' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/inv-sync-warehouses'

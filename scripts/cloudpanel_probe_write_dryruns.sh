@@ -207,5 +207,24 @@ probe_post "/cp/lang/create-string" '{"action":"dry-run","confirmWrites":false}'
 probe_post "/cp/lang/delete-not-used" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangDeleteNotUsed"
 probe_post "/cp/packs/delete" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpPacksDelete"
 
+
+# Wave B final registry→dedicated closeout samples
+probe_post "/erp/ajax/concurrency-status" '{"id":1,"targetStatus":"open","confirmWrites":false}' "$ADMIN_COOKIE" "erp concurrency_status"
+probe_post "/erp/ajax/settlement-open-docs" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp settlement_open_docs"
+probe_post "/erp/ajax/dashboard" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp dashboard"
+probe_post "/erp/ajax/command-center" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp command_center"
+probe_post "/erp/ajax/cc-kpi-tiles" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp cc_kpi_tiles"
+probe_post "/erp/ajax/cc-approval-queue" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp cc_approval_queue"
+probe_post "/erp/ajax/period-list" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp period_list"
+probe_post "/erp/ajax/period-checklist" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp period_checklist"
+probe_post "/erp/ajax/automation-install-template" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp automation_install_template"
+probe_post "/erp/ajax/automation-enable-category" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp automation_enable_category"
+probe_post "/erp/ajax/automation-tick" '{"confirmWrites":false}' "$ADMIN_COOKIE" "erp automation_tick"
+probe_post "/erp/ajax/tenant-config-save" '{"id":0,"code":"DRY","confirmWrites":false}' "$ADMIN_COOKIE" "erp tenant_config_save"
+probe_post "/cp/lang/set-is-custom" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangSetIsCustom"
+probe_post "/cp/lang/set-is-error" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangSetIsError"
+probe_post "/cp/lang/set-same" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangSetSame"
+probe_post "/cp/lang/set-used-found" '{"action":"dry-run","confirmWrites":false}' "$ADMIN_COOKIE" "CpLangSetUsedFound"
+
 echo "PASS=${pass} FAIL=${fail}"
 [[ "$fail" -eq 0 ]]

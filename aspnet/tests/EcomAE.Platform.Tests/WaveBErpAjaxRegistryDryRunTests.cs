@@ -20,8 +20,8 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         Assert.False(report.CutoverAllowed);
         Assert.False(report.ReadyForPhpRemoval);
         Assert.True(report.PhpAuthoritative);
-        Assert.True(report.DedicatedDryRuns >= 200);
-        Assert.True(report.RegistryDryRuns >= 90);
+        Assert.Equal(321, report.DedicatedDryRuns);
+        Assert.Equal(0, report.RegistryDryRuns);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     public void PathBoardMentionsAjaxCatalogAndStaysBelow100()
     {
         var report = new AspNetZeroPhpPathReporter().BuildReport();
-        Assert.InRange(report.HonestCompletionPct, 90, 99);
+        Assert.InRange(report.HonestCompletionPct, 92, 99);
         Assert.False(report.CutoverAllowed);
         Assert.Contains(report.Phases, p => p.Id == "4-function-parity" && p.Detail.Contains("ajax_erp", StringComparison.Ordinal));
         Assert.Contains(report.NextBuilds, n => n.Contains("on-premises-aspnet", StringComparison.OrdinalIgnoreCase)

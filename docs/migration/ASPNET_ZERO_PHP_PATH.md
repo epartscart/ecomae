@@ -29,7 +29,7 @@ PHP ships a **self-hosted ERP option** (`deploy/on-premises/*`, `erp_tabs_on_pre
 | On-premises installer | Scaffold `deploy/on-premises-aspnet/` + setup-wizard/backup dry-runs | PHP pack remains authoritative until dual-sample |
 | License/health APIs | Health + activate + setup-wizard + backup dry-runs + read digest (`GET /erp/on-premises/licenses`, keys masked) | PHP activate/health/registry remain authoritative |
 | Operator tab | `/erp/on-premises-app` overview scaffold | Dual-sample vs PHP tab before exact-route |
-| ERP ajax writes | Full `ajax_erp.php` catalog via dedicated + `POST /erp/ajax-writes/dry-run/{action}` registry | Live writes remain PHP; `aspNetInteractiveComplete=0` |
+| ERP ajax writes | Full `ajax_erp.php` catalog: **321/321 dedicated** dry-runs (+ registry gate retained) | Live writes remain PHP; `aspNetInteractiveComplete=0` |
 
 Live board: `GET /migration/on-premises-parity`
 

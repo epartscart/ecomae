@@ -677,6 +677,11 @@ public sealed class StorefrontModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new StorefrontBulkUploadProcessRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
 
+        endpoints.MapPost(EcomAeRoutes.StorefrontGetArticleList, async (HttpContext context, StorefrontGetArticleListBody? body, ILegacySessionValidator validator, IStorefrontGetArticleListDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); body ??= new StorefrontGetArticleListBody(null,false); return Results.Ok(dryRun.Evaluate(new StorefrontGetArticleListRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.StorefrontLoadReturnsData, async (HttpContext context, StorefrontLoadReturnsDataBody? body, ILegacySessionValidator validator, IStorefrontLoadReturnsDataDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); body ??= new StorefrontLoadReturnsDataBody(null,false); return Results.Ok(dryRun.Evaluate(new StorefrontLoadReturnsDataRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+
         endpoints.MapPost(EcomAeRoutes.StorefrontOrderSendMessage, async (
             HttpContext context,
             StorefrontOrderSendMessageBody? body,
@@ -742,6 +747,8 @@ public sealed class StorefrontModule : ISurfaceModule
         string? EmailNotAuth = null,
         bool ConfirmWrites = false);
     private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
+    private sealed record StorefrontGetArticleListBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record StorefrontLoadReturnsDataBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontBulkUploadProcessBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontNewsletterSubscribeBody(string? Email, bool ConfirmWrites = false);
     private sealed record StorefrontAddEvaluationBody(long ProductId, int Rating = 5, bool ConfirmWrites = false);

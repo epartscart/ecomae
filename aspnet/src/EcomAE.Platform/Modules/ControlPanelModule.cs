@@ -434,6 +434,19 @@ public sealed class ControlPanelModule : ISurfaceModule
             body ??= new CpCreateSitemapBody(null, false);
             return Results.Ok(dryRun.Evaluate(new CpCreateSitemapRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpLangSetIsCustom, async (HttpContext context, CpLangSetIsCustomBody? body, ILegacySessionValidator validator, ICpLangSetIsCustomDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpLangSetIsCustomBody(null,false); return Results.Ok(dryRun.Evaluate(new CpLangSetIsCustomRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.CpLangSetIsError, async (HttpContext context, CpLangSetIsErrorBody? body, ILegacySessionValidator validator, ICpLangSetIsErrorDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpLangSetIsErrorBody(null,false); return Results.Ok(dryRun.Evaluate(new CpLangSetIsErrorRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.CpLangSetSame, async (HttpContext context, CpLangSetSameBody? body, ILegacySessionValidator validator, ICpLangSetSameDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpLangSetSameBody(null,false); return Results.Ok(dryRun.Evaluate(new CpLangSetSameRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.CpLangSetUsedFound, async (HttpContext context, CpLangSetUsedFoundBody? body, ILegacySessionValidator validator, ICpLangSetUsedFoundDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpLangSetUsedFoundBody(null,false); return Results.Ok(dryRun.Evaluate(new CpLangSetUsedFoundRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.CpLangSearchUsedFound, async (HttpContext context, CpLangSearchUsedFoundBody? body, ILegacySessionValidator validator, ICpLangSearchUsedFoundDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpLangSearchUsedFoundBody(null,false); return Results.Ok(dryRun.Evaluate(new CpLangSearchUsedFoundRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.CpVersionGetUpdatePack, async (HttpContext context, CpVersionGetUpdatePackBody? body, ILegacySessionValidator validator, ICpVersionGetUpdatePackDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpVersionGetUpdatePackBody(null,false); return Results.Ok(dryRun.Evaluate(new CpVersionGetUpdatePackRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpLangSaveTranslation, async (HttpContext context, CpLangSaveTranslationBody? body, ILegacySessionValidator validator, ICpLangSaveTranslationDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -3474,6 +3487,12 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpOmsFulfillmentSetStageBody(long OrderId, string? SupplierKey, string? Stage, bool ConfirmWrites = false);
     private sealed record CpOmsFulfillmentAdvanceBody(long OrderId, string? SupplierKey, bool ConfirmWrites = false);
     private sealed record CpOmsRefreshItemCostBody(long OrderId, long ItemId, bool ConfirmWrites = false);
+    private sealed record CpLangSetIsCustomBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpLangSetIsErrorBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpLangSetSameBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpLangSetUsedFoundBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpLangSearchUsedFoundBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpVersionGetUpdatePackBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpCreateSitemapBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpLangSaveTranslationBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpLangSaveDescriptionBody(string? Action = null, bool ConfirmWrites = false);
