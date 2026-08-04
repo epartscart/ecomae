@@ -23,6 +23,16 @@ ALLOWED_STATUS = frozenset(
     }
 )
 
+# Full PHP catalog floors (from generate_php_module_catalog.py / php_module_catalog_counts.json).
+PHP_CATALOG_FLOORS = {
+    "cpBrochureFeatures": 405,
+    "erpAreas": 35,
+    "erpTabs": 154,
+    "bosModules": 99,
+    "storefrontSurfaces": 12,
+}
+MIN_HYBRID_PREVIEW_COUNT = 37
+
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
@@ -50,6 +60,26 @@ def main() -> int:
     modules = inventory.get("modules") or []
     if not isinstance(modules, list) or not modules:
         errors.append("inventory.modules must be a non-empty list")
+    elif len(modules) < MIN_HYBRID_PREVIEW_COUNT:
+        errors.append(
+            f"inventory.modules count={len(modules)} expected >={MIN_HYBRID_PREVIEW_COUNT} hybrid previews"
+        )
+
+    php_counts = inventory.get("phpCatalogCounts")
+    if not isinstance(php_counts, dict) or not php_counts:
+        errors.append("inventory.phpCatalogCounts must be a non-empty object (full PHP catalog scope)")
+    else:
+        for key, floor in PHP_CATALOG_FLOORS.items():
+            try:
+                value = int(php_counts.get(key))
+            except (TypeError, ValueError):
+                errors.append(f"inventory.phpCatalogCounts.{key} missing/invalid")
+                continue
+            if value < floor:
+                errors.append(
+                    f"inventory.phpCatalogCounts.{key}={value} below floor {floor} "
+                    "(regenerate via python3 scripts/generate_php_module_catalog.py)"
+                )
 
     complete = 0
     status_counts: dict[str, int] = {}
@@ -84,17 +114,32 @@ def main() -> int:
         if "MODULE_FUNCTION_PARITY_PASS" not in text:
             errors.append(f"{pass_path} present but missing MODULE_FUNCTION_PARITY_PASS marker")
 
+    declared_complete = inventory.get("aspnetCompleteCount")
+    if declared_complete is None:
+        errors.append("inventory.aspnetCompleteCount must be explicitly 0 (or match computed complete)")
+    elif declared_complete != complete:
+        errors.append(
+            f"inventory.aspnetCompleteCount={declared_complete} != computed complete={complete}"
+        )
+    if complete != 0 and not pass_path.is_file():
+        # already errored above; keep aspnetCompleteCount floor honest in compare-result
+        pass
+
     out = {
         "role": "compare-result",
         "ok": not errors,
         "cutoverAllowed": False,
         "readyForPhpRemoval": False,
         "moduleCount": len(modules) if isinstance(modules, list) else 0,
+        "hybridPreviewCount": len(modules) if isinstance(modules, list) else 0,
         "aspnetCompleteCount": complete,
+        "phpCatalogCounts": php_counts if isinstance(php_counts, dict) else {},
+        "phpCatalogFloors": PHP_CATALOG_FLOORS,
         "statusCounts": status_counts,
         "errors": errors,
         "note": (
-            "Contract floor only. Interactive aspnet-complete remains 0 until human "
+            "Contract floor only. Hybrid previews != full PHP catalog scope. "
+            "Interactive aspnet-complete remains 0 until human "
             "MODULE_FUNCTION_TEST_PASS.md exists. Never invents approval."
         ),
     }

@@ -1,12 +1,23 @@
 {
   "role": "module-function-inventory",
-  "capturedAt": "2026-08-03T20:16:12Z",
+  "capturedAt": "2026-08-04T02:57:34Z",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspnetCompleteCount": 0,
   "moduleCount": 37,
-  "source": "scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh TARGETS",
-  "note": "Contract inventory derived from hybrid UI TARGETS. aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists.",
+  "hybridPreviewCount": 37,
+  "phpCatalogCounts": {
+    "erpAreas": 35,
+    "erpTabs": 154,
+    "erpCategories": 9,
+    "bosModules": 99,
+    "bosSections": 11,
+    "cpBrochureFeatures": 405,
+    "storefrontSurfaces": 12
+  },
+  "phpCatalogScopeNote": "Hybrid TARGETS are preview/deeplink coverage only. Full PHP catalog scope (CP brochure features / ERP tabs / BOS modules / storefront surfaces) remains PHP-authoritative until human MODULE_FUNCTION_TEST_PASS.md exists.",
+  "source": "scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh TARGETS + docs/migration/evidence/presentation/php_module_catalog_counts.json",
+  "note": "Contract inventory derived from hybrid UI TARGETS plus PHP module catalog floors. aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists.",
   "modules": [
     {
       "id": "cp-orders",

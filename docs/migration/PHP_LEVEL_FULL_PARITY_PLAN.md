@@ -153,7 +153,8 @@ Each slice requires: Blazor/HTML shell + API + dual-sample evidence + `location 
 - ✅ Tighten Program.cs production-client wiring negative locks (#725)
 - ✅ Mirror catalog/API allowlist into live/decommission probe scripts (#726)
 - ✅ Expand evidence cutover-lock tree globs (presentation/module/catalog/tenant/surface) (#727)
-- **This PR:** Presentation/hybrid exact-route inventory + probe script mirror
+- ✅ Presentation/hybrid exact-route inventory + probe script mirror (#728)
+- **This PR:** Module-function parity locked to full PHP catalog scope floors
 - Still not live: K8s apply, worker writes, Native AOT platform host, AI business writes
 
 ### Batch 6 — Decommission gate (**blocked / premature**)

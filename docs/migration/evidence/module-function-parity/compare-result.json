@@ -4,11 +4,28 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "moduleCount": 37,
+  "hybridPreviewCount": 37,
   "aspnetCompleteCount": 0,
+  "phpCatalogCounts": {
+    "erpAreas": 35,
+    "erpTabs": 154,
+    "erpCategories": 9,
+    "bosModules": 99,
+    "bosSections": 11,
+    "cpBrochureFeatures": 405,
+    "storefrontSurfaces": 12
+  },
+  "phpCatalogFloors": {
+    "cpBrochureFeatures": 405,
+    "erpAreas": 35,
+    "erpTabs": 154,
+    "bosModules": 99,
+    "storefrontSurfaces": 12
+  },
   "statusCounts": {
     "digest-only+hybrid-deeplink": 35,
     "hybrid-deeplink": 2
   },
   "errors": [],
-  "note": "Contract floor only. Interactive aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists. Never invents approval."
+  "note": "Contract floor only. Hybrid previews != full PHP catalog scope. Interactive aspnet-complete remains 0 until human MODULE_FUNCTION_TEST_PASS.md exists. Never invents approval."
 }

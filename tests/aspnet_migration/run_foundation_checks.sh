@@ -653,6 +653,11 @@ check 'module function parity evidence dir exists' test -d "$ROOT/docs/migration
 check 'module function parity inventory JSON exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json"
 check 'module function parity inventory blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cutoverAllowed": false'
 check 'module function parity inventory keeps aspnet-complete at zero' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"aspnetCompleteCount": 0'
+check 'module function parity inventory tracks php catalog counts' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"phpCatalogCounts"'
+check 'module function parity inventory floors CP brochure features' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cpBrochureFeatures": 405'
+check 'module function parity inventory floors ERP tabs' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"erpTabs": 154'
+check 'module function parity inventory floors BOS modules' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"bosModules": 99'
+check 'module function compare enforces php catalog floors' contains "$ROOT/scripts/compare_module_function_parity.py" 'PHP_CATALOG_FLOORS'
 check 'module function parity compare helper exists' test -f "$ROOT/scripts/compare_module_function_parity.py"
 check 'module function parity compare is executable' test -x "$ROOT/scripts/compare_module_function_parity.py"
 check 'module function parity operator exists' test -f "$ROOT/scripts/cloudpanel_run_module_function_parity_operator.sh"

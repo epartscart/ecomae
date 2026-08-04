@@ -16,7 +16,7 @@ This recheck covers fonts, analytics, full-page presentation, and module functio
 
 **Same-to-same law ✅ (#668):** tenants must not feel PHP→ASP.NET. Product chrome stays PHP; digests/previews never replace tenant UX.
 
-**Continuing:** Presentation exact-route inventory (47) is checked in and mirrored by presentation/hybrid allowlist sync into live/decommission probe scripts. Evidence cutover-lock trees remain. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
+**Continuing:** Module-function parity now locks full PHP catalog scope floors (CP/ERP/BOS/storefront counts) while hybrid previews stay at 37 and `aspnetCompleteCount=0`. Presentation exact-route inventory (47) + evidence cutover trees remain. Live CloudPanel cookie/API captures remain operator work. Batch 6 decommission remains **blocked**. Still never `readyForPhpRemoval`. Same-to-same tenant chrome = PHP until exact-route + dual-sample + human `RELEASE_OWNER_APPROVAL.md`.
 
 ## Live probe snapshot (www.ecomae.com / epartscart.com)
 
