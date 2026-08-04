@@ -179,6 +179,30 @@ public sealed class LiveSurfaceLinkReporterTests
             link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/erp/on-premises/licenses");
         Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/storefront/quotes/add-manual");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/storefront/garage/check-car");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/cp/orders/fulfillment-set-stage");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/cp/orders/fulfillment-advance");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/purchases/amend");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/sales-orders/delete");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/customers/master-save");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/aftersales/rma-create");
+        Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/marketing/terms");
         Assert.Contains(report.Links, link =>

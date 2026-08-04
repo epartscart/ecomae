@@ -446,6 +446,10 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsPayRefund = "/cp/orders/pay-refund";
     /// <summary>Wave B dry-run for PHP OMS update_items bulk (writes=0).</summary>
     public const string ControlPanelOmsUpdateItems = "/cp/orders/update-items";
+    /// <summary>Wave B dry-run OMS supplier_fulfillment_set_stage (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    public const string ControlPanelOmsFulfillmentSetStage = "/cp/orders/fulfillment-set-stage";
+    /// <summary>Wave B dry-run OMS supplier_fulfillment_advance (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    public const string ControlPanelOmsFulfillmentAdvance = "/cp/orders/fulfillment-advance";
 
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
@@ -488,6 +492,14 @@ public static class EcomAeRoutes
     public const string ErpPurchasesCreate = "/erp/purchases/create";
     /// <summary>Wave B dry-run for PHP purchase_delete draft (writes=0).</summary>
     public const string ErpPurchasesDelete = "/erp/purchases/delete";
+    /// <summary>Wave B dry-run for PHP purchase_amend (writes=0).</summary>
+    public const string ErpPurchasesAmend = "/erp/purchases/amend";
+    /// <summary>Wave B dry-run for PHP so_delete draft (writes=0).</summary>
+    public const string ErpSalesOrdersDelete = "/erp/sales-orders/delete";
+    /// <summary>Wave B dry-run for PHP customer_master_save (writes=0).</summary>
+    public const string ErpCustomersMasterSave = "/erp/customers/master-save";
+    /// <summary>Wave B dry-run for PHP as_rma_create (writes=0).</summary>
+    public const string ErpAftersalesRmaCreate = "/erp/aftersales/rma-create";
     /// <summary>Wave B dry-run for PHP invoice_delete draft (writes=0).</summary>
     public const string ErpInvoicesDelete = "/erp/invoices/delete";
     /// <summary>Wave B dry-run for PHP create_account cash/bank (writes=0).</summary>
@@ -634,10 +646,14 @@ public static class EcomAeRoutes
     public const string StorefrontQuoteAccept = "/storefront/quotes/accept";
     /// <summary>Wave B dry-run quote add-item (PHP ajax_add_to_quote.php remains authoritative; check_hash stays PHP).</summary>
     public const string StorefrontQuoteAddItem = "/storefront/quotes/add-item";
+    /// <summary>Wave B dry-run quote add-manual (PHP ajax_add_to_quote_manual.php remains authoritative).</summary>
+    public const string StorefrontQuoteAddManual = "/storefront/quotes/add-manual";
     /// <summary>Wave B dry-run garage set-active (PHP ajax_operations_cars.php action=active_car remains authoritative).</summary>
     public const string StorefrontGarageSetActive = "/storefront/garage/set-active";
     /// <summary>Wave B dry-run garage delete (PHP ajax_operations_cars.php action=delete_car remains authoritative).</summary>
     public const string StorefrontGarageDelete = "/storefront/garage/delete";
+    /// <summary>Wave B dry-run garage check_car toggle (PHP ajax_operations_cars.php action=check_car remains authoritative).</summary>
+    public const string StorefrontGarageCheckCar = "/storefront/garage/check-car";
     /// <summary>Wave B dry-run for PHP ajax_checkout_create.php (writes=0; PHP authoritative).</summary>
     public const string StorefrontCheckoutCreate = "/storefront/checkout/create";
     /// <summary>Wave B dry-run customer order message (PHP ajax_send_message.php customer path remains authoritative).</summary>
