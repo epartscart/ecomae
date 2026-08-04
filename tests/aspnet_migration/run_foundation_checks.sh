@@ -777,6 +777,7 @@ check 'catalog miss dual-sample capture exists' test -x "$ROOT/scripts/cloudpane
 check 'catalog miss path probe exists' test -x "$ROOT/scripts/cloudpanel_probe_catalog_miss_path.sh"
 check 'Wave B write dry-run probe exists' test -x "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh"
 check 'Wave B write dry-run probe refuses cutover' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" 'cutoverAllowed=false'
+check 'Wave B write dry-run probe fails fast on unhealthy ASP.NET' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" 'refusing to run write dry-run probes'
 check 'Wave B write dry-run probe covers cart delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/cart/delete'
 check 'Wave B write dry-run probe covers OMS status' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/orders/set-item-status'
 check 'Wave B write dry-run probe covers ERP amend' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/cash-entries/amend'
