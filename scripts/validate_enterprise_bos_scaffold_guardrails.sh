@@ -106,6 +106,11 @@ if python3 "$ROOT/scripts/validate_surface_digest_allowlist_sync.py"; then
 else
   fail "surface/storefront digest allowlist sync"
 fi
+if python3 "$ROOT/scripts/validate_catalog_api_allowlist_sync.py"; then
+  pass "catalog/API allowlist sync"
+else
+  fail "catalog/API allowlist sync"
+fi
 
 # YARP regenerator still green.
 if bash "$ROOT/scripts/generate_all_yarp_design_examples.sh" >/tmp/ecomae-yarp-guardrails.log 2>&1; then
@@ -133,6 +138,8 @@ check_file "presentation recheck operator helper" \
   "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh"
 check_file "price-lookup dual-sample operator helper" \
   "$ROOT/scripts/cloudpanel_run_price_lookup_dual_sample_operator.sh"
+check_file "catalog-api dual-sample operator helper" \
+  "$ROOT/scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh"
 check_file "operator verify index" \
   "$ROOT/docs/migration/evidence/OPERATOR_VERIFY.md"
 check_file "YARP all-packs generator helper" \

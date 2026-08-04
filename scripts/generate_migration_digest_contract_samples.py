@@ -74,6 +74,17 @@ def main() -> None:
             "cp",
             {"users": 0, "adminSessions": 0, "portalTenants": 0, "activePortalTenants": 0},
         ),
+        "cp-orders-digest.json": {
+            **summary("cp", {"open": 0, "today": 0, "pendingShip": 0}),
+            "orders": [],
+            "count": 0,
+            "source": "migration",
+            "message": "TenantRegistry DB is not configured.",
+            "dualSampleBaseline": "migration-contract-golden",
+            "cutoverAllowed": False,
+            "readyForPhpRemoval": False,
+            "note": "migration-mode contract sample; PHP OMS remains authoritative; cutoverAllowed=false",
+        },
         "erp-dashboard-summary.json": summary(
             "erp",
             {
