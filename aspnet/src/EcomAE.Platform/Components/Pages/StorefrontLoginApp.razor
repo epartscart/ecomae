@@ -5,47 +5,31 @@
 @inject NavigationManager Nav
 
 <PageTitle>Customer login · eParts Cart</PageTitle>
-<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" />
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" LoginChrome="true" />
 
 <style>
-    .epc-asp-login-sf { --red:#dc2626; min-height:100vh; margin:0; font-family: @(LegacyPhpFontAssets.StackFor("storefront")); color:#111; background:#f5f5f7; }
-    .epc-asp-login-sf .topbar { background:#111; color:#fff; display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; padding:.45rem 1rem; font-size:.78rem; }
-    .epc-asp-login-sf .topbar a { color:#fff; text-decoration:none; margin-right:.75rem; }
-    .epc-asp-login-sf .head { background:#fff; border-bottom:1px solid #e5e7eb; padding:.85rem 1rem; display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
-    .epc-asp-login-sf .head img { height:40px; }
-    .epc-asp-login-sf .wrap { width:min(480px, calc(100% - 2rem)); margin:1.5rem auto 3rem; background:#fff; border:1px solid #e5e7eb; border-radius:.7rem; padding:1.25rem 1.3rem; }
-    .epc-asp-login-sf h1 { margin:.1rem 0 .35rem; font-size:1.4rem; }
-    .epc-asp-login-sf p { color:#64748b; font-size:.9rem; }
+    .epc-asp-login-sf .login_form--page h1 { margin:.2rem 0 .35rem; font-size:1.45rem; }
+    .epc-asp-login-sf .login_form--page .lead { color:#64748b; font-size:.92rem; margin-bottom:1rem; }
     .epc-asp-login-sf .epc-login-field { margin:0 0 .75rem; }
     .epc-asp-login-sf .epc-login-field label { display:block; font-size:.82rem; font-weight:600; margin-bottom:.25rem; }
     .epc-asp-login-sf .epc-login-field input, .epc-asp-login-sf .epc-login-field select { width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; }
-    .epc-asp-login-sf .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:var(--red); color:#fff; font-weight:700; cursor:pointer; }
+    .epc-asp-login-sf .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:#dc2626; color:#fff; font-weight:700; cursor:pointer; }
     .epc-asp-login-sf .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
     .epc-asp-login-sf .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
-    .epc-asp-login-sf .epc-login-php { color:var(--red); font-weight:700; }
+    .epc-asp-login-sf .epc-login-php { color:#dc2626; font-weight:700; }
 </style>
 
 <div class="epc-asp-login-sf">
-    <div class="topbar">
-        <div>
-            <a href="https://epartscart.com/">Home</a>
-            <a href="https://epartscart.com/">Product</a>
-            <a href="https://epartscart.com/">Catalogs</a>
+    <PhpStorefrontDesktopChrome>
+        <div class="row login_form login_form--page">
+            <div class="col-md-8 col-md-offset-2">
+                <h1>Customer login</h1>
+                <p class="lead">Sign in to your parts account to view orders, garage, and saved carts.</p>
+                <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="https://epartscart.com/" ErrorMessage="@_error" SubmitLabel="Log in" Accent="red" />
+            </div>
         </div>
-        <div>
-            <a href="/ERP/">ERP Login</a>
-            <a href="https://epartscart.com/">Customer login</a>
-        </div>
-    </div>
-    <div class="head">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" />
-        <a href="https://epartscart.com/" style="color:#64748b;text-decoration:none;font-weight:600">Back to storefront</a>
-    </div>
-    <div class="wrap">
-        <h1>Customer login</h1>
-        <p>Sign in to your parts account to view orders, garage, and saved carts.</p>
-        <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="https://epartscart.com/" ErrorMessage="@_error" SubmitLabel="Log in" Accent="red" />
-    </div>
+    </PhpStorefrontDesktopChrome>
 </div>
 
 @code {

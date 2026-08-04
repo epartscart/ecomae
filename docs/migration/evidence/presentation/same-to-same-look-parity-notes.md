@@ -13,11 +13,13 @@ CP, ERP, BOS, storefront, dashboard, and marketing product chrome must not adver
 - Marketing overviews: no “Open PHP … (hybrid)” / dual-sample / ASP.NET scaffold footers in visible copy.
 - Hero CTAs use product labels (`Open module`, `Open dashboard`, etc.) instead of `Open PHP …`.
 - Floor evidence: `same-to-same-look-gap-floor.json` (`forbiddenHits=0`).
+- Login/chrome body locks: `login-chrome-body-parity-floor.json` (body class trees + PHP asset URLs per surface).
 
 ## Validation
 
 ```bash
 python3 scripts/validate_same_to_same_look_gaps.py
+python3 scripts/validate_login_chrome_body_parity.py
 ```
 
 Operator consoles (`MigrationCompareConsole`, `ZeroPhpConsole`) and on-prem installer remain excluded — they may still name stacks.
