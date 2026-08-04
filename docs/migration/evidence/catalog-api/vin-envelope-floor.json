@@ -1,0 +1,23 @@
+{
+  "role": "catalog-vin-envelope-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "api-catalog-vin",
+  "route": "/api/v1/catalog/vin",
+  "requiredEnvelopeFields": [
+    "ok",
+    "source",
+    "stale",
+    "cached_at",
+    "vin",
+    "language",
+    "region",
+    "vehicle_count",
+    "manufacturer",
+    "model_label",
+    "payload"
+  ],
+  "offlineCacheObjectDataStemCount": 10,
+  "note": "VIN migration golden must keep full offline decode envelope (including manufacturer/model_label/cached_at and object payload). Offline-cache action routes keep object data blobs until typed item DTOs exist. Never invents RELEASE_OWNER_APPROVAL.md."
+}

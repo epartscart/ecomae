@@ -1461,10 +1461,13 @@
         "ok",
         "source",
         "stale",
+        "cached_at",
         "vin",
         "language",
         "region",
         "vehicle_count",
+        "manufacturer",
+        "model_label",
         "payload"
       ],
       "requiredSummaryOrItemFields": [],
