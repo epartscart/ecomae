@@ -75,10 +75,14 @@
 </div>
 
 <style>
-    .epc-modex-shell { --red:#dc2626; font-family: @(LegacyPhpFontAssets.StackFor("storefront")); color:#111; background:#fff; min-height:100vh; }
+    /* Automotive storefront accents (epc_automotive_spareparts) over modex chrome */
+    .epc-modex-shell {
+        --red:#dc2626; --red-dark:#b91c1c; --red-hot:#ef4444; --modex-primary:#ff8040;
+        font-family: @(LegacyPhpFontAssets.StackFor("storefront")); color:#111; background:#fff; min-height:100vh;
+    }
     .epc-modex-shell a { color:inherit; text-decoration:none; }
     .epc-modex-shell .container { width:min(1280px, calc(100% - 2rem)); margin:0 auto; }
-    .header-top-line { background:#111; color:#fff; font-size:.78rem; padding:.4rem 0; }
+    .header-top-line { background:#222; color:#fff; font-size:.78rem; padding:.4rem 0; }
     .header-top-line .row { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
     .header-top-line a { color:#fff; }
     #header-full-top { border-bottom:1px solid #e5e7eb; padding:.75rem 0; }
@@ -87,9 +91,12 @@
     .header_search_form_1 { display:flex; gap:.4rem; }
     .header_search_form_1 input { flex:1; min-width:140px; padding:.55rem .7rem; border:1px solid #d1d5db; border-radius:.4rem; }
     .header_search_form_1 button { padding:.55rem .85rem; border:0; border-radius:.4rem; background:var(--red); color:#fff; font-weight:700; cursor:pointer; }
+    .header_search_form_1 button:hover { background:var(--red-hot); }
     .header-user-box { display:flex; gap:.65rem; font-weight:700; font-size:.85rem; }
+    .header-user-box a:hover { color:var(--red); }
     .navbar-header-full { background:#f3f4f6; border-bottom:1px solid #e5e7eb; }
     .navbar-header-full .nav { list-style:none; margin:0; padding:.45rem 0; display:flex; gap:.85rem; flex-wrap:wrap; font-size:.82rem; font-weight:700; }
+    .navbar-header-full .nav a:hover { color:var(--red); }
     #Container { padding:1rem 0 2rem; }
     #footer-widgets, #footer { padding:.85rem 0; border-top:1px solid #e5e7eb; color:#64748b; font-size:.8rem; }
     @@media (max-width:900px){ .table-group{grid-template-columns:1fr;} }
