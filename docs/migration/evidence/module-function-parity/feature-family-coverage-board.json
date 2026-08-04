@@ -6,8 +6,7 @@
   "totalTracked": 726,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 725,
-    "php-only-deeplink": 1
+    "digest-contract": 726
   },
   "families": [
     {
@@ -434,9 +433,9 @@
     {
       "family": "other-unclassified",
       "total": 58,
-      "digestContract": 57,
-      "phpOnlyDeeplink": 1,
-      "digestPercent": 98.3,
+      "digestContract": 58,
+      "phpOnlyDeeplink": 0,
+      "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
       "ids": [
         "cp-accessories-marketplace",

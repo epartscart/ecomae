@@ -7,8 +7,7 @@
   "coverageBoardRows": 726,
   "matchedIds": 726,
   "coverageCounts": {
-    "digest-contract": 725,
-    "hybrid-directory-only": 1
+    "digest-contract": 726
   },
   "inventoryStatusCounts": {
     "php-only": 0,
@@ -17,5 +16,5 @@
   },
   "ok": true,
   "errors": [],
-  "note": "Inventory and coverage board must enumerate the same 725 PHP catalog ids. Interactive aspnet-complete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "Inventory and coverage board must enumerate the same 726 PHP catalog ids. Interactive aspnet-complete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."
 }

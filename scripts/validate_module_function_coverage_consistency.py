@@ -135,7 +135,7 @@ def main() -> int:
         "ok": not errors,
         "errors": errors,
         "note": (
-            "Inventory and coverage board must enumerate the same 725 PHP catalog ids. "
+            "Inventory and coverage board must enumerate the same 726 PHP catalog ids. "
             "Interactive aspnet-complete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. "
             "Never invents RELEASE_OWNER_APPROVAL.md."
         ),

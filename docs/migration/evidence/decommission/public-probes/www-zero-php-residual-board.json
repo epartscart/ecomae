@@ -94,7 +94,7 @@
   ],
   "builtAlready": [
     "Write-dryrun dual-sample contract floor 183/183 (writes=0; cutoverAllowed=false)",
-    "Menus 726/726 digest-contract (cp-debug-console safe metadata-only, no LFI)",
+    "Menus 726/726 digest-contract (cp-debug-console surface-field contract locked; metadata-only, no LFI; hybrid-directory-only=0)",
     "Field floors 137/137",
     "CP ajax goldens 254; ERP 321; BOS 231 (all writes=0)",
     "Module-ajax contract floor 254/254 aspnet\u2194php seeded baselines (migration-contract-golden)",
