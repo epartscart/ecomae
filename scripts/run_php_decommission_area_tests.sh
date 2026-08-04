@@ -3,6 +3,8 @@
 # Never removes PHP.
 # Presentation exact-route inventory (47): docs/migration/evidence/presentation/presentation-exact-routes.json
 # Kept in sync by scripts/validate_presentation_hybrid_allowlist_sync.py.
+# Surface-digest exact-route inventory (35): docs/migration/evidence/surface-parity/surface-digest-exact-routes.json
+# Kept in sync by scripts/validate_surface_digest_allowlist_sync.py.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

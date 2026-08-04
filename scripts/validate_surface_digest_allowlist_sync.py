@@ -81,8 +81,21 @@ def main() -> int:
         type=Path,
         default=Path("scripts/cloudpanel_install_surface_digest_shadows.sh"),
     )
+    ap.add_argument(
+        "--inventory",
+        type=Path,
+        default=Path("docs/migration/evidence/surface-parity/surface-digest-exact-routes.json"),
+    )
+    ap.add_argument("--scripts-dir", type=Path, default=Path("scripts"))
     args = ap.parse_args()
     errors: list[str] = []
+
+    OPERATOR_PROBE_SCRIPTS = (
+        "probe_live_surface_stack.sh",
+        "run_php_decommission_area_tests.sh",
+        "verify_pre_php_removal_parity.sh",
+    )
+    INVENTORY_MARKER = "surface-parity/surface-digest-exact-routes.json"
 
     surface_paths = NGINX_LOC_RE.findall(args.surface_nginx.read_text(encoding="utf-8"))
     storefront_paths = NGINX_LOC_RE.findall(args.storefront_nginx.read_text(encoding="utf-8"))
@@ -153,6 +166,51 @@ def main() -> int:
         if path_to_stem(path) != stem:
             errors.append(f"capture route stem/path mismatch: {stem} -> {path}")
 
+    # Checked-in inventory must mirror digest exact-route floor (35).
+    if not args.inventory.is_file():
+        errors.append(f"missing surface-digest exact-route inventory: {args.inventory}")
+    else:
+        try:
+            inventory = json.loads(args.inventory.read_text(encoding="utf-8"))
+        except Exception as ex:  # noqa: BLE001
+            errors.append(f"{args.inventory}: invalid JSON ({ex})")
+            inventory = None
+        if isinstance(inventory, dict):
+            if inventory.get("cutoverAllowed") is not False:
+                errors.append(f"{args.inventory}: cutoverAllowed must be explicitly false")
+            if inventory.get("readyForPhpRemoval") is not False:
+                errors.append(f"{args.inventory}: readyForPhpRemoval must be explicitly false")
+            inv_routes = inventory.get("routes")
+            if not isinstance(inv_routes, list):
+                errors.append(f"{args.inventory}: routes must be a list")
+            else:
+                inv_set = set(inv_routes)
+                if len(inv_routes) != len(inv_set):
+                    errors.append(f"{args.inventory}: duplicate routes")
+                if inv_set != all_digest_paths:
+                    errors.append(
+                        f"{args.inventory} routes mismatch digest floor: "
+                        f"missing={sorted(all_digest_paths - inv_set)} "
+                        f"extra={sorted(inv_set - all_digest_paths)}"
+                    )
+                if int(inventory.get("routeCount") or 0) != len(all_digest_paths):
+                    errors.append(
+                        f"{args.inventory} routeCount={inventory.get('routeCount')} "
+                        f"!= digest floor {len(all_digest_paths)}"
+                    )
+
+    for script_name in OPERATOR_PROBE_SCRIPTS:
+        script_path = args.scripts_dir / script_name
+        if not script_path.is_file():
+            errors.append(f"missing operator probe script: scripts/{script_name}")
+            continue
+        text = script_path.read_text(encoding="utf-8")
+        if INVENTORY_MARKER not in text:
+            errors.append(
+                f"{script_name} must reference surface-digest exact-route inventory "
+                f"({INVENTORY_MARKER})"
+            )
+
     if errors:
         print("FAIL: surface/storefront digest allowlist sync", file=sys.stderr)
         for err in errors:
@@ -162,7 +220,8 @@ def main() -> int:
     print(
         f"PASS: surfaceNginx={len(surface_set)} storefrontNginx={len(storefront_set)} "
         f"ordersDigest=1 capture={len(capture_stems)} compare={len(compare_stems)} "
-        f"migrationGoldens={len(expected_stems)} yarp={surface_count}+{storefront_count}"
+        f"migrationGoldens={len(expected_stems)} yarp={surface_count}+{storefront_count} "
+        f"inventory={len(all_digest_paths)} operatorProbes={len(OPERATOR_PROBE_SCRIPTS)}"
     )
     return 0
 

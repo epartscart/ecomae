@@ -428,6 +428,13 @@ check 'presentation allowlist sync mirrors inventory' contains "$ROOT/scripts/va
 check 'live surface probe references presentation inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'presentation/presentation-exact-routes.json'
 check 'decommission area tests reference presentation inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'presentation/presentation-exact-routes.json'
 check 'pre-php-removal parity references presentation inventory' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'presentation/presentation-exact-routes.json'
+check 'surface-digest exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json"
+check 'surface-digest exact-route inventory routeCount is 35' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"routeCount": 35'
+check 'surface-digest exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"cutoverAllowed": false'
+check 'surface digest allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_surface_digest_allowlist_sync.py" 'surface-digest-exact-routes.json'
+check 'live surface probe references surface-digest inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'surface-parity/surface-digest-exact-routes.json'
+check 'decommission area tests reference surface-digest inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'surface-parity/surface-digest-exact-routes.json'
+check 'pre-php-removal parity references surface-digest inventory' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'surface-parity/surface-digest-exact-routes.json'
 check 'YARP all-packs generator helper exists' test -f "$ROOT/scripts/generate_all_yarp_design_examples.sh"
 check 'GraphQL scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Api/Scaffolding/EcomAeGraphQlScaffoldOptions.cs"
 check 'GraphQL scaffold defaults not public' contains "$ROOT/aspnet/src/EcomAE.Platform/Api/Scaffolding/EcomAeGraphQlScaffoldOptions.cs" 'ExposePublicEndpoint'
