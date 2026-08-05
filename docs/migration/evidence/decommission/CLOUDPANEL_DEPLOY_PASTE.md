@@ -99,17 +99,35 @@ curl -sS -D - -o /tmp/login_probe.body -X POST https://www.ecomae.com/cp/login \
   -d 'contact=x@y.com&password=wrong&contact_type=email&surface=cp&redirect=/cp' | head -n 20
 # Then sign in with the SAME admin email/password used on PHP /CP/ /ERP/ /BOS/.
 
-## 0c) Fix CP/ERP/BOS login — ONE-SHOT (use this)
+## 0c) Fix CP/ERP/BOS login — DB access + ONE-SHOT
 
-`/auth/login/admin` in the browser is the **old broken POST URL**. Do not open it.
-Run this on CloudPanel as root (publishes binary + syncs PHP secret):
+Journal root cause when you see `login_backend_error`:
+`Access denied for user 'ecomae_aspnet'@'127.0.0.1' to database 'ecomae'`
+
+**Fastest fix (run now):** point TenantRegistry at PHP DP_Config credentials:
 
 ```bash
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-git fetch origin main && git checkout -f main && git reset --hard origin/main
+ECOMAE_CONFIRM_USE_PHP_DP_CONFIG_AS_TENANT_REGISTRY=YES \
+ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+  bash scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh
+
+# Probe — expect 302 to ?error=invalid_credentials (wrong password), NOT login_backend_error
+curl -sS -D - -o /dev/null -X POST 'https://www.ecomae.com/cp/login' \
+  -H 'Content-Type: application/x-www-form-urlencoded' -H 'Accept: text/html' \
+  -d 'contact=x@y.com&password=wrong&contact_type=email&surface=cp&redirect=/cp' | head -n 12
+```
+
+Full oneshot (publish + secret + PHP DB credentials):
+
+```bash
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+git fetch origin cursor/login-bridge-oneshot-7b3b
+git checkout -f cursor/login-bridge-oneshot-7b3b
+git reset --hard origin/cursor/login-bridge-oneshot-7b3b
 bash scripts/cloudpanel_fix_login_bridge_now.sh
-# Then open https://www.ecomae.com/cp/login (or /erp/login /bos/login)
-# Use the same PHP admin email/password. Do NOT open /auth/login/admin.
+# Then open https://www.ecomae.com/cp/login — same PHP admin email/password
+# Do NOT open /auth/login/admin
 ```
 
 # Installs into server{} by host — ALL product tenants (no half-and-half):
