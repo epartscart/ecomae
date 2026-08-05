@@ -866,6 +866,9 @@ app.MapPost(EcomAeRoutes.LegacyAdminLogin, async (HttpContext context, ILegacyAd
 
 app.MapEcomAeSurfaceModules();
 
+// Serve PHP chrome CSS/static from the monorepo so ASP.NET shells match PHP look
+// even when PHP-FPM is not fronting Kestrel (local + loopback probes).
+PhpLegacyAssetBridge.Map(app, app.Environment);
 
 // Blazor SSR ops console (exact /migration/console). Interim improvement UI — not product chrome cutover.
 app.MapRazorComponents<App>();

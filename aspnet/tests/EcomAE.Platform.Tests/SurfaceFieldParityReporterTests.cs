@@ -99,7 +99,8 @@ public sealed class SurfaceFieldParityReporterTests
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("bos"), m => m.Contains("bosParticles", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("cp"), m => m.Contains("ech-hub", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("marketing"), m => m.Contains("epm-hub", StringComparison.Ordinal));
-        Assert.Equal("epc-erp-standalone", LegacyPresentationAssets.LoginBodyClassFor("erp"));
+        Assert.Contains("epc-erp-standalone", LegacyPresentationAssets.LoginBodyClassFor("erp"));
+        Assert.Contains("epc-erp-cp-shell", LegacyPresentationAssets.LoginBodyClassFor("erp"));
         Assert.Contains(LegacyPresentationAssets.ErpLoginStylesheets, href => href.Contains("epc_erp_portal_inline_css_serve", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("erp"), m => m.Contains("erpPortalParticles", StringComparison.Ordinal));
     }

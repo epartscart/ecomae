@@ -12,117 +12,122 @@
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-        <style>
-            .epc-cc-hero { display:grid; grid-template-columns:1.1fr 1.4fr; gap:1rem; margin-bottom:1.1rem; }
-            .epc-cc-panel { background:linear-gradient(135deg,#0c4a6e 0%,#075985 55%,#0ea5e9 100%); color:#fff; border-radius:.7rem; padding:1.2rem 1.3rem; }
-            .epc-cc-panel h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.85rem); }
-            .epc-cc-panel p { margin:0 0 .9rem; color:#d4d4d4; max-width:28rem; font-size:.92rem; line-height:1.45; }
-            .epc-cc-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; }
-            .epc-cc-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-            .epc-cc-kpi strong { display:block; font-size:1.35rem; font-variant-numeric:tabular-nums; }
-            .epc-cc-kpi span { color:#64748b; font-size:.78rem; }
-            .epc-cc-tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:.55rem; margin:1rem 0; }
-            .epc-cc-tile { border-radius:.5rem; padding:.9rem .7rem; color:#fff; font-weight:700; font-size:.85rem; min-height:72px; display:flex; align-items:flex-end; text-decoration:none; }
-            .epc-cc-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
-            .epc-cc-bands { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; margin:0 0 1.1rem; }
-            .epc-cc-band { background:#fff; border:1px solid #e2e8f0; border-radius:.65rem; padding:.9rem 1rem; }
-            .epc-cc-band h3 { margin:0 0 .55rem; font-size:.88rem; color:#0c4a6e; text-transform:uppercase; letter-spacing:.04em; }
-            .epc-cc-band ul { list-style:none; margin:0; padding:0; display:grid; gap:.35rem; }
-            .epc-cc-band a { font-size:.82rem; font-weight:700; color:#0f172a; text-decoration:none; }
-            .epc-cc-band a:hover { color:#2563eb; text-decoration:underline; }
-            .epc-cc-ops { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.55rem; margin:0 0 1.1rem; }
-            .epc-cc-op { background:linear-gradient(180deg,#fff,#f8fafc); border:1px solid #e2e8f0; border-radius:.55rem; padding:.75rem .8rem; text-decoration:none; color:inherit; min-height:88px; }
-            .epc-cc-op i { color:#dc2626; display:block; margin-bottom:.35rem; }
-            .epc-cc-op strong { display:block; font-size:.84rem; margin-bottom:.2rem; }
-            .epc-cc-op span { color:#64748b; font-size:.74rem; line-height:1.35; }
-            @@media (max-width:900px){ .epc-cc-hero,.epc-cc-kpis,.epc-cc-bands,.epc-cc-ops{grid-template-columns:1fr 1fr;} .epc-cc-hero{grid-template-columns:1fr;} }
-        </style>
-
-        <div class="epc-cc-hero">
-            <section class="epc-cc-panel">
-                <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-                <h1>CONTROL COMMAND CENTRE</h1>
-                <p>Control panel command centre — orders, customers, documents, portal, and ERP shortcuts in one desktop shell.</p>
-                <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-                    <a href="/cp/orders" style="background:#fff;color:#0c4a6e;padding:.4rem .7rem;border-radius:.4rem;font-weight:800;font-size:.78rem;text-decoration:none;">Orders OMS</a>
-                    <a href="/cp/users-app" style="background:rgba(255,255,255,.15);color:#fff;padding:.4rem .7rem;border-radius:.4rem;font-weight:800;font-size:.78rem;text-decoration:none;">Customers</a>
-                    <a href="/erp" style="background:rgba(255,255,255,.15);color:#fff;padding:.4rem .7rem;border-radius:.4rem;font-weight:800;font-size:.78rem;text-decoration:none;">ERP Operations</a>
+    @* PHP cp/content/control/epc_tenant_cp_dashboard.php — .cp-dash markup so command_dashboard.css applies *@
+    <div class="col-lg-12 cp-dash" data-cp-dashboard="command">
+        <div class="cp-dash-hero">
+            <div class="cp-dash-hero-panel">
+                <div class="epc-cp-dash-brand" style="margin:0 0 10px">
+                    <PhpEpartsCartAnimatedLogo Variant="dash" />
                 </div>
-            </section>
-            <section class="epc-cc-kpis">
-                <div class="epc-cc-kpi"><strong>@_users</strong><span>Admin users</span></div>
-                <div class="epc-cc-kpi"><strong>@_sessions</strong><span>Admin sessions</span></div>
-                <div class="epc-cc-kpi"><strong>@_tenants</strong><span>Portal tenants</span></div>
-                <div class="epc-cc-kpi"><strong>@_active</strong><span>Active portal tenants</span></div>
-            </section>
-        </div>
-
-        @if (!_isAdmin)
-        {
-            <div class="epc-cc-note" style="background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a;">
-                Guest preview — browse the ASP.NET control panel shell.
-                <a href="/cp/login">Sign in</a> for live KPIs.
+                <div class="cp-dash-kicker"><i class="fa fa-cogs"></i> Control Command Centre</div>
+                <h2 class="cp-dash-title">eParts Cart</h2>
+                <p class="cp-dash-sub">
+                    Live commerce pulse — orders, catalogue, prices, warehouses, and finance in one red-black command view.
+                </p>
+                <div class="cp-dash-meta">
+                    <span class="cp-dash-chip cp-dash-chip--dark"><i class="fa fa-industry"></i> Auto parts</span>
+                    <span class="cp-dash-chip"><i class="fa fa-calendar"></i> @DateTime.UtcNow.ToString("yyyy-MM-dd")</span>
+                    <span class="cp-dash-chip"><i class="fa fa-money"></i> AED</span>
+                    <a class="cp-dash-chip" href="/erp"><i class="fa fa-university"></i> Open ERP</a>
+                    <a class="cp-dash-chip" href="/"><i class="fa fa-external-link"></i> View site</a>
+                </div>
             </div>
-        }
-
-        <div class="epc-cc-bands">
-            <section class="epc-cc-band">
-                <h3>Commerce</h3>
-                <ul>
-                    <li><a href="/cp/orders">Orders / OMS</a></li>
-                    <li><a href="/cp/abandoned-carts-app">Abandoned carts</a></li>
-                    <li><a href="/cp/price-lists-app">Price lists</a></li>
-                    <li><a href="/cp/promotions-app">Promotions</a></li>
-                    <li><a href="/cp/product-catalogue-app">Product catalogue</a></li>
-                </ul>
-            </section>
-            <section class="epc-cc-band">
-                <h3>Operations</h3>
-                <ul>
-                    <li><a href="/cp/carriers-app">Carriers</a></li>
-                    <li><a href="/cp/delivery-methods-app">Delivery methods</a></li>
-                    <li><a href="/cp/storages-app">Storages</a></li>
-                    <li><a href="/cp/document-control-app">Document control</a></li>
-                    <li><a href="/cp/crm-board-app">CRM board</a></li>
-                </ul>
-            </section>
-            <section class="epc-cc-band">
-                <h3>Platform</h3>
-                <ul>
-                    <li><a href="/cp/tenants-app">Tenants</a></li>
-                    <li><a href="/cp/users-app">Users</a></li>
-                    <li><a href="/cp/modules-app">Modules</a></li>
-                    <li><a href="/bos">Fleet / BOS</a></li>
-                    <li><a href="/">Storefront</a></li>
-                </ul>
-            </section>
+            <div class="cp-dash-metrics">
+                <a class="cp-dash-metric" href="/cp/orders">
+                    <div class="cp-dash-metric__label">Admin users</div>
+                    <div class="cp-dash-metric__val">@_users</div>
+                    <div class="cp-dash-metric__hint">@(_isAdmin ? "Live session digest" : "Sign in for live KPIs")</div>
+                </a>
+                <a class="cp-dash-metric" href="/cp/orders">
+                    <div class="cp-dash-metric__label">Admin sessions</div>
+                    <div class="cp-dash-metric__val cp-dash-metric__val--warn">@_sessions</div>
+                    <div class="cp-dash-metric__hint">Active operator sessions</div>
+                </a>
+                <a class="cp-dash-metric cp-dash-metric--accent" href="/cp/product-catalogue-app">
+                    <div class="cp-dash-metric__label">Portal tenants</div>
+                    <div class="cp-dash-metric__val">@_tenants</div>
+                    <div class="cp-dash-metric__hint">Registered tenants</div>
+                </a>
+                <a class="cp-dash-metric cp-dash-metric--accent" href="/cp/tenants-app">
+                    <div class="cp-dash-metric__label">Active tenants</div>
+                    <div class="cp-dash-metric__val">@_active</div>
+                    <div class="cp-dash-metric__hint">Active portal tenants</div>
+                </a>
+                <a class="cp-dash-metric" href="/cp/storages-app">
+                    <div class="cp-dash-metric__label">Warehouses</div>
+                    <div class="cp-dash-metric__val">—</div>
+                    <div class="cp-dash-metric__hint">Supplier warehouses</div>
+                </a>
+                <a class="cp-dash-metric" href="/cp/users-app">
+                    <div class="cp-dash-metric__label">Clients</div>
+                    <div class="cp-dash-metric__val">—</div>
+                    <div class="cp-dash-metric__hint">Storefront customers</div>
+                </a>
+            </div>
         </div>
 
-        <div class="epc-cc-ops">
-            <a class="epc-cc-op" href="/cp/orders"><i class="fa fa-shopping-cart"></i><strong>Orders</strong><span>OMS pipeline &amp; fulfilment</span></a>
-            <a class="epc-cc-op" href="/cp/users-app"><i class="fa fa-users"></i><strong>Customers</strong><span>Users, groups, access</span></a>
-            <a class="epc-cc-op" href="/cp/payment-gateways-app"><i class="fa fa-credit-card"></i><strong>Payments</strong><span>Gateways &amp; settlements</span></a>
-            <a class="epc-cc-op" href="/erp"><i class="fa fa-line-chart"></i><strong>Finance ERP</strong><span>GL, AR, AP, inventory</span></a>
-            <a class="epc-cc-op" href="/cp/ai-service-app"><i class="fa fa-magic"></i><strong>AI tools</strong><span>Parts agent &amp; assists</span></a>
-            <a class="epc-cc-op" href="/cp/integrations-app"><i class="fa fa-plug"></i><strong>Integrations</strong><span>Hubs &amp; connectors</span></a>
-            <a class="epc-cc-op" href="/cp/marketing-broadcast-app"><i class="fa fa-bullhorn"></i><strong>Marketing</strong><span>Broadcast &amp; growth</span></a>
-            <a class="epc-cc-op" href="/cp/uae-tax-compliance-app"><i class="fa fa-file-text-o"></i><strong>UAE tax</strong><span>e-invoice compliance</span></a>
+        <div class="cp-dash-port">
+            <div class="bd" style="padding-top:14px">
+                <h4 style="margin:0 0 12px;font-size:.95rem;"><i class="fa fa-th-large"></i> Quick actions</h4>
+                <div class="cp-dash-tiles" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.55rem;">
+                    @foreach (var tile in _tiles)
+                    {
+                        <a class="cp-dash-tile cp-dash-tile--@tile.Tone" href="@tile.Href"
+                           style="display:flex;flex-direction:column;gap:.35rem;padding:.85rem .75rem;border-radius:.55rem;text-decoration:none;min-height:88px;color:#fff;font-weight:700;background:@ToneColor(tile.Tone);">
+                            <i class="fa @tile.Icon" aria-hidden="true"></i>
+                            <span>@tile.Label</span>
+                        </a>
+                    }
+                </div>
+            </div>
         </div>
 
-        <h2 style="font-size:1.05rem;margin:0 0 .7rem">Quick actions</h2>
-        <div class="epc-cc-tiles">
-            @{
-                var colors = new[] { "#0c4a6e", "#0369a1", "#2563eb", "#0284c7", "#0ea5e9", "#1d4ed8", "#075985", "#dc2626", "#b91c1c" };
-                var i = 0;
-                var actions = LegacyChromeNavCatalog.ControlPanelQuickActions
-                    .Where(a => !a.Label.Contains("PHP", StringComparison.OrdinalIgnoreCase)
-                        && !PhpSurfaceLinkMap.IsPhpProductHref(a.Href));
-            }
-            @foreach (var item in actions)
-            {
-                var color = colors[i++ % colors.Length];
-                <a class="epc-cc-tile" style="background:@color" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)">@item.Label</a>
-            }
+        <div class="cp-dash-grid" style="display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:.85rem;margin-top:1rem;">
+            <div class="cp-dash-col-left">
+                <div class="cp-dash-port">
+                    <h4><i class="fa fa-bell-o"></i> Reminders</h4>
+                    <div class="bd">
+                        <ul class="cp-dash-rem">
+                            <li><span class="cnt">@_sessions</span> <a href="/cp/orders">Open operator sessions</a></li>
+                            <li><span class="cnt">@_users</span> <a href="/cp/users-app">Admin users</a></li>
+                            <li><span class="cnt zero">0</span> <a href="/cp/returns-rma-app">Open returns</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="cp-dash-col-mid">
+                <div class="cp-dash-port">
+                    <h4><i class="fa fa-tachometer"></i> Key performance indicators</h4>
+                    <div class="bd" style="padding:0">
+                        <table class="cp-dash-kpi-tbl">
+                            <thead><tr><th>Indicator</th><th>Current</th><th>Previous</th><th>Change</th></tr></thead>
+                            <tbody>
+                                <tr><td>Admin users</td><td>@_users</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Admin sessions</td><td>@_sessions</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Portal tenants</td><td>@_tenants</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Active tenants</td><td>@_active</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="cp-dash-col-right">
+                <div class="cp-dash-port">
+                    <h4><i class="fa fa-rocket"></i> Today’s focus</h4>
+                    <div class="bd" style="font-size:13px;color:#475569;line-height:1.5">
+                        @if (!_isAdmin)
+                        {
+                            <p style="margin:0 0 .6rem;">Guest preview of the PHP Command Centre layout.
+                            <a href="/cp/login">Sign in</a> for live KPIs.</p>
+                        }
+                        else
+                        {
+                            <p style="margin:0 0 .6rem;">Signed in — open Orders OMS or ERP for today’s fulfilment work.</p>
+                        }
+                        <a href="/cp/orders" style="font-weight:700;color:#b91c1c;">Open Orders / OMS →</a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <PhpHybridModuleDirectory
@@ -130,10 +135,7 @@
             Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} control panel modules")"
             Links="@PhpModuleCatalog.CpBrochureFeatures"
             PhpWorkspaceBase="/cp/app" />
-
-        <div class="epc-cc-note">
-            Open any module below to continue in the ASP.NET control panel.
-        </div>
+    </div>
 </PhpCpDesktopChrome>
 
 @code {
@@ -142,6 +144,28 @@
     private int _tenants;
     private int _active;
     private bool _isAdmin;
+
+    private static readonly DashTile[] _tiles =
+    [
+        new("Orders (OMS)", "fa-shopping-cart", "/cp/orders", "red"),
+        new("Catalogue", "fa-th-large", "/cp/product-catalogue-app", "black"),
+        new("Prices", "fa-tags", "/cp/price-lists-app", "crimson"),
+        new("Clients", "fa-address-book", "/cp/users-app", "stone"),
+        new("Warehouses", "fa-building", "/cp/storages-app", "black"),
+        new("ERP finance", "fa-university", "/erp", "red"),
+        new("Documents", "fa-file-text-o", "/cp/document-control-app", "stone"),
+        new("Settings", "fa-cog", "/cp/portal-settings-app", "crimson"),
+    ];
+
+    private sealed record DashTile(string Label, string Icon, string Href, string Tone);
+
+    private static string ToneColor(string tone) => tone switch
+    {
+        "red" => "linear-gradient(135deg,#b91c1c,#dc2626)",
+        "crimson" => "linear-gradient(135deg,#9f1239,#e11d48)",
+        "black" => "linear-gradient(135deg,#0f172a,#334155)",
+        _ => "linear-gradient(135deg,#57534e,#78716c)"
+    };
 
     protected override async Task OnInitializedAsync()
     {

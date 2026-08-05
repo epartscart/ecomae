@@ -2,7 +2,10 @@
 @*
   PHP chrome stylesheet/font injection for product shells.
   Delegates to PhpSurfaceHead so assets land in <head> (HeadOutlet).
+  Always applies PHP document.body classes so body.epc-cp-shell selectors fire.
 *@
+<PhpChromeBodyClass Surface="@Surface" LoginChrome="false" />
+<link rel="stylesheet" href="/aspnet-php-assets/eparts-animated-logo.css" />
 <PhpSurfaceHead
     Surface="@Surface"
     IncludeLoginCss="false"

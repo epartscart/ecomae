@@ -129,9 +129,12 @@ public static class LegacyPresentationAssets
 
     public static string BodyClassFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {
-        "cp" => "epc-cp-shell fixed-navbar fixed-sidebar",
-        "erp" => "epc-erp-shell fixed-navbar fixed-sidebar",
-        "bos" => "epc-bos-shell",
+        // Match cp/templates/bootstrap_admin/desktop.php + epc_cp_shell classes
+        "cp" => "fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern",
+        // Match erp_desktop.php standalone shell
+        "erp" => "epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern",
+        // Match bos/index.php
+        "bos" => "bos-body bos-body--topnav",
         "storefront" => "epc-storefront-shell",
         "marketing" => "epm-body",
         _ => "epc-migration-shell"
@@ -140,9 +143,9 @@ public static class LegacyPresentationAssets
     /// <summary>document.body classes for PHP login/chrome bridges (matches live PHP templates).</summary>
     public static string LoginBodyClassFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {
-        "cp" => "blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super fixed-navbar fixed-sidebar",
-        "erp" => "epc-erp-standalone",
-        "bos" => "epc-bos-shell",
+        "cp" => "blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super epc-cp--blue-theme epc-cp-modern",
+        "erp" => "epc-erp-standalone epc-erp-cp-shell epc-cp-shell",
+        "bos" => "bos-body bos-body--topnav bos-body--login",
         "storefront" => "epc-storefront-shell",
         "marketing" => "epm-body",
         _ => BodyClassFor(surfaceKey)
