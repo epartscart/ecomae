@@ -1,0 +1,47 @@
+namespace EcomAE.Platform.Configuration;
+
+/// <summary>
+/// Confirmed operating model: ASP.NET Core becomes the live primary runtime while the
+/// PHP project remains available as a <b>reference</b> to compare previous results and find gaps.
+/// This is not PHP decommission / source deletion and does not flip cutover gates.
+/// </summary>
+public sealed class PhpReferenceOptions
+{
+    public const string SectionName = "EcomAE:PhpReference";
+
+    /// <summary>
+    /// When true, reporters and the compare board expose PHP reference URLs for gap-finding.
+    /// Does not move live traffic by itself.
+    /// </summary>
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>Stable mode label for digests/boards.</summary>
+    public string Mode { get; set; } = "aspnet-primary-php-reference";
+
+    /// <summary>Human-confirmed architecture intent (config declaration only).</summary>
+    public bool ArchitectureConfirmed { get; set; } = true;
+
+    /// <summary>Keep the PHP project/docroot available for side-by-side compares.</summary>
+    public bool KeepPhpProjectAvailable { get; set; } = true;
+
+    /// <summary>Reference PHP base for www / Super CP (no trailing slash required).</summary>
+    public string WwwPhpBaseUrl { get; set; } = "https://www.ecomae.com";
+
+    /// <summary>Reference PHP base for a named live tenant (gap-finding only).</summary>
+    public string TenantPhpBaseUrl { get; set; } = "https://www.epartscart.com";
+
+    /// <summary>Optional dedicated Super CP PHP host.</summary>
+    public string DedicatedCpPhpBaseUrl { get; set; } = "https://cp.ecomae.com";
+
+    /// <summary>Optional ASP.NET primary base used on the compare board.</summary>
+    public string AspNetPrimaryBaseUrl { get; set; } = "https://www.ecomae.com";
+
+    /// <summary>
+    /// Optional PHP docroot path on the server (operator/env; never delete until separate approval).
+    /// </summary>
+    public string? PhpDocRoot { get; set; }
+
+    /// <summary>Operator note shown on boards.</summary>
+    public string Note { get; set; } =
+        "ASP.NET Core is the destination primary. PHP stays installed as reference for previous results / gap-finding. cutoverAllowed=false until dual-sample + RELEASE_OWNER_APPROVAL.md. Reference mode ≠ PHP source deletion.";
+}

@@ -1,0 +1,17 @@
+{
+  "role": "php-reference-mode-lock",
+  "generatedAtUnix": 1785885120,
+  "architectureConfirmed": true,
+  "mode": "aspnet-primary-php-reference",
+  "keepPhpProjectAvailable": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "requirePhpFallback": true,
+  "note": "Human-confirmed architecture: ASP.NET Core live primary destination; PHP project retained as reference for previous results and gap-finding. This lock does not invent RELEASE_OWNER_APPROVAL.md or claim traffic already flipped.",
+  "endpoint": "/migration/php-reference-mode",
+  "docs": [
+    "docs/migration/PHP_AS_REFERENCE_MODE.md",
+    "docs/migration/evidence/presentation/HUMAN_COMPARE_BOARD.md"
+  ],
+  "rollback": "bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback"
+}

@@ -15,12 +15,14 @@ public sealed class CutoverValidationReporter : ICutoverValidationReporter
                 "Dual-sample compare_*_parity.py scripts and cloudpanel_extract_exact_route_shadow.sh gate one-path promotion."
             ],
             [
-                "Keep PHP authoritative until route flags are approved per surface.",
+                "Confirmed model: ASP.NET Core becomes live primary; PHP project stays available as reference for previous results / gap-finding (see /migration/php-reference-mode).",
+                "Keep PHP authoritative on product chrome until route flags are approved per surface.",
                 "Require shadow-read evidence before disabling PHP fallback for any route prefix.",
                 "Preserve uppercase CP/ERP/BOS aliases and BOS handoff behavior for operator rollback.",
                 "Keep StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final gate.",
                 "Record rollback owner, timestamp, tenant scope, and expected runtime before each traffic move.",
-                "Rollback via bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback."
+                "Rollback via bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback.",
+                "Reference mode ≠ PHP source deletion — keep docroot until a separate decommission approval."
             ],
             [
                 "Authenticated staging-smoke artifacts for price/catalog/surface digests are attached (never invented).",
@@ -28,7 +30,8 @@ public sealed class CutoverValidationReporter : ICutoverValidationReporter
                 "Production-like data replay has matching payloads and latency budget evidence.",
                 "Access-denial and audit-log behavior matches PHP for privileged CP/ERP/BOS workflows.",
                 "Only approved location = exact-route shadows are enabled (never broad /api /cp /erp /bos /storefront).",
-                "A manual release owner creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK."
+                "A manual release owner creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK.",
+                "After ASP.NET is primary, PHP reference host remains reachable for dual-sample / human compare (read-only preferred)."
             ]);
     }
 }
