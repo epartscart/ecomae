@@ -66,11 +66,13 @@ if [[ "$fail" -ne 0 ]]; then
 
 RESULT=STALE
 GitHub merges do nothing until CloudPanel republishes Kestrel (:5100).
-On the CloudPanel host as root:
+On the CloudPanel host as root (hardened script — requires RESULT=PASS banner):
 
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/php-parity-unified-fonts-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
 
-Must print RESULT=PASS, then Ctrl+Shift+R on https://www.epartscart.com/
+If RESULT=FAIL, paste output of:
+  bash scripts/cloudpanel_DIAGNOSE_STALE_HOME.sh
+Then Ctrl+Shift+R on https://www.epartscart.com/ only after RESULT=PASS.
 EOF
   exit 1
 fi
