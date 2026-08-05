@@ -43,7 +43,7 @@
         <h1>POS Overview</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pos-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/tax-toolkits-app">Tax toolkits</a>
         </div>
     </section>
@@ -93,7 +93,7 @@
                             <td>@(string.IsNullOrWhiteSpace(s.TaxKitCode) ? "—" : s.TaxKitCode)</td>
                             <td>@(string.IsNullOrWhiteSpace(s.Status) ? "—" : s.Status)</td>
                             <td>@(s.TimeCreated > 0 ? s.TimeCreated.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
@@ -117,13 +117,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.BuildCpPosOverviewDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _sales = result.Sales;

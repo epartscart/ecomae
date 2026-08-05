@@ -45,7 +45,7 @@
         <h1>Report center</h1>
         <p>Read-only mirror of PHP <code>epc_rc_registry</code> (33 inquiries). Select a key for a limited peek. CSV export and complex report runs stay on PHP.</p>
         <div class="epc-rc-cta">
-            <a href="@_phpTab">Open PHP reports</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open reports</a>
             <a class="ghost" href="/erp/dashboard-summary-app">ERP dashboard</a>
             <a class="ghost" href="@DigestHref(null)">JSON digest</a>
         </div>
@@ -159,8 +159,7 @@
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
-            Nav.NavigateTo("/erp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
         string? key = null;

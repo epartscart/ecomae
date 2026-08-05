@@ -45,8 +45,8 @@
         <h1>Warehouses</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-wh-cta">
-            <a href="@_phpTab">Open module</a>
-            <a class="ghost" href="@_phpWms">Open WMS</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpWms)">Open WMS</a>
             <a class="ghost" href="/erp/gl-journals-app">GL journals</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
         </div>
@@ -85,7 +85,7 @@
                             <td>@(w.StorageId > 0 ? w.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@FormatTime(w.TimeCreated)</td>
                             <td><span class="epc-wh-badge">@(w.Active ? "active" : "inactive")</span></td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
@@ -112,13 +112,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/erp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.ListErpWarehousesAsync(_limit, ctx.RequestAborted);
         _warehouses = result.Warehouses;
         _active = _warehouses.Count(w => w.Active);

@@ -38,10 +38,27 @@ ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
   bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh
 # On mega-conf this is a no-op (prints NOTE); do not create a duplicate vhost.
 
-# Redeploy ASP.NET first (PHP-style storefront chrome + guest CP/ERP/BOS shells):
-export ECOMAE_BRANCH=cursor/aspnet-same-style-cut-php-links-7b3b
+# REQUIRED — redeploy ASP.NET binary BEFORE classic-entry probe.
+# Nginx install alone leaves the OLD thin storefront chrome (probe FAIL on Garage Manager / WhatsApp / AI).
+export ECOMAE_BRANCH=main
+git fetch origin main && git checkout -f main && git reset --hard origin/main
 bash scripts/cloudpanel_find_and_redeploy.sh
-# after merge: export ECOMAE_BRANCH=main && bash scripts/cloudpanel_find_and_redeploy.sh
+systemctl restart ecomae-platform.service
+curl -sS http://127.0.0.1:5100/health || true
+# Prove new chrome is loaded (must print Garage Manager):
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/storefront/app | grep -o 'Garage Manager' | head -n1
+
+# CP/ERP/BOS guest browse (no login) — must NOT 302 to /cp/login:
+curl -sSI -A 'Mozilla/5.0' http://127.0.0.1:5100/cp | awk 'BEGIN{c=""} /^HTTP/{c=$2} END{print c}'
+# expect 200 (not 302)
+
+# Optional — enable ASP.NET login bridge (same PHP admin credentials):
+#   1) Copy PHP secret_succession into platform.env (never commit the secret):
+#        grep -n secret_succession /path/to/php/config.php   # find value on server only
+#        printf 'EcomAE__SecretSuccession=%s\n' '<value>' >> /etc/ecomae-aspnet/platform.env
+#   2) bash scripts/cloudpanel_verify_secret_succession_configured.sh
+#   3) systemctl restart ecomae-platform.service
+# Until that is set, /cp/login shows “Browse ASP.NET CP (no login)” instead of a working form.
 
 # Installs into server{} by host:
 #   www.ecomae.com block ← www pack (marketing ASP.NET home + login bridges)
@@ -54,7 +71,8 @@ ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
 
 bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
-# Expect: epartscart / = ASP.NET PHP-style; /cp /erp /bos guest browse (no login hard-redirect); PHP via /php-reference/*
+# Expect: epartscart / + www / + /cp /erp /bos = ASP.NET PHP-style shells;
+# guest browse (no login hard-redirect); PHP only via /php-reference/*
 ```
 
 **What this does / does not do**

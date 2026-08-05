@@ -44,8 +44,8 @@
         <h1>SMS &amp; WhatsApp</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-sms-cta">
-            <a href="@_phpSmsTab">Open module</a>
-            <a class="ghost" href="@_phpWhatsappTab">WhatsApp guide</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpSmsTab)">Open module</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpWhatsappTab)">WhatsApp guide</a>
             <a class="ghost" href="/cp/marketing-broadcast-app">Marketing broadcast</a>
         </div>
     </section>
@@ -86,7 +86,7 @@
                             <td>@(string.IsNullOrWhiteSpace(o.Description) ? "—" : o.Description)</td>
                             <td>@(o.Active ? "yes" : "no")</td>
                             <td>@(o.ControlAvailable ? "yes" : "no")</td>
-                            <td><a href="@_phpSmsTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpSmsTab)">Open</a></td>
                         </tr>
                     }
                 }
@@ -124,7 +124,7 @@
                             <td>@(string.IsNullOrWhiteSpace(w.PhoneMasked) ? "—" : w.PhoneMasked)</td>
                             <td>@(w.Status == 1 ? "sent" : w.Status.ToString(CultureInfo.InvariantCulture))</td>
                             <td>@(string.IsNullOrWhiteSpace(w.MessagePreview) ? "—" : w.MessagePreview)</td>
-                            <td><a href="@_phpWhatsappTab">Open guide</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpWhatsappTab)">Open guide</a></td>
                         </tr>
                     }
                 }
@@ -150,13 +150,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.BuildCpSmsWhatsappDigestAsync(50, ctx.RequestAborted);
         _summary = result.Summary;
         _operators = result.Operators;

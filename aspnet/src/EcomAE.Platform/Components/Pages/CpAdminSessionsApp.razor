@@ -45,7 +45,7 @@
         <h1>Admin Sessions</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-as-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/users-app">Users list</a>
             <a class="ghost" href="/cp/storages-app">Storages list</a>
         </div>
@@ -83,7 +83,7 @@
                             <td>@(string.IsNullOrWhiteSpace(s.Email) ? "—" : s.Email)</td>
                             <td><span class="epc-as-badge">@s.Type.ToString(CultureInfo.InvariantCulture)</span></td>
                             <td>@s.SessionCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@phpHref">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }
@@ -109,13 +109,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.ListCpAdminSessionsAsync(_limit, ctx.RequestAborted);
         _sessions = result.Sessions;
         _totalSessions = _sessions.Sum(s => s.SessionCount);

@@ -1,29 +1,13 @@
 @page "/marketing/privacy"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
-@inject IHttpContextAccessor Http
 
 <PageTitle>ECOM AE — Privacy</PageTitle>
 <PhpChromeStyles Surface="marketing" />
 
 <PhpEcomaeMarketingChrome ActiveKey="privacy">
-    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/privacy" />
-
-    @if (string.IsNullOrWhiteSpace(_phpHref))
-    {
-        <PhpEcomaePrivacyOverview />
-    }
+    <PhpEcomaePrivacyOverview />
+    <p style="max-width:var(--epm-max-w,1440px);margin:0 auto;padding:0 var(--epm-pad-x,20px) 2rem;font-size:.82rem;color:#94a3b8;">
+        PHP compare: <a href="/php-reference/home">/php-reference/home</a>
+    </p>
 </PhpEcomaeMarketingChrome>
-
-@code {
-    private string? _phpHref;
-
-    protected override void OnInitialized()
-    {
-        var ctx = Http.HttpContext;
-        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
-        {
-            _phpHref = php.ToString();
-        }
-    }
-}

@@ -45,7 +45,7 @@
         <h1>Sales Orders</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-so-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
         </div>
     </section>
@@ -84,7 +84,7 @@
                             <td>@o.CustomerUserId</td>
                             <td><span class="epc-so-badge">@o.Status</span></td>
                             <td>@o.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@phpHref">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }
@@ -110,13 +110,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/erp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.ListErpSalesOrdersAsync(_limit, ctx.RequestAborted);
         _orders = result.Orders;
         _open = _orders.Count(o => !string.Equals(o.Status, "closed", StringComparison.OrdinalIgnoreCase)

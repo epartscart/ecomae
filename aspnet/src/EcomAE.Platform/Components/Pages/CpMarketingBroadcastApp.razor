@@ -43,7 +43,7 @@
         <h1>Marketing Broadcast</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-mkt-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/demo-tenants-app">Demo tenants</a>
         </div>
     </section>
@@ -85,7 +85,7 @@
                             <td>@c.TotalTargets.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@c.SentOk.ToString(CultureInfo.InvariantCulture) / @c.SentFail.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(c.Status) ? "—" : c.Status)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
@@ -109,13 +109,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.BuildCpMarketingBroadcastDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _campaigns = result.Campaigns;

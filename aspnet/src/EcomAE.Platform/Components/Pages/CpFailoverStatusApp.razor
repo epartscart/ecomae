@@ -35,7 +35,7 @@
         <h1>Failover status</h1>
         <p>Manage store operations from the control panel.</p>
         <div class="epc-w23-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
     <div class="epc-w23-kpis">
@@ -48,7 +48,7 @@
         <thead><tr><th>Path</th><th>Present</th><th>Kind</th><th></th></tr></thead>
         <tbody>
         @if (_rows.Count==0) { <tr><td colspan="4">Nothing to show yet.</td></tr> }
-        else { @foreach (var row in _rows) { <tr><td>@row.Path</td><td>@row.Present</td><td>@row.Kind</td><td><a href="@_phpTab">Open</a></td></tr> } }
+        else { @foreach (var row in _rows) { <tr><td>@row.Path</td><td>@row.Present</td><td>@row.Kind</td><td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td></tr> } }
         </tbody>
     </table></div>
 
@@ -65,12 +65,12 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
-        _isAdmin = true;
+
         var result = await Dashboards.BuildCpFailoverStatusDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _rows = result.Signals;

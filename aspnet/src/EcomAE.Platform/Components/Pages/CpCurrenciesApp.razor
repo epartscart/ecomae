@@ -47,7 +47,7 @@
         <h1>Currencies</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-cu-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/tenants-app">Tenants list</a>
             <a class="ghost" href="/cp/menus-app">Menus list</a>
         </div>
@@ -90,7 +90,7 @@
                             <td>@c.Rate.ToString("0.####", CultureInfo.InvariantCulture)</td>
                             <td><span class="epc-cu-badge @(c.Available ? "epc-cu-badge--ok" : "epc-cu-badge--off")">@(c.Available ? "yes" : "no")</span></td>
                             <td>@c.SortOrder</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
@@ -116,13 +116,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.ListCpCurrenciesAsync(_limit, ctx.RequestAborted);
         _currencies = result.Currencies;
         _available = _currencies.Count(c => c.Available);

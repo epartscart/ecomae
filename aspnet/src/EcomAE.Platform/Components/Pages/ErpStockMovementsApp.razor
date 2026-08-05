@@ -37,7 +37,7 @@
         <h1>Stock movement ledger</h1>
         <p>Read-only <code>epc_erp_inv_movements</code> with running balances (PHP <code>epc_erp_inventory_ledger</code>). Writes stay on PHP.</p>
         <div class="epc-mv-cta">
-            <a href="@_phpTab">Open PHP inventory</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open inventory</a>
             <a class="ghost" href="/erp/inventory-stock-app">On-hand stock</a>
             <a class="ghost" href="/erp/stock-movements">JSON digest</a>
         </div>
@@ -102,7 +102,7 @@
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
-        if (!_isAdmin) { Nav.NavigateTo("/erp/login", forceLoad: true); return; }
+        if (!_isAdmin) { return; // guest browse — Sign in for live data }
         var result = await Dashboards.BuildErpInventoryMovementsDigestAsync(100);
         _summary = result.Summary;
         _movements = result.Movements;

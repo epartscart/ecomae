@@ -43,7 +43,7 @@
         <h1>Industry Packs</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pack-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/hr-overview-app">HR overview</a>
         </div>
     </section>
@@ -83,7 +83,7 @@
                             <td>@(string.IsNullOrWhiteSpace(p.Description) ? "—" : p.Description)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.Icon) ? "—" : p.Icon)</td>
                             <td>@(p.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
@@ -107,13 +107,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.BuildCpIndustryPacksDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _packs = result.Packs;

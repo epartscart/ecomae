@@ -45,7 +45,7 @@
         <h1>Suppliers</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-sup-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
             <a class="ghost" href="/erp/warehouses-app">Warehouses</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -82,7 +82,7 @@
                             <td><strong>@(string.IsNullOrWhiteSpace(s.Name) ? $"#{s.Id}" : s.Name)</strong></td>
                             <td>@(s.StorageId > 0 ? s.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td><span class="epc-sup-badge">@s.Balance.ToString("N2", CultureInfo.InvariantCulture)</span></td>
-                            <td><a href="@phpHref">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }
@@ -108,13 +108,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/erp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.ListErpSuppliersAsync(_limit, ctx.RequestAborted);
         _suppliers = result.Suppliers;
         _openBalance = _suppliers.Count(s => s.Balance != 0m);

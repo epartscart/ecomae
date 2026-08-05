@@ -49,7 +49,7 @@
         <h1>Fleet Health</h1>
         <p>Platform fleet overview across tenants, sessions, and health.</p>
         <div class="epc-fh-cta">
-            <a href="@_phpTab">Open platform health</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open platform health</a>
             <a class="ghost" href="/bos/tenants-app">Fleet tenants</a>
             <a class="ghost" href="/bos/audit-log-app">Audit log</a>
         </div>
@@ -97,7 +97,7 @@
                             <td><span class="epc-fh-badge @(t.IsActive ? "epc-fh-badge--ok" : "epc-fh-badge--off")">@(t.IsActive ? "yes" : "no")</span></td>
                             <td><span class="epc-fh-badge @(t.HasDb ? "epc-fh-badge--ok" : "epc-fh-badge--off")">@(t.HasDb ? "yes" : "no")</span></td>
                             <td><span class="epc-fh-badge epc-fh-badge--info">@(t.ErpOnly ? "yes" : "no")</span></td>
-                            <td><a href="@_phpTab">Open module</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a></td>
                         </tr>
                     }
                 }
@@ -129,13 +129,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("bos");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/bos/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.BuildBosFleetHealthAsync(_limit, ctx.RequestAborted);
         _portalTenants = result.Summary.PortalTenants;
         _active = result.Summary.ActivePortalTenants;

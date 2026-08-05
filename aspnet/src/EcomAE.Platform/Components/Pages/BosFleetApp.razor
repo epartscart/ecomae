@@ -21,7 +21,7 @@
             .epc-bosapp-note { margin-top:1rem; padding:.8rem; border:1px solid #e4e4e7; border-radius:.45rem; background:#fff; color:#52525b; font-size:.88rem; }
         </style>
 
-        <p style="color:#52525b;max-width:40rem">Fleet Command Center overview across tenants, sessions, and readiness. Browse on ASP.NET; PHP only via /php-reference/*.</p>
+        <p style="color:#52525b;max-width:40rem">Fleet Command Center — ASP.NET shell matching BOS topnav mega layout. Browse tenants, readiness, and modules; PHP only via /php-reference/*.</p>
         @if (!_isAdmin)
         {
             <div class="epc-bosapp-note" style="background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a;">
@@ -39,7 +39,18 @@
             <div class="epc-bosapp-card"><strong>@_active</strong><span>Active tenants</span></div>
             <div class="epc-bosapp-card"><strong>@_withDb</strong><span>With database</span></div>
             <div class="epc-bosapp-card"><strong>@_sessions</strong><span>Admin sessions</span></div>
-</div>
+        </div>
+
+        <div class="epc-bosapp-grid" style="margin-top:.35rem">
+            <a class="epc-bosapp-card" href="/bos/tenants-app" style="text-decoration:none;color:inherit"><strong><i class="fa fa-building"></i></strong><span>Tenant control</span></a>
+            <a class="epc-bosapp-card" href="/bos/fleet-health-app" style="text-decoration:none;color:inherit"><strong><i class="fa fa-heartbeat"></i></strong><span>Fleet health</span></a>
+            <a class="epc-bosapp-card" href="/bos/fleet-readiness-app" style="text-decoration:none;color:inherit"><strong><i class="fa fa-check-circle"></i></strong><span>Readiness</span></a>
+            <a class="epc-bosapp-card" href="/bos/fleet-summary-app" style="text-decoration:none;color:inherit"><strong><i class="fa fa-dashboard"></i></strong><span>Fleet summary</span></a>
+            <a class="epc-bosapp-card" href="/bos/audit-log-app" style="text-decoration:none;color:inherit"><strong><i class="fa fa-list-alt"></i></strong><span>Audit log</span></a>
+            <a class="epc-bosapp-card" href="/cp" style="text-decoration:none;color:inherit"><strong><i class="fa fa-th-large"></i></strong><span>Control panel</span></a>
+            <a class="epc-bosapp-card" href="/erp" style="text-decoration:none;color:inherit"><strong><i class="fa fa-line-chart"></i></strong><span>ERP workspace</span></a>
+            <a class="epc-bosapp-card" href="/" style="text-decoration:none;color:inherit"><strong><i class="fa fa-shopping-cart"></i></strong><span>Storefront</span></a>
+        </div>
 
         <PhpHybridModuleDirectory
             Title="Complete BOS section directory"

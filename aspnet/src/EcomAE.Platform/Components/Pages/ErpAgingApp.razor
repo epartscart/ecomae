@@ -39,7 +39,7 @@
         <h1>AR / AP / Inventory aging</h1>
         <p>Read-only buckets from PHP <code>epc_erp_aging.php</code>. Interactive aging UI stays on PHP.</p>
         <div class="epc-ag-cta">
-            <a href="@_phpTab">Open PHP aging</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open aging</a>
             <a class="ghost" href="/erp/report-center-app">Report center</a>
             <a class="ghost" href="/erp/aging">JSON digest</a>
         </div>
@@ -114,7 +114,7 @@
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
-        if (!_isAdmin) { Nav.NavigateTo("/erp/login", forceLoad: true); return; }
+        if (!_isAdmin) { return; // guest browse — Sign in for live data }
         var result = await Dashboards.BuildErpAgingDigestAsync(100);
         _summary = result.Summary;
         _arLabels = result.ArLabels;

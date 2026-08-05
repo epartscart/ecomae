@@ -48,8 +48,8 @@
         <h1>Config Items</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-ci-cta">
-            <a href="@_phpTab">Open module</a>
-            <a class="ghost" href="/CP/control/config">Configuration</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+            <a class="ghost" href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/config"))">Configuration</a>
             <a class="ghost" href="/cp/api-clients-app">API clients</a>
         </div>
     </section>
@@ -89,7 +89,7 @@
                             <td>@(string.IsNullOrWhiteSpace(item.ConfigGroup) ? "—" : item.ConfigGroup)</td>
                             <td><span class="epc-ci-badge @(item.Visible ? "epc-ci-badge--ok" : "epc-ci-badge--off")">@(item.Visible ? "yes" : "no")</span></td>
                             <td>@item.Order.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
@@ -115,13 +115,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.ListCpConfigItemsMetaAsync(_limit, ctx.RequestAborted);
         _items = result.Items;
         _visible = _items.Count(i => i.Visible);

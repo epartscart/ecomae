@@ -40,7 +40,7 @@
         <h1>Dashboard Summary</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-ds-cta">
-            <a href="@_phpTab">Open control panel</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open control panel</a>
             <a class="ghost" href="/cp/tenants-app">Tenants</a>
             <a class="ghost" href="/cp/users-app">Users</a>
         </div>
@@ -71,13 +71,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.BuildControlPanelAsync(ctx.RequestAborted);
         _users = result.Users;
         _sessions = result.AdminSessions;

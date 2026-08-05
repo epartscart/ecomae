@@ -49,7 +49,7 @@
             <h1>Orders · OMS</h1>
             <p>Open orders, track payment status, and move paid lines to ship.</p>
             <div class="epc-oms-cta">
-                <a href="/CP/shop/orders/orders">Open orders</a>
+                <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/orders/orders"))">Open orders</a>
 </div>
         </div>
     </section>
@@ -94,7 +94,7 @@
                             <td>@o.OfficeId</td>
                             <td>@o.CountItems</td>
                             <td>@o.OrderSum.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@phpHref">Open module</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open module</a></td>
                         </tr>
                     }
                 }
@@ -120,13 +120,12 @@
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.ListCpOrdersAsync(50, ctx.RequestAborted);
         _summary = result.Summary;
         _orders = result.Orders;

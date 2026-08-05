@@ -45,7 +45,7 @@
         <h1>ERP Dashboard Summary</h1>
         <p>Cash, receivables, payables, stock, and approval queues for this company.</p>
         <div class="epc-eds-cta">
-            <a href="@_phpTab">Open dashboard</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open dashboard</a>
             <a class="ghost" href="/erp/accounts-summary-app">Accounts summary</a>
             <a class="ghost" href="/erp/cash-accounts-app">Cash accounts</a>
         </div>
@@ -146,13 +146,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/erp/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.BuildErpAsync(ctx.RequestAborted);
         _s = result.Summary;
         _queue = result.ApprovalQueue;
