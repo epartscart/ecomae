@@ -108,6 +108,16 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
     for m in re.finditer(r"(?m)^(location @([A-Za-z0-9_]+)\s*\{.*?\n\})", example, flags=re.S):
         named_blocks.append((m.group(2), indent_block(m.group(1))))
 
+    bos_super_cp_only = {
+        "/bos",
+        "/bos/",
+        "/BOS",
+        "/BOS/",
+        "/bos/login",
+        "/bos/login/",
+        "/php-reference/bos",
+    }
+
     blocks: list[tuple[str, str]] = []
     for m in re.finditer(r"(?m)^(location = (/[^\s{]*)\s*\{.*?\n\})", example, flags=re.S):
         block_raw, route = m.group(1), m.group(2)
@@ -120,6 +130,10 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
         is_php_ref = route.startswith("/php-reference/") and (
             "rewrite ^" in block_raw or "return 302" in block_raw or "alias " in block_raw
         )
+        # Tenant packs: product BOS is Super-CP only → return 404 (never proxy).
+        is_bos_deny = route in bos_super_cp_only and bool(
+            re.search(r"(?m)^\s*return\s+404\s*;", block_raw)
+        )
         is_login_bridge = route.rstrip("/").endswith("/login") or route in {
             "/cp/login",
             "/cp/login/",
@@ -130,8 +144,10 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
             "/auth/login/admin",
             "/auth/login/admin/",
         }
-        if not is_proxy and not is_php_ref:
-            raise SystemExit(f"ERROR: block must proxy_pass ASP.NET or php-reference ({route})")
+        if not is_proxy and not is_php_ref and not is_bos_deny:
+            raise SystemExit(
+                f"ERROR: block must proxy_pass ASP.NET, php-reference, or bos-deny 404 ({route})"
+            )
         if route in {
             "/",
             "/cp",
@@ -142,10 +158,6 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
             "/erp/",
             "/ERP",
             "/ERP/",
-            "/bos",
-            "/bos/",
-            "/BOS",
-            "/BOS/",
         }:
             if re.search(r"(?m)^\s*return\s+302\s+", block_raw):
                 raise SystemExit(
@@ -153,8 +165,14 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
                 )
             if not is_proxy:
                 raise SystemExit(f"ERROR: shared entry {route} must proxy_pass ASP.NET")
-        if is_login_bridge and not is_proxy:
-            raise SystemExit(f"ERROR: login bridge {route} must proxy_pass ASP.NET")
+        if route in bos_super_cp_only:
+            # www: proxy product BOS / php-reference redirect; tenant: return 404.
+            if not (is_bos_deny or is_proxy or is_php_ref):
+                raise SystemExit(
+                    f"ERROR: BOS route {route} must proxy_pass, php-reference, or return 404 (tenant)"
+                )
+        if is_login_bridge and not is_proxy and not is_bos_deny:
+            raise SystemExit(f"ERROR: login bridge {route} must proxy_pass ASP.NET (or bos-deny 404)")
         blocks.append((route, indent_block(block_raw)))
 
     # 18 shared entries (/ + cp/erp/bos ×4 + php-reference ×5) + 6 login bridges
@@ -293,6 +311,7 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
                     or "epc_classic_php_passthrough" in blk
                     or "X-EcomAE-Route-Cutover" in blk
                     or "rewrite ^ /index.php" in blk
+                    or "return 404" in blk
                 ):
                     removed += 1
                     return ""

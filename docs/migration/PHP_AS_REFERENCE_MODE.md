@@ -18,7 +18,7 @@ This is **not** PHP source deletion and does **not** invent cutover approval / l
 
 ## What “reference” means
 
-1. Product URLs stay unchanged: `/cp` `/erp` `/bos` `/` on **www.ecomae.com** and **all named live tenants** (epartscart, electronicae, stylenlook, thejewellerytrend, taxofinca) proxy to ASP.NET (no redirect to `/cp/app`). No half-and-half.
+1. Product URLs stay unchanged: `/cp` `/erp` `/` on **www.ecomae.com** and **all named live tenants** (epartscart, electronicae, stylenlook, thejewellerytrend, taxofinca) proxy to ASP.NET (no redirect to `/cp/app`). No half-and-half. **Product `/bos` is Super-CP only** (`www.ecomae.com`, `ecomae.com`, `cp.ecomae.com`) — tenant hosts must **404** `/bos` (confidential fleet ops).
 2. Deep ASP.NET product trees (`/cp/` `/erp/` `/bos/` `/storefront/` `/marketing/`) also proxy to Kestrel. Uppercase `/CP/` `/ERP/` `/BOS/` and `/shop/` are remapped into ASP.NET apps (not served as PHP product).
 3. PHP reference is **separate**: `/php-reference/home|cp|erp|bos|storefront` → `index.php?epc_php_reference=…` only (never bounce into product `/cp` trees).
 4. Operators compare at `/migration/compare` (PHP reference column vs shared ASP.NET URLs).

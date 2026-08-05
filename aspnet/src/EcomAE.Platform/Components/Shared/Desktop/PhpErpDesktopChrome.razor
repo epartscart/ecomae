@@ -1,9 +1,12 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
 @*
   Mirrors erp_desktop.php + epc_erp_render_top_nav mega chrome.
   Topnav typography/panels come from epc_erp_professional.css (px sizes).
   Click-to-toggle JS mirrors cp/js/epc_erp_shell_nav.js bindTopNav (no hover-open).
+  BOS nav is Super-CP only — never advertise /bos on tenant hosts.
 *@
 
 <div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root">
@@ -17,9 +20,12 @@
             </a>
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
                 <a href="/erp">Guide</a>
-                <a href="/cp/tenants-app">Tenants</a>
                 <a href="/cp">E-commerce CP</a>
-                <a href="/bos">BOS</a>
+                @if (_showBos)
+                {
+                    <a href="/cp/tenants-app">Tenants</a>
+                    <a href="/bos">BOS</a>
+                }
             </nav>
             <div class="epc-erp-topbar__user">
                 @if (!IsAdmin)
@@ -131,7 +137,13 @@
             </div>
         </div>
     </main>
-    <footer class="epc-erp-foot">ERP · <a href="/erp">Open ERP</a> · <a href="/cp">Control panel</a> · <a href="/bos">BOS</a></footer>
+    <footer class="epc-erp-foot">
+        ERP · <a href="/erp">Open ERP</a> · <a href="/cp">Control panel</a>
+        @if (_showBos)
+        {
+            <text> · <a href="/bos">BOS</a></text>
+        }
+    </footer>
 </div>
 
 @* Shell layout only — topnav fonts/panels come from epc_erp_professional.css (13/12/12.5px). *@
@@ -272,4 +284,12 @@
     [Parameter] public string Title { get; set; } = "Dashboard";
     [Parameter] public string BreadcrumbArea { get; set; } = "Home";
     [Parameter] public string BreadcrumbTab { get; set; } = "Dashboard";
+
+    private bool _showBos;
+
+    protected override void OnParametersSet()
+    {
+        var host = Http.HttpContext?.Request.Host.Host;
+        _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+    }
 }

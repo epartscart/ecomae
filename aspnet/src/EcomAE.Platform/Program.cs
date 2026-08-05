@@ -646,6 +646,8 @@ app.UseMiddleware<SecurityHeadersMiddleware>();
 // Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/*.
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
+// BOS is Super-CP / platform only — never answer /bos on tenant hosts (epartscart, …).
+app.UseMiddleware<BosHostGateMiddleware>();
 app.UseMiddleware<RouteCutoverDecisionMiddleware>();
 // Credential POSTs on /cp|/erp|/bos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.
 app.UseMiddleware<LegacyLoginBridgeMiddleware>();

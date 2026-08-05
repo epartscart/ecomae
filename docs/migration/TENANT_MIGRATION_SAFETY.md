@@ -5,7 +5,7 @@
 **Master SOP (security, confidentiality, tenant isolation, cutover protocols):**  
 [`docs/PROJECT_SOP_SECURITY_TENANT_ISOLATION.md`](../PROJECT_SOP_SECURITY_TENANT_ISOLATION.md)
 
-**Policy now:** All named live product tenants use ASP.NET for `/` `/cp` `/erp` `/bos` (and deep product trees). PHP opens only via `/php-reference/*`. Chrome must stay same-to-same with the PHP look while the stack is ASP.NET.
+**Policy now:** All named live product tenants use ASP.NET for `/` `/cp` `/erp` (and deep product trees). **Product `/bos` is Super-CP only** — tenant hosts must 404. PHP opens only via `/php-reference/*` (except `/php-reference/bos`, also Super-CP-only). Chrome must stay same-to-same with the PHP look while the stack is ASP.NET.
 
 ## Named live tenants (all ASP.NET-primary)
 

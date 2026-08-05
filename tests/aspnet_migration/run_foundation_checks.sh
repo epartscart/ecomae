@@ -1529,7 +1529,9 @@ check 'classic-entry installer refuses without confirm' contains "$ROOT/scripts/
 check 'classic-entry installer expects 26 routes' contains "$ROOT/scripts/lib/ecomae_nginx_server_block_edit.py" 'expected = 26'
 check 'classic-entry www example has cp login bridge' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /cp/login'
 check 'classic-entry tenant example has cp login bridge' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'location = /cp/login'
-check 'classic-entry tenant example has bos login bridge' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'location = /bos/login'
+check 'classic-entry tenant example denies bos login (super-cp-only)' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'location = /bos/login'
+check 'classic-entry tenant bos login returns 404' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'return 404'
+check 'classic-entry tenant bos deny note' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'Super-CP only'
 check 'classic-entry www example has auth login admin' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /auth/login/admin'
 check 'classic-entry tenant example has auth login admin' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'location = /auth/login/admin'
 check 'auth login admin emergency installer exists' test -x "$ROOT/scripts/cloudpanel_install_auth_login_admin_route.sh"

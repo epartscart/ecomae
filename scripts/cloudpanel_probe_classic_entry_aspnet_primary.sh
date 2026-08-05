@@ -164,9 +164,26 @@ check_php_reference "$WWW" "/php-reference/home"
 check_php_reference "$WWW" "/php-reference/cp"
 check_php_reference "$WWW" "/index.php"
 
+check_tenant_bos_denied() {
+  local base="$1" path="$2"
+  local code
+  code="$(curl -sS -A "$UA" -o /dev/null -w '%{http_code}' --max-time 30 "${base}${path}" 2>/dev/null || echo 000)"
+  # Super-CP only: tenants must not serve product BOS (404 preferred; 403 also accepted).
+  if [[ "$code" == "404" || "$code" == "403" ]]; then
+    say "PASS  tenant BOS denied ${base}${path} HTTP ${code}"
+    pass=$((pass + 1))
+  else
+    say "FAIL  tenant BOS leak ${base}${path} HTTP ${code} (expected 404 — Super-CP only)"
+    fail=$((fail + 1))
+  fi
+}
+
 if [[ "$PROBE_TENANT" == "1" ]]; then
-  for path in /cp /cp/ /erp /erp/ /bos /bos/; do
+  for path in /cp /cp/ /erp /erp/; do
     check_same_url_aspnet "$TENANT" "$path"
+  done
+  for path in /bos /bos/ /bos/login /php-reference/bos; do
+    check_tenant_bos_denied "$TENANT" "$path"
   done
   check_tenant_home_aspnet_php_style "$TENANT"
   check_php_reference "$TENANT" "/php-reference/home"
@@ -177,8 +194,8 @@ say ""
 say "PASS=$pass FAIL=$fail"
 if [[ "$fail" -gt 0 ]]; then
   say "RESULT=FAIL — classic-entry probe not green"
-  say "Tenant home must be ASP.NET with PHP-style chrome; PHP only via /php-reference/*."
+  say "Tenant home must be ASP.NET with PHP-style chrome; BOS Super-CP only; PHP via /php-reference/*."
   exit 1
 fi
-say "RESULT=PASS — www + epartscart shared entries ASP.NET; PHP reference-only"
+say "RESULT=PASS — www ASP.NET; tenants /cp /erp ASP.NET; /bos Super-CP only; PHP reference-only"
 exit 0

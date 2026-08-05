@@ -26,14 +26,18 @@ public static class LiveTenantPresentationLock
         @"^(www\.)?(epartscart|electronicae|stylenlook|thejewellerytrend|taxofinca)\.com$";
 
     public const string Mandate =
-        "ALL named live product tenants use ASP.NET Core for / /cp /erp /bos and deep product trees. "
-        + "PHP is NOT mixed into product — open only via /php-reference/* for compare/archive. "
+        "ALL named live product tenants use ASP.NET Core for / /cp /erp and deep product trees. "
+        + "Product BOS (/bos) is Super-CP / platform only (www.ecomae.com, ecomae.com, cp.ecomae.com) — "
+        + "tenant hosts must 404 /bos (confidential fleet ops must not leak). "
+        + "PHP is NOT mixed into product — open only via /php-reference/* for compare/archive "
+        + "(except /php-reference/bos which is also Super-CP-only). "
         + "cutoverAllowed=false and readyForPhpRemoval=false while PHP project is kept as reference.";
 
     public static readonly IReadOnlyList<string> UnlockCriteria =
     [
         "Install classic-entry ASP.NET primary on www + every named product tenant server block (--all-hosts).",
-        "Redeploy ASP.NET binary so guest browse / login forms match current main.",
+        "Tenant classic-entry must return 404 for /bos|/BOS|/bos/login|/php-reference/bos (never proxy BOS).",
+        "Redeploy ASP.NET binary so BosHostGateMiddleware 404s /bos on tenant Host headers.",
         "PHP compare only via /php-reference/* → index.php (never product /CP|/ERP|/shop trees).",
         "Keep RequirePhpFallback=true until dual-sample-green per exact write route.",
         "PHP source removal still needs separate RELEASE_OWNER_APPROVAL.md (never invent).",
@@ -71,11 +75,12 @@ public static class LiveTenantPresentationLock
             ["id"] = t.Id,
             ["label"] = t.Label,
             ["hosts"] = t.Hosts,
-            ["surfaces"] = new[] { "storefront", "cp", "erp", "bos" },
+            ["surfaces"] = new[] { "storefront", "cp", "erp" },
+            ["bos"] = "super-cp-only-404-on-tenant",
             ["stackToday"] = "aspnet",
             ["targetStack"] = "aspnet",
-            ["phpAccess"] = "/php-reference/* only",
-            ["gate"] = "aspnet-primary-installed-php-reference-separate",
+            ["phpAccess"] = "/php-reference/* only (bos excluded)",
+            ["gate"] = "aspnet-primary-installed-php-reference-separate-bos-super-cp-only",
         }).ToArray(),
         ["verify"] = "bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh --all-hosts",
         ["docs"] = new[]
@@ -86,7 +91,8 @@ public static class LiveTenantPresentationLock
         },
         ["notes"] = new[]
         {
-            "No half-and-half: every named product tenant is ASP.NET-primary for product URLs.",
+            "No half-and-half: every named product tenant is ASP.NET-primary for / /cp /erp.",
+            "BOS is Super-CP only — epartscart.com/bos and other tenants must 404.",
             "Install classic-entry on all tenant server blocks with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES --all-hosts.",
             "Industry *.ecomae.com showcase hosts use the same ASP.NET /cp /erp shells when classic-entry is installed on their vhost.",
             "Never invent RELEASE_OWNER_APPROVAL.md or set readyForPhpRemoval=true without evidence.",

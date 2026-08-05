@@ -2,9 +2,9 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
-## 0) EXECUTE NOW — tenant-shared `/cp` `/erp` `/bos` `/` → ASP.NET (URL unchanged)
+## 0) EXECUTE NOW — tenant-shared `/cp` `/erp` `/` → ASP.NET (URL unchanged)
 
-Release owner confirmed: **epartscart.com** and **ecomae.com** shared links must keep working as `/cp` `/erp` `/bos` (no change to tenant-facing URLs). PHP reference is **separate** under `/php-reference/*`.
+Release owner confirmed: **epartscart.com** and **ecomae.com** shared links must keep working as `/cp` `/erp` (no change to tenant-facing URLs). **Product `/bos` is Super-CP only** (`www.ecomae.com` / `cp.ecomae.com`) — tenant hosts must **404** `/bos` (confidential). PHP reference is **separate** under `/php-reference/*`.
 
 ### 0a) Pull fix + emergency restore + server-block scoped install
 
@@ -144,7 +144,7 @@ ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
 
 bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
-# Expect: www + all 5 named tenants / /cp /erp /bos = ASP.NET;
+# Expect: www / /cp /erp /bos = ASP.NET; tenants / /cp /erp = ASP.NET; tenant /bos = 404;
 # PHP only via /php-reference/*
 ```
 
@@ -152,7 +152,7 @@ bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
 
 | Does | Does not |
 | --- | --- |
-| Same-URL proxy: `/cp` `/erp` `/bos` `/` → ASP.NET on www + **all 5 named tenants** | Leave some tenants on PHP product chrome |
+| Same-URL proxy: `/cp` `/erp` `/` → ASP.NET on www + **all 5 named tenants**; `/bos` Super-CP only | Leave some tenants on PHP product chrome; never proxy `/bos` on tenants |
 | PHP reference at `/php-reference/home\|cp\|erp\|bos\|storefront` only | Mix PHP `/CP/` `/ERP/` `/BOS/` into product clicks |
 | Admin/Storefront ASP.NET flags enabled for all tenants | Delete PHP source / PHP-FPM / cron |
 | Deep ASP.NET trees proxied; uppercase PHP shells remapped | Invent `cutoverAllowed=true` / PHP source removal |

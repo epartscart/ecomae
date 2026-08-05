@@ -13,6 +13,21 @@ if (!isset($DP_Config)) { $DP_Config = new DP_Config(); }
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_bos_unified.php';
 
+// Product BOS is Super-CP only (www.ecomae.com / ecomae.com / cp.ecomae.com).
+// Tenant hosts (epartscart.com, …) must never render the fleet console.
+$bosHost = function_exists('epc_portal_host') ? strtolower(trim((string) epc_portal_host())) : strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+if (strpos($bosHost, ':') !== false) {
+	$bosHost = explode(':', $bosHost, 2)[0];
+}
+if (!in_array($bosHost, array('www.ecomae.com', 'ecomae.com', 'cp.ecomae.com'), true)) {
+	http_response_code(404);
+	header('X-Robots-Tag: noindex, nofollow, noarchive');
+	header('X-EcomAE-Bos-Host-Gate: super-cp-only');
+	header('Content-Type: text/plain; charset=utf-8');
+	echo 'Not found.';
+	exit;
+}
+
 // Security headers (nginx ignores .htaccess so we set them in PHP)
 header('X-Robots-Tag: noindex, nofollow, noarchive');
 header('X-Content-Type-Options: nosniff');
