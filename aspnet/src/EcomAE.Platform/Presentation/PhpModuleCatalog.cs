@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Presentation;
 
 /// <summary>
 /// Helpers over the generated PHP module directory.
-/// Interactive module bodies remain on PHP; ASP.NET chrome lists every surface so none are omitted.
+/// Primary product clicks rewrite to ASP.NET browse routes; PHP stays under /php-reference/*.
 /// </summary>
 public static partial class PhpModuleCatalog
 {
@@ -58,7 +58,7 @@ public static partial class PhpModuleCatalog
         ["aspNetInteractiveComplete"] = 0,
         ["cutoverAllowed"] = false,
         ["readyForPhpRemoval"] = false,
-        ["deeplinkFloorOk"] = AllTrackedLinks().All(link => IsAllowedPhpDeeplink(link.Href)),
+        ["deeplinkFloorOk"] = AllTrackedLinks().All(link => IsAllowedTrackedHref(link.Href)),
         ["notes"] = new[]
         {
             "Live shared entries / /cp /erp /bos are ASP.NET (PHP style chrome).",
@@ -80,7 +80,34 @@ public static partial class PhpModuleCatalog
         => $"{surfaceAppPath}?php={Uri.EscapeDataString(phpHref)}";
 
     /// <summary>
-    /// Allowed hybrid iframe targets: PHP CP/ERP/BOS paths or storefront absolute/relative URLs.
+    /// Allowed tracked catalog hrefs under ASP.NET-primary policy:
+    /// ASP.NET browse routes and/or legacy PHP deeplinks (rewritten at click time).
+    /// </summary>
+    public static bool IsAllowedTrackedHref(string? href)
+        => IsAllowedAspNetBrowseHref(href) || IsAllowedPhpDeeplink(href);
+
+    /// <summary>ASP.NET product browse routes used as primary catalog hrefs.</summary>
+    public static bool IsAllowedAspNetBrowseHref(string? href)
+    {
+        if (string.IsNullOrWhiteSpace(href))
+        {
+            return false;
+        }
+
+        var value = href.Trim();
+        return value.Equals("/", StringComparison.Ordinal)
+            || value.Equals("/cp", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/erp", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/bos", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/storefront/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/marketing/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Allowed hybrid iframe / PHP-reference targets: PHP CP/ERP/BOS paths or storefront absolute/relative URLs.
     /// Rejects javascript:/data:/aspnet app routes masquerading as PHP modules.
     /// </summary>
     public static bool IsAllowedPhpDeeplink(string? href)

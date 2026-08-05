@@ -31,7 +31,7 @@ public sealed class PhpModuleCatalogTests
     public void BuildSummaryReportsHybridPolicyAndZeroInteractiveComplete()
     {
         var summary = PhpModuleCatalog.BuildSummary();
-        Assert.Equal("hybrid-deeplink-to-php-until-aspnet-module-complete", summary["policy"]);
+        Assert.Equal("aspnet-primary-browse-php-reference-only", summary["policy"]);
         Assert.Equal(0, summary["aspNetInteractiveComplete"]);
         Assert.False((bool)summary["cutoverAllowed"]);
         Assert.False((bool)summary["readyForPhpRemoval"]);
@@ -68,11 +68,11 @@ public sealed class PhpModuleCatalogTests
     {
         Assert.True(PhpModuleCatalog.TotalTrackedCount >= 725);
         var bad = PhpModuleCatalog.AllTrackedLinks()
-            .Where(link => !PhpModuleCatalog.IsAllowedPhpDeeplink(link.Href))
+            .Where(link => !PhpModuleCatalog.IsAllowedTrackedHref(link.Href))
             .Select(link => $"{link.Id}:{link.Href}")
             .Take(20)
             .ToArray();
-        Assert.True(bad.Length == 0, "disallowed deeplinks: " + string.Join(", ", bad));
+        Assert.True(bad.Length == 0, "disallowed tracked hrefs: " + string.Join(", ", bad));
     }
 
     [Fact]
