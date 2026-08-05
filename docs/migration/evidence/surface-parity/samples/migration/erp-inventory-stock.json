@@ -2,11 +2,11 @@
   "ok": true,
   "surface": "erp",
   "summary": {
-    "rowCount": 0,
-    "qtyOnHand": 0,
-    "stockValue": 0,
-    "warehouseCount": 0,
-    "itemCount": 0,
+    "rowCount": 1,
+    "qtyOnHand": 10,
+    "stockValue": 100,
+    "warehouseCount": 1,
+    "itemCount": 1,
     "source": "migration",
     "message": "TenantRegistry DB is not configured."
   },
@@ -14,7 +14,28 @@
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode contract sample; PHP remains authoritative",
+  "note": "migration-mode; stock[] sentinel from epc_erp_inventory_stock_report; PHP epc_erp_inventory.php authoritative; cutoverAllowed=false",
+  "stock": [
+    {
+      "id": 1,
+      "warehouseId": 1,
+      "itemId": 1,
+      "sku": "MIG-SKU-1",
+      "name": "Migration item",
+      "itemType": "part",
+      "unit": "ea",
+      "warehouseName": "Main",
+      "qtyOnHand": 10,
+      "avgUnitCost": 10,
+      "batchNo": "",
+      "variantLabel": "",
+      "expiryDate": "",
+      "timeUpdated": 0
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false

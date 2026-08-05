@@ -192,6 +192,10 @@ SUMMARY_CONTRACTS = {
         "summary",
         "taskCount,openCount,doneCount,overdueCount,cancelledCount,source,message",
     ),
+    "erp-report-center": (
+        "summary",
+        "reportCount,areaCount,selectedKey,selectedRowCount,source,message",
+    ),
     "cp-page-builder": (
         "summary",
         "layoutCount,publishedCount,draftCount,siteCount,source,message",
@@ -908,6 +912,14 @@ HYBRID_LIST_ITEM_FIELDS = {
     "erp-process-flow-tasks": (
         "tasks",
         ["id", "processId", "title", "reference", "priority", "status", "currentStepNo", "currentAssigneeId", "currentDepartment", "initiatorId", "subjectType", "subjectId", "startedAt", "dueAt", "completedAt", "timeCreated", "timeUpdated"],
+    ),
+    "erp-inventory-stock": (
+        "stock",
+        ["id", "warehouseId", "itemId", "sku", "name", "itemType", "unit", "warehouseName", "qtyOnHand", "avgUnitCost", "batchNo", "variantLabel", "expiryDate", "timeUpdated"],
+    ),
+    "erp-report-center": (
+        "reports",
+        ["key", "area", "name", "desc"],
     ),
     "cp-page-builder": (
         "layouts",

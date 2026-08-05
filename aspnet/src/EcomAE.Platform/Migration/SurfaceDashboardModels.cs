@@ -466,6 +466,30 @@ public sealed record ErpInventoryStockSummaryResult(
     string Source,
     string Message);
 
+/// <summary>One on-hand stock line — mirrors PHP <c>epc_erp_inventory_stock_report</c>.</summary>
+public sealed record ErpInventoryStockDigest(
+    long Id,
+    long WarehouseId,
+    long ItemId,
+    string Sku,
+    string Name,
+    string ItemType,
+    string Unit,
+    string WarehouseName,
+    decimal QtyOnHand,
+    decimal AvgUnitCost,
+    string BatchNo,
+    string VariantLabel,
+    string ExpiryDate,
+    long TimeUpdated);
+
+public sealed record ErpInventoryStockDigestResult(
+    ErpInventoryStockSummaryResult Summary,
+    IReadOnlyList<ErpInventoryStockDigest> Stock,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record CpCurrencyDigest(
     int Id,
     string IsoCode,
@@ -1462,6 +1486,30 @@ public sealed record ErpProcessFlowTaskDigest(
 public sealed record ErpProcessFlowTasksDigestResult(
     ErpProcessFlowTasksSummary Summary,
     IReadOnlyList<ErpProcessFlowTaskDigest> Tasks,
+    int Count,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_rc_registry</c> report metadata (run closures stay PHP).</summary>
+public sealed record ErpReportCenterReportDigest(
+    string Key,
+    string Area,
+    string Name,
+    string Desc);
+
+public sealed record ErpReportCenterSummary(
+    int ReportCount,
+    int AreaCount,
+    string SelectedKey,
+    int SelectedRowCount,
+    string Source,
+    string Message);
+
+public sealed record ErpReportCenterDigestResult(
+    ErpReportCenterSummary Summary,
+    IReadOnlyList<ErpReportCenterReportDigest> Reports,
+    IReadOnlyList<string> Columns,
+    IReadOnlyList<IReadOnlyDictionary<string, string>> Rows,
     int Count,
     string Source,
     string Message);

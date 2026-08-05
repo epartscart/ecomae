@@ -632,6 +632,10 @@ public static class EcomAeRoutes
     public const string ErpProcessFlowTasks = "/erp/process-flow-tasks";
     /// <summary>Process-flow tasks Blazor list (JSON digest remains <see cref="ErpProcessFlowTasks"/>).</summary>
     public const string ErpProcessFlowTasksApp = "/erp/process-flow-tasks-app";
+    /// <summary>Read-only ERP report-center registry (PHP <c>epc_rc_registry</c>; CSV/export remain PHP).</summary>
+    public const string ErpReportCenter = "/erp/report-center";
+    /// <summary>Report-center Blazor list (JSON digest remains <see cref="ErpReportCenter"/>).</summary>
+    public const string ErpReportCenterApp = "/erp/report-center-app";
     /// <summary>ERP fixed assets Blazor list (JSON digest remains <see cref="ErpFixedAssets"/>).</summary>
     public const string ErpFixedAssetsApp = "/erp/fixed-assets-app";
     /// <summary>ERP On-Premises deployment Blazor overview (PHP erp_tabs_on_premises.php remains primary until dual-sample).</summary>

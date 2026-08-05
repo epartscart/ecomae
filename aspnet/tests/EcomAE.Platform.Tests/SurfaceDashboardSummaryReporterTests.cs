@@ -40,7 +40,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var storages = await reporter.ListCpStoragesAsync(10);
         var audit = await reporter.ListBosAuditLogAsync(null, 10);
         var purchaseOrders = await reporter.ListErpPurchaseOrdersAsync(10);
-        var inventoryStock = await reporter.BuildErpInventoryStockSummaryAsync();
+        var inventoryStock = await reporter.BuildErpInventoryStockDigestAsync(10);
         var currencies = await reporter.ListCpCurrenciesAsync(10);
         var apiClients = await reporter.ListCpApiClientsMetaAsync(10);
         var powerBi = await reporter.BuildCpPowerBiDigestAsync(10);
@@ -79,6 +79,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var workspaceFavorites = await reporter.BuildErpWorkspaceFavoritesDigestAsync(10);
         var fixedAssets = await reporter.BuildErpFixedAssetsDigestAsync(10);
         var processFlowTasks = await reporter.BuildErpProcessFlowTasksDigestAsync(10);
+        var reportCenter = await reporter.BuildErpReportCenterDigestAsync(null, 10);
         var pageBuilder = await reporter.BuildCpPageBuilderDigestAsync(10);
         var productCatalogue = await reporter.BuildCpProductCatalogueDigestAsync(10);
         var platformGovernance = await reporter.BuildCpPlatformGovernanceDigestAsync(10);
@@ -205,6 +206,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", workspaceFavorites.Source);
         Assert.Equal("migration", fixedAssets.Source);
         Assert.Equal("migration", processFlowTasks.Source);
+        Assert.Equal("migration", reportCenter.Source);
+        Assert.Equal(33, reportCenter.Summary.ReportCount);
+        Assert.Equal(19, reportCenter.Summary.AreaCount);
+        Assert.Equal(33, reportCenter.Reports.Count);
         Assert.Equal("migration", pageBuilder.Source);
         Assert.Equal("migration", productCatalogue.Source);
         Assert.Equal("migration", platformGovernance.Source);
@@ -284,6 +289,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("shop_storages", LegacySurfaceDashboardSql.SelectCpStorages, StringComparison.Ordinal);
         Assert.Contains("epc_erp_purchase_orders", LegacySurfaceDashboardSql.SelectErpPurchaseOrders, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SelectErpInventoryStockSummary, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_inv_items", LegacySurfaceDashboardSql.SelectErpInventoryStockRows, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_inv_warehouses", LegacySurfaceDashboardSql.SelectErpInventoryStockRows, StringComparison.Ordinal);
         Assert.Contains("shop_currencies", LegacySurfaceDashboardSql.SelectCpCurrencies, StringComparison.Ordinal);
         Assert.Contains("epc_api_clients", LegacySurfaceDashboardSql.SelectCpApiClientsMeta, StringComparison.Ordinal);
         Assert.Contains("epc_power_bi_config", LegacySurfaceDashboardSql.SelectCpPowerBiConfig, StringComparison.Ordinal);

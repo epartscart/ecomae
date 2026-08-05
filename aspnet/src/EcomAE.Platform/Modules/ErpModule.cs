@@ -1750,6 +1750,8 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapGet(EcomAeRoutes.ErpInventoryStock, async (
             HttpContext context,
+            int? limit,
+            int? warehouseId,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
@@ -1760,14 +1762,18 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for inventory-stock digest.");
             }
 
-            var result = await dashboards.BuildErpInventoryStockSummaryAsync(cancellationToken);
+            var result = await dashboards.BuildErpInventoryStockDigestAsync(limit ?? 200, warehouseId, cancellationToken);
             return Results.Ok(new
             {
                 ok = true,
                 surface = "erp",
-                summary = result,
+                summary = result.Summary,
+                stock = result.Stock,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP inventory stock KPI digest. PHP epc_erp_inv_stock remains authoritative."
+                note = "Read-only ERP inventory stock KPIs + on-hand rows (epc_erp_inventory_stock_report). PHP epc_erp_inv_stock remains authoritative."
             });
         });
 
@@ -1936,6 +1942,37 @@ public sealed class ErpModule : ISurfaceModule
                 message = result.Message,
                 session = SessionPayload(session),
                 note = "Read-only epc_pf_cases KPIs + tasks (comments/step detail omitted). PHP epc_erp_processflow.php remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpReportCenter, async (
+            HttpContext context,
+            string? key,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for report-center digest.");
+            }
+
+            var result = await dashboards.BuildErpReportCenterDigestAsync(key, limit ?? 100, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                summary = result.Summary,
+                reports = result.Reports,
+                columns = result.Columns,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_rc_registry mirror (+ optional table peek). PHP epc_erp_report_center.php CSV/export remains authoritative."
             });
         });
 

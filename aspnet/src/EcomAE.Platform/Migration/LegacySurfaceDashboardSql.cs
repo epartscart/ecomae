@@ -177,6 +177,16 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` IN ('cancelled','rejected')) AS cancelled_count
         """;
 
+    /// <summary>
+    /// Safe generic report-center table peek (PHP <c>epc_rc_table_rows</c> subset).
+    /// Table name is substituted only from an allowlisted registry entry — never from request input.
+    /// </summary>
+    public const string SelectErpReportCenterTableRowsTemplate = """
+        SELECT * FROM `{0}`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>Process-flow cases — omits comments/step detail; PHP processflow UI remains authoritative.</summary>
     public const string SelectErpProcessFlowTasks = """
         SELECT `id`, IFNULL(`process_id`,0) AS process_id, IFNULL(`title`,'') AS title,
@@ -491,6 +501,28 @@ public static class LegacySurfaceDashboardSql
                COUNT(DISTINCT `warehouse_id`) AS warehouse_count,
                COUNT(DISTINCT `item_id`) AS item_count
         FROM `epc_erp_inv_stock`
+        """;
+
+    /// <summary>
+    /// PHP <c>epc_erp_inventory_stock_report</c> join — active items only; optional warehouse filter.
+    /// </summary>
+    public const string SelectErpInventoryStockRows = """
+        SELECT s.`id`, s.`warehouse_id`, s.`item_id`,
+               IFNULL(i.`sku`, '') AS sku, IFNULL(i.`name`, '') AS name,
+               IFNULL(i.`item_type`, '') AS item_type, IFNULL(i.`unit`, '') AS unit,
+               IFNULL(w.`name`, '') AS warehouse_name,
+               IFNULL(s.`qty_on_hand`, 0) AS qty_on_hand,
+               IFNULL(s.`avg_unit_cost`, 0) AS avg_unit_cost,
+               IFNULL(s.`batch_no`, '') AS batch_no,
+               IFNULL(s.`variant_label`, '') AS variant_label,
+               IFNULL(s.`expiry_date`, '') AS expiry_date,
+               IFNULL(s.`time_updated`, 0) AS time_updated
+        FROM `epc_erp_inv_stock` s
+        INNER JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id` AND i.`active` = 1
+        INNER JOIN `epc_erp_inv_warehouses` w ON w.`id` = s.`warehouse_id`
+        WHERE (@warehouseId = 0 OR s.`warehouse_id` = @warehouseId)
+        ORDER BY w.`name`, i.`sku`, s.`batch_no`
+        LIMIT @limit
         """;
 
     public const string SelectCpCurrencies = """

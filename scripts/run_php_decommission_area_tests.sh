@@ -175,10 +175,10 @@ done
 
 # Live surface digest exact-routes (68/68) expect ASP.NET 401 unauthorized JSON (admin cookie for 200).
 mapfile -t DIGEST_ROUTES < <(grep -E '^location = /(cp|erp|bos)/' "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" | sed -E 's/^location = ([^ {]+).*/\1/')
-if [[ "${#DIGEST_ROUTES[@]}" -ne 130 ]]; then
-  record "surface-digest-route-inventory" fail "expected 130 digest routes, found ${#DIGEST_ROUTES[@]}"
+if [[ "${#DIGEST_ROUTES[@]}" -ne 131 ]]; then
+  record "surface-digest-route-inventory" fail "expected 131 digest routes, found ${#DIGEST_ROUTES[@]}"
 else
-  record "surface-digest-route-inventory" pass "130 CP/ERP/BOS digest exact-routes in shadow example"
+  record "surface-digest-route-inventory" pass "131 CP/ERP/BOS digest exact-routes in shadow example"
 fi
 for path in "${DIGEST_ROUTES[@]}"; do
   code="$(curl -sS -m 20 -A 'Mozilla/5.0' -o /tmp/area.body -w '%{http_code}' "https://www.ecomae.com${path}" || echo 000)"

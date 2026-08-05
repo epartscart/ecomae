@@ -13,8 +13,8 @@ import json
 from pathlib import Path
 
 expected = {
-    "deploy/aspnet/yarp-exact-routes-example.json": 186,
-    "deploy/aspnet/yarp-surface-digests-example.json": 130,
+    "deploy/aspnet/yarp-exact-routes-example.json": 187,
+    "deploy/aspnet/yarp-surface-digests-example.json": 131,
     "deploy/aspnet/yarp-storefront-digests-example.json": 7,
     # Keep in sync with scripts/validate_catalog_api_allowlist_sync.py (nginx exact-route floor).
     "deploy/aspnet/yarp-catalog-api-example.json": 19,

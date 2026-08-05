@@ -83,6 +83,7 @@ declare -A ROUTES=(
   [erp-workspace-favorites]="/erp/workspace-favorites?limit=5"
   [erp-fixed-assets]="/erp/fixed-assets?limit=5"
   [erp-process-flow-tasks]="/erp/process-flow-tasks?limit=5"
+  [erp-report-center]="/erp/report-center?limit=5"
   [cp-page-builder]="/cp/page-builder?limit=5"
   [cp-product-catalogue]="/cp/product-catalogue?limit=5"
   [cp-platform-governance]="/cp/platform-governance?limit=5"
