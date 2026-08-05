@@ -307,7 +307,7 @@ fi
 MARKER="$(curl -sS -A 'Mozilla/5.0' --max-time 15 "${PUBLIC_BASE}/epc-live-deploy-marker.txt?${Q}" || true)"
 printf 'public marker: %s\n' "$MARKER"
 if [[ "$MARKER" == *"$FULL"* ]] || [[ "$MARKER" == *"$SHA"* ]]; then
-  printf 'PASS public deploy marker matches published SHA\n'
+  printf 'PASS public deploy marker SHA matches checkout\n'
 else
   printf 'WARN public marker missing/mismatch — www docroot may not be the live root\n'
 fi
@@ -315,16 +315,31 @@ fi
 printf '\nPublished SHA: %s\nRelease: %s\n' "$SHA" "$RELEASE_DIR"
 printf 'Hard refresh: Ctrl+Shift+R on %s/\n' "$PUBLIC_BASE"
 
+write_marker_status() {
+  local st="$1"
+  local note="$2"
+  local line
+  line="$(printf 'status=%s sha=%s time=%s note=%s\n' "$st" "$FULL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$note")"
+  for dir in "${DOCROOTS[@]}"; do
+    [[ -d "$dir" ]] || continue
+    printf '%s' "$line" > "$dir/epc-live-deploy-marker.txt"
+  done
+}
+
 if [[ "$fail" -ne 0 ]]; then
-  printf '\nRESULT=FAIL — live still stale. Paste this whole log.\n' >&2
+  write_marker_status fail 'php-may-be-synced-but-public-aspnet-home-still-stale'
+  printf '\nRESULT=FAIL — live ASP.NET / is still stale (PHP /en/ sync is NOT enough).\n' >&2
+  printf 'Do NOT mark deploy complete. Paste this whole log.\n' >&2
   printf 'Debug:\n' >&2
   printf '  readlink -f %s/current; ls -l %s/current/platform/EcomAE.Platform.dll\n' "$RELEASE_ROOT" "$RELEASE_ROOT" >&2
   printf '  systemctl cat ecomae-platform.service | sed -n "1,20p"\n' >&2
   printf '  ss -lntp | grep 5100 || netstat -lntp | grep 5100\n' >&2
+  printf '  curl -sS http://127.0.0.1:5100/ | grep -o "action=\\\"[^\"]*\\\"" | sort -u | head\n' >&2
   printf '  journalctl -u ecomae-platform.service -n 100 --no-pager\n' >&2
   printf '  bash scripts/cloudpanel_discover_epartscart_nginx_conf.sh | head -100\n' >&2
   exit 1
 fi
 
+write_marker_status pass 'public-home-and-search-redirect-proven'
 printf '\nRESULT=PASS — public epartscart shows new storefront + search redirect (SHA %s)\n' "$SHA"
 exit 0

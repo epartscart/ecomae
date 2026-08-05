@@ -14,8 +14,20 @@ trap 'rm -f "$TMP"' EXIT
 printf '======== PROVE PUBLIC DEPLOY (%s) ========\n' "$PUBLIC_BASE"
 curl -sS -A 'Mozilla/5.0' --max-time 45 "${PUBLIC_BASE}/?${Q}" -o "$TMP" \
   -w 'home http=%{http_code} bytes=%{size_download}\n'
+MARKER="$(curl -sS -A 'Mozilla/5.0' --max-time 15 "${PUBLIC_BASE}/epc-live-deploy-marker.txt?${Q}" || true)"
+printf 'marker: %s\n' "$MARKER"
+if [[ "$MARKER" == *'status=pass'* ]]; then
+  printf 'PASS  deploy marker status=pass\n'
+elif [[ "$MARKER" == *'status=pending'* ]] || [[ "$MARKER" == *'status=fail'* ]]; then
+  printf 'FAIL  deploy marker is %s (PHP sync ≠ ASP.NET publish)\n' "$(printf '%s' "$MARKER" | awk '{print $1}')"
+  fail=1
+elif [[ -n "$MARKER" ]]; then
+  printf 'WARN  deploy marker has no status= field (old script); ignoring sha-only\n'
+else
+  printf 'WARN  deploy marker missing\n'
+fi
 
-fail=0
+fail="${fail:-0}"
 if grep -Fq 'action="/en/shop/part_search"' "$TMP"; then
   printf 'PASS  home forms post to /en/shop/part_search\n'
 else
