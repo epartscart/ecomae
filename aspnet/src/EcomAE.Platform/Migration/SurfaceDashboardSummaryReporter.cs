@@ -886,6 +886,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     Convert.ToString(reader["normal_side"] is DBNull ? string.Empty : reader["normal_side"], CultureInfo.InvariantCulture) ?? string.Empty,
                     Convert.ToInt64(reader["parent_id"] is DBNull ? 0 : reader["parent_id"], CultureInfo.InvariantCulture),
                     Convert.ToDecimal(reader["opening_balance"] is DBNull ? 0m : reader["opening_balance"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["balance"] is DBNull ? 0m : reader["balance"], CultureInfo.InvariantCulture),
                     Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0));
             }
 
@@ -1312,7 +1313,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var empty = new ErpInventoryStockSummaryResult(0, 0m, 0m, 0, 0, "migration", "TenantRegistry DB is not configured.");
         if (!_connections.IsConfigured)
         {
-            return new(empty, [], 0, "migration", empty.Message);
+            return new(empty, [], [], 0, "migration", empty.Message);
         }
 
         try
@@ -1363,12 +1364,34 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(summary, rows, rows.Count, "database", string.Empty);
+            var low = new List<ErpInventoryLowStockDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryLowStockRows;
+                AddParameter(list, "@limit", Math.Min(safeLimit, 200));
+                AddParameter(list, "@warehouseId", wh);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    low.Add(new ErpInventoryLowStockDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["warehouse_id"] is DBNull ? 0 : reader["warehouse_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["item_id"] is DBNull ? 0 : reader["item_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["sku"] is DBNull ? string.Empty : reader["sku"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["warehouse_name"] is DBNull ? string.Empty : reader["warehouse_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["qty_on_hand"] is DBNull ? 0m : reader["qty_on_hand"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["reorder_level"] is DBNull ? 0m : reader["reorder_level"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["avg_unit_cost"] is DBNull ? 0m : reader["avg_unit_cost"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(summary, rows, low, rows.Count, "database", string.Empty);
         }
         catch (Exception ex)
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
-            return new(err, [], 0, "database-error", ex.Message);
+            return new(err, [], [], 0, "database-error", ex.Message);
         }
     }
 
@@ -3489,48 +3512,19 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(missing, reports, [], [], reports.Count, missing.Source, missing.Message);
         }
 
-        if (string.IsNullOrWhiteSpace(entry.Table) || !Regex.IsMatch(entry.Table, "^[A-Za-z0-9_]+$"))
-        {
-            var noTable = new ErpReportCenterSummary(
-                reports.Count,
-                areaCount,
-                selectedKey,
-                0,
-                "migration",
-                "Selected report uses PHP-only source; table peek not available. PHP epc_rc_run remains authoritative.");
-            return new(noTable, reports, [], [], reports.Count, noTable.Source, noTable.Message);
-        }
-
         try
         {
             await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            command.CommandText = string.Format(
-                CultureInfo.InvariantCulture,
-                LegacySurfaceDashboardSql.SelectErpReportCenterTableRowsTemplate,
-                entry.Table);
-            AddParameter(command, "@limit", safeLimit);
+            IReadOnlyList<string> columns;
+            IReadOnlyList<IReadOnlyDictionary<string, string>> rows;
 
-            var columns = new List<string>();
-            var rows = new List<IReadOnlyDictionary<string, string>>();
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            for (var i = 0; i < reader.FieldCount; i++)
+            if (entry.Kind == ErpReportCenterRegistry.SourceKind.Computed)
             {
-                columns.Add(reader.GetName(i));
+                (columns, rows) = await RunErpReportCenterComputedAsync(connection, entry.Key, safeLimit, cancellationToken).ConfigureAwait(false);
             }
-
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            else
             {
-                var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var col in columns)
-                {
-                    var val = reader[col];
-                    dict[col] = val is DBNull or null
-                        ? string.Empty
-                        : Convert.ToString(val, CultureInfo.InvariantCulture) ?? string.Empty;
-                }
-
-                rows.Add(dict);
+                (columns, rows) = await RunErpReportCenterTablePeekAsync(connection, entry, safeLimit, cancellationToken).ConfigureAwait(false);
             }
 
             var summary = new ErpReportCenterSummary(reports.Count, areaCount, selectedKey, rows.Count, "database", string.Empty);
@@ -3542,6 +3536,248 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(err, reports, [], [], reports.Count, "database-error", ex.Message);
         }
     }
+
+    private async Task<(IReadOnlyList<string> Columns, IReadOnlyList<IReadOnlyDictionary<string, string>> Rows)> RunErpReportCenterTablePeekAsync(
+        DbConnection connection,
+        ErpReportCenterRegistry.Entry entry,
+        int safeLimit,
+        CancellationToken cancellationToken)
+    {
+        foreach (var table in new[] { entry.Table, entry.FallbackTable })
+        {
+            if (string.IsNullOrWhiteSpace(table) || !Regex.IsMatch(table, "^[A-Za-z0-9_]+$"))
+            {
+                continue;
+            }
+
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = string.Format(
+                    CultureInfo.InvariantCulture,
+                    LegacySurfaceDashboardSql.SelectErpReportCenterTableRowsTemplate,
+                    table);
+                AddParameter(command, "@limit", safeLimit);
+                var (columns, rows) = await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
+                if (rows.Count > 0 || string.IsNullOrWhiteSpace(entry.FallbackTable) || table == entry.FallbackTable)
+                {
+                    return (columns, rows);
+                }
+            }
+            catch
+            {
+                // try fallback table
+            }
+        }
+
+        return ([], []);
+    }
+
+    private async Task<(IReadOnlyList<string> Columns, IReadOnlyList<IReadOnlyDictionary<string, string>> Rows)> RunErpReportCenterComputedAsync(
+        DbConnection connection,
+        string key,
+        int safeLimit,
+        CancellationToken cancellationToken)
+    {
+        switch (key.ToLowerInvariant())
+        {
+            case "ap_vendor_list":
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpSuppliers;
+                AddParameter(command, "@limit", safeLimit);
+                return await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
+            }
+            case "bank_accounts":
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpCashAccounts;
+                AddParameter(command, "@limit", safeLimit);
+                return await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
+            }
+            case "ar_customer_list":
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpCreditProfiles;
+                AddParameter(command, "@limit", safeLimit);
+                return await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
+            }
+            case "credit_holds":
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpCreditHolds;
+                AddParameter(command, "@limit", safeLimit);
+                return await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
+            }
+            case "gl_trial_balance":
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpTrialBalanceRows;
+                AddParameter(command, "@limit", safeLimit);
+                var (columns, all) = await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
+                var filtered = all
+                    .Where(r => Math.Abs(ParseDecimal(r.GetValueOrDefault("balance"))) >= 0.005m)
+                    .Select(r =>
+                    {
+                        var bal = ParseDecimal(r.GetValueOrDefault("balance"));
+                        var side = r.GetValueOrDefault("normal_side") ?? "debit";
+                        var debit = 0m;
+                        var credit = 0m;
+                        if (side == "debit")
+                        {
+                            if (bal >= 0) debit = bal; else credit = Math.Abs(bal);
+                        }
+                        else
+                        {
+                            if (bal >= 0) credit = bal; else debit = Math.Abs(bal);
+                        }
+
+                        return (IReadOnlyDictionary<string, string>)new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                        {
+                            ["code"] = r.GetValueOrDefault("code") ?? string.Empty,
+                            ["name"] = r.GetValueOrDefault("name") ?? string.Empty,
+                            ["account_type"] = r.GetValueOrDefault("account_type") ?? string.Empty,
+                            ["balance"] = bal.ToString(CultureInfo.InvariantCulture),
+                            ["debit"] = debit.ToString(CultureInfo.InvariantCulture),
+                            ["credit"] = credit.ToString(CultureInfo.InvariantCulture),
+                        };
+                    })
+                    .ToList();
+                return (["code", "name", "account_type", "balance", "debit", "credit"], filtered);
+            }
+            case "exec_working_capital":
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpReportCenterWorkingCapital;
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return ([], []);
+                }
+
+                var ar = Convert.ToDecimal(reader["ar"] is DBNull ? 0m : reader["ar"], CultureInfo.InvariantCulture);
+                var ap = Convert.ToDecimal(reader["ap"] is DBNull ? 0m : reader["ap"], CultureInfo.InvariantCulture);
+                var inv = Convert.ToDecimal(reader["inventory"] is DBNull ? 0m : reader["inventory"], CultureInfo.InvariantCulture);
+                var cash = Convert.ToDecimal(reader["cash"] is DBNull ? 0m : reader["cash"], CultureInfo.InvariantCulture);
+                var net = ar + inv + cash - ap;
+                var ratio = Math.Round((ar + inv + cash) / (ap > 0 ? ap : 1m), 2);
+                IReadOnlyDictionary<string, string> row = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Accounts Receivable"] = ar.ToString("0.00", CultureInfo.InvariantCulture),
+                    ["Accounts Payable"] = ap.ToString("0.00", CultureInfo.InvariantCulture),
+                    ["Inventory Value"] = inv.ToString("0.00", CultureInfo.InvariantCulture),
+                    ["Cash & Bank"] = cash.ToString("0.00", CultureInfo.InvariantCulture),
+                    ["Net Working Capital"] = net.ToString("0.00", CultureInfo.InvariantCulture),
+                    ["Current Ratio"] = ratio.ToString(CultureInfo.InvariantCulture),
+                };
+                return (row.Keys.ToList(), [row]);
+            }
+            case "exec_ar_aging":
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpReportCenterArAgingExec;
+                var buckets = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["current"] = 0, ["d30"] = 0, ["d60"] = 0, ["d90"] = 0, ["over90"] = 0,
+                };
+                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var amt = Convert.ToDecimal(reader["total_amount"] is DBNull ? 0m : reader["total_amount"], CultureInfo.InvariantCulture);
+                    var orderDate = Convert.ToInt64(reader["order_date"] is DBNull ? 0 : reader["order_date"], CultureInfo.InvariantCulture);
+                    var age = orderDate > 0 ? (now - orderDate) / 86400.0 : 0;
+                    if (age <= 30) buckets["current"] += amt;
+                    else if (age <= 60) buckets["d30"] += amt;
+                    else if (age <= 90) buckets["d60"] += amt;
+                    else if (age <= 120) buckets["d90"] += amt;
+                    else buckets["over90"] += amt;
+                }
+
+                IReadOnlyDictionary<string, string> row = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Current (0-30 days)"] = buckets["current"].ToString("0.00", CultureInfo.InvariantCulture),
+                    ["31-60 days"] = buckets["d30"].ToString("0.00", CultureInfo.InvariantCulture),
+                    ["61-90 days"] = buckets["d60"].ToString("0.00", CultureInfo.InvariantCulture),
+                    ["91-120 days"] = buckets["d90"].ToString("0.00", CultureInfo.InvariantCulture),
+                    ["Over 120 days"] = buckets["over90"].ToString("0.00", CultureInfo.InvariantCulture),
+                };
+                return (row.Keys.ToList(), [row]);
+            }
+            case "exec_cash_forecast":
+            {
+                var avgIn = 0m;
+                var avgOut = 0m;
+                for (var i = 3; i >= 1; i--)
+                {
+                    var from = new DateTimeOffset(DateTime.UtcNow.Date.AddMonths(-i).AddDays(1 - DateTime.UtcNow.Date.AddMonths(-i).Day), TimeSpan.Zero).ToUnixTimeSeconds();
+                    var toMonth = DateTime.UtcNow.Date.AddMonths(-i + 1).AddDays(1 - DateTime.UtcNow.Date.AddMonths(-i + 1).Day).AddSeconds(-1);
+                    var to = new DateTimeOffset(toMonth, TimeSpan.Zero).ToUnixTimeSeconds();
+                    await using var command = connection.CreateCommand();
+                    command.CommandText = LegacySurfaceDashboardSql.SelectErpReportCenterCashHistory;
+                    AddParameter(command, "@from", from);
+                    AddParameter(command, "@to", to);
+                    await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        avgIn += Convert.ToDecimal(reader["inflow"] is DBNull ? 0m : reader["inflow"], CultureInfo.InvariantCulture);
+                        avgOut += Convert.ToDecimal(reader["outflow"] is DBNull ? 0m : reader["outflow"], CultureInfo.InvariantCulture);
+                    }
+                }
+
+                avgIn /= 3m;
+                avgOut /= 3m;
+                var rows = new List<IReadOnlyDictionary<string, string>>();
+                for (var i = 1; i <= 3; i++)
+                {
+                    var month = DateTime.UtcNow.Date.AddMonths(i).ToString("MMM yyyy", CultureInfo.InvariantCulture);
+                    rows.Add(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        ["Month"] = month,
+                        ["Expected Inflow"] = Math.Round(avgIn, 2).ToString("0.00", CultureInfo.InvariantCulture),
+                        ["Expected Outflow"] = Math.Round(avgOut, 2).ToString("0.00", CultureInfo.InvariantCulture),
+                        ["Net Cash Flow"] = Math.Round(avgIn - avgOut, 2).ToString("0.00", CultureInfo.InvariantCulture),
+                    });
+                }
+
+                return (["Month", "Expected Inflow", "Expected Outflow", "Net Cash Flow"], rows);
+            }
+            default:
+                return ([], []);
+        }
+    }
+
+    private static async Task<(IReadOnlyList<string> Columns, IReadOnlyList<IReadOnlyDictionary<string, string>> Rows)> ReadDictionaryRowsAsync(
+        DbCommand command,
+        CancellationToken cancellationToken)
+    {
+        var columns = new List<string>();
+        var rows = new List<IReadOnlyDictionary<string, string>>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        for (var i = 0; i < reader.FieldCount; i++)
+        {
+            columns.Add(reader.GetName(i));
+        }
+
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var col in columns)
+            {
+                var val = reader[col];
+                dict[col] = val is DBNull or null
+                    ? string.Empty
+                    : Convert.ToString(val, CultureInfo.InvariantCulture) ?? string.Empty;
+            }
+
+            rows.Add(dict);
+        }
+
+        return (columns, rows);
+    }
+
+    private static decimal ParseDecimal(string? value) =>
+        decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : 0m;
 
     public async Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
@@ -3601,6 +3837,240 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             var summary = new ErpProcessFlowTasksSummary(tasks, open, done, overdue, cancelled, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpAgingDigestResult> BuildErpAgingDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var b = new[] { 30, 60, 90 };
+        var arLabels = new[] { "Not due", "1-30", "31-60", "61-90", "90+" };
+        var invLabels = new[] { "0-30", "31-60", "61-90", "91-180", "180+" };
+        var empty = new ErpAgingSummary(b[0], b[1], b[2], 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, arLabels, arLabels, invLabels, [], [], [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            var arMap = new Dictionary<long, ErpAgingPartyDigest>();
+            var arTotals = new decimal[5];
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpAgingArDocuments;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var outstanding = Convert.ToDecimal(reader["total_incl_vat"] is DBNull ? 0m : reader["total_incl_vat"], CultureInfo.InvariantCulture)
+                        - Convert.ToDecimal(reader["paid_amount"] is DBNull ? 0m : reader["paid_amount"], CultureInfo.InvariantCulture);
+                    if (outstanding <= 0.005m) continue;
+                    var due = Convert.ToInt64(reader["payment_due_date"] is DBNull ? 0 : reader["payment_due_date"], CultureInfo.InvariantCulture);
+                    if (due <= 0) due = Convert.ToInt64(reader["issue_date"] is DBNull ? 0 : reader["issue_date"], CultureInfo.InvariantCulture);
+                    var days = due > 0 ? (int)((now - due) / 86400) : 0;
+                    var idx = AgingBucketIndex(days, b, overdue: true);
+                    var userId = Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture);
+                    var email = Convert.ToString(reader["email"] is DBNull ? string.Empty : reader["email"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var name = string.IsNullOrWhiteSpace(email) ? $"User #{userId}" : email;
+                    AccumulateAging(arMap, userId, name, idx, outstanding, arTotals);
+                }
+            }
+            catch { /* table may be missing */ }
+
+            var apMap = new Dictionary<long, ErpAgingPartyDigest>();
+            var apTotals = new decimal[5];
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpAgingApDocuments;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var outstanding = Convert.ToDecimal(reader["total_amount"] is DBNull ? 0m : reader["total_amount"], CultureInfo.InvariantCulture)
+                        - Convert.ToDecimal(reader["paid"] is DBNull ? 0m : reader["paid"], CultureInfo.InvariantCulture);
+                    if (outstanding <= 0.005m) continue;
+                    var d = Convert.ToInt64(reader["purchase_date"] is DBNull ? 0 : reader["purchase_date"], CultureInfo.InvariantCulture);
+                    var days = d > 0 ? (int)((now - d) / 86400) : 0;
+                    var idx = AgingBucketIndex(days, b, overdue: true);
+                    var supplierId = Convert.ToInt64(reader["supplier_id"] is DBNull ? 0 : reader["supplier_id"], CultureInfo.InvariantCulture);
+                    var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(name)) name = $"Supplier #{supplierId}";
+                    AccumulateAging(apMap, supplierId, name, idx, outstanding, apTotals);
+                }
+            }
+            catch { /* table may be missing */ }
+
+            var invMap = new Dictionary<long, ErpAgingPartyDigest>();
+            var invTotals = new decimal[5];
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpAgingInventoryRows;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var qty = Convert.ToDecimal(reader["qty_on_hand"] is DBNull ? 0m : reader["qty_on_hand"], CultureInfo.InvariantCulture);
+                    var cost = Convert.ToDecimal(reader["avg_unit_cost"] is DBNull ? 0m : reader["avg_unit_cost"], CultureInfo.InvariantCulture);
+                    var value = Math.Round(qty * cost, 2);
+                    if (value <= 0.005m) continue;
+                    var lastIn = Convert.ToInt64(reader["last_in"] is DBNull ? 0 : reader["last_in"], CultureInfo.InvariantCulture);
+                    if (lastIn <= 0) lastIn = Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture);
+                    var days = lastIn > 0 ? (int)((now - lastIn) / 86400) : 0;
+                    var idx = AgingBucketIndex(days, b, overdue: false);
+                    var itemId = Convert.ToInt64(reader["item_id"], CultureInfo.InvariantCulture);
+                    var sku = Convert.ToString(reader["sku"] is DBNull ? string.Empty : reader["sku"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var label = string.IsNullOrWhiteSpace(sku) ? name : $"{sku} · {name}";
+                    AccumulateAging(invMap, itemId, label, idx, value, invTotals);
+                }
+            }
+            catch { /* table may be missing */ }
+
+            var arRows = arMap.Values.OrderByDescending(r => r.Total).Take(safeLimit).ToList();
+            var apRows = apMap.Values.OrderByDescending(r => r.Total).Take(safeLimit).ToList();
+            var invRows = invMap.Values.OrderByDescending(r => r.Total).Take(safeLimit).ToList();
+            var summary = new ErpAgingSummary(
+                b[0], b[1], b[2],
+                Math.Round(arTotals.Sum(), 2),
+                Math.Round(apTotals.Sum(), 2),
+                Math.Round(invTotals.Sum(), 2),
+                "database",
+                string.Empty);
+            return new(summary, arLabels, arLabels, invLabels, arRows, apRows, invRows, arRows.Count + apRows.Count + invRows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, arLabels, arLabels, invLabels, [], [], [], 0, "database-error", ex.Message);
+        }
+    }
+
+    private static int AgingBucketIndex(int days, int[] b, bool overdue)
+    {
+        if (overdue)
+        {
+            if (days <= 0) return 0;
+            if (days <= b[0]) return 1;
+            if (days <= b[1]) return 2;
+            if (days <= b[2]) return 3;
+            return 4;
+        }
+
+        if (days <= b[0]) return 0;
+        if (days <= b[1]) return 1;
+        if (days <= b[2]) return 2;
+        if (days <= b[2] * 2) return 3;
+        return 4;
+    }
+
+    private static void AccumulateAging(
+        Dictionary<long, ErpAgingPartyDigest> map,
+        long key,
+        string name,
+        int idx,
+        decimal amount,
+        decimal[] totals)
+    {
+        totals[idx] += amount;
+        if (!map.TryGetValue(key, out var row))
+        {
+            row = new ErpAgingPartyDigest(name, 0, 0, 0, 0, 0, 0);
+        }
+
+        var buckets = new[] { row.Bucket0, row.Bucket1, row.Bucket2, row.Bucket3, row.Bucket4 };
+        buckets[idx] += amount;
+        map[key] = new ErpAgingPartyDigest(name, buckets[0], buckets[1], buckets[2], buckets[3], buckets[4], row.Total + amount);
+    }
+
+    public async Task<ErpInventoryMovementsDigestResult> BuildErpInventoryMovementsDigestAsync(
+        int limit,
+        int? itemId = null,
+        int? warehouseId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var item = itemId is > 0 ? itemId.Value : 0;
+        var wh = warehouseId is > 0 ? warehouseId.Value : 0;
+        var empty = new ErpInventoryMovementsSummary(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var totalCount = 0;
+            try
+            {
+                await using var countCmd = connection.CreateCommand();
+                countCmd.CommandText = LegacySurfaceDashboardSql.CountErpInventoryMovements;
+                var scalar = await countCmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                totalCount = Convert.ToInt32(scalar is DBNull or null ? 0 : scalar, CultureInfo.InvariantCulture);
+            }
+            catch { /* ignore */ }
+
+            var chronological = new List<ErpInventoryMovementDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryMovements;
+                AddParameter(list, "@limit", safeLimit);
+                AddParameter(list, "@itemId", item);
+                AddParameter(list, "@warehouseId", wh);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                var balByKey = new Dictionary<string, decimal>(StringComparer.Ordinal);
+                var inTypes = new HashSet<string>(["opening", "purchase_in", "transfer_in", "return_in"], StringComparer.OrdinalIgnoreCase);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var movementType = Convert.ToString(reader["movement_type"] is DBNull ? string.Empty : reader["movement_type"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var warehouseIdVal = Convert.ToInt64(reader["warehouse_id"] is DBNull ? 0 : reader["warehouse_id"], CultureInfo.InvariantCulture);
+                    var itemIdVal = Convert.ToInt64(reader["item_id"] is DBNull ? 0 : reader["item_id"], CultureInfo.InvariantCulture);
+                    var qty = Convert.ToDecimal(reader["qty"] is DBNull ? 0m : reader["qty"], CultureInfo.InvariantCulture);
+                    var signed = inTypes.Contains(movementType) ? qty : -qty;
+                    var key = $"{itemIdVal}:{warehouseIdVal}";
+                    balByKey.TryGetValue(key, out var bal);
+                    bal += signed;
+                    balByKey[key] = bal;
+                    chronological.Add(new ErpInventoryMovementDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        movementType,
+                        warehouseIdVal,
+                        itemIdVal,
+                        Convert.ToString(reader["sku"] is DBNull ? string.Empty : reader["sku"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["item_name"] is DBNull ? string.Empty : reader["item_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["warehouse_name"] is DBNull ? string.Empty : reader["warehouse_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        qty,
+                        signed,
+                        Convert.ToDecimal(reader["unit_cost"] is DBNull ? 0m : reader["unit_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_cost"] is DBNull ? 0m : reader["total_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["batch_no"] is DBNull ? string.Empty : reader["batch_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["reference"] is DBNull ? string.Empty : reader["reference"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["movement_date"] is DBNull ? 0 : reader["movement_date"], CultureInfo.InvariantCulture),
+                        Math.Round(bal, 3)));
+                }
+            }
+
+            chronological.Reverse();
+            var inCount = chronological.Count(m => m.SignedQty > 0);
+            var outCount = chronological.Count(m => m.SignedQty < 0);
+            var summary = new ErpInventoryMovementsSummary(
+                totalCount > 0 ? totalCount : chronological.Count,
+                inCount,
+                outCount,
+                chronological.Where(m => m.SignedQty > 0).Sum(m => m.Qty),
+                chronological.Where(m => m.SignedQty < 0).Sum(m => m.Qty),
+                "database",
+                string.Empty);
+            return new(summary, chronological, chronological.Count, "database", string.Empty);
         }
         catch (Exception ex)
         {

@@ -137,7 +137,9 @@ public sealed class LegacyChromeNavCatalogTests
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "General ledger PHP" && item.Href.Contains("tab=gl", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Warehouses list" && item.Href == "/erp/warehouses-app");
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Inventory stock" && item.Href == "/erp/inventory-stock-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Stock movements" && item.Href == "/erp/stock-movements-app");
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Report center" && item.Href == "/erp/report-center-app");
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Aging" && item.Href == "/erp/aging-app");
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Inventory PHP" && item.Href.Contains("tab=inventory", StringComparison.Ordinal));
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Suppliers list" && item.Href == "/erp/suppliers-app");
         Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Label == "Payables PHP" && item.Href.Contains("tab=payables", StringComparison.Ordinal));

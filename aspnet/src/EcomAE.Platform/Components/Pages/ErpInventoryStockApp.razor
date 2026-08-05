@@ -102,8 +102,40 @@
         </table>
     </div>
 
+    <h2 style="margin:1.2rem 0 .5rem;font-size:1rem;">Low stock (reorder)</h2>
+    <div class="epc-inv-table-wrap">
+        <table class="epc-inv-table">
+            <thead>
+                <tr>
+                    <th>Warehouse</th><th>SKU</th><th>Name</th><th>Qty</th><th>Reorder</th><th>Avg cost</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_lowStock.Count == 0)
+                {
+                    <tr><td colspan="6">No low-stock lines.</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _lowStock)
+                    {
+                        <tr>
+                            <td>@row.WarehouseName</td>
+                            <td>@row.Sku</td>
+                            <td>@row.Name</td>
+                            <td>@row.QtyOnHand.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@row.ReorderLevel.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@row.AvgUnitCost.ToString("N4", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
     <div class="epc-inv-note">
-        Source: @_summary.Source. Showing @_stock.Count.ToString(CultureInfo.InvariantCulture) of @_summary.RowCount.ToString(CultureInfo.InvariantCulture) rows.
+        Source: @_summary.Source. Showing @_stock.Count.ToString(CultureInfo.InvariantCulture) of @_summary.RowCount.ToString(CultureInfo.InvariantCulture) rows;
+        @_lowStock.Count.ToString(CultureInfo.InvariantCulture) low-stock alerts.
         PHP <code>epc_erp_inventory.php</code> remains authoritative for movements, transfers, and closing.
         @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
     </div>
@@ -114,6 +146,7 @@
     private bool _isAdmin;
     private ErpInventoryStockSummaryResult _summary = new(0, 0m, 0m, 0, 0, "migration", string.Empty);
     private IReadOnlyList<ErpInventoryStockDigest> _stock = [];
+    private IReadOnlyList<ErpInventoryLowStockDigest> _lowStock = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,5 +164,6 @@
         var result = await Dashboards.BuildErpInventoryStockDigestAsync(200, null, ctx.RequestAborted);
         _summary = result.Summary;
         _stock = result.Stock;
+        _lowStock = result.LowStock;
     }
 }

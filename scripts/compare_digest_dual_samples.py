@@ -196,6 +196,14 @@ SUMMARY_CONTRACTS = {
         "summary",
         "reportCount,areaCount,selectedKey,selectedRowCount,source,message",
     ),
+    "erp-aging": (
+        "summary",
+        "boundary1,boundary2,boundary3,arGrand,apGrand,inventoryGrand,source,message",
+    ),
+    "erp-stock-movements": (
+        "summary",
+        "movementCount,inCount,outCount,totalInQty,totalOutQty,source,message",
+    ),
     "cp-page-builder": (
         "summary",
         "layoutCount,publishedCount,draftCount,siteCount,source,message",
@@ -644,6 +652,7 @@ LIST_ITEM_FIELDS = {
         "normalSide",
         "parentId",
         "openingBalance",
+        "balance",
         "active",
     ],
     "erp-warehouses": ["id", "storageId", "code", "name", "active", "timeCreated"],
@@ -920,6 +929,14 @@ HYBRID_LIST_ITEM_FIELDS = {
     "erp-report-center": (
         "reports",
         ["key", "area", "name", "desc"],
+    ),
+    "erp-aging": (
+        "arRows",
+        ["name", "bucket0", "bucket1", "bucket2", "bucket3", "bucket4", "total"],
+    ),
+    "erp-stock-movements": (
+        "movements",
+        ["id", "movementType", "warehouseId", "itemId", "sku", "itemName", "warehouseName", "qty", "signedQty", "unitCost", "totalCost", "batchNo", "reference", "movementDate", "runningBalance"],
     ),
     "cp-page-builder": (
         "layouts",

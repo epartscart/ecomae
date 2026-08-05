@@ -95,7 +95,7 @@
   "builtAlready": [
     "Write-dryrun dual-sample contract floor 183/183 (writes=0; cutoverAllowed=false)",
     "Menus 726/726 digest-contract (cp-debug-console surface-field contract locked; metadata-only, no LFI; hybrid-directory-only=0)",
-    "Field floors + digest dual-sample contracts 139/139",
+    "Field floors + digest dual-sample contracts 141/141",
     "CP ajax goldens 254; ERP 321; BOS 231 (all writes=0)",
     "Module-ajax contract floor 254/254 aspnet\u2194php seeded baselines (migration-contract-golden)",
     "Storefront digests wired 7/7",
@@ -126,7 +126,7 @@
     "BOS ajax contract pairs 231/231 (writes=0)",
     "CP module-ajax contract pairs 254/254 (writes=0)",
     "cloudpanel_run_all_ajax_contract_floors.sh offline CI green",
-    "Surface digests wired 131/131 incl. /erp/process-flow-tasks (epc_pf_cases) + /erp/report-center (epc_rc_registry); PHP authoritative",
+    "Surface digests wired 133/133 incl. /erp/process-flow-tasks (epc_pf_cases) + /erp/report-center (epc_rc_registry); PHP authoritative",
     "ERP dashboard-summary contract expanded to full model incl. processOpen/Done/Overdue",
     "StorefrontPreviewApp analytics via PhpSurfaceHead only (Clarity in SSR HTML)",
     "Nonprofit industry title aligned to PHP Non-Profit"

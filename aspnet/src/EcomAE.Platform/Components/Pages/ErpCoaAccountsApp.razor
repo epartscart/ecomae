@@ -68,6 +68,7 @@
                     <th>Normal</th>
                     <th>Parent</th>
                     <th>Opening</th>
+                    <th>Balance</th>
                     <th>Active</th>
                     <th></th>
                 </tr>
@@ -75,7 +76,7 @@
             <tbody>
                 @if (_accounts.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="9">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -88,6 +89,7 @@
                             <td>@(string.IsNullOrWhiteSpace(a.NormalSide) ? "—" : a.NormalSide)</td>
                             <td>@(a.ParentId > 0 ? a.ParentId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(a.Active ? "yes" : "no")</td>
                             <td><a href="@_phpTab">Open</a></td>
                         </tr>

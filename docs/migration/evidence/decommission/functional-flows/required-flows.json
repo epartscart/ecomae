@@ -44,17 +44,21 @@
         "surface-parity/cp-tax-external-reporting-item-field-floor.json",
         "surface-parity/cp-electronic-reporting-item-field-floor.json",
         "surface-parity/cp-nl-reporting-item-field-floor.json",
-        "surface-parity/erp-report-center-item-field-floor.json"
+        "surface-parity/erp-report-center-item-field-floor.json",
+        "surface-parity/erp-aging-item-field-floor.json"
       ],
       "requiredEvidenceAny": [
         "surface-parity/samples/migration/erp-report-center.json",
+        "surface-parity/samples/migration/erp-aging.json",
         "decommission/staging-smoke/surface-digests-aspnet.json",
-        "hybrid-ui-dual-samples/aspnet-erp-report-center-hybrid-ui.json"
+        "hybrid-ui-dual-samples/aspnet-erp-report-center-hybrid-ui.json",
+        "hybrid-ui-dual-samples/aspnet-erp-aging-hybrid-ui.json"
       ],
       "liveSmokeRequiredForPhpRemoval": [
         "Named report fetch (sales|inventory|vat|ar-aging) totals match PHP report-center/export",
         "Worker ErpReportsDryRun remains writes=0 until dual-sample promotes live generation",
-        "ERP report-center digest registry (33 keys) dual-sample vs PHP epc_rc_registry (/erp/report-center)"
+        "ERP report-center digest registry (33 keys) dual-sample vs PHP epc_rc_registry (/erp/report-center)",
+        "ERP aging digest dual-sample vs PHP epc_erp_aging.php (/erp/aging)"
       ]
     },
     {

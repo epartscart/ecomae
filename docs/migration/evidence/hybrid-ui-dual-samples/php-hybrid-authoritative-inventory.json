@@ -386,6 +386,18 @@
       "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=rc_finance"
     },
     {
+      "stem": "erp-stock-movements",
+      "appRoute": "/erp/stock-movements-app",
+      "digestRoute": "/erp/stock-movements",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory"
+    },
+    {
+      "stem": "erp-aging",
+      "appRoute": "/erp/aging-app",
+      "digestRoute": "/erp/aging",
+      "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=aging"
+    },
+    {
       "stem": "cp-page-builder",
       "appRoute": "/cp/page-builder-app",
       "digestRoute": "/cp/page-builder",
@@ -849,5 +861,5 @@
     }
   ],
   "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP.",
-  "targetCount": 139
+  "targetCount": 141
 }

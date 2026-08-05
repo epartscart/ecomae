@@ -1769,11 +1769,12 @@ public sealed class ErpModule : ISurfaceModule
                 surface = "erp",
                 summary = result.Summary,
                 stock = result.Stock,
+                lowStock = result.LowStock,
                 count = result.Count,
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP inventory stock KPIs + on-hand rows (epc_erp_inventory_stock_report). PHP epc_erp_inv_stock remains authoritative."
+                note = "Read-only ERP inventory stock KPIs + on-hand/low-stock rows (epc_erp_inventory_stock_report / low_stock_lines). PHP epc_erp_inv_stock remains authoritative."
             });
         });
 
@@ -1972,7 +1973,70 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_rc_registry mirror (+ optional table peek). PHP epc_erp_report_center.php CSV/export remains authoritative."
+                note = "Read-only epc_rc_registry mirror (+ optional table/computed peek). PHP epc_erp_report_center.php CSV/export remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpAging, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for aging digest.");
+            }
+
+            var result = await dashboards.BuildErpAgingDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                summary = result.Summary,
+                arLabels = result.ArLabels,
+                apLabels = result.ApLabels,
+                inventoryLabels = result.InventoryLabels,
+                arRows = result.ArRows,
+                apRows = result.ApRows,
+                inventoryRows = result.InventoryRows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only AR/AP/inventory aging (epc_erp_aging.php). Interactive aging UX remains PHP."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpStockMovements, async (
+            HttpContext context,
+            int? limit,
+            int? itemId,
+            int? warehouseId,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for stock-movements digest.");
+            }
+
+            var result = await dashboards.BuildErpInventoryMovementsDigestAsync(limit ?? 200, itemId, warehouseId, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                summary = result.Summary,
+                movements = result.Movements,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only inventory movement ledger (epc_erp_inventory_ledger). Writes remain PHP."
             });
         });
 

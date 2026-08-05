@@ -1,0 +1,110 @@
+@page "/erp/stock-movements-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Stock movements · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Stock movements" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Movements">
+    <style>
+        .epc-mv-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#164e63 0%,#0e7490 45%,#155e75 100%); }
+        .epc-mv-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-mv-hero p { margin:0; color:rgba(255,255,255,.88); max-width:46rem; font-size:.92rem; }
+        .epc-mv-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-mv-cta a { display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem; text-decoration:none; color:#164e63; background:#cffafe; }
+        .epc-mv-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-mv-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-mv-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-mv-kpi strong { display:block; font-size:1.1rem; }
+        .epc-mv-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-mv-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-mv-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-mv-table th, .epc-mv-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-mv-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
+        .epc-mv-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #67e8f9; border-radius:.45rem; color:#164e63; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-mv-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-mv-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Stock movement ledger</h1>
+        <p>Read-only <code>epc_erp_inv_movements</code> with running balances (PHP <code>epc_erp_inventory_ledger</code>). Writes stay on PHP.</p>
+        <div class="epc-mv-cta">
+            <a href="@_phpTab">Open PHP inventory</a>
+            <a class="ghost" href="/erp/inventory-stock-app">On-hand stock</a>
+            <a class="ghost" href="/erp/stock-movements">JSON digest</a>
+        </div>
+    </section>
+
+    <div class="epc-mv-kpis">
+        <div class="epc-mv-kpi"><strong>@_summary.MovementCount.ToString(CultureInfo.InvariantCulture)</strong><span>Movements</span></div>
+        <div class="epc-mv-kpi"><strong>@_summary.InCount.ToString(CultureInfo.InvariantCulture)</strong><span>In lines</span></div>
+        <div class="epc-mv-kpi"><strong>@_summary.OutCount.ToString(CultureInfo.InvariantCulture)</strong><span>Out lines</span></div>
+        <div class="epc-mv-kpi"><strong>@_summary.TotalInQty.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Qty in</span></div>
+        <div class="epc-mv-kpi"><strong>@_summary.TotalOutQty.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Qty out</span></div>
+    </div>
+
+    <div class="epc-mv-table-wrap">
+        <table class="epc-mv-table">
+            <thead>
+                <tr>
+                    <th>Id</th><th>Date</th><th>Type</th><th>Warehouse</th><th>SKU</th><th>Item</th>
+                    <th>Qty</th><th>Signed</th><th>Unit cost</th><th>Balance</th><th>Ref</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_movements.Count == 0)
+                {
+                    <tr><td colspan="11">Nothing to show yet.</td></tr>
+                }
+                else
+                {
+                    @foreach (var m in _movements)
+                    {
+                        <tr>
+                            <td>@m.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@m.MovementDate.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@m.MovementType</td>
+                            <td>@m.WarehouseName</td>
+                            <td>@m.Sku</td>
+                            <td>@m.ItemName</td>
+                            <td>@m.Qty.ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td>@m.SignedQty.ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td>@m.UnitCost.ToString("N4", CultureInfo.InvariantCulture)</td>
+                            <td>@m.RunningBalance.ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td>@m.Reference</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-mv-note">Source: @_summary.Source. PHP <code>epc_erp_inventory.php</code> remains authoritative for record_movement / transfers.</div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private ErpInventoryMovementsSummary _summary = new(0, 0, 0, 0, 0, "migration", string.Empty);
+    private IReadOnlyList<ErpInventoryMovementDigest> _movements = [];
+    private readonly string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin) { Nav.NavigateTo("/erp/login", forceLoad: true); return; }
+        var result = await Dashboards.BuildErpInventoryMovementsDigestAsync(100);
+        _summary = result.Summary;
+        _movements = result.Movements;
+    }
+}

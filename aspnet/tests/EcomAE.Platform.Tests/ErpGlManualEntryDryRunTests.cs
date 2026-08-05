@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Tests;
 public sealed class ErpGlManualEntryDryRunTests
 {
     private static ErpCoaAccountDigest Coa(long id) =>
-        new(id, $"1{id}", "Acct", "asset", "debit", 0, 0m, true);
+        new(id, $"1{id}", "Acct", "asset", "debit", 0, 0m, 0m, true);
 
     [Fact]
     public void ConfirmWritesIsRefused()

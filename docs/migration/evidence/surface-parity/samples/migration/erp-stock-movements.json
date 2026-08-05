@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "surface": "erp",
+  "summary": {
+    "movementCount": 1,
+    "inCount": 1,
+    "outCount": 0,
+    "totalInQty": 10,
+    "totalOutQty": 0,
+    "source": "migration",
+    "message": "TenantRegistry DB is not configured."
+  },
+  "session": {
+    "kind": "Admin",
+    "user_id": 1
+  },
+  "note": "migration-mode; movements[] sentinel from epc_erp_inventory_ledger; PHP authoritative; cutoverAllowed=false",
+  "movements": [
+    {
+      "id": 1,
+      "movementType": "opening",
+      "warehouseId": 1,
+      "itemId": 1,
+      "sku": "MIG-SKU-1",
+      "itemName": "Migration item",
+      "warehouseName": "Main",
+      "qty": 10,
+      "signedQty": 10,
+      "unitCost": 1,
+      "totalCost": 10,
+      "batchNo": "",
+      "reference": "MIG",
+      "movementDate": 0,
+      "runningBalance": 10
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
+  "dualSampleBaseline": "migration-contract-golden",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
+}

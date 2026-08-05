@@ -636,6 +636,14 @@ public static class EcomAeRoutes
     public const string ErpReportCenter = "/erp/report-center";
     /// <summary>Report-center Blazor list (JSON digest remains <see cref="ErpReportCenter"/>).</summary>
     public const string ErpReportCenterApp = "/erp/report-center-app";
+    /// <summary>Read-only AR/AP/inventory aging (PHP <c>epc_erp_aging.php</c>).</summary>
+    public const string ErpAging = "/erp/aging";
+    /// <summary>Aging Blazor list (JSON digest remains <see cref="ErpAging"/>).</summary>
+    public const string ErpAgingApp = "/erp/aging-app";
+    /// <summary>Read-only inventory movement ledger (PHP <c>epc_erp_inventory_ledger</c>).</summary>
+    public const string ErpStockMovements = "/erp/stock-movements";
+    /// <summary>Stock movements Blazor list (JSON digest remains <see cref="ErpStockMovements"/>).</summary>
+    public const string ErpStockMovementsApp = "/erp/stock-movements-app";
     /// <summary>ERP fixed assets Blazor list (JSON digest remains <see cref="ErpFixedAssets"/>).</summary>
     public const string ErpFixedAssetsApp = "/erp/fixed-assets-app";
     /// <summary>ERP On-Premises deployment Blazor overview (PHP erp_tabs_on_premises.php remains primary until dual-sample).</summary>

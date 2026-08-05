@@ -1,0 +1,37 @@
+{
+  "role": "erp-stock-movements-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "erp-stock-movements",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_migration_digest_contract_samples.py",
+  "note": "Locks erp-stock-movements digest vs PHP epc_erp_inventory_ledger. Writes remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "movementCount",
+    "inCount",
+    "outCount",
+    "totalInQty",
+    "totalOutQty",
+    "source",
+    "message"
+  ],
+  "collectionKey": "movements",
+  "requiredItemFields": [
+    "id",
+    "movementType",
+    "warehouseId",
+    "itemId",
+    "sku",
+    "itemName",
+    "warehouseName",
+    "qty",
+    "signedQty",
+    "unitCost",
+    "totalCost",
+    "batchNo",
+    "reference",
+    "movementDate",
+    "runningBalance"
+  ]
+}

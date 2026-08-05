@@ -10,7 +10,8 @@
       "normalSide": "debit",
       "parentId": 0,
       "openingBalance": 0.0,
-      "active": true
+      "active": true,
+      "balance": 0.0
     }
   ],
   "count": 1,

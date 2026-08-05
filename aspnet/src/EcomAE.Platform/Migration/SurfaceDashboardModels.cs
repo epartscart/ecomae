@@ -330,6 +330,7 @@ public sealed record ErpCoaAccountDigest(
     string NormalSide,
     long ParentId,
     decimal OpeningBalance,
+    decimal Balance,
     bool Active);
 
 public sealed record ErpCoaAccountListResult(
@@ -483,9 +484,85 @@ public sealed record ErpInventoryStockDigest(
     string ExpiryDate,
     long TimeUpdated);
 
+public sealed record ErpInventoryLowStockDigest(
+    long Id,
+    long WarehouseId,
+    long ItemId,
+    string Sku,
+    string Name,
+    string WarehouseName,
+    decimal QtyOnHand,
+    decimal ReorderLevel,
+    decimal AvgUnitCost);
+
 public sealed record ErpInventoryStockDigestResult(
     ErpInventoryStockSummaryResult Summary,
     IReadOnlyList<ErpInventoryStockDigest> Stock,
+    IReadOnlyList<ErpInventoryLowStockDigest> LowStock,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpInventoryMovementDigest(
+    long Id,
+    string MovementType,
+    long WarehouseId,
+    long ItemId,
+    string Sku,
+    string ItemName,
+    string WarehouseName,
+    decimal Qty,
+    decimal SignedQty,
+    decimal UnitCost,
+    decimal TotalCost,
+    string BatchNo,
+    string Reference,
+    long MovementDate,
+    decimal RunningBalance);
+
+public sealed record ErpInventoryMovementsSummary(
+    int MovementCount,
+    int InCount,
+    int OutCount,
+    decimal TotalInQty,
+    decimal TotalOutQty,
+    string Source,
+    string Message);
+
+public sealed record ErpInventoryMovementsDigestResult(
+    ErpInventoryMovementsSummary Summary,
+    IReadOnlyList<ErpInventoryMovementDigest> Movements,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpAgingPartyDigest(
+    string Name,
+    decimal Bucket0,
+    decimal Bucket1,
+    decimal Bucket2,
+    decimal Bucket3,
+    decimal Bucket4,
+    decimal Total);
+
+public sealed record ErpAgingSummary(
+    int Boundary1,
+    int Boundary2,
+    int Boundary3,
+    decimal ArGrand,
+    decimal ApGrand,
+    decimal InventoryGrand,
+    string Source,
+    string Message);
+
+public sealed record ErpAgingDigestResult(
+    ErpAgingSummary Summary,
+    IReadOnlyList<string> ArLabels,
+    IReadOnlyList<string> ApLabels,
+    IReadOnlyList<string> InventoryLabels,
+    IReadOnlyList<ErpAgingPartyDigest> ArRows,
+    IReadOnlyList<ErpAgingPartyDigest> ApRows,
+    IReadOnlyList<ErpAgingPartyDigest> InventoryRows,
     int Count,
     string Source,
     string Message);
