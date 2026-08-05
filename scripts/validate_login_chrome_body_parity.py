@@ -35,6 +35,12 @@ def main() -> int:
         for needle in needles:
             if needle not in text:
                 errors.append(f"{name}: missing {needle}")
+        # Exactly one body-class bridge — duplicates re-assign document.body.className.
+        body_class_hits = text.count("<PhpChromeBodyClass")
+        if body_class_hits != 1:
+            errors.append(
+                f"{name}: expected exactly 1 <PhpChromeBodyClass>, found {body_class_hits}"
+            )
 
     for rel, needles in ASSET_LOCKS:
         path = ROOT / rel if rel.endswith(".php") else ROOT / "aspnet/src/EcomAE.Platform" / (
