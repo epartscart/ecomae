@@ -38,10 +38,15 @@ ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
   bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh
 # On mega-conf this is a no-op (prints NOTE); do not create a duplicate vhost.
 
-# Redeploy ASP.NET first (PHP-style storefront chrome + guest CP/ERP/BOS shells):
-export ECOMAE_BRANCH=cursor/aspnet-same-style-cut-php-links-7b3b
+# REQUIRED — redeploy ASP.NET binary BEFORE classic-entry probe.
+# Nginx install alone leaves the OLD thin storefront chrome (probe FAIL on Garage Manager / WhatsApp / AI).
+export ECOMAE_BRANCH=main
+git fetch origin main && git checkout -f main && git reset --hard origin/main
 bash scripts/cloudpanel_find_and_redeploy.sh
-# after merge: export ECOMAE_BRANCH=main && bash scripts/cloudpanel_find_and_redeploy.sh
+systemctl restart ecomae-platform.service
+curl -sS http://127.0.0.1:5100/health || true
+# Prove new chrome is loaded (must print Garage Manager):
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/storefront/app | grep -o 'Garage Manager' | head -n1
 
 # Installs into server{} by host:
 #   www.ecomae.com block ← www pack (marketing ASP.NET home + login bridges)

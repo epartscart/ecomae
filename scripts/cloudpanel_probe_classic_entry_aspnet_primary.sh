@@ -128,6 +128,9 @@ check_tenant_home_aspnet_php_style() {
   fi
   if is_aspnet_body "$body"; then
     say "FAIL  ${base}/ ASP.NET body missing PHP-style fingerprints (Garage Manager / WhatsApp / AI Parts Expert / search tabs)"
+    say "HINT  Stale ASP.NET binary — nginx classic-entry alone is not enough."
+    say "HINT  Run: export ECOMAE_BRANCH=main && bash scripts/cloudpanel_find_and_redeploy.sh"
+    say "HINT  Then: systemctl restart ecomae-platform.service && bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh"
     fail=$((fail + 1))
     return
   fi
