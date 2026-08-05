@@ -10,7 +10,7 @@ public sealed class EcomaeMarketingPagesTests
     public void CatalogCoversCoreMarketingRoutesFromPhpRouter()
     {
         Assert.True(EcomaeMarketingPages.Count >= 30);
-        Assert.Contains(EcomaeMarketingPages.All, p => p.Id == "home" && p.Href == EcomaeMarketingPages.LiveBase);
+        Assert.Contains(EcomaeMarketingPages.All, p => p.Id == "home" && p.Href == EcomaeMarketingPages.AspNetHome);
         Assert.Contains(EcomaeMarketingPages.All, p => p.Id == "platform");
         Assert.Contains(EcomaeMarketingPages.All, p => p.Id == "blockchain");
         Assert.Contains(EcomaeMarketingPages.All, p => p.Id == "docs");
@@ -30,11 +30,13 @@ public sealed class EcomaeMarketingPagesTests
         Assert.True(EcomaeMarketingPages.IsMarketingPhpPath("https://www.ecomae.com/blockchain"));
         Assert.False(EcomaeMarketingPages.IsMarketingPhpPath("/BOS/"));
         Assert.False(EcomaeMarketingPages.IsMarketingPhpPath("/CP/"));
+        // Primary product marketing routes are ASP.NET /marketing/* (not PHP live paths).
         Assert.False(EcomaeMarketingPages.IsMarketingPhpPath("/marketing/app"));
 
         foreach (var page in EcomaeMarketingPages.All)
         {
-            Assert.True(PhpModuleCatalog.IsAllowedPhpDeeplink(page.Href), page.Href);
+            Assert.True(PhpModuleCatalog.IsAllowedTrackedHref(page.Href), page.Href);
+            Assert.True(PhpModuleCatalog.IsAllowedAspNetBrowseHref(page.Href), page.Href);
         }
     }
 
