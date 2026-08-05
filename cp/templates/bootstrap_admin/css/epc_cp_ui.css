@@ -39,7 +39,7 @@
 	--epc-cp-gradient: linear-gradient(135deg, #3730a3 0%, #4f46e5 45%, #06b6d4 100%);
 	--epc-cp-gradient-sidebar: linear-gradient(180deg, #111827 0%, #1f2937 100%);
 	--epc-cp-focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.22);
-	--epc-cp-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	--epc-cp-font: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 /* ── Base typography ── */

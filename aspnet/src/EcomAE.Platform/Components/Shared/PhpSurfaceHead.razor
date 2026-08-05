@@ -129,14 +129,7 @@
 
     private bool IsBosSurface => Surface.Equals("bos", StringComparison.OrdinalIgnoreCase);
 
-    private IEnumerable<string> FontHrefs => Surface.Trim().ToLowerInvariant() switch
-    {
-        "storefront" => new[] { LegacyPhpFontAssets.PtSans, LegacyPhpFontAssets.OpenSans },
-        "erp" => new[] { LegacyPhpFontAssets.OpenSans, LegacyPhpFontAssets.FrauncesSora },
-        "bos" => new[] { LegacyPhpFontAssets.InterJetBrains, LegacyPhpFontAssets.OpenSans },
-        "marketing" => new[] { LegacyPhpFontAssets.SyneDmSans },
-        _ => new[] { LegacyPhpFontAssets.OpenSans }
-    };
+    private IEnumerable<string> FontHrefs => LegacyPhpFontAssets.FontHrefsFor(Surface);
 
     private IEnumerable<string> StylesheetHrefs
     {

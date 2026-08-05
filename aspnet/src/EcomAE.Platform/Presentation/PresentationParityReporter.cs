@@ -48,7 +48,7 @@ public sealed class PresentationParityReporter : IPresentationParityReporter
             "HONEST: Batch 1 puts PHP webfonts/CSS/analytics into <head> via PhpSurfaceHead + hybrid login enrichments. Full desktop pixel parity and interactive modules remain incomplete. PHP remains authoritative. See docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md.",
             surfaces,
             [
-                "PhpSurfaceHead (HeadOutlet) injects Open Sans / PT Sans / Fraunces+Sora / Inter+JetBrains / Syne+DM Sans + surface stylesheets + storefront GA4.",
+                "PhpSurfaceHead (HeadOutlet) injects unified Open Sans 14px for CP/ERP/BOS/storefront (PHP CP style.css); ERP keeps Fraunces+Sora headings; BOS JetBrains Mono; marketing Syne+DM Sans; + surface stylesheets + storefront GA4.",
                 "Login pages reuse epc_cp_login(_hero) CSS and catalogue PHP module cards/deeplinks.",
                 "Hybrid module directories on /cp|/erp|/bos|/storefront|/marketing/app (Batch 0).",
                 "Marketing preview ports PHP epm-hub (matrix/orbit/flow) via epc_ecomae_platform_marketing.css — live / stays PHP.",

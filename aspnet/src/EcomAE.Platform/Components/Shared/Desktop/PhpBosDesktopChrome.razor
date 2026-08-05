@@ -95,7 +95,8 @@
     .bos-body--topnav {
         --bos-topbar-height:52px; --bos-bg:#f0f2f5; --bos-ink:#1e293b; --bos-primary:#0ea5e9; --bos-primary-dark:#0284c7;
         --bos-topnav-bg:#000000; --bos-topnav-hover:rgba(255,255,255,.12); --bos-topnav-active:rgba(255,255,255,.18);
-        min-height:100vh; background:var(--bos-bg); color:var(--bos-ink); font-family: @(LegacyPhpFontAssets.StackFor("bos"));
+        min-height:100vh; background:var(--bos-bg); color:var(--bos-ink);
+        font-family: @(LegacyPhpFontAssets.StackFor("bos")); font-size: @(LegacyPhpFontAssets.BaseFontSize);
     }
     .bos-body--topnav a { color:inherit; text-decoration:none; }
     .bos-topnav { position:sticky; top:0; z-index:50; height:var(--bos-topbar-height); background:var(--bos-topnav-bg); color:#f5f5f5; }

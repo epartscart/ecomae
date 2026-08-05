@@ -300,11 +300,15 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 
 	
     <!-- CSS -->
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet" type="text/css"/>
 	<link href="assets/css/style_all.css?v=<?=(int)$DP_Template->data_value->version;?>" rel="stylesheet" type="text/css" title="default"/>
 	<style id="epc-fast-paint">
 	/* Override style_all preloader lock — never trap scroll behind a stuck white mask. */
 	html, body { overflow-x: hidden !important; overflow-y: auto !important; }
 	#preloader { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+	/* Unified product UI font (CP/ERP/BOS/storefront): Open Sans 14px. */
+	html, body { font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important; font-size: 14px; }
 	</style>
 	
 	<link href="css/catalogue/catalogue.css" rel="stylesheet" type="text/css"/>
