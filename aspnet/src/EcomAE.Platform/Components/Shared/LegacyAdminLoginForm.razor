@@ -11,24 +11,31 @@
         <div class="epc-login-error" id="wrong_authentication" style="display:none"></div>
     }
 
+    @* Always offer guest browse first — credentials are optional when bridge is unset. *@
+    <div style="margin:0 0 1rem;padding:.85rem 1rem;border-radius:.5rem;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;">
+        <strong style="display:block;margin-bottom:.35rem;">Enter without credentials</strong>
+        <p style="margin:0 0 .75rem;font-size:.9rem;line-height:1.4;">
+            Browse the full ASP.NET @SurfaceLabel shell now. Sign-in is only needed for live KPIs / writes.
+        </p>
+        <a class="epc-login-submit epc-login-submit-@Accent"
+           style="display:inline-flex;width:auto;padding:.75rem 1.2rem;text-decoration:none;align-items:center;font-size:1rem;"
+           href="@ShellHref"
+           data-epc-guest-browse="1">Enter @SurfaceLabel (no login)</a>
+    </div>
+
     @if (!LoginService.IsConfigured)
     {
-        <div class="epc-login-error" style="display:block;background:#eff6ff;color:#1e3a8a;border-color:#bfdbfe;">
-            ASP.NET sign-in bridge is not configured on this host yet
-            (<code>EcomAE__SecretSuccession</code> + DB).
-            You can still browse the ASP.NET @SurfaceLabel shell without login.
+        <div class="epc-login-error" style="display:block;background:#fff7ed;color:#9a3412;border-color:#fdba74;">
+            Credential form is hidden because the ASP.NET sign-in bridge is not configured
+            (<code>EcomAE__SecretSuccession</code> + DB). Use <strong>Enter @SurfaceLabel (no login)</strong> above.
         </div>
-        <p style="margin:1rem 0 .5rem;">
-            <a class="epc-login-submit epc-login-submit-@Accent"
-               style="display:inline-flex;width:auto;padding:.7rem 1.1rem;text-decoration:none;align-items:center;"
-               href="@ShellHref">Browse ASP.NET @SurfaceLabel (no login)</a>
-        </p>
         <p class="epc-login-bridge-note">
             Archive compare: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
         </p>
     }
     else
     {
+        <p style="margin:.25rem 0 .65rem;font-size:.82rem;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Or sign in with credentials</p>
         <form method="post" action="@EcomAE.Platform.Routing.EcomAeRoutes.LegacyAdminLogin" class="epc-login-html-form">
             <input type="hidden" name="surface" value="@SurfaceKey" />
             <input type="hidden" name="redirect" value="@RedirectPath" />
@@ -54,13 +61,8 @@
             </div>
             <button type="submit" class="epc-login-submit epc-login-submit-@Accent">@SubmitLabel</button>
         </form>
-        <p style="margin:1rem 0 .5rem;">
-            <a class="epc-login-submit epc-login-submit-@Accent"
-               style="display:inline-flex;width:auto;padding:.7rem 1.1rem;text-decoration:none;align-items:center;"
-               href="@ShellHref">Browse ASP.NET @SurfaceLabel (no login)</a>
-        </p>
         <p class="epc-login-bridge-note">
-            Or open shell: <a class="epc-login-php" href="@ShellHref">@ShellHref</a>
+            Shell: <a class="epc-login-php" href="@ShellHref">@ShellHref</a>
             · Archive: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
         </p>
     }

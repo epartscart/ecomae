@@ -1,8 +1,11 @@
 @using EcomAE.Platform.Auth
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
+@*
+  Guest-browse gate: never hard-redirect to login.
+  Product shells must remain visible without credentials; Sign in stays a soft CTA.
+*@
 @if (_ready)
 {
     @ChildContent
@@ -10,31 +13,21 @@
 
 @code {
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
-    [Parameter, EditorRequired] public string LoginPath { get; set; } = "/cp/login";
+    /// <summary>Retained for call sites; unused — guest browse does not force login.</summary>
+    [Parameter] public string LoginPath { get; set; } = "/cp/login";
+    /// <summary>Retained for call sites; unused — guest browse does not require admin.</summary>
     [Parameter] public bool RequireAdmin { get; set; } = true;
 
-    private bool _ready;
+    private bool _ready = true;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
-        var ctx = Http.HttpContext;
-        if (ctx is null)
-        {
-            _ready = true;
-            return;
-        }
-
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        var ok = RequireAdmin
-            ? session.Kind == LegacySessionKind.Admin
-            : session.IsAuthenticated;
-
-        if (!ok)
-        {
-            Nav.NavigateTo(LoginPath, forceLoad: true);
-            return;
-        }
-
+        // Always render ChildContent. Session checks belong in page KPI loaders.
+        _ = Sessions;
+        _ = Http;
+        _ = LoginPath;
+        _ = RequireAdmin;
         _ready = true;
+        return Task.CompletedTask;
     }
 }
