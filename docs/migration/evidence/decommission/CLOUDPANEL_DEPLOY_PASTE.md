@@ -39,9 +39,11 @@ ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
 # On mega-conf this is a no-op (prints NOTE); do not create a duplicate vhost.
 
 # Installs into server{} by host:
-#   www.ecomae.com block ← www pack (marketing home + login bridges)
-#   www.epartscart.com block ← tenant pack (storefront home + /cp|/erp|/bos/login)
-# Login bridges are required: apps 302 unauthenticated /cp → /cp/login.
+#   www.ecomae.com block ← www pack (marketing ASP.NET home + login bridges)
+#   www.epartscart.com block ← tenant pack:
+#     `/` = PHP same-to-same (full modex chrome — NOT Blazor /storefront/app)
+#     `/cp` `/erp` `/bos` + login bridges = ASP.NET
+# Login bridges required: apps 302 unauthenticated /cp → /cp/login.
 ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts

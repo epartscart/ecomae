@@ -120,6 +120,10 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
         is_php_ref = route.startswith("/php-reference/") and (
             "rewrite ^" in block_raw or "return 302" in block_raw or "alias " in block_raw
         )
+        # Tenant home may stay PHP same-to-same (full modex chrome) until Blazor dual-sample.
+        is_php_same_home = route == "/" and bool(
+            re.search(r"(?m)^\s*rewrite\s+\^\s+/index\.php(\s|last|;)", block_raw)
+        )
         is_login_bridge = route.rstrip("/").endswith("/login") or route in {
             "/cp/login",
             "/cp/login/",
@@ -128,8 +132,10 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
             "/bos/login",
             "/bos/login/",
         }
-        if not is_proxy and not is_php_ref:
-            raise SystemExit(f"ERROR: block must proxy_pass ASP.NET or php-reference ({route})")
+        if not is_proxy and not is_php_ref and not is_php_same_home:
+            raise SystemExit(
+                f"ERROR: block must proxy_pass ASP.NET, php-reference, or PHP same-home ({route})"
+            )
         if route in {
             "/",
             "/cp",
@@ -149,7 +155,9 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
                 raise SystemExit(
                     f"ERROR: tenant-shared URLs must stay unchanged — no return 302 in {route}"
                 )
-            if not is_proxy:
+            if route == "/" and is_php_same_home:
+                pass  # epartscart home: PHP presentation same-to-same
+            elif not is_proxy:
                 raise SystemExit(f"ERROR: shared entry {route} must proxy_pass ASP.NET")
         if is_login_bridge and not is_proxy:
             raise SystemExit(f"ERROR: login bridge {route} must proxy_pass ASP.NET")
@@ -289,6 +297,7 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
                     or "php-reference" in blk
                     or "epc_classic_php_passthrough" in blk
                     or "X-EcomAE-Route-Cutover" in blk
+                    or "rewrite ^ /index.php" in blk
                 ):
                     removed += 1
                     return ""
