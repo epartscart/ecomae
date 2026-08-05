@@ -40,10 +40,10 @@
                 <span class="epm-hub__headline-line epm-hub__headline-line--stack">Enterprise</span>
                 <span class="epm-hub__headline-line epm-hub__headline-line--cloud">ONE SYSTEM</span>
             </h1>
-            <p class="epm-hub__tagline-sub">ERP · Commerce · Compliance · Workflows · Intelligence · Blockchain Proof — one unified cloud, <a href="/marketing/business-continuity#cloud-continuity" style="color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(14,165,233,.5)">backup continuity</a> built in.</p>
+            <p class="epm-hub__tagline-sub">ERP · Commerce · Compliance · Workflows · Intelligence · Blockchain Proof — one unified cloud, <a href="/platform/business-continuity#cloud-continuity" style="color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(14,165,233,.5)">backup continuity</a> built in.</p>
             <p class="epm-hub__pill"><i class="fa fa-circle epm-hub__live-dot"></i> Data flowing · multi-tenant hub</p>
             <div class="epm-hub__cta">
-                <a class="epm-btn epm-btn--primary" href="/marketing/demo"><i class="fa fa-play-circle"></i> @EcomaeMarketingPages.DemoDays-day demo</a>
+                <a class="epm-btn epm-btn--primary" href="/platform/demo"><i class="fa fa-play-circle"></i> @EcomaeMarketingPages.DemoDays-day demo</a>
                 <a class="epm-btn epm-btn--ghost" href="@EcomaeMarketingPages.SuperCpUrl"><i class="fa fa-th-large"></i> Super CP</a>
             </div>
         </div>
@@ -58,7 +58,7 @@
                 var featured = n.Featured ? " epm-hub__node--featured" : "";
                 var delay = (i * 0.09).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
                 i++;
-                <a class="epm-hub__node@featured" href="/marketing/platform" style="--hub-i: @(deg)deg; --hub-delay: @(delay)s" title="@(n.Title) — @(n.Data)">
+                <a class="@($"epm-hub__node{featured}")" href="/platform" style="--hub-i: @(deg)deg; --hub-delay: @(delay)s" title="@(n.Title) — @(n.Data)">
                     <div class="epm-hub__node-inner">
                         <span class="epm-hub__node-tile"><i class="fa @n.Icon"></i></span>
                         <strong>@n.Title</strong>

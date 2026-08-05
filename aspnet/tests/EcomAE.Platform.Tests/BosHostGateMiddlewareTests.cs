@@ -25,9 +25,14 @@ public sealed class BosHostGateMiddlewareTests
     [InlineData("/bos/", true)]
     [InlineData("/bos/login", true)]
     [InlineData("/bos/app", true)]
+    [InlineData("/bos/tenants-app", true)]
+    [InlineData("/bos/fleet-summary", true)]
+    [InlineData("/bos/ajax-writes/catalog", true)]
     [InlineData("/BOS/", true)]
     [InlineData("/php-reference/bos", true)]
     [InlineData("/marketing/bos", false)]
+    [InlineData("/bos/what-is-a-business-operating-system", false)] // PHP marketing knowledge
+    [InlineData("/bos/blockchain-proof-layer", false)]
     [InlineData("/cp", false)]
     [InlineData("/erp/app", false)]
     public void ProductBosPathDetection(string path, bool isBos)

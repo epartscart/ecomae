@@ -2,7 +2,8 @@ namespace EcomAE.Platform.Presentation;
 
 /// <summary>
 /// Authoritative catalog of www.ecomae.com marketing routes.
-/// Primary Hrefs are ASP.NET /marketing/* pages (PHP style). PHP compare only via /php-reference/*.
+/// Catalog Hrefs remain ASP.NET /marketing/* scaffolds for parity tracking.
+/// Public navigation and stub redirects use PHP canonical paths (full pages).
 /// </summary>
 public static class EcomaeMarketingPages
 {
@@ -13,6 +14,10 @@ public static class EcomaeMarketingPages
     public const string PlatformErpUrl = "/erp";
     public const string ClientErpDemoUrl = "/erp";
     public const string PhpReferenceHome = "/php-reference/home";
+    /// <summary>
+    /// PHP marketing knowledge article. Bare <c>/bos</c> is product Super-CP BOS, not this page.
+    /// </summary>
+    public const string BosKnowledgePhp = "/bos/what-is-a-business-operating-system";
     public const int DemoDays = 3;
 
     public sealed record PageLink(string Id, string Label, string Href, string Group);
@@ -64,8 +69,104 @@ public static class EcomaeMarketingPages
         => All.GroupBy(p => p.Group);
 
     /// <summary>
+    /// Maps thin ASP.NET <c>/marketing/*</c> stubs to PHP canonical public paths.
+    /// Home app (<c>/marketing/app</c>) is not remapped — it is the ASP.NET home surface.
+    /// </summary>
+    public static bool TryMapMarketingStubToPhp(string? path, out string phpCanonical)
+    {
+        phpCanonical = "";
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var value = path.Trim();
+        var q = value.IndexOf('?', StringComparison.Ordinal);
+        var fragAt = value.IndexOf('#', StringComparison.Ordinal);
+        var cut = value.Length;
+        if (q >= 0)
+        {
+            cut = Math.Min(cut, q);
+        }
+
+        if (fragAt >= 0)
+        {
+            cut = Math.Min(cut, fragAt);
+        }
+
+        var bare = value[..cut].TrimEnd('/');
+        if (bare.Length == 0)
+        {
+            bare = "/";
+        }
+
+        var suffix = value[cut..];
+
+        if (!bare.StartsWith("/marketing/", StringComparison.OrdinalIgnoreCase)
+            && !bare.Equals("/marketing", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (bare.Equals("/marketing/app", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/marketing", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var slug = bare["/marketing".Length..].Trim('/');
+        if (string.IsNullOrEmpty(slug))
+        {
+            return false;
+        }
+
+        phpCanonical = (slug.ToLowerInvariant() switch
+        {
+            "platform" => "/platform",
+            "industries" => "/platform/industries",
+            "capabilities" => "/platform/capabilities",
+            "free-tools" => "/platform/free-tools",
+            "pricing" => "/platform/pricing",
+            "about" => "/platform/about",
+            "contact" => "/platform/contact",
+            "demo" => "/platform/demo",
+            "platform-guides" => "/platform/platform-guides",
+            "api-services" => "/platform/api-services",
+            "api-documentation" => "/platform/api-documentation",
+            "auto-price-ai" => "/platform/auto-price-ai",
+            "faq" => "/platform/faq",
+            "customer-results" => "/platform/customer-results",
+            "business-continuity" => "/platform/business-continuity",
+            "brochure" => "/brochure",
+            "brochure-cp" => "/brochure/cp",
+            "documentation" => "/documentation",
+            "compare" => "/compare",
+            "blockchain" => "/blockchain",
+            "bos" => BosKnowledgePhp,
+            "solutions" => "/solutions",
+            "legal" => "/legal",
+            "privacy" => "/privacy",
+            "terms" => "/terms",
+            "cookie-policy" => "/cookie-policy",
+            "security-policy" => "/security-policy",
+            "right-to-use" => "/right-to-use",
+            "trademark" => "/trademark",
+            "copyright" => "/copyright",
+            "data-protection" => "/data-protection",
+            "acceptable-use" => "/acceptable-use",
+            "confidentiality" => "/confidentiality",
+            "intellectual-property" => "/intellectual-property",
+            "blockchain-disclaimer" => "/blockchain-disclaimer",
+            "dmca" => "/dmca",
+            _ => "",
+        }) + suffix;
+
+        return phpCanonical.Length > suffix.Length;
+    }
+
+    /// <summary>
     /// Relative or absolute paths that are PHP marketing pages (not ASP.NET apps / operator chrome).
-    /// Marketing <c>/bos</c> is distinct from product <c>/BOS/</c>.
+    /// Marketing <c>/bos</c> knowledge articles are distinct from product <c>/BOS/</c>.
     /// </summary>
     public static bool IsMarketingPhpPath(string? href)
     {

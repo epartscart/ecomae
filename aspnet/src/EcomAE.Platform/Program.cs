@@ -645,6 +645,8 @@ app.UseResponseCompression();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 // Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/*.
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
+// Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home).
+app.UseMiddleware<MarketingStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 // BOS is Super-CP / platform only — never answer /bos on tenant hosts (epartscart, …).
 app.UseMiddleware<BosHostGateMiddleware>();
