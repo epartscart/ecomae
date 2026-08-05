@@ -1,7 +1,7 @@
 @*
-  Optional iframe that loads a live module inside product chrome.
-  Activated via ?php=/CP/... (or /ERP/ /BOS/ or www.ecomae.com marketing URLs)
-  on /cp/app|/erp/app|/bos/app|/storefront/app|/marketing/app.
+  Optional iframe that loads PHP reference (or allowed absolute tenant URL) inside ASP.NET chrome.
+  Protocol: product URLs stay ASP.NET; PHP only via /php-reference/*.
+  Activated via ?php=/php-reference/cp (legacy ?php=/CP/... is rewritten to reference).
 *@
 @using EcomAE.Platform.Presentation
 
@@ -9,11 +9,11 @@
 {
     <section class="epc-hybrid-frame">
         <div class="epc-hybrid-frame-bar">
-            <span>Workspace</span>
+            <span>PHP reference workspace</span>
             <a href="@SafePhpHref" target="_blank" rel="noopener">Open full page</a>
             <a href="@ClearHref">Close</a>
         </div>
-        <iframe class="epc-hybrid-iframe" src="@SafePhpHref" title="Module workspace" loading="lazy"></iframe>
+        <iframe class="epc-hybrid-iframe" src="@SafePhpHref" title="PHP reference workspace" loading="lazy"></iframe>
     </section>
 }
 
@@ -38,28 +38,29 @@
             return null;
         }
 
-        // Allow same-origin product chrome paths and known live tenant storefront absolute URLs.
-        if (href.StartsWith("/CP/", StringComparison.OrdinalIgnoreCase)
-            || href.StartsWith("/ERP/", StringComparison.OrdinalIgnoreCase)
-            || href.StartsWith("/BOS/", StringComparison.OrdinalIgnoreCase)
-            || href.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
-            || href.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
-            || href.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase)
-            || href.StartsWith("/content/", StringComparison.OrdinalIgnoreCase)
-            || href.Equals("/CP/", StringComparison.OrdinalIgnoreCase)
-            || href.Equals("/ERP/", StringComparison.OrdinalIgnoreCase)
-            || href.Equals("/BOS/", StringComparison.OrdinalIgnoreCase)
-            || EcomaeMarketingPages.IsMarketingPhpPath(href))
+        // Legacy product-tree deeplinks → PHP reference shells (never load /CP through Kestrel remap).
+        var rewritten = PhpSurfaceLinkMap.PhpReferenceOnlyHref(href.Trim());
+        if (!string.IsNullOrWhiteSpace(rewritten)
+            && rewritten.StartsWith("/php-reference/", StringComparison.OrdinalIgnoreCase))
         {
-            return href;
+            return rewritten;
         }
 
-        if (Uri.TryCreate(href, UriKind.Absolute, out var uri)
+        var value = href.Trim();
+        if (value.StartsWith("/php-reference/", StringComparison.OrdinalIgnoreCase)
+            || EcomaeMarketingPages.IsMarketingPhpPath(value))
+        {
+            return value;
+        }
+
+        // Absolute tenant / platform URLs only when they already target php-reference.
+        if (Uri.TryCreate(value, UriKind.Absolute, out var uri)
             && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)
             && (uri.Host.EndsWith("epartscart.com", StringComparison.OrdinalIgnoreCase)
-                || uri.Host.EndsWith("ecomae.com", StringComparison.OrdinalIgnoreCase)))
+                || uri.Host.EndsWith("ecomae.com", StringComparison.OrdinalIgnoreCase))
+            && uri.AbsolutePath.StartsWith("/php-reference/", StringComparison.OrdinalIgnoreCase))
         {
-            return href;
+            return value;
         }
 
         return null;

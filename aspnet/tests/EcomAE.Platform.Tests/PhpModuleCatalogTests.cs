@@ -45,11 +45,12 @@ public sealed class PhpModuleCatalogTests
     }
 
     [Fact]
-    public void HybridWorkspaceHrefEncodesPhpPath()
+    public void HybridWorkspaceHrefEncodesPhpReferencePathOnly()
     {
         var href = PhpModuleCatalog.HybridWorkspaceHref("/cp/app", "/CP/control/shop/orders");
         Assert.StartsWith("/cp/app?php=", href, StringComparison.Ordinal);
-        Assert.Contains("CP", href, StringComparison.Ordinal);
+        Assert.Contains("php-reference", href, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("%2FCP%2F", href, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
