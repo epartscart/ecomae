@@ -92,10 +92,10 @@ public static class LegacyPresentationAssets
         "/epc-static.php?f=templates/nero/css/catalogue/catalogue.css",
         "/epc-static.php?f=templates/nero/css/docpart/style.css",
         "/modules/slider/css/style.css",
-        // Animated eparts cart logo (PHP enqueue equivalent)
+        // Animated eparts cart logo (PHP enqueue equivalent; also covered by professional shell CSS)
         "/aspnet-php-assets/eparts-animated-logo.css",
-        // PHP site_professional_shell.php polish (red logo, pill CTAs, dark search bar, navy tiles)
-        "/content/general_pages/epc_storefront_professional_shell_css.php",
+        // PHP site_professional_shell polish as static CSS (tenant nginx serves /content/*.css; .php helper 404s if www stale)
+        "/content/general_pages/epc_storefront_professional_shell.css",
         // Container width (98% / 1728px) + piston hero (requires html data-epc-industry/storefront attrs)
         "/content/general_pages/epc_automotive_spareparts.css"
     ];
