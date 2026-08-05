@@ -1225,6 +1225,27 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>ERP multi-company legal entities (PHP <c>epc_erp_companies_list</c>).</summary>
+    public const string SelectErpCompanies = """
+        SELECT `id`,
+               IFNULL(`code`,'') AS code,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`currency_code`,'') AS currency_code,
+               IFNULL(`country_code`,'') AS country_code,
+               IFNULL(`active`,1) AS active
+        FROM `epc_erp_pm_legal_entities`
+        WHERE IFNULL(`active`,1) = 1
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Per-company industry_pack overrides (PHP <c>epc_org_company_settings</c>).</summary>
+    public const string SelectErpCompanyIndustryPacks = """
+        SELECT `company_id`, IFNULL(`setting_value`,'') AS industry_pack
+        FROM `epc_org_company_settings`
+        WHERE `setting_key` = 'industry_pack'
+        """;
+
     /// <summary>Jewellery retail KPIs — omits mobile/email/tel/passport/remarks/narration/customer PII/cost.</summary>
     public const string SelectCpJewelleryStats = """
         SELECT
