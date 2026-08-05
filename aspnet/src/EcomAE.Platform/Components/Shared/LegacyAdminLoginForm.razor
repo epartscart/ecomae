@@ -17,7 +17,9 @@
             Sign-in is temporarily unavailable on this host. Use the live @SurfaceLabel login with the same credentials.
         </p>
         <p>
-            <a class="epc-login-php" href="@PhpLoginHref">Open @SurfaceLabel login</a>
+            <a class="epc-login-php" href="@ShellHref">Open ASP.NET @SurfaceLabel</a>
+            ·
+            <a class="epc-login-php" href="@PhpReferenceHref">PHP reference</a>
         </p>
     }
     else
@@ -48,7 +50,7 @@
             <button type="submit" class="epc-login-submit epc-login-submit-@Accent">@SubmitLabel</button>
         </form>
         <p>
-            <a class="epc-login-php" href="@PhpLoginHref">Open classic @SurfaceLabel login</a>
+            <a class="epc-login-php" href="@PhpReferenceHref">PHP reference only</a>
         </p>
     }
 </div>
@@ -56,7 +58,8 @@
 @code {
     [Parameter, EditorRequired] public LegacyLoginSurface Surface { get; set; }
     [Parameter, EditorRequired] public string SurfaceLabel { get; set; } = "CP";
-    [Parameter, EditorRequired] public string PhpLoginHref { get; set; } = "/CP/";
+    /// <summary>Legacy parameter name kept for call sites; must be a /php-reference/* URL only.</summary>
+    [Parameter, EditorRequired] public string PhpLoginHref { get; set; } = "/php-reference/cp";
     [Parameter] public string? ErrorMessage { get; set; }
     [Parameter] public string SubmitLabel { get; set; } = "Log in";
     [Parameter] public string Accent { get; set; } = "blue";
@@ -71,9 +74,28 @@
 
     private string RedirectPath => Surface switch
     {
-        LegacyLoginSurface.Erp => "/erp/app",
-        LegacyLoginSurface.Bos => "/bos/app",
-        LegacyLoginSurface.Storefront => "/storefront/app",
-        _ => "/cp/app"
+        LegacyLoginSurface.Erp => "/erp",
+        LegacyLoginSurface.Bos => "/bos",
+        LegacyLoginSurface.Storefront => "/",
+        _ => "/cp"
     };
+
+    private string ShellHref => Surface switch
+    {
+        LegacyLoginSurface.Erp => "/erp",
+        LegacyLoginSurface.Bos => "/bos",
+        LegacyLoginSurface.Storefront => "/",
+        _ => "/cp"
+    };
+
+    private string PhpReferenceHref =>
+        string.IsNullOrWhiteSpace(PhpLoginHref) || !PhpLoginHref.StartsWith("/php-reference/", StringComparison.OrdinalIgnoreCase)
+            ? Surface switch
+            {
+                LegacyLoginSurface.Erp => "/php-reference/erp",
+                LegacyLoginSurface.Bos => "/php-reference/bos",
+                LegacyLoginSurface.Storefront => "/php-reference/home",
+                _ => "/php-reference/cp"
+            }
+            : PhpLoginHref;
 }
