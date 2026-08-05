@@ -23,6 +23,11 @@ if ! python3 scripts/validate_marketing_app_allowlist_sync.py; then
   fail=1
 fi
 
+echo "== presentation scaffold bytes (offline; does not invent recheck pass) =="
+if ! python3 scripts/validate_presentation_scaffold_bytes.py; then
+  fail=1
+fi
+
 if [[ "$fail" -ne 0 ]]; then
   echo "FAIL: www shadow closeout preflight"
   exit 1

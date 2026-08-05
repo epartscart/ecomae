@@ -116,7 +116,7 @@
     "ERP/BOS/CP/storefront login body-class + ERP portal CSS parity floor",
     "Gated PHP decommission script refuses until ReadyToRemovePhp",
     "Honest MODULE_FUNCTION_PARITY_STATUS_LIVE (no invented PASS)",
-    "Presentation scaffold byte estimator (scripts/estimate_presentation_scaffold_bytes.py)",
+    "Presentation scaffold byte estimator + fail-closed validator (storefront/bos/erp floors; recheck stays soft-fail until live)",
     "Storefront home depth expanded: categories, makes, featured strips, VIN CTA, FAQ, footer trust",
     "BOS login industry grid + platform deck (epc-asp-login-bos retained)",
     "ERP login portal body: full area + tab directory from PhpModuleCatalog",

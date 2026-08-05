@@ -1048,6 +1048,14 @@ check 'functional static floors validator exists' test -x "$ROOT/scripts/validat
 check 'functional static floors pass' python3 "$ROOT/scripts/validate_functional_static_floors.py"
 check 'www shadow closeout preflight exists' test -x "$ROOT/scripts/cloudpanel_www_shadow_closeout_preflight.sh"
 check 'www shadow closeout preflight passes' bash "$ROOT/scripts/cloudpanel_www_shadow_closeout_preflight.sh"
+check 'presentation scaffold bytes validator exists' test -x "$ROOT/scripts/validate_presentation_scaffold_bytes.py"
+check 'presentation scaffold bytes validator passes' python3 "$ROOT/scripts/validate_presentation_scaffold_bytes.py"
+check 'deploy packs presentation scaffold bytes validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_presentation_scaffold_bytes.py'
+check 'www closeout preflight runs presentation scaffold bytes' contains "$ROOT/scripts/cloudpanel_www_shadow_closeout_preflight.sh" 'validate_presentation_scaffold_bytes.py'
+check 'presentation scaffold estimate keeps cutover false' contains "$ROOT/docs/migration/evidence/presentation/presentation-scaffold-bytes-estimate.json" '"cutoverAllowed": false'
+check 'presentation scaffold storefront meets floor' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); f=d["floors"]["storefront_app"]; assert f.get("meetsFloor") is True and int(f.get("estimatedCombinedBytes") or 0) >= int(f.get("floorBytes") or 0)' "$ROOT/docs/migration/evidence/presentation/presentation-scaffold-bytes-estimate.json"
+check 'presentation scaffold bos marker ok' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); f=d["floors"]["bos_login"]; assert f.get("meetsFloor") is True and f.get("markerOk") is True' "$ROOT/docs/migration/evidence/presentation/presentation-scaffold-bytes-estimate.json"
+check 'presentation recheck stays soft-fail offline' contains "$ROOT/docs/migration/evidence/presentation/php-vs-aspnet-recheck.json" '"status": "soft-fail"'
 check 'www shadow closeout runs offline preflight' contains "$ROOT/scripts/cloudpanel_www_shadow_closeout_operator.sh" 'cloudpanel_www_shadow_closeout_preflight.sh'
 check 'deploy packs storefront shadow allowlist sync validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_storefront_shadow_allowlist_sync.py'
 check 'deploy packs functional static floors validator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'validate_functional_static_floors.py'

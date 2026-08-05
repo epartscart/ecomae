@@ -52,6 +52,7 @@ MUST_DECLARE_CUTOVER_FALSE = (
     "decommission/functional-flows/www-functional-flow-suite.json",
     "presentation/marketing-app-dual-sample-floor.json",
     "presentation/storefront-shadow-dual-sample-floor.json",
+    "presentation/presentation-scaffold-bytes-estimate.json",
     "presentation/www-marketing-app-shadow-probe.json",
     "erp-ajax-dual-samples/compare-result.json",
     "bos-ajax-dual-samples/compare-result.json",
