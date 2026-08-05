@@ -10,34 +10,51 @@
 <PhpChromeBodyClass Surface="storefront" />
 @* GA4 + Clarity emit via PhpSurfaceHead IncludeStorefrontAnalytics (Clarity in initial HTML for probes). *@
 
-<PhpStorefrontDesktopChrome>
-    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/storefront/app" />
+@* Live epartscart `/` is PHP same-to-same (classic-entry rewrite → index.php).
+   This /storefront/app route is preview/compare only — not the tenant homepage. *@
+@if (_tenantLiveHomeIsPhp)
+{
+    <div class="epc-sf-preview-note" style="max-width:52rem;margin:2rem auto;padding:1.25rem 1.5rem;border:1px solid #fecaca;background:#fff1f2;border-radius:.5rem;font:600 .95rem/1.45 system-ui,sans-serif;color:#7f1d1d;">
+        <p style="margin:0 0 .75rem;">Live storefront home is <strong>PHP same-to-same</strong> (full chrome).</p>
+        <p style="margin:0 0 .75rem;">Open <a href="/">epartscart.com/</a> or <a href="/php-reference/home">/php-reference/home</a> — do not use this Blazor scaffold as the customer homepage.</p>
+        <p style="margin:0;"><a href="/?php_preview=1">Continue to hybrid preview chrome →</a></p>
+    </div>
+}
+else
+{
+    <PhpStorefrontDesktopChrome>
+        <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/storefront/app" />
 
-    @if (string.IsNullOrWhiteSpace(_phpHref))
-    {
-        @* PHP piston hero banner + engine animation (epc_automotive_spareparts_piston_banner.php) *@
-        <PhpAspPistonBanner />
-        <PhpStorefrontHomeDepth />
+        @if (string.IsNullOrWhiteSpace(_phpHref))
+        {
+            <PhpAspPistonBanner />
+            <PhpStorefrontHomeDepth />
 
-        <PhpHybridModuleDirectory
-            Title="Storefront surface directory"
-            Subtitle="Storefront browse, account, and checkout surfaces"
-            Links="@PhpModuleCatalog.StorefrontSurfaces"
-            PhpWorkspaceBase="/storefront/app" />
-    }
-</PhpStorefrontDesktopChrome>
+            <PhpHybridModuleDirectory
+                Title="Storefront surface directory"
+                Subtitle="Storefront browse, account, and checkout surfaces"
+                Links="@PhpModuleCatalog.StorefrontSurfaces"
+                PhpWorkspaceBase="/storefront/app" />
+        }
+    </PhpStorefrontDesktopChrome>
+}
 
 @code {
     private string? _phpHref;
     private string _pageTitle = "eParts Cart (Autoparts)";
+    private bool _tenantLiveHomeIsPhp;
 
     protected override void OnInitialized()
     {
         var ctx = Http.HttpContext;
-        _pageTitle = StorefrontIndustryHostResolver.ResolveStorefrontTitle(ctx?.Request.Host.Host);
+        var host = ctx?.Request.Host.Host ?? string.Empty;
+        _pageTitle = StorefrontIndustryHostResolver.ResolveStorefrontTitle(host);
+        _tenantLiveHomeIsPhp = host.EndsWith("epartscart.com", StringComparison.OrdinalIgnoreCase)
+            && ctx?.Request.Query.ContainsKey("php_preview") != true;
         if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
         {
             _phpHref = php.ToString();
+            _tenantLiveHomeIsPhp = false;
         }
     }
 }

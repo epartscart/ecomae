@@ -1494,7 +1494,11 @@ check 'classic-entry ASP.NET primary proxies home' contains "$ROOT/deploy/aspnet
 check 'classic-entry ASP.NET primary proxies cp same-URL' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'proxy_pass http://127.0.0.1:5100/cp/app'
 check 'classic-entry ASP.NET primary proxies erp same-URL' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'proxy_pass http://127.0.0.1:5100/erp/app'
 check 'classic-entry ASP.NET primary proxies bos same-URL' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'proxy_pass http://127.0.0.1:5100/bos/app'
-check 'classic-entry tenant home is storefront' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'proxy_pass http://127.0.0.1:5100/storefront/app'
+check 'classic-entry tenant home is PHP same-to-same' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'rewrite ^ /index.php last'
+check 'classic-entry tenant home rejects Blazor scaffold as live home' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'Do NOT serve simplified Blazor /storefront/app'
+check 'classic-entry probe requires PHP same-to-same tenant home' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" 'check_tenant_home_php_same_to_same'
+check 'classic-entry evidence tenant home is PHP' contains "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json" '"homePresentation": "php-same-to-same"'
+check 'storefront preview warns epartscart live home is PHP' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor" 'PHP same-to-same'
 check 'classic-entry has php-reference/cp' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /php-reference/cp'
 check 'classic-entry installer exists' test -x "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh"
 check 'classic-entry installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY'
