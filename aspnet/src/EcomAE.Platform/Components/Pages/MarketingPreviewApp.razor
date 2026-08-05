@@ -2,28 +2,16 @@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
 
-<PageTitle>ECOM AE — Marketing</PageTitle>
+<PageTitle>ECOM AE — Unified ERP &amp; Commerce Cloud</PageTitle>
 <PhpChromeStyles Surface="marketing" />
 
-@* Live www.ecomae.com / proxies here. ASP.NET PHP-style marketing — not PHP HTML. *@
+@*
+  Live www.ecomae.com / proxies here.
+  Same-to-same as PHP epc_ecomae_platform_page_home() + layout_close Layla widgets.
+  No hybrid module directory / migration chrome on the product home.
+*@
 <PhpEcomaeMarketingChrome ActiveKey="home">
     <PhpEcomaeMarketingHub />
     <PhpEcomaeHomeSections />
-
-    <div class="epm-wrap" style="padding:24px var(--epm-pad-x,20px) 40px;max-width:var(--epm-max-w,1440px);margin:0 auto;box-sizing:border-box">
-        <PhpHybridModuleDirectory
-            Title="Ecomae.com marketing pages"
-            Subtitle="@($"{EcomaeMarketingPages.Count} marketing routes — ASP.NET pages (PHP style); PHP via reference only")"
-            Links="@MarketingModuleLinks" />
-        <p style="margin:1rem 0 0;font-size:.85rem;color:#94a3b8;">
-            PHP compare: <a href="/php-reference/home">/php-reference/home</a>
-        </p>
-    </div>
+    <PhpEcomaeLaylaWidget />
 </PhpEcomaeMarketingChrome>
-
-@code {
-    private static readonly IReadOnlyList<PhpModuleCatalog.ModuleLink> MarketingModuleLinks =
-        EcomaeMarketingPages.All
-            .Select(p => new PhpModuleCatalog.ModuleLink(p.Id, p.Label, p.Href, null, p.Group))
-            .ToList();
-}

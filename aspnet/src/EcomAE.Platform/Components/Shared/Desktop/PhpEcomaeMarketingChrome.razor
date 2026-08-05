@@ -7,7 +7,7 @@
 <div class="epm-body">
     <header class="epm-topbar">
         <div class="epm-topbar__inner">
-            <a class="epm-brand" href="@EcomaeMarketingPages.AspNetHome">
+            <a class="epm-brand" href="/">
                 <img class="epm-brand__logo" src="@LegacyPresentationAssets.BrandMarkUrl" alt="" width="48" height="48" />
                 <span class="epm-brand__text">
                     <strong>ECOM <span class="epm-brand__ae">AE</span></strong>
@@ -67,11 +67,42 @@
             </div>
             <div class="epm-footer__links">
                 <a href="/marketing/platform">Platform</a>
+                <a href="/marketing/platform-guides">Super CP guides</a>
+                <a href="/marketing/capabilities">Capabilities</a>
+                <a href="/marketing/brochure">Product brochure</a>
+                <a href="/marketing/brochure-cp">Full CP brochure</a>
+                <a href="/marketing/customer-results">Customer results</a>
+                <a href="/marketing/industries">Industries</a>
+                <a href="/marketing/pricing">Pricing</a>
                 <a href="/marketing/demo">Demo</a>
-                <a href="/marketing/documentation">Docs</a>
-                <a href="/marketing/legal">Legal</a>
-                <a href="@EcomaeMarketingPages.SuperCpUrl">Super CP</a>
+                <a href="/marketing/faq">FAQ</a>
+                <a href="/marketing/documentation">Documentation</a>
+                <a href="/marketing/compare">Compare</a>
+                <a href="/marketing/blockchain">Blockchain BOS</a>
+                <a href="/marketing/bos">What is Blockchain BOS</a>
+                <a href="/marketing/solutions">Solutions</a>
+                <a href="/marketing/contact">Contact</a>
             </div>
+            <div class="epm-footer__legal">
+                <p class="epm-footer__legal-label">Legal &amp; security</p>
+                <div class="epm-footer__links epm-footer__links--legal">
+                    <a href="/marketing/legal">All policies</a>
+                    <a href="/marketing/privacy">Privacy</a>
+                    <a href="/marketing/terms">Terms</a>
+                    <a href="/marketing/cookie-policy">Cookies</a>
+                    <a href="/marketing/security-policy">Security</a>
+                    <a href="/marketing/right-to-use">Right to use</a>
+                    <a href="/marketing/trademark">Trademark</a>
+                    <a href="/marketing/copyright">Copyright</a>
+                    <a href="/marketing/data-protection">Data protection</a>
+                    <a href="/marketing/acceptable-use">Acceptable use</a>
+                    <a href="/marketing/confidentiality">Confidentiality</a>
+                    <a href="/marketing/intellectual-property">Intellectual property</a>
+                    <a href="/marketing/blockchain-disclaimer">Blockchain disclaimer</a>
+                    <a href="/marketing/dmca">IP notice</a>
+                </div>
+            </div>
+            <p class="epm-footer__copy">&copy; @DateTime.UtcNow.Year Electronic World Group · Dubai, UAE · <a href="/marketing/legal">Legal policies</a></p>
         </div>
     </footer>
 </div>
@@ -90,7 +121,7 @@
 
     private static readonly NavItem[] Nav =
     [
-        new("home", "Home", EcomaeMarketingPages.AspNetHome),
+        new("home", "Home", "/"),
         new("platform", "Platform", "/marketing/platform"),
         new("industries", "Industries", "/marketing/industries"),
         new("capabilities", "Capabilities", "/marketing/capabilities"),
