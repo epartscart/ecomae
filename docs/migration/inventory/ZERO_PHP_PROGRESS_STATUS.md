@@ -41,8 +41,9 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 - Dual-sample PHP↔ASP.NET parity attachments for promoted digests
 - Presentation recheck pass (`scripts/cloudpanel_probe_php_presentation_parity.sh`)
 - Module function test evidence (`MODULE_FUNCTION_TEST_PASS.md`)
-- Human `RELEASE_OWNER_APPROVAL.md` with `APPROVED_TO_REMOVE_PHP_FALLBACK`
-- PHP-FPM / cron / rewrite removal (gated script only)
+- Human `RELEASE_OWNER_APPROVAL.md` **present** (`APPROVED_TO_REMOVE_PHP_FALLBACK` + KeepPhpProjectAvailable)
+- Exact-route CloudPanel cutover: `ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh`
+- PHP-FPM / cron / rewrite / source removal (separate gate when ReadyToRemovePhp=true only)
 
 **Honest recheck:** `docs/migration/PHP_VS_ASPNET_DETAILED_RECHECK.md` — live ASP.NET shells are not PHP-like; do not remove PHP.
 
@@ -85,27 +86,28 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 - Blazor SSR migration console (ops improvement).
 - No broad PHP cutover; route/job parity/shadow metrics remain 0%.
 - Digest dual-sample contract parity attached (migration baseline + live ASP.NET; `failed=0`, `cutoverAllowed=false`).
-- PHP decommission readiness: smoke + dual contract samples present; removal blocked on human `RELEASE_OWNER_APPROVAL.md` (chrome still PHP).
+- PHP decommission readiness: smoke + dual contract samples + human `RELEASE_OWNER_APPROVAL.md` present; ReadyToRemovePhp still false (presentation/module gaps; chrome `/` still PHP).
 
 ## Path to 100% / Remaining 5% (PHP runtime decommission only)
 
-100% on the weighted meter requires approved exact-route shadows where promoted, and **human** release-owner approval to remove PHP-FPM/cron/rewrites/source.
+100% on the weighted meter requires approved exact-route shadows where promoted, and **ReadyToRemovePhp=true** before PHP-FPM/cron/rewrites/source removal. Approval for exact-route ASP.NET primary is **already present**.
 
-**Confirmed live (2026-08-03 ops):** catalog **18/18**; surface digests **30/30**; storefront digests **4/6 live** (wired 6); Blazor `/migration/console` **200**; digest dual-sample contract compare **pairsChecked=19 failed=0** (`docs/migration/evidence/surface-parity/digest-dual-sample-contract-result.json`). Chrome still PHP.
+**Confirmed live (2026-08-05 ops):** catalog **18/18**; surface digests wired **133**; storefront digests wired **7**; Blazor `/migration/console`; digest dual-sample contract green (`cutoverAllowed=false`). Chrome `/` still PHP epm-hub.
 
-**Practically still pending before approval is honest:**
+**Execute now (human-confirmed):**
 
-1. Keep product chrome on PHP until intentional shell cutover (Blazor console is **not** chrome cutover).
-2. Optional: commit live `aspnet-*.json` samples from CloudPanel into git for archival.
-3. Human `RELEASE_OWNER_APPROVAL.md` — then gated PHP decommission only.
+1. CloudPanel: `ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh`
+2. Keep product chrome `/` on PHP until intentional shell cutover (Blazor console is **not** chrome cutover).
+3. Dual-sample + presentation recheck `status=pass` + functional live-smoke before `RequirePhpFallback=false` per route.
 
 ## Next execution order
 
+- Redeploy + exact-route cutover: see `docs/migration/evidence/decommission/CLOUDPANEL_DEPLOY_PASTE.md` §0
 - Fail-closed parity: `bash scripts/verify_pre_php_removal_parity.sh`
-- Confirm readiness: `curl -sS https://www.ecomae.com/migration/php-decommission-readiness` (8/9; approval missing).
-- Human creates `RELEASE_OWNER_APPROVAL.md` with `APPROVED_TO_REMOVE_PHP_FALLBACK` only after that approval.
+- Confirm boards: `/migration/php-reference-mode`, `/migration/php-decommission-readiness`
+- `RELEASE_OWNER_APPROVAL.md` already present — do not invent module/presentation PASS
 - When `readyToRemovePhp=true`: `ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh`
-- Do **not** remove PHP until then.
+- Do **not** delete PHP source until a separate human gate.
 
 ## Guardrail
 

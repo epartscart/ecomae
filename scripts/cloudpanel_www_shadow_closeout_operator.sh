@@ -93,8 +93,10 @@ cat <<'EOF'
 - Hybrid UI + login-cookie samples: bash scripts/cloudpanel_run_all_dual_sample_operators.sh
 - Functional live-smoke capture: docs/migration/evidence/decommission/functional-flows/LIVE_SMOKE_CAPTURE.md
 - Tenant same-to-same: ECOMAE_TENANT_LIVE=1 bash scripts/cloudpanel_run_tenant_safety_operator.sh
-- Human RELEASE_OWNER_APPROVAL.md only after ReadyToRemovePhp checklist green
-- PHP runtime decommission: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission_gated.sh
+- Human RELEASE_OWNER_APPROVAL.md is present — full exact-route cutover:
+  ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh
+- PHP runtime decommission only when ReadyToRemovePhp=true:
+  ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission_gated.sh
 - PHP source deletion is a separate human PR — never agent-invented
 EOF
 

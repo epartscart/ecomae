@@ -597,9 +597,9 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Live tenant and industry frontend/CP/ERP stay PHP-primary during the parity gate — migration shadows default to www.ecomae.com only (see docs/migration/TENANT_MIGRATION_SAFETY.md). After promote, PHP remains available as reference.",
                 "Broad /, /api, /cp, /erp, /bos, storefront nginx cutover remains forbidden.",
                 "Approved location = exact-route shadows after staging smoke; named live tenants unlock via ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES (path to ASP.NET live primary).",
-                "Keep MigrationRouteCutover StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final gate.",
-                "ReadyToRemovePhp stays false without staging-smoke artifacts + RELEASE_OWNER_APPROVAL.md. Reference keep ≠ PHP source deletion.",
-                "cutoverAllowed=false and readyForPhpRemoval=false until exact-route shadows + dual-sample parity + human RELEASE_OWNER_APPROVAL.md."
+                "After approval: exact-route cutover may set StorefrontAspNetEnabled/AdminAspNetEnabled=true; keep RequirePhpFallback=true until dual-sample-green per route.",
+                "ReadyToRemovePhp stays false while presentation/module gaps remain. RELEASE_OWNER_APPROVAL.md is present — reference keep ≠ PHP source deletion.",
+                "cutoverAllowed=false always for boards; execute ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh"
             ],
             [
                 "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh — then apply DDL (clpctl) or use_php_dp_config_as_tenant_registry.sh if CREATE denied.",
