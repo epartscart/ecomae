@@ -33,4 +33,12 @@ public sealed class LegacyPresentationAssetsLookParityTests
             LegacyPresentationAssets.ControlPanelStylesheets,
             href => href.Contains("epc_cp_command_dashboard", StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void ErpDashboardPremiumCssIsInErpStylesheetList()
+    {
+        Assert.Contains(
+            LegacyPresentationAssets.ErpStylesheets,
+            href => href.Contains("erp_dashboard_premium", StringComparison.OrdinalIgnoreCase));
+    }
 }

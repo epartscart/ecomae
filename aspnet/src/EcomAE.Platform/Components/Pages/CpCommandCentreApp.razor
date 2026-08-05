@@ -34,33 +34,33 @@
             </div>
             <div class="cp-dash-metrics">
                 <a class="cp-dash-metric" href="/cp/orders">
-                    <div class="cp-dash-metric__label">Admin users</div>
-                    <div class="cp-dash-metric__val">@_users</div>
-                    <div class="cp-dash-metric__hint">@(_isAdmin ? "Live session digest" : "Sign in for live KPIs")</div>
+                    <div class="cp-dash-metric__label">Orders today</div>
+                    <div class="cp-dash-metric__val">@_ordersToday.ToString("N0")</div>
+                    <div class="cp-dash-metric__hint">@(_isAdmin ? "New successfully created orders" : "Sign in for live KPIs")</div>
                 </a>
                 <a class="cp-dash-metric" href="/cp/orders">
-                    <div class="cp-dash-metric__label">Admin sessions</div>
-                    <div class="cp-dash-metric__val cp-dash-metric__val--warn">@_sessions</div>
-                    <div class="cp-dash-metric__hint">Active operator sessions</div>
+                    <div class="cp-dash-metric__label">Open orders</div>
+                    <div class="cp-dash-metric__val cp-dash-metric__val--warn">@_openOrders.ToString("N0")</div>
+                    <div class="cp-dash-metric__hint">Need fulfilment</div>
                 </a>
                 <a class="cp-dash-metric cp-dash-metric--accent" href="/cp/product-catalogue-app">
-                    <div class="cp-dash-metric__label">Portal tenants</div>
-                    <div class="cp-dash-metric__val">@_tenants</div>
-                    <div class="cp-dash-metric__hint">Registered tenants</div>
+                    <div class="cp-dash-metric__label">Products</div>
+                    <div class="cp-dash-metric__val">@_products.ToString("N0")</div>
+                    <div class="cp-dash-metric__hint">Catalogue / warehouse SKUs</div>
                 </a>
-                <a class="cp-dash-metric cp-dash-metric--accent" href="/cp/tenants-app">
-                    <div class="cp-dash-metric__label">Active tenants</div>
-                    <div class="cp-dash-metric__val">@_active</div>
-                    <div class="cp-dash-metric__hint">Active portal tenants</div>
+                <a class="cp-dash-metric cp-dash-metric--accent" href="/cp/price-lists-app">
+                    <div class="cp-dash-metric__label">Warehouse qty</div>
+                    <div class="cp-dash-metric__val">@_warehouseQty.ToString("N0")</div>
+                    <div class="cp-dash-metric__hint">Supplier price-list rows</div>
                 </a>
                 <a class="cp-dash-metric" href="/cp/storages-app">
-                    <div class="cp-dash-metric__label">Warehouses</div>
-                    <div class="cp-dash-metric__val">—</div>
+                    <div class="cp-dash-metric__label">Vendors</div>
+                    <div class="cp-dash-metric__val">@_vendors.ToString("N0")</div>
                     <div class="cp-dash-metric__hint">Supplier warehouses</div>
                 </a>
                 <a class="cp-dash-metric" href="/cp/users-app">
                     <div class="cp-dash-metric__label">Clients</div>
-                    <div class="cp-dash-metric__val">—</div>
+                    <div class="cp-dash-metric__val">@_clients.ToString("N0")</div>
                     <div class="cp-dash-metric__hint">Storefront customers</div>
                 </a>
             </div>
@@ -68,29 +68,28 @@
 
         <div class="cp-dash-port">
             <div class="bd" style="padding-top:14px">
-                <h4 style="margin:0 0 12px;font-size:.95rem;"><i class="fa fa-th-large"></i> Quick actions</h4>
-                <div class="cp-dash-tiles" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.55rem;">
+                <h4 style="margin:0 0 12px;"><i class="fa fa-th-large"></i> Quick actions</h4>
+                <div class="cp-dash-tiles">
                     @foreach (var tile in _tiles)
                     {
-                        <a class="cp-dash-tile cp-dash-tile--@tile.Tone" href="@tile.Href"
-                           style="display:flex;flex-direction:column;gap:.35rem;padding:.85rem .75rem;border-radius:.55rem;text-decoration:none;min-height:88px;color:#fff;font-weight:700;background:@ToneColor(tile.Tone);">
-                            <i class="fa @tile.Icon" aria-hidden="true"></i>
-                            <span>@tile.Label</span>
+                        <a class="cp-dash-tile cp-dash-tile--@tile.Tone" href="@tile.Href">
+                            <i class="fa @tile.Icon ic" aria-hidden="true"></i>
+                            <span class="tl">@tile.Label</span>
                         </a>
                     }
                 </div>
             </div>
         </div>
 
-        <div class="cp-dash-grid" style="display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:.85rem;margin-top:1rem;">
+        <div class="cp-dash-grid">
             <div class="cp-dash-col-left">
                 <div class="cp-dash-port">
                     <h4><i class="fa fa-bell-o"></i> Reminders</h4>
                     <div class="bd">
                         <ul class="cp-dash-rem">
-                            <li><span class="cnt">@_sessions</span> <a href="/cp/orders">Open operator sessions</a></li>
-                            <li><span class="cnt">@_users</span> <a href="/cp/users-app">Admin users</a></li>
-                            <li><span class="cnt zero">0</span> <a href="/cp/returns-rma-app">Open returns</a></li>
+                            <li><span class="cnt@(_openOrders == 0 ? " zero" : "")">@_openOrders</span> <a href="/cp/orders">Open orders needing fulfilment</a></li>
+                            <li><span class="cnt@(_pendingShip == 0 ? " zero" : "")">@_pendingShip</span> <a href="/cp/orders">Pending ship</a></li>
+                            <li><span class="cnt@(_clients == 0 ? " zero" : "")">@_clients</span> <a href="/cp/users-app">Storefront clients</a></li>
                         </ul>
                     </div>
                 </div>
@@ -102,10 +101,12 @@
                         <table class="cp-dash-kpi-tbl">
                             <thead><tr><th>Indicator</th><th>Current</th><th>Previous</th><th>Change</th></tr></thead>
                             <tbody>
-                                <tr><td>Admin users</td><td>@_users</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
-                                <tr><td>Admin sessions</td><td>@_sessions</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
-                                <tr><td>Portal tenants</td><td>@_tenants</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
-                                <tr><td>Active tenants</td><td>@_active</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Orders today</td><td>@_ordersToday.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Open orders</td><td>@_openOrders.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Products (catalogue SKUs)</td><td>@_products.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Warehouse qty (price rows)</td><td>@_warehouseQty.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Vendors</td><td>@_vendors.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Clients</td><td>@_clients.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -129,20 +130,17 @@
                 </div>
             </div>
         </div>
-
-        <PhpHybridModuleDirectory
-            Title="Complete Control Panel module directory"
-            Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} control panel modules")"
-            Links="@PhpModuleCatalog.CpBrochureFeatures"
-            PhpWorkspaceBase="/cp/app" />
     </div>
 </PhpCpDesktopChrome>
 
 @code {
-    private int _users;
-    private int _sessions;
-    private int _tenants;
-    private int _active;
+    private int _ordersToday;
+    private int _openOrders;
+    private int _pendingShip;
+    private int _products;
+    private int _warehouseQty;
+    private int _vendors;
+    private int _clients;
     private bool _isAdmin;
 
     private static readonly DashTile[] _tiles =
@@ -159,14 +157,6 @@
 
     private sealed record DashTile(string Label, string Icon, string Href, string Tone);
 
-    private static string ToneColor(string tone) => tone switch
-    {
-        "red" => "linear-gradient(135deg,#b91c1c,#dc2626)",
-        "crimson" => "linear-gradient(135deg,#9f1239,#e11d48)",
-        "black" => "linear-gradient(135deg,#0f172a,#334155)",
-        _ => "linear-gradient(135deg,#57534e,#78716c)"
-    };
-
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
@@ -182,10 +172,26 @@
             return;
         }
 
-        var summary = await Dashboards.BuildControlPanelAsync(ctx.RequestAborted);
-        _users = summary.Users;
-        _sessions = summary.AdminSessions;
-        _tenants = summary.PortalTenants;
-        _active = summary.ActivePortalTenants;
+        var orders = await Dashboards.ListCpOrdersAsync(1, ctx.RequestAborted);
+        _ordersToday = orders.Summary.Today;
+        _openOrders = orders.Summary.Open;
+        _pendingShip = orders.Summary.PendingShip;
+
+        var catalogue = await Dashboards.BuildCpProductCatalogueDigestAsync(1, ctx.RequestAborted);
+        _products = catalogue.Summary.ProductCount;
+
+        var prices = await Dashboards.BuildCpPriceListsDigestAsync(50, ctx.RequestAborted);
+        _warehouseQty = prices.Summary.PriceRows;
+        _vendors = prices.Summary.ActiveLists > 0 ? prices.Summary.ActiveLists : prices.Count;
+
+        var storages = await Dashboards.ListCpStoragesAsync(200, ctx.RequestAborted);
+        if (storages.Count > 0)
+        {
+            _vendors = storages.Count;
+        }
+
+        // PHP clients ≈ storefront users table count (same source as CP dashboard summary Users).
+        var cpSummary = await Dashboards.BuildControlPanelAsync(ctx.RequestAborted);
+        _clients = cpSummary.Users;
     }
 }

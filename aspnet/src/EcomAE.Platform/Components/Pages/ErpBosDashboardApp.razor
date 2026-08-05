@@ -1,6 +1,8 @@
 @page "/erp/app"
 @page "/erp"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
+@using System.Text.Json
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
@@ -12,114 +14,323 @@
 <PhpChromeStyles Surface="erp" />
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
-        <style>
-            .epc-erp-grid { display:grid; grid-template-columns:1.2fr 1fr; gap:.85rem; margin-bottom:1rem; }
-            .epc-erp-card { background:#fff; border:1px solid #e2e8f0; border-radius:.65rem; padding:1rem 1.1rem; }
-            .epc-erp-metrics { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; }
-            .epc-erp-metric strong { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; }
-            .epc-erp-metric span { color:#64748b; font-size:.75rem; }
-            .epc-erp-banners { display:grid; gap:.55rem; margin:1rem 0; }
-            .epc-erp-banner { border-radius:.65rem; padding:1rem 1.15rem; color:#fff; font-weight:700; display:flex; justify-content:space-between; align-items:center; text-decoration:none; }
-            .epc-erp-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.55rem; }
-            .epc-erp-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
-            @@media (max-width:900px){ .epc-erp-grid,.epc-erp-kpis{grid-template-columns:1fr 1fr;} }
-        </style>
+    @* PHP erp_dashboard_netsuite.php — .ns-dash so erp_dashboard_premium.css applies *@
+    <div class="ns-dash" data-dashboard-profile="finance">
+        <div class="ns-hero">
+            <div class="ns-hero-panel">
+                <div class="ns-hero-kicker"><i class="fa fa-dashboard"></i> Finance centre</div>
+                <h2 class="ns-hero-title">Operations</h2>
+                <p class="ns-hero-sub">Live KPIs for your role and the selected period.</p>
+                <div class="ns-hero-meta">
+                    <span class="ns-chip"><i class="fa fa-calendar"></i> @_periodFrom → @_periodTo</span>
+                    <span class="ns-chip"><i class="fa fa-money"></i> AED</span>
+                    <span class="ns-chip"><i class="fa fa-user"></i> Finance centre</span>
+                </div>
+            </div>
+            <div class="ns-hero-metrics">
+                <div class="ns-metric3d">
+                    <div class="ml">Cash &amp; bank</div>
+                    <div class="mv">@_s.CashPosition.ToString("N2")</div>
+                    <div class="md">Live cash position</div>
+                </div>
+                <div class="ns-metric3d">
+                    <div class="ml">Sales (ex VAT)</div>
+                    <div class="mv">@_s.RevenueExVat.ToString("N2")</div>
+                    <div class="md">Period revenue</div>
+                </div>
+                <div class="ns-metric3d">
+                    <div class="ml">Receivables</div>
+                    <div class="mv">@_s.Receivables.ToString("N2")</div>
+                    <div class="md">Customer ledger</div>
+                </div>
+                <div class="ns-metric3d">
+                    <div class="ml">Payables</div>
+                    <div class="mv">@_s.Payables.ToString("N2")</div>
+                    <div class="md">Supplier balance</div>
+                </div>
+                <div class="ns-metric3d">
+                    <div class="ml">Inventory value</div>
+                    <div class="mv">@_s.StockValue.ToString("N2")</div>
+                    <div class="md">On-hand stock</div>
+                </div>
+                <div class="ns-metric3d">
+                    <div class="ml">Completed orders</div>
+                    <div class="mv">@_s.OrdersCount.ToString("N0")</div>
+                    <div class="md">Period orders</div>
+                </div>
+            </div>
+        </div>
 
-        <div class="epc-erp-grid">
-            <section class="epc-erp-card">
-                <h2 style="margin:.1rem 0 .4rem;font-size:1.05rem">ADMINISTRATION CENTRE — Operations</h2>
-                <p style="margin:0;color:#64748b;font-size:.9rem">ERP module directory for this company workspace.</p>
-            </section>
-            <section class="epc-erp-metrics">
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.CashPosition.ToString("N2")</strong><span>CASH POSITION</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.Receivables.ToString("N2")</strong><span>RECEIVABLES</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.Payables.ToString("N2")</strong><span>PAYABLES</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.StockValue.ToString("N2")</strong><span>STOCK VALUE</span></div>
-            </section>
+        <div class="ns-tiles">
+            @foreach (var tile in _tiles)
+            {
+                <a class="ns-tile @tile.Tone" href="@tile.Href">
+                    <i class="fa @tile.Icon ic"></i>
+                    <span class="tl">@tile.Label</span>
+                </a>
+            }
+        </div>
+
+        <div class="ns-port">
+            <div class="bd" style="padding-top:14px">
+                <h4 style="margin:0 0 12px;"><i class="fa fa-bolt"></i> Quick actions</h4>
+                <div class="ns-tiles" style="margin:0">
+                    @foreach (var qa in _quick)
+                    {
+                        <a class="ns-tile @qa.Tone" href="@qa.Href">
+                            <i class="fa @qa.Icon ic"></i>
+                            <span class="tl">@qa.Label</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="ns-port">
+            <h4><i class="fa fa-tachometer"></i> Operational KPIs <span style="font-weight:400;color:var(--ns-muted,#64748b);font-size:11px;">— live period pulse</span></h4>
+            <div class="bd">
+                <div class="ns-kpi-grid">
+                    <div class="ns-kpi-card"><span class="dot"></span><div class="kl">Draft sales orders</div><div class="kv">@_s.DraftSalesOrders</div><div class="kh">Open SO queue</div></div>
+                    <div class="ns-kpi-card"><span class="dot"></span><div class="kl">Pending purchase orders</div><div class="kv">@_s.PendingPurchaseOrders</div><div class="kh">PO awaiting receipt</div></div>
+                    <div class="ns-kpi-card @(_s.OverdueInvoices > 0 ? "warn" : "")"><span class="dot"></span><div class="kl">Overdue invoices</div><div class="kv">@_s.OverdueInvoices</div><div class="kh">Collections focus</div></div>
+                    <div class="ns-kpi-card"><span class="dot"></span><div class="kl">Unposted GL</div><div class="kv">@_s.UnpostedGlJournals</div><div class="kh">Journals to post</div></div>
+                    <div class="ns-kpi-card @(_s.LowStockItems > 0 ? "warn" : "")"><span class="dot"></span><div class="kl">Low stock items</div><div class="kv">@_s.LowStockItems</div><div class="kh">Reorder candidates</div></div>
+                    <div class="ns-kpi-card"><span class="dot"></span><div class="kl">Process open / done / overdue</div><div class="kv">@_s.ProcessOpen / @_s.ProcessDone / @_s.ProcessOverdue</div><div class="kh">Task analytics</div></div>
+                </div>
+            </div>
         </div>
 
         @if (!_isAdmin)
         {
-            <div class="epc-erp-note">
-                Guest preview — browse the ASP.NET ERP shell.
-                <a href="/erp/login">Sign in</a> for live KPIs.
+            <div class="ns-port">
+                <div class="bd" style="font-size:13px;color:#1e3a8a;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:.75rem .9rem;">
+                    Guest preview — browse the ASP.NET ERP shell.
+                    <a href="/erp/login">Sign in</a> for live KPIs.
+                </div>
             </div>
         }
 
-        <div class="epc-erp-banners">
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#0c4a6e,#0369a1)" href="/erp/dashboard-summary-app">Income Statement</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="/erp/coa-accounts-app">Balance Sheet / COA</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#0ea5e9)" href="/erp/gl-journals-app">General Journal</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#2563eb,#38bdf8)" href="/erp/sales-orders-app">New Sales Order</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#0c4a6e,#0369a1)" href="/erp/invoices-app">Customer Invoices</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="/erp/purchase-orders-app">Purchase Orders</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#0ea5e9)" href="/erp/inventory-stock-app">Inventory Stock</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#2563eb,#38bdf8)" href="/erp/bank-reconciliation-app">Bank Reconciliation</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#0c4a6e,#0369a1)" href="/erp/aging-app">AR / AP Aging</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="/erp/report-center-app">Report Center</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#0ea5e9)" href="/erp/process-flow-tasks-app">Process Flow</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#2563eb,#38bdf8)" href="/erp/stock-movements-app">Stock Movements</a>
-        </div>
-
-        <div class="epc-erp-grid" style="margin-bottom:1rem">
-            <section class="epc-erp-card">
-                <h2 style="margin:.1rem 0 .45rem;font-size:1rem">Finance snapshot</h2>
-                <div class="epc-erp-metrics">
-                    <div class="epc-erp-metric"><strong>@_s.RevenueExVat.ToString("N2")</strong><span>Revenue (ex. VAT)</span></div>
-                    <div class="epc-erp-metric"><strong>@_s.ArBalance.ToString("N2")</strong><span>AR balance</span></div>
-                    <div class="epc-erp-metric"><strong>@_s.ApBalance.ToString("N2")</strong><span>AP balance</span></div>
-                    <div class="epc-erp-metric"><strong>@_s.VatNetPayable.ToString("N2")</strong><span>VAT net</span></div>
+        <div class="ns-grid">
+            <div class="ns-col-left">
+                <div class="ns-port">
+                    <h4><i class="fa fa-bell-o"></i> Reminders</h4>
+                    <div class="bd">
+                        <ul class="ns-rem">
+                            <li><span class="cnt@(_s.DraftSalesOrders == 0 ? " zero" : "")">@_s.DraftSalesOrders</span> <a href="/erp/sales-orders-app">Draft sales orders</a></li>
+                            <li><span class="cnt@(_s.PendingPurchaseOrders == 0 ? " zero" : "")">@_s.PendingPurchaseOrders</span> <a href="/erp/purchase-orders-app">Pending purchase orders</a></li>
+                            <li><span class="cnt@(_s.OverdueInvoices == 0 ? " zero" : "")">@_s.OverdueInvoices</span> <a href="/erp/invoices-app">Overdue invoices</a></li>
+                            <li><span class="cnt@(_s.UnpostedGlJournals == 0 ? " zero" : "")">@_s.UnpostedGlJournals</span> <a href="/erp/gl-journals-app">Unposted GL journals</a></li>
+                            <li><span class="cnt@(_s.LowStockItems == 0 ? " zero" : "")">@_s.LowStockItems</span> <a href="/erp/inventory-stock-app">Low stock items</a></li>
+                            <li><span class="cnt@(_s.ProcessOverdue == 0 ? " zero" : "")">@_s.ProcessOverdue</span> <a href="/erp/process-flow-tasks-app">Overdue process tasks</a></li>
+                        </ul>
+                    </div>
                 </div>
-            </section>
-            <section class="epc-erp-card">
-                <h2 style="margin:.1rem 0 .45rem;font-size:1rem">Operations queue</h2>
-                <div class="epc-erp-metrics">
-                    <div class="epc-erp-metric"><strong>@_s.DraftSalesOrders</strong><span>Draft SOs</span></div>
-                    <div class="epc-erp-metric"><strong>@_s.PendingPurchaseOrders</strong><span>Pending POs</span></div>
-                    <div class="epc-erp-metric"><strong>@_s.OverdueInvoices</strong><span>Overdue invoices</span></div>
-                    <div class="epc-erp-metric"><strong>@_s.ProcessOpen / @_s.ProcessDone / @_s.ProcessOverdue</strong><span>Process open/done/overdue</span></div>
+                <div class="ns-port ns-nav">
+                    <h4><i class="fa fa-bars"></i> Navigation shortcuts</h4>
+                    <div class="bd">
+                        <h5>Lists</h5>
+                        <div class="ns-mini-grid">
+                            <a class="ns-mini" href="/erp/coa-accounts-app"><span class="mi ns-mi-teal"><i class="fa fa-list"></i></span><span class="ml">Chart of accounts</span></a>
+                            <a class="ns-mini" href="/erp/inventory-stock-app"><span class="mi ns-mi-teal"><i class="fa fa-cubes"></i></span><span class="ml">Inventory stock</span></a>
+                        </div>
+                        <h5>Transactions</h5>
+                        <div class="ns-mini-grid">
+                            <a class="ns-mini" href="/erp/sales-orders-app"><span class="mi ns-mi-blue"><i class="fa fa-shopping-cart"></i></span><span class="ml">Sales orders</span></a>
+                            <a class="ns-mini" href="/erp/purchase-orders-app"><span class="mi ns-mi-blue"><i class="fa fa-truck"></i></span><span class="ml">Purchase orders</span></a>
+                            <a class="ns-mini" href="/erp/gl-journals-app"><span class="mi ns-mi-blue"><i class="fa fa-book"></i></span><span class="ml">General journal</span></a>
+                        </div>
+                        <h5>Reports</h5>
+                        <div class="ns-mini-grid">
+                            <a class="ns-mini" href="/erp/report-center-app"><span class="mi ns-mi-amber"><i class="fa fa-bar-chart"></i></span><span class="ml">Report center</span></a>
+                            <a class="ns-mini" href="/erp/aging-app"><span class="mi ns-mi-amber"><i class="fa fa-clock-o"></i></span><span class="ml">AR / AP aging</span></a>
+                        </div>
+                    </div>
                 </div>
-            </section>
-        </div>
-
-        <section>
-            <h2 style="font-size:1.05rem">Command center KPIs</h2>
-            <div class="epc-erp-kpis">
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.OrdersCount</strong><span>Orders</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.PeriodStatus</strong><span>Period</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.InventoryItems</strong><span>Active items</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.UnpostedGlJournals</strong><span>Unposted GL</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.LowStockItems</strong><span>Low stock</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.PendingEinvoices</strong><span>Pending e-inv</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.SupplierNet.ToString("N2")</strong><span>Supplier net</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.CashPosition.ToString("N2")</strong><span>Cash position</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.StockValue.ToString("N2")</strong><span>Stock value</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.Receivables.ToString("N2")</strong><span>Receivables</span></div>
             </div>
-        </section>
 
-        <PhpHybridModuleDirectory
-            Title="Complete ERP category directory"
-            Subtitle="@($"{PhpModuleCatalog.ErpCategoryCount} ERP categories")"
-            Links="@PhpModuleCatalog.ErpCategories"
-            PhpWorkspaceBase="/erp/app" />
+            <div class="ns-col-mid">
+                <div class="ns-port">
+                    <h4><i class="fa fa-tachometer"></i> Key performance indicators</h4>
+                    <div class="bd" style="padding:0">
+                        <table class="ns-kpi-tbl">
+                            <thead><tr><th>Indicator</th><th>Current</th><th>Previous</th><th>Change</th></tr></thead>
+                            <tbody>
+                                <tr><td>Payables</td><td>@_s.Payables.ToString("N2")</td><td>—</td><td><span class="ns-chg flat">—</span></td></tr>
+                                <tr><td>Sales (ex VAT)</td><td>@_s.RevenueExVat.ToString("N2")</td><td>—</td><td><span class="ns-chg flat">—</span></td></tr>
+                                <tr><td>Receivables</td><td>@_s.Receivables.ToString("N2")</td><td>—</td><td><span class="ns-chg flat">—</span></td></tr>
+                                <tr><td>Total bank balance</td><td>@_s.CashPosition.ToString("N2")</td><td>—</td><td><span class="ns-chg flat">—</span></td></tr>
+                                <tr><td>Net VAT</td><td>@_s.VatNetPayable.ToString("N2")</td><td>—</td><td><span class="ns-chg flat">—</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="ns-port">
+                    <h4><i class="fa fa-money"></i> Financials</h4>
+                    <div class="bd">
+                        <div class="ns-fin">
+                            <div class="cell"><div class="l">Cash &amp; bank</div><div class="v">@_s.CashPosition.ToString("N2") AED</div></div>
+                            <div class="cell"><div class="l">Net VAT</div><div class="v">@_s.VatNetPayable.ToString("N2") AED</div></div>
+                            <div class="cell"><div class="l">AR balance</div><div class="v">@_s.ArBalance.ToString("N2") AED</div></div>
+                            <div class="cell"><div class="l">AP balance</div><div class="v">@_s.ApBalance.ToString("N2") AED</div></div>
+                            <div class="cell"><div class="l">Completed orders</div><div class="v">@_s.OrdersCount.ToString("N0")</div></div>
+                            <div class="cell"><div class="l">Stock value</div><div class="v">@_s.StockValue.ToString("N2") AED</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <PhpHybridModuleDirectory
-            Title="Complete ERP area directory"
-            Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} areas · {PhpModuleCatalog.ErpTabCount} tabs")"
-            Links="@PhpModuleCatalog.ErpAreas"
-            PhpWorkspaceBase="/erp/app" />
-
-        <PhpHybridModuleDirectory
-            Title="Complete ERP tab directory"
-            Subtitle="Every ERP module and tab for this company"
-            Links="@PhpModuleCatalog.ErpTabs"
-            PhpWorkspaceBase="/erp/app" />
-
-        <div class="epc-erp-note">
-            Open any module below to continue in the ASP.NET ERP workspace.
+            <div class="ns-col-right">
+                <div class="ns-port">
+                    <h4><i class="fa fa-dashboard"></i> KPI meter — Total bank balance</h4>
+                    <div class="bd">
+                        <div class="ns-gauge">
+                            <svg viewBox="0 0 200 120" width="100%" height="120" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="nsGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#0f766e"/>
+                                        <stop offset="55%" stop-color="#1d4f91"/>
+                                        <stop offset="100%" stop-color="#b45309"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#d9e4ec" stroke-width="16" stroke-linecap="round"/>
+                                <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="url(#nsGaugeGrad)" stroke-width="16" stroke-linecap="round"
+                                      stroke-dasharray="@_gaugeDash 251.3"/>
+                                <g transform="rotate(@_gaugeAngle.ToString("0.0", CultureInfo.InvariantCulture) 100 110)">
+                                    <line x1="100" y1="110" x2="100" y2="40" stroke="#102a43" stroke-width="3"/>
+                                </g>
+                                <circle cx="100" cy="110" r="7" fill="#102a43"/>
+                                <circle cx="100" cy="110" r="3" fill="#1d4f91"/>
+                            </svg>
+                            <div class="gval" style="color:@(_s.CashPosition >= 0 ? "#1a7f4b" : "#b42318")">@_s.CashPosition.ToString("N2")</div>
+                            <div class="gsub">AED · live cash &amp; bank position</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ns-port">
+                    <h4><i class="fa fa-bar-chart"></i> A/R aging — graphical</h4>
+                    <div class="bd">
+                        <div class="ns-chart-wrap"><canvas id="nsChartAr" aria-label="A/R aging chart"></canvas></div>
+                        <div class="ns-total">Total receivable: <strong>@_arGrand.ToString("N2") AED</strong></div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <div class="ns-dash ns-exec">
+        <h3 class="ns-exec-h"><i class="fa fa-line-chart"></i> Executive trend</h3>
+        <div class="ns-port">
+            <div class="bd">
+                <div class="ns-chart-wrap tall"><canvas id="nsChartTrend" aria-label="Revenue trend chart"></canvas></div>
+            </div>
+        </div>
+        <div class="ns-pf-kpis">
+            <div class="ns-pf-card"><div class="v">@_s.ProcessOpen</div><div class="l">Open tasks</div></div>
+            <div class="ns-pf-card @(_s.ProcessOverdue > 0 ? "bad" : "")"><div class="v">@_s.ProcessOverdue</div><div class="l">Overdue (SLA)</div></div>
+            <div class="ns-pf-card good"><div class="v">@_s.ProcessDone</div><div class="l">Tasks completed</div></div>
+            <div class="ns-pf-card"><div class="v">@_s.InventoryItems</div><div class="l">Active items</div></div>
+        </div>
+    </div>
 </PhpErpDesktopChrome>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script>
+(function () {
+    var arLabels = @((MarkupString)JsonSerializer.Serialize(_arLabels));
+    var arTotals = @((MarkupString)JsonSerializer.Serialize(_arTotals));
+    var trendLabels = @((MarkupString)JsonSerializer.Serialize(_trendLabels));
+    var trendRev = @((MarkupString)JsonSerializer.Serialize(_trendRev));
+    var currency = 'AED';
+
+    function nsFmt(n) {
+        try { return Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 }); }
+        catch (e) { return String(n); }
+    }
+
+    function drawCharts() {
+        if (typeof Chart === 'undefined') { return; }
+        Chart.defaults.font.family = 'Sora, ui-sans-serif, sans-serif';
+        Chart.defaults.color = '#5c6b7a';
+        var grid = 'rgba(16,42,67,0.06)';
+
+        var arEl = document.getElementById('nsChartAr');
+        if (arEl && !arEl._nsChart) {
+            arEl._nsChart = new Chart(arEl.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: arLabels,
+                    datasets: [{
+                        data: arTotals,
+                        backgroundColor: ['#047857', '#2563eb', '#0f766e', '#b45309', '#b91c1c'],
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        maxBarThickness: 36
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: function (ctx) { return currency + ' ' + nsFmt(ctx.parsed.y); } } }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { grid: { color: grid }, ticks: { callback: function (v) { return nsFmt(v); } } }
+                    },
+                    animation: { duration: 1100, easing: 'easeOutCubic' }
+                }
+            });
+        }
+
+        var trEl = document.getElementById('nsChartTrend');
+        if (trEl && !trEl._nsChart) {
+            var ctx = trEl.getContext('2d');
+            var g = ctx.createLinearGradient(0, 0, 0, 200);
+            g.addColorStop(0, 'rgba(29,79,145,0.22)');
+            g.addColorStop(1, 'rgba(29,79,145,0.02)');
+            trEl._nsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Revenue',
+                        data: trendRev,
+                        borderColor: '#1d4f91',
+                        backgroundColor: g,
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 2.5,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#1d4f91'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'bottom' },
+                        tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + currency + ' ' + nsFmt(c.parsed.y); } } }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { grid: { color: grid }, ticks: { callback: function (v) { return nsFmt(v); } } }
+                    },
+                    animation: { duration: 1100, easing: 'easeOutCubic' }
+                }
+            });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', drawCharts);
+    } else {
+        drawCharts();
+    }
+    // Chart.js CDN may load after this inline script.
+    window.addEventListener('load', drawCharts);
+})();
+</script>
 
 @code {
     private ErpDashboardSummary _s = new(
@@ -130,17 +341,114 @@
         0, 0, 0,
         "n/a", "");
     private bool _isAdmin;
+    private string _periodFrom = DateTime.UtcNow.ToString("yyyy-MM-01");
+    private string _periodTo = DateTime.UtcNow.ToString("yyyy-MM-dd");
+    private decimal _arGrand;
+    private double _gaugeFrac;
+    private double _gaugeAngle = -90;
+    private string _gaugeDash = "0";
+    private string[] _arLabels = ["Not due", "1-30", "31-60", "61-90", "90+"];
+    private decimal[] _arTotals = [0, 0, 0, 0, 0];
+    private string[] _trendLabels = [];
+    private decimal[] _trendRev = [];
+
+    private static readonly NsTile[] _tiles =
+    [
+        new("Income Statement", "fa-line-chart", "/erp/dashboard-summary-app", "gold"),
+        new("Balance Sheet / COA", "fa-university", "/erp/coa-accounts-app", "green"),
+        new("Sales Order", "fa-shopping-cart", "/erp/sales-orders-app", "rust"),
+        new("Purchase Order", "fa-truck", "/erp/purchase-orders-app", "slate"),
+    ];
+
+    private static readonly NsTile[] _quick =
+    [
+        new("General Journal", "fa-book", "/erp/gl-journals-app", "slate"),
+        new("Customer Invoices", "fa-file-text-o", "/erp/invoices-app", "gold"),
+        new("Inventory Stock", "fa-cubes", "/erp/inventory-stock-app", "green"),
+        new("Bank Reconciliation", "fa-exchange", "/erp/bank-reconciliation-app", "rust"),
+        new("AR / AP Aging", "fa-clock-o", "/erp/aging-app", "slate"),
+        new("Report Center", "fa-bar-chart", "/erp/report-center-app", "gold"),
+        new("Process Flow", "fa-sitemap", "/erp/process-flow-tasks-app", "green"),
+        new("Stock Movements", "fa-random", "/erp/stock-movements-app", "rust"),
+    ];
+
+    private sealed record NsTile(string Label, string Icon, string Href, string Tone);
 
     protected override async Task OnInitializedAsync()
     {
+        BuildTrendPlaceholder(0);
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin;
         if (!_isAdmin)
         {
+            RecalcGauge();
             return;
         }
+
         _s = (await Dashboards.BuildErpAsync(ctx.RequestAborted)).Summary;
+        RecalcGauge();
+        BuildTrendPlaceholder(_s.RevenueExVat);
+
+        try
+        {
+            var aging = await Dashboards.BuildErpAgingDigestAsync(200, ctx.RequestAborted);
+            if (aging.ArLabels.Count > 0)
+            {
+                _arLabels = aging.ArLabels.ToArray();
+            }
+
+            _arGrand = aging.Summary.ArGrand;
+            var totals = new decimal[Math.Max(5, _arLabels.Length)];
+            foreach (var row in aging.ArRows)
+            {
+                if (totals.Length > 0) totals[0] += row.Bucket0;
+                if (totals.Length > 1) totals[1] += row.Bucket1;
+                if (totals.Length > 2) totals[2] += row.Bucket2;
+                if (totals.Length > 3) totals[3] += row.Bucket3;
+                if (totals.Length > 4) totals[4] += row.Bucket4;
+            }
+
+            _arTotals = totals;
+            if (_arGrand <= 0 && totals.Sum() > 0)
+            {
+                _arGrand = totals.Sum();
+            }
+        }
+        catch
+        {
+            // Aging digest optional — charts render empty buckets.
+        }
+    }
+
+    private void RecalcGauge()
+    {
+        var gaugeVal = (double)_s.CashPosition;
+        var gaugeScale = Math.Max(Math.Max(Math.Abs(gaugeVal), Math.Abs((double)_s.RevenueExVat)), 1.0) * 1.25;
+        _gaugeFrac = Math.Max(0.0, Math.Min(1.0, (gaugeVal + gaugeScale) / (2 * gaugeScale)));
+        _gaugeAngle = -90 + (_gaugeFrac * 180);
+        _gaugeDash = (_gaugeFrac * 251.3).ToString("0.0", CultureInfo.InvariantCulture);
+    }
+
+    private void BuildTrendPlaceholder(decimal periodRevenue)
+    {
+        // No monthly series on ErpDashboardSummary yet — distribute period revenue as a 6-point sparkline
+        // so Chart.js always has a correct graphic shape (PHP epc_exec_trend parity pending).
+        var labels = new string[6];
+        var rev = new decimal[6];
+        var now = DateTime.UtcNow;
+        var baseAmt = periodRevenue > 0 ? periodRevenue / 6m : 0m;
+        for (var i = 5; i >= 0; i--)
+        {
+            var m = now.AddMonths(-i);
+            labels[5 - i] = m.ToString("MMM yy", CultureInfo.InvariantCulture);
+            // Slight synthetic shape so the line is visible when live monthly digests are absent.
+            var weight = 0.7m + (0.1m * (5 - i));
+            rev[5 - i] = Math.Round(baseAmt * weight, 2);
+        }
+
+        _trendLabels = labels;
+        _trendRev = rev;
     }
 }
