@@ -19,11 +19,12 @@ public sealed class PhpStorefrontNeroChromeParityTests
             href => href.Contains("templates/nero/assets/css/style_all.css", StringComparison.Ordinal));
         Assert.Contains(
             LegacyPresentationAssets.StorefrontStylesheets,
-            href => href.Contains("epc_storefront_professional_shell_css.php", StringComparison.Ordinal));
+            href => href.Contains("epc_storefront_professional_shell.css", StringComparison.Ordinal));
         Assert.Contains(
             LegacyPresentationAssets.StorefrontStylesheets,
             href => href.Contains("eparts-animated-logo.css", StringComparison.Ordinal));
         Assert.Equal("templates/nero/desktop.php", LegacyPresentationAssets.LegacyChromeSourceFor("storefront"));
+        Assert.True(File.Exists(Find("content/general_pages/epc_storefront_professional_shell.css")));
     }
 
     [Fact]

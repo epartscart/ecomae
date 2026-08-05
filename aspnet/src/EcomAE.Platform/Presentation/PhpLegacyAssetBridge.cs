@@ -80,9 +80,27 @@ public static class PhpLegacyAssetBridge
         endpoints.MapGet("/aspnet-php-assets/eparts-animated-logo.css", () =>
             Results.Text(PhpEpartsCartLogoAssets.Css, "text/css; charset=utf-8"));
 
-        // PHP site_professional_shell.php <style> blocks — same rules nero desktop.php embeds.
+        // Static extract of site_professional_shell.php (preferred live URL).
+        endpoints.MapGet("/content/general_pages/epc_storefront_professional_shell.css", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/epc_storefront_professional_shell.css"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "text/css; charset=utf-8");
+            }
+
+            return Results.NotFound();
+        });
+
+        // PHP helper URL — same bytes as the .css extract when present.
         endpoints.MapGet("/content/general_pages/epc_storefront_professional_shell_css.php", () =>
         {
+            var staticPath = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/epc_storefront_professional_shell.css"));
+            if (staticPath.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(staticPath))
+            {
+                return Results.File(staticPath, "text/css; charset=utf-8");
+            }
+
             var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/site_professional_shell.php"));
             if (!path.StartsWith(repoRoot, StringComparison.Ordinal) || !File.Exists(path))
             {

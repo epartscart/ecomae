@@ -1,12 +1,27 @@
 <?php
 /**
- * Serve site_professional_shell.php style blocks as text/css for ASP.NET storefront chrome.
- * PHP nero desktop.php includes the shell inline; ASP.NET loads this stylesheet instead.
+ * Serve storefront professional-shell CSS (text/css).
+ * Prefer the static extract (epc_storefront_professional_shell.css) so nginx/static
+ * and PHP-FPM both succeed; fall back to extracting site_professional_shell.php.
  */
 declare(strict_types=1);
 
 header('Content-Type: text/css; charset=utf-8');
 header('Cache-Control: public, max-age=3600');
+
+$static = __DIR__ . '/epc_storefront_professional_shell.css';
+if (is_file($static)) {
+	$css = (string) file_get_contents($static);
+	$ver = '20260805hdr2';
+	$etag = '"' . md5($css . '|' . $ver) . '"';
+	header('ETag: ' . $etag);
+	if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && trim((string) $_SERVER['HTTP_IF_NONE_MATCH']) === $etag) {
+		http_response_code(304);
+		exit;
+	}
+	echo $css;
+	exit;
+}
 
 if (!defined('_ASTEXE_')) {
 	define('_ASTEXE_', 1);
@@ -24,14 +39,6 @@ if (preg_match_all('/<style[^>]*>(.*?)<\/style>/is', $html, $matches)) {
 if ($css === '') {
 	http_response_code(500);
 	echo '/* site_professional_shell styles missing */';
-	exit;
-}
-
-$ver = '20260805hdr1';
-$etag = '"' . md5($css . '|' . $ver) . '"';
-header('ETag: ' . $etag);
-if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && trim((string) $_SERVER['HTTP_IF_NONE_MATCH']) === $etag) {
-	http_response_code(304);
 	exit;
 }
 
