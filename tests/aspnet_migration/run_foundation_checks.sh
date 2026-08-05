@@ -795,6 +795,9 @@ check 'customer token formula uses userId' contains "$ROOT/aspnet/src/EcomAE.Pla
 check 'login cookie dual-sample compare exists' test -x "$ROOT/scripts/compare_login_cookie_dual_samples.py"
 check 'login cookie dual-sample capture exists' test -x "$ROOT/scripts/cloudpanel_capture_login_cookie_dual_samples.sh"
 check 'secret succession verify helper exists' test -x "$ROOT/scripts/cloudpanel_verify_secret_succession_configured.sh"
+check 'secret succession PHP sync helper exists' test -x "$ROOT/scripts/cloudpanel_sync_secret_succession_from_php.sh"
+check 'secret succession PHP exporter exists' test -f "$ROOT/scripts/php/sync_secret_succession_to_platform_env.php"
+check 'platform.env.example documents SecretSuccession sync' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_sync_secret_succession_from_php.sh'
 check 'login session bridge evidence dir exists' test -d "$ROOT/docs/migration/evidence/login-session-bridge"
 check 'login bridge keeps BOS PHP-authoritative' contains "$ROOT/docs/migration/evidence/login-session-bridge/README.md" 'PHP-authoritative'
 check 'catalog miss dual-sample compare exists' test -x "$ROOT/scripts/compare_catalog_miss_dual_samples.py"

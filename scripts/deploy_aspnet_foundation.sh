@@ -237,6 +237,7 @@ for compare in \
   compare_hybrid_ui_dual_samples.py \
   generate_migration_digest_contract_samples.py \
   cloudpanel_verify_secret_succession_configured.sh \
+  cloudpanel_sync_secret_succession_from_php.sh \
   cloudpanel_capture_login_cookie_dual_samples.sh \
   cloudpanel_capture_catalog_miss_dual_samples.sh \
   cloudpanel_capture_hybrid_ui_dual_samples.sh \
@@ -254,6 +255,7 @@ for php_helper in \
   diagnose_smoke_db.php \
   align_tenant_registry_to_php_db.php \
   use_php_dp_config_as_tenant_registry.php \
+  sync_secret_succession_to_platform_env.php \
   _smoke_db_bootstrap.php
 do
   if [[ -f "$ROOT/scripts/php/$php_helper" ]]; then
