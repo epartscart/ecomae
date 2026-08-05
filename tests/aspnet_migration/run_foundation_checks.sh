@@ -1513,6 +1513,9 @@ check 'CP command centre has commerce band' contains "$ROOT/aspnet/src/EcomAE.Pl
 check 'ERP dashboard banners hit ASP.NET apps' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor" '/erp/sales-orders-app'
 check 'storefront home has hero slider' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontHomeDepth.razor" 'epc-sf-hero-slider'
 check 'login form offers browse without login' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/LegacyAdminLoginForm.razor" 'data-epc-guest-browse'
+check 'guest browse early-return does not swallow closing brace' bash -c '! grep -Rsn --include="*.razor" -E "return[[:space:]]*;[[:space:]]*//.*\}" "$1"/aspnet/src/EcomAE.Platform/Components' _
+check 'ErpAgingApp guest browse uses multi-line return' bash -c 'grep -A2 "if (!_isAdmin)" "$1" | grep -q "return; // guest browse" && ! grep -Fq "if (!_isAdmin) { return; // guest browse" "$1"' _ "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpAgingApp.razor"
+check 'ErpStockMovementsApp guest browse uses multi-line return' bash -c 'grep -A2 "if (!_isAdmin)" "$1" | grep -q "return; // guest browse" && ! grep -Fq "if (!_isAdmin) { return; // guest browse" "$1"' _ "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpStockMovementsApp.razor"
 check 'CP orders app allows guest browse' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpOrdersApp.razor" 'guest browse'
 check 'CP command centre has no hard login NavigateTo' bash -c '! grep -Fq "NavigateTo(\"/cp/login\"" "$1"' _ "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor"
 check 'classic-entry has php-reference/cp' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /php-reference/cp'
