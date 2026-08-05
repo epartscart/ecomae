@@ -23,6 +23,7 @@ public static class PlatformHostPolicy
     {
         "app",
         "login",
+        "logout",
         "ajax-writes",
         "tenants",
         "tenants-app",
