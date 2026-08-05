@@ -77,13 +77,14 @@ curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp/login | grep -oE 'Enter CP \(
 # After redeploy, open https://www.epartscart.com/cp — shell loads without credentials.
 # If you land on /cp/login, click “Enter CP (no login)”.
 
-# Optional — enable ASP.NET login bridge (same PHP admin credentials):
-#   1) Copy PHP secret_succession into platform.env (never commit the secret):
-#        grep -n secret_succession /path/to/php/config.php   # find value on server only
-#        printf 'EcomAE__SecretSuccession=%s\n' '<value>' >> /etc/ecomae-aspnet/platform.env
-#   2) bash scripts/cloudpanel_verify_secret_succession_configured.sh
-#   3) systemctl restart ecomae-platform.service
-# Until that is set, credential fields stay hidden and “Enter CP (no login)” is the way in.
+# REQUIRED for same PHP credentials on /cp/login /erp/login /bos/login:
+# Sync PHP secret_succession into ASP.NET (never prints the secret):
+ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES \
+ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+  bash scripts/cloudpanel_sync_secret_succession_from_php.sh
+# Verify (must print OK, never prints secret):
+bash scripts/cloudpanel_verify_secret_succession_configured.sh
+# Then sign in with the SAME admin email/password used on PHP /CP/ /ERP/ /BOS/.
 
 # Installs into server{} by host — ALL product tenants (no half-and-half):
 #   www.ecomae.com ← www pack (marketing ASP.NET home + login bridges)
