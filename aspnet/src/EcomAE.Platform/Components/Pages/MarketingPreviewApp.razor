@@ -15,3 +15,8 @@
     <PhpEcomaeHomeSections />
     <PhpEcomaeLaylaWidget />
 </PhpEcomaeMarketingChrome>
+
+@* Port of ECOMAE-MARKETING-HOME-v4 pause — stop hub/failover animations when offscreen. *@
+<script defer>
+(function(){if(!('IntersectionObserver' in window))return;var s=document.querySelectorAll('.epm-hub,.epm-ecosystem__viz,.epm-failover-flow');if(!s.length)return;var io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){es[i].target.classList.toggle('epm-anim-paused',!es[i].isIntersecting);}},{rootMargin:'80px',threshold:0.05});for(var j=0;j<s.length;j++){io.observe(s[j]);}})();
+</script>
