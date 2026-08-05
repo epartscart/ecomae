@@ -53,61 +53,70 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
             return LegacyLoginOutcome.Failed("Enter login and password.", "missing_fields");
         }
 
-        await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-        var user = await LoadUserAsync(connection, contactLookup, contactType, cancellationToken).ConfigureAwait(false);
-        if (user is null)
+        try
         {
-            return LegacyLoginOutcome.Failed("Incorrect login or password.", "invalid_credentials");
-        }
-
-        if (!LegacyPasswordVerifier.Verify(password, user.PasswordHash, _options.SecretSuccession))
-        {
-            return LegacyLoginOutcome.Failed("Incorrect login or password.", "invalid_credentials");
-        }
-
-        var adminSession = request.Surface != LegacyLoginSurface.Storefront;
-        if (adminSession)
-        {
-            var identity = await _sessions.GetAdminIdentityAsync(user.UserId, cancellationToken).ConfigureAwait(false);
-            if (identity is null || !identity.HasBackendAccess)
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var user = await LoadUserAsync(connection, contactLookup, contactType, cancellationToken).ConfigureAwait(false);
+            if (user is null)
             {
-                return LegacyLoginOutcome.Failed("Account lacks backend permissions.", "no_backend_access");
+                return LegacyLoginOutcome.Failed("Incorrect login or password.", "invalid_credentials");
             }
-        }
 
-        var time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        // Admin PHP: md5($auth_contact.$time.$secret). Customer PHP: md5($auth_contact.$user_id.$time.$secret).
-        // Always use the posted contact (not htmlentities) for the token — matches PHP plugins.
-        var sessionToken = adminSession
-            ? LegacySessionTokenFactory.AdminSessionToken(contactRaw, time, _options.SecretSuccession)
-            : LegacySessionTokenFactory.CustomerSessionToken(contactRaw, user.UserId, time, _options.SecretSuccession);
-        var csrf = LegacySessionTokenFactory.CsrfGuardKey(
-            _options.SecretSuccession, sessionToken, remoteIp, userAgent);
+            if (!LegacyPasswordVerifier.Verify(password, user.PasswordHash, _options.SecretSuccession))
+            {
+                return LegacyLoginOutcome.Failed("Incorrect login or password.", "invalid_credentials");
+            }
 
-        await using (var command = connection.CreateCommand())
-        {
-            command.CommandText = adminSession
-                ? LegacyAdminLoginSql.InsertAdminSession
-                : LegacyAdminLoginSql.InsertCustomerSession;
-            AddParameter(command, "@session", sessionToken);
-            AddParameter(command, "@userId", user.UserId);
-            AddParameter(command, "@time", time);
-            AddParameter(command, "@csrf", csrf);
+            var adminSession = request.Surface != LegacyLoginSurface.Storefront;
             if (adminSession)
             {
-                AddParameter(command, "@contactType", contactType);
+                var identity = await _sessions.GetAdminIdentityAsync(user.UserId, cancellationToken).ConfigureAwait(false);
+                if (identity is null || !identity.HasBackendAccess)
+                {
+                    return LegacyLoginOutcome.Failed("Account lacks backend permissions.", "no_backend_access");
+                }
             }
 
-            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-        }
+            var time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            // Admin PHP: md5($auth_contact.$time.$secret). Customer PHP: md5($auth_contact.$user_id.$time.$secret).
+            // Always use the posted contact (not htmlentities) for the token — matches PHP plugins.
+            var sessionToken = adminSession
+                ? LegacySessionTokenFactory.AdminSessionToken(contactRaw, time, _options.SecretSuccession)
+                : LegacySessionTokenFactory.CustomerSessionToken(contactRaw, user.UserId, time, _options.SecretSuccession);
+            var csrf = LegacySessionTokenFactory.CsrfGuardKey(
+                _options.SecretSuccession, sessionToken, remoteIp, userAgent);
 
-        return LegacyLoginOutcome.Succeeded(new LegacyLoginSuccess(
-            user.UserId,
-            user.Email,
-            sessionToken,
-            csrf,
-            adminSession,
-            RedirectFor(request.Surface)));
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = adminSession
+                    ? LegacyAdminLoginSql.InsertAdminSession
+                    : LegacyAdminLoginSql.InsertCustomerSession;
+                AddParameter(command, "@session", sessionToken);
+                AddParameter(command, "@userId", user.UserId);
+                AddParameter(command, "@time", time);
+                AddParameter(command, "@csrf", csrf);
+                if (adminSession)
+                {
+                    AddParameter(command, "@contactType", contactType);
+                }
+
+                await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return LegacyLoginOutcome.Succeeded(new LegacyLoginSuccess(
+                user.UserId,
+                user.Email,
+                sessionToken,
+                csrf,
+                adminSession,
+                RedirectFor(request.Surface)));
+        }
+        catch (Exception)
+        {
+            return LegacyLoginOutcome.Failed(
+                "Login backend error. Check TenantRegistry DB connection and sessions table.",
+                "login_backend_error");
+        }
     }
 
     private static string RedirectFor(LegacyLoginSurface surface) => surface switch

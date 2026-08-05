@@ -647,6 +647,8 @@ app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseMiddleware<RouteCutoverDecisionMiddleware>();
+// Credential POSTs on /cp|/erp|/bos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.
+app.UseMiddleware<LegacyLoginBridgeMiddleware>();
 // Required for Blazor SSR endpoints (MapRazorComponents adds antiforgery metadata).
 app.UseAntiforgery();
 

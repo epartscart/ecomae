@@ -94,10 +94,29 @@ ECOMAE_CONFIRM_INSTALL_AUTH_LOGIN_ADMIN=YES \
 #   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
 
 # Probe (expect 302/401 JSON — not empty HTTP 500):
-curl -sS -D - -o /tmp/login_probe.body -X POST https://www.ecomae.com/auth/login/admin \
-  -H 'Content-Type: application/json' -H 'Accept: application/json' \
-  -d '{"contact":"x","password":"y","surface":"bos"}' | head -n 20
+curl -sS -D - -o /tmp/login_probe.body -X POST https://www.ecomae.com/cp/login \
+  -H 'Content-Type: application/x-www-form-urlencoded' -H 'Accept: text/html' \
+  -d 'contact=x@y.com&password=wrong&contact_type=email&surface=cp&redirect=/cp' | head -n 20
 # Then sign in with the SAME admin email/password used on PHP /CP/ /ERP/ /BOS/.
+
+## 0c) Fix CP/ERP/BOS login POST (middleware) — emergency publish
+
+If `/cp/login` or `/erp/login` credential submit still 400/500, publish the login-bridge middleware tip:
+
+```bash
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+export ECOMAE_BRANCH=cursor/login-post-under-surface-7b3b
+# after merge: export ECOMAE_BRANCH=main
+git fetch origin "$ECOMAE_BRANCH" && git checkout -f "$ECOMAE_BRANCH" && git reset --hard "origin/$ECOMAE_BRANCH"
+grep -n 'LegacyLoginBridgeMiddleware' aspnet/src/EcomAE.Platform/Program.cs | head
+ECOMAE_EMERGENCY_PUBLISH=1 bash scripts/cloudpanel_find_and_redeploy.sh
+ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+  bash scripts/cloudpanel_sync_secret_succession_from_php.sh
+curl -sS -D - -o /tmp/cp_login_post.body -X POST https://www.ecomae.com/cp/login \
+  -H 'Content-Type: application/x-www-form-urlencoded' -H 'Accept: text/html' \
+  -d 'contact=x@y.com&password=wrong&contact_type=email&surface=cp&redirect=/cp' | head -n 15
+# expect HTTP/2 302 and Location: /cp/login?error=...
+```
 
 # Installs into server{} by host — ALL product tenants (no half-and-half):
 #   www.ecomae.com ← www pack (marketing ASP.NET home + login bridges)

@@ -137,7 +137,7 @@
                     <h2>Operator Access</h2>
                     <p>Manage your entire tenant fleet from one dashboard</p>
                 </div>
-                <form class="bos-login__form" id="bosLoginForm" method="post" action="@EcomAeRoutes.LegacyAdminLogin">
+                <form class="bos-login__form" id="bosLoginForm" method="post" action="@EcomAeRoutes.BosLogin">
                     <input type="hidden" name="surface" value="bos" />
                     <input type="hidden" name="redirect" value="/bos" />
                     <input type="hidden" name="contact_type" value="email" />
@@ -176,7 +176,7 @@
                     <h2>ERP Access</h2>
                     <p>Access your enterprise resource planning system</p>
                 </div>
-                <form class="bos-login__form" id="bosLoginFormErp" method="post" action="@EcomAeRoutes.LegacyAdminLogin">
+                <form class="bos-login__form" id="bosLoginFormErp" method="post" action="@EcomAeRoutes.ErpLogin">
                     <input type="hidden" name="surface" value="erp" />
                     <input type="hidden" name="redirect" value="/erp" />
                     <input type="hidden" name="contact_type" value="email" />
