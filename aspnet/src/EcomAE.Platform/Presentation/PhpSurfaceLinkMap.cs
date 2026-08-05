@@ -149,58 +149,65 @@ public static class PhpSurfaceLinkMap
             return value;
         }
 
+        // Interim: tenant /storefront/* apps 404 when nginx tree is missing; keep working PHP /en/… pages
+        // (warehouse search, UMAPI, product-family) until dual-sample + classic-entry storefront tree.
         if (value.StartsWith("/shop/cart", StringComparison.OrdinalIgnoreCase))
         {
-            return "/storefront/cart-app";
+            return StorefrontPhpCanonical.Cart;
         }
 
         if (value.StartsWith("/shop/checkout", StringComparison.OrdinalIgnoreCase))
         {
-            return "/storefront/checkout-app";
+            return StorefrontPhpCanonical.Checkout;
         }
 
         if (value.StartsWith("/shop/orders", StringComparison.OrdinalIgnoreCase))
         {
-            return "/storefront/orders-app";
+            return StorefrontPhpCanonical.Orders;
         }
 
         if (value.Contains("warehouse-search", StringComparison.OrdinalIgnoreCase))
         {
-            return AppendQuery("/storefront/search-app", value, "mode=attr");
+            return StorefrontPhpCanonical.ForWarehouseSearch(value);
         }
 
-        if (value.StartsWith("/shop/part_search", StringComparison.OrdinalIgnoreCase)
-            || value.StartsWith("/shop/search", StringComparison.OrdinalIgnoreCase))
+        if (value.StartsWith("/shop/part_search", StringComparison.OrdinalIgnoreCase))
         {
-            var q = value.Contains('?', StringComparison.Ordinal) ? value[value.IndexOf('?', StringComparison.Ordinal)..] : string.Empty;
-            return "/storefront/search-app" + q;
+            return StorefrontPhpCanonical.ForPartSearch(value);
+        }
+
+        if (value.StartsWith("/shop/search", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontPhpCanonical.NameSearch + (value.Contains('?', StringComparison.Ordinal)
+                ? value[value.IndexOf('?', StringComparison.Ordinal)..]
+                : "");
         }
 
         if (value.Contains("katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || value.Contains("identString=", StringComparison.OrdinalIgnoreCase))
         {
-            return AppendQuery("/storefront/search-app", value, "mode=vin");
+            return StorefrontPhpCanonical.ForVinSearch(value);
         }
 
         if (value.Contains("vehicle-catalog", StringComparison.OrdinalIgnoreCase))
         {
-            return AppendQuery("/storefront/search-app", value, "mode=car");
+            return StorefrontPhpCanonical.ForVehicleCatalog(value);
         }
 
         if (IsStorefrontCatalogBrowsePath(value))
         {
-            return "/storefront/search-app";
+            return StorefrontPhpCanonical.ForCatalogBrowse(value);
         }
 
         if (value.Contains("garage", StringComparison.OrdinalIgnoreCase))
         {
-            return "/storefront/garage-app";
+            return StorefrontPhpCanonical.GarageLogin;
         }
 
         if (value.StartsWith("/users", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/vendor", StringComparison.OrdinalIgnoreCase))
         {
-            return "/storefront/login";
+            return StorefrontPhpCanonical.Login;
         }
 
         if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)

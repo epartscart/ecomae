@@ -18,14 +18,16 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=einvoice", "/cp/einvoice-documents-app")]
     [InlineData("/BOS/?m=command_center", "/bos/app")]
     [InlineData("/BOS/?m=fleet_cp", "/bos/tenants-app")]
-    [InlineData("/shop/part_search", "/storefront/search-app")]
-    [InlineData("/shop/cart", "/storefront/cart-app")]
-    [InlineData("https://epartscart.com/shop/part_search", "/storefront/search-app")]
-    [InlineData("/en/shop/warehouse-search", "/storefront/search-app?mode=attr")]
-    [InlineData("/shop/warehouse-search?q=oil&field=all", "/storefront/search-app?mode=attr&q=oil&field=all")]
-    [InlineData("/en/katalog-laximo", "/storefront/search-app?mode=vin")]
-    [InlineData("/en/vehicle-catalog", "/storefront/search-app?mode=car")]
-    [InlineData("/en/users/login", "/storefront/login")]
+    [InlineData("/shop/part_search", "/en/shop/part_search")]
+    [InlineData("/shop/cart", "/en/shop/cart")]
+    [InlineData("https://epartscart.com/shop/part_search", "/en/shop/part_search")]
+    [InlineData("/en/shop/warehouse-search", "/en/shop/warehouse-search")]
+    [InlineData("/shop/warehouse-search?q=oil&field=all", "/en/shop/warehouse-search?q=oil&field=all")]
+    [InlineData("/en/katalog-laximo", "/en/katalog-laximo")]
+    [InlineData("/en/vehicle-catalog", "/en/vehicle-catalog")]
+    [InlineData("/en/users/login", "/en/users/login")]
+    [InlineData("/product-family", "/en/product-family")]
+    [InlineData("/umapi_catalog", "/en/umapi_catalog")]
     [InlineData("https://agriculture.ecomae.com/CP/", "https://agriculture.ecomae.com/cp")]
     [InlineData("/epc-blockchain-verify.php", "/marketing/blockchain")]
     public void AspNetPrimaryHref_MapsPhpProductToAspNet(string phpHref, string expected)
@@ -36,7 +38,7 @@ public sealed class PhpSurfaceLinkMapTests
     [Theory]
     [InlineData("/CP/shop/orders/orders", "/cp/orders")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
-    [InlineData("/shop/part_search?q=abc", "/storefront/search-app?q=abc")]
+    [InlineData("/shop/part_search?q=abc", "/en/shop/part_search?q=abc")]
     public void TryMapIncomingPhpProductPath_DeepShells(string incoming, string expected)
     {
         Assert.True(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(incoming, out var mapped));
