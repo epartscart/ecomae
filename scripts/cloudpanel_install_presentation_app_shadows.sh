@@ -27,6 +27,26 @@ printf 'Backup: %s\n' "$bak"
 python3 - "$CONF" "$EXAMPLE" <<'PY'
 from pathlib import Path
 import re, sys
+
+def find_insert_marker(cfg: str) -> int:
+    """Match mega-conf / CloudPanel variants (spaces, tabs, location /php, etc.)."""
+    for pat in (
+        r"\n[ \t]*location / \{",
+        r"\n[ \t]*location /\s*\{",
+        r"\n[ \t]*location /php",
+        r"\n[ \t]*location ~",
+        r"\n[ \t]*include[ \t]+fastcgi",
+        r"\n[ \t]*include[ \t]+",
+    ):
+        m = re.search(pat, cfg)
+        if m:
+            return m.start() + 1
+    raise SystemExit(
+        "ERROR: insertion point missing "
+        "(need `location / {` or fallback location/include inside site conf). "
+        "Set ECOMAE_NGINX_SITE_CONF=/etc/nginx/sites-enabled/www.ecomae.com.conf"
+    )
+
 conf_path, example_path = Path(sys.argv[1]), Path(sys.argv[2])
 text = conf_path.read_text(encoding="utf-8")
 example = example_path.read_text(encoding="utf-8")
@@ -46,10 +66,8 @@ inserted=[]; already=[]
 for route, block in blocks:
     if re.search(rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{", text):
         already.append(route); continue
-    m=re.search(r"\n  location / \{", text)
-    if not m: raise SystemExit("ERROR: insertion point missing")
-    marker=m.start()+1
-    text=text[:marker]+block+"\n"+text[marker:]
+    marker = find_insert_marker(text)
+    text = text[:marker] + block + "\n" + text[marker:]
     inserted.append(route)
 conf_path.write_text(text, encoding="utf-8")
 print(f"ALREADY PRESENT: {len(already)}")
