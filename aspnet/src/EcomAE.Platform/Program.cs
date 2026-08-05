@@ -656,6 +656,13 @@ app.UseAntiforgery();
 
 app.MapHealthChecks(EcomAeRoutes.Health);
 
+// robots.txt advertises /sitemap.xml; PHP child maps remain authoritative under sitemap-index.php.
+app.MapGet(EcomAeRoutes.SitemapXml, () =>
+{
+    var response = Results.Redirect(StorefrontPublicSeo.PhpSitemapIndex, permanent: false);
+    return response;
+});
+
 app.MapGet(EcomAeRoutes.MigrationStatus, (IMigrationParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.MigrationReadiness, (IMigrationReadinessReporter reporter) => Results.Ok(reporter.BuildReport()));
