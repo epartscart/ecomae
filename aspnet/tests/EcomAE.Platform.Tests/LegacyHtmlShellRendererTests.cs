@@ -37,12 +37,12 @@ public sealed class LegacyHtmlShellRendererTests
     }
 
     [Fact]
-    public void RenderStorefrontLinksModexAssets()
+    public void RenderStorefrontLinksNeroAssets()
     {
         var shell = new MigrationSurfaceShellCatalog().Build("storefront", null);
         var html = new LegacyHtmlShellRenderer().Render("storefront", shell, null);
 
-        Assert.Contains("/epc-static.php?f=templates/modex/assets/css/style_color.css", html, StringComparison.Ordinal);
-        Assert.Contains("/epc-static.php?f=templates/modex/css/catalogue/catalogue.css", html, StringComparison.Ordinal);
+        Assert.Contains("/epc-static.php?f=templates/nero/assets/css/style_all.css", html, StringComparison.Ordinal);
+        Assert.Contains("/epc-static.php?f=templates/nero/css/catalogue/catalogue.css", html, StringComparison.Ordinal);
     }
 }

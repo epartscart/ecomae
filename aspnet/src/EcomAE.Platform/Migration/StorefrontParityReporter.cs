@@ -11,7 +11,7 @@ public sealed class StorefrontParityReporter : IStorefrontParityReporter
             "presentation-shell-scaffolded-awaiting-staging",
             [
                 "Storefront shell lists home, CMS, catalog, cart, checkout, and customer account sections.",
-                "Storefront account/placeholder shells negotiate presentation-preserving HTML (templates/modex CSS) while defaulting to JSON for tooling.",
+                "Storefront account/placeholder shells negotiate presentation-preserving HTML (templates/nero CSS) while defaulting to JSON for tooling.",
                 "Customer session gate protects /storefront/account, account-summary, orders, garage, and profile digests.",
                 "Tenant resolver keeps live storefront traffic classified before cutover.",
                 "Optional customer smoke: ECOMAE_CUSTOMER_COOKIE_HEADER (session=...; u_id=<digits>) via run_storefront_digest_exact_route_smoke.sh / capture artifacts.",

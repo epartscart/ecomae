@@ -133,6 +133,8 @@ public static class PhpSurfaceLinkMap
             return MapBosPhpPath(value);
         }
 
+        value = StripStorefrontLangPrefix(value);
+
         if (value.StartsWith("/php-reference/", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/storefront/", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/marketing/", StringComparison.OrdinalIgnoreCase)
@@ -162,6 +164,11 @@ public static class PhpSurfaceLinkMap
             return "/storefront/orders-app";
         }
 
+        if (value.Contains("warehouse-search", StringComparison.OrdinalIgnoreCase))
+        {
+            return AppendQuery("/storefront/search-app", value, "mode=attr");
+        }
+
         if (value.StartsWith("/shop/part_search", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/shop/search", StringComparison.OrdinalIgnoreCase))
         {
@@ -169,12 +176,29 @@ public static class PhpSurfaceLinkMap
             return "/storefront/search-app" + q;
         }
 
+        if (value.Contains("katalog-laximo", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("identString=", StringComparison.OrdinalIgnoreCase))
+        {
+            return AppendQuery("/storefront/search-app", value, "mode=vin");
+        }
+
+        if (value.Contains("vehicle-catalog", StringComparison.OrdinalIgnoreCase))
+        {
+            return AppendQuery("/storefront/search-app", value, "mode=car");
+        }
+
+        if (IsStorefrontCatalogBrowsePath(value))
+        {
+            return "/storefront/search-app";
+        }
+
         if (value.Contains("garage", StringComparison.OrdinalIgnoreCase))
         {
             return "/storefront/garage-app";
         }
 
-        if (value.StartsWith("/users", StringComparison.OrdinalIgnoreCase))
+        if (value.StartsWith("/users", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/vendor", StringComparison.OrdinalIgnoreCase))
         {
             return "/storefront/login";
         }
@@ -193,6 +217,72 @@ public static class PhpSurfaceLinkMap
         }
 
         return "/";
+    }
+
+    private static string StripStorefrontLangPrefix(string value)
+    {
+        var qIndex = value.IndexOf('?', StringComparison.Ordinal);
+        var path = qIndex < 0 ? value : value[..qIndex];
+        var query = qIndex < 0 ? string.Empty : value[qIndex..];
+        foreach (var lang in new[] { "/en", "/me", "/ru" })
+        {
+            if (path.Equals(lang, StringComparison.OrdinalIgnoreCase))
+            {
+                return "/" + query;
+            }
+
+            if (path.StartsWith(lang + "/", StringComparison.OrdinalIgnoreCase))
+            {
+                return path[lang.Length..] + query;
+            }
+        }
+
+        return value;
+    }
+
+    private static string AppendQuery(string aspNetPath, string original, string requiredPair)
+    {
+        var qIndex = original.IndexOf('?', StringComparison.Ordinal);
+        var incoming = qIndex < 0 || qIndex >= original.Length - 1
+            ? string.Empty
+            : original[(qIndex + 1)..];
+        if (string.IsNullOrEmpty(incoming))
+        {
+            return aspNetPath + "?" + requiredPair;
+        }
+
+        if (incoming.Contains(requiredPair.Split('=')[0] + "=", StringComparison.OrdinalIgnoreCase))
+        {
+            return aspNetPath + "?" + incoming;
+        }
+
+        return aspNetPath + "?" + requiredPair + "&" + incoming;
+    }
+
+    private static bool IsStorefrontCatalogBrowsePath(string value)
+    {
+        var path = value;
+        var q = value.IndexOf('?', StringComparison.Ordinal);
+        if (q >= 0)
+        {
+            path = value[..q];
+        }
+
+        path = path.TrimEnd('/');
+        return path.Equals("/product-family", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/available-brands", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/parts", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/accessories-spare-parts", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/eparts-cata", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/eparts-mod", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/partsapi-catalog", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/levam-oem", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/umapi_catalog", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/original-catalog", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/demand-intelligence", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/zapros-prodavczu", StringComparison.OrdinalIgnoreCase)
+            || path.Contains("katalogi-ucats", StringComparison.OrdinalIgnoreCase)
+            || path.Contains("bulk-upload", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string MapMarketingPath(string path, string fragment)
@@ -322,10 +412,15 @@ public static class PhpSurfaceLinkMap
         }
 
         var value = pathAndQuery.Trim();
+        var stripped = StripStorefrontLangPrefix(value);
         if (!(IsUpperPhpShell(value, "CP")
             || IsUpperPhpShell(value, "ERP")
             || IsUpperPhpShell(value, "BOS")
-            || value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)))
+            || value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
+            || stripped.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
+            || stripped.Contains("warehouse-search", StringComparison.OrdinalIgnoreCase)
+            || stripped.Contains("katalog-laximo", StringComparison.OrdinalIgnoreCase)
+            || stripped.Contains("vehicle-catalog", StringComparison.OrdinalIgnoreCase)))
         {
             return false;
         }

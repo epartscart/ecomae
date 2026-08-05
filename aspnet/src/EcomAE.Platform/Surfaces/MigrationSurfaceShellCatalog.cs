@@ -71,7 +71,7 @@ public sealed class MigrationSurfaceShellCatalog : ISurfaceShellCatalog
             new("cart", "Cart and checkout", ["cart", "checkout", "order submit"], "content/shop/", "pending-port"),
             new("account", "Customer account", ["login", "orders", "garage"], "content/users/", "pending-port")
         ],
-        ["Compare rendered HTML metadata against PHP storefront.", "Reuse templates/modex CSS asset URLs for presentation parity.", "Validate cart/session compatibility.", "Run checkout parity with sandbox payment mode."]);
+        ["Compare rendered HTML metadata against PHP storefront.", "Reuse templates/nero CSS asset URLs for presentation parity.", "Validate cart/session compatibility.", "Run checkout parity with sandbox payment mode."]);
 
     private static string TenantModeName(TenantContext? tenant) => tenant?.Mode.ToString() ?? "Unknown";
 }

@@ -315,7 +315,11 @@ public static class LegacyDesktopChromeCatalog
                 ".bos-topnav", ".bos-main", ".bos-topnav__panel",
                 ".bos-topnav__panel-hub", ".bos-topnav__cols"
             ],
-            "storefront" => ["#header-full-top", ".header_search_form_1", "#header"],
+            "storefront" =>
+            [
+                ".top-menu-line", ".logo-line", ".schearch-line",
+                ".header_search_form_1", ".header_search_form_attr", "#footer-widgets", "#header"
+            ],
             _ => []
         };
 
