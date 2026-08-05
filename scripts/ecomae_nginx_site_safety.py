@@ -98,6 +98,23 @@ BROAD_LOCATION_PATTERNS = (
 )
 
 
+_SERVER_NAME_RE = __import__("re").compile(r"(?im)^\s*server_name\s+([^;]+);")
+
+
+def _server_name_tokens(conf_path: str | Path) -> list[str]:
+    try:
+        text = Path(conf_path).read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return []
+    names: list[str] = []
+    for m in _SERVER_NAME_RE.finditer(text):
+        for tok in m.group(1).split():
+            t = tok.strip().lower()
+            if t and t != "_":
+                names.append(t)
+    return names
+
+
 def classify_site_conf(conf_path: str | Path) -> str:
     """Return platform | platform-optional | tenant | industry | unknown."""
     name = Path(conf_path).name.lower()
@@ -108,9 +125,26 @@ def classify_site_conf(conf_path: str | Path) -> str:
     for marker in TENANT_BASENAME_MARKERS:
         if marker in name:
             return "tenant"
+    # Content-based: dedicated or multi-host conf whose server_name is a live tenant.
+    tokens = _server_name_tokens(conf_path)
+    for tok in tokens:
+        for host in LIVE_PRODUCTION_TENANT_HOSTS:
+            if tok == host or tok.endswith("." + host.removeprefix("www.")):
+                return "tenant"
+        for marker in LIVE_PRODUCTION_TENANT_MARKERS:
+            if marker in tok and tok.endswith(".com"):
+                return "tenant"
     for marker in INDUSTRY_ECOMAE_MARKERS:
         if marker in name:
             return "industry"
+    # wildcard-ecomae / *.ecomae.com showcase — industry, never "epartscart by filename".
+    if name.startswith("wildcard-ecomae") or any(
+        tok == "*.ecomae.com" or tok.endswith(".ecomae.com") for tok in tokens
+    ):
+        if name not in {n.lower() for n in PLATFORM_BASENAMES}:
+            # Pure industry wildcard without tenant server_name
+            if not any("epartscart" in t for t in tokens):
+                return "industry"
     # Any other *.ecomae.com site that is not www/cp is treated as industry/showcase.
     if name.endswith(".ecomae.com.conf") or name.endswith(".ecomae.com"):
         return "industry"
@@ -147,7 +181,10 @@ def assert_shadow_target_allowed(
         return
 
     name = Path(conf_path).name.lower()
-    is_named_live = any(marker in name for marker in LIVE_PRODUCTION_TENANT_MARKERS)
+    tokens = _server_name_tokens(conf_path)
+    is_named_live = any(marker in name for marker in LIVE_PRODUCTION_TENANT_MARKERS) or any(
+        any(marker in tok for marker in LIVE_PRODUCTION_TENANT_MARKERS) for tok in tokens
+    )
 
     if purpose == "presentation":
         if is_named_live:

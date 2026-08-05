@@ -128,7 +128,10 @@ say ""
 say "PASS=$pass FAIL=$fail"
 if [[ "$fail" -gt 0 ]]; then
   say "RESULT=FAIL — tenant-shared URLs not fully on ASP.NET same-path"
-  say "If epartscart conf was missing, set ECOMAE_NGINX_SITE_CONF_TENANT and re-run --all-hosts"
+  say "If epartscart failed: rollback wildcard-ecomae if polluted, then ensure a real epartscart vhost:"
+  say "  bash scripts/cloudpanel_discover_epartscart_nginx_conf.sh"
+  say "  ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh"
+  say "  # Do NOT use wildcard-ecomae when server_name is only *.ecomae.com"
   exit 1
 fi
 say "RESULT=PASS — /cp /erp /bos / on ASP.NET; PHP reference separate"
