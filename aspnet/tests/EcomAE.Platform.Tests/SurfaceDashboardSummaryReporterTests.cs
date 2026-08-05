@@ -78,6 +78,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var salesQuotations = await reporter.BuildErpSalesQuotationsDigestAsync(10);
         var workspaceFavorites = await reporter.BuildErpWorkspaceFavoritesDigestAsync(10);
         var fixedAssets = await reporter.BuildErpFixedAssetsDigestAsync(10);
+        var processFlowTasks = await reporter.BuildErpProcessFlowTasksDigestAsync(10);
         var pageBuilder = await reporter.BuildCpPageBuilderDigestAsync(10);
         var productCatalogue = await reporter.BuildCpProductCatalogueDigestAsync(10);
         var platformGovernance = await reporter.BuildCpPlatformGovernanceDigestAsync(10);
@@ -203,6 +204,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", salesQuotations.Source);
         Assert.Equal("migration", workspaceFavorites.Source);
         Assert.Equal("migration", fixedAssets.Source);
+        Assert.Equal("migration", processFlowTasks.Source);
         Assert.Equal("migration", pageBuilder.Source);
         Assert.Equal("migration", productCatalogue.Source);
         Assert.Equal("migration", platformGovernance.Source);

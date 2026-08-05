@@ -1,6 +1,6 @@
 {
   "role": "www-zero-php-residual-board",
-  "generatedAtUnix": 1785872400,
+  "generatedAtUnix": 1785872327,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
@@ -95,7 +95,7 @@
   "builtAlready": [
     "Write-dryrun dual-sample contract floor 183/183 (writes=0; cutoverAllowed=false)",
     "Menus 726/726 digest-contract (cp-debug-console surface-field contract locked; metadata-only, no LFI; hybrid-directory-only=0)",
-    "Field floors 137/137",
+    "Field floors + digest dual-sample contracts 138/138",
     "CP ajax goldens 254; ERP 321; BOS 231 (all writes=0)",
     "Module-ajax contract floor 254/254 aspnet\u2194php seeded baselines (migration-contract-golden)",
     "Storefront digests wired 7/7",
@@ -125,7 +125,11 @@
     "ERP ajax contract pairs 321/321 (writes=0)",
     "BOS ajax contract pairs 231/231 (writes=0)",
     "CP module-ajax contract pairs 254/254 (writes=0)",
-    "cloudpanel_run_all_ajax_contract_floors.sh offline CI green"
+    "cloudpanel_run_all_ajax_contract_floors.sh offline CI green",
+    "Surface digests wired 130/130 incl. /erp/process-flow-tasks (epc_pf_cases; PHP processflow authoritative)",
+    "ERP dashboard-summary contract expanded to full model incl. processOpen/Done/Overdue",
+    "StorefrontPreviewApp analytics via PhpSurfaceHead only (Clarity in SSR HTML)",
+    "Nonprofit industry title aligned to PHP Non-Profit"
   ],
   "liveLag": {
     "storefrontDigestsLive": "6/7 (checkout shadow not installed on www yet)",

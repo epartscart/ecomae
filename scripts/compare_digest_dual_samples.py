@@ -188,6 +188,10 @@ SUMMARY_CONTRACTS = {
         "summary",
         "assetCount,activeCount,disposedCount,costTotal,bookValueTotal,source,message",
     ),
+    "erp-process-flow-tasks": (
+        "summary",
+        "taskCount,openCount,doneCount,overdueCount,cancelledCount,source,message",
+    ),
     "cp-page-builder": (
         "summary",
         "layoutCount,publishedCount,draftCount,siteCount,source,message",
@@ -900,6 +904,10 @@ HYBRID_LIST_ITEM_FIELDS = {
     "erp-fixed-assets": (
         "assets",
         ["id", "assetCode", "name", "categoryId", "acquisitionDate", "cost", "salvageValue", "usefulLifeMonths", "depreciationMethod", "accumulatedDepreciation", "bookValue", "location", "status", "timeCreated"],
+    ),
+    "erp-process-flow-tasks": (
+        "tasks",
+        ["id", "processId", "title", "reference", "priority", "status", "currentStepNo", "currentAssigneeId", "currentDepartment", "initiatorId", "subjectType", "subjectId", "startedAt", "dueAt", "completedAt", "timeCreated", "timeUpdated"],
     ),
     "cp-page-builder": (
         "layouts",

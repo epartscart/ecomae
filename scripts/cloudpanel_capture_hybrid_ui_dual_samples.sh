@@ -121,6 +121,7 @@ TARGETS = [
     ("erp-sales-quotations", "erp", "/erp/sales-quotations-app", "/erp/sales-quotations", "/ERP/?epc_erp_shell=1&area=sales&tab=proposals", "ErpSalesQuotationsApp", "PhpErpDesktopChrome", "admin"),
     ("erp-workspace-favorites", "erp", "/erp/workspace-favorites-app", "/erp/workspace-favorites", "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard", "ErpWorkspaceFavoritesApp", "PhpErpDesktopChrome", "admin"),
     ("erp-fixed-assets", "erp", "/erp/fixed-assets-app", "/erp/fixed-assets", "/ERP/?epc_erp_shell=1&area=fixed_assets&tab=fixed_assets", "ErpFixedAssetsApp", "PhpErpDesktopChrome", "admin"),
+    ("erp-process-flow-tasks", "erp", "/erp/process-flow-tasks-app", "/erp/process-flow-tasks", "/ERP/?epc_erp_shell=1&area=overview&tab=processflow", "ErpProcessFlowTasksApp", "PhpErpDesktopChrome", "admin"),
     ("cp-page-builder", "cp", "/cp/page-builder-app", "/cp/page-builder", "/CP/control/portal/epc_visual_page_editor", "CpPageBuilderApp", "PhpCpDesktopChrome", "admin"),
     ("cp-product-catalogue", "cp", "/cp/product-catalogue-app", "/cp/product-catalogue", "/CP/shop/catalogue/catalogue_editor", "CpProductCatalogueApp", "PhpCpDesktopChrome", "admin"),
     ("cp-platform-governance", "cp", "/cp/platform-governance-app", "/cp/platform-governance", "/CP/control/portal/epc_platform_governance", "CpPlatformGovernanceApp", "PhpCpDesktopChrome", "admin"),
@@ -262,6 +263,7 @@ def write_php_inventory():
             }
             for t in TARGETS
         ],
+        "targetCount": len(TARGETS),
         "note": "ASP.NET *-app routes are www exact-route previews only. Live product chrome and writes remain PHP.",
     }
     path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")

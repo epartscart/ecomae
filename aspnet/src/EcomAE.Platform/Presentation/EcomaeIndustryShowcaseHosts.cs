@@ -36,7 +36,7 @@ public static class EcomaeIndustryShowcaseHosts
         new("logistics", "Logistics & Transport", "https://logistics.ecomae.com/", "https://logistics.ecomae.com/CP/", "https://logistics.ecomae.com/ERP/"),
         new("manufacturing", "Manufacturing & Industrial", "https://manufacturing.ecomae.com/", "https://manufacturing.ecomae.com/CP/", "https://manufacturing.ecomae.com/ERP/"),
         new("media", "Media & Entertainment", "https://media.ecomae.com/", "https://media.ecomae.com/CP/", "https://media.ecomae.com/ERP/"),
-        new("nonprofit", "Nonprofit & Government", "https://nonprofit.ecomae.com/", "https://nonprofit.ecomae.com/CP/", "https://nonprofit.ecomae.com/ERP/"),
+        new("nonprofit", "Non-Profit & Government", "https://nonprofit.ecomae.com/", "https://nonprofit.ecomae.com/CP/", "https://nonprofit.ecomae.com/ERP/"),
         new("pet", "Pet & Animal Services", "https://pet.ecomae.com/", "https://pet.ecomae.com/CP/", "https://pet.ecomae.com/ERP/"),
         new("printing", "Printing & Publishing", "https://printing.ecomae.com/", "https://printing.ecomae.com/CP/", "https://printing.ecomae.com/ERP/"),
         new("professional", "Professional & Business Services", "https://professional.ecomae.com/", "https://professional.ecomae.com/CP/", "https://professional.ecomae.com/ERP/"),

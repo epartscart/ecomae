@@ -30,7 +30,7 @@ The **95% / 5%** meter is the historical weighted Zero-PHP score (scaffolding + 
 
 **Catalog exact-route progress:** **18 / 18**
 
-**Surface digest exact-route progress:** **129 / 129** wired (live www until republish ~30/127)
+**Surface digest exact-route progress:** **130 / 130** wired (incl. `/erp/process-flow-tasks`; live www until republish + shadow install)
 
 **Storefront digest exact-route progress:** **4 / 6** (wired 6; live shadows still 4)
 

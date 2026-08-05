@@ -1,0 +1,39 @@
+{
+  "role": "erp-process-flow-tasks-item-field-floor",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "aspNetInteractiveComplete": 0,
+  "stem": "erp-process-flow-tasks",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + generate_migration_digest_contract_samples.py",
+  "note": "Locks erp-process-flow-tasks digest field floors for PHP↔ASP.NET dual-sample against epc_pf_cases. Interactive approvals remain PHP. cutoverAllowed=false.",
+  "requiredSummaryFields": [
+    "taskCount",
+    "openCount",
+    "doneCount",
+    "overdueCount",
+    "cancelledCount",
+    "source",
+    "message"
+  ],
+  "collectionKey": "tasks",
+  "requiredItemFields": [
+    "id",
+    "processId",
+    "title",
+    "reference",
+    "priority",
+    "status",
+    "currentStepNo",
+    "currentAssigneeId",
+    "currentDepartment",
+    "initiatorId",
+    "subjectType",
+    "subjectId",
+    "startedAt",
+    "dueAt",
+    "completedAt",
+    "timeCreated",
+    "timeUpdated"
+  ]
+}

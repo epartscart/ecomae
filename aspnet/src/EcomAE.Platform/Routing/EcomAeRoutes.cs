@@ -628,6 +628,10 @@ public static class EcomAeRoutes
     public const string ErpWorkspaceFavoritesApp = "/erp/workspace-favorites-app";
     /// <summary>ERP fixed assets register (note omitted).</summary>
     public const string ErpFixedAssets = "/erp/fixed-assets";
+    /// <summary>Read-only process-flow cases (PHP <c>epc_pf_cases</c>; writes remain PHP processflow UI).</summary>
+    public const string ErpProcessFlowTasks = "/erp/process-flow-tasks";
+    /// <summary>Process-flow tasks Blazor list (JSON digest remains <see cref="ErpProcessFlowTasks"/>).</summary>
+    public const string ErpProcessFlowTasksApp = "/erp/process-flow-tasks-app";
     /// <summary>ERP fixed assets Blazor list (JSON digest remains <see cref="ErpFixedAssets"/>).</summary>
     public const string ErpFixedAssetsApp = "/erp/fixed-assets-app";
     /// <summary>ERP On-Premises deployment Blazor overview (PHP erp_tabs_on_premises.php remains primary until dual-sample).</summary>

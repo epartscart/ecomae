@@ -1,0 +1,23 @@
+{
+  "role": "aspnet-hybrid-ui-sample",
+  "stem": "erp-process-flow-tasks",
+  "surface": "erp",
+  "appRoute": "/erp/process-flow-tasks-app",
+  "digestRoute": "/erp/process-flow-tasks",
+  "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=overview&tab=processflow",
+  "blazorMarker": "ErpProcessFlowTasksApp",
+  "chromeShell": "PhpErpDesktopChrome",
+  "authKind": "admin",
+  "httpStatus": null,
+  "markersFound": [],
+  "phpDeeplinkFound": false,
+  "phpAuthoritative": true,
+  "wwwPreviewOnly": true,
+  "tenantChromePhp": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "capturedAt": "2026-08-04T19:41:31Z",
+  "baseUrl": "http://127.0.0.1:5100",
+  "publicBaseUrl": "https://www.ecomae.com",
+  "note": "Stub until live hybrid capture with admin cookie. PHP epc_erp_processflow.php remains authoritative."
+}

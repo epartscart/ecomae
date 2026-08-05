@@ -7,7 +7,7 @@
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
   "requiredProbes": [
-    "Process-flow task digest (open/done/overdue + rows) dual-sample vs PHP epc_erp_processflow_tasks",
+    "Process-flow task digest (open/done/overdue + rows) dual-sample vs PHP epc_pf_cases (/erp/process-flow-tasks)",
     "Industry step-chain posting parity (jewellery/trading/construction/POS)"
   ],
   "capturedEvidence": [],

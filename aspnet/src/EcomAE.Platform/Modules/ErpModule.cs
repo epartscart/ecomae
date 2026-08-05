@@ -1911,6 +1911,34 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpProcessFlowTasks, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for process-flow-tasks digest.");
+            }
+
+            var result = await dashboards.BuildErpProcessFlowTasksDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                summary = result.Summary,
+                tasks = result.Tasks,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_pf_cases KPIs + tasks (comments/step detail omitted). PHP epc_erp_processflow.php remains authoritative."
+            });
+        });
+
         foreach (var route in EcomAeRoutes.ErpAliases)
         {
             endpoints.MapGet(route, async (

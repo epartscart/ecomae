@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 154,
+  "contractCount": 155,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -3571,11 +3571,82 @@
         "cashAccounts",
         "activeSuppliers",
         "activePurchases",
+        "receivables",
+        "payables",
+        "stockValue",
+        "revenueExVat",
+        "ordersCount",
+        "arBalance",
+        "apBalance",
+        "vatNetPayable",
+        "periodStatus",
+        "inventoryItems",
+        "draftSalesOrders",
+        "pendingPurchaseOrders",
+        "unpostedGlJournals",
+        "overdueInvoices",
+        "lowStockItems",
+        "pendingEinvoices",
+        "processOpen",
+        "processDone",
+        "processOverdue",
         "source",
         "message"
       ],
       "functionsCovered": [
-        "ERP finance KPI read"
+        "ERP finance KPI read",
+        "Process-flow open/done/overdue KPIs from epc_pf_cases"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "erp",
+      "aspNetRoute": "/erp/process-flow-tasks",
+      "legacyPhpAuthority": "content/shop/finance/epc_erp_processflow.php (epc_pf_cases)",
+      "authRequired": "admin-erp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "tasks",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "taskCount",
+        "openCount",
+        "doneCount",
+        "overdueCount",
+        "cancelledCount",
+        "source",
+        "message"
+      ],
+      "requiredItemFields": [
+        "id",
+        "processId",
+        "title",
+        "reference",
+        "priority",
+        "status",
+        "currentStepNo",
+        "currentAssigneeId",
+        "currentDepartment",
+        "initiatorId",
+        "subjectType",
+        "subjectId",
+        "startedAt",
+        "dueAt",
+        "completedAt",
+        "timeCreated",
+        "timeUpdated"
+      ],
+      "functionsCovered": [
+        "Process-flow case KPIs + tasks[] from epc_pf_cases",
+        "PHP processflow approvals remain authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/erp_desktop.php",
       "parityStatus": "contract-locked-awaiting-dual-sample"
