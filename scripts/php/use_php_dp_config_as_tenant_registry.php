@@ -48,10 +48,23 @@ if ($db === '' || $user === '') {
 
 try {
 	$pdo = smoke_pdo_connect($host, $db, $user, $pass);
+} catch (Throwable $e) {
+	fwrite(STDERR, "BLOCKED: PHP DP_Config cannot CONNECT: " . $e->getMessage() . "\n");
+	exit(1);
+}
+
+// Prefer api-clients table when present; otherwise require users+sessions for login bridge.
+try {
 	$pdo->query('SELECT 1 FROM `epc_api_clients` LIMIT 1');
 } catch (Throwable $e) {
-	fwrite(STDERR, "BLOCKED: PHP DP_Config cannot read epc_api_clients: " . $e->getMessage() . "\n");
-	exit(1);
+	try {
+		$pdo->query('SELECT 1 FROM `users` LIMIT 1');
+		$pdo->query('SELECT 1 FROM `sessions` LIMIT 1');
+		fwrite(STDOUT, "NOTE: epc_api_clients missing; users+sessions OK for login bridge\n");
+	} catch (Throwable $e2) {
+		fwrite(STDERR, "BLOCKED: PHP DP_Config DB lacks epc_api_clients and users/sessions: " . $e2->getMessage() . "\n");
+		exit(1);
+	}
 }
 
 $adminSessions = 0;

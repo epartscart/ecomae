@@ -6,10 +6,24 @@
 set -euo pipefail
 
 ECOMAE_GIT_URL="${ECOMAE_GIT_URL:-https://github.com/epartscart/ecomae.git}"
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
+# Prefer current checkout branch when already on a login-fix tip; else main.
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-}"
 RELEASE_ROOT="${ECOMAE_ASPNET_RELEASE_ROOT:-/var/www/ecomae-aspnet}"
 ENV_DIR="${ECOMAE_ASPNET_ENV_DIR:-/etc/ecomae-aspnet}"
 CANDIDATES=("${ECOMAE_REPO:-}" /opt/ecomae-aspnet-source /root/ecomae /opt/ecomae)
+
+if [[ -z "$ECOMAE_BRANCH" ]]; then
+  for d in "${CANDIDATES[@]}"; do
+    if [[ -n "$d" && -d "$d/.git" ]]; then
+      ECOMAE_BRANCH="$(git -C "$d" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+      break
+    fi
+  done
+fi
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
+if [[ "$ECOMAE_BRANCH" == "HEAD" || "$ECOMAE_BRANCH" == "main" ]]; then
+  ECOMAE_BRANCH=main
+fi
 
 printf '== Fix login bridge NOW (%s) ==\n' "$ECOMAE_BRANCH"
 
@@ -65,6 +79,13 @@ if [[ -x scripts/cloudpanel_sync_secret_succession_from_php.sh ]]; then
   ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES \
     bash scripts/cloudpanel_sync_secret_succession_from_php.sh || \
     printf 'WARN: secret sync failed — set EcomAE__SecretSuccession manually in %s/platform.env\n' "$ENV_DIR" >&2
+fi
+
+# Fix Access denied for ecomae_aspnet → ecomae: use PHP DP_Config DB user/password
+if [[ -x scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh ]]; then
+  ECOMAE_CONFIRM_USE_PHP_DP_CONFIG_AS_TENANT_REGISTRY=YES \
+    bash scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh || \
+    printf 'WARN: TenantRegistry PHP DP_Config sync failed — login will keep login_backend_error\n' >&2
 fi
 
 systemctl restart ecomae-platform.service
