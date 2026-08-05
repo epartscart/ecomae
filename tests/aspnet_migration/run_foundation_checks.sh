@@ -1504,6 +1504,10 @@ check 'classic-entry installer reloads per host' contains "$ROOT/scripts/cloudpa
 check 'classic-entry installer supports --all-hosts' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" '--all-hosts'
 check 'classic-entry installer requires live tenant confirm' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW'
 check 'classic-entry installer discovers epartscart conf' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'epartscart.com.conf'
+check 'classic-entry installer falls back to wildcard-ecomae' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'wildcard-ecomae'
+check 'classic-entry installer avoids ripgrep' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'grep -Ei'
+check 'classic-entry tenant example is host-gated' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'epartscart\.com'
+check 'classic-entry tenant example has php passthrough' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" '@epc_classic_php_passthrough'
 check 'classic-entry php-reference may 302' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'return 302 /index.php'
 check 'classic-entry probe exists' test -x "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh"
 check 'classic-entry probe asserts same-URL' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" 'tenant-shared URL must stay unchanged'

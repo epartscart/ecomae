@@ -42,7 +42,8 @@ resolve_site_conf() {
   done
   if [[ -n "$frag" && -d /etc/nginx/sites-enabled ]]; then
     local found
-    found="$(ls -1 /etc/nginx/sites-enabled 2>/dev/null | rg -i "${frag}" | head -n 1 || true)"
+    # CloudPanel images often lack ripgrep — use grep -Ei.
+    found="$(ls -1 /etc/nginx/sites-enabled 2>/dev/null | grep -Ei "${frag}" | head -n 1 || true)"
     if [[ -n "$found" && -f "/etc/nginx/sites-enabled/${found}" ]]; then
       printf '%s\n' "/etc/nginx/sites-enabled/${found}"
       return 0
@@ -79,6 +80,26 @@ conf_path, example_path = Path(sys.argv[1]), Path(sys.argv[2])
 text = conf_path.read_text(encoding="utf-8")
 example = example_path.read_text(encoding="utf-8")
 
+def indent_block(block_raw: str) -> str:
+    return "\n".join(("  " + line if line.strip() else line) for line in block_raw.splitlines()).rstrip() + "\n"
+
+def find_insert_marker(cfg: str) -> int:
+    for pat in (
+        r"\n[ \t]*location / \{",
+        r"\n[ \t]*location /php",
+        r"\n[ \t]*location ~",
+        r"\n[ \t]*include[ \t]+fastcgi",
+    ):
+        m = re.search(pat, cfg)
+        if m:
+            return m.start() + 1
+    raise SystemExit("ERROR: insertion point missing (no location / or fastcgi include)")
+
+# Optional named location for host-gated wildcard tenant packs.
+named_blocks = []
+for m in re.finditer(r"(?m)^(location @([A-Za-z0-9_]+)\s*\{.*?\n\})", example, flags=re.S):
+    named_blocks.append((m.group(2), indent_block(m.group(1))))
+
 blocks = []
 for m in re.finditer(r"(?m)^(location = (/[^\s{]*)\s*\{.*?\n\})", example, flags=re.S):
     block_raw, route = m.group(1), m.group(2)
@@ -92,30 +113,36 @@ for m in re.finditer(r"(?m)^(location = (/[^\s{]*)\s*\{.*?\n\})", example, flags
         raise SystemExit(f"ERROR: block must proxy_pass ASP.NET or php-reference ({route})")
     # Product-chrome entries must never 302 away from tenant-shared URLs.
     if route in {"/", "/cp", "/cp/", "/CP", "/CP/", "/erp", "/erp/", "/ERP", "/ERP/", "/bos", "/bos/", "/BOS", "/BOS/"}:
-        if "return 302" in block_raw:
+        if re.search(r"(?m)^\s*return\s+302\s+", block_raw):
             raise SystemExit(
                 f"ERROR: tenant-shared URLs must stay unchanged — no return 302 in {route}"
             )
         if not is_proxy:
             raise SystemExit(f"ERROR: shared entry {route} must proxy_pass ASP.NET")
-    indented = "\n".join(("  " + line if line.strip() else line) for line in block_raw.splitlines())
-    blocks.append((route, indented.rstrip() + "\n"))
+    blocks.append((route, indent_block(block_raw)))
 
 expected = 18  # / + 4 CP + 4 ERP + 4 BOS + 5 php-reference
 if len(blocks) != expected:
     raise SystemExit(f"ERROR: expected {expected} classic-entry routes, found {len(blocks)}")
 
 inserted, replaced = [], []
+for name, block in named_blocks:
+    pattern = re.compile(rf"(?m)^[ \t]*location\s*@{re.escape(name)}\s*\{{.*?\n[ \t]*\}}\n?", re.S)
+    if pattern.search(text):
+        text = pattern.sub(block + "\n", text, count=1)
+        replaced.append("@" + name)
+    else:
+        marker = find_insert_marker(text)
+        text = text[:marker] + block + "\n" + text[marker:]
+        inserted.append("@" + name)
+
 for route, block in blocks:
     pattern = re.compile(rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{.*?\n[ \t]*\}}\n?", re.S)
     if pattern.search(text):
         text = pattern.sub(block + "\n", text, count=1)
         replaced.append(route)
         continue
-    m = re.search(r"\n  location / \{", text)
-    if not m:
-        raise SystemExit("ERROR: insertion point missing (location / {)")
-    marker = m.start() + 1
+    marker = find_insert_marker(text)
     text = text[:marker] + block + "\n" + text[marker:]
     inserted.append(route)
 
@@ -144,14 +171,28 @@ WWW_CONF="$(resolve_site_conf ecomae \
   /etc/nginx/sites-available/www.ecomae.com.conf \
   || true)"
 
+# CloudPanel often has NO www.epartscart.com.conf — epartscart is on wildcard-ecomae.
 TENANT_CONF="$(resolve_site_conf epartscart \
   "${ECOMAE_NGINX_SITE_CONF_TENANT:-}" \
   /etc/nginx/sites-enabled/www.epartscart.com.conf \
   /etc/nginx/sites-enabled/epartscart.com.conf \
   /etc/nginx/sites-enabled/eparts-cart.com.conf \
+  /etc/nginx/sites-enabled/wildcard-ecomae \
+  /etc/nginx/sites-enabled/wildcard-ecomae.conf \
   /etc/nginx/sites-available/www.epartscart.com.conf \
   /etc/nginx/sites-available/epartscart.com.conf \
+  /etc/nginx/sites-available/wildcard-ecomae \
   || true)"
+if [[ -z "${TENANT_CONF:-}" && -f /etc/nginx/sites-enabled/wildcard-ecomae ]]; then
+  TENANT_CONF=/etc/nginx/sites-enabled/wildcard-ecomae
+fi
+if [[ -n "${TENANT_CONF:-}" ]]; then
+  printf 'Resolved tenant/wildcard conf: %s\n' "$TENANT_CONF"
+  if [[ "$(basename "$TENANT_CONF")" == wildcard-ecomae* ]]; then
+    printf 'NOTE: epartscart is served via wildcard vhost; classic-entry is host-gated to (www.)epartscart.com\n'
+    grep -nE 'server_name' "$TENANT_CONF" 2>/dev/null | head -n 20 || true
+  fi
+fi
 
 WWW_OK=0
 TENANT_OK=0
