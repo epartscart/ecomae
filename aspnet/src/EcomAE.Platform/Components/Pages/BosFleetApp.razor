@@ -14,42 +14,94 @@
 
 <PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Command Center">
         <style>
+            .epc-bosapp-hero {
+                margin:0 0 1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+                background:linear-gradient(135deg,#000000 0%,#0c4a6e 55%,#0ea5e9 100%);
+            }
+            .epc-bosapp-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+            .epc-bosapp-hero p { margin:0; max-width:46rem; color:rgba(255,255,255,.9); font-size:.92rem; }
+            .epc-bosapp-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.55rem; margin:0 0 1rem; }
+            .epc-bosapp-chip { background:#fff; border:1px solid #e4e4e7; border-radius:.5rem; padding:.7rem .8rem; }
+            .epc-bosapp-chip strong { display:block; font-size:1.05rem; }
+            .epc-bosapp-chip span { color:#71717a; font-size:.75rem; }
             .epc-bosapp-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.65rem; margin:1.1rem 0; }
             .epc-bosapp-card { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; padding:.9rem; }
             .epc-bosapp-card strong { display:block; font-size:1.4rem; }
             .epc-bosapp-card span { color:#71717a; font-size:.8rem; }
+            .epc-bosapp-band { display:grid; grid-template-columns:1.2fr 1fr; gap:.75rem; margin:1rem 0; }
+            .epc-bosapp-panel { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; padding:1rem 1.1rem; }
+            .epc-bosapp-panel h2 { margin:.1rem 0 .55rem; font-size:1rem; }
+            .epc-bosapp-list { list-style:none; margin:0; padding:0; }
+            .epc-bosapp-list li { display:flex; justify-content:space-between; gap:.75rem; padding:.45rem 0; border-bottom:1px solid #f4f4f5; font-size:.86rem; }
+            .epc-bosapp-list li:last-child { border-bottom:0; }
+            .epc-bosapp-list a { font-weight:700; color:#0c4a6e; text-decoration:none; }
+            .epc-bosapp-tile { display:flex; flex-direction:column; gap:.35rem; text-decoration:none; color:inherit; min-height:6.2rem; }
+            .epc-bosapp-tile i { font-size:1.25rem; color:#0c4a6e; }
+            .epc-bosapp-tile em { font-style:normal; font-size:.72rem; color:#0ea5e9; font-weight:700; }
             .epc-bosapp-note { margin-top:1rem; padding:.8rem; border:1px solid #e4e4e7; border-radius:.45rem; background:#fff; color:#52525b; font-size:.88rem; }
+            @@media (max-width:900px){
+                .epc-bosapp-strip,.epc-bosapp-band { grid-template-columns:1fr 1fr; }
+            }
         </style>
 
-        <p style="color:#52525b;max-width:40rem">Fleet Command Center — ASP.NET shell matching BOS topnav mega layout. Browse tenants, readiness, and modules; PHP only via /php-reference/*.</p>
+        <section class="epc-bosapp-hero">
+            <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.15)" />
+            <h1>Fleet Command Center</h1>
+            <p>Tenant control, readiness, health, and audit in one BOS shell — same topnav mega layout as the live fleet command surface.</p>
+        </section>
+
         @if (!_isAdmin)
         {
             <div class="epc-bosapp-note" style="background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a;">
                 Guest preview — browse the ASP.NET BOS shell.
                 <a href="/bos/login">Sign in</a> for live KPIs.
-                PHP detail: <a href="/php-reference/bos">/php-reference/bos</a>
             </div>
         }
+
+        <div class="epc-bosapp-strip" aria-label="Readiness strip">
+            <div class="epc-bosapp-chip"><strong>@_tenants</strong><span>Total tenants</span></div>
+            <div class="epc-bosapp-chip"><strong>@_active</strong><span>Active tenants</span></div>
+            <div class="epc-bosapp-chip"><strong>@_withDb</strong><span>With database</span></div>
+            <div class="epc-bosapp-chip"><strong>@_sessions</strong><span>Admin sessions</span></div>
+        </div>
+
         <div class="epc-bosapp-grid">
-            <div class="epc-bosapp-card"><strong>@_tenants</strong><span>Total tenants</span></div>
             <div class="epc-bosapp-card"><strong>@_commerce</strong><span>Commerce</span></div>
             <div class="epc-bosapp-card"><strong>@_erpOnly</strong><span>ERP only</span></div>
             <div class="epc-bosapp-card"><strong>@_demo</strong><span>Demo</span></div>
             <div class="epc-bosapp-card"><strong>@_platform</strong><span>Platform</span></div>
-            <div class="epc-bosapp-card"><strong>@_active</strong><span>Active tenants</span></div>
-            <div class="epc-bosapp-card"><strong>@_withDb</strong><span>With database</span></div>
-            <div class="epc-bosapp-card"><strong>@_sessions</strong><span>Admin sessions</span></div>
+        </div>
+
+        <div class="epc-bosapp-band">
+            <section class="epc-bosapp-panel">
+                <h2>Tenant health band</h2>
+                <ul class="epc-bosapp-list">
+                    <li><a href="/bos/tenants-app">Tenant control</a><span>@_tenants hosts</span></li>
+                    <li><a href="/bos/fleet-health-app">Fleet health</a><span>@_active active</span></li>
+                    <li><a href="/bos/fleet-readiness-app">Readiness</a><span>@_withDb DB-ready</span></li>
+                    <li><a href="/bos/fleet-summary-app">Fleet summary</a><span>Roll-up</span></li>
+                </ul>
+            </section>
+            <section class="epc-bosapp-panel">
+                <h2>Issue / audit queue</h2>
+                <ul class="epc-bosapp-list">
+                    <li><a href="/bos/audit-log-app">Audit log</a><span>Recent events</span></li>
+                    <li><a href="/cp/failover-status-app">Failover</a><span>Platform</span></li>
+                    <li><a href="/cp/isolation-audit-app">Isolation audit</a><span>Tenancy</span></li>
+                    <li><a href="/cp">Control panel</a><span>Ops</span></li>
+                </ul>
+            </section>
         </div>
 
         <div class="epc-bosapp-grid" style="margin-top:.35rem">
-            <a class="epc-bosapp-card" href="/bos/tenants-app" style="text-decoration:none;color:inherit"><strong><i class="fa fa-building"></i></strong><span>Tenant control</span></a>
-            <a class="epc-bosapp-card" href="/bos/fleet-health-app" style="text-decoration:none;color:inherit"><strong><i class="fa fa-heartbeat"></i></strong><span>Fleet health</span></a>
-            <a class="epc-bosapp-card" href="/bos/fleet-readiness-app" style="text-decoration:none;color:inherit"><strong><i class="fa fa-check-circle"></i></strong><span>Readiness</span></a>
-            <a class="epc-bosapp-card" href="/bos/fleet-summary-app" style="text-decoration:none;color:inherit"><strong><i class="fa fa-dashboard"></i></strong><span>Fleet summary</span></a>
-            <a class="epc-bosapp-card" href="/bos/audit-log-app" style="text-decoration:none;color:inherit"><strong><i class="fa fa-list-alt"></i></strong><span>Audit log</span></a>
-            <a class="epc-bosapp-card" href="/cp" style="text-decoration:none;color:inherit"><strong><i class="fa fa-th-large"></i></strong><span>Control panel</span></a>
-            <a class="epc-bosapp-card" href="/erp" style="text-decoration:none;color:inherit"><strong><i class="fa fa-line-chart"></i></strong><span>ERP workspace</span></a>
-            <a class="epc-bosapp-card" href="/" style="text-decoration:none;color:inherit"><strong><i class="fa fa-shopping-cart"></i></strong><span>Storefront</span></a>
+            <a class="epc-bosapp-card epc-bosapp-tile" href="/bos/tenants-app"><i class="fa fa-building"></i><strong>Tenant control</strong><span>Provision and feature flags</span><em>Fleet</em></a>
+            <a class="epc-bosapp-card epc-bosapp-tile" href="/bos/fleet-health-app"><i class="fa fa-heartbeat"></i><strong>Fleet health</strong><span>Heartbeat and DB status</span><em>Health</em></a>
+            <a class="epc-bosapp-card epc-bosapp-tile" href="/bos/fleet-readiness-app"><i class="fa fa-check-circle"></i><strong>Readiness</strong><span>Cutover and gate checks</span><em>Ready</em></a>
+            <a class="epc-bosapp-card epc-bosapp-tile" href="/bos/fleet-summary-app"><i class="fa fa-dashboard"></i><strong>Fleet summary</strong><span>Roll-up KPIs</span><em>Summary</em></a>
+            <a class="epc-bosapp-card epc-bosapp-tile" href="/bos/audit-log-app"><i class="fa fa-list-alt"></i><strong>Audit log</strong><span>Operator events</span><em>Audit</em></a>
+            <a class="epc-bosapp-card epc-bosapp-tile" href="/cp"><i class="fa fa-th-large"></i><strong>Control panel</strong><span>Commerce ops</span><em>CP</em></a>
+            <a class="epc-bosapp-card epc-bosapp-tile" href="/erp"><i class="fa fa-line-chart"></i><strong>ERP workspace</strong><span>Finance and stock</span><em>ERP</em></a>
+            <a class="epc-bosapp-card epc-bosapp-tile" href="/"><i class="fa fa-shopping-cart"></i><strong>Storefront</strong><span>Customer browse</span><em>Shop</em></a>
         </div>
 
         <PhpHybridModuleDirectory
@@ -64,7 +116,7 @@
             Links="@PhpModuleCatalog.BosModules"
             PhpWorkspaceBase="/bos/app" />
 
-        <div class="epc-bosapp-note">Open any module below on ASP.NET. PHP product pages are only under /php-reference/*.</div>
+        <div class="epc-bosapp-note">Open any module below to continue in the ASP.NET BOS workspace.</div>
 </PhpBosDesktopChrome>
 
 @code {

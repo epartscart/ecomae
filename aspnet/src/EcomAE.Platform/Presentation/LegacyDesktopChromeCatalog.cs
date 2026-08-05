@@ -129,7 +129,7 @@ public static class LegacyDesktopChromeCatalog
             ["platform"] = "fa-cogs",
         };
 
-    /// <summary>CP topnav groups ≈ epc_cp_build_nav_tabs short labels + brochure samples.</summary>
+    /// <summary>CP topnav groups ≈ epc_cp_build_nav_tabs — multi-column mega panels (no artificial cap).</summary>
     public static IReadOnlyList<MegaGroup> ControlPanelTopnav()
     {
         var groups = new List<MegaGroup>();
@@ -138,22 +138,55 @@ public static class LegacyDesktopChromeCatalog
             var id = Slug(nav.Label);
             var links = PhpModuleCatalog.CpBrochureFeatures
                 .Where(f => MatchesGroup(f, nav.Label, nav.Href))
-                .Take(12)
                 .ToList();
             if (links.Count == 0)
             {
                 links.Add(new PhpModuleCatalog.ModuleLink(id, nav.Label, nav.Href, null, nav.Label));
-                foreach (var qa in LegacyChromeNavCatalog.ControlPanelQuickActions.Take(4))
+                foreach (var qa in LegacyChromeNavCatalog.ControlPanelQuickActions.Take(6))
                 {
                     links.Add(new PhpModuleCatalog.ModuleLink(Slug(qa.Label), qa.Label, qa.Href, null, nav.Label));
                 }
             }
 
-            groups.Add(new MegaGroup(id, nav.Label, links));
+            var columns = new List<MegaAreaColumn>();
+            const int colSize = 8;
+            for (var i = 0; i < links.Count; i += colSize)
+            {
+                var chunk = links.Skip(i).Take(colSize).ToList();
+                var colIndex = (i / colSize) + 1;
+                columns.Add(new MegaAreaColumn(
+                    $"{id}-col-{colIndex}",
+                    colIndex == 1 ? nav.Label : $"{nav.Label} · {colIndex}",
+                    CpGroupIcon(id),
+                    chunk));
+            }
+
+            groups.Add(new MegaGroup(
+                id,
+                nav.Label,
+                links,
+                CpGroupIcon(id),
+                nav.Label,
+                links[0].Href,
+                columns));
         }
 
         return groups;
     }
+
+    private static string CpGroupIcon(string id) => id switch
+    {
+        "dashboard" or "home" or "overview" => "fa-tachometer",
+        "orders" or "commerce" or "shop" => "fa-shopping-cart",
+        "catalogue" or "products" or "catalog" => "fa-cube",
+        "customers" or "crm" => "fa-users",
+        "logistics" or "shipping" => "fa-truck",
+        "marketing" => "fa-bullhorn",
+        "finance" or "payments" => "fa-credit-card",
+        "settings" or "setup" or "system" => "fa-cogs",
+        "content" or "cms" => "fa-file-text-o",
+        _ => "fa-folder-o",
+    };
 
     /// <summary>
     /// ERP topnav: categories → area columns → tabs (mirrors <c>epc_erp_render_top_nav</c>).

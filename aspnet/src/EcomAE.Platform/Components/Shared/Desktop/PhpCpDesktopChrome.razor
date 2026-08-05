@@ -20,7 +20,7 @@
             </div>
             <nav class="epc-cp-header-actions" aria-label="CP header actions">
                 <a href="/cp">Control panel</a>
-                <a href="/php-reference/cp">PHP reference</a>
+                <a href="/bos">BOS</a>
                 @if (!IsAdmin)
                 {
                     <a class="epc-cp-header-login" href="/cp/login">Sign in</a>
@@ -39,21 +39,63 @@
             <ul class="epc-cp-topnav-list" role="menubar">
                 @foreach (var group in LegacyDesktopChromeCatalog.ControlPanelTopnav())
                 {
+                    var columns = group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>();
                     <li class="epc-cp-topnav-item" data-group="@group.Id" role="none">
-                        <button type="button" class="epc-cp-topnav-btn" role="menuitem" aria-haspopup="true">@group.Label</button>
+                        <button type="button" class="epc-cp-topnav-btn" role="menuitem" aria-haspopup="true">
+                            @if (!string.IsNullOrWhiteSpace(group.Icon))
+                            {
+                                <i class="fa @group.Icon" aria-hidden="true"></i>
+                            }
+                            <span>@group.Label</span>
+                            <i class="fa fa-angle-down" aria-hidden="true" style="margin-left:.25rem;opacity:.65"></i>
+                        </button>
                         <div class="epc-cp-topnav-panel" data-topnav-panel="@group.Id">
-                            <div class="epc-cp-topnav-panel-hd">@group.Label</div>
+                            <div class="epc-cp-topnav-panel-hd">
+                                <span>@group.Label</span>
+                                <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(group.HubHref ?? group.Links[0].Href)" style="margin-left:auto;font-size:.72rem;color:#dc2626;font-weight:700">
+                                    Open first <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </div>
                             <div class="epc-cp-topnav-cols">
-                                <div class="epc-cp-topnav-col">
-                                    <ul class="epc-cp-topnav-links">
-                                        @foreach (var link in group.Links)
-                                        {
-                                            <li>
-                                                <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href)">@link.Label</a>
-                                            </li>
-                                        }
-                                    </ul>
-                                </div>
+                                @if (columns.Count > 0)
+                                {
+                                    @foreach (var col in columns)
+                                    {
+                                        <div class="epc-cp-topnav-col">
+                                            <div class="epc-cp-topnav-col-hd">
+                                                @if (!string.IsNullOrWhiteSpace(col.Icon))
+                                                {
+                                                    <i class="fa @col.Icon"></i>
+                                                }
+                                                @col.Label
+                                            </div>
+                                            <ul class="epc-cp-topnav-links">
+                                                @foreach (var link in col.Tabs)
+                                                {
+                                                    <li>
+                                                        <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href)">
+                                                            <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
+                                                            @link.Label
+                                                        </a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="epc-cp-topnav-col">
+                                        <ul class="epc-cp-topnav-links">
+                                            @foreach (var link in group.Links)
+                                            {
+                                                <li>
+                                                    <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href)">@link.Label</a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                }
                             </div>
                         </div>
                     </li>
@@ -73,7 +115,7 @@
             </div>
         </div>
         <footer class="footer">
-            <div>Control Panel · <a href="/cp">Open control panel</a> · <a href="/php-reference/cp">PHP reference</a></div>
+            <div>Control Panel · <a href="/cp">Open control panel</a> · <a href="/erp">ERP</a> · <a href="/bos">BOS</a></div>
         </footer>
     </div>
 </div>
@@ -106,12 +148,17 @@
     .epc-cp-topnav-item { position:relative; }
     .epc-cp-topnav-btn { appearance:none; border:0; background:transparent; color:#7f1d1d; font:inherit; font-size:.78rem; font-weight:700; padding:.7rem .7rem; cursor:pointer; white-space:nowrap; }
     .epc-cp-topnav-item:hover .epc-cp-topnav-btn, .epc-cp-topnav-item:focus-within .epc-cp-topnav-btn { background:#fef2f2; color:#991b1b; }
-    .epc-cp-topnav-panel { display:none; position:absolute; left:0; top:100%; z-index:40; min-width:280px; max-width:min(520px,90vw); background:#fff; color:#0f172a; border:1px solid #fecaca; border-radius:0 0 .45rem .45rem; box-shadow:0 12px 30px rgba(127,29,29,.12); }
+    .epc-cp-topnav-panel { display:none; position:absolute; left:0; top:100%; z-index:40; min-width:320px; max-width:min(920px,94vw); background:#fff; color:#0f172a; border:1px solid #fecaca; border-radius:0 0 .45rem .45rem; box-shadow:0 12px 30px rgba(127,29,29,.12); }
     .epc-cp-topnav-item:hover .epc-cp-topnav-panel, .epc-cp-topnav-item:focus-within .epc-cp-topnav-panel { display:block; }
-    .epc-cp-topnav-panel-hd { padding:.55rem .75rem; font-size:.78rem; font-weight:700; background:#fef2f2; border-bottom:1px solid #fecaca; color:#991b1b; }
-    .epc-cp-topnav-links { list-style:none; margin:0; padding:.35rem 0; max-height:320px; overflow:auto; }
+    .epc-cp-topnav-panel-hd { display:flex; align-items:center; gap:.75rem; padding:.55rem .75rem; font-size:.78rem; font-weight:700; background:#fef2f2; border-bottom:1px solid #fecaca; color:#991b1b; }
+    .epc-cp-topnav-cols { display:flex; gap:0; align-items:stretch; }
+    .epc-cp-topnav-col { min-width:180px; max-width:240px; border-right:1px solid #fecaca; }
+    .epc-cp-topnav-col:last-child { border-right:0; }
+    .epc-cp-topnav-col-hd { padding:.45rem .75rem; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:#b91c1c; background:#fff7f7; border-bottom:1px solid #fecaca; }
+    .epc-cp-topnav-links { list-style:none; margin:0; padding:.35rem 0; max-height:360px; overflow:auto; }
     .epc-cp-topnav-links li { display:flex; align-items:center; gap:.4rem; padding:.35rem .75rem; font-size:.8rem; }
-    .epc-cp-topnav-links a { flex:1; font-weight:600; }
+    .epc-cp-topnav-links a { flex:1; font-weight:600; display:flex; align-items:center; gap:.4rem; }
+    .epc-cp-topnav-links a i { width:1rem; text-align:center; color:#94a3b8; }
     .epc-cp-topnav-links a:hover { color:#dc2626; text-decoration:underline; }
     .epc-cp-main-pane { padding:1rem 1.25rem 2rem; }
     /* Match PHP desktop fluid content width (not a narrow card column). */

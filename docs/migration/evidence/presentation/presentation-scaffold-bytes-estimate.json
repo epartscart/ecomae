@@ -1,6 +1,6 @@
 {
   "role": "presentation-scaffold-bytes-estimate",
-  "generatedAt": "2026-08-05T08:09:40.308546+00:00",
+  "generatedAt": "2026-08-05T09:23:07.323896+00:00",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
@@ -13,7 +13,7 @@
   "floors": {
     "storefront_app": {
       "floorBytes": 40558,
-      "estimatedCombinedBytes": 66505,
+      "estimatedCombinedBytes": 66422,
       "meetsFloor": true,
       "note": "Combined storefront/app chrome + piston + home depth offline estimate"
     },
@@ -26,7 +26,7 @@
     },
     "erp_login": {
       "floorBytes": 42653,
-      "estimatedMarkupBytes": 52388,
+      "estimatedMarkupBytes": 52343,
       "meetsFloor": true,
       "markerClass": "epc-asp-login-erp",
       "markerOk": true
@@ -49,10 +49,10 @@
     },
     "storefront_app": {
       "path": "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor",
-      "markupBytes": 1608,
+      "markupBytes": 1525,
       "foreachLoops": 0,
       "expansionBonusBytes": 0,
-      "estimatedSsrMarkupBytes": 1608,
+      "estimatedSsrMarkupBytes": 1525,
       "markersExpected": [],
       "markersMissing": [],
       "markersOk": true
@@ -83,10 +83,10 @@
     },
     "erp_login": {
       "path": "aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor",
-      "markupBytes": 16548,
+      "markupBytes": 16503,
       "foreachLoops": 5,
       "expansionBonusBytes": 35840,
-      "estimatedSsrMarkupBytes": 52388,
+      "estimatedSsrMarkupBytes": 52343,
       "markersExpected": [
         "epc-asp-login-erp",
         "epc-erp-portal-wrap",

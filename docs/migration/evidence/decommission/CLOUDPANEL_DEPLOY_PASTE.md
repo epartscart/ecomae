@@ -39,7 +39,8 @@ ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
 # On mega-conf this is a no-op (prints NOTE); do not create a duplicate vhost.
 
 # REQUIRED — redeploy ASP.NET binary BEFORE classic-entry probe.
-# Nginx install alone leaves the OLD thin storefront chrome (probe FAIL on Garage Manager / WhatsApp / AI).
+# Nginx install alone leaves the OLD binary that still 302s /cp → /cp/login
+# and shows “Sign-in temporarily unavailable” with NO credential fields.
 export ECOMAE_BRANCH=main
 git fetch origin main && git checkout -f main && git reset --hard origin/main
 bash scripts/cloudpanel_find_and_redeploy.sh
@@ -51,6 +52,11 @@ curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/storefront/app | grep -o 'Garage
 # CP/ERP/BOS guest browse (no login) — must NOT 302 to /cp/login:
 curl -sSI -A 'Mozilla/5.0' http://127.0.0.1:5100/cp | awk 'BEGIN{c=""} /^HTTP/{c=$2} END{print c}'
 # expect 200 (not 302)
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp/login | grep -o 'Enter CP (no login)' | head -n1
+# expect: Enter CP (no login)
+
+# After redeploy, open https://www.epartscart.com/cp — shell loads without credentials.
+# If you land on /cp/login, click “Enter CP (no login)”.
 
 # Optional — enable ASP.NET login bridge (same PHP admin credentials):
 #   1) Copy PHP secret_succession into platform.env (never commit the secret):
@@ -58,7 +64,7 @@ curl -sSI -A 'Mozilla/5.0' http://127.0.0.1:5100/cp | awk 'BEGIN{c=""} /^HTTP/{c
 #        printf 'EcomAE__SecretSuccession=%s\n' '<value>' >> /etc/ecomae-aspnet/platform.env
 #   2) bash scripts/cloudpanel_verify_secret_succession_configured.sh
 #   3) systemctl restart ecomae-platform.service
-# Until that is set, /cp/login shows “Browse ASP.NET CP (no login)” instead of a working form.
+# Until that is set, credential fields stay hidden and “Enter CP (no login)” is the way in.
 
 # Installs into server{} by host:
 #   www.ecomae.com block ← www pack (marketing ASP.NET home + login bridges)

@@ -16,7 +16,7 @@
     <style>
         .epc-rc-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#1e3a5f 0%,#0f766e 50%,#115e59 100%);
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
         }
         .epc-rc-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-rc-hero p { margin:0; color:rgba(255,255,255,.88); max-width:46rem; font-size:.92rem; line-height:1.45; }
@@ -43,11 +43,11 @@
     <section class="epc-rc-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Report center</h1>
-        <p>Read-only mirror of PHP <code>epc_rc_registry</code> (33 inquiries). Select a key for a limited peek. CSV export and complex report runs stay on PHP.</p>
+        <p>Report registry for this company (33 inquiries). Select a key for a limited peek.</p>
         <div class="epc-rc-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open reports</a>
             <a class="ghost" href="/erp/dashboard-summary-app">ERP dashboard</a>
-            <a class="ghost" href="@DigestHref(null)">JSON digest</a>
+            <a class="ghost" href="@DigestHref(null)">Data feed</a>
         </div>
     </section>
 
@@ -129,12 +129,11 @@
                 </tbody>
             </table>
         </div>
-        <p style="margin:0 0 1rem;font-size:.85rem;"><a href="@AppHref(null)">Clear selection</a> · <a href="@DigestHref(_summary.SelectedKey)">JSON digest</a></p>
+        <p style="margin:0 0 1rem;font-size:.85rem;"><a href="@AppHref(null)">Clear selection</a> · <a href="@DigestHref(_summary.SelectedKey)">Data feed</a></p>
     }
 
     <div class="epc-rc-note">
-        Source: @_summary.Source. PHP <code>epc_erp_report_center.php</code> remains authoritative for run/export.
-        Worker <code>erp-reports</code> dry-run stays writes=0 (sales|inventory|vat|ar-aging).
+        Source: @_summary.Source. Worker <code>erp-reports</code> dry-run stays writes=0 (sales|inventory|vat|ar-aging).
         @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
     </div>
 </PhpErpDesktopChrome>

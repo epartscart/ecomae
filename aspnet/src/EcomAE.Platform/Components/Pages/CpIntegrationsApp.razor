@@ -82,7 +82,7 @@
                             <td>
                                 @if (!string.IsNullOrWhiteSpace(row.ConfigureUrl))
                                 {
-                                    <a href="@row.ConfigureUrl">Configure</a>
+                                    <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(row.ConfigureUrl)">Configure</a>
                                 }
                                 else
                                 {
@@ -98,8 +98,8 @@
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _hubHref = "/CP/control/portal/epc_integrations_hub";
-    private const string _guideHref = "/CP/control/portal/epc_integrations_guide";
+    private const string _hubHref = "/cp/integrations-app";
+    private const string _guideHref = "/cp/ops-guides-app";
     private bool _isAdmin;
     private CpIntegrationsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpIntegrationDigest> _integrations = [];

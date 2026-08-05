@@ -9,7 +9,7 @@
     <div class="epc-moddir-head">
         <h2>@Title</h2>
         <p>@Subtitle — <strong>@_links.Count</strong> modules.</p>
-        <p class="epc-moddir-hint">Primary links stay on ASP.NET. PHP opens only from the reference link.</p>
+        <p class="epc-moddir-hint">Primary links open ASP.NET modules for this surface.</p>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(Search))
@@ -33,8 +33,7 @@
                         {
                             <i class="fa @item.Icon" aria-hidden="true"></i>
                         }
-                        <a class="epc-moddir-aspnet" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)" title="Open on ASP.NET">@item.Label</a>
-                        <a class="epc-moddir-php-ref" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(item.Href)" title="Open PHP reference only">PHP reference</a>
+                        <a class="epc-moddir-aspnet" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)" title="Open module">@item.Label</a>
                     </div>
                 }
             </div>
@@ -56,8 +55,6 @@
     .epc-moddir-item i { color:#64748b; width:1rem; text-align:center; }
     .epc-moddir-aspnet { flex:1; font-weight:600; color:#0f172a; text-decoration:none; }
     .epc-moddir-aspnet:hover { text-decoration:underline; color:#1d4ed8; }
-    .epc-moddir-php-ref { font-size:.72rem; color:#64748b; text-decoration:none; white-space:nowrap; }
-    .epc-moddir-php-ref:hover { text-decoration:underline; color:#b45309; }
 </style>
 
 @code {

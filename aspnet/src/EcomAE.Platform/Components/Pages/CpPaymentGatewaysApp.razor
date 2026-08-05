@@ -91,8 +91,8 @@
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _configureHref = "/CP/shop/payments/payments";
-    private const string _accountsHref = "/CP/shop/payments/payments?tab=accounts";
+    private const string _configureHref = "/cp/payment-gateways-app";
+    private const string _accountsHref = "/cp/payment-gateways-app";
     private bool _isAdmin;
     private CpPaymentGatewaysSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPaymentGatewayDigest> _gateways = [];
