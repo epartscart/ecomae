@@ -5,6 +5,12 @@
 
 require_once __DIR__ . '/epc-ecomae-legacy-path-guard.php';
 
+// Thin /storefront/* ASP.NET stubs → PHP /en/… (search-app article lookups, cart, login, …)
+require_once __DIR__ . '/epc_storefront_stub_redirect.php';
+if (function_exists('epc_storefront_stub_redirect_maybe_exit')) {
+	epc_storefront_stub_redirect_maybe_exit();
+}
+
 if (!defined('_ASTEXE_')) {
     define('_ASTEXE_', 1);
 }
