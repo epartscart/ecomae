@@ -14,25 +14,21 @@
     @if (string.IsNullOrWhiteSpace(_phpHref))
     {
         <PhpAspPistonBanner
-            SearchHref="/storefront/search-app"
-            CatalogHref="/storefront/search-app"
-            BrandsHref="/storefront/search-app" />
+            SearchHref="@StorefrontPhpCanonical.PartSearch"
+            CatalogHref="@StorefrontPhpCanonical.UmapiCatalog"
+            BrandsHref="@StorefrontPhpCanonical.AvailableBrands" />
         <PhpStorefrontHomeDepth
-            BrandsHref="/storefront/search-app"
-            CatalogHref="/storefront/search-app"
-            VinHref="/storefront/search-app" />
+            BrandsHref="@StorefrontPhpCanonical.UmapiCatalog"
+            CatalogHref="@StorefrontPhpCanonical.ProductFamily"
+            VinHref="@StorefrontPhpCanonical.LaximoVin" />
 
-        <PhpHybridModuleDirectory
-            Title="Storefront surface directory"
-            Subtitle="Storefront browse, account, and checkout surfaces"
-            Links="@PhpModuleCatalog.StorefrontSurfaces"
-            PhpWorkspaceBase="/storefront/app" />
+        @* Hybrid module directory omitted on live home — catalog/search use PHP /en/… canonical. *@
     }
     else
     {
         <div class="epc-sf-preview-note" style="max-width:52rem;margin:1rem 0;padding:1rem 1.25rem;border:1px solid #fde68a;background:#fffbeb;border-radius:.5rem;font:600 .9rem/1.45 system-ui,sans-serif;color:#78350f;">
             Workspace preview query is ignored for product clicks.
-            Continue on the <a href="/">storefront home</a> or <a href="/storefront/search-app">search</a>.
+            Continue on the <a href="/">storefront home</a> or <a href="@StorefrontPhpCanonical.PartSearch">search</a>.
         </div>
     }
 </PhpStorefrontDesktopChrome>
