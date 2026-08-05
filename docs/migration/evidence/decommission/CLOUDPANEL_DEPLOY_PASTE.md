@@ -46,14 +46,15 @@ ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
 #   /opt/ecomae-aspnet-source  AND/OR  /root/ecomae
 # Broken one-liner (DO NOT keep): if (!_isAdmin) { return; // guest browse … }
 # Fixed tip must include ErpAgingApp multi-line guest return (merged in #852).
-export ECOMAE_BRANCH=main
+# Until #854 merges (catalog tests + CP login CTA + /cp AmbiguousMatch fix), use the PR branch:
+export ECOMAE_BRANCH=cursor/aspnet-primary-catalog-tests-7b3b
 for d in /opt/ecomae-aspnet-source /root/ecomae; do
   if [[ -d "$d/.git" ]]; then
-    git -C "$d" fetch origin main
-    git -C "$d" checkout -f main
-    git -C "$d" reset --hard origin/main
+    git -C "$d" fetch origin "$ECOMAE_BRANCH"
+    git -C "$d" checkout -f "$ECOMAE_BRANCH"
+    git -C "$d" reset --hard "origin/$ECOMAE_BRANCH"
     git -C "$d" rev-parse --short HEAD
-    # expect f4801db2 or newer (Merge pull request #852 …)
+    # expect tip with "Fix CP login" + no MapGet shell aliases for /cp|/erp|/bos
   fi
 done
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
