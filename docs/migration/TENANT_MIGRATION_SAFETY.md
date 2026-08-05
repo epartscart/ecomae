@@ -1,31 +1,29 @@
-# Tenant migration safety (parity gate → 100% ASP.NET)
+# Tenant migration safety (ASP.NET-primary all tenants → PHP reference only)
 
-**Target end-state:** 100% ASP.NET Core live traffic. PHP project may remain as a **reference** for previous results / gap-finding (`docs/migration/PHP_AS_REFERENCE_MODE.md`) until a separate deletion approval.
+**Target end-state:** 100% ASP.NET Core live product traffic on **every** named tenant. PHP project remains as a **reference** for previous results / gap-finding (`docs/migration/PHP_AS_REFERENCE_MODE.md`) until a separate deletion approval. **No half-and-half** (some tenants PHP, some ASP.NET).
 
 **Master SOP (security, confidentiality, tenant isolation, cutover protocols):**  
 [`docs/PROJECT_SOP_SECURITY_TENANT_ISOLATION.md`](../PROJECT_SOP_SECURITY_TENANT_ISOLATION.md)
 
-**Policy during migration:** Live tenant (and industry showcase) presentation/functionality must stay **same-to-same** with today’s PHP UX — tenants must not feel a stack change. PHP is **primary until ASP.NET parity**, then becomes **reference** (not automatically deleted).
+**Policy now:** All named live product tenants use ASP.NET for `/` `/cp` `/erp` `/bos` (and deep product trees). PHP opens only via `/php-reference/*`. Chrome must stay same-to-same with the PHP look while the stack is ASP.NET.
 
-## Named live tenants (parity gate)
+## Named live tenants (all ASP.NET-primary)
 
-| Tenant | Primary hosts |
-| --- | --- |
-| ePartsCart | `epartscart.com`, `www.epartscart.com` |
-| Electronicae | `www.electronicae.com`, `electronicae.com` |
-| StyleNLook | `www.stylenlook.com`, `stylenlook.com` |
-| The Jewellery Trend | `www.thejewellerytrend.com`, `thejewellerytrend.com` |
-| Taxofinca | `www.taxofinca.com`, `taxofinca.com` |
+| Tenant | Primary hosts | Product stack |
+| --- | --- | --- |
+| ePartsCart | `epartscart.com`, `www.epartscart.com` | ASP.NET |
+| Electronicae | `www.electronicae.com`, `electronicae.com` | ASP.NET |
+| StyleNLook | `www.stylenlook.com`, `stylenlook.com` | ASP.NET |
+| The Jewellery Trend | `www.thejewellerytrend.com`, `thejewellerytrend.com` | ASP.NET |
+| Taxofinca | `www.taxofinca.com`, `taxofinca.com` | ASP.NET |
 
-**Same-to-same requirements while PHP-primary:**
+**Install classic-entry on all of them:**
 
-- Theme and colouring  
-- Layout / structure / menus  
-- Fonts and typography  
-- Hero / splash / slider / banner media  
-- Every field and widget on storefront, CP, and ERP  
-
-Default: ASP.NET digests/hybrid stay on **www.ecomae.com**. Named live tenant vhosts **refuse** shadows unless unlocked for parity work.
+```bash
+ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
+ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
+  bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
+```
 
 Classifier: `scripts/ecomae_nginx_site_safety.py`  
 Catalog: `GET /migration/live-tenant-presentation-lock`  

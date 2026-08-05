@@ -87,8 +87,8 @@ If `nano` opens `/etc/ecomae-aspnet/platform.env`:
 
 1. Confirm `ConnectionStrings__TenantRegistry=...` has real Server/Database/User/Password (no `<db_user>` placeholders).
 2. Keep these flags as-is for now (PHP remains authoritative):
-   - `MigrationRouteCutover__StorefrontAspNetEnabled=false`
-   - `MigrationRouteCutover__AdminAspNetEnabled=false`
+   - `MigrationRouteCutover__StorefrontAspNetEnabled=true`
+   - `MigrationRouteCutover__AdminAspNetEnabled=true`
    - `MigrationRouteCutover__RequirePhpFallback=true`
 3. Optional for the final 5% smoke gate (add at bottom if you have real keys):
    - `ECOMAE_PRICE_LOOKUP_API_KEY=epc_pricepro_...`

@@ -67,10 +67,10 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
             ComparePairs: pairs,
             OperatorSteps:
             [
-                "Tenant-shared URLs → ASP.NET (URL preserved): ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts",
-                "ASP.NET shared: /cp /erp /bos / on www.ecomae.com and www.epartscart.com",
-                "PHP reference SEPARATE: /php-reference/home|/cp|/erp|/bos|/storefront — compare at /migration/compare",
-                "Run dual-sample compare_* against /php-reference/* while shared entries stay on ASP.NET.",
+                "ALL product tenants → ASP.NET (URL preserved): ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts",
+                "ASP.NET product: / /cp /erp /bos on www.ecomae.com + epartscart + electronicae + stylenlook + thejewellerytrend + taxofinca",
+                "PHP reference SEPARATE only: /php-reference/home|/cp|/erp|/bos|/storefront — compare at /migration/compare (never mix into product)",
+                "Run dual-sample compare_* against /php-reference/* while product URLs stay on ASP.NET.",
                 "Do not delete PHP source until a separate decommission gate (ReadyToRemovePhp) — reference mode is not deletion.",
                 "Rollback live traffic with: bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback"
             ],
@@ -81,7 +81,7 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
                 "RequirePhpFallback stays true until dual-sample-green per exact route (templates default true)",
                 "RELEASE_OWNER_APPROVAL.md present with APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable",
                 "Tenant-shared /cp /erp /bos / URLs must not redirect to /cp/app (URL preserved)",
-                "PHP reference only via /php-reference/* (and deep module paths); never invent cutoverAllowed=true"
+                "PHP reference only via /php-reference/* → index.php; never invent cutoverAllowed=true; no half-tenant PHP product mix"
             ],
             Note: _reference.Note);
     }

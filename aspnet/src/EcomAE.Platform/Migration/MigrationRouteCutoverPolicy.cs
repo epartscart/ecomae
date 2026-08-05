@@ -26,30 +26,32 @@ public sealed class MigrationRouteCutoverPolicy : IMigrationRouteCutoverPolicy
                 tenant.Surface,
                 tenant.Mode,
                 ApiTargetRuntime(),
-                "API can take shadow traffic; destination is ASP.NET primary. PHP stays the parity-gate authority and later the reference host until dual-sample + approval.",
+                "API shadow traffic on ASP.NET; PHP kept as reference for parity samples until dual-sample + approval.",
                 RequiresPhpFallback: _options.RequirePhpFallback,
                 ReadyForAspNetTraffic: _options.ApiShadowTrafficEnabled),
             TenantSurface.Storefront => new MigrationRouteCutoverDecision(
                 tenant.Surface,
                 tenant.Mode,
                 StorefrontTargetRuntime(),
-                "Storefront cart/checkout/account parity incomplete — PHP remains interim primary. Destination: ASP.NET live; PHP kept as reference for gap-finding.",
+                "Storefront product URLs are ASP.NET-primary for all tenants; PHP only via /php-reference/*.",
                 RequiresPhpFallback: _options.RequirePhpFallback,
                 ReadyForAspNetTraffic: _options.StorefrontAspNetEnabled),
             TenantSurface.ControlPanel or TenantSurface.Erp or TenantSurface.Bos => new MigrationRouteCutoverDecision(
                 tenant.Surface,
                 tenant.Mode,
                 AdminTargetRuntime(),
-                "Admin/ERP/BOS shells exist for parity; login/writes/audit still use PHP as interim primary. Destination: ASP.NET live primary with PHP reference retained.",
+                "CP/ERP/BOS product shells are ASP.NET-primary for all tenants; PHP only via /php-reference/*.",
                 RequiresPhpFallback: _options.RequirePhpFallback,
                 ReadyForAspNetTraffic: _options.AdminAspNetEnabled),
             _ => new MigrationRouteCutoverDecision(
                 tenant.Surface,
                 tenant.Mode,
-                "php-primary",
-                "Unknown surface stays on interim PHP primary until explicit migration parity is approved; destination remains ASP.NET with PHP reference kept.",
+                _options.AdminAspNetEnabled || _options.StorefrontAspNetEnabled
+                    ? "aspnet-primary-php-reference"
+                    : "php-primary",
+                "Unknown surface follows ASP.NET-primary product policy when storefront/admin flags are on; PHP stays under /php-reference/*.",
                 RequiresPhpFallback: _options.RequirePhpFallback,
-                ReadyForAspNetTraffic: false)
+                ReadyForAspNetTraffic: _options.AdminAspNetEnabled || _options.StorefrontAspNetEnabled)
         };
     }
 
@@ -60,11 +62,11 @@ public sealed class MigrationRouteCutoverPolicy : IMigrationRouteCutoverPolicy
 
     private string StorefrontTargetRuntime()
     {
-        return _options.StorefrontAspNetEnabled ? "aspnet-storefront-with-php-fallback" : "php-primary";
+        return _options.StorefrontAspNetEnabled ? "aspnet-primary-php-reference" : "php-primary";
     }
 
     private string AdminTargetRuntime()
     {
-        return _options.AdminAspNetEnabled ? "aspnet-shell-with-php-fallback" : "aspnet-shell-php-primary";
+        return _options.AdminAspNetEnabled ? "aspnet-primary-php-reference" : "aspnet-shell-php-primary";
     }
 }
