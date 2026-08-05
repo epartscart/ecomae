@@ -3,6 +3,10 @@
 # /cp /erp /bos / stay the same in the browser (proxy to ASP.NET apps).
 # PHP reference is separate: /php-reference/{home,cp,erp,bos,storefront}
 #
+# IMPORTANT: CloudPanel often packs many tenants into www.ecomae.com.conf as
+# separate server{ } blocks. Installs are scoped by server_name host — never
+# file-first-block only.
+#
 # www.ecomae.com (default):
 #   ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 #     bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh
@@ -20,6 +24,8 @@ if [[ "${1:-}" == "--all-hosts" ]]; then
   DO_ALL=1
 fi
 
+EDIT_PY="$ROOT/scripts/lib/ecomae_nginx_server_block_edit.py"
+
 # shellcheck source=scripts/lib/ecomae_nginx_site_safety.sh
 source "$ROOT/scripts/lib/ecomae_nginx_site_safety.sh"
 
@@ -27,6 +33,11 @@ if [[ "${ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY:-}" != "YES" ]]; th
   printf 'Refusing without ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES\n' >&2
   printf 'Installs exact-route same-URL proxies for / /cp /erp /bos + /php-reference/*\n' >&2
   exit 2
+fi
+
+if [[ ! -f "$EDIT_PY" ]]; then
+  printf 'ERROR: missing %s\n' "$EDIT_PY" >&2
+  exit 1
 fi
 
 resolve_site_conf() {
@@ -74,6 +85,19 @@ resolve_epartscart_site_conf() {
     return 1
   fi
 
+  # Prefer a dedicated enabled epartscart conf if present.
+  local candidate
+  for candidate in \
+    /etc/nginx/sites-enabled/www.epartscart.com.conf \
+    /etc/nginx/sites-enabled/epartscart.com.conf \
+    /etc/nginx/sites-enabled/eparts-cart.com.conf
+  do
+    if [[ -f "$candidate" ]] && conf_server_name_has_epartscart "$candidate"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
   local discover_py="$ROOT/scripts/lib/ecomae_discover_epartscart_nginx_conf.py"
   if [[ -f "$discover_py" ]]; then
     local found
@@ -84,11 +108,7 @@ resolve_epartscart_site_conf() {
     fi
   fi
 
-  local candidate
   for candidate in \
-    /etc/nginx/sites-enabled/www.epartscart.com.conf \
-    /etc/nginx/sites-enabled/epartscart.com.conf \
-    /etc/nginx/sites-enabled/eparts-cart.com.conf \
     /etc/nginx/sites-available/www.epartscart.com.conf \
     /etc/nginx/sites-available/epartscart.com.conf
   do
@@ -104,14 +124,13 @@ resolve_epartscart_site_conf() {
     for f in /etc/nginx/sites-enabled/*; do
       [[ -f "$f" ]] || continue
       case "$(basename "$f")" in
-        wildcard-ecomae|wildcard-ecomae.conf) continue ;;
+        wildcard-ecomae|wildcard-ecomae.conf|*.bak*|*.bak) continue ;;
       esac
       if conf_server_name_has_epartscart "$f"; then
         printf '%s\n' "$f"
         return 0
       fi
     done
-    # Only accept wildcard-ecomae if server_name truly includes epartscart.
     for f in /etc/nginx/sites-enabled/wildcard-ecomae /etc/nginx/sites-enabled/wildcard-ecomae.conf; do
       if [[ -f "$f" ]] && conf_server_name_has_epartscart "$f"; then
         printf '%s\n' "$f"
@@ -126,6 +145,7 @@ install_one() {
   local conf="$1"
   local example="$2"
   local label="$3"
+  local target_host="$4"
 
   if [[ ! -f "$conf" ]]; then
     printf 'ERROR: missing nginx site conf %s (%s)\n' "$conf" "$label" >&2
@@ -133,6 +153,10 @@ install_one() {
   fi
   if [[ ! -f "$example" ]]; then
     printf 'ERROR: missing example %s\n' "$example" >&2
+    return 1
+  fi
+  if [[ -z "$target_host" ]]; then
+    printf 'ERROR: target_host required for server-block scoped install\n' >&2
     return 1
   fi
 
@@ -146,103 +170,34 @@ install_one() {
     if ! conf_server_name_has_epartscart "$conf"; then
       printf 'ERROR: refusing classic-entry on %s — server_name does not include epartscart.com\n' "$conf" >&2
       grep -nE 'server_name' "$conf" 2>/dev/null | head -n 20 >&2 || true
-      printf 'Run: bash scripts/cloudpanel_discover_epartscart_nginx_conf.sh\n' >&2
-      printf 'Then: ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh\n' >&2
       return 1
     fi
   fi
 
-  local bak="/root/$(basename "$conf").bak.classic-entry-aspnet.$(date -u +%Y%m%d%H%M%S)"
+  # Unique bak per label so www/tenant same-file installs cannot clobber each other.
+  local stamp label_slug bak
+  stamp="$(date -u +%Y%m%d%H%M%S)"
+  label_slug="$(printf '%s' "$label" | tr -c 'A-Za-z0-9._-' '_' )"
+  bak="/root/$(basename "$conf").bak.classic-entry-aspnet.${label_slug}.${stamp}"
   cp -a "$conf" "$bak"
   printf 'Backup (%s): %s\n' "$label" "$bak"
+  printf 'Installing classic-entry into server_name host=%s inside %s\n' "$target_host" "$conf"
 
-  python3 - "$conf" "$example" <<'PY'
-from pathlib import Path
-import re, sys
-
-conf_path, example_path = Path(sys.argv[1]), Path(sys.argv[2])
-text = conf_path.read_text(encoding="utf-8")
-example = example_path.read_text(encoding="utf-8")
-
-def indent_block(block_raw: str) -> str:
-    return "\n".join(("  " + line if line.strip() else line) for line in block_raw.splitlines()).rstrip() + "\n"
-
-def find_insert_marker(cfg: str) -> int:
-    for pat in (
-        r"\n[ \t]*location / \{",
-        r"\n[ \t]*location /php",
-        r"\n[ \t]*location ~",
-        r"\n[ \t]*include[ \t]+fastcgi",
-    ):
-        m = re.search(pat, cfg)
-        if m:
-            return m.start() + 1
-    raise SystemExit("ERROR: insertion point missing (no location / or fastcgi include)")
-
-# Optional named location for host-gated wildcard tenant packs.
-named_blocks = []
-for m in re.finditer(r"(?m)^(location @([A-Za-z0-9_]+)\s*\{.*?\n\})", example, flags=re.S):
-    named_blocks.append((m.group(2), indent_block(m.group(1))))
-
-blocks = []
-for m in re.finditer(r"(?m)^(location = (/[^\s{]*)\s*\{.*?\n\})", example, flags=re.S):
-    block_raw, route = m.group(1), m.group(2)
-    if route in {"/api", "/storefront"}:
-        raise SystemExit(f"ERROR: refusing broad path {route}")
-    is_proxy = bool(re.search(r"(?m)^\s*proxy_pass\s+http://127\.0\.0\.1:5100/", block_raw))
-    is_php_ref = route.startswith("/php-reference/") and (
-        "rewrite ^" in block_raw or "return 302" in block_raw or "alias " in block_raw
-    )
-    if not is_proxy and not is_php_ref:
-        raise SystemExit(f"ERROR: block must proxy_pass ASP.NET or php-reference ({route})")
-    # Product-chrome entries must never 302 away from tenant-shared URLs.
-    if route in {"/", "/cp", "/cp/", "/CP", "/CP/", "/erp", "/erp/", "/ERP", "/ERP/", "/bos", "/bos/", "/BOS", "/BOS/"}:
-        if re.search(r"(?m)^\s*return\s+302\s+", block_raw):
-            raise SystemExit(
-                f"ERROR: tenant-shared URLs must stay unchanged — no return 302 in {route}"
-            )
-        if not is_proxy:
-            raise SystemExit(f"ERROR: shared entry {route} must proxy_pass ASP.NET")
-    blocks.append((route, indent_block(block_raw)))
-
-expected = 18  # / + 4 CP + 4 ERP + 4 BOS + 5 php-reference
-if len(blocks) != expected:
-    raise SystemExit(f"ERROR: expected {expected} classic-entry routes, found {len(blocks)}")
-
-inserted, replaced = [], []
-for name, block in named_blocks:
-    pattern = re.compile(rf"(?m)^[ \t]*location\s*@{re.escape(name)}\s*\{{.*?\n[ \t]*\}}\n?", re.S)
-    if pattern.search(text):
-        text = pattern.sub(block + "\n", text, count=1)
-        replaced.append("@" + name)
-    else:
-        marker = find_insert_marker(text)
-        text = text[:marker] + block + "\n" + text[marker:]
-        inserted.append("@" + name)
-
-for route, block in blocks:
-    pattern = re.compile(rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{.*?\n[ \t]*\}}\n?", re.S)
-    if pattern.search(text):
-        text = pattern.sub(block + "\n", text, count=1)
-        replaced.append(route)
-        continue
-    marker = find_insert_marker(text)
-    text = text[:marker] + block + "\n" + text[marker:]
-    inserted.append(route)
-
-conf_path.write_text(text, encoding="utf-8")
-print(f"REPLACED: {len(replaced)}")
-for r in replaced:
-    print("  ~", r)
-print(f"INSERTED: {len(inserted)}")
-for r in inserted:
-    print("  +", r)
-PY
+  if ! python3 "$EDIT_PY" install "$conf" "$example" "$target_host"; then
+    printf 'ERROR: server-block install failed for %s — restoring %s\n' "$target_host" "$bak" >&2
+    cp -a "$bak" "$conf"
+    return 1
+  fi
 
   # Reload after EACH successful host so a later host failure cannot leave www dirty/unreloaded.
-  nginx -t
+  if ! nginx -t; then
+    printf 'ERROR: nginx -t failed — restoring %s\n' "$bak" >&2
+    cp -a "$bak" "$conf"
+    nginx -t
+    return 1
+  fi
   systemctl reload nginx
-  printf 'OK installed + reloaded classic-entry on %s\n' "$conf"
+  printf 'OK installed + reloaded classic-entry on %s (host=%s)\n' "$conf" "$target_host"
 }
 
 WWW_EXAMPLE="$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf"
@@ -257,10 +212,14 @@ WWW_CONF="$(resolve_site_conf ecomae \
 
 # Resolve by server_name containing epartscart.com — NEVER assume wildcard-ecomae
 # (that file is usually server_name *.ecomae.com only and never sees epartscart Host).
+# On this CloudPanel, epartscart is often a server{} INSIDE www.ecomae.com.conf.
 TENANT_CONF="$(resolve_epartscart_site_conf || true)"
 if [[ -n "${TENANT_CONF:-}" ]]; then
   printf 'Resolved epartscart conf: %s\n' "$TENANT_CONF"
-  grep -nE 'server_name' "$TENANT_CONF" 2>/dev/null | head -n 10 || true
+  grep -nE '^[[:space:]]*server_name[[:space:]].*epartscart' "$TENANT_CONF" 2>/dev/null | head -n 20 || true
+  if [[ "${TENANT_CONF}" == "${WWW_CONF:-}" ]]; then
+    printf 'NOTE: epartscart shares mega-conf with www — install is server-block scoped to www.epartscart.com\n'
+  fi
 else
   printf 'NOTE: no nginx conf has server_name for epartscart.com yet.\n' >&2
   printf 'Create one: ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh\n' >&2
@@ -279,8 +238,8 @@ if [[ "$DO_ALL" -eq 1 ]]; then
     printf 'ERROR: could not find www.ecomae.com nginx site conf under /etc/nginx/sites-enabled\n' >&2
     FAIL=1
   else
-    printf 'Using www conf: %s\n' "$WWW_CONF"
-    if install_one "$WWW_CONF" "$WWW_EXAMPLE" "www.ecomae.com"; then WWW_OK=1; else FAIL=1; fi
+    printf 'Using www conf: %s (server host www.ecomae.com)\n' "$WWW_CONF"
+    if install_one "$WWW_CONF" "$WWW_EXAMPLE" "www.ecomae.com" "www.ecomae.com"; then WWW_OK=1; else FAIL=1; fi
   fi
   if [[ -z "${TENANT_CONF:-}" ]]; then
     printf 'ERROR: could not find epartscart nginx site conf (by server_name).\n' >&2
@@ -292,8 +251,8 @@ if [[ "$DO_ALL" -eq 1 ]]; then
     ls -1 /etc/nginx/sites-enabled 2>/dev/null >&2 || true
     FAIL=1
   else
-    printf 'Using tenant conf: %s\n' "$TENANT_CONF"
-    if install_one "$TENANT_CONF" "$TENANT_EXAMPLE" "epartscart.com"; then TENANT_OK=1; else FAIL=1; fi
+    printf 'Using tenant conf: %s (server host www.epartscart.com)\n' "$TENANT_CONF"
+    if install_one "$TENANT_CONF" "$TENANT_EXAMPLE" "epartscart.com" "www.epartscart.com"; then TENANT_OK=1; else FAIL=1; fi
   fi
 elif [[ "$HOST_MODE" == "tenant" ]]; then
   if [[ "${ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW:-}" != "YES" ]]; then
@@ -306,7 +265,7 @@ elif [[ "$HOST_MODE" == "tenant" ]]; then
     ls -1 /etc/nginx/sites-enabled 2>/dev/null || true
     exit 1
   fi
-  install_one "$CONF" "$TENANT_EXAMPLE" "epartscart.com"
+  install_one "$CONF" "$TENANT_EXAMPLE" "epartscart.com" "www.epartscart.com"
   TENANT_OK=1
 else
   CONF="${ECOMAE_NGINX_SITE_CONF:-${WWW_CONF:-}}"
@@ -315,7 +274,7 @@ else
     ls -1 /etc/nginx/sites-enabled 2>/dev/null || true
     exit 1
   fi
-  install_one "$CONF" "$WWW_EXAMPLE" "www.ecomae.com"
+  install_one "$CONF" "$WWW_EXAMPLE" "www.ecomae.com" "www.ecomae.com"
   WWW_OK=1
 fi
 

@@ -32,9 +32,29 @@ fi
 
 EXISTING="$(python3 "$DISCOVER_PY" --print-path 2>/dev/null || true)"
 if [[ -n "${EXISTING:-}" && -f "$EXISTING" ]]; then
-  printf 'OK existing epartscart vhost: %s\n' "$EXISTING"
-  grep -nE 'server_name' "$EXISTING" | head -n 10 || true
+  printf 'OK existing epartscart server_name in: %s\n' "$EXISTING"
+  grep -nE '^[[:space:]]*server_name[[:space:]].*epartscart' "$EXISTING" | head -n 20 || true
+  if [[ "$(basename "$EXISTING")" == "www.ecomae.com.conf" ]]; then
+    printf 'NOTE: epartscart is a server{} block inside the www mega-conf.\n'
+    printf 'Classic-entry installer targets host=www.epartscart.com inside that file.\n'
+    printf 'Do NOT create a second sites-enabled www.epartscart.com.conf (duplicate server_name).\n'
+    if [[ -f /etc/nginx/sites-disabled/www.epartscart.com.conf ]]; then
+      printf 'NOTE: sites-disabled/www.epartscart.com.conf exists but mega-conf already serves the host.\n'
+    fi
+  fi
   printf '%s\n' "$EXISTING"
+  exit 0
+fi
+
+# Prefer re-enabling a disabled dedicated conf over cloning www mega-conf.
+if [[ -f /etc/nginx/sites-disabled/www.epartscart.com.conf ]]; then
+  printf 'Found disabled dedicated conf — enabling /etc/nginx/sites-enabled/www.epartscart.com.conf\n'
+  cp -a /etc/nginx/sites-disabled/www.epartscart.com.conf "$TARGET"
+  nginx -t
+  systemctl reload nginx
+  printf 'OK enabled epartscart vhost: %s\n' "$TARGET"
+  grep -nE 'server_name|ssl_certificate|root ' "$TARGET" | head -n 30 || true
+  printf '%s\n' "$TARGET"
   exit 0
 fi
 

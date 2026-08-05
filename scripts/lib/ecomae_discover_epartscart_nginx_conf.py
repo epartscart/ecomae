@@ -139,12 +139,21 @@ def main(argv: list[str] | None = None) -> int:
 
     preferred = prefer_enabled(hits)
     print(f"EPARTSCART_VHOST={preferred}")
-    if args.list or True:
-        print("candidates:")
-        for path, names in hits:
-            mark = " *" if preferred is not None and path == preferred else ""
-            print(f"  {path}{mark}")
-            print(f"    server_name={names[:24]}")
+    print("candidates:")
+    for path, names in hits:
+        mark = " *" if preferred is not None and path == preferred else ""
+        print(f"  {path}{mark}")
+        print(f"    server_name={names[:24]}")
+        if path.name == "www.ecomae.com.conf":
+            print(
+                "    note=mega-conf: classic-entry must edit the "
+                "server_name www.epartscart.com block only"
+            )
+    if preferred is not None and preferred.name == "www.ecomae.com.conf":
+        print(
+            "INSTALL_TARGET_HOST=www.epartscart.com "
+            "(server-block scoped inside mega-conf)"
+        )
     return 0
 
 
