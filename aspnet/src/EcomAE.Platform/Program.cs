@@ -55,6 +55,7 @@ builder.Services.AddSingleton<ILegacySessionStore>(sp =>
 });
 builder.Services.AddSingleton<ILegacySessionValidator, DbBackedLegacySessionValidator>();
 builder.Services.AddSingleton<ILegacySessionParityReporter, LegacySessionParityReporter>();
+builder.Services.AddSingleton<LegacyLogoutService>();
 builder.Services.AddSingleton<ILegacyAdminLoginService>(sp =>
 {
     var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
@@ -645,6 +646,8 @@ app.UseResponseCompression();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 // Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/*.
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
+// Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home).
+app.UseMiddleware<MarketingStubToPhpRedirectMiddleware>();
 // Thin /storefront/* stubs → PHP /en/… canonical (warehouse, UMAPI, catalogs) until apps are live.
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
@@ -657,6 +660,13 @@ app.UseMiddleware<LegacyLoginBridgeMiddleware>();
 app.UseAntiforgery();
 
 app.MapHealthChecks(EcomAeRoutes.Health);
+
+// robots.txt advertises /sitemap.xml; PHP child maps remain authoritative under sitemap-index.php.
+app.MapGet(EcomAeRoutes.SitemapXml, () =>
+{
+    var response = Results.Redirect(StorefrontPublicSeo.PhpSitemapIndex, permanent: false);
+    return response;
+});
 
 app.MapGet(EcomAeRoutes.MigrationStatus, (IMigrationParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
@@ -773,6 +783,39 @@ app.MapGet(EcomAeRoutes.LegacySessionParity, (ILegacySessionParityReporter repor
 
 // Browser navigations to the old POST-only URL should land on CP login, not a blank 405/500 page.
 app.MapGet(EcomAeRoutes.LegacyAdminLogin, () => Results.Redirect(EcomAeRoutes.ControlPanelLogin));
+
+// PHP-compatible logout — clears admin/customer cookies (+ best-effort sessions row delete).
+async Task<IResult> PerformLegacyLogout(HttpContext context, LegacyLogoutService logout, string? surface, string? returnUrl)
+{
+    await logout.LogoutAsync(context, context.RequestAborted);
+    var dest = LegacyLogoutService.RedirectForSurface(surface, returnUrl);
+    context.Response.Headers["X-EcomAE-Logout"] = "cleared";
+    return Results.Redirect(dest);
+}
+
+app.MapMethods(EcomAeRoutes.LegacyLogout, ["GET", "POST"], async (HttpContext context, LegacyLogoutService logout) =>
+{
+    var surface = context.Request.Query["surface"].FirstOrDefault()
+        ?? context.Request.Query["s"].FirstOrDefault();
+    var returnUrl = context.Request.Query["return"].FirstOrDefault()
+        ?? context.Request.Query["redirect"].FirstOrDefault();
+    if (context.Request.HasFormContentType)
+    {
+        var form = await context.Request.ReadFormAsync(context.RequestAborted);
+        surface ??= form["surface"].FirstOrDefault();
+        returnUrl ??= form["return"].FirstOrDefault() ?? form["redirect"].FirstOrDefault();
+    }
+
+    return await PerformLegacyLogout(context, logout, surface, returnUrl);
+});
+app.MapMethods(EcomAeRoutes.ControlPanelLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
+    => PerformLegacyLogout(context, logout, "cp", null));
+app.MapMethods(EcomAeRoutes.ErpLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
+    => PerformLegacyLogout(context, logout, "erp", null));
+app.MapMethods(EcomAeRoutes.BosLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
+    => PerformLegacyLogout(context, logout, "bos", null));
+app.MapMethods(EcomAeRoutes.StorefrontLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
+    => PerformLegacyLogout(context, logout, "storefront", null));
 
 // PHP-compatible admin/customer login bridge (exact-route). Sets cookies; does not cut over /CP/ /ERP/ /BOS/.
 // Accepts JSON or application/x-www-form-urlencoded (HTML login forms).

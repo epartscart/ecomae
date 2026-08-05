@@ -1,7 +1,9 @@
 @namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
 @*
   Mirrors erp_desktop.php + epc_erp_render_top_nav mega chrome.
   Topnav typography/panels come from epc_erp_professional.css (px sizes).
@@ -28,13 +30,14 @@
                 }
             </nav>
             <div class="epc-erp-topbar__user">
-                @if (!IsAdmin)
+                @if (!_signedIn)
                 {
                     <a href="/erp/login">Sign in</a>
                 }
                 else
                 {
-                    <span>Admin session</span>
+                    <span title="@_userLabel">@_userLabel</span>
+                    <a class="btn btn-default btn-xs" href="/erp/logout" title="Log out"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
                 }
                 <a href="/erp">ERP workspace</a>
             </div>
@@ -286,10 +289,26 @@
     [Parameter] public string BreadcrumbTab { get; set; } = "Dashboard";
 
     private bool _showBos;
+    private bool _signedIn;
+    private string _userLabel = "Admin session";
 
-    protected override void OnParametersSet()
+    protected override async Task OnInitializedAsync()
     {
         var host = Http.HttpContext?.Request.Host.Host;
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            _signedIn = IsAdmin;
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _signedIn = session.Kind == LegacySessionKind.Admin || IsAdmin;
+        if (_signedIn)
+        {
+            _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
+        }
     }
 }

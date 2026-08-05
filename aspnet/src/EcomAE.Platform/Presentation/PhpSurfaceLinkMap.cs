@@ -217,10 +217,38 @@ public static class PhpSurfaceLinkMap
             // Product never navigates to bare PHP scripts — home or marketing compare.
             if (value.Contains("blockchain", StringComparison.OrdinalIgnoreCase))
             {
-                return "/marketing/blockchain";
+                return "/blockchain";
             }
 
             return "/";
+        }
+
+        // Relative PHP marketing paths — keep canonical full pages (do not collapse to "/").
+        var qIndex = value.IndexOf('?', StringComparison.Ordinal);
+        var hashIndex = value.IndexOf('#', StringComparison.Ordinal);
+        var pathEnd = value.Length;
+        if (qIndex >= 0)
+        {
+            pathEnd = Math.Min(pathEnd, qIndex);
+        }
+
+        if (hashIndex >= 0)
+        {
+            pathEnd = Math.Min(pathEnd, hashIndex);
+        }
+
+        var pathOnly = pathEnd == value.Length ? value : value[..pathEnd];
+        var query = "";
+        if (qIndex >= 0)
+        {
+            var queryEnd = hashIndex > qIndex ? hashIndex : value.Length;
+            query = value[qIndex..queryEnd];
+        }
+
+        var frag = hashIndex >= 0 ? value[hashIndex..] : "";
+        if (EcomaeMarketingPages.IsMarketingPhpPath(pathOnly))
+        {
+            return MapMarketingPath(pathOnly, "") + query + frag;
         }
 
         return "/";
@@ -311,30 +339,52 @@ public static class PhpSurfaceLinkMap
             return "/erp";
         }
 
-        if (value.StartsWith("/bos", StringComparison.OrdinalIgnoreCase) && !value.StartsWith("/BOS", StringComparison.Ordinal))
+        // Marketing knowledge under /bos/* stays on PHP (bare /bos is product Super-CP).
+        if (value.Equals("/bos", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/bos/", StringComparison.OrdinalIgnoreCase))
         {
-            return "/marketing/bos" + frag;
+            return EcomaeMarketingPages.BosKnowledgePhp + frag;
         }
 
-        // /platform/demo → /marketing/demo ; /platform → /marketing/platform ; /legal → /marketing/legal
-        if (value.StartsWith("/platform/", StringComparison.OrdinalIgnoreCase))
+        if (value.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase)
+            && !value.StartsWith("/BOS", StringComparison.Ordinal))
         {
-            var rest = value["/platform/".Length..];
-            return "/marketing/" + rest.TrimEnd('/') + frag;
+            return value.TrimEnd('/') + frag;
         }
 
-        if (value.Equals("/platform", StringComparison.OrdinalIgnoreCase))
+        // Interim: secondary marketing stays on PHP canonical full pages (not thin /marketing/* stubs).
+        // Home alone is ASP.NET (/marketing/app). Nginx still serves /platform, /documentation, etc. via PHP.
+        if (value.StartsWith("/platform", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/brochure", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/documentation", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/compare", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/blockchain", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/solutions", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/legal", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/privacy", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/terms", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/cookie-policy", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/security-policy", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/right-to-use", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/trademark", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/copyright", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/data-protection", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/acceptable-use", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/confidentiality", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/intellectual-property", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/blockchain-disclaimer", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/dmca", StringComparison.OrdinalIgnoreCase))
         {
-            return "/marketing/platform" + frag;
-        }
-
-        if (value.StartsWith("/brochure/cp", StringComparison.OrdinalIgnoreCase))
-        {
-            return "/marketing/brochure-cp" + frag;
+            return value.TrimEnd('/') + frag;
         }
 
         var slug = value.Trim('/');
-        return "/marketing/" + slug + frag;
+        if (EcomaeMarketingPages.TryMapMarketingStubToPhp("/marketing/" + slug, out var fromStub))
+        {
+            return fromStub;
+        }
+
+        return value.TrimEnd('/') + frag;
     }
 
     public static string PhpReferenceOnlyHref(string? href)

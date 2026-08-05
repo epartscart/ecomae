@@ -3,6 +3,7 @@ namespace EcomAE.Platform.Services;
 /// <summary>
 /// Super-CP / platform operator hosts — mirrors PHP <c>epc_portal_platform_hostnames()</c>.
 /// Product BOS is confidential and must never answer on named live tenants (e.g. epartscart.com).
+/// Marketing knowledge articles under <c>/bos/{slug}</c> are not product BOS (PHP router keeps them public).
 /// </summary>
 public static class PlatformHostPolicy
 {
@@ -13,6 +14,28 @@ public static class PlatformHostPolicy
         "ecomae.com",
         "cp.ecomae.com",
     ];
+
+    /// <summary>
+    /// First path segment under <c>/bos/</c> that is product (apps, digests, ajax) — not marketing articles.
+    /// Mirrors PHP: bare <c>/bos</c> → product app; <c>/bos/{article-slug}</c> → marketing content.
+    /// </summary>
+    private static readonly HashSet<string> ProductBosFirstSegments = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "app",
+        "login",
+        "logout",
+        "ajax-writes",
+        "tenants",
+        "tenants-app",
+        "fleet-summary",
+        "fleet-summary-app",
+        "fleet-health",
+        "fleet-health-app",
+        "fleet-readiness",
+        "fleet-readiness-app",
+        "audit-log",
+        "audit-log-app",
+    };
 
     public static string NormalizeHost(string? host)
     {
@@ -43,7 +66,9 @@ public static class PlatformHostPolicy
         return SuperCpHosts.Any(p => string.Equals(p, h, StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>True when the request path is product BOS (not marketing /bos knowledge pages).</summary>
+    /// <summary>
+    /// True when the request path is product BOS (not marketing <c>/bos/{article}</c> knowledge pages).
+    /// </summary>
     public static bool IsProductBosPath(string? path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -52,19 +77,16 @@ public static class PlatformHostPolicy
         }
 
         var p = path.Replace('\\', '/');
+        var q = p.IndexOf('?', StringComparison.Ordinal);
+        if (q >= 0)
+        {
+            p = p[..q];
+        }
+
         if (p.StartsWith("/marketing/", StringComparison.OrdinalIgnoreCase)
             || p.StartsWith("/php-reference/marketing", StringComparison.OrdinalIgnoreCase))
         {
             return false;
-        }
-
-        // Product BOS app + login + digests
-        if (p.Equals("/bos", StringComparison.OrdinalIgnoreCase)
-            || p.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase)
-            || p.Equals("/BOS", StringComparison.Ordinal)
-            || p.StartsWith("/BOS/", StringComparison.Ordinal))
-        {
-            return true;
         }
 
         // Tenant php-reference must not expose Super BOS either
@@ -74,6 +96,41 @@ public static class PlatformHostPolicy
             return true;
         }
 
+        // Uppercase PHP shell is always product.
+        if (p.Equals("/BOS", StringComparison.Ordinal)
+            || p.StartsWith("/BOS/", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (p.Equals("/bos", StringComparison.OrdinalIgnoreCase)
+            || p.Equals("/bos/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!p.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var rest = p["/bos/".Length..].Trim('/');
+        if (rest.Length == 0)
+        {
+            return true;
+        }
+
+        var slash = rest.IndexOf('/');
+        var first = slash < 0 ? rest : rest[..slash];
+
+        // Explicit product apps/digests/ajax, or any *-app Blazor surface.
+        if (ProductBosFirstSegments.Contains(first)
+            || first.EndsWith("-app", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Remaining /bos/{slug} = public marketing knowledge (PHP).
         return false;
     }
 }

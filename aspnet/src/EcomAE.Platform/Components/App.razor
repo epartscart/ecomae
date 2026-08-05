@@ -1,9 +1,12 @@
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="noindex,nofollow,noarchive" />
+    @* Public storefront/marketing: index,follow. CP/ERP/BOS and private apps: noindex. *@
+    <meta name="robots" content="@StorefrontPublicSeo.RobotsContentFor(Http.HttpContext)" />
     <base href="/" />
     <link rel="icon" type="image/svg+xml" href="/assets/media/logos/ecomae_mark.svg" />
     <HeadOutlet />

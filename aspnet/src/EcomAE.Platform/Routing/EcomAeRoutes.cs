@@ -3,6 +3,8 @@ namespace EcomAE.Platform.Routing;
 public static class EcomAeRoutes
 {
     public const string Health = "/health";
+    /// <summary>Public SEO entry advertised in robots.txt; redirects to PHP sitemap-index.php.</summary>
+    public const string SitemapXml = "/sitemap.xml";
     public const string MigrationStatus = "/migration/status";
     public const string MigrationReadiness = "/migration/readiness";
     public const string MigrationCutoverPlan = "/migration/cutover-plan";
@@ -35,13 +37,18 @@ public static class EcomAeRoutes
     public const string LegacySessionProbe = "/auth/session/probe";
     public const string LegacySessionParity = "/auth/session/parity";
     public const string LegacyAdminLogin = "/auth/login/admin";
+    public const string LegacyLogout = "/auth/logout";
     public const string LegacyApiClientParity = "/auth/api-client/parity";
     public const string ControlPanel = "/cp";
     public const string ControlPanelApp = "/cp/app";
     public const string ControlPanelLogin = "/cp/login";
+    public const string ControlPanelLogout = "/cp/logout";
     public const string ErpLogin = "/erp/login";
+    public const string ErpLogout = "/erp/logout";
     public const string BosLogin = "/bos/login";
+    public const string BosLogout = "/bos/logout";
     public const string StorefrontLogin = "/storefront/login";
+    public const string StorefrontLogout = "/storefront/logout";
 
     public const string ControlPanelParity = "/cp/parity";
     public const string ControlPanelDashboardSummary = "/cp/dashboard-summary";

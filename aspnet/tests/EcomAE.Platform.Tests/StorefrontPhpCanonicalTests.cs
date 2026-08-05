@@ -26,6 +26,12 @@ public sealed class StorefrontPhpCanonicalTests
     }
 
     [Fact]
+    public void LogoutStaysOnAspNetForLegacyLogoutService()
+    {
+        Assert.False(StorefrontPhpCanonical.TryMapStorefrontStubToPhp("/storefront/logout", out _));
+    }
+
+    [Fact]
     public void CatalogBrowseKeepsPhpStylePages()
     {
         Assert.Equal("/en/product-family", StorefrontPhpCanonical.ForCatalogBrowse("/product-family"));

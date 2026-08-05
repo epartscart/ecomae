@@ -1,12 +1,15 @@
 @namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
 @*
   Mirrors cp/templates/bootstrap_admin/desktop.php + epc_cp_top_nav.php.
   Topnav typography/panels come from epc_cp_professional.css (px sizes).
   Click-to-toggle JS mirrors cp/js/epc_cp_topnav.js (no hover-open).
   BOS nav is Super-CP only — never advertise /bos on tenant hosts.
+  Auth chrome resolves legacy session itself so Sign in / Log out is correct on every page.
 *@
 
 <div class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root">
@@ -28,13 +31,14 @@
                 {
                     <a href="/bos">BOS</a>
                 }
-                @if (!IsAdmin)
+                @if (!_signedIn)
                 {
                     <a class="epc-cp-header-login" href="/cp/login">Sign in</a>
                 }
                 else
                 {
-                    <span class="epc-cp-header-user">Admin session</span>
+                    <span class="epc-cp-header-user" title="@_userLabel">@_userLabel</span>
+                    <a class="epc-cp-header-logout" href="/cp/logout" title="Log out"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
                 }
             </nav>
         </div>
@@ -282,14 +286,31 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Optional hint from the page; chrome re-validates cookies so Log out still appears when the page omits it.</summary>
     [Parameter] public bool IsAdmin { get; set; }
 
     private bool _showBos;
+    private bool _signedIn;
+    private string _userLabel = "Admin session";
 
-    protected override void OnParametersSet()
+    protected override async Task OnInitializedAsync()
     {
         var host = Http.HttpContext?.Request.Host.Host;
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            _signedIn = IsAdmin;
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _signedIn = session.Kind == LegacySessionKind.Admin || IsAdmin;
+        if (_signedIn)
+        {
+            _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
+        }
     }
 
     private static bool IsBosNavGroup(LegacyDesktopChromeCatalog.MegaGroup group)

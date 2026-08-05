@@ -1,4 +1,5 @@
 using System.Reflection;
+using EcomAE.Platform.Presentation;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -54,9 +55,38 @@ public sealed class EcomaeMarketingHomeParityTests
         var path = FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeMarketingChrome.razor");
         var text = File.ReadAllText(path);
         Assert.Contains("epm-footer__legal", text, StringComparison.Ordinal);
-        Assert.Contains("/marketing/blockchain", text, StringComparison.Ordinal);
-        Assert.Contains("/marketing/privacy", text, StringComparison.Ordinal);
+        Assert.Contains("href=\"/blockchain\"", text, StringComparison.Ordinal);
+        Assert.Contains("href=\"/privacy\"", text, StringComparison.Ordinal);
+        Assert.Contains("href=\"/platform\"", text, StringComparison.Ordinal);
+        Assert.Contains("href=\"/platform/pricing\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("href=\"/marketing/platform", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("href=\"/marketing/privacy", text, StringComparison.Ordinal);
         Assert.Contains("Electronic World Group", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MarketingHubOrbitClassUsesRazorInterpolation()
+    {
+        var path = FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeMarketingHub.razor");
+        var text = File.ReadAllText(path);
+        Assert.DoesNotContain("class=\"epm-hub__node@featured\"", text, StringComparison.Ordinal);
+        Assert.Contains("epm-hub__node{featured}", text, StringComparison.Ordinal);
+        Assert.Contains("href=\"/platform\"", text, StringComparison.Ordinal);
+        Assert.Contains("href=\"/platform/demo\"", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MarketingStubMapsToPhpCanonicalPaths()
+    {
+        Assert.True(EcomaeMarketingPages.TryMapMarketingStubToPhp("/marketing/platform", out var platform));
+        Assert.Equal("/platform", platform);
+        Assert.True(EcomaeMarketingPages.TryMapMarketingStubToPhp("/marketing/pricing", out var pricing));
+        Assert.Equal("/platform/pricing", pricing);
+        Assert.True(EcomaeMarketingPages.TryMapMarketingStubToPhp("/marketing/bos", out var bos));
+        Assert.Equal(EcomaeMarketingPages.BosKnowledgePhp, bos);
+        Assert.True(EcomaeMarketingPages.TryMapMarketingStubToPhp("/marketing/privacy#top", out var privacy));
+        Assert.Equal("/privacy#top", privacy);
+        Assert.False(EcomaeMarketingPages.TryMapMarketingStubToPhp("/marketing/app", out _));
     }
 
     private static string FindRepoFile(string relative)

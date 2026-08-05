@@ -6,9 +6,9 @@
 @inject IHttpContextAccessor Http
 
 <PageTitle>@_pageTitle</PageTitle>
-<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
 <PhpChromeBodyClass Surface="storefront" />
-@* Live epartscart `/` proxies here (ASP.NET). PHP style chrome; PHP product only via /php-reference/*. *@
+@* Live epartscart `/` proxies here (ASP.NET). Public SEO via IncludePublicSeo; PHP product only via /php-reference/*. *@
 
 <PhpStorefrontDesktopChrome>
     @if (string.IsNullOrWhiteSpace(_phpHref))

@@ -29,7 +29,16 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/product-family", "/en/product-family")]
     [InlineData("/umapi_catalog", "/en/umapi_catalog")]
     [InlineData("https://agriculture.ecomae.com/CP/", "https://agriculture.ecomae.com/cp")]
-    [InlineData("/epc-blockchain-verify.php", "/marketing/blockchain")]
+    [InlineData("/epc-blockchain-verify.php", "/blockchain")]
+    [InlineData("/platform", "/platform")]
+    [InlineData("/platform/pricing", "/platform/pricing")]
+    [InlineData("/documentation", "/documentation")]
+    [InlineData("/privacy", "/privacy")]
+    [InlineData("/bos", "/bos")] // product Super-CP shell; knowledge article is /bos/what-is-…
+    [InlineData("/", "/")] // classic-entry home URL stays / (proxied to /marketing/app)
+    [InlineData("https://www.ecomae.com/", "/marketing/app")]
+    [InlineData("https://www.ecomae.com/platform/pricing", "/platform/pricing")]
+    [InlineData("https://www.ecomae.com/bos", "/bos/what-is-a-business-operating-system")]
     public void AspNetPrimaryHref_MapsPhpProductToAspNet(string phpHref, string expected)
     {
         Assert.Equal(expected, PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref));

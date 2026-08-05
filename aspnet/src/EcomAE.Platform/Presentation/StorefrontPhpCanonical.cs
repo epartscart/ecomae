@@ -73,8 +73,8 @@ public static class StorefrontPhpCanonical
             "/storefront/orders-app" => Orders + query,
             "/storefront/login" => Login + query,
             "/storefront/garage-app" => GarageLogin + query,
-            "/storefront/logout" => Login + query, // clear happens on ASP.NET if tree installed; else login
-            "/storefront/profile-app" => Login + query,
+            // /storefront/logout stays ASP.NET (LegacyLogoutService) — do not remap.
+            "/storefront/profile-app" => Orders + query,
             "/storefront/account-summary-app" => Orders + query,
             _ => "",
         };
