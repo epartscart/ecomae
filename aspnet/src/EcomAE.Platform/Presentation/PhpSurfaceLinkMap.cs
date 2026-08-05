@@ -6,6 +6,77 @@ namespace EcomAE.Platform.Presentation;
 /// </summary>
 public static class PhpSurfaceLinkMap
 {
+    /// <summary>Longest-first CP path fragments (under /CP/) → ASP.NET apps.</summary>
+    private static readonly (string Marker, string AspNet)[] CpPathMap =
+    [
+        ("shop/orders/orders", "/cp/orders"),
+        ("shop/orders/carts", "/cp/abandoned-carts-app"),
+        ("control/shop/docpart/crosses", "/cp/crosses-app"),
+        ("control/shop/catalogue/stock", "/erp/inventory-stock-app"),
+        ("control/shop/procurement", "/cp/purchase-requests-app"),
+        ("control/shop/multivendor", "/cp"),
+        ("control/shop/prices", "/cp/price-lists-app"),
+        ("control/shop/pos", "/cp/pos-overview-app"),
+        ("control/portal/epc_tenant_control_center", "/cp/tenants-app"),
+        ("control/portal/epc_api_clients_manage", "/cp/api-clients-app"),
+        ("control/portal/epc_power_bi", "/cp/power-bi-app"),
+        ("control/portal/epc_mobile_apps", "/cp/mobile-apps-app"),
+        ("control/portal/epc_nl_reporting", "/cp/nl-reporting-app"),
+        ("control/portal/epc_marketing_broadcast", "/cp/marketing-broadcast-app"),
+        ("control/portal/epc_demo_tenants_manage", "/cp/demo-tenants-app"),
+        ("control/portal/epc_tax_toolkit_manage", "/cp/tax-toolkits-app"),
+        ("control/portal/epc_auto_price_engine", "/cp/auto-price-app"),
+        ("control/portal/epc_promotions_engine", "/cp/promotions-app"),
+        ("control/portal/epc_integrations_hub", "/cp/integrations-app"),
+        ("control/portal/epc_visual_page_editor", "/cp/page-builder-app"),
+        ("control/portal/epc_platform_governance", "/cp/platform-governance-app"),
+        ("control/portal/epc_soc2_compliance", "/cp/soc2-compliance-app"),
+        ("control/portal/epc_commerce_isolation_audit", "/cp/isolation-audit-app"),
+        ("control/portal/epc_cp_auth_settings", "/cp/auth-mfa-app"),
+        ("control/portal/epc_web_tracker", "/cp/web-tracker-app"),
+        ("control/portal/industry_settings", "/cp/industry-packs-app"),
+        ("control/portal/epc_free_tools", "/cp/free-tools-app"),
+        ("control/portal/epc_pos_tenant", "/cp/pos-overview-app"),
+        ("control/portal/tenant_control", "/cp/tenants-app"),
+        ("shop/parts_agent/parts_agent_chats", "/cp/parts-agent-chats-app"),
+        ("shop/document_control/document_control", "/cp/document-control-app"),
+        ("shop/logistics/sposoby-polucheniya", "/cp/delivery-methods-app"),
+        ("shop/logistics/storages", "/cp/storages-app"),
+        ("shop/logistics/carriers", "/cp/carriers-app"),
+        ("shop/finance/nastrojka-kursov-valyut", "/cp/currencies-app"),
+        ("shop/finance/epc_collections_dunning", "/cp/collections-dunning-app"),
+        ("shop/finance/erp/uae-tax-compliance", "/cp/uae-tax-compliance-app"),
+        ("shop/catalogue/catalogue_editor", "/cp/product-catalogue-app"),
+        ("shop/marketing/marketing", "/cp/marketing-growth-app"),
+        ("shop/payments/payments", "/cp/payment-gateways-app"),
+        ("shop/returns-manager", "/cp/returns-rma-app"),
+        ("shop/crm/crm_main", "/cp/crm-board-app"),
+        ("shop/crosses", "/cp/crosses-app"),
+        ("shop/prices", "/cp/price-lists-app"),
+        ("modules/modules_manager", "/cp/modules-app"),
+        ("content/content_manager", "/cp/pages-app"),
+        ("menu/menu_manager", "/cp/menus-app"),
+        ("general_pages/epc_metabase_embed", "/cp/metabase-app"),
+        ("general_pages/epc_ai_service", "/cp/ai-service-app"),
+        ("control/sms_turning", "/cp/sms-whatsapp-app"),
+        ("control/config_edit", "/cp/config-items-app"),
+        ("control/users", "/cp/users-app"),
+        ("users/usergroups", "/cp/groups-app"),
+        ("channels_main", "/cp/marketplace-channels-app"),
+        ("epc_integrations", "/cp/integrations-app"),
+        ("epc_api_clients", "/cp/api-clients-app"),
+        ("epc_demo_tenants", "/cp/demo-tenants-app"),
+        ("epc_platform_governance", "/cp/platform-governance-app"),
+        ("epc_free_tools", "/cp/free-tools-app"),
+        ("industry_settings", "/cp/industry-packs-app"),
+        ("sposoby-polucheniya", "/cp/delivery-methods-app"),
+        ("tenant_control", "/cp/tenants-app"),
+        ("carriers", "/cp/carriers-app"),
+        ("payments", "/cp/payment-gateways-app"),
+        ("channels", "/cp/marketplace-channels-app"),
+        ("failover", "/cp/failover-status-app"),
+    ];
+
     public static string AspNetPrimaryHref(string? href)
     {
         if (string.IsNullOrWhiteSpace(href))
@@ -29,7 +100,19 @@ public static class PhpSurfaceLinkMap
                 || absolute.Host.Equals("ecomae.com", StringComparison.OrdinalIgnoreCase)
                 || absolute.Host.EndsWith(".ecomae.com", StringComparison.OrdinalIgnoreCase))
             {
-                return MapMarketingPath(absolute.AbsolutePath, absolute.Fragment);
+                // Industry showcase /CP /ERP on *.ecomae.com → same-host ASP.NET shells.
+                var path = absolute.AbsolutePath ?? "/";
+                if (IsUpperPhpShell(path, "CP") || path.Equals("/cp", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase))
+                {
+                    return absolute.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/cp";
+                }
+
+                if (IsUpperPhpShell(path, "ERP") || path.Equals("/erp", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase))
+                {
+                    return absolute.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/erp";
+                }
+
+                return MapMarketingPath(path, absolute.Fragment);
             }
         }
 
@@ -82,7 +165,8 @@ public static class PhpSurfaceLinkMap
         if (value.StartsWith("/shop/part_search", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/shop/search", StringComparison.OrdinalIgnoreCase))
         {
-            return "/storefront/search-app";
+            var q = value.Contains('?', StringComparison.Ordinal) ? value[value.IndexOf('?', StringComparison.Ordinal)..] : string.Empty;
+            return "/storefront/search-app" + q;
         }
 
         if (value.Contains("garage", StringComparison.OrdinalIgnoreCase))
@@ -96,8 +180,15 @@ public static class PhpSurfaceLinkMap
         }
 
         if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
-            || value.Equals("/index.php", StringComparison.OrdinalIgnoreCase))
+            || value.Equals("/index.php", StringComparison.OrdinalIgnoreCase)
+            || value.EndsWith(".php", StringComparison.OrdinalIgnoreCase))
         {
+            // Product never navigates to bare PHP scripts — home or marketing compare.
+            if (value.Contains("blockchain", StringComparison.OrdinalIgnoreCase))
+            {
+                return "/marketing/blockchain";
+            }
+
             return "/";
         }
 
@@ -217,6 +308,48 @@ public static class PhpSurfaceLinkMap
             || value.EndsWith(".php", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// True when the request path is an uppercase PHP product shell (deep /CP /ERP /BOS)
+    /// that must redirect into ASP.NET — not serve PHP in the product environment.
+    /// Exact shell roots /CP /CP/ are already ASP.NET classic-entry aliases.
+    /// </summary>
+    public static bool TryMapIncomingPhpProductPath(string pathAndQuery, out string aspNetHref)
+    {
+        aspNetHref = "/";
+        if (string.IsNullOrWhiteSpace(pathAndQuery))
+        {
+            return false;
+        }
+
+        var value = pathAndQuery.Trim();
+        if (!(IsUpperPhpShell(value, "CP")
+            || IsUpperPhpShell(value, "ERP")
+            || IsUpperPhpShell(value, "BOS")
+            || value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        // Exact /CP /ERP /BOS (+ trailing slash) with no query already have Blazor aliases — leave them.
+        // Deep queries (/ERP/?epc_erp_shell=1&area=…, /BOS/?m=…) must remap into ASP.NET apps.
+        var qIndex = value.IndexOf('?', StringComparison.Ordinal);
+        var pathOnly = qIndex < 0 ? value : value[..qIndex];
+        var hasQuery = qIndex >= 0 && qIndex < value.Length - 1;
+        if (!hasQuery
+            && (pathOnly.Equals("/CP", StringComparison.Ordinal)
+                || pathOnly.Equals("/CP/", StringComparison.Ordinal)
+                || pathOnly.Equals("/ERP", StringComparison.Ordinal)
+                || pathOnly.Equals("/ERP/", StringComparison.Ordinal)
+                || pathOnly.Equals("/BOS", StringComparison.Ordinal)
+                || pathOnly.Equals("/BOS/", StringComparison.Ordinal)))
+        {
+            return false;
+        }
+
+        aspNetHref = AspNetPrimaryHref(value);
+        return true;
+    }
+
     private static bool IsUpperPhpShell(string value, string shell)
     {
         // Product PHP chrome uses uppercase /CP /ERP /BOS (catalog + legacy nav).
@@ -236,70 +369,17 @@ public static class PhpSurfaceLinkMap
         }
 
         var path = value.Split('?', 2)[0];
-        // Common CP brochure / logistics / payments deep links → *-app routes.
-        if (ContainsAny(path, "payments", "payment"))
-        {
-            return "/cp/payment-gateways-app";
-        }
+        var rest = path.StartsWith("/CP/", StringComparison.Ordinal)
+            ? path["/CP/".Length..]
+            : path.TrimStart('/');
 
-        if (ContainsAny(path, "channels_main", "channels"))
+        foreach (var (marker, aspNet) in CpPathMap)
         {
-            return "/cp/marketplace-channels-app";
-        }
-
-        if (ContainsAny(path, "carriers"))
-        {
-            return "/cp/carriers-app";
-        }
-
-        if (ContainsAny(path, "sposoby-polucheniya", "delivery"))
-        {
-            return "/cp/delivery-methods-app";
-        }
-
-        if (ContainsAny(path, "epc_integrations", "integrations"))
-        {
-            return "/cp/integrations-app";
-        }
-
-        if (ContainsAny(path, "epc_api_clients", "api_clients"))
-        {
-            return "/cp/api-clients-app";
-        }
-
-        if (ContainsAny(path, "epc_demo_tenants", "demo_tenants"))
-        {
-            return "/cp/demo-tenants-app";
-        }
-
-        if (ContainsAny(path, "epc_platform_governance", "governance"))
-        {
-            return "/cp/platform-governance-app";
-        }
-
-        if (ContainsAny(path, "epc_free_tools", "free_tools"))
-        {
-            return "/cp/free-tools-app";
-        }
-
-        if (ContainsAny(path, "epc_pos_tenant", "pos"))
-        {
-            return "/cp/pos-overview-app";
-        }
-
-        if (ContainsAny(path, "tenant_control", "tenants"))
-        {
-            return "/cp/tenants-app";
-        }
-
-        if (ContainsAny(path, "failover"))
-        {
-            return "/cp/failover-status-app";
-        }
-
-        if (ContainsAny(path, "industry_settings", "industry"))
-        {
-            return "/cp/industry-packs-app";
+            if (rest.Contains(marker, StringComparison.OrdinalIgnoreCase)
+                || path.Contains(marker, StringComparison.OrdinalIgnoreCase))
+            {
+                return aspNet;
+            }
         }
 
         if (ContainsAny(path, "ops", "guide"))
@@ -314,17 +394,19 @@ public static class PhpSurfaceLinkMap
     {
         var tab = ExtractQuery(value, "tab");
         var area = ExtractQuery(value, "area");
-        var key = (tab ?? area ?? string.Empty).Trim().ToLowerInvariant();
+        var key = (tab ?? string.Empty).Trim().ToLowerInvariant();
+        var areaKey = (area ?? string.Empty).Trim().ToLowerInvariant();
 
-        return key switch
+        var fromTab = key switch
         {
             "dashboard" or "overview" => "/erp",
             "processflow" or "process_flow" or "workflow" => "/erp/process-flow-tasks-app",
             "aging" or "ar_aging" or "ap_aging" => "/erp/aging-app",
-            "report_center" or "reports" or "reportcenter" => "/erp/report-center-app",
+            "report_center" or "reports" or "reportcenter" or "rc_finance" or "pl" or "balance_sheet" => "/erp/report-center-app",
             "sales_orders" or "salesorders" => "/erp/sales-orders-app",
-            "sales_quotations" or "quotations" => "/erp/sales-quotations-app",
+            "sales_quotations" or "quotations" or "proposals" => "/erp/sales-quotations-app",
             "purchase_orders" or "purchaseorders" => "/erp/purchase-orders-app",
+            "purchase_requisitions" => "/cp/purchase-requests-app",
             "purchases" or "payables" => "/erp/purchases-app",
             "invoices" or "receivables" => "/erp/invoices-app",
             "cash_bank" or "cash" or "banking" => "/erp/cash-accounts-app",
@@ -333,14 +415,58 @@ public static class PhpSurfaceLinkMap
             "gl" or "journals" or "general_journal" => "/erp/gl-journals-app",
             "inventory" or "stock" or "inventory_stock" => "/erp/inventory-stock-app",
             "stock_movements" or "movements" or "ledger" => "/erp/stock-movements-app",
-            "stock_transfers" or "transfers" => "/erp/stock-transfers-app",
+            "stock_transfers" or "transfers" or "inv_groups" => "/erp/stock-transfers-app",
             "warehouses" or "warehouse" or "wms" => "/erp/warehouses-app",
             "suppliers" or "vendors" => "/erp/suppliers-app",
             "fixed_assets" or "assets" => "/erp/fixed-assets-app",
-            "bank_reconciliation" or "reconciliation" => "/erp/bank-reconciliation-app",
+            "bank_reconciliation" or "reconciliation" or "bank_recon" => "/erp/bank-reconciliation-app",
             "on_premises" or "onpremises" => "/erp/on-premises-app",
             "favorites" or "workspace" => "/erp/workspace-favorites-app",
             "accounts" => "/erp/accounts-summary-app",
+            "hr" => "/cp/hr-overview-app",
+            "manufacturing" => "/cp/production-overview-app",
+            "projects" => "/cp/projects-overview-app",
+            "retail_commerce" => "/cp/jewellery-retail-app",
+            "budgeting" => "/cp/budgets-app",
+            "workflow_automation" => "/cp/workflows-app",
+            "opportunities" => "/cp/crm-opportunities-app",
+            "einvoice" => "/cp/einvoice-documents-app",
+            "jw_repairs" => "/cp/jewellery-repairs-app",
+            "crm" => "/cp/crm-tickets-app",
+            "cost_models" => "/cp/cost-models-app",
+            "fin_advanced" => "/cp/fin-advanced-app",
+            "blockchain_proofs" => "/cp/blockchain-proofs-app",
+            "landed_cost" => "/cp/landed-cost-app",
+            "aml_compliance" => "/cp/aml-compliance-app",
+            "jw_karat" => "/cp/jewellery-masters-app",
+            "consolidation_bu" => "/cp/consolidations-app",
+            "elec_reporting" => "/cp/electronic-reporting-app",
+            _ => null,
+        };
+
+        if (fromTab is not null)
+        {
+            return fromTab;
+        }
+
+        return areaKey switch
+        {
+            "overview" or "finance" or "common" or "setup" or "enterprise" => "/erp",
+            "sales" or "ar" => "/erp/sales-orders-app",
+            "purchasing" or "ap" => "/erp/purchase-orders-app",
+            "banking" or "credit_coll" => "/erp/cash-accounts-app",
+            "inventory_mgmt" or "pim" or "logistics" => "/erp/inventory-stock-app",
+            "warehouse" => "/erp/warehouses-app",
+            "people" or "payroll_area" or "leave_abs" => "/cp/hr-overview-app",
+            "tax" or "risk" => "/cp/uae-tax-compliance-app",
+            "production" => "/cp/production-overview-app",
+            "projects" => "/cp/projects-overview-app",
+            "retail" or "service_mgmt" => "/cp/jewellery-retail-app",
+            "budgeting" => "/cp/budgets-app",
+            "fixed_assets" or "asset_mgmt" => "/erp/fixed-assets-app",
+            "cost_mgmt" or "cost_acct" => "/cp/cost-models-app",
+            "landed_cost_area" => "/cp/landed-cost-app",
+            "consolidations" => "/cp/consolidations-app",
             _ => "/erp",
         };
     }
@@ -348,27 +474,41 @@ public static class PhpSurfaceLinkMap
     private static string MapBosPhpPath(string value)
     {
         var path = value.Split('?', 2)[0].ToLowerInvariant();
-        if (path.Contains("tenant", StringComparison.Ordinal))
+        var module = ExtractQuery(value, "m")?.Trim().ToLowerInvariant();
+
+        if (module is "fleet_cp" or "tenant" or "tenants")
         {
             return "/bos/tenants-app";
         }
 
-        if (path.Contains("health", StringComparison.Ordinal))
+        if (module is "command_center" or "command")
+        {
+            return "/bos/app";
+        }
+
+        if (path.Contains("tenant", StringComparison.Ordinal) || module?.Contains("tenant", StringComparison.Ordinal) == true)
+        {
+            return "/bos/tenants-app";
+        }
+
+        if (path.Contains("health", StringComparison.Ordinal) || module?.Contains("health", StringComparison.Ordinal) == true)
         {
             return "/bos/fleet-health-app";
         }
 
-        if (path.Contains("ready", StringComparison.Ordinal) || path.Contains("readiness", StringComparison.Ordinal))
+        if (path.Contains("ready", StringComparison.Ordinal)
+            || path.Contains("readiness", StringComparison.Ordinal)
+            || module?.Contains("ready", StringComparison.Ordinal) == true)
         {
             return "/bos/fleet-readiness-app";
         }
 
-        if (path.Contains("audit", StringComparison.Ordinal))
+        if (path.Contains("audit", StringComparison.Ordinal) || module?.Contains("audit", StringComparison.Ordinal) == true)
         {
             return "/bos/audit-log-app";
         }
 
-        if (path.Contains("summary", StringComparison.Ordinal))
+        if (path.Contains("summary", StringComparison.Ordinal) || module?.Contains("summary", StringComparison.Ordinal) == true)
         {
             return "/bos/fleet-summary-app";
         }
