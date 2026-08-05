@@ -112,6 +112,42 @@ bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
 | Admin/Storefront ASP.NET flags enabled for all tenants | Delete PHP source / PHP-FPM / cron |
 | Deep ASP.NET trees proxied; uppercase PHP shells remapped | Invent `cutoverAllowed=true` / PHP source removal |
 
+## 0b) BOS login dark dual-form (PR #861) — binary redeploy only
+
+Live `/bos/login` stays on the old stub until the ASP.NET binary is rebuilt.
+**Skip** `cloudpanel_install_presentation_app_shadows.sh` for this fix — classic-entry
+already proxies `/bos/login`. Presentation shadows are optional and often fail on
+mega-conf insertion points.
+
+```bash
+export ECOMAE_BRANCH=main
+for d in /opt/ecomae-aspnet-source /root/ecomae; do
+  if [[ -d "$d/.git" ]]; then
+    git -C "$d" fetch origin "$ECOMAE_BRANCH"
+    git -C "$d" checkout -f "$ECOMAE_BRANCH"
+    git -C "$d" reset --hard "origin/$ECOMAE_BRANCH"
+  fi
+done
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+# Prove #861 tip is present before build:
+grep -n 'Sign In to BOS' aspnet/src/EcomAE.Platform/Components/Pages/BosLoginApp.razor | head
+bash scripts/cloudpanel_find_and_redeploy.sh
+systemctl restart ecomae-platform.service
+curl -sS http://127.0.0.1:5100/health || true
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/bos/login \
+  | grep -oE 'bos-body--login|Sign In to BOS|Access ERP System|bos-login__form' | sort -u
+# expect those markers; must NOT print "temporarily unavailable"
+```
+
+If you still need presentation shadows later (www only):
+
+```bash
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+export ECOMAE_NGINX_SITE_CONF=/etc/nginx/sites-enabled/www.ecomae.com.conf
+ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES \
+  bash scripts/cloudpanel_install_presentation_app_shadows.sh
+```
+
 ## 1) One-shot find + redeploy
 
 ```bash
