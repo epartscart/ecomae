@@ -52,7 +52,8 @@ public sealed class LiveTenantPresentationLockTests
         {
             var row = (IReadOnlyDictionary<string, object>)raw!;
             Assert.Equal("aspnet", row["stackToday"]);
-            Assert.Equal("/php-reference/* only", row["phpAccess"]);
+            Assert.Contains("/php-reference", row["phpAccess"]!.ToString()!, StringComparison.Ordinal);
+            Assert.Equal("super-cp-only-404-on-tenant", row["bos"]);
         }
     }
 }

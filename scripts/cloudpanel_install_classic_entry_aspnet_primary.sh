@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Install exact-route classic tenant-shared entries → ASP.NET with URL PRESERVED.
-# /cp /erp /bos / stay the same in the browser (proxy to ASP.NET apps).
-# PHP reference is separate: /php-reference/{home,cp,erp,bos,storefront}
+# /cp /erp / stay the same in the browser (proxy to ASP.NET apps).
+# Product /bos is Super-CP only (www/cp.ecomae.com); tenant packs 404 /bos.
+# PHP reference is separate: /php-reference/{home,cp,erp,storefront} (+ bos on Super-CP only).
 #
 # IMPORTANT: CloudPanel often packs many tenants into www.ecomae.com.conf as
 # separate server{ } blocks. Installs are scoped by server_name host — never
@@ -34,7 +35,7 @@ source "$ROOT/scripts/lib/ecomae_nginx_site_safety.sh"
 
 if [[ "${ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY:-}" != "YES" ]]; then
   printf 'Refusing without ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES\n' >&2
-  printf 'Installs exact-route same-URL proxies for / /cp /erp /bos + /php-reference/*\n' >&2
+  printf 'Installs exact-route same-URL proxies for / /cp /erp + /php-reference/* (tenant /bos → 404)\n' >&2
   exit 2
 fi
 
@@ -328,10 +329,10 @@ else
 fi
 
 printf '\nClassic-entry map (ASP.NET-primary — no half-and-half):\n'
-printf '  https://www.ecomae.com/cp  /erp  /bos  /     → ASP.NET (www_ok=%s)\n' "$WWW_OK"
+printf '  https://www.ecomae.com/cp  /erp  /bos  /     → ASP.NET Super-CP (www_ok=%s)\n' "$WWW_OK"
 printf '  named product tenants installed_ok=%s / 5\n' "$TENANT_OK"
 printf '  epartscart | electronicae | stylenlook | thejewellerytrend | taxofinca\n'
-printf '  each: / /cp /erp /bos (+ deep trees) → ASP.NET\n'
+printf '  each: / /cp /erp (+ deep trees) → ASP.NET; /bos → 404 (Super-CP only)\n'
 printf '\nPHP reference ONLY (separate; never product mix):\n'
 printf '  /php-reference/home  /php-reference/cp  /php-reference/erp  /php-reference/bos  /php-reference/storefront\n'
 

@@ -28,9 +28,8 @@ public sealed class RouteTenantResolver : ITenantResolver
             _ => TenantSurface.Storefront
         };
 
-        var platformHost = _options.PlatformHost.ToLowerInvariant();
         var registryRecord = await _tenantRegistry.FindByHostAsync(host, cancellationToken);
-        var mode = registryRecord?.Mode ?? (host == platformHost || host == TrimWww(platformHost)
+        var mode = registryRecord?.Mode ?? (PlatformHostPolicy.IsSuperCpHost(host)
             ? TenantMode.Platform
             : surface == TenantSurface.Erp ? TenantMode.ErpOnlyTenant : TenantMode.LiveTenant);
 
@@ -63,8 +62,4 @@ public sealed class RouteTenantResolver : ITenantResolver
         return parts.Length == 0 ? string.Empty : parts[0].ToLowerInvariant();
     }
 
-    private static string TrimWww(string host)
-    {
-        return host.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? host[4..] : host;
-    }
 }

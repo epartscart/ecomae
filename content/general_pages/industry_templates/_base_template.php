@@ -1109,7 +1109,7 @@ Enterprise-grade storefront, control panel, and ERP — built for <?php echo htm
 <?php endif; ?>
 <li><a href="/platform/industries">All Industries</a></li>
 <li><a href="/cp/">Control Panel</a></li>
-<li><a href="/bos/">Blockchain BOS</a></li>
+<li><a href="https://www.ecomae.com/marketing/bos">Blockchain BOS</a></li>
 </ul>
 </div>
 <div class="footer-col">

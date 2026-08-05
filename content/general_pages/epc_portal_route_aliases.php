@@ -53,6 +53,21 @@ function epc_portal_alias_try_bos_entry(): bool
 	if ($path !== '/bos' && strpos($path, '/bos/') !== 0) {
 		return false;
 	}
+	// Product BOS is Super-CP only (www.ecomae.com / ecomae.com / cp.ecomae.com).
+	// Named tenants + industry showcase hosts must not load the fleet console.
+	$host = function_exists('epc_portal_host') ? strtolower(trim((string) epc_portal_host())) : strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+	if (strpos($host, ':') !== false) {
+		$host = explode(':', $host, 2)[0];
+	}
+	$bosHosts = array('www.ecomae.com', 'ecomae.com', 'cp.ecomae.com');
+	if (!in_array($host, $bosHosts, true)) {
+		http_response_code(404);
+		header('X-Robots-Tag: noindex, nofollow');
+		header('X-EcomAE-Bos-Host-Gate: super-cp-only');
+		header('Content-Type: text/plain; charset=utf-8');
+		echo 'Not found.';
+		return true;
+	}
 	$entry = $_SERVER['DOCUMENT_ROOT'] . '/bos/index.php';
 	if (!is_file($entry)) {
 		return false;
