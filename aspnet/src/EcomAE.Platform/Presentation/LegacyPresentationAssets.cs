@@ -121,7 +121,11 @@ public static class LegacyPresentationAssets
             "erp" => [".ech-hub", "epc-erp-portal-bg", "epc-erp-bos-hero", "#erpPortalParticles"],
             "bos" => [".bos-login__bg", "#bosParticles", ".bos-login__glow"],
             "storefront" => [".epc-engine-animation", ".epc-asp-piston-banner", "epc-home-pro"],
-            "marketing" => [".epm-hub", ".epm-hub__orbit-spin", ".epm-hub__matrix", ".epm-hub-section"],
+            "marketing" =>
+            [
+                ".epm-hub", ".epm-hub__orbit-spin", ".epm-hub__matrix", ".epm-hub-section",
+                ".epc-demo-portal", ".epc-layla-splash", ".epc-layla-footer-widget"
+            ],
             _ => []
         };
 
