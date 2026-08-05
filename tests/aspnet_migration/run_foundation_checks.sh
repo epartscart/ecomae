@@ -487,7 +487,10 @@ check 'module-function coverage consistency matches 726' contains "$ROOT/docs/mi
 check 'module-function coverage consistency blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"cutoverAllowed": false'
 check 'surface-field operator rebuilds php catalog coverage board' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'build_surface_field_catalog_coverage_board.py'
 check 'surface-field operator floors contracts at 54' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'expected >=54'
-check 'surface-field board contractCount is 153' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 153'
+check 'surface-field board contractCount is 154' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 154'
+check 'surface-field board includes cp-debug-console digest' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"aspNetRoute": "/cp/debug-console"'
+check 'php catalog coverage digest-contract is 726' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"digest-contract": 726'
+check 'php catalog coverage has zero hybrid-directory-only' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); c=d.get("coverageCounts") or {}; assert int(c.get("digest-contract") or 0)==726 and int(c.get("hybrid-directory-only") or 0)==0 and int(d.get("missingCount") or 0)==0 and d.get("cutoverAllowed") is False' "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
 check 'surface-field board includes orders-digest' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"/cp/orders-digest"'
 check 'PhpModuleCatalog rejects aspnet preview deeplinks' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'IsAllowedPhpDeeplink'
 check 'surface-digest exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json"

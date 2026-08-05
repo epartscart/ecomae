@@ -1,7 +1,7 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
   "cutoverAllowed": false,
-  "contractCount": 153,
+  "contractCount": 154,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
   "contracts": [
@@ -2043,6 +2043,44 @@
         "Marketplace channel KPIs + rows",
         "config_json omitted; catalog family/region/api/blurb",
         "PHP marketplace/channels remain authoritative"
+      ],
+      "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
+      "parityStatus": "contract-locked-awaiting-dual-sample"
+    },
+    {
+      "surface": "cp",
+      "aspNetRoute": "/cp/debug-console",
+      "legacyPhpAuthority": "cp/content/system/debug (dmY_Hi.php allowlist metadata only)",
+      "authRequired": "admin-cp",
+      "requiredEnvelopeFields": [
+        "ok",
+        "surface",
+        "summary",
+        "files",
+        "count",
+        "source",
+        "message",
+        "session",
+        "note"
+      ],
+      "requiredSummaryOrItemFields": [
+        "fileCount",
+        "tmpRootPresent",
+        "allowlistOnly",
+        "totalBytes",
+        "source",
+        "message"
+      ],
+      "requiredItemFields": [
+        "basename",
+        "sizeBytes",
+        "lastModifiedUnix",
+        "allowlisted"
+      ],
+      "functionsCovered": [
+        "Debug console file metadata KPIs + allowlisted files[]",
+        "No LFI / no file contents in digest",
+        "PHP Debug console remains authoritative"
       ],
       "presentationChrome": "cp/templates/bootstrap_admin/desktop.php",
       "parityStatus": "contract-locked-awaiting-dual-sample"
