@@ -39,43 +39,41 @@ ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
 # On mega-conf this is a no-op (prints NOTE); do not create a duplicate vhost.
 
 # REQUIRED — redeploy ASP.NET binary BEFORE classic-entry probe.
-# Nginx install alone leaves the OLD binary that still 302s /cp → /cp/login
-# and shows “Sign-in temporarily unavailable” with NO credential fields.
+# Nginx install alone leaves the OLD binary (still shows CONTROL / Admin users / ERP banners).
+# PR #869+#870 are on main — publish main, not a stale cursor/* branch.
 #
-# HARD RESET both checkouts (deploy fails with RZ1006 if either tree is pre-#852):
-#   /opt/ecomae-aspnet-source  AND/OR  /root/ecomae
-# Broken one-liner (DO NOT keep): if (!_isAdmin) { return; // guest browse … }
-# Fixed tip must include ErpAgingApp multi-line guest return (merged in #852).
-# Until #854 merges (catalog tests + CP login CTA + /cp AmbiguousMatch fix), use the PR branch:
-export ECOMAE_BRANCH=cursor/aspnet-primary-catalog-tests-7b3b
+# FASTEST for CP/ERP chrome (#869):
+#   bash scripts/cloudpanel_publish_cp_erp_chrome_now.sh
+#
+# Or hard-reset both checkouts to main then emergency publish:
+export ECOMAE_BRANCH=main
 for d in /opt/ecomae-aspnet-source /root/ecomae; do
   if [[ -d "$d/.git" ]]; then
     git -C "$d" fetch origin "$ECOMAE_BRANCH"
     git -C "$d" checkout -f "$ECOMAE_BRANCH"
     git -C "$d" reset --hard "origin/$ECOMAE_BRANCH"
     git -C "$d" rev-parse --short HEAD
-    # expect tip with "Fix CP login" + no MapGet shell aliases for /cp|/erp|/bos
   fi
 done
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-# Prove brace fix is present before build:
-grep -A3 'if (!_isAdmin)' aspnet/src/EcomAE.Platform/Components/Pages/ErpAgingApp.razor | head -n 5
-# must NOT be a single line with `{ return; // guest browse`
-bash scripts/cloudpanel_find_and_redeploy.sh
+# Source must include #869 markers before publish:
+grep -n 'bindCpTopNav\|<span>Control</span>' aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor | head
+grep -n 'Orders today' aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor | head
+grep -n 'ns-dash\|nsChartAr' aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor | head
+ECOMAE_EMERGENCY_PUBLISH=1 bash scripts/cloudpanel_find_and_redeploy.sh
 systemctl restart ecomae-platform.service
 curl -sS http://127.0.0.1:5100/health || true
-# Prove new chrome is loaded (must print Garage Manager):
-curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/storefront/app | grep -o 'Garage Manager' | head -n1
 
-# CP/ERP/BOS guest browse (no login) — must NOT 302 to /cp/login and must NOT 500 AmbiguousMatch:
+# Prove #869 chrome is loaded (NOT old CONTROL / Admin users / epc-erp-banner):
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp \
+  | grep -oE 'bindCpTopNav|<span>Control</span>|Orders today|>CONTROL<|Admin users' | sort -u
+# expect: bindCpTopNav + Control + Orders today — NOT CONTROL / Admin users
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/erp \
+  | grep -oE 'bindErpTopNav|ns-dash|nsChartAr|chart\.js@4\.4\.1|epc-erp-banner' | sort -u
+# expect: bindErpTopNav + ns-dash + nsChartAr + chart.js — NOT epc-erp-banner
 curl -sS -o /dev/null -w '%{http_code}\n' -A 'Mozilla/5.0' http://127.0.0.1:5100/cp
-# expect 200 (not 302 / not 500)
-curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp | grep -oE 'CONTROL|Command centre' | head -n1
-curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp/login | grep -oE 'Enter CP \(no login\)|Enter your E-mail|features--card' | head
-# expect: Enter CP (no login) + email field + features--card
-
-# After redeploy, open https://www.epartscart.com/cp — shell loads without credentials.
-# If you land on /cp/login, click “Enter CP (no login)”.
+# expect 200
+# Then hard-refresh browser: https://www.ecomae.com/cp  and  /erp
 
 # REQUIRED for same PHP credentials on /cp/login /erp/login /bos/login:
 # Sync PHP secret_succession into ASP.NET (never prints the secret):
