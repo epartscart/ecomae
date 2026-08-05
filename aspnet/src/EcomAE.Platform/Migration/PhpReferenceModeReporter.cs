@@ -65,10 +65,10 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
             ComparePairs: pairs,
             OperatorSteps:
             [
-                "Serve live product traffic from ASP.NET only after dual-sample + exact-route shadows + human RELEASE_OWNER_APPROVAL.md.",
+                "Human RELEASE_OWNER_APPROVAL.md is present — execute exact-route cutover: ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh",
                 "Keep the PHP project/docroot installed as a reference host (or read-only clone) so previous screens/results remain visible.",
                 "Use /migration/compare and /migration/php-reference-mode to open PHP vs ASP.NET side-by-side and record gaps.",
-                "Run dual-sample compare_* scripts against ECOMAE_PHP_BASE_URL / configured WwwPhpBaseUrl while ASP.NET is primary.",
+                "Run dual-sample compare_* scripts against ECOMAE_PHP_BASE_URL / configured WwwPhpBaseUrl while ASP.NET serves exact-route shadows.",
                 "Do not delete PHP source until a separate decommission gate (ReadyToRemovePhp) — reference mode is not deletion.",
                 "Rollback live traffic with: bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback"
             ],
@@ -76,8 +76,8 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
             [
                 "cutoverAllowed=false (this reporter always — traffic still exact-route only)",
                 "readyForPhpRemoval=false (this reporter always — source keep)",
-                "RequirePhpFallback stays true in templates until CloudPanel exact-route promote",
-                "RELEASE_OWNER_APPROVAL.md is human-owned (marker APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable)",
+                "RequirePhpFallback stays true until dual-sample-green per exact route (templates default true)",
+                "RELEASE_OWNER_APPROVAL.md present with APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable",
                 "Named live tenants stay PHP-primary until unlocked parity shadows",
                 "Reference PHP should be read-only / non-conflicting for writes after ASP.NET is primary"
             ],

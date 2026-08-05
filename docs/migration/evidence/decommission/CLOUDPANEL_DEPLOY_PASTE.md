@@ -1,6 +1,41 @@
 # CloudPanel deploy paste (after PR merges → `main`)
 
-Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes #830–#838 stack + human `RELEASE_OWNER_APPROVAL.md`). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
+Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
+
+## 0) EXECUTE NOW (human-confirmed 2026-08-05)
+
+Release owner confirmed: promote **exact-route** ASP.NET Core on www; keep PHP project as reference.
+
+```bash
+# Pull latest main + republish ASP.NET
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_find_and_redeploy.sh)"
+
+# Exact-route cutover (surface digests + storefront/marketing closeout + presentation apps)
+# Enables StorefrontAspNetEnabled/AdminAspNetEnabled; keeps RequirePhpFallback=true
+# Refuses without ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+git fetch origin main && git checkout -f main && git reset --hard origin/main
+ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES \
+  bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh
+```
+
+If checkout path differs, find repo then run the same confirm command:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_find_and_redeploy.sh)"
+# then from the printed repo root:
+ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES \
+  bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh
+```
+
+**What this does / does not do**
+
+| Does | Does not |
+| --- | --- |
+| Installs exact-route nginx shadows (digests, storefront, marketing, presentation apps) | Broad `location /api|/cp|/erp|/bos|/storefront|/` |
+| Enables Admin/Storefront ASP.NET route flags | Set `RequirePhpFallback=false` (stays true until per-route dual-sample) |
+| Keeps PHP project/docroot for reference compares | Delete PHP source / PHP-FPM / cron |
+| Leaves live `/` as PHP epm-hub | Invent presentation/module PASS or `cutoverAllowed=true` |
 
 ## 1) One-shot find + redeploy
 
@@ -44,12 +79,12 @@ systemctl status ecomae-platform.service --no-pager
 ## 4) Confirm boards (after nginx can reach ASP.NET)
 
 ```bash
-curl -sS https://www.ecomae.com/migration/php-reference-mode | jq '{status,mode,keepPhpProjectAvailable,cutoverAllowed,readyForPhpRemoval}'
+curl -sS https://www.ecomae.com/migration/php-reference-mode | jq '{status,mode,keepPhpProjectAvailable,storefrontAspNetEnabled,adminAspNetEnabled,requirePhpFallback,cutoverAllowed,readyForPhpRemoval}'
 curl -sS https://www.ecomae.com/migration/aspnet-zero-php-path | jq '{targetEndState,status,cutoverAllowed,readyForPhpRemoval}'
 curl -sS https://www.ecomae.com/migration/php-decommission-readiness | jq '{readyToRemovePhp,blockerCount,checklistCompletePercent}'
 ```
 
-## 5) www shadow closeout (exact-route only — still not broad cutover)
+## 5) www shadow closeout only (subset of §0)
 
 ```bash
 bash scripts/cloudpanel_www_shadow_closeout_preflight.sh

@@ -180,6 +180,7 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh" \
   "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" \
   "$ROOT/scripts/cloudpanel_www_shadow_closeout_operator.sh" \
+  "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" \
   "$ROOT/scripts/compare_catalog_api_contract_floor.py" \
   "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" \
   "$ROOT/scripts/cloudpanel_capture_module_function_parity.sh" \

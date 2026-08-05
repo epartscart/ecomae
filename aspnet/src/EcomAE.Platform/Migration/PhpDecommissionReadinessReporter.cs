@@ -142,6 +142,17 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
                 "Do not enable broad /api /cp /erp /bos /storefront cutover."
             ];
         }
+        else if (smokePresent && approvalPresent)
+        {
+            nextActions =
+            [
+                "Human RELEASE_OWNER_APPROVAL.md is present (APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable).",
+                "Execute exact-route ASP.NET primary cutover: ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh",
+                "Close remaining checklist gaps: presentation recheck status=pass + module-function evidence (do not invent PASS).",
+                "Authenticated dual-samples + functional live-smoke 7/7 before RequirePhpFallback=false per route.",
+                "Do not remove PHP-FPM/cron/rewrites or PHP source until ReadyToRemovePhp is true."
+            ];
+        }
         else if (smokePresent && !approvalPresent)
         {
             nextActions =

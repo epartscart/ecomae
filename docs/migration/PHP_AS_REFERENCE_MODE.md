@@ -10,11 +10,11 @@ This is **not** PHP source deletion and does **not** invent cutover approval / l
 
 | Flag | Value |
 | --- | --- |
-| `cutoverAllowed` | `false` until dual-sample + human `RELEASE_OWNER_APPROVAL.md` |
+| `cutoverAllowed` | `false` always for digest/board evidence (exact-route only; no broad trees) |
 | `readyForPhpRemoval` | `false` (reference keep ≠ removal) |
-| `RequirePhpFallback` | `true` in templates until final gate |
-| `RELEASE_OWNER_APPROVAL.md` | Never invented by agents |
-| Architecture confirmation | `aspnet-primary-php-reference-confirmed.json` — destination intent only |
+| `RELEASE_OWNER_APPROVAL.md` | **Present** (`APPROVED_TO_REMOVE_PHP_FALLBACK` + `KeepPhpProjectAvailable`) — human-owned; execute via `cloudpanel_execute_aspnet_primary_cutover_operator.sh` |
+| `RequirePhpFallback` | `true` until dual-sample-green per exact route (templates default true) |
+| Architecture confirmation | `aspnet-primary-php-reference-confirmed.json` — destination intent + execute path |
 
 ## What “reference” means
 

@@ -7,7 +7,7 @@
   "routeJobParityPercent": 0.0,
   "routeJobShadowOrBetterPercent": 0.0,
   "liveCutoverScorecard": {
-    "asOfUtc": "2026-08-04",
+    "asOfUtc": "2026-08-05",
     "catalogExactRoutesLive": 18,
     "catalogExactRoutesWired": 18,
     "catalogExactRoutesPending": [],
@@ -20,17 +20,17 @@
     "publicChromeStillPhp": true,
     "cpErpBosDigestsStillPhp": false,
     "readyToRemovePhp": false,
-    "approvalPresent": false,
+    "approvalPresent": true,
     "notes": [
       "See /migration/php-reference-mode and docs/migration/PHP_AS_REFERENCE_MODE.md \u2014 reference keep \u2260 PHP deletion.",
       "Confirmed architecture: ASP.NET Core live primary destination; PHP project retained as reference (till keep/delete).",
       "Weighted 95%/5% meter is not percent of public routes cut over.",
       "Wired catalog API exact-routes complete (18/18).",
-      "Surface digests wired 133/133 (incl. /erp/process-flow-tasks + /erp/report-center + /erp/aging + /erp/stock-movements); live www until ASP.NET republish + shadow install.",
-      "Storefront digests wired 7; live shadows lag until www closeout (checkout often missing).",
+      "Surface digests wired 133/133; live www catch-up via ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh",
+      "Storefront digests wired 7; www closeout installs checkout + marketing exact-routes.",
       "Blazor SSR Zero-PHP console at /migration/console; human compare at /migration/compare.",
       "Digest dual-sample contract compare pairsChecked=231 failed=0 (cutoverAllowed=false).",
-      "Product chrome still interim PHP; human RELEASE_OWNER_APPROVAL.md still required for PHP traffic/fallback removal (keep PHP as reference)."
+      "Human RELEASE_OWNER_APPROVAL.md present (APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable). Execute exact-route cutover on CloudPanel; product chrome / remains PHP epm-hub."
     ],
     "targetEndState": "100%-aspnet-core-live-php-reference-kept",
     "keepPhpProjectAvailable": true
@@ -80,14 +80,16 @@
     "Wired catalog exact-routes complete (18/18)",
     "Surface digests wired 133/133 (incl. process-flow-tasks + report-center) + storefront digests wired 7",
     "Digest dual-sample contract parity attached (19/19 pass; cutoverAllowed=false)",
-    "Human RELEASE_OWNER_APPROVAL.md before PHP decommission (remaining 5% meter)",
-    "Product chrome cutover remains a separate intentional step (Blazor console is not chrome)"
+    "Human RELEASE_OWNER_APPROVAL.md present — exact-route ASP.NET primary cutover authorized (PHP reference kept)",
+    "Product chrome / remains PHP epm-hub; Blazor console is not chrome; named tenants stay PHP until same-to-same"
   ],
   "nextExecutionOrder": [
-    "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP chrome must remain).",
-    "Confirm /migration/php-decommission-readiness is 8/9 with approval missing.",
-    "Human creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after accepting chrome-still-PHP risk (do not invent).",
-    "When readyToRemovePhp=true: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh"
+    "On CloudPanel: bash -c \"$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_find_and_redeploy.sh)\"",
+    "Human-confirmed execute: ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh",
+    "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP chrome / must remain).",
+    "Authenticated dual-samples + presentation recheck status=pass + functional live-smoke 7/7 (do not invent PASS).",
+    "RELEASE_OWNER_APPROVAL.md already present; RequirePhpFallback=false only per dual-sample-green exact route.",
+    "PHP source deletion remains a separate human gate — never this cutover operator."
   ],
   "cutoverAllowed": false,
   "readyForPhpRemoval": false

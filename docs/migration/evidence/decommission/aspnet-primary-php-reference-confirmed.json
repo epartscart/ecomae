@@ -14,9 +14,11 @@
   "requirePhpFallback": true,
   "storefrontAspNetEnabled": false,
   "adminAspNetEnabled": false,
-  "note": "Human confirmed: ASP.NET Core live primary; PHP reference kept. RELEASE_OWNER_APPROVAL.md now present with APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable. cutoverAllowed stays false in digests (exact-route only; no broad trees). Not PHP source deletion.",
+  "note": "Human confirmed execute-now: ASP.NET Core exact-route primary on www via cloudpanel_execute_aspnet_primary_cutover_operator.sh; PHP reference kept. RELEASE_OWNER_APPROVAL.md present. cutoverAllowed stays false (exact-route only; no broad trees). Not PHP source deletion. Live platform.env may set Storefront/Admin AspNetEnabled=true while RequirePhpFallback=true.",
   "releaseOwnerApprovalPresent": true,
   "releaseOwnerApprovalMarker": "APPROVED_TO_REMOVE_PHP_FALLBACK",
+  "executeOperator": "scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh",
+  "executeConfirmEnv": "ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES",
   "endpoints": [
     "/migration/php-reference-mode",
     "/migration/aspnet-zero-php-path",
@@ -25,14 +27,15 @@
   "docs": [
     "docs/migration/PHP_AS_REFERENCE_MODE.md",
     "docs/migration/ASPNET_ZERO_PHP_PATH.md",
-    "docs/migration/evidence/decommission/php-reference-mode-lock.json"
+    "docs/migration/evidence/decommission/php-reference-mode-lock.json",
+    "docs/migration/evidence/decommission/CLOUDPANEL_DEPLOY_PASTE.md"
   ],
   "nextLiveGatesStillRequired": [
-    "www marketing/storefront shadow closeout (CloudPanel)",
+    "CloudPanel: ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh",
     "authenticated digest + ajax dual-sample with cookies",
-    "presentation recheck status=pass",
+    "presentation recheck status=pass (do not invent)",
     "functional live-smoke 7/7",
-    "human RELEASE_OWNER_APPROVAL.md for PHP traffic/fallback removal"
+    "RequirePhpFallback=false only per dual-sample-green exact route"
   ],
   "rollback": "bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback"
 }

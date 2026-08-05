@@ -1478,7 +1478,15 @@ check 'surface digests shadow example exists' test -f "$ROOT/deploy/aspnet/nginx
 check 'surface digests shadow is exact-route only' contains "$ROOT/deploy/aspnet/nginx-surface-digests-shadow-example.conf" 'location = /cp/dashboard-summary'
 check 'decommission evidence pack exists' test -f "$ROOT/docs/migration/evidence/decommission/README.md"
 check 'release owner approval is example only by default' test -f "$ROOT/docs/migration/evidence/decommission/RELEASE_OWNER_APPROVAL.example.md"
-check 'release owner approval marker not committed live' bash -c '! test -f "$ROOT/docs/migration/evidence/decommission/RELEASE_OWNER_APPROVAL.md"'
+check 'release owner approval file committed live' test -f "$ROOT/docs/migration/evidence/decommission/RELEASE_OWNER_APPROVAL.md"
+check 'ASP.NET primary cutover execute operator exists' test -x "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh"
+check 'ASP.NET primary cutover execute refuses without confirm' contains "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" 'ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER'
+check 'ASP.NET primary cutover execute requires approval marker' contains "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" 'APPROVED_TO_REMOVE_PHP_FALLBACK'
+check 'ASP.NET primary cutover execute keeps PHP reference' contains "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" 'KeepPhpProjectAvailable'
+check 'ASP.NET primary cutover execute keeps RequirePhpFallback true' contains "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" 'MigrationRouteCutover__RequirePhpFallback'
+check 'ASP.NET primary cutover execute installs surface digests' contains "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" 'cloudpanel_install_surface_digest_shadows.sh'
+check 'ASP.NET primary cutover execute runs www closeout' contains "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" 'cloudpanel_www_shadow_closeout_operator.sh'
+check 'deploy packs ASP.NET primary cutover execute operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_execute_aspnet_primary_cutover_operator.sh'
 check 'parity sample template exists' test -f "$ROOT/docs/migration/parity/templates/exact-route-parity-sample.template.json"
 check 'EF catalog scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ICatalogScaffoldRepository.cs"
 check 'zero PHP path-to-100 documents remaining batches' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Path to 100%'

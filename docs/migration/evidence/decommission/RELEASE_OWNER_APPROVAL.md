@@ -29,9 +29,22 @@ APPROVED_TO_REMOVE_PHP_FALLBACK
 - Command: `bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback`
 - PHP project/docroot remains installed for reference compares
 
+## Execute confirmation (same release owner)
+
+Date (UTC): 2026-08-05  
+Instruction: **do it now** — run exact-route ASP.NET primary cutover on CloudPanel.
+
+```bash
+ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES \
+  bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh
+```
+
+See `CLOUDPANEL_DEPLOY_PASTE.md` §0. This authorizes exact-route promotion + Admin/Storefront ASP.NET flags with `RequirePhpFallback=true` and `KeepPhpProjectAvailable=true`. It does **not** authorize PHP source deletion or broad nginx trees.
+
 ## Preconditions still required on CloudPanel before disabling PHP fallback per route
 
 1. Staging smoke under `staging-smoke/` (price/catalog/surface digests)
 2. Parity samples under `parity-samples/`
 3. Exact-route nginx shadows validated (not broad trees)
 4. Rollback tested with `--keep-php-fallback`
+5. Dual-sample green for that exact route before `RequirePhpFallback=false`

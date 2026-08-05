@@ -19,7 +19,7 @@ public sealed class CutoverValidationReporter : ICutoverValidationReporter
                 "Keep PHP authoritative on product chrome until route flags are approved per surface.",
                 "Require shadow-read evidence before disabling PHP fallback for any route prefix.",
                 "Preserve uppercase CP/ERP/BOS aliases and BOS handoff behavior for operator rollback.",
-                "Keep StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final gate.",
+                "After human approval: exact-route CloudPanel promote may set StorefrontAspNetEnabled/AdminAspNetEnabled=true while RequirePhpFallback=true.",
                 "Record rollback owner, timestamp, tenant scope, and expected runtime before each traffic move.",
                 "Rollback via bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback.",
                 "Reference mode ≠ PHP source deletion — keep docroot until a separate decommission approval."
@@ -30,8 +30,8 @@ public sealed class CutoverValidationReporter : ICutoverValidationReporter
                 "Production-like data replay has matching payloads and latency budget evidence.",
                 "Access-denial and audit-log behavior matches PHP for privileged CP/ERP/BOS workflows.",
                 "Only approved location = exact-route shadows are enabled (never broad /api /cp /erp /bos /storefront).",
-                "A manual release owner creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK.",
-                "After ASP.NET is primary, PHP reference host remains reachable for dual-sample / human compare (read-only preferred)."
+                "Human RELEASE_OWNER_APPROVAL.md present (APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable); execute via cloudpanel_execute_aspnet_primary_cutover_operator.sh.",
+                "After ASP.NET exact-route primary, PHP reference host remains reachable for dual-sample / human compare (read-only preferred)."
             ]);
     }
 }
