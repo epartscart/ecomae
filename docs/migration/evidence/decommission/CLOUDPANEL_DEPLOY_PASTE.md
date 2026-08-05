@@ -6,6 +6,20 @@ Paste on the **production CloudPanel server** as root. Deploys latest `main` (in
 
 Release owner confirmed: **epartscart.com** and **ecomae.com** shared links must keep working as `/cp` `/erp` `/bos` (no change to tenant-facing URLs). PHP reference is **separate** under `/php-reference/*`.
 
+### 0a) Rollback bad wildcard-ecomae classic-entry (if previously installed)
+
+`wildcard-ecomae` is usually `server_name *.ecomae.com` — **not** epartscart. If classic-entry was inserted there, restore the backup first:
+
+```bash
+# Use the newest matching backup if the timestamp differs:
+ls -1t /root/wildcard-ecomae.bak.classic-entry-aspnet.* 2>/dev/null | head
+cp -a /root/wildcard-ecomae.bak.classic-entry-aspnet.20260805071520 \
+  /etc/nginx/sites-enabled/wildcard-ecomae
+nginx -t && systemctl reload nginx
+```
+
+### 0b) Pull main, ensure epartscart vhost, install both hosts
+
 ```bash
 # Pull latest main + republish ASP.NET
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_find_and_redeploy.sh)"
@@ -13,14 +27,16 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/s
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
 git fetch origin main && git checkout -f main && git reset --hard origin/main
 
+# Discover which conf actually has server_name epartscart.com (authoritative).
+# Do NOT set ECOMAE_NGINX_SITE_CONF_TENANT=wildcard-ecomae when that file is *.ecomae.com only.
+bash scripts/cloudpanel_discover_epartscart_nginx_conf.sh
+
+# If missing, create dedicated /etc/nginx/sites-enabled/www.epartscart.com.conf
+# (clones PHP/ssl skeleton from www.ecomae.com.conf).
+ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
+  bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh
+
 # www.ecomae.com + epartscart (URL-preserved proxies). Reloads nginx per host.
-# On this CloudPanel there is often NO www.epartscart.com.conf — epartscart is on:
-#   /etc/nginx/sites-enabled/wildcard-ecomae
-# Installer falls back to that automatically (host-gated to epartscart.com only).
-# Override if needed:
-#   export ECOMAE_NGINX_SITE_CONF_TENANT=/etc/nginx/sites-enabled/wildcard-ecomae
-#   ls /etc/nginx/sites-enabled
-#   grep -n server_name /etc/nginx/sites-enabled/wildcard-ecomae | head
 ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts

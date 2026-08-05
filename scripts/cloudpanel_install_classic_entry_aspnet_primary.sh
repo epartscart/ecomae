@@ -52,6 +52,76 @@ resolve_site_conf() {
   return 1
 }
 
+conf_server_name_has_epartscart() {
+  local conf="$1"
+  [[ -f "$conf" ]] || return 1
+  # Accept only real server_name lines — not host-gate ifs / comments.
+  grep -Ei '^[[:space:]]*server_name[[:space:]].*epartscart\.com' \
+    "$conf" >/dev/null 2>&1
+}
+
+resolve_epartscart_site_conf() {
+  # Prefer explicit override only when it actually serves epartscart.com.
+  local override="${ECOMAE_NGINX_SITE_CONF_TENANT:-}"
+  if [[ -n "$override" && -f "$override" ]]; then
+    if conf_server_name_has_epartscart "$override"; then
+      printf '%s\n' "$override"
+      return 0
+    fi
+    printf 'ERROR: ECOMAE_NGINX_SITE_CONF_TENANT=%s has no server_name for epartscart.com\n' "$override" >&2
+    grep -nE 'server_name' "$override" 2>/dev/null | head -n 20 >&2 || true
+    printf 'wildcard-ecomae with server_name *.ecomae.com is NOT epartscart — refuse.\n' >&2
+    return 1
+  fi
+
+  local discover_py="$ROOT/scripts/lib/ecomae_discover_epartscart_nginx_conf.py"
+  if [[ -f "$discover_py" ]]; then
+    local found
+    found="$(python3 "$discover_py" --print-path 2>/dev/null || true)"
+    if [[ -n "${found:-}" && -f "$found" ]]; then
+      printf '%s\n' "$found"
+      return 0
+    fi
+  fi
+
+  local candidate
+  for candidate in \
+    /etc/nginx/sites-enabled/www.epartscart.com.conf \
+    /etc/nginx/sites-enabled/epartscart.com.conf \
+    /etc/nginx/sites-enabled/eparts-cart.com.conf \
+    /etc/nginx/sites-available/www.epartscart.com.conf \
+    /etc/nginx/sites-available/epartscart.com.conf
+  do
+    if [[ -f "$candidate" ]] && conf_server_name_has_epartscart "$candidate"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  # Last resort: scan sites-enabled for server_name (never pick bare wildcard-ecomae).
+  if [[ -d /etc/nginx/sites-enabled ]]; then
+    local f
+    for f in /etc/nginx/sites-enabled/*; do
+      [[ -f "$f" ]] || continue
+      case "$(basename "$f")" in
+        wildcard-ecomae|wildcard-ecomae.conf) continue ;;
+      esac
+      if conf_server_name_has_epartscart "$f"; then
+        printf '%s\n' "$f"
+        return 0
+      fi
+    done
+    # Only accept wildcard-ecomae if server_name truly includes epartscart.
+    for f in /etc/nginx/sites-enabled/wildcard-ecomae /etc/nginx/sites-enabled/wildcard-ecomae.conf; do
+      if [[ -f "$f" ]] && conf_server_name_has_epartscart "$f"; then
+        printf '%s\n' "$f"
+        return 0
+      fi
+    done
+  fi
+  return 1
+}
+
 install_one() {
   local conf="$1"
   local example="$2"
@@ -66,7 +136,21 @@ install_one() {
     return 1
   fi
 
-  ecomae_assert_nginx_shadow_target_allowed "$conf" exact-route
+  # Explicit checks: bash disables set -e inside `if install_one; then` bodies.
+  if ! ecomae_assert_nginx_shadow_target_allowed "$conf" exact-route; then
+    printf 'ERROR: safety refused %s (%s) — aborting this host (no write)\n' "$conf" "$label" >&2
+    return 1
+  fi
+
+  if [[ "$label" == *epartscart* ]]; then
+    if ! conf_server_name_has_epartscart "$conf"; then
+      printf 'ERROR: refusing classic-entry on %s — server_name does not include epartscart.com\n' "$conf" >&2
+      grep -nE 'server_name' "$conf" 2>/dev/null | head -n 20 >&2 || true
+      printf 'Run: bash scripts/cloudpanel_discover_epartscart_nginx_conf.sh\n' >&2
+      printf 'Then: ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh\n' >&2
+      return 1
+    fi
+  fi
 
   local bak="/root/$(basename "$conf").bak.classic-entry-aspnet.$(date -u +%Y%m%d%H%M%S)"
   cp -a "$conf" "$bak"
@@ -171,27 +255,15 @@ WWW_CONF="$(resolve_site_conf ecomae \
   /etc/nginx/sites-available/www.ecomae.com.conf \
   || true)"
 
-# CloudPanel often has NO www.epartscart.com.conf — epartscart is on wildcard-ecomae.
-TENANT_CONF="$(resolve_site_conf epartscart \
-  "${ECOMAE_NGINX_SITE_CONF_TENANT:-}" \
-  /etc/nginx/sites-enabled/www.epartscart.com.conf \
-  /etc/nginx/sites-enabled/epartscart.com.conf \
-  /etc/nginx/sites-enabled/eparts-cart.com.conf \
-  /etc/nginx/sites-enabled/wildcard-ecomae \
-  /etc/nginx/sites-enabled/wildcard-ecomae.conf \
-  /etc/nginx/sites-available/www.epartscart.com.conf \
-  /etc/nginx/sites-available/epartscart.com.conf \
-  /etc/nginx/sites-available/wildcard-ecomae \
-  || true)"
-if [[ -z "${TENANT_CONF:-}" && -f /etc/nginx/sites-enabled/wildcard-ecomae ]]; then
-  TENANT_CONF=/etc/nginx/sites-enabled/wildcard-ecomae
-fi
+# Resolve by server_name containing epartscart.com — NEVER assume wildcard-ecomae
+# (that file is usually server_name *.ecomae.com only and never sees epartscart Host).
+TENANT_CONF="$(resolve_epartscart_site_conf || true)"
 if [[ -n "${TENANT_CONF:-}" ]]; then
-  printf 'Resolved tenant/wildcard conf: %s\n' "$TENANT_CONF"
-  if [[ "$(basename "$TENANT_CONF")" == wildcard-ecomae* ]]; then
-    printf 'NOTE: epartscart is served via wildcard vhost; classic-entry is host-gated to (www.)epartscart.com\n'
-    grep -nE 'server_name' "$TENANT_CONF" 2>/dev/null | head -n 20 || true
-  fi
+  printf 'Resolved epartscart conf: %s\n' "$TENANT_CONF"
+  grep -nE 'server_name' "$TENANT_CONF" 2>/dev/null | head -n 10 || true
+else
+  printf 'NOTE: no nginx conf has server_name for epartscart.com yet.\n' >&2
+  printf 'Create one: ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh\n' >&2
 fi
 
 WWW_OK=0
@@ -211,8 +283,11 @@ if [[ "$DO_ALL" -eq 1 ]]; then
     if install_one "$WWW_CONF" "$WWW_EXAMPLE" "www.ecomae.com"; then WWW_OK=1; else FAIL=1; fi
   fi
   if [[ -z "${TENANT_CONF:-}" ]]; then
-    printf 'ERROR: could not find epartscart nginx site conf.\n' >&2
-    printf 'Set ECOMAE_NGINX_SITE_CONF_TENANT=/etc/nginx/sites-enabled/<actual>.conf\n' >&2
+    printf 'ERROR: could not find epartscart nginx site conf (by server_name).\n' >&2
+    printf 'Do NOT point ECOMAE_NGINX_SITE_CONF_TENANT at wildcard-ecomae unless server_name includes epartscart.com.\n' >&2
+    printf 'Run discover + ensure, then re-run --all-hosts:\n' >&2
+    printf '  bash scripts/cloudpanel_discover_epartscart_nginx_conf.sh\n' >&2
+    printf '  ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh\n' >&2
     printf 'Available sites-enabled:\n' >&2
     ls -1 /etc/nginx/sites-enabled 2>/dev/null >&2 || true
     FAIL=1
