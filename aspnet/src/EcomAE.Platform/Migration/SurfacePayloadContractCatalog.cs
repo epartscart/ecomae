@@ -695,9 +695,9 @@ public static class SurfacePayloadContractCatalog
             "bos/index.php + bos/epc_bos_shell.css"),
 
         Contract("storefront", "/storefront/account-summary", "content/users/ account", "customer",
-            ["ok", "surface", "summary", "session", "note"],
+            ["ok", "surface", "summary", "recentOrders", "count", "source", "message", "session", "note"],
             ["userId", "orders", "sessions", "garageVehicles", "source", "message"],
-            ["customer account KPI read"],
+            ["customer account KPIs + recent orders"],
             "templates/modex/desktop.php"),
         Contract("storefront", "/storefront/orders", "shop_orders customer", "customer",
             ["ok", "surface", "user_id", "orders", "count", "source", "message", "session", "note"],

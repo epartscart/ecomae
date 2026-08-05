@@ -67,6 +67,13 @@ public sealed record StorefrontAccountSummary(
     string Source,
     string Message);
 
+public sealed record StorefrontAccountDigestResult(
+    StorefrontAccountSummary Summary,
+    IReadOnlyList<StorefrontOrderDigest> RecentOrders,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record PortalTenantDigest(
     string SiteKey,
     string Hostname,

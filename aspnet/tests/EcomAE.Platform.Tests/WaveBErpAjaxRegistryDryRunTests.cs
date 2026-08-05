@@ -1,4 +1,6 @@
+using System.Reflection;
 using EcomAE.Platform.Migration;
+using EcomAE.Platform.Routing;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -22,6 +24,29 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         Assert.True(report.PhpAuthoritative);
         Assert.Equal(321, report.DedicatedDryRuns);
         Assert.Equal(0, report.RegistryDryRuns);
+    }
+
+    [Fact]
+    public void DedicatedAspNetRouteHintsResolveInEcomAeRoutes()
+    {
+        var known = typeof(EcomAeRoutes)
+            .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+            .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
+            .Select(f => (string)f.GetRawConstantValue()!)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var missing = _catalog.All
+            .Where(e => e.Coverage == "dedicated")
+            .Select(e => e.AspNetRouteHint)
+            .Where(hint => !known.Contains(hint))
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(h => h, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.True(missing.Count == 0, "Missing EcomAeRoutes for dedicated hints: " + string.Join(", ", missing));
+        Assert.Contains("/erp/suppliers/create", known);
+        Assert.Contains("/erp/sales-orders/delete", known);
+        Assert.Contains("/erp/wms/receive", known);
     }
 
     [Fact]

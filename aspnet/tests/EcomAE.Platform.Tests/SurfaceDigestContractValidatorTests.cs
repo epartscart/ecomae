@@ -49,14 +49,7 @@ public sealed class SurfaceDigestContractValidatorTests
                 session,
                 note = "contract validation"
             },
-            ["/storefront/account-summary"] = new
-            {
-                ok = true,
-                surface = "storefront",
-                summary = await reporter.BuildStorefrontAccountAsync(9),
-                session = new { kind = "Customer", user_id = 9, email = "c@example.com", group_ids = Array.Empty<int>(), capabilities = new[] { "storefront_account" }, permissions = Array.Empty<string>() },
-                note = "contract validation"
-            },
+            ["/storefront/account-summary"] = await BuildStorefrontAccountEnvelopeAsync(reporter),
             ["/erp/inventory-stock"] = new
             {
                 ok = true,
@@ -475,6 +468,23 @@ public sealed class SurfaceDigestContractValidatorTests
             var failures = SurfaceDigestContractValidator.Validate(contract, json);
             Assert.True(failures.Count == 0, $"{route}: {string.Join("; ", failures)}");
         }
+    }
+
+    private static async Task<object> BuildStorefrontAccountEnvelopeAsync(SurfaceDashboardSummaryReporter reporter)
+    {
+        var result = await reporter.BuildStorefrontAccountAsync(9);
+        return new
+        {
+            ok = true,
+            surface = "storefront",
+            summary = result.Summary,
+            recentOrders = result.RecentOrders,
+            count = result.Count,
+            source = result.Source,
+            message = result.Message,
+            session = new { kind = "Customer", user_id = 9, email = "c@example.com", group_ids = Array.Empty<int>(), capabilities = new[] { "storefront_account" }, permissions = Array.Empty<string>() },
+            note = "contract validation"
+        };
     }
 
     private static object Envelope(string surface, string listKey, object listResult, object session)

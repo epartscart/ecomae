@@ -4,9 +4,10 @@
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
   "stem": "storefront-account-summary",
-  "requireNonemptyMigrationSentinel": false,
-  "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
-  "note": "Locks storefront-account-summary digest field floors for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
+  "collectionKey": "recentOrders",
+  "requireNonemptyMigrationSentinel": true,
+  "source": "scripts/compare_digest_dual_samples.py + StorefrontAccountDigestResult",
+  "note": "Locks storefront-account-summary KPI summary plus recentOrders[] item-field sentinel for PHP\u2194ASP.NET dual-sample. Interactive writes remain PHP. cutoverAllowed=false.",
   "requiredSummaryFields": [
     "userId",
     "orders",
@@ -14,5 +15,14 @@
     "garageVehicles",
     "source",
     "message"
-  ]
+  ],
+  "requiredItemFields": [
+    "id",
+    "timeUnix",
+    "paid",
+    "successfullyCreated",
+    "status"
+  ],
+  "phpAuthoritativePath": "https://epartscart.com/users/",
+  "tenant": "epartscart.com"
 }

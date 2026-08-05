@@ -74,14 +74,18 @@ public sealed class StorefrontModule : ISurfaceModule
                 return Unauthorized("Customer session required for storefront account summary.");
             }
 
-            var summary = await dashboards.BuildStorefrontAccountAsync(session.UserId, cancellationToken);
+            var result = await dashboards.BuildStorefrontAccountAsync(session.UserId, 10, cancellationToken);
             return Results.Ok(new
             {
                 ok = true,
                 surface = "storefront",
-                summary,
+                summary = result.Summary,
+                recentOrders = result.RecentOrders,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only migration summary. PHP customer account remains authoritative."
+                note = "Read-only account KPIs + recent orders. PHP customer account remains authoritative."
             });
         });
 

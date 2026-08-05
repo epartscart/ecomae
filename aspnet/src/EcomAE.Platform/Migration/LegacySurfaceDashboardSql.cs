@@ -121,7 +121,7 @@ public static class LegacySurfaceDashboardSql
         """;
 
     public const string CountErpCcInventoryItems = """
-        SELECT COUNT(*) FROM `epc_erp_items` WHERE `active` = 1
+        SELECT COUNT(*) FROM `epc_erp_inv_items` WHERE `active` = 1
         """;
 
     public const string SelectErpCcPeriodStatus = """
@@ -150,8 +150,9 @@ public static class LegacySurfaceDashboardSql
         """;
 
     public const string CountErpCcLowStockItems = """
-        SELECT COUNT(*) FROM `epc_erp_items`
-        WHERE `active` = 1 AND `qty_on_hand` > 0 AND `qty_on_hand` <= `reorder_level`
+        SELECT COUNT(*) FROM `epc_erp_inv_stock` s
+        INNER JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id` AND i.`active` = 1
+        WHERE i.`reorder_level` > 0 AND s.`qty_on_hand` > 0 AND s.`qty_on_hand` <= i.`reorder_level`
         """;
 
     public const string CountErpCcPendingEinvoices = """
