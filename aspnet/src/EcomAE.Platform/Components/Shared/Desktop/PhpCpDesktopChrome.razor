@@ -1,8 +1,9 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Presentation
 @*
-  Mirrors cp/templates/bootstrap_admin/desktop.php chrome classes (topnav-only hybrid).
-  Product module bodies render via ChildContent / workspace frame.
+  Mirrors cp/templates/bootstrap_admin/desktop.php + epc_cp_top_nav.php.
+  Topnav typography/panels come from epc_cp_professional.css (px sizes).
+  Click-to-toggle JS mirrors cp/js/epc_cp_topnav.js (no hover-open).
 *@
 
 <div class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root">
@@ -35,24 +36,38 @@
 
     <nav class="epc-cp-topnav" id="epc_cp_topnav" aria-label="Control Panel top navigation">
         <div class="epc-cp-topnav-inner">
-            <a class="epc-cp-topnav-brand" href="/cp/app">CONTROL</a>
+            <a class="epc-cp-topnav-brand" href="/cp/app">
+                <i class="fa fa-th-large" aria-hidden="true"></i><span>Control</span>
+            </a>
             <ul class="epc-cp-topnav-list" role="menubar">
                 @foreach (var group in LegacyDesktopChromeCatalog.ControlPanelTopnav())
                 {
                     var columns = group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>();
+                    var shortLabel = string.IsNullOrWhiteSpace(group.ShortLabel) ? group.Label : group.ShortLabel;
                     <li class="epc-cp-topnav-item" data-group="@group.Id" role="none">
-                        <button type="button" class="epc-cp-topnav-btn" role="menuitem" aria-haspopup="true">
+                        <button type="button"
+                                class="epc-cp-topnav-btn"
+                                role="menuitem"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                                data-topnav-toggle="@group.Id">
                             @if (!string.IsNullOrWhiteSpace(group.Icon))
                             {
                                 <i class="fa @group.Icon" aria-hidden="true"></i>
                             }
-                            <span>@group.Label</span>
-                            <i class="fa fa-angle-down" aria-hidden="true" style="margin-left:.25rem;opacity:.65"></i>
+                            <span class="epc-cp-topnav-label" data-full="@group.Label" data-short="@shortLabel">@shortLabel</span>
+                            <i class="fa fa-angle-down epc-cp-topnav-caret" aria-hidden="true"></i>
                         </button>
-                        <div class="epc-cp-topnav-panel" data-topnav-panel="@group.Id">
+                        <div class="epc-cp-topnav-panel" role="menu" hidden data-topnav-panel="@group.Id">
                             <div class="epc-cp-topnav-panel-hd">
-                                <span>@group.Label</span>
-                                <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(group.HubHref ?? group.Links[0].Href)" style="margin-left:auto;font-size:.72rem;color:#dc2626;font-weight:700">
+                                <div class="epc-cp-topnav-panel-title">
+                                    @if (!string.IsNullOrWhiteSpace(group.Icon))
+                                    {
+                                        <i class="fa @group.Icon"></i>
+                                    }
+                                    @group.Label
+                                </div>
+                                <a class="epc-cp-topnav-panel-hub" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(group.HubHref ?? group.Links[0].Href)">
                                     Open first <i class="fa fa-arrow-right"></i>
                                 </a>
                             </div>
@@ -62,13 +77,6 @@
                                     @foreach (var col in columns)
                                     {
                                         <div class="epc-cp-topnav-col">
-                                            <div class="epc-cp-topnav-col-hd">
-                                                @if (!string.IsNullOrWhiteSpace(col.Icon))
-                                                {
-                                                    <i class="fa @col.Icon"></i>
-                                                }
-                                                @col.Label
-                                            </div>
                                             <ul class="epc-cp-topnav-links">
                                                 @foreach (var link in col.Tabs)
                                                 {
@@ -120,53 +128,145 @@
     </div>
 </div>
 
+@* Shell layout only — topnav fonts/panels come from epc_cp_professional.css (13/12/12.5px). *@
 <style>
-    /* Tokens match .epc-cp--blue-theme in epc_cp_professional.css */
     .epc-cp-shell {
         --epc-cp-primary:#2563eb; --epc-cp-primary-dark:#1d4ed8; --epc-blue-900:#0c4a6e; --epc-blue-700:#0369a1; --epc-blue-500:#0ea5e9;
         --cp-ink:#0f172a; --cp-line:#e2e8f0; --cp-bg:#f0f9ff;
         background:var(--cp-bg); color:var(--cp-ink); min-height:100vh; font-family: @(LegacyPhpFontAssets.StackFor("cp"));
+        font-size:14px;
     }
     .epc-cp-shell a { color:inherit; text-decoration:none; }
     .epc-cp-header-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; padding:.55rem 1rem; background:rgba(255,255,255,.98); border-bottom:1px solid var(--cp-line); }
     .epc-cp-header-logo img { height:34px; }
     .epc-cp-topbar-ctas { display:flex; gap:.45rem; flex-wrap:wrap; }
     .epc-cp-topbar-cta {
-        display:inline-flex; align-items:center; padding:.4rem .75rem; border-radius:10px;
+        display:inline-flex; align-items:center; padding:.4rem .85rem; border-radius:10px;
         background:linear-gradient(135deg,#b91c1c 0%,#dc2626 55%,#ef4444 100%);
         border:1px solid #991b1b; box-shadow:0 4px 12px rgba(185,28,28,.28);
-        color:#fff !important; font-weight:700; font-size:.8rem;
+        color:#fff !important; font-weight:700; font-size:13px;
     }
-    .epc-cp-header-actions { display:flex; gap:.75rem; align-items:center; font-size:.85rem; font-weight:600; }
+    .epc-cp-header-actions { display:flex; gap:.75rem; align-items:center; font-size:13px; font-weight:600; }
     .epc-cp-header-login { color:var(--epc-cp-primary) !important; }
-    /* PHP topnav-only: white bar + red underline (epc_cp_professional.css) */
-    .epc-cp-topnav { background:#fff !important; color:#7f1d1d; border-bottom:2px solid #dc2626; box-shadow:0 2px 10px rgba(220,38,38,.1); }
-    .epc-cp-topnav-inner { display:flex; gap:2px; align-items:stretch; padding:0 10px 0 12px; overflow:auto; min-height:44px; }
-    .epc-cp-topnav-brand { display:flex; align-items:center; padding:0 12px 0 4px; margin-right:4px; font-weight:800; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; color:#dc2626 !important; border-right:1px solid #fecaca; }
-    .epc-cp-topnav-brand:hover { color:#991b1b !important; background:#fef2f2; }
-    .epc-cp-topnav-list { list-style:none; margin:0; padding:0; display:flex; }
-    .epc-cp-topnav-item { position:relative; }
-    .epc-cp-topnav-btn { appearance:none; border:0; background:transparent; color:#7f1d1d; font:inherit; font-size:.78rem; font-weight:700; padding:.7rem .7rem; cursor:pointer; white-space:nowrap; }
-    .epc-cp-topnav-item:hover .epc-cp-topnav-btn, .epc-cp-topnav-item:focus-within .epc-cp-topnav-btn { background:#fef2f2; color:#991b1b; }
-    .epc-cp-topnav-panel { display:none; position:absolute; left:0; top:100%; z-index:40; min-width:320px; max-width:min(920px,94vw); background:#fff; color:#0f172a; border:1px solid #fecaca; border-radius:0 0 .45rem .45rem; box-shadow:0 12px 30px rgba(127,29,29,.12); }
-    .epc-cp-topnav-item:hover .epc-cp-topnav-panel, .epc-cp-topnav-item:focus-within .epc-cp-topnav-panel { display:block; }
-    .epc-cp-topnav-panel-hd { display:flex; align-items:center; gap:.75rem; padding:.55rem .75rem; font-size:.78rem; font-weight:700; background:#fef2f2; border-bottom:1px solid #fecaca; color:#991b1b; }
-    .epc-cp-topnav-cols { display:flex; gap:0; align-items:stretch; }
-    .epc-cp-topnav-col { min-width:180px; max-width:240px; border-right:1px solid #fecaca; }
-    .epc-cp-topnav-col:last-child { border-right:0; }
-    .epc-cp-topnav-col-hd { padding:.45rem .75rem; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:#b91c1c; background:#fff7f7; border-bottom:1px solid #fecaca; }
-    .epc-cp-topnav-links { list-style:none; margin:0; padding:.35rem 0; max-height:360px; overflow:auto; }
-    .epc-cp-topnav-links li { display:flex; align-items:center; gap:.4rem; padding:.35rem .75rem; font-size:.8rem; }
-    .epc-cp-topnav-links a { flex:1; font-weight:600; display:flex; align-items:center; gap:.4rem; }
-    .epc-cp-topnav-links a i { width:1rem; text-align:center; color:#94a3b8; }
-    .epc-cp-topnav-links a:hover { color:#dc2626; text-decoration:underline; }
-    .epc-cp-main-pane { padding:1rem 1.25rem 2rem; }
-    /* Match PHP desktop fluid content width (not a narrow card column). */
+    .epc-cp-main-pane { padding:1rem 1.25rem 2rem; font-size:14px; }
+    .epc-cp-main-pane h1 { font-size:22px; }
+    .epc-cp-main-pane h2 { font-size:18px; }
+    .epc-cp-main-pane h3 { font-size:16px; }
+    .epc-cp-main-pane h4 { font-size:14px; }
     .epc-cp-content-inner { width:min(1480px, calc(100% - 0.5rem)); margin:0 auto; }
     .epc-cp-shell #header, .epc-cp-shell .epc-cp-topnav { width:100%; }
     .epc-cp-shell .epc-cp-header-bar, .epc-cp-shell .epc-cp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
-    .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:.8rem; background:#fff; }
+    .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
 </style>
+
+<script id="epc-cp-topnav-inline">
+(function () {
+    'use strict';
+    function bindCpTopNav() {
+        var root = document.getElementById('epc_cp_topnav');
+        if (!root || root._epcCpTopnavBound) { return; }
+        root._epcCpTopnavBound = true;
+        var items = root.querySelectorAll('.epc-cp-topnav-item');
+        var hoverTimer = null;
+
+        function closeAll(except) {
+            items.forEach(function (item) {
+                if (except && item === except) { return; }
+                item.classList.remove('is-open');
+                var btn = item.querySelector('[data-topnav-toggle]');
+                var panel = item.querySelector('[data-topnav-panel]');
+                if (btn) { btn.setAttribute('aria-expanded', 'false'); }
+                if (panel) { panel.hidden = true; }
+            });
+            document.body.classList.remove('epc-cp-topnav-open');
+        }
+
+        function placePanel(item, panel) {
+            if (!panel || !root) { return; }
+            var rootRect = root.getBoundingClientRect();
+            var btn = item.querySelector('.epc-cp-topnav-btn');
+            var btnRect = btn ? btn.getBoundingClientRect() : rootRect;
+            var top = Math.round(rootRect.bottom);
+            panel.style.top = top + 'px';
+            panel.style.maxHeight = Math.max(180, Math.floor(window.innerHeight - top - 12)) + 'px';
+            panel.style.left = '0px';
+            panel.style.right = 'auto';
+            panel.hidden = false;
+            var panelWidth = panel.offsetWidth || 720;
+            var left = Math.round(btnRect.left);
+            var maxLeft = Math.max(8, window.innerWidth - panelWidth - 8);
+            if (left > maxLeft) { left = maxLeft; }
+            if (left < 8) { left = 8; }
+            panel.style.left = left + 'px';
+        }
+
+        function openItem(item) {
+            if (!item) { return; }
+            closeAll(item);
+            item.classList.add('is-open');
+            var btn = item.querySelector('[data-topnav-toggle]');
+            var panel = item.querySelector('[data-topnav-panel]');
+            if (btn) { btn.setAttribute('aria-expanded', 'true'); }
+            if (panel) { placePanel(item, panel); }
+            document.body.classList.add('epc-cp-topnav-open');
+        }
+
+        function toggleItem(item) {
+            if (item.classList.contains('is-open')) { closeAll(); }
+            else { openItem(item); }
+        }
+
+        items.forEach(function (item) {
+            var btn = item.querySelector('[data-topnav-toggle]');
+            if (!btn) { return; }
+            var skippedClick = false;
+            function onToggle(e) {
+                if (e) { e.preventDefault(); e.stopPropagation(); }
+                if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+                toggleItem(item);
+            }
+            btn.addEventListener('pointerdown', function (e) {
+                if (e.button != null && e.button !== 0) { return; }
+                skippedClick = true;
+                onToggle(e);
+            }, { passive: false });
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (skippedClick) { skippedClick = false; return; }
+                onToggle(e);
+            });
+            item.addEventListener('mouseleave', function () {
+                hoverTimer = setTimeout(function () {
+                    if (!item.matches(':hover') && item.classList.contains('is-open')) { closeAll(); }
+                }, 120);
+            });
+            item.addEventListener('mouseenter', function () {
+                if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!root.contains(e.target)) { closeAll(); }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { closeAll(); }
+        });
+        window.addEventListener('resize', function () {
+            var open = root.querySelector('.epc-cp-topnav-item.is-open');
+            if (!open) { return; }
+            var panel = open.querySelector('[data-topnav-panel]');
+            if (panel && !panel.hidden) { placePanel(open, panel); }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindCpTopNav);
+    } else {
+        bindCpTopNav();
+    }
+})();
+</script>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
