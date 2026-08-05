@@ -1056,6 +1056,22 @@ public sealed record CpIndustryPacksDigestResult(
     string Source,
     string Message);
 
+/// <summary>PHP <c>epc_erp_companies_list</c> row for ASP.NET company picker.</summary>
+public sealed record ErpCompanyDigest(
+    long Id,
+    string Code,
+    string Name,
+    string CurrencyCode,
+    string CountryCode,
+    string IndustryPack,
+    bool Active);
+
+public sealed record ErpCompaniesDigestResult(
+    IReadOnlyList<ErpCompanyDigest> Companies,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record CpJewelleryRetailSummary(
     int VoucherCount,
     int OpenVouchers,

@@ -1,0 +1,142 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IHttpContextAccessor Http
+@*
+  PHP parity: epc_erp_company_picker_html + industry context chip.
+  Company switch uses ?company= (PHP session equivalent on ASP.NET query).
+  Full multi-company / industry-pack apply remains PHP authoritative.
+*@
+
+<div class="epc-erp-company-scope" data-epc-industry="@_ctx.IndustryCode" data-epc-erp-host="@_ctx.Host">
+    <div class="epc-erp-industry-chip" title="Industry context for this host">
+        <i class="fa fa-industry" aria-hidden="true"></i>
+        <span>@_ctx.IndustryLabel</span>
+        <code>@_ctx.IndustryCode</code>
+    </div>
+
+    @if (_companies.Count > 0 && _request is not null)
+    {
+        <details class="epc-erp-company-picker" data-epc-company-picker="1">
+            <summary class="epc-erp-company-btn" title="Active company (legal entity)">
+                <i class="fa fa-building" aria-hidden="true"></i>
+                <span class="epc-erp-company-name">@_activeLabel</span>
+            </summary>
+            <ul class="dropdown-menu dropdown-menu-right epc-erp-company-menu" role="menu">
+                <li class="dropdown-header">Company / legal entity</li>
+                @foreach (var company in _companies)
+                {
+                    var selected = company.Id == _activeCompanyId;
+                    <li class="@(selected ? "active" : null)" role="none">
+                        <a role="menuitem" href="@ErpHostContext.SwitchCompanyHref(_request, (int)company.Id)">
+                            <i class="fa @(selected ? "fa-check" : "fa-building-o")" aria-hidden="true"></i>
+                            <strong>@company.Code</strong> · @company.Name
+                            @if (!string.IsNullOrWhiteSpace(company.CurrencyCode) || !string.IsNullOrWhiteSpace(company.CountryCode) || !string.IsNullOrWhiteSpace(company.IndustryPack))
+                            {
+                                <span class="text-muted epc-erp-company-meta">
+                                    @company.CurrencyCode
+                                    @if (!string.IsNullOrWhiteSpace(company.CountryCode))
+                                    {
+                                        <text> · @company.CountryCode</text>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(company.IndustryPack))
+                                    {
+                                        <text> · @company.IndustryPack</text>
+                                    }
+                                </span>
+                            }
+                        </a>
+                    </li>
+                }
+            </ul>
+        </details>
+    }
+    else if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <span class="epc-erp-company-fallback" title="@_message">Companies: open Full PHP ERP</span>
+    }
+
+    <a class="epc-erp-php-shell-link" href="@_ctx.PhpErpShellHref" title="Full PHP ERP with company picker + industry packs">
+        <i class="fa fa-external-link" aria-hidden="true"></i> Full PHP ERP
+    </a>
+    <a class="epc-erp-php-shell-link" href="/cp/industry-packs-app" title="Industry packs digest">
+        <i class="fa fa-cubes" aria-hidden="true"></i> Industry packs
+    </a>
+</div>
+
+<style>
+    .epc-erp-company-scope {
+        display: flex; flex-wrap: wrap; align-items: center; gap: .45rem .65rem;
+        position: relative; z-index: 50; margin: 0 0 .75rem;
+    }
+    .epc-erp-industry-chip {
+        display: inline-flex; align-items: center; gap: .35rem;
+        padding: .28rem .55rem; border-radius: .35rem; background: #eff6ff; color: #1d4ed8;
+        border: 1px solid #bfdbfe; font-size: 12px; font-weight: 650;
+    }
+    .epc-erp-industry-chip code {
+        font-size: 10px; color: #64748b; background: transparent; font-weight: 600;
+    }
+    .epc-erp-company-picker { display: inline-block; position: relative; z-index: 50; }
+    .epc-erp-company-btn {
+        list-style: none; cursor: pointer;
+        max-width: min(280px, 42vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        border: 1px solid #cbd5e1; background: #fff; color: #0f172a; border-radius: .35rem;
+        padding: .28rem .55rem; font-size: 12.5px; font-weight: 600;
+    }
+    .epc-erp-company-btn::-webkit-details-marker { display: none; }
+    .epc-erp-company-menu {
+        position: absolute; right: 0; top: calc(100% + 4px); z-index: 4000;
+        min-width: 280px; max-width: min(420px, calc(100vw - 16px));
+        margin: 0; padding: .35rem 0; list-style: none;
+        background: #fff; border: 1px solid #e2e8f0; border-radius: .45rem;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, .12);
+    }
+    .epc-erp-company-menu > .dropdown-header {
+        font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+        color: #64748b; padding: 6px 14px 4px;
+    }
+    .epc-erp-company-menu > li > a {
+        display: block; padding: 8px 14px; font-size: 12.5px; color: #0f172a; line-height: 1.35;
+    }
+    .epc-erp-company-menu > li.active > a { background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+    .epc-erp-company-menu > li > a:hover { background: #f8fafc; }
+    .epc-erp-company-meta { display: inline; font-size: 11px; color: #64748b; }
+    .epc-erp-company-fallback { font-size: 12px; color: #64748b; font-weight: 600; }
+    .epc-erp-php-shell-link {
+        display: inline-flex; align-items: center; gap: .3rem;
+        font-size: 12px; font-weight: 700; color: #1d4ed8;
+        border: 1px solid #bfdbfe; background: #fff; border-radius: .35rem;
+        padding: .28rem .55rem;
+    }
+</style>
+
+@code {
+    private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
+    private HttpRequest? _request;
+    private IReadOnlyList<ErpCompanyDigest> _companies = [];
+    private long _activeCompanyId;
+    private string _activeLabel = "Company";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _request = Http.HttpContext?.Request;
+        _ctx = ErpHostContext.Resolve(_request?.Host.Host);
+        var active = ErpHostContext.ActiveCompanyIdFromQuery(_request);
+        var digest = await Dashboards.BuildErpCompaniesDigestAsync(50, Http.HttpContext?.RequestAborted ?? default);
+        _companies = digest.Companies;
+        _message = digest.Message;
+        if (_companies.Count == 0)
+        {
+            return;
+        }
+
+        _activeCompanyId = active is > 0 && _companies.Any(c => c.Id == active)
+            ? active.Value
+            : _companies[0].Id;
+        var current = _companies.FirstOrDefault(c => c.Id == _activeCompanyId) ?? _companies[0];
+        _activeLabel = $"{current.Code} · {current.Name}";
+    }
+}

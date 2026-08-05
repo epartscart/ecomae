@@ -2598,6 +2598,66 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpCompaniesDigestResult> BuildErpCompaniesDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var packs = new Dictionary<long, string>();
+            try
+            {
+                await using (var packCmd = connection.CreateCommand())
+                {
+                    packCmd.CommandText = LegacySurfaceDashboardSql.SelectErpCompanyIndustryPacks;
+                    await using var packReader = await packCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    while (await packReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        var companyId = Convert.ToInt64(packReader["company_id"], CultureInfo.InvariantCulture);
+                        var pack = Convert.ToString(packReader["industry_pack"] is DBNull ? string.Empty : packReader["industry_pack"], CultureInfo.InvariantCulture) ?? string.Empty;
+                        packs[companyId] = pack;
+                    }
+                }
+            }
+            catch
+            {
+                // Table may be absent on lean tenants — companies list still works.
+            }
+
+            var rows = new List<ErpCompanyDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectErpCompanies;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var id = Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture);
+                    packs.TryGetValue(id, out var industryPack);
+                    rows.Add(new ErpCompanyDigest(
+                        id,
+                        Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["country_code"] is DBNull ? string.Empty : reader["country_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        industryPack ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+
+            return new(rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpJewelleryRetailDigestResult> BuildCpJewelleryRetailDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
