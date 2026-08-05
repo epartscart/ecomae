@@ -80,6 +80,25 @@ public static class PhpLegacyAssetBridge
         endpoints.MapGet("/aspnet-php-assets/eparts-animated-logo.css", () =>
             Results.Text(PhpEpartsCartLogoAssets.Css, "text/css; charset=utf-8"));
 
+        // PHP site_professional_shell.php <style> blocks — same rules nero desktop.php embeds.
+        endpoints.MapGet("/content/general_pages/epc_storefront_professional_shell_css.php", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/site_professional_shell.php"));
+            if (!path.StartsWith(repoRoot, StringComparison.Ordinal) || !File.Exists(path))
+            {
+                return Results.NotFound();
+            }
+
+            var html = File.ReadAllText(path);
+            var css = ExtractStyleBlocks(html);
+            if (string.IsNullOrWhiteSpace(css))
+            {
+                return Results.NotFound();
+            }
+
+            return Results.Text(css, "text/css; charset=utf-8");
+        });
+
         // Brand SVG mark — prefer file when present.
         endpoints.MapGet("/content/general_pages/epc_ecomae_logo_svg.php", () =>
         {
@@ -116,6 +135,32 @@ public static class PhpLegacyAssetBridge
             ".map" => "application/json",
             _ => "application/octet-stream"
         };
+    }
+
+    /// <summary>Extract concatenated CSS from PHP template &lt;style&gt; blocks (skips scripts).</summary>
+    public static string ExtractStyleBlocks(string html)
+    {
+        if (string.IsNullOrEmpty(html))
+        {
+            return string.Empty;
+        }
+
+        var matches = System.Text.RegularExpressions.Regex.Matches(
+            html,
+            @"<style[^>]*>(.*?)</style>",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+        if (matches.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var parts = new List<string>(matches.Count);
+        foreach (System.Text.RegularExpressions.Match match in matches)
+        {
+            parts.Add(match.Groups[1].Value);
+        }
+
+        return string.Join("\n", parts);
     }
 
     private static string FindRepoRoot(IWebHostEnvironment env)
