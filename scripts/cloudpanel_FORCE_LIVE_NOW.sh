@@ -127,8 +127,10 @@ for dir in "${DOCROOTS[@]}"; do
     "$dir/content/general_pages/epc_storefront_professional_shell.css"
   cp -f "$REPO/content/general_pages/epc_storefront_professional_shell_css.php" \
     "$dir/content/general_pages/" 2>/dev/null || true
-  # Public proof marker (bypass caches with unique query later)
-  printf 'sha=%s time=%s\n' "$FULL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  # Marker starts pending — status=pass is written ONLY after public :5100 prove.
+  # A matching sha alone does NOT mean live ASP.NET was republished.
+  printf 'status=pending sha=%s time=%s note=php-docroot-synced-aspnet-not-proven-yet\n' \
+    "$FULL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     > "$dir/epc-live-deploy-marker.txt"
   SYNCED=$((SYNCED + 1))
   printf '  synced → %s\n' "$dir"
