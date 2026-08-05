@@ -47,6 +47,23 @@
             })();
         </script>
     }
+    @if (IncludePublicSeo && _request is not null)
+    {
+        <meta name="theme-color" content="#dc2626" />
+        <meta name="description" content="@_seoDescription" />
+        <meta name="keywords" content="@StorefrontPublicSeo.DefaultKeywords" />
+        <meta name="robots" content="index,follow" />
+        <link rel="canonical" href="@_canonical" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="@_canonical" />
+        <meta property="og:title" content="@_seoTitle" />
+        <meta property="og:description" content="@_seoDescription" />
+        @foreach (var alt in StorefrontPublicSeo.HreflangAlternates(_request))
+        {
+            <link rel="alternate" hreflang="@alt.Hreflang" href="@alt.Href" />
+        }
+        @((MarkupString)StorefrontPublicSeo.JsonLdBlock(_request, _seoTitle))
+    }
     @if (IncludeBosLoginScripts)
     {
         @foreach (var src in LegacyPresentationAssets.BosLoginScripts)
@@ -73,6 +90,8 @@
     [Parameter] public bool ApplyStorefrontIndustryAttrs { get; set; }
     [Parameter] public bool IncludeBosLoginScripts { get; set; }
     [Parameter] public bool IncludeMarketingScripts { get; set; }
+    /// <summary>Emit PHP-parity public SEO (canonical, OG, hreflang, JSON-LD). Storefront home only.</summary>
+    [Parameter] public bool IncludePublicSeo { get; set; }
     [Parameter] public string GaMeasurementId { get; set; } = "G-J19D1KHXCG";
     /// <summary>Matches PHP epc_portal_clarity_project_id for epartscart.com.</summary>
     [Parameter] public string ClarityProjectId { get; set; } = "xoflbamawu";
@@ -81,16 +100,29 @@
 
     private string _industryCode = "auto_parts";
     private string _storefrontPackage = "automotive_spareparts_pro";
+    private HttpRequest? _request;
+    private string _canonical = "/";
+    private string _seoTitle = StorefrontPublicSeo.DefaultDescription;
+    private string _seoDescription = StorefrontPublicSeo.DefaultDescription;
 
     protected override void OnInitialized()
     {
+        var ctx = Http.HttpContext;
+        _request = ctx?.Request;
+        if (_request is not null && IncludePublicSeo)
+        {
+            var host = _request.Host.Host;
+            _seoTitle = StorefrontIndustryHostResolver.ResolveStorefrontTitle(host);
+            _seoDescription = StorefrontPublicSeo.DefaultDescription;
+            _canonical = StorefrontPublicSeo.CanonicalForStorefrontHome(_request);
+        }
+
         if (!ApplyStorefrontIndustryAttrs)
         {
             return;
         }
 
-        var host = Http.HttpContext?.Request.Host.Host;
-        var attrs = StorefrontIndustryHostResolver.Resolve(host);
+        var attrs = StorefrontIndustryHostResolver.Resolve(ctx?.Request.Host.Host);
         _industryCode = attrs.IndustryCode;
         _storefrontPackage = attrs.StorefrontPackage;
     }
