@@ -6,47 +6,46 @@ Paste on the **production CloudPanel server** as root. Deploys latest `main` (in
 
 Release owner confirmed: **epartscart.com** and **ecomae.com** shared links must keep working as `/cp` `/erp` `/bos` (no change to tenant-facing URLs). PHP reference is **separate** under `/php-reference/*`.
 
-### 0a) Rollback bad wildcard-ecomae classic-entry (if previously installed)
+### 0a) Pull fix + emergency restore + server-block scoped install
 
-`wildcard-ecomae` is usually `server_name *.ecomae.com` — **not** epartscart. If classic-entry was inserted there, restore the backup first:
-
-```bash
-# Use the newest matching backup if the timestamp differs:
-ls -1t /root/wildcard-ecomae.bak.classic-entry-aspnet.* 2>/dev/null | head
-cp -a /root/wildcard-ecomae.bak.classic-entry-aspnet.20260805071520 \
-  /etc/nginx/sites-enabled/wildcard-ecomae
-nginx -t && systemctl reload nginx
-```
-
-### 0b) Pull main, ensure epartscart vhost, install both hosts
+On this CloudPanel, **epartscart is a `server_name www.epartscart.com` block inside** `/etc/nginx/sites-enabled/www.ecomae.com.conf` (mega-conf). A file-scoped tenant install overwrites the www pack. Pull the server-block scoped installer first, restore, strip wildcard pollution, then install both hosts.
 
 ```bash
-# Pull latest main + republish ASP.NET
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_find_and_redeploy.sh)"
-
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-git fetch origin main && git checkout -f main && git reset --hard origin/main
+git fetch origin cursor/epartscart-vhost-classic-entry-7b3b
+git checkout -f cursor/epartscart-vhost-classic-entry-7b3b
+git reset --hard origin/cursor/epartscart-vhost-classic-entry-7b3b
+# after merge: git fetch origin main && git checkout -f main && git reset --hard origin/main
 
-# Discover which conf actually has server_name epartscart.com (authoritative).
-# Do NOT set ECOMAE_NGINX_SITE_CONF_TENANT=wildcard-ecomae when that file is *.ecomae.com only.
+# Prefers labeled baks; fall back to older stamps.
+ls -1t /root/www.ecomae.com.conf.bak.classic-entry-aspnet.* 2>/dev/null | head -n 20
+
+# Restore mega-conf to state BEFORE the bad tenant overwrite when possible:
+#   ...bak.classic-entry-aspnet.20260805072224 → after www pack, before tenant overwrite
+cp -a /root/www.ecomae.com.conf.bak.classic-entry-aspnet.20260805072224 \
+  /etc/nginx/sites-enabled/www.ecomae.com.conf
+
+# Strip leftover classic-entry from industry wildcard (*.ecomae.com only):
+python3 scripts/lib/ecomae_nginx_server_block_edit.py strip \
+  /etc/nginx/sites-enabled/wildcard-ecomae --all-servers
+
+nginx -t && systemctl reload nginx
+
 bash scripts/cloudpanel_discover_epartscart_nginx_conf.sh
+# Expect: EPARTSCART_VHOST=.../www.ecomae.com.conf + INSTALL_TARGET_HOST=www.epartscart.com
 
-# If missing, create dedicated /etc/nginx/sites-enabled/www.epartscart.com.conf
-# (clones PHP/ssl skeleton from www.ecomae.com.conf).
 ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
   bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh
+# On mega-conf this is a no-op (prints NOTE); do not create a duplicate vhost.
 
-# www.ecomae.com + epartscart (URL-preserved proxies). Reloads nginx per host.
+# Installs into server{} by host:
+#   www.ecomae.com block ← www pack (marketing home)
+#   www.epartscart.com block ← tenant pack (storefront home)
 ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
 
 bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
-
-# Or full operator (includes digests/presentation + classic-entry --all-hosts):
-ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES \
-ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
-  bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh
 ```
 
 **What this does / does not do**
