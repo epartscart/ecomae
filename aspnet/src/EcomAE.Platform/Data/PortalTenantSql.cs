@@ -9,12 +9,14 @@ public static class PortalTenantSql
             `site_key`,
             `hostname`,
             `db_name`,
+            IFNULL(`db_user`, '') AS db_user,
+            IFNULL(`db_password`, IFNULL(`db_pass`, '')) AS db_password,
             `status`,
             `is_demo`,
             `erp_only_shared`,
             `is_active`,
             `dedicated_db`,
-            `scale_policy`
+            IFNULL(`scale_policy`, '') AS scale_policy
         FROM `epc_portal_tenants`
         WHERE `hostname` = @host
           AND `status` IN ('dns_pending', 'live')
@@ -28,12 +30,14 @@ public static class PortalTenantSql
             `site_key`,
             `hostname`,
             `db_name`,
+            IFNULL(`db_user`, '') AS db_user,
+            IFNULL(`db_password`, IFNULL(`db_pass`, '')) AS db_password,
             `status`,
             `is_demo`,
             `erp_only_shared`,
             `is_active`,
             `dedicated_db`,
-            `scale_policy`
+            IFNULL(`scale_policy`, '') AS scale_policy
         FROM `epc_portal_tenants`
         WHERE `site_key` = @siteKey
         LIMIT 1

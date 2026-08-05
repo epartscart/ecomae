@@ -35,5 +35,14 @@ public sealed class UmapiUsageSummaryReporterTests
 
         public Task<System.Data.Common.DbConnection> OpenAsync(string? databaseName, CancellationToken cancellationToken = default)
             => throw new InvalidOperationException("not configured");
+
+        public Task<System.Data.Common.DbConnection> OpenAsync(string? databaseName, string? userName, string? password, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("not configured");
+
+        public Task<System.Data.Common.DbConnection> OpenForTenantAsync(EcomAE.Platform.Services.TenantContext? tenant, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("not configured");
+
+        public Task<System.Data.Common.DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("not configured");
     }
 }

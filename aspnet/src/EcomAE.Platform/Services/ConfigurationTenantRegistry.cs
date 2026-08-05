@@ -19,7 +19,11 @@ public sealed class ConfigurationTenantRegistry : ITenantRegistry
                 row.StorefrontEnabled,
                 row.ErpEnabled,
                 row.ControlPanelEnabled,
-                row.BosEnabled))
+                row.BosEnabled,
+                string.IsNullOrWhiteSpace(row.DbUser) ? null : row.DbUser.Trim(),
+                string.IsNullOrWhiteSpace(row.DbPassword) ? null : row.DbPassword,
+                row.DedicatedDb || string.Equals(row.ScalePolicy, "dedicated_mysql", StringComparison.OrdinalIgnoreCase),
+                string.IsNullOrWhiteSpace(row.ScalePolicy) ? null : row.ScalePolicy.Trim()))
             .GroupBy(row => row.Host, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
     }

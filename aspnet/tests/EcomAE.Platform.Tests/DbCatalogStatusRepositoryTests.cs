@@ -37,5 +37,14 @@ public sealed class DbCatalogStatusRepositoryTests
         {
             throw new InvalidOperationException("not configured");
         }
+
+        public Task<DbConnection> OpenAsync(string? databaseName, string? userName, string? password, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("not configured");
+
+        public Task<DbConnection> OpenForTenantAsync(EcomAE.Platform.Services.TenantContext? tenant, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("not configured");
+
+        public Task<DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("not configured");
     }
 }

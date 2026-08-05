@@ -34,7 +34,16 @@ public sealed class RouteTenantResolver : ITenantResolver
             ? TenantMode.Platform
             : surface == TenantSurface.Erp ? TenantMode.ErpOnlyTenant : TenantMode.LiveTenant);
 
-        return new TenantContext(host, path, surface, mode, registryRecord?.SiteKey, registryRecord?.DatabaseName);
+        return new TenantContext(
+            host,
+            path,
+            surface,
+            mode,
+            registryRecord?.SiteKey,
+            registryRecord?.DatabaseName,
+            registryRecord?.DbUser,
+            registryRecord?.DbPassword,
+            registryRecord?.DedicatedDb ?? false);
     }
 
     private static string NormalizePath(string? path)

@@ -21,15 +21,37 @@ builder.Services.Configure<EcomAeOptions>(builder.Configuration.GetSection(EcomA
 builder.Services.Configure<MigrationRouteCutoverOptions>(builder.Configuration.GetSection(MigrationRouteCutoverOptions.SectionName));
 builder.Services.Configure<PhpReferenceOptions>(builder.Configuration.GetSection(PhpReferenceOptions.SectionName));
 builder.Services.Configure<PriceLookupOptions>(builder.Configuration.GetSection(PriceLookupOptions.SectionName));
+builder.Services.Configure<SessionCacheOptions>(builder.Configuration.GetSection(SessionCacheOptions.SectionName));
+builder.Services.Configure<TenantDbPoolOptions>(builder.Configuration.GetSection(TenantDbPoolOptions.SectionName));
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddSingleton<ITenantRegistry, ConfigurationTenantRegistry>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ConfigurationTenantRegistry>();
+builder.Services.AddSingleton<ITenantDbConnectionFactory, MySqlTenantDbConnectionFactory>();
+builder.Services.AddSingleton<ITenantRegistry>(sp =>
+{
+    var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
+    var seed = sp.GetRequiredService<ConfigurationTenantRegistry>();
+    if (!connections.IsConfigured)
+    {
+        return seed;
+    }
+
+    return ActivatorUtilities.CreateInstance<DbBackedTenantRegistry>(sp);
+});
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<ILegacySessionStore>(sp =>
 {
     var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
-    return connections.IsConfigured
-        ? ActivatorUtilities.CreateInstance<DbLegacySessionStore>(sp)
-        : new MigrationLegacySessionStore();
+    if (!connections.IsConfigured)
+    {
+        return new MigrationLegacySessionStore();
+    }
+
+    var inner = ActivatorUtilities.CreateInstance<DbLegacySessionStore>(sp);
+    var cacheOpts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<SessionCacheOptions>>().Value;
+    return cacheOpts.Enabled
+        ? ActivatorUtilities.CreateInstance<CachingLegacySessionStore>(sp, inner)
+        : inner;
 });
 builder.Services.AddSingleton<ILegacySessionValidator, DbBackedLegacySessionValidator>();
 builder.Services.AddSingleton<ILegacySessionParityReporter, LegacySessionParityReporter>();
@@ -41,7 +63,6 @@ builder.Services.AddSingleton<ILegacyAdminLoginService>(sp =>
         ? ActivatorUtilities.CreateInstance<DbLegacyAdminLoginService>(sp)
         : new UnconfiguredLegacyAdminLoginService();
 });
-builder.Services.AddSingleton<ITenantDbConnectionFactory, MySqlTenantDbConnectionFactory>();
 
 builder.Services.AddSingleton<ILegacyApiClientStore, DbLegacyApiClientStore>();
 builder.Services.AddSingleton<ILegacyApiUsageLogger, DbLegacyApiUsageLogger>();
