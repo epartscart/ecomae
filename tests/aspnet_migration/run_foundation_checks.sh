@@ -888,6 +888,9 @@ check 'PHP reference mode doc exists' test -f "$ROOT/docs/migration/PHP_AS_REFER
 check 'PHP reference mode lock keeps project' contains "$ROOT/docs/migration/evidence/decommission/php-reference-mode-lock.json" '"keepPhpProjectAvailable": true'
 check 'ASP.NET-primary PHP-reference confirmation lock' contains "$ROOT/docs/migration/evidence/decommission/aspnet-primary-php-reference-confirmed.json" '"architectureConfirmed": true'
 check 'ASP.NET-primary confirmation keeps cutover false' contains "$ROOT/docs/migration/evidence/decommission/aspnet-primary-php-reference-confirmed.json" '"cutoverAllowed": false'
+check 'release-owner approval marker present' contains "$ROOT/docs/migration/evidence/decommission/RELEASE_OWNER_APPROVAL.md" 'APPROVED_TO_REMOVE_PHP_FALLBACK'
+check 'release-owner approval keeps PHP reference' contains "$ROOT/docs/migration/evidence/decommission/RELEASE_OWNER_APPROVAL.md" 'KeepPhpProjectAvailable'
+check 'CloudPanel deploy paste doc exists' test -f "$ROOT/docs/migration/evidence/decommission/CLOUDPANEL_DEPLOY_PASTE.md"
 check 'Wave B write dry-run probe covers SO cancel' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/sales-orders/cancel'
 check 'Wave B write dry-run probe covers OMS delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/orders/delete'
 check 'Wave B write dry-run probe covers PO delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/purchase-orders/delete'

@@ -14,7 +14,9 @@
   "requirePhpFallback": true,
   "storefrontAspNetEnabled": false,
   "adminAspNetEnabled": false,
-  "note": "Human confirmed: continue toward ASP.NET Core as live primary; keep PHP as reference only (till keep/delete). This confirmation is NOT RELEASE_OWNER_APPROVAL.md and does not invent traffic cutover or PHP deletion.",
+  "note": "Human confirmed: ASP.NET Core live primary; PHP reference kept. RELEASE_OWNER_APPROVAL.md now present with APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable. cutoverAllowed stays false in digests (exact-route only; no broad trees). Not PHP source deletion.",
+  "releaseOwnerApprovalPresent": true,
+  "releaseOwnerApprovalMarker": "APPROVED_TO_REMOVE_PHP_FALLBACK",
   "endpoints": [
     "/migration/php-reference-mode",
     "/migration/aspnet-zero-php-path",
