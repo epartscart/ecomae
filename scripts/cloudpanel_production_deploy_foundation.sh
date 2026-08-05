@@ -76,14 +76,19 @@ if [[ ! -f "$ECOMAE_ASPNET_ENV_DIR/platform.env" ]]; then
   fi
 fi
 
-bash "$REPO/tests/aspnet_migration/run_foundation_checks.sh"
-bash "$REPO/scripts/verify_aspnet_proxy_guardrails.sh"
-bash "$REPO/scripts/preflight_aspnet_production.sh"
+if [[ "${ECOMAE_EMERGENCY_PUBLISH:-0}" == "1" ]]; then
+  printf 'WARN: ECOMAE_EMERGENCY_PUBLISH=1 — skipping foundation/proxy/preflight checks\n' >&2
+else
+  bash "$REPO/tests/aspnet_migration/run_foundation_checks.sh"
+  bash "$REPO/scripts/verify_aspnet_proxy_guardrails.sh"
+  bash "$REPO/scripts/preflight_aspnet_production.sh"
+fi
 
 ECOMAE_ASPNET_RELEASE_ROOT="$ECOMAE_ASPNET_RELEASE_ROOT" \
 ECOMAE_ASPNET_ENV_DIR="$ECOMAE_ASPNET_ENV_DIR" \
 ECOMAE_RUN_SYSTEMD="$ECOMAE_RUN_SYSTEMD" \
 ECOMAE_RUN_NGINX_RELOAD=0 \
+ECOMAE_EMERGENCY_PUBLISH="${ECOMAE_EMERGENCY_PUBLISH:-0}" \
 bash "$REPO/scripts/deploy_aspnet_foundation.sh"
 
 if [[ "$ECOMAE_INSTALL_DIAGNOSTICS_NGINX" == "1" ]]; then

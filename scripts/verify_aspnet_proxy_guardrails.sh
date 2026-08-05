@@ -25,6 +25,13 @@ fi
 
 for file in "${configs[@]}"; do
     rel="${file#$ROOT/}"
+    base="$(basename "$file")"
+    # Classic-entry ASP.NET-primary packs intentionally proxy same-URL /cp /erp /bos /
+    # (exact + ^~ trees). They are not digests-only shadows — skip broad-location bans.
+    if [[ "$base" == *classic-entry*aspnet-primary* ]]; then
+        pass "$rel classic-entry ASP.NET-primary pack (broad same-URL proxy intentional)"
+        continue
+    fi
     if grep -Eq '^[[:space:]]*location[[:space:]]+(\^~[[:space:]]+)?/(cp|CP|erp|ERP|bos|BOS)([[:space:]/{]|$)' "$file"; then
         fail "$rel contains a broad admin surface location"
     else

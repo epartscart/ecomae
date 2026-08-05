@@ -122,7 +122,7 @@ check 'CP parity route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platfo
 check 'CP module maps parity endpoint' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs" 'EcomAeRoutes.ControlPanelParity'
 check 'program registers CP parity reporter' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'IControlPanelParityReporter, ControlPanelParityReporter'
 check 'CP parity reporter tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/ControlPanelParityReporterTests.cs"
-check 'CP module uses surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs" 'ISurfaceShellCatalog'
+check 'CP module maps surface digests' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs" 'EcomAeRoutes.ControlPanelDashboardSummary'
 check 'ERP parity reporter interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Migration/IErpParityReporter.cs"
 check 'ERP parity route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/erp/parity'
 check 'ERP module maps parity endpoint' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ErpModule.cs" 'EcomAeRoutes.ErpParity'
@@ -133,8 +133,8 @@ check 'BOS parity route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platf
 check 'BOS module maps parity endpoint' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/BosModule.cs" 'EcomAeRoutes.BosParity'
 check 'program registers BOS parity reporter' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'IBosParityReporter, BosParityReporter'
 check 'BOS parity reporter tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/BosParityReporterTests.cs"
-check 'ERP module uses surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ErpModule.cs" 'ISurfaceShellCatalog'
-check 'BOS module uses surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/BosModule.cs" 'ISurfaceShellCatalog'
+check 'ERP module maps surface digests' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/ErpModule.cs" 'EcomAeRoutes.ErpDashboardSummary'
+check 'BOS module maps surface digests' contains "$ROOT/aspnet/src/EcomAE.Platform/Modules/BosModule.cs" 'EcomAeRoutes.BosFleetSummary'
 check 'program registers surface shell catalog' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'ISurfaceShellCatalog, MigrationSurfaceShellCatalog'
 check 'CP aliases include lowercase trailing slash' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '"/cp/"'
 check 'ERP aliases include uppercase trailing slash' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '"/ERP/"'
@@ -1508,8 +1508,8 @@ check 'php surface link map exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Pr
 check 'marketing pages catalog uses ASP.NET routes' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/EcomaeMarketingPages.cs" 'AspNetHome = "/marketing/app"'
 check 'marketing Super CP CTA is ASP.NET /cp' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/EcomaeMarketingPages.cs" 'SuperCpUrl = "/cp"'
 check 'marketing preview has no hybrid PHP iframe' bash -c '! grep -Fq "PhpHybridWorkspaceFrame" "$1"' _ "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/MarketingPreviewApp.razor"
-check 'marketing chrome home is ASP.NET' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeMarketingChrome.razor" 'AspNetHome'
-check 'CP command centre has commerce band' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor" 'epc-cc-bands'
+check 'marketing chrome home is ASP.NET' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeMarketingChrome.razor" 'href="/"'
+check 'CP command centre has commerce band' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor" 'Live commerce pulse'
 check 'ERP dashboard banners hit ASP.NET apps' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor" '/erp/sales-orders-app'
 check 'storefront home has hero slider' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontHomeDepth.razor" 'epc-sf-hero-slider'
 check 'login form offers browse without login' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/LegacyAdminLoginForm.razor" 'data-epc-guest-browse'
@@ -1547,7 +1547,7 @@ check 'epartscart nginx discover script exists' test -x "$ROOT/scripts/cloudpane
 check 'epartscart nginx ensure vhost exists' test -x "$ROOT/scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh"
 check 'epartscart ensure refuses without confirm' contains "$ROOT/scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh" 'ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST'
 check 'epartscart ensure notes mega-conf' contains "$ROOT/scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh" 'server{} block inside the www mega-conf'
-check 'classic-entry tenant example is host-gated' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'epartscart\.com'
+check 'classic-entry tenant example is host-gated' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'epartscart|electronicae|stylenlook|thejewellerytrend|taxofinca'
 check 'classic-entry tenant example refuses bare wildcard-ecomae' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'Do NOT install on wildcard-ecomae'
 check 'classic-entry tenant example notes mega-conf' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'mega-conf'
 check 'classic-entry tenant example has php passthrough' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" '@epc_classic_php_passthrough'

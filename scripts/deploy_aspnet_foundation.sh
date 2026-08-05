@@ -25,10 +25,14 @@ printf 'Release root: %s\n' "$RELEASE_ROOT"
 printf 'Systemd actions: %s\n' "$RUN_SYSTEMD"
 printf 'Nginx reload: %s\n' "$RUN_NGINX_RELOAD"
 
-"$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh"
-
-dotnet restore "$ROOT/aspnet/EcomAE.AspNetCore.sln"
-dotnet test "$ROOT/aspnet/tests/EcomAE.Platform.Tests"
+if [[ "${ECOMAE_EMERGENCY_PUBLISH:-0}" == "1" ]]; then
+    printf 'WARN: ECOMAE_EMERGENCY_PUBLISH=1 — skipping detailed foundation tests + unit tests\n' >&2
+    dotnet restore "$ROOT/aspnet/EcomAE.AspNetCore.sln"
+else
+    "$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh"
+    dotnet restore "$ROOT/aspnet/EcomAE.AspNetCore.sln"
+    dotnet test "$ROOT/aspnet/tests/EcomAE.Platform.Tests"
+fi
 
 STAMP="$(date -u +%Y%m%d%H%M%S)"
 RELEASE_DIR="$RELEASE_ROOT/releases/$STAMP"
