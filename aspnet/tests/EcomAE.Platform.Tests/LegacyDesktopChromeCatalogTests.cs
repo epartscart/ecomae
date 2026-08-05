@@ -73,7 +73,10 @@ public sealed class LegacyDesktopChromeCatalogTests
     [InlineData("erp", ".epc-erp-topnav-panel-hub")]
     [InlineData("bos", ".bos-topnav")]
     [InlineData("bos", ".bos-topnav__panel-hub")]
-    [InlineData("storefront", "#header-full-top")]
+    [InlineData("storefront", ".top-menu-line")]
+    [InlineData("storefront", ".schearch-line")]
+    [InlineData("storefront", ".header_search_form_attr")]
+    [InlineData("storefront", "#footer-widgets")]
     public void RequiredStructuralSelectorsDocumentProbeTargets(string surface, string expected)
     {
         var selectors = LegacyDesktopChromeCatalog.RequiredStructuralSelectors(surface);

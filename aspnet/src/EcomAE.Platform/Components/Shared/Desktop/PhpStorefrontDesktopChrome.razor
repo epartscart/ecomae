@@ -1,93 +1,322 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Presentation
 @*
-  PHP-style storefront chrome on ASP.NET (modex/nero look).
+  PHP nero storefront chrome on ASP.NET (same-to-same vs templates/nero/desktop.php).
   All primary links are ASP.NET routes; PHP only via /php-reference/*.
 *@
 
-<div class="epc-modex-shell epc-php-font-root">
-    <div class="header-top-line">
-        <div class="container">
-            <div class="row">
-                <div class="col-xs-6">Dubai · Mon–Sat 9:00–18:00</div>
-                <div class="col-xs-6 text-right">
-                    <a href="tel:+971567607011">+971-567607011</a>
-                    ·
-                    <a href="/storefront/login">Customer login</a>
-                    ·
-                    <a href="/storefront/login">Vendor login</a>
-                    ·
-                    <a href="/erp">ERP Login</a>
+<div class="epc-nero-shell epc-php-font-root">
+    <header class="hidden-xs epc-nero-header">
+        <div class="top-menu-line" style="background:#1a1a1a;">
+            <div class="container">
+                <table class="epc-nero-top-table">
+                    <tr>
+                        <td>
+                            <nav class="navbar navbar-default navbar-header-full yamm navbar-static-top" id="header" role="navigation" aria-label="Storefront top menu">
+                                <ul class="nav navbar-nav">
+                                    <li><a href="/">Home</a></li>
+                                    <li class="dropdown">
+                                        <a href="javascript:void(0)" class="dropdown-toggle" aria-haspopup="true">Product</a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/product-family")">Product Family</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/available-brands")">Available brands</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/parts")">Brand in stock</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/accessories-spare-parts")">Accessories</a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="dropdown">
+                                        <a href="javascript:void(0)" class="dropdown-toggle" aria-haspopup="true">Selection catalogs</a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/eparts-cata")">EParts CATA</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/eparts-mod")">EParts Mod</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/partsapi-catalog")">EParts CatAPI</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/levam-oem")">OEM</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/katalog-laximo")">Vehicle catalog</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/vehicle-catalog")">Vehicle parts catalog</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/umapi_catalog")">Epart Catalog</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/shop/katalogi-ucats")">Epart Service Catalog</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/original-catalog")">Original catalog</a></li>
+                                            <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/demand-intelligence")">Vehicle Parts intelligence AI</a></li>
+                                        </ul>
+                                    </li>
+                                    <li><a href="/storefront/search-app">Part search</a></li>
+                                    <li><a href="/storefront/orders-app">My orders</a></li>
+                                </ul>
+                            </nav>
+                        </td>
+                        <td class="epc-nero-top-actions">
+                            <div class="new-header-user-box">
+                                <a href="/storefront/garage-app"><i class="fa fa-wrench" aria-hidden="true"></i> Garage Manager</a>
+                            </div>
+                            <div class="new-header-user-box">
+                                <a href="/erp"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP Login</a>
+                            </div>
+                            <div class="new-header-user-box">
+                                <a href="/storefront/login">Vendor login</a>
+                            </div>
+                            <div class="new-header-user-box">
+                                <a href="/storefront/login"><i class="fa fa-user" aria-hidden="true"></i> Customer login</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="logo-line" style="background:#fff;">
+            <div class="container">
+                <div class="table-group">
+                    <div class="table-control">
+                        <a class="header-logo" href="/">
+                            <PhpEpartsCartAnimatedLogo Variant="header" />
+                        </a>
+                    </div>
+                    <div class="table-control epc-header-contact-col">
+                        <div class="epc-header-geo-phone">
+                            <div class="geo-point-box text-left">
+                                <table>
+                                    <tr>
+                                        <td><i class="fa fa-location-arrow" aria-hidden="true"></i></td>
+                                        <td><span>Dubai<br />United Arab Emirates</span></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="header-phone-box text-left">
+                                <a href="tel:+971567607011" class="phone call-me">+971-567607011</a>
+                            </div>
+                        </div>
+                        <div class="timetable-box text-left">
+                            <table>
+                                <tr>
+                                    <td><i class="fa fa-clock-o" aria-hidden="true"></i></td>
+                                    <td><span>Mon–Sat 9:00–18:00</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="table-control epc-header-right-col">
+                        <div class="epc-header-actions-row">
+                            <div class="header-call-box"><a href="/storefront/search-app">Request a call back</a></div>
+                            <div class="header-whatsapp-box">
+                                <a href="https://wa.me/971567607011" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp">
+                                    <i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp contact
+                                </a>
+                            </div>
+                            <div class="header-bulk-upload-box">
+                                <a href="/storefront/search-app"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Excel bulk upload</a>
+                            </div>
+                            <div class="epc-currency-switcher">
+                                <select id="epc_currency_select" aria-label="Display currency">
+                                    <option value="AED" selected>AED</option>
+                                    <option value="USD">USD</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="PKR">PKR</option>
+                                    <option value="RUB">RUB</option>
+                                    <option value="SAR">SAR</option>
+                                    <option value="KWD">KWD</option>
+                                    <option value="OMR">OMR</option>
+                                </select>
+                                <div class="epc-currency-note">Display currency</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="header-box">
-        <header id="header-full-top" class="header-full-top">
-            <div class="container table-group">
-                <div class="table-control">
-                    <a class="header-logo" href="/">
-                        <PhpEpartsCartAnimatedLogo Variant="header" />
-                    </a>
-                </div>
-                <div class="table-control header-search-box epc-header-search" data-active-mode="1">
-                    <div class="epc-header-search__tabs" role="tablist" aria-label="Search type">
-                        <button type="button" class="epc-header-search__tab active" data-search-mode="1" role="tab" aria-selected="true"><i class="fa fa-barcode" aria-hidden="true"></i><span>Part number</span></button>
-                        <button type="button" class="epc-header-search__tab" data-search-mode="3" role="tab" aria-selected="false"><i class="fa fa-id-card" aria-hidden="true"></i><span>VIN</span></button>
-                        <button type="button" class="epc-header-search__tab" data-search-mode="engine" role="tab" aria-selected="false"><i class="fa fa-cogs" aria-hidden="true"></i><span>Engine</span></button>
-                        <button type="button" class="epc-header-search__tab" data-search-mode="car" role="tab" aria-selected="false"><i class="fa fa-car" aria-hidden="true"></i><span>By car</span></button>
-                        <button type="button" class="epc-header-search__tab" data-search-mode="attr" role="tab" aria-selected="false"><i class="fa fa-sliders" aria-hidden="true"></i><span>More info</span></button>
-                    </div>
-                    <form class="header_search_form_1" action="/storefront/search-app" method="get">
-                        <input type="search" name="article" placeholder="Part number or OE code" aria-label="Part number" />
-                        <button type="submit">Search</button>
-                    </form>
-                </div>
-                <div class="table-control header-user-box">
-                    <a class="header-call-box" href="/storefront/search-app">Request a call back</a>
-                    <a class="header-whatsapp-box" href="https://wa.me/971567607011" target="_blank" rel="noopener noreferrer"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp contact</a>
-                    <a class="header-cart-box" href="/storefront/cart-app">Cart</a>
-                    <a href="/storefront/login">Account</a>
-                    <a href="/storefront/garage-app"><i class="fa fa-wrench" aria-hidden="true"></i> Garage Manager</a>
-                    <a href="/erp"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP Login</a>
-                </div>
-            </div>
-        </header>
-
-        <nav class="navbar navbar-default navbar-header-full yamm" id="header" aria-label="Storefront menu">
+        <div class="schearch-line">
             <div class="container">
-                <ul class="nav navbar-nav">
-                    @foreach (var item in PhpModuleCatalog.StorefrontSurfaces)
-                    {
-                        <li><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)">@item.Label</a></li>
-                    }
-                    <li><a href="/cp">Control Panel</a></li>
-                    <li><a href="/erp">ERP</a></li>
-                    <li><a href="/bos">BOS</a></li>
-                </ul>
-            </div>
-        </nav>
-    </div>
-
-    <div id="sb-site" class="boxed">
-        <div class="container">
-            <div class="row">
-                <div id="right_col">
-                    <div id="Container">
-                        @ChildContent
+                <div class="row epc-schearch-row">
+                    <div class="col-sm-7 col-md-8 epc-schearch-main">
+                        <table>
+                            <tr>
+                                <td>
+                                    <a class="header-home-btn" href="/" aria-label="Home"><i class="fa fa-home" aria-hidden="true"></i></a>
+                                    <a class="header-cat-btn" href="/storefront/search-app"><i class="fa fa-bars" aria-hidden="true"></i> Catalog</a>
+                                </td>
+                                <td class="search-table-td">
+                                    <div class="header-search-box epc-header-search" data-active-mode="1" id="epc-header-search">
+                                        <div class="epc-header-search__tabs" role="tablist" aria-label="Search type">
+                                            <button type="button" class="epc-header-search__tab active" data-search-mode="1" role="tab" aria-selected="true"><i class="fa fa-barcode" aria-hidden="true"></i><span>Part number</span></button>
+                                            <button type="button" class="epc-header-search__tab" data-search-mode="3" role="tab" aria-selected="false"><i class="fa fa-id-card" aria-hidden="true"></i><span>VIN</span></button>
+                                            <button type="button" class="epc-header-search__tab" data-search-mode="engine" role="tab" aria-selected="false"><i class="fa fa-cogs" aria-hidden="true"></i><span>Engine</span></button>
+                                            <button type="button" class="epc-header-search__tab" data-search-mode="car" role="tab" aria-selected="false"><i class="fa fa-car" aria-hidden="true"></i><span>By car</span></button>
+                                            <button type="button" class="epc-header-search__tab" data-search-mode="attr" role="tab" aria-selected="false"><i class="fa fa-sliders" aria-hidden="true"></i><span>More info</span></button>
+                                        </div>
+                                        <div class="epc-header-search__body">
+                                            <form action="/storefront/search-app" method="get" class="header_search_form_1">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="article" placeholder="Part number or OE code" autocomplete="off" aria-label="Part number" />
+                                                    <span class="input-group-btn">
+                                                        <button class="btn btn-ar btn-primary" type="submit">Search</button>
+                                                    </span>
+                                                </div>
+                                            </form>
+                                            <form action="/storefront/search-app" method="get" class="header_search_form_2 hidden">
+                                                <input type="hidden" name="mode" value="name" />
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="search_string" placeholder="Search by name" autocomplete="off" aria-label="Search by name" />
+                                                    <span class="input-group-btn">
+                                                        <button class="btn btn-ar btn-primary" type="submit">Search</button>
+                                                    </span>
+                                                </div>
+                                            </form>
+                                            <form action="/storefront/search-app" method="get" class="header_search_form_3 hidden" onsubmit="return window.epcHeaderVinSubmit(this);">
+                                                <input type="hidden" name="mode" value="vin" />
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control epc-header-search__vin-input" name="identString" maxlength="32" placeholder="Enter VIN / Frame" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="VIN" />
+                                                    <span class="input-group-btn">
+                                                        <button class="btn btn-ar btn-primary" type="submit">Search</button>
+                                                    </span>
+                                                </div>
+                                            </form>
+                                            <form action="/storefront/search-app" method="get" class="header_search_form_engine hidden" onsubmit="return window.epcHeaderEngineSubmit(this);">
+                                                <input type="hidden" name="mode" value="engine" />
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control epc-header-search__engine-input" name="engine" maxlength="12" placeholder="Engine code (e.g. 3L, 12R, 5L)" autocomplete="off" aria-label="Engine code" />
+                                                    <span class="input-group-btn">
+                                                        <button class="btn btn-ar btn-primary" type="submit">Search</button>
+                                                    </span>
+                                                </div>
+                                            </form>
+                                            <div class="header_search_form_car hidden">
+                                                <a class="epc-header-search__car-link" href="/storefront/search-app?mode=car">
+                                                    <span class="epc-header-search__car-copy"><i class="fa fa-list-ol" aria-hidden="true"></i> Choose year, make, model and engine</span>
+                                                    <strong>Open vehicle catalog</strong>
+                                                </a>
+                                            </div>
+                                            <form action="/storefront/search-app" method="get" class="header_search_form_attr hidden" onsubmit="return window.epcHeaderAttrSubmit(this);">
+                                                <input type="hidden" name="mode" value="attr" />
+                                                <div class="epc-header-search__attr-row">
+                                                    <select class="form-control epc-header-search__attr-field" name="field" aria-label="Search field">
+                                                        <option value="all">All fields</option>
+                                                        <option value="engine">Engine</option>
+                                                        <option value="size">Size</option>
+                                                        <option value="country">Country</option>
+                                                        <option value="cross">Cross ref</option>
+                                                    </select>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control epc-header-search__attr-input" name="q" maxlength="120" placeholder="Engine, size, country, cross ref…" autocomplete="off" aria-label="Warehouse / more info search" />
+                                                        <span class="input-group-btn">
+                                                            <button class="btn btn-ar btn-primary" type="submit">Search</button>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-sm-5 col-md-4">
+                        <div class="menu-box" aria-label="Account shortcuts">
+                            <div class="menu-box-item"><a title="Orders" href="/storefront/orders-app" class="orders-i"><i class="fa fa-list-alt" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Compare" href="/storefront/search-app"><i class="fa fa-exchange" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Bookmarks" href="/storefront/search-app"><i class="fa fa-bookmark" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Garage" href="/storefront/garage-app"><i class="fa fa-car" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Balance" href="/storefront/account-summary-app"><i class="fa fa-money" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Cart" href="/storefront/cart-app"><i class="fa fa-shopping-cart" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Quotes" href="/storefront/orders-app"><i class="fa fa-file-text-o" aria-hidden="true"></i></a></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <aside id="footer-widgets">
+    </header>
+
+    <div class="header-box-mobile hidden-sm hidden-md hidden-lg">
+        <div class="container">
+            <a class="logo_min" href="/"><PhpEpartsCartAnimatedLogo Variant="header" /></a>
+            <a class="mobile-box-phone" href="tel:+971567607011">+971-567607011</a>
+            <a class="mobile-box-whatsapp" href="https://wa.me/971567607011" target="_blank" rel="noopener noreferrer"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+            <a href="/storefront/search-app"><i class="fa fa-search" aria-hidden="true"></i> Search</a>
+            <a href="/storefront/garage-app"><i class="fa fa-wrench" aria-hidden="true"></i> Garage</a>
+            <a href="/erp"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP</a>
+            <a href="/storefront/login"><i class="fa fa-user" aria-hidden="true"></i> Login</a>
+        </div>
+    </div>
+
+    <div id="sb-site">
+        <div class="boxed">
             <div class="container">
-                Parts search · garage · orders · checkout · <a href="/storefront/search-app">Open search</a>
+                <div class="row">
+                    <div id="right_col">
+                        <div id="Container">
+                            @ChildContent
+                        </div>
+                    </div>
+                </div>
             </div>
-        </aside>
-        <footer id="footer">
-            <div class="container">eParts Cart</div>
-        </footer>
+
+            <aside id="footer-widgets" style="background:#1a1a1a;color:#e5e7eb;">
+                <div class="container">
+                    <div class="row epc-footer-widgets-row">
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <h3 class="footer-widget-title">For customers</h3>
+                                    <ul class="epc-footer-menu">
+                                        <li><a href="/storefront/orders-app">My orders</a></li>
+                                        <li><a href="/storefront/garage-app">Garage</a></li>
+                                        <li><a href="/storefront/profile-app">Profile</a></li>
+                                        <li><a href="/storefront/account-summary-app">Account summary</a></li>
+                                    </ul>
+                                </div>
+                                <div class="col-sm-4">
+                                    <h3 class="footer-widget-title">Information</h3>
+                                    <ul class="epc-footer-menu">
+                                        <li><a href="/storefront/search-app">Part search</a></li>
+                                        <li><a href="/storefront/search-app?mode=car">Vehicle catalog</a></li>
+                                        <li><a href="/storefront/search-app?mode=attr">Warehouse / more info</a></li>
+                                        <li><a href="/php-reference/home">PHP reference home</a></li>
+                                    </ul>
+                                </div>
+                                <div class="col-sm-4">
+                                    <h3 class="footer-widget-title">Online store</h3>
+                                    <ul class="epc-footer-menu">
+                                        <li><a href="/storefront/cart-app">Cart</a></li>
+                                        <li><a href="/storefront/checkout-app">Checkout</a></li>
+                                        <li><a href="/storefront/login">Customer login</a></li>
+                                        <li><a href="/erp">ERP Login</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <h3 class="footer-widget-title">Send request</h3>
+                            <p>Need help finding a part? Send a request to our sales team.</p>
+                            <div class="input-group">
+                                <a class="btn btn-block btn-ar btn-primary" href="/storefront/search-app">Send a request to seller</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="footer-widget-title">Contacts</h3>
+                            <div class="epc-footer-locations">
+                                <div class="epc-footer-office">
+                                    <strong><i class="fa fa-map-marker" aria-hidden="true"></i> Head Office</strong>
+                                    <span>Dubai, United Arab Emirates</span>
+                                    <span>+971-567607011</span>
+                                    <span>info@epartscart.com</span>
+                                </div>
+                                <div class="epc-footer-global">
+                                    <strong><i class="fa fa-globe" aria-hidden="true"></i> Global locations</strong>
+                                    <span>15 countries, multiple locations</span>
+                                </div>
+                            </div>
+                            <h3 class="footer-widget-title">Working mode</h3>
+                            <div>Mon–Sat 9:00–18:00</div>
+                            <h3 class="footer-widget-title">Accept for payment</h3>
+                            <div class="epc-footer-pay">Visa · Mastercard · Bank transfer · Cash</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <footer id="footer" style="background:#111;color:#94a3b8;">
+                <div class="container">
+                    <p>&copy; @DateTime.UtcNow.Year eParts Cart</p>
+                </div>
+            </footer>
+        </div>
     </div>
 
     <div id="epc-ai-expert-widget" class="epc-ai-expert-widget" aria-live="polite">
@@ -108,19 +337,59 @@
 </div>
 
 <style>
-    .epc-modex-shell {
-        --red:#dc2626; --red-dark:#b91c1c; --red-hot:#ef4444; --modex-primary:#ff8040;
+    /* Layout width matches PHP automotive_spareparts_pro (not edge-to-edge stretch). */
+    .epc-nero-shell {
+        --red:#dc2626; --red-dark:#b91c1c; --red-hot:#ef4444; --nero-accent:#ff8040;
         font-family: @(LegacyPhpFontAssets.StackFor("storefront")); color:#111; background:#fff; min-height:100vh;
         padding-bottom:3.5rem;
     }
-    .epc-modex-shell a { color:inherit; text-decoration:none; }
-    .epc-modex-shell .container { width:min(1280px, calc(100% - 2rem)); margin:0 auto; }
-    .header-top-line { background:#222; color:#fff; font-size:.78rem; padding:.4rem 0; }
-    .header-top-line .row { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
-    .header-top-line a { color:#fff; }
-    #header-full-top { border-bottom:1px solid #e5e7eb; padding:.75rem 0; background:linear-gradient(180deg,#fff 0%,#f8fafc 100%); }
-    .table-group { display:grid; grid-template-columns:auto 1.4fr auto; gap:1rem; align-items:start; }
+    .epc-nero-shell a { color:inherit; text-decoration:none; }
+    .epc-nero-shell .container {
+        width:98% !important;
+        max-width:min(1728px, 98vw) !important;
+        margin-left:auto !important;
+        margin-right:auto !important;
+    }
+    #preloader { display:none !important; }
+    body { overflow:auto !important; }
+    .epc-nero-top-table { width:100%; border-collapse:collapse; }
+    .epc-nero-top-table td { vertical-align:middle; }
+    .epc-nero-top-actions { text-align:right; white-space:nowrap; }
+    .epc-nero-top-actions .new-header-user-box { display:inline-block; margin-left:.75rem; font-size:.78rem; font-weight:700; }
+    .epc-nero-top-actions a { color:#fff; }
+    .top-menu-line { color:#fff; }
+    .top-menu-line .navbar { margin:0; background:transparent; border:0; min-height:0; }
+    .top-menu-line .nav { list-style:none; margin:0; padding:.35rem 0; display:flex; flex-wrap:wrap; gap:.15rem 1rem; align-items:center; }
+    .top-menu-line .nav > li { position:relative; }
+    .top-menu-line .nav > li > a { color:#fff; font-weight:700; font-size:.82rem; display:inline-block; padding:.35rem 0; }
+    .top-menu-line .nav > li > a:hover { color:#fbbf24; }
+    .top-menu-line .dropdown-menu {
+        display:none; position:absolute; left:0; top:100%; z-index:50; min-width:14rem;
+        background:#111; border:1px solid #333; padding:.35rem 0; margin:0; list-style:none;
+    }
+    .top-menu-line .dropdown:hover > .dropdown-menu,
+    .top-menu-line .dropdown:focus-within > .dropdown-menu { display:block; }
+    .top-menu-line .dropdown-menu a { display:block; padding:.4rem .75rem; color:#e5e7eb; font-size:.8rem; }
+    .top-menu-line .dropdown-menu a:hover { background:#222; color:#fff; }
+    .logo-line { border-bottom:1px solid #e5e7eb; padding:.75rem 0; background:linear-gradient(180deg,#fff 0%,#f8fafc 100%); }
+    .logo-line .table-group { display:grid; grid-template-columns:auto 1.2fr auto; gap:1rem; align-items:center; }
     .header-logo img { height:40px; }
+    .geo-point-box, .timetable-box, .header-phone-box { font-size:.82rem; line-height:1.35; }
+    .header-phone-box a { font-weight:800; font-size:1.05rem; color:#111; }
+    .epc-header-actions-row { display:flex; flex-wrap:wrap; gap:.55rem .85rem; justify-content:flex-end; align-items:center; font-size:.78rem; font-weight:700; }
+    .header-whatsapp-box a { color:#128c7e; }
+    .header-call-box a:hover, .header-bulk-upload-box a:hover { color:var(--red); }
+    .epc-currency-switcher select { font-size:.78rem; padding:.25rem .4rem; border:1px solid #d1d5db; border-radius:.3rem; }
+    .epc-currency-note { font-size:.65rem; color:#64748b; font-weight:600; }
+    .schearch-line { background:#f3f4f6; border-bottom:1px solid #e5e7eb; padding:.65rem 0 .75rem; }
+    .epc-schearch-row { display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-start; }
+    .epc-schearch-main { flex:1 1 58%; min-width:280px; }
+    .schearch-line table { width:100%; }
+    .header-home-btn, .header-cat-btn {
+        display:inline-flex; align-items:center; gap:.35rem; margin-right:.45rem; padding:.45rem .65rem;
+        background:#111; color:#fff !important; border-radius:.35rem; font-weight:700; font-size:.78rem;
+    }
+    .header-cat-btn { background:var(--red); }
     .epc-header-search__tabs { display:flex; flex-wrap:wrap; gap:.25rem; margin-bottom:.45rem; }
     .epc-header-search__tab {
         appearance:none; border:1px solid #e2e8f0; background:#fff; border-radius:.35rem;
@@ -128,18 +397,58 @@
         display:inline-flex; align-items:center; gap:.3rem;
     }
     .epc-header-search__tab.active, .epc-header-search__tab:hover { background:#fef2f2; border-color:#fecaca; color:#b91c1c; }
-    .header_search_form_1 { display:flex; gap:.4rem; }
-    .header_search_form_1 input { flex:1; min-width:140px; padding:.55rem .7rem; border:1px solid #d1d5db; border-radius:.4rem; }
-    .header_search_form_1 button { padding:.55rem .85rem; border:0; border-radius:.4rem; background:var(--red); color:#fff; font-weight:700; cursor:pointer; }
-    .header_search_form_1 button:hover { background:var(--red-hot); }
-    .header-user-box { display:flex; flex-wrap:wrap; gap:.55rem; font-weight:700; font-size:.78rem; max-width:22rem; justify-content:flex-end; }
-    .header-user-box a:hover { color:var(--red); }
-    .header-whatsapp-box { color:#128c7e !important; }
-    .navbar-header-full { background:#f3f4f6; border-bottom:1px solid #e5e7eb; }
-    .navbar-header-full .nav { list-style:none; margin:0; padding:.45rem 0; display:flex; gap:.85rem; flex-wrap:wrap; font-size:.82rem; font-weight:700; }
-    .navbar-header-full .nav a:hover { color:var(--red); }
+    .header_search_form_1 .input-group,
+    .header_search_form_2 .input-group,
+    .header_search_form_3 .input-group,
+    .header_search_form_engine .input-group,
+    .epc-header-search__attr-row .input-group { display:flex; gap:0; width:100%; }
+    .header_search_form_1 input,
+    .header_search_form_2 input,
+    .header_search_form_3 input,
+    .header_search_form_engine input,
+    .header_search_form_attr input {
+        flex:1; min-width:140px; padding:.55rem .7rem; border:1px solid #d1d5db; border-radius:.4rem 0 0 .4rem;
+    }
+    .header_search_form_1 button,
+    .header_search_form_2 button,
+    .header_search_form_3 button,
+    .header_search_form_engine button,
+    .header_search_form_attr button {
+        padding:.55rem .85rem; border:0; border-radius:0 .4rem .4rem 0; background:var(--red); color:#fff; font-weight:700; cursor:pointer;
+    }
+    .header_search_form_1.hidden,
+    .header_search_form_2.hidden,
+    .header_search_form_3.hidden,
+    .header_search_form_engine.hidden,
+    .header_search_form_car.hidden,
+    .header_search_form_attr.hidden { display:none !important; }
+    .epc-header-search__attr-row { display:flex; flex-wrap:wrap; gap:.4rem; align-items:stretch; }
+    .epc-header-search__attr-field { min-width:8rem; max-width:11rem; padding:.5rem .55rem; border:1px solid #d1d5db; border-radius:.4rem; }
+    .epc-header-search__car-link {
+        display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap;
+        padding:.7rem .85rem; border:1px dashed #fca5a5; border-radius:.45rem; background:#fff;
+    }
+    .menu-box { display:flex; flex-wrap:wrap; gap:.35rem; justify-content:flex-end; }
+    .menu-box-item a {
+        display:inline-flex; align-items:center; justify-content:center; width:2.4rem; height:2.4rem;
+        border-radius:.4rem; background:#fff; border:1px solid #e5e7eb; color:#111; font-size:1.05rem;
+    }
+    .menu-box-item a:hover { border-color:#fecaca; color:var(--red); }
+    .header-box-mobile { background:#111; color:#fff; padding:.65rem 0; }
+    .header-box-mobile .container { display:flex; flex-wrap:wrap; gap:.55rem .85rem; align-items:center; font-size:.78rem; font-weight:700; }
+    .header-box-mobile a { color:#fff !important; }
     #Container { padding:1rem 0 2rem; }
-    #footer-widgets, #footer { padding:.85rem 0; border-top:1px solid #e5e7eb; color:#64748b; font-size:.8rem; }
+    #footer-widgets { padding:1.5rem 0 1.25rem; }
+    #footer-widgets a { color:#e5e7eb; }
+    #footer-widgets a:hover { color:#fbbf24; }
+    .footer-widget-title { font-size:.95rem; font-weight:800; color:#fff; margin:1rem 0 .55rem; }
+    .epc-footer-menu { list-style:none; margin:0; padding:0; font-size:.82rem; }
+    .epc-footer-menu li { margin:.25rem 0; }
+    .epc-footer-office, .epc-footer-global { display:flex; flex-direction:column; gap:.2rem; font-size:.82rem; margin-bottom:.75rem; }
+    .epc-footer-pay { font-size:.82rem; color:#cbd5e1; }
+    #footer { padding:.85rem 0; font-size:.8rem; }
+    #footer p { margin:0; }
+    .btn-primary { background:var(--red); border-color:var(--red); color:#fff; font-weight:700; }
     .epc-ai-expert-widget { position:fixed; right:1rem; bottom:4.25rem; z-index:40; }
     .epc-ai-expert-widget__launcher {
         display:inline-flex; align-items:center; gap:.45rem; padding:.65rem .9rem; border-radius:999px;
@@ -153,8 +462,106 @@
     }
     .epc-bottom-dock a { display:flex; flex-direction:column; align-items:center; gap:.15rem; color:#fff !important; font-size:.65rem; font-weight:700; }
     .epc-bottom-dock i { font-size:1rem; }
-    @@media (max-width:900px){ .table-group{grid-template-columns:1fr;} .header-user-box{max-width:none;justify-content:flex-start;} }
+    @@media (max-width:900px){
+        .logo-line .table-group{grid-template-columns:1fr;}
+        .epc-nero-top-actions{text-align:left;white-space:normal;}
+        .epc-header-actions-row{justify-content:flex-start;}
+        .menu-box{justify-content:flex-start;}
+    }
+    @@media (min-width:768px){
+        .header-box-mobile{display:none !important;}
+    }
+    @@media (max-width:767px){
+        .epc-nero-header{display:none !important;}
+    }
 </style>
+
+<script>
+(function () {
+    function mapSelector(mode) {
+        return {
+            '1': '.header_search_form_1',
+            '2': '.header_search_form_2',
+            '3': '.header_search_form_3',
+            'engine': '.header_search_form_engine',
+            'car': '.header_search_form_car',
+            'attr': '.header_search_form_attr'
+        }[mode] || '.header_search_form_1';
+    }
+    window.change_header_search_form = function (mode) {
+        mode = String(mode || '1');
+        var modes = ['1', '2', '3', 'engine', 'car', 'attr'];
+        for (var i = 0; i < modes.length; i++) {
+            var nodes = document.querySelectorAll(mapSelector(modes[i]));
+            for (var j = 0; j < nodes.length; j++) {
+                if (modes[i] === mode) nodes[j].classList.remove('hidden');
+                else nodes[j].classList.add('hidden');
+            }
+        }
+        var tabs = document.querySelectorAll('.epc-header-search__tab');
+        for (var t = 0; t < tabs.length; t++) {
+            var active = tabs[t].getAttribute('data-search-mode') === mode;
+            tabs[t].classList.toggle('active', active);
+            tabs[t].setAttribute('aria-selected', active ? 'true' : 'false');
+        }
+        var roots = document.querySelectorAll('.epc-header-search');
+        for (var r = 0; r < roots.length; r++) roots[r].setAttribute('data-active-mode', mode);
+        return false;
+    };
+    window.epcHeaderVinSubmit = function (form) {
+        if (!form) return false;
+        var input = form.querySelector('input[name="identString"], input[name="vin"]');
+        if (!input) return true;
+        var vin = String(input.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        input.value = vin;
+        if (vin.length < 11) {
+            alert('Enter a valid VIN / Frame number (11–17 characters).');
+            input.focus();
+            return false;
+        }
+        return true;
+    };
+    window.epcHeaderEngineSubmit = function (form) {
+        if (!form) return false;
+        var input = form.querySelector('input[name="engine"]');
+        if (!input) return true;
+        var code = String(input.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        input.value = code;
+        if (code.length < 2 || code.length > 12) {
+            alert('Enter a valid engine code (2–12 characters, e.g. 3L, 12R, 5L).');
+            input.focus();
+            return false;
+        }
+        return true;
+    };
+    window.epcHeaderAttrSubmit = function (form) {
+        if (!form) return false;
+        var input = form.querySelector('input[name="q"]');
+        if (!input) return true;
+        var q = String(input.value || '').replace(/\s+/g, ' ').trim();
+        input.value = q;
+        if (q.replace(/\s+/g, '').length < 2) {
+            alert('Enter at least 2 characters to search product information.');
+            input.focus();
+            return false;
+        }
+        return true;
+    };
+    document.addEventListener('click', function (ev) {
+        var tab = ev.target && ev.target.closest ? ev.target.closest('.epc-header-search__tab') : null;
+        if (!tab) return;
+        ev.preventDefault();
+        window.change_header_search_form(tab.getAttribute('data-search-mode'));
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var params = new URLSearchParams(window.location.search || '');
+        var mode = params.get('mode');
+        if (mode === 'attr' || mode === 'vin' || mode === 'engine' || mode === 'car' || mode === 'name') {
+            window.change_header_search_form(mode === 'name' ? '2' : (mode === 'vin' ? '3' : mode));
+        }
+    });
+})();
+</script>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }

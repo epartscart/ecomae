@@ -86,15 +86,13 @@ public static class LegacyPresentationAssets
 
     public static readonly IReadOnlyList<string> StorefrontStylesheets =
     [
-        "/epc-static.php?f=templates/modex/assets/css/preload.css",
-        "/epc-static.php?f=templates/modex/assets/css/vendors.css",
-        "/epc-static.php?f=templates/modex/assets/css/style_color.css",
-        "/epc-static.php?f=templates/modex/assets/css/width-boxed.css",
-        "/epc-static.php?f=templates/modex/css/catalogue/catalogue.css",
-        "/epc-static.php?f=templates/modex/css/astself.css",
-        "/epc-static.php?f=templates/modex/css/docpart/style.css",
+        // epartscart.com live theme is nero (templates/nero/desktop.php), not modex.
+        "/epc-static.php?f=templates/nero/assets/css/style_all.css",
+        "/epc-static.php?f=templates/nero/css/astself.css",
+        "/epc-static.php?f=templates/nero/css/catalogue/catalogue.css",
+        "/epc-static.php?f=templates/nero/css/docpart/style.css",
         "/modules/slider/css/style.css",
-        // Piston hero + pro banner (requires html data-epc-industry/storefront attrs)
+        // Container width (98% / 1728px) + piston hero (requires html data-epc-industry/storefront attrs)
         "/content/general_pages/epc_automotive_spareparts.css"
     ];
 
@@ -156,7 +154,7 @@ public static class LegacyPresentationAssets
         "cp" => "cp/templates/bootstrap_admin/desktop.php",
         "erp" => "cp/templates/bootstrap_admin/erp_desktop.php",
         "bos" => "bos/index.php + bos/epc_bos_shell.css",
-        "storefront" => "templates/modex/desktop.php",
+        "storefront" => "templates/nero/desktop.php",
         "marketing" => "content/general_pages/epc_ecomae_platform_layout.php (epm-hub) + epc_ecomae_home_sections.php",
         _ => "unknown"
     };

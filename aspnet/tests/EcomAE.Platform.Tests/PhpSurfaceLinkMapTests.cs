@@ -21,6 +21,11 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/shop/part_search", "/storefront/search-app")]
     [InlineData("/shop/cart", "/storefront/cart-app")]
     [InlineData("https://epartscart.com/shop/part_search", "/storefront/search-app")]
+    [InlineData("/en/shop/warehouse-search", "/storefront/search-app?mode=attr")]
+    [InlineData("/shop/warehouse-search?q=oil&field=all", "/storefront/search-app?mode=attr&q=oil&field=all")]
+    [InlineData("/en/katalog-laximo", "/storefront/search-app?mode=vin")]
+    [InlineData("/en/vehicle-catalog", "/storefront/search-app?mode=car")]
+    [InlineData("/en/users/login", "/storefront/login")]
     [InlineData("https://agriculture.ecomae.com/CP/", "https://agriculture.ecomae.com/cp")]
     [InlineData("/epc-blockchain-verify.php", "/marketing/blockchain")]
     public void AspNetPrimaryHref_MapsPhpProductToAspNet(string phpHref, string expected)

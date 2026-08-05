@@ -44,16 +44,25 @@
 
     <section class="epc-sf-search-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>Part search</h1>
-        <p>Search warehouse offers by article and brand.</p>
+        <h1>@_heroTitle</h1>
+        <p>@_heroSubtitle</p>
         <form class="epc-sf-search-form" method="get" action="/storefront/search-app">
-            <input type="search" name="article" value="@_articleInput" placeholder="Part number or OE code" aria-label="Part number" />
+            @if (string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase))
+            {
+                <input type="hidden" name="mode" value="attr" />
+                <input type="search" name="q" value="@_attrQuery" placeholder="Engine, size, country, cross ref…" aria-label="Warehouse / more info search" />
+            }
+            else
+            {
+                <input type="search" name="article" value="@_articleInput" placeholder="Part number or OE code" aria-label="Part number" />
+            }
             <button type="submit">Search</button>
         </form>
         <div class="epc-sf-search-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(PhpPartSearchHref(_normalized))">Open full search</a>
-            <a href="/storefront/app">Storefront preview</a>
-            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/"))">Live storefront</a>
+            <a href="/storefront/search-app?mode=attr">Warehouse / more info</a>
+            <a href="/storefront/search-app?mode=vin">VIN search</a>
+            <a href="/storefront/search-app?mode=car">Vehicle catalog</a>
+            <a href="/">Storefront home</a>
         </div>
     </section>
 
@@ -111,6 +120,10 @@
 
 @code {
     private string _articleInput = "";
+    private string _attrQuery = "";
+    private string _mode = "";
+    private string _heroTitle = "Part search";
+    private string _heroSubtitle = "Search warehouse offers by article and brand.";
     private string _normalized = "";
     private IReadOnlyList<StorefrontPartOfferDigest> _rows = [];
     private string _source = "n/a";
@@ -119,9 +132,54 @@
     [SupplyParameterFromQuery(Name = "article")]
     public string? ArticleQuery { get; set; }
 
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? AttrQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "mode")]
+    public string? ModeQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "identString")]
+    public string? VinQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "engine")]
+    public string? EngineQuery { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
+        _mode = (ModeQuery ?? "").Trim().ToLowerInvariant();
+        _attrQuery = AttrQuery?.Trim() ?? "";
         _articleInput = ArticleQuery?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(_articleInput) && !string.IsNullOrWhiteSpace(VinQuery))
+        {
+            _articleInput = VinQuery.Trim();
+        }
+        else if (string.IsNullOrWhiteSpace(_articleInput) && !string.IsNullOrWhiteSpace(EngineQuery))
+        {
+            _articleInput = EngineQuery.Trim();
+        }
+        else if (string.IsNullOrWhiteSpace(_articleInput) && !string.IsNullOrWhiteSpace(_attrQuery))
+        {
+            _articleInput = _attrQuery;
+        }
+
+        _heroTitle = _mode switch
+        {
+            "attr" => "Warehouse / more info",
+            "vin" => "VIN / Frame search",
+            "engine" => "Engine code search",
+            "car" => "Vehicle catalog",
+            "name" => "Search by name",
+            _ => "Part search"
+        };
+        _heroSubtitle = _mode switch
+        {
+            "attr" => "Search product attributes across warehouse offers (engine, size, country, cross ref).",
+            "vin" => "Look up parts by VIN / Frame — results use the warehouse offer digest.",
+            "engine" => "Look up parts by engine code across warehouse offers.",
+            "car" => "Browse by vehicle — start with a part number or open more info search.",
+            _ => "Search warehouse offers by article and brand."
+        };
+
         if (string.IsNullOrWhiteSpace(_articleInput))
         {
             return;
