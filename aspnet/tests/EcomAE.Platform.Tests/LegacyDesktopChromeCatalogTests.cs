@@ -11,7 +11,9 @@ public sealed class LegacyDesktopChromeCatalogTests
         var groups = LegacyDesktopChromeCatalog.ControlPanelTopnav();
         Assert.Equal(LegacyChromeNavCatalog.ControlPanel.Count, groups.Count);
         Assert.All(groups, g => Assert.NotEmpty(g.Links));
-        Assert.Contains(groups, g => g.Links.Any(l => l.Href.StartsWith("/CP/", StringComparison.OrdinalIgnoreCase)));
+        // Catalog may still store PHP source hrefs; product chrome rewrites via AspNetPrimaryHref.
+        Assert.Contains(groups, g => g.Links.Any(l =>
+            PhpSurfaceLinkMap.AspNetPrimaryHref(l.Href).StartsWith("/cp", StringComparison.OrdinalIgnoreCase)));
     }
 
     [Fact]
@@ -57,9 +59,12 @@ public sealed class LegacyDesktopChromeCatalogTests
         Assert.DoesNotContain(commerce.Links, l => l.Id == "command_center");
 
         Assert.Contains(groups.SelectMany(g => g.Links), l =>
-            l.Href.StartsWith("/BOS/", StringComparison.OrdinalIgnoreCase)
-            || l.Href.StartsWith("/CP/", StringComparison.OrdinalIgnoreCase)
-            || l.Href.StartsWith("/ERP/", StringComparison.OrdinalIgnoreCase));
+        {
+            var asp = PhpSurfaceLinkMap.AspNetPrimaryHref(l.Href);
+            return asp.StartsWith("/bos", StringComparison.OrdinalIgnoreCase)
+                || asp.StartsWith("/cp", StringComparison.OrdinalIgnoreCase)
+                || asp.StartsWith("/erp", StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     [Theory]

@@ -643,6 +643,8 @@ var app = builder.Build();
 
 app.UseResponseCompression();
 app.UseMiddleware<SecurityHeadersMiddleware>();
+// Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/*.
+app.UseMiddleware<PhpProductPathRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseMiddleware<RouteCutoverDecisionMiddleware>();
 // Required for Blazor SSR endpoints (MapRazorComponents adds antiforgery metadata).
