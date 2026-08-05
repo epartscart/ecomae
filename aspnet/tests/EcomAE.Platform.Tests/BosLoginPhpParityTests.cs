@@ -33,7 +33,8 @@ public sealed class BosLoginPhpParityTests
         Assert.Contains("Business Email", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__erp-features", text, StringComparison.Ordinal);
         Assert.Contains("Business Operating System v1.5.0", text, StringComparison.Ordinal);
-        Assert.Contains("/auth/login/admin", text, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.BosLogin", text, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpLogin", text, StringComparison.Ordinal);
         Assert.Contains("name=\"contact\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"password\"", text, StringComparison.Ordinal);
         Assert.Contains("id=\"bosLoginForm\"", text, StringComparison.Ordinal);

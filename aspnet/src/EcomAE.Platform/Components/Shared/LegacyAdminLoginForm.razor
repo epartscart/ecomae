@@ -35,7 +35,8 @@
         @(LoginService.IsConfigured ? "Or sign in with credentials" : "Credential fields (bridge not configured)")
     </p>
 
-    <form method="post" action="@EcomAE.Platform.Routing.EcomAeRoutes.LegacyAdminLogin" class="epc-login-html-form" aria-disabled="@(!LoginService.IsConfigured)">
+    @* Post to the same surface login URL (already nginx-proxied). Middleware handles the POST. *@
+    <form method="post" action="@LoginPostHref" class="epc-login-html-form" aria-disabled="@(!LoginService.IsConfigured)">
         <input type="hidden" name="surface" value="@SurfaceKey" />
         <input type="hidden" name="redirect" value="@RedirectPath" />
         <div class="epc-login-field">
@@ -94,6 +95,14 @@
         LegacyLoginSurface.Bos => "bos",
         LegacyLoginSurface.Storefront => "storefront",
         _ => "cp"
+    };
+
+    private string LoginPostHref => Surface switch
+    {
+        LegacyLoginSurface.Erp => EcomAE.Platform.Routing.EcomAeRoutes.ErpLogin,
+        LegacyLoginSurface.Bos => EcomAE.Platform.Routing.EcomAeRoutes.BosLogin,
+        LegacyLoginSurface.Storefront => EcomAE.Platform.Routing.EcomAeRoutes.StorefrontLogin,
+        _ => EcomAE.Platform.Routing.EcomAeRoutes.ControlPanelLogin
     };
 
     private string RedirectPath => Surface switch
