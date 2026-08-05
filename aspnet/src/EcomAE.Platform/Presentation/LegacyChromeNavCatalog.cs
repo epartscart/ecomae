@@ -11,24 +11,24 @@ public static class LegacyChromeNavCatalog
 {
     public sealed record NavItem(string Label, string Href, string? Hint = null);
 
-    /// <summary>CP top bar short labels → PHP Control Panel entry points.</summary>
+    /// <summary>CP top bar short labels → ASP.NET Control Panel entry points (PHP only via /php-reference/*).</summary>
     public static readonly IReadOnlyList<NavItem> ControlPanel =
     [
-        new("CONTROL", "/CP/", "Command centre home"),
-        new("Commerce", "/CP/shop/orders/orders", "OMS / orders (PHP console)"),
-        new("Customers", "/CP/control/users", "Users & customers"),
-        new("Documents", "/CP/control/shop/docpart", "Documents"),
-        new("ERP", "/ERP/", "ERP shell"),
-        new("Purchase", "/CP/control/shop/procurement", "Procurement"),
-        new("Channels", "/CP/control/shop/channels", "Sales channels"),
-        new("Logistics", "/CP/control/shop/logistics", "Logistics"),
-        new("AI", "/CP/control/shop/ai", "AI tools"),
-        new("Marketing", "/CP/control/shop/marketing", "Marketing"),
-        new("Payments", "/CP/control/shop/payments", "Payments"),
-        new("Integrations", "/CP/control/shop/integrations", "Integrations"),
-        new("Portal", "/CP/control/portal", "Portal / tenants"),
-        new("Platform", "/CP/control/portal/epc_super_cp_fleet_dashboard", "Platform fleet"),
-        new("Operator", "/CP/control", "Operator tools")
+        new("CONTROL", "/cp", "Command centre home"),
+        new("Commerce", "/cp/orders", "OMS / orders"),
+        new("Customers", "/cp/users-app", "Users & customers"),
+        new("Documents", "/cp/document-control-app", "Documents"),
+        new("ERP", "/erp", "ERP shell"),
+        new("Purchase", "/cp/purchase-requests-app", "Procurement"),
+        new("Channels", "/cp", "Sales channels"),
+        new("Logistics", "/cp/carriers-app", "Logistics"),
+        new("AI", "/cp/ai-service-app", "AI tools"),
+        new("Marketing", "/cp/marketing-broadcast-app", "Marketing"),
+        new("Payments", "/cp/payment-gateways-app", "Payments"),
+        new("Integrations", "/cp/integrations-app", "Integrations"),
+        new("Portal", "/cp/tenants-app", "Portal / tenants"),
+        new("Platform", "/bos", "Platform fleet"),
+        new("Operator", "/cp", "Operator tools")
     ];
 
     public static readonly IReadOnlyList<NavItem> ControlPanelQuickActions =

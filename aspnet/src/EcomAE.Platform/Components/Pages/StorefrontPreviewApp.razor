@@ -8,53 +8,48 @@
 <PageTitle>@_pageTitle</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
 <PhpChromeBodyClass Surface="storefront" />
-@* GA4 + Clarity emit via PhpSurfaceHead IncludeStorefrontAnalytics (Clarity in initial HTML for probes). *@
+@* Live epartscart `/` proxies here (ASP.NET). PHP style chrome; PHP product only via /php-reference/*. *@
 
-@* Live epartscart `/` is PHP same-to-same (classic-entry rewrite → index.php).
-   This /storefront/app route is preview/compare only — not the tenant homepage. *@
-@if (_tenantLiveHomeIsPhp)
-{
-    <div class="epc-sf-preview-note" style="max-width:52rem;margin:2rem auto;padding:1.25rem 1.5rem;border:1px solid #fecaca;background:#fff1f2;border-radius:.5rem;font:600 .95rem/1.45 system-ui,sans-serif;color:#7f1d1d;">
-        <p style="margin:0 0 .75rem;">Live storefront home is <strong>PHP same-to-same</strong> (full chrome).</p>
-        <p style="margin:0 0 .75rem;">Open <a href="/">epartscart.com/</a> or <a href="/php-reference/home">/php-reference/home</a> — do not use this Blazor scaffold as the customer homepage.</p>
-        <p style="margin:0;"><a href="/?php_preview=1">Continue to hybrid preview chrome →</a></p>
-    </div>
-}
-else
-{
-    <PhpStorefrontDesktopChrome>
-        <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/storefront/app" />
+<PhpStorefrontDesktopChrome>
+    @if (string.IsNullOrWhiteSpace(_phpHref))
+    {
+        <PhpAspPistonBanner />
+        <PhpStorefrontHomeDepth
+            BrandsHref="/storefront/search-app"
+            CatalogHref="/storefront/search-app"
+            VinHref="/storefront/search-app" />
 
-        @if (string.IsNullOrWhiteSpace(_phpHref))
-        {
-            <PhpAspPistonBanner />
-            <PhpStorefrontHomeDepth />
+        <PhpHybridModuleDirectory
+            Title="Storefront surface directory"
+            Subtitle="ASP.NET storefront browse, account, and checkout surfaces — PHP only via reference links"
+            Links="@PhpModuleCatalog.StorefrontSurfaces"
+            PhpWorkspaceBase="/storefront/app" />
 
-            <PhpHybridModuleDirectory
-                Title="Storefront surface directory"
-                Subtitle="Storefront browse, account, and checkout surfaces"
-                Links="@PhpModuleCatalog.StorefrontSurfaces"
-                PhpWorkspaceBase="/storefront/app" />
-        }
-    </PhpStorefrontDesktopChrome>
-}
+        <p style="margin:1rem 0 0;font-size:.85rem;color:#64748b;">
+            Compare full PHP chrome: <a href="/php-reference/home">/php-reference/home</a>
+        </p>
+    }
+    else
+    {
+        <div class="epc-sf-preview-note" style="max-width:52rem;margin:1rem 0;padding:1rem 1.25rem;border:1px solid #fde68a;background:#fffbeb;border-radius:.5rem;font:600 .9rem/1.45 system-ui,sans-serif;color:#78350f;">
+            Hybrid PHP iframe preview is disabled for product clicks.
+            Open <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpHref)">PHP reference</a> or continue on ASP.NET.
+        </div>
+    }
+</PhpStorefrontDesktopChrome>
 
 @code {
     private string? _phpHref;
     private string _pageTitle = "eParts Cart (Autoparts)";
-    private bool _tenantLiveHomeIsPhp;
 
     protected override void OnInitialized()
     {
         var ctx = Http.HttpContext;
         var host = ctx?.Request.Host.Host ?? string.Empty;
         _pageTitle = StorefrontIndustryHostResolver.ResolveStorefrontTitle(host);
-        _tenantLiveHomeIsPhp = host.EndsWith("epartscart.com", StringComparison.OrdinalIgnoreCase)
-            && ctx?.Request.Query.ContainsKey("php_preview") != true;
         if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
         {
             _phpHref = php.ToString();
-            _tenantLiveHomeIsPhp = false;
         }
     }
 }

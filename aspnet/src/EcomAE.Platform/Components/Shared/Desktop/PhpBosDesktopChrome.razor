@@ -9,7 +9,7 @@
 <div class="bos-body bos-body--topnav epc-php-font-root">
     <nav class="bos-topnav" id="bosTopnav" aria-label="BOS top navigation">
         <div class="bos-topnav__inner">
-            <a class="bos-topnav__brand" href="/BOS/">
+            <a class="bos-topnav__brand" href="/bos">
                 <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" />
                 <span>BOS</span>
             </a>
@@ -34,7 +34,7 @@
                                     }
                                     @group.Label
                                 </div>
-                                <a class="bos-topnav__panel-hub" href="@(group.HubHref ?? group.Links[0].Href)">
+                                <a class="bos-topnav__panel-hub" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(group.HubHref ?? group.Links[0].Href)">
                                     Open first <i class="fa fa-arrow-right" aria-hidden="true"></i>
                                 </a>
                             </div>
@@ -45,7 +45,7 @@
                                         @foreach (var link in group.Links)
                                         {
                                             <li>
-                                                <a class="bos-topnav__link" data-module="@link.Id" href="@link.Href">
+                                                <a class="bos-topnav__link" data-module="@link.Id" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href)">
                                                     <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
                                                     @link.Label
                                                 </a>
@@ -67,7 +67,8 @@
                 {
                     <span class="bos-topnav__user">Admin session</span>
                 }
-                <a class="bos-topnav__logout" href="/BOS/">BOS home</a>
+                <a class="bos-topnav__logout" href="/bos">BOS home</a>
+                <a class="bos-topnav__logout" href="/php-reference/bos">PHP reference</a>
             </div>
         </div>
     </nav>

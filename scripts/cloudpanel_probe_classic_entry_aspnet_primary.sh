@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Probe classic-entry:
 #   www.ecomae.com  — /cp /erp /bos / → ASP.NET same-URL
-#   epartscart.com  — /cp /erp /bos → ASP.NET; / → PHP same-to-same presentation
-# PHP reference remains on separate /php-reference/* links.
+#   epartscart.com  — / /cp /erp /bos → ASP.NET same-URL (PHP style chrome)
+# PHP reference remains on separate /php-reference/* links only.
 set -euo pipefail
 
 UA="${ECOMAE_PROBE_UA:-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36}"
@@ -33,11 +33,10 @@ is_php_cp_only_body() {
   return 1
 }
 
-# Full PHP storefront chrome fingerprints (must match php-reference/home).
-is_php_storefront_same_to_same() {
+# ASP.NET storefront chrome should carry PHP-style fingerprints (not PHP HTML).
+is_aspnet_storefront_php_style() {
   local body="$1"
-  # Reject simplified Blazor scaffold chrome.
-  if grep -Eiq 'epc-modex-shell|Fast dispatch|VIN / VEHICLE SEARCH|ecomae-php-chrome-surface' <<<"$body"; then
+  if ! is_aspnet_body "$body"; then
     return 1
   fi
   if grep -Fq 'Garage Manager' <<<"$body" \
@@ -63,6 +62,14 @@ check_same_url_aspnet() {
       say "FAIL  ${base}${path} redirected to app path (${loc}) — tenant-shared URL must stay unchanged"
       fail=$((fail + 1))
       return
+    fi
+    # Hard login walls must not kick shared shells away from browse detail.
+    if [[ "$path" == "/cp" || "$path" == "/cp/" || "$path" == "/erp" || "$path" == "/erp/" || "$path" == "/bos" || "$path" == "/bos/" ]]; then
+      if [[ "$loc" == *"/login"* ]]; then
+        say "FAIL  ${base}${path} hard-redirected to login (${loc}) — guest must browse ASP.NET shell"
+        fail=$((fail + 1))
+        return
+      fi
     fi
   fi
 
@@ -104,27 +111,27 @@ check_same_url_aspnet() {
   fail=$((fail + 1))
 }
 
-check_tenant_home_php_same_to_same() {
+check_tenant_home_aspnet_php_style() {
   local base="$1"
   local final body
   final="$(curl -sS -A "$UA" -L --max-redirs 5 -o /tmp/classic_tenant_home.body -w '%{http_code}' --max-time 60 "${base}/" 2>/dev/null || echo 000)"
   body="$(cat /tmp/classic_tenant_home.body 2>/dev/null || true)"
   if [[ "$final" != "200" ]]; then
-    say "FAIL  ${base}/ want PHP same-to-same HTTP 200, got ${final}"
+    say "FAIL  ${base}/ want ASP.NET PHP-style HTTP 200, got ${final}"
     fail=$((fail + 1))
     return
   fi
-  if is_php_storefront_same_to_same "$body"; then
-    say "PASS  ${base}/ PHP same-to-same storefront chrome HTTP 200 (len=${#body})"
+  if is_aspnet_storefront_php_style "$body"; then
+    say "PASS  ${base}/ ASP.NET PHP-style storefront chrome HTTP 200 (len=${#body})"
     pass=$((pass + 1))
     return
   fi
   if is_aspnet_body "$body"; then
-    say "FAIL  ${base}/ still ASP.NET scaffold chrome — want PHP same-to-same (Garage Manager / WhatsApp / AI Parts Expert)"
+    say "FAIL  ${base}/ ASP.NET body missing PHP-style fingerprints (Garage Manager / WhatsApp / AI Parts Expert / search tabs)"
     fail=$((fail + 1))
     return
   fi
-  say "FAIL  ${base}/ missing PHP storefront chrome fingerprints (len=${#body})"
+  say "FAIL  ${base}/ missing ASP.NET storefront chrome (still PHP HTML?) (len=${#body})"
   fail=$((fail + 1))
 }
 
@@ -142,7 +149,7 @@ check_php_reference() {
   fi
 }
 
-say "=== classic-entry probe (ASP.NET chrome + PHP same-to-same tenant home) ==="
+say "=== classic-entry probe (ASP.NET primary + PHP style; PHP reference only) ==="
 say "WWW=$WWW TENANT=$TENANT"
 
 for path in /cp /cp/ /erp /erp/ /bos /bos/; do
@@ -158,7 +165,7 @@ if [[ "$PROBE_TENANT" == "1" ]]; then
   for path in /cp /cp/ /erp /erp/ /bos /bos/; do
     check_same_url_aspnet "$TENANT" "$path"
   done
-  check_tenant_home_php_same_to_same "$TENANT"
+  check_tenant_home_aspnet_php_style "$TENANT"
   check_php_reference "$TENANT" "/php-reference/home"
   check_php_reference "$TENANT" "/php-reference/cp"
 fi
@@ -167,8 +174,8 @@ say ""
 say "PASS=$pass FAIL=$fail"
 if [[ "$fail" -gt 0 ]]; then
   say "RESULT=FAIL — classic-entry probe not green"
-  say "Tenant home must be PHP same-to-same (not Blazor /storefront/app scaffold)."
+  say "Tenant home must be ASP.NET with PHP-style chrome; PHP only via /php-reference/*."
   exit 1
 fi
-say "RESULT=PASS — www ASP.NET; epartscart /cp|/erp|/bos ASP.NET; epartscart / PHP same-to-same"
+say "RESULT=PASS — www + epartscart shared entries ASP.NET; PHP reference-only"
 exit 0

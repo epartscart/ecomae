@@ -9,17 +9,18 @@
     <div id="header">
         <div class="color-line"></div>
         <div class="epc-cp-header-bar">
-            <a class="light-version ech-logo-wrap epc-cp-header-logo" href="/CP/">
+            <a class="light-version ech-logo-wrap epc-cp-header-logo" href="/cp">
                 <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eParts Cart" />
             </a>
             <div class="epc-cp-topbar-strip hidden-xs">
                 <nav class="epc-cp-topbar-ctas" aria-label="CP topbar CTAs">
-                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="/ERP/">ERP Operations</a>
-                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--storefront" href="https://epartscart.com/">STOREFRONT</a>
+                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="/erp">ERP Operations</a>
+                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--storefront" href="/">STOREFRONT</a>
                 </nav>
             </div>
             <nav class="epc-cp-header-actions" aria-label="CP header actions">
-                <a href="/CP/">Control panel</a>
+                <a href="/cp">Control panel</a>
+                <a href="/php-reference/cp">PHP reference</a>
                 @if (!IsAdmin)
                 {
                     <a class="epc-cp-header-login" href="/cp/login">Sign in</a>
@@ -48,7 +49,7 @@
                                         @foreach (var link in group.Links)
                                         {
                                             <li>
-                                                <a href="@link.Href">@link.Label</a>
+                                                <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href)">@link.Label</a>
                                             </li>
                                         }
                                     </ul>
@@ -72,7 +73,7 @@
             </div>
         </div>
         <footer class="footer">
-            <div>Control Panel · <a href="/CP/">Open control panel</a></div>
+            <div>Control Panel · <a href="/cp">Open control panel</a> · <a href="/php-reference/cp">PHP reference</a></div>
         </footer>
     </div>
 </div>

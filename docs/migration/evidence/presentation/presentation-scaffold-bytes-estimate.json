@@ -1,6 +1,6 @@
 {
   "role": "presentation-scaffold-bytes-estimate",
-  "generatedAt": "2026-08-04T19:42:03.256185+00:00",
+  "generatedAt": "2026-08-05T07:57:55.413493+00:00",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
@@ -13,7 +13,7 @@
   "floors": {
     "storefront_app": {
       "floorBytes": 40558,
-      "estimatedCombinedBytes": 64261,
+      "estimatedCombinedBytes": 65014,
       "meetsFloor": true,
       "note": "Combined storefront/app chrome + piston + home depth offline estimate"
     },
@@ -49,10 +49,10 @@
     },
     "storefront_app": {
       "path": "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor",
-      "markupBytes": 855,
+      "markupBytes": 1608,
       "foreachLoops": 0,
       "expansionBonusBytes": 0,
-      "estimatedSsrMarkupBytes": 855,
+      "estimatedSsrMarkupBytes": 1608,
       "markersExpected": [],
       "markersMissing": [],
       "markersOk": true
