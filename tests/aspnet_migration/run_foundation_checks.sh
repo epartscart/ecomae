@@ -1526,10 +1526,13 @@ check 'CP command centre has no hard login NavigateTo' bash -c '! grep -Fq "Navi
 check 'classic-entry has php-reference/cp' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /php-reference/cp'
 check 'classic-entry installer exists' test -x "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh"
 check 'classic-entry installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY'
-check 'classic-entry installer expects 24 routes' contains "$ROOT/scripts/lib/ecomae_nginx_server_block_edit.py" 'expected = 24'
+check 'classic-entry installer expects 26 routes' contains "$ROOT/scripts/lib/ecomae_nginx_server_block_edit.py" 'expected = 26'
 check 'classic-entry www example has cp login bridge' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /cp/login'
 check 'classic-entry tenant example has cp login bridge' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'location = /cp/login'
 check 'classic-entry tenant example has bos login bridge' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'location = /bos/login'
+check 'classic-entry www example has auth login admin' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /auth/login/admin'
+check 'classic-entry tenant example has auth login admin' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'location = /auth/login/admin'
+check 'auth login admin emergency installer exists' test -x "$ROOT/scripts/cloudpanel_install_auth_login_admin_route.sh"
 check 'classic-entry installer forbids return 302 on shared entries' contains "$ROOT/scripts/lib/ecomae_nginx_server_block_edit.py" 'tenant-shared URLs must stay unchanged'
 check 'classic-entry installer reloads per host' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'Reload after EACH successful host'
 check 'classic-entry installer supports --all-hosts' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" '--all-hosts'

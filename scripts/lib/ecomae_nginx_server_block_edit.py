@@ -127,6 +127,8 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
             "/erp/login/",
             "/bos/login",
             "/bos/login/",
+            "/auth/login/admin",
+            "/auth/login/admin/",
         }
         if not is_proxy and not is_php_ref:
             raise SystemExit(f"ERROR: block must proxy_pass ASP.NET or php-reference ({route})")
@@ -156,7 +158,8 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
         blocks.append((route, indent_block(block_raw)))
 
     # 18 shared entries (/ + cp/erp/bos ×4 + php-reference ×5) + 6 login bridges
-    expected = 24
+    # + 2 auth POST targets (/auth/login/admin{,/})
+    expected = 26
     if len(blocks) != expected:
         raise SystemExit(f"ERROR: expected {expected} classic-entry routes, found {len(blocks)}")
     return named_blocks, blocks

@@ -84,6 +84,19 @@ ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
   bash scripts/cloudpanel_sync_secret_succession_from_php.sh
 # Verify (must print OK, never prints secret):
 bash scripts/cloudpanel_verify_secret_succession_configured.sh
+
+# REQUIRED — proxy login POST to ASP.NET (fixes HTTP 500 on /auth/login/admin):
+ECOMAE_CONFIRM_INSTALL_AUTH_LOGIN_ADMIN=YES \
+  bash scripts/cloudpanel_install_auth_login_admin_route.sh
+# Or full classic-entry reinstall (includes /auth/login/admin after this pack):
+# ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
+# ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
+#   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
+
+# Probe (expect 302/401 JSON — not empty HTTP 500):
+curl -sS -D - -o /tmp/login_probe.body -X POST https://www.ecomae.com/auth/login/admin \
+  -H 'Content-Type: application/json' -H 'Accept: application/json' \
+  -d '{"contact":"x","password":"y","surface":"bos"}' | head -n 20
 # Then sign in with the SAME admin email/password used on PHP /CP/ /ERP/ /BOS/.
 
 # Installs into server{} by host — ALL product tenants (no half-and-half):
