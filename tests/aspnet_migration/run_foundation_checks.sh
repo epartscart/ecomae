@@ -1539,6 +1539,7 @@ check 'classic-entry evidence routeCount is 24' contains "$ROOT/docs/migration/e
 check 'classic-entry evidence urlPreserved true' contains "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json" '"urlPreserved": true'
 check 'classic-entry evidence keeps cutover false' contains "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json" '"cutoverAllowed": false'
 check 'classic-entry evidence keeps PHP reference' contains "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json" '"phpReferenceKept": true'
+check 'classic-entry evidence records live probe PASS' contains "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json" '"result": "PASS"'
 check 'deploy packs classic-entry installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_classic_entry_aspnet_primary.sh'
 check 'deploy packs classic-entry probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_classic_entry_aspnet_primary.sh'
 check 'CP app page aliases /cp' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor" '@page "/cp"'

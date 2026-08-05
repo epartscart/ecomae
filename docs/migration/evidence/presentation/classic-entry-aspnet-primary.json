@@ -1,6 +1,6 @@
 {
   "role": "classic-entry-aspnet-primary",
-  "generatedAtUnix": 1785905600,
+  "generatedAtUnix": 1785905838,
   "ok": true,
   "routeCount": 24,
   "tenantRouteCount": 24,
@@ -10,14 +10,27 @@
   "aspNetPrimaryEntries": true,
   "urlPreserved": true,
   "phpReferenceKept": true,
+  "liveProbe": {
+    "atUnix": 1785905838,
+    "result": "PASS",
+    "pass": 19,
+    "fail": 0,
+    "operator": "scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh",
+    "branch": "cursor/epartscart-vhost-classic-entry-7b3b",
+    "commit": "28d28f61",
+    "note": "Both www.ecomae.com and www.epartscart.com shared entries + php-reference PASS on CloudPanel."
+  },
   "hosts": {
     "www.ecomae.com": {
       "homeBackend": "/marketing/app",
-      "sharedEntries": ["/cp", "/erp", "/bos", "/"]
+      "sharedEntries": ["/cp", "/erp", "/bos", "/"],
+      "loginBridges": ["/cp/login", "/erp/login", "/bos/login"]
     },
     "www.epartscart.com": {
       "homeBackend": "/storefront/app",
       "sharedEntries": ["/cp", "/erp", "/bos", "/"],
+      "loginBridges": ["/cp/login", "/erp/login", "/bos/login"],
+      "nginxTarget": "server_name www.epartscart.com block inside www.ecomae.com.conf mega-conf",
       "requiresConfirm": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES"
     }
   },
@@ -43,7 +56,7 @@
     "https://www.epartscart.com/bos",
     "https://www.epartscart.com/"
   ],
-  "note": "Tenant-shared URLs stay unchanged (proxy to ASP.NET apps). Login bridges /cp/login /erp/login /bos/login included (apps redirect there when unauthenticated). No return 302 from shared entries to /cp/app. PHP reference is separate under /php-reference/*. Broad trees forbidden. cutoverAllowed=false.",
+  "note": "Live classic-entry probe PASS (19/19). Tenant-shared URLs stay unchanged (proxy to ASP.NET). Login bridges included. PHP reference separate under /php-reference/*. Deep /cp/... module paths remain PHP until per-route dual-sample. Broad trees forbidden. cutoverAllowed=false.",
   "installer": "scripts/cloudpanel_install_classic_entry_aspnet_primary.sh",
   "confirmEnv": "ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES",
   "tenantConfirmEnv": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES",
