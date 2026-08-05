@@ -2,9 +2,11 @@
 
 Use this checklist (or live `/migration/compare` after deploy) to compare PHP vs ASP.NET yourself.
 
+**Confirmed model:** ASP.NET Core destination primary; PHP kept as **reference** for previous results / gap-finding (`docs/migration/PHP_AS_REFERENCE_MODE.md`, `GET /migration/php-reference-mode`).
+
 Locks: `cutoverAllowed=false`, `readyForPhpRemoval=false`, interactive ASP.NET complete = 0.
 
-## Super CP PHP (authoritative look / function)
+## Super CP PHP (reference / previous results)
 
 | Area | URL |
 | --- | --- |

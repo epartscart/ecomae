@@ -13,6 +13,8 @@ public static class EcomAeRoutes
     public const string MigrationRouteCutover = "/migration/route-cutover";
     public const string MigrationDataParity = "/migration/data-parity";
     public const string MigrationCutoverValidation = "/migration/cutover-validation";
+    /// <summary>ASP.NET-primary intent with PHP retained as reference for gap-finding (not PHP deletion).</summary>
+    public const string MigrationPhpReferenceMode = "/migration/php-reference-mode";
     public const string MigrationUmapiUsage = "/migration/umapi-usage";
     public const string MigrationPlatformJobs = "/migration/platform-jobs";
     public const string SurfaceParity = "/migration/surface-parity";

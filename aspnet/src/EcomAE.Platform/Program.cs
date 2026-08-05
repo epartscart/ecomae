@@ -19,6 +19,7 @@ builder.Services.AddRazorComponents();
 
 builder.Services.Configure<EcomAeOptions>(builder.Configuration.GetSection(EcomAeOptions.SectionName));
 builder.Services.Configure<MigrationRouteCutoverOptions>(builder.Configuration.GetSection(MigrationRouteCutoverOptions.SectionName));
+builder.Services.Configure<PhpReferenceOptions>(builder.Configuration.GetSection(PhpReferenceOptions.SectionName));
 builder.Services.Configure<PriceLookupOptions>(builder.Configuration.GetSection(PriceLookupOptions.SectionName));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<ITenantRegistry, ConfigurationTenantRegistry>();
@@ -123,6 +124,7 @@ builder.Services.AddSingleton<IMigrationCutoverPlanner, MigrationCutoverPlanner>
 builder.Services.AddSingleton<IMigrationRouteCutoverPolicy, MigrationRouteCutoverPolicy>();
 builder.Services.AddSingleton<IDataParityReporter, DataParityReporter>();
 builder.Services.AddSingleton<ICutoverValidationReporter, CutoverValidationReporter>();
+builder.Services.AddSingleton<IPhpReferenceModeReporter, PhpReferenceModeReporter>();
 builder.Services.AddSingleton<IMigrationProgressReporter, MigrationProgressReporter>();
 builder.Services.AddSingleton<ISurfaceParityReporter, SurfaceParityReporter>();
 builder.Services.AddSingleton<IZeroPhpCompletionReporter, ZeroPhpCompletionReporter>();
@@ -650,6 +652,7 @@ app.MapGet(EcomAeRoutes.MigrationRouteCutover, (HttpContext context, IMigrationR
 app.MapGet(EcomAeRoutes.MigrationDataParity, (IDataParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.MigrationCutoverValidation, (ICutoverValidationReporter reporter) => Results.Ok(reporter.BuildReport()));
+app.MapGet(EcomAeRoutes.MigrationPhpReferenceMode, (IPhpReferenceModeReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.MigrationUmapiUsage, async (int? days, IUmapiUsageSummaryReporter reporter, CancellationToken cancellationToken) =>
 {

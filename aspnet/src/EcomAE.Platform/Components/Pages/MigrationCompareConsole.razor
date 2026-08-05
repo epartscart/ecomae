@@ -1,9 +1,16 @@
 @page "/migration/compare"
 @layout Layout.MigrationConsoleLayout
+@using EcomAE.Platform.Migration
+@inject IPhpReferenceModeReporter PhpReference
 
 @{
     // Honest live probe (2026-08-04 post-shadow install): digests 127/127, presentation apps 142/144.
-    // Product chrome on tenants remains PHP; ASP.NET compare is www.ecomae.com hybrid only.
+    // Confirmed model: ASP.NET primary destination; PHP kept as reference for previous results / gaps.
+    var phpRef = PhpReference.BuildReport();
+    var wwwPhp = string.IsNullOrWhiteSpace(phpRef.WwwPhpBaseUrl) ? "https://www.ecomae.com" : phpRef.WwwPhpBaseUrl;
+    var tenantPhp = string.IsNullOrWhiteSpace(phpRef.TenantPhpBaseUrl) ? "https://www.epartscart.com" : phpRef.TenantPhpBaseUrl;
+    var dedicatedCp = string.IsNullOrWhiteSpace(phpRef.DedicatedCpPhpBaseUrl) ? "https://cp.ecomae.com" : phpRef.DedicatedCpPhpBaseUrl;
+    var aspNet = string.IsNullOrWhiteSpace(phpRef.AspNetPrimaryBaseUrl) ? "https://www.ecomae.com" : phpRef.AspNetPrimaryBaseUrl;
 }
 
 <style>
@@ -112,24 +119,27 @@
 </style>
 
 <p class="lede">
-    Side-by-side links so you can compare Super CP and tenant ePartsCart in PHP vs ASP.NET hybrid previews.
-    Product chrome stays PHP-authoritative; ASP.NET is exact-route shadow / hybrid only.
+    Side-by-side links: open PHP (reference / previous results) next to ASP.NET (destination primary).
+    Confirmed model <code>@phpRef.Mode</code> — PHP project stays available to find gaps; this is not PHP deletion.
 </p>
 
 <h1>Human compare board</h1>
 
 <div class="cta-row">
     <a class="cta cta-primary" href="/migration/console">Zero-PHP console</a>
+    <a class="cta cta-ghost" href="/migration/php-reference-mode">PHP reference mode JSON</a>
     <a class="cta cta-ghost" href="/migration/live-surface-links">Live surface links JSON</a>
     <a class="cta cta-ghost" href="/migration/presentation-parity">Presentation parity</a>
 </div>
 
 <div class="banner">
-    <strong>Safety:</strong> Tenant hosts (<code>epartscart.com</code> / <code>www.epartscart.com</code>) must keep PHP chrome.
-    ASP.NET <code>/cp/app</code>, <code>/health</code>, digests on tenants should stay <strong>404</strong>.
-    Compare ASP.NET only on <code>www.ecomae.com</code>.
-    Target: <strong>100% ASP.NET / 0 PHP</strong>. Interim locks: <code>cutoverAllowed=false</code>, <code>readyForPhpRemoval=false</code> until dual-sample + approval.
-    Path: <a href="/migration/aspnet-zero-php-path">/migration/aspnet-zero-php-path</a>.
+    <strong>Confirmed architecture:</strong> ASP.NET Core becomes live primary; PHP stays installed as <strong>reference</strong> so you can still see previous results and spot gaps.
+    Status: <code>@phpRef.Status</code>. Locks: <code>cutoverAllowed=@phpRef.CutoverAllowed.ToString().ToLowerInvariant()</code>,
+    <code>readyForPhpRemoval=@phpRef.ReadyForPhpRemoval.ToString().ToLowerInvariant()</code>,
+    <code>RequirePhpFallback=@phpRef.RequirePhpFallback.ToString().ToLowerInvariant()</code>.
+    Tenant hosts keep PHP chrome until unlocked parity shadows.
+    Path: <a href="/migration/aspnet-zero-php-path">/migration/aspnet-zero-php-path</a> ·
+    <a href="/migration/php-reference-mode">/migration/php-reference-mode</a>.
 </div>
 
 <div class="meter">
@@ -152,8 +162,8 @@
 </div>
 
 <section class="section">
-    <h2>1. Super CP — PHP (authoritative)</h2>
-    <p>Look, branding, login animations, and full menus live here.</p>
+    <h2>1. Super CP — PHP (reference / previous results)</h2>
+    <p>Keep this stack available after ASP.NET is primary so you can still open previous screens and find gaps.</p>
     <table class="compare">
         <thead>
             <tr>
@@ -166,32 +176,32 @@
         <tbody>
             <tr>
                 <td>Marketing</td>
-                <td><a href="https://www.ecomae.com/" target="_blank" rel="noopener">www.ecomae.com/</a></td>
-                <td><span class="stack php">PHP</span></td>
-                <td>Animated <code>epm-hub</code> (matrix/orbit/flow) + all marketing pages — authoritative</td>
+                <td><a href="@wwwPhp/" target="_blank" rel="noopener">@wwwPhp/</a></td>
+                <td><span class="stack php">PHP ref</span></td>
+                <td>Animated <code>epm-hub</code> (matrix/orbit/flow) + all marketing pages — previous baseline</td>
             </tr>
             <tr>
                 <td>CP</td>
-                <td><a href="https://www.ecomae.com/CP/" target="_blank" rel="noopener">/CP/</a></td>
-                <td><span class="stack php">PHP</span></td>
+                <td><a href="@wwwPhp/CP/" target="_blank" rel="noopener">@wwwPhp/CP/</a></td>
+                <td><span class="stack php">PHP ref</span></td>
                 <td>Login graphics, desktop chrome, menus</td>
             </tr>
             <tr>
                 <td>ERP</td>
-                <td><a href="https://www.ecomae.com/ERP/" target="_blank" rel="noopener">/ERP/</a></td>
-                <td><span class="stack php">PHP</span></td>
+                <td><a href="@wwwPhp/ERP/" target="_blank" rel="noopener">@wwwPhp/ERP/</a></td>
+                <td><span class="stack php">PHP ref</span></td>
                 <td>Finance desktop, areas, branding</td>
             </tr>
             <tr>
                 <td>BOS</td>
-                <td><a href="https://www.ecomae.com/BOS/" target="_blank" rel="noopener">/BOS/</a></td>
-                <td><span class="stack php">PHP</span></td>
+                <td><a href="@wwwPhp/BOS/" target="_blank" rel="noopener">@wwwPhp/BOS/</a></td>
+                <td><span class="stack php">PHP ref</span></td>
                 <td>Particles, rings, role tabs, full modules</td>
             </tr>
             <tr>
                 <td>Dedicated CP host</td>
-                <td><a href="https://cp.ecomae.com/CP/" target="_blank" rel="noopener">cp.ecomae.com/CP/</a></td>
-                <td><span class="stack php">PHP</span></td>
+                <td><a href="@dedicatedCp/CP/" target="_blank" rel="noopener">@dedicatedCp/CP/</a></td>
+                <td><span class="stack php">PHP ref</span></td>
                 <td>Same Super CP chrome on dedicated host</td>
             </tr>
         </tbody>
@@ -199,8 +209,8 @@
 </section>
 
 <section class="section">
-    <h2>2. Super CP — ASP.NET hybrid (www only)</h2>
-    <p>Preview shells + read UIs. Not product cutover. Open side-by-side with the PHP URLs above.</p>
+    <h2>2. Super CP — ASP.NET (destination primary / www)</h2>
+    <p>Destination runtime shells + read UIs. Open side-by-side with the PHP reference URLs above to find gaps.</p>
     <table class="compare">
         <thead>
             <tr>
@@ -213,46 +223,46 @@
         <tbody>
             <tr>
                 <td>CP</td>
-                <td><a href="https://www.ecomae.com/cp/app" target="_blank" rel="noopener">/cp/app</a> <span class="stack aspnet">ASP.NET</span></td>
-                <td><a href="https://www.ecomae.com/cp/login" target="_blank" rel="noopener">/cp/login</a></td>
+                <td><a href="@aspNet/cp/app" target="_blank" rel="noopener">/cp/app</a> <span class="stack aspnet">ASP.NET</span></td>
+                <td><a href="@aspNet/cp/login" target="_blank" rel="noopener">/cp/login</a></td>
                 <td>
-                    <a href="https://www.ecomae.com/cp/users-app" target="_blank" rel="noopener">users-app</a> ·
-                    <a href="https://www.ecomae.com/cp/groups-app" target="_blank" rel="noopener">groups-app</a> ·
-                    <a href="https://www.ecomae.com/cp/orders" target="_blank" rel="noopener">orders</a>
+                    <a href="@aspNet/cp/users-app" target="_blank" rel="noopener">users-app</a> ·
+                    <a href="@aspNet/cp/groups-app" target="_blank" rel="noopener">groups-app</a> ·
+                    <a href="@aspNet/cp/orders" target="_blank" rel="noopener">orders</a>
                 </td>
             </tr>
             <tr>
                 <td>ERP</td>
-                <td><a href="https://www.ecomae.com/erp/app" target="_blank" rel="noopener">/erp/app</a> <span class="stack aspnet">ASP.NET</span></td>
-                <td><a href="https://www.ecomae.com/erp/login" target="_blank" rel="noopener">/erp/login</a></td>
-                <td><a href="https://www.ecomae.com/erp/sales-orders-app" target="_blank" rel="noopener">sales-orders-app</a></td>
+                <td><a href="@aspNet/erp/app" target="_blank" rel="noopener">/erp/app</a> <span class="stack aspnet">ASP.NET</span></td>
+                <td><a href="@aspNet/erp/login" target="_blank" rel="noopener">/erp/login</a></td>
+                <td><a href="@aspNet/erp/sales-orders-app" target="_blank" rel="noopener">sales-orders-app</a></td>
             </tr>
             <tr>
                 <td>BOS</td>
-                <td><a href="https://www.ecomae.com/bos/app" target="_blank" rel="noopener">/bos/app</a> <span class="stack aspnet">ASP.NET</span></td>
-                <td><a href="https://www.ecomae.com/bos/login" target="_blank" rel="noopener">/bos/login</a></td>
+                <td><a href="@aspNet/bos/app" target="_blank" rel="noopener">/bos/app</a> <span class="stack aspnet">ASP.NET</span></td>
+                <td><a href="@aspNet/bos/login" target="_blank" rel="noopener">/bos/login</a></td>
                 <td>
-                    <a href="https://www.ecomae.com/bos/tenants-app" target="_blank" rel="noopener">tenants-app</a> ·
-                    <a href="https://www.ecomae.com/bos/fleet-health-app" target="_blank" rel="noopener">fleet-health-app</a> ·
-                    <a href="https://www.ecomae.com/bos/audit-log-app" target="_blank" rel="noopener">audit-log-app</a>
+                    <a href="@aspNet/bos/tenants-app" target="_blank" rel="noopener">tenants-app</a> ·
+                    <a href="@aspNet/bos/fleet-health-app" target="_blank" rel="noopener">fleet-health-app</a> ·
+                    <a href="@aspNet/bos/audit-log-app" target="_blank" rel="noopener">audit-log-app</a>
                 </td>
             </tr>
             <tr>
                 <td>Storefront</td>
-                <td><a href="https://www.ecomae.com/storefront/app" target="_blank" rel="noopener">/storefront/app</a> <span class="stack aspnet">ASP.NET</span></td>
-                <td><a href="https://www.ecomae.com/storefront/login" target="_blank" rel="noopener">/storefront/login</a></td>
+                <td><a href="@aspNet/storefront/app" target="_blank" rel="noopener">/storefront/app</a> <span class="stack aspnet">ASP.NET</span></td>
+                <td><a href="@aspNet/storefront/login" target="_blank" rel="noopener">/storefront/login</a></td>
                 <td>
-                    <a href="https://www.ecomae.com/storefront/search-app" target="_blank" rel="noopener">search-app</a> ·
-                    <a href="https://www.ecomae.com/storefront/cart-app" target="_blank" rel="noopener">cart-app</a>
+                    <a href="@aspNet/storefront/search-app" target="_blank" rel="noopener">search-app</a> ·
+                    <a href="@aspNet/storefront/cart-app" target="_blank" rel="noopener">cart-app</a>
                 </td>
             </tr>
             <tr>
                 <td>Marketing (ecomae.com)</td>
-                <td><a href="https://www.ecomae.com/marketing/app" target="_blank" rel="noopener">/marketing/app</a> <span class="stack aspnet">ASP.NET</span></td>
+                <td><a href="@aspNet/marketing/app" target="_blank" rel="noopener">/marketing/app</a> <span class="stack aspnet">ASP.NET</span></td>
                 <td>—</td>
                 <td>
                     Animated <code>epm-hub</code> preview · hybrid page directory ·
-                    live <a href="https://www.ecomae.com/" target="_blank" rel="noopener">www.ecomae.com/</a> stays PHP
+                    PHP reference <a href="@wwwPhp/" target="_blank" rel="noopener">@wwwPhp/</a>
                 </td>
             </tr>
         </tbody>
@@ -260,40 +270,40 @@
 </section>
 
 <section class="section">
-    <h2>3. Tenant ePartsCart — PHP-primary until ASP.NET parity (same-to-same)</h2>
-    <p>Target is ASP.NET cutover. Until dual-sample same-to-same, product chrome stays PHP so tenants feel zero change. Unlock parity shadows with <code>ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES</code>.</p>
+    <h2>3. Tenant ePartsCart — PHP reference until ASP.NET same-to-same</h2>
+    <p>
+        Tenant product chrome stays on PHP (@tenantPhp) until dual-sample same-to-same.
+        After ASP.NET is primary on www, keep this PHP tenant stack as the reference for previous results.
+        Unlock parity shadows with <code>ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES</code>.
+    </p>
     <table class="compare">
         <thead>
             <tr>
                 <th>Area</th>
-                <th>epartscart.com</th>
-                <th>www.epartscart.com</th>
+                <th>PHP reference</th>
                 <th>ASP.NET safety check</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>Storefront</td>
-                <td><a href="https://epartscart.com/" target="_blank" rel="noopener">/</a> <span class="stack php">PHP</span></td>
-                <td><a href="https://www.epartscart.com/" target="_blank" rel="noopener">/</a> <span class="stack php">PHP</span></td>
-                <td>3D/parts hero, brand, search</td>
+                <td><a href="@tenantPhp/" target="_blank" rel="noopener">@tenantPhp/</a> <span class="stack php">PHP ref</span></td>
+                <td>3D/parts hero, brand, search — compare vs @aspNet/storefront/app</td>
             </tr>
             <tr>
                 <td>CP</td>
-                <td><a href="https://epartscart.com/CP/" target="_blank" rel="noopener">/CP/</a> <span class="stack php">PHP</span></td>
-                <td><a href="https://www.epartscart.com/CP/" target="_blank" rel="noopener">/CP/</a> <span class="stack php">PHP</span></td>
-                <td><a href="https://epartscart.com/cp/app" target="_blank" rel="noopener">/cp/app</a> → expect <span class="stack safe">404</span></td>
+                <td><a href="@tenantPhp/CP/" target="_blank" rel="noopener">@tenantPhp/CP/</a> <span class="stack php">PHP ref</span></td>
+                <td>Tenant <code>/cp/app</code> → expect <span class="stack safe">404</span> until unlocked</td>
             </tr>
             <tr>
                 <td>ERP</td>
-                <td><a href="https://epartscart.com/ERP/" target="_blank" rel="noopener">/ERP/</a> <span class="stack php">PHP</span></td>
-                <td><a href="https://www.epartscart.com/ERP/" target="_blank" rel="noopener">/ERP/</a> <span class="stack php">PHP</span></td>
-                <td><a href="https://epartscart.com/health" target="_blank" rel="noopener">/health</a> → expect <span class="stack safe">404</span></td>
+                <td><a href="@tenantPhp/ERP/" target="_blank" rel="noopener">@tenantPhp/ERP/</a> <span class="stack php">PHP ref</span></td>
+                <td>Tenant <code>/health</code> → expect <span class="stack safe">404</span> until unlocked</td>
             </tr>
             <tr>
                 <td>BOS</td>
-                <td colspan="2">Privileged BOS is Super CP (<a href="https://www.ecomae.com/BOS/" target="_blank" rel="noopener">www /BOS/</a>). Tenant may route shared PHP <code>/BOS/</code>; do not install ASP.NET BOS shadows on tenant.</td>
-                <td><span class="stack safe">tenant ASP.NET off</span></td>
+                <td>Privileged BOS reference: <a href="@wwwPhp/BOS/" target="_blank" rel="noopener">@wwwPhp/BOS/</a></td>
+                <td><span class="stack safe">tenant ASP.NET BOS off</span></td>
             </tr>
         </tbody>
     </table>
@@ -304,9 +314,9 @@
     <ul class="check">
         <li><strong>Look / branding</strong> — logo, colors, fonts; first viewport must still read as ePartsCart / EcomAE.</li>
         <li><strong>Graphics &amp; 3D / motion</strong> — storefront piston/parts motion; CP/ERP/BOS login particles, rings, logo animation.</li>
-        <li><strong>Functionality</strong> — PHP menus and modules remain the working product; ASP.NET apps are read digests unless dual-sample + approval.</li>
-        <li><strong>Parity gaps to expect</strong> — many Wave 9–23 digests/apps still 404 on www until CloudPanel exact-route shadow install; hybrid ERP unauth may fall through to PHP login feel.</li>
-        <li><strong>Evidence</strong> — <code>docs/migration/evidence/presentation/live-super-cp-tenant-probe.json</code> and <code>www-live-exact-route-probe.json</code>.</li>
+        <li><strong>Functionality</strong> — after ASP.NET is primary, open PHP reference URLs to verify nothing was missed.</li>
+        <li><strong>Gap workflow</strong> — note mismatches on /migration/compare → fix ASP.NET → re-run dual-sample vs PHP reference.</li>
+        <li><strong>Evidence</strong> — <code>docs/migration/evidence/presentation/live-super-cp-tenant-probe.json</code> and <code>docs/migration/PHP_AS_REFERENCE_MODE.md</code>.</li>
     </ul>
 </section>
 
