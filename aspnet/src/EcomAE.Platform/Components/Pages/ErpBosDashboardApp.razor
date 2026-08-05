@@ -44,7 +44,6 @@
             <div class="epc-erp-note">
                 Guest preview — browse the ASP.NET ERP shell.
                 <a href="/erp/login">Sign in</a> for live KPIs.
-                PHP detail: <a href="/php-reference/erp">/php-reference/erp</a>
             </div>
         }
 
@@ -53,30 +52,50 @@
             <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="/erp/coa-accounts-app">Balance Sheet / COA</a>
             <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#0ea5e9)" href="/erp/gl-journals-app">General Journal</a>
             <a class="epc-erp-banner" style="background:linear-gradient(90deg,#2563eb,#38bdf8)" href="/erp/sales-orders-app">New Sales Order</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#0f766e,#14b8a6)" href="/erp/invoices-app">Customer Invoices</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#7c2d12,#ea580c)" href="/erp/purchase-orders-app">Purchase Orders</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#334155,#64748b)" href="/erp/inventory-stock-app">Inventory Stock</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#60a5fa)" href="/erp/bank-reconciliation-app">Bank Reconciliation</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#0c4a6e,#0369a1)" href="/erp/invoices-app">Customer Invoices</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="/erp/purchase-orders-app">Purchase Orders</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#0ea5e9)" href="/erp/inventory-stock-app">Inventory Stock</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#2563eb,#38bdf8)" href="/erp/bank-reconciliation-app">Bank Reconciliation</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#0c4a6e,#0369a1)" href="/erp/aging-app">AR / AP Aging</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="/erp/report-center-app">Report Center</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#0ea5e9)" href="/erp/process-flow-tasks-app">Process Flow</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#2563eb,#38bdf8)" href="/erp/stock-movements-app">Stock Movements</a>
+        </div>
+
+        <div class="epc-erp-grid" style="margin-bottom:1rem">
+            <section class="epc-erp-card">
+                <h2 style="margin:.1rem 0 .45rem;font-size:1rem">Finance snapshot</h2>
+                <div class="epc-erp-metrics">
+                    <div class="epc-erp-metric"><strong>@_s.RevenueExVat.ToString("N2")</strong><span>Revenue (ex. VAT)</span></div>
+                    <div class="epc-erp-metric"><strong>@_s.ArBalance.ToString("N2")</strong><span>AR balance</span></div>
+                    <div class="epc-erp-metric"><strong>@_s.ApBalance.ToString("N2")</strong><span>AP balance</span></div>
+                    <div class="epc-erp-metric"><strong>@_s.VatNetPayable.ToString("N2")</strong><span>VAT net</span></div>
+                </div>
+            </section>
+            <section class="epc-erp-card">
+                <h2 style="margin:.1rem 0 .45rem;font-size:1rem">Operations queue</h2>
+                <div class="epc-erp-metrics">
+                    <div class="epc-erp-metric"><strong>@_s.DraftSalesOrders</strong><span>Draft SOs</span></div>
+                    <div class="epc-erp-metric"><strong>@_s.PendingPurchaseOrders</strong><span>Pending POs</span></div>
+                    <div class="epc-erp-metric"><strong>@_s.OverdueInvoices</strong><span>Overdue invoices</span></div>
+                    <div class="epc-erp-metric"><strong>@_s.ProcessOpen / @_s.ProcessDone / @_s.ProcessOverdue</strong><span>Process open/done/overdue</span></div>
+                </div>
+            </section>
         </div>
 
         <section>
             <h2 style="font-size:1.05rem">Command center KPIs</h2>
             <div class="epc-erp-kpis">
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.RevenueExVat.ToString("N2")</strong><span>Revenue (ex. VAT)</span></div>
                 <div class="epc-erp-card epc-erp-metric"><strong>@_s.OrdersCount</strong><span>Orders</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.ArBalance.ToString("N2")</strong><span>AR balance</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.ApBalance.ToString("N2")</strong><span>AP balance</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.VatNetPayable.ToString("N2")</strong><span>VAT net</span></div>
                 <div class="epc-erp-card epc-erp-metric"><strong>@_s.PeriodStatus</strong><span>Period</span></div>
                 <div class="epc-erp-card epc-erp-metric"><strong>@_s.InventoryItems</strong><span>Active items</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.DraftSalesOrders</strong><span>Draft SOs</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.PendingPurchaseOrders</strong><span>Pending POs</span></div>
                 <div class="epc-erp-card epc-erp-metric"><strong>@_s.UnpostedGlJournals</strong><span>Unposted GL</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.OverdueInvoices</strong><span>Overdue invoices</span></div>
                 <div class="epc-erp-card epc-erp-metric"><strong>@_s.LowStockItems</strong><span>Low stock</span></div>
                 <div class="epc-erp-card epc-erp-metric"><strong>@_s.PendingEinvoices</strong><span>Pending e-inv</span></div>
-                <div class="epc-erp-card epc-erp-metric"><strong>@_s.ProcessOpen / @_s.ProcessDone / @_s.ProcessOverdue</strong><span>Process open/done/overdue</span></div>
                 <div class="epc-erp-card epc-erp-metric"><strong>@_s.SupplierNet.ToString("N2")</strong><span>Supplier net</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.CashPosition.ToString("N2")</strong><span>Cash position</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.StockValue.ToString("N2")</strong><span>Stock value</span></div>
+                <div class="epc-erp-card epc-erp-metric"><strong>@_s.Receivables.ToString("N2")</strong><span>Receivables</span></div>
             </div>
         </section>
 
@@ -99,7 +118,7 @@
             PhpWorkspaceBase="/erp/app" />
 
         <div class="epc-erp-note">
-            Open any module below on ASP.NET. PHP product pages are only under /php-reference/*.
+            Open any module below to continue in the ASP.NET ERP workspace.
         </div>
 </PhpErpDesktopChrome>
 

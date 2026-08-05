@@ -1,8 +1,7 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Presentation
 @*
-  Scaffold of epc_ecomae_platform_page_api_services() — hero + product teasers.
-  Full Catalog/Price PRO docs remain PHP deeplink until dual-sample.
+  Scaffold of epc_ecomae_platform_page_api_services() — hero + product table + CTA.
 *@
 
 <div class="epm-wrap" id="ehm-api-services-overview">
@@ -14,7 +13,8 @@
 			<p class="lead">Offer vehicle spare-parts lookup on <strong>your</strong> site without renting a full ECOM AE storefront or ERP. Choose <strong>Catalog API</strong>, <strong>Price PRO API</strong>, or both — we issue client keys for your developers.</p>
 			<div class="epm-cta">
 				<a class="epm-btn epm-btn--primary" href="/marketing/contact">Request API access</a>
-				<a class="epm-btn epm-btn--ghost" href="/marketing/api-services">Open full API page</a>
+				<a class="epm-btn epm-btn--ghost" href="/marketing/api-documentation">API documentation</a>
+				<a class="epm-btn epm-btn--outline" href="/marketing/api-services">Open full API page</a>
 			</div>
 		</div>
 	</div>
@@ -37,6 +37,24 @@
 		</div>
 	</div>
 
-	<p style="margin:24px 0 0;font-size:.85rem;color:var(--epm-muted,#b3b3b3)">
+	<div class="epm-highlight">
+		<h3>Endpoint groups</h3>
+		<table style="width:100%;border-collapse:collapse;font-size:.9rem;margin-top:.5rem">
+			<thead>
+				<tr style="text-align:left;border-bottom:1px solid #e5e7eb">
+					<th style="padding:.45rem .2rem">Product</th>
+					<th style="padding:.45rem .2rem">Use</th>
+					<th style="padding:.45rem .2rem">Auth</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:.45rem .2rem">Catalog</td><td style="padding:.45rem .2rem">VIN / vehicle / article lookup</td><td style="padding:.45rem .2rem">Client key</td></tr>
+				<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:.45rem .2rem">Price PRO</td><td style="padding:.45rem .2rem">Supplier price &amp; stock</td><td style="padding:.45rem .2rem">Client key</td></tr>
+				<tr><td style="padding:.45rem .2rem">Combined</td><td style="padding:.45rem .2rem">Parts expert UX on your site</td><td style="padding:.45rem .2rem">Partner bundle</td></tr>
+			</tbody>
+		</table>
+		<p style="margin:1rem 0 0">
+			<a class="epm-btn epm-btn--primary" href="/marketing/contact">Request API access</a>
 		</p>
+	</div>
 </div>

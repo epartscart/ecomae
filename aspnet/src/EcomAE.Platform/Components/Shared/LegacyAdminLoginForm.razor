@@ -24,7 +24,7 @@
                href="@ShellHref">Browse ASP.NET @SurfaceLabel (no login)</a>
         </p>
         <p class="epc-login-bridge-note">
-            PHP compare only: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
+            Archive compare: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
         </p>
     }
     else
@@ -54,9 +54,14 @@
             </div>
             <button type="submit" class="epc-login-submit epc-login-submit-@Accent">@SubmitLabel</button>
         </form>
+        <p style="margin:1rem 0 .5rem;">
+            <a class="epc-login-submit epc-login-submit-@Accent"
+               style="display:inline-flex;width:auto;padding:.7rem 1.1rem;text-decoration:none;align-items:center;"
+               href="@ShellHref">Browse ASP.NET @SurfaceLabel (no login)</a>
+        </p>
         <p class="epc-login-bridge-note">
-            Or browse without login: <a class="epc-login-php" href="@ShellHref">ASP.NET @SurfaceLabel</a>
-            · PHP reference: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
+            Or open shell: <a class="epc-login-php" href="@ShellHref">@ShellHref</a>
+            · Archive: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
         </p>
     }
 </div>

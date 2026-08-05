@@ -43,7 +43,7 @@
             <section class="epc-cc-panel">
                 <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
                 <h1>CONTROL COMMAND CENTRE</h1>
-                <p>ASP.NET control panel — same command layout as PHP bootstrap_admin desktop. Orders, customers, documents, portal, and ERP shortcuts.</p>
+                <p>Control panel command centre — orders, customers, documents, portal, and ERP shortcuts in one desktop shell.</p>
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
                     <a href="/cp/orders" style="background:#fff;color:#0c4a6e;padding:.4rem .7rem;border-radius:.4rem;font-weight:800;font-size:.78rem;text-decoration:none;">Orders OMS</a>
                     <a href="/cp/users-app" style="background:rgba(255,255,255,.15);color:#fff;padding:.4rem .7rem;border-radius:.4rem;font-weight:800;font-size:.78rem;text-decoration:none;">Customers</a>
@@ -63,7 +63,6 @@
             <div class="epc-cc-note" style="background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a;">
                 Guest preview — browse the ASP.NET control panel shell.
                 <a href="/cp/login">Sign in</a> for live KPIs.
-                PHP detail: <a href="/php-reference/cp">/php-reference/cp</a>
             </div>
         }
 
@@ -129,12 +128,12 @@
 
         <PhpHybridModuleDirectory
             Title="Complete Control Panel module directory"
-            Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} control panel modules — ASP.NET browse; PHP via reference only")"
+            Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} control panel modules")"
             Links="@PhpModuleCatalog.CpBrochureFeatures"
             PhpWorkspaceBase="/cp/app" />
 
         <div class="epc-cc-note">
-            Open any module below on ASP.NET. PHP product pages are only under /php-reference/*.
+            Open any module below to continue in the ASP.NET control panel.
         </div>
 </PhpCpDesktopChrome>
 

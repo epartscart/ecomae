@@ -14,11 +14,11 @@
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Aging" BreadcrumbArea="Finance" BreadcrumbTab="Aging">
     <style>
-        .epc-ag-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#7c2d12 0%,#b45309 50%,#ca8a04 100%); }
+        .epc-ag-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%); }
         .epc-ag-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-ag-hero p { margin:0; color:rgba(255,255,255,.9); max-width:46rem; font-size:.92rem; }
         .epc-ag-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-ag-cta a { display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem; text-decoration:none; color:#7c2d12; background:#fef3c7; }
+        .epc-ag-cta a { display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem; text-decoration:none; color:#0c4a6e; background:#dbeafe; }
         .epc-ag-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
         .epc-ag-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
         .epc-ag-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
@@ -37,11 +37,11 @@
     <section class="epc-ag-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>AR / AP / Inventory aging</h1>
-        <p>Read-only buckets from PHP <code>epc_erp_aging.php</code>. Interactive aging UI stays on PHP.</p>
+        <p>AR / AP / inventory aging buckets for this company workspace.</p>
         <div class="epc-ag-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open aging</a>
             <a class="ghost" href="/erp/report-center-app">Report center</a>
-            <a class="ghost" href="/erp/aging">JSON digest</a>
+            <a class="ghost" href="/erp/aging-app">Refresh view</a>
         </div>
     </section>
 
@@ -55,7 +55,7 @@
     @AgingTable("Payables", _apLabels, _apRows)
     @AgingTable("Inventory", _invLabels, _invRows)
 
-    <div class="epc-ag-note">Source: @_summary.Source. Boundaries @_summary.Boundary1/@_summary.Boundary2/@_summary.Boundary3 days. PHP remains authoritative.</div>
+    <div class="epc-ag-note">Source: @_summary.Source. Boundaries @_summary.Boundary1 / @_summary.Boundary2 / @_summary.Boundary3 days.</div>
 </PhpErpDesktopChrome>
 
 @code {
@@ -114,7 +114,10 @@
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
-        if (!_isAdmin) { return; // guest browse — Sign in for live data }
+        if (!_isAdmin)
+        {
+            return; // guest browse — Sign in for live data
+        }
         var result = await Dashboards.BuildErpAgingDigestAsync(100);
         _summary = result.Summary;
         _arLabels = result.ArLabels;
