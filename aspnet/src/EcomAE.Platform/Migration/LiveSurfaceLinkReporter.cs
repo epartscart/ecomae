@@ -588,16 +588,17 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
         ];
 
         return new LiveSurfaceLinkReport(
-            "catalogued-php-authoritative-except-allowlisted-aspnet",
+            "catalogued-aspnet-primary-destination-php-reference-kept",
             "www.ecomae.com",
             links,
             [
-                "PARITY GATE (target 100% ASP.NET / 0 PHP): epartscart / electronicae / stylenlook / thejewellerytrend / taxofinca stay PHP-primary until same-to-same dual-sample + exact-route cutover. Unlock parity shadows with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES. See /migration/live-tenant-presentation-lock and /migration/aspnet-zero-php-path.",
-                "Live tenant and industry frontend/CP/ERP must remain PHP — migration shadows default to www.ecomae.com only (see docs/migration/TENANT_MIGRATION_SAFETY.md).",
+                "CONFIRMED DESTINATION: ASP.NET Core live primary; PHP project retained as reference (till keep/delete). Boards: /migration/php-reference-mode, /migration/compare, docs/migration/PHP_AS_REFERENCE_MODE.md.",
+                "PARITY GATE (interim): epartscart / electronicae / stylenlook / thejewellerytrend / taxofinca stay PHP-primary until same-to-same dual-sample + exact-route cutover. Unlock with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES. See /migration/live-tenant-presentation-lock and /migration/aspnet-zero-php-path.",
+                "Live tenant and industry frontend/CP/ERP stay PHP-primary during the parity gate — migration shadows default to www.ecomae.com only (see docs/migration/TENANT_MIGRATION_SAFETY.md). After promote, PHP remains available as reference.",
                 "Broad /, /api, /cp, /erp, /bos, storefront nginx cutover remains forbidden.",
-                "Approved location = exact-route shadows after staging smoke; named live tenants unlock via ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES (parity path to 100% ASP.NET).",
+                "Approved location = exact-route shadows after staging smoke; named live tenants unlock via ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES (path to ASP.NET live primary).",
                 "Keep MigrationRouteCutover StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final gate.",
-                "ReadyToRemovePhp stays false without staging-smoke artifacts + RELEASE_OWNER_APPROVAL.md.",
+                "ReadyToRemovePhp stays false without staging-smoke artifacts + RELEASE_OWNER_APPROVAL.md. Reference keep ≠ PHP source deletion.",
                 "cutoverAllowed=false and readyForPhpRemoval=false until exact-route shadows + dual-sample parity + human RELEASE_OWNER_APPROVAL.md."
             ],
             [
@@ -625,15 +626,16 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Login bridge needs EcomAE__SecretSuccession (= PHP secret_succession) in platform.env; verify with scripts/cloudpanel_verify_secret_succession_configured.sh (never prints secret); without it UI falls back to PHP login.",
                 "Login cookie dual-sample: scripts/cloudpanel_capture_login_cookie_dual_samples.sh + compare_login_cookie_dual_samples.py (cutoverAllowed=false).",
                 "Hybrid UI dual-sample: bash scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh && python3 scripts/compare_hybrid_ui_dual_samples.py (www previews only; cutoverAllowed=false; see docs/migration/evidence/hybrid-ui-dual-samples/).",
-                "Hybrid chrome: ASP.NET shells link PHP modules (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /CP/ /ERP/ /BOS/ remain PHP.",
+                "Hybrid chrome: ASP.NET shells link PHP modules (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /CP/ /ERP/ /BOS/ remain interim PHP during parity gate.",
                 "Same-to-same tenant verify: bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh (PHP chrome + presentation fingerprints + forbidden ASP.NET paths 404; cutoverAllowed=false).",
                 "Tenant safety probe: bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh (expect PHP HTML fingerprints on / /CP/ /ERP/; /cp/app /erp/app /storefront/app must not be ASP.NET).",
-                "Named live tenants: default refuse ASP.NET shadows; unlock parity path with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES (target 100% ASP.NET / 0 PHP).",
-                "Zero-PHP path board: GET /migration/aspnet-zero-php-path + docs/migration/ASPNET_ZERO_PHP_PATH.md.",
+                "Named live tenants: default refuse ASP.NET shadows; unlock parity path with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES (destination ASP.NET live + PHP reference kept).",
+                "Path board: GET /migration/aspnet-zero-php-path + docs/migration/ASPNET_ZERO_PHP_PATH.md (target 100%-aspnet-core-live-php-reference-kept).",
+                "PHP reference mode: GET /migration/php-reference-mode — keep PHP project for previous-result compares after ASP.NET is live primary.",
                 "Invisible migration law: docs/migration/TENANT_MIGRATION_SAFETY.md — same-to-same during cutover; digests/previews must not break tenant UX.",
                 "PHP-level parity plan: docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md — regenerate catalogs via python3 scripts/generate_php_module_catalog.py.",
                 "Hybrid module directories on /cp|/erp|/bos|/storefront/app; counts at GET /migration/php-module-catalog.",
-                "Human RELEASE_OWNER_APPROVAL.md is the final ReadyToRemovePhp blocker — do not remove PHP while chrome is PHP-authoritative."
+                "Human RELEASE_OWNER_APPROVAL.md gates PHP traffic/fallback removal — keep PHP project as reference unless a separate deletion approval exists."
             ],
             CutoverAllowed: false,
             ReadyForPhpRemoval: false);

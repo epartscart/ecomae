@@ -1,6 +1,6 @@
 {
   "role": "www-zero-php-residual-board",
-  "generatedAtUnix": 1785872327,
+  "generatedAtUnix": 1785895140,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
@@ -33,7 +33,7 @@
   },
   "whatThePercentsMean": {
     "100_scaffold": "Menus 726/726, field floors, ajax dry-run catalogs/goldens (CP 254 + ERP 321 + BOS 231), write-dryrun contract pairs 183/183, tenant/industry gates, security headers + compression are built. This is NOT UX cutover.",
-    "95_weighted": "Legacy weighted area board in www-zero-php-completion.json \u2014 residual 5% is PHP runtime decommission + approval.",
+    "95_weighted": "Legacy weighted area board \u2014 residual is ASP.NET live traffic promotion + approval. PHP project keep-as-reference is confirmed separately (not automatic deletion).",
     "0_interactive": "Live product writes/menus still PHP. aspNetInteractiveComplete stays 0 until CloudPanel dual-sample + human approval. User-facing look must stay same-to-same."
   },
   "remainingWork": [
@@ -144,9 +144,18 @@
     "bash scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh (contract floor; ECOMAE_MODULE_AJAX_SKIP_CAPTURE=1 offline)",
     "Authenticated digest/ajax dual-sample with admin+customer cookies",
     "Follow LIVE_SMOKE_CAPTURE.md for each functional flow \u2014 flip stubs only with real artifacts",
-    "Human RELEASE_OWNER_APPROVAL.md only after ReadyToRemovePhp checklist green",
+    "Gap-find with PHP reference: GET /migration/php-reference-mode + /migration/compare (KeepPhpProjectAvailable=true)",
+    "Human RELEASE_OWNER_APPROVAL.md only after ReadyToRemovePhp checklist green (traffic/fallback removal \u2014 keep PHP reference)",
     "PHP source deletion remains a separate human PR \u2014 never agent-invented"
   ],
-  "honestAnswer": "Scaffold 100%. Ajax contract floors CP/ERP/BOS complete. Interactive cutover still 0%. Redeploy + www shadow closeout + live dual-sample + approval before PHP removal. Never invent approval.",
-  "note": "Never invent cutoverAllowed=true or RELEASE_OWNER_APPROVAL.md."
+  "honestAnswer": "Scaffold 100%. Confirmed destination: ASP.NET live primary + PHP reference kept. Interactive cutover still 0%. Redeploy + www shadow closeout + live dual-sample + approval before PHP traffic removal. Never invent approval.",
+  "note": "Never invent cutoverAllowed=true or RELEASE_OWNER_APPROVAL.md. Reference keep is confirmed; live traffic flip is not.",
+  "confirmedArchitecture": {
+    "mode": "aspnet-primary-php-reference",
+    "targetEndState": "100%-aspnet-core-live-php-reference-kept",
+    "keepPhpProjectAvailable": true,
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false,
+    "note": "Human confirmed ASP.NET live primary destination; PHP retained as reference until keep/delete. Not traffic cutover."
+  }
 }

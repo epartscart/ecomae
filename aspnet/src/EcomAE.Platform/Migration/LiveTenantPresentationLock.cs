@@ -52,7 +52,7 @@ public static class LiveTenantPresentationLock
     public static IReadOnlyDictionary<string, object> BuildSummary() => new Dictionary<string, object>
     {
         ["policy"] = "parity-gate-until-aspnet-same-to-same-then-cutover",
-        ["targetEndState"] = "100%-aspnet-core-0-php",
+        ["targetEndState"] = "100%-aspnet-core-live-php-reference-kept",
         ["mandate"] = Mandate,
         ["cutoverAllowed"] = false,
         ["readyForPhpRemoval"] = false,

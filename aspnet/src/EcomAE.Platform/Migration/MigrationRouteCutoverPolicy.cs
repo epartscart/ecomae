@@ -26,28 +26,28 @@ public sealed class MigrationRouteCutoverPolicy : IMigrationRouteCutoverPolicy
                 tenant.Surface,
                 tenant.Mode,
                 ApiTargetRuntime(),
-                "API scaffolding can receive shadow traffic, but PHP remains authoritative until database-backed auth, quotas, and catalog parity are proven.",
+                "API can take shadow traffic; destination is ASP.NET primary. PHP stays the parity-gate authority and later the reference host until dual-sample + approval.",
                 RequiresPhpFallback: _options.RequirePhpFallback,
                 ReadyForAspNetTraffic: _options.ApiShadowTrafficEnabled),
             TenantSurface.Storefront => new MigrationRouteCutoverDecision(
                 tenant.Surface,
                 tenant.Mode,
                 StorefrontTargetRuntime(),
-                "Storefront rendering, cart, checkout, and customer account parity are not complete, so PHP remains primary.",
+                "Storefront cart/checkout/account parity incomplete — PHP remains interim primary. Destination: ASP.NET live; PHP kept as reference for gap-finding.",
                 RequiresPhpFallback: _options.RequirePhpFallback,
                 ReadyForAspNetTraffic: _options.StorefrontAspNetEnabled),
             TenantSurface.ControlPanel or TenantSurface.Erp or TenantSurface.Bos => new MigrationRouteCutoverDecision(
                 tenant.Surface,
                 tenant.Mode,
                 AdminTargetRuntime(),
-                "Administrative shells exist for parity planning, but login, permissions, data writes, audit, and reports still require PHP primary handling.",
+                "Admin/ERP/BOS shells exist for parity; login/writes/audit still use PHP as interim primary. Destination: ASP.NET live primary with PHP reference retained.",
                 RequiresPhpFallback: _options.RequirePhpFallback,
                 ReadyForAspNetTraffic: _options.AdminAspNetEnabled),
             _ => new MigrationRouteCutoverDecision(
                 tenant.Surface,
                 tenant.Mode,
                 "php-primary",
-                "Unknown or default surface stays on PHP until explicit migration parity is approved.",
+                "Unknown surface stays on interim PHP primary until explicit migration parity is approved; destination remains ASP.NET with PHP reference kept.",
                 RequiresPhpFallback: _options.RequirePhpFallback,
                 ReadyForAspNetTraffic: false)
         };

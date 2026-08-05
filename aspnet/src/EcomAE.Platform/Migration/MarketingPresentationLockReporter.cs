@@ -16,7 +16,7 @@ public sealed class MarketingPresentationLockReporter : IMarketingPresentationLo
             AspNetPreviewRoute: "/marketing/app",
             CutoverAllowed: false,
             ReadyForPhpRemoval: false,
-            TargetEndState: "100%-aspnet-core-0-php",
+            TargetEndState: "100%-aspnet-core-live-php-reference-kept",
             RequiredLiveMarkers:
             [
                 "epm-hub",

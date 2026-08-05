@@ -1,8 +1,10 @@
-# ASP.NET Core → 0 PHP path
+# ASP.NET Core live primary · PHP reference kept
 
-**Target end-state:** 100% ASP.NET Core · 0 PHP in production.
+**Confirmed target end-state:** 100% ASP.NET Core **live traffic** · PHP project **retained as reference** for previous results / gap-finding (until a separate keep/delete decision).
 
-**Not the destination:** PHP-primary on live tenants/marketing. That is a **parity gate** so same-to-same UX holds while ASP.NET is finished.
+**Not the destination:** interim PHP-primary on live tenants/marketing. That is a **parity gate** so same-to-same UX holds while ASP.NET is finished.
+
+**Reference mode ≠ PHP deletion:** see `docs/migration/PHP_AS_REFERENCE_MODE.md`, `GET /migration/php-reference-mode`, and `docs/migration/evidence/decommission/php-reference-mode-lock.json`.
 
 Live JSON: `GET /migration/aspnet-zero-php-path`  
 Related: `docs/migration/ZERO_PHP_PRODUCTION_CUTOVER_ROADMAP.md`
@@ -41,7 +43,7 @@ Live board: `GET /migration/on-premises-parity`
 3. Presentation parity (heroes/fonts/menus) — in progress (`/marketing/app` hub+home; solutions+resources+legal aliases; CP/ERP/BOS/storefront chrome; `/erp/on-premises-app`)  
 4. Function parity (writes/menus) — in progress (full `ajax_erp.php` catalog dedicated; BOS ajax catalog; CP module ajax catalog; concurrency/BOS/OPL/PF/AML/bank dry-runs; quote/garage/OMS + on-premises health/activate/setup-wizard/backup; write-dryrun dual-sample operator floor; `aspNetInteractiveComplete=0` until human dual-sample pass)  
 5. Tenant exact-route cutover — blocked on parity  
-6. PHP removal — blocked on approval (SaaS **and** on-premises installer pack)  
+6. PHP **traffic/fallback** removal — blocked on approval (SaaS **and** on-premises). PHP **project stays** as reference (`KeepPhpProjectAvailable=true`) until a separate deletion approval.
 
 ## Operator commands
 

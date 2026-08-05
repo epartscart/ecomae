@@ -1,0 +1,36 @@
+{
+  "role": "aspnet-primary-php-reference-confirmed",
+  "generatedAtUnix": 1785895140,
+  "architectureConfirmed": true,
+  "confirmedBy": "human-release-owner",
+  "confirmedAtUtc": "2026-08-05",
+  "mode": "aspnet-primary-php-reference",
+  "targetEndState": "100%-aspnet-core-live-php-reference-kept",
+  "keepPhpProjectAvailable": true,
+  "phpRole": "reference-until-keep-or-delete",
+  "aspNetRole": "live-primary-destination",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "requirePhpFallback": true,
+  "storefrontAspNetEnabled": false,
+  "adminAspNetEnabled": false,
+  "note": "Human confirmed: continue toward ASP.NET Core as live primary; keep PHP as reference only (till keep/delete). This confirmation is NOT RELEASE_OWNER_APPROVAL.md and does not invent traffic cutover or PHP deletion.",
+  "endpoints": [
+    "/migration/php-reference-mode",
+    "/migration/aspnet-zero-php-path",
+    "/migration/compare"
+  ],
+  "docs": [
+    "docs/migration/PHP_AS_REFERENCE_MODE.md",
+    "docs/migration/ASPNET_ZERO_PHP_PATH.md",
+    "docs/migration/evidence/decommission/php-reference-mode-lock.json"
+  ],
+  "nextLiveGatesStillRequired": [
+    "www marketing/storefront shadow closeout (CloudPanel)",
+    "authenticated digest + ajax dual-sample with cookies",
+    "presentation recheck status=pass",
+    "functional live-smoke 7/7",
+    "human RELEASE_OWNER_APPROVAL.md for PHP traffic/fallback removal"
+  ],
+  "rollback": "bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback"
+}
