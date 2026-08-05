@@ -19,7 +19,7 @@
     "vatNetPayable": 0,
     "periodStatus": "open",
     "inventoryItems": 0,
-    "draftSalesOrders": 0,
+    "draftSalesOrders": 1,
     "pendingPurchaseOrders": 0,
     "unpostedGlJournals": 0,
     "overdueInvoices": 0,
@@ -31,11 +31,26 @@
     "source": "migration",
     "message": "TenantRegistry DB is not configured."
   },
+  "approvalQueue": [
+    {
+      "id": "draft_so",
+      "category": "Sales",
+      "label": "1 draft sales order awaiting confirmation",
+      "count": 1,
+      "action": "Open Sales Orders",
+      "link": "/erp/?area=sales&tab=sales_orders",
+      "severity": "warning",
+      "icon": "fa-file-text"
+    }
+  ],
+  "count": 1,
+  "source": "migration",
+  "message": "TenantRegistry DB is not configured.",
   "session": {
     "kind": "Admin",
     "user_id": 1
   },
-  "note": "migration-mode contract sample; PHP remains authoritative",
+  "note": "migration-mode contract sample; approvalQueue[] item-field sentinel locked; PHP erp_dashboard / command center remains authoritative; cutoverAllowed=false",
   "dualSampleBaseline": "migration-contract-golden",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false

@@ -30,10 +30,12 @@
         .epc-rc-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
         .epc-rc-kpi strong { display:block; font-size:1.2rem; }
         .epc-rc-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-rc-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-rc-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; margin-bottom:1rem; }
         .epc-rc-table { width:100%; border-collapse:collapse; font-size:.86rem; }
         .epc-rc-table th, .epc-rc-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; }
         .epc-rc-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
+        .epc-rc-table a { color:#0f766e; font-weight:700; text-decoration:none; }
+        .epc-rc-table a:hover { text-decoration:underline; }
         .epc-rc-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #67e8f9; border-radius:.45rem; color:#164e63; font-size:.86rem; }
         @@media (max-width:900px){ .epc-rc-kpis{grid-template-columns:1fr 1fr;} }
     </style>
@@ -41,11 +43,11 @@
     <section class="epc-rc-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Report center</h1>
-        <p>Read-only mirror of PHP <code>epc_rc_registry</code> (33 inquiries). CSV export and complex report runs stay on PHP.</p>
+        <p>Read-only mirror of PHP <code>epc_rc_registry</code> (33 inquiries). Select a key for a limited peek. CSV export and complex report runs stay on PHP.</p>
         <div class="epc-rc-cta">
             <a href="@_phpTab">Open PHP reports</a>
             <a class="ghost" href="/erp/dashboard-summary-app">ERP dashboard</a>
-            <a class="ghost" href="/erp/report-center">JSON digest</a>
+            <a class="ghost" href="@DigestHref(null)">JSON digest</a>
         </div>
     </section>
 
@@ -76,7 +78,7 @@
                     @foreach (var row in _reports)
                     {
                         <tr>
-                            <td><code>@row.Key</code></td>
+                            <td><a href="@AppHref(row.Key)"><code>@row.Key</code></a></td>
                             <td>@row.Area</td>
                             <td>@row.Name</td>
                             <td>@row.Desc</td>
@@ -86,6 +88,49 @@
             </tbody>
         </table>
     </div>
+
+    @if (!string.IsNullOrEmpty(_summary.SelectedKey))
+    {
+        <h2 style="margin:0 0 .5rem;font-size:1rem;">Peek · @_summary.SelectedKey</h2>
+        <div class="epc-rc-table-wrap">
+            <table class="epc-rc-table">
+                <thead>
+                    <tr>
+                        @if (_columns.Count == 0)
+                        {
+                            <th>Columns</th>
+                        }
+                        else
+                        {
+                            @foreach (var col in _columns)
+                            {
+                                <th>@col</th>
+                            }
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_rows.Count == 0)
+                    {
+                        <tr><td colspan="@Math.Max(1, _columns.Count)">No peek rows (empty table or migration mode).</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _rows)
+                        {
+                            <tr>
+                                @foreach (var col in _columns)
+                                {
+                                    <td>@(row.TryGetValue(col, out var v) ? v : "")</td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p style="margin:0 0 1rem;font-size:.85rem;"><a href="@AppHref(null)">Clear selection</a> · <a href="@DigestHref(_summary.SelectedKey)">JSON digest</a></p>
+    }
 
     <div class="epc-rc-note">
         Source: @_summary.Source. PHP <code>epc_erp_report_center.php</code> remains authoritative for run/export.
@@ -98,6 +143,8 @@
     private bool _isAdmin;
     private ErpReportCenterSummary _summary = new(0, 0, string.Empty, 0, "migration", string.Empty);
     private IReadOnlyList<ErpReportCenterReportDigest> _reports = [];
+    private IReadOnlyList<string> _columns = [];
+    private IReadOnlyList<IReadOnlyDictionary<string, string>> _rows = [];
     private readonly string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=rc_finance";
 
     protected override async Task OnInitializedAsync()
@@ -116,8 +163,34 @@
             return;
         }
 
-        var result = await Dashboards.BuildErpReportCenterDigestAsync(null, 100);
+        string? key = null;
+        if (ctx.Request.Query.TryGetValue("key", out var keyVals) && !string.IsNullOrWhiteSpace(keyVals))
+        {
+            key = keyVals.ToString();
+        }
+
+        int? companyId = null;
+        if (ctx.Request.Query.TryGetValue("companyId", out var coVals)
+            && int.TryParse(coVals.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var co)
+            && co > 0)
+        {
+            companyId = co;
+        }
+
+        var result = await Dashboards.BuildErpReportCenterDigestAsync(key, 100, ctx.RequestAborted, companyId);
         _summary = result.Summary;
         _reports = result.Reports;
+        _columns = result.Columns;
+        _rows = result.Rows;
     }
+
+    private static string AppHref(string? key)
+        => string.IsNullOrWhiteSpace(key)
+            ? "/erp/report-center-app"
+            : "/erp/report-center-app?key=" + Uri.EscapeDataString(key);
+
+    private static string DigestHref(string? key)
+        => string.IsNullOrWhiteSpace(key)
+            ? "/erp/report-center"
+            : "/erp/report-center?key=" + Uri.EscapeDataString(key);
 }

@@ -33,14 +33,7 @@ public sealed class SurfaceDigestContractValidatorTests
                 session,
                 note = "contract validation"
             },
-            ["/erp/dashboard-summary"] = new
-            {
-                ok = true,
-                surface = "erp",
-                summary = await reporter.BuildErpAsync(),
-                session,
-                note = "contract validation"
-            },
+            ["/erp/dashboard-summary"] = await BuildErpDashboardEnvelopeAsync(reporter, session),
             ["/bos/fleet-summary"] = new
             {
                 ok = true,
@@ -483,6 +476,23 @@ public sealed class SurfaceDigestContractValidatorTests
             source = result.Source,
             message = result.Message,
             session = new { kind = "Customer", user_id = 9, email = "c@example.com", group_ids = Array.Empty<int>(), capabilities = new[] { "storefront_account" }, permissions = Array.Empty<string>() },
+            note = "contract validation"
+        };
+    }
+
+    private static async Task<object> BuildErpDashboardEnvelopeAsync(SurfaceDashboardSummaryReporter reporter, object session)
+    {
+        var result = await reporter.BuildErpAsync();
+        return new
+        {
+            ok = true,
+            surface = "erp",
+            summary = result.Summary,
+            approvalQueue = result.ApprovalQueue,
+            count = result.Count,
+            source = result.Source,
+            message = result.Message,
+            session,
             note = "contract validation"
         };
     }

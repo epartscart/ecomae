@@ -122,9 +122,9 @@ function epc_erp_cc_kpi_tiles(PDO $db, int $dateFrom = 0, int $dateTo = 0): arra
 		'unit'  => '',
 	);
 
-	// Inventory Items
+	// Inventory Items (canonical inv items table)
 	$invCount = epc_erp_cc_safe_query($db,
-		'SELECT COUNT(*) AS val FROM `epc_erp_items` WHERE `active` = 1',
+		'SELECT COUNT(*) AS val FROM `epc_erp_inv_items` WHERE `active` = 1',
 		array()
 	);
 	$tiles[] = array(
@@ -210,9 +210,9 @@ function epc_erp_cc_approval_queue(PDO $db): array
 		);
 	}
 
-	// Low Stock Items
+	// Low Stock Items (epc_erp_inv_stock × epc_erp_inv_items — not phantom epc_erp_items)
 	$lowStock = (int) epc_erp_cc_safe_query($db,
-		'SELECT COUNT(*) AS val FROM `epc_erp_items` WHERE `active` = 1 AND `qty_on_hand` > 0 AND `qty_on_hand` <= `reorder_level`',
+		'SELECT COUNT(*) AS val FROM `epc_erp_inv_stock` s INNER JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id` AND i.`active` = 1 WHERE i.`reorder_level` > 0 AND s.`qty_on_hand` > 0 AND s.`qty_on_hand` <= i.`reorder_level`',
 		array());
 	if ($lowStock > 0) {
 		$queue[] = array(

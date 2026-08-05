@@ -591,7 +591,7 @@ public static class SurfacePayloadContractCatalog
             "cp/templates/bootstrap_admin/desktop.php"),
 
         Contract("erp", "/erp/dashboard-summary", "cp/content/shop/finance/erp/erp_dashboard.php + epc_erp_command_center.php", "admin",
-            ["ok", "surface", "summary", "session", "note"],
+            ["ok", "surface", "summary", "approvalQueue", "count", "source", "message", "session", "note"],
             [
                 "cashPosition", "supplierCredit", "supplierDebit", "supplierNet", "cashAccounts", "activeSuppliers", "activePurchases",
                 "receivables", "payables", "stockValue", "revenueExVat", "ordersCount", "arBalance", "apBalance", "vatNetPayable",
@@ -599,7 +599,7 @@ public static class SurfacePayloadContractCatalog
                 "overdueInvoices", "lowStockItems", "pendingEinvoices", "processOpen", "processDone", "processOverdue",
                 "source", "message"
             ],
-            ["ERP finance KPI read"],
+            ["ERP finance KPIs + approval queue"],
             "cp/templates/bootstrap_admin/erp_desktop.php"),
         Contract("erp", "/erp/accounts-summary", "ERP cash/supplier KPI digest", "admin-erp",
             ["ok", "surface", "summary", "source", "message", "session", "note"],

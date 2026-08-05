@@ -120,7 +120,7 @@
             return;
         }
         _isAdmin = true;
-        _s = await Dashboards.BuildErpAsync(ctx.RequestAborted);
+        _s = (await Dashboards.BuildErpAsync(ctx.RequestAborted)).Summary;
         // ERP KPIs loaded for admin session.
     }
 }

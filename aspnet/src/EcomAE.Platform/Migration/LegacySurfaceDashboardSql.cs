@@ -195,6 +195,22 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Company-scoped variant when the table has <c>company_id</c> (PHP <c>epc_rc_table_rows</c>).</summary>
+    public const string SelectErpReportCenterTableRowsByCompanyTemplate = """
+        SELECT * FROM `{0}`
+        WHERE `company_id` = @companyId
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Detect company_id column before scoped peeks (PHP SHOW COLUMNS LIKE 'company_id').</summary>
+    public const string SelectErpReportCenterHasCompanyIdTemplate = """
+        SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = @tableName
+          AND COLUMN_NAME = 'company_id'
+        """;
+
     /// <summary>Process-flow cases — omits comments/step detail; PHP processflow UI remains authoritative.</summary>
     public const string SelectErpProcessFlowTasks = """
         SELECT `id`, IFNULL(`process_id`,0) AS process_id, IFNULL(`title`,'') AS title,
