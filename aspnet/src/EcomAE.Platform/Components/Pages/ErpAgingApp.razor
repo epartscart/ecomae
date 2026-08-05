@@ -114,7 +114,7 @@
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
-        if (!_isAdmin) { Nav.NavigateTo("/erp/login", forceLoad: true); return; }
+        if (!_isAdmin) { return; // guest browse — Sign in for live data }
         var result = await Dashboards.BuildErpAgingDigestAsync(100);
         _summary = result.Summary;
         _arLabels = result.ArLabels;

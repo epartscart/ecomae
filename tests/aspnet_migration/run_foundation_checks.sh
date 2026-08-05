@@ -1512,6 +1512,9 @@ check 'marketing chrome home is ASP.NET' contains "$ROOT/aspnet/src/EcomAE.Platf
 check 'CP command centre has commerce band' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor" 'epc-cc-bands'
 check 'ERP dashboard banners hit ASP.NET apps' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor" '/erp/sales-orders-app'
 check 'storefront home has hero slider' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontHomeDepth.razor" 'epc-sf-hero-slider'
+check 'login form offers browse without login' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/LegacyAdminLoginForm.razor" 'Browse ASP.NET'
+check 'CP orders app allows guest browse' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpOrdersApp.razor" 'guest browse'
+check 'CP command centre has no hard login NavigateTo' bash -c '! grep -Fq "NavigateTo(\"/cp/login\"" "$1"' _ "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor"
 check 'classic-entry has php-reference/cp' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /php-reference/cp'
 check 'classic-entry installer exists' test -x "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh"
 check 'classic-entry installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY'

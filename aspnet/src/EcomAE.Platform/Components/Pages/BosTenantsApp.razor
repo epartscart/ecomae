@@ -125,13 +125,12 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin)
+        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/bos/login", forceLoad: true);
-            return;
+            return; // guest browse — Sign in for live data
         }
 
-        _isAdmin = true;
         var result = await Dashboards.ListPortalTenantsAsync(_limit, ctx.RequestAborted);
         _tenants = result.Tenants;
         _active = _tenants.Count(t => t.IsActive);

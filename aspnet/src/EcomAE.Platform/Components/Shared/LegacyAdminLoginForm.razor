@@ -13,13 +13,18 @@
 
     @if (!LoginService.IsConfigured)
     {
-        <p class="epc-login-bridge-note">
-            Sign-in is temporarily unavailable on this host. Use the live @SurfaceLabel login with the same credentials.
+        <div class="epc-login-error" style="display:block;background:#eff6ff;color:#1e3a8a;border-color:#bfdbfe;">
+            ASP.NET sign-in bridge is not configured on this host yet
+            (<code>EcomAE__SecretSuccession</code> + DB).
+            You can still browse the ASP.NET @SurfaceLabel shell without login.
+        </div>
+        <p style="margin:1rem 0 .5rem;">
+            <a class="epc-login-submit epc-login-submit-@Accent"
+               style="display:inline-flex;width:auto;padding:.7rem 1.1rem;text-decoration:none;align-items:center;"
+               href="@ShellHref">Browse ASP.NET @SurfaceLabel (no login)</a>
         </p>
-        <p>
-            <a class="epc-login-php" href="@ShellHref">Open ASP.NET @SurfaceLabel</a>
-            ·
-            <a class="epc-login-php" href="@PhpReferenceHref">PHP reference</a>
+        <p class="epc-login-bridge-note">
+            PHP compare only: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
         </p>
     }
     else
@@ -49,8 +54,9 @@
             </div>
             <button type="submit" class="epc-login-submit epc-login-submit-@Accent">@SubmitLabel</button>
         </form>
-        <p>
-            <a class="epc-login-php" href="@PhpReferenceHref">PHP reference only</a>
+        <p class="epc-login-bridge-note">
+            Or browse without login: <a class="epc-login-php" href="@ShellHref">ASP.NET @SurfaceLabel</a>
+            · PHP reference: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
         </p>
     }
 </div>

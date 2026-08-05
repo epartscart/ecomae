@@ -48,6 +48,18 @@ curl -sS http://127.0.0.1:5100/health || true
 # Prove new chrome is loaded (must print Garage Manager):
 curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/storefront/app | grep -o 'Garage Manager' | head -n1
 
+# CP/ERP/BOS guest browse (no login) — must NOT 302 to /cp/login:
+curl -sSI -A 'Mozilla/5.0' http://127.0.0.1:5100/cp | awk 'BEGIN{c=""} /^HTTP/{c=$2} END{print c}'
+# expect 200 (not 302)
+
+# Optional — enable ASP.NET login bridge (same PHP admin credentials):
+#   1) Copy PHP secret_succession into platform.env (never commit the secret):
+#        grep -n secret_succession /path/to/php/config.php   # find value on server only
+#        printf 'EcomAE__SecretSuccession=%s\n' '<value>' >> /etc/ecomae-aspnet/platform.env
+#   2) bash scripts/cloudpanel_verify_secret_succession_configured.sh
+#   3) systemctl restart ecomae-platform.service
+# Until that is set, /cp/login shows “Browse ASP.NET CP (no login)” instead of a working form.
+
 # Installs into server{} by host:
 #   www.ecomae.com block ← www pack (marketing ASP.NET home + login bridges)
 #   www.epartscart.com block ← tenant pack:

@@ -85,7 +85,7 @@
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
-            Nav.NavigateTo("/erp/login", forceLoad: true);
+            return; // guest browse — Sign in for live data
         }
     }
 }
