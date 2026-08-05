@@ -1,10 +1,12 @@
 # PHP as reference mode (confirmed architecture)
 
-**Human-confirmed model:** ASP.NET Core becomes the **live primary** runtime. The PHP project stays **available as a reference** so operators can still open previous screens/results and find gaps.
+**Human-confirmed model (2026-08-05):** ASP.NET Core becomes the **live primary** runtime. The PHP project stays **available as a reference** so operators can still open previous screens/results and find gaps — **till keep** (or a separate delete approval).
 
-This is **not** PHP source deletion and does **not** invent cutover approval.
+Evidence lock: `docs/migration/evidence/decommission/aspnet-primary-php-reference-confirmed.json`.
 
-## Locks (unchanged)
+This is **not** PHP source deletion and does **not** invent cutover approval / live traffic flip by itself.
+
+## Locks (unchanged by this confirmation)
 
 | Flag | Value |
 | --- | --- |
@@ -12,6 +14,7 @@ This is **not** PHP source deletion and does **not** invent cutover approval.
 | `readyForPhpRemoval` | `false` (reference keep ≠ removal) |
 | `RequirePhpFallback` | `true` in templates until final gate |
 | `RELEASE_OWNER_APPROVAL.md` | Never invented by agents |
+| Architecture confirmation | `aspnet-primary-php-reference-confirmed.json` — destination intent only |
 
 ## What “reference” means
 

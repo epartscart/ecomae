@@ -22,14 +22,18 @@
     "readyToRemovePhp": false,
     "approvalPresent": false,
     "notes": [
+      "See /migration/php-reference-mode and docs/migration/PHP_AS_REFERENCE_MODE.md \u2014 reference keep \u2260 PHP deletion.",
+      "Confirmed architecture: ASP.NET Core live primary destination; PHP project retained as reference (till keep/delete).",
       "Weighted 95%/5% meter is not percent of public routes cut over.",
       "Wired catalog API exact-routes complete (18/18).",
       "Surface digests wired 133/133 (incl. /erp/process-flow-tasks + /erp/report-center + /erp/aging + /erp/stock-movements); live www until ASP.NET republish + shadow install.",
       "Storefront digests wired 7; live shadows lag until www closeout (checkout often missing).",
       "Blazor SSR Zero-PHP console at /migration/console; human compare at /migration/compare.",
       "Digest dual-sample contract compare pairsChecked=231 failed=0 (cutoverAllowed=false).",
-      "Product chrome still PHP; human RELEASE_OWNER_APPROVAL.md still required for PHP removal."
-    ]
+      "Product chrome still interim PHP; human RELEASE_OWNER_APPROVAL.md still required for PHP traffic/fallback removal (keep PHP as reference)."
+    ],
+    "targetEndState": "100%-aspnet-core-live-php-reference-kept",
+    "keepPhpProjectAvailable": true
   },
   "inventory": {
     "totalPhpFiles": 3049,
@@ -84,5 +88,7 @@
     "Confirm /migration/php-decommission-readiness is 8/9 with approval missing.",
     "Human creates RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK only after accepting chrome-still-PHP risk (do not invent).",
     "When readyToRemovePhp=true: ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash scripts/cloudpanel_php_decommission.sh"
-  ]
+  ],
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false
 }

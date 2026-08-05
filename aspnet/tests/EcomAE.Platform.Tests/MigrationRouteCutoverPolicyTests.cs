@@ -32,7 +32,8 @@ public sealed class MigrationRouteCutoverPolicyTests
 
         Assert.Equal("aspnet-shell-php-primary", decision.TargetRuntime);
         Assert.False(decision.ReadyForAspNetTraffic);
-        Assert.Contains("Administrative shells", decision.Reason, StringComparison.Ordinal);
+        Assert.Contains("ASP.NET live primary", decision.Reason, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("reference", decision.Reason, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -34,7 +34,7 @@ public sealed class LiveTenantPresentationLockTests
         Assert.Equal(false, summary["cutoverAllowed"]);
         Assert.Equal(false, summary["readyForPhpRemoval"]);
         Assert.Equal(5, summary["tenantCount"]);
-        Assert.Equal("100%-aspnet-core-0-php", summary["targetEndState"]);
+        Assert.Equal("100%-aspnet-core-live-php-reference-kept", summary["targetEndState"]);
         Assert.Equal("parity-gate-until-aspnet-same-to-same-then-cutover", summary["policy"]);
         Assert.Contains("100% ASP.NET", summary["mandate"]!.ToString()!, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("same-to-same", summary["mandate"]!.ToString()!, StringComparison.OrdinalIgnoreCase);

@@ -628,8 +628,12 @@ public sealed class LiveSurfaceLinkReporterTests
             link.AspNetRouteHint == "/migration/live-tenant-presentation-lock");
         Assert.Contains(report.Links, link =>
             link.AspNetRouteHint == "/migration/aspnet-zero-php-path");
+        Assert.Contains(report.CutoverRules, note => note.Contains("CONFIRMED DESTINATION", StringComparison.Ordinal)
+            && note.Contains("PHP", StringComparison.Ordinal)
+            && note.Contains("reference", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.CutoverRules, note => note.Contains("PARITY GATE", StringComparison.Ordinal)
-            && note.Contains("100% ASP.NET", StringComparison.Ordinal));
+            && note.Contains("exact-route", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("catalogued-aspnet-primary-destination-php-reference-kept", report.Status);
     }
 
     [Fact]

@@ -883,6 +883,11 @@ check 'on-premises licenses digest route wired' contains "$ROOT/aspnet/src/EcomA
 check 'on-premises licenses SQL omits notes' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs" 'SelectOnPremisesLicenses'
 check 'ASP.NET zero-PHP path mentions on-premises' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/AspNetZeroPhpPathReporter.cs" 'on-premises'
 check 'ASP.NET zero-PHP path doc mentions on-premises' contains "$ROOT/docs/migration/ASPNET_ZERO_PHP_PATH.md" 'On-premises ERP'
+check 'ASP.NET path doc mentions PHP reference mode' contains "$ROOT/docs/migration/ASPNET_ZERO_PHP_PATH.md" 'PHP_AS_REFERENCE_MODE'
+check 'PHP reference mode doc exists' test -f "$ROOT/docs/migration/PHP_AS_REFERENCE_MODE.md"
+check 'PHP reference mode lock keeps project' contains "$ROOT/docs/migration/evidence/decommission/php-reference-mode-lock.json" '"keepPhpProjectAvailable": true'
+check 'ASP.NET-primary PHP-reference confirmation lock' contains "$ROOT/docs/migration/evidence/decommission/aspnet-primary-php-reference-confirmed.json" '"architectureConfirmed": true'
+check 'ASP.NET-primary confirmation keeps cutover false' contains "$ROOT/docs/migration/evidence/decommission/aspnet-primary-php-reference-confirmed.json" '"cutoverAllowed": false'
 check 'Wave B write dry-run probe covers SO cancel' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/sales-orders/cancel'
 check 'Wave B write dry-run probe covers OMS delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/orders/delete'
 check 'Wave B write dry-run probe covers PO delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/purchase-orders/delete'
