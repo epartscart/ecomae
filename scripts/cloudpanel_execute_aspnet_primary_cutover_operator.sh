@@ -58,24 +58,24 @@ echo "ASP.NET primary exact-route cutover — approval present; PHP reference ke
 
 if [[ "$SKIP_REDEPLOY" != "1" ]]; then
   if [[ -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" ]]; then
-    step "1/8 redeploy ASP.NET foundation from current checkout" \
+    step "1/9 redeploy ASP.NET foundation from current checkout" \
       bash "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh"
   elif [[ -x "$ROOT/scripts/deploy_aspnet_foundation.sh" ]]; then
-    step "1/8 redeploy ASP.NET foundation (deploy_aspnet_foundation.sh)" \
+    step "1/9 redeploy ASP.NET foundation (deploy_aspnet_foundation.sh)" \
       bash "$ROOT/scripts/deploy_aspnet_foundation.sh"
   else
     echo "WARN: no deploy script found; skipping redeploy (set ECOMAE_CUTOVER_SKIP_REDEPLOY=1 to silence)" >&2
   fi
 else
   echo ""
-  echo "== 1/8 redeploy skipped (ECOMAE_CUTOVER_SKIP_REDEPLOY=1) =="
+  echo "== 1/9 redeploy skipped (ECOMAE_CUTOVER_SKIP_REDEPLOY=1) =="
 fi
 
 if [[ -x "$ROOT/scripts/wait_for_aspnet_health.sh" ]]; then
-  step "2/8 wait for ASP.NET health" bash "$ROOT/scripts/wait_for_aspnet_health.sh" || true
+  step "2/9 wait for ASP.NET health" bash "$ROOT/scripts/wait_for_aspnet_health.sh" || true
 else
   echo ""
-  echo "== 2/8 health wait helper missing; probing loopback =="
+  echo "== 2/9 health wait helper missing; probing loopback =="
   curl -fsS --connect-timeout 5 http://127.0.0.1:5100/health >/dev/null \
     && echo "OK loopback /health" \
     || { echo "FAIL loopback /health" >&2; FAIL=1; }
@@ -83,7 +83,7 @@ fi
 
 if [[ "$ENABLE_FLAGS" == "1" && -f "$ENV_FILE" ]]; then
   echo ""
-  echo "== 3/8 enable Storefront/Admin ASP.NET route flags (RequirePhpFallback stays true) =="
+  echo "== 3/9 enable Storefront/Admin ASP.NET route flags (RequirePhpFallback stays true) =="
   bak="${ENV_FILE}.bak.aspnet-primary.$(date -u +%Y%m%d%H%M%S)"
   cp -a "$ENV_FILE" "$bak"
   python3 - "$ENV_FILE" <<'PY'
@@ -122,53 +122,56 @@ PY
   echo "backup: $bak"
 else
   echo ""
-  echo "== 3/8 route flags skipped (ECOMAE_ENABLE_ASPNET_ROUTE_FLAGS=${ENABLE_FLAGS}; env=${ENV_FILE}) =="
+  echo "== 3/9 route flags skipped (ECOMAE_ENABLE_ASPNET_ROUTE_FLAGS=${ENABLE_FLAGS}; env=${ENV_FILE}) =="
   if [[ ! -f "$ENV_FILE" ]]; then
     echo "NOTE: missing $ENV_FILE — set flags manually after deploy" >&2
   fi
 fi
 
-step "4/8 install surface digest exact-route shadows (133)" \
+step "4/9 install surface digest exact-route shadows (133)" \
   env ECOMAE_CONFIRM_INSTALL_SURFACE_DIGEST_SHADOWS=YES \
   bash "$ROOT/scripts/cloudpanel_install_surface_digest_shadows.sh"
 
-step "5/8 probe surface digest shadows" \
+step "5/9 probe surface digest shadows" \
   bash "$ROOT/scripts/cloudpanel_probe_surface_digest_shadows.sh"
 
-step "6/8 www storefront+marketing shadow closeout" \
+step "6/9 www storefront+marketing shadow closeout" \
   env ECOMAE_CONFIRM_WWW_SHADOW_CLOSEOUT=YES \
       ECOMAE_WWW_SHADOW_SKIP_PRESENTATION_RECHECK=1 \
   bash "$ROOT/scripts/cloudpanel_www_shadow_closeout_operator.sh"
 
 if [[ "$SKIP_PRESENTATION" != "1" ]]; then
-  step "7/8 install presentation app exact-route shadows" \
+  step "7/9 install presentation app exact-route shadows" \
     env ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES \
     bash "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh"
 else
   echo ""
-  echo "== 7/8 presentation install skipped (ECOMAE_CUTOVER_SKIP_PRESENTATION=1) =="
+  echo "== 7/9 presentation install skipped (ECOMAE_CUTOVER_SKIP_PRESENTATION=1) =="
 fi
 
+step "8/9 classic tenant-shared entries → ASP.NET (URL preserved; www + epartscart)" \
+  env ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
+      ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
+  bash "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" --all-hosts
+
+step "9/9 probe same-URL ASP.NET /cp /erp /bos + /php-reference/*" \
+  bash "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh"
+
 echo ""
-echo "== 8/8 assert locks still honest =="
+echo "== Locks still honest =="
 echo "cutoverAllowed must remain false (exact-route only; no broad trees)"
-echo "readyForPhpRemoval must remain false (PHP reference keep; chrome/module gaps remain)"
-echo "live / must remain PHP epm-hub"
-if bash "$ROOT/scripts/cloudpanel_probe_ecomae_marketing_php_chrome.sh"; then
-  echo "OK live / remains PHP epm-hub"
-else
-  echo "FAIL live / must stay PHP epm-hub" >&2
-  FAIL=1
-fi
+echo "readyForPhpRemoval must remain false (interactive module gaps remain)"
+echo "PHP reference: /index.php + deep /cp|/erp|/bos module paths"
+echo "Classic entries / /cp/ /erp/ /bos/ + top-level marketing → ASP.NET apps"
 
 echo ""
 echo "== Post-cutover operator boards =="
 cat <<'EOF'
-curl -sS https://www.ecomae.com/migration/php-reference-mode | jq '{mode,keepPhpProjectAvailable,storefrontAspNetEnabled,adminAspNetEnabled,requirePhpFallback,cutoverAllowed}'
-curl -sS https://www.ecomae.com/migration/php-decommission-readiness | jq '{readyToRemovePhp,blockerCount,checklistCompletePercent}'
-curl -sS https://www.ecomae.com/migration/live-surface-links | jq '{status}'
-bash scripts/cloudpanel_probe_surface_digest_shadows.sh
-bash scripts/cloudpanel_probe_storefront_digest_shadows.sh
+curl -sS -A 'Mozilla/5.0' https://www.ecomae.com/migration/php-reference-mode | jq '{mode,keepPhpProjectAvailable,storefrontAspNetEnabled,adminAspNetEnabled,requirePhpFallback,cutoverAllowed}'
+curl -sSI -A 'Mozilla/5.0' https://www.ecomae.com/ | awk 'BEGIN{IGNORECASE=1} /^HTTP|^location:/{print}'
+curl -sSI -A 'Mozilla/5.0' https://www.ecomae.com/cp/ | awk 'BEGIN{IGNORECASE=1} /^HTTP|^location:/{print}'
+curl -sS -A 'Mozilla/5.0' -o /dev/null -w 'index.php %{http_code}\n' https://www.ecomae.com/index.php
+bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
 
 NEXT (still required; do not invent PASS):
 - Authenticated dual-samples: bash scripts/cloudpanel_run_all_dual_sample_operators.sh
@@ -189,5 +192,5 @@ fi
 
 echo ""
 echo "PASS: exact-route ASP.NET primary cutover steps completed"
-echo "PHP reference kept; cutoverAllowed=false; broad trees still forbidden"
+echo "Classic PHP entries now ASP.NET; PHP reference kept; cutoverAllowed=false"
 exit 0

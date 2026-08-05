@@ -27,16 +27,18 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
         var dedicatedCp = TrimBase(_reference.DedicatedCpPhpBaseUrl);
         var aspNet = TrimBase(_reference.AspNetPrimaryBaseUrl);
 
+        // Tenant-shared URLs (/cp /erp /bos /) stay unchanged and serve ASP.NET.
+        // PHP reference is SEPARATE under /php-reference/* (plus dedicated CP host / tenant deep paths).
         var pairs = new List<PhpReferenceComparePair>
         {
-            new("marketing", $"{wwwPhp}/", $"{aspNet}/marketing/app", "php-reference-vs-aspnet-preview"),
-            new("cp", $"{wwwPhp}/CP/", $"{aspNet}/cp/app", "php-reference-vs-aspnet-preview"),
-            new("erp", $"{wwwPhp}/ERP/", $"{aspNet}/erp/app", "php-reference-vs-aspnet-preview"),
-            new("bos", $"{wwwPhp}/BOS/", $"{aspNet}/bos/app", "php-reference-vs-aspnet-preview"),
-            new("cp-dedicated", $"{dedicatedCp}/CP/", $"{aspNet}/cp/app", "php-reference-vs-aspnet-preview"),
-            new("tenant-storefront", $"{tenantPhp}/", $"{aspNet}/storefront/app", "tenant-php-reference-www-aspnet-preview-only"),
-            new("tenant-cp", $"{tenantPhp}/CP/", $"{aspNet}/cp/app", "tenant-php-reference-www-aspnet-preview-only"),
-            new("tenant-erp", $"{tenantPhp}/ERP/", $"{aspNet}/erp/app", "tenant-php-reference-www-aspnet-preview-only"),
+            new("marketing", $"{wwwPhp}/php-reference/home", $"{aspNet}/", "php-reference-vs-aspnet-shared-home"),
+            new("cp", $"{wwwPhp}/php-reference/cp", $"{aspNet}/cp", "php-reference-vs-aspnet-shared-cp"),
+            new("erp", $"{wwwPhp}/php-reference/erp", $"{aspNet}/erp", "php-reference-vs-aspnet-shared-erp"),
+            new("bos", $"{wwwPhp}/php-reference/bos", $"{aspNet}/bos", "php-reference-vs-aspnet-shared-bos"),
+            new("cp-dedicated", $"{dedicatedCp}/CP/", $"{aspNet}/cp", "php-reference-vs-aspnet-shared-cp"),
+            new("tenant-storefront", $"{tenantPhp}/php-reference/storefront", $"{tenantPhp}/", "php-reference-vs-aspnet-shared-tenant-home"),
+            new("tenant-cp", $"{tenantPhp}/php-reference/cp", $"{tenantPhp}/cp", "php-reference-vs-aspnet-shared-tenant-cp"),
+            new("tenant-erp", $"{tenantPhp}/php-reference/erp", $"{tenantPhp}/erp", "php-reference-vs-aspnet-shared-tenant-erp"),
         };
 
         var status = !_reference.Enabled
@@ -65,10 +67,10 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
             ComparePairs: pairs,
             OperatorSteps:
             [
-                "Human RELEASE_OWNER_APPROVAL.md is present — execute exact-route cutover: ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh",
-                "Keep the PHP project/docroot installed as a reference host (or read-only clone) so previous screens/results remain visible.",
-                "Use /migration/compare and /migration/php-reference-mode to open PHP vs ASP.NET side-by-side and record gaps.",
-                "Run dual-sample compare_* scripts against ECOMAE_PHP_BASE_URL / configured WwwPhpBaseUrl while ASP.NET serves exact-route shadows.",
+                "Tenant-shared URLs → ASP.NET (URL preserved): ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts",
+                "ASP.NET shared: /cp /erp /bos / on www.ecomae.com and www.epartscart.com",
+                "PHP reference SEPARATE: /php-reference/home|/cp|/erp|/bos|/storefront — compare at /migration/compare",
+                "Run dual-sample compare_* against /php-reference/* while shared entries stay on ASP.NET.",
                 "Do not delete PHP source until a separate decommission gate (ReadyToRemovePhp) — reference mode is not deletion.",
                 "Rollback live traffic with: bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback"
             ],
@@ -78,8 +80,8 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
                 "readyForPhpRemoval=false (this reporter always — source keep)",
                 "RequirePhpFallback stays true until dual-sample-green per exact route (templates default true)",
                 "RELEASE_OWNER_APPROVAL.md present with APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable",
-                "Named live tenants stay PHP-primary until unlocked parity shadows",
-                "Reference PHP should be read-only / non-conflicting for writes after ASP.NET is primary"
+                "Tenant-shared /cp /erp /bos / URLs must not redirect to /cp/app (URL preserved)",
+                "PHP reference only via /php-reference/* (and deep module paths); never invent cutoverAllowed=true"
             ],
             Note: _reference.Note);
     }
