@@ -281,7 +281,7 @@ fi
 printf '\nClassic-entry map:\n'
 printf '  https://www.ecomae.com/cp  /erp  /bos  /     → ASP.NET (www_ok=%s)\n' "$WWW_OK"
 printf '  https://www.epartscart.com/cp  /erp  /bos   → ASP.NET (tenant_ok=%s)\n' "$TENANT_OK"
-printf '  https://www.epartscart.com/                 → PHP same-to-same (full chrome)\n'
+printf '  https://www.epartscart.com/                 → ASP.NET storefront (PHP style; PHP via /php-reference/*)\n'
 printf '\nPHP reference (separate links):\n'
 printf '  /php-reference/home  /php-reference/cp  /php-reference/erp  /php-reference/bos  /php-reference/storefront\n'
 

@@ -35,7 +35,7 @@ public static partial class PhpModuleCatalog
 
     public static IReadOnlyDictionary<string, object> BuildSummary() => new Dictionary<string, object>
     {
-        ["policy"] = "hybrid-deeplink-to-php-until-aspnet-module-complete",
+        ["policy"] = "aspnet-primary-browse-php-reference-only",
         ["erpCategories"] = ErpCategoryCount,
         ["erpAreas"] = ErpAreaCount,
         ["erpTabs"] = ErpTabCount,
@@ -61,11 +61,11 @@ public static partial class PhpModuleCatalog
         ["deeplinkFloorOk"] = AllTrackedLinks().All(link => IsAllowedPhpDeeplink(link.Href)),
         ["notes"] = new[]
         {
-            "Live product chrome remains PHP (/CP/ /ERP/ /BOS/ storefront hosts).",
-            "Live www.ecomae.com marketing home/pages remain PHP (animated epm-hub).",
-            "ASP.NET /cp|/erp|/bos|/storefront|/marketing/app shells expose this full directory via hybrid deeplinks.",
+            "Live shared entries / /cp /erp /bos are ASP.NET (PHP style chrome).",
+            "PHP product pages open only via /php-reference/* — not from primary chrome clicks.",
+            "ASP.NET /cp|/erp|/bos|/storefront|/marketing/app shells expose this full directory; primary hrefs rewrite to ASP.NET browse routes.",
             "ERP shells list categories + areas + tabs; CP lists all brochure features; BOS sections + modules; storefront all surfaces; marketing all pages.",
-            "Tenant hosts must not receive presentation shadows (see TENANT_MIGRATION_SAFETY.md)."
+            "cutoverAllowed stays false until dual-sample gates pass for deep modules."
         }
     };
 

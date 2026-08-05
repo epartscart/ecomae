@@ -8,16 +8,11 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Super BOS · Fleet Command</PageTitle>
 <PhpChromeStyles Surface="bos" />
 
 <PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Command Center">
-    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/bos/app" />
-
-    @if (string.IsNullOrWhiteSpace(_phpHref))
-    {
         <style>
             .epc-bosapp-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.65rem; margin:1.1rem 0; }
             .epc-bosapp-card { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; padding:.9rem; }
@@ -26,7 +21,15 @@
             .epc-bosapp-note { margin-top:1rem; padding:.8rem; border:1px solid #e4e4e7; border-radius:.45rem; background:#fff; color:#52525b; font-size:.88rem; }
         </style>
 
-        <p style="color:#52525b;max-width:40rem">Fleet Command Center overview across tenants, sessions, and readiness. Open any module below to continue in BOS.</p>
+        <p style="color:#52525b;max-width:40rem">Fleet Command Center overview across tenants, sessions, and readiness. Browse on ASP.NET; PHP only via /php-reference/*.</p>
+        @if (!_isAdmin)
+        {
+            <div class="epc-bosapp-note" style="background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a;">
+                Guest preview — browse the ASP.NET BOS shell.
+                <a href="/bos/login">Sign in</a> for live KPIs.
+                PHP detail: <a href="/php-reference/bos">/php-reference/bos</a>
+            </div>
+        }
         <div class="epc-bosapp-grid">
             <div class="epc-bosapp-card"><strong>@_tenants</strong><span>Total tenants</span></div>
             <div class="epc-bosapp-card"><strong>@_commerce</strong><span>Commerce</span></div>
@@ -50,30 +53,23 @@
             Links="@PhpModuleCatalog.BosModules"
             PhpWorkspaceBase="/bos/app" />
 
-        <div class="epc-bosapp-note">Open any module below to continue in the BOS workspace.</div>
-    }
+        <div class="epc-bosapp-note">Open any module below on ASP.NET. PHP product pages are only under /php-reference/*.</div>
 </PhpBosDesktopChrome>
 
 @code {
     private int _tenants, _active, _sessions, _withDb, _erpOnly, _commerce, _demo, _platform;
     private bool _isAdmin;
-    private string? _phpHref;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
-        if (ctx.Request.Query.TryGetValue("php", out var php) && !string.IsNullOrWhiteSpace(php))
-        {
-            _phpHref = php.ToString();
-        }
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin)
+        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/bos/login", forceLoad: true);
             return;
         }
-        _isAdmin = true;
         var summary = await Dashboards.BuildBosAsync(ctx.RequestAborted);
         _tenants = summary.PortalTenants;
         _active = summary.ActivePortalTenants;
@@ -83,6 +79,5 @@
         _commerce = summary.CommerceTenants;
         _demo = summary.DemoTenants;
         _platform = summary.PlatformTenants;
-        // Fleet KPIs loaded for admin session.
     }
 }

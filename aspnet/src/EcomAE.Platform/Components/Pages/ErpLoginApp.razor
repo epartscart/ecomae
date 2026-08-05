@@ -34,7 +34,7 @@
 <div class="epc-asp-login-erp epc-erp-portal-wrap">
     <header class="epc-erp-topbar">
         <div class="epc-erp-topbar__inner">
-            <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="/ERP/" aria-label="ERP Finance">
+            <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="/erp" aria-label="ERP Finance">
                 <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:32px;background:#fff;border-radius:6px;padding:2px" />
                 <span class="epc-erp-topbar__brand-text">
                     <strong>ECOM AE</strong>
@@ -42,9 +42,10 @@
                 </span>
             </a>
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact">
-                <a href="/ERP/"><i class="fa fa-dashboard"></i> ERP</a>
-                <a href="/ERP/guide"><i class="fa fa-book"></i> Guide</a>
-                <a href="/CP/shop/finance/erp?epc_erp_shell=1"><i class="fa fa-cog"></i> Control panel (advanced)</a>
+                <a href="/erp"><i class="fa fa-dashboard"></i> ERP</a>
+                <a href="/erp"><i class="fa fa-book"></i> Guide</a>
+                <a href="/cp"><i class="fa fa-cog"></i> Control panel</a>
+                <a href="/php-reference/erp"><i class="fa fa-code"></i> PHP reference</a>
             </nav>
         </div>
     </header>
@@ -148,13 +149,14 @@
                     <div class="hpanel">
                         <div class="panel-heading">Sign in</div>
                         <div class="panel-body">
-                            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Erp" SurfaceLabel="ERP" PhpLoginHref="/ERP/" ErrorMessage="@_error" SubmitLabel="Log in" Accent="blue" />
+                            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Erp" SurfaceLabel="ERP" PhpLoginHref="/php-reference/erp" ErrorMessage="@_error" SubmitLabel="Log in" Accent="blue" />
                         </div>
                     </div>
                     <p class="text-muted text-center epc-erp-login-footnote" style="margin-top:12px;font-size:12px;">
                         Administrators:
-                        <a href="/CP/shop/finance/erp?epc_erp_shell=1">Control panel (advanced)</a>
-                        · <a href="https://epartscart.com/">E-commerce website</a>
+                        <a href="/cp">Control panel</a>
+                        · <a href="/">E-commerce website</a>
+                        · <a href="/php-reference/erp">PHP reference</a>
                     </p>
                 </div>
             </div>
@@ -168,7 +170,7 @@
                 <div class="epc-erp-home-hero__stats">
                     @foreach (var cat in PhpModuleCatalog.ErpCategories)
                     {
-                        <a class="epc-erp-home-stat" href="@cat.Href" style="color:inherit;text-decoration:none">
+                        <a class="epc-erp-home-stat" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(cat.Href)" style="color:inherit;text-decoration:none">
                             <strong><i class="fa @cat.Icon"></i> @cat.Label</strong>
                             <span>@cat.Id</span>
                         </a>
@@ -186,7 +188,7 @@
                         <div class="epc-erp-home-card">
                             <h3><i class="fa @area.Icon"></i> @area.Label</h3>
                             <p>Workspace area <code>@area.Id</code> — finance, operations, and compliance tabs open after sign-in.</p>
-                            <a href="@area.Href">Open @area.Label</a>
+                            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(area.Href)">Open @area.Label</a>
                         </div>
                     </div>
                 }
@@ -200,7 +202,7 @@
                 <div class="epc-erp-home-hero__stats">
                     @foreach (var tab in group)
                     {
-                        <a class="epc-erp-home-stat" href="@tab.Href" style="color:inherit;text-decoration:none;background:#fff;border:1px solid #dce4ef">
+                        <a class="epc-erp-home-stat" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(tab.Href)" style="color:inherit;text-decoration:none;background:#fff;border:1px solid #dce4ef">
                             <strong><i class="fa @tab.Icon"></i> @tab.Label</strong>
                             <span>@tab.Id</span>
                         </a>
@@ -221,19 +223,19 @@
                                 <li><i class="fa fa-check"></i> @feat</li>
                             }
                         </ul>
-                        <a href="/ERP/guide">Open ERP guide</a>
+                        <a href="/erp">Open ERP guide</a>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="epc-erp-home-card">
                         <h3><i class="fa fa-shield"></i> Compliance &amp; platform links</h3>
-                        <p>Finance portal stays separate from public storefront accounts. Administrators use control panel advanced ERP for shell configuration.</p>
+                        <p>Finance portal stays separate from public storefront accounts. Administrators use ASP.NET control panel / ERP shells; PHP is reference-only.</p>
                         <div class="epc-erp-home-hero__stats">
-                            <a class="epc-erp-home-stat" href="/CP/shop/finance/erp?epc_erp_shell=1" style="color:inherit;text-decoration:none;background:#f8fafc;border:1px solid #dce4ef">
-                                <strong><i class="fa fa-cog"></i> Control panel ERP</strong>
-                                <span>Advanced shell</span>
+                            <a class="epc-erp-home-stat" href="/cp" style="color:inherit;text-decoration:none;background:#f8fafc;border:1px solid #dce4ef">
+                                <strong><i class="fa fa-cog"></i> Control panel</strong>
+                                <span>ASP.NET shell</span>
                             </a>
-                            <a class="epc-erp-home-stat" href="https://epartscart.com/" style="color:inherit;text-decoration:none;background:#f8fafc;border:1px solid #dce4ef">
+                            <a class="epc-erp-home-stat" href="/" style="color:inherit;text-decoration:none;background:#f8fafc;border:1px solid #dce4ef">
                                 <strong><i class="fa fa-shopping-cart"></i> E-commerce website</strong>
                                 <span>Storefront host</span>
                             </a>

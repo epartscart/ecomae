@@ -8,16 +8,11 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Control Command Centre · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/cp/app" />
-
-    @if (string.IsNullOrWhiteSpace(_phpHref))
-    {
         <style>
             .epc-cc-hero { display:grid; grid-template-columns:1.1fr 1.4fr; gap:1rem; margin-bottom:1.1rem; }
             .epc-cc-panel { background:linear-gradient(135deg,#0c4a6e 0%,#075985 55%,#0ea5e9 100%); color:#fff; border-radius:.7rem; padding:1.2rem 1.3rem; }
@@ -47,29 +42,40 @@
             </section>
         </div>
 
+        @if (!_isAdmin)
+        {
+            <div class="epc-cc-note" style="background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a;">
+                Guest preview — browse the ASP.NET control panel shell.
+                <a href="/cp/login">Sign in</a> for live KPIs.
+                PHP detail: <a href="/php-reference/cp">/php-reference/cp</a>
+            </div>
+        }
+
         <h2 style="font-size:1.05rem;margin:0 0 .7rem">Quick actions</h2>
         <div class="epc-cc-tiles">
             @{
                 var colors = new[] { "#0c4a6e", "#0369a1", "#2563eb", "#0284c7", "#0ea5e9", "#1d4ed8", "#075985", "#dc2626", "#b91c1c" };
                 var i = 0;
+                var actions = LegacyChromeNavCatalog.ControlPanelQuickActions
+                    .Where(a => !a.Label.Contains("PHP", StringComparison.OrdinalIgnoreCase)
+                        && !PhpSurfaceLinkMap.IsPhpProductHref(a.Href));
             }
-            @foreach (var item in LegacyChromeNavCatalog.ControlPanelQuickActions)
+            @foreach (var item in actions)
             {
                 var color = colors[i++ % colors.Length];
-                <a class="epc-cc-tile" style="background:@color" href="@item.Href">@item.Label</a>
+                <a class="epc-cc-tile" style="background:@color" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)">@item.Label</a>
             }
         </div>
 
         <PhpHybridModuleDirectory
             Title="Complete Control Panel module directory"
-            Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} control panel modules")"
+            Subtitle="@($"All {PhpModuleCatalog.CpBrochureFeatureCount} control panel modules — ASP.NET browse; PHP via reference only")"
             Links="@PhpModuleCatalog.CpBrochureFeatures"
             PhpWorkspaceBase="/cp/app" />
 
         <div class="epc-cc-note">
-            Open any module below to continue in the control panel.
+            Open any module below on ASP.NET. PHP product pages are only under /php-reference/*.
         </div>
-    }
 </PhpCpDesktopChrome>
 
 @code {
@@ -78,7 +84,6 @@
     private int _tenants;
     private int _active;
     private bool _isAdmin;
-    private string? _phpHref;
 
     protected override async Task OnInitializedAsync()
     {
@@ -88,19 +93,13 @@
             return;
         }
 
-        if (ctx.Request.Query.TryGetValue("php", out var php) && !string.IsNullOrWhiteSpace(php))
-        {
-            _phpHref = php.ToString();
-        }
-
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin)
+        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/cp/login", forceLoad: true);
             return;
         }
 
-        _isAdmin = true;
         var summary = await Dashboards.BuildControlPanelAsync(ctx.RequestAborted);
         _users = summary.Users;
         _sessions = summary.AdminSessions;

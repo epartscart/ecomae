@@ -12,9 +12,9 @@ On this CloudPanel, **epartscart is a `server_name www.epartscart.com` block ins
 
 ```bash
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-git fetch origin cursor/epartscart-vhost-classic-entry-7b3b
-git checkout -f cursor/epartscart-vhost-classic-entry-7b3b
-git reset --hard origin/cursor/epartscart-vhost-classic-entry-7b3b
+git fetch origin cursor/aspnet-same-style-cut-php-links-7b3b
+git checkout -f cursor/aspnet-same-style-cut-php-links-7b3b
+git reset --hard origin/cursor/aspnet-same-style-cut-php-links-7b3b
 # after merge: git fetch origin main && git checkout -f main && git reset --hard origin/main
 
 # Prefers labeled baks; fall back to older stamps.
@@ -38,17 +38,23 @@ ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
   bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh
 # On mega-conf this is a no-op (prints NOTE); do not create a duplicate vhost.
 
+# Redeploy ASP.NET first (PHP-style storefront chrome + guest CP/ERP/BOS shells):
+export ECOMAE_BRANCH=cursor/aspnet-same-style-cut-php-links-7b3b
+bash scripts/cloudpanel_find_and_redeploy.sh
+# after merge: export ECOMAE_BRANCH=main && bash scripts/cloudpanel_find_and_redeploy.sh
+
 # Installs into server{} by host:
 #   www.ecomae.com block ← www pack (marketing ASP.NET home + login bridges)
 #   www.epartscart.com block ← tenant pack:
-#     `/` = PHP same-to-same (full modex chrome — NOT Blazor /storefront/app)
+#     `/` = ASP.NET /storefront/app (PHP-style chrome)
 #     `/cp` `/erp` `/bos` + login bridges = ASP.NET
-# Login bridges required: apps 302 unauthenticated /cp → /cp/login.
+# Guest can browse CP/ERP/BOS shells without hard login redirect; Sign in CTA remains.
 ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
 
 bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
+# Expect: epartscart / = ASP.NET PHP-style; /cp /erp /bos guest browse (no login hard-redirect); PHP via /php-reference/*
 ```
 
 **What this does / does not do**
@@ -56,8 +62,9 @@ bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
 | Does | Does not |
 | --- | --- |
 | Same-URL proxy: `/cp` `/erp` `/bos` `/` → ASP.NET on ecomae + epartscart | Redirect tenants to `/cp/app` (URL stays `/cp`) |
-| PHP reference at `/php-reference/home\|cp\|erp\|bos\|storefront` | Broad `location /cp|/erp|/bos|/storefront` prefix trees |
-| Keeps deep `/cp/...` module paths on PHP until per-route dual-sample | Delete PHP source / PHP-FPM / cron |
+| PHP reference at `/php-reference/home\|cp\|erp\|bos\|storefront` only | Broad `location /cp|/erp|/bos|/storefront` prefix trees |
+| Primary product clicks stay on ASP.NET (PHP style) | Open PHP `/CP/` `/ERP/` `/BOS/` from chrome clicks |
+| Keeps deep module bodies incomplete until dual-sample | Delete PHP source / PHP-FPM / cron |
 | Enables Admin/Storefront ASP.NET route flags (full operator) | Invent presentation/module PASS or `cutoverAllowed=true` |
 
 ## 1) One-shot find + redeploy

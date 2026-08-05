@@ -8,16 +8,11 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Ecom BOS Dashboard · ERP</PageTitle>
 <PhpChromeStyles Surface="erp" />
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
-    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/erp/app" />
-
-    @if (string.IsNullOrWhiteSpace(_phpHref))
-    {
         <style>
             .epc-erp-grid { display:grid; grid-template-columns:1.2fr 1fr; gap:.85rem; margin-bottom:1rem; }
             .epc-erp-card { background:#fff; border:1px solid #e2e8f0; border-radius:.65rem; padding:1rem 1.1rem; }
@@ -44,11 +39,20 @@
             </section>
         </div>
 
+        @if (!_isAdmin)
+        {
+            <div class="epc-erp-note">
+                Guest preview — browse the ASP.NET ERP shell.
+                <a href="/erp/login">Sign in</a> for live KPIs.
+                PHP detail: <a href="/php-reference/erp">/php-reference/erp</a>
+            </div>
+        }
+
         <div class="epc-erp-banners">
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#0c4a6e,#0369a1)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">Income Statement</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">Balance Sheet</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#0ea5e9)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=finance")">General Journal</a>
-            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#2563eb,#38bdf8)" href="@PhpModuleCatalog.HybridWorkspaceHref("/erp/app", "/ERP/?epc_erp_shell=1&area=sales")">New Sales Order</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#0c4a6e,#0369a1)" href="/erp">Income Statement</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1e3a8a,#2563eb)" href="/erp">Balance Sheet</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#1d4ed8,#0ea5e9)" href="/erp">General Journal</a>
+            <a class="epc-erp-banner" style="background:linear-gradient(90deg,#2563eb,#38bdf8)" href="/erp">New Sales Order</a>
         </div>
 
         <section>
@@ -91,9 +95,8 @@
             PhpWorkspaceBase="/erp/app" />
 
         <div class="epc-erp-note">
-            Open any module below to continue in the ERP workspace.
+            Open any module below on ASP.NET. PHP product pages are only under /php-reference/*.
         </div>
-    }
 </PhpErpDesktopChrome>
 
 @code {
@@ -105,24 +108,17 @@
         0, 0, 0,
         "n/a", "");
     private bool _isAdmin;
-    private string? _phpHref;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
-        if (ctx.Request.Query.TryGetValue("php", out var php) && !string.IsNullOrWhiteSpace(php))
-        {
-            _phpHref = php.ToString();
-        }
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Admin)
+        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        if (!_isAdmin)
         {
-            Nav.NavigateTo("/erp/login", forceLoad: true);
             return;
         }
-        _isAdmin = true;
         _s = (await Dashboards.BuildErpAsync(ctx.RequestAborted)).Summary;
-        // ERP KPIs loaded for admin session.
     }
 }

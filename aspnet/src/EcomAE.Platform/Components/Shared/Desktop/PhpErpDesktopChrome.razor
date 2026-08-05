@@ -8,14 +8,15 @@
 <div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root">
     <header class="epc-erp-topbar epc-erp-topbar--cp">
         <div class="epc-erp-topbar__inner">
-            <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="/ERP/">
+            <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="/erp">
                 <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" />
                 <span>Ecom BOS</span>
             </a>
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
-                <a href="/ERP/">Guide</a>
-                <a href="/CP/control/portal">Tenants</a>
-                <a href="/CP/">E-commerce CP</a>
+                <a href="/erp">Guide</a>
+                <a href="/cp/tenants-app">Tenants</a>
+                <a href="/cp">E-commerce CP</a>
+                <a href="/php-reference/erp">PHP reference</a>
             </nav>
             <div class="epc-erp-topbar__user">
                 @if (!IsAdmin)
@@ -26,7 +27,7 @@
                 {
                     <span>Admin session</span>
                 }
-                <a href="/ERP/">ERP workspace</a>
+                <a href="/erp">ERP workspace</a>
             </div>
         </div>
     </header>
@@ -35,7 +36,7 @@
         <div class="epc-erp-shell epc-erp-shell--layout epc-erp-shell--topnav epc-erp-shell--topnav-only">
             <nav class="epc-erp-topnav" id="epc_erp_topnav" aria-label="ERP process areas">
                 <div class="epc-erp-topnav-inner">
-                    <a class="epc-erp-topnav-brand" href="/ERP/?epc_erp_shell=1&amp;area=overview&amp;tab=dashboard">
+                    <a class="epc-erp-topnav-brand" href="/erp">
                         <i class="fa fa-cubes" aria-hidden="true"></i><span>Ecom BOS</span>
                     </a>
                     <ul class="epc-erp-topnav-list" role="menubar">
@@ -60,7 +61,7 @@
                                             }
                                             @group.Label
                                         </div>
-                                        <a class="epc-erp-topnav-panel-hub" href="@(group.HubHref ?? group.Links[0].Href)">
+                                        <a class="epc-erp-topnav-panel-hub" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(group.HubHref ?? group.Links[0].Href)">
                                             Open first module <i class="fa fa-arrow-right"></i>
                                         </a>
                                     </div>
@@ -79,7 +80,7 @@
                                                     @foreach (var link in col.Tabs)
                                                     {
                                                         <li>
-                                                            <a href="@link.Href">
+                                                            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href)">
                                                                 <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
                                                                 @link.Label
                                                             </a>
@@ -102,7 +103,7 @@
                         <div class="epc-erp-content-toolbar-main">
                             <div class="epc-erp-content-header">
                                 <nav class="epc-erp-breadcrumb" aria-label="Breadcrumb">
-                                    <a href="/ERP/">ERP</a>
+                                    <a href="/erp">ERP</a>
                                     <span class="sep">/</span>
                                     <span>@BreadcrumbArea</span>
                                     <span class="sep">/</span>
@@ -121,7 +122,7 @@
             </div>
         </div>
     </main>
-    <footer class="epc-erp-foot">ERP · <a href="/ERP/">Open ERP</a></footer>
+    <footer class="epc-erp-foot">ERP · <a href="/erp">Open ERP</a> · <a href="/php-reference/erp">PHP reference</a></footer>
 </div>
 
 <style>

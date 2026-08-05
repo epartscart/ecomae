@@ -1,6 +1,6 @@
 {
   "role": "classic-entry-aspnet-primary",
-  "generatedAtUnix": 1785906000,
+  "generatedAtUnix": 1785912000,
   "ok": true,
   "routeCount": 24,
   "tenantRouteCount": 24,
@@ -18,12 +18,13 @@
       "loginBridges": ["/cp/login", "/erp/login", "/bos/login"]
     },
     "www.epartscart.com": {
-      "homeBackend": "/index.php",
-      "homePresentation": "php-same-to-same",
-      "homeNote": "Full modex chrome (header/footer/search/AI/dock). Blazor /storefront/app is preview only until dual-sample green.",
-      "sharedEntriesAspNet": ["/cp", "/erp", "/bos"],
-      "sharedEntriesPhp": ["/"],
+      "homeBackend": "/storefront/app",
+      "homePresentation": "aspnet-php-style",
+      "homeNote": "ASP.NET storefront with PHP-style chrome (Garage Manager / WhatsApp / AI / search tabs / dock). PHP product only via /php-reference/*.",
+      "sharedEntriesAspNet": ["/", "/cp", "/erp", "/bos"],
+      "sharedEntriesPhp": [],
       "loginBridges": ["/cp/login", "/erp/login", "/bos/login"],
+      "guestBrowseShells": true,
       "nginxTarget": "server_name www.epartscart.com block inside www.ecomae.com.conf mega-conf",
       "requiresConfirm": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES"
     }
@@ -45,14 +46,13 @@
     "https://www.ecomae.com/erp",
     "https://www.ecomae.com/bos",
     "https://www.ecomae.com/",
+    "https://www.epartscart.com/",
     "https://www.epartscart.com/cp",
     "https://www.epartscart.com/erp",
     "https://www.epartscart.com/bos"
   ],
-  "phpSameToSameUrls": [
-    "https://www.epartscart.com/"
-  ],
-  "note": "epartscart `/` is PHP same-to-same presentation (not Blazor scaffold). /cp /erp /bos (+ login bridges) are ASP.NET same-URL. PHP reference under /php-reference/*. Broad trees forbidden. cutoverAllowed=false.",
+  "phpSameToSameUrls": [],
+  "note": "epartscart `/` is ASP.NET PHP-style presentation (not PHP index.php). Primary clicks stay on ASP.NET; PHP only under /php-reference/*. CP/ERP/BOS shells allow guest browse (no hard login wall). cutoverAllowed=false.",
   "installer": "scripts/cloudpanel_install_classic_entry_aspnet_primary.sh",
   "confirmEnv": "ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES",
   "tenantConfirmEnv": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES",
