@@ -43,7 +43,7 @@
         <h1>HR Overview</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-hr-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/projects-overview-app">Projects overview</a>
         </div>
     </section>
@@ -84,7 +84,7 @@
                             <td>@(string.IsNullOrWhiteSpace(e.Department) ? "—" : e.Department)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Status) ? "—" : e.Status)</td>
                             <td>@(e.JoinDate > 0 ? e.JoinDate.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

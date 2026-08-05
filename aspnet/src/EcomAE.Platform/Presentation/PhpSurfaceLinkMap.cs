@@ -14,14 +14,22 @@ public static class PhpSurfaceLinkMap
         }
 
         var value = href.Trim();
-        if (Uri.TryCreate(value, UriKind.Absolute, out var absolute)
-            && (absolute.Host.Equals("epartscart.com", StringComparison.OrdinalIgnoreCase)
-                || absolute.Host.EndsWith(".epartscart.com", StringComparison.OrdinalIgnoreCase)))
+        if (Uri.TryCreate(value, UriKind.Absolute, out var absolute))
         {
-            value = string.IsNullOrEmpty(absolute.AbsolutePath) ? "/" : absolute.AbsolutePath;
-            if (!string.IsNullOrEmpty(absolute.Query))
+            if (absolute.Host.Equals("epartscart.com", StringComparison.OrdinalIgnoreCase)
+                || absolute.Host.EndsWith(".epartscart.com", StringComparison.OrdinalIgnoreCase))
             {
-                value += absolute.Query;
+                value = string.IsNullOrEmpty(absolute.AbsolutePath) ? "/" : absolute.AbsolutePath;
+                if (!string.IsNullOrEmpty(absolute.Query))
+                {
+                    value += absolute.Query;
+                }
+            }
+            else if (absolute.Host.Equals("www.ecomae.com", StringComparison.OrdinalIgnoreCase)
+                || absolute.Host.Equals("ecomae.com", StringComparison.OrdinalIgnoreCase)
+                || absolute.Host.EndsWith(".ecomae.com", StringComparison.OrdinalIgnoreCase))
+            {
+                return MapMarketingPath(absolute.AbsolutePath, absolute.Fragment);
             }
         }
 
@@ -93,6 +101,51 @@ public static class PhpSurfaceLinkMap
         }
 
         return "/";
+    }
+
+    private static string MapMarketingPath(string path, string fragment)
+    {
+        var value = string.IsNullOrEmpty(path) ? "/" : path;
+        var frag = string.IsNullOrEmpty(fragment) ? "" : fragment;
+        if (value.Equals("/", StringComparison.Ordinal) || value.Equals("/index.php", StringComparison.OrdinalIgnoreCase))
+        {
+            return EcomaeMarketingPages.AspNetHome + frag;
+        }
+
+        if (value.StartsWith("/cp", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp";
+        }
+
+        if (value.StartsWith("/erp", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/erp";
+        }
+
+        if (value.StartsWith("/bos", StringComparison.OrdinalIgnoreCase) && !value.StartsWith("/BOS", StringComparison.Ordinal))
+        {
+            return "/marketing/bos" + frag;
+        }
+
+        // /platform/demo → /marketing/demo ; /platform → /marketing/platform ; /legal → /marketing/legal
+        if (value.StartsWith("/platform/", StringComparison.OrdinalIgnoreCase))
+        {
+            var rest = value["/platform/".Length..];
+            return "/marketing/" + rest.TrimEnd('/') + frag;
+        }
+
+        if (value.Equals("/platform", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/marketing/platform" + frag;
+        }
+
+        if (value.StartsWith("/brochure/cp", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/marketing/brochure-cp" + frag;
+        }
+
+        var slug = value.Trim('/');
+        return "/marketing/" + slug + frag;
     }
 
     public static string PhpReferenceOnlyHref(string? href)

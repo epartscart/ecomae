@@ -45,7 +45,7 @@
         <h1>Invoices</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-inv-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
             <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -88,7 +88,7 @@
                             <td>@(string.IsNullOrWhiteSpace(inv.CustomerEmail) ? $"user {inv.UserId}" : inv.CustomerEmail)</td>
                             <td><span class="epc-inv-badge">@inv.Status</span></td>
                             <td>@inv.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@phpHref">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }

@@ -54,7 +54,8 @@ ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
 
 bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
-# Expect: epartscart / = ASP.NET PHP-style; /cp /erp /bos guest browse (no login hard-redirect); PHP via /php-reference/*
+# Expect: epartscart / + www / + /cp /erp /bos = ASP.NET PHP-style shells;
+# guest browse (no login hard-redirect); PHP only via /php-reference/*
 ```
 
 **What this does / does not do**

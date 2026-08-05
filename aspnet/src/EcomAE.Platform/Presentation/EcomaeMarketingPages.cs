@@ -1,59 +1,61 @@
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// Authoritative catalog of www.ecomae.com marketing routes from PHP
-/// <c>epc_ecomae_platform_match_path</c> / nav / legal aliases.
-/// Live product pages remain PHP; ASP.NET /marketing/app hybrid-deeplinks here.
+/// Authoritative catalog of www.ecomae.com marketing routes.
+/// Primary Hrefs are ASP.NET /marketing/* pages (PHP style). PHP compare only via /php-reference/*.
 /// </summary>
 public static class EcomaeMarketingPages
 {
+    /// <summary>PHP live host — reference/compare only, never primary product clicks.</summary>
     public const string LiveBase = "https://www.ecomae.com/";
-    public const string SuperCpUrl = "https://www.ecomae.com/cp";
-    public const string PlatformErpUrl = "https://www.ecomae.com/erp/";
-    public const string ClientErpDemoUrl = "https://www.ecomae.com/cp/client-erp/asap/";
+    public const string AspNetHome = "/marketing/app";
+    public const string SuperCpUrl = "/cp";
+    public const string PlatformErpUrl = "/erp";
+    public const string ClientErpDemoUrl = "/erp";
+    public const string PhpReferenceHome = "/php-reference/home";
     public const int DemoDays = 3;
 
     public sealed record PageLink(string Id, string Label, string Href, string Group);
 
     public static readonly IReadOnlyList<PageLink> All =
     [
-        new("home", "Home", LiveBase, "core"),
-        new("platform", "Platform", LiveBase + "platform", "core"),
-        new("industries", "Industries", LiveBase + "platform/industries", "core"),
-        new("capabilities", "Capabilities", LiveBase + "platform/capabilities", "core"),
-        new("free_tools", "Free Tools", LiveBase + "platform/free-tools", "core"),
-        new("pricing", "Pricing", LiveBase + "platform/pricing", "core"),
-        new("about", "About", LiveBase + "platform/about", "core"),
-        new("contact", "Contact", LiveBase + "platform/contact", "core"),
-        new("demo", "3-day demo", LiveBase + "platform/demo", "solutions"),
-        new("platform_guides", "Super CP guides", LiveBase + "platform/platform-guides", "solutions"),
-        new("api_services", "Catalog & Price API", LiveBase + "platform/api-services", "solutions"),
-        new("api_documentation", "Tenant ERP API", LiveBase + "platform/api-documentation", "solutions"),
-        new("auto_price_ai", "Auto Price AI", LiveBase + "platform/auto-price-ai", "solutions"),
-        new("faq", "FAQ", LiveBase + "platform/faq", "solutions"),
-        new("customer_results", "Customer results", LiveBase + "platform/customer-results", "solutions"),
-        new("business_continuity", "Continuity", LiveBase + "platform/business-continuity", "solutions"),
-        new("brochure", "Product brochure", LiveBase + "brochure", "resources"),
-        new("brochure_cp", "Full CP brochure", LiveBase + "brochure/cp", "resources"),
-        new("docs", "Documentation", LiveBase + "documentation", "resources"),
-        new("compare", "Compare", LiveBase + "compare", "resources"),
-        new("blockchain", "Blockchain BOS", LiveBase + "blockchain", "resources"),
-        new("bos_marketing", "What is Blockchain BOS", LiveBase + "bos", "resources"),
-        new("solutions", "Solutions", LiveBase + "solutions", "resources"),
-        new("legal", "Legal policies", LiveBase + "legal", "legal"),
-        new("privacy", "Privacy", LiveBase + "privacy", "legal"),
-        new("terms", "Terms", LiveBase + "terms", "legal"),
-        new("cookie_policy", "Cookie policy", LiveBase + "cookie-policy", "legal"),
-        new("security_policy", "Security policy", LiveBase + "security-policy", "legal"),
-        new("right_to_use", "Right to use", LiveBase + "right-to-use", "legal"),
-        new("trademark", "Trademark", LiveBase + "trademark", "legal"),
-        new("copyright", "Copyright", LiveBase + "copyright", "legal"),
-        new("data_protection", "Data protection", LiveBase + "data-protection", "legal"),
-        new("acceptable_use", "Acceptable use", LiveBase + "acceptable-use", "legal"),
-        new("confidentiality", "Confidentiality", LiveBase + "confidentiality", "legal"),
-        new("intellectual_property", "Intellectual property", LiveBase + "intellectual-property", "legal"),
-        new("blockchain_disclaimer", "Blockchain disclaimer", LiveBase + "blockchain-disclaimer", "legal"),
-        new("dmca", "DMCA", LiveBase + "dmca", "legal"),
+        new("home", "Home", AspNetHome, "core"),
+        new("platform", "Platform", "/marketing/platform", "core"),
+        new("industries", "Industries", "/marketing/industries", "core"),
+        new("capabilities", "Capabilities", "/marketing/capabilities", "core"),
+        new("free_tools", "Free Tools", "/marketing/free-tools", "core"),
+        new("pricing", "Pricing", "/marketing/pricing", "core"),
+        new("about", "About", "/marketing/about", "core"),
+        new("contact", "Contact", "/marketing/contact", "core"),
+        new("demo", "3-day demo", "/marketing/demo", "solutions"),
+        new("platform_guides", "Super CP guides", "/marketing/platform-guides", "solutions"),
+        new("api_services", "Catalog & Price API", "/marketing/api-services", "solutions"),
+        new("api_documentation", "Tenant ERP API", "/marketing/api-documentation", "solutions"),
+        new("auto_price_ai", "Auto Price AI", "/marketing/auto-price-ai", "solutions"),
+        new("faq", "FAQ", "/marketing/faq", "solutions"),
+        new("customer_results", "Customer results", "/marketing/customer-results", "solutions"),
+        new("business_continuity", "Continuity", "/marketing/business-continuity", "solutions"),
+        new("brochure", "Product brochure", "/marketing/brochure", "resources"),
+        new("brochure_cp", "Full CP brochure", "/marketing/brochure-cp", "resources"),
+        new("docs", "Documentation", "/marketing/documentation", "resources"),
+        new("compare", "Compare", "/marketing/compare", "resources"),
+        new("blockchain", "Blockchain BOS", "/marketing/blockchain", "resources"),
+        new("bos_marketing", "What is Blockchain BOS", "/marketing/bos", "resources"),
+        new("solutions", "Solutions", "/marketing/solutions", "resources"),
+        new("legal", "Legal policies", "/marketing/legal", "legal"),
+        new("privacy", "Privacy", "/marketing/privacy", "legal"),
+        new("terms", "Terms", "/marketing/terms", "legal"),
+        new("cookie_policy", "Cookie policy", "/marketing/cookie-policy", "legal"),
+        new("security_policy", "Security policy", "/marketing/security-policy", "legal"),
+        new("right_to_use", "Right to use", "/marketing/right-to-use", "legal"),
+        new("trademark", "Trademark", "/marketing/trademark", "legal"),
+        new("copyright", "Copyright", "/marketing/copyright", "legal"),
+        new("data_protection", "Data protection", "/marketing/data-protection", "legal"),
+        new("acceptable_use", "Acceptable use", "/marketing/acceptable-use", "legal"),
+        new("confidentiality", "Confidentiality", "/marketing/confidentiality", "legal"),
+        new("intellectual_property", "Intellectual property", "/marketing/intellectual-property", "legal"),
+        new("blockchain_disclaimer", "Blockchain disclaimer", "/marketing/blockchain-disclaimer", "legal"),
+        new("dmca", "DMCA", "/marketing/dmca", "legal"),
     ];
 
     public static int Count => All.Count;
@@ -85,7 +87,7 @@ public static class EcomaeMarketingPages
             return false;
         }
 
-        // Operator product chrome / ASP.NET scaffolding — never marketing.
+        // Operator product chrome / ASP.NET scaffolding — never marketing PHP path.
         if (value.StartsWith("/CP", StringComparison.Ordinal)
             || value.StartsWith("/ERP", StringComparison.Ordinal)
             || value.StartsWith("/BOS", StringComparison.Ordinal)
@@ -96,7 +98,8 @@ public static class EcomaeMarketingPages
             || value.StartsWith("/migration/", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/auth/", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/api/", StringComparison.OrdinalIgnoreCase)
-            || value.StartsWith("/health", StringComparison.OrdinalIgnoreCase))
+            || value.StartsWith("/health", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/php-reference/", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
@@ -131,14 +134,13 @@ public static class EcomaeMarketingPages
             "/intellectual-property",
             "/blockchain-disclaimer",
             "/dmca",
-            "/en/privacy",
-            "/en/terms",
         ];
 
-        foreach (var prefix in exactOrPrefix)
+        foreach (var p in exactOrPrefix)
         {
-            if (value.Equals(prefix, StringComparison.Ordinal)
-                || value.StartsWith(prefix + "/", StringComparison.Ordinal))
+            if (value.Equals(p, StringComparison.Ordinal)
+                || value.StartsWith(p + "/", StringComparison.Ordinal)
+                || value.StartsWith(p + "?", StringComparison.Ordinal))
             {
                 return true;
             }

@@ -47,7 +47,7 @@
         <h1>Cash Ledger Entries</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-ce-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/cash-accounts-app">Cash accounts</a>
             <a class="ghost" href="/erp/accounts-summary-app">Accounts summary</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -94,7 +94,7 @@
                             <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
-                            <td><a href="@phpHref">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }

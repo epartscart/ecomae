@@ -47,7 +47,7 @@
         <h1>Cash &amp; Bank</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-cash-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/cash-entries-app">Cash ledger</a>
             <a class="ghost" href="/erp/invoices-app">Invoices</a>
             <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
@@ -91,7 +91,7 @@
                                 <td>@(string.IsNullOrWhiteSpace(a.CurrencyCode) ? "—" : a.CurrencyCode)</td>
                                 <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td><a href="@phpHref">Open</a></td>
+                                <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                             </tr>
                         }
                     }
@@ -132,7 +132,7 @@
                                 <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
-                                <td><a href="@phpHref">Open</a></td>
+                                <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                             </tr>
                         }
                     }

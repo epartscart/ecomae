@@ -43,7 +43,7 @@
         <h1>Industry Packs</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pack-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/hr-overview-app">HR overview</a>
         </div>
     </section>
@@ -83,7 +83,7 @@
                             <td>@(string.IsNullOrWhiteSpace(p.Description) ? "—" : p.Description)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.Icon) ? "—" : p.Icon)</td>
                             <td>@(p.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

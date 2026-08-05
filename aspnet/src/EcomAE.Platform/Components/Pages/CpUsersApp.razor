@@ -47,7 +47,7 @@
         <h1>Users</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-users-cta">
-            <a href="/CP/control/users">Open module</a>
+            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/users"))">Open module</a>
             <a class="ghost" href="/cp/groups-app">Groups list</a>
         </div>
     </section>
@@ -96,7 +96,7 @@
                             </td>
                             <td>@FormatTime(u.TimeRegistered)</td>
                             <td>@FormatTime(u.TimeLastVisit)</td>
-                            <td><a href="@phpHref">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }

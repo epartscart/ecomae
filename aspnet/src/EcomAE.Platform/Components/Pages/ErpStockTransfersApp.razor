@@ -43,7 +43,7 @@
         <h1>Stock transfers</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-st-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/inventory-stock-app">Inventory stock</a>
         </div>
     </section>
@@ -89,7 +89,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@row.TotalItems.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.TotalQty.ToString("0.###", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

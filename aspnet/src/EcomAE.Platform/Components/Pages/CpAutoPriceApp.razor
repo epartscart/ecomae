@@ -43,7 +43,7 @@
         <h1>Auto Price</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-ap-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/price-lists-app">Price lists</a>
         </div>
     </section>
@@ -87,7 +87,7 @@
                             <td>@r.ScheduleHours.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(r.Active ? "yes" : "no")</td>
                             <td>@(r.UpdatedAt > 0 ? r.UpdatedAt.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

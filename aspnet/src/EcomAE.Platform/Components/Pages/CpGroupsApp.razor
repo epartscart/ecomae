@@ -44,7 +44,7 @@
         <h1>Groups &amp; roles</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-groups-cta">
-            <a href="/CP/users/usergroups">Open module</a>
+            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/users/usergroups"))">Open module</a>
             <a class="ghost" href="/cp/users-app">Users list</a>
         </div>
     </section>
@@ -87,7 +87,7 @@
                             <td>@(g.Unblocked ? "yes" : "no")</td>
                             <td>@g.Parent</td>
                             <td><span class="epc-groups-badge">L@g.Level</span></td>
-                            <td><a href="/CP/users/usergroups">Open</a></td>
+                            <td><a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/users/usergroups"))">Open</a></td>
                         </tr>
                     }
                 }

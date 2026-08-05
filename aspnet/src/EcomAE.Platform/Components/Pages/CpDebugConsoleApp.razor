@@ -34,7 +34,7 @@
         <h1>Debug console</h1>
         <p>Allowlisted debug temp log metadata (basename dmY_Hi.php only). File contents are not exposed.</p>
         <div class="epc-w23-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
     <div class="epc-w23-kpis">
@@ -47,7 +47,7 @@
         <thead><tr><th>Basename</th><th>Size</th><th>Modified</th><th></th></tr></thead>
         <tbody>
         @if (_rows.Count==0) { <tr><td colspan="4">Nothing to show yet.</td></tr> }
-        else { @foreach (var row in _rows) { <tr><td>@row.Basename</td><td>@row.SizeBytes</td><td>@row.LastModifiedUnix</td><td><a href="@_phpTab">Open</a></td></tr> } }
+        else { @foreach (var row in _rows) { <tr><td>@row.Basename</td><td>@row.SizeBytes</td><td>@row.LastModifiedUnix</td><td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td></tr> } }
         </tbody>
     </table></div>
 

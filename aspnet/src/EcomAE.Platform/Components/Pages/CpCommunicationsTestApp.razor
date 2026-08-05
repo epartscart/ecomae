@@ -43,7 +43,7 @@
         <h1>Communications test</h1>
         <p>Manage store operations from the control panel.</p>
         <div class="epc-w22-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
 
@@ -79,7 +79,7 @@
                             <td>@row.Active.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.IsSelectable.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Handler) ? row.Handler : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                     </tr>
                 }
             }

@@ -43,7 +43,7 @@
         <h1>Collections dunning</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-w15-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
 
@@ -85,7 +85,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.DueDate) ? row.DueDate : "—")</td>
                             <td>@row.DaysOverdue.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                     </tr>
                 }
             }

@@ -43,7 +43,7 @@
         <h1>Purchase requests</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-prq-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
 
@@ -86,7 +86,7 @@
                             <td>@row.Total.ToString("0.00", CultureInfo.InvariantCulture)</td>
                             <td>@(row.RequiresApproval ? "yes" : "no")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.PoRef) ? row.PoRef : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

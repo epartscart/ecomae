@@ -48,7 +48,7 @@
         <h1>Content Pages</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pg-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/modules-app">Modules list</a>
             <a class="ghost" href="/cp/users-app">Users list</a>
         </div>
@@ -103,7 +103,7 @@
                                 }
                             </td>
                             <td><span class="epc-pg-badge epc-pg-badge--info">@(p.IsFrontend ? "yes" : "no")</span></td>
-                            <td><a href="@phpHref">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }

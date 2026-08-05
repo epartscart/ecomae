@@ -50,7 +50,7 @@
         <h1>Account</h1>
         <p>Browse parts, manage your garage, and track recent orders.</p>
         <div class="epc-sf-acc-cta">
-            <a href="@_phpAccount">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpAccount)">Open module</a>
             <a class="ghost" href="/storefront/orders-app">My orders</a>
             <a class="ghost" href="/storefront/garage-app">Garage</a>
             <a class="ghost" href="/storefront/profile-app">Profile</a>
@@ -63,7 +63,7 @@
         <div class="epc-sf-acc-gate">
             <p style="margin:0 0 .75rem;color:#44403c">Sign in with your store account to load account summary.</p>
             <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="@_phpAccount" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d6d3d1;color:#111;font-weight:700;text-decoration:none">Account</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpAccount)" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d6d3d1;color:#111;font-weight:700;text-decoration:none">Account</a>
         </div>
     }
     else
@@ -107,7 +107,7 @@
             <a href="/storefront/orders-app">Orders list</a>
             <a href="/storefront/garage-app">Garage list</a>
             <a href="/storefront/profile-app">Profile read</a>
-            <a href="@_phpAccount">Account hub</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpAccount)">Account hub</a>
         </div>
 
         <div class="epc-sf-acc-note">Source: @_summary.Source. PHP /users/ remains authoritative for account tools.</div>

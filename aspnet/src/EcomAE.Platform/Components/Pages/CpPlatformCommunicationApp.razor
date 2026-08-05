@@ -43,7 +43,7 @@
         <h1>Platform communication</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-w19-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
 
@@ -87,7 +87,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.Priority) ? row.Priority : "—")</td>
                             <td>@row.DueAt.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.CreatedAt.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                     </tr>
                 }
             }

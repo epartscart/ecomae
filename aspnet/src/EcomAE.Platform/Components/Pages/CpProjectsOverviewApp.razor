@@ -43,7 +43,7 @@
         <h1>Projects Overview</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-prj-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/production-overview-app">Production overview</a>
         </div>
     </section>
@@ -83,7 +83,7 @@
                             <td>@(string.IsNullOrWhiteSpace(p.Status) ? "—" : p.Status)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.BillingType) ? "—" : p.BillingType)</td>
                             <td>@p.ContractValue.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

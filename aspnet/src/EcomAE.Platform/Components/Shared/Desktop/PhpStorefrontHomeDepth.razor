@@ -6,6 +6,21 @@
 
 <section class="epc-sf-home-depth" aria-label="Storefront homepage">
     <div class="container">
+        <div class="epc-sf-hero-slider" aria-label="Featured promotions">
+            <a class="epc-sf-slide epc-sf-slide--1" href="/storefront/search-app">
+                <strong>OEM &amp; aftermarket parts</strong>
+                <span>Search by part number, VIN, engine, or vehicle</span>
+            </a>
+            <a class="epc-sf-slide epc-sf-slide--2" href="/storefront/garage-app">
+                <strong>Garage Manager</strong>
+                <span>Save vehicles and reopen workshop orders</span>
+            </a>
+            <a class="epc-sf-slide epc-sf-slide--3" href="/storefront/search-app">
+                <strong>UAE dispatch lanes</strong>
+                <span>Same-day and GCC export windows</span>
+            </a>
+        </div>
+
         <div class="epc-sf-trust-strip">
             @foreach (var trust in TrustItems)
             {
@@ -198,6 +213,13 @@
 
 <style>
     .epc-sf-home-depth { margin: 0 0 1.5rem; color: #0f172a; }
+    .epc-sf-hero-slider { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; margin:0 0 1.25rem; }
+    .epc-sf-slide { display:block; min-height:9.5rem; border-radius:.85rem; padding:1.2rem 1.25rem; color:#fff; text-decoration:none; background-size:cover; }
+    .epc-sf-slide strong { display:block; font-size:1.15rem; margin-bottom:.4rem; }
+    .epc-sf-slide span { font-size:.9rem; opacity:.92; line-height:1.4; }
+    .epc-sf-slide--1 { background:linear-gradient(135deg,#0b1220 0%,#b91c1c 100%); }
+    .epc-sf-slide--2 { background:linear-gradient(135deg,#0f172a 0%,#0369a1 100%); }
+    .epc-sf-slide--3 { background:linear-gradient(135deg,#14532d 0%,#0f766e 100%); }
     .epc-sf-trust-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; margin:0 0 1.25rem; }
     .epc-sf-trust { background:#fff; border:1px solid #e2e8f0; border-radius:.65rem; padding:.85rem .9rem; }
     .epc-sf-trust i { color:#dc2626; margin-right:.35rem; }
@@ -274,12 +296,12 @@
     .epc-sf-btn { display:inline-flex; padding:.55rem .9rem; border-radius:.45rem; background:#dc2626; color:#fff; font-weight:700; font-size:.86rem; text-decoration:none; align-items:center; gap:.35rem; }
     .epc-sf-btn--ghost { background:#fff; color:#0f172a; border:1px solid #cbd5e1; }
   @@media (max-width:980px){
-        .epc-sf-trust-strip,.epc-sf-cat-grid,.epc-sf-promo-row,.epc-sf-steps,.epc-sf-workshop-grid,.epc-sf-testimonial-grid,.epc-sf-delivery-grid,.epc-sf-featured-strip{grid-template-columns:1fr 1fr;}
+        .epc-sf-hero-slider,.epc-sf-trust-strip,.epc-sf-cat-grid,.epc-sf-promo-row,.epc-sf-steps,.epc-sf-workshop-grid,.epc-sf-testimonial-grid,.epc-sf-delivery-grid,.epc-sf-featured-strip{grid-template-columns:1fr 1fr;}
         .epc-sf-brand-grid,.epc-sf-make-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
         .epc-sf-vin-cta{grid-template-columns:1fr;}
     }
     @@media (max-width:640px){
-        .epc-sf-trust-strip,.epc-sf-cat-grid,.epc-sf-promo-row,.epc-sf-steps,.epc-sf-brand-grid,.epc-sf-make-grid,.epc-sf-workshop-grid,.epc-sf-testimonial-grid,.epc-sf-delivery-grid,.epc-sf-featured-strip{grid-template-columns:1fr;}
+        .epc-sf-hero-slider,.epc-sf-trust-strip,.epc-sf-cat-grid,.epc-sf-promo-row,.epc-sf-steps,.epc-sf-brand-grid,.epc-sf-make-grid,.epc-sf-workshop-grid,.epc-sf-testimonial-grid,.epc-sf-delivery-grid,.epc-sf-featured-strip{grid-template-columns:1fr;}
     }
 </style>
 

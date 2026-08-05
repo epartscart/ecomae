@@ -1,29 +1,13 @@
 @page "/marketing/customer-results"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
-@inject IHttpContextAccessor Http
 
 <PageTitle>ECOM AE — Customer results</PageTitle>
 <PhpChromeStyles Surface="marketing" />
 
 <PhpEcomaeMarketingChrome ActiveKey="customer_results">
-    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/customer-results" />
-
-    @if (string.IsNullOrWhiteSpace(_phpHref))
-    {
-        <PhpEcomaeCustomerResultsOverview />
-    }
+    <PhpEcomaeCustomerResultsOverview />
+    <p style="max-width:var(--epm-max-w,1440px);margin:0 auto;padding:0 var(--epm-pad-x,20px) 2rem;font-size:.82rem;color:#94a3b8;">
+        PHP compare: <a href="/php-reference/home">/php-reference/home</a>
+    </p>
 </PhpEcomaeMarketingChrome>
-
-@code {
-    private string? _phpHref;
-
-    protected override void OnInitialized()
-    {
-        var ctx = Http.HttpContext;
-        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
-        {
-            _phpHref = php.ToString();
-        }
-    }
-}

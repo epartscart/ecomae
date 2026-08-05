@@ -35,7 +35,7 @@
         <h1>Server IP</h1>
         <p>Local NIC addresses for this host.</p>
         <div class="epc-w23-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
     <div class="epc-w23-kpis">
@@ -48,7 +48,7 @@
         <thead><tr><th>Address</th><th>Family</th><th>Loopback</th><th></th></tr></thead>
         <tbody>
         @if (_rows.Count==0) { <tr><td colspan="4">Nothing to show yet.</td></tr> }
-        else { @foreach (var row in _rows) { <tr><td>@row.Address</td><td>@row.AddressFamily</td><td>@row.IsLoopback</td><td><a href="@_phpTab">Open</a></td></tr> } }
+        else { @foreach (var row in _rows) { <tr><td>@row.Address</td><td>@row.AddressFamily</td><td>@row.IsLoopback</td><td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td></tr> } }
         </tbody>
     </table></div>
 

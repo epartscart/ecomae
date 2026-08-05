@@ -465,11 +465,10 @@
     private const string OpVer = "&v=20260610b";
     private const string VerifyUrl = "/epc-blockchain-verify.php";
 
-    private static string Base => EcomaeMarketingPages.LiveBase;
-    private static string DemoUrl => Base + "platform/demo";
-    private static string PlatformUrl => Base + "platform";
-    private static string IndustriesUrl => Base + "platform/industries";
-    private static string BlockchainUrl => Base.TrimEnd('/') + "/blockchain";
+    private static string DemoUrl => "/marketing/demo";
+    private static string PlatformUrl => "/marketing/platform";
+    private static string IndustriesUrl => "/marketing/industries";
+    private static string BlockchainUrl => "/marketing/blockchain";
 
     private const string RevealAndTabsScript = """
 <script defer>

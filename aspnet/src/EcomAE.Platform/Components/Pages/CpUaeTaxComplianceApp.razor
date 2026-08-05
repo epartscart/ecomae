@@ -43,7 +43,7 @@
         <h1>UAE Tax Compliance</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-uae-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/tax-toolkits-app">Tax toolkits</a>
         </div>
     </section>
@@ -89,7 +89,7 @@
                             <td>@(i.IsNew ? "yes" : "no")</td>
                             <td>@(i.IsUpdated ? "yes" : "no")</td>
                             <td>@(i.TimeSynced > 0 ? i.TimeSynced.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

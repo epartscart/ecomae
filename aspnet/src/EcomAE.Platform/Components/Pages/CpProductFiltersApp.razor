@@ -43,7 +43,7 @@
         <h1>Product filters</h1>
         <p>Manage store operations from the control panel.</p>
         <div class="epc-w22-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
 
@@ -83,7 +83,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
                             <td>@row.MinPrice.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.MaxPrice.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                     </tr>
                 }
             }

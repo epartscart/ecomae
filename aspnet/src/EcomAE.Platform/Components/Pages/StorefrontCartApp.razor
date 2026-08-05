@@ -47,8 +47,8 @@
         <h1>Cart</h1>
         <p>Lines in your cart ready for checkout.</p>
         <div class="epc-sf-cart-cta">
-            <a href="https://epartscart.com/shop/cart">Open module</a>
-            <a class="ghost" href="https://epartscart.com/shop/checkout/how_get">Checkout</a>
+            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/cart"))">Open module</a>
+            <a class="ghost" href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/how_get"))">Checkout</a>
             <a class="ghost" href="/storefront/search-app">Search parts</a>
             <a class="ghost" href="/storefront/login">Customer login</a>
         </div>
@@ -59,7 +59,7 @@
         <div class="epc-sf-cart-gate">
             <p style="margin:0 0 .75rem;color:#334155">Sign in with your store account to load your cart lines.</p>
             <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="https://epartscart.com/shop/checkout/login_offer" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Login offer</a>
+            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/login_offer"))" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Login offer</a>
         </div>
     }
     else
@@ -112,7 +112,7 @@
                                         <span class="epc-sf-cart-badge">No</span>
                                     }
                                 </td>
-                                <td><a href="https://epartscart.com/shop/cart">Open</a></td>
+                                <td><a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/cart"))">Open</a></td>
                             </tr>
                         }
                     }

@@ -43,7 +43,7 @@
         <h1>Production Overview</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-mfg-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/hr-overview-app">HR overview</a>
         </div>
     </section>
@@ -83,7 +83,7 @@
                             <td>@w.QtyPlanned.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@w.QtyProduced.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(w.UpdatedAt > 0 ? w.UpdatedAt.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

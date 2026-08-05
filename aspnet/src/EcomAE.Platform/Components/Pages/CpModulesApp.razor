@@ -48,7 +48,7 @@
         <h1>Modules</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-mod-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/users-app">Users list</a>
             <a class="ghost" href="/cp/groups-app">Groups list</a>
         </div>
@@ -98,7 +98,7 @@
                             <td><span class="epc-mod-badge epc-mod-badge--info">@(m.IsFrontend ? "yes" : "no")</span></td>
                             <td><span class="epc-mod-badge epc-mod-badge--info">@(m.IsPrototype ? "yes" : "no")</span></td>
                             <td><span class="epc-mod-badge epc-mod-badge--info">@(m.ControlAvailable ? "yes" : "no")</span></td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

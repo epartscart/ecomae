@@ -43,7 +43,7 @@
         <h1>Cost models</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-costm-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
 
@@ -83,7 +83,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.Model) ? row.Model : "—")</td>
                             <td>@row.StdCost.ToString("0.0000", CultureInfo.InvariantCulture)</td>
                             <td>@row.TimeUpdated.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

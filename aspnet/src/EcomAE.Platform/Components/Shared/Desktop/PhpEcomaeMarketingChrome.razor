@@ -7,7 +7,7 @@
 <div class="epm-body">
     <header class="epm-topbar">
         <div class="epm-topbar__inner">
-            <a class="epm-brand" href="@EcomaeMarketingPages.LiveBase">
+            <a class="epm-brand" href="@EcomaeMarketingPages.AspNetHome">
                 <img class="epm-brand__logo" src="@LegacyPresentationAssets.BrandMarkUrl" alt="" width="48" height="48" />
                 <span class="epm-brand__text">
                     <strong>ECOM <span class="epm-brand__ae">AE</span></strong>
@@ -66,10 +66,10 @@
                 <p><strong>ECOM AE</strong> — storefront, CP, and ERP in one hosted stack.<br />Go live in 24 hours · UAE e-invoice (Peppol / PINT-AE).</p>
             </div>
             <div class="epm-footer__links">
-                <a href="@(EcomaeMarketingPages.LiveBase)platform">Platform</a>
-                <a href="@(EcomaeMarketingPages.LiveBase)platform/demo">Demo</a>
-                <a href="@(EcomaeMarketingPages.LiveBase)documentation">Docs</a>
-                <a href="@(EcomaeMarketingPages.LiveBase)legal">Legal</a>
+                <a href="/marketing/platform">Platform</a>
+                <a href="/marketing/demo">Demo</a>
+                <a href="/marketing/documentation">Docs</a>
+                <a href="/marketing/legal">Legal</a>
                 <a href="@EcomaeMarketingPages.SuperCpUrl">Super CP</a>
             </div>
         </div>
@@ -90,7 +90,7 @@
 
     private static readonly NavItem[] Nav =
     [
-        new("home", "Home", EcomaeMarketingPages.LiveBase),
+        new("home", "Home", EcomaeMarketingPages.AspNetHome),
         new("platform", "Platform", "/marketing/platform"),
         new("industries", "Industries", "/marketing/industries"),
         new("capabilities", "Capabilities", "/marketing/capabilities"),

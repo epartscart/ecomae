@@ -43,7 +43,7 @@
         <h1>Info blocks</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-w19-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
 
@@ -89,7 +89,7 @@
                             <td>@row.Active.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.UpdatedAt.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                     </tr>
                 }
             }

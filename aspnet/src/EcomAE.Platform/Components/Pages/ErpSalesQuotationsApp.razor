@@ -43,7 +43,7 @@
         <h1>Sales quotations</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-sq-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
         </div>
     </section>
@@ -89,7 +89,7 @@
                             <td>@(row.OpportunityId > 0 ? row.OpportunityId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.ShopOrderId > 0 ? row.ShopOrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

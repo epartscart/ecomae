@@ -43,7 +43,7 @@
         <h1>Structure dumps</h1>
         <p>Manage store operations from the control panel.</p>
         <div class="epc-w22-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
 
@@ -81,7 +81,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.FieldsInDump) ? row.FieldsInDump : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.FileName) ? row.FileName : "—")</td>
                             <td>@row.RecordsCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                     </tr>
                 }
             }

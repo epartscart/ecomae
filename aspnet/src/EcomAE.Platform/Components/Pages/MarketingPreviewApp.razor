@@ -1,44 +1,29 @@
 @page "/marketing/app"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
-@inject IHttpContextAccessor Http
 
 <PageTitle>ECOM AE — Marketing</PageTitle>
 <PhpChromeStyles Surface="marketing" />
 
+@* Live www.ecomae.com / proxies here. ASP.NET PHP-style marketing — not PHP HTML. *@
 <PhpEcomaeMarketingChrome ActiveKey="home">
-    <PhpHybridWorkspaceFrame PhpHref="@_phpHref" ClearHref="/marketing/app" />
+    <PhpEcomaeMarketingHub />
+    <PhpEcomaeHomeSections />
 
-    @if (string.IsNullOrWhiteSpace(_phpHref))
-    {
-        @* Authoritative animated hero + post-hub home sections (PHP epc_ecomae_platform_hub + epc_ecomae_home_sections) *@
-        <PhpEcomaeMarketingHub />
-        <PhpEcomaeHomeSections />
-
-        <div class="epm-wrap" style="padding:24px var(--epm-pad-x,20px) 40px;max-width:var(--epm-max-w,1440px);margin:0 auto;box-sizing:border-box">
-            <PhpHybridModuleDirectory
-                Title="Ecomae.com marketing pages"
-                Subtitle="@($"{EcomaeMarketingPages.Count} marketing routes — open in workspace or full page")"
-                Links="@MarketingModuleLinks"
-                PhpWorkspaceBase="/marketing/app" />
-        </div>
-    }
+    <div class="epm-wrap" style="padding:24px var(--epm-pad-x,20px) 40px;max-width:var(--epm-max-w,1440px);margin:0 auto;box-sizing:border-box">
+        <PhpHybridModuleDirectory
+            Title="Ecomae.com marketing pages"
+            Subtitle="@($"{EcomaeMarketingPages.Count} marketing routes — ASP.NET pages (PHP style); PHP via reference only")"
+            Links="@MarketingModuleLinks" />
+        <p style="margin:1rem 0 0;font-size:.85rem;color:#94a3b8;">
+            PHP compare: <a href="/php-reference/home">/php-reference/home</a>
+        </p>
+    </div>
 </PhpEcomaeMarketingChrome>
 
 @code {
-    private string? _phpHref;
-
     private static readonly IReadOnlyList<PhpModuleCatalog.ModuleLink> MarketingModuleLinks =
         EcomaeMarketingPages.All
             .Select(p => new PhpModuleCatalog.ModuleLink(p.Id, p.Label, p.Href, null, p.Group))
             .ToList();
-
-    protected override void OnInitialized()
-    {
-        var ctx = Http.HttpContext;
-        if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
-        {
-            _phpHref = php.ToString();
-        }
-    }
 }

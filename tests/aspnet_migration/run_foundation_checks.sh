@@ -1505,6 +1505,13 @@ check 'ERP shell allows guest browse' contains "$ROOT/aspnet/src/EcomAE.Platform
 check 'BOS shell allows guest browse' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosFleetApp.razor" 'Guest preview'
 check 'module directory primary is ASP.NET' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/PhpHybridModuleDirectory.razor" 'epc-moddir-aspnet'
 check 'php surface link map exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpSurfaceLinkMap.cs"
+check 'marketing pages catalog uses ASP.NET routes' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/EcomaeMarketingPages.cs" 'AspNetHome = "/marketing/app"'
+check 'marketing Super CP CTA is ASP.NET /cp' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/EcomaeMarketingPages.cs" 'SuperCpUrl = "/cp"'
+check 'marketing preview has no hybrid PHP iframe' bash -c '! grep -Fq "PhpHybridWorkspaceFrame" "$1"' _ "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/MarketingPreviewApp.razor"
+check 'marketing chrome home is ASP.NET' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeMarketingChrome.razor" 'AspNetHome'
+check 'CP command centre has commerce band' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor" 'epc-cc-bands'
+check 'ERP dashboard banners hit ASP.NET apps' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor" '/erp/sales-orders-app'
+check 'storefront home has hero slider' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontHomeDepth.razor" 'epc-sf-hero-slider'
 check 'classic-entry has php-reference/cp' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /php-reference/cp'
 check 'classic-entry installer exists' test -x "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh"
 check 'classic-entry installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY'

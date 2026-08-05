@@ -25,14 +25,30 @@
             .epc-cc-tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:.55rem; margin:1rem 0; }
             .epc-cc-tile { border-radius:.5rem; padding:.9rem .7rem; color:#fff; font-weight:700; font-size:.85rem; min-height:72px; display:flex; align-items:flex-end; text-decoration:none; }
             .epc-cc-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
-            @@media (max-width:900px){ .epc-cc-hero,.epc-cc-kpis{grid-template-columns:1fr 1fr;} .epc-cc-hero{grid-template-columns:1fr;} }
+            .epc-cc-bands { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; margin:0 0 1.1rem; }
+            .epc-cc-band { background:#fff; border:1px solid #e2e8f0; border-radius:.65rem; padding:.9rem 1rem; }
+            .epc-cc-band h3 { margin:0 0 .55rem; font-size:.88rem; color:#0c4a6e; text-transform:uppercase; letter-spacing:.04em; }
+            .epc-cc-band ul { list-style:none; margin:0; padding:0; display:grid; gap:.35rem; }
+            .epc-cc-band a { font-size:.82rem; font-weight:700; color:#0f172a; text-decoration:none; }
+            .epc-cc-band a:hover { color:#2563eb; text-decoration:underline; }
+            .epc-cc-ops { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.55rem; margin:0 0 1.1rem; }
+            .epc-cc-op { background:linear-gradient(180deg,#fff,#f8fafc); border:1px solid #e2e8f0; border-radius:.55rem; padding:.75rem .8rem; text-decoration:none; color:inherit; min-height:88px; }
+            .epc-cc-op i { color:#dc2626; display:block; margin-bottom:.35rem; }
+            .epc-cc-op strong { display:block; font-size:.84rem; margin-bottom:.2rem; }
+            .epc-cc-op span { color:#64748b; font-size:.74rem; line-height:1.35; }
+            @@media (max-width:900px){ .epc-cc-hero,.epc-cc-kpis,.epc-cc-bands,.epc-cc-ops{grid-template-columns:1fr 1fr;} .epc-cc-hero{grid-template-columns:1fr;} }
         </style>
 
         <div class="epc-cc-hero">
             <section class="epc-cc-panel">
                 <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
                 <h1>CONTROL COMMAND CENTRE</h1>
-                <p>Control panel shortcuts and module directory.</p>
+                <p>ASP.NET control panel — same command layout as PHP bootstrap_admin desktop. Orders, customers, documents, portal, and ERP shortcuts.</p>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                    <a href="/cp/orders" style="background:#fff;color:#0c4a6e;padding:.4rem .7rem;border-radius:.4rem;font-weight:800;font-size:.78rem;text-decoration:none;">Orders OMS</a>
+                    <a href="/cp/users-app" style="background:rgba(255,255,255,.15);color:#fff;padding:.4rem .7rem;border-radius:.4rem;font-weight:800;font-size:.78rem;text-decoration:none;">Customers</a>
+                    <a href="/erp" style="background:rgba(255,255,255,.15);color:#fff;padding:.4rem .7rem;border-radius:.4rem;font-weight:800;font-size:.78rem;text-decoration:none;">ERP Operations</a>
+                </div>
             </section>
             <section class="epc-cc-kpis">
                 <div class="epc-cc-kpi"><strong>@_users</strong><span>Admin users</span></div>
@@ -50,6 +66,50 @@
                 PHP detail: <a href="/php-reference/cp">/php-reference/cp</a>
             </div>
         }
+
+        <div class="epc-cc-bands">
+            <section class="epc-cc-band">
+                <h3>Commerce</h3>
+                <ul>
+                    <li><a href="/cp/orders">Orders / OMS</a></li>
+                    <li><a href="/cp/abandoned-carts-app">Abandoned carts</a></li>
+                    <li><a href="/cp/price-lists-app">Price lists</a></li>
+                    <li><a href="/cp/promotions-app">Promotions</a></li>
+                    <li><a href="/cp/product-catalogue-app">Product catalogue</a></li>
+                </ul>
+            </section>
+            <section class="epc-cc-band">
+                <h3>Operations</h3>
+                <ul>
+                    <li><a href="/cp/carriers-app">Carriers</a></li>
+                    <li><a href="/cp/delivery-methods-app">Delivery methods</a></li>
+                    <li><a href="/cp/storages-app">Storages</a></li>
+                    <li><a href="/cp/document-control-app">Document control</a></li>
+                    <li><a href="/cp/crm-board-app">CRM board</a></li>
+                </ul>
+            </section>
+            <section class="epc-cc-band">
+                <h3>Platform</h3>
+                <ul>
+                    <li><a href="/cp/tenants-app">Tenants</a></li>
+                    <li><a href="/cp/users-app">Users</a></li>
+                    <li><a href="/cp/modules-app">Modules</a></li>
+                    <li><a href="/bos">Fleet / BOS</a></li>
+                    <li><a href="/">Storefront</a></li>
+                </ul>
+            </section>
+        </div>
+
+        <div class="epc-cc-ops">
+            <a class="epc-cc-op" href="/cp/orders"><i class="fa fa-shopping-cart"></i><strong>Orders</strong><span>OMS pipeline &amp; fulfilment</span></a>
+            <a class="epc-cc-op" href="/cp/users-app"><i class="fa fa-users"></i><strong>Customers</strong><span>Users, groups, access</span></a>
+            <a class="epc-cc-op" href="/cp/payment-gateways-app"><i class="fa fa-credit-card"></i><strong>Payments</strong><span>Gateways &amp; settlements</span></a>
+            <a class="epc-cc-op" href="/erp"><i class="fa fa-line-chart"></i><strong>Finance ERP</strong><span>GL, AR, AP, inventory</span></a>
+            <a class="epc-cc-op" href="/cp/ai-service-app"><i class="fa fa-magic"></i><strong>AI tools</strong><span>Parts agent &amp; assists</span></a>
+            <a class="epc-cc-op" href="/cp/integrations-app"><i class="fa fa-plug"></i><strong>Integrations</strong><span>Hubs &amp; connectors</span></a>
+            <a class="epc-cc-op" href="/cp/marketing-broadcast-app"><i class="fa fa-bullhorn"></i><strong>Marketing</strong><span>Broadcast &amp; growth</span></a>
+            <a class="epc-cc-op" href="/cp/uae-tax-compliance-app"><i class="fa fa-file-text-o"></i><strong>UAE tax</strong><span>e-invoice compliance</span></a>
+        </div>
 
         <h2 style="font-size:1.05rem;margin:0 0 .7rem">Quick actions</h2>
         <div class="epc-cc-tiles">

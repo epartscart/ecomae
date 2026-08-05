@@ -43,7 +43,7 @@
         <h1>CRM Board</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-crm-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/marketing-broadcast-app">Marketing broadcast</a>
         </div>
     </section>
@@ -86,7 +86,7 @@
                             <td>@l.OwnerId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@l.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(l.UpdatedAt > 0 ? l.UpdatedAt.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

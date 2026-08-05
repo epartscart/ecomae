@@ -52,8 +52,8 @@
         <h1>Checkout readiness</h1>
         <p>Review your cart and continue to delivery and payment.</p>
         <div class="epc-sf-co-cta">
-            <a href="https://epartscart.com/shop/checkout/how_get">Delivery options</a>
-            <a class="ghost" href="https://epartscart.com/shop/checkout/confirm">Confirm order</a>
+            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/how_get"))">Delivery options</a>
+            <a class="ghost" href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/confirm"))">Confirm order</a>
             <a class="ghost" href="/storefront/cart-app">Cart</a>
             <a class="ghost" href="/storefront/login">Sign in</a>
         </div>
@@ -64,7 +64,7 @@
         <div class="epc-sf-co-gate">
             <p style="margin:0 0 .75rem;color:#334155">Sign in to continue checkout with your cart, or continue as a guest.</p>
             <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="https://epartscart.com/shop/checkout/login_offer" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Guest checkout</a>
+            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/login_offer"))" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Guest checkout</a>
         </div>
     }
     else
@@ -81,21 +81,21 @@
                 <span class="epc-sf-co-step__n">1</span>
                 <div>
                     <h3>Review cart</h3>
-                    <p>@_summary.Count line(s). <a href="/storefront/cart-app">Open cart</a> · <a href="https://epartscart.com/shop/cart">Checkout cart</a></p>
+                    <p>@_summary.Count line(s). <a href="/storefront/cart-app">Open cart</a> · <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/cart"))">Checkout cart</a></p>
                 </div>
             </div>
             <div class="epc-sf-co-step">
                 <span class="epc-sf-co-step__n">2</span>
                 <div>
                     <h3>How to obtain</h3>
-                    <p>Choose delivery or pickup. <a href="https://epartscart.com/shop/checkout/how_get">Select method</a></p>
+                    <p>Choose delivery or pickup. <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/how_get"))">Select method</a></p>
                 </div>
             </div>
             <div class="epc-sf-co-step">
                 <span class="epc-sf-co-step__n">3</span>
                 <div>
                     <h3>Confirm &amp; pay</h3>
-                    <p>Confirm the order and complete payment. <a href="https://epartscart.com/shop/checkout/confirm">Confirm</a></p>
+                    <p>Confirm the order and complete payment. <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/confirm"))">Confirm</a></p>
                 </div>
             </div>
         </div>

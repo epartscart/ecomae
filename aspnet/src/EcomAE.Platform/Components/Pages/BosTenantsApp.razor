@@ -48,7 +48,7 @@
         <h1>Fleet Tenants</h1>
         <p>Platform fleet overview across tenants, sessions, and health.</p>
         <div class="epc-bt-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/bos/audit-log-app">Audit log</a>
             <a class="ghost" href="/cp/tenants-app">CP tenants</a>
         </div>
@@ -98,7 +98,7 @@
                             <td><span class="epc-bt-badge @(t.IsActive ? "epc-bt-badge--ok" : "epc-bt-badge--off")">@(t.IsActive ? "yes" : "no")</span></td>
                             <td><span class="epc-bt-badge @(t.HasDb ? "epc-bt-badge--ok" : "epc-bt-badge--off")">@(t.HasDb ? "yes" : "no")</span></td>
                             <td><span class="epc-bt-badge epc-bt-badge--info">@(t.ErpOnly ? "yes" : "no")</span></td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

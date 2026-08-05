@@ -43,7 +43,7 @@
         <h1>Crosses</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-x-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/parts-agent-chats-app">Parts agent</a>
         </div>
     </section>
@@ -80,7 +80,7 @@
                             <td>@(string.IsNullOrWhiteSpace(p.Article) ? "—" : p.Article)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.CrossManufacturer) ? "—" : p.CrossManufacturer)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.CrossArticle) ? "—" : p.CrossArticle)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

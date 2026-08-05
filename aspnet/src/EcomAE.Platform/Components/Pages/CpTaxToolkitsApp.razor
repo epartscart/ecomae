@@ -43,7 +43,7 @@
         <h1>Tax Toolkits</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-tax-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/pos-overview-app">POS overview</a>
         </div>
     </section>
@@ -85,7 +85,7 @@
                             <td>@(string.IsNullOrWhiteSpace(t.TaxType) ? "—" : t.TaxType)</td>
                             <td>@(t.IsSystem ? "yes" : "no")</td>
                             <td>@(t.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

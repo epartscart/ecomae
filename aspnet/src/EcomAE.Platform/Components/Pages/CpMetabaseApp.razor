@@ -43,7 +43,7 @@
         <h1>Metabase</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-mb-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/power-bi-app">Power BI</a>
         </div>
     </section>
@@ -83,7 +83,7 @@
                             <td>@(string.IsNullOrWhiteSpace(d.DashboardName) ? "—" : d.DashboardName)</td>
                             <td>@(string.IsNullOrWhiteSpace(d.Category) ? "—" : d.Category)</td>
                             <td>@(d.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

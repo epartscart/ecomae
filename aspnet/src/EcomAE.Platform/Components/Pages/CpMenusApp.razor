@@ -45,7 +45,7 @@
         <h1>Menus</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-mn-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/pages-app">Pages list</a>
             <a class="ghost" href="/cp/modules-app">Modules list</a>
         </div>
@@ -87,7 +87,7 @@
                             <td>@(m.StructurePresent ? m.NodeCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(m.StructurePresent ? m.MaxDepth.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@m.UrlLinkCount / @m.ContentLinkCount</td>
-                            <td><a href="@phpHref">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }

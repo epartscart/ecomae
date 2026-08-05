@@ -43,7 +43,7 @@
         <h1>Bank reconciliation</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-br-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
         </div>
     </section>
@@ -89,7 +89,7 @@
                             <td>@(row.Direction == 1 ? "in" : "out")</td>
                             <td>@(row.MatchedEntryId > 0 ? row.MatchedEntryId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.ImportBatch) ? row.ImportBatch : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

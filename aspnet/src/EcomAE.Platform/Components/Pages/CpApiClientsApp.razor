@@ -47,7 +47,7 @@
         <h1>API Clients</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-ac-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/admin-sessions-app">Admin sessions</a>
             <a class="ghost" href="/cp/tenants-app">Tenants list</a>
         </div>
@@ -94,7 +94,7 @@
                             <td>@c.DailyLimit.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@c.CallsToday.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@FormatTs(c.TimeCreated)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

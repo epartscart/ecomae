@@ -43,7 +43,7 @@
         <h1>Portal settings</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-w21-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
 
@@ -87,7 +87,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.AccessMode) ? row.AccessMode : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.CpDefaultLang) ? row.CpDefaultLang : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.CountryCode) ? row.CountryCode : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                     </tr>
                 }
             }

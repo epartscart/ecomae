@@ -43,7 +43,7 @@
         <h1>Fixed assets</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-fa-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
         </div>
     </section>
@@ -91,7 +91,7 @@
                             <td>@row.BookValue.ToString("0.00", CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.DepreciationMethod) ? row.DepreciationMethod : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

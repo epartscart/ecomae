@@ -45,7 +45,7 @@
         <h1>Chart of Accounts</h1>
         <p>Operational finance, inventory, and approvals for this company.</p>
         <div class="epc-coa-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/cash-accounts-app">Cash &amp; bank</a>
             <a class="ghost" href="/erp/invoices-app">Invoices</a>
             <a class="ghost" href="/erp/app">ERP dashboard</a>
@@ -91,7 +91,7 @@
                             <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(a.Active ? "yes" : "no")</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

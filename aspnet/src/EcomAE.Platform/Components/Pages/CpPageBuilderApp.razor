@@ -43,7 +43,7 @@
         <h1>Page builder</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-pb-cta">
-            <a href="@_phpTab">Open module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
 
@@ -83,7 +83,7 @@
                             <td>@(row.IsPublished ? "yes" : "no")</td>
                             <td>@row.UpdatedAt.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.PublishedAt.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@_phpTab">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
