@@ -41,8 +41,25 @@ ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
 # REQUIRED — redeploy ASP.NET binary BEFORE classic-entry probe.
 # Nginx install alone leaves the OLD binary that still 302s /cp → /cp/login
 # and shows “Sign-in temporarily unavailable” with NO credential fields.
+#
+# HARD RESET both checkouts (deploy fails with RZ1006 if either tree is pre-#852):
+#   /opt/ecomae-aspnet-source  AND/OR  /root/ecomae
+# Broken one-liner (DO NOT keep): if (!_isAdmin) { return; // guest browse … }
+# Fixed tip must include ErpAgingApp multi-line guest return (merged in #852).
 export ECOMAE_BRANCH=main
-git fetch origin main && git checkout -f main && git reset --hard origin/main
+for d in /opt/ecomae-aspnet-source /root/ecomae; do
+  if [[ -d "$d/.git" ]]; then
+    git -C "$d" fetch origin main
+    git -C "$d" checkout -f main
+    git -C "$d" reset --hard origin/main
+    git -C "$d" rev-parse --short HEAD
+    # expect f4801db2 or newer (Merge pull request #852 …)
+  fi
+done
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+# Prove brace fix is present before build:
+grep -A3 'if (!_isAdmin)' aspnet/src/EcomAE.Platform/Components/Pages/ErpAgingApp.razor | head -n 5
+# must NOT be a single line with `{ return; // guest browse`
 bash scripts/cloudpanel_find_and_redeploy.sh
 systemctl restart ecomae-platform.service
 curl -sS http://127.0.0.1:5100/health || true
