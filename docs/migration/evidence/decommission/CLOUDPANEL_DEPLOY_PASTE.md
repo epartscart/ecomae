@@ -46,14 +46,15 @@ ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES \
 #   /opt/ecomae-aspnet-source  AND/OR  /root/ecomae
 # Broken one-liner (DO NOT keep): if (!_isAdmin) { return; // guest browse … }
 # Fixed tip must include ErpAgingApp multi-line guest return (merged in #852).
-export ECOMAE_BRANCH=main
+# Until #854 merges (catalog tests + CP login CTA + /cp AmbiguousMatch fix), use the PR branch:
+export ECOMAE_BRANCH=cursor/aspnet-primary-catalog-tests-7b3b
 for d in /opt/ecomae-aspnet-source /root/ecomae; do
   if [[ -d "$d/.git" ]]; then
-    git -C "$d" fetch origin main
-    git -C "$d" checkout -f main
-    git -C "$d" reset --hard origin/main
+    git -C "$d" fetch origin "$ECOMAE_BRANCH"
+    git -C "$d" checkout -f "$ECOMAE_BRANCH"
+    git -C "$d" reset --hard "origin/$ECOMAE_BRANCH"
     git -C "$d" rev-parse --short HEAD
-    # expect f4801db2 or newer (Merge pull request #852 …)
+    # expect tip with "Fix CP login" + no MapGet shell aliases for /cp|/erp|/bos
   fi
 done
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
@@ -66,11 +67,12 @@ curl -sS http://127.0.0.1:5100/health || true
 # Prove new chrome is loaded (must print Garage Manager):
 curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/storefront/app | grep -o 'Garage Manager' | head -n1
 
-# CP/ERP/BOS guest browse (no login) — must NOT 302 to /cp/login:
-curl -sSI -A 'Mozilla/5.0' http://127.0.0.1:5100/cp | awk 'BEGIN{c=""} /^HTTP/{c=$2} END{print c}'
-# expect 200 (not 302)
-curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp/login | grep -o 'Enter CP (no login)' | head -n1
-# expect: Enter CP (no login)
+# CP/ERP/BOS guest browse (no login) — must NOT 302 to /cp/login and must NOT 500 AmbiguousMatch:
+curl -sS -o /dev/null -w '%{http_code}\n' -A 'Mozilla/5.0' http://127.0.0.1:5100/cp
+# expect 200 (not 302 / not 500)
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp | grep -oE 'CONTROL|Command centre' | head -n1
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp/login | grep -oE 'Enter CP \(no login\)|Enter your E-mail|features--card' | head
+# expect: Enter CP (no login) + email field + features--card
 
 # After redeploy, open https://www.epartscart.com/cp — shell loads without credentials.
 # If you land on /cp/login, click “Enter CP (no login)”.

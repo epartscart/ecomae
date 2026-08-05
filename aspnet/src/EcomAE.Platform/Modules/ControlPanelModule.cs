@@ -3498,31 +3498,9 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
-        foreach (var route in EcomAeRoutes.ControlPanelAliases)
-        {
-            endpoints.MapGet(route, async (
-                HttpContext context,
-                ISurfaceShellCatalog shells,
-                ILegacyHtmlShellRenderer html,
-                ILegacySessionValidator validator) =>
-            {
-                var session = await validator.ValidateAsync(context);
-                if (session.Kind != LegacySessionKind.Admin)
-                {
-                    return Unauthorized("Admin session required for CP shell.");
-                }
-
-                var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-                return SurfaceShellResponder.Respond(
-                    context,
-                    "cp",
-                    shells,
-                    html,
-                    tenant,
-                    SessionPayload(session),
-                    "Presentation-preserving CP shell. PHP Super CP remains authoritative until cutover approval.");
-            });
-        }
+        // /cp (+ /cp/ /CP /CP/) are owned by Blazor CpCommandCentreApp for ASP.NET-primary
+        // guest browse. Do not MapGet those aliases here — they AmbiguousMatch with @page routes
+        // and the minimal-API shell required admin (login wall), which blocks same-to-same browse.
     }
 
     private static IResult Unauthorized(string message) => Results.Json(
