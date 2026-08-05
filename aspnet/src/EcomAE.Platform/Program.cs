@@ -767,8 +767,12 @@ app.MapGet(EcomAeRoutes.LegacyApiClientParity, (ILegacyApiClientParityReporter r
 
 app.MapGet(EcomAeRoutes.LegacySessionParity, (ILegacySessionParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
+// Browser navigations to the old POST-only URL should land on CP login, not a blank 405/500 page.
+app.MapGet(EcomAeRoutes.LegacyAdminLogin, () => Results.Redirect(EcomAeRoutes.ControlPanelLogin));
+
 // PHP-compatible admin/customer login bridge (exact-route). Sets cookies; does not cut over /CP/ /ERP/ /BOS/.
 // Accepts JSON or application/x-www-form-urlencoded (HTML login forms).
+// Prefer LegacyLoginBridgeMiddleware (runs before antiforgery). This MapPost remains as a fallback.
 app.MapPost(EcomAeRoutes.LegacyAdminLogin, async (HttpContext context, ILegacyAdminLoginService login, ILoggerFactory loggerFactory) =>
 {
     var log = loggerFactory.CreateLogger("EcomAE.Auth.Login");

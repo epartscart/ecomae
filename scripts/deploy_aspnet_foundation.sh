@@ -239,6 +239,7 @@ for compare in \
   cloudpanel_verify_secret_succession_configured.sh \
   cloudpanel_sync_secret_succession_from_php.sh \
   cloudpanel_install_auth_login_admin_route.sh \
+  cloudpanel_fix_login_bridge_now.sh \
   cloudpanel_capture_login_cookie_dual_samples.sh \
   cloudpanel_capture_catalog_miss_dual_samples.sh \
   cloudpanel_capture_hybrid_ui_dual_samples.sh \

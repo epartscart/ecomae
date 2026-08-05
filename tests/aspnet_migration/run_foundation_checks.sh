@@ -1533,6 +1533,8 @@ check 'classic-entry tenant example has bos login bridge' contains "$ROOT/deploy
 check 'classic-entry www example has auth login admin' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /auth/login/admin'
 check 'classic-entry tenant example has auth login admin' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'location = /auth/login/admin'
 check 'auth login admin emergency installer exists' test -x "$ROOT/scripts/cloudpanel_install_auth_login_admin_route.sh"
+check 'login bridge oneshot fixer exists' test -x "$ROOT/scripts/cloudpanel_fix_login_bridge_now.sh"
+check 'find_and_redeploy forwards emergency publish' contains "$ROOT/scripts/cloudpanel_find_and_redeploy.sh" 'ECOMAE_EMERGENCY_PUBLISH'
 check 'classic-entry installer forbids return 302 on shared entries' contains "$ROOT/scripts/lib/ecomae_nginx_server_block_edit.py" 'tenant-shared URLs must stay unchanged'
 check 'classic-entry installer reloads per host' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'Reload after EACH successful host'
 check 'classic-entry installer supports --all-hosts' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" '--all-hosts'
