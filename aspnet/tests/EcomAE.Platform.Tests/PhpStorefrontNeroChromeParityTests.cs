@@ -22,6 +22,9 @@ public sealed class PhpStorefrontNeroChromeParityTests
             href => href.Contains("epc_storefront_professional_shell.css", StringComparison.Ordinal));
         Assert.Contains(
             LegacyPresentationAssets.StorefrontStylesheets,
+            href => href.Contains("epc-static.php?f=content/general_pages/epc_storefront_professional_shell.css", StringComparison.Ordinal));
+        Assert.Contains(
+            LegacyPresentationAssets.StorefrontStylesheets,
             href => href.Contains("eparts-animated-logo.css", StringComparison.Ordinal));
         Assert.Equal("templates/nero/desktop.php", LegacyPresentationAssets.LegacyChromeSourceFor("storefront"));
         Assert.True(File.Exists(Find("content/general_pages/epc_storefront_professional_shell.css")));
@@ -40,6 +43,10 @@ public sealed class PhpStorefrontNeroChromeParityTests
         Assert.Contains("header-whatsapp-box", text, StringComparison.Ordinal);
         Assert.Contains("header-bulk-upload-box", text, StringComparison.Ordinal);
         Assert.Contains("Mon-Fri from 9:00 to 18:00, Sat from 9:00 to 16:00, Sun - day off.", text, StringComparison.Ordinal);
+        // Inline critical PHP-look CSS (must ship even when www CSS 404s).
+        Assert.Contains("header-call-box a { background:#ef4444", text, StringComparison.Ordinal);
+        Assert.Contains("background:linear-gradient(135deg,#111827", text, StringComparison.Ordinal);
+        Assert.Contains(".schearch-line", text, StringComparison.Ordinal);
         // Must not fight PHP professional shell with flat gray search bar / white menu tiles.
         Assert.DoesNotContain(".schearch-line { background:#f3f4f6", text, StringComparison.Ordinal);
         Assert.DoesNotContain("background:#fff; border:1px solid #e5e7eb; color:#111", text, StringComparison.Ordinal);

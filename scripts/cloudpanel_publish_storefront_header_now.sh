@@ -69,65 +69,6 @@ do
   done
 done
 
-export ECOMAE_EMERGENCY_PUBLISH="${ECOMAE_EMERGENCY_PUBLISH:-1}"
+# Delegate to nuclear direct-publish (foundation gates left stale :5100 after #877/#878).
 export ECOMAE_BRANCH
-bash scripts/cloudpanel_find_and_redeploy.sh
-
-systemctl restart ecomae-platform.service || true
-bash scripts/wait_for_aspnet_health.sh || true
-
-printf '\n== Prove published storefront header on :5100 ==\n'
-HOME_BODY="$(curl -sS -A 'Mozilla/5.0' --max-time 30 http://127.0.0.1:5100/ || true)"
-HOME_BODY_SF="$(curl -sS -A 'Mozilla/5.0' --max-time 30 http://127.0.0.1:5100/storefront/app || true)"
-BODY="$HOME_BODY"
-if ! grep -Fq 'epc-nero-shell' <<<"$HOME_BODY"; then
-  BODY="$HOME_BODY_SF"
-fi
-
-fail=0
-for needle in \
-  'epc_storefront_professional_shell.css' \
-  'Catalog <span class="hidden-sm">of products</span>' \
-  'ERP Login' \
-  'header-call-box' \
-  'epc-auth-header-links'
-do
-  if grep -Fq "$needle" <<<"$BODY"; then
-    printf 'PASS  home has %s\n' "$needle"
-  else
-    printf 'FAIL  home missing %s\n' "$needle"
-    fail=1
-  fi
-done
-
-if grep -Fq '.schearch-line { background:#f3f4f6' <<<"$BODY"; then
-  printf 'FAIL  home still has OLD gray schearch-line inline CSS\n'
-  fail=1
-fi
-if grep -Fq 'action="/storefront/search-app"' <<<"$BODY"; then
-  printf 'FAIL  home still points search at /storefront/search-app (pre-#874 binary)\n'
-  fail=1
-fi
-
-CSS_CODE="$(curl -sS -o /tmp/epc-sf-shell.css -w '%{http_code}' -A 'Mozilla/5.0' --max-time 20 \
-  http://127.0.0.1:5100/content/general_pages/epc_storefront_professional_shell.css || true)"
-if [[ "$CSS_CODE" == "200" ]] && grep -Fq 'header-call-box' /tmp/epc-sf-shell.css; then
-  printf 'PASS  :5100 serves professional shell CSS (%s)\n' "$CSS_CODE"
-else
-  printf 'FAIL  :5100 professional shell CSS http=%s\n' "$CSS_CODE"
-  fail=1
-fi
-
-printf '\nPublic hard-refresh (Ctrl+Shift+R):\n'
-printf '  https://www.epartscart.com/\n'
-printf '  https://www.epartscart.com/php-reference/home   (PHP reference look)\n'
-
-if [[ "$fail" -ne 0 ]]; then
-  printf '\nRESULT=FAIL — binary still stale or CSS not published\n' >&2
-  printf 'Check: systemctl status ecomae-platform.service; journalctl -u ecomae-platform.service -n 80 --no-pager\n' >&2
-  printf 'Confirm checkout SHA: git -C %s rev-parse --short HEAD (want main with #877+)\n' "$ROOT" >&2
-  exit 1
-fi
-
-printf '\nRESULT=PASS — storefront header professional shell is live on :5100\n'
-exit 0
+bash scripts/cloudpanel_publish_storefront_now.sh

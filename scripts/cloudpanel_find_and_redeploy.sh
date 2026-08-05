@@ -92,9 +92,11 @@ if grep -Eq 'User=<db_user>|Password=<db_password>|<db_user>|<db_password>' "${E
   exit 2
 fi
 
+# Default emergency publish ON — foundation/unit gates have left live :5100 on stale
+# binaries after merged PRs (#877/#878). Set ECOMAE_EMERGENCY_PUBLISH=0 to force gates.
 sudo ECOMAE_BRANCH="$ECOMAE_BRANCH" \
 ECOMAE_RUN_SYSTEMD="${ECOMAE_RUN_SYSTEMD:-1}" \
-ECOMAE_EMERGENCY_PUBLISH="${ECOMAE_EMERGENCY_PUBLISH:-0}" \
+ECOMAE_EMERGENCY_PUBLISH="${ECOMAE_EMERGENCY_PUBLISH:-1}" \
 ECOMAE_INSTALL_DIAGNOSTICS_NGINX="${ECOMAE_INSTALL_DIAGNOSTICS_NGINX:-0}" \
 ECOMAE_ASPNET_RELEASE_ROOT="$ECOMAE_ASPNET_RELEASE_ROOT" \
 ECOMAE_ASPNET_ENV_DIR="$ECOMAE_ASPNET_ENV_DIR" \
