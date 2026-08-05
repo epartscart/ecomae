@@ -14,9 +14,13 @@ cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
 git fetch origin main && git checkout -f main && git reset --hard origin/main
 
 # www.ecomae.com + epartscart (URL-preserved proxies). Reloads nginx per host.
-# If epartscart conf name differs, set:
-#   export ECOMAE_NGINX_SITE_CONF_TENANT=/etc/nginx/sites-enabled/<actual>.conf
-#   ls /etc/nginx/sites-enabled | rg -i epart
+# On this CloudPanel there is often NO www.epartscart.com.conf — epartscart is on:
+#   /etc/nginx/sites-enabled/wildcard-ecomae
+# Installer falls back to that automatically (host-gated to epartscart.com only).
+# Override if needed:
+#   export ECOMAE_NGINX_SITE_CONF_TENANT=/etc/nginx/sites-enabled/wildcard-ecomae
+#   ls /etc/nginx/sites-enabled
+#   grep -n server_name /etc/nginx/sites-enabled/wildcard-ecomae | head
 ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
