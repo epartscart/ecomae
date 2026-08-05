@@ -1587,10 +1587,16 @@ public static class EcomAeRoutes
     /// <summary>Storefront profile Blazor read UI (JSON digest remains <see cref="StorefrontProfile"/>).</summary>
     public const string StorefrontProfileApp = "/storefront/profile-app";
 
+    /// <summary>
+    /// Canonical shell URL forms (case / trailing-slash). Blazor apps own these routes;
+    /// modules must not MapGet the same paths (AmbiguousMatchException).
+    /// </summary>
     public static readonly string[] ControlPanelAliases = [ControlPanel, "/cp/", "/CP", "/CP/"];
 
+    /// <inheritdoc cref="ControlPanelAliases"/>
     public static readonly string[] ErpAliases = [Erp, "/erp/", "/ERP", "/ERP/"];
 
+    /// <inheritdoc cref="ControlPanelAliases"/>
     public static readonly string[] BosAliases = [Bos, "/bos/", "/BOS", "/BOS/"];
 
     public static readonly string[] ProtectedSurfaces =

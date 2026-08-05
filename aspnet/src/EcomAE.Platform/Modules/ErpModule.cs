@@ -2045,31 +2045,8 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
-        foreach (var route in EcomAeRoutes.ErpAliases)
-        {
-            endpoints.MapGet(route, async (
-                HttpContext context,
-                ISurfaceShellCatalog shells,
-                ILegacyHtmlShellRenderer html,
-                ILegacySessionValidator validator) =>
-            {
-                var session = await validator.ValidateAsync(context);
-                if (session.Kind != LegacySessionKind.Admin)
-                {
-                    return Unauthorized("Admin session required for ERP shell.");
-                }
-
-                var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-                return SurfaceShellResponder.Respond(
-                    context,
-                    "erp",
-                    shells,
-                    html,
-                    tenant,
-                    SessionPayload(session),
-                    "Presentation-preserving ERP shell. PHP Platform ERP remains authoritative until cutover approval.");
-            });
-        }
+        // /erp (+ aliases) owned by Blazor ErpBosDashboardApp — do not MapGet shell aliases
+        // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
     }
 
     private static IResult Unauthorized(string message) => Results.Json(

@@ -274,31 +274,8 @@ public sealed class BosModule : ISurfaceModule
             });
         });
 
-        foreach (var route in EcomAeRoutes.BosAliases)
-        {
-            endpoints.MapGet(route, async (
-                HttpContext context,
-                ISurfaceShellCatalog shells,
-                ILegacyHtmlShellRenderer html,
-                ILegacySessionValidator validator) =>
-            {
-                var session = await validator.ValidateAsync(context);
-                if (session.Kind != LegacySessionKind.Admin)
-                {
-                    return Unauthorized("Admin session required for BOS shell.");
-                }
-
-                var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-                return SurfaceShellResponder.Respond(
-                    context,
-                    "bos",
-                    shells,
-                    html,
-                    tenant,
-                    SessionPayload(session),
-                    "Presentation-preserving BOS shell. PHP Super BOS remains authoritative until cutover approval.");
-            });
-        }
+        // /bos (+ aliases) owned by Blazor BosFleetApp — do not MapGet shell aliases
+        // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
     }
 
     private static IResult Unauthorized(string message) => Results.Json(
