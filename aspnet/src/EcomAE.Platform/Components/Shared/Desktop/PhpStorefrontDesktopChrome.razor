@@ -1,5 +1,8 @@
 @namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
 @*
   PHP nero storefront chrome on ASP.NET (same-to-same vs templates/nero/desktop.php).
   All primary links are ASP.NET routes; PHP only via /php-reference/*.
@@ -49,14 +52,26 @@
                                 <a href="/storefront/garage-app"><i class="fa fa-wrench" aria-hidden="true"></i> Garage Manager</a>
                             </div>
                             <div class="new-header-user-box">
-                                <a href="/erp"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP Login</a>
+                                <a href="/erp"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP</a>
                             </div>
-                            <div class="new-header-user-box">
-                                <a href="/storefront/login">Vendor login</a>
-                            </div>
-                            <div class="new-header-user-box">
-                                <a href="/storefront/login"><i class="fa fa-user" aria-hidden="true"></i> Customer login</a>
-                            </div>
+                            @if (_signedIn)
+                            {
+                                <div class="new-header-user-box">
+                                    <a href="/storefront/profile-app"><i class="fa fa-user" aria-hidden="true"></i> @_userLabel</a>
+                                </div>
+                                <div class="new-header-user-box">
+                                    <a href="/storefront/logout" title="Log out"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="new-header-user-box">
+                                    <a href="/storefront/login">Vendor login</a>
+                                </div>
+                                <div class="new-header-user-box">
+                                    <a href="/storefront/login"><i class="fa fa-user" aria-hidden="true"></i> Customer login</a>
+                                </div>
+                            }
                         </td>
                     </tr>
                 </table>
@@ -233,7 +248,15 @@
             <a href="/storefront/search-app"><i class="fa fa-search" aria-hidden="true"></i> Search</a>
             <a href="/storefront/garage-app"><i class="fa fa-wrench" aria-hidden="true"></i> Garage</a>
             <a href="/erp"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP</a>
-            <a href="/storefront/login"><i class="fa fa-user" aria-hidden="true"></i> Login</a>
+            @if (_signedIn)
+            {
+                <a href="/storefront/profile-app"><i class="fa fa-user" aria-hidden="true"></i> Account</a>
+                <a href="/storefront/logout"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
+            }
+            else
+            {
+                <a href="/storefront/login"><i class="fa fa-user" aria-hidden="true"></i> Login</a>
+            }
         </div>
     </div>
 
@@ -277,8 +300,16 @@
                                     <ul class="epc-footer-menu">
                                         <li><a href="/storefront/cart-app">Cart</a></li>
                                         <li><a href="/storefront/checkout-app">Checkout</a></li>
-                                        <li><a href="/storefront/login">Customer login</a></li>
-                                        <li><a href="/erp">ERP Login</a></li>
+                                        @if (_signedIn)
+                                        {
+                                            <li><a href="/storefront/profile-app">My account</a></li>
+                                            <li><a href="/storefront/logout">Log out</a></li>
+                                        }
+                                        else
+                                        {
+                                            <li><a href="/storefront/login">Customer login</a></li>
+                                        }
+                                        <li><a href="/erp">ERP</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -565,4 +596,25 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool _signedIn;
+    private string _userLabel = "Account";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _signedIn = session.Kind is LegacySessionKind.Customer or LegacySessionKind.Admin;
+        if (_signedIn)
+        {
+            _userLabel = string.IsNullOrWhiteSpace(session.Email)
+                ? (session.Kind == LegacySessionKind.Admin ? "Admin" : "Account")
+                : session.Email!;
+        }
+    }
 }

@@ -1,5 +1,8 @@
 @namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
 @*
   Mirrors bos/index.php topnav mega + main content region (bos-body--topnav).
   White mega panels, Open first hub, section icons — bos/epc_bos_shell.css.
@@ -59,16 +62,17 @@
                 }
             </ul>
             <div class="bos-topnav__right">
-                @if (!IsAdmin)
+                @if (!_signedIn)
                 {
                     <a class="bos-topnav__login" href="/bos/login">Sign in</a>
                 }
                 else
                 {
-                    <span class="bos-topnav__user">Admin session</span>
+                    <span class="bos-topnav__user" title="@_userLabel">@_userLabel</span>
+                    <a class="bos-topnav__logout" href="/bos/logout" title="Sign out"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
                 }
-                <a class="bos-topnav__logout" href="/bos">BOS home</a>
-                <a class="bos-topnav__logout" href="/cp">Control panel</a>
+                <a href="/bos">BOS home</a>
+                <a href="/cp">Control panel</a>
             </div>
         </div>
     </nav>
@@ -139,4 +143,24 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public bool IsAdmin { get; set; }
     [Parameter] public string Title { get; set; } = "Command Center";
+
+    private bool _signedIn;
+    private string _userLabel = "Admin session";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            _signedIn = IsAdmin;
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _signedIn = session.Kind == LegacySessionKind.Admin || IsAdmin;
+        if (_signedIn)
+        {
+            _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
+        }
+    }
 }
