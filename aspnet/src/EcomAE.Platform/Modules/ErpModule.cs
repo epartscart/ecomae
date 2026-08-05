@@ -369,6 +369,24 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpCompanies, async (
+            int? limit,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await dashboards.BuildErpCompaniesDigestAsync(limit ?? 50, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                companies = result.Companies,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                note = "Read-only legal entities for company picker (PHP epc_erp_companies_list). Industry pack apply + session company remain PHP authoritative."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpAccountsSummary, async (
             HttpContext context,
             ILegacySessionValidator validator,

@@ -58,7 +58,7 @@
     [Parameter] public string Eyebrow { get; set; } = "Professional auto spare parts store";
     [Parameter] public string Title { get; set; } = "Find genuine and aftermarket spare parts faster, cleaner, and with confidence.";
     [Parameter] public string Copy { get; set; } = "Search by article number, browse brands, open the electronic catalog, or send a VIN request. Everything is arranged for workshops, garages, fleet buyers, and retail customers.";
-    [Parameter] public string SearchHref { get; set; } = "/storefront/search-app";
-    [Parameter] public string CatalogHref { get; set; } = "/storefront/search-app";
-    [Parameter] public string BrandsHref { get; set; } = "/storefront/search-app";
+    [Parameter] public string SearchHref { get; set; } = StorefrontPhpCanonical.PartSearch;
+    [Parameter] public string CatalogHref { get; set; } = StorefrontPhpCanonical.UmapiCatalog;
+    [Parameter] public string BrandsHref { get; set; } = StorefrontPhpCanonical.AvailableBrands;
 }

@@ -11,18 +11,21 @@
   BOS nav is Super-CP only — never advertise /bos on tenant hosts.
 *@
 
-<div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root">
+<div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root"
+     data-epc-industry="@_ctx.IndustryCode"
+     data-epc-erp-tenant="@_ctx.BrandLabel">
     <header class="epc-erp-topbar epc-erp-topbar--cp">
         <div class="epc-erp-topbar__inner">
             <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="/erp">
                 <span class="epc-erp-topbar__brand-mark--animated">
                     <PhpEpartsCartAnimatedLogo Variant="header" />
                 </span>
-                <span>Ecom BOS</span>
+                <span>@_ctx.BrandLabel ERP</span>
             </a>
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
                 <a href="/erp">Guide</a>
                 <a href="/cp">E-commerce CP</a>
+                <a href="@_ctx.PhpErpShellHref">PHP ERP</a>
                 @if (_showBos)
                 {
                     <a href="/cp/tenants-app">Tenants</a>
@@ -49,7 +52,7 @@
             <nav class="epc-erp-topnav" id="epc_erp_topnav" aria-label="ERP process areas">
                 <div class="epc-erp-topnav-inner">
                     <a class="epc-erp-topnav-brand" href="/erp">
-                        <i class="fa fa-cubes" aria-hidden="true"></i><span>Ecom BOS</span>
+                        <i class="fa fa-cubes" aria-hidden="true"></i><span>@_ctx.BrandLabel</span>
                     </a>
                     <ul class="epc-erp-topnav-list" role="menubar">
                         @foreach (var group in LegacyDesktopChromeCatalog.ErpTopnav())
@@ -128,9 +131,11 @@
                                     <span class="epc-erp-breadcrumb-current">@BreadcrumbTab</span>
                                 </nav>
                                 <h1 class="epc-erp-content-title">@Title</h1>
+                                <p class="epc-erp-host-sub">@_ctx.WorkspaceTitle · @_ctx.IndustryLabel</p>
                             </div>
                         </div>
                     </div>
+                    <PhpErpCompanyIndustryBar />
                     <div class="epc-erp-content-body">
                         <!--epc-cp-main-begin-->
                         @ChildContent
@@ -167,7 +172,8 @@
     .epc-erp-topbar__inner, .epc-erp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
     .epc-erp-breadcrumb { color:var(--muted); font-size:13px; margin-bottom:.35rem; }
     .epc-erp-breadcrumb .sep { margin:0 .25rem; }
-    .epc-erp-content-title { margin:0 0 .85rem; font-size:22px; font-weight:700; }
+    .epc-erp-content-title { margin:0 0 .35rem; font-size:22px; font-weight:700; }
+    .epc-erp-host-sub { margin:0 0 .85rem; color:var(--muted); font-size:13px; font-weight:600; }
     .epc-erp-content-body { font-size:14px; }
     .epc-erp-foot { padding:.85rem 1rem; border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
 </style>
@@ -291,11 +297,13 @@
     private bool _showBos;
     private bool _signedIn;
     private string _userLabel = "Admin session";
+    private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
 
     protected override async Task OnInitializedAsync()
     {
         var host = Http.HttpContext?.Request.Host.Host;
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+        _ctx = ErpHostContext.Resolve(host);
 
         var ctx = Http.HttpContext;
         if (ctx is null)

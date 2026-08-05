@@ -648,6 +648,8 @@ app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
 // Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home).
 app.UseMiddleware<MarketingStubToPhpRedirectMiddleware>();
+// Thin /storefront/* stubs → PHP /en/… canonical (warehouse, UMAPI, catalogs) until apps are live.
+app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 // BOS is Super-CP / platform only — never answer /bos on tenant hosts (epartscart, …).
 app.UseMiddleware<BosHostGateMiddleware>();

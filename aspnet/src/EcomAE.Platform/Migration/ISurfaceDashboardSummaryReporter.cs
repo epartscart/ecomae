@@ -126,6 +126,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only industry packs (JSON blobs omitted).</summary>
     Task<CpIndustryPacksDigestResult> BuildCpIndustryPacksDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only ERP legal entities + per-company industry_pack (PHP multi-company picker).</summary>
+    Task<ErpCompaniesDigestResult> BuildErpCompaniesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only jewellery retail KPIs + vouchers (PII/cost omitted).</summary>
     Task<CpJewelleryRetailDigestResult> BuildCpJewelleryRetailDigestAsync(int limit, CancellationToken cancellationToken = default);
 
