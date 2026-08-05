@@ -67,11 +67,12 @@ curl -sS http://127.0.0.1:5100/health || true
 # Prove new chrome is loaded (must print Garage Manager):
 curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/storefront/app | grep -o 'Garage Manager' | head -n1
 
-# CP/ERP/BOS guest browse (no login) — must NOT 302 to /cp/login:
-curl -sSI -A 'Mozilla/5.0' http://127.0.0.1:5100/cp | awk 'BEGIN{c=""} /^HTTP/{c=$2} END{print c}'
-# expect 200 (not 302)
-curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp/login | grep -o 'Enter CP (no login)' | head -n1
-# expect: Enter CP (no login)
+# CP/ERP/BOS guest browse (no login) — must NOT 302 to /cp/login and must NOT 500 AmbiguousMatch:
+curl -sS -o /dev/null -w '%{http_code}\n' -A 'Mozilla/5.0' http://127.0.0.1:5100/cp
+# expect 200 (not 302 / not 500)
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp | grep -oE 'CONTROL|Command centre' | head -n1
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp/login | grep -oE 'Enter CP \(no login\)|Enter your E-mail|features--card' | head
+# expect: Enter CP (no login) + email field + features--card
 
 # After redeploy, open https://www.epartscart.com/cp — shell loads without credentials.
 # If you land on /cp/login, click “Enter CP (no login)”.
