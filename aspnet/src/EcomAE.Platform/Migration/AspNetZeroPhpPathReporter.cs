@@ -16,7 +16,7 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
             new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Look/color floors green; marketing /marketing/* 37-route install+probe ready (live shadows may still be 0/37); industry 28 hosts + epartscart gates; tenants PHP-primary under parity gate."),
             new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; full ajax_erp.php catalog (321) dedicated goldens; BOS ajax catalog (231) goldens; CP/storefront module ajax goldens; functional 7-flow suite static-green with live-smoke stubs blocked; live writes still PHP — dual-sample + RELEASE_OWNER_APPROVAL required."),
             new("5-tenant-exact-route", "Staged exact-route cutover on live tenants", "blocked-on-parity", "Default refuse on named tenants; ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW unlocks parity shadows only. Destination: ASP.NET live primary."),
-            new("6-php-traffic-fallback-removal", "Disable PHP live traffic/fallback (keep project as reference)", "blocked", "Requires dual-sample + human RELEASE_OWNER_APPROVAL.md — never invent that file. Removes PHP from customer-facing traffic only. PHP project/docroot stays for /migration/php-reference-mode gap-finding until a separate keep/delete decision."),
+            new("6-php-traffic-fallback-removal", "Disable PHP live traffic/fallback (keep project as reference)", "in-progress", "Human RELEASE_OWNER_APPROVAL.md present (APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable). Still requires CloudPanel dual-sample + exact-route shadows before disabling PHP fallback per route. PHP project/docroot stays for /migration/php-reference-mode gap-finding."),
         ];
 
         return new AspNetZeroPhpPathReport(
@@ -33,15 +33,18 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
                 "Capture authenticated digest dual-samples for core CP/ERP/storefront stems; flip functional live-smoke stubs to captured.",
                 "Dual-sample /erp/on-premises-app + licenses + health/activate/setup-wizard/backup.",
                 "Use GET /migration/php-reference-mode + /migration/compare — PHP reference vs ASP.NET primary for gap-finding.",
-                "Human RELEASE_OWNER_APPROVAL.md after dual-sample — never invent that file; then ASP.NET live primary with PHP kept as reference.",
+                "Deploy main on CloudPanel: bash scripts/cloudpanel_find_and_redeploy.sh (see CLOUDPANEL_DEPLOY_PASTE.md).",
+                "Complete www shadow closeout + dual-sample; then disable PHP fallback per exact-route only.",
+                "Keep PHP reference reachable via /migration/php-reference-mode + /migration/compare.",
             ],
             Notes:
             [
                 "CONFIRMED: ASP.NET Core is the live primary destination; PHP project is retained as reference (till keep/delete) — see docs/migration/PHP_AS_REFERENCE_MODE.md.",
+                "HUMAN APPROVAL: docs/migration/evidence/decommission/RELEASE_OWNER_APPROVAL.md (APPROVED_TO_REMOVE_PHP_FALLBACK; KeepPhpProjectAvailable=true).",
                 "PHP-primary on live tenants is a parity gate, not the forever destination.",
                 "Same-to-same UX is mandatory during cutover — tenants must not feel the stack change.",
                 "On-premises ERP installer ≠ SaaS ERP-only tenant mode — both tracks are mandatory for ASP.NET primary. See GET /migration/on-premises-parity.",
-                "Reference keep ≠ inventing READY_FOR_PHP_REMOVAL or deleting PHP source.",
+                "Broad nginx trees remain forbidden; approval authorizes exact-route PHP-fallback removal only.",
                 "See docs/migration/ASPNET_ZERO_PHP_PATH.md and ZERO_PHP_PRODUCTION_CUTOVER_ROADMAP.md.",
             ]);
     }

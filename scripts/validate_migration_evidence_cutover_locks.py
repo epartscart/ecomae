@@ -11,11 +11,17 @@ import sys
 from pathlib import Path
 
 FORBIDDEN_FILES = (
-    "RELEASE_OWNER_APPROVAL.md",
+    # RELEASE_OWNER_APPROVAL.md is allowed only when it contains the human marker
+    # APPROVED_TO_REMOVE_PHP_FALLBACK (validated separately below). Agents must not
+    # invent a fake approval without that marker + KeepPhpProjectAvailable retain note.
     "MODULE_FUNCTION_TEST_PASS.md",
     "MODULE_FUNCTION_PARITY_PASS",
     "MODULE_FUNCTION_PARITY_PASS.md",
 )
+
+APPROVAL_FILE_NAME = "RELEASE_OWNER_APPROVAL.md"
+APPROVAL_REQUIRED_MARKER = "APPROVED_TO_REMOVE_PHP_FALLBACK"
+APPROVAL_REQUIRED_REFERENCE_NOTE = "KeepPhpProjectAvailable"
 
 # Verdict JSON files that must explicitly set cutoverAllowed=false (absence is a drift hole).
 MUST_DECLARE_CUTOVER_FALSE = (
@@ -139,6 +145,22 @@ def main() -> int:
         hits = sorted(args.docs_root.rglob(name))
         for hit in hits:
             errors.append(f"forbidden approval/pass artifact present: {hit}")
+
+    for hit in sorted(args.docs_root.rglob(APPROVAL_FILE_NAME)):
+        text = hit.read_text(encoding="utf-8", errors="replace")
+        if APPROVAL_REQUIRED_MARKER not in text:
+            errors.append(
+                f"{hit}: RELEASE_OWNER_APPROVAL.md missing required marker "
+                f"{APPROVAL_REQUIRED_MARKER}"
+            )
+        if APPROVAL_REQUIRED_REFERENCE_NOTE not in text:
+            errors.append(
+                f"{hit}: RELEASE_OWNER_APPROVAL.md must retain PHP reference "
+                f"({APPROVAL_REQUIRED_REFERENCE_NOTE}=true)"
+            )
+        # Example file must never be treated as live approval.
+        if hit.name.endswith(".example.md") or "EXAMPLE ONLY" in text:
+            errors.append(f"{hit}: example approval must not be used as live approval")
 
     required_paths: set[Path] = set()
     for rel in MUST_DECLARE_CUTOVER_FALSE:

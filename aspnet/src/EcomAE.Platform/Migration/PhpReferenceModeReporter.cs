@@ -74,10 +74,10 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
             ],
             HardLocks:
             [
-                "cutoverAllowed=false (this reporter always)",
-                "readyForPhpRemoval=false (this reporter always)",
-                "RequirePhpFallback stays true in templates until final gate",
-                "Never invent RELEASE_OWNER_APPROVAL.md",
+                "cutoverAllowed=false (this reporter always — traffic still exact-route only)",
+                "readyForPhpRemoval=false (this reporter always — source keep)",
+                "RequirePhpFallback stays true in templates until CloudPanel exact-route promote",
+                "RELEASE_OWNER_APPROVAL.md is human-owned (marker APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable)",
                 "Named live tenants stay PHP-primary until unlocked parity shadows",
                 "Reference PHP should be read-only / non-conflicting for writes after ASP.NET is primary"
             ],

@@ -20,7 +20,7 @@ public sealed class PhpDecommissionReadinessReporterTests
         Assert.False(report.ReadyForPhpRemoval);
         Assert.True(report.ChecklistTotalCount >= 10);
         Assert.True(report.BlockerCount >= 1);
-        Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "missing");
+        Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "chrome-presentation-parity" && item.Status == "missing");
         Assert.Contains(report.Checklist, item => item.Id == "module-function-parity" && item.Status == "missing");
         Assert.Contains(report.Checklist, item => item.Id == "rollback-validated" && item.Status == "present");
@@ -32,7 +32,7 @@ public sealed class PhpDecommissionReadinessReporterTests
         Assert.Contains(report.Blockers, blocker => blocker.Contains("tenant", StringComparison.OrdinalIgnoreCase)
             || blocker.Contains("industry", StringComparison.OrdinalIgnoreCase));
         Assert.True(report.ChecklistCompletePercent < 100);
-        // Staging smoke may be attached; chrome/module presentation + human approval still block PHP removal.
+        // Staging smoke + human approval may be attached; chrome/module presentation still block PHP removal.
         Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-price").Status);
         Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-catalog").Status);
         Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-surfaces").Status);
@@ -40,8 +40,6 @@ public sealed class PhpDecommissionReadinessReporterTests
             || blocker.Contains("presentation", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Blockers, blocker => blocker.Contains("module-function-parity", StringComparison.OrdinalIgnoreCase)
             || blocker.Contains("module", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(report.Blockers, blocker => blocker.Contains("RELEASE_OWNER_APPROVAL", StringComparison.OrdinalIgnoreCase)
-            || blocker.Contains("release-owner-approval", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.RequiredEvidence, evidence => evidence.Contains("php-vs-aspnet-recheck.json", StringComparison.Ordinal));
     }
 
@@ -157,7 +155,7 @@ public sealed class PhpDecommissionReadinessReporterTests
             Assert.Contains(report.Checklist, item => item.Id == "staging-smoke-price" && item.Status == "present");
             Assert.Contains(report.Checklist, item => item.Id == "staging-smoke-catalog" && item.Status == "present");
             Assert.Contains(report.Checklist, item => item.Id == "staging-smoke-surfaces" && item.Status == "present");
-            Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "missing");
+            Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "present");
             Assert.True(report.ChecklistCompleteCount >= 8);
         }
         finally
