@@ -18,10 +18,10 @@ This is **not** PHP source deletion and does **not** invent cutover approval / l
 
 ## What “reference” means
 
-1. Live customer traffic eventually served by ASP.NET (exact-route, staged).
-2. PHP docroot/project remains installed (same host internal vhost, staging clone, or read-only replica).
-3. Operators open PHP URLs next to ASP.NET URLs on `/migration/compare`.
-4. Dual-sample scripts can still hit `ECOMAE_PHP_BASE_URL` / `EcomAE:PhpReference:WwwPhpBaseUrl`.
+1. Live www **classic entries** (`/`, `/cp/`, `/erp/`, `/bos/`, top-level marketing) redirect to ASP.NET apps via exact-route pack (`cloudpanel_install_classic_entry_aspnet_primary.sh`).
+2. PHP docroot/project remains installed — reference via `/index.php` + deep `/cp|/erp|/bos` module paths (and/or staging clone).
+3. Operators open PHP reference URLs next to ASP.NET URLs on `/migration/compare`.
+4. Dual-sample scripts can still hit PHP reference URLs / `EcomAE:PhpReference:WwwPhpBaseUrl`.
 5. PHP writes should be disabled or isolated after ASP.NET is primary (prefer read-only reference) so results do not diverge from conflicting writes.
 
 ## Config

@@ -42,7 +42,8 @@ public sealed class PhpReferenceModeReporterTests
         Assert.False(report.StorefrontAspNetEnabled);
         Assert.False(report.AdminAspNetEnabled);
         Assert.Equal("https://www.ecomae.com", report.WwwPhpBaseUrl);
-        Assert.Contains(report.ComparePairs, p => p.Area == "cp" && p.PhpUrl.EndsWith("/CP/", StringComparison.Ordinal));
+        Assert.Contains(report.ComparePairs, p => p.Area == "marketing" && p.PhpUrl.EndsWith("/index.php", StringComparison.Ordinal));
+        Assert.Contains(report.ComparePairs, p => p.Area == "cp" && p.PhpUrl.Contains("/cp/shop/orders/orders", StringComparison.Ordinal));
         Assert.Contains(report.ComparePairs, p => p.AspNetUrl.Contains("/erp/app", StringComparison.Ordinal));
         Assert.Contains(report.HardLocks, lockLine => lockLine.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal)
             && lockLine.Contains("KeepPhpProjectAvailable", StringComparison.Ordinal));

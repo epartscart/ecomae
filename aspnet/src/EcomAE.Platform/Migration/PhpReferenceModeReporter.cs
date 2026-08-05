@@ -27,12 +27,14 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
         var dedicatedCp = TrimBase(_reference.DedicatedCpPhpBaseUrl);
         var aspNet = TrimBase(_reference.AspNetPrimaryBaseUrl);
 
+        // www classic entries (/ /cp/ /erp/ /bos/) redirect to ASP.NET apps after human-confirmed
+        // classic-entry install. PHP reference uses /index.php + deep module paths that still hit PHP.
         var pairs = new List<PhpReferenceComparePair>
         {
-            new("marketing", $"{wwwPhp}/", $"{aspNet}/marketing/app", "php-reference-vs-aspnet-preview"),
-            new("cp", $"{wwwPhp}/CP/", $"{aspNet}/cp/app", "php-reference-vs-aspnet-preview"),
-            new("erp", $"{wwwPhp}/ERP/", $"{aspNet}/erp/app", "php-reference-vs-aspnet-preview"),
-            new("bos", $"{wwwPhp}/BOS/", $"{aspNet}/bos/app", "php-reference-vs-aspnet-preview"),
+            new("marketing", $"{wwwPhp}/index.php", $"{aspNet}/marketing/app", "php-reference-vs-aspnet-primary"),
+            new("cp", $"{wwwPhp}/cp/shop/orders/orders", $"{aspNet}/cp/app", "php-reference-deep-vs-aspnet-primary"),
+            new("erp", $"{wwwPhp}/erp/", $"{aspNet}/erp/app", "php-reference-entry-or-deep-vs-aspnet-primary"),
+            new("bos", $"{wwwPhp}/bos/", $"{aspNet}/bos/app", "php-reference-entry-or-deep-vs-aspnet-primary"),
             new("cp-dedicated", $"{dedicatedCp}/CP/", $"{aspNet}/cp/app", "php-reference-vs-aspnet-preview"),
             new("tenant-storefront", $"{tenantPhp}/", $"{aspNet}/storefront/app", "tenant-php-reference-www-aspnet-preview-only"),
             new("tenant-cp", $"{tenantPhp}/CP/", $"{aspNet}/cp/app", "tenant-php-reference-www-aspnet-preview-only"),
@@ -65,10 +67,10 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
             ComparePairs: pairs,
             OperatorSteps:
             [
-                "Human RELEASE_OWNER_APPROVAL.md is present — execute exact-route cutover: ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh",
-                "Keep the PHP project/docroot installed as a reference host (or read-only clone) so previous screens/results remain visible.",
-                "Use /migration/compare and /migration/php-reference-mode to open PHP vs ASP.NET side-by-side and record gaps.",
-                "Run dual-sample compare_* scripts against ECOMAE_PHP_BASE_URL / configured WwwPhpBaseUrl while ASP.NET serves exact-route shadows.",
+                "Classic PHP entries → ASP.NET: ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh",
+                "Full operator: ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh",
+                "PHP reference URLs: /index.php (home) + deep /cp|/erp|/bos module paths; compare at /migration/compare",
+                "Run dual-sample compare_* scripts against PHP reference URLs while ASP.NET serves primary entries.",
                 "Do not delete PHP source until a separate decommission gate (ReadyToRemovePhp) — reference mode is not deletion.",
                 "Rollback live traffic with: bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback"
             ],
@@ -79,7 +81,7 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
                 "RequirePhpFallback stays true until dual-sample-green per exact route (templates default true)",
                 "RELEASE_OWNER_APPROVAL.md present with APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable",
                 "Named live tenants stay PHP-primary until unlocked parity shadows",
-                "Reference PHP should be read-only / non-conflicting for writes after ASP.NET is primary"
+                "www classic entries may redirect to ASP.NET apps; PHP docroot stays for /index.php + deep modules"
             ],
             Note: _reference.Note);
     }

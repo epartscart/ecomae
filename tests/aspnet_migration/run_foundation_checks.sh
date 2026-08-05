@@ -1486,7 +1486,26 @@ check 'ASP.NET primary cutover execute keeps PHP reference' contains "$ROOT/scri
 check 'ASP.NET primary cutover execute keeps RequirePhpFallback true' contains "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" 'MigrationRouteCutover__RequirePhpFallback'
 check 'ASP.NET primary cutover execute installs surface digests' contains "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" 'cloudpanel_install_surface_digest_shadows.sh'
 check 'ASP.NET primary cutover execute runs www closeout' contains "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" 'cloudpanel_www_shadow_closeout_operator.sh'
+check 'ASP.NET primary cutover execute installs classic entry redirects' contains "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" 'cloudpanel_install_classic_entry_aspnet_primary.sh'
 check 'deploy packs ASP.NET primary cutover execute operator' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_execute_aspnet_primary_cutover_operator.sh'
+check 'classic-entry ASP.NET primary example exists' test -f "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf"
+check 'classic-entry ASP.NET primary redirects home' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /'
+check 'classic-entry ASP.NET primary redirects cp' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /cp/'
+check 'classic-entry ASP.NET primary redirects erp' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /erp/'
+check 'classic-entry ASP.NET primary redirects bos' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /bos/'
+check 'classic-entry installer exists' test -x "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh"
+check 'classic-entry installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY'
+check 'classic-entry installer expects 48 routes' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'expected = 48'
+check 'classic-entry installer is return-302 only' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'return-302 only'
+check 'classic-entry probe exists' test -x "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh"
+check 'classic-entry probe keeps PHP index.php reference' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" '/index.php'
+check 'classic-entry evidence exists' test -f "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json"
+check 'classic-entry evidence routeCount is 48' contains "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json" '"routeCount": 48'
+check 'classic-entry evidence keeps cutover false' contains "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json" '"cutoverAllowed": false'
+check 'classic-entry evidence keeps PHP reference' contains "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json" '"phpReferenceKept": true'
+check 'deploy packs classic-entry installer' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_install_classic_entry_aspnet_primary.sh'
+check 'deploy packs classic-entry probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_classic_entry_aspnet_primary.sh'
+check 'php reference mode uses index.php for marketing' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/PhpReferenceModeReporter.cs" '/index.php'
 check 'parity sample template exists' test -f "$ROOT/docs/migration/parity/templates/exact-route-parity-sample.template.json"
 check 'EF catalog scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ICatalogScaffoldRepository.cs"
 check 'zero PHP path-to-100 documents remaining batches' contains "$ROOT/docs/migration/inventory/ZERO_PHP_PROGRESS_STATUS.md" 'Path to 100%'
