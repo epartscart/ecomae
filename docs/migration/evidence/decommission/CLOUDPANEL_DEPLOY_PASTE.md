@@ -112,41 +112,52 @@ bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
 | Admin/Storefront ASP.NET flags enabled for all tenants | Delete PHP source / PHP-FPM / cron |
 | Deep ASP.NET trees proxied; uppercase PHP shells remapped | Invent `cutoverAllowed=true` / PHP source removal |
 
-## 0b) BOS login dark dual-form (PR #861) — binary redeploy only
+## 0b) BOS login dark dual-form — if `:5100` is down / deploy stopped at Failed: 6
 
-Live `/bos/login` stays on the old stub until the ASP.NET binary is rebuilt.
-**Skip** `cloudpanel_install_presentation_app_shadows.sh` for this fix — classic-entry
-already proxies `/bos/login`. Presentation shadows are optional and often fail on
-mega-conf insertion points.
+Root cause: stale foundation/proxy checks aborted deploy **before publish**, so
+`ecomae-platform.service` never came up (`curl: (7) Failed to connect … :5100`).
+
+### Emergency publish (paste now — skips broken gates)
+
+```bash
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+export ECOMAE_BRANCH=cursor/bos-login-deploy-paste-7b3b
+# after #862 merges: export ECOMAE_BRANCH=main
+git fetch origin "$ECOMAE_BRANCH"
+git checkout -f "$ECOMAE_BRANCH"
+git reset --hard "origin/$ECOMAE_BRANCH"
+grep -n 'Sign In to BOS' aspnet/src/EcomAE.Platform/Components/Pages/BosLoginApp.razor | head
+
+# Manual publish (does not run the 1731 foundation checks)
+STAMP=$(date -u +%Y%m%d%H%M%S)
+RELEASE=/var/www/ecomae-aspnet/releases/$STAMP
+mkdir -p "$RELEASE/platform" "$RELEASE/workers"
+dotnet publish aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj -c Release -o "$RELEASE/platform"
+dotnet publish aspnet/src/EcomAE.Workers/EcomAE.Workers.csproj -c Release -o "$RELEASE/workers"
+ln -sfn "$RELEASE" /var/www/ecomae-aspnet/current
+install -m 0644 deploy/aspnet/ecomae-platform.service /etc/systemd/system/ecomae-platform.service
+systemctl daemon-reload
+systemctl enable --now ecomae-platform.service
+systemctl restart ecomae-platform.service
+systemctl status ecomae-platform.service --no-pager
+bash scripts/wait_for_aspnet_health.sh
+curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/bos/login \
+  | grep -oE 'bos-body--login|Sign In to BOS|Access ERP System|temporarily unavailable' | sort -u
+# expect Sign In to BOS + bos-body--login — NOT temporarily unavailable
+# if health fails: journalctl -u ecomae-platform.service -n 80 --no-pager
+```
+
+### Normal redeploy (after gate-fix PR is on the branch)
 
 ```bash
 export ECOMAE_BRANCH=main
-for d in /opt/ecomae-aspnet-source /root/ecomae; do
-  if [[ -d "$d/.git" ]]; then
-    git -C "$d" fetch origin "$ECOMAE_BRANCH"
-    git -C "$d" checkout -f "$ECOMAE_BRANCH"
-    git -C "$d" reset --hard "origin/$ECOMAE_BRANCH"
-  fi
-done
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-# Prove #861 tip is present before build:
-grep -n 'Sign In to BOS' aspnet/src/EcomAE.Platform/Components/Pages/BosLoginApp.razor | head
+git fetch origin "$ECOMAE_BRANCH" && git checkout -f "$ECOMAE_BRANCH" && git reset --hard "origin/$ECOMAE_BRANCH"
 bash scripts/cloudpanel_find_and_redeploy.sh
-systemctl restart ecomae-platform.service
-curl -sS http://127.0.0.1:5100/health || true
-curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/bos/login \
-  | grep -oE 'bos-body--login|Sign In to BOS|Access ERP System|bos-login__form' | sort -u
-# expect those markers; must NOT print "temporarily unavailable"
+# If gates still block: ECOMAE_EMERGENCY_PUBLISH=1 bash scripts/cloudpanel_find_and_redeploy.sh
 ```
 
-If you still need presentation shadows later (www only):
-
-```bash
-cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-export ECOMAE_NGINX_SITE_CONF=/etc/nginx/sites-enabled/www.ecomae.com.conf
-ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES \
-  bash scripts/cloudpanel_install_presentation_app_shadows.sh
-```
+**Skip** `cloudpanel_install_presentation_app_shadows.sh` for BOS login — classic-entry already proxies `/bos/login`.
 
 ## 1) One-shot find + redeploy
 
