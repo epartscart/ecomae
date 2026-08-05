@@ -1499,9 +1499,12 @@ check 'classic-entry has php-reference/cp' contains "$ROOT/deploy/aspnet/nginx-c
 check 'classic-entry installer exists' test -x "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh"
 check 'classic-entry installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY'
 check 'classic-entry installer expects 18 routes' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'expected = 18'
-check 'classic-entry installer forbids return 302' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'no return 302'
+check 'classic-entry installer forbids return 302 on shared entries' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'tenant-shared URLs must stay unchanged'
+check 'classic-entry installer reloads per host' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'Reload after EACH successful host'
 check 'classic-entry installer supports --all-hosts' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" '--all-hosts'
 check 'classic-entry installer requires live tenant confirm' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW'
+check 'classic-entry installer discovers epartscart conf' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'epartscart.com.conf'
+check 'classic-entry php-reference may 302' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'return 302 /index.php'
 check 'classic-entry probe exists' test -x "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh"
 check 'classic-entry probe asserts same-URL' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" 'tenant-shared URL must stay unchanged'
 check 'classic-entry probe checks epartscart' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" 'epartscart.com'

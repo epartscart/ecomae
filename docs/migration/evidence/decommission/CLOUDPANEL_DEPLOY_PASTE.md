@@ -13,7 +13,10 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/s
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
 git fetch origin main && git checkout -f main && git reset --hard origin/main
 
-# www.ecomae.com + www.epartscart.com (URL-preserved proxies)
+# www.ecomae.com + epartscart (URL-preserved proxies). Reloads nginx per host.
+# If epartscart conf name differs, set:
+#   export ECOMAE_NGINX_SITE_CONF_TENANT=/etc/nginx/sites-enabled/<actual>.conf
+#   ls /etc/nginx/sites-enabled | rg -i epart
 ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts

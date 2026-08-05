@@ -7,14 +7,7 @@
 #   ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 #     bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh
 #
-# www.epartscart.com (named tenant — requires live-tenant confirm):
-#   ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
-#   ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
-#   ECOMAE_CLASSIC_ENTRY_HOST=tenant \
-#   ECOMAE_NGINX_SITE_CONF=/etc/nginx/sites-enabled/www.epartscart.com.conf \
-#     bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh
-#
-# Both hosts:
+# Both hosts (www + epartscart):
 #   ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 #   ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
 #     bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
@@ -36,22 +29,33 @@ if [[ "${ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY:-}" != "YES" ]]; th
   exit 2
 fi
 
+resolve_site_conf() {
+  # Usage: resolve_site_conf <name-fragment> [preferred] [candidate...]
+  local frag="$1"
+  shift || true
+  local candidate
+  for candidate in "$@"; do
+    if [[ -n "$candidate" && -f "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  if [[ -n "$frag" && -d /etc/nginx/sites-enabled ]]; then
+    local found
+    found="$(ls -1 /etc/nginx/sites-enabled 2>/dev/null | rg -i "${frag}" | head -n 1 || true)"
+    if [[ -n "$found" && -f "/etc/nginx/sites-enabled/${found}" ]]; then
+      printf '%s\n' "/etc/nginx/sites-enabled/${found}"
+      return 0
+    fi
+  fi
+  return 1
+}
+
 install_one() {
   local conf="$1"
   local example="$2"
   local label="$3"
 
-  if [[ ! -f "$conf" ]]; then
-    # try common CloudPanel alternate names
-    local alt
-    for alt in \
-      "${conf}" \
-      "${conf/.conf/}" \
-      "/etc/nginx/sites-enabled/$(basename "$conf")" \
-      "/etc/nginx/sites-enabled/$(basename "$conf" .conf)" ; do
-      if [[ -f "$alt" ]]; then conf="$alt"; break; fi
-    done
-  fi
   if [[ ! -f "$conf" ]]; then
     printf 'ERROR: missing nginx site conf %s (%s)\n' "$conf" "$label" >&2
     return 1
@@ -81,13 +85,19 @@ for m in re.finditer(r"(?m)^(location = (/[^\s{]*)\s*\{.*?\n\})", example, flags
     if route in {"/api", "/storefront"}:
         raise SystemExit(f"ERROR: refusing broad path {route}")
     is_proxy = bool(re.search(r"(?m)^\s*proxy_pass\s+http://127\.0\.0\.1:5100/", block_raw))
-    is_php_ref = route.startswith("/php-reference/") and "rewrite ^" in block_raw
+    is_php_ref = route.startswith("/php-reference/") and (
+        "rewrite ^" in block_raw or "return 302" in block_raw or "alias " in block_raw
+    )
     if not is_proxy and not is_php_ref:
-        raise SystemExit(f"ERROR: block must proxy_pass ASP.NET or php-reference rewrite ({route})")
-    if "return 302" in block_raw:
-        raise SystemExit(
-            f"ERROR: tenant-shared URLs must stay unchanged — no return 302 in {route}"
-        )
+        raise SystemExit(f"ERROR: block must proxy_pass ASP.NET or php-reference ({route})")
+    # Product-chrome entries must never 302 away from tenant-shared URLs.
+    if route in {"/", "/cp", "/cp/", "/CP", "/CP/", "/erp", "/erp/", "/ERP", "/ERP/", "/bos", "/bos/", "/BOS", "/BOS/"}:
+        if "return 302" in block_raw:
+            raise SystemExit(
+                f"ERROR: tenant-shared URLs must stay unchanged — no return 302 in {route}"
+            )
+        if not is_proxy:
+            raise SystemExit(f"ERROR: shared entry {route} must proxy_pass ASP.NET")
     indented = "\n".join(("  " + line if line.strip() else line) for line in block_raw.splitlines())
     blocks.append((route, indented.rstrip() + "\n"))
 
@@ -118,49 +128,91 @@ for r in inserted:
     print("  +", r)
 PY
 
-  printf 'OK installed classic-entry on %s\n' "$conf"
+  # Reload after EACH successful host so a later host failure cannot leave www dirty/unreloaded.
+  nginx -t
+  systemctl reload nginx
+  printf 'OK installed + reloaded classic-entry on %s\n' "$conf"
 }
-
-WWW_CONF="${ECOMAE_NGINX_SITE_CONF_WWW:-/etc/nginx/sites-enabled/www.ecomae.com.conf}"
-TENANT_CONF="${ECOMAE_NGINX_SITE_CONF_TENANT:-/etc/nginx/sites-enabled/www.epartscart.com.conf}"
-# fallbacks for CloudPanel naming
-if [[ ! -f "$TENANT_CONF" && -f /etc/nginx/sites-enabled/epartscart.com.conf ]]; then
-  TENANT_CONF=/etc/nginx/sites-enabled/epartscart.com.conf
-fi
 
 WWW_EXAMPLE="$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf"
 TENANT_EXAMPLE="$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf"
 
+WWW_CONF="$(resolve_site_conf ecomae \
+  "${ECOMAE_NGINX_SITE_CONF_WWW:-}" \
+  /etc/nginx/sites-enabled/www.ecomae.com.conf \
+  /etc/nginx/sites-enabled/ecomae.com.conf \
+  /etc/nginx/sites-available/www.ecomae.com.conf \
+  || true)"
+
+TENANT_CONF="$(resolve_site_conf epartscart \
+  "${ECOMAE_NGINX_SITE_CONF_TENANT:-}" \
+  /etc/nginx/sites-enabled/www.epartscart.com.conf \
+  /etc/nginx/sites-enabled/epartscart.com.conf \
+  /etc/nginx/sites-enabled/eparts-cart.com.conf \
+  /etc/nginx/sites-available/www.epartscart.com.conf \
+  /etc/nginx/sites-available/epartscart.com.conf \
+  || true)"
+
+WWW_OK=0
+TENANT_OK=0
 FAIL=0
+
 if [[ "$DO_ALL" -eq 1 ]]; then
   if [[ "${ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW:-}" != "YES" ]]; then
     printf 'Refusing --all-hosts without ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES\n' >&2
     exit 2
   fi
-  install_one "$WWW_CONF" "$WWW_EXAMPLE" "www.ecomae.com" || FAIL=1
-  install_one "$TENANT_CONF" "$TENANT_EXAMPLE" "epartscart.com" || FAIL=1
+  if [[ -z "${WWW_CONF:-}" ]]; then
+    printf 'ERROR: could not find www.ecomae.com nginx site conf under /etc/nginx/sites-enabled\n' >&2
+    FAIL=1
+  else
+    printf 'Using www conf: %s\n' "$WWW_CONF"
+    if install_one "$WWW_CONF" "$WWW_EXAMPLE" "www.ecomae.com"; then WWW_OK=1; else FAIL=1; fi
+  fi
+  if [[ -z "${TENANT_CONF:-}" ]]; then
+    printf 'ERROR: could not find epartscart nginx site conf.\n' >&2
+    printf 'Set ECOMAE_NGINX_SITE_CONF_TENANT=/etc/nginx/sites-enabled/<actual>.conf\n' >&2
+    printf 'Available sites-enabled:\n' >&2
+    ls -1 /etc/nginx/sites-enabled 2>/dev/null >&2 || true
+    FAIL=1
+  else
+    printf 'Using tenant conf: %s\n' "$TENANT_CONF"
+    if install_one "$TENANT_CONF" "$TENANT_EXAMPLE" "epartscart.com"; then TENANT_OK=1; else FAIL=1; fi
+  fi
 elif [[ "$HOST_MODE" == "tenant" ]]; then
   if [[ "${ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW:-}" != "YES" ]]; then
     printf 'Refusing tenant host without ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES\n' >&2
     exit 2
   fi
-  CONF="${ECOMAE_NGINX_SITE_CONF:-$TENANT_CONF}"
-  install_one "$CONF" "$TENANT_EXAMPLE" "epartscart.com" || FAIL=1
+  CONF="${ECOMAE_NGINX_SITE_CONF:-${TENANT_CONF:-}}"
+  if [[ -z "$CONF" ]]; then
+    printf 'ERROR: missing epartscart site conf; set ECOMAE_NGINX_SITE_CONF\n' >&2
+    ls -1 /etc/nginx/sites-enabled 2>/dev/null || true
+    exit 1
+  fi
+  install_one "$CONF" "$TENANT_EXAMPLE" "epartscart.com"
+  TENANT_OK=1
 else
-  CONF="${ECOMAE_NGINX_SITE_CONF:-$WWW_CONF}"
-  install_one "$CONF" "$WWW_EXAMPLE" "www.ecomae.com" || FAIL=1
+  CONF="${ECOMAE_NGINX_SITE_CONF:-${WWW_CONF:-}}"
+  if [[ -z "$CONF" ]]; then
+    printf 'ERROR: missing www.ecomae.com site conf; set ECOMAE_NGINX_SITE_CONF\n' >&2
+    ls -1 /etc/nginx/sites-enabled 2>/dev/null || true
+    exit 1
+  fi
+  install_one "$CONF" "$WWW_EXAMPLE" "www.ecomae.com"
+  WWW_OK=1
 fi
 
+printf '\nTenant-shared URLs → ASP.NET (URL unchanged):\n'
+printf '  https://www.ecomae.com/cp  /erp  /bos  /     (www_ok=%s)\n' "$WWW_OK"
+printf '  https://www.epartscart.com/cp  /erp  /bos  / (tenant_ok=%s)\n' "$TENANT_OK"
+printf '\nPHP reference (separate links):\n'
+printf '  /php-reference/home  /php-reference/cp  /php-reference/erp  /php-reference/bos  /php-reference/storefront\n'
+
 if [[ "$FAIL" -ne 0 ]]; then
+  printf '\nFAIL: one or more hosts did not install; nginx was reloaded for any host that succeeded.\n' >&2
   exit 1
 fi
 
-nginx -t
-systemctl reload nginx
-
-printf '\nReloaded nginx. Tenant-shared URLs now ASP.NET (URL unchanged):\n'
-printf '  https://www.ecomae.com/cp  /erp  /bos  /\n'
-printf '  https://www.epartscart.com/cp  /erp  /bos  /   (if --all-hosts or tenant mode)\n'
-printf '\nPHP reference (separate links):\n'
-printf '  /php-reference/home  /php-reference/cp  /php-reference/erp  /php-reference/bos  /php-reference/storefront\n'
-printf 'Deep PHP module paths under /cp/... /erp/... still hit PHP (exact entry only cut over).\n'
+printf '\nPASS: classic-entry installed on requested host(s)\n'
+exit 0
