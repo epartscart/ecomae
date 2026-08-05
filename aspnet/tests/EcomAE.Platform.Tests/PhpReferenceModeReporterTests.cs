@@ -42,9 +42,10 @@ public sealed class PhpReferenceModeReporterTests
         Assert.False(report.StorefrontAspNetEnabled);
         Assert.False(report.AdminAspNetEnabled);
         Assert.Equal("https://www.ecomae.com", report.WwwPhpBaseUrl);
-        Assert.Contains(report.ComparePairs, p => p.Area == "marketing" && p.PhpUrl.EndsWith("/index.php", StringComparison.Ordinal));
-        Assert.Contains(report.ComparePairs, p => p.Area == "cp" && p.PhpUrl.Contains("/cp/shop/orders/orders", StringComparison.Ordinal));
-        Assert.Contains(report.ComparePairs, p => p.AspNetUrl.Contains("/erp/app", StringComparison.Ordinal));
+        Assert.Contains(report.ComparePairs, p => p.Area == "marketing" && p.PhpUrl.Contains("/php-reference/home", StringComparison.Ordinal));
+        Assert.Contains(report.ComparePairs, p => p.Area == "cp" && p.PhpUrl.Contains("/php-reference/cp", StringComparison.Ordinal));
+        Assert.Contains(report.ComparePairs, p => p.Area == "cp" && p.AspNetUrl.EndsWith("/cp", StringComparison.Ordinal));
+        Assert.Contains(report.ComparePairs, p => p.Area == "erp" && p.AspNetUrl.EndsWith("/erp", StringComparison.Ordinal));
         Assert.Contains(report.HardLocks, lockLine => lockLine.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal)
             && lockLine.Contains("KeepPhpProjectAvailable", StringComparison.Ordinal));
         Assert.Contains(report.OperatorSteps, step => step.Contains("--keep-php-fallback", StringComparison.Ordinal));

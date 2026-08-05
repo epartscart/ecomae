@@ -18,10 +18,10 @@ This is **not** PHP source deletion and does **not** invent cutover approval / l
 
 ## What “reference” means
 
-1. Live www **classic entries** (`/`, `/cp/`, `/erp/`, `/bos/`, top-level marketing) redirect to ASP.NET apps via exact-route pack (`cloudpanel_install_classic_entry_aspnet_primary.sh`).
-2. PHP docroot/project remains installed — reference via `/index.php` + deep `/cp|/erp|/bos` module paths (and/or staging clone).
-3. Operators open PHP reference URLs next to ASP.NET URLs on `/migration/compare`.
-4. Dual-sample scripts can still hit PHP reference URLs / `EcomAE:PhpReference:WwwPhpBaseUrl`.
+1. Tenant-shared URLs stay unchanged: `/cp` `/erp` `/bos` `/` on **ecomae.com** and **epartscart.com** proxy to ASP.NET (exact-route; no redirect to `/cp/app`).
+2. PHP reference is **separate**: `/php-reference/home|cp|erp|bos|storefront` (deep module paths also remain PHP).
+3. Operators compare at `/migration/compare` (PHP reference column vs shared ASP.NET URLs).
+4. Dual-sample scripts hit `/php-reference/*` while shared entries stay on ASP.NET.
 5. PHP writes should be disabled or isolated after ASP.NET is primary (prefer read-only reference) so results do not diverge from conflicting writes.
 
 ## Config

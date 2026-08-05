@@ -183,6 +183,7 @@ install -m 0755 \
   "$ROOT/scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh" \
   "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" \
   "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" \
+  "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" \
   "$ROOT/scripts/compare_catalog_api_contract_floor.py" \
   "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" \
   "$ROOT/scripts/cloudpanel_capture_module_function_parity.sh" \

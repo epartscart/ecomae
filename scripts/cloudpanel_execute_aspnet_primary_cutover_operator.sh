@@ -149,11 +149,12 @@ else
   echo "== 7/9 presentation install skipped (ECOMAE_CUTOVER_SKIP_PRESENTATION=1) =="
 fi
 
-step "8/9 classic PHP entries → ASP.NET primary redirects (48 exact)" \
+step "8/9 classic tenant-shared entries → ASP.NET (URL preserved; www + epartscart)" \
   env ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
-  bash "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh"
+      ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
+  bash "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" --all-hosts
 
-step "9/9 probe classic-entry ASP.NET primary + PHP reference keep" \
+step "9/9 probe same-URL ASP.NET /cp /erp /bos + /php-reference/*" \
   bash "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh"
 
 echo ""

@@ -1,27 +1,51 @@
 {
   "role": "classic-entry-aspnet-primary",
-  "generatedAtUnix": 1785902100,
+  "generatedAtUnix": 1785905600,
   "ok": true,
-  "routeCount": 48,
+  "routeCount": 18,
+  "tenantRouteCount": 18,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "phpAuthoritative": false,
   "aspNetPrimaryEntries": true,
+  "urlPreserved": true,
   "phpReferenceKept": true,
-  "phpReferenceUrls": [
-    "https://www.ecomae.com/index.php",
-    "https://www.ecomae.com/cp/shop/orders/orders",
-    "https://www.ecomae.com/migration/compare"
-  ],
-  "entries": {
-    "home": { "from": ["/"], "to": "/marketing/app" },
-    "cp": { "from": ["/CP", "/CP/", "/cp", "/cp/"], "to": "/cp/app" },
-    "erp": { "from": ["/ERP", "/ERP/", "/erp", "/erp/"], "to": "/erp/app" },
-    "bos": { "from": ["/BOS", "/BOS/", "/bos", "/bos/"], "to": "/bos/app" },
-    "marketingTopLevel": 35
+  "hosts": {
+    "www.ecomae.com": {
+      "homeBackend": "/marketing/app",
+      "sharedEntries": ["/cp", "/erp", "/bos", "/"]
+    },
+    "www.epartscart.com": {
+      "homeBackend": "/storefront/app",
+      "sharedEntries": ["/cp", "/erp", "/bos", "/"],
+      "requiresConfirm": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES"
+    }
   },
-  "note": "Human-confirmed exact-route entry redirects to ASP.NET apps. Broad /cp|/erp|/bos|/storefront trees remain forbidden. Deep PHP module paths + /index.php stay as reference. cutoverAllowed=false (exact-route only).",
+  "phpReferenceUrls": [
+    "https://www.ecomae.com/php-reference/home",
+    "https://www.ecomae.com/php-reference/cp",
+    "https://www.ecomae.com/php-reference/erp",
+    "https://www.ecomae.com/php-reference/bos",
+    "https://www.ecomae.com/php-reference/storefront",
+    "https://www.epartscart.com/php-reference/home",
+    "https://www.epartscart.com/php-reference/cp",
+    "https://www.epartscart.com/php-reference/erp",
+    "https://www.epartscart.com/php-reference/bos",
+    "https://www.epartscart.com/php-reference/storefront"
+  ],
+  "aspNetSharedUrls": [
+    "https://www.ecomae.com/cp",
+    "https://www.ecomae.com/erp",
+    "https://www.ecomae.com/bos",
+    "https://www.ecomae.com/",
+    "https://www.epartscart.com/cp",
+    "https://www.epartscart.com/erp",
+    "https://www.epartscart.com/bos",
+    "https://www.epartscart.com/"
+  ],
+  "note": "Tenant-shared URLs stay unchanged (proxy to ASP.NET apps). No return 302 to /cp/app. PHP reference is separate under /php-reference/*. Broad trees forbidden. cutoverAllowed=false.",
   "installer": "scripts/cloudpanel_install_classic_entry_aspnet_primary.sh",
   "confirmEnv": "ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES",
-  "exampleConf": "deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf"
+  "tenantConfirmEnv": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES",
+  "allHostsFlag": "--all-hosts"
 }
