@@ -15,7 +15,7 @@ say() { printf '%s\n' "$*"; }
 is_aspnet_body() {
   local body="$1"
   # Prefer hard ASP.NET/Blazor markers. Hybrid chrome may still mention bootstrap_admin CSS.
-  if grep -Eiq 'blazor\.web\.js|ecomae-php-chrome-surface|_blazor|blazor\.server\.js|<!--Blazor|dotnet\.js' <<<"$body"; then
+  if grep -Eiq 'blazor\.web\.js|ecomae-php-chrome-surface|php-chrome-surface|_blazor|blazor\.server\.js|<!--Blazor|dotnet\.js|blazor-focus-on-navigate' <<<"$body"; then
     return 0
   fi
   # Marketing/storefront scaffolds sometimes omit blazor.web.js string but include layout marker.
