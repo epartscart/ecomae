@@ -5,10 +5,15 @@
 *@
 <meta name="epc-body-class" content="@BodyClass" />
 <div class="epc-body-class-bridge" data-epc-body-class="@BodyClass" hidden aria-hidden="true"></div>
+@* Inline + head script so PHP-matching body classes apply before first paint when possible. *@
+<style>/* epc-body-class:@BodyClass */</style>
 <script>
 (function () {
   var cls = '@BodyClass';
-  if (cls) document.body.className = cls;
+  if (cls) {
+    document.body.className = cls;
+    document.documentElement.setAttribute('data-epc-body-class', cls);
+  }
 })();
 </script>
 

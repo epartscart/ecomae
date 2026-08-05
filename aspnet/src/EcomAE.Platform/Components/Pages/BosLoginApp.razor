@@ -2,37 +2,43 @@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject NavigationManager Nav
 
 <PageTitle>BOS — Business Operating System</PageTitle>
-<PhpSurfaceHead Surface="bos" IncludeBosLoginScripts="true" />
+@* Do not load epc_bos_shell.js — it hijacks #bosLoginForm to PHP /bos/?action=login. *@
+<PhpSurfaceHead Surface="bos" />
 <PhpChromeBodyClass Surface="bos" LoginChrome="true" />
 
 @*
-  PHP-class graphical presentation from bos/index.php login screen:
-  grid-lines, #bosParticles, glow orbs, brand rings, capability cards, animated stats.
-  Shell CSS/JS: epc_bos_shell.css + epc_bos_shell.js (via PhpSurfaceHead).
+  PHP same-to-same login from bos/index.php:
+  dark bos-body--login theme, capability cards, stats, dual role forms
+  (Platform Operator / ERP Customer). Posts to ASP.NET /auth/login/admin.
+  Do NOT load epc_bos_shell.js here — it hijacks #bosLoginForm to PHP /bos/?action=login.
 *@
 <style>
-    /* Keep login-form controls readable inside PHP bos-login panel */
-    .bos-login .epc-login-field { margin:0 0 .75rem; }
-    .bos-login .epc-login-field label { display:block; font-size:.75rem; font-weight:700; letter-spacing:.04em; color:#94a3b8; margin-bottom:.25rem; }
-    .bos-login .epc-login-field input, .bos-login .epc-login-field select {
-        width:100%; padding:.65rem .75rem; border:1px solid #334155; border-radius:.5rem; background:#111827; color:#f8fafc;
+    /* Harden dark theme even if body-class script is delayed/overridden */
+    html:has(.bos-login),
+    body:has(.bos-login),
+    body.bos-body--login {
+        background: linear-gradient(135deg, #020617 0%, #0c1222 30%, #091428 60%, #050d1a 100%) !important;
+        color: #e2e8f0 !important;
+        min-height: 100vh;
+        overflow-x: hidden;
     }
-    .bos-login .epc-login-submit { width:100%; margin-top:.4rem; padding:.8rem 1rem; border:0; border-radius:.5rem; background:#0ea5e9; color:#fff; font-weight:700; cursor:pointer; }
-    .bos-login .epc-login-error { background:#450a0a; color:#fecaca; border:1px solid #7f1d1d; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
-    .bos-login .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
-    .bos-login .epc-login-php { color:#93c5fd; font-weight:700; }
-    .bos-login .bos-login__secure a.epc-login-php { color:#93c5fd; font-weight:700; }
-    .bos-login__industries { margin-top:1.5rem; }
-    .bos-login__industries-title { margin:0 0 .35rem; font-size:1rem; color:#e2e8f0; }
-    .bos-login__industries-lead { margin:0 0 .85rem; color:#94a3b8; font-size:.82rem; line-height:1.45; max-width:36rem; }
-    .bos-login__platform-deck { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; margin-top:1rem; }
-    .bos-login__deck-item { display:flex; gap:.65rem; align-items:flex-start; background:rgba(15,23,42,.55); border:1px solid rgba(148,163,184,.2); border-radius:.55rem; padding:.65rem .75rem; }
-    .bos-login__deck-item i { color:#38bdf8; margin-top:.15rem; }
-    .bos-login__deck-item strong { display:block; font-size:.82rem; color:#f8fafc; }
-    .bos-login__deck-item span { display:block; color:#94a3b8; font-size:.76rem; line-height:1.35; }
+    .epc-asp-login-bos.bos-login {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        position: relative;
+        background: transparent;
+        color: #e2e8f0;
+    }
+    .bos-login__error.is-visible {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
 </style>
 
 <div class="epc-asp-login-bos bos-login">
@@ -110,68 +116,118 @@
                     <span class="bos-login__stat-label">Countries</span>
                 </div>
             </div>
-
-            <div class="bos-login__industries">
-                <h3 class="bos-login__industries-title"><i class="fa fa-industry"></i> Industry coverage</h3>
-                <p class="bos-login__industries-lead">Multi-tenant commerce and ERP packs across verticals — same BOS fleet operators manage from one console.</p>
-                <div class="bos-industry-grid">
-                    @foreach (var ind in LoginIndustries)
-                    {
-                        <div class="bos-industry-card bos-industry-card--active" style="--industry-color:@ind.Color">
-                            <i class="fa @ind.Icon" style="color:@ind.Color"></i>
-                            <span class="bos-industry-card__name">@ind.Name</span>
-                            <span class="bos-industry-card__count">@ind.PackHint</span>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <div class="bos-login__platform-deck">
-                @foreach (var deck in PlatformDeck)
-                {
-                    <div class="bos-login__deck-item">
-                        <i class="fa @deck.Icon"></i>
-                        <div>
-                            <strong>@deck.Title</strong>
-                            <span>@deck.Body</span>
-                        </div>
-                    </div>
-                }
-            </div>
         </div>
     </div>
 
     <div class="bos-login__panel">
         <div class="bos-login__panel-inner">
             <div class="bos-login__role-tabs">
-                <button type="button" class="bos-login__role-tab bos-login__role-tab--active" data-role="provider">
+                <button type="button" class="bos-login__role-tab bos-login__role-tab--active" data-role="provider" id="bosTabProvider">
                     <i class="fa fa-shield"></i>
                     <span>Platform Operator</span>
                 </button>
-                <button type="button" class="bos-login__role-tab" data-role="erp">
-                    <i class="fa fa-building"></i>
+                <button type="button" class="bos-login__role-tab" data-role="erp" id="bosTabErp">
+                    <i class="fa fa-university"></i>
                     <span>ERP Customer</span>
                 </button>
             </div>
-            <h2 class="bos-login__panel-title">Operator Access</h2>
-            <p class="bos-login__panel-sub">Manage your entire tenant fleet from one dashboard.</p>
-            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Bos" SurfaceLabel="BOS" PhpLoginHref="/php-reference/bos" ErrorMessage="@_error" SubmitLabel="Sign In" Accent="blue" />
-            <div class="bos-login__secure-badge">
-                <i class="fa fa-lock"></i>
-                256-bit encrypted · Session isolated · Audit logged
+
+            <div class="bos-login__form-wrap bos-login__form-wrap--active" id="bosFormProvider">
+                <div class="bos-login__form-header">
+                    <h2>Operator Access</h2>
+                    <p>Manage your entire tenant fleet from one dashboard</p>
+                </div>
+                <form class="bos-login__form" id="bosLoginForm" method="post" action="@EcomAeRoutes.LegacyAdminLogin">
+                    <input type="hidden" name="surface" value="bos" />
+                    <input type="hidden" name="redirect" value="/bos" />
+                    <input type="hidden" name="contact_type" value="email" />
+                    <div class="bos-login__field">
+                        <label for="bosEmail"><i class="fa fa-envelope-o"></i> Email</label>
+                        <input type="email" id="bosEmail" name="contact" required autocomplete="username" placeholder="operator@ecomae.com" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    <div class="bos-login__field">
+                        <label for="bosPassword"><i class="fa fa-lock"></i> Password</label>
+                        <input type="password" id="bosPassword" name="password" required autocomplete="current-password" placeholder="Enter secure password" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_error) && _errorSurface != "erp")
+                    {
+                        <div class="bos-login__error is-visible" id="bosLoginError">
+                            <i class="fa fa-exclamation-circle"></i> @_error
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="bos-login__error" id="bosLoginError"></div>
+                    }
+                    <button type="submit" class="bos-login__btn">
+                        <span class="bos-login__btn-text"><i class="fa fa-sign-in"></i> Sign In to BOS</span>
+                        <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Authenticating...</span>
+                    </button>
+                </form>
+                <div class="bos-login__secure-badge">
+                    <i class="fa fa-lock"></i> 256-bit encrypted &middot; Session isolated &middot; Audit logged
+                </div>
             </div>
-            <p class="bos-login__secure">
-                <i class="fa fa-lock"></i>
-                Secure operator access to your tenant fleet.
-            </p>
+
+            <div class="bos-login__form-wrap" id="bosFormErp">
+                <div class="bos-login__form-header">
+                    <h2>ERP Access</h2>
+                    <p>Access your enterprise resource planning system</p>
+                </div>
+                <form class="bos-login__form" id="bosLoginFormErp" method="post" action="@EcomAeRoutes.LegacyAdminLogin">
+                    <input type="hidden" name="surface" value="erp" />
+                    <input type="hidden" name="redirect" value="/erp" />
+                    <input type="hidden" name="contact_type" value="email" />
+                    <div class="bos-login__field">
+                        <label for="bosErpEmail"><i class="fa fa-envelope-o"></i> Business Email</label>
+                        <input type="email" id="bosErpEmail" name="contact" required autocomplete="username" placeholder="finance@yourcompany.com" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    <div class="bos-login__field">
+                        <label for="bosErpPassword"><i class="fa fa-lock"></i> Password</label>
+                        <input type="password" id="bosErpPassword" name="password" required autocomplete="current-password" placeholder="Enter your password" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_error) && _errorSurface == "erp")
+                    {
+                        <div class="bos-login__error is-visible" id="bosLoginErrorErp">
+                            <i class="fa fa-exclamation-circle"></i> @_error
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="bos-login__error" id="bosLoginErrorErp"></div>
+                    }
+                    <button type="submit" class="bos-login__btn bos-login__btn--erp">
+                        <span class="bos-login__btn-text"><i class="fa fa-university"></i> Access ERP System</span>
+                        <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Connecting...</span>
+                    </button>
+                </form>
+                <div class="bos-login__erp-features">
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> General Ledger &amp; Financial Reporting</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Accounts Payable &amp; Receivable</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> HR, Payroll &amp; Workforce Management</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Inventory, Production &amp; Warehouse</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Tax Compliance &amp; E-Invoicing</div>
+                </div>
+                <div class="bos-login__secure-badge">
+                    <i class="fa fa-shield"></i> Database isolated &middot; Country-compliant &middot; Enterprise grade
+                </div>
+            </div>
+
+            <div class="bos-login__footer">
+                <div class="bos-login__footer-brand">
+                    <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <span>Business Operating System v1.5.0</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-@*
-  PHP epc_bos_shell.js only starts particles/counters when #bosLoginForm exists.
-  Keep  bridge form IDs different; run visual-only init here (no PHP login hijack).
-*@
 <script>
 (function () {
   function reduceMotion() {
@@ -229,16 +285,35 @@
     }, 400);
   }
   function wireRoleTabs() {
-    var tabs = document.querySelectorAll('.bos-login__role-tab');
-    if (!tabs.length) return;
-    tabs.forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        tabs.forEach(function (t) { t.classList.remove('bos-login__role-tab--active'); });
-        tab.classList.add('bos-login__role-tab--active');
-      });
+    var tabProvider = document.getElementById('bosTabProvider');
+    var tabErp = document.getElementById('bosTabErp');
+    var formProvider = document.getElementById('bosFormProvider');
+    var formErp = document.getElementById('bosFormErp');
+    if (!tabProvider || !tabErp || !formProvider || !formErp) return;
+    tabProvider.addEventListener('click', function () {
+      tabProvider.classList.add('bos-login__role-tab--active');
+      tabErp.classList.remove('bos-login__role-tab--active');
+      formProvider.classList.add('bos-login__form-wrap--active');
+      formErp.classList.remove('bos-login__form-wrap--active');
     });
+    tabErp.addEventListener('click', function () {
+      tabErp.classList.add('bos-login__role-tab--active');
+      tabProvider.classList.remove('bos-login__role-tab--active');
+      formErp.classList.add('bos-login__form-wrap--active');
+      formProvider.classList.remove('bos-login__form-wrap--active');
+    });
+    // Prefer ERP tab when returning from an ERP login error
+    if (document.body && document.body.getAttribute('data-bos-login-role') === 'erp') {
+      tabErp.click();
+    }
+  }
+  function forceBodyClass() {
+    var meta = document.querySelector('meta[name="epc-body-class"]');
+    var cls = meta ? meta.getAttribute('content') : '';
+    if (cls) document.body.className = cls;
   }
   function boot() {
+    forceBodyClass();
     bosCreateParticlesVisual();
     bosAnimateCountersVisual();
     wireRoleTabs();
@@ -250,33 +325,21 @@
 
 @code {
     private string? _error;
-    protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
+    private string? _errorSurface;
 
-    private static readonly LoginIndustry[] LoginIndustries =
-    [
-        new("fa-car", "Auto spare parts", "#dc2626", "Commerce + ERP"),
-        new("fa-microchip", "Electronics", "#e10a0a", "Retail pack"),
-        new("fa-shopping-bag", "Fashion", "#be185d", "Commerce"),
-        new("fa-diamond", "Jewellery", "#b45309", "Luxury retail"),
-        new("fa-medkit", "Medical supplies", "#0284c7", "Commerce + ERP"),
-        new("fa-cutlery", "Food & beverage", "#ea580c", "Hospitality"),
-        new("fa-home", "Furniture", "#92400e", "Home & living"),
-        new("fa-cubes", "Building materials", "#78716c", "Trading"),
-        new("fa-truck", "FMCG wholesale", "#0369a1", "Logistics"),
-        new("fa-briefcase", "Professional services", "#2563eb", "ERP-led"),
-        new("fa-line-chart", "Tax advisory", "#0d9488", "Compliance"),
-    ];
-
-    private static readonly DeckItem[] PlatformDeck =
-    [
-        new("fa-th-large", "Tenant fleet console", "Switch tenants, industries, and module packs without leaving BOS."),
-        new("fa-shield", "Operator RBAC", "Platform operator roles isolated from tenant customer accounts."),
-        new("fa-globe", "Country packs", "Auto-localized tax, currency, and compliance per territory."),
-        new("fa-magic", "AI operations", "Price engine, CRM automation, and advisor surfaces."),
-        new("fa-shopping-cart", "Commerce shells", "Storefront, catalog, and checkout per industry host."),
-        new("fa-university", "ERP finance bridge", "Finance, inventory, and HR tabs mirror control panel ERP."),
-    ];
-
-    private sealed record LoginIndustry(string Icon, string Name, string Color, string PackHint);
-    private sealed record DeckItem(string Icon, string Title, string Body);
+    protected override void OnInitialized()
+    {
+        _error = LoginErrorHelper.FromUri(Nav.Uri);
+        if (Uri.TryCreate(Nav.Uri, UriKind.Absolute, out var parsed))
+        {
+            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(parsed.Query);
+            // ERP form posts surface=erp and redirects errors to /erp/login; BOS page may also
+            // receive ?role=erp when deep-linked. Default operator surface otherwise.
+            if (query.TryGetValue("role", out var role) &&
+                string.Equals(role.ToString(), "erp", StringComparison.OrdinalIgnoreCase))
+            {
+                _errorSurface = "erp";
+            }
+        }
+    }
 }
