@@ -11,10 +11,13 @@
 #   ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 #     bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh
 #
-# Both hosts (www + epartscart):
+# All product hosts (www + every named live tenant):
 #   ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 #   ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
 #     bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
+#
+# Named tenants: epartscart, electronicae, stylenlook, thejewellerytrend, taxofinca
+# PHP product compare stays only under /php-reference/* (not mixed).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -166,12 +169,16 @@ install_one() {
     return 1
   fi
 
-  if [[ "$label" == *epartscart* ]]; then
-    if ! conf_server_name_has_epartscart "$conf"; then
+  # Require the target host (or its apex) to appear in a server_name line.
+  # Never install product tenant pack into bare wildcard-ecomae (*.ecomae.com only).
+  local apex="${target_host#www.}"
+  if ! grep -Ei "^[[:space:]]*server_name[[:space:]].*(${target_host}|${apex})" "$conf" >/dev/null 2>&1; then
+    printf 'ERROR: refusing classic-entry on %s — server_name does not include %s\n' "$conf" "$target_host" >&2
+    if [[ "$apex" == *epartscart* ]]; then
       printf 'ERROR: refusing classic-entry on %s — server_name does not include epartscart.com\n' "$conf" >&2
-      grep -nE 'server_name' "$conf" 2>/dev/null | head -n 20 >&2 || true
-      return 1
     fi
+    grep -nE 'server_name' "$conf" 2>/dev/null | head -n 20 >&2 || true
+    return 1
   fi
 
   # Unique bak per label so www/tenant same-file installs cannot clobber each other.
@@ -229,6 +236,45 @@ WWW_OK=0
 TENANT_OK=0
 FAIL=0
 
+# Prefer www. variant as nginx server_name target for each named product tenant.
+PRODUCT_TENANT_HOSTS=(
+  www.epartscart.com
+  www.electronicae.com
+  www.stylenlook.com
+  www.thejewellerytrend.com
+  www.taxofinca.com
+)
+
+resolve_product_tenant_conf() {
+  # Resolve nginx conf that has server_name for the given www host.
+  local host="$1"
+  local apex="${host#www.}"
+  local frag candidate f
+  frag="$(printf '%s' "$apex" | sed 's/\.com$//')"
+  for candidate in \
+    "/etc/nginx/sites-enabled/${host}.conf" \
+    "/etc/nginx/sites-enabled/${apex}.conf" \
+    "/etc/nginx/sites-enabled/${frag}.conf" \
+    "/etc/nginx/sites-available/${host}.conf" \
+    "/etc/nginx/sites-available/${apex}.conf"
+  do
+    if [[ -f "$candidate" ]] && grep -Ei "^[[:space:]]*server_name[[:space:]].*(${host}|${apex})" "$candidate" >/dev/null 2>&1; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  if [[ -d /etc/nginx/sites-enabled ]]; then
+    for f in /etc/nginx/sites-enabled/*; do
+      [[ -f "$f" ]] || continue
+      if grep -Ei "^[[:space:]]*server_name[[:space:]].*(${host}|${apex})" "$f" >/dev/null 2>&1; then
+        printf '%s\n' "$f"
+        return 0
+      fi
+    done
+  fi
+  return 1
+}
+
 if [[ "$DO_ALL" -eq 1 ]]; then
   if [[ "${ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW:-}" != "YES" ]]; then
     printf 'Refusing --all-hosts without ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES\n' >&2
@@ -241,31 +287,34 @@ if [[ "$DO_ALL" -eq 1 ]]; then
     printf 'Using www conf: %s (server host www.ecomae.com)\n' "$WWW_CONF"
     if install_one "$WWW_CONF" "$WWW_EXAMPLE" "www.ecomae.com" "www.ecomae.com"; then WWW_OK=1; else FAIL=1; fi
   fi
-  if [[ -z "${TENANT_CONF:-}" ]]; then
-    printf 'ERROR: could not find epartscart nginx site conf (by server_name).\n' >&2
-    printf 'Do NOT point ECOMAE_NGINX_SITE_CONF_TENANT at wildcard-ecomae unless server_name includes epartscart.com.\n' >&2
-    printf 'Run discover + ensure, then re-run --all-hosts:\n' >&2
-    printf '  bash scripts/cloudpanel_discover_epartscart_nginx_conf.sh\n' >&2
-    printf '  ECOMAE_CONFIRM_ENSURE_EPARTSCART_VHOST=YES bash scripts/cloudpanel_ensure_epartscart_nginx_vhost.sh\n' >&2
-    printf 'Available sites-enabled:\n' >&2
-    ls -1 /etc/nginx/sites-enabled 2>/dev/null >&2 || true
-    FAIL=1
-  else
-    printf 'Using tenant conf: %s (server host www.epartscart.com)\n' "$TENANT_CONF"
-    if install_one "$TENANT_CONF" "$TENANT_EXAMPLE" "epartscart.com" "www.epartscart.com"; then TENANT_OK=1; else FAIL=1; fi
-  fi
+  # Install tenant pack on EVERY named product tenant (no half-and-half).
+  for thost in "${PRODUCT_TENANT_HOSTS[@]}"; do
+    tconf="$(resolve_product_tenant_conf "$thost" || true)"
+    if [[ -z "${tconf:-}" ]]; then
+      printf 'ERROR: no nginx conf with server_name for %s\n' "$thost" >&2
+      FAIL=1
+      continue
+    fi
+    printf 'Using tenant conf: %s (server host %s)\n' "$tconf" "$thost"
+    if install_one "$tconf" "$TENANT_EXAMPLE" "$thost" "$thost"; then
+      TENANT_OK=$((TENANT_OK + 1))
+    else
+      FAIL=1
+    fi
+  done
 elif [[ "$HOST_MODE" == "tenant" ]]; then
   if [[ "${ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW:-}" != "YES" ]]; then
     printf 'Refusing tenant host without ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES\n' >&2
     exit 2
   fi
-  CONF="${ECOMAE_NGINX_SITE_CONF:-${TENANT_CONF:-}}"
+  TARGET_TENANT_HOST="${ECOMAE_CLASSIC_ENTRY_TENANT_HOST:-www.epartscart.com}"
+  CONF="${ECOMAE_NGINX_SITE_CONF:-$(resolve_product_tenant_conf "$TARGET_TENANT_HOST" || true)}"
   if [[ -z "$CONF" ]]; then
-    printf 'ERROR: missing epartscart site conf; set ECOMAE_NGINX_SITE_CONF\n' >&2
+    printf 'ERROR: missing site conf for %s; set ECOMAE_NGINX_SITE_CONF\n' "$TARGET_TENANT_HOST" >&2
     ls -1 /etc/nginx/sites-enabled 2>/dev/null || true
     exit 1
   fi
-  install_one "$CONF" "$TENANT_EXAMPLE" "epartscart.com" "www.epartscart.com"
+  install_one "$CONF" "$TENANT_EXAMPLE" "$TARGET_TENANT_HOST" "$TARGET_TENANT_HOST"
   TENANT_OK=1
 else
   CONF="${ECOMAE_NGINX_SITE_CONF:-${WWW_CONF:-}}"
@@ -278,11 +327,12 @@ else
   WWW_OK=1
 fi
 
-printf '\nClassic-entry map:\n'
+printf '\nClassic-entry map (ASP.NET-primary — no half-and-half):\n'
 printf '  https://www.ecomae.com/cp  /erp  /bos  /     → ASP.NET (www_ok=%s)\n' "$WWW_OK"
-printf '  https://www.epartscart.com/cp  /erp  /bos   → ASP.NET (tenant_ok=%s)\n' "$TENANT_OK"
-printf '  https://www.epartscart.com/                 → ASP.NET storefront (PHP style; PHP via /php-reference/*)\n'
-printf '\nPHP reference (separate links):\n'
+printf '  named product tenants installed_ok=%s / 5\n' "$TENANT_OK"
+printf '  epartscart | electronicae | stylenlook | thejewellerytrend | taxofinca\n'
+printf '  each: / /cp /erp /bos (+ deep trees) → ASP.NET\n'
+printf '\nPHP reference ONLY (separate; never product mix):\n'
 printf '  /php-reference/home  /php-reference/cp  /php-reference/erp  /php-reference/bos  /php-reference/storefront\n'
 
 if [[ "$FAIL" -ne 0 ]]; then

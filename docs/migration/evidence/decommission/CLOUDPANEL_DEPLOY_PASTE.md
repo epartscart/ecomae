@@ -85,30 +85,32 @@ curl -sS -A 'Mozilla/5.0' http://127.0.0.1:5100/cp/login | grep -oE 'Enter CP \(
 #   3) systemctl restart ecomae-platform.service
 # Until that is set, credential fields stay hidden and “Enter CP (no login)” is the way in.
 
-# Installs into server{} by host:
-#   www.ecomae.com block ← www pack (marketing ASP.NET home + login bridges)
-#   www.epartscart.com block ← tenant pack:
-#     `/` = ASP.NET /storefront/app (PHP-style chrome)
-#     `/cp` `/erp` `/bos` + login bridges = ASP.NET
-# Guest can browse CP/ERP/BOS shells without hard login redirect; Sign in CTA remains.
+# Installs into server{} by host — ALL product tenants (no half-and-half):
+#   www.ecomae.com ← www pack (marketing ASP.NET home + login bridges)
+#   www.epartscart.com + www.electronicae.com + www.stylenlook.com
+#   + www.thejewellerytrend.com + www.taxofinca.com ← tenant pack:
+#     `/` `/cp` `/erp` `/bos` + deep trees = ASP.NET
+# PHP product compare ONLY via /php-reference/* → index.php
+# Also set in /etc/ecomae-aspnet/platform.env:
+#   MigrationRouteCutover__StorefrontAspNetEnabled=true
+#   MigrationRouteCutover__AdminAspNetEnabled=true
 ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
   bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
 
 bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh
-# Expect: epartscart / + www / + /cp /erp /bos = ASP.NET PHP-style shells;
-# guest browse (no login hard-redirect); PHP only via /php-reference/*
+# Expect: www + all 5 named tenants / /cp /erp /bos = ASP.NET;
+# PHP only via /php-reference/*
 ```
 
 **What this does / does not do**
 
 | Does | Does not |
 | --- | --- |
-| Same-URL proxy: `/cp` `/erp` `/bos` `/` → ASP.NET on ecomae + epartscart | Redirect tenants to `/cp/app` (URL stays `/cp`) |
-| PHP reference at `/php-reference/home\|cp\|erp\|bos\|storefront` only | Broad `location /cp|/erp|/bos|/storefront` prefix trees |
-| Primary product clicks stay on ASP.NET (PHP style) | Open PHP `/CP/` `/ERP/` `/BOS/` from chrome clicks |
-| Keeps deep module bodies incomplete until dual-sample | Delete PHP source / PHP-FPM / cron |
-| Enables Admin/Storefront ASP.NET route flags (full operator) | Invent presentation/module PASS or `cutoverAllowed=true` |
+| Same-URL proxy: `/cp` `/erp` `/bos` `/` → ASP.NET on www + **all 5 named tenants** | Leave some tenants on PHP product chrome |
+| PHP reference at `/php-reference/home\|cp\|erp\|bos\|storefront` only | Mix PHP `/CP/` `/ERP/` `/BOS/` into product clicks |
+| Admin/Storefront ASP.NET flags enabled for all tenants | Delete PHP source / PHP-FPM / cron |
+| Deep ASP.NET trees proxied; uppercase PHP shells remapped | Invent `cutoverAllowed=true` / PHP source removal |
 
 ## 1) One-shot find + redeploy
 

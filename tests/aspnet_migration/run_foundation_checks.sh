@@ -1639,7 +1639,7 @@ check 'CloudPanel quick start warns against var www ecomae' contains "$ROOT/depl
 check 'CloudPanel continue-after-env script exists' test -x "$ROOT/scripts/cloudpanel_continue_after_env.sh"
 check 'CloudPanel quick start explains nano save/exit' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Ctrl+O'
 check 'platform.env example documents final-gate smoke keys' contains "$ROOT/deploy/aspnet/platform.env.example" 'ECOMAE_PRICE_LOOKUP_API_KEY'
-check 'CloudPanel quick start keeps admin ASP.NET disabled by default' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'AdminAspNetEnabled=false'
+check 'CloudPanel quick start enables admin ASP.NET primary for all tenants' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'AdminAspNetEnabled=true'
 check 'CloudPanel quick start points to final-gate capture' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'cloudpanel_capture_final_gate_artifacts.sh'
 check 'worker dry-run evidence provider exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs"
 check 'worker dry-run evidence keeps PHP fallback required' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerDryRunEvidenceProvider.cs" 'PhpFallbackRequired: true'

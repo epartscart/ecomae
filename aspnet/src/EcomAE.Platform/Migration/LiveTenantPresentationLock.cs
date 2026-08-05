@@ -1,11 +1,9 @@
 namespace EcomAE.Platform.Migration;
 
 /// <summary>
-/// Named live production tenants under same-to-same parity gate.
-/// Target end-state is 100% ASP.NET Core / 0 PHP — not permanent PHP.
-/// Until dual-sample same-to-same + exact-route promotion evidence exists,
-/// product chrome stays on PHP so tenants feel zero change. cutoverAllowed stays false
-/// until that gate clears (never invent RELEASE_OWNER_APPROVAL.md).
+/// Named live production tenants — product chrome is ASP.NET Core for all.
+/// PHP stays available only as reference under /php-reference/* (not mixed into product).
+/// cutoverAllowed / readyForPhpRemoval stay false (reference keep ≠ PHP source deletion).
 /// </summary>
 public static class LiveTenantPresentationLock
 {
@@ -23,19 +21,22 @@ public static class LiveTenantPresentationLock
     public static IReadOnlyList<string> AllHosts { get; } =
         Tenants.SelectMany(t => t.Hosts).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
+    /// <summary>Nginx <c>$host</c> allowlist for classic-entry tenant pack (all named product tenants).</summary>
+    public const string NginxProductHostRegex =
+        @"^(www\.)?(epartscart|electronicae|stylenlook|thejewellerytrend|taxofinca)\.com$";
+
     public const string Mandate =
-        "TARGET: 100% ASP.NET Core / 0 PHP. Named live tenants stay PHP-primary only until "
-        + "ASP.NET same-to-same dual-sample parity + exact-route staged cutover. "
-        + "Presentation (theme/colour/structure/fonts/hero/fields) must match PHP during migration "
-        + "so tenants feel zero change. cutoverAllowed=false until the parity gate clears.";
+        "ALL named live product tenants use ASP.NET Core for / /cp /erp /bos and deep product trees. "
+        + "PHP is NOT mixed into product — open only via /php-reference/* for compare/archive. "
+        + "cutoverAllowed=false and readyForPhpRemoval=false while PHP project is kept as reference.";
 
     public static readonly IReadOnlyList<string> UnlockCriteria =
     [
-        "ASP.NET storefront/CP/ERP chrome same-to-same with PHP (dual-sample evidence per surface).",
-        "Exact-route shadows proven on www, then staged per-tenant with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES.",
-        "Interactive module function parity (menus/forms/writes) dual-sample green.",
-        "Human RELEASE_OWNER_APPROVAL.md for that host/surface (never invent this file).",
-        "Then exact-route cutover → observation window → PHP removal for that surface.",
+        "Install classic-entry ASP.NET primary on www + every named product tenant server block (--all-hosts).",
+        "Redeploy ASP.NET binary so guest browse / login forms match current main.",
+        "PHP compare only via /php-reference/* → index.php (never product /CP|/ERP|/shop trees).",
+        "Keep RequirePhpFallback=true until dual-sample-green per exact write route.",
+        "PHP source removal still needs separate RELEASE_OWNER_APPROVAL.md (never invent).",
     ];
 
     public static bool IsLockedHost(string? host)
@@ -49,16 +50,20 @@ public static class LiveTenantPresentationLock
         return AllHosts.Any(x => string.Equals(x, h, StringComparison.OrdinalIgnoreCase));
     }
 
+    public static bool IsProductTenantHost(string? host) => IsLockedHost(host);
+
     public static IReadOnlyDictionary<string, object> BuildSummary() => new Dictionary<string, object>
     {
-        ["policy"] = "parity-gate-until-aspnet-same-to-same-then-cutover",
+        ["policy"] = "aspnet-primary-all-product-tenants-php-reference-only",
         ["targetEndState"] = "100%-aspnet-core-live-php-reference-kept",
         ["mandate"] = Mandate,
         ["cutoverAllowed"] = false,
         ["readyForPhpRemoval"] = false,
-        ["phpPrimaryUntilParity"] = true,
+        ["phpPrimaryUntilParity"] = false,
+        ["stackToday"] = "aspnet",
         ["tenantCount"] = Tenants.Count,
         ["hosts"] = AllHosts,
+        ["nginxProductHostRegex"] = NginxProductHostRegex,
         ["unlockCriteria"] = UnlockCriteria,
         ["parityShadowConfirmEnv"] = "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW",
         ["tenants"] = Tenants.Select(t => new Dictionary<string, object>
@@ -66,24 +71,25 @@ public static class LiveTenantPresentationLock
             ["id"] = t.Id,
             ["label"] = t.Label,
             ["hosts"] = t.Hosts,
-            ["surfaces"] = new[] { "storefront", "cp", "erp" },
-            ["stackToday"] = "php",
+            ["surfaces"] = new[] { "storefront", "cp", "erp", "bos" },
+            ["stackToday"] = "aspnet",
             ["targetStack"] = "aspnet",
-            ["gate"] = "same-to-same-dual-sample-then-exact-route",
+            ["phpAccess"] = "/php-reference/* only",
+            ["gate"] = "aspnet-primary-installed-php-reference-separate",
         }).ToArray(),
-        ["verify"] = "bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh",
+        ["verify"] = "bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh --all-hosts",
         ["docs"] = new[]
         {
+            "docs/migration/PHP_AS_REFERENCE_MODE.md",
             "docs/migration/TENANT_MIGRATION_SAFETY.md",
-            "docs/migration/ZERO_PHP_PRODUCTION_CUTOVER_ROADMAP.md",
             "docs/migration/ASPNET_ZERO_PHP_PATH.md",
         },
         ["notes"] = new[]
         {
-            "Not a permanent PHP ban — a parity gate protecting same-to-same UX while ASP.NET is completed.",
-            "Default refuse ASP.NET shadows on named tenant vhosts; unlock exact-route parity shadows with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES.",
-            "www.ecomae.com remains the primary scaffolding host for digests/hybrid apps until tenant cutover.",
-            "Never invent RELEASE_OWNER_APPROVAL.md or set cutoverAllowed=true without evidence.",
+            "No half-and-half: every named product tenant is ASP.NET-primary for product URLs.",
+            "Install classic-entry on all tenant server blocks with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES --all-hosts.",
+            "Industry *.ecomae.com showcase hosts use the same ASP.NET /cp /erp shells when classic-entry is installed on their vhost.",
+            "Never invent RELEASE_OWNER_APPROVAL.md or set readyForPhpRemoval=true without evidence.",
         },
     };
 }

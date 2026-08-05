@@ -147,9 +147,9 @@ public sealed class LiveSurfaceLinkReporterTests
             && (link.AspNetRouteHint.StartsWith("/cp/", StringComparison.Ordinal)
                 || link.AspNetRouteHint.StartsWith("/erp/", StringComparison.Ordinal)
                 || link.AspNetRouteHint.StartsWith("/bos/", StringComparison.Ordinal))));
-        Assert.Contains(report.CutoverRules, rule => rule.Contains("Broad", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(report.CutoverRules, rule => rule.Contains("tenant", StringComparison.OrdinalIgnoreCase)
-            && rule.Contains("PHP", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.CutoverRules, rule => rule.Contains("NO HALF-AND-HALF", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.CutoverRules, rule => rule.Contains("named live tenants", StringComparison.OrdinalIgnoreCase)
+            && rule.Contains("ASP.NET", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/migration/console"
@@ -617,8 +617,8 @@ public sealed class LiveSurfaceLinkReporterTests
             || action.Contains("secret_succession", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("CHROME_PARITY_GAP_MATRIX", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_verify_tenant_hosts_still_php.sh", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_live_tenant_php_chrome.sh", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_install_classic_entry_aspnet_primary.sh", StringComparison.Ordinal));
+        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_probe_classic_entry_aspnet_primary.sh", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action => action.Contains("TENANT_MIGRATION_SAFETY.md", StringComparison.Ordinal));
         Assert.Contains(report.NextActions, action =>
             action.Contains("ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW", StringComparison.Ordinal)
@@ -628,11 +628,12 @@ public sealed class LiveSurfaceLinkReporterTests
             link.AspNetRouteHint == "/migration/live-tenant-presentation-lock");
         Assert.Contains(report.Links, link =>
             link.AspNetRouteHint == "/migration/aspnet-zero-php-path");
-        Assert.Contains(report.CutoverRules, note => note.Contains("CONFIRMED DESTINATION", StringComparison.Ordinal)
-            && note.Contains("PHP", StringComparison.Ordinal)
+        Assert.Contains(report.CutoverRules, note => note.Contains("CONFIRMED", StringComparison.Ordinal)
+            && note.Contains("ASP.NET", StringComparison.Ordinal)
             && note.Contains("reference", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(report.CutoverRules, note => note.Contains("PARITY GATE", StringComparison.Ordinal)
-            && note.Contains("exact-route", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.CutoverRules, note => note.Contains("NO HALF-AND-HALF", StringComparison.Ordinal));
+        Assert.Contains(report.Links, link => link.HostClass == "tenant" && link.StackToday == "aspnet");
+        Assert.DoesNotContain(report.Links, link => link.HostClass == "tenant" && link.StackToday == "php");
         Assert.Equal("catalogued-aspnet-primary-destination-php-reference-kept", report.Status);
     }
 

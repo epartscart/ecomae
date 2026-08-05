@@ -31,7 +31,7 @@ public sealed class SurfaceFieldParityReporter : ISurfaceFieldParityReporter
                 "Function map ties PHP entries to ASP.NET digests/shells without claiming write/posting/cart parity.",
                 "scripts/compare_surface_payload_parity.py performs recursive field-by-field JSON compare for dual samples.",
                 "SurfaceDigestContractValidator locks migration-mode digest envelopes in unit tests before cutover.",
-                "CutoverAllowed is false; AdminAspNetEnabled/StorefrontAspNetEnabled must remain false; RequirePhpFallback must remain true."
+                "CutoverAllowed is false; AdminAspNetEnabled/StorefrontAspNetEnabled are true (ASP.NET-primary all tenants); RequirePhpFallback must remain true until dual-sample-green per write route."
             ],
             [
                 "Capture authenticated ASP.NET + PHP (or shared-DB fixture) dual samples for each contracted digest route.",
