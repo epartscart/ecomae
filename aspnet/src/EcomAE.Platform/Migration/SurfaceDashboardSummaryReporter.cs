@@ -1107,41 +1107,34 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
             var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
             var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
-            // PHP path: article_search → exact/light match → full REPLACE normalize.
-            var rows = await QueryStorefrontPartOffersAsync(
+
+            // PHP CHPU: article-only warehouse SQL, then brand/synonym filter in UI.
+            // Keep branded SQL first for index friendliness; retry article-only when empty.
+            var rows = await QueryStorefrontPartOffersCascadeAsync(
                 connection,
                 candidates,
                 brandUpper,
                 brandCompact,
                 safeLimit,
-                StorefrontArticleMatchMode.ArticleSearch,
                 hasSearchCol,
                 cancellationToken).ConfigureAwait(false);
 
-            if (rows.Count == 0)
+            if (rows.Count == 0 && brandTrim.Length > 0)
             {
-                rows = await QueryStorefrontPartOffersAsync(
+                var unfiltered = await QueryStorefrontPartOffersCascadeAsync(
                     connection,
                     candidates,
-                    brandUpper,
-                    brandCompact,
-                    safeLimit,
-                    StorefrontArticleMatchMode.ExactTrim,
+                    brandUpper: string.Empty,
+                    brandCompact: string.Empty,
+                    Math.Min(safeLimit * 4, 500),
                     hasSearchCol,
                     cancellationToken).ConfigureAwait(false);
-            }
-
-            if (rows.Count == 0)
-            {
-                rows = await QueryStorefrontPartOffersAsync(
-                    connection,
-                    candidates,
-                    brandUpper,
-                    brandCompact,
-                    safeLimit,
-                    StorefrontArticleMatchMode.ReplaceNormalize,
-                    hasSearchCol,
-                    cancellationToken).ConfigureAwait(false);
+                var aliases = await LoadManufacturerBrandAliasesAsync(connection, brandTrim, cancellationToken)
+                    .ConfigureAwait(false);
+                rows = unfiltered
+                    .Where(r => ManufacturerMatchesBrand(r.Manufacturer, brandTrim, brandCompact, aliases))
+                    .Take(safeLimit)
+                    .ToList();
             }
 
             return new(normalized, rows, rows.Count, "database", string.Empty);
@@ -1434,6 +1427,119 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         candidates.Add(value);
     }
 
+    private async Task<List<StorefrontPartOfferDigest>> QueryStorefrontPartOffersCascadeAsync(
+        DbConnection connection,
+        IReadOnlyList<string> candidates,
+        string brandUpper,
+        string brandCompact,
+        int safeLimit,
+        bool hasSearchCol,
+        CancellationToken cancellationToken)
+    {
+        foreach (var mode in new[]
+                 {
+                     StorefrontArticleMatchMode.ArticleSearch,
+                     StorefrontArticleMatchMode.ExactTrim,
+                     StorefrontArticleMatchMode.ReplaceNormalize
+                 })
+        {
+            var rows = await QueryStorefrontPartOffersAsync(
+                connection,
+                candidates,
+                brandUpper,
+                brandCompact,
+                safeLimit,
+                mode,
+                hasSearchCol,
+                cancellationToken).ConfigureAwait(false);
+            if (rows.Count > 0)
+            {
+                return rows;
+            }
+        }
+
+        return [];
+    }
+
+    private static bool ManufacturerMatchesBrand(
+        string manufacturer,
+        string brandTrim,
+        string brandCompact,
+        IReadOnlySet<string> aliases)
+    {
+        var mfr = (manufacturer ?? string.Empty).Trim();
+        if (mfr.Length == 0 || brandTrim.Length == 0)
+        {
+            return false;
+        }
+
+        if (aliases.Contains(mfr))
+        {
+            return true;
+        }
+
+        if (string.Equals(mfr, brandTrim, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var compact = CompactStorefrontBrand(mfr);
+        return brandCompact.Length > 0 && compact == brandCompact;
+    }
+
+    private async Task<HashSet<string>> LoadManufacturerBrandAliasesAsync(
+        DbConnection connection,
+        string brand,
+        CancellationToken cancellationToken)
+    {
+        var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            brand.Trim(),
+            brand.Trim().ToUpperInvariant()
+        };
+        if (string.IsNullOrWhiteSpace(brand))
+        {
+            return aliases;
+        }
+
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT TRIM(m.`name`) AS name
+                FROM `shop_docpart_manufacturers` m
+                WHERE UPPER(TRIM(m.`name`)) = @brand
+                UNION
+                SELECT TRIM(s.`synonym`) AS name
+                FROM `shop_docpart_manufacturers_synonyms` s
+                INNER JOIN `shop_docpart_manufacturers` m ON m.`id` = s.`manufacturer_id`
+                WHERE UPPER(TRIM(m.`name`)) = @brand OR UPPER(TRIM(s.`synonym`)) = @brand
+                UNION
+                SELECT TRIM(m2.`name`) AS name
+                FROM `shop_docpart_manufacturers_synonyms` s2
+                INNER JOIN `shop_docpart_manufacturers` m2 ON m2.`id` = s2.`manufacturer_id`
+                WHERE UPPER(TRIM(s2.`synonym`)) = @brand
+                LIMIT 80
+                """;
+            AddParameter(command, "@brand", brand.Trim().ToUpperInvariant());
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    aliases.Add(name.Trim());
+                }
+            }
+        }
+        catch
+        {
+            // Synonym tables are optional on some tenants.
+        }
+
+        return aliases;
+    }
+
     private static string ResolveStorefrontArticleMatchSql(
         IReadOnlyList<string> candidates,
         StorefrontArticleMatchMode mode,
@@ -1623,10 +1729,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             command.CommandText = """
                 SELECT IFNULL(MAX(d.`exist`), 0) AS max_exist
                 FROM `shop_docpart_prices_data` d
-                LEFT JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
                 WHERE {ARTICLE_MATCH}
-                  AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
-                  AND IFNULL(d.`price`, 0) > 0
                   AND (@brand = '' OR UPPER(TRIM(d.`manufacturer`)) = @brand
                        OR REPLACE(REPLACE(REPLACE(UPPER(TRIM(d.`manufacturer`)), ' ', ''), '-', ''), '.', '') = @brandCompact)
                 """.Replace("{ARTICLE_MATCH}", articleMatch, StringComparison.Ordinal);
