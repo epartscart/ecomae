@@ -35,6 +35,9 @@ node_modules/
 !/content/**/*.sql
 !/content/**/*.md
 !/content/**/*.mp4
+# Login universe NASA stills (public domain; see content/general_pages/universe/README.txt)
+!/content/general_pages/universe/*.jpg
+!/content/general_pages/universe/README.txt
 # PHP-rendered tenant home snapshots served by ASP.NET (regenerate: scripts/render_php_home_snapshots.php)
 !/content/general_pages/epc_rendered_homes/*.html
 # PHP-rendered ecomae marketing pages (regenerate: scripts/render_ecomae_marketing_snapshots.php)

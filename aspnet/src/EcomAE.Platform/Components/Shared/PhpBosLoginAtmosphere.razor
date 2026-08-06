@@ -1,18 +1,23 @@
 @using System.Text.Json
 @*
   Login universe atmosphere (background only):
-  - NASA / Webb deep-space photo with slow drift
-  - Falling star-dots (same bosFloat motion as before)
-  - Round moons + planets (CSS spheres) falling — never glyph icons on top
+  - Local NASA / Webb stills with remote fallback
+  - 480 star-dots with mixed fall speeds
+  - Round moons + planets + orbs (CSS spheres) — never glyph icons on top
 *@
 
 <div class="bos-login__bg bos-login__bg--universe bos-login__bg--@Theme"
      data-bos-atmosphere="@Theme"
      data-bos-industry="@Industry"
      aria-hidden="true">
-    <div class="bos-login__universe"
-         style="background-image:url('@UniverseImageUrl')"
-         title="Image credit: NASA / ESA / CSA / STScI"></div>
+    <div class="bos-login__universe">
+        <img class="bos-login__universe-photo"
+             src="@UniverseLocalUrl"
+             data-fallback="@UniverseRemoteUrl"
+             alt=""
+             title="Image credit: NASA / ESA / CSA / STScI"
+             onerror="if(this.dataset.fallback){this.onerror=null;this.src=this.dataset.fallback;}" />
+    </div>
     <div class="bos-login__universe-veil"></div>
     <div class="bos-login__grid-lines"></div>
     <div class="bos-login__sky" id="@(ParticlesId)_sky"></div>
@@ -33,6 +38,15 @@
   }
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+  /* Mixed fall speeds: very fast / fast / medium / slow. */
+  function pickDuration() {
+    var roll = Math.random();
+    if (roll < 0.15) return 2 + Math.random() * 3;
+    if (roll < 0.4) return 5 + Math.random() * 5;
+    if (roll < 0.75) return 10 + Math.random() * 10;
+    return 18 + Math.random() * 22;
+  }
+
   function createParticles() {
     var container = document.getElementById(containerId);
     if (!container || reduceMotion()) return;
@@ -40,13 +54,13 @@
     var palette = Array.isArray(colors) && colors.length ? colors : [
       'rgba(255,255,255,.85)', 'rgba(14,165,233,.7)', 'rgba(56,189,248,.5)'
     ];
-    var count = 160;
+    var count = 480;
     for (var i = 0; i < count; i++) {
       var p = document.createElement('div');
       p.className = 'bos-login__particle';
       p.style.left = Math.random() * 100 + '%';
       p.style.top = Math.random() * 10 + '%';
-      var duration = 5 + Math.random() * 14;
+      var duration = pickDuration();
       p.style.animationDuration = duration + 's';
       p.style.animationDelay = (Math.random() * duration) + 's';
       var size = 1 + Math.random() * 2.8;
@@ -72,7 +86,7 @@
     function place(el, slow) {
       el.style.left = Math.random() * 100 + '%';
       el.style.top = (Math.random() * 8) + '%';
-      var duration = (slow ? 12 : 7) + Math.random() * (slow ? 18 : 12);
+      var duration = slow ? pickDuration() * 1.6 : pickDuration();
       el.style.animationDuration = duration + 's';
       el.style.animationDelay = (Math.random() * duration) + 's';
       el.style.animationName = Math.random() < 0.45 ? 'bosFloatDrift' : 'bosFloat';
@@ -81,11 +95,11 @@
       sky.appendChild(el);
     }
 
-    var moonCount = 5;
-    var planetCount = 7;
-    var orbCount = 18;
-    if (industry === 'jewellery' || theme === 'sparkle') { moonCount = 7; planetCount = 8; }
-    if (industry === 'auto_parts' || theme === 'autoparts') { planetCount = 6; orbCount = 22; }
+    var moonCount = 10;
+    var planetCount = 14;
+    var orbCount = 36;
+    if (industry === 'jewellery' || theme === 'sparkle') { moonCount = 14; planetCount = 16; }
+    if (industry === 'auto_parts' || theme === 'autoparts') { planetCount = 12; orbCount = 44; }
 
     for (var m = 0; m < moonCount; m++) {
       var moon = document.createElement('div');
@@ -108,7 +122,6 @@
       var ps = 10 + Math.random() * 22;
       planet.style.width = ps + 'px';
       planet.style.height = ps + 'px';
-      /* tint glow from tenant palette */
       var glow = pick(palette);
       planet.style.boxShadow = '0 0 ' + (8 + Math.random() * 14) + 'px ' + glow;
       place(planet, Math.random() < 0.55);
@@ -178,27 +191,26 @@
         "rgba(251,191,36,.45)", "rgba(168,85,247,.4)"
     ];
 
-    /// <summary>
-    /// NASA / ESA Webb public universe stills (science.nasa.gov gallery / images-assets.nasa.gov).
-    /// Background only — never rendered as foreground icons.
-    /// </summary>
-    private string UniverseImageUrl => (Industry ?? Theme ?? "").ToLowerInvariant() switch
+    private (string Local, string Remote) UniverseStill => (Industry ?? Theme ?? "").ToLowerInvariant() switch
     {
         "auto_parts" or "autoparts" =>
-            "https://images-assets.nasa.gov/image/PIA16884/PIA16884~medium.jpg", // Cassiopeia A
+            ("cassiopeia-a.jpg", "https://images-assets.nasa.gov/image/PIA16884/PIA16884~medium.jpg"),
         "electronics" or "circuit" =>
-            "https://images-assets.nasa.gov/image/PIA12348/PIA12348~medium.jpg", // Andromeda
+            ("andromeda.jpg", "https://images-assets.nasa.gov/image/PIA12348/PIA12348~medium.jpg"),
         "fashion" =>
-            "https://cdn.esawebb.org/archives/images/screen/weic2205a.jpg", // Tarantula / star factory
+            ("tarantula.jpg", "https://cdn.esawebb.org/archives/images/screen/weic2205a.jpg"),
         "jewellery" or "sparkle" =>
-            "https://cdn.esawebb.org/archives/images/screen/weic2216a.jpg", // Pillars of Creation
+            ("pillars.jpg", "https://cdn.esawebb.org/archives/images/screen/weic2216a.jpg"),
         "finance" or "advisory" or "teal-moon" =>
-            "https://images-assets.nasa.gov/image/PIA12348/PIA12348~medium.jpg",
+            ("andromeda.jpg", "https://images-assets.nasa.gov/image/PIA12348/PIA12348~medium.jpg"),
         "crimson-stars" =>
-            "https://images-assets.nasa.gov/image/PIA16884/PIA16884~medium.jpg",
+            ("cassiopeia-a.jpg", "https://images-assets.nasa.gov/image/PIA16884/PIA16884~medium.jpg"),
         _ =>
-            "https://cdn.esawebb.org/archives/images/screen/weic2216a.jpg"
+            ("pillars.jpg", "https://cdn.esawebb.org/archives/images/screen/weic2216a.jpg")
     };
+
+    private string UniverseLocalUrl => $"/platform-assets/universe/{UniverseStill.Local}";
+    private string UniverseRemoteUrl => UniverseStill.Remote;
 
     private MarkupString _particlesIdJson;
     private MarkupString _particleColorsJson;
