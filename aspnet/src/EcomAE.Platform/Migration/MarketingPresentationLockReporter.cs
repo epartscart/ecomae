@@ -28,7 +28,7 @@ public sealed class MarketingPresentationLockReporter : IMarketingPresentationLo
             ForbiddenLiveMarkersUntilCutover:
             [
                 "blazor",
-                "ecomae-php-chrome-surface"
+                "ecomae-chrome-surface"
             ],
             AuthoritativePhpSourcesUntilCutover:
             [

@@ -56,7 +56,7 @@ check_file_contains "home" "$HOME_FILE" "epm-hub__orbit-spin"
 check_file_contains "home" "$HOME_FILE" "epm-hub__matrix"
 check_file_contains "home" "$HOME_FILE" "epm-hub-section"
 check_file_contains "home" "$HOME_FILE" "ECOMAE-MARKETING-HOME"
-check_file_absent "home" "$HOME_FILE" "ecomae-php-chrome-surface"
+check_file_absent "home" "$HOME_FILE" "ecomae-chrome-surface"
 check_file_absent "home" "$HOME_FILE" "blazor.web.js"
 
 # Keyframes may be inline (pre-extract) or via shared CSS endpoint (post-deploy).
@@ -101,7 +101,7 @@ for path in "${PAGES[@]}"; do
   fi
   check_file_contains "$path" "$page_file" "epm-body"
   check_file_contains "$path" "$page_file" "epm-topbar"
-  check_file_absent "$path" "$page_file" "ecomae-php-chrome-surface"
+  check_file_absent "$path" "$page_file" "ecomae-chrome-surface"
   check_file_absent "$path" "$page_file" "blazor.web.js"
 done
 
@@ -117,7 +117,7 @@ else
   fail=$((fail + 1))
 fi
 check_file_contains "/brochure" "$BROCHURE_FILE" "Product brochure"
-check_file_absent "/brochure" "$BROCHURE_FILE" "ecomae-php-chrome-surface"
+check_file_absent "/brochure" "$BROCHURE_FILE" "ecomae-chrome-surface"
 check_file_absent "/brochure" "$BROCHURE_FILE" "blazor.web.js"
 
 say ""

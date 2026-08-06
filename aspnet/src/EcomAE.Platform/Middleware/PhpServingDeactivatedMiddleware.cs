@@ -32,11 +32,9 @@ public sealed class PhpServingDeactivatedMiddleware
         }
 
         context.Response.Headers[FlagHeader] = FlagValue;
-        context.Response.Headers["X-EcomAE-Target-Runtime"] = "aspnet-only-deep-test";
-        context.Response.Headers["X-EcomAE-PHP-Fallback"] = "required-but-serving-deactivated";
-        context.Response.Headers["X-EcomAE-Keep-Php-Project"] = _options.KeepPhpProjectAvailable ? "true" : "false";
-        context.Response.Headers["X-EcomAE-Cutover-Allowed"] = "false";
-        context.Response.Headers["X-EcomAE-Ready-For-Php-Removal"] = "false";
+        // Opaque headers only — never expose stack names on tenant-visible responses.
+        context.Response.Headers["X-EcomAE-Platform"] = "primary";
+        context.Response.Headers["X-EcomAE-Compat"] = "paused";
 
         var path = context.Request.Path.Value ?? "/";
         if (path.StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase)
@@ -45,10 +43,8 @@ public sealed class PhpServingDeactivatedMiddleware
             context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
             context.Response.ContentType = "text/plain; charset=utf-8";
             await context.Response.WriteAsync(
-                "PHP reference serving is temporarily deactivated for ASP.NET Core deep testing.\n" +
-                "PHP project files remain on disk (KeepPhpProjectAvailable=true).\n" +
-                "cutoverAllowed=false · readyForPhpRemoval=false · RequirePhpFallback still required.\n" +
-                "Restore: ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES bash scripts/cloudpanel_restore_php_reference_serving.sh\n");
+                "Reference archive is temporarily unavailable for platform deep testing.\n" +
+                "Product surfaces remain online. Contact the platform operator to restore archive access.\n");
             return;
         }
 

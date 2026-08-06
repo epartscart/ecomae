@@ -45,8 +45,8 @@ public sealed class PhpServingDeactivatedMiddlewareTests : IDisposable
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, ctx.Response.StatusCode);
         Assert.False(calledNext);
         Assert.Equal("temporarily-deactivated", ctx.Response.Headers[PhpServingDeactivatedMiddleware.FlagHeader].ToString());
-        Assert.Equal("false", ctx.Response.Headers["X-EcomAE-Cutover-Allowed"].ToString());
-        Assert.Equal("false", ctx.Response.Headers["X-EcomAE-Ready-For-Php-Removal"].ToString());
+        Assert.Equal("primary", ctx.Response.Headers["X-EcomAE-Platform"].ToString());
+        Assert.Equal("paused", ctx.Response.Headers["X-EcomAE-Compat"].ToString());
     }
 
     [Fact]

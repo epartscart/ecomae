@@ -35,7 +35,7 @@ probe_one() {
   code="$(curl -sS -m 20 -A 'Mozilla/5.0 EcomAE-marketing-probe' -o "$body" -w '%{http_code}' "${BASE}${route}" || echo 000)"
   stack="other"
   result="fail"
-  if grep -Eiq '_framework/blazor|blazor.web.js|ecomae-php-chrome-surface' "$body" 2>/dev/null && [[ "$code" == "200" ]]; then
+  if grep -Eiq '_framework/blazor|blazor.web.js|ecomae-chrome-surface' "$body" 2>/dev/null && [[ "$code" == "200" ]]; then
     stack="aspnet"; result="pass"; pass=$((pass + 1))
   elif [[ "$code" == "404" ]] || grep -qi 'page not found' "$body" 2>/dev/null; then
     stack="php-404"; result="blocked-awaiting-shadow-install"; blocked=$((blocked + 1))

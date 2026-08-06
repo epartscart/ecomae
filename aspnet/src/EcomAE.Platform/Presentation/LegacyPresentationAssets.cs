@@ -93,7 +93,7 @@ public static class LegacyPresentationAssets
         "/epc-static.php?f=templates/nero/css/docpart/style.css",
         "/modules/slider/css/style.css",
         // Animated eparts cart logo (PHP enqueue equivalent; also covered by professional shell CSS)
-        "/aspnet-php-assets/eparts-animated-logo.css",
+        "/platform-assets/eparts-animated-logo.css",
         // PHP site_professional_shell polish — prefer epc-static gateway (works when www has the file)
         "/epc-static.php?f=content/general_pages/epc_storefront_professional_shell.css",
         "/content/general_pages/epc_storefront_professional_shell.css",

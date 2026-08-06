@@ -8,7 +8,7 @@ public sealed class RouteCutoverDecisionMiddlewareTests
     [Fact]
     public void MiddlewareDefinesStableDiagnosticHeaders()
     {
-        Assert.Equal("X-EcomAE-Target-Runtime", RouteCutoverDecisionMiddleware.TargetRuntimeHeader);
-        Assert.Equal("X-EcomAE-PHP-Fallback", RouteCutoverDecisionMiddleware.PhpFallbackHeader);
+        Assert.Equal("X-EcomAE-Platform", RouteCutoverDecisionMiddleware.TargetRuntimeHeader);
+        Assert.Equal("X-EcomAE-Compat", RouteCutoverDecisionMiddleware.PhpFallbackHeader);
     }
 }

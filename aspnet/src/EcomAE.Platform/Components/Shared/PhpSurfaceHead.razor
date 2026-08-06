@@ -78,9 +78,8 @@
             <script src="@src" defer></script>
         }
     }
-    <meta name="ecomae-php-chrome-surface" content="@Surface" />
-    <meta name="ecomae-php-chrome-source" content="@LegacyPresentationAssets.LegacyChromeSourceFor(Surface)" />
-    <meta name="ecomae-php-graphical-hero" content="@(IncludeLoginCss || ApplyStorefrontIndustryAttrs || IncludeBosLoginScripts || IncludeMarketingScripts || IsBosSurface ? "1" : "0")" />
+    <meta name="ecomae-chrome-surface" content="@Surface" />
+    <meta name="ecomae-chrome-hero" content="@(IncludeLoginCss || ApplyStorefrontIndustryAttrs || IncludeBosLoginScripts || IncludeMarketingScripts || IsBosSurface ? "1" : "0")" />
 </HeadContent>
 
 @code {

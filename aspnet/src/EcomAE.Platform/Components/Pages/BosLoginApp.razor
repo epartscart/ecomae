@@ -13,7 +13,7 @@
 @*
   PHP same-to-same login from bos/index.php:
   dark bos-body--login theme, capability cards, stats, dual role forms
-  (Platform Operator / ERP Customer). Posts to ASP.NET /auth/login/admin.
+  (Platform Operator / ERP Customer). Posts to /auth/login/admin.
   Do NOT load epc_bos_shell.js here — it hijacks #bosLoginForm to PHP /bos/?action=login.
 *@
 <style>
@@ -26,7 +26,7 @@
         min-height: 100vh;
         overflow-x: hidden;
     }
-    .epc-asp-login-bos.bos-login {
+    .epc-login-bos.bos-login {
         width: 100%;
         min-height: 100vh;
         display: flex;
@@ -41,7 +41,7 @@
     }
 </style>
 
-<div class="epc-asp-login-bos bos-login">
+<div class="epc-login-bos bos-login">
     <div class="bos-login__bg">
         <div class="bos-login__grid-lines"></div>
         <div class="bos-login__particles" id="bosParticles"></div>
