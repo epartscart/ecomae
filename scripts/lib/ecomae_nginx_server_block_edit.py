@@ -211,20 +211,63 @@ def parse_example(
     return named_blocks, blocks
 
 
-def _location_pattern(kind: str, matcher: str) -> re.Pattern[str]:
+def _location_header_pattern(kind: str, matcher: str) -> re.Pattern[str]:
     if kind == "exact":
-        return re.compile(
-            rf"(?m)^[ \t]*location\s*=\s*{re.escape(matcher)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
-        )
+        return re.compile(rf"(?m)^[ \t]*location\s*=\s*{re.escape(matcher)}\s*\{{")
     if kind == "prefix":
-        return re.compile(
-            rf"(?m)^[ \t]*location\s*\^~\s*{re.escape(matcher)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
-        )
+        return re.compile(rf"(?m)^[ \t]*location\s*\^~\s*{re.escape(matcher)}\s*\{{")
     if kind == "regex":
-        return re.compile(
-            rf"(?m)^[ \t]*location\s*~\s*{re.escape(matcher)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
-        )
+        return re.compile(rf"(?m)^[ \t]*location\s*~\s*{re.escape(matcher)}\s*\{{")
+    if kind == "named":
+        return re.compile(rf"(?m)^[ \t]*location\s*@{re.escape(matcher)}\s*\{{")
     raise ValueError(kind)
+
+
+def _find_location_span(text: str, kind: str, matcher: str, start_at: int = 0) -> tuple[int, int] | None:
+    """Brace-aware span of a location block (regex ``.*?\\n}`` truncated blocks that
+    contain nested ``if (...) { ... }`` braces, leaving orphan braces → nginx -t fail)."""
+    m = _location_header_pattern(kind, matcher).search(text, start_at)
+    if not m:
+        return None
+    i = text.find("{", m.start())
+    depth = 0
+    j = i
+    while j < len(text):
+        c = text[j]
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                k = j + 1
+                if k < len(text) and text[k] == "\n":
+                    k += 1
+                return (m.start(), k)
+        j += 1
+    return None
+
+
+def _replace_or_insert_location(
+    text: str, kind: str, matcher: str, block: str
+) -> tuple[str, bool]:
+    """Replace the first existing block (brace-aware), DELETE later duplicates of the
+    same selector (self-heal 'duplicate location' breakage), or insert when absent.
+    Returns (new_text, replaced)."""
+    span = _find_location_span(text, kind, matcher)
+    if span is None:
+        marker = find_insert_marker(text)
+        return text[:marker] + block + "\n" + text[marker:], False
+
+    start, end = span
+    text = text[:start] + block + "\n" + text[end:]
+    # Drop any additional occurrences of the same selector in this server body.
+    search_from = start + len(block) + 1
+    while True:
+        dup = _find_location_span(text, kind, matcher, search_from)
+        if dup is None:
+            break
+        text = text[: dup[0]] + text[dup[1] :]
+    return text, True
 
 
 def apply_blocks_to_server_body(
@@ -236,14 +279,8 @@ def apply_blocks_to_server_body(
     replaced: list[str] = []
     text = body
     for name, block in named_blocks:
-        pattern = re.compile(rf"(?m)^[ \t]*location\s*@{re.escape(name)}\s*\{{.*?\n[ \t]*\}}\n?", re.S)
-        if pattern.search(text):
-            text = pattern.sub(block + "\n", text, count=1)
-            replaced.append("@" + name)
-        else:
-            marker = find_insert_marker(text)
-            text = text[:marker] + block + "\n" + text[marker:]
-            inserted.append("@" + name)
+        text, was_replaced = _replace_or_insert_location(text, "named", name, block)
+        (replaced if was_replaced else inserted).append("@" + name)
 
     # Strip dangerous stub→/en exact locations before installing prefix /storefront/
     for stub in (
@@ -268,15 +305,9 @@ def apply_blocks_to_server_body(
         for (k, matcher), block in blocks:
             if k != kind:
                 continue
-            pattern = _location_pattern(k, matcher)
             label = f"{k}:{matcher}"
-            if pattern.search(text):
-                text = pattern.sub(block + "\n", text, count=1)
-                replaced.append(label)
-            else:
-                marker = find_insert_marker(text)
-                text = text[:marker] + block + "\n" + text[marker:]
-                inserted.append(label)
+            text, was_replaced = _replace_or_insert_location(text, k, matcher, block)
+            (replaced if was_replaced else inserted).append(label)
     return text, inserted, replaced
 
 

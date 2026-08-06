@@ -198,8 +198,10 @@ install_one() {
   fi
 
   # Reload after EACH successful host so a later host failure cannot leave www dirty/unreloaded.
-  if ! nginx -t; then
+  if ! nginx -t 2>/tmp/epc-classic-entry-nginx-t.err; then
     printf 'ERROR: nginx -t failed — restoring %s\n' "$bak" >&2
+    printf 'ERROR: nginx said:\n' >&2
+    grep -E 'emerg|error' /tmp/epc-classic-entry-nginx-t.err >&2 || cat /tmp/epc-classic-entry-nginx-t.err >&2
     cp -a "$bak" "$conf"
     nginx -t
     return 1
