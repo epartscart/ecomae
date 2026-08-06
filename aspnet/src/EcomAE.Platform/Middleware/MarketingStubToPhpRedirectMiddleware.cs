@@ -17,6 +17,12 @@ public sealed class MarketingStubToPhpRedirectMiddleware
 
     public Task InvokeAsync(HttpContext context)
     {
+        if (StorefrontSurfaceLinks.PreferAspNetApps)
+        {
+            context.Response.Headers["X-EcomAE-Marketing-Stub-Redirect"] = "skipped-php-serving-deactivated";
+            return _next(context);
+        }
+
         var path = context.Request.Path.Value ?? "/";
         if (!path.StartsWith("/marketing/", StringComparison.OrdinalIgnoreCase)
             && !path.Equals("/marketing", StringComparison.OrdinalIgnoreCase))

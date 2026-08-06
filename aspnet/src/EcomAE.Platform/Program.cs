@@ -643,12 +643,23 @@ builder.Services.AddHealthChecks();
 var app = builder.Build();
 
 app.UseResponseCompression();
+// Temporary PHP serving deactivation (deep ASP.NET test) — PreferAspNetApps before stub redirects.
+{
+    var phpRef = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>().Value;
+    StorefrontSurfaceLinks.PreferAspNetApps = phpRef.TemporarilyDeactivatePhpServing;
+    if (phpRef.TemporarilyDeactivatePhpServing && !phpRef.KeepPhpProjectAvailable)
+    {
+        throw new InvalidOperationException(
+            "TemporarilyDeactivatePhpServing requires KeepPhpProjectAvailable=true (protocol: pause serving, never delete PHP project).");
+    }
+}
 app.UseMiddleware<SecurityHeadersMiddleware>();
-// Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/*.
+app.UseMiddleware<PhpServingDeactivatedMiddleware>();
+// Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/* (503 when serving deactivated).
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
-// Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home).
+// Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home). Skipped when PHP serving off.
 app.UseMiddleware<MarketingStubToPhpRedirectMiddleware>();
-// Thin /storefront/* stubs → PHP /en/… canonical (warehouse, UMAPI, catalogs) until apps are live.
+// Thin /storefront/* stubs → PHP /en/… until apps live. Skipped when TemporarilyDeactivatePhpServing=true.
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 // BOS is Super-CP / platform only — never answer /bos on tenant hosts (epartscart, …).

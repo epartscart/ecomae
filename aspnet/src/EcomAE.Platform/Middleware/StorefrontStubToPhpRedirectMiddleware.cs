@@ -6,6 +6,7 @@ namespace EcomAE.Platform.Middleware;
 /// Thin / broken ASP.NET <c>/storefront/*</c> stubs redirect to live PHP canonical pages
 /// (<c>/en/shop/warehouse-search</c>, <c>/en/umapi_catalog</c>, …).
 /// Home <c>/storefront/app</c> stays ASP.NET.
+/// Skipped when <see cref="StorefrontSurfaceLinks.PreferAspNetApps"/> (temp PHP serving off).
 /// </summary>
 public sealed class StorefrontStubToPhpRedirectMiddleware
 {
@@ -18,6 +19,12 @@ public sealed class StorefrontStubToPhpRedirectMiddleware
 
     public Task InvokeAsync(HttpContext context)
     {
+        if (StorefrontSurfaceLinks.PreferAspNetApps)
+        {
+            context.Response.Headers["X-EcomAE-Storefront-Stub-Redirect"] = "skipped-php-serving-deactivated";
+            return _next(context);
+        }
+
         var path = context.Request.Path.Value ?? "/";
         if (!path.StartsWith("/storefront/", StringComparison.OrdinalIgnoreCase))
         {

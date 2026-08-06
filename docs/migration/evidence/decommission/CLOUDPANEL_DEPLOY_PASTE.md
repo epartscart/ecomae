@@ -2,9 +2,23 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
+## 0◆) TEMP ASP.NET-ONLY DEEP TEST — pause PHP HTTP (incl. `/php-reference`)
+
+`#885` is on `main`. Protocol: **no new PHP feature work**. Pause PHP HTTP so ASP.NET Core can be deep-tested. Files stay on disk (`KeepPhpProjectAvailable=true`). `cutoverAllowed` / `readyForPhpRemoval` stay **false**.
+
+```bash
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+git fetch origin main && git checkout -f main && git reset --hard origin/main
+ECOMAE_CONFIRM_TEMP_DEACTIVATE_PHP_SERVING=YES \
+  bash scripts/cloudpanel_temporarily_deactivate_php_serving.sh
+# Expect RESULT=PASS — /php-reference and /en/ → 503; product / /cp /erp stay ASP.NET
+# Board: curl -sS https://www.epartscart.com/migration/php-reference-mode | jq '{status,mode,temporarilyDeactivatePhpServing,cutoverAllowed,readyForPhpRemoval,keepPhpProjectAvailable}'
+# Restore: ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES bash scripts/cloudpanel_restore_php_reference_serving.sh
+```
+
 ## 0⚠) CP AUTH + TOP MENU — FORCE LIVE then sync (paste as one block)
 
-`#887` (CP auth gate) is on `main`. This paste also needs `#886` top-menu visibility until that merges. **Always `cd` into the repo** before `bash scripts/…` (running from `~` → “No such file”). Prefer **GET** proves (`-sS -o /dev/null -w '%{http_code} %{redirect_url}\n'`) — `curl -I` often returns **405** on `/cp`.
+`#887` (CP auth) is on `main`. This paste also needs `#886` top-menu visibility until that merges. **Always `cd` into the repo** before `bash scripts/…` (running from `~` → “No such file”). Prefer **GET** proves — `curl -I` often returns **405** on `/cp`.
 
 ```bash
 # 1) Publish ASP.NET binary (top-menu branch until #886 merges; then use main)
@@ -14,9 +28,10 @@ ECOMAE_BRANCH=cursor/storefront-header-topmenu-visible-7b3b \
 
 # 2) cd REPO (required) — sync SecretSuccession + classic-entry /cp/control → :5100
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-git fetch origin main && git checkout -f main && git reset --hard origin/main
-# until #886 merges, also keep top-menu tip:
-# git fetch origin cursor/storefront-header-topmenu-visible-7b3b && git checkout -f cursor/storefront-header-topmenu-visible-7b3b && git reset --hard origin/cursor/storefront-header-topmenu-visible-7b3b
+git fetch origin cursor/storefront-header-topmenu-visible-7b3b
+git checkout -f cursor/storefront-header-topmenu-visible-7b3b
+git reset --hard origin/cursor/storefront-header-topmenu-visible-7b3b
+# after #886 merges: git fetch origin main && git checkout -f main && git reset --hard origin/main
 
 ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
   bash scripts/cloudpanel_sync_secret_succession_from_php.sh
