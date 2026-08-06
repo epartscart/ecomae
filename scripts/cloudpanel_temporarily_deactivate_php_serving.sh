@@ -208,6 +208,37 @@ for conf in candidates:
     print("patched:", conf, "bak:", bak)
 PY
 
+# Strip tenant stub→/en exact locations BEFORE reload — otherwise PreferAspNetApps
+# chrome links (/storefront/search-app etc.) 302 to /en/* → 503 → warm-up splash loop.
+python3 - <<'PY'
+from pathlib import Path
+import re, time
+block_re = re.compile(
+    r"\nlocation = /storefront/(?:search-app|cart-app|checkout-app|orders-app|login|garage-app) \{.*?\n\}",
+    re.S,
+)
+for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
+    if not base.exists():
+        continue
+    for conf in base.iterdir():
+        if not conf.is_file():
+            continue
+        try:
+            text = conf.read_text(errors="ignore")
+        except Exception:
+            continue
+        if "storefront/search-app" not in text:
+            continue
+        new, n = block_re.subn(
+            "\n# removed stub→/en (temp PHP off) — use ^~ /storefront/ → :5100\n", text
+        )
+        if n:
+            bak = conf.with_name(conf.name + ".bak.temp-php-off-stubs." + time.strftime("%Y%m%d%H%M%S"))
+            bak.write_text(text)
+            conf.write_text(new)
+            print(f"stripped {n} stub→/en location(s): {conf}")
+PY
+
 nginx -t
 systemctl reload nginx
 
@@ -228,20 +259,40 @@ code_en="$(curl -sS -o /tmp/epc_php_en_off.txt -w '%{http_code}' -A 'Mozilla/5.0
   "https://www.epartscart.com/en/shop/part_search?${Q}" || true)"
 code_home="$(curl -sS -o /tmp/epc_php_home.txt -w '%{http_code}' -A 'Mozilla/5.0' --max-time 45 \
   "https://www.epartscart.com/?${Q}" || true)"
+code_sf="$(curl -sS -o /tmp/epc_php_sf.txt -w '%{http_code}' -A 'Mozilla/5.0' --max-time 45 \
+  "https://www.epartscart.com/storefront/app?${Q}" || true)"
+code_search="$(curl -sS -o /tmp/epc_php_search.txt -w '%{http_code}' -A 'Mozilla/5.0' --max-time 45 \
+  "https://www.epartscart.com/storefront/search-app?${Q}" || true)"
 printf 'php-reference/storefront http=%s\n' "$code_ref"
 printf '/en/shop/part_search http=%s\n' "$code_en"
 printf '/ http=%s\n' "$code_home"
+printf '/storefront/app http=%s\n' "$code_sf"
+printf '/storefront/search-app http=%s\n' "$code_search"
 curl -sS -A 'Mozilla/5.0' --max-time 20 "https://www.epartscart.com/migration/php-reference-mode?${Q}" | head -c 800 || true
 printf '\n'
 
 fail=0
-[[ "$code_ref" == "503" ]] || { printf 'FAIL php-reference not 503\n'; fail=1; }
-[[ "$code_en" == "503" ]] || { printf 'FAIL /en/ not 503\n'; fail=1; }
+# /en/ may be raw 503 or error_page→splash (200 + Loading your store) — both mean PHP paused
+en_paused=0
+[[ "$code_en" == "503" ]] && en_paused=1
+if rg -q 'Loading your store' /tmp/epc_php_en_off.txt 2>/dev/null; then en_paused=1; fi
+[[ "$code_ref" == "503" || "$(rg -c 'Loading your store' /tmp/epc_php_ref_off.txt 2>/dev/null || true)" != "0" ]] \
+  || { printf 'FAIL php-reference not paused\n'; fail=1; }
+[[ "$en_paused" -eq 1 ]] || { printf 'FAIL /en/ not paused\n'; fail=1; }
 [[ "$code_home" == "200" ]] || { printf 'WARN home http=%s (ASP.NET should still answer)\n' "$code_home"; }
+
+# Critical: storefront apps must NOT be the warm-up splash while PHP is paused
+for f in /tmp/epc_php_sf.txt /tmp/epc_php_search.txt /tmp/epc_php_home.txt; do
+  if rg -q 'Loading your store' "$f" && [[ "$(wc -c <"$f")" -lt 4000 ]]; then
+    printf 'FAIL %s is warm-up splash — strip stub→/en and reinstall classic-entry\n' "$f"
+    printf '  ECOMAE_CONFIRM_FIX_WARMUP_SPLASH_LOOP=YES bash scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh\n'
+    fail=1
+  fi
+done
 
 if [[ "$fail" -ne 0 ]]; then
   cat <<EOF >&2
-RESULT=FAIL — PHP serving pause incomplete
+RESULT=FAIL — PHP serving pause incomplete or storefront warm-up loop
 Check nginx include + platform.env TemporarilyDeactivatePhpServing=true + flag $FLAG_ETC
 EOF
   exit 1
@@ -251,7 +302,8 @@ cat <<EOF
 
 #####################################################################
 #  RESULT=PASS — PHP HTTP serving temporarily deactivated
-#  ASP.NET product URLs stay up; /php-reference and /en/ return 503
+#  ASP.NET product URLs stay up; /php-reference and /en/ paused
+#  /storefront/app + /storefront/search-app are ASP.NET (not splash)
 #  KeepPhpProjectAvailable=true · cutoverAllowed=false · readyForPhpRemoval=false
 #  No new PHP feature work — fix gaps in ASP.NET Core only
 #  Restore when done:

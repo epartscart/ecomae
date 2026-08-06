@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Loading — Please wait</title>
-<meta http-equiv="refresh" content="10">
+<!-- Do NOT meta-refresh this splash URL forever — that traps users after deploy. -->
 <style>
 :root{--bg:#070b14;--card:#111827;--text:#f1f5f9;--muted:#94a3b8;--accent:#38bdf8}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%}
@@ -17,21 +17,79 @@ p{color:var(--muted);line-height:1.6;margin:0}
 .bar span{display:block;width:30%;height:100%;background:linear-gradient(90deg,var(--accent),#8b5cf6);border-radius:2px;animation:load 1.5s ease-in-out infinite}
 @keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
 .hint{font-size:.8rem;color:#64748b;margin-top:1rem}
+a.cta{display:inline-block;margin-top:1.25rem;color:var(--accent);text-decoration:none;font-size:.95rem}
+a.cta:hover{text-decoration:underline}
 </style>
 </head>
 <body>
 <div class="card">
 <h1>Loading your store...</h1>
-<p>The page is warming up. It will reload automatically in a few seconds.</p>
+<p id="msg">The page is warming up. It will open the store automatically in a few seconds.</p>
 <div class="bar"><span></span></div>
 <p class="hint">This only happens after a server update. Normal browsing is not affected.</p>
+<a class="cta" id="go" href="/">Open storefront now</a>
 </div>
 <script>
-// Simple countdown reload — no redirect logic, no loops.
-// The meta-refresh already handles the reload; this just provides a faster retry.
-(function(){
-  var delay = 10000;
-  setTimeout(function(){ location.reload(); }, delay);
+(function () {
+  // Escape hatch: never stay on /epc-platform-splash.html forever.
+  // Probe home; when it is real storefront HTML (not this splash), go there.
+  var tries = 0;
+  var maxTries = 12; // ~60s then force /
+  var splashMarker = 'Loading your store';
+
+  function goHome() {
+    var target = '/';
+    try {
+      var params = new URLSearchParams(window.location.search || '');
+      var ret = params.get('return') || params.get('returnUrl') || '';
+      if (ret && ret.charAt(0) === '/' && ret.indexOf('//') === -1 && ret.indexOf('/epc-platform-splash') === -1) {
+        target = ret;
+      }
+    } catch (e) {}
+    window.location.replace(target);
+  }
+
+  function looksLikeSplash(html) {
+    return typeof html === 'string' && html.indexOf(splashMarker) !== -1 && html.length < 4000;
+  }
+
+  function probe() {
+    tries += 1;
+    var msg = document.getElementById('msg');
+    fetch('/?epc_warmup_probe=' + Date.now(), {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { 'Accept': 'text/html' }
+    }).then(function (r) {
+      return r.text().then(function (html) {
+        if (r.ok && !looksLikeSplash(html)) {
+          goHome();
+          return;
+        }
+        if (tries >= maxTries) {
+          if (msg) msg.textContent = 'Still warming up — opening the storefront now.';
+          goHome();
+          return;
+        }
+        if (msg) msg.textContent = 'Still warming up (try ' + tries + '/' + maxTries + ')…';
+        setTimeout(probe, 5000);
+      });
+    }).catch(function () {
+      if (tries >= maxTries) {
+        goHome();
+        return;
+      }
+      setTimeout(probe, 5000);
+    });
+  }
+
+  // If we were sent to the splash FILE url, leave it quickly.
+  if (/epc-platform-splash\.html/i.test(window.location.pathname || '')) {
+    setTimeout(probe, 1200);
+  } else {
+    // error_page kept original URL (e.g. /storefront/search-app or /en/…) — probe then replace with /
+    setTimeout(probe, 1500);
+  }
 })();
 </script>
 </body>
