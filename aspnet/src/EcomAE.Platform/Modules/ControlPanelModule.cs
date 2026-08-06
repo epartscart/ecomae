@@ -3498,9 +3498,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
-        // /cp (+ /cp/ /CP /CP/) are owned by Blazor CpCommandCentreApp for ASP.NET-primary
-        // guest browse. Do not MapGet those aliases here — they AmbiguousMatch with @page routes
-        // and the minimal-API shell required admin (login wall), which blocks same-to-same browse.
+        // /cp (+ /cp/control /CP) owned by Blazor CpCommandCentreApp (AdminSurfaceAuthGateMiddleware).
+        // Do not MapGet those aliases here — they AmbiguousMatch with @page routes.
     }
 
     private static IResult Unauthorized(string message) => Results.Json(

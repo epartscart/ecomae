@@ -2,22 +2,47 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
-## 0★) STOREFRONT `/` STALE / TOP MENU INVISIBLE — FORCE LIVE (do this first)
+## 0⚠) CP AUTH + TOP MENU — FORCE LIVE then sync (paste as one block)
+
+`#887` (CP auth gate) is on `main`. This paste also needs `#886` top-menu visibility until that merges. **Always `cd` into the repo** before `bash scripts/…` (running from `~` → “No such file”). Prefer **GET** proves (`-sS -o /dev/null -w '%{http_code} %{redirect_url}\n'`) — `curl -I` often returns **405** on `/cp`.
+
+```bash
+# 1) Publish ASP.NET binary (top-menu branch until #886 merges; then use main)
+ECOMAE_BRANCH=cursor/storefront-header-topmenu-visible-7b3b \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-topmenu-visible-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+# Must print RESULT=PASS. On FAIL: bash scripts/cloudpanel_DIAGNOSE_STALE_HOME.sh
+
+# 2) cd REPO (required) — sync SecretSuccession + classic-entry /cp/control → :5100
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+git fetch origin main && git checkout -f main && git reset --hard origin/main
+# until #886 merges, also keep top-menu tip:
+# git fetch origin cursor/storefront-header-topmenu-visible-7b3b && git checkout -f cursor/storefront-header-topmenu-visible-7b3b && git reset --hard origin/cursor/storefront-header-topmenu-visible-7b3b
+
+ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+  bash scripts/cloudpanel_sync_secret_succession_from_php.sh
+
+ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
+ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
+  bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
+
+# 3) Prove (GET, not HEAD)
+curl -sS -o /dev/null -w 'cp %{http_code} -> %{redirect_url}\n' https://www.epartscart.com/cp
+curl -sS -o /dev/null -w 'cp/control %{http_code} -> %{redirect_url}\n' https://www.epartscart.com/cp/control
+# expect 302 → …/cp/login
+curl -sS https://www.epartscart.com/cp/login | grep -i 'no login' && echo FAIL guest-browse || echo PASS no-guest-browse
+curl -sS https://www.epartscart.com/ | grep -Fq 'color:rgba(255,255,255,.88) !important' && echo PASS top-menu-visible || echo FAIL top-menu-stale
+```
+
+## 0★) STOREFRONT `/` STALE / TOP MENU INVISIBLE — FORCE LIVE only
 
 Public `https://www.epartscart.com/` is nginx → `:5100/storefront/app`. PHP sync / marker updates are **not** enough. Until the hardened script prints `RESULT=PASS`, home stays on the old binary (`action="/storefront/search-app"`, dark bar + nero dark-gray links = **invisible top menu**).
 
 ```bash
-# Top-menu visibility + PHP graphical header. Prefer branch until merged:
 ECOMAE_BRANCH=cursor/storefront-header-topmenu-visible-7b3b \
   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-topmenu-visible-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
-# After merge to main:
-# bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
-# Must show the RESULT=PASS banner. On FAIL:
+# After #886 merges: use main URL / ECOMAE_BRANCH=main
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-git fetch origin cursor/storefront-header-topmenu-visible-7b3b && git checkout -f cursor/storefront-header-topmenu-visible-7b3b
 bash scripts/cloudpanel_DIAGNOSE_STALE_HOME.sh
-# Laptop prove (expect RESULT=FRESH + top-menu visible CSS):
-# curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-topmenu-visible-7b3b/scripts/prove_epartscart_public_deploy.sh | bash
 ```
 
 ## 0) EXECUTE NOW — tenant-shared `/cp` `/erp` `/` → ASP.NET (URL unchanged)

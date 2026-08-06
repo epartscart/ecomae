@@ -79,6 +79,18 @@ if ! grep -q 'color:rgba(255,255,255,.88) !important' \
   printf 'ERROR: chrome missing top-menu visible CSS (nero dark-gray beat) — checkout too old\n' >&2
   exit 1
 fi
+if ! grep -q 'AdminSurfaceAuthGateMiddleware' aspnet/src/EcomAE.Platform/Program.cs; then
+  printf 'ERROR: AdminSurfaceAuthGateMiddleware not wired — CP guest-browse leak\n' >&2
+  exit 1
+fi
+if grep -q 'data-epc-guest-browse' aspnet/src/EcomAE.Platform/Components/Shared/LegacyAdminLoginForm.razor; then
+  printf 'ERROR: guest-browse bypass still on login form — confidential leak\n' >&2
+  exit 1
+fi
+if ! grep -q '@page "/cp/control"' aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor; then
+  printf 'ERROR: /cp/control not owned by Command Centre — presentation split vs /cp\n' >&2
+  exit 1
+fi
 
 # ---- Discover epartscart document roots from nginx ----
 mapfile -t DOCROOTS < <(
