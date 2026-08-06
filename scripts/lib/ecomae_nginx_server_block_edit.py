@@ -215,7 +215,9 @@ def _location_header_pattern(kind: str, matcher: str) -> re.Pattern[str]:
     if kind == "exact":
         return re.compile(rf"(?m)^[ \t]*location\s*=\s*{re.escape(matcher)}\s*\{{")
     if kind == "prefix":
-        return re.compile(rf"(?m)^[ \t]*location\s*\^~\s*{re.escape(matcher)}\s*\{{")
+        # nginx treats `location /cp/` and `location ^~ /cp/` as the SAME location
+        # (duplicate location "/cp/" emerg) — replacing a prefix must match both forms.
+        return re.compile(rf"(?m)^[ \t]*location\s+(?:\^~\s+)?{re.escape(matcher)}\s*\{{")
     if kind == "regex":
         return re.compile(rf"(?m)^[ \t]*location\s*~\s*{re.escape(matcher)}\s*\{{")
     if kind == "named":

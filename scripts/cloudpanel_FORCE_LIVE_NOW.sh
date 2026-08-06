@@ -326,8 +326,16 @@ def find_blocks(text, start_pat):
     return out
 
 SERVER_PAT = re.compile(r'(?m)^[ \t]*server\s*\{')
-# Only exact (=), ^~ and plain selectors — never touch regex locations.
 LOC_PAT = re.compile(r'(?m)^[ \t]*location\s+(=\s+\S+|\^~\s+\S+|/\S*|/)\s*\{')
+
+def norm_key(sel):
+    # nginx: `location /cp/` and `location ^~ /cp/` are the SAME location slot.
+    parts = sel.split()
+    if parts[0] == '=':
+        return '= ' + parts[1]
+    if parts[0] == '^~':
+        return 'P ' + parts[1]
+    return 'P ' + parts[0]
 
 for conf in sorted(Path('/etc/nginx/sites-enabled').glob('*.conf')):
     try:
@@ -337,21 +345,23 @@ for conf in sorted(Path('/etc/nginx/sites-enabled').glob('*.conf')):
     orig = text
     for s_start, s_end in reversed(find_blocks(text, SERVER_PAT)):
         body = text[s_start:s_end]
-        seen = set()
-        drops = []
+        occ = {}
         for l_start, l_end in find_blocks(body, LOC_PAT):
             m = LOC_PAT.match(body, l_start)
             if not m:
                 continue
-            # keep the FIRST occurrence of each selector; drop later duplicates
-            key = ' '.join(m.group(1).split())
-            if key in seen:
-                drops.append((l_start, l_end))
-            else:
-                seen.add(key)
-        for l_start, l_end in reversed(drops):
-            m = LOC_PAT.match(body, l_start)
-            print(f'repair: dropping duplicate location {" ".join(m.group(1).split())} in {conf}')
+            sel = ' '.join(m.group(1).split())
+            occ.setdefault(norm_key(sel), []).append((l_start, l_end, sel.startswith('^~'), sel))
+        drops = []
+        for key, items in occ.items():
+            if len(items) < 2:
+                continue
+            keep = next((i for i, it in enumerate(items) if it[2]), 0)
+            for i, it in enumerate(items):
+                if i != keep:
+                    drops.append(it)
+                    print(f'repair: dropping duplicate location {it[3]} in {conf}')
+        for l_start, l_end, _, _ in sorted(drops, key=lambda t: t[0], reverse=True):
             body = body[:l_start] + body[l_end:]
         text = text[:s_start] + body + text[s_end:]
     if text != orig:
