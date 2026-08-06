@@ -19,7 +19,7 @@ defined('_ASTEXE_') or die('No access');
 body.epc-erp-standalone{
   background:linear-gradient(155deg, #020617 0%, #0f172a 38%, #1e3a8a 72%, #0c4a6e 100%);
   color:var(--ep-text);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-family:"Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;
   margin:0;min-height:100vh;
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;

@@ -168,7 +168,8 @@ body {
     margin: 0px;
     background: #fff;
     color: #222;
-    font-family: "Roboto","Helvetica","Arial",sans-serif;
+    /* Unified with CP/ERP/BOS: Open Sans 14px (cp/templates/bootstrap_admin/styles/style.css). */
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.7em;
 }
@@ -178,11 +179,11 @@ body {
 }
 
 a {
-    font-family: "Roboto","Helvetica","Arial",sans-serif !important;
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
-   font-family: "Roboto","Helvetica","Arial",sans-serif;
+   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 #header-full-top > .container > .row > div{

@@ -154,7 +154,7 @@ public sealed class LegacyHtmlShellRenderer : ILegacyHtmlShellRenderer
     {
         "bos" => """
             :root { --epc-shell-accent: #111111; --epc-shell-bg: #f0f2f5; --epc-shell-ink: #0f172a; }
-            body.epc-bos-shell { margin: 0; background: var(--bos-bg, var(--epc-shell-bg)); color: var(--epc-shell-ink); font-family: "Segoe UI", Tahoma, sans-serif; }
+            body.epc-bos-shell { margin: 0; background: var(--bos-bg, var(--epc-shell-bg)); color: var(--epc-shell-ink); font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 14px; }
             .epc-aspnet-topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 1.25rem; background: #000; color: #fff; }
             .epc-aspnet-brand { display: inline-flex; align-items: center; gap: 0.65rem; color: inherit; text-decoration: none; font-weight: 700; letter-spacing: 0.04em; }
             .epc-aspnet-brand img { display: block; background: #fff; border-radius: 4px; }
@@ -189,7 +189,7 @@ public sealed class LegacyHtmlShellRenderer : ILegacyHtmlShellRenderer
             """,
         "storefront" => """
             :root { --epc-shell-accent: #1f4b7a; --epc-shell-bg: #f7f8fa; --epc-shell-ink: #1a1a1a; }
-            body.epc-storefront-shell { margin: 0; background: var(--epc-shell-bg); color: var(--epc-shell-ink); font-family: "PT Sans", "Segoe UI", sans-serif; }
+            body.epc-storefront-shell { margin: 0; background: var(--epc-shell-bg); color: var(--epc-shell-ink); font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 14px; }
             .epc-aspnet-topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.9rem 1.4rem; background: linear-gradient(180deg, #ffffff 0%, #f0f3f7 100%); border-bottom: 1px solid #d7dee8; }
             .epc-aspnet-brand { display: inline-flex; align-items: center; gap: 0.65rem; color: var(--epc-shell-accent); text-decoration: none; font-weight: 700; }
             .epc-aspnet-brand img { display: block; }
@@ -223,7 +223,7 @@ public sealed class LegacyHtmlShellRenderer : ILegacyHtmlShellRenderer
             """,
         _ => """
             :root { --epc-shell-accent: #4f46e5; --epc-shell-bg: #f4f6fb; --epc-shell-ink: #1e293b; }
-            body.epc-cp-shell, body.epc-erp-shell, body.epc-migration-shell { margin: 0; background: var(--epc-shell-bg); color: var(--epc-shell-ink); font-family: "Sora", "Segoe UI", sans-serif; }
+            body.epc-cp-shell, body.epc-erp-shell, body.epc-migration-shell { margin: 0; background: var(--epc-shell-bg); color: var(--epc-shell-ink); font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 14px; }
             .epc-aspnet-topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 1.25rem; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
             .epc-aspnet-brand { display: inline-flex; align-items: center; gap: 0.65rem; color: var(--epc-shell-ink); text-decoration: none; font-weight: 700; }
             .epc-aspnet-brand img { display: block; }

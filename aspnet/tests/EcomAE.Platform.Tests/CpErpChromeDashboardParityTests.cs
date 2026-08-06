@@ -29,13 +29,17 @@ public sealed class CpErpChromeDashboardParityTests
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
         Assert.Contains("fa-cubes", src);
-        Assert.Contains("<span>Ecom BOS</span>", src);
+        Assert.Contains("BrandLabel", src);
         Assert.Contains("data-topnav-toggle=", src);
         Assert.Contains("hidden data-topnav-panel=", src);
         Assert.Contains("bindErpTopNav", src);
         Assert.DoesNotContain("epc-erp-topnav-item:hover .epc-erp-topnav-panel", src);
         Assert.DoesNotContain("font-size:.8rem", src);
-        Assert.Contains("font-size:14px", src);
+        Assert.True(
+            src.Contains("font-size:14px", StringComparison.Ordinal)
+            || src.Contains("LegacyPhpFontAssets.BaseFontSize", StringComparison.Ordinal),
+            "ERP chrome must use unified 14px base font size");
+        Assert.Contains("LegacyPhpFontAssets.StackFor(\"erp\")", src);
         Assert.Contains("font-size:22px", src);
     }
 

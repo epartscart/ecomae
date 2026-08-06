@@ -51,7 +51,8 @@ check('css main has no left rail margin', strpos($css, 'margin-left: 0 !importan
 check('js binds topnav', strpos($js, 'bindBosTopnav') !== false || strpos($js, 'bosTopnav') !== false);
 check('js places flyout panels', strpos($js, 'data-bos-topnav-panel') !== false);
 
-check('version bumped to 1.5.0', strpos($unified, "define('EPC_BOS_VERSION', '1.5.0')") !== false);
+check('version bumped to 1.5.1', strpos($unified, "define('EPC_BOS_VERSION', '1.5.1')") !== false);
+check('css uses Open Sans product font', strpos($css, 'Open Sans') !== false);
 
 echo "\n----------------------------\n";
 echo "Passed: $pass  Failed: $fail\n";

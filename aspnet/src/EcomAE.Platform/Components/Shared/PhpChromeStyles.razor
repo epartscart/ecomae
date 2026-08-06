@@ -13,8 +13,15 @@
     ApplyStorefrontIndustryAttrs="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))"
     IncludeMarketingScripts="@(Surface.Equals("marketing", StringComparison.OrdinalIgnoreCase))" />
 <style>
-    .epc-php-font-root { font-family: @(LegacyPhpFontAssets.StackFor(Surface)); }
-    html, body { font-family: @(LegacyPhpFontAssets.StackFor(Surface)); }
+    :root {
+        --epc-php-font: @(LegacyPhpFontAssets.StackFor(Surface));
+        --epc-php-font-size: @(LegacyPhpFontAssets.FontSizeFor(Surface));
+    }
+    .epc-php-font-root,
+    html, body {
+        font-family: var(--epc-php-font);
+        font-size: var(--epc-php-font-size);
+    }
 </style>
 
 @code {

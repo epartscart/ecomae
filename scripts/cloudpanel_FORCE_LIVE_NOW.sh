@@ -127,8 +127,10 @@ for dir in "${DOCROOTS[@]}"; do
     "$dir/content/general_pages/epc_storefront_professional_shell.css"
   cp -f "$REPO/content/general_pages/epc_storefront_professional_shell_css.php" \
     "$dir/content/general_pages/" 2>/dev/null || true
-  # Public proof marker (bypass caches with unique query later)
-  printf 'sha=%s time=%s\n' "$FULL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  # Marker starts pending — status=pass is written ONLY after public :5100 prove.
+  # A matching sha alone does NOT mean live ASP.NET was republished.
+  printf 'status=pending sha=%s time=%s note=php-docroot-synced-aspnet-not-proven-yet\n' \
+    "$FULL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     > "$dir/epc-live-deploy-marker.txt"
   SYNCED=$((SYNCED + 1))
   printf '  synced → %s\n' "$dir"
@@ -207,13 +209,14 @@ else
   printf 'WARN: no nginx confs mentioning epartscart were patched\n' >&2
 fi
 
-# Also try classic-entry installer (best-effort)
-if [[ -f scripts/cloudpanel_install_classic_entry_aspnet_primary.sh ]]; then
-  ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
-  ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
-    bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts \
-    || printf 'WARN: classic-entry installer non-zero\n' >&2
+# Classic-entry: public / MUST proxy to :5100/storefront/app (not best-effort).
+if [[ ! -f scripts/cloudpanel_install_classic_entry_aspnet_primary.sh ]]; then
+  printf 'ERROR: missing scripts/cloudpanel_install_classic_entry_aspnet_primary.sh\n' >&2
+  exit 1
 fi
+ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
+ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
+  bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
 
 # ---- Direct ASP.NET publish ----
 command -v dotnet >/dev/null || { printf 'ERROR: dotnet missing\n' >&2; exit 1; }
@@ -228,33 +231,55 @@ dotnet restore aspnet/EcomAE.AspNetCore.sln
 dotnet publish aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj -c Release -o "$PLATFORM_DIR"
 dotnet publish aspnet/src/EcomAE.Workers/EcomAE.Workers.csproj -c Release -o "$WORKERS_DIR"
 printf '%s\n' "$FULL" > "$RELEASE_DIR/PUBLISHED_GIT_SHA.txt"
+# Service runs as www-data — root-owned publish trees cause silent stale/orphan :5100.
+chown -R www-data:www-data "$RELEASE_DIR"
 ln -sfn "$RELEASE_DIR" "$RELEASE_ROOT/current"
+chown -h www-data:www-data "$RELEASE_ROOT/current" 2>/dev/null || true
 printf 'current -> %s\n' "$(readlink -f "$RELEASE_ROOT/current")"
+# Prove published DLL contains the new chrome markers (not just "dotnet publish exited 0").
+if ! strings "$PLATFORM_DIR/EcomAE.Platform.dll" 2>/dev/null | grep -Fq 'header-call-box a { background:#ef4444'; then
+  # Razor may compile away literal; also accept PartSearch canonical token in deps/views.
+  if ! rg -l 'PartSearch|part_search' "$PLATFORM_DIR" --glob '*.dll' --glob '*.json' >/dev/null 2>&1 \
+     && ! grep -RFq 'part_search' "$PLATFORM_DIR" 2>/dev/null; then
+    printf 'WARN: could not string-scan published output for part_search (continuing to HTTP prove)\n' >&2
+  fi
+fi
 
 install -d /etc/systemd/system "$ENV_DIR"
 install -m 0644 deploy/aspnet/ecomae-platform.service /etc/systemd/system/ecomae-platform.service
 systemctl daemon-reload
 systemctl enable ecomae-platform.service
 
-# Hard bounce :5100
+# Hard bounce :5100 — kill EVERYTHING on the port, then start unit.
 systemctl stop ecomae-platform.service || true
 sleep 1
-# Clear any orphan listener on 5100 (stale process left old binary serving)
 if command -v fuser >/dev/null 2>&1; then
   fuser -k 5100/tcp 2>/dev/null || true
 fi
+# Also kill stray dotnet Platform processes not under systemd.
+pkill -f 'EcomAE.Platform.dll' 2>/dev/null || true
+sleep 1
 systemctl start ecomae-platform.service
-sleep 4
+sleep 5
 systemctl --no-pager --full status ecomae-platform.service || true
-bash scripts/wait_for_aspnet_health.sh || true
+if ! systemctl is-active --quiet ecomae-platform.service; then
+  printf 'ERROR: ecomae-platform.service is not active after start\n' >&2
+  journalctl -u ecomae-platform.service -n 80 --no-pager >&2 || true
+  exit 1
+fi
+bash scripts/wait_for_aspnet_health.sh || {
+  printf 'ERROR: ASP.NET health wait failed\n' >&2
+  journalctl -u ecomae-platform.service -n 80 --no-pager >&2 || true
+  exit 1
+}
 
 fail=0
-printf '\n== Prove LOCAL :5100 ==\n'
-BODY="$(curl -sS -A 'Mozilla/5.0' --max-time 45 http://127.0.0.1:5100/ || true)"
-if ! grep -Fq 'epc-nero-shell' <<<"$BODY"; then
-  BODY="$(curl -sS -A 'Mozilla/5.0' --max-time 45 http://127.0.0.1:5100/storefront/app || true)"
-fi
+# nginx location = / proxies to THIS path — never prove only :5100/
+printf '\n== Prove LOCAL :5100/storefront/app (nginx home target) ==\n'
+BODY="$(curl -sS -A 'Mozilla/5.0' --max-time 45 http://127.0.0.1:5100/storefront/app || true)"
+printf 'local /storefront/app bytes=%s\n' "${#BODY}"
 for needle in \
+  'epc-nero-shell' \
   'Catalog <span class="hidden-sm">of products</span>' \
   'action="/en/shop/part_search"' \
   'header-call-box a { background:#ef4444'
@@ -267,7 +292,7 @@ do
   fi
 done
 if grep -Fq 'action="/storefront/search-app"' <<<"$BODY"; then
-  printf 'FAIL local still has search-app form — OLD BINARY\n'
+  printf 'FAIL local still has search-app form — OLD BINARY on :5100\n'
   fail=1
 fi
 
@@ -277,21 +302,55 @@ LOC="$(curl -sSI -A 'Mozilla/5.0' --max-time 20 \
 printf 'local search-app Location: %s\n' "$LOC"
 [[ "$LOC" == *'/en/shop/part_search'* ]] || { printf 'FAIL local search-app redirect\n'; fail=1; }
 
-printf '\n== Prove PUBLIC %s ==\n' "$PUBLIC_BASE"
-# Bust caches
+printf '\n== Prove PUBLIC %s/ (must be ASP.NET via nginx→:5100/storefront/app) ==\n' "$PUBLIC_BASE"
 Q="epc_deploy_probe=$(date +%s)"
 P_BODY="$(curl -sS -A 'Mozilla/5.0' --max-time 45 "${PUBLIC_BASE}/?${Q}" || true)"
 P_HDR="$(curl -sSI -A 'Mozilla/5.0' --max-time 20 "${PUBLIC_BASE}/storefront/search-app?article=1310154101&${Q}" || true)"
+printf 'public / bytes=%s\n' "${#P_BODY}"
 printf '%s\n' "$P_HDR" | head -15
 
-if grep -Fq 'action="/en/shop/part_search"' <<<"$P_BODY"; then
-  printf 'PASS public home posts to /en/shop/part_search\n'
-else
-  printf 'FAIL public home still not on new binary\n'
-  fail=1
+# Origin bypass (skip Cloudflare) — proves nginx on this box, not CDN cache.
+ORIGIN_BODY=""
+if ORIGIN_IP="$(curl -4 -sS --max-time 5 https://ifconfig.me/ip 2>/dev/null || true)"; then
+  :
 fi
+ORIGIN_BODY="$(curl -4 -k -sS -A 'Mozilla/5.0' --max-time 45 \
+  --resolve "www.epartscart.com:443:127.0.0.1" \
+  "https://www.epartscart.com/?${Q}" 2>/dev/null || true)"
+if [[ -z "$ORIGIN_BODY" ]]; then
+  ORIGIN_BODY="$(curl -4 -k -sS -A 'Mozilla/5.0' --max-time 45 \
+    --resolve "www.epartscart.com:443:127.0.0.1" \
+    "http://127.0.0.1/" -H 'Host: www.epartscart.com' 2>/dev/null || true)"
+fi
+if [[ -n "$ORIGIN_BODY" ]]; then
+  printf 'origin-loopback / bytes=%s\n' "${#ORIGIN_BODY}"
+  if grep -Fq 'action="/storefront/search-app"' <<<"$ORIGIN_BODY"; then
+    printf 'FAIL origin-loopback still has search-app — nginx/Kestrel on THIS box is stale\n'
+    fail=1
+  fi
+  if ! grep -Fq 'action="/en/shop/part_search"' <<<"$ORIGIN_BODY"; then
+    printf 'FAIL origin-loopback missing part_search form\n'
+    fail=1
+  fi
+else
+  printf 'WARN origin-loopback curl failed (nginx may not listen 443 on loopback)\n' >&2
+fi
+
+for needle in \
+  'epc-nero-shell' \
+  'ecomae-php-chrome-surface' \
+  'action="/en/shop/part_search"' \
+  'header-call-box a { background:#ef4444'
+do
+  if grep -Fq "$needle" <<<"$P_BODY"; then
+    printf 'PASS public %s\n' "$needle"
+  else
+    printf 'FAIL public missing %s\n' "$needle"
+    fail=1
+  fi
+done
 if grep -Fq 'action="/storefront/search-app"' <<<"$P_BODY"; then
-  printf 'FAIL public home still posts to /storefront/search-app\n'
+  printf 'FAIL public home still posts to /storefront/search-app (OLD :5100 BINARY)\n'
   fail=1
 fi
 if printf '%s' "$P_HDR" | grep -qiE '^location:.*(/en/shop/part_search|part_search)'; then
@@ -307,24 +366,53 @@ fi
 MARKER="$(curl -sS -A 'Mozilla/5.0' --max-time 15 "${PUBLIC_BASE}/epc-live-deploy-marker.txt?${Q}" || true)"
 printf 'public marker: %s\n' "$MARKER"
 if [[ "$MARKER" == *"$FULL"* ]] || [[ "$MARKER" == *"$SHA"* ]]; then
-  printf 'PASS public deploy marker matches published SHA\n'
+  printf 'PASS public deploy marker SHA matches checkout\n'
 else
-  printf 'WARN public marker missing/mismatch — www docroot may not be the live root\n'
+  printf 'FAIL public marker missing/mismatch — www docroot may not be the live root\n'
+  fail=1
 fi
 
 printf '\nPublished SHA: %s\nRelease: %s\n' "$SHA" "$RELEASE_DIR"
 printf 'Hard refresh: Ctrl+Shift+R on %s/\n' "$PUBLIC_BASE"
 
+write_marker_status() {
+  local st="$1"
+  local note="$2"
+  local line
+  line="$(printf 'status=%s sha=%s time=%s note=%s\n' "$st" "$FULL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$note")"
+  for dir in "${DOCROOTS[@]}"; do
+    [[ -d "$dir" ]] || continue
+    printf '%s' "$line" > "$dir/epc-live-deploy-marker.txt"
+  done
+}
+
 if [[ "$fail" -ne 0 ]]; then
-  printf '\nRESULT=FAIL — live still stale. Paste this whole log.\n' >&2
+  write_marker_status fail 'php-may-be-synced-but-public-aspnet-home-still-stale'
+  cat <<'EOF' >&2
+
+#####################################################################
+#  RESULT=FAIL
+#  PHP sync / marker / search redirect is NOT a successful deploy.
+#  Public https://www.epartscart.com/ must show part_search forms.
+#  Paste this WHOLE log. Do NOT mark the deploy complete.
+#####################################################################
+EOF
   printf 'Debug:\n' >&2
   printf '  readlink -f %s/current; ls -l %s/current/platform/EcomAE.Platform.dll\n' "$RELEASE_ROOT" "$RELEASE_ROOT" >&2
   printf '  systemctl cat ecomae-platform.service | sed -n "1,20p"\n' >&2
   printf '  ss -lntp | grep 5100 || netstat -lntp | grep 5100\n' >&2
+  printf '  curl -sS http://127.0.0.1:5100/storefront/app | grep -o "action=\\\"[^\"]*\\\"" | sort -u | head\n' >&2
+  printf '  curl -sS https://www.epartscart.com/ | grep -o "action=\\\"[^\"]*\\\"" | sort -u | head\n' >&2
   printf '  journalctl -u ecomae-platform.service -n 100 --no-pager\n' >&2
   printf '  bash scripts/cloudpanel_discover_epartscart_nginx_conf.sh | head -100\n' >&2
   exit 1
 fi
 
-printf '\nRESULT=PASS — public epartscart shows new storefront + search redirect (SHA %s)\n' "$SHA"
+write_marker_status pass 'public-home-and-search-redirect-proven'
+cat <<EOF
+
+#####################################################################
+#  RESULT=PASS — public / is new ASP.NET storefront (SHA $SHA)
+#####################################################################
+EOF
 exit 0

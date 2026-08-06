@@ -2,6 +2,21 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
+## 0★) STOREFRONT `/` STALE AFTER #877+ — FORCE LIVE (do this first)
+
+Public `https://www.epartscart.com/` is nginx → `:5100/storefront/app`. PHP sync / marker updates are **not** enough. Until the hardened script prints `RESULT=PASS`, home stays on the old binary (`action="/storefront/search-app"`).
+
+```bash
+# Prefer branch until #882 merges; then use main URL.
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/php-parity-unified-fonts-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+# Must show the RESULT=PASS banner. On FAIL:
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+git fetch origin cursor/php-parity-unified-fonts-7b3b && git checkout -f cursor/php-parity-unified-fonts-7b3b
+bash scripts/cloudpanel_DIAGNOSE_STALE_HOME.sh
+# Laptop prove (expect RESULT=FRESH):
+# curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/php-parity-unified-fonts-7b3b/scripts/prove_epartscart_public_deploy.sh | bash
+```
+
 ## 0) EXECUTE NOW — tenant-shared `/cp` `/erp` `/` → ASP.NET (URL unchanged)
 
 Release owner confirmed: **epartscart.com** and **ecomae.com** shared links must keep working as `/cp` `/erp` (no change to tenant-facing URLs). **Product `/bos` is Super-CP only** (`www.ecomae.com` / `cp.ecomae.com`) — tenant hosts must **404** `/bos` (confidential). PHP reference is **separate** under `/php-reference/*`.
