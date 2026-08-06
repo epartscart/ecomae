@@ -141,6 +141,39 @@ public static class ErpIndustryNav
         ];
     }
 
+    /// <summary>
+    /// Super-CP always needs at least MAIN + JW so the dashboard company picker can switch
+    /// <c>?company=1</c> ↔ <c>?company=2</c> without editing the URL by hand.
+    /// Tenant hosts keep digest rows as-is.
+    /// </summary>
+    public static IReadOnlyList<ErpCompanyDigest> EnsureSwitchableCompanies(
+        IReadOnlyList<ErpCompanyDigest>? companies,
+        bool isSuperCpHost,
+        string brandLabel)
+    {
+        var list = companies is { Count: > 0 }
+            ? companies.ToList()
+            : new List<ErpCompanyDigest>();
+
+        if (!isSuperCpHost)
+        {
+            return list;
+        }
+
+        foreach (var fallback in FallbackCompanies(brandLabel))
+        {
+            if (list.Any(c => c.Id == fallback.Id
+                || string.Equals(c.Code, fallback.Code, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            list.Add(fallback);
+        }
+
+        return list;
+    }
+
     public static string IndustryLabelForPack(string? pack, bool jewellery)
     {
         if (jewellery)
