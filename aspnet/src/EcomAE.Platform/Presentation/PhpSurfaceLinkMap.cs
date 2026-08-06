@@ -18,6 +18,11 @@ public static class PhpSurfaceLinkMap
         ("control/shop/prices", "/cp/price-lists-app"),
         ("control/shop/pos", "/cp/pos-overview-app"),
         ("control/portal/epc_tenant_control_center", "/cp/tenants-app"),
+        ("shop/tenant_hub/tenant_hub", "/cp/tenants-app"),
+        ("control/portal/epc_platform_health_checkup", "/cp/failover-status-app"),
+        ("control/portal/epc_boc_audit_log", "/bos/audit-log-app"),
+        ("control/portal/epc_boc_channel_control", "/cp/marketplace-channels-app"),
+        ("control/cp_brochure", "/brochure/cp"),
         ("control/portal/epc_api_clients_manage", "/cp/api-clients-app"),
         ("control/portal/epc_power_bi", "/cp/power-bi-app"),
         ("control/portal/epc_mobile_apps", "/cp/mobile-apps-app"),
@@ -100,8 +105,11 @@ public static class PhpSurfaceLinkMap
                 || absolute.Host.Equals("ecomae.com", StringComparison.OrdinalIgnoreCase)
                 || absolute.Host.EndsWith(".ecomae.com", StringComparison.OrdinalIgnoreCase))
             {
-                // Industry showcase /CP /ERP on *.ecomae.com → same-host ASP.NET shells.
+                // Industry showcase /CP /ERP /BOS on *.ecomae.com → same-host ASP.NET shells.
+                // Product Super BOS is bare /bos (and /BOS) — never the marketing knowledge article.
                 var path = absolute.AbsolutePath ?? "/";
+                var absHash = string.IsNullOrEmpty(absolute.Fragment) ? "" : absolute.Fragment;
+                var absQuery = string.IsNullOrEmpty(absolute.Query) ? "" : absolute.Query;
                 if (IsUpperPhpShell(path, "CP") || path.Equals("/cp", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase))
                 {
                     return absolute.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/cp";
@@ -110,6 +118,19 @@ public static class PhpSurfaceLinkMap
                 if (IsUpperPhpShell(path, "ERP") || path.Equals("/erp", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase))
                 {
                     return absolute.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/erp";
+                }
+
+                if (IsUpperPhpShell(path, "BOS")
+                    || path.Equals("/bos", StringComparison.OrdinalIgnoreCase)
+                    || path.Equals("/bos/", StringComparison.OrdinalIgnoreCase))
+                {
+                    return MapBosPhpPath(path + absQuery) + absHash;
+                }
+
+                // Product BOS digests (/bos/tenants-app, …) stay on-host; do not rewrite to marketing.
+                if (path.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase))
+                {
+                    return path.TrimEnd('/') + absQuery + absHash;
                 }
 
                 return MapMarketingPath(path, absolute.Fragment);
@@ -347,11 +368,12 @@ public static class PhpSurfaceLinkMap
             return "/erp";
         }
 
-        // Marketing knowledge under /bos/* stays on PHP (bare /bos is product Super-CP).
+        // Bare /bos is product Super BOS (Super-CP host only). Marketing knowledge
+        // lives at /bos/what-is-a-business-operating-system (and other article slugs).
         if (value.Equals("/bos", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/bos/", StringComparison.OrdinalIgnoreCase))
         {
-            return EcomaeMarketingPages.BosKnowledgePhp + frag;
+            return "/bos" + frag;
         }
 
         if (value.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase)
