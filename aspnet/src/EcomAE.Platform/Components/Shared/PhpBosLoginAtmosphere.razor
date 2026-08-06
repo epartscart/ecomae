@@ -1,24 +1,16 @@
 @using System.Text.Json
 @*
-  Login universe atmosphere (background only):
-  - Local NASA / Webb stills with remote fallback
+  Login sky atmosphere (background only):
+  - Dark gradient sky (no photo stills)
   - 480 star-dots with mixed fall speeds
   - Round moons + planets + orbs (CSS spheres) — never glyph icons on top
 *@
 
-<div class="bos-login__bg bos-login__bg--universe bos-login__bg--@Theme"
+<div class="bos-login__bg bos-login__bg--sky bos-login__bg--@Theme"
      data-bos-atmosphere="@Theme"
      data-bos-industry="@Industry"
      aria-hidden="true">
-    <div class="bos-login__universe">
-        <img class="bos-login__universe-photo"
-             src="@UniverseLocalUrl"
-             data-fallback="@UniverseRemoteUrl"
-             alt=""
-             title="Image credit: NASA / ESA / CSA / STScI"
-             onerror="if(this.dataset.fallback){this.onerror=null;this.src=this.dataset.fallback;}" />
-    </div>
-    <div class="bos-login__universe-veil"></div>
+    <div class="bos-login__sky-veil"></div>
     <div class="bos-login__grid-lines"></div>
     <div class="bos-login__sky" id="@(ParticlesId)_sky"></div>
     <div class="bos-login__particles" id="@ParticlesId"></div>
@@ -190,27 +182,6 @@
         "rgba(255,255,255,.85)", "rgba(14,165,233,.7)", "rgba(56,189,248,.55)",
         "rgba(251,191,36,.45)", "rgba(168,85,247,.4)"
     ];
-
-    private (string Local, string Remote) UniverseStill => (Industry ?? Theme ?? "").ToLowerInvariant() switch
-    {
-        "auto_parts" or "autoparts" =>
-            ("cassiopeia-a.jpg", "https://images-assets.nasa.gov/image/PIA16884/PIA16884~medium.jpg"),
-        "electronics" or "circuit" =>
-            ("andromeda.jpg", "https://images-assets.nasa.gov/image/PIA12348/PIA12348~medium.jpg"),
-        "fashion" =>
-            ("tarantula.jpg", "https://cdn.esawebb.org/archives/images/screen/weic2205a.jpg"),
-        "jewellery" or "sparkle" =>
-            ("pillars.jpg", "https://cdn.esawebb.org/archives/images/screen/weic2216a.jpg"),
-        "finance" or "advisory" or "teal-moon" =>
-            ("andromeda.jpg", "https://images-assets.nasa.gov/image/PIA12348/PIA12348~medium.jpg"),
-        "crimson-stars" =>
-            ("cassiopeia-a.jpg", "https://images-assets.nasa.gov/image/PIA16884/PIA16884~medium.jpg"),
-        _ =>
-            ("pillars.jpg", "https://cdn.esawebb.org/archives/images/screen/weic2216a.jpg")
-    };
-
-    private string UniverseLocalUrl => $"/platform-assets/universe/{UniverseStill.Local}";
-    private string UniverseRemoteUrl => UniverseStill.Remote;
 
     private MarkupString _particlesIdJson;
     private MarkupString _particleColorsJson;
