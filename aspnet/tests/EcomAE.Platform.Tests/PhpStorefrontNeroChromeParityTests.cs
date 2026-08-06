@@ -139,6 +139,11 @@ public sealed class PhpStorefrontNeroChromeParityTests
             $"home body out of PHP order: hero={hero} banners={banners} vin={vin} front={front}");
         // Invented (non-PHP) scaffold must not render on the product home.
         Assert.DoesNotContain("PhpStorefrontHomeDepth", text, StringComparison.Ordinal);
+        // Home sections render BEFORE #sb-site (PHP slot) — inside #Container the
+        // professional-shell ink rules (!important) turn hero/VIN text dark-on-dark.
+        Assert.Contains("<HomeContent>", text, StringComparison.Ordinal);
+        var homeContent = text.IndexOf("<HomeContent>", StringComparison.Ordinal);
+        Assert.True(hero > homeContent, "piston hero must live in the HomeContent slot");
     }
 
     [Fact]

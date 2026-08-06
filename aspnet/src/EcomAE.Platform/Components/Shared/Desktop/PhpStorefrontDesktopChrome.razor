@@ -282,6 +282,12 @@
         </div>
     </div>
 
+    @* PHP desktop.php renders the home sections (piston hero, banners, VIN, catalog
+       links) BEFORE #sb-site — NOT inside #Container. The professional shell CSS
+       forces #Container h2/div/p to dark ink (!important); wrapping the home inside
+       #Container turned the hero/VIN text dark-on-dark (invisible). *@
+    @HomeContent
+
     <div id="sb-site">
         <div class="boxed">
             <div class="container">
@@ -745,6 +751,9 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Home body sections rendered BEFORE #sb-site (same slot as PHP desktop.php).</summary>
+    [Parameter] public RenderFragment? HomeContent { get; set; }
 
     private bool _signedIn;
     private string _userLabel = "Account";
