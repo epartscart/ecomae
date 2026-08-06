@@ -35,7 +35,8 @@ public sealed class CpAuthGateParityTests
         Assert.DoesNotContain("Enter CP (no login)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("data-epc-guest-browse", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Browse the shell without credentials", text, StringComparison.Ordinal);
-        Assert.Contains("Guest browse of Control is", text, StringComparison.Ordinal);
+        // Wording is stack-neutral since the tenant UI hide-stack pass (no "Control"/framework names).
+        Assert.Contains("Guest browse is disabled", text, StringComparison.Ordinal);
         Assert.Contains("disabled", text, StringComparison.OrdinalIgnoreCase);
     }
 

@@ -124,6 +124,107 @@ public sealed class PhpStorefrontNeroChromeParityTests
         Assert.Contains("StorefrontSurfaceLinks.DemandIntelligence", text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void HomeRendersPhpBodySectionsInPhpOrder()
+    {
+        // Same order as templates/nero/desktop.php automotive_spareparts_pro home:
+        // piston hero → quick-link banners → VIN request → epart front catalog sections.
+        var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor");
+        var text = File.ReadAllText(path);
+        var hero = text.IndexOf("<PhpAspPistonBanner", StringComparison.Ordinal);
+        var banners = text.IndexOf("<PhpAspHomeBanners", StringComparison.Ordinal);
+        var vin = text.IndexOf("<PhpVinRequestSection", StringComparison.Ordinal);
+        var front = text.IndexOf("<PhpEpartFrontSections", StringComparison.Ordinal);
+        Assert.True(hero >= 0 && banners > hero && vin > banners && front > vin,
+            $"home body out of PHP order: hero={hero} banners={banners} vin={vin} front={front}");
+        // Invented (non-PHP) scaffold must not render on the product home.
+        Assert.DoesNotContain("PhpStorefrontHomeDepth", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HomeBannersMatchPhpAutomotiveSparepartsData()
+    {
+        // Mirrors epc_asp_home_banners() in content/general_pages/epc_automotive_spareparts_data.php.
+        var path = Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpAspHomeBanners.razor");
+        var text = File.ReadAllText(path);
+        Assert.Contains("epc-home-banners epc-asp-home-banners", text, StringComparison.Ordinal);
+        Assert.Contains("epc-home-banner epc-home-banner--red", text, StringComparison.Ordinal);
+        Assert.Contains("epc-home-banner epc-home-banner--blue", text, StringComparison.Ordinal);
+        Assert.Contains("epc-home-banner epc-home-banner--green", text, StringComparison.Ordinal);
+        Assert.Contains("epc-home-banner epc-home-banner--dark", text, StringComparison.Ordinal);
+        Assert.Contains("Search by part number", text, StringComparison.Ordinal);
+        Assert.Contains("Quickly check price, availability and delivery time.", text, StringComparison.Ordinal);
+        Assert.Contains("Trusted brands", text, StringComparison.Ordinal);
+        Assert.Contains("Electronic catalog", text, StringComparison.Ordinal);
+        Assert.Contains("VIN request", text, StringComparison.Ordinal);
+        Assert.Contains("fa fa-barcode", text, StringComparison.Ordinal);
+        Assert.Contains("fa fa-shield", text, StringComparison.Ordinal);
+        Assert.Contains("fa fa-sitemap", text, StringComparison.Ordinal);
+        Assert.Contains("fa fa-car", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void VinRequestSectionMatchesPhpVinZaprosMarkup()
+    {
+        // Mirrors content/general_pages/vin_zapros/section_vin_request.php.
+        var path = Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpVinRequestSection.razor");
+        var text = File.ReadAllText(path);
+        Assert.Contains("class=\"section-vin\"", text, StringComparison.Ordinal);
+        Assert.Contains("section-vin__main", text, StringComparison.Ordinal);
+        Assert.Contains("section-vin__info", text, StringComparison.Ordinal);
+        Assert.Contains("section-vin__btn", text, StringComparison.Ordinal);
+        Assert.Contains("background-color: #2E2E2E", text, StringComparison.Ordinal);
+        Assert.Contains("btn btn-ar btn-primary", text, StringComparison.Ordinal);
+        Assert.Contains("/content/general_pages/vin_zapros/email.png", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EpartFrontSectionsMirrorPhpCatalogFrontLinks()
+    {
+        // Mirrors content/general_pages/epart_catalog_front_links.php section shell.
+        var path = Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEpartFrontSections.razor");
+        var text = File.ReadAllText(path);
+        Assert.Contains("epart-front-original-data", text, StringComparison.Ordinal);
+        Assert.Contains("epart-front-section epart-front-section-family", text, StringComparison.Ordinal);
+        Assert.Contains("epart-front-section epart-front-section-catalog", text, StringComparison.Ordinal);
+        Assert.Contains("epart-front-section epart-front-section-brands", text, StringComparison.Ordinal);
+        Assert.Contains("epart-front-section epart-front-section-original", text, StringComparison.Ordinal);
+        Assert.Contains(">Family Product</h2>", text, StringComparison.Ordinal);
+        Assert.Contains(">Epart Catalog</h2>", text, StringComparison.Ordinal);
+        Assert.Contains(">Available Brands</h2>", text, StringComparison.Ordinal);
+        Assert.Contains(">Original Catalog</h2>", text, StringComparison.Ordinal);
+        Assert.Contains("View all families &rarr;", text, StringComparison.Ordinal);
+        Assert.Contains("Open full catalog &rarr;", text, StringComparison.Ordinal);
+        Assert.Contains("View all brands &rarr;", text, StringComparison.Ordinal);
+        Assert.Contains("Open vehicle catalog &rarr;", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HomeWidgetHtmlRendersExactPhpWidgetsWithoutPhpTags()
+    {
+        var family = PhpHomeWidgetHtml.ProductFamily();
+        Assert.Contains("id=\"epc-product-family\"", family, StringComparison.Ordinal);
+        Assert.Contains("data-api=\"/content/shop/docpart/ajax_epc_product_family.php\"", family, StringComparison.Ordinal);
+        Assert.Contains("data-lang=\"/en\"", family, StringComparison.Ordinal);
+        Assert.DoesNotContain("<?php", family, StringComparison.Ordinal);
+
+        var umapi = PhpHomeWidgetHtml.UmapiCatalog();
+        Assert.Contains("id=\"epc-umapi\"", umapi, StringComparison.Ordinal);
+        Assert.Contains("data-lang-href=\"/en\"", umapi, StringComparison.Ordinal);
+        Assert.Contains("/api/umapi_proxy.php", umapi, StringComparison.Ordinal);
+        Assert.DoesNotContain("<?php", umapi, StringComparison.Ordinal);
+
+        var brands = PhpHomeWidgetHtml.AvailableBrands();
+        Assert.Contains("id=\"epc-brands\"", brands, StringComparison.Ordinal);
+        Assert.Contains("data-prices-visible=\"0\"", brands, StringComparison.Ordinal);
+        Assert.Contains("epc-price-login-cta", brands, StringComparison.Ordinal);
+        Assert.DoesNotContain("<?php", brands, StringComparison.Ordinal);
+
+        var vehicle = PhpHomeWidgetHtml.VehicleCatalog();
+        Assert.Contains("id=\"epc-vehicle-catalog\"", vehicle, StringComparison.Ordinal);
+        Assert.DoesNotContain("<?php", vehicle, StringComparison.Ordinal);
+    }
+
     private static string Find(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

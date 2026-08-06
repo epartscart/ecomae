@@ -13,16 +13,15 @@
 <PhpStorefrontDesktopChrome>
     @if (string.IsNullOrWhiteSpace(_phpHref))
     {
+        @* Same order as PHP templates/nero/desktop.php home (automotive_spareparts_pro):
+           piston hero → quick-link banners → VIN request → front catalog sections. *@
         <PhpAspPistonBanner
             SearchHref="@StorefrontSurfaceLinks.PartSearch"
             CatalogHref="@StorefrontSurfaceLinks.UmapiCatalog"
             BrandsHref="@StorefrontSurfaceLinks.AvailableBrands" />
-        <PhpStorefrontHomeDepth
-            BrandsHref="@StorefrontSurfaceLinks.UmapiCatalog"
-            CatalogHref="@StorefrontSurfaceLinks.ProductFamily"
-            VinHref="@StorefrontSurfaceLinks.LaximoVin" />
-
-        @* Hybrid module directory omitted on live home — catalog/search use PHP /en/… canonical. *@
+        <PhpAspHomeBanners />
+        <PhpVinRequestSection />
+        <PhpEpartFrontSections />
     }
     else
     {
