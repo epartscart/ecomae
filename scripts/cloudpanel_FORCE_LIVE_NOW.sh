@@ -99,6 +99,14 @@ if ! grep -q '@page "/cp/control"' aspnet/src/EcomAE.Platform/Components/Pages/C
   exit 1
 fi
 
+# ---- Re-render tenant home snapshots with live settings (php on CloudPanel) ----
+# electronicae / stylenlook / thejewellerytrend / taxofinca homes are PHP-rendered
+# snapshots served by ASP.NET; regenerating here picks up live site settings + menus.
+if command -v php >/dev/null 2>&1 && [[ -f scripts/render_php_home_snapshots.php ]]; then
+  php scripts/render_php_home_snapshots.php \
+    || printf 'WARN: tenant home snapshot render failed — committed snapshots serve\n' >&2
+fi
+
 # ---- Discover epartscart document roots from nginx ----
 mapfile -t DOCROOTS < <(
   {
@@ -556,6 +564,25 @@ else
   printf 'FAIL public search-app unexpected response\n'
   fail=1
 fi
+
+# ---- Prove other tenants + surfaces (non-fatal: DNS/routing may differ per host) ----
+printf '\n== Prove tenant homes + marketing + CP/ERP (WARN-only) ==\n'
+prove_host_marker() {
+  local url="$1" marker="$2" label="$3" body
+  body="$(curl -sS -A 'Mozilla/5.0' --max-time 30 "${url}?epc_probe=$(date +%s)" 2>/dev/null || true)"
+  if grep -Fq "$marker" <<<"$body"; then
+    printf 'PASS %s (%s)\n' "$label" "$marker"
+  else
+    printf 'WARN %s missing %s (bytes=%s)\n' "$label" "$marker" "${#body}"
+  fi
+}
+prove_host_marker https://www.electronicae.com/ 'epc-er-home' 'electronicae home'
+prove_host_marker https://www.stylenlook.com/ 'epc-frn-home' 'stylenlook home'
+prove_host_marker https://www.thejewellerytrend.com/ 'epc-jrk-home' 'thejewellerytrend home'
+prove_host_marker https://www.taxofinca.com/ 'epc-cpi-home' 'taxofinca home'
+prove_host_marker https://www.ecomae.com/ 'ehm-' 'ecomae marketing home'
+prove_host_marker https://www.epartscart.com/cp/login 'epc-login-html-form' 'CP login'
+prove_host_marker https://www.epartscart.com/erp/login 'epc-login-html-form' 'ERP login'
 
 MARKER="$(curl -sS -A 'Mozilla/5.0' --max-time 15 "${PUBLIC_BASE}/epc-live-deploy-marker.txt?${Q}" || true)"
 printf 'public marker: %s\n' "$MARKER"

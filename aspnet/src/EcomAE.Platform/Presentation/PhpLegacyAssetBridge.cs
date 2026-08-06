@@ -83,27 +83,23 @@ public static class PhpLegacyAssetBridge
         endpoints.MapGet("/aspnet-php-assets/eparts-animated-logo.css", () =>
             Results.Text(PhpEpartsCartLogoAssets.Css, "text/css; charset=utf-8"));
 
-        // Front-page catalog widget CSS referenced with PHP-identical URLs
-        // (content/product_family_catalog.php links these directly).
-        foreach (var cssName in new[]
-                 {
-                     "epc_vc_catalog.css",
-                     "epc_car_mod_theme.css",
-                     "epc_automotive_spareparts.css"
-                 })
+        // PHP pages link CSS with /content/general_pages/*.css URLs directly (nero home
+        // widgets, tenant storefront packages, animations) — serve them all from the repo.
+        endpoints.MapGet("/content/general_pages/{cssFile}.css", (string cssFile) =>
         {
-            var rel = "content/general_pages/" + cssName;
-            endpoints.MapGet("/content/general_pages/" + cssName, () =>
+            if (cssFile.Contains("..", StringComparison.Ordinal) || cssFile.Contains('/', StringComparison.Ordinal))
             {
-                var path = Path.GetFullPath(Path.Combine(repoRoot, rel));
-                if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
-                {
-                    return Results.File(path, "text/css; charset=utf-8");
-                }
-
                 return Results.NotFound();
-            });
-        }
+            }
+
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content", "general_pages", cssFile + ".css"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "text/css; charset=utf-8");
+            }
+
+            return Results.NotFound();
+        });
 
         // Static extract of site_professional_shell.php (preferred live URL).
         endpoints.MapGet("/content/general_pages/epc_storefront_professional_shell.css", () =>

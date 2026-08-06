@@ -10,37 +10,56 @@
 <PhpChromeBodyClass Surface="storefront" />
 @* Live epartscart `/` proxies here (ASP.NET). Public SEO via IncludePublicSeo; PHP product only via /php-reference/*. *@
 
-<PhpStorefrontDesktopChrome>
-    @if (string.IsNullOrWhiteSpace(_phpHref))
-    {
-        @* Same order as PHP templates/nero/desktop.php home (automotive_spareparts_pro):
-           piston hero → quick-link banners → VIN request → front catalog sections. *@
-        <PhpAspPistonBanner
-            SearchHref="@StorefrontSurfaceLinks.PartSearch"
-            CatalogHref="@StorefrontSurfaceLinks.UmapiCatalog"
-            BrandsHref="@StorefrontSurfaceLinks.AvailableBrands" />
-        <PhpAspHomeBanners />
-        <PhpVinRequestSection />
-        <PhpEpartFrontSections />
-    }
-    else
-    {
-        <div class="epc-sf-preview-note" style="max-width:52rem;margin:1rem 0;padding:1rem 1.25rem;border:1px solid #fde68a;background:#fffbeb;border-radius:.5rem;font:600 .9rem/1.45 system-ui,sans-serif;color:#78350f;">
-            Workspace preview query is ignored for product clicks.
-            Continue on the <a href="/">storefront home</a> or <a href="@StorefrontSurfaceLinks.PartSearch">search</a>.
-        </div>
-    }
-</PhpStorefrontDesktopChrome>
+@if (!string.IsNullOrEmpty(_tenantSnapshotHtml))
+{
+    @* Custom storefront package (electronicae / stylenlook / thejewellerytrend / taxofinca):
+       PHP renders package header + home + newsletter + footer instead of the nero chrome.
+       Snapshot is the PHP-rendered output (scripts/render_php_home_snapshots.php). *@
+    <div class="epc-php-font-root">
+        @((MarkupString)_tenantSnapshotHtml)
+    </div>
+}
+else
+{
+    <PhpStorefrontDesktopChrome>
+        @if (string.IsNullOrWhiteSpace(_phpHref))
+        {
+            @* Same order as PHP templates/nero/desktop.php home (automotive_spareparts_pro):
+               piston hero → quick-link banners → VIN request → front catalog sections. *@
+            <PhpAspPistonBanner
+                SearchHref="@StorefrontSurfaceLinks.PartSearch"
+                CatalogHref="@StorefrontSurfaceLinks.UmapiCatalog"
+                BrandsHref="@StorefrontSurfaceLinks.AvailableBrands" />
+            <PhpAspHomeBanners />
+            <PhpVinRequestSection />
+            <PhpEpartFrontSections />
+        }
+        else
+        {
+            <div class="epc-sf-preview-note" style="max-width:52rem;margin:1rem 0;padding:1rem 1.25rem;border:1px solid #fde68a;background:#fffbeb;border-radius:.5rem;font:600 .9rem/1.45 system-ui,sans-serif;color:#78350f;">
+                Workspace preview query is ignored for product clicks.
+                Continue on the <a href="/">storefront home</a> or <a href="@StorefrontSurfaceLinks.PartSearch">search</a>.
+            </div>
+        }
+    </PhpStorefrontDesktopChrome>
+}
 
 @code {
     private string? _phpHref;
     private string _pageTitle = "eParts Cart (Autoparts)";
+    private string _tenantSnapshotHtml = string.Empty;
 
     protected override void OnInitialized()
     {
         var ctx = Http.HttpContext;
         var host = ctx?.Request.Host.Host ?? string.Empty;
         _pageTitle = StorefrontIndustryHostResolver.ResolveStorefrontTitle(host);
+        var attrs = StorefrontIndustryHostResolver.Resolve(host);
+        if (PhpTenantHomeSnapshots.IsCustomPackage(attrs.StorefrontPackage))
+        {
+            _tenantSnapshotHtml = PhpTenantHomeSnapshots.HtmlFor(attrs.StorefrontPackage);
+        }
+
         if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
         {
             _phpHref = php.ToString();

@@ -35,6 +35,8 @@ node_modules/
 !/content/**/*.sql
 !/content/**/*.md
 !/content/**/*.mp4
+# PHP-rendered tenant home snapshots served by ASP.NET (regenerate: scripts/render_php_home_snapshots.php)
+!/content/general_pages/epc_rendered_homes/*.html
 config.epc-smtp.php
 epc-operator-update.php
 epc-operator-probe.php
