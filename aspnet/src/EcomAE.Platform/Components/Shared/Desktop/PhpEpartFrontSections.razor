@@ -1,5 +1,6 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Presentation
+@inject IEpartFrontOwnBrandService OwnBrand
 @*
   Port of content/general_pages/epart_catalog_front_links.php — the epartscart front-page
   catalog sections (Family Product, Epart Catalog, Available Brands, Original Catalog).
@@ -139,6 +140,26 @@
 		}
 	</section>
 
+	<!-- 4. Own Brand -->
+	@if (_ownBrand.Count > 0)
+	{
+		<section class="epart-front-section epart-front-section-own-brand" aria-label="Own Brand">
+			<div class="epart-front-section-head">
+				<h2 class="epart-front-section-title">Own Brand</h2>
+				<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.AvailableBrands">View all &rarr;</a>
+			</div>
+			<div class="epc-own-brand-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
+				@foreach (var row in _ownBrand)
+				{
+					<a href="@(StorefrontSurfaceLinks.AvailableBrands + (StorefrontSurfaceLinks.AvailableBrands.Contains('?') ? "&" : "?") + "brand=" + Uri.EscapeDataString(row.Brand))" style="display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;text-decoration:none;transition:border-color .15s,box-shadow .15s;">
+						<strong style="display:block;color:#172536;font-size:14px;">@row.Brand</strong>
+						<small style="color:#64748b;font-size:12px;">@row.Count.ToString("N0") items</small>
+					</a>
+				}
+			</div>
+		</section>
+	}
+
 	<!-- 5. Original Catalog -->
 	<section class="epart-front-section epart-front-section-original" aria-label="Original Catalog">
 		<div class="epart-front-section-head">
@@ -273,12 +294,14 @@
     private string _catalog = string.Empty;
     private string _brands = string.Empty;
     private string _vehicle = string.Empty;
+    private IReadOnlyList<EpartOwnBrandRow> _ownBrand = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _family = PhpHomeWidgetHtml.ProductFamily();
         _catalog = PhpHomeWidgetHtml.UmapiCatalog();
         _brands = PhpHomeWidgetHtml.AvailableBrands();
         _vehicle = PhpHomeWidgetHtml.VehicleCatalog();
+        _ownBrand = await OwnBrand.GetAsync();
     }
 }

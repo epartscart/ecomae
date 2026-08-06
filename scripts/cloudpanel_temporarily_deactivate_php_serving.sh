@@ -160,14 +160,24 @@ location ^~ /php-reference {
     return 503 "PHP reference serving temporarily deactivated for ASP.NET deep testing.\n";
 }
 location ^~ /en/ {
-    default_type text/plain;
-    add_header X-EcomAE-Php-Serving temporarily-deactivated always;
-    return 503 "Interim PHP /en/ commerce pages paused — use ASP.NET /storefront/* apps.\n";
+    # Paused mode: send interim commerce URLs to the platform — it maps
+    # search/warehouse/catalog links into the apps (no more warm-up splash).
+    proxy_pass http://127.0.0.1:5100;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Cookie $http_cookie;
 }
 location ^~ /me/ {
-    default_type text/plain;
-    add_header X-EcomAE-Php-Serving temporarily-deactivated always;
-    return 503 "Interim PHP lang commerce pages paused — use ASP.NET /storefront/* apps.\n";
+    # Paused mode: send interim commerce URLs to the platform — it maps
+    # search/warehouse/catalog links into the apps (no more warm-up splash).
+    proxy_pass http://127.0.0.1:5100;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Cookie $http_cookie;
 }
 location ^~ /ru/ {
     default_type text/plain;

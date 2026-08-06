@@ -48,6 +48,21 @@ public sealed class PhpServingDeactivatedMiddleware
             return;
         }
 
+        // Interim /en/* commerce URLs while paused: map into the ASP.NET apps
+        // (search/warehouse/catalog/cart) instead of the PHP warm-up splash;
+        // anything unmapped goes home rather than dead-ending.
+        if (path.StartsWith("/en/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/en", StringComparison.OrdinalIgnoreCase))
+        {
+            var pathAndQuery = path + context.Request.QueryString.Value;
+            var target = PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(pathAndQuery, out var mapped)
+                         && !string.Equals(mapped, pathAndQuery, StringComparison.OrdinalIgnoreCase)
+                ? mapped
+                : "/";
+            context.Response.Redirect(target);
+            return;
+        }
+
         await _next(context);
     }
 }

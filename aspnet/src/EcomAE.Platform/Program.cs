@@ -27,6 +27,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ConfigurationTenantRegistry>();
 builder.Services.AddSingleton<ITenantDbConnectionFactory, MySqlTenantDbConnectionFactory>();
+builder.Services.AddSingleton<IEpartFrontOwnBrandService, EpartFrontOwnBrandService>();
 builder.Services.AddSingleton<ITenantRegistry>(sp =>
 {
     var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();

@@ -225,6 +225,27 @@ location ^~ /aspnet-php-assets/ {
 # END ecomae-storefront-search-app-redirect
 NGX
 
+# Paused mode: /en must reach the platform (it maps commerce links into the apps)
+# instead of the PHP warm-up splash. Insert INSIDE the marker block so refresh works.
+if [[ -f /etc/ecomae-aspnet/php_serving_deactivated ]]; then
+  python3 - <<'PY'
+from pathlib import Path
+p = Path('/tmp/epc-storefront-search-app-redirect.snip')
+snip = p.read_text()
+en_block = '''location ^~ /en/ {
+    proxy_pass http://127.0.0.1:5100;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Cookie $http_cookie;
+}
+# END ecomae-storefront-search-app-redirect'''
+p.write_text(snip.replace('# END ecomae-storefront-search-app-redirect', en_block, 1))
+print('snip: /en → :5100 (php serving paused)')
+PY
+fi
+
 NGINX_TOUCHED=0
 while IFS= read -r conf; do
   [[ -f "$conf" ]] || continue
