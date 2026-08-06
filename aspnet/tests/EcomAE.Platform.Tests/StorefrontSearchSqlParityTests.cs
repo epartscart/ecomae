@@ -55,8 +55,10 @@ public sealed class StorefrontSearchSqlParityTests
         Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
         Assert.Contains("{CROSS_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs, StringComparison.Ordinal);
-        // Brand discovery must not require price > 0 (PHP CHPU brand query does not).
+        // Brand discovery / offers must not require price > 0 (PHP CHPU / prices_enclosure do not).
         Assert.DoesNotContain("price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
+        Assert.DoesNotContain("price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        Assert.DoesNotContain("storefront_temp_disabled", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
     }
 
     [Fact]
