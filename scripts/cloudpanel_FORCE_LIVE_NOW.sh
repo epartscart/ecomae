@@ -74,6 +74,18 @@ if ! grep -q 'background:linear-gradient(135deg,#090f1d' \
   printf 'ERROR: chrome missing PHP top-menu gradient — checkout too old\n' >&2
   exit 1
 fi
+if ! grep -q 'AdminSurfaceAuthGateMiddleware' aspnet/src/EcomAE.Platform/Program.cs; then
+  printf 'ERROR: AdminSurfaceAuthGateMiddleware not wired — CP guest-browse leak\n' >&2
+  exit 1
+fi
+if grep -q 'data-epc-guest-browse' aspnet/src/EcomAE.Platform/Components/Shared/LegacyAdminLoginForm.razor; then
+  printf 'ERROR: guest-browse bypass still on login form — confidential leak\n' >&2
+  exit 1
+fi
+if ! grep -q '@page "/cp/control"' aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor; then
+  printf 'ERROR: /cp/control not owned by Command Centre — presentation split vs /cp\n' >&2
+  exit 1
+fi
 
 # ---- Discover epartscart document roots from nginx ----
 mapfile -t DOCROOTS < <(
