@@ -179,31 +179,34 @@ public sealed class StorefrontModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.StorefrontSearch, async (
             HttpContext context,
             string? article,
+            string? brand,
             string? brend,
             int? limit,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            // PHP part_search / warehouse offers are public; attach session when present.
+            // Prefer brand= (ASP.NET); accept brend= (PHP legacy typo).
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Customer)
-            {
-                return Unauthorized("Customer session required for storefront search digest.");
-            }
-
-            var result = await dashboards.SearchStorefrontPartsAsync(article ?? string.Empty, brend, limit ?? 25, cancellationToken);
+            var manufacturer = string.IsNullOrWhiteSpace(brand) ? brend : brand;
+            var result = await dashboards.SearchStorefrontPartsAsync(
+                article ?? string.Empty,
+                manufacturer,
+                limit ?? 25,
+                cancellationToken);
             return Results.Ok(new
             {
                 ok = true,
                 surface = "storefront",
                 article = result.Article,
-                brand = brend,
+                brand = manufacturer,
                 rows = result.Rows,
                 count = result.Count,
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only warehouse offer digest (pyapi SQL parity). PHP /shop/part_search tabs/VIN/cart remain authoritative."
+                note = "Public read-only warehouse offer digest (PHP brand+article parity). Cart/VIN remain PHP."
             });
         });
 
@@ -215,12 +218,8 @@ public sealed class StorefrontModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            // PHP ajax_epc_article_brands is public (guest brand picker).
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Customer)
-            {
-                return Unauthorized("Customer session required for storefront search brands digest.");
-            }
-
             var result = await dashboards.ListStorefrontArticleBrandsAsync(article ?? string.Empty, limit ?? 100, cancellationToken);
             return Results.Ok(new
             {
@@ -232,7 +231,7 @@ public sealed class StorefrontModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only article-only manufacturer picker (PHP all_brands_by_article)."
+                note = "Public article brand picker (PHP ajax_epc_article_brands: warehouse + CP crosses)."
             });
         });
 

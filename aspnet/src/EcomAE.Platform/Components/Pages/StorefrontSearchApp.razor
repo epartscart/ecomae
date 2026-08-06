@@ -1,6 +1,8 @@
 @page "/storefront/search-app"
 @page "/en/shop/part_search"
 @page "/en/shop/warehouse-search"
+@page "/parts/{PathBrand}/{PathArticle}"
+@page "/en/parts/{PathBrand}/{PathArticle}"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Migration
@@ -8,7 +10,7 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject NavigationManager Navigation
 
-<PageTitle>Part search · eParts Cart</PageTitle>
+<PageTitle>@(_brandInput.Length == 0 ? "Part search" : $"{_brandInput} {_normalized}") · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
@@ -19,10 +21,10 @@
             background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
         }
         .epc-sf-search-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
-        .epc-sf-search-hero p { margin:0; color:#fecaca; max-width:38rem; font-size:.92rem; line-height:1.45; }
+        .epc-sf-search-hero p { margin:0; color:#fecaca; max-width:42rem; font-size:.92rem; line-height:1.45; }
         .epc-sf-search-form { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.9rem; }
         .epc-sf-search-form input {
-            flex:1; min-width:180px; padding:.6rem .75rem; border:0; border-radius:.4rem; font-size:.95rem;
+            flex:1; min-width:160px; padding:.6rem .75rem; border:0; border-radius:.4rem; font-size:.95rem;
         }
         .epc-sf-search-form button {
             padding:.6rem .95rem; border:0; border-radius:.4rem; background:#dc2626; color:#fff; font-weight:700; cursor:pointer;
@@ -49,6 +51,9 @@
             display:block; padding:.55rem .7rem; border:1px solid #e2e8f0; border-radius:.45rem; text-decoration:none;
             color:#b91c1c; font-weight:700; font-size:.84rem; background:#f8fafc;
         }
+        .epc-sf-result-head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:.5rem; margin:0 0 .65rem; }
+        .epc-sf-result-head h2 { margin:0; font-size:1.1rem; color:#0f172a; }
+        .epc-sf-result-head a { color:#b91c1c; font-weight:700; font-size:.82rem; text-decoration:none; }
         .epc-sf-cross-refs {
             max-width:1100px; margin:1rem 0; padding:14px 18px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc;
         }
@@ -58,6 +63,8 @@
         .epc-sf-cross-stock strong { display:block; margin-bottom:.35rem; font-size:.82rem; color:#0f172a; }
         .epc-avail-yes { color:#15803d; font-weight:700; font-size:.75rem; }
         .epc-avail-no { color:#64748b; font-size:.75rem; }
+        .epc-stock-ok { color:#15803d; font-weight:700; }
+        .epc-stock-out { color:#94a3b8; }
         @@media (max-width:900px){ .epc-sf-search-kpis{grid-template-columns:1fr;} .epc-sf-cross-refs ul{columns:1;} }
     </style>
 
@@ -65,14 +72,15 @@
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
         <h1>@_heroTitle</h1>
         <p>@_heroSubtitle</p>
-        <form class="epc-sf-search-form" method="get" action="@(string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase) ? StorefrontSurfaceLinks.WarehouseSearch : StorefrontSurfaceLinks.PartSearch)">
+        <form class="epc-sf-search-form" method="get" action="@StorefrontSurfaceLinks.PartSearch">
             @if (string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase))
             {
                 <input type="search" name="q" value="@_attrQuery" placeholder="Engine, size, country, cross ref…" aria-label="Warehouse / more info search" />
             }
             else
             {
-                <input type="search" name="article" value="@_articleInput" placeholder="Part number or OE code" aria-label="Part number" />
+                <input type="search" name="article" value="@_articleInput" placeholder="Part number / article" aria-label="Part number" required />
+                <input type="search" name="brand" value="@_brandInput" placeholder="Brand (optional)" aria-label="Brand" />
             }
             <button type="submit">Search</button>
         </form>
@@ -85,26 +93,34 @@
     </section>
 
     <div class="epc-sf-search-kpis" aria-label="Search KPIs">
-        <div class="epc-sf-search-kpi"><strong>@(_normalized.Length == 0 ? "—" : _normalized)</strong><span>Normalized article</span></div>
-        <div class="epc-sf-search-kpi"><strong>@(_showBrandPicker ? _brands.Count : _rows.Count)</strong><span>@(_showBrandPicker ? "Brands found" : "Offers shown")</span></div>
-        <div class="epc-sf-search-kpi"><strong>@(_brandInput.Length == 0 ? "—" : _brandInput)</strong><span>Selected brand</span></div>
+        <div class="epc-sf-search-kpi"><strong>@(_normalized.Length == 0 ? "—" : _normalized)</strong><span>Article</span></div>
+        <div class="epc-sf-search-kpi"><strong>@(_showBrandPicker ? _brands.Count : _rows.Count)</strong><span>@(_showBrandPicker ? "Brands found" : "Warehouse offers")</span></div>
+        <div class="epc-sf-search-kpi"><strong>@(_brandInput.Length == 0 ? "—" : _brandInput)</strong><span>Brand</span></div>
     </div>
 
     @if (_showBrandPicker)
     {
         <section class="epc-sf-brand-picker" aria-label="Manufacturer picker">
             <h2>Select manufacturer for <strong>@_normalized</strong></h2>
+            <p style="margin:0 0 .75rem;color:#64748b;font-size:.86rem;">
+                PHP part_search flow: article → brand → warehouse prices + cross references.
+            </p>
             @if (_brands.Count == 0)
             {
-                <p>No warehouse brands found for this article. Try another part number or open warehouse / more info search.</p>
+                <p>No manufacturers found for this article (warehouse + local crosses). Try another part number or open warehouse / more info search.</p>
+                @if (!string.IsNullOrWhiteSpace(_message))
+                {
+                    <div style="margin-top:.5rem;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:.4rem;padding:.5rem .7rem;font-size:12px;">
+                        Brand lookup: <strong>@_source</strong> — @_message
+                    </div>
+                }
             }
             else
             {
                 <div class="epc-sf-brand-grid">
                     @foreach (var brand in _brands)
                     {
-                        var href = PhpPartSearchHref(_articleInput, brand.Brand);
-                        <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(href)">@brand.Brand</a>
+                        <a href="@BrandArticleHref(_articleInput, brand.Brand)">@brand.Brand</a>
                     }
                 </div>
             }
@@ -112,34 +128,38 @@
     }
     else
     {
+        <div class="epc-sf-result-head">
+            <h2>@_brandInput @_normalized — warehouse offers</h2>
+            <a href="@ArticleOnlyHref(_articleInput)">Change manufacturer</a>
+        </div>
         <div class="epc-sf-search-table-wrap">
-            <table class="epc-sf-search-table">
+            <table class="epc-sf-search-table" id="all_table_products">
                 <thead>
                     <tr>
-                        <th>Brand</th>
+                        <th>Manufacturer</th>
                         <th>Article</th>
                         <th>Name</th>
+                        <th>Availability</th>
+                        <th>Term</th>
                         <th>Price</th>
-                        <th>Stock</th>
                         <th>Storage</th>
                         <th>Price list</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (string.IsNullOrWhiteSpace(_normalized))
                     {
-                        <tr><td colspan="8">Enter a part number above to load warehouse offers.</td></tr>
+                        <tr><td colspan="8">Enter article and brand to load warehouse offers.</td></tr>
                     }
                     else if (_rows.Count == 0)
                     {
                         <tr>
                             <td colspan="8">
-                                No offers for <strong>@_normalized</strong>@(!string.IsNullOrWhiteSpace(_brandInput) ? $" ({_brandInput})" : ""). Try another article or brand.
+                                No warehouse offers for <strong>@_brandInput @_normalized</strong>.
                                 @if (!string.IsNullOrWhiteSpace(_message))
                                 {
                                     <div style="margin-top:.5rem;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:.4rem;padding:.5rem .7rem;font-size:12px;">
-                                        Offer lookup status: <strong>@_source</strong> — @_message
+                                        Offer lookup: <strong>@_source</strong> — @_message
                                     </div>
                                 }
                             </td>
@@ -150,57 +170,67 @@
                         @foreach (var row in _rows)
                         {
                             var show = string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow;
-                            var phpHref = PhpPartSearchHref(_normalized, row.Manufacturer);
+                            var term = string.IsNullOrWhiteSpace(row.TimeToExe) ? "—" : row.TimeToExe;
                             <tr>
                                 <td><strong>@row.Manufacturer</strong></td>
                                 <td>@show</td>
                                 <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+                                <td class="@(row.Exist > 0 ? "epc-stock-ok" : "epc-stock-out")">@(row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "0")</td>
+                                <td>@term</td>
                                 <td>@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td>@row.Exist</td>
                                 <td>@(string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage)</td>
                                 <td>@(string.IsNullOrWhiteSpace(row.PriceList) ? "—" : row.PriceList)</td>
-                                <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open module</a></td>
                             </tr>
                         }
                     }
                 </tbody>
             </table>
         </div>
+        <p class="epc-sf-search-note">
+            Results mirror PHP warehouse price lists for the selected brand + article.
+            Cart / quote / supplier live poll remain on the classic part_search module when needed.
+        </p>
     }
 
-    @if (!string.IsNullOrWhiteSpace(_brandInput) && _crossRefs.Count > 0)
+    @if (!string.IsNullOrWhiteSpace(_brandInput) && (_crossRefs.Count > 0 || !_showBrandPicker))
     {
         <nav class="epc-sf-cross-refs" aria-label="Cross references and OE numbers">
             <h2>@_brandInput @_normalized — cross references &amp; OE numbers</h2>
             <p style="margin:0 0 10px;font-size:13px;color:#475569">Part number / article <strong>@_normalized</strong> interchanges with:</p>
-            <ul>
-                @foreach (var cross in _crossRefs)
-                {
-                    var label = string.IsNullOrWhiteSpace(cross.Brand) ? cross.Article : $"{cross.Brand} {cross.Article}";
-                    var href = PhpPartSearchHref(cross.Article, cross.Brand);
-                    <li>
-                        <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(href)">@label</a>
-                        <span style="color:#64748b">(part number @cross.Article)</span>
-                        @if (cross.InStock)
-                        {
-                            <span class="epc-avail-yes">In stock</span>
-                        }
-                        else
-                        {
-                            <span class="epc-avail-no">Not in stock</span>
-                        }
-                    </li>
-                }
-            </ul>
+            @if (_crossRefs.Count == 0)
+            {
+                <p style="margin:0;font-size:13px;color:#64748b;">No local cross references for this brand + article.</p>
+            }
+            else
+            {
+                <ul>
+                    @foreach (var cross in _crossRefs)
+                    {
+                        var label = string.IsNullOrWhiteSpace(cross.Brand) ? cross.Article : $"{cross.Brand} {cross.Article}";
+                        <li>
+                            <a href="@BrandArticleHref(cross.Article, cross.Brand)">@label</a>
+                            <span style="color:#64748b">(part number @cross.Article)</span>
+                            @if (cross.InStock)
+                            {
+                                <span class="epc-avail-yes">In stock</span>
+                            }
+                            else
+                            {
+                                <span class="epc-avail-no">Not in stock</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
             @if (_crossStockRefs.Count > 0)
             {
                 <div class="epc-sf-cross-stock">
-                    <strong>In stock on UAE price lists (@_crossStockRefs.Count)</strong>
+                    <strong>In stock on warehouse price lists (@_crossStockRefs.Count)</strong>
                     <ul>
                         @foreach (var cross in _crossStockRefs)
                         {
                             <li>
-                                <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(PhpPartSearchHref(cross.Article, cross.Brand))">@cross.Brand @cross.Article</a>
+                                <a href="@BrandArticleHref(cross.Article, cross.Brand)">@cross.Brand @cross.Article</a>
                             </li>
                         }
                     </ul>
@@ -217,7 +247,7 @@
     private string _brandInput = "";
     private string _mode = "";
     private string _heroTitle = "Part search";
-    private string _heroSubtitle = "Search warehouse offers by article and brand.";
+    private string _heroSubtitle = "Search by article, choose a brand, then open warehouse prices.";
     private string _normalized = "";
     private bool _showBrandPicker;
     private IReadOnlyList<StorefrontArticleBrandDigest> _brands = [];
@@ -227,11 +257,22 @@
     private string _source = "n/a";
     private string _message = "";
 
+    [Parameter]
+    public string? PathBrand { get; set; }
+
+    [Parameter]
+    public string? PathArticle { get; set; }
+
     [SupplyParameterFromQuery(Name = "article")]
     public string? ArticleQuery { get; set; }
 
-    [SupplyParameterFromQuery(Name = "brend")]
+    /// <summary>Preferred ASP.NET query param (user-facing brand/article format).</summary>
+    [SupplyParameterFromQuery(Name = "brand")]
     public string? BrandQuery { get; set; }
+
+    /// <summary>PHP legacy typo param — still accepted for parity with part_search.</summary>
+    [SupplyParameterFromQuery(Name = "brend")]
+    public string? BrendQuery { get; set; }
 
     [SupplyParameterFromQuery(Name = "q")]
     public string? AttrQuery { get; set; }
@@ -256,8 +297,29 @@
             ? (ModeQuery ?? "").Trim().ToLowerInvariant()
             : _mode;
         _attrQuery = AttrQuery?.Trim() ?? "";
-        _articleInput = ArticleQuery?.Trim() ?? "";
-        _brandInput = BrandQuery?.Trim() ?? "";
+
+        // CHPU /parts/{brand}/{article} → brand+article result (PHP prices_by_article_and_manufacturer).
+        var pathBrand = DecodePathSegment(PathBrand);
+        var pathArticle = DecodePathSegment(PathArticle);
+        if (!string.IsNullOrWhiteSpace(pathArticle)
+            && !string.Equals(pathBrand, "brands", StringComparison.OrdinalIgnoreCase))
+        {
+            _articleInput = pathArticle;
+            _brandInput = pathBrand;
+        }
+        else
+        {
+            _articleInput = ArticleQuery?.Trim() ?? "";
+            // Prefer brand=; fall back to PHP brend=.
+            _brandInput = FirstNonEmpty(BrandQuery, BrendQuery);
+            if (string.Equals(pathBrand, "brands", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(pathArticle)
+                && string.IsNullOrWhiteSpace(_articleInput))
+            {
+                _articleInput = pathArticle;
+            }
+        }
+
         if (string.IsNullOrWhiteSpace(_articleInput) && !string.IsNullOrWhiteSpace(VinQuery))
         {
             _articleInput = VinQuery.Trim();
@@ -278,7 +340,7 @@
             "engine" => "Engine code search",
             "car" => "Vehicle catalog",
             "name" => "Search by name",
-            _ => "Part search"
+            _ => string.IsNullOrWhiteSpace(_brandInput) ? "Part search" : $"{_brandInput.ToUpperInvariant()} {_articleInput.ToUpperInvariant()}"
         };
         _heroSubtitle = _mode switch
         {
@@ -288,11 +350,20 @@
             "car" => "Browse by vehicle — start with a part number or open more info search.",
             _ => string.IsNullOrWhiteSpace(_brandInput)
                 ? "Select a manufacturer after searching by article (PHP brand picker parity)."
-                : "Warehouse offers and cross references for the selected brand."
+                : "Warehouse offers and cross references for the selected brand + article."
         };
 
         if (string.IsNullOrWhiteSpace(_articleInput))
         {
+            return;
+        }
+
+        // Canonical query URL: /storefront/search-app?article=&brand=
+        if (!string.IsNullOrWhiteSpace(PathArticle)
+            && !string.IsNullOrWhiteSpace(PathBrand)
+            && !string.Equals(PathBrand, "brands", StringComparison.OrdinalIgnoreCase))
+        {
+            Navigation.NavigateTo(BrandArticleHref(_articleInput, _brandInput), replace: true);
             return;
         }
 
@@ -304,6 +375,13 @@
             _showBrandPicker = true;
             _source = brandsResult.Source;
             _message = brandsResult.Message;
+
+            // PHP: single manufacturer → open prices directly.
+            if (_brands.Count == 1 && string.Equals(_source, "database", StringComparison.Ordinal))
+            {
+                Navigation.NavigateTo(BrandArticleHref(_normalized, _brands[0].Brand), forceLoad: true);
+            }
+
             return;
         }
 
@@ -314,25 +392,52 @@
         _message = result.Message;
         _showBrandPicker = false;
 
-        var crossResult = await Dashboards.ListStorefrontCrossRefsAsync(_articleInput, 40);
+        var crossResult = await Dashboards.ListStorefrontCrossRefsAsync(_articleInput, _brandInput, 80);
         _crossRefs = crossResult.Rows;
         _crossStockRefs = crossResult.Rows.Where(static r => r.InStock).ToList();
     }
 
-    private static string PhpPartSearchHref(string article, string? brand = null)
+    private static string BrandArticleHref(string article, string? brand)
     {
-        var href = "https://epartscart.com/shop/part_search";
-        if (string.IsNullOrWhiteSpace(article))
-        {
-            return href;
-        }
-
-        href += "?article=" + Uri.EscapeDataString(article);
+        var href = "/storefront/search-app?article=" + Uri.EscapeDataString(article ?? string.Empty);
         if (!string.IsNullOrWhiteSpace(brand))
         {
-            href += "&brend=" + Uri.EscapeDataString(brand);
+            href += "&brand=" + Uri.EscapeDataString(brand.Trim());
         }
 
         return href;
+    }
+
+    private static string ArticleOnlyHref(string article)
+        => "/storefront/search-app?article=" + Uri.EscapeDataString(article ?? string.Empty);
+
+    private static string FirstNonEmpty(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value.Trim();
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static string DecodePathSegment(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            return Uri.UnescapeDataString(value.Replace('+', ' ')).Trim();
+        }
+        catch (UriFormatException)
+        {
+            return value.Trim();
+        }
     }
 }
