@@ -1840,7 +1840,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 """.Replace("{ARTICLE_MATCH}", articleMatch, StringComparison.Ordinal);
             var articleNorm = PriceLookupRequest.NormalizeArticle(row.Article);
             var brandUpper = row.Brand.Trim().ToUpperInvariant();
-            AddParameter(command, "@a0", articleNorm);
+            BindArticleCandidates(command, [articleNorm]);
             AddParameter(command, "@article", articleNorm);
             AddParameter(command, "@brand", brandUpper);
             AddParameter(command, "@brandCompact", CompactStorefrontBrand(row.Brand));
