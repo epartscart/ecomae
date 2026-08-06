@@ -141,18 +141,35 @@ public static class PhpHomeWidgetHtml
             return _repoRoot;
         }
 
+        // Live publishes run from /var/www/ecomae-aspnet/releases/<ts>/platform where
+        // walking up never finds the monorepo — honour the env override and the
+        // CloudPanel checkout locations before giving up.
+        var candidates = new List<string>();
+        var envRoot = Environment.GetEnvironmentVariable("ECOMAE_PHP_SOURCE_ROOT");
+        if (!string.IsNullOrWhiteSpace(envRoot))
+        {
+            candidates.Add(envRoot);
+        }
+
         foreach (var start in new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory() })
         {
             var dir = new DirectoryInfo(start);
             while (dir is not null)
             {
-                if (File.Exists(Path.Combine(dir.FullName, "content", "product_family_catalog.php")))
-                {
-                    _repoRoot = dir.FullName;
-                    return _repoRoot;
-                }
-
+                candidates.Add(dir.FullName);
                 dir = dir.Parent!;
+            }
+        }
+
+        candidates.Add("/opt/ecomae-aspnet-source");
+        candidates.Add("/root/ecomae");
+
+        foreach (var candidate in candidates)
+        {
+            if (File.Exists(Path.Combine(candidate, "content", "product_family_catalog.php")))
+            {
+                _repoRoot = candidate;
+                return _repoRoot;
             }
         }
 
