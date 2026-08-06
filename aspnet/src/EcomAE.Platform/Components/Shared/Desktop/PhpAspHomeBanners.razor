@@ -1,0 +1,35 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Port of the quick-link banner grid in content/general_pages/epc_portal_automotive_spareparts_home.php
+  (data: epc_asp_home_banners() in epc_automotive_spareparts_data.php).
+  Styling comes from content/general_pages/epc_automotive_spareparts.css via
+  html[data-epc-industry=auto_parts][data-epc-storefront=automotive_spareparts_pro].
+*@
+
+<section class="epc-home-banners epc-asp-home-banners">
+    <div class="container">
+        <div class="epc-home-banners__grid">
+            <a class="epc-home-banner epc-home-banner--red" href="@StorefrontSurfaceLinks.PartSearch">
+                <span class="epc-home-banner__icon"><i class="fa fa-barcode"></i></span>
+                <strong>Search by part number</strong>
+                <span>Quickly check price, availability and delivery time.</span>
+            </a>
+            <a class="epc-home-banner epc-home-banner--blue" href="@StorefrontSurfaceLinks.AvailableBrands">
+                <span class="epc-home-banner__icon"><i class="fa fa-shield"></i></span>
+                <strong>Trusted brands</strong>
+                <span>Browse available manufacturers and product lines.</span>
+            </a>
+            <a class="epc-home-banner epc-home-banner--green" href="@StorefrontSurfaceLinks.UmapiCatalog">
+                <span class="epc-home-banner__icon"><i class="fa fa-sitemap"></i></span>
+                <strong>Electronic catalog</strong>
+                <span>Find parts through vehicle catalog navigation.</span>
+            </a>
+            <a class="epc-home-banner epc-home-banner--dark" href="@StorefrontSurfaceLinks.SellerRequest">
+                <span class="epc-home-banner__icon"><i class="fa fa-car"></i></span>
+                <strong>VIN request</strong>
+                <span>Ask sellers to identify the exact spare part.</span>
+            </a>
+        </div>
+    </div>
+</section>

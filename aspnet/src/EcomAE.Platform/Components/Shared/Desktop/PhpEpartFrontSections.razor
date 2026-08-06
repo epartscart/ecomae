@@ -1,0 +1,284 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@*
+  Port of content/general_pages/epart_catalog_front_links.php — the epartscart front-page
+  catalog sections (Family Product, Epart Catalog, Available Brands, Original Catalog).
+  Section shell CSS is copied verbatim; inner widgets are the exact PHP widget HTML/JS
+  rendered by PhpHomeWidgetHtml (they fetch the same AJAX endpoints as the PHP home).
+  Own Brand is DB-driven on PHP and omitted when empty — same behaviour here.
+*@
+
+<style>
+	.epart-front-original-data {
+		background: transparent;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+		margin-bottom: 32px;
+		margin-left: auto;
+		margin-right: auto;
+		margin-top: 0;
+		overflow: visible;
+		padding: 0;
+		position: relative;
+	}
+	.epart-front-original-data:before {
+		content: none;
+		display: none;
+	}
+	.epart-front-section {
+		background: #fff;
+		border: 1px solid #e2e8f0;
+		border-radius: 14px;
+		box-shadow: 0 4px 18px rgba(15, 23, 42, .06);
+		margin-bottom: 28px;
+		padding: 24px 24px 20px;
+	}
+	.epart-front-section:last-child {
+		margin-bottom: 0;
+	}
+	.epart-front-section-head {
+		align-items: center;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px 16px;
+		justify-content: space-between;
+		margin-bottom: 18px;
+	}
+	.epart-front-section-title {
+		color: #0f172a;
+		font-size: 28px;
+		font-weight: 800;
+		letter-spacing: -.02em;
+		line-height: 1.15;
+		margin: 0;
+	}
+	.epart-front-section-link {
+		color: #2563eb;
+		font-weight: 700;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+	.epart-front-section-link:hover {
+		color: #1d4ed8;
+		text-decoration: underline;
+	}
+	.epart-front-original-data .epc-umapi,
+	.epart-front-original-data .epc-brands {
+		background: transparent;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+		margin: 0;
+		padding: 0;
+	}
+	.epart-front-original-data .epc-umapi-title,
+	.epart-front-original-data .epc-brands-title {
+		display: none;
+	}
+	.epart-front-original-data .epc-brands-controls .btn-default[href] {
+		display: none;
+	}
+	@@media (max-width: 767px) {
+		.epart-front-section {
+			border-radius: 12px;
+			padding: 16px 14px 14px;
+		}
+		.epart-front-section-title {
+			font-size: 22px;
+		}
+	}
+</style>
+
+<div class="container epart-front-original-data">
+	<!-- 1. Family Product -->
+	<section class="epart-front-section epart-front-section-family" aria-label="Family Product">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Family Product</h2>
+			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.ProductFamily">View all families &rarr;</a>
+		</div>
+		@if (!string.IsNullOrEmpty(_family))
+		{
+			@((MarkupString)_family)
+		}
+		else
+		{
+			<div class="alert alert-warning">Family Product catalog is loading. <a href="@StorefrontSurfaceLinks.ProductFamily">Open catalog</a></div>
+		}
+	</section>
+
+	<!-- 2. UMAPI Catalog -->
+	<section class="epart-front-section epart-front-section-catalog" aria-label="Epart Catalog">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Epart Catalog</h2>
+			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.UmapiCatalog">Open full catalog &rarr;</a>
+		</div>
+		@if (!string.IsNullOrEmpty(_catalog))
+		{
+			@((MarkupString)_catalog)
+		}
+		else
+		{
+			<div class="alert alert-warning">Epart Catalog is temporarily unavailable. <a href="@StorefrontSurfaceLinks.UmapiCatalog">Open catalog page</a></div>
+		}
+	</section>
+
+	<!-- 3. Available Brands -->
+	<section class="epart-front-section epart-front-section-brands" aria-label="Available brands">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Available Brands</h2>
+			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.AvailableBrands">View all brands &rarr;</a>
+		</div>
+		@if (!string.IsNullOrEmpty(_brands))
+		{
+			@((MarkupString)_brands)
+		}
+		else
+		{
+			<div class="alert alert-warning">Available brands are temporarily unavailable. <a href="@StorefrontSurfaceLinks.AvailableBrands">Open brands page</a></div>
+		}
+	</section>
+
+	<!-- 5. Original Catalog -->
+	<section class="epart-front-section epart-front-section-original" aria-label="Original Catalog">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Original Catalog</h2>
+			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.VehicleCatalog">Open vehicle catalog &rarr;</a>
+		</div>
+		@if (!string.IsNullOrEmpty(_vehicle))
+		{
+			@((MarkupString)_vehicle)
+		}
+		else
+		{
+			<div class="alert alert-warning">Original Catalog is loading. <a href="@StorefrontSurfaceLinks.VehicleCatalog">Open catalog</a></div>
+		}
+	</section>
+
+	<style>
+		.epart-front-original-data .epc-umapi-panel {
+			background: #f8fafc;
+			border: 1px solid #e2e8f0;
+			border-radius: 14px;
+			box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85);
+		}
+		.epart-front-original-data .epc-umapi-tab,
+		.epart-front-original-data .epc-brands-tabs button,
+		.epart-front-original-data .epc-brands-letters button,
+		.epart-front-original-data .epc-umapi-alpha a,
+		.epart-front-original-data .epc-umapi-manufacturer-tabs button {
+			background: #fff;
+			border: 1px solid #d7dee9;
+			border-radius: 10px;
+			color: #1f2937;
+			font-weight: 800;
+			box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
+		}
+		.epart-front-original-data .epc-umapi-tab.active,
+		.epart-front-original-data .epc-brands-tabs button.active,
+		.epart-front-original-data .epc-brands-letters button.active,
+		.epart-front-original-data .epc-umapi-manufacturer-tabs button.active {
+			background: linear-gradient(135deg, #2563eb, #1d4ed8);
+			border-color: #2563eb;
+			color: #fff;
+			box-shadow: 0 12px 24px rgba(37, 99, 235, .26);
+		}
+		.epart-front-original-data .epc-umapi-tab:hover,
+		.epart-front-original-data .epc-brands-tabs button:hover,
+		.epart-front-original-data .epc-brands-letters button:hover,
+		.epart-front-original-data .epc-umapi-alpha a:hover,
+		.epart-front-original-data .epc-umapi-manufacturer-tabs button:hover {
+			border-color: #ef4444;
+			color: #ef4444;
+			text-decoration: none;
+		}
+		.epart-front-original-data .form-control,
+		.epart-front-original-data input[type="search"] {
+			background: #fff;
+			border: 1px solid #cfd8e6;
+			border-radius: 0;
+			box-shadow: none;
+			color: #111827;
+			height: 42px;
+		}
+		.epart-front-original-data .btn-primary,
+		.epart-front-original-data #epc-umapi-article-btn {
+			background: linear-gradient(135deg, #ef4444, #dc2626);
+			border-color: #ef4444;
+			color: #fff;
+			font-weight: 900;
+			height: 42px;
+			padding-left: 18px;
+			padding-right: 18px;
+		}
+		.epart-front-original-data .btn-default {
+			background: #fff;
+			border-color: #cfd8e6;
+			color: #1f2937;
+			font-weight: 800;
+			height: 42px;
+			line-height: 28px;
+		}
+		.epart-front-original-data .btn-default:hover {
+			border-color: #ef4444;
+			color: #ef4444;
+		}
+		.epart-front-original-data .epc-umapi-step {
+			background: #eef2ff;
+			color: #475569;
+			font-weight: 800;
+		}
+		.epart-front-original-data .epc-umapi-step.active,
+		.epart-front-original-data .epc-umapi-step.clickable {
+			background: #dbeafe;
+			color: #1d4ed8;
+		}
+		.epart-front-original-data .epc-umapi-message,
+		.epart-front-original-data .epc-brands-message {
+			background: #fff7ed;
+			border: 1px solid #fed7aa;
+			border-left: 4px solid #ef4444;
+			border-radius: 12px;
+			color: #7c2d12;
+			font-weight: 700;
+			padding: 14px 16px;
+		}
+		.epart-front-original-data .epc-umapi-card,
+		.epart-front-original-data .epc-umapi-row,
+		.epart-front-original-data .epc-brand-item {
+			background: #fff;
+			border-color: #e2e8f0;
+			color: #172536;
+		}
+		.epart-front-original-data .epc-umapi-card:hover,
+		.epart-front-original-data .epc-umapi-row:hover,
+		.epart-front-original-data .epc-brand-item:hover {
+			border-color: #2563eb;
+			box-shadow: 0 12px 24px rgba(37, 99, 235, .12);
+			color: #1d4ed8;
+		}
+		.epart-front-original-data .epc-umapi-popular-section {
+			display: block;
+		}
+		.epart-front-original-data .epc-brands-grid {
+			max-height: 520px;
+			overflow-y: auto;
+			padding-right: 4px;
+		}
+	</style>
+</div>
+
+@code {
+    private string _family = string.Empty;
+    private string _catalog = string.Empty;
+    private string _brands = string.Empty;
+    private string _vehicle = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _family = PhpHomeWidgetHtml.ProductFamily();
+        _catalog = PhpHomeWidgetHtml.UmapiCatalog();
+        _brands = PhpHomeWidgetHtml.AvailableBrands();
+        _vehicle = PhpHomeWidgetHtml.VehicleCatalog();
+    }
+}
