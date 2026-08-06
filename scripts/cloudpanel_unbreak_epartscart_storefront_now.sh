@@ -287,6 +287,11 @@ en_n=$(rg -o 'href="/en/[^"]+"' "$home" | wc -l || true)
 printf 'home storefront_links=%s en_links=%s\n' "$sf_n" "$en_n"
 rm -f "$home"
 
+# Extra: prove /cp/control is platform (not legacy docroot login)
+if [[ -x "$REPO/scripts/cloudpanel_prove_product_is_platform_primary.sh" ]]; then
+  bash "$REPO/scripts/cloudpanel_prove_product_is_platform_primary.sh" || fail=1
+fi
+
 if [[ "$fail" -ne 0 || "$local_fail" -ne 0 ]]; then
   cat <<EOF >&2
 
