@@ -1,0 +1,126 @@
+{
+  "tenant": "epartscart.com",
+  "asOf": "2026-08-06",
+  "phpReference": "/php-reference/* (archive; may 503 when TemporarilyDeactivatePhpServing)",
+  "aspNetPrimary": true,
+  "hardLocks": {
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false,
+    "requirePhpFallback": true,
+    "keepPhpProjectAvailable": true
+  },
+  "surfaces": [
+    {
+      "id": "home",
+      "php": "/",
+      "aspnet": "/storefront/app or /",
+      "status": "partial",
+      "notes": "Nero chrome + home widgets on ASP.NET; catalog embeds are hash anchors vs full PHP modules."
+    },
+    {
+      "id": "part_search",
+      "php": "/en/shop/part_search?article=&brend= or /en/parts/{BRAND}/{ARTICLE}",
+      "aspnet": "/storefront/search-app?article=&brand=",
+      "status": "in_progress",
+      "notes": "Brand+article URL + PHP-like result table. ASP.NET SQL matches CHPU (no price>0 / storefront_temp_disabled); www hostname alias binds tenant shop DB; empty SQL falls back to PHP ajax_epc_warehouse_offers / ajax_epc_article_brands (config.php shop DB). Prove DA320+ROCKY after FORCE_LIVE of cursor/fix-da320-warehouse-search-7b3b.",
+      "gapsRemaining": [
+        "ajax_getProductsOfBunch live supplier poll",
+        "cart/quote/fitment actions on result rows",
+        "Genuine/Aftermarket section split",
+        "full price markup / office bunches",
+        "FORCE_LIVE deploy required for live DA320/ROCKY warehouse offers"
+      ]
+    },
+    {
+      "id": "name_search",
+      "php": "/en/shop/search",
+      "aspnet": "/storefront/search-app?mode=name",
+      "status": "stub",
+      "notes": "Mode label only; catalogue name search still PHP-authoritative."
+    },
+    {
+      "id": "warehouse_attr",
+      "php": "/en/shop/warehouse-search",
+      "aspnet": "/storefront/search-app?mode=attr",
+      "status": "partial",
+      "notes": "Attr form present; fielded warehouse attr SQL not full PHP parity."
+    },
+    {
+      "id": "vin_laximo",
+      "php": "/en/katalog-laximo",
+      "aspnet": "/storefront/search-app?mode=vin",
+      "status": "stub",
+      "notes": "VIN form field restored; Laximo decode/results remain PHP."
+    },
+    {
+      "id": "vehicle_catalog",
+      "php": "/en/vehicle-catalog",
+      "aspnet": "/storefront/search-app?mode=car",
+      "status": "stub",
+      "notes": "Header link + mode shell; year/make/model tree is PHP."
+    },
+    {
+      "id": "cart",
+      "php": "/en/shop/cart",
+      "aspnet": "/storefront/cart-app",
+      "status": "partial",
+      "notes": "Read digest + shell; qty/add/delete writes PHP."
+    },
+    {
+      "id": "checkout",
+      "php": "/en/shop/checkout",
+      "aspnet": "/storefront/checkout-app",
+      "status": "partial",
+      "notes": "Readiness shell; create/payment PHP."
+    },
+    {
+      "id": "orders",
+      "php": "/en/shop/orders",
+      "aspnet": "/storefront/orders-app",
+      "status": "partial",
+      "notes": "List digest; detail/messages PHP."
+    },
+    {
+      "id": "garage",
+      "php": "/en/garazh + /en/garage/login",
+      "aspnet": "/storefront/garage-app",
+      "status": "partial",
+      "notes": "Shell + digests; car/notepad writes PHP."
+    },
+    {
+      "id": "account",
+      "php": "/en/users/login|/profile",
+      "aspnet": "/storefront/login|/storefront/account-summary-app|/storefront/account-app",
+      "status": "partial",
+      "notes": "account-app alias added; registration/quotes/wishlist/compare/balance still PHP."
+    },
+    {
+      "id": "catalog_family",
+      "php": "/en/product-family|/available-brands|/umapi_catalog|/eparts-*|/levam-oem",
+      "aspnet": "/storefront/app#epc-*",
+      "status": "partial",
+      "notes": "Home anchors; interactive catalog modules still PHP."
+    },
+    {
+      "id": "product_detail",
+      "php": "CMS product/category pages",
+      "aspnet": "none",
+      "status": "gap",
+      "notes": "No dedicated product-app; PHP authoritative."
+    },
+    {
+      "id": "quotes_wishlist_compare_bulk_balance",
+      "php": "/en/shop/quotes|/zakladki|/sravneniya|/bulk-upload|/balans",
+      "aspnet": "none (dry-runs only where present)",
+      "status": "gap",
+      "notes": "Intentionally PHP-locked until wave apps exist."
+    }
+  ],
+  "priorityBuildOrder": [
+    "part_search warehouse offers + brand picker (this PR)",
+    "cart/checkout write dry-run → interactive",
+    "VIN/Laximo and vehicle catalog shells",
+    "catalog family apps beyond home anchors",
+    "product detail + quotes/wishlist"
+  ]
+}

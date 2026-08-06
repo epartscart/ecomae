@@ -25,6 +25,32 @@ public static class PortalTenantSql
         LIMIT 1
         """;
 
+    /// <summary>
+    /// Same as <see cref="SelectActiveTenantByHost"/> but matches primary or www-alias hostname.
+    /// Prefers exact <c>@h0</c> (request host) over <c>@h1</c> (www stripped/added).
+    /// </summary>
+    public const string SelectActiveTenantByHosts = """
+        SELECT
+            `site_key`,
+            `hostname`,
+            `db_name`,
+            IFNULL(`db_user`, '') AS db_user,
+            IFNULL(`db_password`, IFNULL(`db_pass`, '')) AS db_password,
+            `status`,
+            `is_demo`,
+            `erp_only_shared`,
+            `is_active`,
+            `dedicated_db`,
+            IFNULL(`scale_policy`, '') AS scale_policy
+        FROM `epc_portal_tenants`
+        WHERE `hostname` IN (@h0, @h1)
+          AND `status` IN ('dns_pending', 'live')
+          AND COALESCE(`is_active`, 1) = 1
+        ORDER BY CASE WHEN `hostname` = @h0 THEN 0 ELSE 1 END,
+                 `is_demo` ASC, `erp_only_shared` DESC, `site_key` ASC
+        LIMIT 1
+        """;
+
     public const string SelectTenantBySiteKey = """
         SELECT
             `site_key`,

@@ -3,7 +3,9 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Observability;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Migration;
 
@@ -14,10 +16,17 @@ namespace EcomAE.Platform.Migration;
 public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryReporter
 {
     private readonly ITenantDbConnectionFactory _connections;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
+    private readonly PhpWarehouseSearchBridge? _phpWarehouseBridge;
 
-    public SurfaceDashboardSummaryReporter(ITenantDbConnectionFactory connections)
+    public SurfaceDashboardSummaryReporter(
+        ITenantDbConnectionFactory connections,
+        IHttpContextAccessor? httpContextAccessor = null,
+        PhpWarehouseSearchBridge? phpWarehouseBridge = null)
     {
         _connections = connections;
+        _httpContextAccessor = httpContextAccessor;
+        _phpWarehouseBridge = phpWarehouseBridge;
     }
 
     public async Task<ControlPanelDashboardSummary> BuildControlPanelAsync(CancellationToken cancellationToken = default)
@@ -1101,55 +1110,76 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var brandTrim = (brand ?? string.Empty).Trim();
         var brandUpper = brandTrim.ToUpperInvariant();
         var brandCompact = CompactStorefrontBrand(brandTrim);
+        var unbound = TryGetUnboundTenantShopMessage(out var unboundMessage);
 
-        try
+        if (!unbound)
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
-            var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
-            // PHP path: article_search → exact/light match → full REPLACE normalize.
-            var rows = await QueryStorefrontPartOffersAsync(
-                connection,
-                candidates,
-                brandUpper,
-                brandCompact,
-                safeLimit,
-                StorefrontArticleMatchMode.ArticleSearch,
-                hasSearchCol,
-                cancellationToken).ConfigureAwait(false);
-
-            if (rows.Count == 0)
+            try
             {
-                rows = await QueryStorefrontPartOffersAsync(
+                await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+                var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
+                var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
+
+                // PHP CHPU: article-only warehouse SQL, then brand/synonym filter in UI.
+                // Keep branded SQL first for index friendliness; retry article-only when empty.
+                var rows = await QueryStorefrontPartOffersCascadeAsync(
                     connection,
                     candidates,
                     brandUpper,
                     brandCompact,
                     safeLimit,
-                    StorefrontArticleMatchMode.ExactTrim,
                     hasSearchCol,
                     cancellationToken).ConfigureAwait(false);
-            }
 
-            if (rows.Count == 0)
+                if (rows.Count == 0 && brandTrim.Length > 0)
+                {
+                    var unfiltered = await QueryStorefrontPartOffersCascadeAsync(
+                        connection,
+                        candidates,
+                        brandUpper: string.Empty,
+                        brandCompact: string.Empty,
+                        Math.Min(safeLimit * 4, 500),
+                        hasSearchCol,
+                        cancellationToken).ConfigureAwait(false);
+                    var aliases = await LoadManufacturerBrandAliasesAsync(connection, brandTrim, cancellationToken)
+                        .ConfigureAwait(false);
+                    rows = unfiltered
+                        .Where(r => ManufacturerMatchesBrand(r.Manufacturer, brandTrim, brandCompact, aliases))
+                        .Take(safeLimit)
+                        .ToList();
+                }
+
+                if (rows.Count > 0)
+                {
+                    return new(normalized, rows, rows.Count, "database", string.Empty);
+                }
+            }
+            catch (Exception ex)
             {
-                rows = await QueryStorefrontPartOffersAsync(
-                    connection,
-                    candidates,
-                    brandUpper,
-                    brandCompact,
-                    safeLimit,
-                    StorefrontArticleMatchMode.ReplaceNormalize,
-                    hasSearchCol,
-                    cancellationToken).ConfigureAwait(false);
+                if (_phpWarehouseBridge is null)
+                {
+                    return new(normalized, [], 0, "database-error", ex.Message);
+                }
             }
+        }
 
-            return new(normalized, rows, rows.Count, "database", string.Empty);
-        }
-        catch (Exception ex)
+        if (_phpWarehouseBridge is not null)
         {
-            return new(normalized, [], 0, "database-error", ex.Message);
+            var phpRows = await _phpWarehouseBridge
+                .TryLoadOffersAsync(normalized, brandTrim, safeLimit, cancellationToken)
+                .ConfigureAwait(false);
+            if (phpRows.Count > 0)
+            {
+                return new(normalized, phpRows, phpRows.Count, "php-chpu", string.Empty);
+            }
         }
+
+        if (unbound)
+        {
+            return new(normalized, [], 0, "migration", unboundMessage);
+        }
+
+        return new(normalized, [], 0, "database", string.Empty);
     }
 
     public async Task<StorefrontArticleBrandsResult> ListStorefrontArticleBrandsAsync(string article, int limit, CancellationToken cancellationToken = default)
@@ -1166,63 +1196,92 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(normalized, [], 0, "migration", "TenantRegistry DB is not configured.");
         }
 
-        try
+        var unbound = TryGetUnboundTenantShopMessage(out var unboundMessage);
+        if (!unbound)
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
-            var hasAnalogsSearch = await ProbeAnalogsSearchColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
-            var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
-
-            var byBrand = new Dictionary<string, StorefrontArticleBrandDigest>(StringComparer.OrdinalIgnoreCase);
-            var warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
-                connection,
-                candidates,
-                safeLimit,
-                StorefrontArticleMatchMode.ArticleSearch,
-                hasSearchCol,
-                cancellationToken).ConfigureAwait(false);
-
-            if (warehouseBrands.Count == 0)
+            try
             {
-                warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
+                await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+                var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
+                var hasAnalogsSearch = await ProbeAnalogsSearchColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
+                var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
+
+                var byBrand = new Dictionary<string, StorefrontArticleBrandDigest>(StringComparer.OrdinalIgnoreCase);
+                var warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
                     connection,
                     candidates,
                     safeLimit,
-                    StorefrontArticleMatchMode.ExactTrim,
+                    StorefrontArticleMatchMode.ArticleSearch,
                     hasSearchCol,
                     cancellationToken).ConfigureAwait(false);
-            }
 
-            if (warehouseBrands.Count == 0)
+                if (warehouseBrands.Count == 0)
+                {
+                    warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
+                        connection,
+                        candidates,
+                        safeLimit,
+                        StorefrontArticleMatchMode.ExactTrim,
+                        hasSearchCol,
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                if (warehouseBrands.Count == 0)
+                {
+                    warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
+                        connection,
+                        candidates,
+                        safeLimit,
+                        StorefrontArticleMatchMode.ReplaceNormalize,
+                        hasSearchCol,
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                foreach (var brand in warehouseBrands)
+                {
+                    byBrand[brand.Brand.ToUpperInvariant()] = brand;
+                }
+
+                // PHP epc_collect_article_catalog_brands always merges CP crosses into the picker.
+                await MergeCpCrossBrandsAsync(connection, normalized, byBrand, hasAnalogsSearch, cancellationToken)
+                    .ConfigureAwait(false);
+
+                var brands = byBrand.Values
+                    .OrderBy(b => b.Brand, StringComparer.OrdinalIgnoreCase)
+                    .Take(safeLimit)
+                    .ToList();
+
+                if (brands.Count > 0)
+                {
+                    return new(normalized, brands, brands.Count, "database", string.Empty);
+                }
+            }
+            catch (Exception ex)
             {
-                warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
-                    connection,
-                    candidates,
-                    safeLimit,
-                    StorefrontArticleMatchMode.ReplaceNormalize,
-                    hasSearchCol,
-                    cancellationToken).ConfigureAwait(false);
+                if (_phpWarehouseBridge is null)
+                {
+                    return new(normalized, [], 0, "database-error", ex.Message);
+                }
             }
+        }
 
-            foreach (var brand in warehouseBrands)
-            {
-                byBrand[brand.Brand.ToUpperInvariant()] = brand;
-            }
-
-            // PHP epc_collect_article_catalog_brands always merges CP crosses into the picker.
-            await MergeCpCrossBrandsAsync(connection, normalized, byBrand, hasAnalogsSearch, cancellationToken)
+        if (_phpWarehouseBridge is not null)
+        {
+            var phpBrands = await _phpWarehouseBridge
+                .TryLoadBrandsAsync(normalized, safeLimit, cancellationToken)
                 .ConfigureAwait(false);
+            if (phpBrands.Count > 0)
+            {
+                return new(normalized, phpBrands, phpBrands.Count, "php-chpu", string.Empty);
+            }
+        }
 
-            var brands = byBrand.Values
-                .OrderBy(b => b.Brand, StringComparer.OrdinalIgnoreCase)
-                .Take(safeLimit)
-                .ToList();
-            return new(normalized, brands, brands.Count, "database", string.Empty);
-        }
-        catch (Exception ex)
+        if (unbound)
         {
-            return new(normalized, [], 0, "database-error", ex.Message);
+            return new(normalized, [], 0, "migration", unboundMessage);
         }
+
+        return new(normalized, [], 0, "database", string.Empty);
     }
 
     public Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, int limit, CancellationToken cancellationToken = default)
@@ -1310,6 +1369,26 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return new(normalized, [], 0, "database-error", ex.Message);
         }
+    }
+
+    /// <summary>
+    /// When storefront Live/ErpOnly tenant resolved without a shop DB name, OpenAsync(null) hits the
+    /// registry/platform schema (no shop_docpart_prices_data). Surface a clear hostname/www hint.
+    /// </summary>
+    private bool TryGetUnboundTenantShopMessage(out string message)
+    {
+        message = string.Empty;
+        var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        if (tenant is null
+            || tenant.Surface != TenantSurface.Storefront
+            || tenant.Mode is not (TenantMode.LiveTenant or TenantMode.ErpOnlyTenant)
+            || tenant.HasTenantDatabase)
+        {
+            return false;
+        }
+
+        message = "Tenant shop database is not bound for this host — check epc_portal_tenants.hostname (www alias).";
+        return true;
     }
 
     private enum StorefrontArticleMatchMode
@@ -1432,6 +1511,119 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
 
         candidates.Add(value);
+    }
+
+    private async Task<List<StorefrontPartOfferDigest>> QueryStorefrontPartOffersCascadeAsync(
+        DbConnection connection,
+        IReadOnlyList<string> candidates,
+        string brandUpper,
+        string brandCompact,
+        int safeLimit,
+        bool hasSearchCol,
+        CancellationToken cancellationToken)
+    {
+        foreach (var mode in new[]
+                 {
+                     StorefrontArticleMatchMode.ArticleSearch,
+                     StorefrontArticleMatchMode.ExactTrim,
+                     StorefrontArticleMatchMode.ReplaceNormalize
+                 })
+        {
+            var rows = await QueryStorefrontPartOffersAsync(
+                connection,
+                candidates,
+                brandUpper,
+                brandCompact,
+                safeLimit,
+                mode,
+                hasSearchCol,
+                cancellationToken).ConfigureAwait(false);
+            if (rows.Count > 0)
+            {
+                return rows;
+            }
+        }
+
+        return [];
+    }
+
+    private static bool ManufacturerMatchesBrand(
+        string manufacturer,
+        string brandTrim,
+        string brandCompact,
+        IReadOnlySet<string> aliases)
+    {
+        var mfr = (manufacturer ?? string.Empty).Trim();
+        if (mfr.Length == 0 || brandTrim.Length == 0)
+        {
+            return false;
+        }
+
+        if (aliases.Contains(mfr))
+        {
+            return true;
+        }
+
+        if (string.Equals(mfr, brandTrim, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var compact = CompactStorefrontBrand(mfr);
+        return brandCompact.Length > 0 && compact == brandCompact;
+    }
+
+    private async Task<HashSet<string>> LoadManufacturerBrandAliasesAsync(
+        DbConnection connection,
+        string brand,
+        CancellationToken cancellationToken)
+    {
+        var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            brand.Trim(),
+            brand.Trim().ToUpperInvariant()
+        };
+        if (string.IsNullOrWhiteSpace(brand))
+        {
+            return aliases;
+        }
+
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT TRIM(m.`name`) AS name
+                FROM `shop_docpart_manufacturers` m
+                WHERE UPPER(TRIM(m.`name`)) = @brand
+                UNION
+                SELECT TRIM(s.`synonym`) AS name
+                FROM `shop_docpart_manufacturers_synonyms` s
+                INNER JOIN `shop_docpart_manufacturers` m ON m.`id` = s.`manufacturer_id`
+                WHERE UPPER(TRIM(m.`name`)) = @brand OR UPPER(TRIM(s.`synonym`)) = @brand
+                UNION
+                SELECT TRIM(m2.`name`) AS name
+                FROM `shop_docpart_manufacturers_synonyms` s2
+                INNER JOIN `shop_docpart_manufacturers` m2 ON m2.`id` = s2.`manufacturer_id`
+                WHERE UPPER(TRIM(s2.`synonym`)) = @brand
+                LIMIT 80
+                """;
+            AddParameter(command, "@brand", brand.Trim().ToUpperInvariant());
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    aliases.Add(name.Trim());
+                }
+            }
+        }
+        catch
+        {
+            // Synonym tables are optional on some tenants.
+        }
+
+        return aliases;
     }
 
     private static string ResolveStorefrontArticleMatchSql(
@@ -1623,10 +1815,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             command.CommandText = """
                 SELECT IFNULL(MAX(d.`exist`), 0) AS max_exist
                 FROM `shop_docpart_prices_data` d
-                LEFT JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
                 WHERE {ARTICLE_MATCH}
-                  AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
-                  AND IFNULL(d.`price`, 0) > 0
                   AND (@brand = '' OR UPPER(TRIM(d.`manufacturer`)) = @brand
                        OR REPLACE(REPLACE(REPLACE(UPPER(TRIM(d.`manufacturer`)), ' ', ''), '-', ''), '.', '') = @brandCompact)
                 """.Replace("{ARTICLE_MATCH}", articleMatch, StringComparison.Ordinal);

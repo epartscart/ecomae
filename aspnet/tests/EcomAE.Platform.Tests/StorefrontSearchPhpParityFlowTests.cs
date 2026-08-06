@@ -40,8 +40,13 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("@brand", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("time_to_exe", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        // PHP prices_enclosure / CHPU brand query do not require price>0 or storefront_temp_disabled.
+        Assert.DoesNotContain("price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        Assert.DoesNotContain("storefront_temp_disabled", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
         Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
+        Assert.DoesNotContain("storefront_temp_disabled", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
+        Assert.DoesNotContain("LEFT JOIN", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("shop_docpart_articles_analogs_list", LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs, StringComparison.Ordinal);
         Assert.Contains("{CROSS_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs, StringComparison.Ordinal);
         Assert.DoesNotContain("price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
@@ -108,6 +113,38 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("SelectStorefrontArticleWarehouseBrands", text, StringComparison.Ordinal);
         Assert.Contains("SelectStorefrontArticleCrossPairs", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontArticleMatchMode.ExactTrim", text, StringComparison.Ordinal);
+        Assert.Contains("QueryStorefrontPartOffersCascadeAsync", text, StringComparison.Ordinal);
+        Assert.Contains("LoadManufacturerBrandAliasesAsync", text, StringComparison.Ordinal);
+        Assert.Contains("ManufacturerMatchesBrand", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AccountSummaryApp_AliasesAccountAppRoute()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAccountSummaryApp.razor"));
+        Assert.Contains("@page \"/storefront/account-app\"", text, StringComparison.Ordinal);
+        Assert.Contains("@page \"/storefront/account-summary-app\"", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SearchApp_VinModeUsesIdentStringField()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
+        Assert.Contains("name=\"identString\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"mode\" value=\"vin\"", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GapBoard_DocumentsEpartscartStorefrontSurfaces()
+    {
+        var json = File.ReadAllText(FindRepoFile(
+            "docs/migration/evidence/storefront/epartscart-php-aspnet-gap-board.json"));
+        Assert.Contains("\"tenant\": \"epartscart.com\"", json, StringComparison.Ordinal);
+        Assert.Contains("part_search", json, StringComparison.Ordinal);
+        Assert.Contains("priorityBuildOrder", json, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed", json, StringComparison.Ordinal);
     }
 
     [Fact]

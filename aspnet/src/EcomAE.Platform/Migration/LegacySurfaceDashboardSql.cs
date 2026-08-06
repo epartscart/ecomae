@@ -1590,8 +1590,6 @@ public static class LegacySurfaceDashboardSql
         FROM `shop_docpart_prices_data` d
         LEFT JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
         WHERE {ARTICLE_MATCH}
-          AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
-          AND IFNULL(d.`price`, 0) > 0
           AND (@brand = '' OR UPPER(TRIM(d.`manufacturer`)) = @brand
                OR REPLACE(REPLACE(REPLACE(UPPER(TRIM(d.`manufacturer`)), ' ', ''), '-', ''), '.', '') = @brandCompact)
         ORDER BY d.`price` ASC
@@ -1600,14 +1598,12 @@ public static class LegacySurfaceDashboardSql
 
     /// <summary>
     /// Article-only warehouse manufacturers (PHP <c>epc_chpu_distinct_warehouse_brands_for_article</c>).
-    /// No price&gt;0 filter — CHPU brand query does not require priced rows.
+    /// No price&gt;0 / storefront_temp_disabled filters — CHPU brand query is article-table only.
     /// </summary>
     public const string SelectStorefrontArticleWarehouseBrands = """
         SELECT MIN(TRIM(d.`manufacturer`)) AS brand_name
         FROM `shop_docpart_prices_data` d
-        LEFT JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
         WHERE {ARTICLE_MATCH}
-          AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
           AND TRIM(IFNULL(d.`manufacturer`, '')) != ''
         GROUP BY UPPER(TRIM(d.`manufacturer`))
         ORDER BY UPPER(TRIM(d.`manufacturer`)) ASC

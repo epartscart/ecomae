@@ -72,10 +72,21 @@
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
         <h1>@_heroTitle</h1>
         <p>@_heroSubtitle</p>
-        <form class="epc-sf-search-form" method="get" action="@StorefrontSurfaceLinks.PartSearch">
+        <form class="epc-sf-search-form" method="get" action="@SearchFormAction">
             @if (string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase))
             {
+                <input type="hidden" name="mode" value="attr" />
                 <input type="search" name="q" value="@_attrQuery" placeholder="Engine, size, country, cross ref…" aria-label="Warehouse / more info search" />
+            }
+            else if (string.Equals(_mode, "vin", StringComparison.OrdinalIgnoreCase))
+            {
+                <input type="hidden" name="mode" value="vin" />
+                <input type="search" name="identString" value="@_articleInput" placeholder="Enter VIN / Frame" aria-label="VIN" maxlength="32" />
+            }
+            else if (string.Equals(_mode, "engine", StringComparison.OrdinalIgnoreCase))
+            {
+                <input type="hidden" name="mode" value="engine" />
+                <input type="search" name="engine" value="@_articleInput" placeholder="Engine code (e.g. 3L, 12R)" aria-label="Engine code" />
             }
             else
             {
@@ -256,6 +267,14 @@
     private IReadOnlyList<StorefrontCrossRefDigest> _crossStockRefs = [];
     private string _source = "n/a";
     private string _message = "";
+
+    private string SearchFormAction => _mode switch
+    {
+        "attr" => StorefrontSurfaceLinks.WarehouseSearch,
+        "vin" => StorefrontSurfaceLinks.LaximoVin,
+        "engine" or "car" => StorefrontSurfaceLinks.VehicleCatalog,
+        _ => StorefrontSurfaceLinks.PartSearch
+    };
 
     [Parameter]
     public string? PathBrand { get; set; }

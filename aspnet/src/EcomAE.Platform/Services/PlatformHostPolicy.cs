@@ -54,6 +54,36 @@ public static class PlatformHostPolicy
         return h;
     }
 
+    /// <summary>
+    /// Hostname lookup candidates: exact normalized host first, then www-stripped or www-added alias.
+    /// Lets <c>www.epartscart.com</c> resolve a registry row stored as <c>epartscart.com</c> (and vice versa).
+    /// </summary>
+    public static IReadOnlyList<string> NormalizeHostAliases(string? host)
+    {
+        var primary = NormalizeHost(host);
+        if (primary.Length == 0)
+        {
+            return Array.Empty<string>();
+        }
+
+        string alias;
+        if (primary.StartsWith("www.", StringComparison.Ordinal))
+        {
+            alias = primary[4..];
+        }
+        else
+        {
+            alias = "www." + primary;
+        }
+
+        if (alias.Length == 0 || string.Equals(alias, primary, StringComparison.Ordinal))
+        {
+            return [primary];
+        }
+
+        return [primary, alias];
+    }
+
     /// <summary>True when host may run Super BOS / Super CP platform ops.</summary>
     public static bool IsSuperCpHost(string? host)
     {
