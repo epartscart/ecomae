@@ -2,13 +2,12 @@
 # UNBREAK epartscart after failed PHP-pause / warm-up loop / incomplete restore.
 #
 # Live failure (observed):
-#   /              → ASP.NET OK
-#   /cp/login      → ASP.NET OK
-#   /storefront/*  → splash or PHP 404  (NOT proxied to :5100)
-#   /en/*          → splash            (PHP-FPM dead OR php-off snippet still on)
-#   /index.php     → splash
-#   home chrome    → still PreferAspNetApps (/storefront/* links)
-#   www.ecomae.com /storefront/* → OK (proves Kestrel is fine; epartscart nginx wrong)
+#   Click anything → /storefront/search-app → warm-up splash → back to /
+#   /              → ASP.NET OK  (location = / was installed)
+#   /storefront/*  → splash      (location ^~ /storefront/ was NEVER installed —
+#                    classic-entry parser only handled location = routes)
+#   /en/*          → splash      (PHP-FPM / php-off leftover)
+#   www.ecomae.com /storefront/* → OK (Kestrel fine; epartscart nginx incomplete)
 #
 #   ECOMAE_CONFIRM_UNBREAK_EPARTSCART_STOREFRONT=YES \
 #     bash scripts/cloudpanel_unbreak_epartscart_storefront_now.sh
