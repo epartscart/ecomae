@@ -288,6 +288,15 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Batch 4: read-only warehouse part search filtered by brand (PHP <c>brend</c> query).</summary>
+    Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, string? brand, int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Article-only search: warehouse manufacturers for normalized article (PHP brand picker).</summary>
+    Task<StorefrontArticleBrandsResult> ListStorefrontArticleBrandsAsync(string article, int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Cross references for normalized article (PHP cross fallback SSR).</summary>
+    Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only authenticated customer cart (qty/checkout writes remain PHP).</summary>
     Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default);
     Task<CpTaxExternalReportingDigestResult> BuildCpTaxExternalReportingDigestAsync(int limit, CancellationToken cancellationToken = default);

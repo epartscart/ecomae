@@ -1474,7 +1474,7 @@ public static class LegacySurfaceDashboardSql
         """;
 
     /// <summary>
-    /// Batch 4 storefront part search (mirrors pyapi <c>part_search</c> / warehouse offers).
+    /// Batch 4 storefront part search (mirrors PHP <c>docpart_sql_article_normalized_expr</c> on article).
     /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.
     /// </summary>
     public const string SelectStorefrontPartSearch = """
@@ -1488,10 +1488,38 @@ public static class LegacySurfaceDashboardSql
                IFNULL(d.`storage`, '') AS storage
         FROM `shop_docpart_prices_data` d
         INNER JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
-        WHERE d.`article_search` = @article
+        WHERE UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(d.`article`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) = @article
           AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
           AND IFNULL(d.`price`, 0) > 0
+          AND (@brand = '' OR UPPER(TRIM(d.`manufacturer`)) = @brand
+               OR REPLACE(REPLACE(REPLACE(UPPER(TRIM(d.`manufacturer`)), ' ', ''), '-', ''), '.', '') = @brandCompact)
         ORDER BY d.`price` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Article-only part search — warehouse manufacturers for normalized article (PHP brand picker).</summary>
+    public const string SelectStorefrontArticleWarehouseBrands = """
+        SELECT MIN(TRIM(d.`manufacturer`)) AS brand_name
+        FROM `shop_docpart_prices_data` d
+        INNER JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
+        WHERE UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(d.`article`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) = @article
+          AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
+          AND IFNULL(d.`price`, 0) > 0
+          AND TRIM(IFNULL(d.`manufacturer`, '')) != ''
+        GROUP BY UPPER(TRIM(d.`manufacturer`))
+        ORDER BY UPPER(TRIM(d.`manufacturer`)) ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Cross-reference partners for normalized article (PHP <c>docpart_load_interchange_partners</c> first round).</summary>
+    public const string SelectStorefrontArticleCrossPairs = """
+        SELECT IFNULL(`manufacturer_article`, '') AS source_brand,
+               IFNULL(`article`, '') AS source_article,
+               IFNULL(`manufacturer_analog`, '') AS cross_brand,
+               IFNULL(`analog`, '') AS cross_article
+        FROM `shop_docpart_articles_analogs_list`
+        WHERE UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`article`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) = @article
+           OR UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`analog`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) = @article
         LIMIT @limit
         """;
 

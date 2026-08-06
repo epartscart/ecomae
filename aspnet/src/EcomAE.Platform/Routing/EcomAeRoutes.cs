@@ -1474,6 +1474,8 @@ public static class EcomAeRoutes
     public const string StorefrontSearchApp = "/storefront/search-app";
     /// <summary>Storefront warehouse-offer search JSON digest (Blazor UI remains <see cref="StorefrontSearchApp"/>).</summary>
     public const string StorefrontSearch = "/storefront/search";
+    /// <summary>Article-only warehouse brand picker JSON digest (PHP <c>all_brands_by_article</c>).</summary>
+    public const string StorefrontSearchBrands = "/storefront/search-brands";
     /// <summary>Batch 4: authenticated cart Blazor summary (qty/checkout writes remain PHP /shop/cart).</summary>
     public const string StorefrontCartApp = "/storefront/cart-app";
     /// <summary>Storefront authenticated cart JSON digest (Blazor UI remains <see cref="StorefrontCartApp"/>).</summary>
