@@ -7,14 +7,43 @@ Paste on the **production CloudPanel server** as root. Deploys latest `main` (in
 Protocol: **no new PHP feature work**. Pause PHP HTTP serving so ASP.NET Core can be tested in detail. Files stay on disk (`KeepPhpProjectAvailable=true`). `cutoverAllowed` / `readyForPhpRemoval` stay **false**.
 
 ```bash
-# Prefer branch until merged to main:
+# Prefer branch until #885 merges to main:
 ECOMAE_BRANCH=cursor/temp-deactivate-php-serving-7b3b \
 ECOMAE_CONFIRM_TEMP_DEACTIVATE_PHP_SERVING=YES \
   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/temp-deactivate-php-serving-7b3b/scripts/cloudpanel_temporarily_deactivate_php_serving.sh)"
 # Expect RESULT=PASS — /php-reference and /en/ → 503; product / /cp /erp stay ASP.NET
 # Board: curl -sS https://www.epartscart.com/migration/php-reference-mode | jq '{status,mode,temporarilyDeactivatePhpServing,cutoverAllowed,readyForPhpRemoval,keepPhpProjectAvailable}'
 # Restore when compare needed again:
+# cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
 # ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES bash scripts/cloudpanel_restore_php_reference_serving.sh
+```
+
+## 0⚠) CP AUTH LEAK — `/cp` without login (do immediately)
+
+`#887` gate is on `main`. Live `/cp` was guest-browsable; `/cp/control` often still hit PHP. **Always `cd` into the repo** before `bash scripts/…`. Prefer **GET** proves — `curl -I` often returns **405** on `/cp`.
+
+```bash
+# 1) Publish ASP.NET binary
+ECOMAE_BRANCH=main \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+# Must print RESULT=PASS.
+
+# 2) cd REPO (required) — SecretSuccession + classic-entry /cp/control → :5100
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+git fetch origin main && git checkout -f main && git reset --hard origin/main
+
+ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+  bash scripts/cloudpanel_sync_secret_succession_from_php.sh
+
+ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
+ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
+  bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
+
+# 3) Prove (GET, not HEAD)
+curl -sS -o /dev/null -w 'cp %{http_code} -> %{redirect_url}\n' https://www.epartscart.com/cp
+curl -sS -o /dev/null -w 'cp/control %{http_code} -> %{redirect_url}\n' https://www.epartscart.com/cp/control
+# expect 302 → …/cp/login
+curl -sS https://www.epartscart.com/cp/login | grep -i 'no login' && echo FAIL guest-browse || echo PASS no-guest-browse
 ```
 
 ## 0★) STOREFRONT `/` STALE AFTER #877+ — FORCE LIVE (do this first)
@@ -22,14 +51,16 @@ ECOMAE_CONFIRM_TEMP_DEACTIVATE_PHP_SERVING=YES \
 Public `https://www.epartscart.com/` is nginx → `:5100/storefront/app`. PHP sync / marker updates are **not** enough. Until the hardened script prints `RESULT=PASS`, home stays on the old binary (`action="/storefront/search-app"`).
 
 ```bash
-# Prefer branch until #882 merges; then use main URL.
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/php-parity-unified-fonts-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+# Header PHP parity (Garage cyan / red pills / Catalog of products). Prefer branch until merged:
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-php-parity-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+# After merge to main:
+# bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
 # Must show the RESULT=PASS banner. On FAIL:
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-git fetch origin cursor/php-parity-unified-fonts-7b3b && git checkout -f cursor/php-parity-unified-fonts-7b3b
+git fetch origin cursor/storefront-header-php-parity-7b3b && git checkout -f cursor/storefront-header-php-parity-7b3b
 bash scripts/cloudpanel_DIAGNOSE_STALE_HOME.sh
 # Laptop prove (expect RESULT=FRESH):
-# curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/php-parity-unified-fonts-7b3b/scripts/prove_epartscart_public_deploy.sh | bash
+# curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-php-parity-7b3b/scripts/prove_epartscart_public_deploy.sh | bash
 ```
 
 ## 0) EXECUTE NOW — tenant-shared `/cp` `/erp` `/` → ASP.NET (URL unchanged)

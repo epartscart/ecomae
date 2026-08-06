@@ -37,6 +37,8 @@ public sealed class PhpStorefrontNeroChromeParityTests
         var path = Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor");
         var text = File.ReadAllText(path);
         Assert.Contains("ERP Login", text, StringComparison.Ordinal);
+        Assert.Contains("epc-garage-header-link", text, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-header-link", text, StringComparison.Ordinal);
         Assert.Contains("Catalog <span class=\"hidden-sm\">of products</span>", text, StringComparison.Ordinal);
         Assert.Contains("Vendor login", text, StringComparison.Ordinal);
         Assert.Contains("Customer login", text, StringComparison.Ordinal);
@@ -47,10 +49,14 @@ public sealed class PhpStorefrontNeroChromeParityTests
         // Inline critical PHP-look CSS (must ship even when www CSS 404s).
         Assert.Contains("header-call-box a { background:#ef4444", text, StringComparison.Ordinal);
         Assert.Contains("background:linear-gradient(135deg,#111827", text, StringComparison.Ordinal);
+        Assert.Contains("background:linear-gradient(135deg,#090f1d", text, StringComparison.Ordinal);
+        Assert.Contains("color:#a5f3fc !important", text, StringComparison.Ordinal);
         Assert.Contains(".schearch-line", text, StringComparison.Ordinal);
-        // Must not fight PHP professional shell with flat gray search bar / white menu tiles.
+        // Must not fight PHP professional shell with flat gray search bar / white menu tiles / flat top bar.
         Assert.DoesNotContain(".schearch-line { background:#f3f4f6", text, StringComparison.Ordinal);
         Assert.DoesNotContain("background:#fff; border:1px solid #e5e7eb; color:#111", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("top-menu-line\" style=\"background:#1a1a1a", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Mon–Sat 9:00", text, StringComparison.Ordinal);
     }
 
     [Fact]

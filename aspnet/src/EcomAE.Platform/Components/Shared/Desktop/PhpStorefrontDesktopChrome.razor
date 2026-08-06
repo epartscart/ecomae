@@ -11,7 +11,7 @@
 
 <div class="epc-nero-shell epc-php-font-root">
     <header class="hidden-xs epc-nero-header">
-        <div class="top-menu-line" style="background:#1a1a1a;">
+        <div class="top-menu-line">
             <div class="container">
                 <table class="epc-nero-top-table">
                     <tr>
@@ -20,7 +20,7 @@
                                 <ul class="nav navbar-nav">
                                     <li><a href="/">Home</a></li>
                                     <li class="dropdown">
-                                        <a href="javascript:void(0)" class="dropdown-toggle" aria-haspopup="true">Product</a>
+                                        <a href="javascript:void(0)" class="dropdown-toggle" aria-haspopup="true">Product <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
                                         <ul class="dropdown-menu">
                                             <li><a href="@StorefrontSurfaceLinks.ProductFamily">Product Family</a></li>
                                             <li><a href="@StorefrontSurfaceLinks.AvailableBrands">Available brands</a></li>
@@ -29,7 +29,7 @@
                                         </ul>
                                     </li>
                                     <li class="dropdown">
-                                        <a href="javascript:void(0)" class="dropdown-toggle" aria-haspopup="true">Selection catalogs</a>
+                                        <a href="javascript:void(0)" class="dropdown-toggle" aria-haspopup="true">Selection catalogs <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
                                         <ul class="dropdown-menu">
                                             <li><a href="@StorefrontSurfaceLinks.EpartsCata">EParts CATA</a></li>
                                             <li><a href="@StorefrontSurfaceLinks.EpartsMod">EParts Mod</a></li>
@@ -47,8 +47,8 @@
                             </nav>
                         </td>
                         <td class="epc-nero-top-actions">
-                            <div class="new-header-user-box">
-                                <a href="@StorefrontSurfaceLinks.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i> Garage Manager</a>
+                            <div class="new-header-user-box epc-garage-header-link">
+                                <a href="@StorefrontSurfaceLinks.GarageLogin" title="Garage Manager"><i class="fa fa-wrench" aria-hidden="true"></i> Garage Manager</a>
                             </div>
                             <div class="new-header-user-box epc-erp-header-link">
                                 <a href="/erp" title="ERP Login"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP Login</a>
@@ -104,8 +104,8 @@
                             <div class="geo-point-box text-left">
                                 <table>
                                     <tr>
-                                        <td><i class="fa fa-location-arrow" aria-hidden="true"></i></td>
-                                        <td><span>Dubai<br />United Arab Emirates</span></td>
+                                        <td><i class="fa fa-map-marker" aria-hidden="true"></i></td>
+                                        <td><span>Dubai</span></td>
                                     </tr>
                                 </table>
                             </div>
@@ -410,13 +410,41 @@
         justify-content:center; min-height:46px; padding:11px 18px; text-decoration:none !important; white-space:nowrap;
         box-shadow:0 10px 22px rgba(15,23,42,.12);
     }
-    .header-call-box a { background:#ef4444; color:#fff !important; }
-    .header-whatsapp-box a { background:#16a34a; color:#fff !important; }
-    .header-bulk-upload-box a { background:#2563eb; color:#fff !important; }
+    .header-call-box a { background:#ef4444; color:#fff !important; box-shadow:0 12px 26px rgba(239,68,68,.22); }
+    .header-whatsapp-box a { background:#16a34a; color:#fff !important; box-shadow:0 12px 26px rgba(22,163,74,.2); }
+    .header-bulk-upload-box a { background:#2563eb; color:#fff !important; box-shadow:0 12px 26px rgba(37,99,235,.2); }
+    .epc-currency-switcher {
+        align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:999px;
+        display:inline-flex; margin:0 !important; padding:6px 10px;
+    }
+    .epc-currency-switcher select {
+        background:#fff; border:1px solid #cbd5e1; border-radius:10px; color:#0f172a;
+        font-size:14px; font-weight:800; height:38px; min-width:84px; padding:0 10px;
+    }
     .epc-currency-note { display:none; }
+    .epc-header-actions-row {
+        align-items:center; display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; width:100%;
+    }
     .schearch-line {
         background:linear-gradient(135deg,#111827 0%,#0f172a 100%) !important;
         box-shadow:0 18px 36px rgba(15,23,42,.14); padding:14px 0 16px !important;
+    }
+    .epc-header-search {
+        background:#fff; border-radius:16px; padding:10px 12px 12px;
+        box-shadow:0 14px 30px rgba(15,23,42,.18);
+    }
+    .epc-header-search__tabs { display:flex; flex-wrap:wrap; gap:6px 10px; margin-bottom:8px; }
+    .epc-header-search__tab {
+        background:transparent; border:0; border-bottom:2px solid transparent; color:#64748b;
+        font-size:13px; font-weight:800; padding:4px 2px 6px; cursor:pointer;
+    }
+    .epc-header-search__tab .fa { margin-right:5px; }
+    .epc-header-search__tab.active { color:#ef4444 !important; border-color:#ef4444 !important; }
+    .epc-header-search .form-control {
+        border:1px solid #e2e8f0; border-radius:10px 0 0 10px; min-height:46px; font-size:15px;
+    }
+    .epc-header-search .input-group-btn .btn {
+        border-radius:0 10px 10px 0; min-height:46px; padding:0 22px;
     }
     .header-home-btn {
         background:rgba(255,255,255,.1) !important; border:1px solid rgba(255,255,255,.14) !important;
@@ -431,7 +459,6 @@
     .header-search-box .btn-primary, .header-search-box .btn-ar {
         background:#ef4444 !important; border-color:#ef4444 !important; color:#fff !important; font-weight:800;
     }
-    .epc-header-search__tab.active { color:#ef4444 !important; border-color:#ef4444 !important; }
     header .schearch-line .menu-box-item a, .menu-box-item a {
         background:linear-gradient(135deg,#0f172a 0%,#1f2937 100%) !important;
         border:1px solid rgba(255,255,255,.22) !important; border-radius:16px !important;
@@ -451,21 +478,45 @@
     .epc-nero-top-table td { vertical-align:middle; }
     .epc-nero-top-actions { text-align:right; white-space:nowrap; }
     .epc-nero-top-actions .new-header-user-box { display:inline-block; margin-left:.75rem; font-size:.78rem; font-weight:700; }
-    .epc-nero-top-actions a { color:#fff; }
-    .top-menu-line { color:#fff; }
+    .epc-nero-top-actions a { color:rgba(255,255,255,.84); }
+    .top-menu-line {
+        background:linear-gradient(135deg,#090f1d 0%,#111827 54%,#1f2937 100%) !important;
+        border-bottom:1px solid rgba(255,255,255,.08);
+        box-shadow:0 10px 28px rgba(15,23,42,.16);
+        color:#fff;
+    }
     .top-menu-line .navbar { margin:0; background:transparent; border:0; min-height:0; }
     .top-menu-line .nav { list-style:none; margin:0; padding:.35rem 0; display:flex; flex-wrap:wrap; gap:.15rem 1rem; align-items:center; }
     .top-menu-line .nav > li { position:relative; }
-    .top-menu-line .nav > li > a { color:#fff; font-weight:700; font-size:.82rem; display:inline-block; padding:.35rem 0; }
-    .top-menu-line .nav > li > a:hover { color:#fbbf24; }
+    .top-menu-line .nav > li > a { color:rgba(255,255,255,.84); font-weight:700; font-size:.82rem; display:inline-block; padding:.35rem 0; }
+    .top-menu-line .nav > li > a:hover { color:#fff; }
+    .top-menu-line .nav > li > a .fa-chevron-down { font-size:.65rem; margin-left:.25rem; opacity:.7; }
     .top-menu-line .dropdown-menu {
         display:none; position:absolute; left:0; top:100%; z-index:50; min-width:14rem;
-        background:#111; border:1px solid #333; padding:.35rem 0; margin:0; list-style:none;
+        background:#fff; border:1px solid #e2e8f0; border-radius:0 0 12px 12px;
+        box-shadow:0 18px 42px rgba(15,23,42,.18); padding:8px 0; margin:0; list-style:none;
     }
     .top-menu-line .dropdown:hover > .dropdown-menu,
     .top-menu-line .dropdown:focus-within > .dropdown-menu { display:block; }
-    .top-menu-line .dropdown-menu a { display:block; padding:.4rem .75rem; color:#e5e7eb; font-size:.8rem; }
-    .top-menu-line .dropdown-menu a:hover { background:#222; color:#fff; }
+    .top-menu-line .dropdown-menu a { display:block; padding:9px 14px; color:#1f2937; font-size:.8rem; font-weight:700; }
+    .top-menu-line .dropdown-menu a:hover { background:#f8fafc; color:#ef4444; }
+    /* Same-to-same vs PHP epc_garage_header_link.php / ERP header accent */
+    .epc-garage-header-link a { color:#a5f3fc !important; font-weight:700; }
+    .epc-garage-header-link a:hover { color:#fff !important; }
+    .epc-garage-header-link .fa { color:#22d3ee !important; margin-right:4px; }
+    .epc-erp-header-link a { color:#fda4af !important; font-weight:700; }
+    .epc-erp-header-link a:hover { color:#fff !important; }
+    .epc-erp-header-link .fa { color:#ef4444 !important; margin-right:4px; }
+    .logo-line {
+        background:rgba(255,255,255,.96) !important; border-bottom:1px solid #e8edf5;
+        box-shadow:0 12px 32px rgba(15,23,42,.08); padding:.55rem 0;
+    }
+    .geo-point-box i, .timetable-box i { color:#ef4444; font-size:22px; margin-right:14px; }
+    .geo-point-box span, .timetable-box span { color:#334155; font-size:14px; font-weight:750; line-height:1.45; }
+    .header-phone-box .phone {
+        color:#0f172a !important; font-size:clamp(20px,1.7vw,26px); font-weight:900;
+        letter-spacing:-.02em; text-decoration:none !important;
+    }
     .epc-auth-header-links { display:inline-flex; align-items:center; gap:8px; white-space:nowrap; font-weight:700; }
     .epc-auth-header-links__group { display:inline-flex; align-items:center; gap:5px; }
     .epc-auth-header-links__icon, .epc-auth-header-links__group > .fa { color:#ef4444; margin-right:2px; font-size:14px; line-height:1; width:1em; text-align:center; }

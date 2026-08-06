@@ -524,6 +524,13 @@ public static class PhpSurfaceLinkMap
             ? path["/CP/".Length..]
             : path.TrimStart('/');
 
+        // Bare PHP /cp/control (and /CP/control) → same ASP.NET Command Centre as /cp.
+        if (rest.Equals("control", StringComparison.OrdinalIgnoreCase)
+            || rest.Equals("control/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/control";
+        }
+
         foreach (var (marker, aspNet) in CpPathMap)
         {
             if (rest.Contains(marker, StringComparison.OrdinalIgnoreCase)

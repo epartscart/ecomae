@@ -665,6 +665,8 @@ app.UseMiddleware<TenantResolutionMiddleware>();
 // BOS is Super-CP / platform only — never answer /bos on tenant hosts (epartscart, …).
 app.UseMiddleware<BosHostGateMiddleware>();
 app.UseMiddleware<RouteCutoverDecisionMiddleware>();
+// Hard wall: /cp /erp /bos require admin session (no guest-browse chrome on live tenants).
+app.UseMiddleware<AdminSurfaceAuthGateMiddleware>();
 // Credential POSTs on /cp|/erp|/bos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.
 app.UseMiddleware<LegacyLoginBridgeMiddleware>();
 // Required for Blazor SSR endpoints (MapRazorComponents adds antiforgery metadata).

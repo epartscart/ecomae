@@ -47,6 +47,30 @@ else
   printf 'FAIL  inline professional header CSS missing (publish #877–#880 not live)\n'
   fail=1
 fi
+if grep -Fq 'Catalog' "$TMP" && grep -Fq 'of products' "$TMP"; then
+  printf 'PASS  Catalog of products label present\n'
+else
+  printf 'FAIL  Catalog of products label missing (stale gray Catalog chrome)\n'
+  fail=1
+fi
+if grep -Fq 'Mon-Fri from 9:00 to 18:00' "$TMP"; then
+  printf 'PASS  PHP hours string present\n'
+else
+  printf 'FAIL  PHP hours string missing (still Mon–Sat stub)\n'
+  fail=1
+fi
+if grep -Fq 'epc-garage-header-link' "$TMP"; then
+  printf 'PASS  Garage Manager PHP header class present\n'
+else
+  printf 'FAIL  epc-garage-header-link missing\n'
+  fail=1
+fi
+if grep -Fq 'background:linear-gradient(135deg,#090f1d' "$TMP"; then
+  printf 'PASS  PHP top-menu gradient present\n'
+else
+  printf 'FAIL  PHP top-menu gradient missing\n'
+  fail=1
+fi
 
 HDR="$(curl -sSI -A 'Mozilla/5.0' --max-time 20 \
   "${PUBLIC_BASE}/storefront/search-app?article=1310154101&${Q}" || true)"
@@ -68,7 +92,7 @@ RESULT=STALE
 GitHub merges do nothing until CloudPanel republishes Kestrel (:5100).
 On the CloudPanel host as root (hardened script — requires RESULT=PASS banner):
 
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/php-parity-unified-fonts-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-php-parity-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
 
 If RESULT=FAIL, paste output of:
   bash scripts/cloudpanel_DIAGNOSE_STALE_HOME.sh

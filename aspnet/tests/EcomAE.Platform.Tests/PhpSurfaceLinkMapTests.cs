@@ -16,6 +16,8 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/CP/shop/orders/carts", "/cp/abandoned-carts-app")]
     [InlineData("/CP/modules/modules_manager", "/cp/modules-app")]
     [InlineData("/CP/control/users", "/cp/users-app")]
+    [InlineData("/CP/control", "/cp/control")]
+    [InlineData("/cp/control", "/cp/control")]
     [InlineData("/CP/shop/crm/crm_main", "/cp/crm-board-app")]
     [InlineData("/CP/shop/prices", "/cp/price-lists-app")]
     [InlineData("/CP/shop/payments/payments", "/cp/payment-gateways-app")]

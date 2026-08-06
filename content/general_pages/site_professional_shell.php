@@ -279,6 +279,29 @@ defined('_ASTEXE_') or die('No access');
 	.top-menu-line .fa {
 		color: #ef4444;
 	}
+	/* PHP epc_garage_header_link.php — cyan Garage Manager accent */
+	.epc-garage-header-link a {
+		color: #a5f3fc !important;
+		font-weight: 700;
+	}
+	.epc-garage-header-link a:hover {
+		color: #fff !important;
+	}
+	.epc-garage-header-link .fa {
+		color: #22d3ee !important;
+		margin-right: 4px;
+	}
+	.epc-erp-header-link a {
+		color: #fda4af !important;
+		font-weight: 700;
+	}
+	.epc-erp-header-link a:hover {
+		color: #fff !important;
+	}
+	.epc-erp-header-link .fa {
+		color: #ef4444 !important;
+		margin-right: 4px;
+	}
 	.logo-line {
 		background: rgba(255, 255, 255, .96) !important;
 		border-bottom: 1px solid #e8edf5;
