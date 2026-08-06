@@ -1211,9 +1211,20 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     connection,
                     candidates,
                     safeLimit,
-                    StorefrontArticleMatchMode.ArticleSearch,
+                    StorefrontArticleMatchMode.SimpleEquality,
                     hasSearchCol,
                     cancellationToken).ConfigureAwait(false);
+
+                if (warehouseBrands.Count == 0)
+                {
+                    warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
+                        connection,
+                        candidates,
+                        safeLimit,
+                        StorefrontArticleMatchMode.ArticleSearch,
+                        hasSearchCol,
+                        cancellationToken).ConfigureAwait(false);
+                }
 
                 if (warehouseBrands.Count == 0)
                 {
@@ -1393,6 +1404,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     private enum StorefrontArticleMatchMode
     {
+        SimpleEquality,
         ArticleSearch,
         ExactTrim,
         ReplaceNormalize
@@ -1524,6 +1536,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     {
         foreach (var mode in new[]
                  {
+                     StorefrontArticleMatchMode.SimpleEquality,
                      StorefrontArticleMatchMode.ArticleSearch,
                      StorefrontArticleMatchMode.ExactTrim,
                      StorefrontArticleMatchMode.ReplaceNormalize
@@ -1632,9 +1645,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         bool hasSearchCol,
         out bool bindIndexed)
     {
-        bindIndexed = true;
+        bindIndexed = mode is not StorefrontArticleMatchMode.SimpleEquality;
         return mode switch
         {
+            StorefrontArticleMatchMode.SimpleEquality
+                => LegacySurfaceDashboardSql.StorefrontPriceArticleSimpleEqualitySql,
             StorefrontArticleMatchMode.ArticleSearch when hasSearchCol
                 => LegacySurfaceDashboardSql.StorefrontPriceArticleSearchInSql(candidates.Count),
             StorefrontArticleMatchMode.ArticleSearch
@@ -1790,9 +1805,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     private static void BindArticleCandidates(DbCommand command, IReadOnlyList<string> candidates)
     {
-        for (var i = 0; i < candidates.Count; i++)
+        // Exact/Replace SQL use distinct @aN / @bN / @cN prefixes for each IN clause copy.
+        foreach (var prefix in new[] { "a", "b", "c" })
         {
-            AddParameter(command, "@a" + i.ToString(CultureInfo.InvariantCulture), candidates[i]);
+            for (var i = 0; i < candidates.Count; i++)
+            {
+                AddParameter(command, "@" + prefix + i.ToString(CultureInfo.InvariantCulture), candidates[i]);
+            }
         }
     }
 

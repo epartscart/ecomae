@@ -1517,8 +1517,22 @@ public static class LegacySurfaceDashboardSql
     }
 
     /// <summary>
+    /// Single-article equality (no IN list) — PHP CHPU first-hit path for codes like A2N233V / DA320.
+    /// Binds <c>@article</c> only (avoids multi-IN parameter reuse quirks).
+    /// </summary>
+    public const string StorefrontPriceArticleSimpleEqualitySql = """
+        (
+          UPPER(TRIM(IFNULL(d.`article`, ''))) = @article
+          OR UPPER(TRIM(IFNULL(d.`article_show`, ''))) = @article
+          OR UPPER(REPLACE(REPLACE(REPLACE(IFNULL(d.`article`, ''), '-', ''), ' ', ''), '.', '')) = @article
+          OR UPPER(REPLACE(REPLACE(REPLACE(IFNULL(d.`article_show`, ''), '-', ''), ' ', ''), '.', '')) = @article
+        )
+        """;
+
+    /// <summary>
     /// Fast exact/trim match (no nested REPLACE) — enough for already-normalized OE codes like DA320.
     /// Used before the heavy PHP REPLACE fallback.
+    /// Each IN clause uses distinct parameter prefixes so drivers that do not reuse names still bind.
     /// </summary>
     public static string StorefrontPriceArticleExactInSql(int count)
     {
@@ -1527,10 +1541,12 @@ public static class LegacySurfaceDashboardSql
             return "0";
         }
 
-        var placeholders = BuildIndexedParams("a", count);
-        return $"(UPPER(TRIM(IFNULL(d.`article`, ''))) IN ({placeholders})"
-             + $" OR UPPER(TRIM(IFNULL(d.`article_show`, ''))) IN ({placeholders})"
-             + $" OR UPPER(REPLACE(REPLACE(REPLACE(IFNULL(d.`article`, ''), '-', ''), ' ', ''), '.', '')) IN ({placeholders}))";
+        var a = BuildIndexedParams("a", count);
+        var b = BuildIndexedParams("b", count);
+        var c = BuildIndexedParams("c", count);
+        return $"(UPPER(TRIM(IFNULL(d.`article`, ''))) IN ({a})"
+             + $" OR UPPER(TRIM(IFNULL(d.`article_show`, ''))) IN ({b})"
+             + $" OR UPPER(REPLACE(REPLACE(REPLACE(IFNULL(d.`article`, ''), '-', ''), ' ', ''), '.', '')) IN ({c}))";
     }
 
     /// <summary>REPLACE-normalize IN match on article/article_show (PHP CHPU fallback when article_search misses).</summary>
@@ -1543,8 +1559,9 @@ public static class LegacySurfaceDashboardSql
 
         var art = DocpartNormalizeArticleExpr("IFNULL(d.`article`, '')");
         var show = DocpartNormalizeArticleExpr("IFNULL(d.`article_show`, '')");
-        var placeholders = BuildIndexedParams("a", count);
-        return $"({art} IN ({placeholders}) OR {show} IN ({placeholders}))";
+        var a = BuildIndexedParams("a", count);
+        var b = BuildIndexedParams("b", count);
+        return $"({art} IN ({a}) OR {show} IN ({b}))";
     }
 
     private static string BuildIndexedParams(string prefix, int count)
