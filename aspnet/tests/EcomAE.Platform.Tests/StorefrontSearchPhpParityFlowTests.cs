@@ -22,6 +22,8 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("epc-sf-cross-refs", text, StringComparison.Ordinal);
         Assert.Contains("epc-sf-cross-stock", text, StringComparison.Ordinal);
         Assert.Contains("&brend=", text, StringComparison.Ordinal);
+        Assert.Contains("/storefront/search-app?article=", text, StringComparison.Ordinal);
+        Assert.Contains("No manufacturers found for this article", text, StringComparison.Ordinal);
     }
 
     [Fact]
