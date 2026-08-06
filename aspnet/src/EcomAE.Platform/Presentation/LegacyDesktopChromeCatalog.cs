@@ -216,9 +216,15 @@ public static class LegacyDesktopChromeCatalog
             || h.Contains("epc_super_cp_", StringComparison.OrdinalIgnoreCase)
             || h.Contains("epc_tenant_features", StringComparison.OrdinalIgnoreCase)
             || h.Contains("epc_pos_tenant_manage", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_sso_saml", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_event_bus", StringComparison.OrdinalIgnoreCase)
             || h.Contains("super_cp_fleet", StringComparison.OrdinalIgnoreCase)
             || h.Contains("super_erp_fleet", StringComparison.OrdinalIgnoreCase)
             || h.Contains("fleet-health-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/tenant-features-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/customer-board-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/sso-saml-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/event-bus-app", StringComparison.OrdinalIgnoreCase)
             || h.Contains("/bos/", StringComparison.OrdinalIgnoreCase))
         {
             return true;

@@ -1,0 +1,146 @@
+@page "/cp/event-bus-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Event bus · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+@if (_allowed)
+{
+    <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-nw-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
+        }
+        .epc-nw-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-nw-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-nw-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-nw-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0f172a; background:#fff;
+        }
+        .epc-nw-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-nw-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-nw-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-nw-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-nw-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-nw-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-nw-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-nw-table th, .epc-nw-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-nw-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-nw-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-nw-kpis{grid-template-columns:1fr 1fr;} }
+    </style>
+
+    <section class="epc-nw-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Event bus</h1>
+        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <div class="epc-nw-cta">
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+
+        </div>
+    </section>
+
+    <div class="epc-nw-kpis" aria-label="Event bus stats">
+        <div class="epc-nw-kpi"><strong>@_eventCount.ToString(CultureInfo.InvariantCulture)</strong><span>Events</span></div>
+        <div class="epc-nw-kpi"><strong>@_typeCount.ToString(CultureInfo.InvariantCulture)</strong><span>Types</span></div>
+        <div class="epc-nw-kpi"><strong>@_tenantCount.ToString(CultureInfo.InvariantCulture)</strong><span>Tenants</span></div>
+        <div class="epc-nw-kpi"><strong>@_last24h.ToString(CultureInfo.InvariantCulture)</strong><span>Last 24h</span></div>
+    </div>
+
+    <div class="epc-nw-table-wrap">
+    <table class="epc-nw-table">
+        <thead>
+            <tr>
+                    <th>Id</th>
+                    <th>Type</th>
+                    <th>Tenant</th>
+                    <th>Actor</th>
+                    <th>Created</th>
+                    <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (_rows.Count == 0)
+            {
+                <tr><td colspan="6">Nothing to show yet.</td></tr>
+            }
+            else
+            {
+                @foreach (var row in _rows)
+                {
+                    <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.EventType) ? row.EventType : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.TenantKey) ? row.TenantKey : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.ActorType) ? row.ActorType : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    </div>
+
+    <div class="epc-nw-note">Super CP host only. MySQL epc_events peek — no Kafka/Rabbit brokers or payloads.</div>
+
+</PhpCpDesktopChrome>
+}
+else
+{
+    <div style="padding:2rem;font-family:sans-serif;">
+        <h1>Not found</h1>
+        <p>This control is available on the platform Super CP host only.</p>
+        <p><a href="/cp">Open Control Panel</a></p>
+    </div>
+}
+
+@code {
+    private bool _allowed;
+    private const string _phpTab = "/CP/control/portal/epc_event_bus";
+    private bool _isAdmin;
+    private int _eventCount = 0;
+    private int _typeCount = 0;
+    private int _tenantCount = 0;
+    private int _last24h = 0;
+    private IReadOnlyList<CpEventBusRowDigest> _rows = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        _allowed = SuperCpHostGate.IsAllowed(ctx);
+        if (!_allowed || ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var result = await Dashboards.BuildCpEventBusDigestAsync(200, ctx.RequestAborted);
+        _eventCount = result.Summary.EventCount;
+        _typeCount = result.Summary.TypeCount;
+        _tenantCount = result.Summary.TenantCount;
+        _last24h = result.Summary.Last24h;
+        _rows = result.Rows;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

@@ -1473,6 +1473,180 @@ public static class LegacySurfaceDashboardSql
         LIMIT 2000
         """;
 
+
+    /// <summary>Next-wave: commerce statistics KPIs.</summary>
+    public const string SelectCpStatisticsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_orders`) AS order_count,
+            (SELECT COUNT(*) FROM `shop_stat_article_queries`) AS query_count,
+            (SELECT COUNT(DISTINCT `article`) FROM `shop_stat_article_queries`) AS unique_articles,
+            (SELECT COUNT(DISTINCT FROM_UNIXTIME(IFNULL(`time`,0), '%Y-%m-%d')) FROM `shop_stat_article_queries` WHERE IFNULL(`time`,0) > 0) AS active_days
+        """;
+
+    /// <summary>Next-wave: top article query rows (ip omitted).</summary>
+    public const string SelectCpStatisticsRows = """
+        SELECT IFNULL(`article`,'') AS article,
+               IFNULL(`manufacturer`,'') AS brand,
+               COUNT(*) AS hits,
+               MAX(IFNULL(`time`,0)) AS last_seen
+        FROM `shop_stat_article_queries`
+        GROUP BY IFNULL(`article`,''), IFNULL(`manufacturer`,'')
+        ORDER BY hits DESC, last_seen DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpAccessoriesStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_acc_listings`) AS listing_count,
+            (SELECT COUNT(*) FROM `epc_acc_listings` WHERE IFNULL(`status`,'')='published') AS published_count,
+            (SELECT COUNT(*) FROM `epc_acc_categories`) AS category_count,
+            (SELECT COUNT(*) FROM `epc_acc_photos`) AS photo_count
+        """;
+
+    public const string SelectCpAccessoriesRows = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`make`,'') AS make, IFNULL(`model`,'') AS model,
+               IFNULL(`price`,0) AS price, IFNULL(`status`,'') AS status
+        FROM `epc_acc_listings`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpSynonymsStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_docpart_manufacturers`) AS manufacturer_count,
+            (SELECT COUNT(*) FROM `shop_docpart_manufacturers_synonyms`) AS synonym_count,
+            (SELECT COUNT(*) FROM `shop_docpart_manufacturers_synonyms` s
+             LEFT JOIN `shop_docpart_manufacturers` m ON m.`id` = s.`manufacturer_id`
+             WHERE m.`id` IS NULL) AS orphan_count,
+            (SELECT COUNT(DISTINCT `manufacturer_id`) FROM `shop_docpart_manufacturers_synonyms`) AS mapped_count
+        """;
+
+    public const string SelectCpSynonymsRows = """
+        SELECT IFNULL(m.`name`,'') AS manufacturer,
+               IFNULL(s.`synonym`,'') AS synonym,
+               IFNULL(s.`manufacturer_id`,0) AS manufacturer_id
+        FROM `shop_docpart_manufacturers_synonyms` s
+        LEFT JOIN `shop_docpart_manufacturers` m ON m.`id` = s.`manufacturer_id`
+        ORDER BY manufacturer ASC, synonym ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpSeoStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `content` WHERE IFNULL(`is_frontend`,0)=1) AS url_count,
+            (SELECT COUNT(*) FROM `content` WHERE IFNULL(`is_frontend`,0)=1 AND IFNULL(`published_flag`,0)=1) AS indexed_ready,
+            0 AS ping_jobs,
+            0 AS warm_jobs
+        """;
+
+    public const string SelectCpTenantFeaturesStats = """
+        SELECT
+            (SELECT COUNT(DISTINCT `site_key`) FROM `epc_tenant_feature_flags`) AS site_count,
+            (SELECT COUNT(*) FROM `epc_tenant_feature_flags`) AS flag_count,
+            (SELECT COUNT(*) FROM `epc_tenant_feature_flags` WHERE IFNULL(`enabled`,0)=1) AS enabled_count,
+            (SELECT COUNT(*) FROM `epc_tenant_feature_flags` WHERE IFNULL(`enabled`,0)=0) AS disabled_count
+        """;
+
+    public const string SelectCpTenantFeaturesRows = """
+        SELECT IFNULL(`site_key`,'') AS site_key, IFNULL(`feature_key`,'') AS feature_key,
+               IFNULL(`enabled`,0) AS enabled, IFNULL(`updated_at`,0) AS updated_at
+        FROM `epc_tenant_feature_flags`
+        ORDER BY `site_key` ASC, `feature_key` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpSocialHubStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_social_accounts`) AS account_count,
+            (SELECT COUNT(*) FROM `epc_social_post_drafts`) AS draft_count,
+            (SELECT COUNT(*) FROM `epc_social_post_drafts` WHERE IFNULL(`status`,'')='published') AS published_count,
+            (SELECT COUNT(*) FROM `epc_social_post_drafts` WHERE IFNULL(`last_error`,'') != '') AS error_count
+        """;
+
+    public const string SelectCpSocialHubRows = """
+        SELECT IFNULL(a.`platform`,'') AS platform,
+               IFNULL(a.`username`,'') AS username,
+               IFNULL(a.`status`,'') AS status,
+               IFNULL(d.`title`,'') AS title,
+               IFNULL(d.`status`,'') AS draft_status
+        FROM `epc_social_accounts` a
+        LEFT JOIN `epc_social_post_drafts` d ON d.`site_key` = a.`site_key` AND d.`platform` = a.`platform`
+        ORDER BY a.`id` DESC, d.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpCustomerBoardStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `users`) AS user_count,
+            (SELECT COUNT(*) FROM `users` WHERE IFNULL(`email`,'') != '') AS with_email,
+            (SELECT COUNT(*) FROM `users` WHERE IFNULL(`phone`,'') != '') AS with_phone,
+            (SELECT COUNT(*) FROM `users` WHERE IFNULL(`time_last_visit`,0) > UNIX_TIMESTAMP() - 86400*30) AS recent_logins
+        """;
+
+    public const string SelectCpCustomerBoardRows = """
+        SELECT u.`user_id` AS id, IFNULL(u.`email`,'') AS email,
+               IFNULL((SELECT `data_value` FROM `users_profiles` p WHERE p.`user_id` = u.`user_id` AND p.`data_key` IN ('name','fio','full_name') LIMIT 1), '') AS name,
+               IFNULL(u.`phone`,'') AS phone,
+               IFNULL(u.`time_registered`,0) AS reg_time
+        FROM `users` u
+        ORDER BY u.`user_id` DESC
+        LIMIT @limit
+        """;
+    public const string SelectCpFulfillmentQueueStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_fulfillment_orders` WHERE IFNULL(`status`,'')='queued') AS queued,
+            (SELECT COUNT(*) FROM `epc_fulfillment_orders` WHERE IFNULL(`status`,'') IN ('picking','picked','packing','packed')) AS picking,
+            (SELECT COUNT(*) FROM `epc_fulfillment_orders` WHERE IFNULL(`status`,'') IN ('shipping','shipped')) AS shipping,
+            (SELECT COUNT(*) FROM `epc_fulfillment_orders` WHERE IFNULL(`status`,'')='delivered') AS delivered
+        """;
+
+    public const string SelectCpFulfillmentQueueRows = """
+        SELECT `id`, IFNULL(`order_number`,'') AS order_number, IFNULL(`customer_name`,'') AS customer_name,
+               IFNULL(`status`,'') AS status, IFNULL(`priority`,'') AS priority,
+               IFNULL(`warehouse`,'') AS warehouse, IFNULL(`carrier`,'') AS carrier
+        FROM `epc_fulfillment_orders`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpSsoSamlStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_sso_providers`) AS provider_count,
+            (SELECT COUNT(*) FROM `epc_sso_providers` WHERE IFNULL(`active`,0)=1) AS active_providers,
+            (SELECT COUNT(*) FROM `epc_sso_sessions`) AS session_count,
+            (SELECT COUNT(*) FROM `epc_sso_sessions` WHERE IFNULL(`status`,'')='active') AS active_sessions
+        """;
+
+    public const string SelectCpSsoSamlRows = """
+        SELECT IFNULL(p.`provider_name`,'') AS provider_name,
+               IFNULL(p.`provider_type`,'') AS provider_type,
+               IFNULL(p.`active`,0) AS active,
+               IFNULL(s.`email`,'') AS email,
+               IFNULL(s.`status`,'') AS status
+        FROM `epc_sso_providers` p
+        LEFT JOIN `epc_sso_sessions` s ON s.`provider_id` = p.`id`
+        ORDER BY p.`id` DESC, s.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpEventBusStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_events`) AS event_count,
+            (SELECT COUNT(DISTINCT `event_type`) FROM `epc_events`) AS type_count,
+            (SELECT COUNT(DISTINCT `tenant_key`) FROM `epc_events`) AS tenant_count,
+            (SELECT COUNT(*) FROM `epc_events` WHERE `created_at` >= (NOW() - INTERVAL 1 DAY)) AS last_24h
+        """;
+
+    public const string SelectCpEventBusRows = """
+        SELECT `id`, IFNULL(`event_type`,'') AS event_type, IFNULL(`tenant_key`,'') AS tenant_key,
+               IFNULL(`actor_type`,'') AS actor_type,
+               DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s') AS created_at
+        FROM `epc_events`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+
     /// <summary>
     /// PHP <c>docpart_sql_article_normalized_expr()</c> — exactly 15 REPLACE layers + UPPER.
     /// <paramref name="columnSql"/> must be a trusted column identifier (never user input).
