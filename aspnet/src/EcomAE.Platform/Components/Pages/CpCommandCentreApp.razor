@@ -10,10 +10,18 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Control Command Centre · eParts Cart</PageTitle>
+<PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+@if (_isSuperHost)
+{
+    @* PHP: super-cp hosts render epc_super_cp_dashboard.php (BOC fleet console) —
+       NEVER a tenant's shop dashboard. Tenant data stays on tenant hosts. *@
+    <PhpSuperCpCommandCentre />
+}
+else
+{
     @* PHP cp/content/control/epc_tenant_cp_dashboard.php — .cp-dash markup so command_dashboard.css applies *@
     <div class="col-lg-12 cp-dash" data-cp-dashboard="command">
         <div class="cp-dash-hero">
@@ -22,12 +30,12 @@
                     <PhpEpartsCartAnimatedLogo Variant="dash" />
                 </div>
                 <div class="cp-dash-kicker"><i class="fa fa-cogs"></i> Control Command Centre</div>
-                <h2 class="cp-dash-title">eParts Cart</h2>
+                <h2 class="cp-dash-title">@_brandLabel</h2>
                 <p class="cp-dash-sub">
                     Live commerce pulse — orders, catalogue, prices, warehouses, and finance in one red-black command view.
                 </p>
                 <div class="cp-dash-meta">
-                    <span class="cp-dash-chip cp-dash-chip--dark"><i class="fa fa-industry"></i> Auto parts</span>
+                    <span class="cp-dash-chip cp-dash-chip--dark"><i class="fa fa-industry"></i> @_industryLabel</span>
                     <span class="cp-dash-chip"><i class="fa fa-calendar"></i> @DateTime.UtcNow.ToString("yyyy-MM-dd")</span>
                     <span class="cp-dash-chip"><i class="fa fa-money"></i> AED</span>
                     <a class="cp-dash-chip" href="/erp"><i class="fa fa-university"></i> Open ERP</a>
@@ -133,6 +141,7 @@
             </div>
         </div>
     </div>
+}
 </PhpCpDesktopChrome>
 
 @code {
@@ -144,6 +153,10 @@
     private int _vendors;
     private int _clients;
     private bool _isAdmin;
+    private bool _isSuperHost;
+    private string _pageTitle = "Control Command Centre";
+    private string _brandLabel = "eParts Cart";
+    private string _industryLabel = "Auto parts";
 
     private static readonly DashTile[] _tiles =
     [
@@ -167,8 +180,29 @@
             return;
         }
 
+        // Same split as PHP cp/content/control/control.php: super-cp hosts get the
+        // BOC fleet console; tenant hosts get THEIR OWN tenant Command Centre.
+        var host = ctx.Request.Host.Host;
+        _isSuperHost = Services.PlatformHostPolicy.IsSuperCpHost(host);
+        if (_isSuperHost)
+        {
+            _pageTitle = "Platform Super CP · ECOM AE";
+        }
+        else
+        {
+            var erpHost = ErpHostContext.Resolve(host);
+            _brandLabel = erpHost.BrandLabel;
+            _industryLabel = erpHost.IndustryLabel;
+            _pageTitle = $"Control Command Centre · {_brandLabel}";
+        }
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin;
+        if (_isAdmin && _isSuperHost)
+        {
+            return; // Super CP KPIs come from PhpSuperCpCommandCentre (platform fleet).
+        }
+
         if (!_isAdmin)
         {
             return;

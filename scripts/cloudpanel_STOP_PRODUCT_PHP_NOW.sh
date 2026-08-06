@@ -279,8 +279,13 @@ PACK = r'''
         return 503 "Archive paused for platform deep test.\n";
     }
     location ^~ /en/ {
-        default_type text/plain;
-        return 503 "Interim /en/ paused — use platform /storefront/*.\n";
+        # Paused mode: platform maps /en commerce links into the apps (no splash).
+        proxy_pass http://127.0.0.1:5100;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Cookie $http_cookie;
     }
     # END ecomae-STOP-PRODUCT-PHP
 '''

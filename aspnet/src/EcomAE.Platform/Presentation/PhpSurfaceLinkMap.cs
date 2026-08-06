@@ -193,6 +193,15 @@ public static class PhpSurfaceLinkMap
             return StorefrontSurfaceLinks.ForVehicleCatalog(value);
         }
 
+        // /parts with a search query is an article search, not a catalog browse
+        // (home widget deep links: /en/parts?article=… / ?man=…&article=…).
+        if ((value.StartsWith("/parts?", StringComparison.OrdinalIgnoreCase)
+             || value.StartsWith("/parts/", StringComparison.OrdinalIgnoreCase))
+            && value.Contains('?', StringComparison.Ordinal))
+        {
+            return StorefrontSurfaceLinks.ForPartSearch(value);
+        }
+
         if (IsStorefrontCatalogBrowsePath(value))
         {
             return StorefrontSurfaceLinks.ForCatalogBrowse(value);
@@ -476,7 +485,12 @@ public static class PhpSurfaceLinkMap
             || stripped.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
             || stripped.Contains("warehouse-search", StringComparison.OrdinalIgnoreCase)
             || stripped.Contains("katalog-laximo", StringComparison.OrdinalIgnoreCase)
-            || stripped.Contains("vehicle-catalog", StringComparison.OrdinalIgnoreCase)))
+            || stripped.Contains("vehicle-catalog", StringComparison.OrdinalIgnoreCase)
+            // Home catalog widgets deep-link /en/parts, /en/umapi_catalog, /en/available-brands,
+            // /en/product-family, … — map them into the ASP.NET apps too (kills the splash
+            // when PHP serving is paused).
+            || IsStorefrontCatalogBrowsePath(stripped)
+            || stripped.StartsWith("/parts", StringComparison.OrdinalIgnoreCase)))
         {
             return false;
         }

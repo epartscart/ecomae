@@ -43,6 +43,31 @@ public static class PhpHomeWidgetHtml
 
     public static string VehicleCatalog() => Render("content/vehicle_catalog.php");
 
+    /// <summary>Read a pre-rendered HTML file from the monorepo (no PHP substitution).</summary>
+    public static string RenderStatic(string relativePath)
+    {
+        var root = RepoRoot();
+        if (root is null)
+        {
+            return string.Empty;
+        }
+
+        var path = Path.GetFullPath(Path.Combine(root, relativePath));
+        if (!path.StartsWith(root, StringComparison.Ordinal) || !File.Exists(path))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            return File.ReadAllText(path);
+        }
+        catch (IOException)
+        {
+            return string.Empty;
+        }
+    }
+
     /// <summary>Empty string when the widget source is unavailable — caller shows the PHP fallback alert.</summary>
     public static string Render(string relativePath)
     {

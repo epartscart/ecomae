@@ -42,6 +42,16 @@ public static class StorefrontIndustryHostResolver
             ["security"] = "security",
         };
 
+    /// <summary>Tenant apex host → industry_code (PHP epc_portal_sites()).</summary>
+    private static readonly IReadOnlyDictionary<string, string> ProductTenantHostIndustry =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["electronicae.com"] = "electronics",
+            ["stylenlook.com"] = "fashion",
+            ["thejewellerytrend.com"] = "jewellery",
+            ["taxofinca.com"] = "tax_advisory",
+        };
+
     public static IndustryAttrs Resolve(string? host)
     {
         var industry = ResolveIndustryCode(host);
@@ -65,6 +75,12 @@ public static class StorefrontIndustryHostResolver
         if (normalized is "ecomae.com" or "epartscart.com" or "localhost" or "127.0.0.1")
         {
             return "auto_parts";
+        }
+
+        // Product tenant apex domains — mirrors PHP epc_portal_sites() hardcoded hosts.
+        if (ProductTenantHostIndustry.TryGetValue(normalized, out var tenantIndustry))
+        {
+            return tenantIndustry;
         }
 
         if (normalized.EndsWith(".ecomae.com", StringComparison.Ordinal))
@@ -98,6 +114,19 @@ public static class StorefrontIndustryHostResolver
         if (industry is "auto_parts" or "automotive")
         {
             return "eParts Cart (Autoparts)";
+        }
+
+        // Same-to-same with the PHP package SEO titles (epc_*_apply_seo helpers).
+        switch (industry)
+        {
+            case "electronics":
+                return "Electronicae — Tech, Gaming & Electronics UAE";
+            case "fashion":
+                return "Stylenlook — Fashion & Beauty UAE";
+            case "jewellery":
+                return "The Jewellery Trend — Fine Jewellery UAE";
+            case "tax_advisory":
+                return "Taxofinca — Tax, Accounting & Advisory UAE";
         }
 
         var slug = ExtractIndustrySlug(host);

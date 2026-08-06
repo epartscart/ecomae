@@ -99,6 +99,20 @@ if ! grep -q '@page "/cp/control"' aspnet/src/EcomAE.Platform/Components/Pages/C
   exit 1
 fi
 
+# ---- Re-render tenant home snapshots with live settings (php on CloudPanel) ----
+# electronicae / stylenlook / thejewellerytrend / taxofinca homes are PHP-rendered
+# snapshots served by ASP.NET; regenerating here picks up live site settings + menus.
+if command -v php >/dev/null 2>&1 && [[ -f scripts/render_php_home_snapshots.php ]]; then
+  php scripts/render_php_home_snapshots.php \
+    || printf 'WARN: tenant home snapshot render failed — committed snapshots serve\n' >&2
+fi
+# Full www.ecomae.com marketing site (all pages) — PHP router renders each page.
+if command -v php >/dev/null 2>&1 && [[ -f scripts/render_ecomae_marketing_snapshots.php ]]; then
+  php scripts/render_ecomae_marketing_snapshots.php >/tmp/epc-marketing-snapshots.log 2>&1 \
+    && tail -1 /tmp/epc-marketing-snapshots.log \
+    || printf 'WARN: marketing snapshot render failed — committed snapshots serve\n' >&2
+fi
+
 # ---- Discover epartscart document roots from nginx ----
 mapfile -t DOCROOTS < <(
   {
@@ -216,6 +230,27 @@ location ^~ /aspnet-php-assets/ {
 }
 # END ecomae-storefront-search-app-redirect
 NGX
+
+# Paused mode: /en must reach the platform (it maps commerce links into the apps)
+# instead of the PHP warm-up splash. Insert INSIDE the marker block so refresh works.
+if [[ -f /etc/ecomae-aspnet/php_serving_deactivated ]]; then
+  python3 - <<'PY'
+from pathlib import Path
+p = Path('/tmp/epc-storefront-search-app-redirect.snip')
+snip = p.read_text()
+en_block = '''location ^~ /en/ {
+    proxy_pass http://127.0.0.1:5100;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Cookie $http_cookie;
+}
+# END ecomae-storefront-search-app-redirect'''
+p.write_text(snip.replace('# END ecomae-storefront-search-app-redirect', en_block, 1))
+print('snip: /en → :5100 (php serving paused)')
+PY
+fi
 
 NGINX_TOUCHED=0
 while IFS= read -r conf; do
@@ -556,6 +591,29 @@ else
   printf 'FAIL public search-app unexpected response\n'
   fail=1
 fi
+
+# ---- Prove other tenants + surfaces (non-fatal: DNS/routing may differ per host) ----
+printf '\n== Prove tenant homes + marketing + CP/ERP (WARN-only) ==\n'
+prove_host_marker() {
+  local url="$1" marker="$2" label="$3" body
+  body="$(curl -sS -A 'Mozilla/5.0' --max-time 30 "${url}?epc_probe=$(date +%s)" 2>/dev/null || true)"
+  if grep -Fq "$marker" <<<"$body"; then
+    printf 'PASS %s (%s)\n' "$label" "$marker"
+  else
+    printf 'WARN %s missing %s (bytes=%s)\n' "$label" "$marker" "${#body}"
+  fi
+}
+prove_host_marker https://www.electronicae.com/ 'epc-er-home' 'electronicae home'
+prove_host_marker https://www.stylenlook.com/ 'epc-frn-home' 'stylenlook home'
+prove_host_marker https://www.thejewellerytrend.com/ 'epc-jrk-home' 'thejewellerytrend home'
+prove_host_marker https://www.taxofinca.com/ 'epc-cpi-home' 'taxofinca home'
+prove_host_marker https://www.ecomae.com/ 'ehm-' 'ecomae marketing home'
+prove_host_marker https://www.ecomae.com/platform/pricing 'epm-topbar' 'marketing pricing page'
+prove_host_marker https://www.ecomae.com/platform/faq 'epm-topbar' 'marketing faq page'
+prove_host_marker https://www.ecomae.com/privacy 'epm-topbar' 'marketing privacy page'
+prove_host_marker https://www.ecomae.com/compare 'epm-topbar' 'marketing compare hub'
+prove_host_marker https://www.epartscart.com/cp/login 'epc-login-html-form' 'CP login'
+prove_host_marker https://www.epartscart.com/erp/login 'epc-login-html-form' 'ERP login'
 
 MARKER="$(curl -sS -A 'Mozilla/5.0' --max-time 15 "${PUBLIC_BASE}/epc-live-deploy-marker.txt?${Q}" || true)"
 printf 'public marker: %s\n' "$MARKER"
