@@ -53,17 +53,13 @@ public static class StorefrontPhpCanonical
             return false;
         }
 
-        // Home surface stays ASP.NET (classic-entry / → /storefront/app).
+        // Home + search surfaces stay ASP.NET (classic-entry / → /storefront/app;
+        // part search also serves at PHP-canonical /en/shop/part_search).
         if (path.Equals("/storefront/app", StringComparison.OrdinalIgnoreCase)
-            || path.Equals("/storefront", StringComparison.OrdinalIgnoreCase))
+            || path.Equals("/storefront", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/storefront/search-app", StringComparison.OrdinalIgnoreCase))
         {
             return false;
-        }
-
-        if (path.Equals("/storefront/search-app", StringComparison.OrdinalIgnoreCase))
-        {
-            phpCanonical = SearchTargetFromQuery(query) + PreserveQueryExceptMode(query);
-            return true;
         }
 
         phpCanonical = path.ToLowerInvariant() switch
@@ -130,33 +126,6 @@ public static class StorefrontPhpCanonical
     public static string ForUmapiBrand(string brand)
         => UmapiCatalog + "?brand=" + Uri.EscapeDataString(brand.Trim().ToLowerInvariant());
 
-    private static string SearchTargetFromQuery(string query)
-    {
-        var mode = GetQueryValue(query, "mode")?.ToLowerInvariant() ?? "";
-        return mode switch
-        {
-            "attr" => WarehouseSearch,
-            "vin" => LaximoVin,
-            "car" => VehicleCatalog,
-            "engine" => VehicleCatalog,
-            "name" => NameSearch,
-            _ => PartSearch,
-        };
-    }
-
-    private static string PreserveQueryExceptMode(string query)
-    {
-        if (string.IsNullOrEmpty(query) || query == "?")
-        {
-            return "";
-        }
-
-        var pairs = query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries)
-            .Where(p => !p.StartsWith("mode=", StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-        return pairs.Length == 0 ? "" : "?" + string.Join('&', pairs);
-    }
-
     private static string AppendIncomingQuery(string basePath, string? original, bool dropMode)
     {
         if (string.IsNullOrWhiteSpace(original))
@@ -180,26 +149,6 @@ public static class StorefrontPhpCanonical
         }
 
         return basePath + "?" + incoming;
-    }
-
-    private static string? GetQueryValue(string query, string key)
-    {
-        if (string.IsNullOrEmpty(query))
-        {
-            return null;
-        }
-
-        foreach (var pair in query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
-        {
-            var eq = pair.IndexOf('=');
-            var k = eq < 0 ? pair : pair[..eq];
-            if (k.Equals(key, StringComparison.OrdinalIgnoreCase))
-            {
-                return eq < 0 ? "" : Uri.UnescapeDataString(pair[(eq + 1)..]);
-            }
-        }
-
-        return null;
     }
 
     private static string StripLang(string path)
