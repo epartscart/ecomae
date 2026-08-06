@@ -1,197 +1,111 @@
 /* =============================================================================
-   ECOM AE — Enterprise login 3D stage (CP + ERP)
-   Premium full-bleed sign-in: perspective grid, floating slabs, orbit ring.
-   Variants: .eel-root--cp (BOS crimson) · .eel-root--erp (finance teal)
+   ECOM AE — Surface login stages (CP + ERP)
+   Same structural language as bos/epc_bos_shell.css .bos-login*
+   (dark split hero + glass panel + grid / particles / glow / rings),
+   with strongly differentiated accents so environments are obvious:
+
+     BOS  → black + sky cyan   (product Super BOS — bos-login CSS)
+     CP   → ink + crimson      (.eel-login--cp)
+     ERP  → ink + teal/navy    (.eel-login--erp)
    ============================================================================= */
 
 @import url("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap");
 
-/* Full-bleed ink underlay when login chrome is active */
+html:has(.eel-login),
+body:has(.eel-login),
 body.epc-cp-login,
 body.epc-erp-standalone {
   margin: 0 !important;
-  background: #070b14 !important;
   min-height: 100vh;
+  overflow-x: hidden;
+  background: #020617 !important;
+  color: #e2e8f0 !important;
 }
 
-.eel-root {
+.eel-login {
   --eel-font-display: "Syne", "Segoe UI", sans-serif;
   --eel-font-body: "Figtree", "Segoe UI", sans-serif;
-  --eel-ink: #070b14;
-  --eel-ink-2: #0e1628;
-  --eel-panel: rgba(255, 255, 255, 0.94);
-  --eel-panel-border: rgba(255, 255, 255, 0.55);
-  --eel-text: #0f172a;
-  --eel-muted: #475569;
-  --eel-line: #e2e8f0;
-  --eel-accent: #c8102e;
-  --eel-accent-2: #f43f5e;
-  --eel-accent-soft: rgba(200, 16, 46, 0.12);
-  --eel-grid: rgba(255, 255, 255, 0.055);
-  --eel-fog-a: rgba(200, 16, 46, 0.22);
-  --eel-fog-b: rgba(14, 165, 233, 0.12);
-  --eel-slab: rgba(255, 255, 255, 0.06);
-  --eel-ring: rgba(200, 16, 46, 0.45);
-  --eel-depth: 1400px;
+  --eel-ink: #020617;
+  --eel-ink-2: #0c1222;
+  --eel-panel: rgba(15, 23, 42, 0.72);
+  --eel-panel-border: rgba(255, 255, 255, 0.1);
+  --eel-text: #f8fafc;
+  --eel-muted: #94a3b8;
+  --eel-accent: #e11d48;
+  --eel-accent-2: #fb7185;
+  --eel-accent-soft: rgba(225, 29, 72, 0.18);
+  --eel-glow-a: rgba(225, 29, 72, 0.28);
+  --eel-glow-b: rgba(244, 63, 94, 0.18);
+  --eel-glow-c: rgba(14, 165, 233, 0.12);
+  --eel-ring: rgba(251, 113, 133, 0.55);
+  --eel-btn: linear-gradient(135deg, #e11d48 0%, #9f1239 100%);
+  --eel-btn-shadow: rgba(225, 29, 72, 0.4);
   --eel-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   position: relative;
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow: hidden;
-  background: var(--eel-ink);
-  color: #e2e8f0;
+  display: flex;
   font-family: var(--eel-font-body);
+  color: var(--eel-text);
+  background: transparent;
   isolation: isolate;
 }
 
-.eel-root--erp {
+.eel-login--erp {
   --eel-accent: #0d9488;
-  --eel-accent-2: #38bdf8;
-  --eel-accent-soft: rgba(13, 148, 136, 0.14);
-  --eel-fog-a: rgba(13, 148, 136, 0.2);
-  --eel-fog-b: rgba(56, 189, 248, 0.16);
-  --eel-ring: rgba(56, 189, 248, 0.42);
+  --eel-accent-2: #2dd4bf;
+  --eel-accent-soft: rgba(13, 148, 136, 0.18);
+  --eel-glow-a: rgba(13, 148, 136, 0.28);
+  --eel-glow-b: rgba(14, 165, 233, 0.2);
+  --eel-glow-c: rgba(56, 189, 248, 0.12);
+  --eel-ring: rgba(45, 212, 191, 0.5);
+  --eel-btn: linear-gradient(135deg, #0d9488 0%, #0369a1 100%);
+  --eel-btn-shadow: rgba(13, 148, 136, 0.4);
 }
 
-.eel-root *,
-.eel-root *::before,
-.eel-root *::after {
-  box-sizing: border-box;
-}
+.eel-login *,
+.eel-login *::before,
+.eel-login *::after { box-sizing: border-box; }
 
-/* Hide legacy splash / color-line when present */
-.eel-root > .splash,
-.eel-root > .color-line {
-  display: none !important;
-}
+.eel-login > .splash,
+.eel-login > .color-line { display: none !important; }
 
-/* ---- 3D scene ----------------------------------------------------------- */
-.eel-scene {
+/* ---- 3D atmospheric background (BOS parity) ----------------------------- */
+.eel-login__bg {
   position: absolute;
   inset: 0;
   z-index: 0;
-  pointer-events: none;
   overflow: hidden;
-  perspective: var(--eel-depth);
+  pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 55% at 12% 18%, var(--eel-fog-a), transparent 58%),
-    radial-gradient(ellipse 55% 50% at 88% 78%, var(--eel-fog-b), transparent 55%),
-    radial-gradient(ellipse 40% 35% at 50% 45%, rgba(255, 255, 255, 0.04), transparent 60%),
-    linear-gradient(165deg, var(--eel-ink) 0%, var(--eel-ink-2) 48%, #101a2e 100%);
+    radial-gradient(ellipse 70% 55% at 18% 20%, var(--eel-glow-a), transparent 58%),
+    radial-gradient(ellipse 55% 50% at 88% 78%, var(--eel-glow-b), transparent 55%),
+    linear-gradient(135deg, #020617 0%, #0c1222 30%, #091428 60%, #050d1a 100%);
 }
 
-.eel-scene__horizon {
+.eel-login__grid-lines {
   position: absolute;
-  left: -20%;
-  right: -20%;
-  bottom: -8%;
-  height: 62%;
-  transform-origin: 50% 100%;
-  transform: rotateX(58deg) translateZ(-80px);
-  background:
-    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 40%, transparent 100%),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 47px,
-      var(--eel-grid) 47px,
-      var(--eel-grid) 48px
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent 0,
-      transparent 47px,
-      var(--eel-grid) 47px,
-      var(--eel-grid) 48px
-    );
-  mask-image: linear-gradient(180deg, transparent 0%, #000 35%, #000 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 35%, #000 85%, transparent 100%);
+  inset: -10%;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  transform: perspective(900px) rotateX(58deg) translateY(-8%);
+  transform-origin: 50% 0;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 78%, transparent 100%);
   animation: eelGridDrift 28s linear infinite;
 }
 
-.eel-scene__slab {
-  position: absolute;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.09), var(--eel-slab)),
-    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.18));
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.08) inset,
-    0 28px 60px rgba(0, 0, 0, 0.35);
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-
-.eel-scene__slab--a {
-  width: min(34vw, 320px);
-  height: min(34vw, 320px);
-  left: 6%;
-  top: 14%;
-  animation: eelFloatA 9s var(--eel-ease) infinite alternate;
-}
-
-.eel-scene__slab--b {
-  width: min(22vw, 210px);
-  height: min(22vw, 210px);
-  right: 8%;
-  top: 22%;
-  animation: eelFloatB 11s var(--eel-ease) infinite alternate;
-}
-
-.eel-scene__slab--c {
-  width: min(18vw, 160px);
-  height: min(18vw, 160px);
-  left: 18%;
-  bottom: 16%;
-  animation: eelFloatC 10s var(--eel-ease) infinite alternate;
-}
-
-.eel-scene__ring {
-  position: absolute;
-  width: min(52vw, 480px);
-  height: min(52vw, 480px);
-  left: 50%;
-  top: 42%;
-  margin: calc(min(52vw, 480px) / -2) 0 0 calc(min(52vw, 480px) / -2);
-  border-radius: 50%;
-  border: 1px solid var(--eel-ring);
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-    0 0 80px rgba(0, 0, 0, 0.25);
-  transform: rotateX(68deg) rotateZ(-12deg);
-  animation: eelRingSpin 36s linear infinite;
-}
-
-.eel-scene__ring::after {
-  content: "";
-  position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
-}
-
-.eel-scene__beam {
-  position: absolute;
-  width: 2px;
-  height: 42%;
-  left: 50%;
-  top: 8%;
-  transform: translateX(-50%);
-  background: linear-gradient(180deg, transparent, var(--eel-accent-2), transparent);
-  opacity: 0.35;
-  filter: blur(0.5px);
-  animation: eelBeamPulse 4.5s ease-in-out infinite;
-}
-
-.eel-particles {
+.eel-login__particles {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  z-index: 1;
 }
 
+.eel-login__particle,
 .eel-particle {
   position: absolute;
   border-radius: 50%;
@@ -201,321 +115,428 @@ body.epc-erp-standalone {
   animation-iteration-count: infinite;
 }
 
-/* ---- Stage / composition ------------------------------------------------ */
-.eel-stage {
+.eel-login__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.45;
+  will-change: transform;
+}
+
+.eel-login__glow--1 {
+  width: min(48vw, 420px);
+  height: min(48vw, 420px);
+  left: -8%;
+  top: 10%;
+  background: var(--eel-glow-a);
+  animation: eelGlow1 12s ease-in-out infinite alternate;
+}
+
+.eel-login__glow--2 {
+  width: min(40vw, 360px);
+  height: min(40vw, 360px);
+  right: -6%;
+  bottom: 8%;
+  background: var(--eel-glow-b);
+  animation: eelGlow2 14s ease-in-out infinite alternate;
+}
+
+.eel-login__glow--3 {
+  width: min(28vw, 240px);
+  height: min(28vw, 240px);
+  left: 48%;
+  top: 42%;
+  background: var(--eel-glow-c);
+  animation: eelGlow3 10s ease-in-out infinite alternate;
+}
+
+.eel-login__slab {
+  position: absolute;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.35);
+  transform-style: preserve-3d;
+}
+
+.eel-login__slab--a {
+  width: min(28vw, 240px);
+  height: min(28vw, 240px);
+  left: 8%;
+  bottom: 12%;
+  animation: eelFloatA 9s var(--eel-ease) infinite alternate;
+}
+
+.eel-login__slab--b {
+  width: min(16vw, 140px);
+  height: min(16vw, 140px);
+  right: 42%;
+  top: 14%;
+  animation: eelFloatB 11s var(--eel-ease) infinite alternate;
+}
+
+/* ---- Hero (left) -------------------------------------------------------- */
+.eel-login__hero {
   position: relative;
   z-index: 2;
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 440px);
-  gap: clamp(1.5rem, 4vw, 3.5rem);
+  flex: 1 1 54%;
+  display: flex;
   align-items: center;
-  width: min(1120px, calc(100% - 2.5rem));
-  margin: 0 auto;
-  padding: clamp(1.25rem, 3vh, 2.5rem) 0;
+  justify-content: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  animation: eelSlideRight 0.9s var(--eel-ease) both;
 }
 
-.eel-brand {
-  color: #f8fafc;
-  transform-style: preserve-3d;
-  animation: eelEnterLeft 0.9s var(--eel-ease) both;
+.eel-login__hero-content {
+  width: min(480px, 100%);
 }
 
-.eel-brand__mark {
-  display: inline-flex;
+.eel-login__brand-mark {
+  text-align: center;
+  margin-bottom: 1.6rem;
+}
+
+.eel-login__brand-icon {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 1rem;
+}
+
+.eel-login__brand-icon-inner {
+  position: absolute;
+  inset: 14px;
+  border-radius: 22px;
+  display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.1rem;
+  justify-content: center;
+  background: linear-gradient(145deg, #e11d48, #9f1239);
+  color: #fff;
+  font-size: 1.7rem;
+  box-shadow: 0 16px 36px var(--eel-btn-shadow);
+  animation: eelPulseIcon 3.2s ease-in-out infinite;
 }
 
-.eel-brand__logo {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  background: #fff;
-  border-radius: 12px;
-  padding: 4px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+.eel-login--erp .eel-login__brand-icon-inner {
+  background: linear-gradient(145deg, #0d9488, #0369a1);
 }
 
-.eel-brand__wordmark {
-  font-family: var(--eel-font-display);
+.eel-login__brand-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--eel-ring);
+  animation: eelRingSpin 18s linear infinite;
+}
+
+.eel-login__brand-ring--2 {
+  inset: -10px;
+  border-style: dashed;
+  opacity: 0.55;
+  animation-duration: 28s;
+  animation-direction: reverse;
+}
+
+.eel-login__env {
+  display: inline-block;
+  margin: 0 0 0.55rem;
+  padding: 0.28rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.7rem;
   font-weight: 800;
-  font-size: 1.35rem;
-  letter-spacing: 0.04em;
-  line-height: 1.1;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-}
-
-.eel-brand__wordmark span {
   color: var(--eel-accent-2);
 }
 
-.eel-brand__badge {
-  display: inline-block;
-  margin: 0 0 0.85rem;
-  padding: 0.28rem 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(248, 250, 252, 0.9);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.eel-brand__title {
-  margin: 0 0 0.75rem;
+.eel-login__brand-title {
+  margin: 0;
   font-family: var(--eel-font-display);
   font-weight: 800;
-  font-size: clamp(2rem, 4.6vw, 3.35rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  max-width: 14ch;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
   text-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
 }
 
-.eel-brand__sub {
-  margin: 0 0 1.5rem;
-  max-width: 36ch;
-  color: rgba(226, 232, 240, 0.82);
-  font-size: clamp(0.98rem, 1.5vw, 1.12rem);
-  line-height: 1.55;
+.eel-login__brand-tagline {
+  margin: 0.55rem 0 0;
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 1.05rem;
   font-weight: 500;
 }
 
-.eel-brand__visual {
-  width: min(100%, 360px);
-  margin-top: 0.5rem;
-  transform: translateZ(40px) rotateY(-8deg) rotateX(4deg);
-  filter: drop-shadow(0 28px 48px rgba(0, 0, 0, 0.45));
-  animation: eelHubSway 8s var(--eel-ease) infinite alternate;
-}
-
-.eel-brand__caps {
+.eel-login__capabilities {
   display: grid;
-  gap: 0.55rem;
-  margin-top: 1.35rem;
-  max-width: 34rem;
+  gap: 0.65rem;
+  margin: 1.5rem 0 1.25rem;
 }
 
-.eel-brand__cap {
+.eel-login__cap-item {
   display: flex;
-  gap: 0.7rem;
+  gap: 0.75rem;
   align-items: flex-start;
-  padding: 0.65rem 0.8rem;
+  padding: 0.7rem 0.85rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(8px);
+  animation: eelCapFadeIn 0.7s var(--eel-ease) both;
+  transition: transform 0.2s, border-color 0.2s;
 }
 
-.eel-brand__cap i {
-  flex: 0 0 28px;
-  width: 28px;
-  height: 28px;
+.eel-login__cap-item--1 { animation-delay: 0.25s; }
+.eel-login__cap-item--2 { animation-delay: 0.4s; }
+.eel-login__cap-item--3 { animation-delay: 0.55s; }
+.eel-login__cap-item--4 { animation-delay: 0.7s; }
+
+.eel-login__cap-item:hover {
+  transform: translateX(4px);
+  border-color: var(--eel-ring);
+}
+
+.eel-login__cap-icon {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
   background: var(--eel-accent-soft);
   color: var(--eel-accent-2);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 
-.eel-brand__cap strong {
+.eel-login__cap-text strong {
   display: block;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #f8fafc;
 }
 
-.eel-brand__cap span {
+.eel-login__cap-text span {
   display: block;
   font-size: 0.78rem;
-  color: rgba(226, 232, 240, 0.7);
+  color: rgba(226, 232, 240, 0.68);
   line-height: 1.35;
 }
 
-/* ---- Glass login panel -------------------------------------------------- */
-.eel-panel {
-  position: relative;
-  animation: eelEnterRight 0.95s var(--eel-ease) 0.08s both;
+.eel-login__stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(2, 6, 23, 0.45);
+  animation: eelSlideUp 0.8s var(--eel-ease) 0.35s both;
 }
 
-.eel-panel__card {
+.eel-login__stat { text-align: center; flex: 1; }
+.eel-login__stat-num {
+  display: block;
+  font-family: var(--eel-font-display);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--eel-accent-2);
+}
+.eel-login__stat-label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.95);
+  margin-top: 0.15rem;
+}
+.eel-login__stat-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.eel-login__hub {
+  margin-top: 1.25rem;
+  filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.45));
+}
+
+/* ---- Panel (right) ------------------------------------------------------ */
+.eel-login__panel {
   position: relative;
-  padding: clamp(1.35rem, 2.4vw, 1.85rem);
+  z-index: 2;
+  flex: 0 0 min(440px, 42%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  animation: eelSlideLeft 0.95s var(--eel-ease) 0.08s both;
+}
+
+.eel-login__panel-inner {
+  width: 100%;
+  max-width: 400px;
+  padding: clamp(1.35rem, 2.5vw, 1.85rem);
   border-radius: 22px;
-  background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+  background: var(--eel-panel);
   border: 1px solid var(--eel-panel-border);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.85) inset,
-    0 30px 70px rgba(0, 0, 0, 0.45),
-    0 0 0 1px rgba(15, 23, 42, 0.04);
-  color: var(--eel-text);
-  transform: translateZ(24px);
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 30px 70px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px);
 }
 
-.eel-panel__card::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 40%, transparent 60%, var(--eel-accent-soft));
-  z-index: -1;
-  opacity: 0.9;
-}
-
-.eel-panel__head {
+.eel-login__surface-tabs {
+  display: flex;
+  gap: 0.4rem;
   margin-bottom: 1.1rem;
+  padding: 0.3rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.28);
 }
 
-.eel-panel__eyebrow {
-  display: inline-block;
-  margin: 0 0 0.45rem;
-  color: var(--eel-accent);
+.eel-login__surface-tab {
+  flex: 1;
+  text-align: center;
+  padding: 0.45rem 0.35rem;
+  border-radius: 9px;
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(226, 232, 240, 0.65);
+  border: 1px solid transparent;
 }
 
-.eel-panel__title {
+.eel-login__surface-tab:hover { color: #fff; }
+.eel-login__surface-tab.is-active {
+  color: #fff;
+  background: var(--eel-accent-soft);
+  border-color: var(--eel-ring);
+}
+
+.eel-login__form-header h2 {
   margin: 0 0 0.35rem;
   font-family: var(--eel-font-display);
   font-size: 1.45rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #0b1220;
+  color: #fff;
 }
 
-.eel-panel__lead {
-  margin: 0;
+.eel-login__form-header p {
+  margin: 0 0 1.1rem;
   color: var(--eel-muted);
   font-size: 0.9rem;
   line-height: 1.45;
 }
 
-/* Form controls inside enterprise panel */
-.eel-root .epc-login-field {
-  margin: 0 0 0.8rem;
-}
-
-.eel-root .epc-login-field label {
-  display: block;
+/* Form controls (LegacyAdminLoginForm) inside dark glass */
+.eel-login .epc-login-field { margin: 0 0 0.85rem; }
+.eel-login .epc-login-field label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.8rem;
   font-weight: 650;
-  margin-bottom: 0.28rem;
-  color: #334155;
+  margin-bottom: 0.3rem;
+  color: #cbd5e1;
 }
-
-.eel-root .epc-login-field input,
-.eel-root .epc-login-field select {
+.eel-login .epc-login-field input,
+.eel-login .epc-login-field select {
   width: 100%;
-  padding: 0.68rem 0.75rem;
-  border: 1px solid #cbd5e1;
+  padding: 0.72rem 0.8rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 10px;
-  background: #fff;
-  color: #0f172a;
+  background: rgba(2, 6, 23, 0.55);
+  color: #f8fafc;
   font-family: var(--eel-font-body);
   font-size: 0.95rem;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-
-.eel-root .epc-login-field input:focus,
-.eel-root .epc-login-field select:focus {
+.eel-login .epc-login-field input::placeholder { color: #64748b; }
+.eel-login .epc-login-field input:focus,
+.eel-login .epc-login-field select:focus {
   outline: none;
-  border-color: var(--eel-accent);
+  border-color: var(--eel-accent-2);
   box-shadow: 0 0 0 3px var(--eel-accent-soft);
 }
-
-.eel-root .epc-login-row {
+.eel-login .epc-login-row {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
-  color: #475569;
+  color: #94a3b8;
   font-size: 0.85rem;
 }
-
-.eel-root .epc-login-submit {
+.eel-login .epc-login-submit {
   width: 100%;
   margin-top: 0.45rem;
-  padding: 0.82rem 1rem;
+  padding: 0.85rem 1rem;
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(135deg, #c8102e 0%, #9f1239 100%);
+  background: var(--eel-btn);
   color: #fff;
   font-family: var(--eel-font-display);
   font-weight: 700;
   font-size: 0.98rem;
   letter-spacing: 0.02em;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(200, 16, 46, 0.35);
+  box-shadow: 0 12px 28px var(--eel-btn-shadow);
   transition: transform 0.18s var(--eel-ease), box-shadow 0.18s;
 }
-
-.eel-root--erp .epc-login-submit {
-  background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
-  box-shadow: 0 12px 28px rgba(13, 148, 136, 0.35);
-}
-
-.eel-root .epc-login-submit:hover:not(:disabled) {
+.eel-login .epc-login-submit:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 16px 34px rgba(200, 16, 46, 0.42);
+  box-shadow: 0 16px 34px var(--eel-btn-shadow);
 }
-
-.eel-root--erp .epc-login-submit:hover:not(:disabled) {
-  box-shadow: 0 16px 34px rgba(13, 148, 136, 0.42);
-}
-
-.eel-root .epc-login-error {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+.eel-login .epc-login-error {
+  background: rgba(127, 29, 29, 0.45);
+  color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.45);
   border-radius: 10px;
   padding: 0.6rem 0.75rem;
   margin-bottom: 0.8rem;
   font-size: 0.9rem;
 }
-
-.eel-root .epc-login-bridge-note {
-  color: #64748b;
+.eel-login .epc-login-bridge-note {
+  color: #94a3b8;
   font-size: 0.78rem;
   line-height: 1.4;
   margin: 0.9rem 0 0;
 }
+.eel-login .epc-login-shell { color: var(--eel-accent-2); font-weight: 700; }
 
-.eel-root .epc-login-shell {
-  color: var(--eel-accent);
-  font-weight: 700;
+.eel-login .login-container,
+.eel-login .hpanel,
+.eel-login .panel-body {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-.eel-features {
+.eel-login__features {
   list-style: none;
   padding: 0;
   margin: 1.05rem 0 0;
   display: grid;
   gap: 0.5rem;
 }
-
-.eel-features li {
+.eel-login__features li {
   display: flex;
   gap: 0.55rem;
   align-items: center;
-  color: #334155;
+  color: #cbd5e1;
   font-size: 0.84rem;
   font-weight: 500;
-  line-height: 1.35;
   margin: 0;
 }
-
-.eel-features li i {
+.eel-login__features li i {
   flex: 0 0 28px;
   width: 28px;
   height: 28px;
@@ -523,31 +544,27 @@ body.epc-erp-standalone {
   align-items: center;
   justify-content: center;
   background: var(--eel-accent-soft);
-  color: var(--eel-accent);
+  color: var(--eel-accent-2);
   border-radius: 8px;
   font-size: 0.82rem;
 }
 
-.eel-footer {
+.eel-login__secure {
   margin-top: 0.95rem;
   text-align: center;
-  color: rgba(148, 163, 184, 0.95);
-  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.9);
+  font-size: 0.72rem;
 }
-
-.eel-footer a {
-  color: rgba(226, 232, 240, 0.85);
+.eel-login__secure a {
+  color: rgba(226, 232, 240, 0.9);
   text-decoration: none;
   border-bottom: 1px solid rgba(226, 232, 240, 0.25);
 }
+.eel-login__secure a:hover { color: #fff; }
 
-.eel-footer a:hover {
-  color: #fff;
-}
-
-/* ERP marker compatibility: keep old class hooks, restyle inside eel */
-.eel-root .epc-erp-portal-bg,
-.eel-root .epc-erp-bos-hero {
+/* Probe markers kept in DOM but visually collapsed */
+.eel-login .epc-erp-portal-bg,
+.eel-login .epc-erp-bos-hero {
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;
@@ -559,119 +576,104 @@ body.epc-erp-standalone {
   border: 0 !important;
 }
 
-/* Override heavy legacy portal chrome when eel is active */
-.eel-root.epc-login-erp .epc-erp-topbar,
-.eel-root.epc-login-erp .epc-erp-home-hero,
-.eel-root.epc-login-erp .epc-erp-home-grid,
-.eel-root.epc-login-erp .epc-erp-foot {
-  display: none !important;
-}
-
-.eel-root .login-container,
-.eel-root .hpanel,
-.eel-root .panel-body {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
 /* ---- Motion ------------------------------------------------------------- */
 @keyframes eelGridDrift {
-  from { background-position: 0 0, 0 0, 0 0; }
-  to { background-position: 0 0, 48px 0, 0 48px; }
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 56px 56px, 56px 56px; }
 }
-
-@keyframes eelFloatA {
-  from { transform: translate3d(0, 0, 40px) rotateX(18deg) rotateY(-22deg); }
-  to { transform: translate3d(12px, -18px, 70px) rotateX(24deg) rotateY(-16deg); }
-}
-
-@keyframes eelFloatB {
-  from { transform: translate3d(0, 0, 20px) rotateX(12deg) rotateY(28deg); }
-  to { transform: translate3d(-14px, 16px, 50px) rotateX(18deg) rotateY(20deg); }
-}
-
-@keyframes eelFloatC {
-  from { transform: translate3d(0, 0, 10px) rotateX(28deg) rotateY(10deg); }
-  to { transform: translate3d(10px, -12px, 36px) rotateX(34deg) rotateY(4deg); }
-}
-
-@keyframes eelRingSpin {
-  from { transform: rotateX(68deg) rotateZ(-12deg); }
-  to { transform: rotateX(68deg) rotateZ(348deg); }
-}
-
-@keyframes eelBeamPulse {
-  0%, 100% { opacity: 0.18; transform: translateX(-50%) scaleY(0.92); }
-  50% { opacity: 0.45; transform: translateX(-50%) scaleY(1.05); }
-}
-
 @keyframes eelParticleRise {
   from { transform: translateY(0); opacity: 0; }
   12% { opacity: 0.7; }
   to { transform: translateY(-110vh); opacity: 0; }
 }
-
-@keyframes eelEnterLeft {
-  from { opacity: 0; transform: translate3d(-28px, 18px, -40px); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+@keyframes eelGlow1 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(60px, 36px) scale(1.18); }
 }
-
-@keyframes eelEnterRight {
-  from { opacity: 0; transform: translate3d(28px, 22px, -30px); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+@keyframes eelGlow2 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-50px, -28px) scale(1.22); }
 }
-
-@keyframes eelHubSway {
-  from { transform: translateZ(40px) rotateY(-8deg) rotateX(4deg); }
-  to { transform: translateZ(56px) rotateY(-2deg) rotateX(1deg); }
+@keyframes eelGlow3 {
+  from { transform: translate(-50%, -50%) scale(1); opacity: 0.22; }
+  to { transform: translate(-40%, -60%) scale(1.35); opacity: 0.4; }
+}
+@keyframes eelFloatA {
+  from { transform: translate3d(0, 0, 20px) rotateX(18deg) rotateY(-18deg); }
+  to { transform: translate3d(10px, -14px, 40px) rotateX(24deg) rotateY(-10deg); }
+}
+@keyframes eelFloatB {
+  from { transform: translate3d(0, 0, 10px) rotateX(12deg) rotateY(22deg); }
+  to { transform: translate3d(-10px, 12px, 28px) rotateX(18deg) rotateY(14deg); }
+}
+@keyframes eelPulseIcon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+@keyframes eelRingSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes eelCapFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes eelSlideRight {
+  from { opacity: 0; transform: translateX(-28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes eelSlideLeft {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes eelSlideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .eel-scene__horizon,
-  .eel-scene__slab,
-  .eel-scene__ring,
-  .eel-scene__beam,
-  .eel-brand__visual,
-  .eel-brand,
-  .eel-panel,
+  .eel-login__grid-lines,
+  .eel-login__glow,
+  .eel-login__slab,
+  .eel-login__brand-icon-inner,
+  .eel-login__brand-ring,
+  .eel-login__cap-item,
+  .eel-login__stats-bar,
+  .eel-login__hero,
+  .eel-login__panel,
+  .eel-login__particle,
   .eel-particle {
     animation: none !important;
   }
 }
 
-@media (max-width: 920px) {
-  .eel-stage {
-    grid-template-columns: 1fr;
-    width: min(480px, calc(100% - 1.5rem));
-    padding-top: 1.5rem;
-    padding-bottom: 2rem;
-    align-content: start;
+@media (max-width: 960px) {
+  .eel-login {
+    flex-direction: column;
   }
-
-  .eel-brand__title {
-    max-width: none;
-    font-size: clamp(1.85rem, 8vw, 2.4rem);
+  .eel-login__hero {
+    flex: 0 0 auto;
+    padding-bottom: 0.5rem;
   }
-
-  .eel-brand__visual {
+  .eel-login__panel {
+    flex: 1 1 auto;
+    padding-top: 0.75rem;
+  }
+  .eel-login__hub,
+  .eel-login__slab {
     display: none;
   }
-
-  .eel-brand__caps {
-    display: none;
-  }
-
-  .eel-scene__slab--c {
-    display: none;
+  .eel-login__capabilities {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
-@media (max-width: 480px) {
-  .eel-panel__card {
-    padding: 1.15rem;
-    border-radius: 18px;
+@media (max-width: 560px) {
+  .eel-login__capabilities {
+    grid-template-columns: 1fr;
   }
+  .eel-login__stats-bar {
+    flex-wrap: wrap;
+  }
+  .eel-login__stat-divider { display: none; }
 }

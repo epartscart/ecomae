@@ -1,0 +1,137 @@
+@*
+  Document-level BOS topnav mega-menu binder (PHP bos/epc_bos_shell.js parity).
+  ASP.NET BOS chrome used CSS :hover only — one click did nothing on touch/desktop
+  when hover failed or Blazor enhanced nav left the page without shell.js.
+  Install once per document; survives Blazor enhanced navigation.
+*@
+
+<script>
+(function () {
+  if (window.__epcBosTopnavBound) {
+    return;
+  }
+  window.__epcBosTopnavBound = true;
+
+  function root() {
+    return document.getElementById("bosTopnav");
+  }
+
+  function items(r) {
+    return Array.prototype.slice.call((r || document).querySelectorAll(".bos-topnav__item"));
+  }
+
+  function closeAll(except) {
+    var r = root();
+    items(r || document).forEach(function (it) {
+      if (except && it === except) {
+        return;
+      }
+      it.classList.remove("is-open");
+      var btn = it.querySelector("[data-bos-topnav-toggle]");
+      var panel = it.querySelector("[data-bos-topnav-panel]");
+      if (btn) {
+        btn.setAttribute("aria-expanded", "false");
+      }
+      if (panel) {
+        panel.hidden = true;
+        panel.style.left = "";
+        panel.style.top = "";
+        panel.style.maxHeight = "";
+      }
+    });
+    document.body.classList.remove("bos-topnav-open");
+  }
+
+  function placePanel(it, panel) {
+    var r = root();
+    if (!r || !panel) {
+      return;
+    }
+    var rr = r.getBoundingClientRect();
+    var btn = it.querySelector(".bos-topnav__btn");
+    var br = btn ? btn.getBoundingClientRect() : rr;
+    var top = Math.round(rr.bottom);
+    panel.style.top = top + "px";
+    panel.style.maxHeight = Math.max(180, Math.floor(window.innerHeight - top - 12)) + "px";
+    panel.hidden = false;
+    var w = panel.offsetWidth || 640;
+    var left = Math.round(br.left);
+    var maxLeft = Math.max(8, window.innerWidth - w - 8);
+    if (left > maxLeft) {
+      left = maxLeft;
+    }
+    if (left < 8) {
+      left = 8;
+    }
+    panel.style.left = left + "px";
+    panel.style.right = "auto";
+  }
+
+  function openItem(it) {
+    closeAll(it);
+    it.classList.add("is-open");
+    var btn = it.querySelector("[data-bos-topnav-toggle]");
+    var panel = it.querySelector("[data-bos-topnav-panel]");
+    if (btn) {
+      btn.setAttribute("aria-expanded", "true");
+    }
+    if (panel) {
+      placePanel(it, panel);
+    }
+    document.body.classList.add("bos-topnav-open");
+  }
+
+  document.addEventListener(
+    "click",
+    function (event) {
+      var toggle = event.target && event.target.closest
+        ? event.target.closest("[data-bos-topnav-toggle]")
+        : null;
+      if (toggle) {
+        var item = toggle.closest(".bos-topnav__item");
+        var r = root();
+        if (!item || !r || !r.contains(item)) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        if (item.classList.contains("is-open")) {
+          closeAll();
+        } else {
+          openItem(item);
+        }
+        return;
+      }
+
+      var r2 = root();
+      if (r2 && event.target && r2.contains(event.target)) {
+        return;
+      }
+      closeAll();
+    },
+    true
+  );
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      closeAll();
+    }
+  });
+
+  window.addEventListener(
+    "resize",
+    function () {
+      items(root() || document).forEach(function (it) {
+        if (!it.classList.contains("is-open")) {
+          return;
+        }
+        var panel = it.querySelector("[data-bos-topnav-panel]");
+        if (panel) {
+          placePanel(it, panel);
+        }
+      });
+    },
+    { passive: true }
+  );
+})();
+</script>

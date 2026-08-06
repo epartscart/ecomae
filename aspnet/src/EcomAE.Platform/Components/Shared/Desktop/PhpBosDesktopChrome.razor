@@ -20,7 +20,7 @@
                 @foreach (var group in LegacyDesktopChromeCatalog.BosTopnav())
                 {
                     <li class="bos-topnav__item" data-bos-group="@group.Id" role="none">
-                        <button type="button" class="bos-topnav__btn" data-bos-topnav-toggle role="menuitem" aria-haspopup="true">
+                        <button type="button" class="bos-topnav__btn" data-bos-topnav-toggle="@group.Id" role="menuitem" aria-haspopup="true" aria-expanded="false">
                             @if (!string.IsNullOrWhiteSpace(group.Icon))
                             {
                                 <i class="fa @group.Icon" aria-hidden="true"></i>
@@ -28,7 +28,7 @@
                             <span>@group.Label</span>
                             <i class="fa fa-angle-down bos-topnav__caret" aria-hidden="true"></i>
                         </button>
-                        <div class="bos-topnav__panel" data-bos-topnav-panel="@group.Id">
+                        <div class="bos-topnav__panel" role="menu" hidden data-bos-topnav-panel="@group.Id">
                             <div class="bos-topnav__panel-hd">
                                 <div class="bos-topnav__panel-title">
                                     @if (!string.IsNullOrWhiteSpace(group.Icon))
@@ -104,18 +104,19 @@
     .bos-topnav__brand { display:flex; align-items:center; gap:.45rem; padding:0 .65rem; font-weight:800; letter-spacing:.04em; white-space:nowrap; }
     .bos-topnav__brand img { height:26px; background:#fff; border-radius:4px; padding:1px; }
     .bos-topnav__list { list-style:none; margin:0; padding:0; display:flex; overflow-x:auto; }
-    .bos-topnav__item { position:relative; }
-    .bos-topnav__btn { appearance:none; border:0; background:transparent; color:#f5f5f5; font:inherit; font-size:.78rem; font-weight:700; padding:0 .7rem; height:100%; cursor:pointer; white-space:nowrap; opacity:.9; display:inline-flex; align-items:center; gap:.35rem; border-bottom:3px solid transparent; }
+    .bos-topnav__item { position:static; display:flex; align-items:stretch; flex:0 0 auto; }
+    .bos-topnav__btn { appearance:none; border:0; background:transparent; color:#f5f5f5; font:inherit; font-size:.78rem; font-weight:700; padding:0 .7rem; height:100%; cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:.35rem; border-bottom:3px solid transparent; touch-action:manipulation; user-select:none; }
+    .bos-topnav__btn > *, .bos-topnav__btn > *::before, .bos-topnav__btn > *::after { pointer-events:none !important; }
     .bos-topnav__btn .fa { color:#a3a3a3; font-size:13px; }
     .bos-topnav__caret { font-size:11px; opacity:.85; margin-left:2px; }
-    .bos-topnav__item:hover .bos-topnav__btn, .bos-topnav__item:focus-within .bos-topnav__btn { opacity:1; background:var(--bos-topnav-hover); border-bottom-color:var(--bos-primary); }
+    .bos-topnav__btn:hover, .bos-topnav__item.is-open .bos-topnav__btn, .bos-topnav__item.is-active .bos-topnav__btn { background:var(--bos-topnav-hover); border-bottom-color:#fff; color:#fff; }
     .bos-topnav__panel {
-        display:none; position:absolute; left:0; top:100%; z-index:60;
-        min-width:300px; max-width:min(880px, calc(100vw - 24px)); max-height:min(70vh, 520px); overflow:auto;
+        position:fixed; z-index:250;
+        min-width:300px; max-width:min(880px, calc(100vw - 24px)); overflow:auto;
         background:#ffffff; color:#0a0a0a; border:1px solid #e5e5e5; border-radius:0 0 12px 12px;
-        box-shadow:0 16px 40px rgba(0,0,0,.22);
+        box-shadow:0 16px 40px rgba(0,0,0,.22); padding:0;
     }
-    .bos-topnav__item:hover .bos-topnav__panel, .bos-topnav__item:focus-within .bos-topnav__panel { display:block; }
+    .bos-topnav__panel[hidden] { display:none !important; }
     .bos-topnav__panel-hd { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border-bottom:1px solid #eee; background:#fafafa; }
     .bos-topnav__panel-title { font-weight:800; font-size:13px; color:#0a0a0a; display:flex; align-items:center; gap:8px; }
     .bos-topnav__panel-title .fa { color:#171717; }
@@ -139,6 +140,9 @@
     .bos-tag { display:inline-flex; padding:.2rem .5rem; border-radius:.3rem; background:#e4e4e7; font-size:.72rem; font-weight:700; }
     .bos-tag--warn { background:#fef3c7; color:#92400e; }
 </style>
+
+@* Click-to-open mega menus (PHP epc_bos_shell.js). Also installed from PhpSurfaceHead on /bos/login. *@
+<PhpBosTopnavBinder />
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }

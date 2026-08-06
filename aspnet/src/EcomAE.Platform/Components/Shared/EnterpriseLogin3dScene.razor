@@ -1,18 +1,18 @@
 @namespace EcomAE.Platform.Components.Shared
 @*
-  Shared premium 3D login stage (CSS-only).
-  ParticlesId must match presentation probe markers (#epcCpParticles / #erpPortalParticles).
+  Shared BOS-parity 3D login atmosphere (grid + particles + glows + slabs).
+  ParticlesId must match presentation probes (#epcCpParticles / #erpPortalParticles).
 *@
 
-<div class="eel-scene" aria-hidden="true">
-    <div class="eel-scene__horizon"></div>
-    <div class="eel-scene__ring"></div>
-    <div class="eel-scene__beam"></div>
-    <div class="eel-scene__slab eel-scene__slab--a"></div>
-    <div class="eel-scene__slab eel-scene__slab--b"></div>
-    <div class="eel-scene__slab eel-scene__slab--c"></div>
+<div class="eel-login__bg eel-scene" aria-hidden="true">
+    <div class="eel-login__grid-lines"></div>
+    <div class="eel-login__glow eel-login__glow--1"></div>
+    <div class="eel-login__glow eel-login__glow--2"></div>
+    <div class="eel-login__glow eel-login__glow--3"></div>
+    <div class="eel-login__slab eel-login__slab--a"></div>
+    <div class="eel-login__slab eel-login__slab--b"></div>
     <div id="@ParticlesId"
-         class="eel-particles @ParticlesExtraClass"
+         class="eel-login__particles eel-particles @ParticlesExtraClass"
          data-eel-particles="@ParticleCount"
          data-eel-colors="@ColorsCsv"></div>
 </div>
@@ -28,18 +28,18 @@
     }
     var colors = (c.getAttribute('data-eel-colors') || '').split('|').filter(Boolean);
     if (!colors.length) colors = ['rgba(255,255,255,.35)'];
-    var n = parseInt(c.getAttribute('data-eel-particles') || '32', 10) || 32;
+    var n = parseInt(c.getAttribute('data-eel-particles') || '40', 10) || 40;
     var frag = document.createDocumentFragment();
     for (var i = 0; i < n; i++) {
       var d = document.createElement('span');
-      var size = 1.4 + Math.random() * 2.6;
-      var speed = 9 + Math.random() * 14;
+      var size = 1.3 + Math.random() * 2.8;
+      var speed = 8 + Math.random() * 16;
       var color = colors[Math.floor(Math.random() * colors.length)];
-      d.className = 'eel-particle';
+      d.className = 'eel-login__particle eel-particle';
       d.style.cssText =
         'width:' + size + 'px;height:' + size + 'px;left:' + (Math.random() * 100) + '%;top:110%;' +
         'background:' + color + ';animation-duration:' + speed + 's;animation-delay:' + (-(Math.random() * speed)) + 's;' +
-        'opacity:' + (0.3 + Math.random() * 0.5) + ';';
+        'opacity:' + (0.28 + Math.random() * 0.5) + ';';
       frag.appendChild(d);
     }
     c.appendChild(frag);
@@ -51,12 +51,12 @@
 @code {
     [Parameter] public string ParticlesId { get; set; } = "epcCpParticles";
     [Parameter] public string ParticlesExtraClass { get; set; } = "";
-    [Parameter] public int ParticleCount { get; set; } = 36;
+    [Parameter] public int ParticleCount { get; set; } = 48;
     [Parameter] public string[] ParticleColors { get; set; } =
     [
-        "rgba(244,63,94,.55)",
+        "rgba(251,113,133,.55)",
         "rgba(255,255,255,.28)",
-        "rgba(14,165,233,.4)"
+        "rgba(244,63,94,.4)"
     ];
 
     private string ColorsCsv => string.Join('|', ParticleColors);
