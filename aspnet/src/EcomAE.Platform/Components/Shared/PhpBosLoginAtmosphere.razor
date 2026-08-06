@@ -69,16 +69,30 @@
       stars = 52; moons = 4; meteors = 8; sparks = 10;
     }
 
-    function place(el, slow) {
+    /* Same fall model as .bos-login__particle: start near top, animate forever. */
+    function place(el, animName, slow) {
       el.style.left = Math.random() * 100 + '%';
-      el.style.top = (-5 - Math.random() * 20) + '%';
-      var duration = (slow ? 10 : 6) + Math.random() * (slow ? 16 : 12);
+      el.style.top = (Math.random() * 8) + '%';
+      var duration = (slow ? 9 : 5) + Math.random() * (slow ? 14 : 10);
+      var delay = Math.random() * duration;
+      el.style.animation = 'none';
+      /* force reflow so restart sticks across Blazor swaps */
+      void el.offsetWidth;
+      el.style.animationName = animName;
       el.style.animationDuration = duration + 's';
-      el.style.animationDelay = (Math.random() * duration) + 's';
-      el.style.setProperty('--bos-fall-x', (Math.random() * 80 - 40) + 'px');
+      el.style.animationDelay = delay + 's';
+      el.style.animationTimingFunction = 'linear';
+      el.style.animationIterationCount = 'infinite';
+      el.style.animationFillMode = 'both';
       var color = pick(palette);
       el.style.color = color;
-      el.style.setProperty('--bos-cel-color', color);
+      if (el.classList.contains('bos-login__celestial--meteor')
+          || el.classList.contains('bos-login__celestial--spark')) {
+        el.style.background = el.classList.contains('bos-login__celestial--meteor')
+          ? ('linear-gradient(to bottom, transparent, ' + color + ' 40%, transparent)')
+          : color;
+        el.style.boxShadow = '0 0 10px ' + color;
+      }
       sky.appendChild(el);
     }
 
@@ -87,25 +101,25 @@
       star.className = 'bos-login__celestial bos-login__celestial--star';
       star.textContent = Math.random() < 0.45 ? '✦' : (Math.random() < 0.5 ? '✧' : '★');
       star.style.fontSize = (8 + Math.random() * 14) + 'px';
-      place(star, false);
+      place(star, 'bosCelFallSpin', false);
     }
     for (var m = 0; m < moons; m++) {
       var moon = document.createElement('span');
       moon.className = 'bos-login__celestial bos-login__celestial--moon';
       moon.textContent = Math.random() < 0.5 ? '☾' : '☽';
       moon.style.fontSize = (14 + Math.random() * 22) + 'px';
-      place(moon, true);
+      place(moon, 'bosCelFallDrift', true);
     }
     for (var e = 0; e < meteors; e++) {
       var meteor = document.createElement('span');
       meteor.className = 'bos-login__celestial bos-login__celestial--meteor';
-      place(meteor, false);
+      place(meteor, 'bosCelMeteor', false);
     }
     for (var k = 0; k < sparks; k++) {
       var spark = document.createElement('span');
       spark.className = 'bos-login__celestial bos-login__celestial--spark'
         + (theme === 'circuit' ? ' bos-login__celestial--circuit' : '');
-      place(spark, Math.random() < 0.4);
+      place(spark, 'bosCelSpark', Math.random() < 0.4);
     }
 
     var industryGlyphs = {
@@ -120,10 +134,10 @@
     var glyphCount = industry === 'platform' ? 10 : 22;
     for (var g = 0; g < glyphCount; g++) {
       var ind = document.createElement('span');
-      ind.className = 'bos-login__celestial bos-login__celestial--industry bos-login__celestial--industry-' + industry;
+      ind.className = 'bos-login__celestial bos-login__celestial--industry';
       ind.textContent = pick(glyphs);
       ind.style.fontSize = (12 + Math.random() * 18) + 'px';
-      place(ind, Math.random() < 0.5);
+      place(ind, Math.random() < 0.5 ? 'bosCelFallSpin' : 'bosCelFall', Math.random() < 0.45);
     }
   }
   function animateCounters() {
