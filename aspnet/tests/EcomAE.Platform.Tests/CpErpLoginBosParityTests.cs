@@ -59,33 +59,38 @@ public sealed class CpErpLoginBosParityTests
     }
 
     [Fact]
-    public void AtmosphereComponent_EmitsBosBackgroundMarkup()
+    public void AtmosphereComponent_UsesNasaUniverseAndFallingBodies()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Components/Shared/PhpBosLoginAtmosphere.razor");
         Assert.Contains("bos-login__bg", text, StringComparison.Ordinal);
+        Assert.Contains("bos-login__universe", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__particles", text, StringComparison.Ordinal);
-        Assert.Contains("bos-login__glow", text, StringComparison.Ordinal);
-        Assert.Contains("bos-login__particle", text, StringComparison.Ordinal);
-        Assert.Contains("bos-login__celestial", text, StringComparison.Ordinal);
-        Assert.Contains("bos-login__celestial--moon", text, StringComparison.Ordinal);
-        Assert.Contains("bos-login__celestial--star", text, StringComparison.Ordinal);
-        Assert.Contains("createCelestials", text, StringComparison.Ordinal);
-        Assert.Contains("bosCelFallSpin", text, StringComparison.Ordinal);
-        Assert.Contains("animationIterationCount", text, StringComparison.Ordinal);
+        Assert.Contains("bos-login__body--moon", text, StringComparison.Ordinal);
+        Assert.Contains("bos-login__body--planet", text, StringComparison.Ordinal);
+        Assert.Contains("createFallingBodies", text, StringComparison.Ordinal);
+        Assert.Contains("images-assets.nasa.gov", text, StringComparison.Ordinal);
+        Assert.Contains("cdn.esawebb.org", text, StringComparison.Ordinal);
+        Assert.Contains("bosFloat", text, StringComparison.Ordinal);
+        // No glyph icons (half moons / star characters) in the foreground
+        Assert.DoesNotContain("bos-login__celestial", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("☾", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("★", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("✦", text, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void AccentCss_IncludesCelestialsAndTenantLooks()
+    public void AccentCss_IncludesUniverseBodiesAndTenantLooks()
     {
         var css = Read("content/general_pages/epc_bos_login_surface_accents.css");
-        Assert.Contains("bos-login__celestial--moon", css, StringComparison.Ordinal);
-        Assert.Contains("bos-login__celestial--star", css, StringComparison.Ordinal);
-        Assert.Contains("@keyframes bosCelFall", css, StringComparison.Ordinal);
-        Assert.Contains("@keyframes bosCelFallSpin", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login__universe", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login__body--moon", css, StringComparison.Ordinal);
+        Assert.Contains("border-radius: 50%", css, StringComparison.Ordinal);
+        Assert.Contains("@keyframes bosUniverseDrift", css, StringComparison.Ordinal);
         Assert.Contains("bos-login__cap-icon--tone-1", css, StringComparison.Ordinal);
         Assert.Contains("bos-login--tenant-epartscart", css, StringComparison.Ordinal);
         Assert.Contains("bos-login--tenant-jewellery .bos-login__cap-icon--tone-1", css, StringComparison.Ordinal);
         Assert.Contains("bos-login__tenant-logo--eparts", css, StringComparison.Ordinal);
+        Assert.DoesNotContain("bos-login__celestial", css, StringComparison.Ordinal);
         Assert.DoesNotContain("var(--bos-fall-x", css, StringComparison.Ordinal);
     }
 

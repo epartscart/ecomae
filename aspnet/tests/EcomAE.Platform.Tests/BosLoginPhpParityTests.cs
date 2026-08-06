@@ -24,7 +24,8 @@ public sealed class BosLoginPhpParityTests
 
         Assert.Contains("bos-body--login", text, StringComparison.Ordinal);
         Assert.Contains("epc-login-bos bos-login", text, StringComparison.Ordinal);
-        Assert.Contains("bos-login__bg", text, StringComparison.Ordinal);
+        Assert.Contains("PhpBosLoginAtmosphere", text, StringComparison.Ordinal);
+        Assert.Contains("IncludeLoginCss=\"true\"", text, StringComparison.Ordinal);
         Assert.Contains("bosParticles", text, StringComparison.Ordinal);
         Assert.Contains("Platform Operator", text, StringComparison.Ordinal);
         Assert.Contains("ERP Customer", text, StringComparison.Ordinal);

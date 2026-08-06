@@ -1,9 +1,41 @@
 /* Surface + tenant accent overrides for BOS-parity login shells.
-   Structure/layout come from bos/epc_bos_shell.css — atmosphere tint + celestials differ. */
+   Structure/layout come from bos/epc_bos_shell.css — universe atmosphere differs. */
 
-/* ── Celestial falls (stars, moons, meteors, sparks) ──
-   Use the same translateY fall model as .bos-login__particle / bosFloat
-   (no CSS variables inside keyframes — those caused stuck “hanging” glyphs). */
+/* ── NASA universe photo + falling round bodies (no glyph icons) ── */
+.bos-login__bg--universe {
+  background: #020617;
+}
+
+.bos-login__universe {
+  position: absolute;
+  inset: -12%;
+  z-index: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: .42;
+  filter: saturate(1.15) contrast(1.05);
+  animation: bosUniverseDrift 48s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.bos-login__universe-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(14, 165, 233, .18), transparent 45%),
+    radial-gradient(ellipse at 80% 70%, rgba(168, 85, 247, .14), transparent 50%),
+    linear-gradient(180deg, rgba(2, 6, 23, .35) 0%, rgba(2, 6, 23, .72) 100%);
+}
+
+@keyframes bosUniverseDrift {
+  0% { transform: scale(1.05) translate3d(0, 0, 0); }
+  50% { transform: scale(1.12) translate3d(-2%, 1.5%, 0); }
+  100% { transform: scale(1.08) translate3d(2%, -1%, 0); }
+}
+
 .bos-login__sky {
   position: absolute;
   inset: 0;
@@ -16,98 +48,61 @@
   z-index: 2;
 }
 
-.bos-login__celestial {
+.bos-login__grid-lines {
+  z-index: 1;
+  opacity: .35;
+}
+
+/* Round moons / planets / orbs — same bosFloat fall as star-dots */
+.bos-login__body {
   position: absolute;
-  display: block;
-  line-height: 1;
-  opacity: 0;
+  border-radius: 50%;
   pointer-events: none;
   will-change: transform, opacity;
-  animation: bosCelFall linear infinite;
-  color: rgba(255, 255, 255, .8);
-  text-shadow: 0 0 10px currentColor;
+  animation: bosFloat linear infinite;
+  opacity: .9;
 }
 
-.bos-login__celestial--star {
-  animation-name: bosCelFallSpin;
+.bos-login__body--moon {
+  background:
+    radial-gradient(circle at 32% 30%, #f8fafc 0%, #e2e8f0 28%, #94a3b8 62%, #475569 100%);
+  box-shadow:
+    inset -8px -5px 14px rgba(15, 23, 42, .45),
+    inset 4px 3px 8px rgba(255, 255, 255, .25),
+    0 0 18px rgba(226, 232, 240, .35);
 }
 
-.bos-login__celestial--moon {
-  animation-name: bosCelFallDrift;
-  filter: drop-shadow(0 0 8px currentColor);
+.bos-login__body--planet {
+  box-shadow:
+    inset -5px -4px 10px rgba(0, 0, 0, .4),
+    inset 3px 2px 6px rgba(255, 255, 255, .2),
+    0 0 16px rgba(255, 255, 255, .25);
 }
 
-.bos-login__celestial--meteor {
-  width: 2px;
-  height: 34px;
-  border-radius: 999px;
-  color: transparent;
-  text-shadow: none;
-  background: linear-gradient(to bottom, transparent, currentColor 35%, rgba(255, 255, 255, .9) 55%, transparent);
-  box-shadow: 0 0 12px currentColor;
-  animation-name: bosCelMeteor;
+.bos-login__body--planet-a {
+  background: radial-gradient(circle at 30% 28%, #fda4af, #e11d48 55%, #7f1d1d);
 }
 
-.bos-login__celestial--spark {
-  width: 7px;
-  height: 7px;
-  border-radius: 1px;
-  color: transparent;
-  text-shadow: none;
-  background: currentColor;
-  box-shadow: 0 0 8px currentColor;
-  animation-name: bosCelSpark;
+.bos-login__body--planet-b {
+  background: radial-gradient(circle at 30% 28%, #7dd3fc, #0284c7 55%, #0c4a6e);
 }
 
-.bos-login__celestial--circuit {
-  width: 12px;
-  height: 3px;
-  border-radius: 1px;
+.bos-login__body--planet-c {
+  background: radial-gradient(circle at 30% 28%, #fde68a, #d97706 55%, #78350f);
 }
 
-.bos-login__celestial--industry {
-  font-weight: 700;
-  animation-name: bosCelFallSpin;
+.bos-login__body--planet-d {
+  background: radial-gradient(circle at 30% 28%, #c4b5fd, #7c3aed 55%, #4c1d95);
 }
 
-@keyframes bosCelFall {
-  0% { transform: translateY(-12vh) translateX(0) scale(.5); opacity: 0; }
-  8% { opacity: .95; transform: translateY(-4vh) translateX(4px) scale(.85); }
-  50% { opacity: .85; transform: translateY(48vh) translateX(-10px) scale(1); }
-  92% { opacity: .55; }
-  100% { transform: translateY(112vh) translateX(8px) scale(.4); opacity: 0; }
-}
-
-@keyframes bosCelFallSpin {
-  0% { transform: translateY(-12vh) translateX(0) rotate(0deg) scale(.4); opacity: 0; }
-  10% { opacity: 1; }
-  50% { transform: translateY(50vh) translateX(18px) rotate(140deg) scale(1); opacity: .9; }
-  100% { transform: translateY(115vh) translateX(-14px) rotate(320deg) scale(.45); opacity: 0; }
-}
-
-@keyframes bosCelFallDrift {
-  0% { transform: translateY(-14vh) translateX(0) scale(.5); opacity: 0; }
-  12% { opacity: .95; }
-  35% { transform: translateY(28vh) translateX(22px) scale(1); }
-  65% { transform: translateY(62vh) translateX(-16px) scale(.9); opacity: .8; }
-  100% { transform: translateY(118vh) translateX(10px) scale(.35); opacity: 0; }
-}
-
-@keyframes bosCelMeteor {
-  0% { transform: translateY(-12vh) translateX(0) rotate(22deg) scaleY(.35); opacity: 0; }
-  10% { opacity: 1; }
-  100% { transform: translateY(120vh) translateX(90px) rotate(22deg) scaleY(1.5); opacity: 0; }
-}
-
-@keyframes bosCelSpark {
-  0% { transform: translateY(-10vh) translateX(0) rotate(45deg) scale(.25); opacity: 0; }
-  12% { opacity: .95; }
-  45% { transform: translateY(42vh) translateX(-18px) rotate(160deg) scale(1); }
-  100% { transform: translateY(115vh) translateX(24px) rotate(280deg) scale(.3); opacity: 0; }
+.bos-login__body--orb {
+  background: #fff;
+  border-radius: 50%;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bos-login__celestial { animation: none !important; opacity: .28; top: 20% !important; }
+  .bos-login__universe { animation: none !important; }
+  .bos-login__body { animation: none !important; opacity: .35; top: 30% !important; }
 }
 
 /* ── Multi-colour capability icons (never all one blue) ── */

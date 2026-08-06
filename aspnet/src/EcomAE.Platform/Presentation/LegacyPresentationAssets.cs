@@ -50,7 +50,7 @@ public static class LegacyPresentationAssets
     public static readonly IReadOnlyList<string> LoginStylesheets =
     [
         "/epc-static.php?f=bos/epc_bos_shell.css",
-        "/content/general_pages/epc_bos_login_surface_accents.css?v=20260806c",
+        "/content/general_pages/epc_bos_login_surface_accents.css?v=20260806d",
         // Tenant animated cart + catalog brand logos on /cp/login & /erp/login
         "/platform-assets/eparts-animated-logo.css",
         "/content/general_pages/epc_portal_tenant_brand.css"
@@ -60,7 +60,7 @@ public static class LegacyPresentationAssets
     public static readonly IReadOnlyList<string> ErpLoginStylesheets =
     [
         "/epc-static.php?f=bos/epc_bos_shell.css",
-        "/content/general_pages/epc_bos_login_surface_accents.css?v=20260806c",
+        "/content/general_pages/epc_bos_login_surface_accents.css?v=20260806d",
         "/platform-assets/eparts-animated-logo.css",
         "/content/general_pages/epc_portal_tenant_brand.css"
     ];
