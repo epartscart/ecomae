@@ -2,11 +2,14 @@
 # FORCE live epartscart storefront fix RIGHT NOW.
 # Merging PRs does nothing until this runs on the CloudPanel box as root.
 #
-# Paste-safe (after this lands on main):
+# Paste-safe:
+#   ECOMAE_BRANCH=cursor/storefront-header-php-parity-7b3b \
+#     bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-php-parity-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+# After merge:
 #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
 #
 # What it does:
-#   1) git reset checkout to origin/main
+#   1) git reset checkout to origin/$ECOMAE_BRANCH
 #   2) sync PHP stub redirect + CSS into EVERY epartscart nginx root
 #   3) inject nginx 302 for /storefront/search-app → /en/shop/part_search
 #   4) DIRECT dotnet publish + restart ecomae-platform (:5100)
@@ -59,6 +62,16 @@ fi
 if ! grep -q 'StorefrontPhpCanonical.PartSearch' \
   aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor; then
   printf 'ERROR: chrome still posts search-app — checkout too old\n' >&2
+  exit 1
+fi
+if ! grep -q 'epc-garage-header-link' \
+  aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor; then
+  printf 'ERROR: chrome missing Garage Manager PHP class — checkout too old\n' >&2
+  exit 1
+fi
+if ! grep -q 'background:linear-gradient(135deg,#090f1d' \
+  aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor; then
+  printf 'ERROR: chrome missing PHP top-menu gradient — checkout too old\n' >&2
   exit 1
 fi
 
@@ -340,7 +353,11 @@ for needle in \
   'epc-nero-shell' \
   'ecomae-php-chrome-surface' \
   'action="/en/shop/part_search"' \
-  'header-call-box a { background:#ef4444'
+  'header-call-box a { background:#ef4444' \
+  'epc-garage-header-link' \
+  'background:linear-gradient(135deg,#090f1d' \
+  'Mon-Fri from 9:00 to 18:00' \
+  'of products'
 do
   if grep -Fq "$needle" <<<"$P_BODY"; then
     printf 'PASS public %s\n' "$needle"
@@ -351,6 +368,10 @@ do
 done
 if grep -Fq 'action="/storefront/search-app"' <<<"$P_BODY"; then
   printf 'FAIL public home still posts to /storefront/search-app (OLD :5100 BINARY)\n'
+  fail=1
+fi
+if grep -Fq 'Mon–Sat 9:00' <<<"$P_BODY"; then
+  printf 'FAIL public still shows Mon–Sat stub hours (OLD BINARY)\n'
   fail=1
 fi
 if printf '%s' "$P_HDR" | grep -qiE '^location:.*(/en/shop/part_search|part_search)'; then
