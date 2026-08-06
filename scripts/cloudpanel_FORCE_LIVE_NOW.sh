@@ -59,9 +59,16 @@ if ! grep -q 'header-call-box a { background:#ef4444' \
   printf 'ERROR: chrome missing inline PHP-look CSS — checkout too old\n' >&2
   exit 1
 fi
-if ! grep -q 'StorefrontPhpCanonical.PartSearch' \
+# NOTE: chrome switched from StorefrontPhpCanonical.* literals to the mode-aware
+# StorefrontSurfaceLinks.* wrapper — the old literal guard false-failed every deploy.
+if ! grep -q 'StorefrontSurfaceLinks.PartSearch' \
   aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor; then
-  printf 'ERROR: chrome still posts search-app — checkout too old\n' >&2
+  printf 'ERROR: chrome missing StorefrontSurfaceLinks.PartSearch — checkout too old\n' >&2
+  exit 1
+fi
+if ! grep -q 'PhpAspHomeBanners' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor; then
+  printf 'ERROR: home missing PHP-parity sections (#892) — checkout too old\n' >&2
   exit 1
 fi
 if ! grep -q 'epc-garage-header-link' \
