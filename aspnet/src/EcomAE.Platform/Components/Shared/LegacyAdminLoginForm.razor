@@ -1,5 +1,6 @@
 @using EcomAE.Platform.Auth
 @inject ILegacyAdminLoginService LoginService
+@inject IHttpContextAccessor Http
 
 <div class="epc-login-form">
     @if (!string.IsNullOrEmpty(ErrorMessage))
@@ -11,29 +12,16 @@
         <div class="epc-login-error" id="wrong_authentication" style="display:none"></div>
     }
 
-    @* Guest browse — compact so PHP login composition stays primary *@
-    <div class="epc-login-guest" style="margin:0 0 .85rem;text-align:center;">
-        <a class="epc-login-submit epc-login-submit-@Accent"
-           style="display:inline-flex;width:100%;padding:.75rem 1.2rem;text-decoration:none;align-items:center;justify-content:center;font-size:1rem;"
-           href="@ShellHref"
-           data-epc-guest-browse="1">Enter @SurfaceLabel (no login)</a>
-        <p style="margin:.45rem 0 0;font-size:.78rem;color:#64748b;line-height:1.4;">
-            Browse the shell without credentials. Sign-in is only needed for live KPIs / writes.
-        </p>
-    </div>
-
     @if (!LoginService.IsConfigured)
     {
         <div class="epc-login-error" style="display:block;background:#fff7ed;color:#9a3412;border-color:#fdba74;margin-bottom:.85rem;">
-            Sign-in bridge is not configured on this host yet
-            (<code>EcomAE__SecretSuccession</code>). Credential submit will fail until that is set —
-            use <strong>Enter @SurfaceLabel (no login)</strong> above.
+            Sign-in bridge is not configured on this host
+            (<code>EcomAE__SecretSuccession</code> + TenantRegistry DB).
+            Credential login will fail until CloudPanel syncs the PHP secret:
+            <code>ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES bash scripts/cloudpanel_sync_secret_succession_from_php.sh</code>.
+            Guest browse of Control is <strong>disabled</strong> — confidential tenant data requires login.
         </div>
     }
-
-    <p style="margin:.15rem 0 .65rem;font-size:.82rem;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
-        @(LoginService.IsConfigured ? "Or sign in with credentials" : "Credential fields (bridge not configured)")
-    </p>
 
     @* Post to the same surface login URL (already nginx-proxied). Middleware handles the POST. *@
     <form method="post" action="@LoginPostHref" class="epc-login-html-form" aria-disabled="@(!LoginService.IsConfigured)">
@@ -75,8 +63,9 @@
     </form>
 
     <p class="epc-login-bridge-note">
-        Shell: <a class="epc-login-php" href="@ShellHref">@ShellHref</a>
-        · Archive: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
+        After login you stay on ASP.NET <a class="epc-login-php" href="@ShellHref">@ShellHref</a>.
+        PHP archive only: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
+        (not a guest-browse bypass).
     </p>
 </div>
 
@@ -105,13 +94,28 @@
         _ => EcomAE.Platform.Routing.EcomAeRoutes.ControlPanelLogin
     };
 
-    private string RedirectPath => Surface switch
+    private string RedirectPath
     {
-        LegacyLoginSurface.Erp => "/erp",
-        LegacyLoginSurface.Bos => "/bos",
-        LegacyLoginSurface.Storefront => "/",
-        _ => "/cp"
-    };
+        get
+        {
+            var q = Http.HttpContext?.Request.Query["returnUrl"].ToString();
+            if (!string.IsNullOrWhiteSpace(q)
+                && q.StartsWith('/')
+                && !q.StartsWith("//", StringComparison.Ordinal)
+                && !q.Contains("://", StringComparison.Ordinal))
+            {
+                return q;
+            }
+
+            return Surface switch
+            {
+                LegacyLoginSurface.Erp => "/erp",
+                LegacyLoginSurface.Bos => "/bos",
+                LegacyLoginSurface.Storefront => "/",
+                _ => "/cp"
+            };
+        }
+    }
 
     private string ShellHref => Surface switch
     {

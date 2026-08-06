@@ -2,6 +2,26 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
+## 0⚠) CP AUTH LEAK — `/cp` without login (do immediately)
+
+Live `/cp` was guest-browsable (confidential chrome). `/cp/control` still hit PHP login — different presentation. Fix gates admin surfaces and unifies `/cp` ≡ `/cp/control`.
+
+```bash
+ECOMAE_BRANCH=cursor/cp-auth-gate-parity-7b3b \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/cp-auth-gate-parity-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)" || true
+# Ensure SecretSuccession so credential login works:
+ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+  bash scripts/cloudpanel_sync_secret_succession_from_php.sh
+# Re-install classic-entry so /cp/control + /cp/* tree hit :5100 (not PHP-FPM):
+ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
+ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
+  bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
+# Prove anonymous /cp redirects to login:
+curl -sSI https://www.epartscart.com/cp | head -20   # expect 302 → /cp/login
+curl -sSI https://www.epartscart.com/cp/control | head -20  # same ASP.NET wall / login
+curl -sS https://www.epartscart.com/cp/login | grep -i 'no login' && echo FAIL || echo PASS no-guest-browse
+```
+
 ## 0★) STOREFRONT `/` STALE AFTER #877+ — FORCE LIVE (do this first)
 
 Public `https://www.epartscart.com/` is nginx → `:5100/storefront/app`. PHP sync / marker updates are **not** enough. Until the hardened script prints `RESULT=PASS`, home stays on the old binary (`action="/storefront/search-app"`).

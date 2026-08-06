@@ -1,33 +1,56 @@
 @using EcomAE.Platform.Auth
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject NavigationManager Nav
 
 @*
-  Guest-browse gate: never hard-redirect to login.
-  Product shells must remain visible without credentials; Sign in stays a soft CTA.
+  Hard gate for confidential admin Blazor pages (belt-and-suspenders with
+  AdminSurfaceAuthGateMiddleware). Guest browse of Control is not allowed.
 *@
-@if (_ready)
+@if (_ready && _allowed)
 {
     @ChildContent
 }
 
 @code {
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
-    /// <summary>Retained for call sites; unused — guest browse does not force login.</summary>
     [Parameter] public string LoginPath { get; set; } = "/cp/login";
-    /// <summary>Retained for call sites; unused — guest browse does not require admin.</summary>
     [Parameter] public bool RequireAdmin { get; set; } = true;
 
-    private bool _ready = true;
+    private bool _ready;
+    private bool _allowed;
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        // Always render ChildContent. Session checks belong in page KPI loaders.
-        _ = Sessions;
-        _ = Http;
-        _ = LoginPath;
-        _ = RequireAdmin;
+        if (!RequireAdmin)
+        {
+            _allowed = true;
+            _ready = true;
+            return;
+        }
+
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            _allowed = false;
+            _ready = true;
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _allowed = session.Kind == LegacySessionKind.Admin
+            && (session.HasBackendAccess
+                || session.Capabilities.Contains("cp", StringComparer.OrdinalIgnoreCase)
+                || session.Capabilities.Contains("erp", StringComparer.OrdinalIgnoreCase)
+                || session.Capabilities.Contains("bos", StringComparer.OrdinalIgnoreCase));
+
+        if (!_allowed)
+        {
+            var path = ctx.Request.Path + ctx.Request.QueryString;
+            var target = LoginPath + "?returnUrl=" + Uri.EscapeDataString(path);
+            Nav.NavigateTo(target, forceLoad: true);
+        }
+
         _ready = true;
-        return Task.CompletedTask;
     }
 }
