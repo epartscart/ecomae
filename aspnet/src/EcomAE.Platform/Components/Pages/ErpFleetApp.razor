@@ -1,0 +1,42 @@
+@page "/erp/fleet-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+@*
+  PHP epc_super_erp_fleet_dashboard.php lives under Super CP portal, not product /ERP.
+  Keep fleet command as an operator tool at /erp/fleet-app (Super-CP hosts only).
+*@
+
+<PageTitle>Super ERP — Fleet Command · ECOM AE</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+@if (_allowed)
+{
+    <PhpErpDesktopChrome IsAdmin="true" Title="Fleet Command" BreadcrumbArea="Operator" BreadcrumbTab="Fleet">
+        <div style="margin:0 0 12px;padding:10px 12px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:8px;font-size:13px;color:#1e3a8a;">
+            <strong>Operator fleet view</strong> — product company ERP home is
+            <a href="/erp">/erp</a> (company switcher + NetSuite dashboard). This page mirrors
+            PHP <code>/cp/control/portal/epc_super_erp_fleet_dashboard</code>.
+        </div>
+        <PhpSuperErpFleetDashboard />
+    </PhpErpDesktopChrome>
+}
+else
+{
+    <div style="padding:2rem;font-family:sans-serif;">
+        <h1>Not found</h1>
+        <p>Fleet ERP command is available on the platform host only.</p>
+        <p><a href="/erp">Open ERP</a></p>
+    </div>
+}
+
+@code {
+    private bool _allowed;
+
+    protected override void OnInitialized()
+    {
+        _allowed = PlatformHostPolicy.IsSuperCpHost(Http.HttpContext?.Request.Host.Host);
+    }
+}

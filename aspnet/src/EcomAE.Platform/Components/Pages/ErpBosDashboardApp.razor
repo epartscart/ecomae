@@ -13,26 +13,30 @@
 <PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="erp" />
 
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@(_isSuperHost ? "Super ERP" : "Dashboard")" BreadcrumbArea="Home" BreadcrumbTab="@(_isSuperHost ? "Fleet" : "Dashboard")">
-@if (_isSuperHost)
-{
-    @* PHP epc_super_erp_fleet_dashboard.php — ecomae.com hosts the SUPER ERP:
-       fleet-wide ERP instances + modules + BOS control, never one tenant's books. *@
-    <PhpSuperErpFleetDashboard />
-}
-else
-{
+@*
+  PHP product /ERP on ecomae.com is the company workspace (erp_main + erp_dashboard_netsuite),
+  NOT the fleet command page. Fleet lives at /erp/fleet-app (Super CP operator tool).
+*@
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
     @* PHP erp_dashboard_netsuite.php — .ns-dash so erp_dashboard_premium.css applies *@
-    <div class="ns-dash" data-dashboard-profile="finance" data-epc-industry="@_ctx.IndustryCode">
+    <div class="ns-dash" data-dashboard-profile="@(_jewellery ? "jewellery" : "finance")" data-epc-industry="@_industryCode">
         <div class="ns-hero">
             <div class="ns-hero-panel">
-                <div class="ns-hero-kicker"><i class="fa fa-dashboard"></i> @_ctx.BrandLabel · @_ctx.IndustryLabel</div>
-                <h2 class="ns-hero-title">Operations</h2>
-                <p class="ns-hero-sub">Live KPIs for this company workspace and industry. Multi-company apply and industry packs stay on the primary ERP workspace.</p>
+                <div class="ns-hero-kicker"><i class="fa fa-dashboard"></i> @_ctx.BrandLabel · @_companyLabel · @_industryLabel</div>
+                <h2 class="ns-hero-title">@(_jewellery ? "Jewellery operations" : "Operations")</h2>
+                <p class="ns-hero-sub">
+                    Live KPIs for the active company. Use the company picker above to switch legal entities —
+                    jewellery companies expose jewellery modules; MAIN keeps core finance modules only.
+                    @if (_isSuperHost)
+                    {
+                        <text> Operator fleet view: <a href="/erp/fleet-app">/erp/fleet-app</a>.</text>
+                    }
+                </p>
                 <div class="ns-hero-meta">
                     <span class="ns-chip"><i class="fa fa-calendar"></i> @_periodFrom → @_periodTo</span>
                     <span class="ns-chip"><i class="fa fa-money"></i> AED</span>
-                    <span class="ns-chip"><i class="fa fa-user"></i> Finance centre</span>
+                    <span class="ns-chip"><i class="fa fa-building"></i> @_companyLabel</span>
+                    <span class="ns-chip"><i class="fa fa-industry"></i> @_industryLabel</span>
                 </div>
             </div>
             <div class="ns-hero-metrics">
@@ -70,9 +74,9 @@ else
         </div>
 
         <div class="ns-tiles">
-            @foreach (var tile in _tiles)
+            @foreach (var tile in ActiveTiles)
             {
-                <a class="ns-tile @tile.Tone" href="@tile.Href">
+                <a class="ns-tile @tile.Tone" href="@WithCompany(tile.Href)">
                     <i class="fa @tile.Icon ic"></i>
                     <span class="tl">@tile.Label</span>
                 </a>
@@ -83,9 +87,9 @@ else
             <div class="bd" style="padding-top:14px">
                 <h4 style="margin:0 0 12px;"><i class="fa fa-bolt"></i> Quick actions</h4>
                 <div class="ns-tiles" style="margin:0">
-                    @foreach (var qa in _quick)
+                    @foreach (var qa in ActiveQuick)
                     {
-                        <a class="ns-tile @qa.Tone" href="@qa.Href">
+                        <a class="ns-tile @qa.Tone" href="@WithCompany(qa.Href)">
                             <i class="fa @qa.Icon ic"></i>
                             <span class="tl">@qa.Label</span>
                         </a>
@@ -93,6 +97,21 @@ else
                 </div>
             </div>
         </div>
+
+        @if (_jewellery)
+        {
+            <div class="ns-port">
+                <h4><i class="fa fa-diamond"></i> Jewellery modules</h4>
+                <div class="bd">
+                    <div class="ns-tiles" style="margin:0">
+                        <a class="ns-tile gold" href="@WithCompany("/cp/jewellery-retail-app")"><i class="fa fa-diamond ic"></i><span class="tl">Jewellery retail</span></a>
+                        <a class="ns-tile green" href="@WithCompany("/cp/jewellery-repairs-app")"><i class="fa fa-wrench ic"></i><span class="tl">Repair jobs</span></a>
+                        <a class="ns-tile slate" href="@WithCompany("/erp")"><i class="fa fa-line-chart ic"></i><span class="tl">Gold rate board</span></a>
+                        <a class="ns-tile rust" href="@WithCompany("/erp")"><i class="fa fa-tags ic"></i><span class="tl">Jewellery tags</span></a>
+                    </div>
+                </div>
+            </div>
+        }
 
         <div class="ns-port">
             <h4><i class="fa fa-tachometer"></i> Operational KPIs <span style="font-weight:400;color:var(--ns-muted,#64748b);font-size:11px;">— live period pulse</span></h4>
@@ -239,7 +258,6 @@ else
             <div class="ns-pf-card"><div class="v">@_s.InventoryItems</div><div class="l">Active items</div></div>
         </div>
     </div>
-}
 </PhpErpDesktopChrome>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
@@ -351,6 +369,11 @@ else
         "n/a", "");
     private bool _isAdmin;
     private bool _isSuperHost;
+    private bool _jewellery;
+    private long _activeCompanyId;
+    private string _companyLabel = "MAIN";
+    private string _industryCode = "core";
+    private string _industryLabel = "Core / multi-industry";
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
     private string _pageTitle = "ERP Finance";
     private string _periodFrom = DateTime.UtcNow.ToString("yyyy-MM-01");
@@ -364,7 +387,7 @@ else
     private string[] _trendLabels = [];
     private decimal[] _trendRev = [];
 
-    private static readonly NsTile[] _tiles =
+    private static readonly NsTile[] CoreTiles =
     [
         new("Income Statement", "fa-line-chart", "/erp/dashboard-summary-app", "gold"),
         new("Balance Sheet / COA", "fa-university", "/erp/coa-accounts-app", "green"),
@@ -372,7 +395,15 @@ else
         new("Purchase Order", "fa-truck", "/erp/purchase-orders-app", "slate"),
     ];
 
-    private static readonly NsTile[] _quick =
+    private static readonly NsTile[] JewelleryTiles =
+    [
+        new("Jewellery retail", "fa-diamond", "/cp/jewellery-retail-app", "gold"),
+        new("Repair jobs", "fa-wrench", "/cp/jewellery-repairs-app", "green"),
+        new("Sales Order", "fa-shopping-cart", "/erp/sales-orders-app", "rust"),
+        new("Metal / stock", "fa-cubes", "/erp/inventory-stock-app", "slate"),
+    ];
+
+    private static readonly NsTile[] CoreQuick =
     [
         new("General Journal", "fa-book", "/erp/gl-journals-app", "slate"),
         new("Customer Invoices", "fa-file-text-o", "/erp/invoices-app", "gold"),
@@ -384,7 +415,21 @@ else
         new("Stock Movements", "fa-random", "/erp/stock-movements-app", "rust"),
     ];
 
+    private IEnumerable<NsTile> ActiveTiles => _jewellery ? JewelleryTiles : CoreTiles;
+    private IEnumerable<NsTile> ActiveQuick => CoreQuick;
+
     private sealed record NsTile(string Label, string Icon, string Href, string Tone);
+
+    private string WithCompany(string href)
+    {
+        if (_activeCompanyId <= 0)
+        {
+            return href;
+        }
+
+        var sep = href.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return href + sep + "company=" + _activeCompanyId;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -392,7 +437,35 @@ else
         var ctx = Http.HttpContext;
         _ctx = ErpHostContext.Resolve(ctx?.Request.Host.Host);
         _isSuperHost = Services.PlatformHostPolicy.IsSuperCpHost(ctx?.Request.Host.Host);
-        _pageTitle = _isSuperHost ? "Super ERP — Fleet Command Center · ECOM AE" : _ctx.WorkspaceTitle;
+        _pageTitle = _ctx.WorkspaceTitle;
+        _industryCode = _ctx.IndustryCode;
+        _industryLabel = _ctx.IndustryLabel;
+
+        if (ctx is not null)
+        {
+            var companies = (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies;
+            if (companies.Count == 0 && _isSuperHost)
+            {
+                companies = ErpIndustryNav.FallbackCompanies(_ctx.BrandLabel);
+            }
+
+            var activeQ = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request);
+            var active = companies.FirstOrDefault(c => activeQ is > 0 && c.Id == activeQ)
+                ?? companies.FirstOrDefault();
+            if (active is not null)
+            {
+                _activeCompanyId = active.Id;
+                _companyLabel = $"{active.Code} · {active.Name}";
+                _jewellery = ErpIndustryNav.IsJewelleryCompany(active);
+                _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
+                _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
+            }
+            else
+            {
+                _jewellery = ErpIndustryNav.IsJewelleryFromHostOrPack(_ctx.IndustryCode, null, null);
+            }
+        }
+
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin;
@@ -402,11 +475,7 @@ else
             return;
         }
 
-        if (_isSuperHost)
-        {
-            return; // Super ERP fleet dashboard loads platform-fleet data itself.
-        }
-
+        // Platform Super host still uses company ERP digests for /erp home (fleet is /erp/fleet-app).
         _s = (await Dashboards.BuildErpAsync(ctx.RequestAborted)).Summary;
         RecalcGauge();
         BuildTrendPlaceholder(_s.RevenueExVat);

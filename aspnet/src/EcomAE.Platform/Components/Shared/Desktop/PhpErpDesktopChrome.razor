@@ -1,34 +1,38 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject IHttpContextAccessor Http
 @inject ILegacySessionValidator Sessions
+@inject ISurfaceDashboardSummaryReporter Dashboards
 @*
   Mirrors erp_desktop.php + epc_erp_render_top_nav mega chrome.
   Topnav typography/panels come from epc_erp_professional.css (px sizes).
   Click-to-toggle JS mirrors cp/js/epc_erp_shell_nav.js bindTopNav (no hover-open).
+  Industry filter: jewellery tabs only when active company pack is jewellery (PHP parity).
   BOS nav is Super-CP only — never advertise /bos on tenant hosts.
 *@
 
 <div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root"
-     data-epc-industry="@_ctx.IndustryCode"
-     data-epc-erp-tenant="@_ctx.BrandLabel">
+     data-epc-industry="@_industryCode"
+     data-epc-erp-tenant="@_ctx.BrandLabel"
+     data-epc-erp-company="@_activeCompanyId"
+     data-epc-erp-jewellery="@(_jewellery ? "1" : "0")">
     <header class="epc-erp-topbar epc-erp-topbar--cp">
         <div class="epc-erp-topbar__inner">
-            <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="/erp">
+            <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="@ErpHomeHref">
                 <span class="epc-erp-topbar__brand-mark--animated">
                     <PhpEpartsCartAnimatedLogo Variant="header" />
                 </span>
                 <span>@_ctx.BrandLabel ERP</span>
             </a>
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
-                <a href="/erp">Guide</a>
-                <a href="/cp">E-commerce CP</a>
-                <a href="/erp">ERP home</a>
+                <a href="@ErpHomeHref">Dashboard</a>
+                <a href="/cp">Control panel</a>
                 @if (_showBos)
                 {
-                    <a href="/cp/tenants-app">Tenants</a>
+                    <a href="/erp/fleet-app">Fleet ERP</a>
                     <a href="/bos">BOS</a>
                 }
             </nav>
@@ -51,11 +55,11 @@
         <div class="epc-erp-shell epc-erp-shell--layout epc-erp-shell--topnav epc-erp-shell--topnav-only">
             <nav class="epc-erp-topnav" id="epc_erp_topnav" aria-label="ERP process areas">
                 <div class="epc-erp-topnav-inner">
-                    <a class="epc-erp-topnav-brand" href="/erp">
+                    <a class="epc-erp-topnav-brand" href="@ErpHomeHref">
                         <i class="fa fa-cubes" aria-hidden="true"></i><span>@_ctx.BrandLabel</span>
                     </a>
                     <ul class="epc-erp-topnav-list" role="menubar">
-                        @foreach (var group in LegacyDesktopChromeCatalog.ErpTopnav())
+                        @foreach (var group in _nav)
                         {
                             var columns = group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>();
                             var shortLabel = string.IsNullOrWhiteSpace(group.ShortLabel) ? group.Label : group.ShortLabel;
@@ -82,7 +86,7 @@
                                             }
                                             @group.Label
                                         </div>
-                                        <a class="epc-erp-topnav-panel-hub" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(group.HubHref ?? group.Links[0].Href)">
+                                        <a class="epc-erp-topnav-panel-hub" href="@ModuleHref(group.HubHref ?? group.Links[0].Href)">
                                             Open first module <i class="fa fa-arrow-right"></i>
                                         </a>
                                     </div>
@@ -101,7 +105,7 @@
                                                     @foreach (var link in col.Tabs)
                                                     {
                                                         <li>
-                                                            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href)">
+                                                            <a href="@ModuleHref(link.Href)">
                                                                 <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
                                                                 @link.Label
                                                             </a>
@@ -124,14 +128,14 @@
                         <div class="epc-erp-content-toolbar-main">
                             <div class="epc-erp-content-header">
                                 <nav class="epc-erp-breadcrumb" aria-label="Breadcrumb">
-                                    <a href="/erp">ERP</a>
+                                    <a href="@ErpHomeHref">ERP</a>
                                     <span class="sep">/</span>
                                     <span>@BreadcrumbArea</span>
                                     <span class="sep">/</span>
                                     <span class="epc-erp-breadcrumb-current">@BreadcrumbTab</span>
                                 </nav>
                                 <h1 class="epc-erp-content-title">@Title</h1>
-                                <p class="epc-erp-host-sub">@_ctx.WorkspaceTitle · @_ctx.IndustryLabel</p>
+                                <p class="epc-erp-host-sub">@_companyLabel · @_industryLabel@(_jewellery ? " · jewellery modules on" : " · core modules")</p>
                             </div>
                         </div>
                     </div>
@@ -146,10 +150,10 @@
         </div>
     </main>
     <footer class="epc-erp-foot">
-        ERP · <a href="/erp">Open ERP</a> · <a href="/cp">Control panel</a>
+        ERP · <a href="@ErpHomeHref">Dashboard</a> · <a href="/cp">Control panel</a>
         @if (_showBos)
         {
-            <text> · <a href="/bos">BOS</a></text>
+            <text> · <a href="/erp/fleet-app">Fleet</a> · <a href="/bos">BOS</a></text>
         }
     </footer>
 </div>
@@ -296,21 +300,68 @@
 
     private bool _showBos;
     private bool _signedIn;
+    private bool _jewellery;
+    private long _activeCompanyId;
     private string _userLabel = "Admin session";
+    private string _companyLabel = "MAIN";
+    private string _industryCode = "core";
+    private string _industryLabel = "Core / multi-industry";
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
+    private IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> _nav = LegacyDesktopChromeCatalog.ErpTopnav();
+
+    private string ErpHomeHref => _activeCompanyId > 0 ? $"/erp?company={_activeCompanyId}" : "/erp";
+
+    private string ModuleHref(string? href)
+    {
+        var mapped = PhpSurfaceLinkMap.AspNetPrimaryHref(href);
+        if (_activeCompanyId <= 0)
+        {
+            return mapped;
+        }
+
+        var sep = mapped.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return mapped + sep + "company=" + _activeCompanyId;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var host = Http.HttpContext?.Request.Host.Host;
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
         _ctx = ErpHostContext.Resolve(host);
+        _industryCode = _ctx.IndustryCode;
+        _industryLabel = _ctx.IndustryLabel;
 
         var ctx = Http.HttpContext;
         if (ctx is null)
         {
             _signedIn = IsAdmin;
+            _nav = ErpIndustryNav.FilterTopnav(LegacyDesktopChromeCatalog.ErpTopnav(), false);
             return;
         }
+
+        var companies = (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies;
+        if (companies.Count == 0 && _showBos)
+        {
+            companies = ErpIndustryNav.FallbackCompanies(_ctx.BrandLabel);
+        }
+
+        var activeQ = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request);
+        var active = companies.FirstOrDefault(c => activeQ is > 0 && c.Id == activeQ)
+            ?? companies.FirstOrDefault();
+        if (active is not null)
+        {
+            _activeCompanyId = active.Id;
+            _companyLabel = $"{active.Code} · {active.Name}";
+            _jewellery = ErpIndustryNav.IsJewelleryCompany(active);
+            _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
+            _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
+        }
+        else
+        {
+            _jewellery = ErpIndustryNav.IsJewelleryFromHostOrPack(_ctx.IndustryCode, null, null);
+        }
+
+        _nav = ErpIndustryNav.FilterTopnav(LegacyDesktopChromeCatalog.ErpTopnav(), _jewellery);
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _signedIn = session.Kind == LegacySessionKind.Admin || IsAdmin;

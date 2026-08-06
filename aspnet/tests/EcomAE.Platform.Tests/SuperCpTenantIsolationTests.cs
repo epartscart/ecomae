@@ -1,4 +1,5 @@
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -137,33 +138,53 @@ public sealed class SuperCpTenantIsolationTests
     }
 
     [Fact]
-    public void ErpHomeBranchesSuperVsTenant()
+    public void ErpHomeIsCompanyWorkspace_FleetIsSeparate()
     {
-        // Mirrors PHP: ecomae.com /erp is the SUPER ERP (fleet command center,
-        // epc_super_erp_fleet_dashboard.php), never one tenant's books.
+        // PHP product /ERP on ecomae.com is erp_main + NetSuite company dashboard
+        // (company switcher + industry modules). Fleet command is a Super CP portal
+        // page — ASP.NET keeps it at /erp/fleet-app, not as a replacement for /erp.
         var app = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
-        Assert.Contains("PlatformHostPolicy.IsSuperCpHost", app, StringComparison.Ordinal);
-        Assert.Contains("<PhpSuperErpFleetDashboard", app, StringComparison.Ordinal);
+        Assert.Contains("ns-dash", app, StringComparison.Ordinal);
+        Assert.Contains("ErpIndustryNav", app, StringComparison.Ordinal);
+        Assert.DoesNotContain("<PhpSuperErpFleetDashboard", app, StringComparison.Ordinal);
+
+        var fleetApp = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpFleetApp.razor"));
+        Assert.Contains("@page \"/erp/fleet-app\"", fleetApp, StringComparison.Ordinal);
+        Assert.Contains("<PhpSuperErpFleetDashboard", fleetApp, StringComparison.Ordinal);
 
         var fleet = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperErpFleetDashboard.razor"));
         Assert.Contains("Super ERP — Fleet Command Center", fleet, StringComparison.Ordinal);
         Assert.Contains("sep-hero", fleet, StringComparison.Ordinal);
         Assert.Contains("sep-erp-grid", fleet, StringComparison.Ordinal);
         Assert.Contains("data-sep-tab", fleet, StringComparison.Ordinal);
-        // All five live tenant instances (same as the PHP fleet dashboard).
         foreach (var tenant in new[] { "eParts Cart", "Electronicae", "Style N Look", "The Jewellery Trend", "Taxofinca" })
         {
             Assert.Contains(tenant, fleet, StringComparison.Ordinal);
         }
 
-        // The 22 ERP feature modules registry.
         foreach (var module in new[] { "SLA Agreements", "Gold Rate API", "AML Compliance", "RFID System", "Landed Cost V2" })
         {
             Assert.Contains(module, fleet, StringComparison.Ordinal);
         }
 
-        // Fleet console never queries a single tenant's ERP digests.
         Assert.DoesNotContain("BuildErpAsync", fleet, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ErpIndustryNav_FiltersJewelleryTabsForMainCompany()
+    {
+        var all = LegacyDesktopChromeCatalog.ErpTopnav();
+        var main = ErpIndustryNav.FilterTopnav(all, jewelleryCompany: false);
+        var jw = ErpIndustryNav.FilterTopnav(all, jewelleryCompany: true);
+
+        Assert.True(jw.Sum(g => g.Links.Count) > main.Sum(g => g.Links.Count));
+        Assert.DoesNotContain(main.SelectMany(g => g.Links), t => ErpIndustryNav.IsJewelleryTab(t));
+        Assert.Contains(jw.SelectMany(g => g.Links), t => ErpIndustryNav.IsJewelleryTab(t));
+
+        var mainCo = ErpIndustryNav.FallbackCompanies("ECOM AE")[0];
+        var jwCo = ErpIndustryNav.FallbackCompanies("ECOM AE")[1];
+        Assert.False(ErpIndustryNav.IsJewelleryCompany(mainCo));
+        Assert.True(ErpIndustryNav.IsJewelleryCompany(jwCo));
     }
 
     private static string Find(string relative)
