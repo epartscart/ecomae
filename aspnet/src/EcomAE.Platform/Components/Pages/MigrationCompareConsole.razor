@@ -13,6 +13,15 @@
     var aspNet = string.IsNullOrWhiteSpace(phpRef.AspNetPrimaryBaseUrl) ? "https://www.ecomae.com" : phpRef.AspNetPrimaryBaseUrl;
 }
 
+<p class="lede">
+    Side-by-side links: open PHP (reference / previous results) next to ASP.NET (destination primary).
+    Confirmed model <code>@phpRef.Mode</code> — PHP project stays available to find gaps; this is not PHP deletion.
+</p>
+
+<h1>Human compare board</h1>
+
+
+<HeadContent>
 <style>
     h1 {
         margin: 0 0 0.65rem;
@@ -117,13 +126,8 @@
     }
     ul.check li { margin-bottom: 0.35rem; }
 </style>
+</HeadContent>
 
-<p class="lede">
-    Side-by-side links: open PHP (reference / previous results) next to ASP.NET (destination primary).
-    Confirmed model <code>@phpRef.Mode</code> — PHP project stays available to find gaps; this is not PHP deletion.
-</p>
-
-<h1>Human compare board</h1>
 
 <div class="cta-row">
     <a class="cta cta-primary" href="/migration/console">Zero-PHP console</a>

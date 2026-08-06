@@ -11,9 +11,8 @@
 
 <PageTitle>Dashboard Summary · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
+<HeadContent>
+<style>
         .epc-ds-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
@@ -33,7 +32,12 @@
         .epc-ds-note { margin-top:1rem; padding:.75rem .9rem; background:#fef2f2; border:1px solid #fecaca; border-radius:.45rem; color:#7f1d1d; font-size:.86rem; }
         @@media (max-width:900px){ .epc-ds-kpis{grid-template-columns:1fr 1fr;} }
         @@media (max-width:560px){ .epc-ds-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <section class="epc-ds-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />

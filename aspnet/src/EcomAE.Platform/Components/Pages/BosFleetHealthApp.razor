@@ -11,9 +11,8 @@
 
 <PageTitle>Fleet Health · Super BOS · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="bos" />
-
-<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Fleet Health">
-    <style>
+<HeadContent>
+<style>
         .epc-fh-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#000000 0%,#0c4a6e 55%,#0ea5e9 100%);
@@ -42,7 +41,12 @@
         .epc-fh-note { margin-top:1rem; padding:.75rem .9rem; background:#fffbeb; border:1px solid #fde68a; border-radius:.45rem; color:#713f12; font-size:.86rem; }
         @@media (max-width:1100px){ .epc-fh-kpis{grid-template-columns:1fr 1fr;} }
         @@media (max-width:700px){ .epc-fh-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Fleet Health">
 
     <section class="epc-fh-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />

@@ -8,9 +8,8 @@
 
 <PageTitle>On-Premises · ERP · ECOM AE</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="On-Premises" BreadcrumbArea="Platform" BreadcrumbTab="On-Premises">
-    <style>
+<HeadContent>
+<style>
         .epc-op-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 45%,#0ea5e9 100%);
@@ -30,7 +29,12 @@
         .epc-op-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a5f; font-size:.86rem; }
         .epc-op-mandate { margin-top:.75rem; font-size:.8rem; color:#64748b; }
         @@media (max-width:900px){ .epc-op-grid{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="On-Premises" BreadcrumbArea="Platform" BreadcrumbTab="On-Premises">
 
     <section class="epc-op-hero">
         <h1>On-Premises Deployment</h1>

@@ -434,6 +434,28 @@ public static class EcomAeRoutes
     /// <summary>CP Debug console Blazor list (JSON digest remains <see cref="ControlPanelDebugConsole"/>).</summary>
     public const string ControlPanelDebugConsoleApp = "/cp/debug-console-app";
 
+    // Next-wave CP apps (digests + Blazor; OMS/price/customer writes stay PHP/dry-run)
+    public const string ControlPanelStatistics = "/cp/statistics";
+    public const string ControlPanelStatisticsApp = "/cp/statistics-app";
+    public const string ControlPanelAccessories = "/cp/accessories";
+    public const string ControlPanelAccessoriesApp = "/cp/accessories-app";
+    public const string ControlPanelSynonyms = "/cp/synonyms";
+    public const string ControlPanelSynonymsApp = "/cp/synonyms-app";
+    public const string ControlPanelSeo = "/cp/seo";
+    public const string ControlPanelSeoApp = "/cp/seo-app";
+    public const string ControlPanelSocialHub = "/cp/social-hub";
+    public const string ControlPanelSocialHubApp = "/cp/social-hub-app";
+    public const string ControlPanelTenantFeatures = "/cp/tenant-features";
+    public const string ControlPanelTenantFeaturesApp = "/cp/tenant-features-app";
+    public const string ControlPanelCustomerBoard = "/cp/customer-board";
+    public const string ControlPanelCustomerBoardApp = "/cp/customer-board-app";
+    public const string ControlPanelFulfillmentQueue = "/cp/fulfillment-queue";
+    public const string ControlPanelFulfillmentQueueApp = "/cp/fulfillment-queue-app";
+    public const string ControlPanelSsoSaml = "/cp/sso-saml";
+    public const string ControlPanelSsoSamlApp = "/cp/sso-saml-app";
+    public const string ControlPanelEventBus = "/cp/event-bus";
+    public const string ControlPanelEventBusApp = "/cp/event-bus-app";
+
     /// <summary>Batch 4: read-only CP Orders/OMS Blazor list (writes remain PHP).</summary>
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>

@@ -11,9 +11,8 @@
 
 <PageTitle>Stock movements · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Stock movements" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Movements">
-    <style>
+<HeadContent>
+<style>
         .epc-mv-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%); }
         .epc-mv-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-mv-hero p { margin:0; color:rgba(255,255,255,.88); max-width:46rem; font-size:.92rem; }
@@ -30,7 +29,12 @@
         .epc-mv-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
         .epc-mv-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #67e8f9; border-radius:.45rem; color:#164e63; font-size:.86rem; }
         @@media (max-width:900px){ .epc-mv-kpis{grid-template-columns:1fr 1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Stock movements" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Movements">
 
     <section class="epc-mv-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

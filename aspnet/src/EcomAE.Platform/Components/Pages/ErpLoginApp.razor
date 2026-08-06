@@ -11,6 +11,9 @@
 <PhpSurfaceHead Surface="erp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="erp" LoginChrome="true" />
 
+@* Markers: epc-erp-portal-bg, epc-erp-bos-hero, #erpPortalParticles *@
+
+<HeadContent>
 <style>
     html:has(.bos-login),
     body:has(.bos-login),
@@ -34,8 +37,9 @@
         gap: .4rem;
     }
 </style>
+</HeadContent>
 
-@* Markers: epc-erp-portal-bg, epc-erp-bos-hero, #erpPortalParticles *@
+
 <div class="epc-login-bos bos-login @_brand.RootModifierClass epc-erp-portal-wrap"
      data-login-industry="@_content.IndustryCode"
      data-login-tenant="@_brand.SiteKey">

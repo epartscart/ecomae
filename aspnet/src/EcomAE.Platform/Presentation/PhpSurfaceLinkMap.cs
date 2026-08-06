@@ -96,6 +96,20 @@ public static class PhpSurfaceLinkMap
         ("quote_requests", "/cp/quote-requests-app"),
         ("shop/statistics/web_tracker", "/cp/web-tracker-app"),
         ("web_tracker", "/cp/web-tracker-app"),
+        ("shop/statistics/statistics", "/cp/statistics-app"),
+        ("shop/statistics", "/cp/statistics-app"),
+        ("statistika", "/cp/statistics-app"),
+        ("shop/accessories", "/cp/accessories-app"),
+        ("shop/manufacturers_synonyms", "/cp/synonyms-app"),
+        ("manufacturers_synonyms", "/cp/synonyms-app"),
+        ("shop/marketing/seo", "/cp/seo-app"),
+        ("seo_main", "/cp/seo-app"),
+        ("epc_social_media_hub", "/cp/social-hub-app"),
+        ("epc_tenant_features", "/cp/tenant-features-app"),
+        ("epc_super_cp_customer_board", "/cp/customer-board-app"),
+        ("epc_fulfillment_queue", "/cp/fulfillment-queue-app"),
+        ("epc_sso_saml", "/cp/sso-saml-app"),
+        ("epc_event_bus", "/cp/event-bus-app"),
         ("shop/marketing/marketing", "/cp/marketing-growth-app"),
         ("shop/payments/payments", "/cp/payment-gateways-app"),
         ("shop/returns-manager", "/cp/returns-rma-app"),
@@ -147,7 +161,6 @@ public static class PhpSurfaceLinkMap
         ("payments", "/cp/payment-gateways-app"),
         ("channels", "/cp/marketplace-channels-app"),
         ("failover", "/cp/failover-status-app"),
-        // shop/statistics → no dedicated ASP.NET statistics app yet (gap board); leave for /cp.
     ];
 
     public static string AspNetPrimaryHref(string? href)

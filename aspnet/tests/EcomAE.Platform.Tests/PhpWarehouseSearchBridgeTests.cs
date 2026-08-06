@@ -62,6 +62,27 @@ public sealed class PhpWarehouseSearchBridgeTests
         Assert.NotNull(offers);
     }
 
+    [Fact]
+    public void Bridge_PrefersLoopbackHostHeaderForPhpAjax()
+    {
+        var path = Path.Combine(
+            FindRepoRoot(),
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Migration",
+            "PhpWarehouseSearchBridge.cs");
+        var text = File.ReadAllText(path);
+        Assert.Contains("127.0.0.1", text, StringComparison.Ordinal);
+        Assert.Contains("HostHeader", text, StringComparison.Ordinal);
+        Assert.Contains("AllowAutoRedirect", File.ReadAllText(Path.Combine(
+            FindRepoRoot(),
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Program.cs")), StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

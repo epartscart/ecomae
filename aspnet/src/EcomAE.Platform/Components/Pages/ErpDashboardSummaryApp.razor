@@ -12,9 +12,8 @@
 
 <PageTitle>ERP Dashboard Summary · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard Summary" BreadcrumbArea="Home" BreadcrumbTab="Dashboard KPIs">
-    <style>
+<HeadContent>
+<style>
         .epc-eds-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -39,7 +38,12 @@
         .epc-eds-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
         @@media (max-width:1100px){ .epc-eds-kpis{grid-template-columns:1fr 1fr;} }
         @@media (max-width:700px){ .epc-eds-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard Summary" BreadcrumbArea="Home" BreadcrumbTab="Dashboard KPIs">
 
     <section class="epc-eds-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

@@ -13,7 +13,9 @@
 *@
 
 @* Fallback-only styles: declared BEFORE the console CSS link so the real
-   epc_boc_console.css (later in the cascade) always wins when it loads. *@
+   epc_boc_console.css (later in the cascade) always wins when it loads.
+   Both live in HeadContent so body pipelines cannot strip <style> into visible text. *@
+<HeadContent>
 <style>
     /* Minimal fallbacks when epc_boc_console.css is unavailable (same class names). */
     .epc-boc__topnav { background:linear-gradient(135deg,#b91c1c,#7f1d1d); color:#fff; }
@@ -83,8 +85,9 @@
     .epc-boc__fleet-links a { color:#b91c1c; font-weight:700; text-decoration:none; }
     .epc-boc__note { color:#475569; margin:0; }
 </style>
-
 <link rel="stylesheet" href="/content/general_pages/epc_boc_console_css.php?v=20260722tenant1" />
+</HeadContent>
+
 
 <div class="epc-boc epc-boc--topnav" style="display:flex!important;flex-direction:column!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#fff7f7!important;isolation:isolate!important;">
     <nav class="epc-boc__topnav" id="epc_boc_topnav" aria-label="Business Operation Control">

@@ -3404,3 +3404,43 @@ public sealed record OnPremisesLicenseListResult(
     string Source,
     string Message);
 
+public sealed record CpStatisticsSummary(int OrderCount, int QueryCount, int UniqueArticles, int ActiveDays, string Source, string Message);
+public sealed record CpStatisticsRowDigest(string Article, string Brand, int Hits, long LastSeen);
+public sealed record CpStatisticsDigestResult(CpStatisticsSummary Summary, IReadOnlyList<CpStatisticsRowDigest> Rows, int Count, string Source, string Message);
+
+public sealed record CpAccessoriesSummary(int ListingCount, int PublishedCount, int CategoryCount, int PhotoCount, string Source, string Message);
+public sealed record CpAccessoriesRowDigest(int Id, string Title, string Make, string Model, decimal Price, string Status);
+public sealed record CpAccessoriesDigestResult(CpAccessoriesSummary Summary, IReadOnlyList<CpAccessoriesRowDigest> Rows, int Count, string Source, string Message);
+
+public sealed record CpSynonymsSummary(int ManufacturerCount, int SynonymCount, int OrphanCount, int MappedCount, string Source, string Message);
+public sealed record CpSynonymsRowDigest(string Manufacturer, string Synonym, int ManufacturerId);
+public sealed record CpSynonymsDigestResult(CpSynonymsSummary Summary, IReadOnlyList<CpSynonymsRowDigest> Rows, int Count, string Source, string Message);
+
+public sealed record CpSeoSummary(int UrlCount, int IndexedReady, int PingJobs, int WarmJobs, string Source, string Message);
+public sealed record CpSeoRowDigest(string Key, string Value);
+public sealed record CpSeoDigestResult(CpSeoSummary Summary, IReadOnlyList<CpSeoRowDigest> Rows, int Count, string Source, string Message);
+
+public sealed record CpSocialHubSummary(int AccountCount, int DraftCount, int PublishedCount, int ErrorCount, string Source, string Message);
+public sealed record CpSocialHubRowDigest(string Platform, string Username, string Status, string Title, string DraftStatus);
+public sealed record CpSocialHubDigestResult(CpSocialHubSummary Summary, IReadOnlyList<CpSocialHubRowDigest> Rows, int Count, string Source, string Message);
+
+public sealed record CpTenantFeaturesSummary(int SiteCount, int FlagCount, int EnabledCount, int DisabledCount, string Source, string Message);
+public sealed record CpTenantFeaturesRowDigest(string SiteKey, string FeatureKey, bool Enabled, long UpdatedAt);
+public sealed record CpTenantFeaturesDigestResult(CpTenantFeaturesSummary Summary, IReadOnlyList<CpTenantFeaturesRowDigest> Rows, int Count, string Source, string Message);
+
+public sealed record CpCustomerBoardSummary(int UserCount, int WithEmail, int WithPhone, int RecentLogins, string Source, string Message);
+public sealed record CpCustomerBoardRowDigest(int Id, string Email, string Name, string Phone, long RegTime);
+public sealed record CpCustomerBoardDigestResult(CpCustomerBoardSummary Summary, IReadOnlyList<CpCustomerBoardRowDigest> Rows, int Count, string Source, string Message);
+
+public sealed record CpFulfillmentQueueSummary(int Queued, int Picking, int Shipping, int Delivered, string Source, string Message);
+public sealed record CpFulfillmentQueueRowDigest(long Id, string OrderNumber, string CustomerName, string Status, string Priority, string Warehouse, string Carrier);
+public sealed record CpFulfillmentQueueDigestResult(CpFulfillmentQueueSummary Summary, IReadOnlyList<CpFulfillmentQueueRowDigest> Rows, int Count, string Source, string Message);
+
+public sealed record CpSsoSamlSummary(int ProviderCount, int ActiveProviders, int SessionCount, int ActiveSessions, string Source, string Message);
+public sealed record CpSsoSamlRowDigest(string ProviderName, string ProviderType, bool Active, string Email, string Status);
+public sealed record CpSsoSamlDigestResult(CpSsoSamlSummary Summary, IReadOnlyList<CpSsoSamlRowDigest> Rows, int Count, string Source, string Message);
+
+public sealed record CpEventBusSummary(int EventCount, int TypeCount, int TenantCount, int Last24h, string Source, string Message);
+public sealed record CpEventBusRowDigest(long Id, string EventType, string TenantKey, string ActorType, string CreatedAt);
+public sealed record CpEventBusDigestResult(CpEventBusSummary Summary, IReadOnlyList<CpEventBusRowDigest> Rows, int Count, string Source, string Message);
+

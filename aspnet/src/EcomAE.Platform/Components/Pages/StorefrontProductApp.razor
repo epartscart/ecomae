@@ -8,39 +8,41 @@
 
 <PageTitle>@(_product?.Caption ?? "Product") · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
+<HeadContent>
 <style>
-    .epc-sf-pd-hero {
-        margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-        background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
-    }
-    .epc-sf-pd-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
-    .epc-sf-pd-hero p { margin:0; color:#fecaca; max-width:42rem; font-size:.92rem; }
-    .epc-sf-pd-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-    .epc-sf-pd-cta a {
-        display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-        text-decoration:none; color:#fff; background:#dc2626;
-    }
-    .epc-sf-pd-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-    .epc-sf-pd-grid { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:1rem; }
-    .epc-sf-pd-card { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:1rem; }
-    .epc-sf-pd-card h2 { margin:0 0 .55rem; font-size:1rem; }
-    .epc-sf-pd-meta { margin:0; padding:0; list-style:none; font-size:.9rem; color:#334155; }
-    .epc-sf-pd-meta li { margin:0 0 .35rem; }
-    .epc-sf-pd-gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:.55rem; }
-    .epc-sf-pd-gallery a {
-        display:block; border:1px solid #e2e8f0; border-radius:.45rem; overflow:hidden; background:#f8fafc;
-        aspect-ratio:1; text-decoration:none;
-    }
-    .epc-sf-pd-gallery img { width:100%; height:100%; object-fit:contain; display:block; }
-    .epc-sf-pd-specs { width:100%; border-collapse:collapse; font-size:.86rem; }
-    .epc-sf-pd-specs th, .epc-sf-pd-specs td { padding:.45rem .55rem; border-bottom:1px solid #f1f5f9; text-align:left; vertical-align:top; }
-    .epc-sf-pd-specs th { width:38%; color:#64748b; font-weight:700; }
-    .epc-sf-pd-group { margin:0 0 1rem; }
-    .epc-sf-pd-group h3 { margin:0 0 .45rem; font-size:.92rem; color:#0f172a; }
-    .epc-sf-pd-empty { padding:1.25rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; }
-    .epc-sf-pd-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
-    @@media (max-width:900px){ .epc-sf-pd-grid{grid-template-columns:1fr;} }
+        .epc-sf-pd-hero {
+            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
+        }
+        .epc-sf-pd-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
+        .epc-sf-pd-hero p { margin:0; color:#fecaca; max-width:42rem; font-size:.92rem; }
+        .epc-sf-pd-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-sf-pd-cta a {
+            display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#dc2626;
+        }
+        .epc-sf-pd-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-sf-pd-grid { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:1rem; }
+        .epc-sf-pd-card { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:1rem; }
+        .epc-sf-pd-card h2 { margin:0 0 .55rem; font-size:1rem; }
+        .epc-sf-pd-meta { margin:0; padding:0; list-style:none; font-size:.9rem; color:#334155; }
+        .epc-sf-pd-meta li { margin:0 0 .35rem; }
+        .epc-sf-pd-gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:.55rem; }
+        .epc-sf-pd-gallery a {
+            display:block; border:1px solid #e2e8f0; border-radius:.45rem; overflow:hidden; background:#f8fafc;
+            aspect-ratio:1; text-decoration:none;
+        }
+        .epc-sf-pd-gallery img { width:100%; height:100%; object-fit:contain; display:block; }
+        .epc-sf-pd-specs { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-sf-pd-specs th, .epc-sf-pd-specs td { padding:.45rem .55rem; border-bottom:1px solid #f1f5f9; text-align:left; vertical-align:top; }
+        .epc-sf-pd-specs th { width:38%; color:#64748b; font-weight:700; }
+        .epc-sf-pd-group { margin:0 0 1rem; }
+        .epc-sf-pd-group h3 { margin:0 0 .45rem; font-size:.92rem; color:#0f172a; }
+        .epc-sf-pd-empty { padding:1.25rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; }
+        .epc-sf-pd-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-sf-pd-grid{grid-template-columns:1fr;} }
 </style>
+</HeadContent>
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 

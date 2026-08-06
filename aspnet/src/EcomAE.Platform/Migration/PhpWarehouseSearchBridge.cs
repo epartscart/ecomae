@@ -9,6 +9,8 @@ namespace EcomAE.Platform.Migration;
 /// <summary>
 /// Loopback/public bridge to PHP CHPU warehouse endpoints that already use the shop DB via config.php.
 /// Used when ASP.NET tenant SQL returns empty (wrong host binding / over-filters on older binaries).
+/// Prefers 127.0.0.1 + Host header so nginx still routes to PHP ajax while PHP serving is
+/// temporarily deactivated for product HTML (avoids Cloudflare hop / self-proxy failures).
 /// Also proxies progressive <c>ajax_getProductsOfBunch</c> supplier polls (session cookies forwarded).
 /// </summary>
 public sealed class PhpWarehouseSearchBridge
@@ -35,64 +37,62 @@ public sealed class PhpWarehouseSearchBridge
         int limit,
         CancellationToken cancellationToken = default)
     {
-        var uri = BuildUri(
-            "/content/shop/docpart/ajax_epc_warehouse_offers.php",
-            new Dictionary<string, string?>
-            {
-                ["article"] = article,
-                ["brand"] = brand,
-                ["limit"] = limit.ToString(CultureInfo.InvariantCulture)
-            });
-        if (uri is null)
+        var query = new Dictionary<string, string?>
+        {
+            ["article"] = article,
+            ["brand"] = brand,
+            ["limit"] = limit.ToString(CultureInfo.InvariantCulture)
+        };
+
+        var payload = await GetJsonAsync<PhpWarehouseOffersPayload>(
+                "/content/shop/docpart/ajax_epc_warehouse_offers.php",
+                query,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        if (payload is null || payload.Status == false || payload.Rows is null || payload.Rows.Count == 0)
         {
             return [];
         }
 
-        try
-        {
-            var (client, dispose) = CreateClient();
-            try
-            {
-                using var response = await client.GetAsync(uri, cancellationToken).ConfigureAwait(false);
-                if (!response.IsSuccessStatusCode)
-                {
-                    return [];
-                }
+        return payload.Rows
+            .Select(r => new StorefrontPartOfferDigest(
+                r.PriceId,
+                r.PriceList ?? string.Empty,
+                r.Manufacturer ?? string.Empty,
+                r.Article ?? string.Empty,
+                r.ArticleShow ?? string.Empty,
+                r.Name ?? string.Empty,
+                r.Price,
+                r.Exist,
+                r.Storage ?? string.Empty,
+                r.TimeToExe ?? string.Empty))
+            .ToList();
+    }
 
-                var payload = await response.Content
-                    .ReadFromJsonAsync<PhpWarehouseOffersPayload>(JsonOptions, cancellationToken)
-                    .ConfigureAwait(false);
-                if (payload is null || payload.Status == false || payload.Rows is null || payload.Rows.Count == 0)
-                {
-                    return [];
-                }
+    public async Task<IReadOnlyList<StorefrontArticleBrandDigest>> TryLoadBrandsAsync(
+        string article,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        var payload = await GetJsonAsync<PhpArticleBrandsPayload>(
+                "/content/shop/docpart/ajax_epc_article_brands.php",
+                new Dictionary<string, string?> { ["article"] = article },
+                cancellationToken)
+            .ConfigureAwait(false);
 
-                return payload.Rows
-                    .Select(r => new StorefrontPartOfferDigest(
-                        r.PriceId,
-                        r.PriceList ?? string.Empty,
-                        r.Manufacturer ?? string.Empty,
-                        r.Article ?? string.Empty,
-                        r.ArticleShow ?? string.Empty,
-                        r.Name ?? string.Empty,
-                        r.Price,
-                        r.Exist,
-                        r.Storage ?? string.Empty,
-                        r.TimeToExe ?? string.Empty))
-                    .ToList();
-            }
-            finally
-            {
-                if (dispose)
-                {
-                    client.Dispose();
-                }
-            }
-        }
-        catch
+        if (payload is null || payload.Status == false || payload.Manufacturers is null)
         {
             return [];
         }
+
+        return payload.Manufacturers
+            .Select(m => (m.ManufacturerShow ?? m.Manufacturer ?? string.Empty).Trim())
+            .Where(b => b.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(Math.Clamp(limit, 1, 200))
+            .Select(b => new StorefrontArticleBrandDigest(b))
+            .ToList();
     }
 
     /// <summary>
@@ -108,12 +108,6 @@ public sealed class PhpWarehouseSearchBridge
         int geoId = 0,
         CancellationToken cancellationToken = default)
     {
-        var uri = BuildUri("/content/shop/docpart/ajax_getProductsOfBunch.php", new Dictionary<string, string?>());
-        if (uri is null)
-        {
-            return new(0, officeId, storageId, [], false, "no-http-context", "No request host for PHP bunch poll.");
-        }
-
         var normalized = (article ?? string.Empty).Trim();
         if (normalized.Length == 0)
         {
@@ -131,138 +125,165 @@ public sealed class PhpWarehouseSearchBridge
             })
             : queryJson!;
 
+        var form = new Dictionary<string, string>
+        {
+            ["geo_id"] = geoId.ToString(CultureInfo.InvariantCulture),
+            ["office_id"] = officeId.ToString(CultureInfo.InvariantCulture),
+            ["storage_id"] = storageId.ToString(CultureInfo.InvariantCulture),
+            ["query"] = searchObject
+        };
+
+        var payload = await PostFormJsonAsync<PhpProductsOfBunchPayload>(
+                "/content/shop/docpart/ajax_getProductsOfBunch.php",
+                form,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        if (payload is null)
+        {
+            return new(0, officeId, storageId, [], false, "php-empty", "Empty PHP bunch response.");
+        }
+
+        var products = (payload.Products ?? [])
+            .Select(p => new StorefrontPartOfferDigest(
+                0,
+                p.StorageCaption ?? p.Storage ?? string.Empty,
+                p.Manufacturer ?? string.Empty,
+                p.Article ?? string.Empty,
+                p.ArticleShow ?? string.Empty,
+                p.Name ?? string.Empty,
+                p.Price,
+                p.Exist,
+                p.StorageCaption ?? p.Storage ?? string.Empty,
+                FormatJsonScalar(p.TimeToExe)))
+            .ToList();
+
+        return new(
+            payload.Result,
+            officeId,
+            storageId,
+            products,
+            payload.PricesVisible,
+            "php-bunch",
+            payload.Message ?? string.Empty);
+    }
+
+    private async Task<T?> GetJsonAsync<T>(
+        string path,
+        IReadOnlyDictionary<string, string?> query,
+        CancellationToken cancellationToken)
+        where T : class
+    {
+        var targets = BuildRequestTargets(path, query);
+        if (targets.Count == 0)
+        {
+            return null;
+        }
+
+        var (client, dispose) = CreateClient();
         try
         {
-            var (client, dispose) = CreateClient();
-            try
+            foreach (var target in targets)
             {
-                using var request = new HttpRequestMessage(HttpMethod.Post, uri);
-                ForwardBrowserCookies(request);
-                request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                try
                 {
-                    ["geo_id"] = geoId.ToString(CultureInfo.InvariantCulture),
-                    ["office_id"] = officeId.ToString(CultureInfo.InvariantCulture),
-                    ["storage_id"] = storageId.ToString(CultureInfo.InvariantCulture),
-                    ["query"] = searchObject
-                });
+                    using var request = new HttpRequestMessage(HttpMethod.Get, target.Uri);
+                    ApplyTargetHeaders(request, target);
 
-                using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-                if (!response.IsSuccessStatusCode)
-                {
-                    return new(0, officeId, storageId, [], false, "php-http",
-                        "HTTP " + ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture));
+                    using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        continue;
+                    }
+
+                    var payload = await response.Content
+                        .ReadFromJsonAsync<T>(JsonOptions, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (payload is not null)
+                    {
+                        return payload;
+                    }
                 }
-
-                var payload = await response.Content
-                    .ReadFromJsonAsync<PhpProductsOfBunchPayload>(JsonOptions, cancellationToken)
-                    .ConfigureAwait(false);
-                if (payload is null)
+                catch
                 {
-                    return new(0, officeId, storageId, [], false, "php-empty", "Empty PHP bunch response.");
-                }
-
-                var products = (payload.Products ?? [])
-                    .Select(p => new StorefrontPartOfferDigest(
-                        0,
-                        p.StorageCaption ?? p.Storage ?? string.Empty,
-                        p.Manufacturer ?? string.Empty,
-                        p.Article ?? string.Empty,
-                        p.ArticleShow ?? string.Empty,
-                        p.Name ?? string.Empty,
-                        p.Price,
-                        p.Exist,
-                        p.StorageCaption ?? p.Storage ?? string.Empty,
-                        FormatJsonScalar(p.TimeToExe)))
-                    .ToList();
-
-                return new(
-                    payload.Result,
-                    officeId,
-                    storageId,
-                    products,
-                    payload.PricesVisible,
-                    "php-bunch",
-                    payload.Message ?? string.Empty);
-            }
-            finally
-            {
-                if (dispose)
-                {
-                    client.Dispose();
+                    // try next candidate base
                 }
             }
+
+            return null;
         }
-        catch (Exception ex)
+        finally
         {
-            return new(0, officeId, storageId, [], false, "php-error", ex.Message);
+            if (dispose)
+            {
+                client.Dispose();
+            }
         }
     }
 
-    public async Task<IReadOnlyList<StorefrontArticleBrandDigest>> TryLoadBrandsAsync(
-        string article,
-        int limit,
-        CancellationToken cancellationToken = default)
+    private async Task<T?> PostFormJsonAsync<T>(
+        string path,
+        IReadOnlyDictionary<string, string> form,
+        CancellationToken cancellationToken)
+        where T : class
     {
-        var uri = BuildUri(
-            "/content/shop/docpart/ajax_epc_article_brands.php",
-            new Dictionary<string, string?>
-            {
-                ["article"] = article
-            });
-        if (uri is null)
+        var targets = BuildRequestTargets(path, new Dictionary<string, string?>());
+        if (targets.Count == 0)
         {
-            return [];
+            return null;
         }
 
+        var (client, dispose) = CreateClient(timeoutSeconds: 45);
         try
         {
-            var (client, dispose) = CreateClient();
-            try
+            foreach (var target in targets)
             {
-                using var response = await client.GetAsync(uri, cancellationToken).ConfigureAwait(false);
-                if (!response.IsSuccessStatusCode)
+                try
                 {
-                    return [];
-                }
+                    using var request = new HttpRequestMessage(HttpMethod.Post, target.Uri);
+                    ApplyTargetHeaders(request, target);
+                    ForwardBrowserCookies(request);
+                    request.Content = new FormUrlEncodedContent(form);
 
-                var payload = await response.Content
-                    .ReadFromJsonAsync<PhpArticleBrandsPayload>(JsonOptions, cancellationToken)
-                    .ConfigureAwait(false);
-                if (payload is null || payload.Status == false || payload.Manufacturers is null)
-                {
-                    return [];
-                }
+                    using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        continue;
+                    }
 
-                return payload.Manufacturers
-                    .Select(m => (m.ManufacturerShow ?? m.Manufacturer ?? string.Empty).Trim())
-                    .Where(b => b.Length > 0)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .Take(Math.Clamp(limit, 1, 200))
-                    .Select(b => new StorefrontArticleBrandDigest(b))
-                    .ToList();
-            }
-            finally
-            {
-                if (dispose)
+                    var payload = await response.Content
+                        .ReadFromJsonAsync<T>(JsonOptions, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (payload is not null)
+                    {
+                        return payload;
+                    }
+                }
+                catch
                 {
-                    client.Dispose();
+                    // try next candidate base
                 }
             }
+
+            return null;
         }
-        catch
+        finally
         {
-            return [];
+            if (dispose)
+            {
+                client.Dispose();
+            }
         }
     }
 
-    private (HttpClient Client, bool Dispose) CreateClient()
+    private void ApplyTargetHeaders(HttpRequestMessage request, BridgeTarget target)
     {
-        if (_httpClientFactory is not null)
+        if (!string.IsNullOrWhiteSpace(target.HostHeader))
         {
-            return (_httpClientFactory.CreateClient(nameof(PhpWarehouseSearchBridge)), false);
+            request.Headers.Host = target.HostHeader;
         }
 
-        return (new HttpClient { Timeout = TimeSpan.FromSeconds(45) }, true);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     }
 
     private void ForwardBrowserCookies(HttpRequestMessage request)
@@ -277,15 +298,79 @@ public sealed class PhpWarehouseSearchBridge
         {
             request.Headers.TryAddWithoutValidation("Cookie", cookie.ToString());
         }
+    }
 
-        // Keep vhost routing when calling public host from the platform process.
-        request.Headers.Host = http.Request.Host.Value;
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    private List<BridgeTarget> BuildRequestTargets(string path, IReadOnlyDictionary<string, string?> query)
+    {
+        var http = _httpContextAccessor?.HttpContext;
+        if (http is null)
+        {
+            return [];
+        }
+
+        var request = http.Request;
+        var publicHost = request.Host.Host;
+        if (string.IsNullOrWhiteSpace(publicHost))
+        {
+            return [];
+        }
+
+        var qs = string.Join(
+            "&",
+            query
+                .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
+                .Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value!)}"));
+
+        var targets = new List<BridgeTarget>();
+
+        // 1) Loopback + Host header — nginx vhost still serves PHP ajax for /content/shop/docpart/*
+        // even when product HTML PHP serving is temporarily deactivated.
+        foreach (var loopPort in new[] { request.Host.Port, 80, 8080 })
+        {
+            var builder = new UriBuilder
+            {
+                Scheme = "http",
+                Host = "127.0.0.1",
+                Path = path,
+                Query = qs
+            };
+            if (loopPort is int p && p > 0 && p != 443)
+            {
+                builder.Port = p;
+            }
+
+            targets.Add(new BridgeTarget(builder.Uri, publicHost));
+        }
+
+        // 2) Public host (same scheme/port as incoming request) — works when outbound CF is allowed.
+        var publicBuilder = new UriBuilder
+        {
+            Scheme = request.Scheme,
+            Host = publicHost,
+            Path = path,
+            Query = qs
+        };
+        if (request.Host.Port is int publicPort)
+        {
+            publicBuilder.Port = publicPort;
+        }
+
+        targets.Add(new BridgeTarget(publicBuilder.Uri, HostHeader: null));
+        return targets;
+    }
+
+    private (HttpClient Client, bool Dispose) CreateClient(int timeoutSeconds = 8)
+    {
+        if (_httpClientFactory is not null)
+        {
+            return (_httpClientFactory.CreateClient(nameof(PhpWarehouseSearchBridge)), false);
+        }
+
+        return (new HttpClient { Timeout = TimeSpan.FromSeconds(timeoutSeconds) }, true);
     }
 
     private static string FormatJsonScalar(JsonElement value)
-    {
-        return value.ValueKind switch
+        => value.ValueKind switch
         {
             JsonValueKind.String => value.GetString() ?? string.Empty,
             JsonValueKind.Number => value.ToString(),
@@ -293,44 +378,8 @@ public sealed class PhpWarehouseSearchBridge
             JsonValueKind.False => "0",
             _ => string.Empty
         };
-    }
 
-    private Uri? BuildUri(string path, IReadOnlyDictionary<string, string?> query)
-    {
-        var http = _httpContextAccessor?.HttpContext;
-        if (http is null)
-        {
-            return null;
-        }
-
-        var request = http.Request;
-        var queryString = string.Join(
-            "&",
-            query
-                .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
-                .Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value!)}"));
-        var builder = new UriBuilder
-        {
-            Scheme = request.Scheme,
-            Host = request.Host.Host,
-            Path = path,
-            Query = queryString
-        };
-        if (request.Host.Port is int port)
-        {
-            builder.Port = port;
-        }
-
-        // Prefer loopback to the same host when request came through public DNS —
-        // Host header keeps vhost routing; avoids Cloudflare hop when possible.
-        if (!string.Equals(builder.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(builder.Host, "localhost", StringComparison.OrdinalIgnoreCase))
-        {
-            // Keep public host — PHP ajax is already proven on www.epartscart.com.
-        }
-
-        return builder.Uri;
-    }
+    private sealed record BridgeTarget(Uri Uri, string? HostHeader);
 
     private sealed class PhpWarehouseOffersPayload
     {

@@ -11,9 +11,8 @@
 
 <PageTitle>Cash Entries · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash Entries" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash ledger">
-    <style>
+<HeadContent>
+<style>
         .epc-ce-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -40,7 +39,12 @@
         .epc-ce-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #a5f3fc; border-radius:.45rem; color:#155e75; font-size:.86rem; }
         @@media (max-width:900px){ .epc-ce-kpis{grid-template-columns:1fr 1fr;} }
         @@media (max-width:560px){ .epc-ce-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash Entries" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash ledger">
 
     <section class="epc-ce-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

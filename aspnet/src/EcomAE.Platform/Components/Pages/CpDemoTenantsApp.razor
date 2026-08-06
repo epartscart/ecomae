@@ -12,11 +12,8 @@
 
 <PageTitle>Demo Tenants · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-
-@if (_allowed)
-{
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
+<HeadContent>
+<style>
         .epc-demo-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
@@ -34,7 +31,14 @@
         .epc-demo-table th, .epc-demo-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
         .epc-demo-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-demo-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:.45rem; color:#166534; font-size:.86rem; }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+@if (_allowed)
+{
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <section class="epc-demo-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />

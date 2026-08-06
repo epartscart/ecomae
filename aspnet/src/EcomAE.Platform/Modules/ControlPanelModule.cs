@@ -3498,6 +3498,296 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelStatistics, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for statistics digest.");
+            }
+
+            var result = await dashboards.BuildCpStatisticsDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only shop_orders + shop_stat_article_queries KPIs (ip omitted). PHP shop/statistics remains authoritative for writes."
+            });
+        });
+
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelAccessories, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for accessories digest.");
+            }
+
+            var result = await dashboards.BuildCpAccessoriesDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_acc_* listings. Photo upload/delete remain /cp/accessories/photos + module-ajax dry-run; PHP accessories authoritative."
+            });
+        });
+
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelSynonyms, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for synonyms digest.");
+            }
+
+            var result = await dashboards.BuildCpSynonymsDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only shop_docpart_manufacturers_synonyms. Add/save/del remain manufacturers_synonyms module-ajax dry-run."
+            });
+        });
+
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelSeo, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for seo digest.");
+            }
+
+            var result = await dashboards.BuildCpSeoDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only content frontend SEO KPIs. Sitemap detail at /cp/sitemap-app; ping/warm remain PHP shop/marketing/seo."
+            });
+        });
+
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelSocialHub, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for social-hub digest.");
+            }
+
+            var result = await dashboards.BuildCpSocialHubDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_social_accounts/drafts (encrypted_credentials omitted). Publish/save remain portal_social dry-run."
+            });
+        });
+
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelTenantFeatures, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for tenant-features digest.");
+            }
+
+            var result = await dashboards.BuildCpTenantFeaturesDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_tenant_feature_flags matrix. save_feature_flags remains portal_integrations dry-run. Super-only Blazor app."
+            });
+        });
+
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelCustomerBoard, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for customer-board digest.");
+            }
+
+            var result = await dashboards.BuildCpCustomerBoardDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only users peek for Super customer board (writes remain PHP). Super-only Blazor app."
+            });
+        });
+
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelFulfillmentQueue, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for fulfillment-queue digest.");
+            }
+
+            var result = await dashboards.BuildCpFulfillmentQueueDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_fulfillment_orders queue. Stage advance remains OMS fulfillment dry-run + PHP."
+            });
+        });
+
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelSsoSaml, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for sso-saml digest.");
+            }
+
+            var result = await dashboards.BuildCpSsoSamlDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_sso_providers/sessions (certs/metadata_xml omitted). Writes remain PHP. Super-only Blazor app."
+            });
+        });
+
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelEventBus, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for event-bus digest.");
+            }
+
+            var result = await dashboards.BuildCpEventBusDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only MySQL epc_events peek (no Kafka/Rabbit payloads). Super-only Blazor app."
+            });
+        });
+
         // /cp (+ /cp/control /CP) owned by Blazor CpCommandCentreApp (AdminSurfaceAuthGateMiddleware).
         // Do not MapGet those aliases here — they AmbiguousMatch with @page routes.
     }

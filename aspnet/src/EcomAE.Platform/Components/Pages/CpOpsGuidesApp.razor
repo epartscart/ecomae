@@ -11,8 +11,8 @@
 
 <PageTitle>Ops guides · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
+<HeadContent>
+<style>
         .epc-w23-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%); }
         .epc-w23-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-w23-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; }
@@ -29,7 +29,11 @@
         .epc-w23-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
         .epc-w23-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
         @@media (max-width:900px){ .epc-w23-kpis{grid-template-columns:1fr 1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
     <section class="epc-w23-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Ops guides</h1>

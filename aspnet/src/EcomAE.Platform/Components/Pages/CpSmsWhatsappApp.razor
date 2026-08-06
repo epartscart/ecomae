@@ -11,9 +11,8 @@
 
 <PageTitle>SMS &amp; WhatsApp · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
+<HeadContent>
+<style>
         .epc-sms-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
@@ -37,7 +36,12 @@
         .epc-sms-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfdf5; border:1px solid #6ee7b7; border-radius:.45rem; color:#047857; font-size:.86rem; }
         .epc-sms-section { margin:.5rem 0 .35rem; font-size:.9rem; font-weight:700; color:#334155; }
         @@media (max-width:900px){ .epc-sms-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <section class="epc-sms-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />

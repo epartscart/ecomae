@@ -11,9 +11,8 @@
 
 <PageTitle>Report center · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Report center" BreadcrumbArea="Overview" BreadcrumbTab="Reports">
-    <style>
+<HeadContent>
+<style>
         .epc-rc-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -38,7 +37,12 @@
         .epc-rc-table a:hover { text-decoration:underline; }
         .epc-rc-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #67e8f9; border-radius:.45rem; color:#164e63; font-size:.86rem; }
         @@media (max-width:900px){ .epc-rc-kpis{grid-template-columns:1fr 1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Report center" BreadcrumbArea="Overview" BreadcrumbTab="Reports">
 
     <section class="epc-rc-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
