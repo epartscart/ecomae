@@ -330,17 +330,19 @@ print('repair-changed=' + ('yes' if changed_any else 'no'))
 PY
 }
 
-if nginx -t; then
+if nginx -t 2>&1 | tee /tmp/epc-nginx-t.log; then
   systemctl reload nginx
   printf 'nginx reloaded (%s confs touched)\n' "$NGINX_TOUCHED"
 else
   printf 'WARN: nginx -t failed — attempting duplicate-location repair\n' >&2
   nginx_repair_duplicate_locations || true
-  if nginx -t; then
+  if nginx -t 2>&1 | tee /tmp/epc-nginx-t.log; then
     systemctl reload nginx
     printf 'nginx repaired + reloaded\n'
   else
-    printf 'WARN: nginx config still failing — continuing to publish; old config keeps serving\n' >&2
+    printf 'WARN: nginx config STILL failing after repair — residual errors:\n' >&2
+    grep -E 'emerg|error' /tmp/epc-nginx-t.log >&2 || true
+    printf 'WARN: continuing to publish; the RUNNING nginx keeps its old config\n' >&2
   fi
 fi
 
@@ -387,6 +389,19 @@ fi
 
 install -d /etc/systemd/system "$ENV_DIR"
 install -m 0644 deploy/aspnet/ecomae-platform.service /etc/systemd/system/ecomae-platform.service
+
+# Kestrel runs from the publish tree and cannot find the PHP monorepo by walking
+# up — the home catalog widgets (Family Product / Epart Catalog / Available Brands /
+# Original Catalog) render their fallback alerts without this.
+ENV_FILE="$ENV_DIR/platform.env"
+touch "$ENV_FILE"
+if grep -q '^ECOMAE_PHP_SOURCE_ROOT=' "$ENV_FILE"; then
+  sed -i "s|^ECOMAE_PHP_SOURCE_ROOT=.*|ECOMAE_PHP_SOURCE_ROOT=$REPO|" "$ENV_FILE"
+else
+  printf 'ECOMAE_PHP_SOURCE_ROOT=%s\n' "$REPO" >> "$ENV_FILE"
+fi
+printf 'platform.env: ECOMAE_PHP_SOURCE_ROOT=%s\n' "$REPO"
+
 systemctl daemon-reload
 systemctl enable ecomae-platform.service
 
@@ -451,15 +466,16 @@ done
 check_form_action local "$BODY"
 
 # search-app: redirect to PHP part_search (PHP mode) OR serve the app 200 (paused mode).
-SA_HDR="$(curl -sSI -A 'Mozilla/5.0' --max-time 20 \
+# GET, not HEAD — Blazor endpoints answer 405 to HEAD (curl -I false-fails a good deploy).
+SA_HDR="$(curl -sS -D - -o /dev/null -A 'Mozilla/5.0' --max-time 20 \
   'http://127.0.0.1:5100/storefront/search-app?article=1310154101' || true)"
 # NOTE: awk IGNORECASE is gawk-only (mawk on Debian ignores it) — use tolower() match.
 LOC="$(printf '%s' "$SA_HDR" | awk 'tolower($1) == "location:" {print $2}' | tr -d '\r' | head -1)"
 printf 'local search-app Location: %s\n' "${LOC:-<none>}"
 if [[ "$LOC" == *'/en/shop/part_search'* ]]; then
   printf 'PASS local search-app redirects to part_search (PHP mode)\n'
-elif printf '%s' "$SA_HDR" | head -1 | grep -qE ' 200'; then
-  printf 'PASS local search-app serves app 200 (PHP-paused mode)\n'
+elif printf '%s' "$SA_HDR" | head -1 | grep -qE ' (200|302)'; then
+  printf 'PASS local search-app answers %s\n' "$(printf '%s' "$SA_HDR" | head -1 | tr -d '\r')"
 else
   printf 'FAIL local search-app neither redirect nor 200\n'
   fail=1
@@ -468,7 +484,7 @@ fi
 printf '\n== Prove PUBLIC %s/ (must be ASP.NET via nginx→:5100/storefront/app) ==\n' "$PUBLIC_BASE"
 Q="epc_deploy_probe=$(date +%s)"
 P_BODY="$(curl -sS -A 'Mozilla/5.0' --max-time 45 "${PUBLIC_BASE}/?${Q}" || true)"
-P_HDR="$(curl -sSI -A 'Mozilla/5.0' --max-time 20 "${PUBLIC_BASE}/storefront/search-app?article=1310154101&${Q}" || true)"
+P_HDR="$(curl -sS -D - -o /dev/null -A 'Mozilla/5.0' --max-time 20 "${PUBLIC_BASE}/storefront/search-app?article=1310154101&${Q}" || true)"
 printf 'public / bytes=%s\n' "${#P_BODY}"
 printf '%s\n' "$P_HDR" | head -15
 

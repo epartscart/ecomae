@@ -208,18 +208,34 @@ public static class PhpLegacyAssetBridge
 
     private static string FindRepoRoot(IWebHostEnvironment env)
     {
+        var candidates = new List<string>();
+        var envRoot = Environment.GetEnvironmentVariable("ECOMAE_PHP_SOURCE_ROOT");
+        if (!string.IsNullOrWhiteSpace(envRoot))
+        {
+            candidates.Add(envRoot);
+        }
+
         foreach (var start in new[] { env.ContentRootPath, Directory.GetCurrentDirectory() })
         {
             var dir = new DirectoryInfo(start);
             while (dir is not null)
             {
-                if (File.Exists(Path.Combine(dir.FullName, "aspnet", "EcomAE.AspNetCore.sln"))
-                    || File.Exists(Path.Combine(dir.FullName, "content", "general_pages", "epc_cp_ui_css.php")))
-                {
-                    return dir.FullName;
-                }
-
+                candidates.Add(dir.FullName);
                 dir = dir.Parent;
+            }
+        }
+
+        // Live publish trees (/var/www/ecomae-aspnet/releases/<ts>/platform) never
+        // contain the monorepo — fall back to the CloudPanel checkout locations.
+        candidates.Add("/opt/ecomae-aspnet-source");
+        candidates.Add("/root/ecomae");
+
+        foreach (var candidate in candidates)
+        {
+            if (File.Exists(Path.Combine(candidate, "aspnet", "EcomAE.AspNetCore.sln"))
+                || File.Exists(Path.Combine(candidate, "content", "general_pages", "epc_cp_ui_css.php")))
+            {
+                return candidate;
             }
         }
 
