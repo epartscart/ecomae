@@ -540,7 +540,17 @@ builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryRepor
 builder.Services.AddSingleton<IPlatformJobsSummaryReporter, PlatformJobsSummaryReporter>();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient(nameof(PhpWarehouseSearchBridge))
-    .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromSeconds(8));
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(8);
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("EcomAE-PhpWarehouseBridge/1.0");
+    })
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        // Loopback 127.0.0.1 + Host header must not follow off-box redirects to splash HTML.
+        AllowAutoRedirect = false,
+        UseCookies = false
+    });
 builder.Services.AddSingleton<PhpWarehouseSearchBridge>();
 builder.Services.AddSingleton<ISurfaceDashboardSummaryReporter, SurfaceDashboardSummaryReporter>();builder.Services.AddSingleton<IStorefrontCartChangeCountNeedDryRun, StorefrontCartChangeCountNeedDryRun>();
 builder.Services.AddSingleton<IStorefrontCartCheckForOrderDryRun, StorefrontCartCheckForOrderDryRun>();

@@ -31,6 +31,10 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("/storefront/search-app?article=", text, StringComparison.Ordinal);
         Assert.Contains("No manufacturers found for this article", text, StringComparison.Ordinal);
         Assert.Contains("warehouse offers", text, StringComparison.OrdinalIgnoreCase);
+        // PHP CHPU: header search only on brand/warehouse results (no second in-page search window).
+        Assert.Contains("_hideInPageSearch", text, StringComparison.Ordinal);
+        Assert.Contains("epc-chpu-direct-part-search", text, StringComparison.Ordinal);
+        Assert.Contains("php-chpu", text, StringComparison.Ordinal);
     }
 
     [Fact]

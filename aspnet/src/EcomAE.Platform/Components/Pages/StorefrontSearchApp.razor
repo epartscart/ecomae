@@ -29,6 +29,9 @@
         .epc-sf-search-form button {
             padding:.6rem .95rem; border:0; border-radius:.4rem; background:#dc2626; color:#fff; font-weight:700; cursor:pointer;
         }
+        /* PHP site_professional_shell: CHPU results keep header search only. */
+        .epc-chpu-direct-part-search .epc-sf-search-form,
+        .epc-chpu-direct-part-search .epc-sf-search-cta { display:none !important; }
         .epc-sf-search-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.75rem; }
         .epc-sf-search-cta a {
             display:inline-flex; padding:.45rem .75rem; border-radius:.4rem; font-weight:700; font-size:.8rem;
@@ -68,39 +71,43 @@
         @@media (max-width:900px){ .epc-sf-search-kpis{grid-template-columns:1fr;} .epc-sf-cross-refs ul{columns:1;} }
     </style>
 
-    <section class="epc-sf-search-hero">
+    <section class="epc-sf-search-hero @(_hideInPageSearch ? "epc-chpu-direct-part-search" : null)">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
         <h1>@_heroTitle</h1>
         <p>@_heroSubtitle</p>
-        <form class="epc-sf-search-form" method="get" action="@SearchFormAction">
-            @if (string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase))
-            {
-                <input type="hidden" name="mode" value="attr" />
-                <input type="search" name="q" value="@_attrQuery" placeholder="Engine, size, country, cross ref…" aria-label="Warehouse / more info search" />
-            }
-            else if (string.Equals(_mode, "vin", StringComparison.OrdinalIgnoreCase))
-            {
-                <input type="hidden" name="mode" value="vin" />
-                <input type="search" name="identString" value="@_articleInput" placeholder="Enter VIN / Frame" aria-label="VIN" maxlength="32" />
-            }
-            else if (string.Equals(_mode, "engine", StringComparison.OrdinalIgnoreCase))
-            {
-                <input type="hidden" name="mode" value="engine" />
-                <input type="search" name="engine" value="@_articleInput" placeholder="Engine code (e.g. 3L, 12R)" aria-label="Engine code" />
-            }
-            else
-            {
-                <input type="search" name="article" value="@_articleInput" placeholder="Part number / article" aria-label="Part number" required />
-                <input type="search" name="brand" value="@_brandInput" placeholder="Brand (optional)" aria-label="Brand" />
-            }
-            <button type="submit">Search</button>
-        </form>
-        <div class="epc-sf-search-cta">
-            <a href="@StorefrontSurfaceLinks.WarehouseSearch">Warehouse / more info</a>
-            <a href="@StorefrontSurfaceLinks.LaximoVin">VIN search</a>
-            <a href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
-            <a href="/">Storefront home</a>
-        </div>
+        @* PHP CHPU warehouse results: header search only — hide redundant in-page search card. *@
+        @if (!_hideInPageSearch)
+        {
+            <form class="epc-sf-search-form" method="get" action="@SearchFormAction">
+                @if (string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase))
+                {
+                    <input type="hidden" name="mode" value="attr" />
+                    <input type="search" name="q" value="@_attrQuery" placeholder="Engine, size, country, cross ref…" aria-label="Warehouse / more info search" />
+                }
+                else if (string.Equals(_mode, "vin", StringComparison.OrdinalIgnoreCase))
+                {
+                    <input type="hidden" name="mode" value="vin" />
+                    <input type="search" name="identString" value="@_articleInput" placeholder="Enter VIN / Frame" aria-label="VIN" maxlength="32" />
+                }
+                else if (string.Equals(_mode, "engine", StringComparison.OrdinalIgnoreCase))
+                {
+                    <input type="hidden" name="mode" value="engine" />
+                    <input type="search" name="engine" value="@_articleInput" placeholder="Engine code (e.g. 3L, 12R)" aria-label="Engine code" />
+                }
+                else
+                {
+                    <input type="search" name="article" value="@_articleInput" placeholder="Part number / article" aria-label="Part number" required />
+                    <input type="search" name="brand" value="@_brandInput" placeholder="Brand (optional)" aria-label="Brand" />
+                }
+                <button type="submit">Search</button>
+            </form>
+            <div class="epc-sf-search-cta">
+                <a href="@StorefrontSurfaceLinks.WarehouseSearch">Warehouse / more info</a>
+                <a href="@StorefrontSurfaceLinks.LaximoVin">VIN search</a>
+                <a href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
+                <a href="/">Storefront home</a>
+            </div>
+        }
     </section>
 
     <div class="epc-sf-search-kpis" aria-label="Search KPIs">
@@ -276,6 +283,11 @@
     private string _source = "n/a";
     private string _message = "";
 
+    /// <summary>PHP <c>$initial_position_search = 0</c> on CHPU brand/warehouse results — header search only.</summary>
+    private bool _hideInPageSearch =>
+        !string.IsNullOrWhiteSpace(_articleInput)
+        && _mode is not ("attr" or "vin" or "engine" or "car");
+
     private string SearchFormAction => _mode switch
     {
         "attr" => StorefrontSurfaceLinks.WarehouseSearch,
@@ -417,8 +429,9 @@
             _source = brandsResult.Source;
             _message = brandsResult.Message;
 
-            // PHP: single manufacturer → open prices directly.
-            if (_brands.Count == 1 && string.Equals(_source, "database", StringComparison.Ordinal))
+            // PHP: single manufacturer → open prices directly (SQL or php-chpu bridge).
+            if (_brands.Count == 1
+                && (_source is "database" or "php-chpu"))
             {
                 Navigation.NavigateTo(BrandArticleHref(_normalized, _brands[0].Brand), forceLoad: true);
             }
