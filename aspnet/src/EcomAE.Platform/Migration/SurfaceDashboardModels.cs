@@ -1396,6 +1396,27 @@ public sealed record StorefrontPartSearchResult(
     string Source,
     string Message);
 
+public sealed record StorefrontArticleBrandDigest(string Brand);
+
+public sealed record StorefrontArticleBrandsResult(
+    string Article,
+    IReadOnlyList<StorefrontArticleBrandDigest> Brands,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontCrossRefDigest(
+    string Brand,
+    string Article,
+    bool InStock);
+
+public sealed record StorefrontCrossRefsResult(
+    string Article,
+    IReadOnlyList<StorefrontCrossRefDigest> Rows,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontCartLineDigest(
     long Id,
     decimal Price,

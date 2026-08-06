@@ -179,6 +179,7 @@ public sealed class StorefrontModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.StorefrontSearch, async (
             HttpContext context,
             string? article,
+            string? brend,
             int? limit,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
@@ -190,18 +191,48 @@ public sealed class StorefrontModule : ISurfaceModule
                 return Unauthorized("Customer session required for storefront search digest.");
             }
 
-            var result = await dashboards.SearchStorefrontPartsAsync(article ?? string.Empty, limit ?? 25, cancellationToken);
+            var result = await dashboards.SearchStorefrontPartsAsync(article ?? string.Empty, brend, limit ?? 25, cancellationToken);
             return Results.Ok(new
             {
                 ok = true,
                 surface = "storefront",
                 article = result.Article,
+                brand = brend,
                 rows = result.Rows,
                 count = result.Count,
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
                 note = "Read-only warehouse offer digest (pyapi SQL parity). PHP /shop/part_search tabs/VIN/cart remain authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontSearchBrands, async (
+            HttpContext context,
+            string? article,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer)
+            {
+                return Unauthorized("Customer session required for storefront search brands digest.");
+            }
+
+            var result = await dashboards.ListStorefrontArticleBrandsAsync(article ?? string.Empty, limit ?? 100, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "storefront",
+                article = result.Article,
+                brands = result.Brands,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only article-only manufacturer picker (PHP all_brands_by_article)."
             });
         });
 

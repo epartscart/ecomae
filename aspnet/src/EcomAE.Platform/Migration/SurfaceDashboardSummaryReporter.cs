@@ -1081,7 +1081,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default)
+    public Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default)
+        => SearchStorefrontPartsAsync(article, null, limit, cancellationToken);
+
+    public async Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, string? brand, int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
         var normalized = PriceLookupRequest.NormalizeArticle(article ?? string.Empty);
@@ -1095,12 +1098,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(normalized, [], 0, "migration", "TenantRegistry DB is not configured.");
         }
 
+        var brandTrim = (brand ?? string.Empty).Trim();
+        var brandUpper = brandTrim.ToUpperInvariant();
+        var brandCompact = CompactStorefrontBrand(brandTrim);
+
         try
         {
             await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontPartSearch;
             AddParameter(command, "@article", normalized);
+            AddParameter(command, "@brand", brandUpper);
+            AddParameter(command, "@brandCompact", brandCompact);
             AddParameter(command, "@limit", safeLimit);
             var rows = new List<StorefrontPartOfferDigest>();
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -1123,6 +1132,168 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         catch (Exception ex)
         {
             return new(normalized, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontArticleBrandsResult> ListStorefrontArticleBrandsAsync(string article, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        var normalized = PriceLookupRequest.NormalizeArticle(article ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return new(string.Empty, [], 0, "empty", "Enter a part number or OE code.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(normalized, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands;
+            AddParameter(command, "@article", normalized);
+            AddParameter(command, "@limit", safeLimit);
+            var brands = new List<StorefrontArticleBrandDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = Convert.ToString(reader["brand_name"] is DBNull ? string.Empty : reader["brand_name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    continue;
+                }
+
+                brands.Add(new StorefrontArticleBrandDigest(name.Trim()));
+            }
+
+            return new(normalized, brands, brands.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(normalized, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        var normalized = PriceLookupRequest.NormalizeArticle(article ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return new(string.Empty, [], 0, "empty", "Enter a part number or OE code.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(normalized, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs;
+            AddParameter(command, "@article", normalized);
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<StorefrontCrossRefDigest>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var sourceBrand = Convert.ToString(reader["source_brand"] is DBNull ? string.Empty : reader["source_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var sourceArticle = Convert.ToString(reader["source_article"] is DBNull ? string.Empty : reader["source_article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var crossBrand = Convert.ToString(reader["cross_brand"] is DBNull ? string.Empty : reader["cross_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var crossArticle = Convert.ToString(reader["cross_article"] is DBNull ? string.Empty : reader["cross_article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var sourceNorm = PriceLookupRequest.NormalizeArticle(sourceArticle);
+                var crossNorm = PriceLookupRequest.NormalizeArticle(crossArticle);
+                string partnerBrand;
+                string partnerArticle;
+                if (sourceNorm == normalized && crossNorm != string.Empty)
+                {
+                    partnerBrand = crossBrand;
+                    partnerArticle = crossArticle;
+                }
+                else if (crossNorm == normalized && sourceNorm != string.Empty)
+                {
+                    partnerBrand = sourceBrand;
+                    partnerArticle = sourceArticle;
+                }
+                else
+                {
+                    continue;
+                }
+
+                var key = partnerBrand.Trim().ToUpperInvariant() + "|" + PriceLookupRequest.NormalizeArticle(partnerArticle);
+                if (seen.Contains(key))
+                {
+                    continue;
+                }
+
+                seen.Add(key);
+                rows.Add(new StorefrontCrossRefDigest(partnerBrand.Trim(), partnerArticle.Trim(), false));
+            }
+
+            await EnrichStorefrontCrossStockAsync(connection, rows, cancellationToken).ConfigureAwait(false);
+
+            return new(normalized, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(normalized, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    private static string CompactStorefrontBrand(string brand)
+    {
+        if (string.IsNullOrWhiteSpace(brand))
+        {
+            return string.Empty;
+        }
+
+        return brand.Trim().ToUpperInvariant()
+            .Replace(" ", string.Empty, StringComparison.Ordinal)
+            .Replace("-", string.Empty, StringComparison.Ordinal)
+            .Replace(".", string.Empty, StringComparison.Ordinal);
+    }
+
+    private static async Task EnrichStorefrontCrossStockAsync(
+        System.Data.Common.DbConnection connection,
+        List<StorefrontCrossRefDigest> rows,
+        CancellationToken cancellationToken)
+    {
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var row = rows[i];
+            if (string.IsNullOrWhiteSpace(row.Article))
+            {
+                continue;
+            }
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT IFNULL(MAX(d.`exist`), 0) AS max_exist
+                FROM `shop_docpart_prices_data` d
+                INNER JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
+                WHERE UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(d.`article`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) = @article
+                  AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
+                  AND IFNULL(d.`price`, 0) > 0
+                  AND (@brand = '' OR UPPER(TRIM(d.`manufacturer`)) = @brand
+                       OR REPLACE(REPLACE(REPLACE(UPPER(TRIM(d.`manufacturer`)), ' ', ''), '-', ''), '.', '') = @brandCompact)
+                """;
+            var articleNorm = PriceLookupRequest.NormalizeArticle(row.Article);
+            var brandUpper = row.Brand.Trim().ToUpperInvariant();
+            AddParameter(command, "@article", articleNorm);
+            AddParameter(command, "@brand", brandUpper);
+            AddParameter(command, "@brandCompact", CompactStorefrontBrand(row.Brand));
+            var maxExist = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var inStock = Convert.ToInt32(maxExist is DBNull ? 0 : maxExist, CultureInfo.InvariantCulture) > 0;
+            if (inStock)
+            {
+                rows[i] = row with { InStock = true };
+            }
         }
     }
 
