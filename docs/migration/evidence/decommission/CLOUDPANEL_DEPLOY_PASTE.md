@@ -7,14 +7,16 @@ Paste on the **production CloudPanel server** as root. Deploys latest `main` (in
 Public `https://www.epartscart.com/` is nginx → `:5100/storefront/app`. PHP sync / marker updates are **not** enough. Until the hardened script prints `RESULT=PASS`, home stays on the old binary (`action="/storefront/search-app"`).
 
 ```bash
-# Prefer branch until #882 merges; then use main URL.
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/php-parity-unified-fonts-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+# Header PHP parity (Garage cyan / red pills / Catalog of products). Prefer branch until merged:
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-php-parity-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+# After merge to main:
+# bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
 # Must show the RESULT=PASS banner. On FAIL:
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-git fetch origin cursor/php-parity-unified-fonts-7b3b && git checkout -f cursor/php-parity-unified-fonts-7b3b
+git fetch origin cursor/storefront-header-php-parity-7b3b && git checkout -f cursor/storefront-header-php-parity-7b3b
 bash scripts/cloudpanel_DIAGNOSE_STALE_HOME.sh
 # Laptop prove (expect RESULT=FRESH):
-# curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/php-parity-unified-fonts-7b3b/scripts/prove_epartscart_public_deploy.sh | bash
+# curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-php-parity-7b3b/scripts/prove_epartscart_public_deploy.sh | bash
 ```
 
 ## 0) EXECUTE NOW — tenant-shared `/cp` `/erp` `/` → ASP.NET (URL unchanged)
