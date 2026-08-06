@@ -1476,6 +1476,18 @@ public static class EcomAeRoutes
     public const string StorefrontSearch = "/storefront/search";
     /// <summary>Article-only warehouse brand picker JSON digest (PHP <c>all_brands_by_article</c>).</summary>
     public const string StorefrontSearchBrands = "/storefront/search-brands";
+    /// <summary>VIN / Laximo shell (decode remains PHP katalog-laximo).</summary>
+    public const string StorefrontVinApp = "/storefront/vin-app";
+    /// <summary>Vehicle year/make/model catalog shell (UMAPI tree from PHP widget).</summary>
+    public const string StorefrontVehicleCatalogApp = "/storefront/vehicle-catalog-app";
+    /// <summary>Customer quotes list/detail digest (submit/accept remain PHP).</summary>
+    public const string StorefrontQuotesApp = "/storefront/quotes-app";
+    /// <summary>Wishlist/bookmarks cookie shell.</summary>
+    public const string StorefrontWishlistApp = "/storefront/wishlist-app";
+    /// <summary>Compare cookie shell.</summary>
+    public const string StorefrontCompareApp = "/storefront/compare-app";
+    /// <summary>Catalogue product digest shell (writes remain PHP).</summary>
+    public const string StorefrontProductApp = "/storefront/product-app";
     /// <summary>Batch 4: authenticated cart Blazor summary (qty/checkout writes remain PHP /shop/cart).</summary>
     public const string StorefrontCartApp = "/storefront/cart-app";
     /// <summary>Storefront authenticated cart JSON digest (Blazor UI remains <see cref="StorefrontCartApp"/>).</summary>

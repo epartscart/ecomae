@@ -2546,6 +2546,62 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Customer quote list (PHP <c>my_quotes.php</c>).</summary>
+    public const string SelectStorefrontCustomerQuotes = """
+        SELECT q.`id`, IFNULL(q.`status`,'') AS status,
+               IFNULL(q.`time_created`,0) AS time_created,
+               IFNULL(q.`time_updated`,0) AS time_updated,
+               (SELECT COUNT(*) FROM `shop_quote_items` i WHERE i.`quote_id` = q.`id`) AS item_count
+        FROM `shop_quote_requests` q
+        WHERE q.`user_id` = @userId
+        ORDER BY q.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Customer quote header by id.</summary>
+    public const string SelectStorefrontCustomerQuoteHeader = """
+        SELECT `id`, IFNULL(`status`,'') AS status
+        FROM `shop_quote_requests`
+        WHERE `id` = @quoteId AND `user_id` = @userId
+        LIMIT 1
+        """;
+
+    /// <summary>Quote lines for a customer quote (product fields live in product_object_json).</summary>
+    public const string SelectStorefrontCustomerQuoteItems = """
+        SELECT `id`,
+               IFNULL(`product_object_json`,'') AS product_object_json,
+               IFNULL(`count_need`, 0) AS count_need,
+               IFNULL(`quoted_price`, 0) AS quoted_price,
+               IFNULL(`offer_alternative`, 0) AS offer_alternative,
+               IFNULL(`alt_manufacturer`,'') AS alt_manufacturer,
+               IFNULL(`alt_article`,'') AS alt_article,
+               IFNULL(`alt_name`,'') AS alt_name,
+               IFNULL(`alt_count_need`, 0) AS alt_count_need,
+               IFNULL(`alt_quoted_price`, 0) AS alt_quoted_price
+        FROM `shop_quote_items`
+        WHERE `quote_id` = @quoteId
+        ORDER BY `id` ASC
+        LIMIT 500
+        """;
+
+    /// <summary>Catalogue product card fields for wishlist/compare/product-app digests.</summary>
+    public const string SelectStorefrontProductById = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`alias`,'') AS alias,
+               IFNULL(`category_id`,0) AS category_id, IFNULL(`published`,0) AS published
+        FROM `shop_catalogue_products`
+        WHERE `id` = @productId
+        LIMIT 1
+        """;
+
+    /// <summary>Catalogue products by id list (wishlist/compare cookies).</summary>
+    public const string SelectStorefrontProductsByIds = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`alias`,'') AS alias,
+               IFNULL(`category_id`,0) AS category_id, IFNULL(`published`,0) AS published
+        FROM `shop_catalogue_products`
+        WHERE `id` IN ({IDS})
+        ORDER BY FIELD(`id`, {IDS})
+        """;
+
     /// <summary>Quote request KPIs — status stages are distinct in PHP (draft→submitted→quoted→accepted).</summary>
     public const string SelectCpQuoteRequestsStats = """
         SELECT

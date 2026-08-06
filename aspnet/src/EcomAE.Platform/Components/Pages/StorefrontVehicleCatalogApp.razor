@@ -1,0 +1,60 @@
+@page "/storefront/vehicle-catalog-app"
+@page "/en/vehicle-catalog"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>Vehicle parts catalog · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <style>
+        .epc-sf-vc-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#111827 0%,#334155 50%,#64748b 100%);
+        }
+        .epc-sf-vc-hero h1 { margin:.15rem 0 .3rem; font-size:clamp(1.3rem,3vw,1.85rem); }
+        .epc-sf-vc-hero p { margin:0; color:#e2e8f0; max-width:40rem; font-size:.9rem; line-height:1.45; }
+        .epc-sf-vc-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.8rem; }
+        .epc-sf-vc-cta a {
+            display:inline-flex; padding:.48rem .8rem; border-radius:.4rem; font-weight:700; font-size:.8rem;
+            text-decoration:none; color:#fff; background:#dc2626;
+        }
+        .epc-sf-vc-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-sf-vc-body { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.75rem .85rem 1rem; }
+        .epc-sf-vc-note { margin-top:.85rem; color:#64748b; font-size:.84rem; }
+    </style>
+
+    <section class="epc-sf-vc-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
+        <h1>Vehicle parts catalog</h1>
+        <p>Year → make → model → engine tree for vehicle-based part selection.</p>
+        <div class="epc-sf-vc-cta">
+            <a href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+            <a class="ghost" href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
+            <a class="ghost" href="@StorefrontPhpCanonical.VehicleCatalog">Open classic module</a>
+        </div>
+    </section>
+
+    <div class="epc-sf-vc-body" id="epc-vehicle-catalog" aria-label="Vehicle catalog tree">
+        @((MarkupString)_html)
+    </div>
+    <p class="epc-sf-vc-note">
+        Same widget markup as the PHP home / <code>/en/vehicle-catalog</code> page (UMAPI year/make/model tree).
+        Writes into part search remain on classic modules when required.
+    </p>
+</PhpStorefrontDesktopChrome>
+
+@code {
+    private string _html = "";
+
+    protected override void OnInitialized()
+    {
+        _html = PhpHomeWidgetHtml.VehicleCatalog();
+        if (string.IsNullOrWhiteSpace(_html))
+        {
+            _html = "<p style=\"margin:0;color:#64748b\">Vehicle catalog widget is unavailable in this environment. "
+                  + "<a href=\"" + StorefrontPhpCanonical.VehicleCatalog + "\">Open classic vehicle catalog</a>.</p>";
+        }
+    }
+}

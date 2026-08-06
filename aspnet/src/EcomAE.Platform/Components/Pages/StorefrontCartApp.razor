@@ -1,12 +1,15 @@
 @page "/storefront/cart-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Net.Http.Json
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject IHttpClientFactory HttpClients
+@inject NavigationManager Navigation
 
 <PageTitle>Cart · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -21,11 +24,11 @@
         .epc-sf-cart-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
         .epc-sf-cart-hero p { margin:0; color:#fecaca; max-width:40rem; font-size:.92rem; line-height:1.45; }
         .epc-sf-cart-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-sf-cart-cta a {
+        .epc-sf-cart-cta a, .epc-sf-cart-cta button {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#dc2626;
+            text-decoration:none; color:#fff; background:#dc2626; border:0; cursor:pointer;
         }
-        .epc-sf-cart-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-sf-cart-cta a.ghost, .epc-sf-cart-cta button.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
         .epc-sf-cart-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
         .epc-sf-cart-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
         .epc-sf-cart-kpi strong { display:block; font-size:1.35rem; font-variant-numeric:tabular-nums; }
@@ -34,23 +37,29 @@
         .epc-sf-cart-table { width:100%; border-collapse:collapse; font-size:.86rem; }
         .epc-sf-cart-table th, .epc-sf-cart-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
         .epc-sf-cart-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-sf-cart-table a { color:#b91c1c; font-weight:700; text-decoration:none; }
+        .epc-sf-cart-table a, .epc-sf-cart-table button.linkish {
+            color:#b91c1c; font-weight:700; text-decoration:none; background:none; border:0; cursor:pointer; padding:0; font-size:.82rem;
+        }
         .epc-sf-cart-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#fee2e2; color:#991b1b; }
         .epc-sf-cart-badge--ok { background:#dcfce7; color:#166534; }
         .epc-sf-cart-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
         .epc-sf-cart-gate { padding:1.25rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; }
+        .epc-sf-cart-qty { width:4.2rem; padding:.25rem .35rem; border:1px solid #cbd5e1; border-radius:.3rem; }
+        .epc-sf-cart-flash { margin-bottom:.75rem; padding:.65rem .8rem; border-radius:.45rem; font-size:.84rem; }
+        .epc-sf-cart-flash--ok { background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; }
+        .epc-sf-cart-flash--warn { background:#fffbeb; border:1px solid #fde68a; color:#92400e; }
         @@media (max-width:900px){ .epc-sf-cart-kpis{grid-template-columns:1fr;} }
     </style>
 
     <section class="epc-sf-cart-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
         <h1>Cart</h1>
-        <p>Lines in your cart ready for checkout.</p>
+        <p>Lines in your cart ready for checkout. Qty / check / delete preview here; live writes stay on the classic cart module.</p>
         <div class="epc-sf-cart-cta">
-            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/cart"))">Open module</a>
-            <a class="ghost" href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/how_get"))">Checkout</a>
+            <a href="@StorefrontPhpCanonical.Cart">Open classic cart (writes)</a>
+            <a class="ghost" href="@StorefrontSurfaceLinks.Checkout">Checkout readiness</a>
+            <a class="ghost" href="@StorefrontPhpCanonical.Checkout">PHP how to obtain</a>
             <a class="ghost" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.Login">Customer login</a>
         </div>
     </section>
 
@@ -64,10 +73,16 @@
     }
     else
     {
+        @if (!string.IsNullOrWhiteSpace(_flash))
+        {
+            <div class="epc-sf-cart-flash @(_flashOk ? "epc-sf-cart-flash--ok" : "epc-sf-cart-flash--warn")">@_flash</div>
+        }
+
         <div class="epc-sf-cart-kpis" aria-label="Cart KPIs">
             <div class="epc-sf-cart-kpi"><strong>@_summary.Count</strong><span>Lines in cart</span></div>
             <div class="epc-sf-cart-kpi"><strong>@_summary.Sum.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cart sum</span></div>
-</div>
+            <div class="epc-sf-cart-kpi"><strong>@_lines.Count(l => l.CheckedForOrder)</strong><span>Checked for order</span></div>
+        </div>
 
         <div class="epc-sf-cart-table-wrap">
             <table class="epc-sf-cart-table">
@@ -81,7 +96,7 @@
                         <th>Line</th>
                         <th>ETA</th>
                         <th>Checked</th>
-                        <th></th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,7 +113,11 @@
                                 <td><strong>@(string.IsNullOrWhiteSpace(line.Manufacturer) ? "—" : line.Manufacturer)</strong></td>
                                 <td>@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
                                 <td>@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
-                                <td>@line.CountNeed.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                                <td>
+                                    <input class="epc-sf-cart-qty" type="number" min="1" step="1"
+                                           value="@line.CountNeed.ToString("0.###", CultureInfo.InvariantCulture)"
+                                           @onchange="e => OnQtyChanged(line.Id, e)" />
+                                </td>
                                 <td>@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@lineTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(line.TimeToExe) ? "—" : line.TimeToExe)</td>
@@ -112,13 +131,25 @@
                                         <span class="epc-sf-cart-badge">No</span>
                                     }
                                 </td>
-                                <td><a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/cart"))">Open</a></td>
+                                <td>
+                                    <button class="linkish" type="button" @onclick="() => DryRunCheck(line.Id, !line.CheckedForOrder)">@(line.CheckedForOrder ? "Uncheck" : "Check")</button>
+                                    ·
+                                    <button class="linkish" type="button" @onclick="() => DryRunDelete(line.Id)">Delete</button>
+                                    ·
+                                    <a href="@StorefrontPhpCanonical.Cart">PHP</a>
+                                </td>
                             </tr>
                         }
                     }
                 </tbody>
             </table>
         </div>
+
+        <p class="epc-sf-cart-note">
+            Qty / check / delete buttons call ASP.NET dry-run endpoints (<code>confirm_writes=false</code>) and then deep-link to
+            <a href="@StorefrontPhpCanonical.Cart">@StorefrontPhpCanonical.Cart</a> for authoritative writes.
+            Checkout create remains PHP.
+        </p>
     }
 
 </PhpStorefrontDesktopChrome>
@@ -127,13 +158,18 @@
     private bool _isCustomer;
     private StorefrontCartSummary _summary = new(0, 0m, "n/a", "");
     private IReadOnlyList<StorefrontCartLineDigest> _lines = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private string _flash = "";
+    private bool _flashOk;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
+        if (ctx is null)
+        {
+            return;
+        }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
@@ -146,7 +182,45 @@
         var result = await Dashboards.ListStorefrontCartAsync(session.UserId, 100, ctx.RequestAborted);
         _summary = result.Summary;
         _lines = result.Lines;
-        _source = result.Source;
-        _message = result.Message;
+    }
+
+    private async Task OnQtyChanged(long id, ChangeEventArgs e)
+    {
+        if (!decimal.TryParse(Convert.ToString(e.Value, CultureInfo.InvariantCulture), NumberStyles.Any, CultureInfo.InvariantCulture, out var qty)
+            || qty <= 0)
+        {
+            _flash = "Enter a positive quantity.";
+            _flashOk = false;
+            return;
+        }
+
+        await PostDryRunAsync("/storefront/cart/change-count-need", new { id, count_need = qty, confirm_writes = false });
+    }
+
+    private Task DryRunCheck(long id, bool checkedForOrder)
+        => PostDryRunAsync("/storefront/cart/check-for-order", new { records = new[] { new { id, checked_for_order = checkedForOrder ? 1 : 0 } }, confirm_writes = false });
+
+    private Task DryRunDelete(long id)
+        => PostDryRunAsync("/storefront/cart/delete", new { records_to_del = new[] { id }, confirm_writes = false });
+
+    private async Task PostDryRunAsync(string path, object body)
+    {
+        try
+        {
+            var client = HttpClients.CreateClient();
+            client.BaseAddress = new Uri(Navigation.BaseUri);
+            client.Timeout = TimeSpan.FromSeconds(8);
+            using var response = await client.PostAsJsonAsync(path, body);
+            var json = await response.Content.ReadAsStringAsync();
+            _flashOk = response.IsSuccessStatusCode;
+            _flash = response.IsSuccessStatusCode
+                ? $"Dry-run OK for {path}. Apply the change on classic cart: {StorefrontPhpCanonical.Cart}"
+                : $"Dry-run refused for {path}: {(json.Length > 220 ? json[..220] + "…" : json)}";
+        }
+        catch (Exception ex)
+        {
+            _flashOk = false;
+            _flash = "Dry-run failed: " + ex.Message;
+        }
     }
 }

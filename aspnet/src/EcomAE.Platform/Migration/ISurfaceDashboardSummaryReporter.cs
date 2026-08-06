@@ -302,6 +302,19 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Batch 4: read-only authenticated customer cart (qty/checkout writes remain PHP).</summary>
     Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Customer quote requests (PHP <c>my_quotes.php</c>); submit/accept remain PHP.</summary>
+    Task<StorefrontQuoteListResult> ListStorefrontQuotesAsync(int userId, int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Customer quote detail + lines (PHP quote detail); writes remain PHP.</summary>
+    Task<StorefrontQuoteDetailDigest?> GetStorefrontQuoteAsync(int userId, int quoteId, CancellationToken cancellationToken = default);
+
+    /// <summary>Catalogue product digest for storefront product-app.</summary>
+    Task<StorefrontProductResult> GetStorefrontProductAsync(int productId, CancellationToken cancellationToken = default);
+
+    /// <summary>Catalogue products by ids (wishlist/compare cookies).</summary>
+    Task<StorefrontProductListResult> ListStorefrontProductsByIdsAsync(IReadOnlyList<int> productIds, CancellationToken cancellationToken = default);
+
     Task<CpTaxExternalReportingDigestResult> BuildCpTaxExternalReportingDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpPoApprovalsDigestResult> BuildCpPoApprovalsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpFinanceCloseDigestResult> BuildCpFinanceCloseDigestAsync(int limit, CancellationToken cancellationToken = default);

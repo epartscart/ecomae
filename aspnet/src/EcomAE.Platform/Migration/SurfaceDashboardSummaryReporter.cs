@@ -1897,6 +1897,267 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontQuoteListResult> ListStorefrontQuotesAsync(int userId, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        if (userId <= 0)
+        {
+            return new(0, [], 0, "rejected", "Valid customer user id is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCustomerQuotes;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<StorefrontQuoteDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontQuoteDigest(
+                    Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToInt64(reader["time_created"] is DBNull ? 0L : reader["time_created"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["time_updated"] is DBNull ? 0L : reader["time_updated"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["item_count"] is DBNull ? 0 : reader["item_count"], CultureInfo.InvariantCulture)));
+            }
+
+            return new(userId, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontQuoteDetailDigest?> GetStorefrontQuoteAsync(int userId, int quoteId, CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0 || quoteId <= 0)
+        {
+            return null;
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(quoteId, string.Empty, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            string status;
+            await using (var header = connection.CreateCommand())
+            {
+                header.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCustomerQuoteHeader;
+                AddParameter(header, "@quoteId", quoteId);
+                AddParameter(header, "@userId", userId);
+                await using var headerReader = await header.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (!await headerReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return null;
+                }
+
+                status = Convert.ToString(headerReader["status"] is DBNull ? string.Empty : headerReader["status"], CultureInfo.InvariantCulture) ?? string.Empty;
+            }
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCustomerQuoteItems;
+            AddParameter(command, "@quoteId", quoteId);
+            var items = new List<StorefrontQuoteItemDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var json = Convert.ToString(reader["product_object_json"] is DBNull ? string.Empty : reader["product_object_json"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var (mfr, article, name, priceFromJson) = ParseQuoteProductObject(json);
+                var useAlt = Convert.ToInt32(reader["offer_alternative"] is DBNull ? 0 : reader["offer_alternative"], CultureInfo.InvariantCulture) == 1;
+                if (useAlt)
+                {
+                    var altMfr = Convert.ToString(reader["alt_manufacturer"] is DBNull ? string.Empty : reader["alt_manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var altArticle = Convert.ToString(reader["alt_article"] is DBNull ? string.Empty : reader["alt_article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var altName = Convert.ToString(reader["alt_name"] is DBNull ? string.Empty : reader["alt_name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(altMfr) && !string.IsNullOrWhiteSpace(altArticle))
+                    {
+                        mfr = altMfr;
+                        article = altArticle;
+                        name = altName;
+                    }
+                }
+
+                var qty = useAlt
+                    ? Convert.ToDecimal(reader["alt_count_need"] is DBNull ? 0m : reader["alt_count_need"], CultureInfo.InvariantCulture)
+                    : Convert.ToDecimal(reader["count_need"] is DBNull ? 0m : reader["count_need"], CultureInfo.InvariantCulture);
+                if (qty <= 0)
+                {
+                    qty = Convert.ToDecimal(reader["count_need"] is DBNull ? 1m : reader["count_need"], CultureInfo.InvariantCulture);
+                }
+
+                var price = useAlt
+                    ? Convert.ToDecimal(reader["alt_quoted_price"] is DBNull ? 0m : reader["alt_quoted_price"], CultureInfo.InvariantCulture)
+                    : Convert.ToDecimal(reader["quoted_price"] is DBNull ? 0m : reader["quoted_price"], CultureInfo.InvariantCulture);
+                if (price <= 0 && priceFromJson > 0)
+                {
+                    price = priceFromJson;
+                }
+
+                items.Add(new StorefrontQuoteItemDigest(
+                    Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture),
+                    mfr,
+                    article,
+                    name,
+                    qty,
+                    price));
+            }
+
+            return new(quoteId, status, items, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(quoteId, string.Empty, [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontProductResult> GetStorefrontProductAsync(int productId, CancellationToken cancellationToken = default)
+    {
+        if (productId <= 0)
+        {
+            return new(null, "empty", "Product id is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontProductById;
+            AddParameter(command, "@productId", productId);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return new(null, "database", "Product not found.");
+            }
+
+            var product = ReadStorefrontProduct(reader);
+            return new(product, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontProductListResult> ListStorefrontProductsByIdsAsync(IReadOnlyList<int> productIds, CancellationToken cancellationToken = default)
+    {
+        var ids = (productIds ?? [])
+            .Where(id => id > 0)
+            .Distinct()
+            .Take(80)
+            .ToList();
+        if (ids.Count == 0)
+        {
+            return new([], 0, "empty", "No product ids.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            var placeholders = new string[ids.Count];
+            for (var i = 0; i < ids.Count; i++)
+            {
+                placeholders[i] = "@p" + i.ToString(CultureInfo.InvariantCulture);
+                AddParameter(command, placeholders[i], ids[i]);
+            }
+
+            var idList = string.Join(",", placeholders);
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontProductsByIds
+                .Replace("{IDS}", idList, StringComparison.Ordinal);
+            var rows = new List<StorefrontProductDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(ReadStorefrontProduct(reader));
+            }
+
+            return new(rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
+    private static StorefrontProductDigest ReadStorefrontProduct(DbDataReader reader)
+        => new(
+            Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture),
+            Convert.ToString(reader["caption"] is DBNull ? string.Empty : reader["caption"], CultureInfo.InvariantCulture) ?? string.Empty,
+            Convert.ToString(reader["alias"] is DBNull ? string.Empty : reader["alias"], CultureInfo.InvariantCulture) ?? string.Empty,
+            Convert.ToInt32(reader["category_id"] is DBNull ? 0 : reader["category_id"], CultureInfo.InvariantCulture),
+            string.Empty,
+            string.Empty,
+            Convert.ToInt32(reader["published"] is DBNull ? 0 : reader["published"], CultureInfo.InvariantCulture) != 0);
+
+    private static (string Manufacturer, string Article, string Name, decimal Price) ParseQuoteProductObject(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return (string.Empty, string.Empty, string.Empty, 0m);
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            string Get(string name)
+                => root.TryGetProperty(name, out var el) && el.ValueKind == System.Text.Json.JsonValueKind.String
+                    ? el.GetString() ?? string.Empty
+                    : string.Empty;
+
+            var mfr = Get("manufacturer");
+            var article = Get("article_show");
+            if (string.IsNullOrWhiteSpace(article))
+            {
+                article = Get("article");
+            }
+
+            var name = Get("name");
+            var price = 0m;
+            if (root.TryGetProperty("price", out var priceEl))
+            {
+                if (priceEl.ValueKind == System.Text.Json.JsonValueKind.Number)
+                {
+                    price = priceEl.GetDecimal();
+                }
+                else if (priceEl.ValueKind == System.Text.Json.JsonValueKind.String
+                         && decimal.TryParse(priceEl.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
+                {
+                    price = parsed;
+                }
+            }
+
+            return (mfr, article, name, price);
+        }
+        catch
+        {
+            return (string.Empty, string.Empty, string.Empty, 0m);
+        }
+    }
+
     public async Task<CpMenuListResult> ListCpMenusAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

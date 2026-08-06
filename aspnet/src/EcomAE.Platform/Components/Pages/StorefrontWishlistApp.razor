@@ -1,0 +1,129 @@
+@page "/storefront/wishlist-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using System.Text.Json
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IHttpContextAccessor Http
+
+<PageTitle>Bookmarks · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <style>
+        .epc-sf-wl-hero {
+            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
+        }
+        .epc-sf-wl-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
+        .epc-sf-wl-hero p { margin:0; color:#fecaca; max-width:40rem; font-size:.92rem; }
+        .epc-sf-wl-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-sf-wl-cta a {
+            display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#dc2626;
+        }
+        .epc-sf-wl-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-sf-wl-grid {
+            display:grid; grid-template-columns:repeat(auto-fill,minmax(14rem,1fr)); gap:.75rem;
+        }
+        .epc-sf-wl-card {
+            background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem;
+        }
+        .epc-sf-wl-card h3 { margin:0 0 .35rem; font-size:.95rem; }
+        .epc-sf-wl-card p { margin:0 0 .55rem; color:#64748b; font-size:.82rem; }
+        .epc-sf-wl-card a { color:#b91c1c; font-weight:700; text-decoration:none; font-size:.82rem; }
+        .epc-sf-wl-empty { padding:1.25rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; color:#475569; }
+        .epc-sf-wl-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
+    </style>
+
+    <section class="epc-sf-wl-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
+        <h1>Bookmarks</h1>
+        <p>Saved catalogue products from the classic wishlist cookie.</p>
+        <div class="epc-sf-wl-cta">
+            <a href="@StorefrontPhpCanonical.Wishlist">Open classic bookmarks</a>
+            <a class="ghost" href="@StorefrontSurfaceLinks.Compare">Compare</a>
+            <a class="ghost" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+        </div>
+    </section>
+
+    @if (_ids.Count == 0)
+    {
+        <div class="epc-sf-wl-empty">
+            No bookmarks yet. Add products from the classic catalogue, then return here.
+        </div>
+    }
+    else if (_products.Count == 0)
+    {
+        <div class="epc-sf-wl-empty">
+            Found @_ids.Count bookmark id(s) in cookie, but no matching catalogue products loaded (<code>@_source</code>).
+            <a href="@StorefrontPhpCanonical.Wishlist">Open classic bookmarks</a>
+        </div>
+    }
+    else
+    {
+        <div class="epc-sf-wl-grid" aria-label="Bookmarked products">
+            @foreach (var p in _products)
+            {
+                <article class="epc-sf-wl-card">
+                    <h3>@(string.IsNullOrWhiteSpace(p.Caption) ? ("Product #" + p.Id) : p.Caption)</h3>
+                    <p>
+                        @(string.IsNullOrWhiteSpace(p.Manufacturer) ? "" : p.Manufacturer + " · ")
+                        @(string.IsNullOrWhiteSpace(p.Article) ? ("#" + p.Id) : p.Article)
+                    </p>
+                    <a href="@StorefrontSurfaceLinks.ForProduct(p.Id)">View</a>
+                    ·
+                    <a href="@StorefrontPhpCanonical.Wishlist">Manage on PHP</a>
+                    ·
+                    <a href="@StorefrontSurfaceLinks.Cart">Cart</a>
+                </article>
+            }
+        </div>
+    }
+
+    <p class="epc-sf-wl-note">
+        Wishlist membership is the PHP <code>bookmarks</code> cookie (JSON product ids). Add/remove stays on the classic module.
+    </p>
+</PhpStorefrontDesktopChrome>
+
+@code {
+    private List<int> _ids = [];
+    private IReadOnlyList<StorefrontProductDigest> _products = [];
+    private string _source = "n/a";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        if (ctx.Request.Cookies.TryGetValue("bookmarks", out var raw) && !string.IsNullOrWhiteSpace(raw))
+        {
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<List<int>>(raw);
+                if (parsed is not null)
+                {
+                    _ids = parsed.Where(id => id > 0).Distinct().Take(80).ToList();
+                }
+            }
+            catch
+            {
+                _ids = [];
+            }
+        }
+
+        if (_ids.Count == 0)
+        {
+            return;
+        }
+
+        var result = await Dashboards.ListStorefrontProductsByIdsAsync(_ids, ctx.RequestAborted);
+        _products = result.Rows;
+        _source = result.Source;
+    }
+}

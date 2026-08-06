@@ -1,0 +1,149 @@
+@page "/storefront/product-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IHttpContextAccessor Http
+
+<PageTitle>@(_product?.Caption ?? "Product") · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <style>
+        .epc-sf-pd-hero {
+            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
+        }
+        .epc-sf-pd-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
+        .epc-sf-pd-hero p { margin:0; color:#fecaca; max-width:42rem; font-size:.92rem; }
+        .epc-sf-pd-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-sf-pd-cta a {
+            display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#dc2626;
+        }
+        .epc-sf-pd-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-sf-pd-grid { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:1rem; }
+        .epc-sf-pd-card { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:1rem; }
+        .epc-sf-pd-card h2 { margin:0 0 .55rem; font-size:1rem; }
+        .epc-sf-pd-meta { margin:0; padding:0; list-style:none; font-size:.9rem; color:#334155; }
+        .epc-sf-pd-meta li { margin:0 0 .35rem; }
+        .epc-sf-pd-empty { padding:1.25rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; }
+        .epc-sf-pd-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-sf-pd-grid{grid-template-columns:1fr;} }
+    </style>
+
+    @if (_product is null)
+    {
+        <section class="epc-sf-pd-hero">
+            <h1>Product</h1>
+            <p>Read-only catalogue product digest. Add <code>?id=</code> for a product row.</p>
+            <div class="epc-sf-pd-cta">
+                <a href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+                <a class="ghost" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
+            </div>
+        </section>
+        <div class="epc-sf-pd-empty">
+            @if (ProductId is null or <= 0)
+            {
+                <span>Provide a product id, e.g. <code>/storefront/product-app?id=123</code>.</span>
+            }
+            else
+            {
+                <span>Product #@ProductId not found (<code>@_source</code>). @_message</span>
+            }
+        </div>
+    }
+    else
+    {
+        <section class="epc-sf-pd-hero">
+            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
+            <h1>@_product.Caption</h1>
+            <p>
+                @(string.IsNullOrWhiteSpace(_product.Manufacturer) ? "" : _product.Manufacturer + " · ")
+                @(string.IsNullOrWhiteSpace(_product.Article) ? ("#" + _product.Id) : _product.Article)
+            </p>
+            <div class="epc-sf-pd-cta">
+                <a href="@PhpProductHref">Open classic product page</a>
+                <a class="ghost" href="@BrandArticleSearchHref">Warehouse search</a>
+                <a class="ghost" href="@StorefrontPhpCanonical.Wishlist">Bookmark on PHP</a>
+                <a class="ghost" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+            </div>
+        </section>
+
+        <div class="epc-sf-pd-grid">
+            <div class="epc-sf-pd-card">
+                <h2>Details</h2>
+                <ul class="epc-sf-pd-meta">
+                    <li><strong>Id:</strong> @_product.Id</li>
+                    <li><strong>Alias:</strong> @(string.IsNullOrWhiteSpace(_product.Alias) ? "—" : _product.Alias)</li>
+                    <li><strong>Category:</strong> @_product.CategoryId</li>
+                    <li><strong>Manufacturer:</strong> @(string.IsNullOrWhiteSpace(_product.Manufacturer) ? "—" : _product.Manufacturer)</li>
+                    <li><strong>Article:</strong> @(string.IsNullOrWhiteSpace(_product.Article) ? "—" : _product.Article)</li>
+                    <li><strong>Published:</strong> @(_product.Published ? "Yes" : "No")</li>
+                </ul>
+            </div>
+            <div class="epc-sf-pd-card">
+                <h2>Actions</h2>
+                <p style="margin:0 0 .75rem;color:#64748b;font-size:.88rem">
+                    Add to cart / bookmark / compare writes stay on PHP (session + cookies).
+                </p>
+                <div class="epc-sf-pd-cta" style="margin:0">
+                    <a href="@StorefrontPhpCanonical.Cart">Add via cart module</a>
+                    <a class="ghost" href="@StorefrontPhpCanonical.Wishlist">Bookmarks</a>
+                    <a class="ghost" href="@StorefrontPhpCanonical.Compare">Compare</a>
+                </div>
+            </div>
+        </div>
+        <p class="epc-sf-pd-note">
+            Read-only ASP.NET product digest. Full media/specs/office stock remain on the CMS product page.
+        </p>
+    }
+</PhpStorefrontDesktopChrome>
+
+@code {
+    private StorefrontProductDigest? _product;
+    private string _source = "n/a";
+    private string _message = "";
+
+    [SupplyParameterFromQuery(Name = "id")]
+    public int? ProductId { get; set; }
+
+    private string PhpProductHref =>
+        !string.IsNullOrWhiteSpace(_product?.Alias)
+            ? "/" + _product!.Alias.TrimStart('/')
+            : StorefrontPhpCanonical.PartSearch;
+
+    private string BrandArticleSearchHref
+    {
+        get
+        {
+            if (_product is null || string.IsNullOrWhiteSpace(_product.Article))
+            {
+                return StorefrontSurfaceLinks.PartSearch;
+            }
+
+            var href = "/storefront/search-app?article=" + Uri.EscapeDataString(_product.Article);
+            if (!string.IsNullOrWhiteSpace(_product.Manufacturer))
+            {
+                href += "&brand=" + Uri.EscapeDataString(_product.Manufacturer);
+            }
+
+            return href;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ProductId is null or <= 0)
+        {
+            return;
+        }
+
+        var result = await Dashboards.GetStorefrontProductAsync(ProductId.Value, Http.HttpContext?.RequestAborted ?? default);
+        _product = result.Product;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

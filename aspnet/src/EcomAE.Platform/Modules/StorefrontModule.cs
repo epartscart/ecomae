@@ -264,6 +264,70 @@ public sealed class StorefrontModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet("/storefront/quotes", async (
+            HttpContext context,
+            int? limit,
+            int? id,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for storefront quotes digest.");
+            }
+
+            if (id is > 0)
+            {
+                var detail = await dashboards.GetStorefrontQuoteAsync(session.UserId, id.Value, cancellationToken);
+                if (detail is null)
+                {
+                    return Results.NotFound(new { ok = false, message = "Quote not found for this customer." });
+                }
+
+                return Results.Ok(new
+                {
+                    ok = true,
+                    surface = "storefront",
+                    quote = detail,
+                    session = SessionPayload(session),
+                    note = "Read-only quote detail. Submit/accept remain PHP."
+                });
+            }
+
+            var list = await dashboards.ListStorefrontQuotesAsync(session.UserId, limit ?? 50, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "storefront",
+                user_id = list.UserId,
+                rows = list.Rows,
+                count = list.Count,
+                source = list.Source,
+                message = list.Message,
+                session = SessionPayload(session),
+                note = "Read-only customer shop_quote_requests digest. Submit/accept remain PHP."
+            });
+        });
+
+        endpoints.MapGet("/storefront/product", async (
+            int? id,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await dashboards.GetStorefrontProductAsync(id ?? 0, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.Product is not null,
+                surface = "storefront",
+                product = result.Product,
+                source = result.Source,
+                message = result.Message,
+                note = "Read-only catalogue product digest. Cart/bookmark/compare writes remain PHP."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.StorefrontCheckout, async (
             HttpContext context,
             int? limit,

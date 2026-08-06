@@ -32,6 +32,11 @@ public static class StorefrontPhpCanonical
     public const string Orders = LangPrefix + "/shop/orders";
     public const string Login = LangPrefix + "/users/login";
     public const string GarageLogin = LangPrefix + "/garage/login";
+    public const string Quotes = LangPrefix + "/shop/quotes";
+    public const string Wishlist = LangPrefix + "/shop/zakladki";
+    public const string Compare = LangPrefix + "/shop/sravneniya";
+    public const string Balance = LangPrefix + "/shop/balans";
+    public const string BulkUpload = LangPrefix + "/shop/bulk-upload";
 
     /// <summary>Map thin ASP.NET <c>/storefront/*</c> stubs to working PHP pages.</summary>
     public static bool TryMapStorefrontStubToPhp(string? pathAndQuery, out string phpCanonical)
@@ -72,6 +77,13 @@ public static class StorefrontPhpCanonical
             // /storefront/logout stays ASP.NET (LegacyLogoutService) — do not remap.
             "/storefront/profile-app" => Orders + query,
             "/storefront/account-summary-app" => Orders + query,
+            // Keep new wave apps on ASP.NET when PreferAspNetApps; thin-stub remap to PHP otherwise.
+            "/storefront/vin-app" => LaximoVin + query,
+            "/storefront/vehicle-catalog-app" => VehicleCatalog + query,
+            "/storefront/quotes-app" => Quotes + query,
+            "/storefront/wishlist-app" => Wishlist + query,
+            "/storefront/compare-app" => Compare + query,
+            "/storefront/product-app" => PartSearch + query,
             _ => "",
         };
 

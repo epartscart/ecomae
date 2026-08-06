@@ -81,24 +81,34 @@
                 <span class="epc-sf-co-step__n">1</span>
                 <div>
                     <h3>Review cart</h3>
-                    <p>@_summary.Count line(s). <a href="/storefront/cart-app">Open cart</a> · <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/cart"))">Checkout cart</a></p>
+                    <p>@_summary.Count line(s), @_checkedCount checked. <a href="/storefront/cart-app">ASP.NET cart</a> · <a href="@StorefrontPhpCanonical.Cart">Classic cart (writes)</a></p>
                 </div>
             </div>
             <div class="epc-sf-co-step">
                 <span class="epc-sf-co-step__n">2</span>
                 <div>
                     <h3>How to obtain</h3>
-                    <p>Choose delivery or pickup. <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/how_get"))">Select method</a></p>
+                    <p>Choose delivery or pickup on the classic checkout form (PHP-authoritative).</p>
+                    <p style="margin:.35rem 0 0"><a href="@(StorefrontPhpCanonical.Checkout + "/how_get")">Select delivery / pickup</a></p>
                 </div>
             </div>
             <div class="epc-sf-co-step">
                 <span class="epc-sf-co-step__n">3</span>
                 <div>
                     <h3>Confirm &amp; pay</h3>
-                    <p>Confirm the order and complete payment. <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/confirm"))">Confirm</a></p>
+                    <p>Create order and payment stay on PHP (<code>ajax_checkout_create</code>).</p>
+                    <p style="margin:.35rem 0 0">
+                        <a href="@(StorefrontPhpCanonical.Checkout + "/confirm")">Confirm order</a>
+                        ·
+                        <a href="@(StorefrontPhpCanonical.Checkout + "/login_offer")">Guest / login offer</a>
+                    </p>
                 </div>
             </div>
         </div>
+        <p class="epc-sf-co-note">
+            Readiness: <strong>@_readiness</strong> (<code>@_source</code>). ASP.NET dry-run
+            <code>POST /storefront/checkout/create</code> refuses live writes until cutover locks change.
+        </p>
     }
 
 </PhpStorefrontDesktopChrome>

@@ -10,8 +10,13 @@ public static class StorefrontAspNetCanonical
     public const string PartSearch = "/storefront/search-app";
     public const string NameSearch = "/storefront/search-app?mode=name";
     public const string WarehouseSearch = "/storefront/search-app?mode=attr";
-    public const string LaximoVin = "/storefront/search-app?mode=vin";
-    public const string VehicleCatalog = "/storefront/search-app?mode=car";
+    public const string LaximoVin = "/storefront/vin-app";
+    public const string VehicleCatalog = "/storefront/vehicle-catalog-app";
+    public const string Quotes = "/storefront/quotes-app";
+    public const string Wishlist = "/storefront/wishlist-app";
+    public const string Compare = "/storefront/compare-app";
+    public const string Product = "/storefront/product-app";
+    public const string Balance = "/storefront/account-summary-app";
 
     // Home carries the full PHP catalog widgets — deep-link to the matching section
     // anchor instead of the bare home URL (bare /storefront/app made every catalog
