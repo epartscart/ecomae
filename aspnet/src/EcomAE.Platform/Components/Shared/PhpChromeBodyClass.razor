@@ -6,7 +6,9 @@
 <meta name="epc-body-class" content="@BodyClass" />
 <div class="epc-body-class-bridge" data-epc-body-class="@BodyClass" hidden aria-hidden="true"></div>
 @* Inline + head script so PHP-matching body classes apply before first paint when possible. *@
+<HeadContent>
 <style>/* epc-body-class:@BodyClass */</style>
+</HeadContent>
 <script>
 (function () {
   var cls = '@BodyClass';

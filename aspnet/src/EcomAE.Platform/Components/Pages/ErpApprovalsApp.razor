@@ -12,9 +12,8 @@
 
 <PageTitle>ERP Approvals · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Approvals" BreadcrumbArea="Home" BreadcrumbTab="Approvals">
-    <style>
+<HeadContent>
+<style>
         .epc-ea-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -41,7 +40,12 @@
         .epc-ea-sev.info { background:#e0f2fe; color:#075985; }
         .epc-ea-note { margin-top:1rem; padding:.75rem .9rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:.45rem; color:#0c4a6e; font-size:.86rem; }
         @@media (max-width:700px){ .epc-ea-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Approvals" BreadcrumbArea="Home" BreadcrumbTab="Approvals">
 
     <section class="epc-ea-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

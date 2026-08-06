@@ -11,6 +11,9 @@
 <PhpSurfaceHead Surface="cp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="cp" LoginChrome="true" />
 
+@* Markers: epc-cp-login-hero, #epcCpParticles *@
+
+<HeadContent>
 <style>
     html:has(.bos-login),
     body:has(.bos-login),
@@ -34,8 +37,9 @@
         gap: .4rem;
     }
 </style>
+</HeadContent>
 
-@* Markers: epc-cp-login-hero, #epcCpParticles *@
+
 <div class="epc-login-bos bos-login @_brand.RootModifierClass epc-cp-login-hero"
      data-login-industry="@_content.IndustryCode"
      data-login-tenant="@_brand.SiteKey">

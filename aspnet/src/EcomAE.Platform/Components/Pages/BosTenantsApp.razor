@@ -10,9 +10,8 @@
 
 <PageTitle>Fleet Tenants · Super BOS · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="bos" />
-
-<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Fleet Tenants">
-    <style>
+<HeadContent>
+<style>
         .epc-bt-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#000000 0%,#0c4a6e 55%,#0ea5e9 100%);
@@ -41,7 +40,12 @@
         .epc-bt-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdfa; border:1px solid #99f6e4; border-radius:.45rem; color:#134e4a; font-size:.86rem; }
         @@media (max-width:1100px){ .epc-bt-kpis{grid-template-columns:1fr 1fr;} }
         @@media (max-width:700px){ .epc-bt-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Fleet Tenants">
 
     <section class="epc-bt-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />

@@ -13,10 +13,8 @@
 
 <PageTitle>Cart · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
-<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
-
-<PhpStorefrontDesktopChrome>
-    <style>
+<HeadContent>
+<style>
         .epc-sf-cart-hero {
             margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
@@ -49,7 +47,13 @@
         .epc-sf-cart-flash--ok { background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; }
         .epc-sf-cart-flash--warn { background:#fffbeb; border:1px solid #fde68a; color:#92400e; }
         @@media (max-width:900px){ .epc-sf-cart-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
 
     <section class="epc-sf-cart-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />

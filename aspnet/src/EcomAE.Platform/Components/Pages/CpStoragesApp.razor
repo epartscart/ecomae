@@ -11,9 +11,8 @@
 
 <PageTitle>Storages · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
+<HeadContent>
+<style>
         .epc-st-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
@@ -40,7 +39,12 @@
         .epc-st-badge--off { background:#fee2e2; color:#991b1b; }
         .epc-st-note { margin-top:1rem; padding:.75rem .9rem; background:#fafafa; border:1px solid #d4d4d8; border-radius:.45rem; color:#3f3f46; font-size:.86rem; }
         @@media (max-width:900px){ .epc-st-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <section class="epc-st-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />

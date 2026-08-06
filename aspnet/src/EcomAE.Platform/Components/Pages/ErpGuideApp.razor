@@ -11,9 +11,8 @@
 
 <PageTitle>ERP Guide · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="ERP Guide" BreadcrumbArea="Home" BreadcrumbTab="Guide">
-    <style>
+<HeadContent>
+<style>
         .epc-eg-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -48,7 +47,12 @@
         .epc-eg-detail ul { margin:.25rem 0 .5rem 1.1rem; padding:0; }
         .epc-eg-empty { color:#64748b; font-size:.9rem; }
         @@media (max-width:900px){ .epc-eg-layout{grid-template-columns:1fr;} .epc-eg-mods{max-height:240px;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="ERP Guide" BreadcrumbArea="Home" BreadcrumbTab="Guide">
 
     <section class="epc-eg-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

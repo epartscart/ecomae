@@ -12,11 +12,7 @@
 <PageTitle>Orders · OMS · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <HeadContent>
-    <link rel="stylesheet" href="/epc-static.php?f=cp/content/shop/order_process/epc_orders_cp.css" />
-</HeadContent>
-
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
+<style>
         .epc-oms-hero {
             display:grid; grid-template-columns:1.2fr auto; gap:1rem; align-items:center;
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
@@ -41,7 +37,13 @@
         .epc-oms-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
         .epc-oms-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
         @@media (max-width:900px){ .epc-oms-hero,.epc-oms-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+
+    <link rel="stylesheet" href="/epc-static.php?f=cp/content/shop/order_process/epc_orders_cp.css" />
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <section class="epc-orders-page epc-oms-hero">
         <div>

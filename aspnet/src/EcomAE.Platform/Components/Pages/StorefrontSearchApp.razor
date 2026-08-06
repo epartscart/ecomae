@@ -12,10 +12,8 @@
 
 <PageTitle>@(_brandInput.Length == 0 ? "Part search" : $"{_brandInput} {_normalized}") · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
-<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
-
-<PhpStorefrontDesktopChrome>
-    <style>
+<HeadContent>
+<style>
         .epc-sf-search-hero {
             margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
@@ -66,7 +64,13 @@
         .epc-stock-ok { color:#15803d; font-weight:700; }
         .epc-stock-out { color:#94a3b8; }
         @@media (max-width:900px){ .epc-sf-search-kpis{grid-template-columns:1fr;} .epc-sf-cross-refs ul{columns:1;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
 
     <section class="epc-sf-search-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />

@@ -9,6 +9,67 @@
   panel). Renders as the /erp home on the platform hosts only.
 *@
 
+
+<HeadContent>
+<style>
+.sep-fleet{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.sep-hero{background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);padding:32px;border-radius:16px;margin-bottom:24px;position:relative;overflow:hidden}
+.sep-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba(16,185,129,.15),transparent 40%),radial-gradient(circle at 70% 30%,rgba(139,92,246,.12),transparent 40%);pointer-events:none}
+.sep-hero::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0z' fill='none'/%3E%3Ccircle cx='20' cy='20' r='0.5' fill='white' opacity='0.1'/%3E%3C/svg%3E");animation:drift 20s linear infinite}
+@@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-40px)}}
+.sep-hero h1{color:#fff;font-size:28px;font-weight:800;margin:0 0 8px;position:relative;z-index:1}
+.sep-hero p{color:#94a3b8;font-size:14px;margin:0;position:relative;z-index:1}
+.sep-hero .bos-link{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 16px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.4);border-radius:8px;color:#f87171;font-size:12px;font-weight:600;text-decoration:none;transition:all .2s;position:relative;z-index:1}
+.sep-hero .bos-link:hover{background:rgba(220,38,38,.25);transform:translateY(-1px)}
+.sep-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.sep-stat{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;text-align:center;transition:all .2s}
+.sep-stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.05)}
+.sep-stat__val{font-size:28px;font-weight:800;color:#1d4ed8}
+@@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+.sep-stat__val{background:linear-gradient(135deg,#10b981,#3b82f6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+}
+.sep-stat__label{font-size:11px;color:#64748b;margin-top:2px}
+.sep-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid #e2e8f0;padding-bottom:0}
+.sep-tab{padding:10px 20px;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.sep-tab:hover{color:#1e293b}
+.sep-tab--active{color:#3b82f6;border-bottom-color:#3b82f6}
+.sep-panel{display:none}
+.sep-panel--active{display:block}
+.sep-erp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.sep-erp-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;transition:all .2s;animation:fadeUp .4s ease-out both}
+.sep-erp-card:hover{border-color:#10b981;box-shadow:0 4px 16px rgba(16,185,129,.1)}
+.sep-erp-card__head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sep-erp-card__icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+.sep-erp-card__title{font-size:15px;font-weight:700;color:#1e293b}
+.sep-erp-card__subtitle{font-size:11px;color:#64748b}
+.sep-erp-card__modules{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px}
+.sep-erp-card__module{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:600;background:#ecfdf5;color:#059669}
+.sep-erp-card__actions{display:flex;gap:6px;flex-wrap:wrap}
+.sep-erp-card__btn{padding:7px 14px;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;color:#fff;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.sep-erp-card__btn:hover{transform:scale(1.03);text-decoration:none}
+.sep-erp-card__btn--erp{background:#059669}
+.sep-erp-card__btn--cp{background:#7c3aed}
+.sep-erp-card__btn--bos{background:#dc2626}
+.sep-module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sep-module-card{padding:16px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;display:flex;align-items:center;gap:12px;transition:all .2s}
+.sep-module-card:hover{border-color:#3b82f6;box-shadow:0 2px 8px rgba(59,130,246,.08)}
+.sep-module-card__icon{width:36px;height:36px;border-radius:8px;background:#eff6ff;display:flex;align-items:center;justify-content:center}
+.sep-module-card__icon i{color:#3b82f6;font-size:14px}
+.sep-module-card__info{flex:1}
+.sep-module-card__name{font-size:13px;font-weight:600;color:#1e293b}
+.sep-module-card__status{font-size:11px;color:#059669}
+.sep-bos-section{padding:24px;background:linear-gradient(135deg,#fef2f2,#fee2e2);border:1px solid #fecaca;border-radius:12px;margin:24px 0}
+.sep-bos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px}
+.sep-bos-action{padding:14px;background:#fff;border:1px solid #fecaca;border-radius:8px;text-align:center;text-decoration:none;color:#1e293b;transition:all .2s;display:block}
+.sep-bos-action:hover{border-color:#dc2626;box-shadow:0 2px 8px rgba(220,38,38,.1);transform:translateY(-2px);text-decoration:none}
+.sep-bos-action i{font-size:20px;color:#dc2626;display:block;margin-bottom:6px}
+.sep-bos-action__title{font-size:12px;font-weight:600}
+.sep-bos-action__desc{font-size:10px;color:#64748b;margin-top:2px}
+@@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</HeadContent>
+
+
 <div class="sep-fleet">
     <div class="sep-hero">
         <h1><i class="fa fa-calculator"></i> Super ERP — Fleet Command Center</h1>
@@ -117,63 +178,6 @@
         </div>
     </div>
 </div>
-
-<style>
-.sep-fleet{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-.sep-hero{background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);padding:32px;border-radius:16px;margin-bottom:24px;position:relative;overflow:hidden}
-.sep-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba(16,185,129,.15),transparent 40%),radial-gradient(circle at 70% 30%,rgba(139,92,246,.12),transparent 40%);pointer-events:none}
-.sep-hero::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0z' fill='none'/%3E%3Ccircle cx='20' cy='20' r='0.5' fill='white' opacity='0.1'/%3E%3C/svg%3E");animation:drift 20s linear infinite}
-@@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-40px)}}
-.sep-hero h1{color:#fff;font-size:28px;font-weight:800;margin:0 0 8px;position:relative;z-index:1}
-.sep-hero p{color:#94a3b8;font-size:14px;margin:0;position:relative;z-index:1}
-.sep-hero .bos-link{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 16px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.4);border-radius:8px;color:#f87171;font-size:12px;font-weight:600;text-decoration:none;transition:all .2s;position:relative;z-index:1}
-.sep-hero .bos-link:hover{background:rgba(220,38,38,.25);transform:translateY(-1px)}
-.sep-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
-.sep-stat{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;text-align:center;transition:all .2s}
-.sep-stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.05)}
-.sep-stat__val{font-size:28px;font-weight:800;color:#1d4ed8}
-@@supports ((-webkit-background-clip: text) or (background-clip: text)) {
-.sep-stat__val{background:linear-gradient(135deg,#10b981,#3b82f6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
-}
-.sep-stat__label{font-size:11px;color:#64748b;margin-top:2px}
-.sep-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid #e2e8f0;padding-bottom:0}
-.sep-tab{padding:10px 20px;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
-.sep-tab:hover{color:#1e293b}
-.sep-tab--active{color:#3b82f6;border-bottom-color:#3b82f6}
-.sep-panel{display:none}
-.sep-panel--active{display:block}
-.sep-erp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
-.sep-erp-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;transition:all .2s;animation:fadeUp .4s ease-out both}
-.sep-erp-card:hover{border-color:#10b981;box-shadow:0 4px 16px rgba(16,185,129,.1)}
-.sep-erp-card__head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.sep-erp-card__icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
-.sep-erp-card__title{font-size:15px;font-weight:700;color:#1e293b}
-.sep-erp-card__subtitle{font-size:11px;color:#64748b}
-.sep-erp-card__modules{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px}
-.sep-erp-card__module{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:600;background:#ecfdf5;color:#059669}
-.sep-erp-card__actions{display:flex;gap:6px;flex-wrap:wrap}
-.sep-erp-card__btn{padding:7px 14px;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;color:#fff;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
-.sep-erp-card__btn:hover{transform:scale(1.03);text-decoration:none}
-.sep-erp-card__btn--erp{background:#059669}
-.sep-erp-card__btn--cp{background:#7c3aed}
-.sep-erp-card__btn--bos{background:#dc2626}
-.sep-module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
-.sep-module-card{padding:16px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;display:flex;align-items:center;gap:12px;transition:all .2s}
-.sep-module-card:hover{border-color:#3b82f6;box-shadow:0 2px 8px rgba(59,130,246,.08)}
-.sep-module-card__icon{width:36px;height:36px;border-radius:8px;background:#eff6ff;display:flex;align-items:center;justify-content:center}
-.sep-module-card__icon i{color:#3b82f6;font-size:14px}
-.sep-module-card__info{flex:1}
-.sep-module-card__name{font-size:13px;font-weight:600;color:#1e293b}
-.sep-module-card__status{font-size:11px;color:#059669}
-.sep-bos-section{padding:24px;background:linear-gradient(135deg,#fef2f2,#fee2e2);border:1px solid #fecaca;border-radius:12px;margin:24px 0}
-.sep-bos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px}
-.sep-bos-action{padding:14px;background:#fff;border:1px solid #fecaca;border-radius:8px;text-align:center;text-decoration:none;color:#1e293b;transition:all .2s;display:block}
-.sep-bos-action:hover{border-color:#dc2626;box-shadow:0 2px 8px rgba(220,38,38,.1);transform:translateY(-2px);text-decoration:none}
-.sep-bos-action i{font-size:20px;color:#dc2626;display:block;margin-bottom:6px}
-.sep-bos-action__title{font-size:12px;font-weight:600}
-.sep-bos-action__desc{font-size:10px;color:#64748b;margin-top:2px}
-@@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-</style>
 
 @code {
     private int _erpInstances;

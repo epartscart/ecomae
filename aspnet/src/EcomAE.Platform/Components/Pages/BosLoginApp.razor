@@ -16,6 +16,8 @@
   (Platform Operator / ERP Customer). Posts to /auth/login/admin.
   Do NOT load epc_bos_shell.js here — it hijacks #bosLoginForm to PHP /bos/?action=login.
 *@
+
+<HeadContent>
 <style>
     /* Harden dark theme even if body-class script is delayed/overridden */
     html:has(.bos-login),
@@ -40,6 +42,8 @@
         gap: .4rem;
     }
 </style>
+</HeadContent>
+
 
 <div class="epc-login-bos bos-login bos-login--bos">
     <PhpBosLoginAtmosphere ParticlesId="bosParticles"

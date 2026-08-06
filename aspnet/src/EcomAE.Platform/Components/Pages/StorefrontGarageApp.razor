@@ -10,10 +10,8 @@
 
 <PageTitle>Garage · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
-<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
-
-<PhpStorefrontDesktopChrome>
-    <style>
+<HeadContent>
+<style>
         .epc-sf-gar-hero {
             margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
@@ -41,7 +39,13 @@
         .epc-sf-gar-note { margin-top:1rem; padding:.75rem .9rem; background:#fafaf9; border:1px solid #d6d3d1; border-radius:.45rem; color:#44403c; font-size:.86rem; }
         .epc-sf-gar-gate { padding:1.25rem; background:#fff; border:1px solid #e7e5e4; border-radius:.55rem; }
         @@media (max-width:900px){ .epc-sf-gar-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
 
     <section class="epc-sf-gar-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />

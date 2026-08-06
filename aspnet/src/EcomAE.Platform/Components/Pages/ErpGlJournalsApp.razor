@@ -11,9 +11,8 @@
 
 <PageTitle>General Ledger · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="General Ledger" BreadcrumbArea="Record to Report" BreadcrumbTab="General ledger">
-    <style>
+<HeadContent>
+<style>
         .epc-gl-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -38,7 +37,12 @@
         .epc-gl-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#292524; }
         .epc-gl-note { margin-top:1rem; padding:.75rem .9rem; background:#fafaf9; border:1px solid #d6d3d1; border-radius:.45rem; color:#44403c; font-size:.86rem; }
         @@media (max-width:900px){ .epc-gl-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="General Ledger" BreadcrumbArea="Record to Report" BreadcrumbTab="General ledger">
 
     <section class="epc-gl-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
