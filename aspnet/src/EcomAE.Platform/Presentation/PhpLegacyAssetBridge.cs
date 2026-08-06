@@ -76,7 +76,10 @@ public static class PhpLegacyAssetBridge
             });
         }
 
-        // Animated logo CSS used by PhpEpartsCartAnimatedLogo (PHP injects this via enqueue).
+        // Animated logo CSS used by PhpEpartsCartAnimatedLogo.
+        // Public path is stack-neutral (/platform-assets); keep legacy alias for old HTML.
+        endpoints.MapGet("/platform-assets/eparts-animated-logo.css", () =>
+            Results.Text(PhpEpartsCartLogoAssets.Css, "text/css; charset=utf-8"));
         endpoints.MapGet("/aspnet-php-assets/eparts-animated-logo.css", () =>
             Results.Text(PhpEpartsCartLogoAssets.Css, "text/css; charset=utf-8"));
 

@@ -23,7 +23,7 @@ public sealed class BosLoginPhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/BosLoginApp.razor"));
 
         Assert.Contains("bos-body--login", text, StringComparison.Ordinal);
-        Assert.Contains("epc-asp-login-bos bos-login", text, StringComparison.Ordinal);
+        Assert.Contains("epc-login-bos bos-login", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__bg", text, StringComparison.Ordinal);
         Assert.Contains("bosParticles", text, StringComparison.Ordinal);
         Assert.Contains("Platform Operator", text, StringComparison.Ordinal);

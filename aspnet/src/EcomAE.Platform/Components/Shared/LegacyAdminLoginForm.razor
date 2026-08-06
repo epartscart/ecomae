@@ -15,11 +15,8 @@
     @if (!LoginService.IsConfigured)
     {
         <div class="epc-login-error" style="display:block;background:#fff7ed;color:#9a3412;border-color:#fdba74;margin-bottom:.85rem;">
-            Sign-in bridge is not configured on this host
-            (<code>EcomAE__SecretSuccession</code> + TenantRegistry DB).
-            Credential login will fail until CloudPanel syncs the PHP secret:
-            <code>ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES bash scripts/cloudpanel_sync_secret_succession_from_php.sh</code>.
-            Guest browse of Control is <strong>disabled</strong> — confidential tenant data requires login.
+            Sign-in is temporarily unavailable on this host. Please contact your platform administrator.
+            Guest browse is disabled — confidential data requires login.
         </div>
     }
 
@@ -63,9 +60,7 @@
     </form>
 
     <p class="epc-login-bridge-note">
-        After login you stay on ASP.NET <a class="epc-login-php" href="@ShellHref">@ShellHref</a>.
-        PHP archive only: <a class="epc-login-php" href="@PhpReferenceHref">@PhpReferenceHref</a>
-        (not a guest-browse bypass).
+        After login you continue in <a class="epc-login-shell" href="@ShellHref">@ShellLabel</a>.
     </p>
 </div>
 
@@ -125,14 +120,11 @@
         _ => "/cp"
     };
 
-    private string PhpReferenceHref =>
-        string.IsNullOrWhiteSpace(PhpLoginHref) || !PhpLoginHref.StartsWith("/php-reference/", StringComparison.OrdinalIgnoreCase)
-            ? Surface switch
-            {
-                LegacyLoginSurface.Erp => "/php-reference/erp",
-                LegacyLoginSurface.Bos => "/php-reference/bos",
-                LegacyLoginSurface.Storefront => "/php-reference/home",
-                _ => "/php-reference/cp"
-            }
-            : PhpLoginHref;
+    private string ShellLabel => Surface switch
+    {
+        LegacyLoginSurface.Erp => "ERP",
+        LegacyLoginSurface.Bos => "BOS",
+        LegacyLoginSurface.Storefront => "the storefront",
+        _ => "Control Panel"
+    };
 }

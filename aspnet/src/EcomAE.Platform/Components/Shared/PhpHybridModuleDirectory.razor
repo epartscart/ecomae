@@ -9,7 +9,7 @@
     <div class="epc-moddir-head">
         <h2>@Title</h2>
         <p>@Subtitle — <strong>@_links.Count</strong> modules.</p>
-        <p class="epc-moddir-hint">Primary links open ASP.NET modules for this surface.</p>
+        <p class="epc-moddir-hint">Open a module below to continue.</p>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(Search))
@@ -33,7 +33,7 @@
                         {
                             <i class="fa @item.Icon" aria-hidden="true"></i>
                         }
-                        <a class="epc-moddir-aspnet" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)" title="Open module">@item.Label</a>
+                        <a class="epc-moddir-link" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)" title="Open module">@item.Label</a>
                     </div>
                 }
             </div>
@@ -53,8 +53,8 @@
     .epc-moddir-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:.4rem; }
     .epc-moddir-item { display:flex; align-items:center; gap:.4rem; background:#fff; border:1px solid #e2e8f0; border-radius:.4rem; padding:.45rem .55rem; font-size:.8rem; }
     .epc-moddir-item i { color:#64748b; width:1rem; text-align:center; }
-    .epc-moddir-aspnet { flex:1; font-weight:600; color:#0f172a; text-decoration:none; }
-    .epc-moddir-aspnet:hover { text-decoration:underline; color:#1d4ed8; }
+    .epc-moddir-link { flex:1; font-weight:600; color:#0f172a; text-decoration:none; }
+    .epc-moddir-link:hover { text-decoration:underline; color:#1d4ed8; }
 </style>
 
 @code {

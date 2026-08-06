@@ -47,25 +47,23 @@
     <div class="epc-op-grid" aria-label="On-premises tracks">
         <div class="epc-op-card">
             <h3>Installer pack</h3>
-            <p><code>deploy/on-premises/*</code> — setup wizard, Docker compose, backup, health-check. Still PHP runtime until ASP.NET Core pack dual-sample.</p>
+            <p><code>deploy/on-premises/*</code> — setup wizard, Docker compose, backup, and health-check for self-hosted installs.</p>
         </div>
         <div class="epc-op-card">
             <h3>License + health APIs</h3>
-            <p><code>api/v1/licenses/activate</code> + <code>api/v1/on-premises/health</code> stay PHP. ASP.NET dry-runs: <code>/erp/on-premises/health-dry-run</code> + <code>/erp/on-premises/license-activate-dry-run</code> (writes=0).</p>
+            <p><code>api/v1/licenses/activate</code> + <code>api/v1/on-premises/health</code>. Dry-runs: <code>/erp/on-premises/health-dry-run</code> + <code>/erp/on-premises/license-activate-dry-run</code> (writes=0).</p>
         </div>
         <div class="epc-op-card">
             <h3>≠ ERP-only SaaS</h3>
-            <p><code>TenantMode.ErpOnlyTenant</code> is hosted multi-tenant ERP-only. On-premises is a separate self-hosted product — both must reach 0 PHP.</p>
+            <p>Hosted multi-tenant ERP-only is separate from self-hosted on-premises. Both product tracks stay available under the platform mandate.</p>
         </div>
     </div>
 
     <div class="epc-op-note">
-        Mandate: <code>cutoverAllowed=false</code>, <code>readyForPhpRemoval=false</code>, <code>aspNetInteractiveComplete=0</code>.
-        Never invent <code>RELEASE_OWNER_APPROVAL.md</code>. Dual-sample PHP vs ASP.NET before any exact-route promotion.
+        Platform mandate locks remain in force until release-owner approval. Use the dual-sample compare board before any exact-route promotion.
     </div>
     <p class="epc-op-mandate">
-        ASP.NET On-Premises overview scaffold — dual-sample against PHP <code>erp_tabs_on_premises.php</code>.
-        Target: 100% ASP.NET Core / 0 PHP (including on-prem installer pack).
+        On-Premises overview — compare against the archive tab before promoting installer pack routes.
     </p>
 </PhpErpDesktopChrome>
 

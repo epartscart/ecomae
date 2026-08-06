@@ -16,7 +16,7 @@ say() { printf '%s\n' "$*"; }
 
 is_aspnet_body() {
   local body="$1"
-  if grep -Eiq 'blazor\.web\.js|ecomae-php-chrome-surface|php-chrome-surface|_blazor|blazor\.server\.js|<!--Blazor|dotnet\.js|blazor-focus-on-navigate' <<<"$body"; then
+  if grep -Eiq 'blazor\.web\.js|ecomae-chrome-surface|php-chrome-surface|_blazor|blazor\.server\.js|<!--Blazor|dotnet\.js|blazor-focus-on-navigate' <<<"$body"; then
     return 0
   fi
   if grep -Eiq 'php-chrome-layout|PhpChromeLayout|data-aspnet-primary|X-EcomAE-Route-Cutover' <<<"$body"; then

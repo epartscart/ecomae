@@ -179,6 +179,13 @@ location = /storefront/search-app {
     if ($arg_mode = "name") { return 302 /en/shop/search$is_args$args; }
     return 302 /en/shop/part_search$is_args$args;
 }
+location ^~ /platform-assets/ {
+  proxy_pass http://127.0.0.1:5100;
+  proxy_http_version 1.1;
+  proxy_set_header Host $host;
+  proxy_set_header X-Forwarded-Proto $scheme;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
 location ^~ /aspnet-php-assets/ {
     proxy_pass http://127.0.0.1:5100;
     proxy_set_header Host $host;
@@ -368,7 +375,7 @@ fi
 
 for needle in \
   'epc-nero-shell' \
-  'ecomae-php-chrome-surface' \
+  'ecomae-chrome-surface' \
   'action="/en/shop/part_search"' \
   'header-call-box a { background:#ef4444' \
   'epc-garage-header-link' \
