@@ -1,0 +1,147 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@*
+  Super CP home — port of cp/content/control/epc_super_cp_dashboard.php →
+  epc_boc_render_command_center() (BOC operator console). Renders ONLY on the
+  platform hosts (www.ecomae.com / ecomae.com / cp.ecomae.com): overall fleet
+  control for all tenants — never a single tenant's shop data.
+  Uses the same .epc-boc__* classes as PHP (epc_boc_console.css).
+*@
+
+<link rel="stylesheet" href="/content/general_pages/epc_boc_console_css.php" />
+
+<div class="col-lg-12 epc-boc" data-cp-dashboard="super-command">
+    <div class="epc-boc__hero">
+        <div>
+            <div class="epc-boc__hero-brand"><span>ECOM AE</span> Business Operation System</div>
+            <h2>Platform Super CP</h2>
+            <p>Overall fleet control for all tenants. Select a tenant CP to operate epartscart, taxofinca, and others without mixing shop data into ecomae.</p>
+        </div>
+        <div class="epc-boc__hero-actions">
+            <a class="epc-boc__btn epc-boc__btn--solid" href="/bos/tenants-app"><i class="fa fa-rocket"></i> Tenants directory</a>
+            <a class="epc-boc__btn epc-boc__btn--ghost" href="/bos/fleet-health-app"><i class="fa fa-heartbeat"></i> Health checkup</a>
+            <a class="epc-boc__btn epc-boc__btn--ghost" href="/brochure/cp" target="_blank" rel="noopener"><i class="fa fa-book"></i> CP brochure</a>
+        </div>
+    </div>
+
+    <div class="epc-boc__tiles">
+        <div class="epc-boc__tile epc-boc__tile--ink">
+            <div class="epc-boc__tile-ico"><i class="fa fa-cubes"></i></div>
+            <div class="epc-boc__tile-label">Total units</div>
+            <div class="epc-boc__tile-val">@_fleet.PortalTenants.ToString("N0")</div>
+            <div class="epc-boc__tile-hint">all tenant types</div>
+            <div class="epc-boc__tile-bar" style="--boc-bar:100%"><i></i></div>
+        </div>
+        <div class="epc-boc__tile">
+            <div class="epc-boc__tile-ico"><i class="fa fa-shopping-bag"></i></div>
+            <div class="epc-boc__tile-label">Commerce</div>
+            <div class="epc-boc__tile-val">@_fleet.CommerceTenants.ToString("N0")</div>
+            <div class="epc-boc__tile-hint">storefront + ERP</div>
+            <div class="epc-boc__tile-bar" style="--boc-bar:@Bar(_fleet.CommerceTenants)%"><i></i></div>
+        </div>
+        <div class="epc-boc__tile">
+            <div class="epc-boc__tile-ico"><i class="fa fa-university"></i></div>
+            <div class="epc-boc__tile-label">ERP-only</div>
+            <div class="epc-boc__tile-val">@_fleet.ErpOnly.ToString("N0")</div>
+            <div class="epc-boc__tile-hint">finance clients</div>
+            <div class="epc-boc__tile-bar" style="--boc-bar:@Bar(_fleet.ErpOnly)%"><i></i></div>
+        </div>
+        <div class="epc-boc__tile">
+            <div class="epc-boc__tile-ico"><i class="fa fa-flask"></i></div>
+            <div class="epc-boc__tile-label">Demo</div>
+            <div class="epc-boc__tile-val">@_fleet.DemoTenants.ToString("N0")</div>
+            <div class="epc-boc__tile-hint">sandboxes</div>
+            <div class="epc-boc__tile-bar" style="--boc-bar:@Bar(_fleet.DemoTenants)%"><i></i></div>
+        </div>
+        <div class="epc-boc__tile epc-boc__tile--green">
+            <div class="epc-boc__tile-ico"><i class="fa fa-check"></i></div>
+            <div class="epc-boc__tile-label">Active</div>
+            <div class="epc-boc__tile-val">@_fleet.ActivePortalTenants.ToString("N0")</div>
+            <div class="epc-boc__tile-hint">@HealthPct()% of fleet</div>
+            <div class="epc-boc__tile-bar" style="--boc-bar:@HealthPct()%"><i></i></div>
+        </div>
+        <div class="epc-boc__tile">
+            <div class="epc-boc__tile-ico"><i class="fa fa-database"></i></div>
+            <div class="epc-boc__tile-label">Dedicated DB</div>
+            <div class="epc-boc__tile-val">@_fleet.WithDatabase.ToString("N0")</div>
+            <div class="epc-boc__tile-bar" style="--boc-bar:@Bar(_fleet.WithDatabase)%"><i></i></div>
+        </div>
+        <div class="epc-boc__tile epc-boc__tile--amber">
+            <div class="epc-boc__tile-ico"><i class="fa fa-user-secret"></i></div>
+            <div class="epc-boc__tile-label">Admin sessions</div>
+            <div class="epc-boc__tile-val">@_fleet.AdminSessions.ToString("N0")</div>
+            <div class="epc-boc__tile-bar" style="--boc-bar:@Bar(_fleet.AdminSessions)%"><i></i></div>
+        </div>
+    </div>
+
+    @* Quick actions — same default BOC shortcuts as PHP epc_shortcuts_catalog_boc *@
+    <div class="epc-boc__panel">
+        <h3 class="epc-boc__panel-title"><i class="fa fa-bolt"></i> Quick actions</h3>
+        <div class="epc-boc__grid">
+            <a class="epc-boc__card" href="/bos/tenants-app"><i class="fa fa-sitemap"></i><strong>Tenant hub</strong><span>Fleet directory &amp; onboarding</span></a>
+            <a class="epc-boc__card" href="/bos/fleet-health-app"><i class="fa fa-heartbeat"></i><strong>Health</strong><span>Fleet health &amp; readiness</span></a>
+            <a class="epc-boc__card" href="/bos/fleet-summary-app"><i class="fa fa-line-chart"></i><strong>Channels</strong><span>Commerce / ERP mix</span></a>
+            <a class="epc-boc__card" href="/bos/fleet-readiness-app"><i class="fa fa-shield"></i><strong>Governance</strong><span>Cutover &amp; readiness locks</span></a>
+            <a class="epc-boc__card" href="/bos/audit-log-app"><i class="fa fa-list-alt"></i><strong>Audit</strong><span>Operator audit trail</span></a>
+            <a class="epc-boc__card" href="/platform/industries"><i class="fa fa-industry"></i><strong>Industry</strong><span>Industry packs</span></a>
+            <a class="epc-boc__card" href="/bos/tenants-app"><i class="fa fa-rocket"></i><strong>Onboard</strong><span>Provision a client tenant</span></a>
+            <a class="epc-boc__card" href="/brochure/cp"><i class="fa fa-book"></i><strong>Brochure</strong><span>CP capability brochure</span></a>
+        </div>
+    </div>
+
+    <div class="epc-boc__panel">
+        <h3 class="epc-boc__panel-title"><i class="fa fa-info-circle"></i> Fleet source</h3>
+        <p class="epc-boc__note">@_fleet.Message (source: @_fleet.Source). Tenant shop data stays inside each tenant CP — open a tenant host to operate its store.</p>
+    </div>
+</div>
+
+<style>
+    /* Minimal fallbacks when epc_boc_console.css is unavailable (same class names). */
+    .epc-boc__hero { display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; background:linear-gradient(135deg,#0b1220,#1e293b); color:#fff; border-radius:14px; padding:20px 22px; margin:0 0 16px; }
+    .epc-boc__hero h2 { margin:.2em 0; color:#fff; }
+    .epc-boc__hero p { margin:0; color:rgba(255,255,255,.8); max-width:46rem; }
+    .epc-boc__hero-brand span { color:#38bdf8; font-weight:800; }
+    .epc-boc__hero-actions { display:flex; gap:8px; align-items:flex-start; flex-wrap:wrap; }
+    .epc-boc__btn { display:inline-flex; align-items:center; gap:6px; border-radius:10px; padding:9px 14px; font-weight:700; text-decoration:none; }
+    .epc-boc__btn--solid { background:#ef4444; color:#fff; }
+    .epc-boc__btn--ghost { background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.2); }
+    .epc-boc__tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:0 0 16px; }
+    .epc-boc__tile { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; }
+    .epc-boc__tile-label { color:#64748b; font-size:12px; font-weight:700; text-transform:uppercase; }
+    .epc-boc__tile-val { font-size:26px; font-weight:900; color:#0f172a; }
+    .epc-boc__tile-hint { color:#94a3b8; font-size:11px; }
+    .epc-boc__tile-bar { height:4px; background:#e2e8f0; border-radius:2px; margin-top:8px; overflow:hidden; }
+    .epc-boc__tile-bar i { display:block; height:100%; width:var(--boc-bar,0%); background:#ef4444; }
+    .epc-boc__tile--green .epc-boc__tile-bar i { background:#22c55e; }
+    .epc-boc__tile--amber .epc-boc__tile-bar i { background:#f59e0b; }
+    .epc-boc__panel { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; margin:0 0 14px; }
+    .epc-boc__panel-title { margin:0 0 12px; font-size:15px; }
+    .epc-boc__grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:10px; }
+    .epc-boc__card { display:block; border:1px solid #e2e8f0; border-radius:10px; padding:12px; text-decoration:none; color:#0f172a; }
+    .epc-boc__card i { color:#ef4444; display:block; margin-bottom:6px; font-size:18px; }
+    .epc-boc__card span { display:block; color:#64748b; font-size:12px; }
+    .epc-boc__note { color:#475569; margin:0; }
+</style>
+
+@code {
+    private BosFleetSummary _fleet = new(0, 0, 0, 0, 0, 0, 0, 0, "loading", "Loading fleet…");
+
+    protected override async Task OnInitializedAsync()
+    {
+        _fleet = await Dashboards.BuildBosAsync();
+    }
+
+    private int Bar(int n)
+    {
+        var total = Math.Max(1, _fleet.PortalTenants);
+        return Math.Max(4, Math.Min(100, (int)Math.Round(n * 100.0 / total)));
+    }
+
+    private int HealthPct()
+    {
+        var total = Math.Max(1, _fleet.PortalTenants);
+        return (int)Math.Round(_fleet.ActivePortalTenants * 100.0 / total);
+    }
+}

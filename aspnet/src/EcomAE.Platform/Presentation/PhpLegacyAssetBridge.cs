@@ -17,6 +17,7 @@ public static class PhpLegacyAssetBridge
         ["/content/general_pages/epc_cp_command_dashboard_css.php"] = "cp/templates/bootstrap_admin/css/epc_cp_command_dashboard.css",
         ["/content/general_pages/epc_cp_login_css.php"] = "cp/templates/bootstrap_admin/css/epc_cp_login.css",
         ["/content/general_pages/epc_cp_login_hero_css.php"] = "cp/templates/bootstrap_admin/css/epc_cp_login_hero.css",
+        ["/content/general_pages/epc_boc_console_css.php"] = "cp/templates/bootstrap_admin/css/epc_boc_console.css",
         ["/content/general_pages/epc_ecomae_hub_logo_css.php"] = "content/general_pages/epc_ecomae_hub_logo.css",
         ["/content/general_pages/epc_ecomae_platform_marketing_css.php"] = "content/general_pages/epc_ecomae_platform_marketing.css",
         ["/content/shop/finance/epc_erp_portal_css.php"] = "content/shop/finance/epc_erp_portal.css",

@@ -29,9 +29,29 @@ public sealed class RouteTenantResolver : ITenantResolver
         };
 
         var registryRecord = await _tenantRegistry.FindByHostAsync(host, cancellationToken);
-        var mode = registryRecord?.Mode ?? (PlatformHostPolicy.IsSuperCpHost(host)
-            ? TenantMode.Platform
-            : surface == TenantSurface.Erp ? TenantMode.ErpOnlyTenant : TenantMode.LiveTenant);
+
+        // SUPER-CP ISOLATION: platform hosts (www.ecomae.com / ecomae.com / cp.ecomae.com)
+        // are ALWAYS Platform mode with the platform database. PHP registers erp-only
+        // shared tenants under the www hostname in epc_portal_tenants — a live registry
+        // row must never bind the super host's CP/ERP to a TENANT database
+        // (that leaked epartscart data onto ecomae.com/cp and /erp).
+        if (PlatformHostPolicy.IsSuperCpHost(host))
+        {
+            var platformRecord = registryRecord?.Mode == TenantMode.Platform ? registryRecord : null;
+            return new TenantContext(
+                host,
+                path,
+                surface,
+                TenantMode.Platform,
+                platformRecord?.SiteKey ?? "platform",
+                platformRecord?.DatabaseName ?? PlatformSeedDatabase(),
+                platformRecord?.DbUser,
+                platformRecord?.DbPassword,
+                platformRecord?.DedicatedDb ?? false);
+        }
+
+        var mode = registryRecord?.Mode
+                   ?? (surface == TenantSurface.Erp ? TenantMode.ErpOnlyTenant : TenantMode.LiveTenant);
 
         return new TenantContext(
             host,
@@ -43,6 +63,15 @@ public sealed class RouteTenantResolver : ITenantResolver
             registryRecord?.DbUser,
             registryRecord?.DbPassword,
             registryRecord?.DedicatedDb ?? false);
+    }
+
+    private string? PlatformSeedDatabase()
+    {
+        var seed = _options.SeedTenants.FirstOrDefault(t =>
+            t.Mode == TenantMode.Platform
+            || string.Equals(t.SiteKey, "platform", StringComparison.OrdinalIgnoreCase));
+        var db = seed?.DatabaseName;
+        return string.IsNullOrWhiteSpace(db) ? "ecomae" : db.Trim();
     }
 
     private static string NormalizePath(string? path)
