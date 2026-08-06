@@ -66,6 +66,18 @@
         .epc-avail-no { color:#64748b; font-size:.75rem; }
         .epc-stock-ok { color:#15803d; font-weight:700; }
         .epc-stock-out { color:#94a3b8; }
+        .epc-part-type-caption td {
+            background:#0f172a; color:#f8fafc; font-weight:800; font-size:.78rem;
+            text-transform:uppercase; letter-spacing:.04em; padding:.65rem .7rem;
+        }
+        .epc-part-type-caption--aftermarket td { background:#334155; }
+        .epc-part-type-row--genuine { background:#f0fdf4; }
+        .epc-part-type-row--aftermarket { background:#fff; }
+        .epc-sf-poll-progress {
+            margin:.65rem 0 0; padding:.55rem .75rem; border-radius:.45rem;
+            background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:.84rem;
+        }
+        .epc-sf-poll-progress[data-done="1"] { background:#f0fdf4; border-color:#bbf7d0; color:#14532d; }
         @@media (max-width:900px){ .epc-sf-search-kpis{grid-template-columns:1fr;} .epc-sf-cross-refs ul{columns:1;} }
     
 </style>
@@ -154,6 +166,10 @@
             <h2>@_brandInput @_normalized — warehouse offers</h2>
             <a href="@ArticleOnlyHref(_articleInput)">Change manufacturer</a>
         </div>
+        <div id="epcSfPollProgress" class="epc-sf-poll-progress" hidden
+             data-article="@_normalized" data-brand="@_brandInput" aria-live="polite">
+            Polling suppliers… <span id="epcSfPollCount">0</span> of <span id="epcSfPollTotal">0</span>
+        </div>
         <div class="epc-sf-search-table-wrap">
             <table class="epc-sf-search-table" id="all_table_products">
                 <thead>
@@ -169,16 +185,16 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="epcSfOfferBody">
                     @if (string.IsNullOrWhiteSpace(_normalized))
                     {
-                        <tr><td colspan="9">Enter article and brand to load warehouse offers.</td></tr>
+                        <tr data-empty="1"><td colspan="9">Enter article and brand to load warehouse offers.</td></tr>
                     }
-                    else if (_rows.Count == 0)
+                    else if (_genuineRows.Count == 0 && _aftermarketRows.Count == 0)
                     {
-                        <tr>
+                        <tr data-empty="1">
                             <td colspan="9">
-                                No warehouse offers for <strong>@_brandInput @_normalized</strong>.
+                                No warehouse offers yet for <strong>@_brandInput @_normalized</strong> — polling suppliers…
                                 @if (!string.IsNullOrWhiteSpace(_message))
                                 {
                                     <div style="margin-top:.5rem;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:.4rem;padding:.5rem .7rem;font-size:12px;">
@@ -190,36 +206,172 @@
                     }
                     else
                     {
-                        @foreach (var row in _rows)
+                        @if (_genuineRows.Count > 0)
                         {
-                            var show = string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow;
-                            var term = string.IsNullOrWhiteSpace(row.TimeToExe) ? "—" : row.TimeToExe;
-                            var phpPart = PhpPartSearchHref(row.Manufacturer, show);
-                            <tr>
-                                <td><strong>@row.Manufacturer</strong></td>
-                                <td>@show</td>
-                                <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
-                                <td class="@(row.Exist > 0 ? "epc-stock-ok" : "epc-stock-out")">@(row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "0")</td>
-                                <td>@term</td>
-                                <td>@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td>@(string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage)</td>
-                                <td>@(string.IsNullOrWhiteSpace(row.PriceList) ? "—" : row.PriceList)</td>
-                                <td>
-                                    <a href="@phpPart" title="Classic part search (cart / supplier poll)">Cart / poll</a>
-                                    ·
-                                    <a href="@StorefrontPhpCanonical.Quotes" title="Add to quote on classic module">Quote</a>
-                                </td>
-                            </tr>
+                            <tr class="epc-part-type-caption" data-section="genuine"><td colspan="9">Genuine (OE) (@_genuineRows.Count)</td></tr>
+                            @foreach (var row in _genuineRows)
+                            {
+                                @OfferRow(row, "genuine")
+                            }
+                        }
+                        @if (_aftermarketRows.Count > 0)
+                        {
+                            <tr class="epc-part-type-caption epc-part-type-caption--aftermarket" data-section="aftermarket"><td colspan="9">Aftermarket (@_aftermarketRows.Count)</td></tr>
+                            @foreach (var row in _aftermarketRows)
+                            {
+                                @OfferRow(row, "aftermarket")
+                            }
                         }
                     }
                 </tbody>
             </table>
         </div>
         <p class="epc-sf-search-note">
-            Results mirror PHP warehouse price lists for the selected brand + article.
-            <strong>Actions</strong> deep-link to classic part_search / quotes for cart, quote, and live supplier poll
-            (<code>ajax_getProductsOfBunch</code> remains PHP-authoritative).
+            Warehouse rows load first; progressive supplier poll merges live <code>ajax_getProductsOfBunch</code>
+            results into Genuine (OE) / Aftermarket sections. Cart / quote writes stay on classic PHP modules.
         </p>
+        @if (!_showBrandPicker && !string.IsNullOrWhiteSpace(_normalized) && !string.IsNullOrWhiteSpace(_brandInput))
+        {
+            <script>
+(function () {
+  var article = @JsonArticle;
+  var brand = @JsonBrand;
+  var genuine = @JsonGenuine;
+  if (!article || !brand) return;
+  var progress = document.getElementById('epcSfPollProgress');
+  var countEl = document.getElementById('epcSfPollCount');
+  var totalEl = document.getElementById('epcSfPollTotal');
+  var body = document.getElementById('epcSfOfferBody');
+  if (!body) return;
+  var seen = Object.create(null);
+  body.querySelectorAll('tr[data-offer-key]').forEach(function (tr) {
+    seen[tr.getAttribute('data-offer-key')] = 1;
+  });
+  function normBrand(b) {
+    return String(b || '').trim().toUpperCase();
+  }
+  function isGenuine(b) {
+    return !!genuine[normBrand(b)];
+  }
+  function offerKey(p) {
+    return [normBrand(p.manufacturer), String(p.article || ''), String(p.storage || ''), String(p.price || '')].join('|');
+  }
+  function ensureSection(kind) {
+    var sel = 'tr.epc-part-type-caption[data-section="' + kind + '"]';
+    var cap = body.querySelector(sel);
+    if (cap) return cap;
+    cap = document.createElement('tr');
+    cap.className = 'epc-part-type-caption' + (kind === 'aftermarket' ? ' epc-part-type-caption--aftermarket' : '');
+    cap.setAttribute('data-section', kind);
+    var td = document.createElement('td');
+    td.colSpan = 9;
+    td.textContent = (kind === 'genuine' ? 'Genuine (OE)' : 'Aftermarket') + ' (0)';
+    cap.appendChild(td);
+    if (kind === 'genuine') {
+      body.insertBefore(cap, body.firstChild);
+    } else {
+      body.appendChild(cap);
+    }
+    return cap;
+  }
+  function bumpCaption(kind) {
+    var cap = body.querySelector('tr.epc-part-type-caption[data-section="' + kind + '"]');
+    if (!cap) return;
+    var n = body.querySelectorAll('tr.epc-part-type-row--' + kind).length;
+    cap.firstChild.textContent = (kind === 'genuine' ? 'Genuine (OE)' : 'Aftermarket') + ' (' + n + ')';
+  }
+  function appendProduct(p) {
+    var key = offerKey(p);
+    if (seen[key]) return;
+    seen[key] = 1;
+    var empty = body.querySelector('tr[data-empty="1"]');
+    if (empty) empty.remove();
+    var kind = isGenuine(p.manufacturer) ? 'genuine' : 'aftermarket';
+    var cap = ensureSection(kind);
+    var tr = document.createElement('tr');
+    tr.className = 'epc-part-type-row--' + kind;
+    tr.setAttribute('data-offer-key', key);
+    var show = p.articleShow || p.article || '';
+    var php = '/en/shop/part_search?article=' + encodeURIComponent(show) + '&brend=' + encodeURIComponent(p.manufacturer || '');
+    var exist = Number(p.exist || 0);
+    tr.innerHTML =
+      '<td><strong>' + esc(p.manufacturer || '') + '</strong></td>' +
+      '<td>' + esc(show) + '</td>' +
+      '<td>' + esc(p.name || '—') + '</td>' +
+      '<td class="' + (exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + exist + '</td>' +
+      '<td>' + esc(p.timeToExe || p.time_to_exe || '—') + '</td>' +
+      '<td>' + Number(p.price || 0).toFixed(2) + '</td>' +
+      '<td>' + esc(p.storage || '—') + '</td>' +
+      '<td>' + esc(p.priceList || p.price_list || '—') + '</td>' +
+      '<td><a href="' + php + '">Cart / poll</a> · <a href="/en/shop/quotes">Quote</a></td>';
+    var insertBefore = null;
+    var rows = body.querySelectorAll('tr.epc-part-type-row--' + kind);
+    if (rows.length) {
+      insertBefore = rows[rows.length - 1].nextSibling;
+      body.insertBefore(tr, insertBefore);
+    } else {
+      body.insertBefore(tr, cap.nextSibling);
+    }
+    bumpCaption(kind);
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+    });
+  }
+  function buildQuery(bunch) {
+    var q = {
+      article: article,
+      searsch_str: article,
+      manufacturer: brand,
+      manufacturers: [],
+      analogs: []
+    };
+    if (Number(bunch.protocolVersion || bunch.protocol_version || 0) === 3) {
+      q.office_storage_bunches = (bunch.nestedBunches || bunch.nested_bunches || []).map(function (n) {
+        return { office_id: n.officeId || n.office_id || 0, storage_id: n.storageId || n.storage_id || 0 };
+      });
+    }
+    return JSON.stringify(q);
+  }
+  function pollOne(bunch) {
+    var fd = new FormData();
+    fd.append('article', article);
+    fd.append('brand', brand);
+    fd.append('office_id', String(bunch.officeId != null ? bunch.officeId : bunch.office_id || 0));
+    fd.append('storage_id', String(bunch.storageId != null ? bunch.storageId : bunch.storage_id || 0));
+    fd.append('query', buildQuery(bunch));
+    return fetch('/storefront/products-of-bunch', { method: 'POST', body: fd, credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var products = (data && data.products) || [];
+        products.forEach(appendProduct);
+      })
+      .catch(function () { /* keep warehouse rows */ });
+  }
+  fetch('/storefront/search-bunches?article=' + encodeURIComponent(article) + '&brand=' + encodeURIComponent(brand), { credentials: 'same-origin' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var bunches = (data && data.bunches) || [];
+      if (!bunches.length) return;
+      if (progress) { progress.hidden = false; }
+      if (totalEl) totalEl.textContent = String(bunches.length);
+      var done = 0;
+      var chain = Promise.resolve();
+      bunches.forEach(function (bunch) {
+        chain = chain.then(function () {
+          return pollOne(bunch).finally(function () {
+            done += 1;
+            if (countEl) countEl.textContent = String(done);
+            if (done >= bunches.length && progress) progress.setAttribute('data-done', '1');
+          });
+        });
+      });
+    })
+    .catch(function () { /* bunches optional */ });
+})();
+            </script>
+        }
     }
 
     @if (!string.IsNullOrWhiteSpace(_brandInput) && (_crossRefs.Count > 0 || !_showBrandPicker))
@@ -282,10 +434,26 @@
     private bool _showBrandPicker;
     private IReadOnlyList<StorefrontArticleBrandDigest> _brands = [];
     private IReadOnlyList<StorefrontPartOfferDigest> _rows = [];
+    private IReadOnlyList<StorefrontPartOfferDigest> _genuineRows = [];
+    private IReadOnlyList<StorefrontPartOfferDigest> _aftermarketRows = [];
+    private HashSet<string> _genuineKeys = new(StringComparer.OrdinalIgnoreCase);
     private IReadOnlyList<StorefrontCrossRefDigest> _crossRefs = [];
     private IReadOnlyList<StorefrontCrossRefDigest> _crossStockRefs = [];
     private string _source = "n/a";
     private string _message = "";
+
+    private Microsoft.AspNetCore.Components.MarkupString JsonArticle =>
+        (Microsoft.AspNetCore.Components.MarkupString)System.Text.Json.JsonSerializer.Serialize(_normalized);
+    private Microsoft.AspNetCore.Components.MarkupString JsonBrand =>
+        (Microsoft.AspNetCore.Components.MarkupString)System.Text.Json.JsonSerializer.Serialize(_brandInput);
+    private Microsoft.AspNetCore.Components.MarkupString JsonGenuine
+    {
+        get
+        {
+            var map = _genuineKeys.ToDictionary(k => k, _ => true, StringComparer.OrdinalIgnoreCase);
+            return (Microsoft.AspNetCore.Components.MarkupString)System.Text.Json.JsonSerializer.Serialize(map);
+        }
+    }
 
     /// <summary>PHP <c>$initial_position_search = 0</c> on CHPU brand/warehouse results — header search only.</summary>
     private bool _hideInPageSearch =>
@@ -443,17 +611,78 @@
             return;
         }
 
+        var genuine = await Dashboards.ListStorefrontGenuineBrandsAsync();
+        _genuineKeys = new HashSet<string>(genuine.Brands, StringComparer.OrdinalIgnoreCase);
+
         var result = await Dashboards.SearchStorefrontPartsAsync(_articleInput, _brandInput, 100);
         _normalized = result.Article;
         _rows = result.Rows;
         _source = result.Source;
         _message = result.Message;
         _showBrandPicker = false;
+        SplitOfferRows(_rows);
 
         var crossResult = await Dashboards.ListStorefrontCrossRefsAsync(_articleInput, _brandInput, 80);
         _crossRefs = crossResult.Rows;
         _crossStockRefs = crossResult.Rows.Where(static r => r.InStock).ToList();
     }
+
+    private void SplitOfferRows(IReadOnlyList<StorefrontPartOfferDigest> rows)
+    {
+        var genuine = new List<StorefrontPartOfferDigest>();
+        var aftermarket = new List<StorefrontPartOfferDigest>();
+        foreach (var row in rows)
+        {
+            if (IsGenuineManufacturer(row.Manufacturer))
+            {
+                genuine.Add(row);
+            }
+            else
+            {
+                aftermarket.Add(row);
+            }
+        }
+
+        _genuineRows = genuine;
+        _aftermarketRows = aftermarket;
+    }
+
+    private bool IsGenuineManufacturer(string? brand)
+    {
+        if (string.IsNullOrWhiteSpace(brand) || _genuineKeys.Count == 0)
+        {
+            return false;
+        }
+
+        return _genuineKeys.Contains(brand.Trim().ToUpperInvariant());
+    }
+
+    private RenderFragment OfferRow(StorefrontPartOfferDigest row, string kind) => __builder =>
+    {
+        var show = string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow;
+        var term = string.IsNullOrWhiteSpace(row.TimeToExe) ? "—" : row.TimeToExe;
+        var phpPart = PhpPartSearchHref(row.Manufacturer, show);
+        var key = string.Join('|',
+            (row.Manufacturer ?? "").Trim().ToUpperInvariant(),
+            row.Article ?? "",
+            row.Storage ?? "",
+            row.Price.ToString(CultureInfo.InvariantCulture));
+        <tr class="@($"epc-part-type-row--{kind}")" data-offer-key="@key">
+            <td><strong>@row.Manufacturer</strong></td>
+            <td>@show</td>
+            <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+            <td class="@(row.Exist > 0 ? "epc-stock-ok" : "epc-stock-out")">@(row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "0")</td>
+            <td>@term</td>
+            <td>@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+            <td>@(string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage)</td>
+            <td>@(string.IsNullOrWhiteSpace(row.PriceList) ? "—" : row.PriceList)</td>
+            <td>
+                <a href="@phpPart" title="Classic part search (cart)">Cart</a>
+                ·
+                <a href="@StorefrontPhpCanonical.Quotes" title="Add to quote on classic module">Quote</a>
+            </td>
+        </tr>
+    };
 
     private static string BrandArticleHref(string article, string? brand)
     {

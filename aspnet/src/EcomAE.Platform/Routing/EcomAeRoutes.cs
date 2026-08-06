@@ -1498,6 +1498,16 @@ public static class EcomAeRoutes
     public const string StorefrontSearch = "/storefront/search";
     /// <summary>Article-only warehouse brand picker JSON digest (PHP <c>all_brands_by_article</c>).</summary>
     public const string StorefrontSearchBrands = "/storefront/search-brands";
+    /// <summary>Genuine OE brand keys (PHP <c>epc_genuine_build_frontend_index</c>).</summary>
+    public const string StorefrontGenuineBrands = "/storefront/genuine-brands";
+    /// <summary>Office/storage bunches for progressive supplier poll.</summary>
+    public const string StorefrontSearchBunches = "/storefront/search-bunches";
+    /// <summary>Progressive supplier poll proxy (PHP <c>ajax_getProductsOfBunch</c>).</summary>
+    public const string StorefrontProductsOfBunch = "/storefront/products-of-bunch";
+    /// <summary>Excel bulk-upload shell (process writes remain PHP ajax_process).</summary>
+    public const string StorefrontBulkUploadApp = "/storefront/bulk-upload-app";
+    /// <summary>Customer bulk-upload history digest.</summary>
+    public const string StorefrontBulkUploadHistory = "/storefront/bulk-upload/history";
     /// <summary>VIN / Laximo shell (decode remains PHP katalog-laximo).</summary>
     public const string StorefrontVinApp = "/storefront/vin-app";
     /// <summary>Vehicle year/make/model catalog shell (UMAPI tree from PHP widget).</summary>

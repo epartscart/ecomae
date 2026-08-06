@@ -1,0 +1,178 @@
+@page "/storefront/bulk-upload-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Excel bulk upload · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<HeadContent>
+<style>
+    .epc-sf-bu-hero {
+        margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+        background:linear-gradient(135deg,#111827 0%,#1d4ed8 45%,#2563eb 100%);
+    }
+    .epc-sf-bu-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
+    .epc-sf-bu-hero p { margin:0; color:#dbeafe; max-width:44rem; font-size:.92rem; line-height:1.45; }
+    .epc-sf-bu-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+    .epc-sf-bu-cta a, .epc-sf-bu-cta button {
+        display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+        text-decoration:none; color:#1e3a8a; background:#bfdbfe; border:0; cursor:pointer;
+    }
+    .epc-sf-bu-cta a.ghost, .epc-sf-bu-cta button.ghost {
+        background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff;
+    }
+    .epc-sf-bu-steps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.55rem; margin:1rem 0; }
+    .epc-sf-bu-step { background:#fff; border:1px solid #e2e8f0; border-radius:.5rem; padding:.7rem .8rem; font-size:.82rem; color:#334155; }
+    .epc-sf-bu-step strong { display:block; color:#0f172a; margin-bottom:.2rem; }
+    .epc-sf-bu-panel { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:1rem; margin-bottom:1rem; }
+    .epc-sf-bu-panel h2 { margin:0 0 .65rem; font-size:1.05rem; }
+    .epc-sf-bu-form { display:grid; gap:.75rem; max-width:36rem; }
+    .epc-sf-bu-form label { display:grid; gap:.3rem; font-size:.84rem; font-weight:700; color:#334155; }
+    .epc-sf-bu-form input, .epc-sf-bu-form select {
+        padding:.55rem .65rem; border:1px solid #cbd5e1; border-radius:.4rem; font-size:.9rem; font-weight:500;
+    }
+    .epc-sf-bu-table-wrap { overflow:auto; }
+    .epc-sf-bu-table { width:100%; border-collapse:collapse; font-size:.84rem; }
+    .epc-sf-bu-table th, .epc-sf-bu-table td { padding:.5rem .65rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+    .epc-sf-bu-table th { background:#f8fafc; color:#475569; font-size:.72rem; text-transform:uppercase; }
+    .epc-sf-bu-gate { padding:1.1rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; }
+    .epc-sf-bu-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
+    .epc-sf-bu-frame { width:100%; min-height:70vh; border:1px solid #e2e8f0; border-radius:.55rem; background:#fff; }
+    @@media (max-width:900px){ .epc-sf-bu-steps{grid-template-columns:1fr 1fr;} }
+</style>
+</HeadContent>
+
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <section class="epc-sf-bu-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
+        <h1>Excel bulk upload</h1>
+        <p>
+            Upload a parts list, fetch crosses, and review availability — same four-step flow as PHP
+            <code>content/shop/bulk_upload</code>. Process / cross / cart writes stay on classic ajax_process.
+        </p>
+        <div class="epc-sf-bu-cta">
+            <a href="@ClassicBulkHref">Open classic upload module</a>
+            <a class="ghost" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+            <a class="ghost" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+        </div>
+    </section>
+
+    <div class="epc-sf-bu-steps" aria-label="Bulk upload steps">
+        <div class="epc-sf-bu-step"><strong>1. Upload</strong>Excel / CSV parts list</div>
+        <div class="epc-sf-bu-step"><strong>2. Process</strong>Match warehouse offers</div>
+        <div class="epc-sf-bu-step"><strong>3. Cross</strong>Fetch interchange numbers</div>
+        <div class="epc-sf-bu-step"><strong>4. Cart</strong>Add selected lines</div>
+    </div>
+
+    @if (!_signedIn)
+    {
+        <div class="epc-sf-bu-gate">
+            <p style="margin:0 0 .75rem">Sign in to upload a parts list and view your bulk-upload history.</p>
+            <div class="epc-sf-bu-cta" style="margin:0">
+                <a href="@StorefrontSurfaceLinks.Login">Customer login</a>
+                <a class="ghost" href="@ClassicBulkHref">Classic module</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="epc-sf-bu-panel">
+            <h2>Upload workspace</h2>
+            <p style="margin:0 0 .75rem;color:#64748b;font-size:.88rem">
+                The live process form posts to PHP <code>/content/shop/bulk_upload/ajax_process.php</code>
+                (multipart + CSRF). Use the embedded classic module or open it full-page.
+            </p>
+            <iframe class="epc-sf-bu-frame"
+                    title="Classic Excel bulk upload"
+                    src="@ClassicBulkHref"
+                    loading="lazy"></iframe>
+        </div>
+
+        <div class="epc-sf-bu-panel">
+            <h2>Recent uploads</h2>
+            <div class="epc-sf-bu-table-wrap">
+                <table class="epc-sf-bu-table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>File</th>
+                            <th>Priority</th>
+                            <th>Uploaded</th>
+                            <th>Available</th>
+                            <th>Cross</th>
+                            <th>Short</th>
+                            <th>Not found</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_history.Count == 0)
+                        {
+                            <tr><td colspan="9">No bulk-upload history yet (<code>@_source</code>). @_message</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _history)
+                            {
+                                <tr>
+                                    <td>@row.Id</td>
+                                    <td>@row.FileName</td>
+                                    <td>@row.Priority</td>
+                                    <td>@row.UploadedCount.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@row.AvailableCount.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@row.CrossCount.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@row.ShortCount.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@row.NotFoundCount.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@row.CreatedAt</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <p class="epc-sf-bu-note">
+        ASP.NET shell + history digest. Upload / cross / cart / CSV download remain PHP-authoritative
+        (<code>POST /storefront/bulk-upload/process</code> is dry-run only).
+    </p>
+</PhpStorefrontDesktopChrome>
+
+@code {
+    /// <summary>PHP reference path avoids Blazor route recursion on PreferAspNetApps hosts.</summary>
+    private static string ClassicBulkHref => "/php-reference" + StorefrontPhpCanonical.BulkUpload;
+
+    private bool _signedIn;
+    private IReadOnlyList<StorefrontBulkUploadHistoryDigest> _history = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _signedIn = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
+        if (!_signedIn)
+        {
+            return;
+        }
+
+        var result = await Dashboards.ListStorefrontBulkUploadHistoryAsync(session.UserId, 10, ctx.RequestAborted);
+        _history = result.Rows;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

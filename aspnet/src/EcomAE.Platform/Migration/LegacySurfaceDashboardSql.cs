@@ -2777,20 +2777,112 @@ public static class LegacySurfaceDashboardSql
 
     /// <summary>Catalogue product card fields for wishlist/compare/product-app digests.</summary>
     public const string SelectStorefrontProductById = """
-        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`alias`,'') AS alias,
-               IFNULL(`category_id`,0) AS category_id, IFNULL(`published`,0) AS published
-        FROM `shop_catalogue_products`
-        WHERE `id` = @productId
+        SELECT p.`id`, IFNULL(p.`caption`,'') AS caption, IFNULL(p.`alias`,'') AS alias,
+               IFNULL(p.`category_id`,0) AS category_id, IFNULL(p.`published`,0) AS published,
+               IFNULL(sku.`brand`,'') AS manufacturer, IFNULL(sku.`article`,'') AS article,
+               IFNULL(sku.`title`,'') AS description, IFNULL(sku.`id`,0) AS sku_profile_id
+        FROM `shop_catalogue_products` p
+        LEFT JOIN `epc_sku_profiles` sku
+          ON sku.`product_id` = p.`id`
+         AND IFNULL(sku.`status`,'') NOT IN ('hidden','draft')
+        WHERE p.`id` = @productId
+        ORDER BY sku.`id` DESC
         LIMIT 1
         """;
 
     /// <summary>Catalogue products by id list (wishlist/compare cookies).</summary>
     public const string SelectStorefrontProductsByIds = """
-        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`alias`,'') AS alias,
-               IFNULL(`category_id`,0) AS category_id, IFNULL(`published`,0) AS published
-        FROM `shop_catalogue_products`
-        WHERE `id` IN ({IDS})
-        ORDER BY FIELD(`id`, {IDS})
+        SELECT p.`id`, IFNULL(p.`caption`,'') AS caption, IFNULL(p.`alias`,'') AS alias,
+               IFNULL(p.`category_id`,0) AS category_id, IFNULL(p.`published`,0) AS published,
+               IFNULL(sku.`brand`,'') AS manufacturer, IFNULL(sku.`article`,'') AS article,
+               IFNULL(sku.`title`,'') AS description, IFNULL(sku.`id`,0) AS sku_profile_id
+        FROM `shop_catalogue_products` p
+        LEFT JOIN `epc_sku_profiles` sku
+          ON sku.`id` = (
+              SELECT s2.`id` FROM `epc_sku_profiles` s2
+              WHERE s2.`product_id` = p.`id`
+                AND IFNULL(s2.`status`,'') NOT IN ('hidden','draft')
+              ORDER BY s2.`id` DESC LIMIT 1
+          )
+        WHERE p.`id` IN ({IDS})
+        ORDER BY FIELD(p.`id`, {IDS})
+        """;
+
+    /// <summary>Legacy catalogue gallery (PHP printProduct_Info shop_products_images).</summary>
+    public const string SelectStorefrontProductImages = """
+        SELECT `id`, IFNULL(`file_name`,'') AS file_name
+        FROM `shop_products_images`
+        WHERE `product_id` = @productId
+        ORDER BY `id` ASC
+        LIMIT 40
+        """;
+
+    /// <summary>SKU media gallery (PHP epc_sku_photos).</summary>
+    public const string SelectStorefrontSkuPhotos = """
+        SELECT `id`, IFNULL(`file_name`,'') AS file_name, IFNULL(`alt`,'') AS alt,
+               IFNULL(`caption`,'') AS caption, IFNULL(`is_primary`,0) AS is_primary
+        FROM `epc_sku_photos`
+        WHERE `profile_id` = @profileId
+        ORDER BY `is_primary` DESC, `sort_order` ASC, `id` ASC
+        LIMIT 40
+        """;
+
+    /// <summary>SKU specification rows (PHP epc_sku_spec_rows + groups).</summary>
+    public const string SelectStorefrontSkuSpecs = """
+        SELECT IFNULL(g.`name`,'Specifications') AS group_name,
+               IFNULL(r.`label`,'') AS label,
+               IFNULL(r.`value`,'') AS value,
+               IFNULL(r.`unit`,'') AS unit,
+               IFNULL(r.`value_type`,'text') AS value_type
+        FROM `epc_sku_spec_rows` r
+        LEFT JOIN `epc_sku_spec_groups` g ON g.`id` = r.`group_id`
+        WHERE r.`profile_id` = @profileId
+        ORDER BY IFNULL(g.`sort_order`,0) ASC, r.`sort_order` ASC, r.`id` ASC
+        LIMIT 200
+        """;
+
+    /// <summary>Genuine OE manufacturer keys from UMAPI passenger/commercial/motorbike sections.</summary>
+    public const string SelectStorefrontGenuineManufacturerNames = """
+        SELECT DISTINCT IFNULL(`name`,'') AS name
+        FROM `epc_umapi_manufacturers`
+        WHERE `section` IN ('passenger','commercial','motorbike')
+          AND IFNULL(`name`,'') <> ''
+        LIMIT 5000
+        """;
+
+    /// <summary>Manufacturer synonym expansions for genuine brand matching.</summary>
+    public const string SelectStorefrontManufacturerSynonyms = """
+        SELECT IFNULL(m.`name`,'') AS name, IFNULL(s.`synonym`,'') AS synonym
+        FROM `shop_docpart_manufacturers` m
+        INNER JOIN `shop_docpart_manufacturers_synonyms` s ON s.`manufacturer_id` = m.`id`
+        WHERE IFNULL(m.`name`,'') <> '' AND IFNULL(s.`synonym`,'') <> ''
+        LIMIT 20000
+        """;
+
+    /// <summary>Office↔storage bunches for progressive supplier poll (PHP office_storage_bunches).</summary>
+    public const string SelectStorefrontOfficeStorageBunches = """
+        SELECT DISTINCT m.`office_id`, m.`storage_id`,
+               IFNULL(t.`handler_folder`,'') AS handler_folder
+        FROM `shop_offices_storages_map` m
+        INNER JOIN `shop_storages` s ON s.`id` = m.`storage_id`
+        LEFT JOIN `shop_storages_interfaces_types` t ON t.`id` = s.`interface_type`
+        WHERE IFNULL(s.`hidden`,0) = 0
+          AND IFNULL(s.`interface_type`,0) > 1
+        ORDER BY m.`office_id` ASC, m.`storage_id` ASC
+        LIMIT 500
+        """;
+
+    /// <summary>Customer bulk-upload history (PHP epc_bulk_upload_history).</summary>
+    public const string SelectStorefrontBulkUploadHistory = """
+        SELECT `id`, IFNULL(`file_name`,'') AS file_name, IFNULL(`priority`,'') AS priority,
+               IFNULL(`uploaded_count`,0) AS uploaded_count, IFNULL(`available_count`,0) AS available_count,
+               IFNULL(`cross_count`,0) AS cross_count, IFNULL(`short_count`,0) AS short_count,
+               IFNULL(`notfound_count`,0) AS notfound_count,
+               IFNULL(`created_at`,'') AS created_at, IFNULL(`updated_at`,'') AS updated_at
+        FROM `epc_bulk_upload_history`
+        WHERE `user_id` = @userId
+        ORDER BY `id` DESC
+        LIMIT @limit
         """;
 
     /// <summary>Quote request KPIs — status stages are distinct in PHP (draft→submitted→quoted→accepted).</summary>

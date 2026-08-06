@@ -1447,6 +1447,19 @@ public sealed record StorefrontQuoteDetailDigest(
     string Source,
     string Message);
 
+public sealed record StorefrontProductImageDigest(
+    int Id,
+    string Url,
+    string Alt = "",
+    bool IsPrimary = false);
+
+public sealed record StorefrontProductSpecDigest(
+    string GroupName,
+    string Label,
+    string Value,
+    string Unit = "",
+    string ValueType = "text");
+
 public sealed record StorefrontProductDigest(
     int Id,
     string Caption,
@@ -1454,7 +1467,10 @@ public sealed record StorefrontProductDigest(
     int CategoryId,
     string Manufacturer,
     string Article,
-    bool Published);
+    bool Published,
+    string Description = "",
+    IReadOnlyList<StorefrontProductImageDigest>? Images = null,
+    IReadOnlyList<StorefrontProductSpecDigest>? Specs = null);
 
 public sealed record StorefrontProductResult(
     StorefrontProductDigest? Product,
@@ -1463,6 +1479,56 @@ public sealed record StorefrontProductResult(
 
 public sealed record StorefrontProductListResult(
     IReadOnlyList<StorefrontProductDigest> Rows,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontGenuineBrandsResult(
+    IReadOnlyList<string> Brands,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontOfficeStorageBunchDigest(
+    int OfficeId,
+    int StorageId,
+    int ProtocolVersion,
+    string HandlerFolder,
+    bool TreelaxCatalogue,
+    IReadOnlyList<StorefrontOfficeStorageBunchDigest>? NestedBunches = null);
+
+public sealed record StorefrontOfficeStorageBunchesResult(
+    string Article,
+    string Brand,
+    IReadOnlyList<StorefrontOfficeStorageBunchDigest> Bunches,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontProductsOfBunchResult(
+    int Result,
+    int OfficeId,
+    int StorageId,
+    IReadOnlyList<StorefrontPartOfferDigest> Products,
+    bool PricesVisible,
+    string Source,
+    string Message);
+
+public sealed record StorefrontBulkUploadHistoryDigest(
+    int Id,
+    string FileName,
+    string Priority,
+    int UploadedCount,
+    int AvailableCount,
+    int CrossCount,
+    int ShortCount,
+    int NotFoundCount,
+    string CreatedAt,
+    string UpdatedAt);
+
+public sealed record StorefrontBulkUploadHistoryResult(
+    int UserId,
+    IReadOnlyList<StorefrontBulkUploadHistoryDigest> Rows,
     int Count,
     string Source,
     string Message);

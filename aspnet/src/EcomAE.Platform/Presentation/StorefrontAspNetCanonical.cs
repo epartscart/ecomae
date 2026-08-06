@@ -16,6 +16,7 @@ public static class StorefrontAspNetCanonical
     public const string Wishlist = "/storefront/wishlist-app";
     public const string Compare = "/storefront/compare-app";
     public const string Product = "/storefront/product-app";
+    public const string BulkUpload = "/storefront/bulk-upload-app";
     public const string Balance = "/storefront/account-summary-app";
 
     // Home carries the full PHP catalog widgets — deep-link to the matching section

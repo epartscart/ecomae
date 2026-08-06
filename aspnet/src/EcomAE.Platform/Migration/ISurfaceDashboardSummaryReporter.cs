@@ -315,6 +315,18 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Catalogue products by ids (wishlist/compare cookies).</summary>
     Task<StorefrontProductListResult> ListStorefrontProductsByIdsAsync(IReadOnlyList<int> productIds, CancellationToken cancellationToken = default);
 
+    /// <summary>Genuine OE brand keys (PHP <c>epc_genuine_build_frontend_index</c>).</summary>
+    Task<StorefrontGenuineBrandsResult> ListStorefrontGenuineBrandsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Office/storage bunches for progressive supplier poll (PHP <c>office_storage_bunches</c>).</summary>
+    Task<StorefrontOfficeStorageBunchesResult> ListStorefrontOfficeStorageBunchesAsync(string article, string? brand, CancellationToken cancellationToken = default);
+
+    /// <summary>Proxy one progressive supplier poll (PHP <c>ajax_getProductsOfBunch</c>).</summary>
+    Task<StorefrontProductsOfBunchResult> PollStorefrontProductsOfBunchAsync(string article, string? brand, int officeId, int storageId, string? queryJson, int geoId = 0, CancellationToken cancellationToken = default);
+
+    /// <summary>Customer bulk-upload history (PHP <c>epc_bulk_upload_history</c>); process writes remain PHP.</summary>
+    Task<StorefrontBulkUploadHistoryResult> ListStorefrontBulkUploadHistoryAsync(int userId, int limit, CancellationToken cancellationToken = default);
+
     Task<CpTaxExternalReportingDigestResult> BuildCpTaxExternalReportingDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpPoApprovalsDigestResult> BuildCpPoApprovalsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpFinanceCloseDigestResult> BuildCpFinanceCloseDigestAsync(int limit, CancellationToken cancellationToken = default);
