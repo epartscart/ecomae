@@ -1,10 +1,19 @@
 @using System.Text.Json
 @*
-  Shared BOS login atmosphere: falling particles + stars + moons + meteors.
-  Theme + ParticleColors differentiate CP / ERP / BOS / each tenant look.
+  Login universe atmosphere (background only):
+  - NASA / Webb deep-space photo with slow drift
+  - Falling star-dots (same bosFloat motion as before)
+  - Round moons + planets (CSS spheres) falling — never glyph icons on top
 *@
 
-<div class="bos-login__bg bos-login__bg--@Theme" data-bos-atmosphere="@Theme" data-bos-industry="@Industry" aria-hidden="true">
+<div class="bos-login__bg bos-login__bg--universe bos-login__bg--@Theme"
+     data-bos-atmosphere="@Theme"
+     data-bos-industry="@Industry"
+     aria-hidden="true">
+    <div class="bos-login__universe"
+         style="background-image:url('@UniverseImageUrl')"
+         title="Image credit: NASA / ESA / CSA / STScI"></div>
+    <div class="bos-login__universe-veil"></div>
     <div class="bos-login__grid-lines"></div>
     <div class="bos-login__sky" id="@(ParticlesId)_sky"></div>
     <div class="bos-login__particles" id="@ParticlesId"></div>
@@ -23,123 +32,101 @@
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
   function createParticles() {
     var container = document.getElementById(containerId);
     if (!container || reduceMotion()) return;
     if (container.childElementCount > 0) return;
     var palette = Array.isArray(colors) && colors.length ? colors : [
-      'rgba(14,165,233,.8)', 'rgba(56,189,248,.5)', 'rgba(255,255,255,.25)'
+      'rgba(255,255,255,.85)', 'rgba(14,165,233,.7)', 'rgba(56,189,248,.5)'
     ];
-    var count = theme === 'sparkle' || theme === 'fashion' ? 140 : 120;
+    var count = 160;
     for (var i = 0; i < count; i++) {
       var p = document.createElement('div');
       p.className = 'bos-login__particle';
       p.style.left = Math.random() * 100 + '%';
-      p.style.top = Math.random() * 12 + '%';
-      var duration = 4 + Math.random() * 12;
+      p.style.top = Math.random() * 10 + '%';
+      var duration = 5 + Math.random() * 14;
       p.style.animationDuration = duration + 's';
       p.style.animationDelay = (Math.random() * duration) + 's';
-      var size = 1 + Math.random() * 3.5;
+      var size = 1 + Math.random() * 2.8;
       p.style.width = size + 'px';
       p.style.height = size + 'px';
-      p.style.animationName = Math.random() < 0.35 ? 'bosFloatDrift' : 'bosFloat';
+      p.style.animationName = Math.random() < 0.4 ? 'bosFloatDrift' : 'bosFloat';
       var color = pick(palette);
       p.style.background = color;
-      if (size > 2) p.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + color;
+      if (size > 1.8) p.style.boxShadow = '0 0 ' + (size * 2.5) + 'px ' + color;
       container.appendChild(p);
     }
   }
-  function createCelestials() {
+
+  /* Round moons / planets / bright star-orbs — CSS spheres only (no text glyphs). */
+  function createFallingBodies() {
     var sky = document.getElementById(containerId + '_sky');
     if (!sky || reduceMotion()) return;
     if (sky.childElementCount > 0) return;
-    var palette = Array.isArray(colors) && colors.length ? colors : ['rgba(255,255,255,.7)'];
-    var stars = 36, moons = 6, meteors = 8, sparks = 14;
-    if (theme === 'sparkle' || theme === 'jewellery' || theme.indexOf('sparkle') >= 0) {
-      stars = 48; moons = 10; meteors = 6; sparks = 22;
-    } else if (theme === 'fashion') {
-      stars = 40; moons = 4; meteors = 5; sparks = 28;
-    } else if (theme === 'circuit' || theme === 'autoparts') {
-      stars = 28; moons = 3; meteors = 12; sparks = 18;
-    } else if (theme === 'advisory') {
-      stars = 32; moons = 5; meteors = 6; sparks = 12;
-    } else if (theme.indexOf('moon') >= 0) {
-      stars = 30; moons = 12; meteors = 7; sparks = 10;
-    } else if (theme.indexOf('stars') >= 0 || theme === 'crimson-stars' || theme === 'cyan-stars') {
-      stars = 52; moons = 4; meteors = 8; sparks = 10;
-    }
+    var palette = Array.isArray(colors) && colors.length ? colors : [
+      'rgba(255,255,255,.9)', 'rgba(251,191,36,.8)', 'rgba(56,189,248,.7)'
+    ];
 
-    /* Same fall model as .bos-login__particle: start near top, animate forever. */
-    function place(el, animName, slow) {
+    function place(el, slow) {
       el.style.left = Math.random() * 100 + '%';
       el.style.top = (Math.random() * 8) + '%';
-      var duration = (slow ? 9 : 5) + Math.random() * (slow ? 14 : 10);
-      var delay = Math.random() * duration;
-      el.style.animation = 'none';
-      /* force reflow so restart sticks across Blazor swaps */
-      void el.offsetWidth;
-      el.style.animationName = animName;
+      var duration = (slow ? 12 : 7) + Math.random() * (slow ? 18 : 12);
       el.style.animationDuration = duration + 's';
-      el.style.animationDelay = delay + 's';
+      el.style.animationDelay = (Math.random() * duration) + 's';
+      el.style.animationName = Math.random() < 0.45 ? 'bosFloatDrift' : 'bosFloat';
       el.style.animationTimingFunction = 'linear';
       el.style.animationIterationCount = 'infinite';
-      el.style.animationFillMode = 'both';
-      var color = pick(palette);
-      el.style.color = color;
-      if (el.classList.contains('bos-login__celestial--meteor')
-          || el.classList.contains('bos-login__celestial--spark')) {
-        el.style.background = el.classList.contains('bos-login__celestial--meteor')
-          ? ('linear-gradient(to bottom, transparent, ' + color + ' 40%, transparent)')
-          : color;
-        el.style.boxShadow = '0 0 10px ' + color;
-      }
       sky.appendChild(el);
     }
 
-    for (var s = 0; s < stars; s++) {
-      var star = document.createElement('span');
-      star.className = 'bos-login__celestial bos-login__celestial--star';
-      star.textContent = Math.random() < 0.45 ? '✦' : (Math.random() < 0.5 ? '✧' : '★');
-      star.style.fontSize = (8 + Math.random() * 14) + 'px';
-      place(star, 'bosCelFallSpin', false);
-    }
-    for (var m = 0; m < moons; m++) {
-      var moon = document.createElement('span');
-      moon.className = 'bos-login__celestial bos-login__celestial--moon';
-      moon.textContent = Math.random() < 0.5 ? '☾' : '☽';
-      moon.style.fontSize = (14 + Math.random() * 22) + 'px';
-      place(moon, 'bosCelFallDrift', true);
-    }
-    for (var e = 0; e < meteors; e++) {
-      var meteor = document.createElement('span');
-      meteor.className = 'bos-login__celestial bos-login__celestial--meteor';
-      place(meteor, 'bosCelMeteor', false);
-    }
-    for (var k = 0; k < sparks; k++) {
-      var spark = document.createElement('span');
-      spark.className = 'bos-login__celestial bos-login__celestial--spark'
-        + (theme === 'circuit' ? ' bos-login__celestial--circuit' : '');
-      place(spark, 'bosCelSpark', Math.random() < 0.4);
+    var moonCount = 5;
+    var planetCount = 7;
+    var orbCount = 18;
+    if (industry === 'jewellery' || theme === 'sparkle') { moonCount = 7; planetCount = 8; }
+    if (industry === 'auto_parts' || theme === 'autoparts') { planetCount = 6; orbCount = 22; }
+
+    for (var m = 0; m < moonCount; m++) {
+      var moon = document.createElement('div');
+      moon.className = 'bos-login__body bos-login__body--moon';
+      var ms = 18 + Math.random() * 28;
+      moon.style.width = ms + 'px';
+      moon.style.height = ms + 'px';
+      place(moon, true);
     }
 
-    var industryGlyphs = {
-      auto_parts: ['⚙', '✦', '◆', '◈'],
-      electronics: ['⌁', '◈', '◆', '✦'],
-      fashion: ['✧', '✦', '◇', '◆'],
-      jewellery: ['✦', '✧', '☾', '◆'],
-      finance: ['▣', '✦', '☽', '◇'],
-      platform: ['✦', '★', '☾']
-    };
-    var glyphs = industryGlyphs[industry] || industryGlyphs.platform;
-    var glyphCount = industry === 'platform' ? 10 : 22;
-    for (var g = 0; g < glyphCount; g++) {
-      var ind = document.createElement('span');
-      ind.className = 'bos-login__celestial bos-login__celestial--industry';
-      ind.textContent = pick(glyphs);
-      ind.style.fontSize = (12 + Math.random() * 18) + 'px';
-      place(ind, Math.random() < 0.5 ? 'bosCelFallSpin' : 'bosCelFall', Math.random() < 0.45);
+    var planetTones = [
+      'bos-login__body--planet-a',
+      'bos-login__body--planet-b',
+      'bos-login__body--planet-c',
+      'bos-login__body--planet-d'
+    ];
+    for (var p = 0; p < planetCount; p++) {
+      var planet = document.createElement('div');
+      planet.className = 'bos-login__body bos-login__body--planet ' + pick(planetTones);
+      var ps = 10 + Math.random() * 22;
+      planet.style.width = ps + 'px';
+      planet.style.height = ps + 'px';
+      /* tint glow from tenant palette */
+      var glow = pick(palette);
+      planet.style.boxShadow = '0 0 ' + (8 + Math.random() * 14) + 'px ' + glow;
+      place(planet, Math.random() < 0.55);
+    }
+
+    for (var o = 0; o < orbCount; o++) {
+      var orb = document.createElement('div');
+      orb.className = 'bos-login__body bos-login__body--orb';
+      var os = 2 + Math.random() * 5;
+      orb.style.width = os + 'px';
+      orb.style.height = os + 'px';
+      var oc = pick(palette);
+      orb.style.background = oc;
+      orb.style.boxShadow = '0 0 ' + (os * 3) + 'px ' + oc;
+      place(orb, false);
     }
   }
+
   function animateCounters() {
     var counters = document.querySelectorAll('.bos-login__stat-num[data-count]');
     if (!counters.length) return;
@@ -163,15 +150,17 @@
       });
     }, 400);
   }
+
   function forceBodyClass() {
     var meta = document.querySelector('meta[name="epc-body-class"]');
     var cls = meta ? meta.getAttribute('content') : '';
     if (cls) document.body.className = cls;
   }
+
   function boot() {
     forceBodyClass();
     createParticles();
-    createCelestials();
+    createFallingBodies();
     animateCounters();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
@@ -185,9 +174,31 @@
     [Parameter] public string Industry { get; set; } = "platform";
     [Parameter] public string[] ParticleColors { get; set; } =
     [
-        "rgba(14,165,233,.8)", "rgba(14,165,233,.5)", "rgba(56,189,248,.7)",
-        "rgba(99,102,241,.5)", "rgba(255,255,255,.35)"
+        "rgba(255,255,255,.85)", "rgba(14,165,233,.7)", "rgba(56,189,248,.55)",
+        "rgba(251,191,36,.45)", "rgba(168,85,247,.4)"
     ];
+
+    /// <summary>
+    /// NASA / ESA Webb public universe stills (science.nasa.gov gallery / images-assets.nasa.gov).
+    /// Background only — never rendered as foreground icons.
+    /// </summary>
+    private string UniverseImageUrl => (Industry ?? Theme ?? "").ToLowerInvariant() switch
+    {
+        "auto_parts" or "autoparts" =>
+            "https://images-assets.nasa.gov/image/PIA16884/PIA16884~medium.jpg", // Cassiopeia A
+        "electronics" or "circuit" =>
+            "https://images-assets.nasa.gov/image/PIA12348/PIA12348~medium.jpg", // Andromeda
+        "fashion" =>
+            "https://cdn.esawebb.org/archives/images/screen/weic2205a.jpg", // Tarantula / star factory
+        "jewellery" or "sparkle" =>
+            "https://cdn.esawebb.org/archives/images/screen/weic2216a.jpg", // Pillars of Creation
+        "finance" or "advisory" or "teal-moon" =>
+            "https://images-assets.nasa.gov/image/PIA12348/PIA12348~medium.jpg",
+        "crimson-stars" =>
+            "https://images-assets.nasa.gov/image/PIA16884/PIA16884~medium.jpg",
+        _ =>
+            "https://cdn.esawebb.org/archives/images/screen/weic2216a.jpg"
+    };
 
     private MarkupString _particlesIdJson;
     private MarkupString _particleColorsJson;
