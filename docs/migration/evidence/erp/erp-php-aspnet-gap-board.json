@@ -1,0 +1,306 @@
+{
+  "role": "erp-php-aspnet-gap-board",
+  "surface": "erp",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "guideCatalog": {
+    "source": "aspnet/src/EcomAE.Platform/Migration/Data/erp-guide-modules.json",
+    "phpSource": "content/shop/finance/epc_erp_guide_content.php",
+    "moduleCount": 79,
+    "requiredModules": [
+      "core",
+      "company",
+      "inventory"
+    ],
+    "modules": [
+      "accounting_automation",
+      "aftersales",
+      "aging",
+      "ai_service",
+      "audit",
+      "audit_report",
+      "bank_instruments",
+      "bos_approvals",
+      "bos_compliance",
+      "bos_intel",
+      "bpa_automation",
+      "budget_planning",
+      "budgeting",
+      "cash_forecast",
+      "closing",
+      "collections",
+      "company",
+      "compliance",
+      "consolidation",
+      "contracts",
+      "control",
+      "core",
+      "cost_accounting",
+      "credit",
+      "crm",
+      "ct_return",
+      "customs",
+      "dashboard",
+      "datalink",
+      "demo",
+      "eam",
+      "ecommerce",
+      "einvoice",
+      "elec_reporting",
+      "events",
+      "exec_dashboard",
+      "expense",
+      "ext_reporting",
+      "fin_import",
+      "fin_model",
+      "finance",
+      "fixed_assets",
+      "hr",
+      "hr_law",
+      "integration",
+      "intercompany",
+      "inventory",
+      "localization",
+      "manufacturing",
+      "mfa",
+      "migration",
+      "mobile",
+      "mrp",
+      "order_planning",
+      "org",
+      "performance",
+      "period_close",
+      "pricing",
+      "process_flow",
+      "procurement",
+      "procurement_categories",
+      "product_info",
+      "projects",
+      "purchase_requisitions",
+      "rebate",
+      "recruitment",
+      "report_center",
+      "roles",
+      "scm",
+      "subscription",
+      "supplier_portal",
+      "tax",
+      "treasury",
+      "valuation",
+      "vat_return",
+      "vouchers",
+      "warranty",
+      "withholding",
+      "workflow"
+    ],
+    "aspnetApp": "/erp/guide-app",
+    "status": "aspnet-read"
+  },
+  "approvals": {
+    "aspnetApp": "/erp/approvals-app",
+    "digest": "BuildErpAsync.ApprovalQueue",
+    "status": "aspnet-read",
+    "note": "Read-only queue from ERP dashboard digest; PHP command center remains authoritative."
+  },
+  "routeAliases": {
+    "guide": [
+      "/erp/guide-app",
+      "/erp/guide",
+      "/en/erp/guide"
+    ],
+    "approvals": [
+      "/erp/approvals-app",
+      "/erp/approvals"
+    ],
+    "dashboard": [
+      "/erp/dashboard-summary-app",
+      "/erp/dashboard-app"
+    ],
+    "phpTabMap": {
+      "guide|knowledge_base|knowledge": "/erp/guide-app",
+      "approvals|approval": "/erp/approvals-app"
+    }
+  },
+  "tenantErpModules": [
+    {
+      "module": "dashboard",
+      "aspnetApp": "/erp/dashboard-summary-app",
+      "alias": "/erp/dashboard-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "guide",
+      "aspnetApp": "/erp/guide-app",
+      "alias": [
+        "/erp/guide",
+        "/en/erp/guide"
+      ],
+      "status": "aspnet-read",
+      "guideModules": 79
+    },
+    {
+      "module": "approvals",
+      "aspnetApp": "/erp/approvals-app",
+      "alias": "/erp/approvals",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "sales_orders",
+      "aspnetApp": "/erp/sales-orders-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "sales_quotations",
+      "aspnetApp": "/erp/sales-quotations-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "purchase_orders",
+      "aspnetApp": "/erp/purchase-orders-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "purchases",
+      "aspnetApp": "/erp/purchases-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "invoices",
+      "aspnetApp": "/erp/invoices-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "cash_bank",
+      "aspnetApp": "/erp/cash-accounts-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "cash_entries",
+      "aspnetApp": "/erp/cash-entries-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "coa",
+      "aspnetApp": "/erp/coa-accounts-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "gl",
+      "aspnetApp": "/erp/gl-journals-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "inventory",
+      "aspnetApp": "/erp/inventory-stock-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "stock_movements",
+      "aspnetApp": "/erp/stock-movements-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "stock_transfers",
+      "aspnetApp": "/erp/stock-transfers-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "warehouses",
+      "aspnetApp": "/erp/warehouses-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "suppliers",
+      "aspnetApp": "/erp/suppliers-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "fixed_assets",
+      "aspnetApp": "/erp/fixed-assets-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "bank_reconciliation",
+      "aspnetApp": "/erp/bank-reconciliation-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "aging",
+      "aspnetApp": "/erp/aging-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "report_center",
+      "aspnetApp": "/erp/report-center-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "process_flow",
+      "aspnetApp": "/erp/process-flow-tasks-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "workspace_favorites",
+      "aspnetApp": "/erp/workspace-favorites-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "accounts_summary",
+      "aspnetApp": "/erp/accounts-summary-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "on_premises",
+      "aspnetApp": "/erp/on-premises-app",
+      "status": "aspnet-read"
+    }
+  ],
+  "superErpModules": [
+    {
+      "module": "fleet",
+      "aspnetApp": "/erp/fleet-app",
+      "status": "super-cp-only"
+    },
+    {
+      "module": "bos_dashboard",
+      "aspnetApp": "/erp/app",
+      "status": "aspnet-read"
+    }
+  ],
+  "aspnetErpApps": [
+    "ErpAccountsSummaryApp.razor",
+    "ErpAgingApp.razor",
+    "ErpApprovalsApp.razor",
+    "ErpBankReconciliationApp.razor",
+    "ErpBosDashboardApp.razor",
+    "ErpCashAccountsApp.razor",
+    "ErpCashEntriesApp.razor",
+    "ErpCoaAccountsApp.razor",
+    "ErpDashboardSummaryApp.razor",
+    "ErpFixedAssetsApp.razor",
+    "ErpFleetApp.razor",
+    "ErpGlJournalsApp.razor",
+    "ErpGuideApp.razor",
+    "ErpInventoryStockApp.razor",
+    "ErpInvoicesApp.razor",
+    "ErpLoginApp.razor",
+    "ErpOnPremisesApp.razor",
+    "ErpProcessFlowTasksApp.razor",
+    "ErpPurchaseOrdersApp.razor",
+    "ErpPurchasesApp.razor",
+    "ErpReportCenterApp.razor",
+    "ErpSalesOrdersApp.razor",
+    "ErpSalesQuotationsApp.razor",
+    "ErpStockMovementsApp.razor",
+    "ErpStockTransfersApp.razor",
+    "ErpSuppliersApp.razor",
+    "ErpWarehousesApp.razor",
+    "ErpWorkspaceFavoritesApp.razor"
+  ],
+  "gaps": [
+    "Interactive ERP writes remain PHP (erp_tabs_*).",
+    "Tenant chrome same-to-same; Super fleet/BOS stay Super-CP gated.",
+    "Guide content is static JSON parity; entitlement filtering not yet applied in ASP.NET."
+  ],
+  "note": "Documents Super/Tenant ERP module ASP.NET read surfaces plus guide book / approvals PHP parity."
+}

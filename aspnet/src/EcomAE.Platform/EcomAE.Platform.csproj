@@ -9,4 +9,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="MySqlConnector" Version="2.6.1" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Update="Migration/Data/erp-guide-modules.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
