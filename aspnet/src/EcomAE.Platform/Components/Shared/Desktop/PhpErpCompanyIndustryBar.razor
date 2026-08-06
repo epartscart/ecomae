@@ -5,39 +5,43 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 @*
-  PHP parity: epc_erp_company_picker_html + industry context chip.
-  Company switch uses ?company= (PHP session equivalent on ASP.NET query).
-  Jewellery companies expose jewellery modules; MAIN keeps core modules.
+  PHP parity: epc_erp_company_picker_html in epc-erp-content-actions (toolbar top-right).
+  Company switch uses ?company= — MAIN ↔ Jewellery (company=1 / company=2) on Super CP.
 *@
 
-<div class="epc-erp-company-scope"
+<div class="epc-erp-company-scope epc-erp-company-scope--@Variant.ToLowerInvariant()"
      data-epc-industry="@_industryCode"
      data-epc-erp-host="@_ctx.Host"
-     data-epc-erp-jewellery="@(_jewellery ? "1" : "0")">
-    <div class="epc-erp-industry-chip" title="Industry pack for the active company">
-        <i class="fa fa-industry" aria-hidden="true"></i>
-        <span>@_industryLabel</span>
-        <code>@_industryCode</code>
-        @if (_jewellery)
-        {
-            <em class="epc-erp-jw-badge">Jewellery modules</em>
-        }
-        else
-        {
-            <em class="epc-erp-core-badge">Core modules</em>
-        }
-    </div>
+     data-epc-erp-jewellery="@(_jewellery ? "1" : "0")"
+     data-epc-company-count="@_companies.Count">
+    @if (Variant.Equals("Panel", StringComparison.OrdinalIgnoreCase))
+    {
+        <div class="epc-erp-industry-chip" title="Industry pack for the active company">
+            <i class="fa fa-industry" aria-hidden="true"></i>
+            <span>@_industryLabel</span>
+            <code>@_industryCode</code>
+            @if (_jewellery)
+            {
+                <em class="epc-erp-jw-badge">Jewellery modules</em>
+            }
+            else
+            {
+                <em class="epc-erp-core-badge">Core modules</em>
+            }
+        </div>
+    }
 
     @if (_companies.Count > 0 && _request is not null)
     {
-        <details class="epc-erp-company-picker" data-epc-company-picker="1" open="@false">
-            <summary class="epc-erp-company-btn" title="Change company / legal entity">
+        <details class="epc-erp-company-picker dropdown" data-epc-company-picker="1">
+            <summary class="btn btn-default btn-xs dropdown-toggle epc-erp-company-btn"
+                     title="Active company (legal entity) — change without editing the URL">
                 <i class="fa fa-building" aria-hidden="true"></i>
                 <span class="epc-erp-company-name">@_activeLabel</span>
-                <i class="fa fa-angle-down" aria-hidden="true"></i>
+                <span class="caret" aria-hidden="true"></span>
             </summary>
             <ul class="dropdown-menu dropdown-menu-right epc-erp-company-menu" role="menu">
-                <li class="dropdown-header">Change company</li>
+                <li class="dropdown-header">Company / legal entity</li>
                 @foreach (var company in _companies)
                 {
                     var selected = company.Id == _activeCompanyId;
@@ -65,7 +69,7 @@
         <span class="epc-erp-company-fallback" title="@_message">No companies loaded</span>
     }
 
-    @if (PlatformHostPolicy.IsSuperCpHost(_ctx.Host))
+    @if (Variant.Equals("Panel", StringComparison.OrdinalIgnoreCase) && PlatformHostPolicy.IsSuperCpHost(_ctx.Host))
     {
         <a class="epc-erp-shell-link" href="/erp/fleet-app" title="Operator fleet ERP view">
             <i class="fa fa-sitemap" aria-hidden="true"></i> Fleet ERP
@@ -76,7 +80,13 @@
 <style>
     .epc-erp-company-scope {
         display: flex; flex-wrap: wrap; align-items: center; gap: .45rem .65rem;
+    }
+    .epc-erp-company-scope--panel {
         margin: 0 0 1rem; padding: .65rem .75rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+    }
+    .epc-erp-company-scope--toolbar {
+        margin: 0; padding: 0; background: transparent; border: 0;
+        justify-content: flex-end;
     }
     .epc-erp-industry-chip {
         display: inline-flex; align-items: center; gap: .4rem; font-size: 12.5px; font-weight: 700; color: #0f172a;
@@ -86,23 +96,30 @@
     }
     .epc-erp-jw-badge { font-style: normal; font-size: 10px; font-weight: 800; color: #92400e; background: #fef3c7; border-radius: 999px; padding: 2px 8px; }
     .epc-erp-core-badge { font-style: normal; font-size: 10px; font-weight: 800; color: #1e3a8a; background: #dbeafe; border-radius: 999px; padding: 2px 8px; }
-    .epc-erp-company-picker { display: inline-block; position: relative; z-index: 50; }
+    .epc-erp-company-picker { display: inline-block; position: relative; z-index: 80; }
     .epc-erp-company-btn {
         list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem;
-        border: 1px solid #cbd5e1; background: #f8fafc; border-radius: .4rem; padding: .35rem .65rem;
-        font-size: 12.5px; font-weight: 700; color: #0f172a;
+        border: 1px solid #cbd5e1; background: #fff; border-radius: .4rem; padding: .4rem .75rem;
+        font-size: 12.5px; font-weight: 700; color: #0f172a; box-shadow: 0 1px 2px rgba(15,23,42,.06);
     }
     .epc-erp-company-btn::-webkit-details-marker { display: none; }
+    .epc-erp-company-btn .caret {
+        display: inline-block; width: 0; height: 0; margin-left: 2px;
+        border-top: 4px solid #475569; border-right: 4px solid transparent; border-left: 4px solid transparent;
+    }
+    .epc-erp-company-picker[open] > .epc-erp-company-menu,
+    .epc-erp-company-picker:not([open]) > .epc-erp-company-menu { display: none; }
+    .epc-erp-company-picker[open] > .epc-erp-company-menu { display: block; }
     .epc-erp-company-menu {
-        position: absolute; right: 0; top: calc(100% + 4px); min-width: 280px; max-width: min(420px, 90vw);
-        background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 12px 28px rgba(15,23,42,.12);
-        margin: 0; padding: 6px 0; list-style: none; z-index: 60;
+        position: absolute; right: 0; top: calc(100% + 4px); min-width: 300px; max-width: min(440px, 92vw);
+        background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 12px 28px rgba(15,23,42,.14);
+        margin: 0; padding: 6px 0; list-style: none; z-index: 4000;
     }
     .epc-erp-company-menu > .dropdown-header {
         padding: 6px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b;
     }
     .epc-erp-company-menu > li > a {
-        display: block; padding: 8px 14px; font-size: 12.5px; color: #0f172a; line-height: 1.35; text-decoration: none;
+        display: block; padding: 9px 14px; font-size: 12.5px; color: #0f172a; line-height: 1.35; text-decoration: none;
     }
     .epc-erp-company-menu > li.active > a { background: #eff6ff; color: #1d4ed8; font-weight: 600; }
     .epc-erp-company-menu > li > a:hover { background: #f8fafc; }
@@ -114,9 +131,54 @@
         border: 1px solid #bfdbfe; background: #fff; border-radius: .35rem;
         padding: .28rem .55rem; text-decoration: none;
     }
+    .epc-erp-content-toolbar {
+        display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;
+        gap: .75rem 1rem; margin-bottom: .35rem;
+    }
+    .epc-erp-content-actions {
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
+        gap: .5rem; margin-left: auto; padding-top: .15rem;
+    }
 </style>
 
+<script>
+(function () {
+  if (window.__epcErpCompanyPickerBound) return;
+  window.__epcErpCompanyPickerBound = true;
+  function place(p) {
+    var m = p.querySelector('.epc-erp-company-menu');
+    var b = p.querySelector('.epc-erp-company-btn');
+    if (!m || !b || !p.open) return;
+    var r = b.getBoundingClientRect();
+    m.style.position = 'fixed';
+    m.style.top = Math.round(r.bottom + 4) + 'px';
+    m.style.left = 'auto';
+    m.style.right = Math.max(8, Math.round(window.innerWidth - r.right)) + 'px';
+    m.style.zIndex = '4000';
+  }
+  document.addEventListener('toggle', function (e) {
+    var p = e.target && e.target.closest ? e.target.closest('[data-epc-company-picker]') : null;
+    if (!p) return;
+    if (p.open) place(p);
+  }, true);
+  window.addEventListener('resize', function () {
+    document.querySelectorAll('[data-epc-company-picker][open]').forEach(place);
+  }, { passive: true });
+  window.addEventListener('scroll', function () {
+    document.querySelectorAll('[data-epc-company-picker][open]').forEach(place);
+  }, true);
+  document.addEventListener('click', function (e) {
+    document.querySelectorAll('[data-epc-company-picker][open]').forEach(function (p) {
+      if (!p.contains(e.target)) p.open = false;
+    });
+  });
+})();
+</script>
+
 @code {
+    /// <summary>Toolbar = PHP content-actions picker only; Panel = industry chip + picker.</summary>
+    [Parameter] public string Variant { get; set; } = "Panel";
+
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
     private HttpRequest? _request;
     private IReadOnlyList<ErpCompanyDigest> _companies = [];
@@ -133,14 +195,9 @@
         _ctx = ErpHostContext.Resolve(_request?.Host.Host);
         var active = ErpHostContext.ActiveCompanyIdFromQuery(_request);
         var digest = await Dashboards.BuildErpCompaniesDigestAsync(50, Http.HttpContext?.RequestAborted ?? default);
-        _companies = digest.Companies;
+        var isSuper = PlatformHostPolicy.IsSuperCpHost(_ctx.Host);
+        _companies = ErpIndustryNav.EnsureSwitchableCompanies(digest.Companies, isSuper, _ctx.BrandLabel);
         _message = digest.Message;
-        if (_companies.Count == 0 && PlatformHostPolicy.IsSuperCpHost(_ctx.Host))
-        {
-            _companies = ErpIndustryNav.FallbackCompanies(_ctx.BrandLabel);
-            _message = "fallback-companies";
-        }
-
         if (_companies.Count == 0)
         {
             _industryCode = _ctx.IndustryCode;

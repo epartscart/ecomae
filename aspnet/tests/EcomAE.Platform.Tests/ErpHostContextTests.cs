@@ -43,6 +43,9 @@ public sealed class ErpHostContextTests
         var path = Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor");
         var text = File.ReadAllText(path);
         Assert.Contains("PhpErpCompanyIndustryBar", text, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-content-actions", text, StringComparison.Ordinal);
+        Assert.Contains("Variant=\"Toolbar\"", text, StringComparison.Ordinal);
+        Assert.Contains("EnsureSwitchableCompanies", text, StringComparison.Ordinal);
         Assert.Contains("ErpHostContext.Resolve", text, StringComparison.Ordinal);
         Assert.Contains("data-epc-industry=", text, StringComparison.Ordinal);
         Assert.DoesNotContain("<span>Ecom BOS</span>", text, StringComparison.Ordinal);

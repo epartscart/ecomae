@@ -138,8 +138,12 @@
                                 <p class="epc-erp-host-sub">@_companyLabel · @_industryLabel@(_jewellery ? " · jewellery modules on" : " · core modules")</p>
                             </div>
                         </div>
+                        @* PHP erp_main.php epc-erp-content-actions — company picker top-right *@
+                        <div class="epc-erp-content-actions">
+                            <PhpErpCompanyIndustryBar Variant="Toolbar" />
+                        </div>
                     </div>
-                    <PhpErpCompanyIndustryBar />
+                    <PhpErpCompanyIndustryBar Variant="Panel" />
                     <div class="epc-erp-content-body">
                         <!--epc-cp-main-begin-->
                         @ChildContent
@@ -339,11 +343,10 @@
             return;
         }
 
-        var companies = (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies;
-        if (companies.Count == 0 && _showBos)
-        {
-            companies = ErpIndustryNav.FallbackCompanies(_ctx.BrandLabel);
-        }
+        var companies = ErpIndustryNav.EnsureSwitchableCompanies(
+            (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies,
+            _showBos,
+            _ctx.BrandLabel);
 
         var activeQ = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request);
         var active = companies.FirstOrDefault(c => activeQ is > 0 && c.Id == activeQ)
