@@ -80,6 +80,14 @@
     }
     <meta name="ecomae-chrome-surface" content="@Surface" />
     <meta name="ecomae-chrome-hero" content="@(IncludeLoginCss || ApplyStorefrontIndustryAttrs || IncludeBosLoginScripts || IncludeMarketingScripts || IsBosSurface ? "1" : "0")" />
+
+@if (Surface.Equals("cp", StringComparison.OrdinalIgnoreCase))
+{
+    @* Delegated BOC mega-menu binder installs on the FIRST full CP page load
+       (often /cp/login) — Blazor enhanced navigation never executes scripts
+       that arrive with swapped content, which left the Super CP top menu dead. *@
+    <PhpBocTopnavBinder />
+}
 </HeadContent>
 
 @code {
