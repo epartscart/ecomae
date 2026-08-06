@@ -192,6 +192,10 @@ for dir in "${DOCROOTS[@]+"${DOCROOTS[@]}"}"; do
     "$dir/content/general_pages/epc_storefront_professional_shell.css" || true
   cp -f "$REPO/content/general_pages/epc_storefront_professional_shell_css.php" \
     "$dir/content/general_pages/" 2>/dev/null || true
+  # DA320/ROCKY warehouse bridge — ASP.NET falls back to this when tenant SQL is empty.
+  mkdir -p "$dir/content/shop/docpart"
+  cp -f "$REPO/content/shop/docpart/ajax_epc_warehouse_offers.php" \
+    "$dir/content/shop/docpart/ajax_epc_warehouse_offers.php" || true
   # Marker starts pending — status=pass is written ONLY after public :5100 prove.
   # A matching sha alone does NOT mean live ASP.NET was republished.
   printf 'status=pending sha=%s time=%s note=php-docroot-synced-aspnet-not-proven-yet\n' \

@@ -17,13 +17,16 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 {
     private readonly ITenantDbConnectionFactory _connections;
     private readonly IHttpContextAccessor? _httpContextAccessor;
+    private readonly PhpWarehouseSearchBridge? _phpWarehouseBridge;
 
     public SurfaceDashboardSummaryReporter(
         ITenantDbConnectionFactory connections,
-        IHttpContextAccessor? httpContextAccessor = null)
+        IHttpContextAccessor? httpContextAccessor = null,
+        PhpWarehouseSearchBridge? phpWarehouseBridge = null)
     {
         _connections = connections;
         _httpContextAccessor = httpContextAccessor;
+        _phpWarehouseBridge = phpWarehouseBridge;
     }
 
     public async Task<ControlPanelDashboardSummary> BuildControlPanelAsync(CancellationToken cancellationToken = default)
@@ -1104,56 +1107,79 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(normalized, [], 0, "migration", "TenantRegistry DB is not configured.");
         }
 
-        if (TryGetUnboundTenantShopMessage(out var unboundMessage))
+        var brandTrim = (brand ?? string.Empty).Trim();
+        var brandUpper = brandTrim.ToUpperInvariant();
+        var brandCompact = CompactStorefrontBrand(brandTrim);
+        var unbound = TryGetUnboundTenantShopMessage(out var unboundMessage);
+
+        if (!unbound)
+        {
+            try
+            {
+                await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+                var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
+                var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
+
+                // PHP CHPU: article-only warehouse SQL, then brand/synonym filter in UI.
+                // Keep branded SQL first for index friendliness; retry article-only when empty.
+                var rows = await QueryStorefrontPartOffersCascadeAsync(
+                    connection,
+                    candidates,
+                    brandUpper,
+                    brandCompact,
+                    safeLimit,
+                    hasSearchCol,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (rows.Count == 0 && brandTrim.Length > 0)
+                {
+                    var unfiltered = await QueryStorefrontPartOffersCascadeAsync(
+                        connection,
+                        candidates,
+                        brandUpper: string.Empty,
+                        brandCompact: string.Empty,
+                        Math.Min(safeLimit * 4, 500),
+                        hasSearchCol,
+                        cancellationToken).ConfigureAwait(false);
+                    var aliases = await LoadManufacturerBrandAliasesAsync(connection, brandTrim, cancellationToken)
+                        .ConfigureAwait(false);
+                    rows = unfiltered
+                        .Where(r => ManufacturerMatchesBrand(r.Manufacturer, brandTrim, brandCompact, aliases))
+                        .Take(safeLimit)
+                        .ToList();
+                }
+
+                if (rows.Count > 0)
+                {
+                    return new(normalized, rows, rows.Count, "database", string.Empty);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (_phpWarehouseBridge is null)
+                {
+                    return new(normalized, [], 0, "database-error", ex.Message);
+                }
+            }
+        }
+
+        if (_phpWarehouseBridge is not null)
+        {
+            var phpRows = await _phpWarehouseBridge
+                .TryLoadOffersAsync(normalized, brandTrim, safeLimit, cancellationToken)
+                .ConfigureAwait(false);
+            if (phpRows.Count > 0)
+            {
+                return new(normalized, phpRows, phpRows.Count, "php-chpu", string.Empty);
+            }
+        }
+
+        if (unbound)
         {
             return new(normalized, [], 0, "migration", unboundMessage);
         }
 
-        var brandTrim = (brand ?? string.Empty).Trim();
-        var brandUpper = brandTrim.ToUpperInvariant();
-        var brandCompact = CompactStorefrontBrand(brandTrim);
-
-        try
-        {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
-            var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
-
-            // PHP CHPU: article-only warehouse SQL, then brand/synonym filter in UI.
-            // Keep branded SQL first for index friendliness; retry article-only when empty.
-            var rows = await QueryStorefrontPartOffersCascadeAsync(
-                connection,
-                candidates,
-                brandUpper,
-                brandCompact,
-                safeLimit,
-                hasSearchCol,
-                cancellationToken).ConfigureAwait(false);
-
-            if (rows.Count == 0 && brandTrim.Length > 0)
-            {
-                var unfiltered = await QueryStorefrontPartOffersCascadeAsync(
-                    connection,
-                    candidates,
-                    brandUpper: string.Empty,
-                    brandCompact: string.Empty,
-                    Math.Min(safeLimit * 4, 500),
-                    hasSearchCol,
-                    cancellationToken).ConfigureAwait(false);
-                var aliases = await LoadManufacturerBrandAliasesAsync(connection, brandTrim, cancellationToken)
-                    .ConfigureAwait(false);
-                rows = unfiltered
-                    .Where(r => ManufacturerMatchesBrand(r.Manufacturer, brandTrim, brandCompact, aliases))
-                    .Take(safeLimit)
-                    .ToList();
-            }
-
-            return new(normalized, rows, rows.Count, "database", string.Empty);
-        }
-        catch (Exception ex)
-        {
-            return new(normalized, [], 0, "database-error", ex.Message);
-        }
+        return new(normalized, [], 0, "database", string.Empty);
     }
 
     public async Task<StorefrontArticleBrandsResult> ListStorefrontArticleBrandsAsync(string article, int limit, CancellationToken cancellationToken = default)
@@ -1170,68 +1196,92 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(normalized, [], 0, "migration", "TenantRegistry DB is not configured.");
         }
 
-        if (TryGetUnboundTenantShopMessage(out var unboundMessage))
+        var unbound = TryGetUnboundTenantShopMessage(out var unboundMessage);
+        if (!unbound)
+        {
+            try
+            {
+                await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+                var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
+                var hasAnalogsSearch = await ProbeAnalogsSearchColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
+                var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
+
+                var byBrand = new Dictionary<string, StorefrontArticleBrandDigest>(StringComparer.OrdinalIgnoreCase);
+                var warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
+                    connection,
+                    candidates,
+                    safeLimit,
+                    StorefrontArticleMatchMode.ArticleSearch,
+                    hasSearchCol,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (warehouseBrands.Count == 0)
+                {
+                    warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
+                        connection,
+                        candidates,
+                        safeLimit,
+                        StorefrontArticleMatchMode.ExactTrim,
+                        hasSearchCol,
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                if (warehouseBrands.Count == 0)
+                {
+                    warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
+                        connection,
+                        candidates,
+                        safeLimit,
+                        StorefrontArticleMatchMode.ReplaceNormalize,
+                        hasSearchCol,
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                foreach (var brand in warehouseBrands)
+                {
+                    byBrand[brand.Brand.ToUpperInvariant()] = brand;
+                }
+
+                // PHP epc_collect_article_catalog_brands always merges CP crosses into the picker.
+                await MergeCpCrossBrandsAsync(connection, normalized, byBrand, hasAnalogsSearch, cancellationToken)
+                    .ConfigureAwait(false);
+
+                var brands = byBrand.Values
+                    .OrderBy(b => b.Brand, StringComparer.OrdinalIgnoreCase)
+                    .Take(safeLimit)
+                    .ToList();
+
+                if (brands.Count > 0)
+                {
+                    return new(normalized, brands, brands.Count, "database", string.Empty);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (_phpWarehouseBridge is null)
+                {
+                    return new(normalized, [], 0, "database-error", ex.Message);
+                }
+            }
+        }
+
+        if (_phpWarehouseBridge is not null)
+        {
+            var phpBrands = await _phpWarehouseBridge
+                .TryLoadBrandsAsync(normalized, safeLimit, cancellationToken)
+                .ConfigureAwait(false);
+            if (phpBrands.Count > 0)
+            {
+                return new(normalized, phpBrands, phpBrands.Count, "php-chpu", string.Empty);
+            }
+        }
+
+        if (unbound)
         {
             return new(normalized, [], 0, "migration", unboundMessage);
         }
 
-        try
-        {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
-            var hasAnalogsSearch = await ProbeAnalogsSearchColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
-            var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
-
-            var byBrand = new Dictionary<string, StorefrontArticleBrandDigest>(StringComparer.OrdinalIgnoreCase);
-            var warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
-                connection,
-                candidates,
-                safeLimit,
-                StorefrontArticleMatchMode.ArticleSearch,
-                hasSearchCol,
-                cancellationToken).ConfigureAwait(false);
-
-            if (warehouseBrands.Count == 0)
-            {
-                warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
-                    connection,
-                    candidates,
-                    safeLimit,
-                    StorefrontArticleMatchMode.ExactTrim,
-                    hasSearchCol,
-                    cancellationToken).ConfigureAwait(false);
-            }
-
-            if (warehouseBrands.Count == 0)
-            {
-                warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
-                    connection,
-                    candidates,
-                    safeLimit,
-                    StorefrontArticleMatchMode.ReplaceNormalize,
-                    hasSearchCol,
-                    cancellationToken).ConfigureAwait(false);
-            }
-
-            foreach (var brand in warehouseBrands)
-            {
-                byBrand[brand.Brand.ToUpperInvariant()] = brand;
-            }
-
-            // PHP epc_collect_article_catalog_brands always merges CP crosses into the picker.
-            await MergeCpCrossBrandsAsync(connection, normalized, byBrand, hasAnalogsSearch, cancellationToken)
-                .ConfigureAwait(false);
-
-            var brands = byBrand.Values
-                .OrderBy(b => b.Brand, StringComparer.OrdinalIgnoreCase)
-                .Take(safeLimit)
-                .ToList();
-            return new(normalized, brands, brands.Count, "database", string.Empty);
-        }
-        catch (Exception ex)
-        {
-            return new(normalized, [], 0, "database-error", ex.Message);
-        }
+        return new(normalized, [], 0, "database", string.Empty);
     }
 
     public Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, int limit, CancellationToken cancellationToken = default)

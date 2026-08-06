@@ -22,12 +22,13 @@
       "php": "/en/shop/part_search?article=&brend= or /en/parts/{BRAND}/{ARTICLE}",
       "aspnet": "/storefront/search-app?article=&brand=",
       "status": "in_progress",
-      "notes": "Brand+article URL + PHP-like result table shipped. Warehouse SQL aligned to article-first CHPU (no price>0 / temp-disabled on brand discovery). Live offers for DA320/ROCKY were empty before this fix.",
+      "notes": "Brand+article URL + PHP-like result table. ASP.NET SQL matches CHPU (no price>0 / storefront_temp_disabled); www hostname alias binds tenant shop DB; empty SQL falls back to PHP ajax_epc_warehouse_offers / ajax_epc_article_brands (config.php shop DB). Prove DA320+ROCKY after FORCE_LIVE of cursor/fix-da320-warehouse-search-7b3b.",
       "gapsRemaining": [
         "ajax_getProductsOfBunch live supplier poll",
         "cart/quote/fitment actions on result rows",
         "Genuine/Aftermarket section split",
-        "full price markup / office bunches"
+        "full price markup / office bunches",
+        "FORCE_LIVE deploy required for live DA320/ROCKY warehouse offers"
       ]
     },
     {
