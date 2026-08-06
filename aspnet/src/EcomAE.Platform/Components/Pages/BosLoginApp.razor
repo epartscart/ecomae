@@ -7,7 +7,7 @@
 
 <PageTitle>BOS — Business Operating System</PageTitle>
 @* Do not load epc_bos_shell.js — it hijacks #bosLoginForm to PHP /bos/?action=login. *@
-<PhpSurfaceHead Surface="bos" />
+<PhpSurfaceHead Surface="bos" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="bos" LoginChrome="true" />
 
 @*
@@ -41,14 +41,14 @@
     }
 </style>
 
-<div class="epc-login-bos bos-login">
-    <div class="bos-login__bg">
-        <div class="bos-login__grid-lines"></div>
-        <div class="bos-login__particles" id="bosParticles"></div>
-        <div class="bos-login__glow bos-login__glow--1"></div>
-        <div class="bos-login__glow bos-login__glow--2"></div>
-        <div class="bos-login__glow bos-login__glow--3"></div>
-    </div>
+<div class="epc-login-bos bos-login bos-login--bos">
+    <PhpBosLoginAtmosphere ParticlesId="bosParticles"
+                           Theme="cyan-stars"
+                           Industry="platform"
+                           ParticleColors="@(new[] {
+                               "rgba(14,165,233,.8)", "rgba(56,189,248,.7)", "rgba(99,102,241,.5)",
+                               "rgba(255,255,255,.35)", "rgba(168,85,247,.4)"
+                           })" />
 
     <div class="bos-login__hero">
         <div class="bos-login__hero-content">
@@ -230,60 +230,7 @@
 
 <script>
 (function () {
-  function reduceMotion() {
-    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  }
-  function bosCreateParticlesVisual() {
-    var container = document.getElementById('bosParticles');
-    if (!container || reduceMotion()) return;
-    if (container.childElementCount > 0) return;
-    var colors = [
-      'rgba(14,165,233,.8)','rgba(14,165,233,.5)','rgba(14,165,233,.3)',
-      'rgba(56,189,248,.7)','rgba(56,189,248,.4)',
-      'rgba(99,102,241,.6)','rgba(99,102,241,.3)',
-      'rgba(168,85,247,.5)','rgba(16,185,129,.4)',
-      'rgba(255,255,255,.4)','rgba(255,255,255,.15)'
-    ];
-    for (var i = 0; i < 180; i++) {
-      var p = document.createElement('div');
-      p.className = 'bos-login__particle';
-      p.style.left = Math.random() * 100 + '%';
-      p.style.top = Math.random() * 10 + '%';
-      var duration = 4 + Math.random() * 12;
-      p.style.animationDuration = duration + 's';
-      p.style.animationDelay = (Math.random() * duration) + 's';
-      var size = 1 + Math.random() * 3.5;
-      p.style.width = size + 'px';
-      p.style.height = size + 'px';
-      p.style.animationName = Math.random() < 0.35 ? 'bosFloatDrift' : 'bosFloat';
-      var color = colors[Math.floor(Math.random() * colors.length)];
-      p.style.background = color;
-      if (size > 2) p.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + color;
-      container.appendChild(p);
-    }
-  }
-  function bosAnimateCountersVisual() {
-    var counters = document.querySelectorAll('.bos-login__stat-num[data-count]');
-    if (!counters.length || reduceMotion()) {
-      counters.forEach(function (el) { el.textContent = el.getAttribute('data-count') + '+'; });
-      return;
-    }
-    setTimeout(function () {
-      counters.forEach(function (el) {
-        var target = parseInt(el.getAttribute('data-count'), 10) || 0;
-        var startTime = null;
-        function step(ts) {
-          if (!startTime) startTime = ts;
-          var progress = Math.min((ts - startTime) / 2000, 1);
-          var eased = 1 - Math.pow(1 - progress, 3);
-          el.textContent = Math.floor(eased * target);
-          if (progress < 1) requestAnimationFrame(step);
-          else el.textContent = target + '+';
-        }
-        requestAnimationFrame(step);
-      });
-    }, 400);
-  }
+  /* Atmosphere (NASA bg + falling moons/planets/dots) is owned by PhpBosLoginAtmosphere. */
   function wireRoleTabs() {
     var tabProvider = document.getElementById('bosTabProvider');
     var tabErp = document.getElementById('bosTabErp');
@@ -302,22 +249,11 @@
       formErp.classList.add('bos-login__form-wrap--active');
       formProvider.classList.remove('bos-login__form-wrap--active');
     });
-    // Prefer ERP tab when returning from an ERP login error
     if (document.body && document.body.getAttribute('data-bos-login-role') === 'erp') {
       tabErp.click();
     }
   }
-  function forceBodyClass() {
-    var meta = document.querySelector('meta[name="epc-body-class"]');
-    var cls = meta ? meta.getAttribute('content') : '';
-    if (cls) document.body.className = cls;
-  }
-  function boot() {
-    forceBodyClass();
-    bosCreateParticlesVisual();
-    bosAnimateCountersVisual();
-    wireRoleTabs();
-  }
+  function boot() { wireRoleTabs(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
