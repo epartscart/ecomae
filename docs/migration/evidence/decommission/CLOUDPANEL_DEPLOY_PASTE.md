@@ -2,6 +2,29 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
+## 0☠) STOP PRODUCT PHP NOW — `/cp/control` still old Homer login
+
+**Symptom:** `https://www.epartscart.com/cp/control` shows the old PHP login (`bootstrap_admin` / Homer) even after archive pause.
+
+**Why:** `TemporarilyDeactivatePhpServing` only pauses `/php-reference/*` and `/en/*`. Product `/cp/control` was still answered by the PHP docroot because nginx never hard-wired it to `:5100`.
+
+**Do this once as root** — wait for `RESULT=PASS`. Then hard-refresh / new tab:
+
+```bash
+ECOMAE_BRANCH=cursor/stop-product-php-now-7b3b \
+ECOMAE_CONFIRM_STOP_PRODUCT_PHP_NOW=YES \
+ECOMAE_ALSO_FORCE_LIVE=YES \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/stop-product-php-now-7b3b/scripts/cloudpanel_STOP_PRODUCT_PHP_NOW.sh)"
+```
+
+**Expect after PASS:**
+- `/cp/control` → platform login gate or Command Centre (NOT `bootstrap_admin`)
+- `/cp`, `/cp/login`, `/`, `/storefront/*`, `/erp` → `:5100`
+- `/php-reference`, `/en/` → `503` (archive paused)
+- PHP-FPM stays up for chrome assets (`/epc-static.php`); product routes do not use it
+
+**Browser test:** close the old tab, open `https://www.epartscart.com/cp/login` then `/cp` and `/cp/control`. Do **not** use `/php-reference/cp`.
+
 ## 0🚨) CLICK → `/storefront/search-app` → warm-up → back to `/` (do immediately)
 
 **What you see:** any menu click opens `/storefront/search-app`, shows “Loading your store…”, then returns to the homepage.
