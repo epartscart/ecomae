@@ -199,15 +199,85 @@ install_one() {
 
   # Reload after EACH successful host so a later host failure cannot leave www dirty/unreloaded.
   if ! nginx -t 2>/tmp/epc-classic-entry-nginx-t.err; then
-    printf 'ERROR: nginx -t failed — restoring %s\n' "$bak" >&2
-    printf 'ERROR: nginx said:\n' >&2
-    grep -E 'emerg|error' /tmp/epc-classic-entry-nginx-t.err >&2 || cat /tmp/epc-classic-entry-nginx-t.err >&2
-    cp -a "$bak" "$conf"
-    nginx -t
-    return 1
+    printf 'WARN: nginx -t failed after install — attempting duplicate-location repair\n' >&2
+    grep -E 'emerg|error' /tmp/epc-classic-entry-nginx-t.err >&2 || true
+    epc_repair_duplicate_locations "$conf" || true
+    if ! nginx -t 2>/tmp/epc-classic-entry-nginx-t.err; then
+      printf 'ERROR: nginx -t STILL failing — restoring %s\n' "$bak" >&2
+      printf 'ERROR: nginx said:\n' >&2
+      grep -E 'emerg|error' /tmp/epc-classic-entry-nginx-t.err >&2 || cat /tmp/epc-classic-entry-nginx-t.err >&2
+      cp -a "$bak" "$conf"
+      nginx -t
+      return 1
+    fi
+    printf 'OK repair fixed nginx -t (duplicate locations deduped)\n'
   fi
   systemctl reload nginx
   printf 'OK installed + reloaded classic-entry on %s (host=%s)\n' "$conf" "$target_host"
+}
+
+# Drop LATER duplicates of the same exact/^~/plain location selector inside each
+# server{} (earlier packs left duplicates; nginx -t fails and the host rolls back).
+epc_repair_duplicate_locations() {
+  local conf="$1"
+  python3 - "$conf" <<'PY'
+import re, shutil, sys, time
+from pathlib import Path
+
+conf = Path(sys.argv[1])
+text = conf.read_text(errors='ignore')
+
+def find_blocks(t, pat):
+    out = []
+    for m in pat.finditer(t):
+        i = t.find('{', m.start())
+        if i < 0:
+            continue
+        depth, j = 0, i
+        while j < len(t):
+            if t[j] == '{':
+                depth += 1
+            elif t[j] == '}':
+                depth -= 1
+                if depth == 0:
+                    out.append((m.start(), j + 1))
+                    break
+            j += 1
+    return out
+
+SERVER = re.compile(r'(?m)^[ \t]*server\s*\{')
+LOC = re.compile(r'(?m)^[ \t]*location\s+(=\s+\S+|\^~\s+\S+|/\S*|/)\s*\{')
+
+orig = text
+for s_start, s_end in reversed(find_blocks(text, SERVER)):
+    body = text[s_start:s_end]
+    seen, drops = set(), []
+    for l_start, l_end in find_blocks(body, LOC):
+        m = LOC.match(body, l_start)
+        if not m:
+            continue
+        key = ' '.join(m.group(1).split())
+        if key in seen:
+            drops.append((l_start, l_end))
+        else:
+            seen.add(key)
+    for l_start, l_end in reversed(drops):
+        m = LOC.match(body, l_start)
+        print(f'repair: dropping duplicate location {" ".join(m.group(1).split())}')
+        body = body[:l_start] + body[l_end:]
+    text = text[:s_start] + body + text[s_end:]
+
+if text != orig:
+    try:
+        bak_name = conf.name + '.pre-dedupe.' + time.strftime('%Y%m%d%H%M%S')
+        shutil.copy2(conf, Path('/root') / bak_name)
+    except OSError:
+        pass  # backup is best-effort; the install already made one in /root
+    conf.write_text(text)
+    print(f'repaired {conf}')
+else:
+    print('repair: no duplicate locations found')
+PY
 }
 
 WWW_EXAMPLE="$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf"
