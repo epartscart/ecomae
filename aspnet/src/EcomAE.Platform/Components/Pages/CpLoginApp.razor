@@ -2,122 +2,166 @@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject NavigationManager Nav
 
 <PageTitle>Control Panel — ECOM AE</PageTitle>
+@* Same shell as /bos/login (bos/epc_bos_shell.css). Only particle/glow accent differs (crimson). *@
 <PhpSurfaceHead Surface="cp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="cp" LoginChrome="true" />
-<link rel="stylesheet" href="/platform-assets/eparts-animated-logo.css" />
-<link rel="stylesheet" href="/content/general_pages/epc_enterprise_login_3d.css?v=20260806b" />
 
-@*
-  BOS-parity login structure (split hero + glass panel + 3D atmosphere).
-  CP identity = crimson CONTROL — distinct from black/cyan BOS and teal ERP.
-  Markers: epc-cp-login-hero, #epcCpParticles, .ech-hub
-*@
+<style>
+    html:has(.bos-login),
+    body:has(.bos-login),
+    body.bos-body--login {
+        background: linear-gradient(135deg, #020617 0%, #0c1222 30%, #091428 60%, #050d1a 100%) !important;
+        color: #e2e8f0 !important;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    .epc-login-bos.bos-login {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        position: relative;
+        background: transparent;
+        color: #e2e8f0;
+    }
+    .bos-login__error.is-visible {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+</style>
 
-<div class="splash"> <div class="color-line"></div><div class="splash-title"><h1>Control Panel</h1><p>Loading…</p><div class="spinner"> <div class="rect1"></div> <div class="rect2"></div> <div class="rect3"></div> <div class="rect4"></div> <div class="rect5"></div> </div> </div> </div>
-<script>(function(){function epcHideCpSplash(){var s=document.querySelector('.splash');if(s){s.style.display='none';}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',epcHideCpSplash);}else{epcHideCpSplash();}window.addEventListener('load',epcHideCpSplash);setTimeout(epcHideCpSplash,3500);})();</script>
+@* Markers: epc-cp-login-hero, #epcCpParticles — presentation probes *@
+<div class="epc-login-bos bos-login bos-login--cp epc-cp-login-hero">
+    <PhpBosLoginAtmosphere ParticlesId="epcCpParticles"
+                           ParticleColors="@(new[] {
+                               "rgba(251,113,133,.8)", "rgba(225,29,72,.55)", "rgba(248,113,113,.45)",
+                               "rgba(255,255,255,.35)", "rgba(254,205,211,.4)", "rgba(190,18,60,.5)"
+                           })" />
 
-<div class="eel-login eel-login--cp eel-root blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super">
-    <EnterpriseLogin3dScene ParticlesId="epcCpParticles"
-                            ParticlesExtraClass="epc-cp-particles"
-                            ParticleCount="56"
-                            ParticleColors="@(new[] { "rgba(251,113,133,.6)", "rgba(225,29,72,.45)", "rgba(255,255,255,.28)", "rgba(248,113,113,.35)" })" />
-
-    <div class="eel-login__hero">
-        <div class="eel-login__hero-content">
-            <div class="eel-login__brand-mark">
-                <div class="eel-login__brand-icon">
-                    <div class="eel-login__brand-icon-inner"><i class="fa fa-cogs" aria-hidden="true"></i></div>
-                    <div class="eel-login__brand-ring"></div>
-                    <div class="eel-login__brand-ring eel-login__brand-ring--2"></div>
+    <div class="bos-login__hero">
+        <div class="bos-login__hero-content">
+            <div class="bos-login__brand-mark">
+                <div class="bos-login__brand-icon">
+                    <div class="bos-login__brand-icon-inner">
+                        <i class="fa fa-cogs"></i>
+                    </div>
+                    <div class="bos-login__brand-ring"></div>
+                    <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
                 </div>
-                <span class="eel-login__env">Environment · Control Panel</span>
-                <h1 class="eel-login__brand-title">CONTROL</h1>
-                <p class="eel-login__brand-tagline">Super CP — operator control plane</p>
+                <h1 class="bos-login__brand-title">CP</h1>
+                <p class="bos-login__brand-tagline">Control Panel · Operator Console</p>
             </div>
 
-            <div class="eel-login__capabilities">
-                <div class="eel-login__cap-item eel-login__cap-item--1">
-                    <div class="eel-login__cap-icon"><i class="fa fa-globe"></i></div>
-                    <div class="eel-login__cap-text">
+            <div class="bos-login__capabilities">
+                <div class="bos-login__cap-item bos-login__cap-item--1">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--erp"><i class="fa fa-globe"></i></div>
+                    <div class="bos-login__cap-text">
                         <strong>Fleet command</strong>
                         <span>Commerce, ERP-only &amp; demo tenants</span>
                     </div>
                 </div>
-                <div class="eel-login__cap-item eel-login__cap-item--2">
-                    <div class="eel-login__cap-icon"><i class="fa fa-rocket"></i></div>
-                    <div class="eel-login__cap-text">
+                <div class="bos-login__cap-item bos-login__cap-item--2">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--ecom"><i class="fa fa-rocket"></i></div>
+                    <div class="bos-login__cap-text">
                         <strong>Tenant onboarding</strong>
                         <span>Templates, packs &amp; provisioning</span>
                     </div>
                 </div>
-                <div class="eel-login__cap-item eel-login__cap-item--3">
-                    <div class="eel-login__cap-icon"><i class="fa fa-shield"></i></div>
-                    <div class="eel-login__cap-text">
+                <div class="bos-login__cap-item bos-login__cap-item--3">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--compliance"><i class="fa fa-shield"></i></div>
+                    <div class="bos-login__cap-text">
                         <strong>Platform governance</strong>
                         <span>Health, failover &amp; isolation</span>
                     </div>
                 </div>
-                <div class="eel-login__cap-item eel-login__cap-item--4">
-                    <div class="eel-login__cap-icon"><i class="fa fa-th-large"></i></div>
-                    <div class="eel-login__cap-text">
+                <div class="bos-login__cap-item bos-login__cap-item--4">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--ai"><i class="fa fa-th-large"></i></div>
+                    <div class="bos-login__cap-text">
                         <strong>@PhpModuleCatalog.CpBrochureFeatureCount CP features</strong>
                         <span>Catalogue of operator modules</span>
                     </div>
                 </div>
             </div>
 
-            <div class="eel-login__stats-bar" aria-label="Control plane stats">
-                <div class="eel-login__stat"><span class="eel-login__stat-num">CP</span><span class="eel-login__stat-label">Surface</span></div>
-                <div class="eel-login__stat-divider"></div>
-                <div class="eel-login__stat"><span class="eel-login__stat-num">Red</span><span class="eel-login__stat-label">BOC chrome</span></div>
-                <div class="eel-login__stat-divider"></div>
-                <div class="eel-login__stat"><span class="eel-login__stat-num">/cp</span><span class="eel-login__stat-label">Entry</span></div>
-            </div>
-
-            <div class="eel-login__hub">
-                <PhpEcomaeHubLogo Variant="login-panel" AriaLabel="ECOM AE hub" OrbitDuration="28s" />
+            <div class="bos-login__stats-bar">
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="225">0</span>
+                    <span class="bos-login__stat-label">Tenants</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="11">0</span>
+                    <span class="bos-login__stat-label">Industries</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="95">0</span>
+                    <span class="bos-login__stat-label">ERP Modules</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="15">0</span>
+                    <span class="bos-login__stat-label">Countries</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="eel-login__panel" aria-label="Control panel sign-in">
-        <div class="eel-login__panel-inner">
-            <div class="eel-login__surface-tabs" aria-label="Choose environment">
-                <a class="eel-login__surface-tab is-active" href="/cp/login">CP</a>
-                <a class="eel-login__surface-tab" href="/erp/login">ERP</a>
-                <a class="eel-login__surface-tab" href="/bos/login">BOS</a>
-            </div>
-
-            <div class="eel-login__form-header">
-                <h2>Sign in to Control</h2>
-                <p>Crimson CONTROL environment — operator console for the whole fleet. Not BOS, not ERP.</p>
-            </div>
-
-            <div class="login-container">
-                <div class="hpanel">
-                    <div class="panel-body">
-                        <LegacyAdminLoginForm Surface="LegacyLoginSurface.ControlPanel"
-                                              SurfaceLabel="CP"
-                                              PhpLoginHref="/php-reference/cp"
-                                              ErrorMessage="@_error"
-                                              SubmitLabel="Enter Control Panel"
-                                              Accent="blue" />
-                        <ul class="eel-login__features epc-cp-login-features epc-cp-login-features--card">
-                            <li><i class="fa fa-lock" aria-hidden="true"></i><span>Role-scoped sessions · audit-ready</span></li>
-                            <li><i class="fa fa-sitemap" aria-hidden="true"></i><span>Tenant CP switch without mixing DBs</span></li>
-                            <li><i class="fa fa-server" aria-hidden="true"></i><span>Jump to Super BOS from the console</span></li>
-                        </ul>
+    <div class="bos-login__panel">
+        <div class="bos-login__panel-inner">
+            <div class="bos-login__form-wrap bos-login__form-wrap--active">
+                <div class="bos-login__form-header">
+                    <h2>Operator Access</h2>
+                    <p>Sign in to the control panel for this tenant</p>
+                </div>
+                <form class="bos-login__form" id="cpLoginForm" method="post" action="@EcomAeRoutes.ControlPanelLogin">
+                    <input type="hidden" name="surface" value="cp" />
+                    <input type="hidden" name="redirect" value="/cp" />
+                    <input type="hidden" name="contact_type" value="email" />
+                    <div class="bos-login__field">
+                        <label for="cpEmail"><i class="fa fa-envelope-o"></i> Email</label>
+                        <input type="email" id="cpEmail" name="contact" required autocomplete="username" placeholder="operator@ecomae.com" />
+                        <div class="bos-login__field-line"></div>
                     </div>
+                    <div class="bos-login__field">
+                        <label for="cpPassword"><i class="fa fa-lock"></i> Password</label>
+                        <input type="password" id="cpPassword" name="password" required autocomplete="current-password" placeholder="Enter secure password" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div class="bos-login__error is-visible" id="cpLoginError">
+                            <i class="fa fa-exclamation-circle"></i> @_error
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="bos-login__error" id="cpLoginError"></div>
+                    }
+                    <button type="submit" class="bos-login__btn">
+                        <span class="bos-login__btn-text"><i class="fa fa-sign-in"></i> Sign In to Control Panel</span>
+                        <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Authenticating...</span>
+                    </button>
+                </form>
+                <div class="bos-login__secure-badge">
+                    <i class="fa fa-lock"></i> 256-bit encrypted &middot; Session isolated &middot; Audit logged
                 </div>
             </div>
 
-            <div class="eel-login__secure login-footer">
-                <i class="fa fa-lock"></i> Encrypted session ·
-                <a href="/erp/login">ERP Finance</a> ·
-                <a href="/bos/login">Super BOS</a>
+            <div class="bos-login__footer">
+                <div class="bos-login__footer-brand">
+                    <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <span>Control Panel</span>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <a href="/erp/login">ERP</a>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <a href="/bos/login">BOS</a>
+                </div>
             </div>
         </div>
     </div>

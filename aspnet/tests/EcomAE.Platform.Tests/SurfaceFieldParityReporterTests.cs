@@ -96,19 +96,20 @@ public sealed class SurfaceFieldParityReporterTests
         Assert.Contains(LegacyPresentationAssets.StorefrontStylesheets, href => href.Contains("epc_automotive_spareparts.css", StringComparison.Ordinal));
         Assert.Contains("nero", LegacyPresentationAssets.LegacyChromeSourceFor("storefront"), StringComparison.OrdinalIgnoreCase);
         Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("epc_ecomae_platform_marketing_css.php", StringComparison.Ordinal));
-        Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("epc_ecomae_hub_logo_css.php", StringComparison.Ordinal));
-        Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("epc_enterprise_login_3d.css", StringComparison.Ordinal));
-        Assert.Contains(LegacyPresentationAssets.ErpLoginStylesheets, href => href.Contains("epc_enterprise_login_3d.css", StringComparison.Ordinal));
-        Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("cp"), m => m.Contains("eel-root", StringComparison.Ordinal));
-        Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("erp"), m => m.Contains("eel-root", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("epc_bos_shell.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("epc_bos_login_surface_accents.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.ErpLoginStylesheets, href => href.Contains("epc_bos_shell.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("cp"), m => m.Contains("bos-login__bg", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("erp"), m => m.Contains("bos-login__bg", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.BosLoginScripts, src => src.Contains("epc_bos_shell.js", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("storefront"), m => m.Contains("epc-engine-animation", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("bos"), m => m.Contains("bosParticles", StringComparison.Ordinal));
-        Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("cp"), m => m.Contains("ech-hub", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("cp"), m => m.Contains("epcCpParticles", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("marketing"), m => m.Contains("epm-hub", StringComparison.Ordinal));
+        Assert.Contains("bos-body--login", LegacyPresentationAssets.LoginBodyClassFor("erp"));
         Assert.Contains("epc-erp-standalone", LegacyPresentationAssets.LoginBodyClassFor("erp"));
         Assert.Contains("epc-erp-cp-shell", LegacyPresentationAssets.LoginBodyClassFor("erp"));
-        Assert.Contains(LegacyPresentationAssets.ErpLoginStylesheets, href => href.Contains("epc_erp_portal_inline_css_serve", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.ErpLoginStylesheets, href => href.Contains("epc_bos_login_surface_accents.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("erp"), m => m.Contains("erpPortalParticles", StringComparison.Ordinal));
     }
 

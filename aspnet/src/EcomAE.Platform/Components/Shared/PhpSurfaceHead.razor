@@ -150,6 +150,26 @@
     {
         get
         {
+            // CP/ERP login pages must match /bos/login — lean BOS shell only (no desktop chrome CSS).
+            if (IncludeLoginCss
+                && (Surface.Equals("cp", StringComparison.OrdinalIgnoreCase)
+                    || Surface.Equals("erp", StringComparison.OrdinalIgnoreCase)))
+            {
+                var lean = new List<string>(LegacyPresentationAssets.LoginStylesheets);
+                if (Surface.Equals("erp", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var href in LegacyPresentationAssets.ErpLoginStylesheets)
+                    {
+                        if (!lean.Contains(href, StringComparer.OrdinalIgnoreCase))
+                        {
+                            lean.Add(href);
+                        }
+                    }
+                }
+
+                return lean;
+            }
+
             var list = new List<string>(LegacyPresentationAssets.StylesheetsFor(Surface));
             if (IncludeLoginCss)
             {
@@ -158,17 +178,6 @@
                     if (!list.Contains(href, StringComparer.OrdinalIgnoreCase))
                     {
                         list.Add(href);
-                    }
-                }
-
-                if (Surface.Equals("erp", StringComparison.OrdinalIgnoreCase))
-                {
-                    foreach (var href in LegacyPresentationAssets.ErpLoginStylesheets)
-                    {
-                        if (!list.Contains(href, StringComparer.OrdinalIgnoreCase))
-                        {
-                            list.Add(href);
-                        }
                     }
                 }
             }

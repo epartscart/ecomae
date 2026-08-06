@@ -22,7 +22,8 @@ public sealed class LegacyPresentationAssetsLookParityTests
         Assert.Contains("bos-body--topnav", LegacyPresentationAssets.BodyClassFor("bos"));
         Assert.Contains("epc-erp-standalone", LegacyPresentationAssets.BodyClassFor("erp"));
         Assert.Contains("bos-body--login", LegacyPresentationAssets.LoginBodyClassFor("bos"));
-        Assert.Contains("epc-cp--blue-theme", LegacyPresentationAssets.LoginBodyClassFor("cp"));
+        Assert.Contains("bos-body--login", LegacyPresentationAssets.LoginBodyClassFor("cp"));
+        Assert.Contains("epc-cp-login-hero", LegacyPresentationAssets.LoginBodyClassFor("cp"));
         Assert.DoesNotContain("fixed-sidebar", LegacyPresentationAssets.LoginBodyClassFor("cp"));
     }
 
