@@ -2,6 +2,21 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
+## 0◆) TEMP ASP.NET-ONLY DEEP TEST — pause PHP HTTP (incl. `/php-reference`)
+
+Protocol: **no new PHP feature work**. Pause PHP HTTP serving so ASP.NET Core can be tested in detail. Files stay on disk (`KeepPhpProjectAvailable=true`). `cutoverAllowed` / `readyForPhpRemoval` stay **false**.
+
+```bash
+# Prefer branch until merged to main:
+ECOMAE_BRANCH=cursor/temp-deactivate-php-serving-7b3b \
+ECOMAE_CONFIRM_TEMP_DEACTIVATE_PHP_SERVING=YES \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/temp-deactivate-php-serving-7b3b/scripts/cloudpanel_temporarily_deactivate_php_serving.sh)"
+# Expect RESULT=PASS — /php-reference and /en/ → 503; product / /cp /erp stay ASP.NET
+# Board: curl -sS https://www.epartscart.com/migration/php-reference-mode | jq '{status,mode,temporarilyDeactivatePhpServing,cutoverAllowed,readyForPhpRemoval,keepPhpProjectAvailable}'
+# Restore when compare needed again:
+# ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES bash scripts/cloudpanel_restore_php_reference_serving.sh
+```
+
 ## 0★) STOREFRONT `/` STALE AFTER #877+ — FORCE LIVE (do this first)
 
 Public `https://www.epartscart.com/` is nginx → `:5100/storefront/app`. PHP sync / marker updates are **not** enough. Until the hardened script prints `RESULT=PASS`, home stays on the old binary (`action="/storefront/search-app"`).

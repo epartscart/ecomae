@@ -6,6 +6,7 @@ public sealed record PhpReferenceModeReport(
     bool Enabled,
     bool ArchitectureConfirmed,
     bool KeepPhpProjectAvailable,
+    bool TemporarilyDeactivatePhpServing,
     bool CutoverAllowed,
     bool ReadyForPhpRemoval,
     bool RequirePhpFallback,

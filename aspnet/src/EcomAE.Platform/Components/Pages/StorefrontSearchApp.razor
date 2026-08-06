@@ -46,7 +46,7 @@
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
         <h1>@_heroTitle</h1>
         <p>@_heroSubtitle</p>
-        <form class="epc-sf-search-form" method="get" action="@(string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase) ? StorefrontPhpCanonical.WarehouseSearch : StorefrontPhpCanonical.PartSearch)">
+        <form class="epc-sf-search-form" method="get" action="@(string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase) ? StorefrontSurfaceLinks.WarehouseSearch : StorefrontSurfaceLinks.PartSearch)">
             @if (string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase))
             {
                 <input type="search" name="q" value="@_attrQuery" placeholder="Engine, size, country, cross ref…" aria-label="Warehouse / more info search" />
@@ -58,9 +58,9 @@
             <button type="submit">Search</button>
         </form>
         <div class="epc-sf-search-cta">
-            <a href="@StorefrontPhpCanonical.WarehouseSearch">Warehouse / more info</a>
-            <a href="@StorefrontPhpCanonical.LaximoVin">VIN search</a>
-            <a href="@StorefrontPhpCanonical.VehicleCatalog">Vehicle catalog</a>
+            <a href="@StorefrontSurfaceLinks.WarehouseSearch">Warehouse / more info</a>
+            <a href="@StorefrontSurfaceLinks.LaximoVin">VIN search</a>
+            <a href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
             <a href="/">Storefront home</a>
         </div>
     </section>

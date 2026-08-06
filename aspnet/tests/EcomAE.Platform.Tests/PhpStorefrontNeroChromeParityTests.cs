@@ -6,6 +6,7 @@ namespace EcomAE.Platform.Tests;
 /// <summary>
 /// Guards epartscart storefront chrome same-to-same vs PHP templates/nero/desktop.php.
 /// </summary>
+[Collection(PreferAspNetAppsCollection.Name)]
 public sealed class PhpStorefrontNeroChromeParityTests
 {
     [Fact]
@@ -80,6 +81,7 @@ public sealed class PhpStorefrontNeroChromeParityTests
     [Fact]
     public void WarehouseAndCatalogPathsMapToPhpCanonicalEnPages()
     {
+        StorefrontSurfaceLinks.PreferAspNetApps = false;
         // Interim: live tenant /storefront/* tree 404s — keep PHP /en/… full pages (warehouse, UMAPI, catalogs).
         Assert.Equal("/en/shop/warehouse-search", PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/warehouse-search"));
         Assert.Equal("/en/katalog-laximo", PhpSurfaceLinkMap.AspNetPrimaryHref("/katalog-laximo"));
@@ -95,10 +97,10 @@ public sealed class PhpStorefrontNeroChromeParityTests
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor");
         var text = File.ReadAllText(path);
-        Assert.Contains("StorefrontPhpCanonical.WarehouseSearch", text, StringComparison.Ordinal);
-        Assert.Contains("StorefrontPhpCanonical.PartSearch", text, StringComparison.Ordinal);
-        Assert.Contains("StorefrontPhpCanonical.UmapiCatalog", text, StringComparison.Ordinal);
-        Assert.Contains("StorefrontPhpCanonical.ProductFamily", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontSurfaceLinks.WarehouseSearch", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontSurfaceLinks.PartSearch", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontSurfaceLinks.UmapiCatalog", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontSurfaceLinks.ProductFamily", text, StringComparison.Ordinal);
         Assert.DoesNotContain("action=\"/storefront/search-app\"", text, StringComparison.Ordinal);
         // Same field vocabulary as PHP templates/nero warehouse-search attr form.
         Assert.Contains("value=\"engine_code\"", text, StringComparison.Ordinal);
@@ -107,8 +109,8 @@ public sealed class PhpStorefrontNeroChromeParityTests
         Assert.Contains("name=\"task\" value=\"vehicles\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"mode\" value=\"attr\"", text, StringComparison.Ordinal);
         // Top nav: Original catalog / Demand intelligence are top-level (PHP nero), not under Selection catalogs.
-        Assert.Contains("StorefrontPhpCanonical.OriginalCatalog", text, StringComparison.Ordinal);
-        Assert.Contains("StorefrontPhpCanonical.DemandIntelligence", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontSurfaceLinks.OriginalCatalog", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontSurfaceLinks.DemandIntelligence", text, StringComparison.Ordinal);
     }
 
     private static string Find(string relative)

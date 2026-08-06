@@ -11,8 +11,10 @@ Locks (do not invent green):
 | `RequirePhpFallback` | `true` until dual-sample-green per exact route |
 | `aspNetInteractiveComplete` | `0` until human module-function PASS |
 | `KeepPhpProjectAvailable` | `true` |
-| Mode | `aspnet-primary-php-reference` |
+| `TemporarilyDeactivatePhpServing` | `false` by default; operator may set `true` to pause PHP HTTP for ASP.NET deep testing (files kept; locks stay false) |
+| Mode | `aspnet-primary-php-reference` (or `aspnet-only-deep-test-php-serving-off` while paused) |
 | Product `/bos` | Super-CP only (`www.ecomae.com` / `ecomae.com` / `cp.ecomae.com`); tenants **404** |
+| PHP development | **Stopped** — no new PHP business features; ASP.NET Core + related tools only |
 
 ## Runtime map
 
@@ -58,3 +60,5 @@ Writes: PHP authoritative until dual-sample + module-function PASS
 - Product: `https://www.epartscart.com/` `/cp` `/erp` (ASP.NET)
 - PHP reference: `https://www.epartscart.com/php-reference/storefront|cp|erp`
 - Board: `GET /migration/php-reference-mode` · `/migration/compare`
+- Temp ASP.NET-only deep test (pause PHP HTTP, keep files):
+  `ECOMAE_CONFIRM_TEMP_DEACTIVATE_PHP_SERVING=YES bash scripts/cloudpanel_temporarily_deactivate_php_serving.sh`

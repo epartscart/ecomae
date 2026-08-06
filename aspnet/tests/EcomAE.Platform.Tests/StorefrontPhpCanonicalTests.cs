@@ -25,7 +25,7 @@ public sealed class StorefrontPhpCanonicalTests
     {
         var path = FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor");
         var text = File.ReadAllText(path);
-        Assert.Contains("StorefrontPhpCanonical.PartSearch", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontSurfaceLinks.PartSearch", text, StringComparison.Ordinal);
         Assert.DoesNotContain("action=\"/storefront/search-app\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("action=\"/storefront/search-app?", text, StringComparison.Ordinal);
     }

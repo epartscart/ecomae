@@ -36,6 +36,7 @@ public sealed class PhpReferenceModeReporterTests
         Assert.True(report.Enabled);
         Assert.True(report.ArchitectureConfirmed);
         Assert.True(report.KeepPhpProjectAvailable);
+        Assert.False(report.TemporarilyDeactivatePhpServing);
         Assert.False(report.CutoverAllowed);
         Assert.False(report.ReadyForPhpRemoval);
         Assert.True(report.RequirePhpFallback);
@@ -48,8 +49,38 @@ public sealed class PhpReferenceModeReporterTests
         Assert.Contains(report.ComparePairs, p => p.Area == "erp" && p.AspNetUrl.EndsWith("/erp", StringComparison.Ordinal));
         Assert.Contains(report.HardLocks, lockLine => lockLine.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal)
             && lockLine.Contains("KeepPhpProjectAvailable", StringComparison.Ordinal));
+        Assert.Contains(report.HardLocks, lockLine => lockLine.Contains("TemporarilyDeactivatePhpServing", StringComparison.Ordinal));
         Assert.Contains(report.OperatorSteps, step => step.Contains("--keep-php-fallback", StringComparison.Ordinal));
+        Assert.Contains(report.OperatorSteps, step => step.Contains("TEMP_DEACTIVATE_PHP_SERVING", StringComparison.Ordinal));
         Assert.Equal("/migration/php-reference-mode", EcomAeRoutes.MigrationPhpReferenceMode);
+    }
+
+    [Fact]
+    public void TemporarilyDeactivatePhpServingDoesNotFlipCutoverOrRemoval()
+    {
+        var reporter = new PhpReferenceModeReporter(
+            Options.Create(new PhpReferenceOptions
+            {
+                Enabled = true,
+                ArchitectureConfirmed = true,
+                KeepPhpProjectAvailable = true,
+                TemporarilyDeactivatePhpServing = true,
+            }),
+            Options.Create(new MigrationRouteCutoverOptions
+            {
+                RequirePhpFallback = true,
+                StorefrontAspNetEnabled = true,
+                AdminAspNetEnabled = true
+            }));
+
+        var report = reporter.BuildReport();
+        Assert.Equal("aspnet-only-deep-test-php-serving-deactivated", report.Status);
+        Assert.Equal("aspnet-only-deep-test-php-serving-off", report.Mode);
+        Assert.True(report.TemporarilyDeactivatePhpServing);
+        Assert.True(report.KeepPhpProjectAvailable);
+        Assert.False(report.CutoverAllowed);
+        Assert.False(report.ReadyForPhpRemoval);
+        Assert.True(report.RequirePhpFallback);
     }
 
     [Fact]
