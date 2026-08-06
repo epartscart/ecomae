@@ -1,0 +1,677 @@
+/* =============================================================================
+   ECOM AE — Enterprise login 3D stage (CP + ERP)
+   Premium full-bleed sign-in: perspective grid, floating slabs, orbit ring.
+   Variants: .eel-root--cp (BOS crimson) · .eel-root--erp (finance teal)
+   ============================================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap");
+
+/* Full-bleed ink underlay when login chrome is active */
+body.epc-cp-login,
+body.epc-erp-standalone {
+  margin: 0 !important;
+  background: #070b14 !important;
+  min-height: 100vh;
+}
+
+.eel-root {
+  --eel-font-display: "Syne", "Segoe UI", sans-serif;
+  --eel-font-body: "Figtree", "Segoe UI", sans-serif;
+  --eel-ink: #070b14;
+  --eel-ink-2: #0e1628;
+  --eel-panel: rgba(255, 255, 255, 0.94);
+  --eel-panel-border: rgba(255, 255, 255, 0.55);
+  --eel-text: #0f172a;
+  --eel-muted: #475569;
+  --eel-line: #e2e8f0;
+  --eel-accent: #c8102e;
+  --eel-accent-2: #f43f5e;
+  --eel-accent-soft: rgba(200, 16, 46, 0.12);
+  --eel-grid: rgba(255, 255, 255, 0.055);
+  --eel-fog-a: rgba(200, 16, 46, 0.22);
+  --eel-fog-b: rgba(14, 165, 233, 0.12);
+  --eel-slab: rgba(255, 255, 255, 0.06);
+  --eel-ring: rgba(200, 16, 46, 0.45);
+  --eel-depth: 1400px;
+  --eel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--eel-ink);
+  color: #e2e8f0;
+  font-family: var(--eel-font-body);
+  isolation: isolate;
+}
+
+.eel-root--erp {
+  --eel-accent: #0d9488;
+  --eel-accent-2: #38bdf8;
+  --eel-accent-soft: rgba(13, 148, 136, 0.14);
+  --eel-fog-a: rgba(13, 148, 136, 0.2);
+  --eel-fog-b: rgba(56, 189, 248, 0.16);
+  --eel-ring: rgba(56, 189, 248, 0.42);
+}
+
+.eel-root *,
+.eel-root *::before,
+.eel-root *::after {
+  box-sizing: border-box;
+}
+
+/* Hide legacy splash / color-line when present */
+.eel-root > .splash,
+.eel-root > .color-line {
+  display: none !important;
+}
+
+/* ---- 3D scene ----------------------------------------------------------- */
+.eel-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  perspective: var(--eel-depth);
+  background:
+    radial-gradient(ellipse 70% 55% at 12% 18%, var(--eel-fog-a), transparent 58%),
+    radial-gradient(ellipse 55% 50% at 88% 78%, var(--eel-fog-b), transparent 55%),
+    radial-gradient(ellipse 40% 35% at 50% 45%, rgba(255, 255, 255, 0.04), transparent 60%),
+    linear-gradient(165deg, var(--eel-ink) 0%, var(--eel-ink-2) 48%, #101a2e 100%);
+}
+
+.eel-scene__horizon {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: -8%;
+  height: 62%;
+  transform-origin: 50% 100%;
+  transform: rotateX(58deg) translateZ(-80px);
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 40%, transparent 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 47px,
+      var(--eel-grid) 47px,
+      var(--eel-grid) 48px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 47px,
+      var(--eel-grid) 47px,
+      var(--eel-grid) 48px
+    );
+  mask-image: linear-gradient(180deg, transparent 0%, #000 35%, #000 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 35%, #000 85%, transparent 100%);
+  animation: eelGridDrift 28s linear infinite;
+}
+
+.eel-scene__slab {
+  position: absolute;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.09), var(--eel-slab)),
+    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.18));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 28px 60px rgba(0, 0, 0, 0.35);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.eel-scene__slab--a {
+  width: min(34vw, 320px);
+  height: min(34vw, 320px);
+  left: 6%;
+  top: 14%;
+  animation: eelFloatA 9s var(--eel-ease) infinite alternate;
+}
+
+.eel-scene__slab--b {
+  width: min(22vw, 210px);
+  height: min(22vw, 210px);
+  right: 8%;
+  top: 22%;
+  animation: eelFloatB 11s var(--eel-ease) infinite alternate;
+}
+
+.eel-scene__slab--c {
+  width: min(18vw, 160px);
+  height: min(18vw, 160px);
+  left: 18%;
+  bottom: 16%;
+  animation: eelFloatC 10s var(--eel-ease) infinite alternate;
+}
+
+.eel-scene__ring {
+  position: absolute;
+  width: min(52vw, 480px);
+  height: min(52vw, 480px);
+  left: 50%;
+  top: 42%;
+  margin: calc(min(52vw, 480px) / -2) 0 0 calc(min(52vw, 480px) / -2);
+  border-radius: 50%;
+  border: 1px solid var(--eel-ring);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 0 80px rgba(0, 0, 0, 0.25);
+  transform: rotateX(68deg) rotateZ(-12deg);
+  animation: eelRingSpin 36s linear infinite;
+}
+
+.eel-scene__ring::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.eel-scene__beam {
+  position: absolute;
+  width: 2px;
+  height: 42%;
+  left: 50%;
+  top: 8%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, var(--eel-accent-2), transparent);
+  opacity: 0.35;
+  filter: blur(0.5px);
+  animation: eelBeamPulse 4.5s ease-in-out infinite;
+}
+
+.eel-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.eel-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  animation-name: eelParticleRise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* ---- Stage / composition ------------------------------------------------ */
+.eel-stage {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 440px);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+  width: min(1120px, calc(100% - 2.5rem));
+  margin: 0 auto;
+  padding: clamp(1.25rem, 3vh, 2.5rem) 0;
+}
+
+.eel-brand {
+  color: #f8fafc;
+  transform-style: preserve-3d;
+  animation: eelEnterLeft 0.9s var(--eel-ease) both;
+}
+
+.eel-brand__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+
+.eel-brand__logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.eel-brand__wordmark {
+  font-family: var(--eel-font-display);
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.eel-brand__wordmark span {
+  color: var(--eel-accent-2);
+}
+
+.eel-brand__badge {
+  display: inline-block;
+  margin: 0 0 0.85rem;
+  padding: 0.28rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(248, 250, 252, 0.9);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.eel-brand__title {
+  margin: 0 0 0.75rem;
+  font-family: var(--eel-font-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 4.6vw, 3.35rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  max-width: 14ch;
+  text-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.eel-brand__sub {
+  margin: 0 0 1.5rem;
+  max-width: 36ch;
+  color: rgba(226, 232, 240, 0.82);
+  font-size: clamp(0.98rem, 1.5vw, 1.12rem);
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+.eel-brand__visual {
+  width: min(100%, 360px);
+  margin-top: 0.5rem;
+  transform: translateZ(40px) rotateY(-8deg) rotateX(4deg);
+  filter: drop-shadow(0 28px 48px rgba(0, 0, 0, 0.45));
+  animation: eelHubSway 8s var(--eel-ease) infinite alternate;
+}
+
+.eel-brand__caps {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1.35rem;
+  max-width: 34rem;
+}
+
+.eel-brand__cap {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding: 0.65rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
+}
+
+.eel-brand__cap i {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--eel-accent-soft);
+  color: var(--eel-accent-2);
+  font-size: 0.85rem;
+}
+
+.eel-brand__cap strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.eel-brand__cap span {
+  display: block;
+  font-size: 0.78rem;
+  color: rgba(226, 232, 240, 0.7);
+  line-height: 1.35;
+}
+
+/* ---- Glass login panel -------------------------------------------------- */
+.eel-panel {
+  position: relative;
+  animation: eelEnterRight 0.95s var(--eel-ease) 0.08s both;
+}
+
+.eel-panel__card {
+  position: relative;
+  padding: clamp(1.35rem, 2.4vw, 1.85rem);
+  border-radius: 22px;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+  border: 1px solid var(--eel-panel-border);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 30px 70px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  color: var(--eel-text);
+  transform: translateZ(24px);
+}
+
+.eel-panel__card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 40%, transparent 60%, var(--eel-accent-soft));
+  z-index: -1;
+  opacity: 0.9;
+}
+
+.eel-panel__head {
+  margin-bottom: 1.1rem;
+}
+
+.eel-panel__eyebrow {
+  display: inline-block;
+  margin: 0 0 0.45rem;
+  color: var(--eel-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.eel-panel__title {
+  margin: 0 0 0.35rem;
+  font-family: var(--eel-font-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0b1220;
+}
+
+.eel-panel__lead {
+  margin: 0;
+  color: var(--eel-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+/* Form controls inside enterprise panel */
+.eel-root .epc-login-field {
+  margin: 0 0 0.8rem;
+}
+
+.eel-root .epc-login-field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 650;
+  margin-bottom: 0.28rem;
+  color: #334155;
+}
+
+.eel-root .epc-login-field input,
+.eel-root .epc-login-field select {
+  width: 100%;
+  padding: 0.68rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #0f172a;
+  font-family: var(--eel-font-body);
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.eel-root .epc-login-field input:focus,
+.eel-root .epc-login-field select:focus {
+  outline: none;
+  border-color: var(--eel-accent);
+  box-shadow: 0 0 0 3px var(--eel-accent-soft);
+}
+
+.eel-root .epc-login-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.eel-root .epc-login-submit {
+  width: 100%;
+  margin-top: 0.45rem;
+  padding: 0.82rem 1rem;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #c8102e 0%, #9f1239 100%);
+  color: #fff;
+  font-family: var(--eel-font-display);
+  font-weight: 700;
+  font-size: 0.98rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(200, 16, 46, 0.35);
+  transition: transform 0.18s var(--eel-ease), box-shadow 0.18s;
+}
+
+.eel-root--erp .epc-login-submit {
+  background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
+  box-shadow: 0 12px 28px rgba(13, 148, 136, 0.35);
+}
+
+.eel-root .epc-login-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(200, 16, 46, 0.42);
+}
+
+.eel-root--erp .epc-login-submit:hover:not(:disabled) {
+  box-shadow: 0 16px 34px rgba(13, 148, 136, 0.42);
+}
+
+.eel-root .epc-login-error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+}
+
+.eel-root .epc-login-bridge-note {
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin: 0.9rem 0 0;
+}
+
+.eel-root .epc-login-shell {
+  color: var(--eel-accent);
+  font-weight: 700;
+}
+
+.eel-features {
+  list-style: none;
+  padding: 0;
+  margin: 1.05rem 0 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.eel-features li {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.eel-features li i {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--eel-accent-soft);
+  color: var(--eel-accent);
+  border-radius: 8px;
+  font-size: 0.82rem;
+}
+
+.eel-footer {
+  margin-top: 0.95rem;
+  text-align: center;
+  color: rgba(148, 163, 184, 0.95);
+  font-size: 0.75rem;
+}
+
+.eel-footer a {
+  color: rgba(226, 232, 240, 0.85);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.25);
+}
+
+.eel-footer a:hover {
+  color: #fff;
+}
+
+/* ERP marker compatibility: keep old class hooks, restyle inside eel */
+.eel-root .epc-erp-portal-bg,
+.eel-root .epc-erp-bos-hero {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Override heavy legacy portal chrome when eel is active */
+.eel-root.epc-login-erp .epc-erp-topbar,
+.eel-root.epc-login-erp .epc-erp-home-hero,
+.eel-root.epc-login-erp .epc-erp-home-grid,
+.eel-root.epc-login-erp .epc-erp-foot {
+  display: none !important;
+}
+
+.eel-root .login-container,
+.eel-root .hpanel,
+.eel-root .panel-body {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* ---- Motion ------------------------------------------------------------- */
+@keyframes eelGridDrift {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to { background-position: 0 0, 48px 0, 0 48px; }
+}
+
+@keyframes eelFloatA {
+  from { transform: translate3d(0, 0, 40px) rotateX(18deg) rotateY(-22deg); }
+  to { transform: translate3d(12px, -18px, 70px) rotateX(24deg) rotateY(-16deg); }
+}
+
+@keyframes eelFloatB {
+  from { transform: translate3d(0, 0, 20px) rotateX(12deg) rotateY(28deg); }
+  to { transform: translate3d(-14px, 16px, 50px) rotateX(18deg) rotateY(20deg); }
+}
+
+@keyframes eelFloatC {
+  from { transform: translate3d(0, 0, 10px) rotateX(28deg) rotateY(10deg); }
+  to { transform: translate3d(10px, -12px, 36px) rotateX(34deg) rotateY(4deg); }
+}
+
+@keyframes eelRingSpin {
+  from { transform: rotateX(68deg) rotateZ(-12deg); }
+  to { transform: rotateX(68deg) rotateZ(348deg); }
+}
+
+@keyframes eelBeamPulse {
+  0%, 100% { opacity: 0.18; transform: translateX(-50%) scaleY(0.92); }
+  50% { opacity: 0.45; transform: translateX(-50%) scaleY(1.05); }
+}
+
+@keyframes eelParticleRise {
+  from { transform: translateY(0); opacity: 0; }
+  12% { opacity: 0.7; }
+  to { transform: translateY(-110vh); opacity: 0; }
+}
+
+@keyframes eelEnterLeft {
+  from { opacity: 0; transform: translate3d(-28px, 18px, -40px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes eelEnterRight {
+  from { opacity: 0; transform: translate3d(28px, 22px, -30px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes eelHubSway {
+  from { transform: translateZ(40px) rotateY(-8deg) rotateX(4deg); }
+  to { transform: translateZ(56px) rotateY(-2deg) rotateX(1deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eel-scene__horizon,
+  .eel-scene__slab,
+  .eel-scene__ring,
+  .eel-scene__beam,
+  .eel-brand__visual,
+  .eel-brand,
+  .eel-panel,
+  .eel-particle {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 920px) {
+  .eel-stage {
+    grid-template-columns: 1fr;
+    width: min(480px, calc(100% - 1.5rem));
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+    align-content: start;
+  }
+
+  .eel-brand__title {
+    max-width: none;
+    font-size: clamp(1.85rem, 8vw, 2.4rem);
+  }
+
+  .eel-brand__visual {
+    display: none;
+  }
+
+  .eel-brand__caps {
+    display: none;
+  }
+
+  .eel-scene__slab--c {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .eel-panel__card {
+    padding: 1.15rem;
+    border-radius: 18px;
+  }
+}

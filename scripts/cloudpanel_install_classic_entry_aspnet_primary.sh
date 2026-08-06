@@ -248,22 +248,36 @@ def find_blocks(t, pat):
 SERVER = re.compile(r'(?m)^[ \t]*server\s*\{')
 LOC = re.compile(r'(?m)^[ \t]*location\s+(=\s+\S+|\^~\s+\S+|/\S*|/)\s*\{')
 
+def norm_key(sel):
+    # nginx: `location /cp/` and `location ^~ /cp/` are the SAME location slot.
+    parts = sel.split()
+    if parts[0] == '=':
+        return '= ' + parts[1]
+    if parts[0] == '^~':
+        return 'P ' + parts[1]
+    return 'P ' + parts[0]
+
 orig = text
 for s_start, s_end in reversed(find_blocks(text, SERVER)):
     body = text[s_start:s_end]
-    seen, drops = set(), []
+    occ = {}
     for l_start, l_end in find_blocks(body, LOC):
         m = LOC.match(body, l_start)
         if not m:
             continue
-        key = ' '.join(m.group(1).split())
-        if key in seen:
-            drops.append((l_start, l_end))
-        else:
-            seen.add(key)
-    for l_start, l_end in reversed(drops):
-        m = LOC.match(body, l_start)
-        print(f'repair: dropping duplicate location {" ".join(m.group(1).split())}')
+        sel = ' '.join(m.group(1).split())
+        occ.setdefault(norm_key(sel), []).append((l_start, l_end, sel.startswith('^~'), sel))
+    drops = []
+    for key, items in occ.items():
+        if len(items) < 2:
+            continue
+        # Keep the first ^~ occurrence (platform pack) when present, else the first.
+        keep = next((i for i, it in enumerate(items) if it[2]), 0)
+        for i, it in enumerate(items):
+            if i != keep:
+                drops.append(it)
+                print(f'repair: dropping duplicate location {it[3]} (same slot as kept #{keep})')
+    for l_start, l_end, _, _ in sorted(drops, key=lambda t: t[0], reverse=True):
         body = body[:l_start] + body[l_end:]
     text = text[:s_start] + body + text[s_end:]
 

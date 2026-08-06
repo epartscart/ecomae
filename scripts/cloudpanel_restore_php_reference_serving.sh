@@ -83,6 +83,39 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
         print("unpatched:", conf)
 PY
 rm -f "$NGINX_SNIPPET"
+
+# Remove paused-mode /en → :5100 blocks (FORCE_LIVE / STOP_PRODUCT_PHP installed
+# them while PHP serving was off) — PHP must own /en/* again in hybrid mode.
+python3 - <<'PY'
+import re
+from pathlib import Path
+
+PAUSED_BLOCK = re.compile(
+    r"[ \t]*# BEGIN ecomae-paused-en-to-platform.*?# END ecomae-paused-en-to-platform\n?",
+    re.S,
+)
+# /en block appended inside the search-app redirect snip markers by FORCE_LIVE.
+SNIP_EN = re.compile(
+    r"(?m)^[ \t]*location\s+\^~\s+/en/\s*\{[^{}]*proxy_pass http://127\.0\.0\.1:5100;[^{}]*\}\n?"
+)
+
+for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
+    if not base.exists():
+        continue
+    for conf in sorted(base.iterdir()):
+        if not conf.is_file() or not conf.name.endswith(".conf"):
+            continue
+        try:
+            text = conf.read_text(errors="ignore")
+        except Exception:
+            continue
+        new = PAUSED_BLOCK.sub("", text)
+        new = SNIP_EN.sub("", new)
+        if new != text:
+            conf.write_text(new)
+            print("removed paused /en routing:", conf)
+PY
+
 nginx -t && systemctl reload nginx
 
 # PHP-FPM must be up — incomplete restore left /en/* and index.php on warm-up splash.

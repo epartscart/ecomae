@@ -22,25 +22,30 @@
 else
 {
     <PhpStorefrontDesktopChrome>
-        @if (string.IsNullOrWhiteSpace(_phpHref))
-        {
-            @* Same order as PHP templates/nero/desktop.php home (automotive_spareparts_pro):
-               piston hero → quick-link banners → VIN request → front catalog sections. *@
-            <PhpAspPistonBanner
-                SearchHref="@StorefrontSurfaceLinks.PartSearch"
-                CatalogHref="@StorefrontSurfaceLinks.UmapiCatalog"
-                BrandsHref="@StorefrontSurfaceLinks.AvailableBrands" />
-            <PhpAspHomeBanners />
-            <PhpVinRequestSection />
-            <PhpEpartFrontSections />
-        }
-        else
-        {
-            <div class="epc-sf-preview-note" style="max-width:52rem;margin:1rem 0;padding:1rem 1.25rem;border:1px solid #fde68a;background:#fffbeb;border-radius:.5rem;font:600 .9rem/1.45 system-ui,sans-serif;color:#78350f;">
-                Workspace preview query is ignored for product clicks.
-                Continue on the <a href="/">storefront home</a> or <a href="@StorefrontSurfaceLinks.PartSearch">search</a>.
-            </div>
-        }
+        <HomeContent>
+            @if (string.IsNullOrWhiteSpace(_phpHref))
+            {
+                @* Same slot + order as PHP templates/nero/desktop.php home — rendered
+                   BEFORE #sb-site so professional-shell #Container ink rules never
+                   darken the hero/VIN text (invisible-text live bug). *@
+                <PhpAspPistonBanner
+                    SearchHref="@StorefrontSurfaceLinks.PartSearch"
+                    CatalogHref="@StorefrontSurfaceLinks.UmapiCatalog"
+                    BrandsHref="@StorefrontSurfaceLinks.AvailableBrands" />
+                <PhpAspHomeBanners />
+                <PhpVinRequestSection />
+                <PhpEpartFrontSections />
+            }
+        </HomeContent>
+        <ChildContent>
+            @if (!string.IsNullOrWhiteSpace(_phpHref))
+            {
+                <div class="epc-sf-preview-note" style="max-width:52rem;margin:1rem 0;padding:1rem 1.25rem;border:1px solid #fde68a;background:#fffbeb;border-radius:.5rem;font:600 .9rem/1.45 system-ui,sans-serif;color:#78350f;">
+                    Workspace preview query is ignored for product clicks.
+                    Continue on the <a href="/">storefront home</a> or <a href="@StorefrontSurfaceLinks.PartSearch">search</a>.
+                </div>
+            }
+        </ChildContent>
     </PhpStorefrontDesktopChrome>
 }
 

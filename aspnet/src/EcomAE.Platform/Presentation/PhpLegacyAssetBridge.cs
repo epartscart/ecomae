@@ -77,6 +77,18 @@ public static class PhpLegacyAssetBridge
             });
         }
 
+        // BOC top mega-menu behaviour (Super CP console).
+        endpoints.MapGet("/content/general_pages/epc_boc_topnav_js.php", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "cp", "js", "epc_boc_topnav.js"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "application/javascript; charset=utf-8");
+            }
+
+            return Results.NotFound();
+        });
+
         // Animated logo CSS used by PhpEpartsCartAnimatedLogo.
         // Public path is stack-neutral (/platform-assets); keep legacy alias for old HTML.
         endpoints.MapGet("/platform-assets/eparts-animated-logo.css", () =>

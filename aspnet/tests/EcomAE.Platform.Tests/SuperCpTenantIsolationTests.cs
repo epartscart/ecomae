@@ -97,12 +97,73 @@ public sealed class SuperCpTenantIsolationTests
     {
         var text = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor"));
         Assert.Contains("Platform Super CP", text, StringComparison.Ordinal);
-        Assert.Contains("BuildBosAsync", text, StringComparison.Ordinal);
+        Assert.Contains("BuildBosFleetHealthAsync", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__hero", text, StringComparison.Ordinal);
+        // Full BOC console chrome (top mega-menu + fleet + platform banner).
+        Assert.Contains("epc-boc__topnav", text, StringComparison.Ordinal);
+        Assert.Contains("epc-boc__platform-banner", text, StringComparison.Ordinal);
+        Assert.Contains("epc-boc__fleet-grid", text, StringComparison.Ordinal);
+        Assert.Contains("PhpSuperCpBocNav.Nav()", text, StringComparison.Ordinal);
         // Fleet console must not query tenant shop digests.
         Assert.DoesNotContain("ListCpOrdersAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpProductCatalogueDigestAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("eParts Cart", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BocNavMirrorsPhpAreaRegistry()
+    {
+        // PHP epc_boc_groups(): 15 domains; epc_boc_areas(): ~110 areas.
+        Assert.Equal(15, EcomAE.Platform.Presentation.PhpSuperCpBocNav.Groups.Count);
+        Assert.True(EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas.Count >= 100,
+            $"expected ≥100 BOC areas, found {EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas.Count}");
+
+        foreach (var key in new[] { "command_center", "tenant_hub", "platform_health", "auto_price", "cp_orders", "erp_gl", "integrations", "operator_guide" })
+        {
+            Assert.Contains(EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas, a => a.Key == key);
+        }
+
+        foreach (var area in EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(area.Href), $"area {area.Key} produced an empty href");
+            // The link map must land on an ASP.NET surface — never raw uppercase PHP shells.
+            Assert.False(area.Href.StartsWith("/CP/", StringComparison.Ordinal),
+                $"area {area.Key} href {area.Href} left the raw PHP shell path");
+        }
+
+        // Every group renders (no empty groups in the mega menu).
+        var nav = EcomAE.Platform.Presentation.PhpSuperCpBocNav.Nav().ToList();
+        Assert.Equal(15, nav.Count);
+    }
+
+    [Fact]
+    public void ErpHomeBranchesSuperVsTenant()
+    {
+        // Mirrors PHP: ecomae.com /erp is the SUPER ERP (fleet command center,
+        // epc_super_erp_fleet_dashboard.php), never one tenant's books.
+        var app = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
+        Assert.Contains("PlatformHostPolicy.IsSuperCpHost", app, StringComparison.Ordinal);
+        Assert.Contains("<PhpSuperErpFleetDashboard", app, StringComparison.Ordinal);
+
+        var fleet = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperErpFleetDashboard.razor"));
+        Assert.Contains("Super ERP — Fleet Command Center", fleet, StringComparison.Ordinal);
+        Assert.Contains("sep-hero", fleet, StringComparison.Ordinal);
+        Assert.Contains("sep-erp-grid", fleet, StringComparison.Ordinal);
+        Assert.Contains("data-sep-tab", fleet, StringComparison.Ordinal);
+        // All five live tenant instances (same as the PHP fleet dashboard).
+        foreach (var tenant in new[] { "eParts Cart", "Electronicae", "Style N Look", "The Jewellery Trend", "Taxofinca" })
+        {
+            Assert.Contains(tenant, fleet, StringComparison.Ordinal);
+        }
+
+        // The 22 ERP feature modules registry.
+        foreach (var module in new[] { "SLA Agreements", "Gold Rate API", "AML Compliance", "RFID System", "Landed Cost V2" })
+        {
+            Assert.Contains(module, fleet, StringComparison.Ordinal);
+        }
+
+        // Fleet console never queries a single tenant's ERP digests.
+        Assert.DoesNotContain("BuildErpAsync", fleet, StringComparison.Ordinal);
     }
 
     private static string Find(string relative)

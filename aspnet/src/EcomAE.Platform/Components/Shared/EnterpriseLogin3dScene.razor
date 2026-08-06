@@ -1,0 +1,63 @@
+@namespace EcomAE.Platform.Components.Shared
+@*
+  Shared premium 3D login stage (CSS-only).
+  ParticlesId must match presentation probe markers (#epcCpParticles / #erpPortalParticles).
+*@
+
+<div class="eel-scene" aria-hidden="true">
+    <div class="eel-scene__horizon"></div>
+    <div class="eel-scene__ring"></div>
+    <div class="eel-scene__beam"></div>
+    <div class="eel-scene__slab eel-scene__slab--a"></div>
+    <div class="eel-scene__slab eel-scene__slab--b"></div>
+    <div class="eel-scene__slab eel-scene__slab--c"></div>
+    <div id="@ParticlesId"
+         class="eel-particles @ParticlesExtraClass"
+         data-eel-particles="@ParticleCount"
+         data-eel-colors="@ColorsCsv"></div>
+</div>
+
+<script>
+(function () {
+  function seed(c) {
+    if (!c || c.dataset.eelReady === '1') return;
+    c.dataset.eelReady = '1';
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      c.style.display = 'none';
+      return;
+    }
+    var colors = (c.getAttribute('data-eel-colors') || '').split('|').filter(Boolean);
+    if (!colors.length) colors = ['rgba(255,255,255,.35)'];
+    var n = parseInt(c.getAttribute('data-eel-particles') || '32', 10) || 32;
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < n; i++) {
+      var d = document.createElement('span');
+      var size = 1.4 + Math.random() * 2.6;
+      var speed = 9 + Math.random() * 14;
+      var color = colors[Math.floor(Math.random() * colors.length)];
+      d.className = 'eel-particle';
+      d.style.cssText =
+        'width:' + size + 'px;height:' + size + 'px;left:' + (Math.random() * 100) + '%;top:110%;' +
+        'background:' + color + ';animation-duration:' + speed + 's;animation-delay:' + (-(Math.random() * speed)) + 's;' +
+        'opacity:' + (0.3 + Math.random() * 0.5) + ';';
+      frag.appendChild(d);
+    }
+    c.appendChild(frag);
+  }
+  document.querySelectorAll('.eel-particles[data-eel-particles]').forEach(seed);
+})();
+</script>
+
+@code {
+    [Parameter] public string ParticlesId { get; set; } = "epcCpParticles";
+    [Parameter] public string ParticlesExtraClass { get; set; } = "";
+    [Parameter] public int ParticleCount { get; set; } = 36;
+    [Parameter] public string[] ParticleColors { get; set; } =
+    [
+        "rgba(244,63,94,.55)",
+        "rgba(255,255,255,.28)",
+        "rgba(14,165,233,.4)"
+    ];
+
+    private string ColorsCsv => string.Join('|', ParticleColors);
+}

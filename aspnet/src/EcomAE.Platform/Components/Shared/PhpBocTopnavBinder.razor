@@ -1,0 +1,100 @@
+@namespace EcomAE.Platform.Components.Shared
+@*
+  BOC top mega-menu behaviour via DOCUMENT-LEVEL EVENT DELEGATION.
+  cp/js/epc_boc_topnav.js binds listeners to the buttons — Blazor enhanced
+  navigation swaps page content WITHOUT executing arriving scripts, so a user
+  landing on /cp from an in-app transition got a dead menu. Delegation installs
+  once per full document load (window guard) and keeps working across DOM swaps.
+  Rendered on every CP surface (PhpChromeStyles) so the first full load —
+  usually /cp/login — installs it.
+*@
+
+<script src="/content/general_pages/epc_boc_topnav_js.php?v=20260722tenant1"></script>
+<script>
+(function () {
+    if (window._epcBocTopnavDelegated) { return; }
+    window._epcBocTopnavDelegated = true;
+
+    function root() { return document.getElementById('epc_boc_topnav'); }
+
+    function closeAll(r, except) {
+        if (!r) { return; }
+        r.querySelectorAll('.epc-boc__topnav-item').forEach(function (it) {
+            if (except && it === except) { return; }
+            it.classList.remove('is-open');
+            var b = it.querySelector('[data-boc-topnav-toggle]');
+            var p = it.querySelector('[data-boc-topnav-panel]');
+            if (b) { b.setAttribute('aria-expanded', 'false'); }
+            if (p) { p.hidden = true; }
+        });
+    }
+
+    function place(r, it, p) {
+        var rr = r.getBoundingClientRect();
+        var btn = it.querySelector('.epc-boc__topnav-btn');
+        var br = btn ? btn.getBoundingClientRect() : rr;
+        var top = Math.round(rr.bottom);
+        p.style.top = top + 'px';
+        p.style.maxHeight = Math.max(180, Math.floor(window.innerHeight - top - 12)) + 'px';
+        p.hidden = false;
+        var w = p.offsetWidth || 640;
+        var left = Math.round(br.left);
+        var maxLeft = Math.max(8, window.innerWidth - w - 8);
+        if (left > maxLeft) { left = maxLeft; }
+        if (left < 8) { left = 8; }
+        p.style.left = left + 'px';
+        p.style.right = 'auto';
+    }
+
+    document.addEventListener('click', function (e) {
+        // Super ERP fleet dashboard tabs (sep-tab / sepPanel*) — same delegation
+        // so they survive Blazor enhanced navigation too.
+        var sepTab = e.target && e.target.closest ? e.target.closest('[data-sep-tab]') : null;
+        if (sepTab) {
+            e.preventDefault();
+            document.querySelectorAll('.sep-tab').forEach(function (t) { t.classList.remove('sep-tab--active'); });
+            document.querySelectorAll('.sep-panel').forEach(function (p) { p.classList.remove('sep-panel--active'); });
+            sepTab.classList.add('sep-tab--active');
+            var panel = document.getElementById('sepPanel' + sepTab.getAttribute('data-sep-tab'));
+            if (panel) { panel.classList.add('sep-panel--active'); }
+            return;
+        }
+
+        var r = root();
+        if (!r) { return; }
+        try { document.body.classList.add('epc-boc-mode'); } catch (err) { }
+        var toggle = e.target && e.target.closest ? e.target.closest('[data-boc-topnav-toggle]') : null;
+        if (toggle && r.contains(toggle)) {
+            e.preventDefault();
+            e.stopPropagation();
+            var it = toggle.closest('.epc-boc__topnav-item');
+            if (!it) { return; }
+            var wasOpen = it.classList.contains('is-open');
+            closeAll(r);
+            if (!wasOpen) {
+                it.classList.add('is-open');
+                toggle.setAttribute('aria-expanded', 'true');
+                var p = it.querySelector('[data-boc-topnav-panel]');
+                if (p) { place(r, it, p); }
+            }
+            return;
+        }
+
+        // Click inside an open panel navigates; click anywhere else closes.
+        if (!r.contains(e.target)) { closeAll(r); }
+    }, true);
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeAll(root()); }
+    });
+
+    window.addEventListener('resize', function () {
+        var r = root();
+        if (!r) { return; }
+        r.querySelectorAll('.epc-boc__topnav-item.is-open').forEach(function (it) {
+            var p = it.querySelector('[data-boc-topnav-panel]');
+            if (p) { place(r, it, p); }
+        });
+    });
+})();
+</script>

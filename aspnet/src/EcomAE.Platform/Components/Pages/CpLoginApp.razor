@@ -4,127 +4,89 @@
 @using EcomAE.Platform.Presentation
 @inject NavigationManager Nav
 
-<PageTitle>Log in form - ECOM AE · BOS</PageTitle>
+<PageTitle>BOS Control — ECOM AE</PageTitle>
 <PhpSurfaceHead Surface="cp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="cp" LoginChrome="true" />
 <link rel="stylesheet" href="/platform-assets/eparts-animated-logo.css" />
+<link rel="stylesheet" href="/content/general_pages/epc_enterprise_login_3d.css?v=20260806a" />
 
 @*
-  Super CP login mirrors PHP authentication plugin template:
-  body.epc-cp-login-hero.epc-cp-login--super → centered card (left brand hidden by PHP CSS).
-  Particles + hub logo + login hero/login CSS from PhpSurfaceHead.
+  Premium enterprise 3D login for Super CP / BOS Control.
+  Keeps presentation markers: epc-cp-login-hero, #epcCpParticles, .ech-hub
 *@
-<style>
-    /* Bridge form controls only — layout/colors come from epc_cp_login*.css */
-    .epc-cp-login .epc-login-field { margin: 0 0 .75rem; }
-    .epc-cp-login .epc-login-field label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: .25rem; color: #334155; }
-    .epc-cp-login .epc-login-field input,
-    .epc-cp-login .epc-login-field select {
-        width: 100%; padding: .55rem .65rem; border: 1px solid #d1d5db; border-radius: .4rem; background: #fff; color: #111;
-    }
-    .epc-cp-login .epc-login-row { display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap; color: #475569; font-size: .85rem; }
-    .epc-cp-login .epc-login-submit {
-        width: 100%; margin-top: .35rem; padding: .7rem 1rem; border: 0; border-radius: .45rem;
-        background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: #fff; font-weight: 700; cursor: pointer;
-    }
-    .epc-cp-login .epc-login-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: .4rem; padding: .55rem .7rem; margin-bottom: .75rem; font-size: .9rem; }
-    .epc-cp-login .epc-login-bridge-note { color: #64748b; font-size: .78rem; line-height: 1.4; margin: .85rem 0 .35rem; }
-    .epc-cp-login .epc-login-shell { color: #0369a1; font-weight: 700; }
-    .epc-cp-login .login-container .panel-body {
-        background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(15, 23, 42, .08); padding: 28px 24px;
-    }
-    /* Use --card variant: hero CSS paints plain .epc-cp-login-features text white (invisible on white card). */
-    .epc-cp-login .epc-cp-login-features,
-    .epc-cp-login .epc-cp-login-features--card {
-        list-style: none !important; padding: 0 !important; margin: 1rem 0 0 !important;
-        display: grid !important; gap: .55rem !important;
-    }
-    .epc-cp-login .epc-cp-login-features li,
-    .epc-cp-login .epc-cp-login-features--card li {
-        display: flex !important; gap: .55rem !important; align-items: center !important;
-        color: #334155 !important; font-size: .86rem !important; font-weight: 500 !important;
-        line-height: 1.35 !important; margin: 0 !important;
-    }
-    .epc-cp-login .epc-cp-login-features li i,
-    .epc-cp-login .epc-cp-login-features--card li i {
-        flex: 0 0 28px; width: 28px !important; height: 28px !important;
-        display: inline-flex !important; align-items: center !important; justify-content: center !important;
-        background: #e0f2fe !important; color: #0369a1 !important; border-radius: 8px !important;
-        border: none !important; margin: 0 !important; font-size: .85rem !important;
-    }
-    .epc-cp-login .login-footer { margin-top: 1.1rem; color: rgba(148, 163, 184, .95); font-size: .78rem; text-align: center; }
-    .epc-cp-login .epc-cp-particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
-    .epc-cp-login .epc-cp-login-shell { position: relative; z-index: 1; }
-    .epc-cp-login .epc-cp-particle { position: absolute; border-radius: 50%; }
-    @@keyframes epcCpFloat { from { transform: translateY(0); } to { transform: translateY(110vh); } }
-</style>
 
 <div class="splash"> <div class="color-line"></div><div class="splash-title"><h1>BOS — Business Operation System</h1><p>Loading…</p><div class="spinner"> <div class="rect1"></div> <div class="rect2"></div> <div class="rect3"></div> <div class="rect4"></div> <div class="rect5"></div> </div> </div> </div>
 <script>(function(){function epcHideCpSplash(){var s=document.querySelector('.splash');if(s){s.style.display='none';}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',epcHideCpSplash);}else{epcHideCpSplash();}window.addEventListener('load',epcHideCpSplash);setTimeout(epcHideCpSplash,3500);})();</script>
 
-<div class="blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super">
-    <div class="color-line"></div>
-    <div id="epcCpParticles" class="epc-cp-particles" aria-hidden="true"></div>
+<div class="eel-root eel-root--cp blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super">
+    <EnterpriseLogin3dScene ParticlesId="epcCpParticles"
+                            ParticlesExtraClass="epc-cp-particles"
+                            ParticleCount="40"
+                            ParticleColors="@(new[] { "rgba(244,63,94,.55)", "rgba(255,255,255,.3)", "rgba(14,165,233,.42)" })" />
 
-    <div class="epc-cp-login-shell">
-        <div class="epc-cp-login-brand" aria-hidden="true">
-            <div class="epc-cp-login-brand-inner">
-                <span class="epc-cp-login-brand-badge">BOS · CONTROL</span>
-                <h1>BOS — Business Operation System</h1>
-                <p class="epc-cp-login-brand-sub">One login · operators control the whole fleet, tenants see only their own area</p>
-                <div class="epc-cp-login-visual">
-                    <PhpEcomaeHubLogo Variant="login-panel" AriaLabel="ECOM AE hub" OrbitDuration="28s" />
+    <div class="eel-stage">
+        <aside class="eel-brand">
+            <div class="eel-brand__mark">
+                <img class="eel-brand__logo" src="@LegacyPresentationAssets.BrandMarkUrl" alt="" width="48" height="48" />
+                <div class="eel-brand__wordmark">ECOM <span>AE</span></div>
+            </div>
+            <span class="eel-brand__badge">BOS · Control</span>
+            <h1 class="eel-brand__title">Business Operation System</h1>
+            <p class="eel-brand__sub">One secure login for fleet operators — command every tenant workspace from a single control plane.</p>
+            <div class="eel-brand__visual">
+                <PhpEcomaeHubLogo Variant="login-panel" AriaLabel="ECOM AE hub" OrbitDuration="28s" />
+            </div>
+            <div class="eel-brand__caps" aria-hidden="true">
+                <div class="eel-brand__cap">
+                    <i class="fa fa-globe" aria-hidden="true"></i>
+                    <div>
+                        <strong>Fleet command</strong>
+                        <span>Commerce, ERP-only &amp; demo tenants</span>
+                    </div>
+                </div>
+                <div class="eel-brand__cap">
+                    <i class="fa fa-shield" aria-hidden="true"></i>
+                    <div>
+                        <strong>Platform governance</strong>
+                        <span>Health, failover &amp; operator isolation</span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <div class="epc-cp-login-panel">
-            <div class="epc-cp-login-card-head">
-                <div class="epc-cp-login-card-head__logo">
-                    <PhpEcomaeHubLogo Variant="login" AriaLabel="ECOM AE hub" OrbitDuration="28s" />
+        <section class="eel-panel" aria-label="Control panel sign-in">
+            <div class="eel-panel__card">
+                <div class="eel-panel__head">
+                    <p class="eel-panel__eyebrow">Secure access</p>
+                    <h2 class="eel-panel__title">Sign in to Control</h2>
+                    <p class="eel-panel__lead">Operators control the whole fleet. Tenants see only their own area.</p>
                 </div>
-                <span class="epc-cp-login-card-head__badge">BOS · CONTROL</span>
-                <h1>BOS — Business Operation System</h1>
-                <p>One login · operators control the whole fleet, tenants see only their own area</p>
-            </div>
 
-            <div class="login-container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="hpanel">
-                            <div class="panel-body">
-                                <LegacyAdminLoginForm Surface="LegacyLoginSurface.ControlPanel" SurfaceLabel="CP" PhpLoginHref="/php-reference/cp" ErrorMessage="@_error" SubmitLabel="Log in" Accent="blue" />
-                                <ul class="epc-cp-login-features epc-cp-login-features--card">
-                                    <li><i class="fa fa-globe" aria-hidden="true"></i><span>Fleet command — commerce, ERP-only &amp; demo</span></li>
-                                    <li><i class="fa fa-rocket" aria-hidden="true"></i><span>Tenant onboarding, templates &amp; module packs</span></li>
-                                    <li><i class="fa fa-shield" aria-hidden="true"></i><span>Platform health, governance &amp; failover</span></li>
-                                    <li><i class="fa fa-th-large" aria-hidden="true"></i><span>@PhpModuleCatalog.CpBrochureFeatureCount CP features catalogued</span></li>
-                                </ul>
-                            </div>
+                <div class="login-container">
+                    <div class="hpanel">
+                        <div class="panel-body">
+                            <LegacyAdminLoginForm Surface="LegacyLoginSurface.ControlPanel"
+                                                  SurfaceLabel="CP"
+                                                  PhpLoginHref="/php-reference/cp"
+                                                  ErrorMessage="@_error"
+                                                  SubmitLabel="Enter Control Panel"
+                                                  Accent="blue" />
+                            <ul class="eel-features epc-cp-login-features epc-cp-login-features--card">
+                                <li><i class="fa fa-rocket" aria-hidden="true"></i><span>Tenant onboarding, templates &amp; module packs</span></li>
+                                <li><i class="fa fa-th-large" aria-hidden="true"></i><span>@PhpModuleCatalog.CpBrochureFeatureCount CP features catalogued</span></li>
+                                <li><i class="fa fa-lock" aria-hidden="true"></i><span>Role-scoped sessions · audit-ready</span></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="login-footer">Multi-industry commerce platform / Designed by ecomae · authentication · epc-cp-login</div>
-        </div>
+            <div class="eel-footer login-footer">
+                ECOM AE · BOS authentication ·
+                <a href="/erp/login">ERP Finance</a>
+            </div>
+        </section>
     </div>
 </div>
-
-<script>
-(function(){
-  var c=document.getElementById('epcCpParticles'); if(!c) return;
-  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){c.style.display='none';return;}
-  var colors=['rgba(14,165,233,.55)','rgba(56,189,248,.45)','rgba(255,255,255,.25)'];
-  var frag=document.createDocumentFragment();
-  for(var i=0;i<28;i++){
-    var d=document.createElement('span'), size=1.5+Math.random()*2.5, speed=8+Math.random()*10, color=colors[Math.floor(Math.random()*colors.length)];
-    d.className='epc-cp-particle';
-    d.style.cssText='width:'+size+'px;height:'+size+'px;left:'+(Math.random()*100)+'%;top:-'+(size+4)+'px;background:'+color+';animation:epcCpFloat '+speed+'s linear '+(-(Math.random()*speed))+'s infinite;opacity:'+(0.35+Math.random()*0.45)+';';
-    frag.appendChild(d);
-  }
-  c.appendChild(frag);
-})();
-</script>
 
 @code {
     private string? _error;

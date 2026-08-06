@@ -48,13 +48,16 @@ public static class LegacyPresentationAssets
     [
         "/content/general_pages/epc_cp_login_css.php",
         "/content/general_pages/epc_cp_login_hero_css.php",
-        "/content/general_pages/epc_ecomae_hub_logo_css.php"
+        "/content/general_pages/epc_ecomae_hub_logo_css.php",
+        // Premium enterprise 3D stage (CP + ERP login redesign)
+        "/content/general_pages/epc_enterprise_login_3d.css"
     ];
 
     /// <summary>Standalone ERP portal login shell (bos-hero, particles, glass panel).</summary>
     public static readonly IReadOnlyList<string> ErpLoginStylesheets =
     [
-        "/content/shop/finance/epc_erp_portal_inline_css_serve.php"
+        "/content/shop/finance/epc_erp_portal_inline_css_serve.php",
+        "/content/general_pages/epc_enterprise_login_3d.css"
     ];
 
     /// <summary>BOS login matrix/particle JS (PHP bos/epc_bos_shell.js).</summary>
@@ -122,8 +125,8 @@ public static class LegacyPresentationAssets
     public static IReadOnlyList<string> RequiredGraphicalMarkers(string surface)
         => surface.Trim().ToLowerInvariant() switch
         {
-            "cp" => [".ech-hub", "#epcCpParticles", "epc-cp-login-hero"],
-            "erp" => [".ech-hub", "epc-erp-portal-bg", "epc-erp-bos-hero", "#erpPortalParticles"],
+            "cp" => [".ech-hub", "#epcCpParticles", "epc-cp-login-hero", "eel-root"],
+            "erp" => [".ech-hub", "epc-erp-portal-bg", "epc-erp-bos-hero", "#erpPortalParticles", "eel-root"],
             "bos" => [".bos-login__bg", "#bosParticles", ".bos-login__glow"],
             "storefront" => [".epc-engine-animation", ".epc-asp-piston-banner", "epc-home-pro"],
             "marketing" =>

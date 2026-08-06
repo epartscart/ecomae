@@ -13,7 +13,15 @@
 <PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="erp" />
 
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@(_isSuperHost ? "Super ERP" : "Dashboard")" BreadcrumbArea="Home" BreadcrumbTab="@(_isSuperHost ? "Fleet" : "Dashboard")">
+@if (_isSuperHost)
+{
+    @* PHP epc_super_erp_fleet_dashboard.php — ecomae.com hosts the SUPER ERP:
+       fleet-wide ERP instances + modules + BOS control, never one tenant's books. *@
+    <PhpSuperErpFleetDashboard />
+}
+else
+{
     @* PHP erp_dashboard_netsuite.php — .ns-dash so erp_dashboard_premium.css applies *@
     <div class="ns-dash" data-dashboard-profile="finance" data-epc-industry="@_ctx.IndustryCode">
         <div class="ns-hero">
@@ -231,6 +239,7 @@
             <div class="ns-pf-card"><div class="v">@_s.InventoryItems</div><div class="l">Active items</div></div>
         </div>
     </div>
+}
 </PhpErpDesktopChrome>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
@@ -341,6 +350,7 @@
         0, 0, 0,
         "n/a", "");
     private bool _isAdmin;
+    private bool _isSuperHost;
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
     private string _pageTitle = "ERP Finance";
     private string _periodFrom = DateTime.UtcNow.ToString("yyyy-MM-01");
@@ -381,7 +391,8 @@
         BuildTrendPlaceholder(0);
         var ctx = Http.HttpContext;
         _ctx = ErpHostContext.Resolve(ctx?.Request.Host.Host);
-        _pageTitle = _ctx.WorkspaceTitle;
+        _isSuperHost = Services.PlatformHostPolicy.IsSuperCpHost(ctx?.Request.Host.Host);
+        _pageTitle = _isSuperHost ? "Super ERP — Fleet Command Center · ECOM AE" : _ctx.WorkspaceTitle;
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin;
@@ -389,6 +400,11 @@
         {
             RecalcGauge();
             return;
+        }
+
+        if (_isSuperHost)
+        {
+            return; // Super ERP fleet dashboard loads platform-fleet data itself.
         }
 
         _s = (await Dashboards.BuildErpAsync(ctx.RequestAborted)).Summary;
