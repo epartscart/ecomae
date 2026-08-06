@@ -7,317 +7,88 @@
 <PageTitle>ERP Finance — ECOM AE</PageTitle>
 <PhpSurfaceHead Surface="erp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="erp" LoginChrome="true" />
+<link rel="stylesheet" href="/content/general_pages/epc_enterprise_login_3d.css?v=20260806a" />
 
 @*
-  Mirrors content/shop/finance/epc_erp_portal_router.php + epc_erp_portal_body.php login wall:
-  epc-erp-standalone body, topbar, portal bg particles, bos-hero, split login panel.
-  Login surface marker for presentation parity probes.
+  Premium enterprise 3D login for ERP Finance.
+  Keeps presentation markers: .ech-hub, epc-erp-portal-bg, epc-erp-bos-hero, #erpPortalParticles
 *@
-<style>
-    .epc-login-erp .epc-login-field { margin:0 0 .75rem; }
-    .epc-login-erp .epc-login-field label { display:block; font-size:.82rem; font-weight:600; margin-bottom:.25rem; color:#334155; }
-    .epc-login-erp .epc-login-field input,
-    .epc-login-erp .epc-login-field select {
-        width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; background:#fff; color:#111;
-    }
-    .epc-login-erp .epc-login-row { color:#64748b; font-size:.85rem; }
-    .epc-login-erp .epc-login-submit {
-        width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem;
-        background:#2563eb; color:#fff; font-weight:700; cursor:pointer;
-    }
-    .epc-login-erp .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
-    .epc-login-erp .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
-    .epc-login-erp .epc-login-shell { color:#2563eb; font-weight:700; }
-    .epc-login-erp .hpanel .panel-heading { font-weight:700; padding:.65rem 1rem; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
-</style>
 
-<div class="epc-login-erp epc-erp-portal-wrap">
-    <header class="epc-erp-topbar">
-        <div class="epc-erp-topbar__inner">
-            <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="/erp" aria-label="ERP Finance">
-                <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:32px;background:#fff;border-radius:6px;padding:2px" />
-                <span class="epc-erp-topbar__brand-text">
-                    <strong>ECOM AE</strong>
-                    <small>Finance &amp; operations · ecomae.com</small>
-                </span>
-            </a>
-            <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact">
-                <a href="/erp"><i class="fa fa-dashboard"></i> ERP</a>
-                <a href="/erp"><i class="fa fa-book"></i> Guide</a>
-                <a href="/cp"><i class="fa fa-cog"></i> Control panel</a>
-                <a href="/bos"><i class="fa fa-sitemap"></i> BOS</a>
-            </nav>
-        </div>
-    </header>
+<div class="eel-root eel-root--erp epc-login-erp epc-erp-portal-wrap">
+    @* Probe markers (visually collapsed by enterprise CSS) *@
+    <div class="epc-erp-portal-bg" aria-hidden="true"><div class="epc-erp-portal-bg__grid"></div></div>
+    <div class="epc-erp-bos-hero" aria-hidden="true"><h1 class="epc-erp-bos-hero__title">ERP Finance</h1></div>
 
-    <main class="epc-erp-main">
-        <div class="epc-erp-portal-bg" id="erpPortalBg">
-            <div class="epc-erp-portal-bg__grid"></div>
-            <div class="epc-erp-portal-bg__particles" id="erpPortalParticles"></div>
-            <div class="epc-erp-portal-bg__glow epc-erp-portal-bg__glow--1"></div>
-            <div class="epc-erp-portal-bg__glow epc-erp-portal-bg__glow--2"></div>
-            <div class="epc-erp-portal-bg__glow epc-erp-portal-bg__glow--3"></div>
-        </div>
+    <EnterpriseLogin3dScene ParticlesId="erpPortalParticles"
+                            ParticlesExtraClass="epc-erp-portal-bg__particles"
+                            ParticleCount="48"
+                            ParticleColors="@(new[] { "rgba(13,148,136,.55)", "rgba(56,189,248,.45)", "rgba(255,255,255,.28)" })" />
 
-        <div class="epc-erp-bos-hero">
-            <div class="epc-erp-bos-hero__content">
-                <div class="epc-erp-bos-hero__brand-mark">
-                    <div class="epc-erp-bos-hero__brand-icon">
-                        <div class="epc-erp-bos-hero__brand-icon-inner">
-                            <i class="fa fa-line-chart"></i>
-                        </div>
-                        <div class="epc-erp-bos-hero__brand-ring"></div>
-                        <div class="epc-erp-bos-hero__brand-ring epc-erp-bos-hero__brand-ring--2"></div>
-                    </div>
-                    <h1 class="epc-erp-bos-hero__title">ERP Finance</h1>
-                    <p class="epc-erp-bos-hero__tagline">Unified Blockchain BOS Enterprise System</p>
-                </div>
-
-                <div class="epc-erp-bos-hero__capabilities">
-                    <div class="epc-erp-bos-hero__cap-item epc-erp-bos-hero__cap-item--1">
-                        <div class="epc-erp-bos-hero__cap-icon"><i class="fa fa-calculator"></i></div>
-                        <div class="epc-erp-bos-hero__cap-text">
-                            <strong>Financial Accounting</strong>
-                            <span>GL, AP, AR, Bank, Fixed Assets</span>
-                        </div>
-                    </div>
-                    <div class="epc-erp-bos-hero__cap-item epc-erp-bos-hero__cap-item--2">
-                        <div class="epc-erp-bos-hero__cap-icon"><i class="fa fa-shopping-cart"></i></div>
-                        <div class="epc-erp-bos-hero__cap-text">
-                            <strong>Sales &amp; Purchase</strong>
-                            <span>Orders, Invoices, Quotations</span>
-                        </div>
-                    </div>
-                    <div class="epc-erp-bos-hero__cap-item epc-erp-bos-hero__cap-item--3">
-                        <div class="epc-erp-bos-hero__cap-icon"><i class="fa fa-cubes"></i></div>
-                        <div class="epc-erp-bos-hero__cap-text">
-                            <strong>Inventory &amp; Logistics</strong>
-                            <span>WMS, Barcode, Stock, Shipping</span>
-                        </div>
-                    </div>
-                    <div class="epc-erp-bos-hero__cap-item epc-erp-bos-hero__cap-item--4">
-                        <div class="epc-erp-bos-hero__cap-icon"><i class="fa fa-shield"></i></div>
-                        <div class="epc-erp-bos-hero__cap-text">
-                            <strong>Compliance &amp; AI</strong>
-                            <span>VAT, AML, E-invoice, AI Advisor</span>
-                        </div>
+    <div class="eel-stage">
+        <aside class="eel-brand">
+            <div class="eel-brand__mark">
+                <img class="eel-brand__logo" src="@LegacyPresentationAssets.BrandMarkUrl" alt="" width="48" height="48" />
+                <div class="eel-brand__wordmark">ECOM <span>AE</span></div>
+            </div>
+            <span class="eel-brand__badge">ERP · Finance</span>
+            <h1 class="eel-brand__title">ERP Finance</h1>
+            <p class="eel-brand__sub">Department sign-in for finance, sales, logistics, and operations — separate from the public storefront.</p>
+            <div class="eel-brand__visual">
+                <PhpEcomaeHubLogo Variant="login" AriaLabel="ECOM AE ERP hub" OrbitDuration="32s" />
+            </div>
+            <div class="eel-brand__caps" aria-hidden="true">
+                <div class="eel-brand__cap">
+                    <i class="fa fa-calculator" aria-hidden="true"></i>
+                    <div>
+                        <strong>Financial accounting</strong>
+                        <span>GL, AP, AR, bank &amp; fixed assets</span>
                     </div>
                 </div>
-
-                <div class="epc-erp-bos-hero__stats-bar">
-                    <div class="epc-erp-bos-hero__stat">
-                        <span class="epc-erp-bos-hero__stat-num" data-count="@PhpModuleCatalog.ErpAreaCount">0</span>
-                        <span class="epc-erp-bos-hero__stat-label">Areas</span>
-                    </div>
-                    <div class="epc-erp-bos-hero__stat-divider"></div>
-                    <div class="epc-erp-bos-hero__stat">
-                        <span class="epc-erp-bos-hero__stat-num" data-count="@PhpModuleCatalog.ErpTabCount">0</span>
-                        <span class="epc-erp-bos-hero__stat-label">Tabs</span>
-                    </div>
-                    <div class="epc-erp-bos-hero__stat-divider"></div>
-                    <div class="epc-erp-bos-hero__stat">
-                        <span class="epc-erp-bos-hero__stat-num" data-count="@PhpModuleCatalog.ErpCategoryCount">0</span>
-                        <span class="epc-erp-bos-hero__stat-label">Categories</span>
-                    </div>
-                    <div class="epc-erp-bos-hero__stat-divider"></div>
-                    <div class="epc-erp-bos-hero__stat">
-                        <span class="epc-erp-bos-hero__stat-num" data-count="225">0</span>
-                        <span class="epc-erp-bos-hero__stat-label">Tenants</span>
+                <div class="eel-brand__cap">
+                    <i class="fa fa-cubes" aria-hidden="true"></i>
+                    <div>
+                        <strong>Inventory &amp; logistics</strong>
+                        <span>WMS, stock, shipping &amp; purchase</span>
                     </div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <div id="sign-in" class="epc-erp-login-panel epc-erp-login-panel--standalone epc-erp-login-panel--split">
-            <div class="row">
-                <div class="col-md-5 epc-erp-login-panel__brand">
-                    <div style="margin-bottom:.75rem">
-                        <PhpEcomaeHubLogo Variant="login" AriaLabel="ECOM AE ERP hub" OrbitDuration="32s" />
-                    </div>
-                    <h1><i class="fa fa-line-chart"></i> ERP Finance</h1>
-                    <p class="epc-erp-login-lead">
-                        Department sign-in for finance, sales, logistics, purchase, HR, and operations.
-                        No storefront account required — this area is separate from the public website.
-                    </p>
-                    <ul class="epc-erp-login-features">
-                        <li><i class="fa fa-check"></i> Role-based tabs per department</li>
-                        <li><i class="fa fa-check"></i> GL, VAT, inventory &amp; payables</li>
-                        <li><i class="fa fa-check"></i> Same data as control panel ERP</li>
-                    </ul>
+        <section class="eel-panel" id="sign-in" aria-label="ERP Finance sign-in">
+            <div class="eel-panel__card">
+                <div class="eel-panel__head">
+                    <p class="eel-panel__eyebrow">Secure access</p>
+                    <h2 class="eel-panel__title">Sign in to ERP</h2>
+                    <p class="eel-panel__lead">Role-based tabs for finance teams — same live data as the control panel ERP shell.</p>
                 </div>
-                <div class="col-md-7">
-                    <div class="hpanel">
-                        <div class="panel-heading">Sign in</div>
-                        <div class="panel-body">
-                            <LegacyAdminLoginForm Surface="LegacyLoginSurface.Erp" SurfaceLabel="ERP" PhpLoginHref="/php-reference/erp" ErrorMessage="@_error" SubmitLabel="Log in" Accent="blue" />
-                        </div>
-                    </div>
-                    <p class="text-muted text-center epc-erp-login-footnote" style="margin-top:12px;font-size:12px;">
-                        Administrators:
-                        <a href="/cp">Control panel</a>
-                        · <a href="/">E-commerce website</a>
-                        · <a href="/bos">BOS</a>
-                    </p>
-                </div>
-            </div>
-        </div>
 
-        <div class="epc-erp-home-hero" style="margin-top:1.5rem">
-            <div class="epc-erp-home-hero__inner">
-                <p class="epc-erp-home-hero__eyebrow">ERP workspace directory</p>
-                <h2 class="epc-erp-home-hero__title">Browse ERP areas</h2>
-                <p class="epc-erp-home-hero__lead">Sign in above to open live modules — same department tabs as the control panel ERP shell.</p>
-                <div class="epc-erp-home-hero__stats">
-                    @foreach (var cat in PhpModuleCatalog.ErpCategories)
-                    {
-                        <a class="epc-erp-home-stat" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(cat.Href)" style="color:inherit;text-decoration:none">
-                            <strong><i class="fa @cat.Icon"></i> @cat.Label</strong>
-                            <span>@cat.Id</span>
-                        </a>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <div class="epc-erp-home-grid">
-            <div class="epc-erp-home-hero__eyebrow" style="margin-bottom:.5rem">Department areas</div>
-            <div class="row">
-                @foreach (var area in PhpModuleCatalog.ErpAreas)
-                {
-                    <div class="col-md-4 col-sm-6" style="margin-bottom:12px">
-                        <div class="epc-erp-home-card">
-                            <h3><i class="fa @area.Icon"></i> @area.Label</h3>
-                            <p>Workspace area <code>@area.Id</code> — finance, operations, and compliance tabs open after sign-in.</p>
-                            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(area.Href)">Open @area.Label</a>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-
-        @foreach (var group in PhpModuleCatalog.ErpTabsByArea())
-        {
-            <div class="epc-erp-home-grid">
-                <h3 class="epc-erp-area-tabs-title"><i class="fa fa-folder-open-o"></i> @group.Key tabs</h3>
-                <div class="epc-erp-home-hero__stats">
-                    @foreach (var tab in group)
-                    {
-                        <a class="epc-erp-home-stat" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(tab.Href)" style="color:inherit;text-decoration:none;background:#fff;border:1px solid #dce4ef">
-                            <strong><i class="fa @tab.Icon"></i> @tab.Label</strong>
-                            <span>@tab.Id</span>
-                        </a>
-                    }
-                </div>
-            </div>
-        }
-
-        <div class="epc-erp-home-grid">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="epc-erp-home-card epc-erp-home-card--accent">
-                        <h3><i class="fa fa-book"></i> ERP guide &amp; onboarding</h3>
-                        <p>Department sign-in unlocks the same tabs as control panel ERP — GL, VAT, inventory, payables, and HR workflows.</p>
-                        <ul class="epc-erp-login-features">
-                            @foreach (var feat in GuideFeatures)
-                            {
-                                <li><i class="fa fa-check"></i> @feat</li>
-                            }
+                <div class="hpanel">
+                    <div class="panel-body">
+                        <LegacyAdminLoginForm Surface="LegacyLoginSurface.Erp"
+                                              SurfaceLabel="ERP"
+                                              PhpLoginHref="/php-reference/erp"
+                                              ErrorMessage="@_error"
+                                              SubmitLabel="Enter ERP Finance"
+                                              Accent="blue" />
+                        <ul class="eel-features epc-erp-login-features">
+                            <li><i class="fa fa-check" aria-hidden="true"></i><span>Role-based tabs per department</span></li>
+                            <li><i class="fa fa-check" aria-hidden="true"></i><span>GL, VAT, inventory &amp; payables</span></li>
+                            <li><i class="fa fa-check" aria-hidden="true"></i><span>@PhpModuleCatalog.ErpAreaCount areas · @PhpModuleCatalog.ErpTabCount tabs</span></li>
                         </ul>
-                        <a href="/erp">Open ERP guide</a>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="epc-erp-home-card">
-                        <h3><i class="fa fa-shield"></i> Compliance &amp; platform links</h3>
-                        <p>Finance portal stays separate from public storefront accounts. Administrators use the control panel and ERP workspace.</p>
-                        <div class="epc-erp-home-hero__stats">
-                            <a class="epc-erp-home-stat" href="/cp" style="color:inherit;text-decoration:none;background:#f8fafc;border:1px solid #dce4ef">
-                                <strong><i class="fa fa-cog"></i> Control panel</strong>
-                                <span>Command centre</span>
-                            </a>
-                            <a class="epc-erp-home-stat" href="/" style="color:inherit;text-decoration:none;background:#f8fafc;border:1px solid #dce4ef">
-                                <strong><i class="fa fa-shopping-cart"></i> E-commerce website</strong>
-                                <span>Storefront host</span>
-                            </a>
-                            <a class="epc-erp-home-stat" href="/bos/login" style="color:inherit;text-decoration:none;background:#f8fafc;border:1px solid #dce4ef">
-                                <strong><i class="fa fa-th-large"></i> BOS console</strong>
-                                <span>Operator fleet</span>
-                            </a>
-                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
-
-    <footer class="epc-erp-foot">ECOM AE ERP Finance · authentication · epc-erp-portal</footer>
+            <div class="eel-footer">
+                Administrators:
+                <a href="/cp/login">Control panel</a>
+                · <a href="/">E-commerce</a>
+                · <a href="/bos/login">BOS</a>
+            </div>
+        </section>
+    </div>
 </div>
-
-<script>
-(function(){
-  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var container = document.getElementById('erpPortalParticles');
-  if (container && !reduceMotion) {
-    var colors = [
-      'rgba(14, 165, 233, .7)', 'rgba(14, 165, 233, .35)',
-      'rgba(56, 189, 248, .7)', 'rgba(56, 189, 248, .4)',
-      'rgba(99, 102, 241, .6)', 'rgba(99, 102, 241, .3)',
-      'rgba(168, 85, 247, .5)', 'rgba(16, 185, 129, .4)',
-      'rgba(255, 255, 255, .4)', 'rgba(255, 255, 255, .15)'
-    ];
-    var anims = ['erpFloat', 'erpFloatDrift', 'erpFloatStreak'];
-    for (var i = 0; i < 180; i++) {
-      var p = document.createElement('div');
-      p.className = 'epc-erp-portal-bg__particle';
-      var size = Math.random() < 0.15 ? (3 + Math.random() * 4) : (1 + Math.random() * 2.5);
-      var left = Math.random() * 100;
-      var dur = 4 + Math.random() * 22;
-      var delay = Math.random() * -30;
-      var color = colors[Math.floor(Math.random() * colors.length)];
-      var anim = anims[Math.floor(Math.random() * anims.length)];
-      p.style.cssText = 'width:' + size + 'px;height:' + size + 'px;left:' + left + '%;background:' + color + ';animation:' + anim + ' ' + dur + 's linear ' + delay + 's infinite;';
-      container.appendChild(p);
-    }
-  }
-  var nums = document.querySelectorAll('.epc-erp-bos-hero__stat-num[data-count]');
-  if (!nums.length) return;
-  if (reduceMotion) {
-    nums.forEach(function (el) { el.textContent = el.getAttribute('data-count') + '+'; });
-    return;
-  }
-  var observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (!entry.isIntersecting) return;
-      var el = entry.target;
-      var target = parseInt(el.getAttribute('data-count'), 10) || 0;
-      var startTime = null;
-      function step(ts) {
-        if (!startTime) startTime = ts;
-        var progress = Math.min((ts - startTime) / 1200, 1);
-        el.textContent = Math.floor(progress * target) + '+';
-        if (progress < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
-      observer.unobserve(el);
-    });
-  }, { threshold: 0.3 });
-  nums.forEach(function (n) { observer.observe(n); });
-})();
-</script>
 
 @code {
     private string? _error;
     protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
-
-    private static readonly string[] GuideFeatures =
-    [
-        "Role-based tabs per department and finance team",
-        "GL journals, VAT, and bank reconciliation",
-        "Inventory, WMS, and landed cost areas",
-        "Procurement, sales orders, and AR/AP",
-        "HR, payroll, and leave workflows",
-        "Audit trail and compliance dashboards",
-        "AI advisor and knowledge base tabs",
-        "Same live data as control panel ERP shell",
-    ];
 }
