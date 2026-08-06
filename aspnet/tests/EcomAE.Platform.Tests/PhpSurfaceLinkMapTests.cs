@@ -46,7 +46,12 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/", "/")] // classic-entry home URL stays / (proxied to /marketing/app)
     [InlineData("https://www.ecomae.com/", "/marketing/app")]
     [InlineData("https://www.ecomae.com/platform/pricing", "/platform/pricing")]
-    [InlineData("https://www.ecomae.com/bos", "/bos/what-is-a-business-operating-system")]
+    [InlineData("https://www.ecomae.com/bos", "/bos")] // product Super BOS shell (not marketing article)
+    [InlineData("https://www.ecomae.com/BOS/", "/bos")]
+    [InlineData("https://www.ecomae.com/bos/tenants-app", "/bos/tenants-app")]
+    [InlineData("https://www.ecomae.com/bos/what-is-a-business-operating-system", "/bos/what-is-a-business-operating-system")]
+    [InlineData("/CP/shop/tenant_hub/tenant_hub", "/cp/tenants-app")]
+    [InlineData("/CP/control/portal/epc_platform_health_checkup", "/cp/failover-status-app")]
     public void AspNetPrimaryHref_MapsPhpProductToAspNet(string phpHref, string expected)
     {
         Assert.Equal(expected, PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref));

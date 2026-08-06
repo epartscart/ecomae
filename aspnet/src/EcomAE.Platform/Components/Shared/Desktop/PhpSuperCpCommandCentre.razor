@@ -31,6 +31,14 @@
     .epc-boc__topnav-col-hd { color:#64748b; font-size:11px; font-weight:800; text-transform:uppercase; margin:6px 0; }
     .epc-boc__topnav-panel-hd { display:flex; justify-content:space-between; gap:14px; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:8px; font-weight:800; }
     .epc-boc__topnav-actions { margin-left:auto; display:flex; align-items:center; gap:10px; font-size:12px; }
+    .epc-boc__topnav-brand-sub { font-size:10px; font-weight:700; opacity:.85; margin-left:2px; letter-spacing:.04em; text-transform:uppercase; }
+    .epc-boc__topnav-bos, .epc-boc__topnav-erp {
+        display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px;
+        color:#fff; text-decoration:none; font-weight:800; border:1px solid rgba(255,255,255,.28);
+        background:rgba(0,0,0,.22);
+    }
+    .epc-boc__topnav-bos:hover, .epc-boc__topnav-erp:hover { background:rgba(0,0,0,.38); color:#fff; text-decoration:none; }
+    .epc-boc__topnav-bos { border-color:rgba(14,165,233,.55); background:rgba(14,165,233,.22); }
     .epc-boc__avatar { background:rgba(255,255,255,.2); border-radius:999px; padding:6px 9px; font-weight:800; }
     .epc-boc__canvas { padding:16px 18px; }
     .epc-boc__platform-banner { background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:12px 14px; margin:0 0 14px; }
@@ -81,7 +89,8 @@
 <div class="epc-boc epc-boc--topnav" style="display:flex!important;flex-direction:column!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#fff7f7!important;isolation:isolate!important;">
     <nav class="epc-boc__topnav" id="epc_boc_topnav" aria-label="Business Operation Control">
         <div class="epc-boc__topnav-inner">
-            <a class="epc-boc__topnav-brand" href="/cp"><i class="fa fa-cubes" aria-hidden="true"></i><span>BOS</span></a>
+            @* Brand short-name is "BOS" in PHP BOC, but the home stays Super CP (/cp) — not product Super BOS (/bos). *@
+            <a class="epc-boc__topnav-brand" href="/cp" title="Super CP — Business Operation Control"><i class="fa fa-cubes" aria-hidden="true"></i><span>BOS</span><small class="epc-boc__topnav-brand-sub">Control</small></a>
             <ul class="epc-boc__topnav-list" role="menubar">
                 @foreach (var (group, areas) in PhpSuperCpBocNav.Nav())
                 {
@@ -118,6 +127,8 @@
                 }
             </ul>
             <div class="epc-boc__topnav-actions">
+                <a class="epc-boc__topnav-bos" href="/bos" title="Open product Super BOS — Fleet Command (black shell)"><i class="fa fa-server"></i> Super BOS</a>
+                <a class="epc-boc__topnav-erp" href="/erp" title="Super ERP fleet"><i class="fa fa-university"></i> Super ERP</a>
                 <span class="epc-boc__scope" title="Platform fleet vs active tenant CP"><i class="fa fa-globe"></i> All units · Fleet</span>
                 <span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> Production</span>
                 <span class="epc-boc__avatar" title="Operator">OP</span>
@@ -128,20 +139,25 @@
     <div class="epc-boc__main" style="display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-width:0!important;width:auto!important;float:none!important;">
         <div class="epc-boc__canvas">
             <div class="epc-boc__platform-banner" role="status">
-                <div><strong>Platform Super CP</strong> <span>· ecomae.com overall fleet</span>
-                    <div class="epc-boc__platform-banner-hint">Tenants, health, governance, and fleet pricing stay here. Use the Tenants directory for epartscart.com, taxofinca.com, and other shops — their OMS / catalogue / ERP never mix into this platform DB.</div>
+                <div><strong>Platform Super CP</strong> <span>· ecomae.com operator console (/cp)</span>
+                    <div class="epc-boc__platform-banner-hint">
+                        Super CP (this red BOC console) is the operator control plane under <code>/cp</code>.
+                        Product <strong>Super BOS</strong> is a separate fleet OS under <code>/bos</code> (black shell) — use the Super BOS button to leave CP and enter that level.
+                        Tenant shops (epartscart, taxofinca, …) never mix into this platform DB.
+                    </div>
                 </div>
             </div>
 
             <div class="epc-boc__hero">
                 <div>
-                    <div class="epc-boc__hero-brand"><span>BOS</span> Business Operation System</div>
+                    <div class="epc-boc__hero-brand"><span>BOS</span> Business Operation System · Control</div>
                     <h2>Platform Super CP</h2>
                     <p>Overall fleet control for all tenants. Select a tenant CP to operate epartscart, taxofinca, and others without mixing shop data into ecomae.</p>
                 </div>
                 <div class="epc-boc__hero-actions">
-                    <a class="epc-boc__btn epc-boc__btn--solid" href="/bos/tenants-app"><i class="fa fa-rocket"></i> Onboard client</a>
-                    <a class="epc-boc__btn epc-boc__btn--ghost" href="/bos/fleet-health-app"><i class="fa fa-heartbeat"></i> Health checkup</a>
+                    <a class="epc-boc__btn epc-boc__btn--solid" href="/bos"><i class="fa fa-server"></i> Open Super BOS</a>
+                    <a class="epc-boc__btn epc-boc__btn--ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/tenant_hub/tenant_hub?tab=onboard")"><i class="fa fa-rocket"></i> Onboard client</a>
+                    <a class="epc-boc__btn epc-boc__btn--ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_platform_health_checkup")"><i class="fa fa-heartbeat"></i> Health checkup</a>
                     <a class="epc-boc__btn epc-boc__btn--ghost" href="/brochure/cp" target="_blank" rel="noopener"><i class="fa fa-book"></i> CP brochure</a>
                 </div>
             </div>
@@ -196,17 +212,33 @@
                 </div>
             </div>
 
-            @* Quick actions — same default BOC shortcuts as PHP epc_shortcuts_catalog_boc *@
-            <div class="epc-boc__panel">
-                <div class="epc-boc__panel-h"><i class="fa fa-bolt"></i> Quick actions</div>
+            @* Super BOS entry — PHP Super ERP uses the same /bos jump; Super CP must expose it too. *@
+            <div class="epc-boc__panel" style="background:linear-gradient(135deg,#0b1220,#0c4a6e);color:#fff;border-color:#0c4a6e">
+                <div class="epc-boc__panel-h" style="color:#fff"><i class="fa fa-server"></i> Super BOS — Fleet Command</div>
+                <p class="epc-boc__note" style="color:rgba(255,255,255,.85);margin:0 0 12px">
+                    Separate product shell from Super CP. Black BOS chrome, provider fleet modules, tenant ops — open <code style="color:#7dd3fc">/bos</code> on ecomae.com only.
+                </p>
                 <div class="epc-boc__grid">
-                    <a class="epc-boc__card" href="/bos/tenants-app"><i class="fa fa-sitemap"></i><strong>Tenant hub</strong><span>Fleet directory &amp; onboarding</span></a>
-                    <a class="epc-boc__card" href="/bos/fleet-health-app"><i class="fa fa-heartbeat"></i><strong>Health</strong><span>Fleet health &amp; readiness</span></a>
-                    <a class="epc-boc__card" href="/bos/fleet-summary-app"><i class="fa fa-line-chart"></i><strong>Channels</strong><span>Commerce / ERP mix</span></a>
-                    <a class="epc-boc__card" href="/bos/fleet-readiness-app"><i class="fa fa-shield"></i><strong>Governance</strong><span>Cutover &amp; readiness locks</span></a>
-                    <a class="epc-boc__card" href="/bos/audit-log-app"><i class="fa fa-list-alt"></i><strong>Audit</strong><span>Operator audit trail</span></a>
-                    <a class="epc-boc__card" href="/platform/industries"><i class="fa fa-industry"></i><strong>Industry</strong><span>Industry packs</span></a>
-                    <a class="epc-boc__card" href="/bos/tenants-app"><i class="fa fa-rocket"></i><strong>Onboard</strong><span>Provision a client tenant</span></a>
+                    <a class="epc-boc__card" href="/bos" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);color:#fff"><i class="fa fa-dashboard" style="color:#38bdf8"></i><strong>BOS Dashboard</strong><span style="color:rgba(255,255,255,.7)">Fleet Command Center</span></a>
+                    <a class="epc-boc__card" href="/bos/tenants-app" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);color:#fff"><i class="fa fa-users" style="color:#38bdf8"></i><strong>Tenant Management</strong><span style="color:rgba(255,255,255,.7)">Add, suspend, configure</span></a>
+                    <a class="epc-boc__card" href="/bos/fleet-health-app" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);color:#fff"><i class="fa fa-heartbeat" style="color:#38bdf8"></i><strong>Health Monitor</strong><span style="color:rgba(255,255,255,.7)">Uptime &amp; DB probes</span></a>
+                    <a class="epc-boc__card" href="/bos/fleet-readiness-app" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);color:#fff"><i class="fa fa-shield" style="color:#38bdf8"></i><strong>Readiness</strong><span style="color:rgba(255,255,255,.7)">Cutover &amp; gates</span></a>
+                    <a class="epc-boc__card" href="/bos/fleet-summary-app" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);color:#fff"><i class="fa fa-line-chart" style="color:#38bdf8"></i><strong>Fleet summary</strong><span style="color:rgba(255,255,255,.7)">Roll-up KPIs</span></a>
+                    <a class="epc-boc__card" href="/bos/audit-log-app" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);color:#fff"><i class="fa fa-list-alt" style="color:#38bdf8"></i><strong>Audit log</strong><span style="color:rgba(255,255,255,.7)">Operator trail</span></a>
+                </div>
+            </div>
+
+            @* Quick actions — PHP epc_shortcuts_catalog_boc (CP paths, not /bos digests) *@
+            <div class="epc-boc__panel">
+                <div class="epc-boc__panel-h"><i class="fa fa-bolt"></i> Super CP quick actions</div>
+                <div class="epc-boc__grid">
+                    <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/tenant_hub/tenant_hub")"><i class="fa fa-sitemap"></i><strong>Tenant hub</strong><span>Fleet directory &amp; onboarding</span></a>
+                    <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_platform_health_checkup")"><i class="fa fa-heartbeat"></i><strong>Health checkup</strong><span>SSL / DB / nginx probes</span></a>
+                    <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_boc_channel_control")"><i class="fa fa-exchange"></i><strong>Channels &amp; OMS</strong><span>Web / POS / API</span></a>
+                    <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_platform_governance")"><i class="fa fa-gavel"></i><strong>Governance</strong><span>Policies &amp; rules</span></a>
+                    <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_boc_audit_log")"><i class="fa fa-history"></i><strong>Audit log</strong><span>Who did what</span></a>
+                    <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/industry_settings")"><i class="fa fa-industry"></i><strong>Industry packs</strong><span>Module presets</span></a>
+                    <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/tenant_hub/tenant_hub?tab=onboard")"><i class="fa fa-rocket"></i><strong>Onboard</strong><span>Provision a client tenant</span></a>
                     <a class="epc-boc__card" href="/brochure/cp"><i class="fa fa-book"></i><strong>Brochure</strong><span>CP capability brochure</span></a>
                 </div>
             </div>
@@ -253,7 +285,8 @@
                 <div class="epc-boc__panel-h"><i class="fa fa-history"></i> Recent operator activity</div>
                 <p class="epc-boc__note">
                     Fleet source: @_summary.Message (source: @_summary.Source).
-                    Full operator audit trail: <a href="/bos/audit-log-app">open the audit log</a>.
+                    Full operator audit trail: <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_boc_audit_log")">open the audit log</a>.
+                    · Enter product Super BOS: <a href="/bos">/bos</a>.
                 </p>
             </div>
         </div>
