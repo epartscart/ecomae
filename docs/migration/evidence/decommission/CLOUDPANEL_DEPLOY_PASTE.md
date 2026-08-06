@@ -2,21 +2,22 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
-## 0★) STOREFRONT `/` STALE AFTER #877+ — FORCE LIVE (do this first)
+## 0★) STOREFRONT `/` STALE / TOP MENU INVISIBLE — FORCE LIVE (do this first)
 
-Public `https://www.epartscart.com/` is nginx → `:5100/storefront/app`. PHP sync / marker updates are **not** enough. Until the hardened script prints `RESULT=PASS`, home stays on the old binary (`action="/storefront/search-app"`).
+Public `https://www.epartscart.com/` is nginx → `:5100/storefront/app`. PHP sync / marker updates are **not** enough. Until the hardened script prints `RESULT=PASS`, home stays on the old binary (`action="/storefront/search-app"`, dark bar + nero dark-gray links = **invisible top menu**).
 
 ```bash
-# Header PHP parity (Garage cyan / red pills / Catalog of products). Prefer branch until merged:
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-php-parity-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+# Top-menu visibility + PHP graphical header. Prefer branch until merged:
+ECOMAE_BRANCH=cursor/storefront-header-topmenu-visible-7b3b \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-topmenu-visible-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
 # After merge to main:
 # bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
 # Must show the RESULT=PASS banner. On FAIL:
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-git fetch origin cursor/storefront-header-php-parity-7b3b && git checkout -f cursor/storefront-header-php-parity-7b3b
+git fetch origin cursor/storefront-header-topmenu-visible-7b3b && git checkout -f cursor/storefront-header-topmenu-visible-7b3b
 bash scripts/cloudpanel_DIAGNOSE_STALE_HOME.sh
-# Laptop prove (expect RESULT=FRESH):
-# curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-php-parity-7b3b/scripts/prove_epartscart_public_deploy.sh | bash
+# Laptop prove (expect RESULT=FRESH + top-menu visible CSS):
+# curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-topmenu-visible-7b3b/scripts/prove_epartscart_public_deploy.sh | bash
 ```
 
 ## 0) EXECUTE NOW — tenant-shared `/cp` `/erp` `/` → ASP.NET (URL unchanged)

@@ -71,6 +71,19 @@ else
   printf 'FAIL  PHP top-menu gradient missing\n'
   fail=1
 fi
+if grep -Fq 'color:rgba(255,255,255,.88) !important' "$TMP" \
+  && grep -Fq 'header.epc-nero-header .top-menu-line .navbar-default .navbar-nav > li > a' "$TMP"; then
+  printf 'PASS  top-menu visible CSS beats nero dark-gray links\n'
+else
+  printf 'FAIL  top-menu still loses to nero dark-gray link color (invisible menu)\n'
+  fail=1
+fi
+if grep -Fq 'Home' "$TMP" && grep -Fq 'Selection catalogs' "$TMP" && grep -Fq 'Vehicle Parts intelligence AI' "$TMP"; then
+  printf 'PASS  top-menu labels present in HTML\n'
+else
+  printf 'FAIL  top-menu labels missing from HTML\n'
+  fail=1
+fi
 
 HDR="$(curl -sSI -A 'Mozilla/5.0' --max-time 20 \
   "${PUBLIC_BASE}/storefront/search-app?article=1310154101&${Q}" || true)"
@@ -92,7 +105,7 @@ RESULT=STALE
 GitHub merges do nothing until CloudPanel republishes Kestrel (:5100).
 On the CloudPanel host as root (hardened script — requires RESULT=PASS banner):
 
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-php-parity-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-topmenu-visible-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
 
 If RESULT=FAIL, paste output of:
   bash scripts/cloudpanel_DIAGNOSE_STALE_HOME.sh

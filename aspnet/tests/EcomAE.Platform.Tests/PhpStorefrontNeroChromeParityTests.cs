@@ -51,6 +51,11 @@ public sealed class PhpStorefrontNeroChromeParityTests
         Assert.Contains("background:linear-gradient(135deg,#090f1d", text, StringComparison.Ordinal);
         Assert.Contains("color:#a5f3fc !important", text, StringComparison.Ordinal);
         Assert.Contains(".schearch-line", text, StringComparison.Ordinal);
+        // Beat nero astself dark-gray nav links on dark bar (invisible top menu bug).
+        Assert.Contains("header.epc-nero-header .top-menu-line .navbar-default .navbar-nav > li > a", text, StringComparison.Ordinal);
+        Assert.Contains("color:rgba(255,255,255,.88) !important", text, StringComparison.Ordinal);
+        Assert.Contains("display:flex !important", text, StringComparison.Ordinal);
+        Assert.Contains("navbar-nav > .dropdown > a:before", text, StringComparison.Ordinal);
         // Must not fight PHP professional shell with flat gray search bar / white menu tiles / flat top bar.
         Assert.DoesNotContain(".schearch-line { background:#f3f4f6", text, StringComparison.Ordinal);
         Assert.DoesNotContain("background:#fff; border:1px solid #e5e7eb; color:#111", text, StringComparison.Ordinal);
