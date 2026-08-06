@@ -23,6 +23,18 @@ public sealed class CpPhpParityTests
     [InlineData("/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1", "/cp/uae-tax-compliance-app")]
     [InlineData("/CP/control/portal/epc_erp_only_onboard_guide", "/cp/ops-guides-app")]
     [InlineData("/CP/control", "/cp/control")]
+    [InlineData("/CP/control/portal/epc_tenant_config", "/cp/tenant-config-app")]
+    [InlineData("/CP/control/portal/epc_design_tokens", "/cp/design-tokens-app")]
+    [InlineData("/CP/control/portal/epc_config_sandbox", "/cp/config-sandbox-app")]
+    [InlineData("/CP/control/portal/epc_mfa_management", "/cp/auth-mfa-app")]
+    [InlineData("/CP/control/portal/epc_db_migrations", "/cp/data-migrations-app")]
+    [InlineData("/CP/control/portal/epc_marketplace", "/cp/marketplace-apps-app")]
+    [InlineData("/CP/control/portal/epc_ai_copilot", "/cp/ai-service-app")]
+    [InlineData("/CP/control/portal/epc_boc_warehouse_control", "/cp/warehouse-wms-app")]
+    [InlineData("/CP/control/portal/epc_boc_command_center", "/cp/control")]
+    [InlineData("/CP/shop/procurement/procurement", "/cp/purchase-requests-app")]
+    [InlineData("/CP/shop/logistics/stock", "/erp/inventory-stock-app")]
+    [InlineData("/CP/shop/price-management", "/cp/price-lists-app")]
     public void MapCpPhpPath_MapsPhpModulesToApps(string phpHref, string expected)
     {
         Assert.Equal(expected, PhpSurfaceLinkMap.MapCpPhpPath(phpHref));
