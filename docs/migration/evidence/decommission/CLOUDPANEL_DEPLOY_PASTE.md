@@ -8,13 +8,21 @@ Paste on the **production CloudPanel server** as root. Deploys latest `main` (in
 
 **Root cause:** live Kestrel `:5100` is running a **stale binary** — recent pastes synced PHP/nginx but never republished the ASP.NET build. Also, the old `cloudpanel_FORCE_LIVE_NOW.sh` prover could wrongly print `RESULT=FAIL` on a good deploy when PHP serving is paused (it treated `action="/storefront/search-app"` as "old binary"), and its `Location:` parsing broke on mawk. Both fixed on this branch.
 
-**Paste as root — wait for `RESULT=PASS`:**
+**⚠ If a previous paste "did nothing"** (no output, prompt returns instantly, marker not updated): `bash -c "$(curl …)"` silently runs an EMPTY string when curl fails (raw.githubusercontent blocked / rate-limited) or when the multi-line paste is mangled. Use the git-based paste below — every step prints, and the log survives in `/root/force-live.log`.
+
+**Paste as root, one block — wait for `RESULT=PASS`:**
 
 ```bash
-ECOMAE_BRANCH=cursor/fix-force-live-prove-892-7b3b \
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/fix-force-live-prove-892-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
-# After this branch merges: use ECOMAE_BRANCH=main and the main raw URL.
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae || echo REPO_NOT_FOUND
+git fetch origin cursor/fix-force-live-prove-892-7b3b
+git checkout -f cursor/fix-force-live-prove-892-7b3b
+git reset --hard origin/cursor/fix-force-live-prove-892-7b3b
+export ECOMAE_BRANCH=cursor/fix-force-live-prove-892-7b3b
+bash scripts/cloudpanel_FORCE_LIVE_NOW.sh 2>&1 | tee /root/force-live.log
+grep -E 'RESULT=|ERROR|FAIL' /root/force-live.log | tail -20
 ```
+
+If it prints anything other than `RESULT=PASS`, send the whole `/root/force-live.log`. After this branch merges to `main`, substitute `main` for the branch name.
 
 **PASS criteria (proved by the script):** public `/` contains `epc-asp-home-banners`, `section-vin`, `epart-front-original-data`, `id="epc-umapi"`, `id="epc-brands"`, and does NOT contain the pre-#892 scaffold (`epc-sf-home-depth`). Then hard-refresh (Ctrl+Shift+R) `https://www.epartscart.com/`.
 
