@@ -50,7 +50,7 @@
                 <i class="fa fa-th-large" aria-hidden="true"></i><span>Control</span>
             </a>
             <ul class="epc-cp-topnav-list" role="menubar">
-                @foreach (var group in LegacyDesktopChromeCatalog.ControlPanelTopnav().Where(g => _showBos || !IsBosNavGroup(g)))
+                @foreach (var group in LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: _showBos).Where(g => _showBos || !IsBosNavGroup(g)))
                 {
                     var columns = group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>();
                     var shortLabel = string.IsNullOrWhiteSpace(group.ShortLabel) ? group.Label : group.ShortLabel;

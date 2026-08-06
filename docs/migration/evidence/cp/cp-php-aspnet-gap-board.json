@@ -1,0 +1,58 @@
+{
+  "role": "cp-php-aspnet-gap-board",
+  "branch": "cursor/cp-php-parity-modules-7b3b",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "hostRules": {
+    "superCpHosts": ["www.ecomae.com", "ecomae.com", "cp.ecomae.com"],
+    "superOnlyApps": [
+      "/cp/tenants-app",
+      "/cp/demo-tenants-app",
+      "/cp/tax-toolkits-app",
+      "/cp/free-tools-app",
+      "/cp/platform-governance-app",
+      "/cp/failover-status-app",
+      "/erp/fleet-app",
+      "/bos/*"
+    ],
+    "tenantChromeHides": [
+      "Platform topnav group",
+      "Operator topnav group",
+      "epc_super_cp_* brochure links",
+      "epc_tenant_features",
+      "epc_pos_tenant_manage",
+      "BOS / fleet Super links"
+    ],
+    "phpMirror": "epc_portal_cp_item_visible_enhanced"
+  },
+  "prFixes": {
+    "cpControlAmbiguousMatch": "Removed duplicate @page \"/cp/control/\" that AmbiguousMatchException'd against @page \"/cp/control\" (live HTTP 500 empty body).",
+    "mapCpPhpPathExpansion": "Added products/catalogue, customer_mgmt, crm, parts_agent, web_tracker, quote_requests, pos, fleet_dashboard/super_cp_fleet→/bos/fleet-health-app, super_erp_fleet→/erp/fleet-app, industry_packs, epc_tenant_control/tenant_hub, notifications, workflows, portal settings, info blocks, communication.",
+    "uaeTaxOrder": "uae-tax-compliance checked BEFORE epc_erp_shell /finance/erp → MapErpPhpPath swallow.",
+    "ecomaeAbsoluteDeepLinks": "AspNetPrimaryHref on *.ecomae.com /CP/... remaps via MapCpPhpPath (no host+/cp collapse for deep modules).",
+    "superHostGates": "SuperCpHostGate / PlatformHostPolicy.AllowSuperOnlyApp on tenants, demo-tenants, tax-toolkits, free-tools, governance, failover.",
+    "tenantChromeFilter": "ControlPanelTopnav(includeSuperOnly) filters Super brochure + Platform/Operator groups on non-Super hosts."
+  },
+  "moduleStatuses": [
+    { "phpMarker": "shop/catalogue/products|products/catalogue", "aspNet": "/cp/product-catalogue-app", "status": "mapped" },
+    { "phpMarker": "customer_mgmt", "aspNet": "/cp/users-app", "status": "mapped" },
+    { "phpMarker": "shop/crm", "aspNet": "/cp/crm-board-app", "status": "mapped" },
+    { "phpMarker": "parts_agent", "aspNet": "/cp/parts-agent-chats-app", "status": "mapped" },
+    { "phpMarker": "web_tracker", "aspNet": "/cp/web-tracker-app", "status": "mapped" },
+    { "phpMarker": "quote_requests", "aspNet": "/cp/quote-requests-app", "status": "mapped" },
+    { "phpMarker": "shop/pos", "aspNet": "/cp/pos-overview-app", "status": "mapped" },
+    { "phpMarker": "shop/statistics", "aspNet": null, "status": "gap", "note": "No dedicated ASP.NET statistics app; falls through to /cp or ops-guides if path contains guide." },
+    { "phpMarker": "super_cp_fleet|fleet_dashboard", "aspNet": "/bos/fleet-health-app", "status": "mapped", "superOnly": true },
+    { "phpMarker": "super_erp_fleet", "aspNet": "/erp/fleet-app", "status": "mapped", "superOnly": true },
+    { "phpMarker": "industry_packs|industry_settings", "aspNet": "/cp/industry-packs-app", "status": "mapped" },
+    { "phpMarker": "epc_tenant_control|tenant_hub", "aspNet": "/cp/tenants-app", "status": "mapped", "superOnly": true },
+    { "phpMarker": "uae-tax-compliance", "aspNet": "/cp/uae-tax-compliance-app", "status": "mapped" },
+    { "phpMarker": "epc_notifications", "aspNet": "/cp/notifications-app", "status": "mapped" },
+    { "phpMarker": "epc_workflow_builder", "aspNet": "/cp/workflows-app", "status": "mapped" },
+    { "phpMarker": "control/portal/portal", "aspNet": "/cp/portal-settings-app", "status": "mapped" },
+    { "phpMarker": "epc_super_cp_info_blocks", "aspNet": "/cp/info-blocks-app", "status": "mapped", "superOnly": true },
+    { "phpMarker": "epc_super_cp_communication", "aspNet": "/cp/platform-communication-app", "status": "mapped", "superOnly": true },
+    { "phpMarker": "*guide*|ops", "aspNet": "/cp/ops-guides-app", "status": "mapped" },
+    { "phpMarker": "/cp/control", "aspNet": "/cp/control", "status": "fixed", "note": "Command Centre; AmbiguousMatch removed." }
+  ]
+}

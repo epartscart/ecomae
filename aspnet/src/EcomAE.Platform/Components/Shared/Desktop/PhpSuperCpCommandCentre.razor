@@ -331,8 +331,10 @@
     private static string ClassifyType(PortalTenantDigest t)
     {
         var industry = (t.IndustryCode ?? string.Empty).ToLowerInvariant();
-        if (t.SiteKey.Contains("demo", StringComparison.OrdinalIgnoreCase)
-            || t.Status.Contains("demo", StringComparison.OrdinalIgnoreCase))
+        var siteKey = t.SiteKey ?? string.Empty;
+        var status = t.Status ?? string.Empty;
+        if (siteKey.Contains("demo", StringComparison.OrdinalIgnoreCase)
+            || status.Contains("demo", StringComparison.OrdinalIgnoreCase))
         {
             return "demo";
         }
