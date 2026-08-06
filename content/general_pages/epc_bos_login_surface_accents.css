@@ -1,64 +1,227 @@
-/* Surface accent overrides for BOS-parity login shells.
-   Structure/layout come from bos/epc_bos_shell.css — only atmosphere tint differs. */
+/* Surface + tenant accent overrides for BOS-parity login shells.
+   Structure/layout come from bos/epc_bos_shell.css — atmosphere tint + celestials differ. */
 
+/* ── Celestial falls (stars, moons, meteors, sparks) ── */
+.bos-login__sky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bos-login__particles {
+  z-index: 2;
+}
+
+.bos-login__celestial {
+  position: absolute;
+  display: block;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation-name: bosCelestialFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  text-shadow: 0 0 10px var(--bos-cel-color, rgba(255, 255, 255, .5));
+  color: var(--bos-cel-color, rgba(255, 255, 255, .75));
+}
+
+.bos-login__celestial--star {
+  animation-name: bosCelestialFallSpin;
+}
+
+.bos-login__celestial--moon {
+  opacity: 0;
+  filter: drop-shadow(0 0 8px var(--bos-cel-color, rgba(255, 255, 255, .45)));
+}
+
+.bos-login__celestial--meteor {
+  width: 2px;
+  height: 28px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, transparent, var(--bos-cel-color, #fff) 40%, transparent);
+  box-shadow: 0 0 12px var(--bos-cel-color, rgba(255, 255, 255, .5));
+  transform: rotate(18deg);
+  animation-name: bosMeteorFall;
+}
+
+.bos-login__celestial--spark {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--bos-cel-color, #fff);
+  box-shadow: 0 0 8px var(--bos-cel-color, rgba(255, 255, 255, .6));
+  transform: rotate(45deg);
+  animation-name: bosSparkFall;
+}
+
+.bos-login__celestial--circuit {
+  width: 10px;
+  height: 3px;
+  border-radius: 1px;
+  transform: none;
+}
+
+@keyframes bosCelestialFall {
+  0% { transform: translate3d(0, -8vh, 0); opacity: 0; }
+  8% { opacity: .9; }
+  90% { opacity: .55; }
+  100% { transform: translate3d(var(--bos-fall-x, 20px), 110vh, 0); opacity: 0; }
+}
+
+@keyframes bosCelestialFallSpin {
+  0% { transform: translate3d(0, -8vh, 0) rotate(0deg) scale(.6); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translate3d(var(--bos-fall-x, -24px), 110vh, 0) rotate(220deg) scale(1); opacity: 0; }
+}
+
+@keyframes bosMeteorFall {
+  0% { transform: translate3d(0, -10vh, 0) rotate(22deg) scaleY(.4); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate3d(calc(var(--bos-fall-x, 40px) + 80px), 115vh, 0) rotate(22deg) scaleY(1.4); opacity: 0; }
+}
+
+@keyframes bosSparkFall {
+  0% { transform: translate3d(0, -6vh, 0) rotate(45deg) scale(.3); opacity: 0; }
+  15% { opacity: .95; }
+  50% { transform: translate3d(var(--bos-fall-x, 10px), 50vh, 0) rotate(120deg) scale(1); }
+  100% { transform: translate3d(calc(var(--bos-fall-x, 10px) * -1), 110vh, 0) rotate(220deg) scale(.4); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bos-login__celestial { animation: none !important; opacity: .35; }
+}
+
+/* ── Login tenant logo sizing on dark hero ── */
+.bos-login__tenant-logo {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  max-width: min(360px, 92%);
+}
+
+.bos-login__tenant-logo--eparts .epc-animated-logo {
+  gap: 10px;
+}
+
+.bos-login__tenant-logo--eparts .epc-animated-logo__mark {
+  height: 56px;
+  width: 124px;
+}
+
+.bos-login__tenant-logo--eparts .epc-animated-logo__text {
+  font-size: 36px;
+  color: #f87171 !important;
+  text-shadow: 0 0 24px rgba(220, 38, 38, .45);
+}
+
+.bos-login .epc-tenant-brand--hero .epc-tenant-brand__logo {
+  max-height: 88px;
+  max-width: 280px;
+}
+
+.bos-login .epc-tenant-brand__tagline {
+  font-size: 12px;
+}
+
+/* ── Platform CP (crimson) ── */
 .bos-login--cp .bos-login__grid-lines {
   background-image:
     linear-gradient(rgba(225, 29, 72, .09) 1px, transparent 1px),
     linear-gradient(90deg, rgba(225, 29, 72, .09) 1px, transparent 1px);
 }
-
-.bos-login--cp .bos-login__glow--1 {
-  background: radial-gradient(circle, rgba(225, 29, 72, .42), transparent 70%);
-}
-
-.bos-login--cp .bos-login__glow--2 {
-  background: radial-gradient(circle, rgba(251, 113, 133, .28), transparent 70%);
-}
-
-.bos-login--cp .bos-login__glow--3 {
-  background: radial-gradient(circle, rgba(248, 113, 113, .22), transparent 70%);
-}
-
+.bos-login--cp .bos-login__glow--1 { background: radial-gradient(circle, rgba(225, 29, 72, .42), transparent 70%); }
+.bos-login--cp .bos-login__glow--2 { background: radial-gradient(circle, rgba(251, 113, 133, .28), transparent 70%); }
+.bos-login--cp .bos-login__glow--3 { background: radial-gradient(circle, rgba(248, 113, 113, .22), transparent 70%); }
 .bos-login--cp .bos-login__btn {
   background: linear-gradient(135deg, #e11d48, #be123c);
   box-shadow: 0 10px 28px rgba(225, 29, 72, .35);
 }
-
-.bos-login--cp .bos-login__btn:hover {
-  filter: brightness(1.06);
-}
-
 .bos-login--cp .bos-login__brand-icon-inner {
   background: linear-gradient(145deg, #fb7185, #e11d48);
 }
 
+/* ── Platform ERP (teal + moons) ── */
 .bos-login--erp .bos-login__grid-lines {
   background-image:
     linear-gradient(rgba(13, 148, 136, .09) 1px, transparent 1px),
     linear-gradient(90deg, rgba(45, 212, 191, .09) 1px, transparent 1px);
 }
-
-.bos-login--erp .bos-login__glow--1 {
-  background: radial-gradient(circle, rgba(13, 148, 136, .42), transparent 70%);
-}
-
-.bos-login--erp .bos-login__glow--2 {
-  background: radial-gradient(circle, rgba(45, 212, 191, .28), transparent 70%);
-}
-
-.bos-login--erp .bos-login__glow--3 {
-  background: radial-gradient(circle, rgba(56, 189, 248, .22), transparent 70%);
-}
-
+.bos-login--erp .bos-login__glow--1 { background: radial-gradient(circle, rgba(13, 148, 136, .42), transparent 70%); }
+.bos-login--erp .bos-login__glow--2 { background: radial-gradient(circle, rgba(45, 212, 191, .28), transparent 70%); }
+.bos-login--erp .bos-login__glow--3 { background: radial-gradient(circle, rgba(56, 189, 248, .22), transparent 70%); }
 .bos-login--erp .bos-login__btn {
   background: linear-gradient(135deg, #0d9488, #0f766e);
   box-shadow: 0 10px 28px rgba(13, 148, 136, .35);
 }
-
-.bos-login--erp .bos-login__btn:hover {
-  filter: brightness(1.06);
-}
-
 .bos-login--erp .bos-login__brand-icon-inner {
   background: linear-gradient(145deg, #2dd4bf, #0d9488);
+}
+
+/* ── Tenant: epartscart (red autoparts) ── */
+.bos-login--tenant-epartscart .bos-login__grid-lines {
+  background-image:
+    linear-gradient(rgba(220, 38, 38, .11) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251, 146, 60, .08) 1px, transparent 1px);
+}
+.bos-login--tenant-epartscart .bos-login__glow--1 { background: radial-gradient(circle, rgba(220, 38, 38, .45), transparent 70%); }
+.bos-login--tenant-epartscart .bos-login__glow--2 { background: radial-gradient(circle, rgba(251, 146, 60, .28), transparent 70%); }
+.bos-login--tenant-epartscart .bos-login__glow--3 { background: radial-gradient(circle, rgba(248, 113, 113, .2), transparent 70%); }
+.bos-login--tenant-epartscart .bos-login__btn {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 10px 28px rgba(220, 38, 38, .38);
+}
+
+/* ── Tenant: electronicae (circuit red/cyan) ── */
+.bos-login--tenant-electronicae .bos-login__grid-lines {
+  background-image:
+    linear-gradient(rgba(225, 10, 10, .12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 233, .1) 1px, transparent 1px);
+}
+.bos-login--tenant-electronicae .bos-login__glow--1 { background: radial-gradient(circle, rgba(225, 10, 10, .4), transparent 70%); }
+.bos-login--tenant-electronicae .bos-login__glow--2 { background: radial-gradient(circle, rgba(14, 165, 233, .3), transparent 70%); }
+.bos-login--tenant-electronicae .bos-login__btn {
+  background: linear-gradient(135deg, #e10a0a, #991b1b);
+  box-shadow: 0 10px 28px rgba(225, 10, 10, .35);
+}
+
+/* ── Tenant: stylenlook (pink fashion) ── */
+.bos-login--tenant-stylenlook .bos-login__grid-lines {
+  background-image:
+    linear-gradient(rgba(236, 72, 153, .12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(192, 38, 211, .08) 1px, transparent 1px);
+}
+.bos-login--tenant-stylenlook .bos-login__glow--1 { background: radial-gradient(circle, rgba(236, 72, 153, .42), transparent 70%); }
+.bos-login--tenant-stylenlook .bos-login__glow--2 { background: radial-gradient(circle, rgba(192, 38, 211, .28), transparent 70%); }
+.bos-login--tenant-stylenlook .bos-login__btn {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  box-shadow: 0 10px 28px rgba(236, 72, 153, .35);
+}
+
+/* ── Tenant: jewellery (gold moons/sparkle) ── */
+.bos-login--tenant-jewellery .bos-login__grid-lines {
+  background-image:
+    linear-gradient(rgba(217, 119, 6, .12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251, 191, 36, .1) 1px, transparent 1px);
+}
+.bos-login--tenant-jewellery .bos-login__glow--1 { background: radial-gradient(circle, rgba(217, 119, 6, .42), transparent 70%); }
+.bos-login--tenant-jewellery .bos-login__glow--2 { background: radial-gradient(circle, rgba(251, 191, 36, .3), transparent 70%); }
+.bos-login--tenant-jewellery .bos-login__btn {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  box-shadow: 0 10px 28px rgba(217, 119, 6, .38);
+}
+
+/* ── Tenant: taxofinca (green advisory) ── */
+.bos-login--tenant-taxofinca .bos-login__grid-lines {
+  background-image:
+    linear-gradient(rgba(34, 122, 64, .12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 197, 94, .08) 1px, transparent 1px);
+}
+.bos-login--tenant-taxofinca .bos-login__glow--1 { background: radial-gradient(circle, rgba(34, 122, 64, .42), transparent 70%); }
+.bos-login--tenant-taxofinca .bos-login__glow--2 { background: radial-gradient(circle, rgba(16, 185, 129, .28), transparent 70%); }
+.bos-login--tenant-taxofinca .bos-login__btn {
+  background: linear-gradient(135deg, #227a40, #166534);
+  box-shadow: 0 10px 28px rgba(34, 122, 64, .35);
 }

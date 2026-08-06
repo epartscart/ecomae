@@ -4,9 +4,10 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject NavigationManager Nav
+@inject IHttpContextAccessor Http
 
-<PageTitle>ERP Finance — ECOM AE</PageTitle>
-@* Same shell as /bos/login (bos/epc_bos_shell.css). Only particle/glow accent differs (teal). *@
+<PageTitle>@_brand.Label — ERP Finance</PageTitle>
+@* BOS login shell; tenant hosts show animated/catalog logo; atmosphere theme per tenant. *@
 <PhpSurfaceHead Surface="erp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="erp" LoginChrome="true" />
 
@@ -35,28 +36,35 @@
 </style>
 
 @* Markers: epc-erp-portal-bg, epc-erp-bos-hero, #erpPortalParticles *@
-<div class="epc-login-bos bos-login bos-login--erp epc-erp-portal-wrap">
+<div class="epc-login-bos bos-login @_brand.RootModifierClass epc-erp-portal-wrap">
     <div class="epc-erp-portal-bg" hidden aria-hidden="true"><div class="epc-erp-portal-bg__grid"></div></div>
     <div class="epc-erp-bos-hero" hidden aria-hidden="true"><h1 class="epc-erp-bos-hero__title">ERP Finance</h1></div>
 
     <PhpBosLoginAtmosphere ParticlesId="erpPortalParticles"
-                           ParticleColors="@(new[] {
-                               "rgba(45,212,191,.8)", "rgba(13,148,136,.55)", "rgba(56,189,248,.45)",
-                               "rgba(255,255,255,.35)", "rgba(94,234,212,.4)", "rgba(15,118,110,.5)"
-                           })" />
+                           Theme="@(_isTenant ? _brand.AtmosphereTheme : "teal-moon")"
+                           ParticleColors="@_brand.ParticleColors" />
 
     <div class="bos-login__hero">
         <div class="bos-login__hero-content">
             <div class="bos-login__brand-mark">
-                <div class="bos-login__brand-icon">
-                    <div class="bos-login__brand-icon-inner">
-                        <i class="fa fa-university"></i>
+                @if (_brand.LogoKind != LoginHostBrand.Kind.Platform)
+                {
+                    <PhpLoginHostBrand Brand="@_brand" />
+                    <h1 class="bos-login__brand-title">@_brand.Label</h1>
+                    <p class="bos-login__brand-tagline">ERP Finance · @_brand.Tagline</p>
+                }
+                else
+                {
+                    <div class="bos-login__brand-icon">
+                        <div class="bos-login__brand-icon-inner">
+                            <i class="fa fa-university"></i>
+                        </div>
+                        <div class="bos-login__brand-ring"></div>
+                        <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
                     </div>
-                    <div class="bos-login__brand-ring"></div>
-                    <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
-                </div>
-                <h1 class="bos-login__brand-title">ERP</h1>
-                <p class="bos-login__brand-tagline">Enterprise Resource Planning</p>
+                    <h1 class="bos-login__brand-title">ERP</h1>
+                    <p class="bos-login__brand-tagline">Enterprise Resource Planning</p>
+                }
             </div>
 
             <div class="bos-login__capabilities">
@@ -85,7 +93,7 @@
                     <div class="bos-login__cap-icon bos-login__cap-icon--ai"><i class="fa fa-building"></i></div>
                     <div class="bos-login__cap-text">
                         <strong>Multi-company</strong>
-                        <span>MAIN vs jewellery industry packs</span>
+                        <span>Industry packs per legal entity</span>
                     </div>
                 </div>
             </div>
@@ -119,7 +127,7 @@
             <div class="bos-login__form-wrap bos-login__form-wrap--active">
                 <div class="bos-login__form-header">
                     <h2>ERP Access</h2>
-                    <p>Access your enterprise resource planning system</p>
+                    <p>Access @_brand.Label enterprise resource planning</p>
                 </div>
                 <form class="bos-login__form" id="erpLoginForm" method="post" action="@EcomAeRoutes.ErpLogin">
                     <input type="hidden" name="surface" value="erp" />
@@ -166,11 +174,9 @@
                 <div class="bos-login__footer-brand">
                     <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
                     <span class="bos-login__footer-sep">&middot;</span>
-                    <span>ERP Finance</span>
+                    <span>@_brand.Label ERP</span>
                     <span class="bos-login__footer-sep">&middot;</span>
                     <a href="/cp/login">CP</a>
-                    <span class="bos-login__footer-sep">&middot;</span>
-                    <a href="/bos/login">BOS</a>
                 </div>
             </div>
         </div>
@@ -179,5 +185,14 @@
 
 @code {
     private string? _error;
-    protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
+    private LoginHostBrand.Brand _brand = LoginHostBrand.Resolve(null, "erp");
+    private bool _isTenant;
+
+    protected override void OnInitialized()
+    {
+        _error = LoginErrorHelper.FromUri(Nav.Uri);
+        var host = Http.HttpContext?.Request.Host.Host;
+        _brand = LoginHostBrand.Resolve(host, "erp");
+        _isTenant = _brand.LogoKind != LoginHostBrand.Kind.Platform;
+    }
 }

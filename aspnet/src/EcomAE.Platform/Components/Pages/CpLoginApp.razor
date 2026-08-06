@@ -4,9 +4,10 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject NavigationManager Nav
+@inject IHttpContextAccessor Http
 
-<PageTitle>Control Panel — ECOM AE</PageTitle>
-@* Same shell as /bos/login (bos/epc_bos_shell.css). Only particle/glow accent differs (crimson). *@
+<PageTitle>@_brand.Label — Control Panel</PageTitle>
+@* BOS login shell; tenant hosts show animated/catalog logo; atmosphere theme per tenant. *@
 <PhpSurfaceHead Surface="cp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="cp" LoginChrome="true" />
 
@@ -34,55 +35,62 @@
     }
 </style>
 
-@* Markers: epc-cp-login-hero, #epcCpParticles — presentation probes *@
-<div class="epc-login-bos bos-login bos-login--cp epc-cp-login-hero">
+@* Markers: epc-cp-login-hero, #epcCpParticles *@
+<div class="epc-login-bos bos-login @_brand.RootModifierClass epc-cp-login-hero">
     <PhpBosLoginAtmosphere ParticlesId="epcCpParticles"
-                           ParticleColors="@(new[] {
-                               "rgba(251,113,133,.8)", "rgba(225,29,72,.55)", "rgba(248,113,113,.45)",
-                               "rgba(255,255,255,.35)", "rgba(254,205,211,.4)", "rgba(190,18,60,.5)"
-                           })" />
+                           Theme="@_brand.AtmosphereTheme"
+                           ParticleColors="@_brand.ParticleColors" />
 
     <div class="bos-login__hero">
         <div class="bos-login__hero-content">
             <div class="bos-login__brand-mark">
-                <div class="bos-login__brand-icon">
-                    <div class="bos-login__brand-icon-inner">
-                        <i class="fa fa-cogs"></i>
+                @if (_brand.LogoKind != LoginHostBrand.Kind.Platform)
+                {
+                    <PhpLoginHostBrand Brand="@_brand" />
+                    <h1 class="bos-login__brand-title">@_brand.Label</h1>
+                    <p class="bos-login__brand-tagline">Control Panel · @_brand.Tagline</p>
+                }
+                else
+                {
+                    <div class="bos-login__brand-icon">
+                        <div class="bos-login__brand-icon-inner">
+                            <i class="fa fa-cogs"></i>
+                        </div>
+                        <div class="bos-login__brand-ring"></div>
+                        <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
                     </div>
-                    <div class="bos-login__brand-ring"></div>
-                    <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
-                </div>
-                <h1 class="bos-login__brand-title">CP</h1>
-                <p class="bos-login__brand-tagline">Control Panel · Operator Console</p>
+                    <h1 class="bos-login__brand-title">@_brand.Label</h1>
+                    <p class="bos-login__brand-tagline">@_brand.Tagline</p>
+                }
             </div>
 
             <div class="bos-login__capabilities">
                 <div class="bos-login__cap-item bos-login__cap-item--1">
                     <div class="bos-login__cap-icon bos-login__cap-icon--erp"><i class="fa fa-globe"></i></div>
                     <div class="bos-login__cap-text">
-                        <strong>Fleet command</strong>
-                        <span>Commerce, ERP-only &amp; demo tenants</span>
+                        <strong>@(_isTenant ? "Store operations" : "Fleet command")</strong>
+                        <span>@(_isTenant ? "Catalog, orders &amp; customers" : "Commerce, ERP-only &amp; demo tenants")</span>
                     </div>
                 </div>
                 <div class="bos-login__cap-item bos-login__cap-item--2">
                     <div class="bos-login__cap-icon bos-login__cap-icon--ecom"><i class="fa fa-rocket"></i></div>
                     <div class="bos-login__cap-text">
-                        <strong>Tenant onboarding</strong>
-                        <span>Templates, packs &amp; provisioning</span>
+                        <strong>@(_isTenant ? "ERP workspace" : "Tenant onboarding")</strong>
+                        <span>@(_isTenant ? "Finance, stock &amp; fulfilment" : "Templates, packs &amp; provisioning")</span>
                     </div>
                 </div>
                 <div class="bos-login__cap-item bos-login__cap-item--3">
                     <div class="bos-login__cap-icon bos-login__cap-icon--compliance"><i class="fa fa-shield"></i></div>
                     <div class="bos-login__cap-text">
-                        <strong>Platform governance</strong>
-                        <span>Health, failover &amp; isolation</span>
+                        <strong>Secure sessions</strong>
+                        <span>Role-scoped · audit-ready · isolated</span>
                     </div>
                 </div>
                 <div class="bos-login__cap-item bos-login__cap-item--4">
                     <div class="bos-login__cap-icon bos-login__cap-icon--ai"><i class="fa fa-th-large"></i></div>
                     <div class="bos-login__cap-text">
                         <strong>@PhpModuleCatalog.CpBrochureFeatureCount CP features</strong>
-                        <span>Catalogue of operator modules</span>
+                        <span>Operator modules catalogue</span>
                     </div>
                 </div>
             </div>
@@ -116,7 +124,7 @@
             <div class="bos-login__form-wrap bos-login__form-wrap--active">
                 <div class="bos-login__form-header">
                     <h2>Operator Access</h2>
-                    <p>Sign in to the control panel for this tenant</p>
+                    <p>Sign in to @_brand.Label control panel</p>
                 </div>
                 <form class="bos-login__form" id="cpLoginForm" method="post" action="@EcomAeRoutes.ControlPanelLogin">
                     <input type="hidden" name="surface" value="cp" />
@@ -124,7 +132,7 @@
                     <input type="hidden" name="contact_type" value="email" />
                     <div class="bos-login__field">
                         <label for="cpEmail"><i class="fa fa-envelope-o"></i> Email</label>
-                        <input type="email" id="cpEmail" name="contact" required autocomplete="username" placeholder="operator@ecomae.com" />
+                        <input type="email" id="cpEmail" name="contact" required autocomplete="username" placeholder="operator@example.com" />
                         <div class="bos-login__field-line"></div>
                     </div>
                     <div class="bos-login__field">
@@ -156,11 +164,9 @@
                 <div class="bos-login__footer-brand">
                     <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
                     <span class="bos-login__footer-sep">&middot;</span>
-                    <span>Control Panel</span>
+                    <span>@_brand.Label CP</span>
                     <span class="bos-login__footer-sep">&middot;</span>
                     <a href="/erp/login">ERP</a>
-                    <span class="bos-login__footer-sep">&middot;</span>
-                    <a href="/bos/login">BOS</a>
                 </div>
             </div>
         </div>
@@ -169,5 +175,14 @@
 
 @code {
     private string? _error;
-    protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
+    private LoginHostBrand.Brand _brand = LoginHostBrand.Resolve(null, "cp");
+    private bool _isTenant;
+
+    protected override void OnInitialized()
+    {
+        _error = LoginErrorHelper.FromUri(Nav.Uri);
+        var host = Http.HttpContext?.Request.Host.Host;
+        _brand = LoginHostBrand.Resolve(host, "cp");
+        _isTenant = _brand.LogoKind != LoginHostBrand.Kind.Platform;
+    }
 }

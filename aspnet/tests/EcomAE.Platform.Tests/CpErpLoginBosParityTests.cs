@@ -26,17 +26,19 @@ public sealed class CpErpLoginBosParityTests
     }
 
     [Theory]
-    [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/CpLoginApp.razor", "bos-login--cp", "epcCpParticles", "EcomAeRoutes.ControlPanelLogin")]
-    [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor", "bos-login--erp", "erpPortalParticles", "EcomAeRoutes.ErpLogin")]
-    public void LoginApp_UsesBosShellStructure(string path, string accentClass, string particlesId, string routeSymbol)
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/CpLoginApp.razor", "epcCpParticles", "EcomAeRoutes.ControlPanelLogin")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor", "erpPortalParticles", "EcomAeRoutes.ErpLogin")]
+    public void LoginApp_UsesBosShellStructure(string path, string particlesId, string routeSymbol)
     {
         var text = Read(path);
         Assert.Contains("epc-login-bos bos-login", text, StringComparison.Ordinal);
-        Assert.Contains(accentClass, text, StringComparison.Ordinal);
+        Assert.Contains("RootModifierClass", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__hero", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__panel", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__form", text, StringComparison.Ordinal);
         Assert.Contains("PhpBosLoginAtmosphere", text, StringComparison.Ordinal);
+        Assert.Contains("PhpLoginHostBrand", text, StringComparison.Ordinal);
+        Assert.Contains("LoginHostBrand.Resolve", text, StringComparison.Ordinal);
         Assert.Contains(particlesId, text, StringComparison.Ordinal);
         Assert.Contains(routeSymbol, text, StringComparison.Ordinal);
         Assert.Contains("name=\"contact\"", text, StringComparison.Ordinal);
@@ -64,5 +66,19 @@ public sealed class CpErpLoginBosParityTests
         Assert.Contains("bos-login__particles", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__glow", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__particle", text, StringComparison.Ordinal);
+        Assert.Contains("bos-login__celestial", text, StringComparison.Ordinal);
+        Assert.Contains("bos-login__celestial--moon", text, StringComparison.Ordinal);
+        Assert.Contains("bos-login__celestial--star", text, StringComparison.Ordinal);
+        Assert.Contains("createCelestials", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AccentCss_IncludesCelestialsAndTenantLooks()
+    {
+        var css = Read("content/general_pages/epc_bos_login_surface_accents.css");
+        Assert.Contains("bos-login__celestial--moon", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login__celestial--star", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login--tenant-epartscart", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login__tenant-logo--eparts", css, StringComparison.Ordinal);
     }
 }
