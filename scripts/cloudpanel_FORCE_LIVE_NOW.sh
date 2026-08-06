@@ -257,14 +257,91 @@ else:
         print("injected", p)
 PY
   NGINX_TOUCHED=$((NGINX_TOUCHED + 1))
-done < <(grep -Rll 'epartscart' /etc/nginx/sites-enabled /etc/nginx/sites-available /home/*/conf/nginx 2>/dev/null || true)
+done < <(grep -Rll 'epartscart' /etc/nginx/sites-enabled /etc/nginx/sites-available /home/*/conf/nginx 2>/dev/null | grep -E '\.conf$' || true)
+# NOTE: '\.conf$' filter — sites-enabled is littered with .bak.* copies from old
+# runs; injecting into those bloats them and hides which file nginx actually uses.
 
-if [[ "$NGINX_TOUCHED" -gt 0 ]]; then
-  nginx -t
+# Repair known breakage: earlier packs can leave DUPLICATE exact/plain location
+# selectors in one server{} (e.g. two `location = /`) — nginx -t then fails and
+# every reload is silently ignored, freezing nginx on a stale in-memory config.
+nginx_repair_duplicate_locations() {
+  python3 - <<'PY'
+import re, shutil, time
+from pathlib import Path
+
+backup_root = Path('/root/nginx-conf-repair-' + time.strftime('%Y%m%d%H%M%S'))
+changed_any = False
+
+def find_blocks(text, start_pat):
+    out = []
+    for m in start_pat.finditer(text):
+        i = text.find('{', m.start())
+        if i < 0:
+            continue
+        depth, j = 0, i
+        while j < len(text):
+            if text[j] == '{':
+                depth += 1
+            elif text[j] == '}':
+                depth -= 1
+                if depth == 0:
+                    out.append((m.start(), j + 1))
+                    break
+            j += 1
+    return out
+
+SERVER_PAT = re.compile(r'(?m)^[ \t]*server\s*\{')
+# Only exact (=), ^~ and plain selectors — never touch regex locations.
+LOC_PAT = re.compile(r'(?m)^[ \t]*location\s+(=\s+\S+|\^~\s+\S+|/\S*|/)\s*\{')
+
+for conf in sorted(Path('/etc/nginx/sites-enabled').glob('*.conf')):
+    try:
+        text = conf.read_text(errors='ignore')
+    except Exception:
+        continue
+    orig = text
+    for s_start, s_end in reversed(find_blocks(text, SERVER_PAT)):
+        body = text[s_start:s_end]
+        seen = set()
+        drops = []
+        for l_start, l_end in find_blocks(body, LOC_PAT):
+            m = LOC_PAT.match(body, l_start)
+            if not m:
+                continue
+            # keep the FIRST occurrence of each selector; drop later duplicates
+            key = ' '.join(m.group(1).split())
+            if key in seen:
+                drops.append((l_start, l_end))
+            else:
+                seen.add(key)
+        for l_start, l_end in reversed(drops):
+            m = LOC_PAT.match(body, l_start)
+            print(f'repair: dropping duplicate location {" ".join(m.group(1).split())} in {conf}')
+            body = body[:l_start] + body[l_end:]
+        text = text[:s_start] + body + text[s_end:]
+    if text != orig:
+        backup_root.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(conf, backup_root / conf.name)
+        conf.write_text(text)
+        changed_any = True
+        print(f'repaired {conf} (backup in {backup_root})')
+
+print('repair-changed=' + ('yes' if changed_any else 'no'))
+PY
+}
+
+if nginx -t; then
   systemctl reload nginx
   printf 'nginx reloaded (%s confs touched)\n' "$NGINX_TOUCHED"
 else
-  printf 'WARN: no nginx confs mentioning epartscart were patched\n' >&2
+  printf 'WARN: nginx -t failed — attempting duplicate-location repair\n' >&2
+  nginx_repair_duplicate_locations || true
+  if nginx -t; then
+    systemctl reload nginx
+    printf 'nginx repaired + reloaded\n'
+  else
+    printf 'WARN: nginx config still failing — continuing to publish; old config keeps serving\n' >&2
+  fi
 fi
 
 # Classic-entry: public / MUST proxy to :5100/storefront/app.
