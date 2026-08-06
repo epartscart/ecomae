@@ -131,6 +131,22 @@ PY
   } | sed '/^$/d' | sort -u
 )
 
+# Normalize + filter discovered roots:
+# - drop the repo checkout itself (cp source == dest fails and set -e kills the run)
+# - drop garbage doubled paths from malformed nginx root lines (…/htdocs/home/…)
+# - only sync REAL existing PHP docroots (must already contain index.php); never mkdir new trees
+REPO_REAL="$(readlink -f "$REPO")"
+FILTERED=()
+for dir in "${DOCROOTS[@]}"; do
+  [[ -d "$dir" ]] || continue
+  real="$(readlink -f "$dir")"
+  [[ "$real" == "$REPO_REAL" ]] && continue
+  [[ "$real" == *"/htdocs/home/"* ]] && continue
+  [[ -f "$real/index.php" ]] || continue
+  FILTERED+=("$real")
+done
+mapfile -t DOCROOTS < <(printf '%s\n' "${FILTERED[@]+"${FILTERED[@]}"}" | sed '/^$/d' | sort -u)
+
 if [[ "${#DOCROOTS[@]}" -eq 0 ]]; then
   printf 'WARN: no epartscart docroots discovered — will still publish :5100\n' >&2
 else
@@ -138,22 +154,20 @@ else
   printf '  %s\n' "${DOCROOTS[@]}"
 fi
 
-# Always include repo itself (for epc-static from checkout if used)
-DOCROOTS+=("$REPO")
-
 SYNCED=0
-for dir in "${DOCROOTS[@]}"; do
+for dir in "${DOCROOTS[@]+"${DOCROOTS[@]}"}"; do
   [[ -d "$dir" ]] || continue
   mkdir -p "$dir/content/general_pages"
-  cp -f "$REPO/epc_storefront_stub_redirect.php" "$dir/epc_storefront_stub_redirect.php"
+  # PHP-side sync is best-effort — the deploy's core is publish + restart + prove.
+  cp -f "$REPO/epc_storefront_stub_redirect.php" "$dir/epc_storefront_stub_redirect.php" || true
   if [[ -f "$dir/index.php" ]]; then
     if ! grep -q 'epc_storefront_stub_redirect.php' "$dir/index.php"; then
       # Insert require right after opening / legacy guard if present
       if grep -q 'epc-ecomae-legacy-path-guard.php' "$dir/index.php"; then
         # Prefer full index.php from repo when structure matches
-        cp -f "$REPO/index.php" "$dir/index.php"
+        cp -f "$REPO/index.php" "$dir/index.php" || true
       else
-        cp -f "$REPO/index.php" "$dir/index.php"
+        cp -f "$REPO/index.php" "$dir/index.php" || true
       fi
     else
       # Keep stub require; still refresh stub file (done above)
@@ -161,7 +175,7 @@ for dir in "${DOCROOTS[@]}"; do
     fi
   fi
   cp -f "$REPO/content/general_pages/epc_storefront_professional_shell.css" \
-    "$dir/content/general_pages/epc_storefront_professional_shell.css"
+    "$dir/content/general_pages/epc_storefront_professional_shell.css" || true
   cp -f "$REPO/content/general_pages/epc_storefront_professional_shell_css.php" \
     "$dir/content/general_pages/" 2>/dev/null || true
   # Marker starts pending — status=pass is written ONLY after public :5100 prove.
@@ -253,14 +267,19 @@ else
   printf 'WARN: no nginx confs mentioning epartscart were patched\n' >&2
 fi
 
-# Classic-entry: public / MUST proxy to :5100/storefront/app (not best-effort).
-if [[ ! -f scripts/cloudpanel_install_classic_entry_aspnet_primary.sh ]]; then
-  printf 'ERROR: missing scripts/cloudpanel_install_classic_entry_aspnet_primary.sh\n' >&2
-  exit 1
+# Classic-entry: public / MUST proxy to :5100/storefront/app.
+# Do NOT abort the whole deploy if this step fails — / is usually already routed
+# to :5100 and the stale binary is the real problem; publish + restart must happen.
+# The final public prove still decides PASS/FAIL.
+if [[ -f scripts/cloudpanel_install_classic_entry_aspnet_primary.sh ]]; then
+  if ! ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
+       ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
+       bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts; then
+    printf 'WARN: classic-entry installer failed — continuing to publish; final prove decides\n' >&2
+  fi
+else
+  printf 'WARN: classic-entry installer script missing — continuing to publish\n' >&2
 fi
-ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
-ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
-  bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
 
 # ---- Direct ASP.NET publish ----
 command -v dotnet >/dev/null || { printf 'ERROR: dotnet missing\n' >&2; exit 1; }
