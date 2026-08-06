@@ -1,0 +1,138 @@
+@page "/erp/approvals-app"
+@page "/erp/approvals"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>ERP Approvals · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Approvals" BreadcrumbArea="Home" BreadcrumbTab="Approvals">
+    <style>
+        .epc-ea-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
+        }
+        .epc-ea-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-ea-hero p { margin:0; color:#bae6fd; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-ea-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-ea-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0f172a; background:#dbeafe;
+        }
+        .epc-ea-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-ea-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-ea-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-ea-kpi strong { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; }
+        .epc-ea-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-ea-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+        .epc-ea-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-ea-table th, .epc-ea-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; }
+        .epc-ea-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
+        .epc-ea-sev { display:inline-block; padding:.15rem .45rem; border-radius:.3rem; font-size:.75rem; font-weight:700; background:#f1f5f9; color:#334155; }
+        .epc-ea-sev.warning { background:#fef3c7; color:#92400e; }
+        .epc-ea-sev.danger { background:#fee2e2; color:#991b1b; }
+        .epc-ea-sev.info { background:#e0f2fe; color:#075985; }
+        .epc-ea-note { margin-top:1rem; padding:.75rem .9rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:.45rem; color:#0c4a6e; font-size:.86rem; }
+        @@media (max-width:700px){ .epc-ea-kpis{grid-template-columns:1fr;} }
+    </style>
+
+    <section class="epc-ea-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Approval queue</h1>
+        <p>Command-center approval items for this company — drafts, pending POs, unposted journals, and more.</p>
+        <div class="epc-ea-cta">
+            <a href="/erp/approvals-app">Refresh queue</a>
+            <a class="ghost" href="/erp/dashboard-summary-app">Dashboard summary</a>
+            <a class="ghost" href="/erp/guide-app">Guide</a>
+        </div>
+    </section>
+
+    <div class="epc-ea-kpis" aria-label="Approval queue stats">
+        <div class="epc-ea-kpi"><strong>@_queue.Count.ToString(CultureInfo.InvariantCulture)</strong><span>Queue rows</span></div>
+        <div class="epc-ea-kpi"><strong>@_queue.Sum(i => i.Count).ToString(CultureInfo.InvariantCulture)</strong><span>Total items</span></div>
+        <div class="epc-ea-kpi"><strong>@_source</strong><span>Source</span></div>
+    </div>
+
+    <div class="epc-ea-table-wrap">
+        <table class="epc-ea-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Category</th>
+                    <th>Label</th>
+                    <th>Count</th>
+                    <th>Severity</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_queue.Count == 0)
+                {
+                    <tr><td colspan="6">No approval queue items.</td></tr>
+                }
+                else
+                {
+                    @foreach (var item in _queue)
+                    {
+                        var href = AppHrefFor(item.Id);
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>@item.Category</td>
+                            <td>@item.Label</td>
+                            <td>@item.Count.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><span class="epc-ea-sev @item.Severity">@item.Severity</span></td>
+                            <td><a href="@href">@item.Action</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-ea-note">
+        Source: @_source. @_message PHP command-center approval queue remains authoritative for live counts; this surface is read-only.
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private IReadOnlyList<ErpApprovalQueueItemDigest> _queue = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var result = await Dashboards.BuildErpAsync(ctx.RequestAborted);
+        _queue = result.ApprovalQueue;
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string AppHrefFor(string id) => id switch
+    {
+        "draft_so" => "/erp/sales-orders-app",
+        "pending_po" => "/erp/purchase-orders-app",
+        "unposted_gl" => "/erp/gl-journals-app",
+        "overdue_invoices" => "/erp/invoices-app",
+        "low_stock" => "/erp/inventory-stock-app",
+        "pending_einvoice" => "/cp/einvoice-documents-app",
+        _ => "/erp/dashboard-summary-app",
+    };
+}

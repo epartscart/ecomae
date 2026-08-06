@@ -1,0 +1,182 @@
+@page "/erp/guide-app"
+@page "/erp/guide"
+@page "/en/erp/guide"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>ERP Guide · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="ERP Guide" BreadcrumbArea="Home" BreadcrumbTab="Guide">
+    <style>
+        .epc-eg-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
+        }
+        .epc-eg-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-eg-hero p { margin:0; color:#bae6fd; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-eg-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-eg-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0f172a; background:#dbeafe;
+        }
+        .epc-eg-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-eg-layout { display:grid; grid-template-columns:minmax(220px,280px) minmax(0,1fr); gap:1rem; align-items:start; }
+        .epc-eg-side { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.75rem; }
+        .epc-eg-search {
+            width:100%; box-sizing:border-box; margin-bottom:.65rem; padding:.55rem .65rem;
+            border:1px solid #cbd5e1; border-radius:.4rem; font-size:.86rem;
+        }
+        .epc-eg-mods { list-style:none; margin:0; padding:0; max-height:min(70vh,640px); overflow:auto; }
+        .epc-eg-mods li { margin:0; }
+        .epc-eg-mods a {
+            display:block; padding:.45rem .55rem; border-radius:.35rem; font-size:.84rem; color:#0f172a;
+            text-decoration:none; border:1px solid transparent;
+        }
+        .epc-eg-mods a:hover { background:#f0f9ff; }
+        .epc-eg-mods a.active { background:#dbeafe; border-color:#93c5fd; font-weight:700; color:#0c4a6e; }
+        .epc-eg-detail { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:1rem 1.1rem; }
+        .epc-eg-detail h2 { margin:0 0 .35rem; font-size:1.25rem; color:#0f172a; }
+        .epc-eg-detail .code { color:#64748b; font-size:.78rem; margin-bottom:.75rem; }
+        .epc-eg-detail h3 { margin:1rem 0 .4rem; font-size:.95rem; color:#0c4a6e; }
+        .epc-eg-detail p, .epc-eg-detail li { font-size:.9rem; line-height:1.5; color:#334155; }
+        .epc-eg-detail ul { margin:.25rem 0 .5rem 1.1rem; padding:0; }
+        .epc-eg-empty { color:#64748b; font-size:.9rem; }
+        @@media (max-width:900px){ .epc-eg-layout{grid-template-columns:1fr;} .epc-eg-mods{max-height:240px;} }
+    </style>
+
+    <section class="epc-eg-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>ERP Guide book</h1>
+        <p>Step-by-step what / setup / daily / accounting / tips for every ERP module (PHP guide parity).</p>
+        <div class="epc-eg-cta">
+            <a href="/erp/guide-app">All modules</a>
+            <a class="ghost" href="/erp/dashboard-summary-app">Dashboard summary</a>
+            <a class="ghost" href="/erp/approvals-app">Approvals</a>
+        </div>
+    </section>
+
+    <div class="epc-eg-layout">
+        <aside class="epc-eg-side" aria-label="Guide modules">
+            <input class="epc-eg-search" type="search" placeholder="Filter modules…" value="@_q" @oninput="OnSearch" />
+            <ul class="epc-eg-mods">
+                @foreach (var m in _filtered)
+                {
+                    var href = "/erp/guide-app?module=" + Uri.EscapeDataString(m.Module);
+                    <li>
+                        <a class="@(_selected?.Module == m.Module ? "active" : null)" href="@href">@m.Title</a>
+                    </li>
+                }
+            </ul>
+            @if (_filtered.Count == 0)
+            {
+                <p class="epc-eg-empty">No modules match.</p>
+            }
+        </aside>
+
+        <article class="epc-eg-detail">
+            @if (_selected is null)
+            {
+                <p class="epc-eg-empty">Select a module from the list, or open <code>?module=core</code>.</p>
+            }
+            else
+            {
+                <h2>@_selected.Title</h2>
+                <div class="code">module: @_selected.Module</div>
+
+                <h3>What it is</h3>
+                <p>@_selected.What</p>
+
+                <h3>Setup</h3>
+                @if (_selected.Setup.Count == 0)
+                {
+                    <p class="epc-eg-empty">No setup steps.</p>
+                }
+                else
+                {
+                    <ul>@foreach (var s in _selected.Setup) { <li>@s</li> }</ul>
+                }
+
+                <h3>Daily work</h3>
+                @if (_selected.Daily.Count == 0)
+                {
+                    <p class="epc-eg-empty">No daily steps.</p>
+                }
+                else
+                {
+                    <ul>@foreach (var s in _selected.Daily) { <li>@s</li> }</ul>
+                }
+
+                <h3>Accounting impact</h3>
+                <p>@(string.IsNullOrWhiteSpace(_selected.Accounting) ? "—" : _selected.Accounting)</p>
+
+                <h3>Tips</h3>
+                @if (_selected.Tips.Count == 0)
+                {
+                    <p class="epc-eg-empty">No tips.</p>
+                }
+                else
+                {
+                    <ul>@foreach (var s in _selected.Tips) { <li>@s</li> }</ul>
+                }
+            }
+        </article>
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _q = "";
+    private IReadOnlyList<ErpGuideModuleRecord> _all = [];
+    private IReadOnlyList<ErpGuideModuleRecord> _filtered = [];
+    private ErpGuideModuleRecord? _selected;
+
+    [SupplyParameterFromQuery(Name = "module")]
+    public string? ModuleQuery { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is not null)
+        {
+            var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+            _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        }
+
+        _all = ErpGuideCatalog.All;
+        _filtered = _all;
+        SelectModule(ModuleQuery);
+    }
+
+    protected override void OnParametersSet()
+    {
+        SelectModule(ModuleQuery);
+    }
+
+    private void OnSearch(ChangeEventArgs e)
+    {
+        _q = e.Value?.ToString() ?? "";
+        _filtered = ErpGuideCatalog.Search(_q);
+        if (_selected is not null && _filtered.All(m => m.Module != _selected.Module))
+        {
+            // keep detail; list just filters
+        }
+    }
+
+    private void SelectModule(string? module)
+    {
+        if (!string.IsNullOrWhiteSpace(module))
+        {
+            _selected = ErpGuideCatalog.Get(module) ?? _selected;
+            return;
+        }
+
+        _selected ??= _all.FirstOrDefault(m => m.Module.Equals("core", StringComparison.OrdinalIgnoreCase))
+                      ?? _all.FirstOrDefault();
+    }
+}

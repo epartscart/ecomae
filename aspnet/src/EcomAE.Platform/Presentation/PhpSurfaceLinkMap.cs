@@ -667,6 +667,17 @@ public static class PhpSurfaceLinkMap
 
     private static string MapErpPhpPath(string value)
     {
+        var pathOnly = value.Split('?', 2)[0];
+        var path = pathOnly.ToLowerInvariant();
+        if (path.Contains("erp/guide", StringComparison.Ordinal)
+            || path.Equals("/erp/guide", StringComparison.Ordinal)
+            || path.EndsWith("/guide", StringComparison.Ordinal)
+            || path.Contains("epc_erp_guide", StringComparison.Ordinal)
+            || path.Contains("erp_guide", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app";
+        }
+
         var tab = ExtractQuery(value, "tab");
         var area = ExtractQuery(value, "area");
         var key = (tab ?? string.Empty).Trim().ToLowerInvariant();
@@ -675,6 +686,8 @@ public static class PhpSurfaceLinkMap
         var fromTab = key switch
         {
             "dashboard" or "overview" => "/erp",
+            "guide" or "knowledge_base" or "knowledge" => "/erp/guide-app",
+            "approvals" or "approval" => "/erp/approvals-app",
             "processflow" or "process_flow" or "workflow" => "/erp/process-flow-tasks-app",
             "aging" or "ar_aging" or "ap_aging" => "/erp/aging-app",
             "report_center" or "reports" or "reportcenter" or "rc_finance" or "pl" or "balance_sheet" => "/erp/report-center-app",
