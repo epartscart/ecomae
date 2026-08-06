@@ -2,119 +2,176 @@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject NavigationManager Nav
 
 <PageTitle>ERP Finance — ECOM AE</PageTitle>
+@* Same shell as /bos/login (bos/epc_bos_shell.css). Only particle/glow accent differs (teal). *@
 <PhpSurfaceHead Surface="erp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="erp" LoginChrome="true" />
-<link rel="stylesheet" href="/content/general_pages/epc_enterprise_login_3d.css?v=20260806b" />
 
-@*
-  BOS-parity login structure (split hero + glass panel + 3D atmosphere).
-  ERP identity = teal FINANCE — distinct from black/cyan BOS and crimson CP.
-  Markers: .ech-hub, epc-erp-portal-bg, epc-erp-bos-hero, #erpPortalParticles
-*@
+<style>
+    html:has(.bos-login),
+    body:has(.bos-login),
+    body.bos-body--login {
+        background: linear-gradient(135deg, #020617 0%, #0c1222 30%, #091428 60%, #050d1a 100%) !important;
+        color: #e2e8f0 !important;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    .epc-login-bos.bos-login {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        position: relative;
+        background: transparent;
+        color: #e2e8f0;
+    }
+    .bos-login__error.is-visible {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+</style>
 
-<div class="eel-login eel-login--erp eel-root epc-login-erp epc-erp-portal-wrap">
-    <div class="epc-erp-portal-bg" aria-hidden="true"><div class="epc-erp-portal-bg__grid"></div></div>
-    <div class="epc-erp-bos-hero" aria-hidden="true"><h1 class="epc-erp-bos-hero__title">ERP Finance</h1></div>
+@* Markers: epc-erp-portal-bg, epc-erp-bos-hero, #erpPortalParticles *@
+<div class="epc-login-bos bos-login bos-login--erp epc-erp-portal-wrap">
+    <div class="epc-erp-portal-bg" hidden aria-hidden="true"><div class="epc-erp-portal-bg__grid"></div></div>
+    <div class="epc-erp-bos-hero" hidden aria-hidden="true"><h1 class="epc-erp-bos-hero__title">ERP Finance</h1></div>
 
-    <EnterpriseLogin3dScene ParticlesId="erpPortalParticles"
-                            ParticlesExtraClass="epc-erp-portal-bg__particles"
-                            ParticleCount="64"
-                            ParticleColors="@(new[] { "rgba(45,212,191,.55)", "rgba(13,148,136,.45)", "rgba(56,189,248,.4)", "rgba(255,255,255,.25)" })" />
+    <PhpBosLoginAtmosphere ParticlesId="erpPortalParticles"
+                           ParticleColors="@(new[] {
+                               "rgba(45,212,191,.8)", "rgba(13,148,136,.55)", "rgba(56,189,248,.45)",
+                               "rgba(255,255,255,.35)", "rgba(94,234,212,.4)", "rgba(15,118,110,.5)"
+                           })" />
 
-    <div class="eel-login__hero">
-        <div class="eel-login__hero-content">
-            <div class="eel-login__brand-mark">
-                <div class="eel-login__brand-icon">
-                    <div class="eel-login__brand-icon-inner"><i class="fa fa-line-chart" aria-hidden="true"></i></div>
-                    <div class="eel-login__brand-ring"></div>
-                    <div class="eel-login__brand-ring eel-login__brand-ring--2"></div>
+    <div class="bos-login__hero">
+        <div class="bos-login__hero-content">
+            <div class="bos-login__brand-mark">
+                <div class="bos-login__brand-icon">
+                    <div class="bos-login__brand-icon-inner">
+                        <i class="fa fa-university"></i>
+                    </div>
+                    <div class="bos-login__brand-ring"></div>
+                    <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
                 </div>
-                <span class="eel-login__env">Environment · ERP Finance</span>
-                <h1 class="eel-login__brand-title">ERP</h1>
-                <p class="eel-login__brand-tagline">Company finance &amp; operations workspace</p>
+                <h1 class="bos-login__brand-title">ERP</h1>
+                <p class="bos-login__brand-tagline">Enterprise Resource Planning</p>
             </div>
 
-            <div class="eel-login__capabilities">
-                <div class="eel-login__cap-item eel-login__cap-item--1">
-                    <div class="eel-login__cap-icon"><i class="fa fa-calculator"></i></div>
-                    <div class="eel-login__cap-text">
-                        <strong>Financial accounting</strong>
-                        <span>GL, AP, AR, bank &amp; fixed assets</span>
+            <div class="bos-login__capabilities">
+                <div class="bos-login__cap-item bos-login__cap-item--1">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--erp"><i class="fa fa-university"></i></div>
+                    <div class="bos-login__cap-text">
+                        <strong>Enterprise ERP</strong>
+                        <span>Finance, HR, Inventory, Production</span>
                     </div>
                 </div>
-                <div class="eel-login__cap-item eel-login__cap-item--2">
-                    <div class="eel-login__cap-icon"><i class="fa fa-shopping-cart"></i></div>
-                    <div class="eel-login__cap-text">
+                <div class="bos-login__cap-item bos-login__cap-item--2">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--ecom"><i class="fa fa-shopping-cart"></i></div>
+                    <div class="bos-login__cap-text">
                         <strong>Sales &amp; purchase</strong>
                         <span>Orders, invoices, quotations</span>
                     </div>
                 </div>
-                <div class="eel-login__cap-item eel-login__cap-item--3">
-                    <div class="eel-login__cap-icon"><i class="fa fa-cubes"></i></div>
-                    <div class="eel-login__cap-text">
-                        <strong>Inventory &amp; logistics</strong>
-                        <span>WMS, stock, shipping &amp; purchase</span>
+                <div class="bos-login__cap-item bos-login__cap-item--3">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--compliance"><i class="fa fa-globe"></i></div>
+                    <div class="bos-login__cap-text">
+                        <strong>Worldwide Compliance</strong>
+                        <span>Auto-localized per country</span>
                     </div>
                 </div>
-                <div class="eel-login__cap-item eel-login__cap-item--4">
-                    <div class="eel-login__cap-icon"><i class="fa fa-building"></i></div>
-                    <div class="eel-login__cap-text">
+                <div class="bos-login__cap-item bos-login__cap-item--4">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--ai"><i class="fa fa-building"></i></div>
+                    <div class="bos-login__cap-text">
                         <strong>Multi-company</strong>
                         <span>MAIN vs jewellery industry packs</span>
                     </div>
                 </div>
             </div>
 
-            <div class="eel-login__stats-bar" aria-label="ERP workspace stats">
-                <div class="eel-login__stat"><span class="eel-login__stat-num">@PhpModuleCatalog.ErpAreaCount</span><span class="eel-login__stat-label">Areas</span></div>
-                <div class="eel-login__stat-divider"></div>
-                <div class="eel-login__stat"><span class="eel-login__stat-num">@PhpModuleCatalog.ErpTabCount</span><span class="eel-login__stat-label">Tabs</span></div>
-                <div class="eel-login__stat-divider"></div>
-                <div class="eel-login__stat"><span class="eel-login__stat-num">/erp</span><span class="eel-login__stat-label">Entry</span></div>
-            </div>
-
-            <div class="eel-login__hub">
-                <PhpEcomaeHubLogo Variant="login" AriaLabel="ECOM AE ERP hub" OrbitDuration="32s" />
+            <div class="bos-login__stats-bar">
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="225">0</span>
+                    <span class="bos-login__stat-label">Tenants</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="11">0</span>
+                    <span class="bos-login__stat-label">Industries</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="@PhpModuleCatalog.ErpAreaCount">0</span>
+                    <span class="bos-login__stat-label">ERP Areas</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="@PhpModuleCatalog.ErpTabCount">0</span>
+                    <span class="bos-login__stat-label">Tabs</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="eel-login__panel" id="sign-in" aria-label="ERP Finance sign-in">
-        <div class="eel-login__panel-inner">
-            <div class="eel-login__surface-tabs" aria-label="Choose environment">
-                <a class="eel-login__surface-tab" href="/cp/login">CP</a>
-                <a class="eel-login__surface-tab is-active" href="/erp/login">ERP</a>
-                <a class="eel-login__surface-tab" href="/bos/login">BOS</a>
-            </div>
-
-            <div class="eel-login__form-header">
-                <h2>Sign in to ERP</h2>
-                <p>Teal FINANCE environment — company books &amp; department tabs. Not Control, not Super BOS.</p>
-            </div>
-
-            <div class="hpanel">
-                <div class="panel-body">
-                    <LegacyAdminLoginForm Surface="LegacyLoginSurface.Erp"
-                                          SurfaceLabel="ERP"
-                                          PhpLoginHref="/php-reference/erp"
-                                          ErrorMessage="@_error"
-                                          SubmitLabel="Enter ERP Finance"
-                                          Accent="blue" />
-                    <ul class="eel-login__features epc-erp-login-features">
-                        <li><i class="fa fa-check" aria-hidden="true"></i><span>Role-based tabs per department</span></li>
-                        <li><i class="fa fa-check" aria-hidden="true"></i><span>Company switcher · industry packs</span></li>
-                        <li><i class="fa fa-check" aria-hidden="true"></i><span>Same live data as control panel ERP</span></li>
-                    </ul>
+    <div class="bos-login__panel" id="sign-in">
+        <div class="bos-login__panel-inner">
+            <div class="bos-login__form-wrap bos-login__form-wrap--active">
+                <div class="bos-login__form-header">
+                    <h2>ERP Access</h2>
+                    <p>Access your enterprise resource planning system</p>
+                </div>
+                <form class="bos-login__form" id="erpLoginForm" method="post" action="@EcomAeRoutes.ErpLogin">
+                    <input type="hidden" name="surface" value="erp" />
+                    <input type="hidden" name="redirect" value="/erp" />
+                    <input type="hidden" name="contact_type" value="email" />
+                    <div class="bos-login__field">
+                        <label for="erpEmail"><i class="fa fa-envelope-o"></i> Business Email</label>
+                        <input type="email" id="erpEmail" name="contact" required autocomplete="username" placeholder="finance@yourcompany.com" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    <div class="bos-login__field">
+                        <label for="erpPassword"><i class="fa fa-lock"></i> Password</label>
+                        <input type="password" id="erpPassword" name="password" required autocomplete="current-password" placeholder="Enter your password" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div class="bos-login__error is-visible" id="erpLoginError">
+                            <i class="fa fa-exclamation-circle"></i> @_error
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="bos-login__error" id="erpLoginError"></div>
+                    }
+                    <button type="submit" class="bos-login__btn bos-login__btn--erp">
+                        <span class="bos-login__btn-text"><i class="fa fa-university"></i> Access ERP System</span>
+                        <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Connecting...</span>
+                    </button>
+                </form>
+                <div class="bos-login__erp-features">
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> General Ledger &amp; Financial Reporting</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Accounts Payable &amp; Receivable</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> HR, Payroll &amp; Workforce Management</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Inventory, Production &amp; Warehouse</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Tax Compliance &amp; E-Invoicing</div>
+                </div>
+                <div class="bos-login__secure-badge">
+                    <i class="fa fa-shield"></i> Database isolated &middot; Country-compliant &middot; Enterprise grade
                 </div>
             </div>
 
-            <div class="eel-login__secure">
-                <i class="fa fa-lock"></i> Encrypted session ·
-                <a href="/cp/login">Control panel</a> ·
-                <a href="/bos/login">Super BOS</a>
+            <div class="bos-login__footer">
+                <div class="bos-login__footer-brand">
+                    <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <span>ERP Finance</span>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <a href="/cp/login">CP</a>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <a href="/bos/login">BOS</a>
+                </div>
             </div>
         </div>
     </div>

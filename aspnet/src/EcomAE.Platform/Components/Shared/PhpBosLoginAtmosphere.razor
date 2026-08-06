@@ -1,0 +1,101 @@
+@using System.Text.Json
+@*
+  Shared BOS login atmosphere (grid + particles + glows).
+  Particle palette differs per surface; layout classes match bos/epc_bos_shell.css.
+*@
+
+<div class="bos-login__bg" aria-hidden="true">
+    <div class="bos-login__grid-lines"></div>
+    <div class="bos-login__particles" id="@ParticlesId"></div>
+    <div class="bos-login__glow bos-login__glow--1"></div>
+    <div class="bos-login__glow bos-login__glow--2"></div>
+    <div class="bos-login__glow bos-login__glow--3"></div>
+</div>
+
+<script>
+(function () {
+  var containerId = @_particlesIdJson;
+  var colors = @_particleColorsJson;
+  function reduceMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+  function createParticles() {
+    var container = document.getElementById(containerId);
+    if (!container || reduceMotion()) return;
+    if (container.childElementCount > 0) return;
+    var palette = Array.isArray(colors) && colors.length ? colors : [
+      'rgba(14,165,233,.8)', 'rgba(56,189,248,.5)', 'rgba(255,255,255,.25)'
+    ];
+    for (var i = 0; i < 180; i++) {
+      var p = document.createElement('div');
+      p.className = 'bos-login__particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.top = Math.random() * 10 + '%';
+      var duration = 4 + Math.random() * 12;
+      p.style.animationDuration = duration + 's';
+      p.style.animationDelay = (Math.random() * duration) + 's';
+      var size = 1 + Math.random() * 3.5;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.animationName = Math.random() < 0.35 ? 'bosFloatDrift' : 'bosFloat';
+      var color = palette[Math.floor(Math.random() * palette.length)];
+      p.style.background = color;
+      if (size > 2) p.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + color;
+      container.appendChild(p);
+    }
+  }
+  function animateCounters() {
+    var counters = document.querySelectorAll('.bos-login__stat-num[data-count]');
+    if (!counters.length) return;
+    if (reduceMotion()) {
+      counters.forEach(function (el) { el.textContent = el.getAttribute('data-count') + '+'; });
+      return;
+    }
+    setTimeout(function () {
+      counters.forEach(function (el) {
+        var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+        var startTime = null;
+        function step(ts) {
+          if (!startTime) startTime = ts;
+          var progress = Math.min((ts - startTime) / 2000, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.floor(eased * target);
+          if (progress < 1) requestAnimationFrame(step);
+          else el.textContent = target + '+';
+        }
+        requestAnimationFrame(step);
+      });
+    }, 400);
+  }
+  function forceBodyClass() {
+    var meta = document.querySelector('meta[name="epc-body-class"]');
+    var cls = meta ? meta.getAttribute('content') : '';
+    if (cls) document.body.className = cls;
+  }
+  function boot() {
+    forceBodyClass();
+    createParticles();
+    animateCounters();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+
+@code {
+    [Parameter, EditorRequired] public string ParticlesId { get; set; } = "bosParticles";
+    [Parameter] public string[] ParticleColors { get; set; } =
+    [
+        "rgba(14,165,233,.8)", "rgba(14,165,233,.5)", "rgba(56,189,248,.7)",
+        "rgba(99,102,241,.5)", "rgba(255,255,255,.35)"
+    ];
+
+    private MarkupString _particlesIdJson;
+    private MarkupString _particleColorsJson;
+
+    protected override void OnParametersSet()
+    {
+        _particlesIdJson = new MarkupString(JsonSerializer.Serialize(ParticlesId));
+        _particleColorsJson = new MarkupString(JsonSerializer.Serialize(ParticleColors));
+    }
+}

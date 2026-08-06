@@ -43,21 +43,21 @@ public static class LegacyPresentationAssets
     /// <summary>Renderable animated cart logo fragment (HTML/SVG), matches PHP storefront/CP embeds.</summary>
     public const string AnimatedEpartsCartFragmentUrl = "/content/general_pages/animated_epartscart_logo.php";
 
-    /// <summary>PHP CP login hero/panel CSS reused by ASP.NET /cp/login.</summary>
+    /// <summary>
+    /// Lean BOS-parity login CSS for /cp/login and /erp/login (same shell as /bos/login).
+    /// Atmosphere tint only differs via epc_bos_login_surface_accents.css.
+    /// </summary>
     public static readonly IReadOnlyList<string> LoginStylesheets =
     [
-        "/content/general_pages/epc_cp_login_css.php",
-        "/content/general_pages/epc_cp_login_hero_css.php",
-        "/content/general_pages/epc_ecomae_hub_logo_css.php",
-        // Premium enterprise 3D stage (CP + ERP login redesign)
-        "/content/general_pages/epc_enterprise_login_3d.css"
+        "/epc-static.php?f=bos/epc_bos_shell.css",
+        "/content/general_pages/epc_bos_login_surface_accents.css"
     ];
 
-    /// <summary>Standalone ERP portal login shell (bos-hero, particles, glass panel).</summary>
+    /// <summary>ERP login uses the same BOS-parity shell (accents only).</summary>
     public static readonly IReadOnlyList<string> ErpLoginStylesheets =
     [
-        "/content/shop/finance/epc_erp_portal_inline_css_serve.php",
-        "/content/general_pages/epc_enterprise_login_3d.css"
+        "/epc-static.php?f=bos/epc_bos_shell.css",
+        "/content/general_pages/epc_bos_login_surface_accents.css"
     ];
 
     /// <summary>BOS login matrix/particle JS (PHP bos/epc_bos_shell.js).</summary>
@@ -125,8 +125,8 @@ public static class LegacyPresentationAssets
     public static IReadOnlyList<string> RequiredGraphicalMarkers(string surface)
         => surface.Trim().ToLowerInvariant() switch
         {
-            "cp" => [".ech-hub", "#epcCpParticles", "epc-cp-login-hero", "eel-root"],
-            "erp" => [".ech-hub", "epc-erp-portal-bg", "epc-erp-bos-hero", "#erpPortalParticles", "eel-root"],
+            "cp" => [".bos-login__bg", "#epcCpParticles", "epc-cp-login-hero", ".bos-login__glow"],
+            "erp" => [".bos-login__bg", "epc-erp-portal-bg", "epc-erp-bos-hero", "#erpPortalParticles", ".bos-login__glow"],
             "bos" => [".bos-login__bg", "#bosParticles", ".bos-login__glow"],
             "storefront" => [".epc-engine-animation", ".epc-asp-piston-banner", "epc-home-pro"],
             "marketing" =>
@@ -153,8 +153,9 @@ public static class LegacyPresentationAssets
     /// <summary>document.body classes for PHP login/chrome bridges (matches live PHP templates).</summary>
     public static string LoginBodyClassFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {
-        "cp" => "blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super epc-cp--blue-theme epc-cp-modern",
-        "erp" => "epc-erp-standalone epc-erp-cp-shell epc-cp-shell",
+        // Same dark BOS login body theme for every tenant CP/ERP login; probe classes retained.
+        "cp" => "bos-body bos-body--login blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super",
+        "erp" => "bos-body bos-body--login epc-erp-standalone epc-erp-cp-shell epc-cp-shell",
         "bos" => "bos-body bos-body--topnav bos-body--login",
         "storefront" => "epc-storefront-shell",
         "marketing" => "epm-body",
