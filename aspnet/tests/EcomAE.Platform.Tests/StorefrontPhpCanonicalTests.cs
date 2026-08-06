@@ -6,11 +6,6 @@ namespace EcomAE.Platform.Tests;
 public sealed class StorefrontPhpCanonicalTests
 {
     [Theory]
-    [InlineData("/storefront/search-app", "/en/shop/part_search")]
-    [InlineData("/storefront/search-app?article=1310154101", "/en/shop/part_search?article=1310154101")]
-    [InlineData("/storefront/search-app?mode=attr&q=oil&field=all", "/en/shop/warehouse-search?q=oil&field=all")]
-    [InlineData("/storefront/search-app?mode=vin&identString=ABC", "/en/katalog-laximo?identString=ABC")]
-    [InlineData("/storefront/search-app?mode=car", "/en/vehicle-catalog")]
     [InlineData("/storefront/cart-app", "/en/shop/cart")]
     [InlineData("/storefront/login", "/en/users/login")]
     [InlineData("/storefront/garage-app", "/en/garage/login")]
@@ -18,6 +13,23 @@ public sealed class StorefrontPhpCanonicalTests
     {
         Assert.True(StorefrontPhpCanonical.TryMapStorefrontStubToPhp(stub, out var mapped));
         Assert.Equal(expected, mapped);
+    }
+
+    [Fact]
+    public void SearchAppIsNotStubRedirected()
+    {
+        Assert.False(StorefrontPhpCanonical.TryMapStorefrontStubToPhp("/storefront/search-app", out _));
+        Assert.False(StorefrontPhpCanonical.TryMapStorefrontStubToPhp("/storefront/search-app?article=1310154101", out _));
+        Assert.False(StorefrontPhpCanonical.TryMapStorefrontStubToPhp("/storefront/search-app?mode=attr&q=oil", out _));
+    }
+
+    [Fact]
+    public void SearchAppServesPhpCanonicalPartSearchRoute()
+    {
+        var path = FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor");
+        var text = File.ReadAllText(path);
+        Assert.Contains("@page \"/en/shop/part_search\"", text, StringComparison.Ordinal);
+        Assert.Contains("@page \"/en/shop/warehouse-search\"", text, StringComparison.Ordinal);
     }
 
     [Fact]

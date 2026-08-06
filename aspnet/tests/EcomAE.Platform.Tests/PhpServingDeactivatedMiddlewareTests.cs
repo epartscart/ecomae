@@ -73,4 +73,58 @@ public sealed class PhpServingDeactivatedMiddlewareTests : IDisposable
         Assert.True(calledNext);
         Assert.Equal("temporarily-deactivated", ctx.Response.Headers[PhpServingDeactivatedMiddleware.FlagHeader].ToString());
     }
+
+    [Fact]
+    public async Task EnPartSearchRedirectsToSearchAppWhenPreferAspNetApps()
+    {
+        StorefrontSurfaceLinks.PreferAspNetApps = true;
+        var calledNext = false;
+        var mw = new PhpServingDeactivatedMiddleware(
+            _ =>
+            {
+                calledNext = true;
+                return Task.CompletedTask;
+            },
+            Options.Create(new PhpReferenceOptions
+            {
+                TemporarilyDeactivatePhpServing = true,
+                KeepPhpProjectAvailable = true,
+            }));
+
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Path = "/en/shop/part_search";
+        ctx.Request.QueryString = new QueryString("?article=1310154101");
+        ctx.Response.Body = new MemoryStream();
+        await mw.InvokeAsync(ctx);
+
+        Assert.False(calledNext);
+        var redirect = ctx.Response.Headers.Location.ToString();
+        Assert.Contains("/storefront/search-app", redirect, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("article=1310154101", redirect, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task EnWarehouseSearchPassesThroughWhenSelfMapped()
+    {
+        StorefrontSurfaceLinks.PreferAspNetApps = false;
+        var calledNext = false;
+        var mw = new PhpServingDeactivatedMiddleware(
+            _ =>
+            {
+                calledNext = true;
+                return Task.CompletedTask;
+            },
+            Options.Create(new PhpReferenceOptions
+            {
+                TemporarilyDeactivatePhpServing = true,
+                KeepPhpProjectAvailable = true,
+            }));
+
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Path = "/en/shop/warehouse-search";
+        await mw.InvokeAsync(ctx);
+
+        Assert.True(calledNext);
+        Assert.Equal(StatusCodes.Status200OK, ctx.Response.StatusCode);
+    }
 }

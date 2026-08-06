@@ -234,6 +234,68 @@ NGX
 # Paused mode: /en must reach the platform (it maps commerce links into the apps)
 # instead of the PHP warm-up splash. Insert INSIDE the marker block so refresh works.
 if [[ -f /etc/ecomae-aspnet/php_serving_deactivated ]]; then
+  # Scrub legacy Interim /en/ 503 pause blocks left in live nginx confs.
+  python3 - <<'PY'
+import re, shutil, time
+from pathlib import Path
+
+PROXY_BLOCK = '''location ^~ /en/ {
+    proxy_pass http://127.0.0.1:5100;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Cookie $http_cookie;
+}'''
+
+def find_blocks(text, start_pat):
+    out = []
+    for m in start_pat.finditer(text):
+        i = text.find('{', m.start())
+        if i < 0:
+            continue
+        depth, j = 0, i
+        while j < len(text):
+            if text[j] == '{':
+                depth += 1
+            elif text[j] == '}':
+                depth -= 1
+                if depth == 0:
+                    out.append((m.start(), j + 1))
+                    break
+            j += 1
+    return out
+
+LOC_PAT = re.compile(r'(?m)^[ \t]*location\s+(?:\^~\s+)?/en/\s*\{')
+backup = Path('/root/nginx-en-503-scrub-force-live-' + time.strftime('%Y%m%d%H%M%S'))
+changed = 0
+for base in (Path('/etc/nginx/sites-enabled'), Path('/etc/nginx/conf.d'), Path('/etc/nginx/snippets')):
+    if not base.exists():
+        continue
+    for conf in base.rglob('*.conf'):
+        try:
+            text = conf.read_text(errors='ignore')
+        except Exception:
+            continue
+        orig = text
+        for start, end in reversed(find_blocks(text, LOC_PAT)):
+            body = text[start:end]
+            if 'return 503' not in body and 'Interim PHP lang commerce' not in body:
+                continue
+            if 'proxy_pass http://127.0.0.1:5100' in body:
+                continue
+            indent = re.match(r'^([ \t]*)', body).group(1)
+            lines = [indent + ln if ln.strip() else ln for ln in PROXY_BLOCK.splitlines()]
+            text = text[:start] + '\n'.join(lines) + text[end:]
+            print(f'scrubbed /en/ 503 → :5100 in {conf}')
+        if text != orig:
+            backup.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(conf, backup / conf.name)
+            conf.write_text(text)
+            changed += 1
+print(f'force-live nginx /en/ 503 scrub: {changed} conf(s)')
+PY
+
   python3 - <<'PY'
 from pathlib import Path
 p = Path('/tmp/epc-storefront-search-app-redirect.snip')

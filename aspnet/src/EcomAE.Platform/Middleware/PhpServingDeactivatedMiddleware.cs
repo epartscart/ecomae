@@ -55,11 +55,14 @@ public sealed class PhpServingDeactivatedMiddleware
             || path.Equals("/en", StringComparison.OrdinalIgnoreCase))
         {
             var pathAndQuery = path + context.Request.QueryString.Value;
-            var target = PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(pathAndQuery, out var mapped)
-                         && !string.Equals(mapped, pathAndQuery, StringComparison.OrdinalIgnoreCase)
-                ? mapped
-                : "/";
-            context.Response.Redirect(target);
+            if (PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(pathAndQuery, out var mapped)
+                && !string.Equals(mapped, pathAndQuery, StringComparison.OrdinalIgnoreCase))
+            {
+                context.Response.Redirect(mapped);
+                return;
+            }
+
+            await _next(context);
             return;
         }
 

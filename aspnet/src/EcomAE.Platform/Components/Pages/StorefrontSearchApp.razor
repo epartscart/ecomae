@@ -1,9 +1,12 @@
 @page "/storefront/search-app"
+@page "/en/shop/part_search"
+@page "/en/shop/warehouse-search"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject NavigationManager Navigation
 
 <PageTitle>Part search · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -156,7 +159,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _mode = (ModeQuery ?? "").Trim().ToLowerInvariant();
+        if (Navigation.Uri.Contains("warehouse-search", StringComparison.OrdinalIgnoreCase))
+        {
+            _mode = "attr";
+        }
+
+        _mode = string.IsNullOrWhiteSpace(_mode)
+            ? (ModeQuery ?? "").Trim().ToLowerInvariant()
+            : _mode;
         _attrQuery = AttrQuery?.Trim() ?? "";
         _articleInput = ArticleQuery?.Trim() ?? "";
         if (string.IsNullOrWhiteSpace(_articleInput) && !string.IsNullOrWhiteSpace(VinQuery))

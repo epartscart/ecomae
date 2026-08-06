@@ -10,13 +10,19 @@
   position: absolute;
   inset: -12%;
   z-index: 0;
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  opacity: .42;
-  filter: saturate(1.15) contrast(1.05);
-  animation: bosUniverseDrift 48s ease-in-out infinite alternate;
+  overflow: hidden;
   pointer-events: none;
+}
+
+.bos-login__universe-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: .88;
+  filter: saturate(1.12) contrast(1.04);
+  animation: bosUniverseDrift 48s ease-in-out infinite alternate;
 }
 
 .bos-login__universe-veil {
@@ -25,9 +31,9 @@
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 20% 15%, rgba(14, 165, 233, .18), transparent 45%),
-    radial-gradient(ellipse at 80% 70%, rgba(168, 85, 247, .14), transparent 50%),
-    linear-gradient(180deg, rgba(2, 6, 23, .35) 0%, rgba(2, 6, 23, .72) 100%);
+    radial-gradient(ellipse at 20% 15%, rgba(14, 165, 233, .1), transparent 45%),
+    radial-gradient(ellipse at 80% 70%, rgba(168, 85, 247, .08), transparent 50%),
+    linear-gradient(180deg, rgba(2, 6, 23, .18) 0%, rgba(2, 6, 23, .42) 100%);
 }
 
 @keyframes bosUniverseDrift {
@@ -100,8 +106,13 @@
   border-radius: 50%;
 }
 
+/* Softer accent glow so the universe photo stays visible */
+.bos-login__bg--universe .bos-login__glow {
+  opacity: .28;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bos-login__universe { animation: none !important; }
+  .bos-login__universe-photo { animation: none !important; }
   .bos-login__body { animation: none !important; opacity: .35; top: 30% !important; }
 }
 

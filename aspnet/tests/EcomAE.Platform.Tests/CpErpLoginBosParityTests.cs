@@ -64,13 +64,17 @@ public sealed class CpErpLoginBosParityTests
         var text = Read("aspnet/src/EcomAE.Platform/Components/Shared/PhpBosLoginAtmosphere.razor");
         Assert.Contains("bos-login__bg", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__universe", text, StringComparison.Ordinal);
+        Assert.Contains("bos-login__universe-photo", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__particles", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__body--moon", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__body--planet", text, StringComparison.Ordinal);
         Assert.Contains("createFallingBodies", text, StringComparison.Ordinal);
+        Assert.Contains("pickDuration", text, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/universe/", text, StringComparison.Ordinal);
         Assert.Contains("images-assets.nasa.gov", text, StringComparison.Ordinal);
         Assert.Contains("cdn.esawebb.org", text, StringComparison.Ordinal);
         Assert.Contains("bosFloat", text, StringComparison.Ordinal);
+        Assert.Contains("var count = 480", text, StringComparison.Ordinal);
         // No glyph icons (half moons / star characters) in the foreground
         Assert.DoesNotContain("bos-login__celestial", text, StringComparison.Ordinal);
         Assert.DoesNotContain("☾", text, StringComparison.Ordinal);
@@ -83,15 +87,37 @@ public sealed class CpErpLoginBosParityTests
     {
         var css = Read("content/general_pages/epc_bos_login_surface_accents.css");
         Assert.Contains("bos-login__universe", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login__universe-photo", css, StringComparison.Ordinal);
         Assert.Contains("bos-login__body--moon", css, StringComparison.Ordinal);
         Assert.Contains("border-radius: 50%", css, StringComparison.Ordinal);
         Assert.Contains("@keyframes bosUniverseDrift", css, StringComparison.Ordinal);
+        Assert.Contains("opacity: .88", css, StringComparison.Ordinal);
         Assert.Contains("bos-login__cap-icon--tone-1", css, StringComparison.Ordinal);
         Assert.Contains("bos-login--tenant-epartscart", css, StringComparison.Ordinal);
         Assert.Contains("bos-login--tenant-jewellery .bos-login__cap-icon--tone-1", css, StringComparison.Ordinal);
         Assert.Contains("bos-login__tenant-logo--eparts", css, StringComparison.Ordinal);
         Assert.DoesNotContain("bos-login__celestial", css, StringComparison.Ordinal);
         Assert.DoesNotContain("var(--bos-fall-x", css, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LegacyAssetBridge_ServesUniverseStills()
+    {
+        var text = Read("aspnet/src/EcomAE.Platform/Presentation/PhpLegacyAssetBridge.cs");
+        Assert.Contains("ServeUniverseStill", text, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/universe/{fileName}", text, StringComparison.Ordinal);
+        Assert.Contains("/content/general_pages/universe/{fileName}", text, StringComparison.Ordinal);
+        Assert.Contains("cassiopeia-a.jpg", text, StringComparison.Ordinal);
+        Assert.Contains("andromeda.jpg", text, StringComparison.Ordinal);
+        Assert.Contains("pillars.jpg", text, StringComparison.Ordinal);
+        Assert.Contains("tarantula.jpg", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LoginAccentCss_CacheBust_IsCurrent()
+    {
+        var text = Read("aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs");
+        Assert.Contains("epc_bos_login_surface_accents.css?v=20260806e", text, StringComparison.Ordinal);
     }
 
     [Fact]

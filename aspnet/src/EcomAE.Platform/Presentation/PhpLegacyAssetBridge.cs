@@ -35,6 +35,14 @@ public static class PhpLegacyAssetBridge
         "api/"
     ];
 
+    private static readonly HashSet<string> UniverseStillAllowlist = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "cassiopeia-a.jpg",
+        "andromeda.jpg",
+        "pillars.jpg",
+        "tarantula.jpg"
+    };
+
     public static void Map(IEndpointRouteBuilder endpoints, IWebHostEnvironment env)
     {
         var repoRoot = FindRepoRoot(env);
@@ -95,6 +103,12 @@ public static class PhpLegacyAssetBridge
             Results.Text(PhpEpartsCartLogoAssets.Css, "text/css; charset=utf-8"));
         endpoints.MapGet("/aspnet-php-assets/eparts-animated-logo.css", () =>
             Results.Text(PhpEpartsCartLogoAssets.Css, "text/css; charset=utf-8"));
+
+        // Login universe NASA stills — local repo copies with public-domain credits in README.txt.
+        endpoints.MapGet("/platform-assets/universe/{fileName}", (string fileName) =>
+            ServeUniverseStill(repoRoot, fileName));
+        endpoints.MapGet("/content/general_pages/universe/{fileName}", (string fileName) =>
+            ServeUniverseStill(repoRoot, fileName));
 
         // PHP pages link CSS with /content/general_pages/*.css URLs directly (nero home
         // widgets, tenant storefront packages, animations) — serve them all from the repo.
@@ -169,6 +183,24 @@ public static class PhpLegacyAssetBridge
 
             return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
         });
+    }
+
+    private static IResult ServeUniverseStill(string repoRoot, string fileName)
+    {
+        if (fileName.Contains("..", StringComparison.Ordinal)
+            || fileName.Contains('/', StringComparison.Ordinal)
+            || !UniverseStillAllowlist.Contains(fileName))
+        {
+            return Results.NotFound();
+        }
+
+        var path = Path.GetFullPath(Path.Combine(repoRoot, "content", "general_pages", "universe", fileName));
+        if (!path.StartsWith(repoRoot, StringComparison.Ordinal) || !File.Exists(path))
+        {
+            return Results.NotFound();
+        }
+
+        return Results.File(path, "image/jpeg");
     }
 
     private static string ContentTypeFor(string path)
