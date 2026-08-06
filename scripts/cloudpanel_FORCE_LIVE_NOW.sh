@@ -311,6 +311,21 @@ bash scripts/wait_for_aspnet_health.sh || {
 }
 
 fail=0
+# Header form action is MODE-dependent (both are the NEW binary):
+#   PHP-serving mode:  action="/en/shop/part_search"
+#   PHP-paused mode:   action="/storefront/search-app" (TemporarilyDeactivatePhpServing=true)
+# Staleness is proven by the PHP-parity home markers (#892), not by the form action.
+check_form_action() {
+  # $1 = scope label, $2 = body
+  if grep -Fq 'action="/en/shop/part_search"' <<<"$2" \
+     || grep -Fq 'action="/storefront/search-app"' <<<"$2"; then
+    printf 'PASS %s header search form action present\n' "$1"
+  else
+    printf 'FAIL %s missing header search form action\n' "$1"
+    fail=1
+  fi
+}
+
 # nginx location = / proxies to THIS path — never prove only :5100/
 printf '\n== Prove LOCAL :5100/storefront/app (nginx home target) ==\n'
 BODY="$(curl -sS -A 'Mozilla/5.0' --max-time 45 http://127.0.0.1:5100/storefront/app || true)"
@@ -318,8 +333,10 @@ printf 'local /storefront/app bytes=%s\n' "${#BODY}"
 for needle in \
   'epc-nero-shell' \
   'Catalog <span class="hidden-sm">of products</span>' \
-  'action="/en/shop/part_search"' \
-  'header-call-box a { background:#ef4444'
+  'header-call-box a { background:#ef4444' \
+  'epc-asp-home-banners' \
+  'section-vin' \
+  'epart-front-original-data'
 do
   if grep -Fq "$needle" <<<"$BODY"; then
     printf 'PASS local %s\n' "$needle"
@@ -328,16 +345,22 @@ do
     fail=1
   fi
 done
-if grep -Fq 'action="/storefront/search-app"' <<<"$BODY"; then
-  printf 'FAIL local still has search-app form — OLD BINARY on :5100\n'
+check_form_action local "$BODY"
+
+# search-app: redirect to PHP part_search (PHP mode) OR serve the app 200 (paused mode).
+SA_HDR="$(curl -sSI -A 'Mozilla/5.0' --max-time 20 \
+  'http://127.0.0.1:5100/storefront/search-app?article=1310154101' || true)"
+# NOTE: awk IGNORECASE is gawk-only (mawk on Debian ignores it) — use tolower() match.
+LOC="$(printf '%s' "$SA_HDR" | awk 'tolower($1) == "location:" {print $2}' | tr -d '\r' | head -1)"
+printf 'local search-app Location: %s\n' "${LOC:-<none>}"
+if [[ "$LOC" == *'/en/shop/part_search'* ]]; then
+  printf 'PASS local search-app redirects to part_search (PHP mode)\n'
+elif printf '%s' "$SA_HDR" | head -1 | grep -qE ' 200'; then
+  printf 'PASS local search-app serves app 200 (PHP-paused mode)\n'
+else
+  printf 'FAIL local search-app neither redirect nor 200\n'
   fail=1
 fi
-
-LOC="$(curl -sSI -A 'Mozilla/5.0' --max-time 20 \
-  'http://127.0.0.1:5100/storefront/search-app?article=1310154101' \
-  | awk 'BEGIN{IGNORECASE=1} /^location:/{print $2}' | tr -d '\r' | head -1)"
-printf 'local search-app Location: %s\n' "$LOC"
-[[ "$LOC" == *'/en/shop/part_search'* ]] || { printf 'FAIL local search-app redirect\n'; fail=1; }
 
 printf '\n== Prove PUBLIC %s/ (must be ASP.NET via nginx→:5100/storefront/app) ==\n' "$PUBLIC_BASE"
 Q="epc_deploy_probe=$(date +%s)"
@@ -361,12 +384,9 @@ if [[ -z "$ORIGIN_BODY" ]]; then
 fi
 if [[ -n "$ORIGIN_BODY" ]]; then
   printf 'origin-loopback / bytes=%s\n' "${#ORIGIN_BODY}"
-  if grep -Fq 'action="/storefront/search-app"' <<<"$ORIGIN_BODY"; then
-    printf 'FAIL origin-loopback still has search-app — nginx/Kestrel on THIS box is stale\n'
-    fail=1
-  fi
-  if ! grep -Fq 'action="/en/shop/part_search"' <<<"$ORIGIN_BODY"; then
-    printf 'FAIL origin-loopback missing part_search form\n'
+  check_form_action origin-loopback "$ORIGIN_BODY"
+  if ! grep -Fq 'epc-asp-home-banners' <<<"$ORIGIN_BODY"; then
+    printf 'FAIL origin-loopback missing PHP-parity home banners — nginx/Kestrel on THIS box is stale\n'
     fail=1
   fi
 else
@@ -376,7 +396,6 @@ fi
 for needle in \
   'epc-nero-shell' \
   'ecomae-chrome-surface' \
-  'action="/en/shop/part_search"' \
   'header-call-box a { background:#ef4444' \
   'epc-garage-header-link' \
   'background:linear-gradient(135deg,#090f1d' \
@@ -384,7 +403,12 @@ for needle in \
   'of products' \
   'color:rgba(255,255,255,.88) !important' \
   'Selection catalogs' \
-  'Vehicle Parts intelligence AI'
+  'Vehicle Parts intelligence AI' \
+  'epc-asp-home-banners' \
+  'section-vin' \
+  'epart-front-original-data' \
+  'id="epc-umapi"' \
+  'id="epc-brands"'
 do
   if grep -Fq "$needle" <<<"$P_BODY"; then
     printf 'PASS public %s\n' "$needle"
@@ -393,8 +417,9 @@ do
     fail=1
   fi
 done
-if grep -Fq 'action="/storefront/search-app"' <<<"$P_BODY"; then
-  printf 'FAIL public home still posts to /storefront/search-app (OLD :5100 BINARY)\n'
+check_form_action public "$P_BODY"
+if grep -Fq 'epc-sf-home-depth' <<<"$P_BODY"; then
+  printf 'FAIL public home still renders pre-#892 scaffold (OLD :5100 BINARY)\n'
   fail=1
 fi
 if grep -Fq 'Mon–Sat 9:00' <<<"$P_BODY"; then
@@ -402,9 +427,11 @@ if grep -Fq 'Mon–Sat 9:00' <<<"$P_BODY"; then
   fail=1
 fi
 if printf '%s' "$P_HDR" | grep -qiE '^location:.*(/en/shop/part_search|part_search)'; then
-  printf 'PASS public search-app redirects to part_search\n'
+  printf 'PASS public search-app redirects to part_search (PHP mode)\n'
+elif printf '%s' "$P_HDR" | head -1 | grep -qE ' 200'; then
+  printf 'PASS public search-app serves app 200 (PHP-paused mode)\n'
 elif printf '%s' "$P_HDR" | grep -qiE '^HTTP/.* 404'; then
-  printf 'FAIL public search-app still 404 (PHP stub / nginx redirect not live)\n'
+  printf 'FAIL public search-app still 404 (nginx ^~ /storefront/ route not installed)\n'
   fail=1
 else
   printf 'FAIL public search-app unexpected response\n'
@@ -441,7 +468,8 @@ if [[ "$fail" -ne 0 ]]; then
 #####################################################################
 #  RESULT=FAIL
 #  PHP sync / marker / search redirect is NOT a successful deploy.
-#  Public https://www.epartscart.com/ must show part_search forms.
+#  Public https://www.epartscart.com/ must show the PHP-parity home
+#  (epc-asp-home-banners + section-vin + epart-front-original-data).
 #  Paste this WHOLE log. Do NOT mark the deploy complete.
 #####################################################################
 EOF
