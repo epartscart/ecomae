@@ -2,6 +2,22 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
+## 0🆕) HOME STILL OLD AFTER #892 MERGE — binary was never republished
+
+**Symptom:** `#892` merged but `https://www.epartscart.com/` is unchanged even after hard refresh — no 4-banner grid, no "Didn't find the part you need?" card, no Family Product / Epart Catalog / Available Brands / Original Catalog sections; top menu links may be invisible (dark-on-dark).
+
+**Root cause:** live Kestrel `:5100` is running a **stale binary** — recent pastes synced PHP/nginx but never republished the ASP.NET build. Also, the old `cloudpanel_FORCE_LIVE_NOW.sh` prover could wrongly print `RESULT=FAIL` on a good deploy when PHP serving is paused (it treated `action="/storefront/search-app"` as "old binary"), and its `Location:` parsing broke on mawk. Both fixed on this branch.
+
+**Paste as root — wait for `RESULT=PASS`:**
+
+```bash
+ECOMAE_BRANCH=cursor/fix-force-live-prove-892-7b3b \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/fix-force-live-prove-892-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+# After this branch merges: use ECOMAE_BRANCH=main and the main raw URL.
+```
+
+**PASS criteria (proved by the script):** public `/` contains `epc-asp-home-banners`, `section-vin`, `epart-front-original-data`, `id="epc-umapi"`, `id="epc-brands"`, and does NOT contain the pre-#892 scaffold (`epc-sf-home-depth`). Then hard-refresh (Ctrl+Shift+R) `https://www.epartscart.com/`.
+
 ## 0☠) STOP PRODUCT PHP NOW — `/cp/control` still old Homer login
 
 **Symptom:** `https://www.epartscart.com/cp/control` shows the old PHP login (`bootstrap_admin` / Homer) even after archive pause.
