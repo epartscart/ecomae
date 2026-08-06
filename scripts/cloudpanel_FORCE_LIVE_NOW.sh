@@ -3,8 +3,8 @@
 # Merging PRs does nothing until this runs on the CloudPanel box as root.
 #
 # Paste-safe:
-#   ECOMAE_BRANCH=cursor/storefront-header-php-parity-7b3b \
-#     bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-php-parity-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
+#   ECOMAE_BRANCH=cursor/storefront-header-topmenu-visible-7b3b \
+#     bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/storefront-header-topmenu-visible-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
 # After merge:
 #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_NOW.sh)"
 #
@@ -72,6 +72,11 @@ fi
 if ! grep -q 'background:linear-gradient(135deg,#090f1d' \
   aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor; then
   printf 'ERROR: chrome missing PHP top-menu gradient — checkout too old\n' >&2
+  exit 1
+fi
+if ! grep -q 'color:rgba(255,255,255,.88) !important' \
+  aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor; then
+  printf 'ERROR: chrome missing top-menu visible CSS (nero dark-gray beat) — checkout too old\n' >&2
   exit 1
 fi
 if ! grep -q 'AdminSurfaceAuthGateMiddleware' aspnet/src/EcomAE.Platform/Program.cs; then
@@ -369,7 +374,10 @@ for needle in \
   'epc-garage-header-link' \
   'background:linear-gradient(135deg,#090f1d' \
   'Mon-Fri from 9:00 to 18:00' \
-  'of products'
+  'of products' \
+  'color:rgba(255,255,255,.88) !important' \
+  'Selection catalogs' \
+  'Vehicle Parts intelligence AI'
 do
   if grep -Fq "$needle" <<<"$P_BODY"; then
     printf 'PASS public %s\n' "$needle"

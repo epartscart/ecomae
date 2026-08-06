@@ -175,14 +175,28 @@ defined('_ASTEXE_') or die('No access');
 	.top-menu-line a,
 	.top-menu-line .navbar-default .navbar-nav > li > a,
 	.top-menu-line .new-header-user-box a,
-	.top-menu-line .new-header-user-box span {
-		color: rgba(255, 255, 255, .84) !important;
-		font-weight: 700;
+	.top-menu-line .new-header-user-box span,
+	header .top-menu-line .navbar-default .navbar-nav > li > a,
+	header .top-menu-line .navbar-nav > li > a {
+		color: rgba(255, 255, 255, .88) !important;
+		font-weight: 700 !important;
+		visibility: visible !important;
+		opacity: 1 !important;
 	}
 	.top-menu-line a:hover,
 	.top-menu-line .navbar-default .navbar-nav > li > a:hover,
-	.top-menu-line .new-header-user-box a:hover {
+	.top-menu-line .new-header-user-box a:hover,
+	header .top-menu-line .navbar-default .navbar-nav > li > a:hover {
 		color: #fff !important;
+	}
+	/* Nero astself.css uses dark link color — keep top menu visible on dark bar */
+	header .top-menu-line .navbar-nav {
+		display: flex !important;
+		float: none !important;
+		visibility: visible !important;
+	}
+	header .top-menu-line .navbar-nav > .dropdown > a:before {
+		color: rgba(255, 255, 255, .7) !important;
 	}
 	.top-menu-line .dropdown-menu,
 	.top-menu-line .dropdown-menu *,
