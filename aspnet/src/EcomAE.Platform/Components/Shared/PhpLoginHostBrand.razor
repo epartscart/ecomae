@@ -1,0 +1,32 @@
+@using EcomAE.Platform.Presentation
+@*
+  Tenant / platform brand for BOS-parity login hero.
+  epartscart → animated cart; other tenants → catalog PNG; Super-CP → caller keeps gear.
+*@
+
+@if (Brand.LogoKind == LoginHostBrand.Kind.AnimatedEparts)
+{
+    <div class="bos-login__tenant-logo bos-login__tenant-logo--eparts">
+        <PhpEpartsCartAnimatedLogo Variant="login" />
+    </div>
+}
+else if (Brand.LogoKind == LoginHostBrand.Kind.TenantImage && !string.IsNullOrWhiteSpace(Brand.LogoUrl))
+{
+    <span class="epc-tenant-brand epc-tenant-brand--hero epc-tenant-brand--@Brand.AtmosphereTheme bos-login__tenant-logo"
+          role="img"
+          aria-label="@Brand.Label"
+          style="--etb-accent:@Brand.AccentHex;--etb-glow:@Brand.GlowRgba">
+        <span class="epc-tenant-brand__halo" aria-hidden="true"></span>
+        <span class="epc-tenant-brand__logo-wrap">
+            <img class="epc-tenant-brand__logo" src="@Brand.LogoUrl" alt="" width="320" height="96" loading="eager" />
+        </span>
+        @if (!string.IsNullOrWhiteSpace(Brand.Tagline))
+        {
+            <span class="epc-tenant-brand__tagline">@Brand.Tagline</span>
+        }
+    </span>
+}
+
+@code {
+    [Parameter, EditorRequired] public LoginHostBrand.Brand Brand { get; set; } = default!;
+}

@@ -50,14 +50,19 @@ public static class LegacyPresentationAssets
     public static readonly IReadOnlyList<string> LoginStylesheets =
     [
         "/epc-static.php?f=bos/epc_bos_shell.css",
-        "/content/general_pages/epc_bos_login_surface_accents.css"
+        "/content/general_pages/epc_bos_login_surface_accents.css",
+        // Tenant animated cart + catalog brand logos on /cp/login & /erp/login
+        "/platform-assets/eparts-animated-logo.css",
+        "/content/general_pages/epc_portal_tenant_brand.css"
     ];
 
-    /// <summary>ERP login uses the same BOS-parity shell (accents only).</summary>
+    /// <summary>ERP login uses the same BOS-parity shell (accents + tenant brand assets).</summary>
     public static readonly IReadOnlyList<string> ErpLoginStylesheets =
     [
         "/epc-static.php?f=bos/epc_bos_shell.css",
-        "/content/general_pages/epc_bos_login_surface_accents.css"
+        "/content/general_pages/epc_bos_login_surface_accents.css",
+        "/platform-assets/eparts-animated-logo.css",
+        "/content/general_pages/epc_portal_tenant_brand.css"
     ];
 
     /// <summary>BOS login matrix/particle JS (PHP bos/epc_bos_shell.js).</summary>
