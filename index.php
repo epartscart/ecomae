@@ -15,6 +15,13 @@ if (!defined('_ASTEXE_')) {
     define('_ASTEXE_', 1);
 }
 
+// Protocol: ASP.NET product-primary; PHP only via /php-reference/* → ?epc_php_reference=
+// Handle CP/ERP/BOS reference boots before cache/marketing steal the request.
+require_once __DIR__ . '/content/general_pages/epc_php_reference_router.php';
+if (function_exists('epc_php_reference_try_route') && epc_php_reference_try_route()) {
+	exit;
+}
+
 if (PHP_SAPI !== 'cli') {
 	@ini_set('display_errors', '0');
 	@ini_set('display_startup_errors', '0');
@@ -27,8 +34,10 @@ if (PHP_SAPI !== 'cli') {
 
 // Serve cached pages FIRST — before server guard, before any DB/config.
 // Cached pages are a zero-cost file_get_contents(); they bypass everything.
+// Skip cache for PHP-reference boots so X-EcomAE-Php-Reference headers stick.
 require_once __DIR__ . '/content/general_pages/epc_page_cache.php';
-if (epc_page_cache_try_serve()) {
+$__epcRefSurface = function_exists('epc_php_reference_surface') ? epc_php_reference_surface() : '';
+if ($__epcRefSurface === '' && epc_page_cache_try_serve()) {
 	exit;
 }
 

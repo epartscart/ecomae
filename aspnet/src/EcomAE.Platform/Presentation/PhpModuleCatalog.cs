@@ -75,9 +75,20 @@ public static partial class PhpModuleCatalog
     public static IEnumerable<IGrouping<string, ModuleLink>> ErpTabsByArea()
         => ErpTabs.GroupBy(x => x.Group ?? "overview");
 
-    /// <summary>Hybrid workspace URL that keeps ASP.NET chrome and loads PHP module in iframe.</summary>
+    /// <summary>
+    /// Hybrid workspace URL: ASP.NET chrome + iframe to PHP <c>/php-reference/*</c> only.
+    /// Legacy <c>/CP|/ERP|/BOS</c> deeplinks are rewritten so they never hit product ASP.NET remaps.
+    /// </summary>
     public static string HybridWorkspaceHref(string surfaceAppPath, string phpHref)
-        => $"{surfaceAppPath}?php={Uri.EscapeDataString(phpHref)}";
+    {
+        var reference = PhpSurfaceLinkMap.PhpReferenceOnlyHref(phpHref);
+        if (string.IsNullOrWhiteSpace(reference))
+        {
+            reference = "/php-reference/home";
+        }
+
+        return $"{surfaceAppPath}?php={Uri.EscapeDataString(reference)}";
+    }
 
     /// <summary>
     /// Allowed tracked catalog hrefs under ASP.NET-primary policy:
