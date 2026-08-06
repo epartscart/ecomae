@@ -1418,6 +1418,55 @@ public sealed record StorefrontCrossRefsResult(
     string Source,
     string Message);
 
+public sealed record StorefrontQuoteDigest(
+    int Id,
+    string Status,
+    long TimeCreated,
+    long TimeUpdated,
+    int ItemCount);
+
+public sealed record StorefrontQuoteItemDigest(
+    int Id,
+    string Manufacturer,
+    string Article,
+    string Name,
+    decimal CountNeed,
+    decimal Price);
+
+public sealed record StorefrontQuoteListResult(
+    int UserId,
+    IReadOnlyList<StorefrontQuoteDigest> Rows,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontQuoteDetailDigest(
+    int Id,
+    string Status,
+    IReadOnlyList<StorefrontQuoteItemDigest> Items,
+    string Source,
+    string Message);
+
+public sealed record StorefrontProductDigest(
+    int Id,
+    string Caption,
+    string Alias,
+    int CategoryId,
+    string Manufacturer,
+    string Article,
+    bool Published);
+
+public sealed record StorefrontProductResult(
+    StorefrontProductDigest? Product,
+    string Source,
+    string Message);
+
+public sealed record StorefrontProductListResult(
+    IReadOnlyList<StorefrontProductDigest> Rows,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontCartLineDigest(
     long Id,
     decimal Price,

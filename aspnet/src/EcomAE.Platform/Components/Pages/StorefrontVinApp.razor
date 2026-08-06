@@ -1,0 +1,126 @@
+@page "/storefront/vin-app"
+@page "/en/katalog-laximo"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject NavigationManager Navigation
+
+<PageTitle>VIN / Frame search · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <style>
+        .epc-sf-vin-hero {
+            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 55%,#0ea5e9 100%);
+        }
+        .epc-sf-vin-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
+        .epc-sf-vin-hero p { margin:0; color:#bae6fd; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-sf-vin-form {
+            display:flex; flex-wrap:wrap; gap:.55rem; margin-top:.9rem; align-items:center;
+        }
+        .epc-sf-vin-form input {
+            flex:1 1 16rem; min-width:12rem; padding:.55rem .75rem; border-radius:.4rem;
+            border:1px solid rgba(255,255,255,.35); background:rgba(15,23,42,.35); color:#fff;
+        }
+        .epc-sf-vin-form input::placeholder { color:#94a3b8; }
+        .epc-sf-vin-form button, .epc-sf-vin-form a.btn {
+            display:inline-flex; padding:.55rem .95rem; border-radius:.4rem; border:0;
+            background:#0284c7; color:#fff; font-weight:700; font-size:.86rem; text-decoration:none; cursor:pointer;
+        }
+        .epc-sf-vin-form a.ghost {
+            background:transparent; border:1px solid rgba(255,255,255,.35);
+        }
+        .epc-sf-vin-panel {
+            background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:hidden; min-height:28rem;
+        }
+        .epc-sf-vin-panel iframe { width:100%; min-height:70vh; border:0; display:block; background:#f8fafc; }
+        .epc-sf-vin-note {
+            margin-top:.85rem; padding:.7rem .85rem; background:#eff6ff; border:1px solid #bfdbfe;
+            border-radius:.45rem; color:#1e3a8a; font-size:.84rem;
+        }
+    </style>
+
+    <section class="epc-sf-vin-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.15)" />
+        <h1>VIN / Frame search</h1>
+        <p>Decode vehicles and open OEM unit trees. Results use the classic Laximo catalogue module.</p>
+        <form class="epc-sf-vin-form" @onsubmit="OnSubmit" @onsubmit:preventDefault>
+            <input type="search" @bind="_vin" maxlength="32" placeholder="VIN or Frame" aria-label="VIN or Frame" required />
+            <button type="submit">Decode VIN</button>
+            <a class="btn ghost" href="@PhpResultsHref">Open classic catalogue</a>
+            <a class="btn ghost" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+        </form>
+    </section>
+
+    @if (!string.IsNullOrWhiteSpace(_vin))
+    {
+        <div class="epc-sf-vin-panel" aria-label="Laximo VIN results">
+            <iframe title="Laximo VIN results" src="@PhpResultsHref" loading="lazy" referrerpolicy="same-origin"></iframe>
+        </div>
+        <p class="epc-sf-vin-note">
+            Decode/results stay on the PHP Laximo module (<code>@StorefrontPhpCanonical.LaximoVin</code>).
+            This shell matches the storefront header VIN form and keeps ASP.NET chrome around the classic tree.
+        </p>
+    }
+    else
+    {
+        <div class="epc-sf-vin-panel" style="padding:1.25rem;color:#475569">
+            Enter a VIN or frame number to load the classic vehicle decode tree.
+        </div>
+    }
+</PhpStorefrontDesktopChrome>
+
+@code {
+    private string _vin = "";
+
+    [SupplyParameterFromQuery(Name = "identString")]
+    public string? IdentString { get; set; }
+
+    [SupplyParameterFromQuery(Name = "vin")]
+    public string? VinAlias { get; set; }
+
+    private string PhpResultsHref
+    {
+        get
+        {
+            var vin = string.IsNullOrWhiteSpace(_vin) ? "" : _vin.Trim();
+            if (vin.Length == 0)
+            {
+                return StorefrontPhpCanonical.LaximoVin;
+            }
+
+            return StorefrontPhpCanonical.LaximoVin
+                   + "?task=vehicles&ft=FindVehicle&identString="
+                   + Uri.EscapeDataString(vin);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        _vin = FirstNonEmpty(IdentString, VinAlias);
+    }
+
+    private void OnSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(_vin))
+        {
+            return;
+        }
+
+        Navigation.NavigateTo(StorefrontSurfaceLinks.ForVin(_vin.Trim()), forceLoad: true);
+    }
+
+    private static string FirstNonEmpty(params string?[] values)
+    {
+        foreach (var v in values)
+        {
+            if (!string.IsNullOrWhiteSpace(v))
+            {
+                return v.Trim();
+            }
+        }
+
+        return "";
+    }
+}

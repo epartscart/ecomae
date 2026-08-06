@@ -36,6 +36,34 @@ public static class StorefrontSurfaceLinks
     public static string Orders => PreferAspNetApps ? StorefrontAspNetCanonical.Orders : StorefrontPhpCanonical.Orders;
     public static string Login => PreferAspNetApps ? StorefrontAspNetCanonical.Login : StorefrontPhpCanonical.Login;
     public static string GarageLogin => PreferAspNetApps ? StorefrontAspNetCanonical.GarageLogin : StorefrontPhpCanonical.GarageLogin;
+    public static string Quotes => PreferAspNetApps ? StorefrontAspNetCanonical.Quotes : StorefrontPhpCanonical.Quotes;
+    public static string Wishlist => PreferAspNetApps ? StorefrontAspNetCanonical.Wishlist : StorefrontPhpCanonical.Wishlist;
+    public static string Compare => PreferAspNetApps ? StorefrontAspNetCanonical.Compare : StorefrontPhpCanonical.Compare;
+    public static string Product => PreferAspNetApps ? StorefrontAspNetCanonical.Product : StorefrontPhpCanonical.PartSearch;
+    public static string Balance => PreferAspNetApps ? StorefrontAspNetCanonical.Balance : StorefrontPhpCanonical.Balance;
+    public static string BulkUpload => StorefrontPhpCanonical.BulkUpload;
+
+    public static string ForProduct(int productId)
+        => PreferAspNetApps
+            ? StorefrontAspNetCanonical.Product + "?id=" + productId.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : StorefrontPhpCanonical.PartSearch;
+
+    public static string ForQuote(int quoteId)
+        => PreferAspNetApps
+            ? StorefrontAspNetCanonical.Quotes + "?id=" + quoteId.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : StorefrontPhpCanonical.Quotes + "?id=" + quoteId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    public static string ForVin(string? identString)
+    {
+        var basePath = LaximoVin;
+        if (string.IsNullOrWhiteSpace(identString))
+        {
+            return basePath;
+        }
+
+        var sep = basePath.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return basePath + sep + "identString=" + Uri.EscapeDataString(identString.Trim());
+    }
 
     public static string ForCatalogBrowse(string phpPath)
         => PreferAspNetApps ? StorefrontAspNetCanonical.ProductFamily : StorefrontPhpCanonical.ForCatalogBrowse(phpPath);

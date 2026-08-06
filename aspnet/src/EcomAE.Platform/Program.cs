@@ -538,11 +538,11 @@ builder.Services.AddSingleton<ICpPricesCompleteSessionDryRun, CpPricesCompleteSe
 builder.Services.AddSingleton<ISurfaceFieldParityReporter, SurfaceFieldParityReporter>();
 builder.Services.AddSingleton<IUmapiUsageSummaryReporter, UmapiUsageSummaryReporter>();
 builder.Services.AddSingleton<IPlatformJobsSummaryReporter, PlatformJobsSummaryReporter>();
+builder.Services.AddHttpClient();
 builder.Services.AddHttpClient(nameof(PhpWarehouseSearchBridge))
     .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromSeconds(8));
 builder.Services.AddSingleton<PhpWarehouseSearchBridge>();
-builder.Services.AddSingleton<ISurfaceDashboardSummaryReporter, SurfaceDashboardSummaryReporter>();
-builder.Services.AddSingleton<IStorefrontCartChangeCountNeedDryRun, StorefrontCartChangeCountNeedDryRun>();
+builder.Services.AddSingleton<ISurfaceDashboardSummaryReporter, SurfaceDashboardSummaryReporter>();builder.Services.AddSingleton<IStorefrontCartChangeCountNeedDryRun, StorefrontCartChangeCountNeedDryRun>();
 builder.Services.AddSingleton<IStorefrontCartCheckForOrderDryRun, StorefrontCartCheckForOrderDryRun>();
 builder.Services.AddSingleton<IStorefrontCartDeleteDryRun, StorefrontCartDeleteDryRun>();
 builder.Services.AddSingleton<ICpOmsSetItemStatusDryRun, CpOmsSetItemStatusDryRun>();

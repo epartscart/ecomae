@@ -155,17 +155,18 @@
                         <th>Price</th>
                         <th>Storage</th>
                         <th>Price list</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (string.IsNullOrWhiteSpace(_normalized))
                     {
-                        <tr><td colspan="8">Enter article and brand to load warehouse offers.</td></tr>
+                        <tr><td colspan="9">Enter article and brand to load warehouse offers.</td></tr>
                     }
                     else if (_rows.Count == 0)
                     {
                         <tr>
-                            <td colspan="8">
+                            <td colspan="9">
                                 No warehouse offers for <strong>@_brandInput @_normalized</strong>.
                                 @if (!string.IsNullOrWhiteSpace(_message))
                                 {
@@ -182,6 +183,7 @@
                         {
                             var show = string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow;
                             var term = string.IsNullOrWhiteSpace(row.TimeToExe) ? "—" : row.TimeToExe;
+                            var phpPart = PhpPartSearchHref(row.Manufacturer, show);
                             <tr>
                                 <td><strong>@row.Manufacturer</strong></td>
                                 <td>@show</td>
@@ -191,6 +193,11 @@
                                 <td>@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage)</td>
                                 <td>@(string.IsNullOrWhiteSpace(row.PriceList) ? "—" : row.PriceList)</td>
+                                <td>
+                                    <a href="@phpPart" title="Classic part search (cart / supplier poll)">Cart / poll</a>
+                                    ·
+                                    <a href="@StorefrontPhpCanonical.Quotes" title="Add to quote on classic module">Quote</a>
+                                </td>
                             </tr>
                         }
                     }
@@ -199,7 +206,8 @@
         </div>
         <p class="epc-sf-search-note">
             Results mirror PHP warehouse price lists for the selected brand + article.
-            Cart / quote / supplier live poll remain on the classic part_search module when needed.
+            <strong>Actions</strong> deep-link to classic part_search / quotes for cart, quote, and live supplier poll
+            (<code>ajax_getProductsOfBunch</code> remains PHP-authoritative).
         </p>
     }
 
@@ -364,13 +372,27 @@
         _heroSubtitle = _mode switch
         {
             "attr" => "Search product attributes across warehouse offers (engine, size, country, cross ref).",
-            "vin" => "Look up parts by VIN / Frame — results use the warehouse offer digest.",
+            "vin" => "Look up parts by VIN / Frame — open the dedicated VIN app for Laximo decode trees.",
             "engine" => "Look up parts by engine code across warehouse offers.",
-            "car" => "Browse by vehicle — start with a part number or open more info search.",
+            "car" => "Browse by vehicle — open the vehicle catalog app for year/make/model.",
             _ => string.IsNullOrWhiteSpace(_brandInput)
                 ? "Select a manufacturer after searching by article (PHP brand picker parity)."
                 : "Warehouse offers and cross references for the selected brand + article."
         };
+
+        // Dedicated apps own VIN / vehicle-tree UX when PreferAspNetApps is on.
+        if (_mode is "vin")
+        {
+            var vin = FirstNonEmpty(VinQuery, _articleInput);
+            Navigation.NavigateTo(StorefrontSurfaceLinks.ForVin(vin), replace: true);
+            return;
+        }
+
+        if (_mode is "car" or "engine")
+        {
+            Navigation.NavigateTo(StorefrontSurfaceLinks.VehicleCatalog, replace: true);
+            return;
+        }
 
         if (string.IsNullOrWhiteSpace(_articleInput))
         {
@@ -422,6 +444,18 @@
         if (!string.IsNullOrWhiteSpace(brand))
         {
             href += "&brand=" + Uri.EscapeDataString(brand.Trim());
+        }
+
+        return href;
+    }
+
+    private static string PhpPartSearchHref(string? brand, string? article)
+    {
+        var href = StorefrontPhpCanonical.PartSearch
+                   + "?article=" + Uri.EscapeDataString(article ?? string.Empty);
+        if (!string.IsNullOrWhiteSpace(brand))
+        {
+            href += "&brend=" + Uri.EscapeDataString(brand.Trim());
         }
 
         return href;
