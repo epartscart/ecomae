@@ -35,6 +35,17 @@ public sealed class CpPhpParityTests
     [InlineData("/CP/shop/procurement/procurement", "/cp/purchase-requests-app")]
     [InlineData("/CP/shop/logistics/stock", "/erp/inventory-stock-app")]
     [InlineData("/CP/shop/price-management", "/cp/price-lists-app")]
+    [InlineData("/CP/shop/statistics/statistics", "/cp/statistics-app")]
+    [InlineData("/CP/shop/statistics", "/cp/statistics-app")]
+    [InlineData("/CP/shop/accessories", "/cp/accessories-app")]
+    [InlineData("/CP/shop/manufacturers_synonyms", "/cp/synonyms-app")]
+    [InlineData("/CP/shop/marketing/seo", "/cp/seo-app")]
+    [InlineData("/CP/control/portal/epc_social_media_hub", "/cp/social-hub-app")]
+    [InlineData("/CP/control/portal/epc_tenant_features", "/cp/tenant-features-app")]
+    [InlineData("/CP/control/portal/epc_super_cp_customer_board", "/cp/customer-board-app")]
+    [InlineData("/CP/shop/finance/epc_fulfillment_queue", "/cp/fulfillment-queue-app")]
+    [InlineData("/CP/control/portal/epc_sso_saml", "/cp/sso-saml-app")]
+    [InlineData("/CP/control/portal/epc_event_bus", "/cp/event-bus-app")]
     public void MapCpPhpPath_MapsPhpModulesToApps(string phpHref, string expected)
     {
         Assert.Equal(expected, PhpSurfaceLinkMap.MapCpPhpPath(phpHref));
@@ -80,6 +91,30 @@ public sealed class CpPhpParityTests
         Assert.Contains("_allowed", text, StringComparison.Ordinal);
         Assert.Contains("Not found", text, StringComparison.Ordinal);
     }
+
+    [Theory]
+    [InlineData("CpTenantFeaturesApp.razor")]
+    [InlineData("CpCustomerBoardApp.razor")]
+    [InlineData("CpSsoSamlApp.razor")]
+    [InlineData("CpEventBusApp.razor")]
+    public void NextWaveSuperOnlyApps_HaveSuperCpHostGate(string file)
+    {
+        var text = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/" + file));
+        Assert.Contains("SuperCpHostGate", text, StringComparison.Ordinal);
+        Assert.Contains("_allowed", text, StringComparison.Ordinal);
+        Assert.Contains("Not found", text, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("/cp/tenant-features-app")]
+    [InlineData("/cp/customer-board-app")]
+    [InlineData("/cp/sso-saml-app")]
+    [InlineData("/cp/event-bus-app")]
+    public void NextWaveSuperOnlyApps_AreSuperOnlyChromeLinks(string href)
+    {
+        Assert.True(LegacyDesktopChromeCatalog.IsSuperOnlyCpLink(href));
+    }
+
 
     [Fact]
     public void CpCommandCentre_HasControlPageDirectiveWithoutTrailingSlashDuplicate()

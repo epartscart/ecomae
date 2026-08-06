@@ -349,6 +349,27 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpServerIpDigestResult> BuildCpServerIpDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpDebugConsoleDigestResult> BuildCpDebugConsoleDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Next-wave: commerce statistics KPIs + top article queries (ip omitted).</summary>
+    Task<CpStatisticsDigestResult> BuildCpStatisticsDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>Next-wave: accessories listings digest (photos/writes remain PHP dry-run).</summary>
+    Task<CpAccessoriesDigestResult> BuildCpAccessoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>Next-wave: manufacturer synonyms digest (writes remain module-ajax dry-run).</summary>
+    Task<CpSynonymsDigestResult> BuildCpSynonymsDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>Next-wave: SEO content KPIs (sitemap/robots; ping/warm remain PHP).</summary>
+    Task<CpSeoDigestResult> BuildCpSeoDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>Next-wave: social hub accounts/drafts (credentials omitted; publish dry-run).</summary>
+    Task<CpSocialHubDigestResult> BuildCpSocialHubDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>Next-wave Super-only: tenant feature flags matrix (save dry-run).</summary>
+    Task<CpTenantFeaturesDigestResult> BuildCpTenantFeaturesDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>Next-wave Super-only: customer board user peek (writes remain PHP).</summary>
+    Task<CpCustomerBoardDigestResult> BuildCpCustomerBoardDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>Next-wave: fulfillment queue digest (OMS stage writes remain dry-run).</summary>
+    Task<CpFulfillmentQueueDigestResult> BuildCpFulfillmentQueueDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>Next-wave Super-only: SSO/SAML providers (certs/metadata omitted).</summary>
+    Task<CpSsoSamlDigestResult> BuildCpSsoSamlDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>Next-wave Super-only: MySQL epc_events bus peek (no Kafka/Rabbit).</summary>
+    Task<CpEventBusDigestResult> BuildCpEventBusDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only on-premises license registry (notes/fingerprint/ip omitted; license keys masked).</summary>
     Task<OnPremisesLicenseListResult> ListOnPremisesLicensesAsync(int limit, CancellationToken cancellationToken = default);
 }
