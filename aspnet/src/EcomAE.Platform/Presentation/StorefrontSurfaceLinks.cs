@@ -47,8 +47,43 @@ public static class StorefrontSurfaceLinks
 
     public static string ForPartSearch(string? originalWithQuery = null)
         => PreferAspNetApps
-            ? AppendQuery(StorefrontAspNetCanonical.PartSearch, originalWithQuery)
+            ? AppendQuery(StorefrontAspNetCanonical.PartSearch, NormalizePartSearchQuery(originalWithQuery))
             : StorefrontPhpCanonical.ForPartSearch(originalWithQuery);
+
+    /// <summary>Map PHP <c>brend</c> → ASP.NET <c>brand</c> in incoming query strings.</summary>
+    private static string? NormalizePartSearchQuery(string? originalWithQuery)
+    {
+        if (string.IsNullOrWhiteSpace(originalWithQuery))
+        {
+            return originalWithQuery;
+        }
+
+        var qIndex = originalWithQuery.IndexOf('?', StringComparison.Ordinal);
+        if (qIndex < 0 || qIndex >= originalWithQuery.Length - 1)
+        {
+            return originalWithQuery;
+        }
+
+        var path = originalWithQuery[..(qIndex + 1)];
+        var query = originalWithQuery[(qIndex + 1)..];
+        if (!query.Contains("brend=", StringComparison.OrdinalIgnoreCase)
+            || query.Contains("brand=", StringComparison.OrdinalIgnoreCase))
+        {
+            return originalWithQuery;
+        }
+
+        // Prefer brand= for ASP.NET search-app; keep other pairs intact.
+        var pairs = query.Split('&', StringSplitOptions.RemoveEmptyEntries);
+        for (var i = 0; i < pairs.Length; i++)
+        {
+            if (pairs[i].StartsWith("brend=", StringComparison.OrdinalIgnoreCase))
+            {
+                pairs[i] = "brand=" + pairs[i]["brend=".Length..];
+            }
+        }
+
+        return path + string.Join('&', pairs);
+    }
 
     public static string ForVinSearch(string? originalWithQuery = null)
         => PreferAspNetApps

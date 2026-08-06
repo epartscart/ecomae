@@ -223,6 +223,12 @@ public static class PhpSurfaceLinkMap
             return StorefrontSurfaceLinks.ForPartSearch(value);
         }
 
+        // PHP CHPU /parts/{BRAND}/{ARTICLE} → ASP.NET brand+article search result.
+        if (TryMapPartsBrandArticlePath(value, out var brandArticleHref))
+        {
+            return brandArticleHref;
+        }
+
         if (IsStorefrontCatalogBrowsePath(value))
         {
             return StorefrontSurfaceLinks.ForCatalogBrowse(value);
@@ -321,6 +327,81 @@ public static class PhpSurfaceLinkMap
         }
 
         return aspNetPath + "?" + requiredPair + "&" + incoming;
+    }
+
+    /// <summary>
+    /// PHP CHPU <c>/parts/{BRAND}/{ARTICLE}</c> (and <c>/parts/brands/{ARTICLE}</c>) → search-app query.
+    /// </summary>
+    private static bool TryMapPartsBrandArticlePath(string value, out string href)
+    {
+        href = string.Empty;
+        var path = value;
+        var q = value.IndexOf('?', StringComparison.Ordinal);
+        if (q >= 0)
+        {
+            path = value[..q];
+        }
+
+        path = StripStorefrontLangPrefix(path).TrimEnd('/');
+        if (!path.StartsWith("/parts/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var rest = path["/parts/".Length..];
+        var segments = rest.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (segments.Length == 0)
+        {
+            return false;
+        }
+
+        static string Decode(string segment)
+        {
+            try
+            {
+                return Uri.UnescapeDataString(segment.Replace('+', ' ')).Trim();
+            }
+            catch (UriFormatException)
+            {
+                return segment.Trim();
+            }
+        }
+
+        if (segments.Length == 1
+            && segments[0].Equals("brands", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (segments.Length >= 2
+            && segments[0].Equals("brands", StringComparison.OrdinalIgnoreCase))
+        {
+            var articleOnly = Decode(segments[1]);
+            if (articleOnly.Length == 0)
+            {
+                return false;
+            }
+
+            href = StorefrontAspNetCanonical.PartSearch + "?article=" + Uri.EscapeDataString(articleOnly);
+            return true;
+        }
+
+        if (segments.Length >= 2)
+        {
+            var brand = Decode(segments[0]);
+            var article = Decode(segments[1]);
+            if (brand.Length == 0 || article.Length == 0)
+            {
+                return false;
+            }
+
+            href = StorefrontAspNetCanonical.PartSearch
+                   + "?article=" + Uri.EscapeDataString(article)
+                   + "&brand=" + Uri.EscapeDataString(brand);
+            return true;
+        }
+
+        return false;
     }
 
     private static bool IsStorefrontCatalogBrowsePath(string value)

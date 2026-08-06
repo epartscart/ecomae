@@ -65,6 +65,10 @@ public sealed class StorefrontSearchSqlParityTests
         var sql = LegacySurfaceDashboardSql.StorefrontPriceArticleSearchInSql(3);
         Assert.Equal("(d.`article_search` IN (@a0,@a1,@a2))", sql);
         Assert.Equal("0", LegacySurfaceDashboardSql.StorefrontPriceArticleSearchInSql(0));
+        var exact = LegacySurfaceDashboardSql.StorefrontPriceArticleExactInSql(2);
+        Assert.Contains("@a0,@a1", exact, StringComparison.Ordinal);
+        Assert.Contains("UPPER(TRIM(IFNULL(d.`article`", exact, StringComparison.Ordinal);
+        Assert.DoesNotContain("CHAR(9)", exact, StringComparison.Ordinal);
     }
 
     [Fact]

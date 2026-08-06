@@ -1107,18 +1107,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
             var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
             var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
+            // PHP path: article_search → exact/light match → full REPLACE normalize.
             var rows = await QueryStorefrontPartOffersAsync(
                 connection,
                 candidates,
                 brandUpper,
                 brandCompact,
                 safeLimit,
+                StorefrontArticleMatchMode.ArticleSearch,
                 hasSearchCol,
-                useReplaceFallback: false,
                 cancellationToken).ConfigureAwait(false);
 
-            // Incomplete article_search backfill: retry REPLACE normalize (PHP CHPU fallback).
-            if (rows.Count == 0 && hasSearchCol)
+            if (rows.Count == 0)
             {
                 rows = await QueryStorefrontPartOffersAsync(
                     connection,
@@ -1126,8 +1126,21 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     brandUpper,
                     brandCompact,
                     safeLimit,
+                    StorefrontArticleMatchMode.ExactTrim,
                     hasSearchCol,
-                    useReplaceFallback: true,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            if (rows.Count == 0)
+            {
+                rows = await QueryStorefrontPartOffersAsync(
+                    connection,
+                    candidates,
+                    brandUpper,
+                    brandCompact,
+                    safeLimit,
+                    StorefrontArticleMatchMode.ReplaceNormalize,
+                    hasSearchCol,
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -1165,18 +1178,29 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 connection,
                 candidates,
                 safeLimit,
+                StorefrontArticleMatchMode.ArticleSearch,
                 hasSearchCol,
-                useReplaceFallback: false,
                 cancellationToken).ConfigureAwait(false);
 
-            if (warehouseBrands.Count == 0 && hasSearchCol)
+            if (warehouseBrands.Count == 0)
             {
                 warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
                     connection,
                     candidates,
                     safeLimit,
+                    StorefrontArticleMatchMode.ExactTrim,
                     hasSearchCol,
-                    useReplaceFallback: true,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            if (warehouseBrands.Count == 0)
+            {
+                warehouseBrands = await QueryStorefrontWarehouseBrandsAsync(
+                    connection,
+                    candidates,
+                    safeLimit,
+                    StorefrontArticleMatchMode.ReplaceNormalize,
+                    hasSearchCol,
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -1201,10 +1225,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, int limit, CancellationToken cancellationToken = default)
+    public Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, int limit, CancellationToken cancellationToken = default)
+        => ListStorefrontCrossRefsAsync(article, brand: null, limit, cancellationToken);
+
+    public async Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, string? brand, int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 200);
         var normalized = PriceLookupRequest.NormalizeArticle(article ?? string.Empty);
+        var brandNorm = (brand ?? string.Empty).Trim().ToUpperInvariant();
         if (string.IsNullOrWhiteSpace(normalized))
         {
             return new(string.Empty, [], 0, "empty", "Enter a part number or OE code.");
@@ -1225,11 +1253,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 LegacySurfaceDashboardSql.StorefrontCrossArticleMatchSql(hasAnalogsSearch),
                 StringComparison.Ordinal);
             AddParameter(command, "@article", normalized);
-            AddParameter(command, "@limit", safeLimit);
+            AddParameter(command, "@limit", Math.Min(safeLimit * 20, 3000));
             var rows = new List<StorefrontCrossRefDigest>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && rows.Count < safeLimit)
             {
                 var sourceBrand = Convert.ToString(reader["source_brand"] is DBNull ? string.Empty : reader["source_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
                 var sourceArticle = Convert.ToString(reader["source_article"] is DBNull ? string.Empty : reader["source_article"], CultureInfo.InvariantCulture) ?? string.Empty;
@@ -1239,17 +1267,28 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 var crossNorm = PriceLookupRequest.NormalizeArticle(crossArticle);
                 string partnerBrand;
                 string partnerArticle;
+                string matchedBrand;
                 if (sourceNorm == normalized && crossNorm != string.Empty)
                 {
+                    matchedBrand = sourceBrand;
                     partnerBrand = crossBrand;
                     partnerArticle = crossArticle;
                 }
                 else if (crossNorm == normalized && sourceNorm != string.Empty)
                 {
+                    matchedBrand = crossBrand;
                     partnerBrand = sourceBrand;
                     partnerArticle = sourceArticle;
                 }
                 else
+                {
+                    continue;
+                }
+
+                // PHP ajax_epc_cross_search filters by selected manufacturer when brand is set.
+                if (brandNorm.Length > 0
+                    && !string.Equals(matchedBrand.Trim(), brandNorm, StringComparison.OrdinalIgnoreCase)
+                    && CompactStorefrontBrand(matchedBrand) != CompactStorefrontBrand(brandNorm))
                 {
                     continue;
                 }
@@ -1271,6 +1310,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return new(normalized, [], 0, "database-error", ex.Message);
         }
+    }
+
+    private enum StorefrontArticleMatchMode
+    {
+        ArticleSearch,
+        ExactTrim,
+        ReplaceNormalize
     }
 
     private static string CompactStorefrontBrand(string brand)
@@ -1388,35 +1434,42 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         candidates.Add(value);
     }
 
+    private static string ResolveStorefrontArticleMatchSql(
+        IReadOnlyList<string> candidates,
+        StorefrontArticleMatchMode mode,
+        bool hasSearchCol,
+        out bool bindIndexed)
+    {
+        bindIndexed = true;
+        return mode switch
+        {
+            StorefrontArticleMatchMode.ArticleSearch when hasSearchCol
+                => LegacySurfaceDashboardSql.StorefrontPriceArticleSearchInSql(candidates.Count),
+            StorefrontArticleMatchMode.ArticleSearch
+                => LegacySurfaceDashboardSql.StorefrontPriceArticleExactInSql(candidates.Count),
+            StorefrontArticleMatchMode.ExactTrim
+                => LegacySurfaceDashboardSql.StorefrontPriceArticleExactInSql(candidates.Count),
+            _
+                => LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(candidates.Count)
+        };
+    }
+
     private static async Task<List<StorefrontPartOfferDigest>> QueryStorefrontPartOffersAsync(
         DbConnection connection,
         IReadOnlyList<string> candidates,
         string brandUpper,
         string brandCompact,
         int safeLimit,
+        StorefrontArticleMatchMode mode,
         bool hasSearchCol,
-        bool useReplaceFallback,
         CancellationToken cancellationToken)
     {
-        string articleMatch;
-        var bindIndexed = false;
-        if (hasSearchCol && !useReplaceFallback)
+        if (mode == StorefrontArticleMatchMode.ArticleSearch && !hasSearchCol)
         {
-            articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleSearchInSql(candidates.Count);
-            bindIndexed = true;
-        }
-        else if (candidates.Count > 1)
-        {
-            articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(candidates.Count);
-            bindIndexed = true;
-        }
-        else
-        {
-            articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleMatchSql(
-                hasArticleSearchColumn: false,
-                useReplaceFallback: true);
+            return [];
         }
 
+        var articleMatch = ResolveStorefrontArticleMatchSql(candidates, mode, hasSearchCol, out var bindIndexed);
         await using var command = connection.CreateCommand();
         command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontPartSearch.Replace(
             "{ARTICLE_MATCH}",
@@ -1445,7 +1498,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
                 Convert.ToDecimal(reader["price"] is DBNull ? 0m : reader["price"], CultureInfo.InvariantCulture),
                 Convert.ToInt32(reader["exist"] is DBNull ? 0 : reader["exist"], CultureInfo.InvariantCulture),
-                Convert.ToString(reader["storage"] is DBNull ? string.Empty : reader["storage"], CultureInfo.InvariantCulture) ?? string.Empty));
+                Convert.ToString(reader["storage"] is DBNull ? string.Empty : reader["storage"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["time_to_exe"] is DBNull ? string.Empty : reader["time_to_exe"], CultureInfo.InvariantCulture) ?? string.Empty));
         }
 
         return rows;
@@ -1455,29 +1509,16 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         DbConnection connection,
         IReadOnlyList<string> candidates,
         int safeLimit,
+        StorefrontArticleMatchMode mode,
         bool hasSearchCol,
-        bool useReplaceFallback,
         CancellationToken cancellationToken)
     {
-        string articleMatch;
-        var bindIndexed = false;
-        if (hasSearchCol && !useReplaceFallback)
+        if (mode == StorefrontArticleMatchMode.ArticleSearch && !hasSearchCol)
         {
-            articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleSearchInSql(candidates.Count);
-            bindIndexed = true;
-        }
-        else if (candidates.Count > 1)
-        {
-            articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(candidates.Count);
-            bindIndexed = true;
-        }
-        else
-        {
-            articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleMatchSql(
-                hasArticleSearchColumn: false,
-                useReplaceFallback: true);
+            return [];
         }
 
+        var articleMatch = ResolveStorefrontArticleMatchSql(candidates, mode, hasSearchCol, out var bindIndexed);
         await using var command = connection.CreateCommand();
         command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands.Replace(
             "{ARTICLE_MATCH}",
@@ -1577,9 +1618,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             await using var command = connection.CreateCommand();
-            var articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleMatchSql(
-                hasArticleSearchColumn: false,
-                useReplaceFallback: true);
+            // Prefer light exact match for stock peek (avoids heavy REPLACE scans).
+            var articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleExactInSql(1);
             command.CommandText = """
                 SELECT IFNULL(MAX(d.`exist`), 0) AS max_exist
                 FROM `shop_docpart_prices_data` d
@@ -1592,6 +1632,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 """.Replace("{ARTICLE_MATCH}", articleMatch, StringComparison.Ordinal);
             var articleNorm = PriceLookupRequest.NormalizeArticle(row.Article);
             var brandUpper = row.Brand.Trim().ToUpperInvariant();
+            AddParameter(command, "@a0", articleNorm);
             AddParameter(command, "@article", articleNorm);
             AddParameter(command, "@brand", brandUpper);
             AddParameter(command, "@brandCompact", CompactStorefrontBrand(row.Brand));

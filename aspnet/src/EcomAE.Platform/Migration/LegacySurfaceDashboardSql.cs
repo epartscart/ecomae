@@ -1516,7 +1516,24 @@ public static class LegacySurfaceDashboardSql
         return $"(d.`article_search` IN ({placeholders}))";
     }
 
-    /// <summary>REPLACE-normalize IN match on article/article_show (fallback when article_search misses).</summary>
+    /// <summary>
+    /// Fast exact/trim match (no nested REPLACE) — enough for already-normalized OE codes like DA320.
+    /// Used before the heavy PHP REPLACE fallback.
+    /// </summary>
+    public static string StorefrontPriceArticleExactInSql(int count)
+    {
+        if (count <= 0)
+        {
+            return "0";
+        }
+
+        var placeholders = BuildIndexedParams("a", count);
+        return $"(UPPER(TRIM(IFNULL(d.`article`, ''))) IN ({placeholders})"
+             + $" OR UPPER(TRIM(IFNULL(d.`article_show`, ''))) IN ({placeholders})"
+             + $" OR UPPER(REPLACE(REPLACE(REPLACE(IFNULL(d.`article`, ''), '-', ''), ' ', ''), '.', '')) IN ({placeholders}))";
+    }
+
+    /// <summary>REPLACE-normalize IN match on article/article_show (PHP CHPU fallback when article_search misses).</summary>
     public static string StorefrontPriceArticleReplaceInSql(int count)
     {
         if (count <= 0)
@@ -1568,7 +1585,8 @@ public static class LegacySurfaceDashboardSql
                IFNULL(d.`name`, '') AS name,
                IFNULL(d.`price`, 0) AS price,
                IFNULL(d.`exist`, 0) AS exist,
-               IFNULL(d.`storage`, '') AS storage
+               IFNULL(d.`storage`, '') AS storage,
+               IFNULL(d.`time_to_exe`, '') AS time_to_exe
         FROM `shop_docpart_prices_data` d
         LEFT JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
         WHERE {ARTICLE_MATCH}

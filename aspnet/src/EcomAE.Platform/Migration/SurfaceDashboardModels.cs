@@ -1387,7 +1387,8 @@ public sealed record StorefrontPartOfferDigest(
     string Name,
     decimal Price,
     int Exist,
-    string Storage);
+    string Storage,
+    string TimeToExe = "");
 
 public sealed record StorefrontPartSearchResult(
     string Article,
