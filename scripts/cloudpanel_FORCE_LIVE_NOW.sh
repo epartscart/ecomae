@@ -106,6 +106,12 @@ if command -v php >/dev/null 2>&1 && [[ -f scripts/render_php_home_snapshots.php
   php scripts/render_php_home_snapshots.php \
     || printf 'WARN: tenant home snapshot render failed — committed snapshots serve\n' >&2
 fi
+# Full www.ecomae.com marketing site (all pages) — PHP router renders each page.
+if command -v php >/dev/null 2>&1 && [[ -f scripts/render_ecomae_marketing_snapshots.php ]]; then
+  php scripts/render_ecomae_marketing_snapshots.php >/tmp/epc-marketing-snapshots.log 2>&1 \
+    && tail -1 /tmp/epc-marketing-snapshots.log \
+    || printf 'WARN: marketing snapshot render failed — committed snapshots serve\n' >&2
+fi
 
 # ---- Discover epartscart document roots from nginx ----
 mapfile -t DOCROOTS < <(
@@ -602,6 +608,10 @@ prove_host_marker https://www.stylenlook.com/ 'epc-frn-home' 'stylenlook home'
 prove_host_marker https://www.thejewellerytrend.com/ 'epc-jrk-home' 'thejewellerytrend home'
 prove_host_marker https://www.taxofinca.com/ 'epc-cpi-home' 'taxofinca home'
 prove_host_marker https://www.ecomae.com/ 'ehm-' 'ecomae marketing home'
+prove_host_marker https://www.ecomae.com/platform/pricing 'epm-topbar' 'marketing pricing page'
+prove_host_marker https://www.ecomae.com/platform/faq 'epm-topbar' 'marketing faq page'
+prove_host_marker https://www.ecomae.com/privacy 'epm-topbar' 'marketing privacy page'
+prove_host_marker https://www.ecomae.com/compare 'epm-topbar' 'marketing compare hub'
 prove_host_marker https://www.epartscart.com/cp/login 'epc-login-html-form' 'CP login'
 prove_host_marker https://www.epartscart.com/erp/login 'epc-login-html-form' 'ERP login'
 

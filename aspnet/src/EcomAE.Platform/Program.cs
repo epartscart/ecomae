@@ -660,6 +660,9 @@ app.UseMiddleware<PhpServingDeactivatedMiddleware>();
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
 // Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home). Skipped when PHP serving off.
 app.UseMiddleware<MarketingStubToPhpRedirectMiddleware>();
+// PHP-rendered marketing pages at canonical URLs on www.ecomae.com (whole marketing
+// site parity). Before BOS/admin gates: /bos/{article} snapshots are public marketing.
+app.UseMiddleware<EcomaeMarketingSnapshotMiddleware>();
 // Thin /storefront/* stubs → PHP /en/… until apps live. Skipped when TemporarilyDeactivatePhpServing=true.
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();

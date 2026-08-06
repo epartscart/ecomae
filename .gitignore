@@ -37,6 +37,8 @@ node_modules/
 !/content/**/*.mp4
 # PHP-rendered tenant home snapshots served by ASP.NET (regenerate: scripts/render_php_home_snapshots.php)
 !/content/general_pages/epc_rendered_homes/*.html
+# PHP-rendered ecomae marketing pages (regenerate: scripts/render_ecomae_marketing_snapshots.php)
+!/content/general_pages/epc_rendered_marketing/*.html
 config.epc-smtp.php
 epc-operator-update.php
 epc-operator-probe.php
