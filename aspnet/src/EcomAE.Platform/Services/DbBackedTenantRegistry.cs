@@ -27,11 +27,13 @@ public sealed class DbBackedTenantRegistry : ITenantRegistry
 
     public async ValueTask<TenantRegistryRecord?> FindByHostAsync(string host, CancellationToken cancellationToken = default)
     {
-        var normalized = NormalizeHost(host);
-        if (string.IsNullOrWhiteSpace(normalized))
+        var aliases = PlatformHostPolicy.NormalizeHostAliases(host);
+        if (aliases.Count == 0)
         {
             return null;
         }
+
+        var normalized = aliases[0];
 
         if (!_connections.IsConfigured)
         {
@@ -48,17 +50,23 @@ public sealed class DbBackedTenantRegistry : ITenantRegistry
         {
             await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
-            command.CommandText = PortalTenantSql.SelectActiveTenantByHost;
-            var p = command.CreateParameter();
-            p.ParameterName = "@host";
-            p.Value = normalized;
-            command.Parameters.Add(p);
+            command.CommandText = PortalTenantSql.SelectActiveTenantByHosts;
+
+            var h0 = command.CreateParameter();
+            h0.ParameterName = "@h0";
+            h0.Value = aliases[0];
+            command.Parameters.Add(h0);
+
+            var h1 = command.CreateParameter();
+            h1.ParameterName = "@h1";
+            h1.Value = aliases.Count > 1 ? aliases[1] : aliases[0];
+            command.Parameters.Add(h1);
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 var row = ReadRow(reader);
-                var record = row.ToTenantRegistryRecord() with { Host = NormalizeHost(row.Hostname) };
+                var record = row.ToTenantRegistryRecord() with { Host = PlatformHostPolicy.NormalizeHost(row.Hostname) };
                 _cache.Set(cacheKey, record, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
@@ -99,7 +107,4 @@ public sealed class DbBackedTenantRegistry : ITenantRegistry
 
         return Convert.ToInt32(value, CultureInfo.InvariantCulture) != 0;
     }
-
-    private static string NormalizeHost(string host)
-        => host.Trim().TrimEnd('.').ToLowerInvariant();
 }

@@ -12,7 +12,7 @@ public sealed class ConfigurationTenantRegistry : ITenantRegistry
         _recordsByHost = options.Value.SeedTenants
             .Where(row => !string.IsNullOrWhiteSpace(row.Host))
             .Select(row => new TenantRegistryRecord(
-                NormalizeHost(row.Host),
+                PlatformHostPolicy.NormalizeHost(row.Host),
                 row.Mode,
                 NormalizeSiteKey(row.SiteKey),
                 string.IsNullOrWhiteSpace(row.DatabaseName) ? null : row.DatabaseName.Trim(),
@@ -30,13 +30,15 @@ public sealed class ConfigurationTenantRegistry : ITenantRegistry
 
     public ValueTask<TenantRegistryRecord?> FindByHostAsync(string host, CancellationToken cancellationToken = default)
     {
-        _recordsByHost.TryGetValue(NormalizeHost(host), out var record);
-        return ValueTask.FromResult(record);
-    }
+        foreach (var candidate in PlatformHostPolicy.NormalizeHostAliases(host))
+        {
+            if (_recordsByHost.TryGetValue(candidate, out var record))
+            {
+                return ValueTask.FromResult<TenantRegistryRecord?>(record);
+            }
+        }
 
-    private static string NormalizeHost(string host)
-    {
-        return host.Trim().TrimEnd('.').ToLowerInvariant();
+        return ValueTask.FromResult<TenantRegistryRecord?>(null);
     }
 
     private static string? NormalizeSiteKey(string? siteKey)

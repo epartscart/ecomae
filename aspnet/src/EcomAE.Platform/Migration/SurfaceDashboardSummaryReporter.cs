@@ -3,7 +3,9 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Observability;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Migration;
 
@@ -14,10 +16,14 @@ namespace EcomAE.Platform.Migration;
 public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryReporter
 {
     private readonly ITenantDbConnectionFactory _connections;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
 
-    public SurfaceDashboardSummaryReporter(ITenantDbConnectionFactory connections)
+    public SurfaceDashboardSummaryReporter(
+        ITenantDbConnectionFactory connections,
+        IHttpContextAccessor? httpContextAccessor = null)
     {
         _connections = connections;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ControlPanelDashboardSummary> BuildControlPanelAsync(CancellationToken cancellationToken = default)
@@ -1098,6 +1104,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(normalized, [], 0, "migration", "TenantRegistry DB is not configured.");
         }
 
+        if (TryGetUnboundTenantShopMessage(out var unboundMessage))
+        {
+            return new(normalized, [], 0, "migration", unboundMessage);
+        }
+
         var brandTrim = (brand ?? string.Empty).Trim();
         var brandUpper = brandTrim.ToUpperInvariant();
         var brandCompact = CompactStorefrontBrand(brandTrim);
@@ -1157,6 +1168,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         if (!_connections.IsConfigured)
         {
             return new(normalized, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (TryGetUnboundTenantShopMessage(out var unboundMessage))
+        {
+            return new(normalized, [], 0, "migration", unboundMessage);
         }
 
         try
@@ -1303,6 +1319,26 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return new(normalized, [], 0, "database-error", ex.Message);
         }
+    }
+
+    /// <summary>
+    /// When storefront Live/ErpOnly tenant resolved without a shop DB name, OpenAsync(null) hits the
+    /// registry/platform schema (no shop_docpart_prices_data). Surface a clear hostname/www hint.
+    /// </summary>
+    private bool TryGetUnboundTenantShopMessage(out string message)
+    {
+        message = string.Empty;
+        var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        if (tenant is null
+            || tenant.Surface != TenantSurface.Storefront
+            || tenant.Mode is not (TenantMode.LiveTenant or TenantMode.ErpOnlyTenant)
+            || tenant.HasTenantDatabase)
+        {
+            return false;
+        }
+
+        message = "Tenant shop database is not bound for this host — check epc_portal_tenants.hostname (www alias).";
+        return true;
     }
 
     private enum StorefrontArticleMatchMode
