@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Insert/replace exact-route location blocks inside matching nginx server{} blocks.
+"""Insert/replace classic-entry location blocks inside matching nginx server{} blocks.
 
 CloudPanel's www.ecomae.com.conf is a mega-file with many server_name blocks
 (www.ecomae.com, www.epartscart.com, other tenants). Classic-entry must edit
 only the target host's server{} — never the first block in the file.
+
+IMPORTANT: installs both exact ``location = /path`` AND prefix
+``location ^~ /storefront/`` (etc.). Older versions only installed ``=`` routes,
+which left /storefront/search-app on PHP → warm-up splash bounce loop.
 """
 from __future__ import annotations
 
@@ -14,6 +18,9 @@ from pathlib import Path
 
 SERVER_START_RE = re.compile(r"(?m)^[ \t]*server\s*\{")
 SERVER_NAME_RE = re.compile(r"(?im)^\s*server_name\s+([^;]+);")
+
+# (kind, matcher) kind in {"exact", "prefix", "regex", "named"}
+LocationKey = tuple[str, str]
 
 
 def find_server_blocks(text: str) -> list[tuple[int, int, str]]:
@@ -50,7 +57,6 @@ def server_names(body: str) -> list[str]:
 
 def is_redirect_only(body: str) -> bool:
     """True if server block is essentially apex→www redirect (no app root)."""
-    # Strip comments
     lines = []
     for line in body.splitlines():
         s = line.strip()
@@ -61,7 +67,6 @@ def is_redirect_only(body: str) -> bool:
     if re.search(r"(?im)^\s*root\s+", joined):
         return False
     if re.search(r"(?im)^\s*location\s+", joined):
-        # locations other than maybe ACME — treat as real vhost
         return False
     if re.search(r"(?im)^\s*return\s+30[12]\s+", joined):
         return True
@@ -96,18 +101,21 @@ def find_insert_marker(cfg: str) -> int:
         m = re.search(pat, cfg)
         if m:
             return m.start() + 1
-    # Before closing brace of server block
     m = re.search(r"\n[ \t]*\}\s*$", cfg)
     if m:
         return m.start() + 1
     raise SystemExit("ERROR: insertion point missing inside target server block")
 
 
-def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
-    named_blocks: list[tuple[str, str]] = []
-    for m in re.finditer(r"(?m)^(location @([A-Za-z0-9_]+)\s*\{.*?\n\})", example, flags=re.S):
-        named_blocks.append((m.group(2), indent_block(m.group(1))))
+def _is_proxy_5100(block_raw: str) -> bool:
+    return bool(re.search(r"(?m)^\s*proxy_pass\s+http://127\.0\.0\.1:5100(?:/[^;]*)?\s*;", block_raw))
 
+
+def _is_php_rewrite(block_raw: str) -> bool:
+    return "rewrite ^" in block_raw or "rewrite ^ /index.php" in block_raw or "rewrite ^ /sitemap" in block_raw
+
+
+def _validate_exact_block(route: str, block_raw: str) -> None:
     bos_super_cp_only = {
         "/bos",
         "/bos/",
@@ -117,74 +125,112 @@ def parse_example(example: str) -> tuple[list[tuple[str, str]], list[tuple[str, 
         "/bos/login/",
         "/php-reference/bos",
     }
+    is_proxy = _is_proxy_5100(block_raw)
+    is_php_ref = route.startswith("/php-reference/") and (
+        _is_php_rewrite(block_raw) or "return 302" in block_raw or "alias " in block_raw
+    )
+    is_bos_deny = route in bos_super_cp_only and bool(
+        re.search(r"(?m)^\s*return\s+404\s*;", block_raw)
+    )
+    is_sitemap = route == "/sitemap.xml" and _is_php_rewrite(block_raw)
+    if not is_proxy and not is_php_ref and not is_bos_deny and not is_sitemap:
+        raise SystemExit(
+            f"ERROR: block must proxy_pass ASP.NET, php-reference, sitemap rewrite, "
+            f"or bos-deny 404 ({route})"
+        )
+    if route in {
+        "/",
+        "/cp",
+        "/cp/",
+        "/CP",
+        "/CP/",
+        "/erp",
+        "/erp/",
+        "/ERP",
+        "/ERP/",
+    }:
+        if re.search(r"(?m)^\s*return\s+302\s+", block_raw):
+            raise SystemExit(
+                f"ERROR: tenant-shared URLs must stay unchanged — no return 302 in {route}"
+            )
+        if not is_proxy:
+            raise SystemExit(f"ERROR: shared entry {route} must proxy_pass ASP.NET")
 
-    blocks: list[tuple[str, str]] = []
+
+def parse_example(
+    example: str,
+) -> tuple[list[tuple[str, str]], list[tuple[LocationKey, str]]]:
+    """Return (named_blocks, location_blocks).
+
+    location_blocks keys are (kind, matcher) where kind is exact|prefix|regex.
+    """
+    named_blocks: list[tuple[str, str]] = []
+    for m in re.finditer(r"(?m)^(location @([A-Za-z0-9_]+)\s*\{.*?\n\})", example, flags=re.S):
+        named_blocks.append((m.group(2), indent_block(m.group(1))))
+
+    blocks: list[tuple[LocationKey, str]] = []
+
+    # Exact locations
     for m in re.finditer(r"(?m)^(location = (/[^\s{]*)\s*\{.*?\n\})", example, flags=re.S):
         block_raw, route = m.group(1), m.group(2)
         if route in {"/api", "/storefront"}:
             raise SystemExit(f"ERROR: refusing broad path {route}")
-        # Accept proxy_pass http://127.0.0.1:5100; (URI preserved) or .../path
-        is_proxy = bool(
-            re.search(r"(?m)^\s*proxy_pass\s+http://127\.0\.0\.1:5100(?:/[^;]*)?\s*;", block_raw)
-        )
-        is_php_ref = route.startswith("/php-reference/") and (
-            "rewrite ^" in block_raw or "return 302" in block_raw or "alias " in block_raw
-        )
-        # Tenant packs: product BOS is Super-CP only → return 404 (never proxy).
-        is_bos_deny = route in bos_super_cp_only and bool(
-            re.search(r"(?m)^\s*return\s+404\s*;", block_raw)
-        )
-        is_login_bridge = route.rstrip("/").endswith("/login") or route in {
-            "/cp/login",
-            "/cp/login/",
-            "/erp/login",
-            "/erp/login/",
-            "/bos/login",
-            "/bos/login/",
-            "/auth/login/admin",
-            "/auth/login/admin/",
-        }
-        if not is_proxy and not is_php_ref and not is_bos_deny:
-            raise SystemExit(
-                f"ERROR: block must proxy_pass ASP.NET, php-reference, or bos-deny 404 ({route})"
-            )
-        if route in {
-            "/",
-            "/cp",
-            "/cp/",
-            "/CP",
-            "/CP/",
-            "/erp",
-            "/erp/",
-            "/ERP",
-            "/ERP/",
-        }:
-            if re.search(r"(?m)^\s*return\s+302\s+", block_raw):
-                raise SystemExit(
-                    f"ERROR: tenant-shared URLs must stay unchanged — no return 302 in {route}"
-                )
-            if not is_proxy:
-                raise SystemExit(f"ERROR: shared entry {route} must proxy_pass ASP.NET")
-        if route in bos_super_cp_only:
-            # www: proxy product BOS / php-reference redirect; tenant: return 404.
-            if not (is_bos_deny or is_proxy or is_php_ref):
-                raise SystemExit(
-                    f"ERROR: BOS route {route} must proxy_pass, php-reference, or return 404 (tenant)"
-                )
-        if is_login_bridge and not is_proxy and not is_bos_deny:
-            raise SystemExit(f"ERROR: login bridge {route} must proxy_pass ASP.NET (or bos-deny 404)")
-        blocks.append((route, indent_block(block_raw)))
+        _validate_exact_block(route, block_raw)
+        blocks.append((("exact", route), indent_block(block_raw)))
 
-    # 18 shared entries (/ + cp/erp/bos ×4 + php-reference ×5) + 6 login bridges
-    # + 2 auth POST targets (/auth/login/admin{,/})
-    expected = 26
-    if len(blocks) != expected:
-        raise SystemExit(f"ERROR: expected {expected} classic-entry routes, found {len(blocks)}")
+    # Prefix ^~ locations (storefront / framework / cp tree / …)
+    for m in re.finditer(r"(?m)^(location \^~ (/[^\s{]*)\s*\{.*?\n\})", example, flags=re.S):
+        block_raw, route = m.group(1), m.group(2)
+        # Tenant bos tree is return 404; everything else must hit Kestrel
+        is_proxy = _is_proxy_5100(block_raw)
+        is_bos_deny = route.rstrip("/").lower() in {"/bos"} or route.startswith("/bos/")
+        is_bos_deny = is_bos_deny and bool(re.search(r"(?m)^\s*return\s+404\s*;", block_raw))
+        if not is_proxy and not is_bos_deny:
+            raise SystemExit(f"ERROR: prefix location {route} must proxy_pass :5100 or return 404")
+        # Never allow stub→/en redirects to sneak back in as exact overrides — those are gone.
+        if "return 302 /en/" in block_raw:
+            raise SystemExit(f"ERROR: refusing stub→/en redirect inside prefix {route}")
+        blocks.append((("prefix", route), indent_block(block_raw)))
+
+    # Regex locations (www BOS deep trees)
+    for m in re.finditer(r"(?m)^(location ~ (\^[^\s{]*)\s*\{.*?\n\})", example, flags=re.S):
+        block_raw, route = m.group(1), m.group(2)
+        if not _is_proxy_5100(block_raw):
+            raise SystemExit(f"ERROR: regex location {route} must proxy_pass :5100")
+        blocks.append((("regex", route), indent_block(block_raw)))
+
+    exact_n = sum(1 for (k, _), _ in blocks if k == "exact")
+    prefix_n = sum(1 for (k, _), _ in blocks if k == "prefix")
+    if exact_n < 20:
+        raise SystemExit(f"ERROR: expected at least 20 exact classic-entry routes, found {exact_n}")
+    if prefix_n < 1 or not any(m == "/storefront/" for (k, m), _ in blocks if k == "prefix"):
+        raise SystemExit(
+            "ERROR: example must include location ^~ /storefront/ → :5100 "
+            "(without this, /storefront/search-app falls to PHP → warm-up splash)"
+        )
     return named_blocks, blocks
 
 
+def _location_pattern(kind: str, matcher: str) -> re.Pattern[str]:
+    if kind == "exact":
+        return re.compile(
+            rf"(?m)^[ \t]*location\s*=\s*{re.escape(matcher)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
+        )
+    if kind == "prefix":
+        return re.compile(
+            rf"(?m)^[ \t]*location\s*\^~\s*{re.escape(matcher)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
+        )
+    if kind == "regex":
+        return re.compile(
+            rf"(?m)^[ \t]*location\s*~\s*{re.escape(matcher)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
+        )
+    raise ValueError(kind)
+
+
 def apply_blocks_to_server_body(
-    body: str, named_blocks: list[tuple[str, str]], blocks: list[tuple[str, str]]
+    body: str,
+    named_blocks: list[tuple[str, str]],
+    blocks: list[tuple[LocationKey, str]],
 ) -> tuple[str, list[str], list[str]]:
     inserted: list[str] = []
     replaced: list[str] = []
@@ -199,17 +245,38 @@ def apply_blocks_to_server_body(
             text = text[:marker] + block + "\n" + text[marker:]
             inserted.append("@" + name)
 
-    for route, block in blocks:
-        pattern = re.compile(
-            rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
+    # Strip dangerous stub→/en exact locations before installing prefix /storefront/
+    for stub in (
+        "/storefront/search-app",
+        "/storefront/cart-app",
+        "/storefront/checkout-app",
+        "/storefront/orders-app",
+        "/storefront/login",
+        "/storefront/garage-app",
+    ):
+        stub_pat = re.compile(
+            rf"(?m)^[ \t]*location\s*=\s*{re.escape(stub)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
         )
-        if pattern.search(text):
-            text = pattern.sub(block + "\n", text, count=1)
-            replaced.append(route)
-            continue
-        marker = find_insert_marker(text)
-        text = text[:marker] + block + "\n" + text[marker:]
-        inserted.append(route)
+        text, n = stub_pat.subn(
+            "  # removed stub→/en (classic-entry install — use ^~ /storefront/ → :5100)\n", text
+        )
+        if n:
+            replaced.append(f"stripped-stub:{stub}")
+
+    # Install exact first, then prefix (prefix must win for /storefront/search-app)
+    for kind in ("exact", "prefix", "regex"):
+        for (k, matcher), block in blocks:
+            if k != kind:
+                continue
+            pattern = _location_pattern(k, matcher)
+            label = f"{k}:{matcher}"
+            if pattern.search(text):
+                text = pattern.sub(block + "\n", text, count=1)
+                replaced.append(label)
+            else:
+                marker = find_insert_marker(text)
+                text = text[:marker] + block + "\n" + text[marker:]
+                inserted.append(label)
     return text, inserted, replaced
 
 
@@ -232,7 +299,6 @@ def install_into_host_servers(conf_text: str, example: str, host: str) -> tuple[
             "or re-enable /etc/nginx/sites-disabled/www.epartscart.com.conf carefully."
         )
 
-    # Rebuild from the end so offsets stay valid
     out = conf_text
     summary = {
         "host": host,
@@ -240,6 +306,7 @@ def install_into_host_servers(conf_text: str, example: str, host: str) -> tuple[
         "replaced": [],
         "inserted": [],
         "serverNames": [],
+        "prefixStorefront": any(k == "prefix" and m == "/storefront/" for (k, m), _ in blocks),
     }
     for start, end, body, names in sorted(targets, key=lambda t: t[0], reverse=True):
         new_body, inserted, replaced = apply_blocks_to_server_body(body, named_blocks, blocks)
@@ -252,16 +319,16 @@ def install_into_host_servers(conf_text: str, example: str, host: str) -> tuple[
 
 
 def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = None) -> tuple[str, int]:
-    """Remove classic-entry exact locations / named passthrough from matching servers.
-
-    If host is None, strip from ALL server blocks (use for cleaning wildcard pollution).
-    """
-    routes = [
+    """Remove classic-entry exact + prefix locations from matching servers."""
+    exact_routes = [
         "/",
         "/CP",
         "/CP/",
         "/cp",
         "/cp/",
+        "/cp/control",
+        "/cp/control/",
+        "/CP/control",
         "/ERP",
         "/ERP/",
         "/erp",
@@ -276,11 +343,33 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
         "/erp/login/",
         "/bos/login",
         "/bos/login/",
+        "/auth/login/admin",
+        "/auth/login/admin/",
+        "/auth/logout",
+        "/auth/logout/",
+        "/sitemap.xml",
         "/php-reference/home",
         "/php-reference/cp",
         "/php-reference/erp",
         "/php-reference/bos",
         "/php-reference/storefront",
+    ]
+    prefix_routes = [
+        "/aspnet-php-assets/",
+        "/_framework/",
+        "/cp/",
+        "/erp/",
+        "/bos/",
+        "/storefront/",
+        "/marketing/",
+        "/CP/",
+        "/ERP/",
+        "/BOS/",
+        "/shop/",
+        "/bos/app",
+        "/bos/login",
+        "/bos/logout",
+        "/bos/ajax-writes",
     ]
     named = ["epc_classic_php_passthrough"]
     server_blocks = find_server_blocks(conf_text)
@@ -297,27 +386,32 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
             )
             text, n = pattern.subn("", text)
             removed += n
-        for route in routes:
+
+        def _maybe_strip(blk: str) -> str:
+            nonlocal removed
+            if (
+                "127.0.0.1:5100" in blk
+                or "php-reference" in blk
+                or "epc_classic_php_passthrough" in blk
+                or "X-EcomAE-Route-Cutover" in blk
+                or "rewrite ^ /index.php" in blk
+                or "rewrite ^ /sitemap" in blk
+                or "return 404" in blk
+            ):
+                removed += 1
+                return ""
+            return blk
+
+        for route in exact_routes:
             pattern = re.compile(
                 rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
             )
-            # Only strip if it looks like classic-entry (proxy :5100 or php-reference / host-gate)
-            def _sub(m: re.Match[str]) -> str:
-                nonlocal removed
-                blk = m.group(0)
-                if (
-                    "127.0.0.1:5100" in blk
-                    or "php-reference" in blk
-                    or "epc_classic_php_passthrough" in blk
-                    or "X-EcomAE-Route-Cutover" in blk
-                    or "rewrite ^ /index.php" in blk
-                    or "return 404" in blk
-                ):
-                    removed += 1
-                    return ""
-                return blk
-
-            text = pattern.sub(_sub, text)
+            text = pattern.sub(lambda m: _maybe_strip(m.group(0)), text)
+        for route in prefix_routes:
+            pattern = re.compile(
+                rf"(?m)^[ \t]*location\s*\^~\s*{re.escape(route)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
+            )
+            text = pattern.sub(lambda m: _maybe_strip(m.group(0)), text)
         out = out[:start] + text + out[end:]
     return out, removed
 
@@ -346,6 +440,7 @@ def main(argv: list[str] | None = None) -> int:
         path.write_text(out, encoding="utf-8")
         print(f"HOST={summary['host']}")
         print(f"SERVER_BLOCKS_EDITED={summary['serverBlocksEdited']}")
+        print(f"PREFIX_STOREFRONT={summary['prefixStorefront']}")
         for names in summary["serverNames"]:
             print(f"  server_name={names[:12]}")
         print(f"REPLACED: {len(summary['replaced'])}")
@@ -354,6 +449,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"INSERTED: {len(summary['inserted'])}")
         for r in summary["inserted"]:
             print("  +", r)
+        if not summary["prefixStorefront"]:
+            print("ERROR: storefront prefix missing from example", file=sys.stderr)
+            return 2
         return 0
 
     if args.cmd == "strip":

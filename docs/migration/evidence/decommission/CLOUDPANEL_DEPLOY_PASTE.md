@@ -2,38 +2,69 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
-## 0🚨) STUCK ON “Loading your store…” — fix warm-up loop (do immediately)
+## 0🚨) CLICK → `/storefront/search-app` → warm-up → back to `/` (do immediately)
 
-**Symptom:** `/` may load, but any click (search / garage / login) stays on warm-up for minutes.
+**What you see:** any menu click opens `/storefront/search-app`, shows “Loading your store…”, then returns to the homepage.
 
-**Cause:** tenant nginx stub locations `302 /storefront/*-app → /en/…` + PHP pause (`/en/` → 503) + `error_page` → `epc-platform-splash.html` (self-reload trap).
+**Root cause:** classic-entry installer only wrote `location = /…` and **never installed** `location ^~ /storefront/ → :5100`. Home works; every `/storefront/search-app` click misses Kestrel → splash → splash JS sends you home.
 
 ```bash
-# Prefer fix branch until merged; then use main
-ECOMAE_BRANCH=cursor/fix-warmup-splash-storefront-loop-7b3b \
-ECOMAE_CONFIRM_FIX_WARMUP_SPLASH_LOOP=YES \
+# MUST use this branch (installer fix). Paste as root — wait for RESULT=PASS
+ECOMAE_BRANCH=cursor/unbreak-epartscart-php-storefront-7b3b \
+ECOMAE_CONFIRM_UNBREAK_EPARTSCART_STOREFRONT=YES \
 ECOMAE_ALSO_FORCE_LIVE=YES \
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/fix-warmup-splash-storefront-loop-7b3b/scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh)"
-# Expect RESULT=PASS — /storefront/app and /storefront/search-app are NOT splash
-# Shopper: hard-refresh or open https://www.epartscart.com/
-#
-# If still FAIL, temporarily restore PHP /en/ fallbacks:
-# cd /opt/ecomae-aspnet-source
-# ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES bash scripts/cloudpanel_restore_php_reference_serving.sh
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/unbreak-epartscart-php-storefront-7b3b/scripts/cloudpanel_unbreak_epartscart_storefront_now.sh)"
+
+# Prove click target is ASP.NET (NOT splash):
+curl -sS -o /tmp/sf.html -w 'search-app %{http_code} %{size_download}\n' https://www.epartscart.com/storefront/search-app
+grep -q 'Loading your store' /tmp/sf.html && echo FAIL_STILL_SPLASH || echo PASS_SEARCH_APP
+# Shopper: hard-refresh https://www.epartscart.com/ then click Catalog / search again
 ```
 
-## 0◆) TEMP ASP.NET-ONLY DEEP TEST — pause PHP HTTP (incl. `/php-reference`)
+## 0◆) How to test the real platform CP (not the old `/cp/control` login)
 
-`#885` is on `main`. Protocol: **no new PHP feature work**. Pause PHP HTTP so ASP.NET Core can be deep-tested. Files stay on disk (`KeepPhpProjectAvailable=true`). `cutoverAllowed` / `readyForPhpRemoval` stay **false**.
+**Why `/cp/control` still “works” after pausing archive serving:**  
+`TemporarilyDeactivatePhpServing` only pauses **`/php-reference/*`** and interim **`/en/*`**. It does **not** turn off product `/cp`. Product CP should already be platform-primary (`:5100`).
+
+**Live gap (before unbreak):**  
+- `https://www.epartscart.com/cp` → platform Command Centre (correct test target)  
+- `https://www.epartscart.com/cp/control` → **still old docroot login** (nginx never installed `location = /cp/control → :5100`)  
+- `https://www.epartscart.com/cp/login` → platform login  
+
+**Do this to test the real product CP:**
+
+```bash
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+# 1) Install platform routes (includes /cp/control → :5100) — use unbreak branch until #889 merges
+ECOMAE_BRANCH=cursor/unbreak-epartscart-php-storefront-7b3b \
+ECOMAE_CONFIRM_UNBREAK_EPARTSCART_STOREFRONT=YES \
+ECOMAE_ALSO_FORCE_LIVE=YES \
+  bash scripts/cloudpanel_unbreak_epartscart_storefront_now.sh
+
+# 2) Prove product surfaces are platform (not legacy login HTML)
+bash scripts/cloudpanel_prove_product_is_platform_primary.sh
+# Expect PASS_PLATFORM / PASS_AUTH_GATE for /cp and /cp/control
+# FAIL_LEGACY_DOCROOT on /cp/control means nginx still serving old login — re-run step 1
+
+# 3) Manual browser test (real platform result)
+#    - Open /cp/login  → platform login
+#    - Open /cp        → after login, Command Centre
+#    - Open /cp/control → must match /cp (same platform app), NOT the old Homer login
+#    - Do NOT use /php-reference/cp for product testing
+```
+
+## 0◇) TEMP archive pause — `/php-reference` + `/en/` only (optional)
+
+`#885` is on `main`. This does **not** stop product `/cp`. It only pauses archive/compare URLs so you are not hopping into `/php-reference`. Files stay on disk. `cutoverAllowed` / `readyForPhpRemoval` stay **false**.
 
 ```bash
 cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
 git fetch origin main && git checkout -f main && git reset --hard origin/main
 ECOMAE_CONFIRM_TEMP_DEACTIVATE_PHP_SERVING=YES \
   bash scripts/cloudpanel_temporarily_deactivate_php_serving.sh
-# Expect RESULT=PASS — /php-reference and /en/ → 503; product / /cp /erp stay ASP.NET
-# Board: curl -sS https://www.epartscart.com/migration/php-reference-mode | jq '{status,mode,temporarilyDeactivatePhpServing,cutoverAllowed,readyForPhpRemoval,keepPhpProjectAvailable}'
-# Restore: ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES bash scripts/cloudpanel_restore_php_reference_serving.sh
+# Expect: /php-reference and /en/ paused; product / /cp /erp stay platform
+# Prove product CP is platform: bash scripts/cloudpanel_prove_product_is_platform_primary.sh
+# Restore archive: ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES bash scripts/cloudpanel_restore_php_reference_serving.sh
 ```
 
 ## 0⚠) CP AUTH + TOP MENU — FORCE LIVE then sync (paste as one block)
