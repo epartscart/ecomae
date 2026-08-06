@@ -6,8 +6,8 @@
 @inject NavigationManager Nav
 @inject IHttpContextAccessor Http
 
-<PageTitle>@_brand.Label — Control Panel</PageTitle>
-@* BOS login shell; tenant hosts show animated/catalog logo; atmosphere theme per tenant. *@
+<PageTitle>@_content.HeroTitle — Control Panel</PageTitle>
+@* Tenant hosts: industry CP copy only. Super host: platform fleet messaging. *@
 <PhpSurfaceHead Surface="cp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="cp" LoginChrome="true" />
 
@@ -36,9 +36,12 @@
 </style>
 
 @* Markers: epc-cp-login-hero, #epcCpParticles *@
-<div class="epc-login-bos bos-login @_brand.RootModifierClass epc-cp-login-hero">
+<div class="epc-login-bos bos-login @_brand.RootModifierClass epc-cp-login-hero"
+     data-login-industry="@_content.IndustryCode"
+     data-login-tenant="@_brand.SiteKey">
     <PhpBosLoginAtmosphere ParticlesId="epcCpParticles"
                            Theme="@_brand.AtmosphereTheme"
+                           Industry="@_content.IndustryCode"
                            ParticleColors="@_brand.ParticleColors" />
 
     <div class="bos-login__hero">
@@ -47,8 +50,8 @@
                 @if (_brand.LogoKind != LoginHostBrand.Kind.Platform)
                 {
                     <PhpLoginHostBrand Brand="@_brand" />
-                    <h1 class="bos-login__brand-title">@_brand.Label</h1>
-                    <p class="bos-login__brand-tagline">Control Panel · @_brand.Tagline</p>
+                    <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
+                    <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
                 }
                 else
                 {
@@ -59,62 +62,39 @@
                         <div class="bos-login__brand-ring"></div>
                         <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
                     </div>
-                    <h1 class="bos-login__brand-title">@_brand.Label</h1>
-                    <p class="bos-login__brand-tagline">@_brand.Tagline</p>
+                    <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
+                    <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
                 }
             </div>
 
             <div class="bos-login__capabilities">
-                <div class="bos-login__cap-item bos-login__cap-item--1">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--erp"><i class="fa fa-globe"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>@(_isTenant ? "Store operations" : "Fleet command")</strong>
-                        <span>@(_isTenant ? "Catalog, orders &amp; customers" : "Commerce, ERP-only &amp; demo tenants")</span>
+                @{ var i = 0; }
+                @foreach (var cap in _content.Capabilities)
+                {
+                    i++;
+                    <div class="bos-login__cap-item bos-login__cap-item--@i">
+                        <div class="bos-login__cap-icon bos-login__cap-icon--erp"><i class="fa @cap.Icon"></i></div>
+                        <div class="bos-login__cap-text">
+                            <strong>@cap.Title</strong>
+                            <span>@cap.Detail</span>
+                        </div>
                     </div>
-                </div>
-                <div class="bos-login__cap-item bos-login__cap-item--2">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--ecom"><i class="fa fa-rocket"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>@(_isTenant ? "ERP workspace" : "Tenant onboarding")</strong>
-                        <span>@(_isTenant ? "Finance, stock &amp; fulfilment" : "Templates, packs &amp; provisioning")</span>
-                    </div>
-                </div>
-                <div class="bos-login__cap-item bos-login__cap-item--3">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--compliance"><i class="fa fa-shield"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>Secure sessions</strong>
-                        <span>Role-scoped · audit-ready · isolated</span>
-                    </div>
-                </div>
-                <div class="bos-login__cap-item bos-login__cap-item--4">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--ai"><i class="fa fa-th-large"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>@PhpModuleCatalog.CpBrochureFeatureCount CP features</strong>
-                        <span>Operator modules catalogue</span>
-                    </div>
-                </div>
+                }
             </div>
 
             <div class="bos-login__stats-bar">
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="225">0</span>
-                    <span class="bos-login__stat-label">Tenants</span>
-                </div>
-                <div class="bos-login__stat-divider"></div>
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="11">0</span>
-                    <span class="bos-login__stat-label">Industries</span>
-                </div>
-                <div class="bos-login__stat-divider"></div>
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="95">0</span>
-                    <span class="bos-login__stat-label">ERP Modules</span>
-                </div>
-                <div class="bos-login__stat-divider"></div>
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="15">0</span>
-                    <span class="bos-login__stat-label">Countries</span>
-                </div>
+                @for (var s = 0; s < _content.Stats.Count; s++)
+                {
+                    var stat = _content.Stats[s];
+                    if (s > 0)
+                    {
+                        <div class="bos-login__stat-divider"></div>
+                    }
+                    <div class="bos-login__stat">
+                        <span class="bos-login__stat-num" data-count="@stat.Value">0</span>
+                        <span class="bos-login__stat-label">@stat.Label</span>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -123,8 +103,8 @@
         <div class="bos-login__panel-inner">
             <div class="bos-login__form-wrap bos-login__form-wrap--active">
                 <div class="bos-login__form-header">
-                    <h2>Operator Access</h2>
-                    <p>Sign in to @_brand.Label control panel</p>
+                    <h2>@_content.FormTitle</h2>
+                    <p>@_content.FormLead</p>
                 </div>
                 <form class="bos-login__form" id="cpLoginForm" method="post" action="@EcomAeRoutes.ControlPanelLogin">
                     <input type="hidden" name="surface" value="cp" />
@@ -151,20 +131,26 @@
                         <div class="bos-login__error" id="cpLoginError"></div>
                     }
                     <button type="submit" class="bos-login__btn">
-                        <span class="bos-login__btn-text"><i class="fa fa-sign-in"></i> Sign In to Control Panel</span>
+                        <span class="bos-login__btn-text"><i class="fa fa-sign-in"></i> @_content.SubmitLabel</span>
                         <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Authenticating...</span>
                     </button>
                 </form>
+                <div class="bos-login__erp-features">
+                    @foreach (var feat in _content.PanelFeatures)
+                    {
+                        <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> @feat</div>
+                    }
+                </div>
                 <div class="bos-login__secure-badge">
-                    <i class="fa fa-lock"></i> 256-bit encrypted &middot; Session isolated &middot; Audit logged
+                    <i class="fa fa-lock"></i> @_content.SecureBadge
                 </div>
             </div>
 
             <div class="bos-login__footer">
                 <div class="bos-login__footer-brand">
-                    <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
+                    <span class="bos-login__footer-logo">@_brand.Label</span>
                     <span class="bos-login__footer-sep">&middot;</span>
-                    <span>@_brand.Label CP</span>
+                    <span>@_content.IndustryCode.Replace('_', ' ') CP</span>
                     <span class="bos-login__footer-sep">&middot;</span>
                     <a href="/erp/login">ERP</a>
                 </div>
@@ -176,13 +162,13 @@
 @code {
     private string? _error;
     private LoginHostBrand.Brand _brand = LoginHostBrand.Resolve(null, "cp");
-    private bool _isTenant;
+    private LoginIndustryContent.Content _content = LoginIndustryContent.For(LoginHostBrand.Resolve(null, "cp"), "cp");
 
     protected override void OnInitialized()
     {
         _error = LoginErrorHelper.FromUri(Nav.Uri);
         var host = Http.HttpContext?.Request.Host.Host;
         _brand = LoginHostBrand.Resolve(host, "cp");
-        _isTenant = _brand.LogoKind != LoginHostBrand.Kind.Platform;
+        _content = LoginIndustryContent.For(_brand, "cp");
     }
 }

@@ -4,7 +4,7 @@
   Theme + ParticleColors differentiate CP / ERP / BOS / each tenant look.
 *@
 
-<div class="bos-login__bg bos-login__bg--@Theme" data-bos-atmosphere="@Theme" aria-hidden="true">
+<div class="bos-login__bg bos-login__bg--@Theme" data-bos-atmosphere="@Theme" data-bos-industry="@Industry" aria-hidden="true">
     <div class="bos-login__grid-lines"></div>
     <div class="bos-login__sky" id="@(ParticlesId)_sky"></div>
     <div class="bos-login__particles" id="@ParticlesId"></div>
@@ -18,6 +18,7 @@
   var containerId = @_particlesIdJson;
   var colors = @_particleColorsJson;
   var theme = @_themeJson;
+  var industry = @_industryJson;
   function reduceMotion() {
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
@@ -106,6 +107,24 @@
         + (theme === 'circuit' ? ' bos-login__celestial--circuit' : '');
       place(spark, Math.random() < 0.4);
     }
+
+    var industryGlyphs = {
+      auto_parts: ['⚙', '✦', '◆', '◈'],
+      electronics: ['⌁', '◈', '◆', '✦'],
+      fashion: ['✧', '✦', '◇', '◆'],
+      jewellery: ['✦', '✧', '☾', '◆'],
+      finance: ['▣', '✦', '☽', '◇'],
+      platform: ['✦', '★', '☾']
+    };
+    var glyphs = industryGlyphs[industry] || industryGlyphs.platform;
+    var glyphCount = industry === 'platform' ? 10 : 22;
+    for (var g = 0; g < glyphCount; g++) {
+      var ind = document.createElement('span');
+      ind.className = 'bos-login__celestial bos-login__celestial--industry bos-login__celestial--industry-' + industry;
+      ind.textContent = pick(glyphs);
+      ind.style.fontSize = (12 + Math.random() * 18) + 'px';
+      place(ind, Math.random() < 0.5);
+    }
   }
   function animateCounters() {
     var counters = document.querySelectorAll('.bos-login__stat-num[data-count]');
@@ -149,6 +168,7 @@
 @code {
     [Parameter, EditorRequired] public string ParticlesId { get; set; } = "bosParticles";
     [Parameter] public string Theme { get; set; } = "cyan-stars";
+    [Parameter] public string Industry { get; set; } = "platform";
     [Parameter] public string[] ParticleColors { get; set; } =
     [
         "rgba(14,165,233,.8)", "rgba(14,165,233,.5)", "rgba(56,189,248,.7)",
@@ -158,11 +178,13 @@
     private MarkupString _particlesIdJson;
     private MarkupString _particleColorsJson;
     private MarkupString _themeJson;
+    private MarkupString _industryJson;
 
     protected override void OnParametersSet()
     {
         _particlesIdJson = new MarkupString(JsonSerializer.Serialize(ParticlesId));
         _particleColorsJson = new MarkupString(JsonSerializer.Serialize(ParticleColors));
         _themeJson = new MarkupString(JsonSerializer.Serialize(Theme ?? "cyan-stars"));
+        _industryJson = new MarkupString(JsonSerializer.Serialize(Industry ?? "platform"));
     }
 }

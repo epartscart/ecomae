@@ -6,8 +6,8 @@
 @inject NavigationManager Nav
 @inject IHttpContextAccessor Http
 
-<PageTitle>@_brand.Label — ERP Finance</PageTitle>
-@* BOS login shell; tenant hosts show animated/catalog logo; atmosphere theme per tenant. *@
+<PageTitle>@_content.HeroTitle — ERP</PageTitle>
+@* Tenant hosts: industry ERP copy only. Super host: platform Super ERP messaging. *@
 <PhpSurfaceHead Surface="erp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="erp" LoginChrome="true" />
 
@@ -36,12 +36,15 @@
 </style>
 
 @* Markers: epc-erp-portal-bg, epc-erp-bos-hero, #erpPortalParticles *@
-<div class="epc-login-bos bos-login @_brand.RootModifierClass epc-erp-portal-wrap">
+<div class="epc-login-bos bos-login @_brand.RootModifierClass epc-erp-portal-wrap"
+     data-login-industry="@_content.IndustryCode"
+     data-login-tenant="@_brand.SiteKey">
     <div class="epc-erp-portal-bg" hidden aria-hidden="true"><div class="epc-erp-portal-bg__grid"></div></div>
-    <div class="epc-erp-bos-hero" hidden aria-hidden="true"><h1 class="epc-erp-bos-hero__title">ERP Finance</h1></div>
+    <div class="epc-erp-bos-hero" hidden aria-hidden="true"><h1 class="epc-erp-bos-hero__title">@_content.HeroTitle</h1></div>
 
     <PhpBosLoginAtmosphere ParticlesId="erpPortalParticles"
-                           Theme="@(_isTenant ? _brand.AtmosphereTheme : "teal-moon")"
+                           Theme="@_brand.AtmosphereTheme"
+                           Industry="@_content.IndustryCode"
                            ParticleColors="@_brand.ParticleColors" />
 
     <div class="bos-login__hero">
@@ -50,8 +53,8 @@
                 @if (_brand.LogoKind != LoginHostBrand.Kind.Platform)
                 {
                     <PhpLoginHostBrand Brand="@_brand" />
-                    <h1 class="bos-login__brand-title">@_brand.Label</h1>
-                    <p class="bos-login__brand-tagline">ERP Finance · @_brand.Tagline</p>
+                    <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
+                    <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
                 }
                 else
                 {
@@ -62,62 +65,39 @@
                         <div class="bos-login__brand-ring"></div>
                         <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
                     </div>
-                    <h1 class="bos-login__brand-title">ERP</h1>
-                    <p class="bos-login__brand-tagline">Enterprise Resource Planning</p>
+                    <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
+                    <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
                 }
             </div>
 
             <div class="bos-login__capabilities">
-                <div class="bos-login__cap-item bos-login__cap-item--1">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--erp"><i class="fa fa-university"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>Enterprise ERP</strong>
-                        <span>Finance, HR, Inventory, Production</span>
+                @{ var i = 0; }
+                @foreach (var cap in _content.Capabilities)
+                {
+                    i++;
+                    <div class="bos-login__cap-item bos-login__cap-item--@i">
+                        <div class="bos-login__cap-icon bos-login__cap-icon--erp"><i class="fa @cap.Icon"></i></div>
+                        <div class="bos-login__cap-text">
+                            <strong>@cap.Title</strong>
+                            <span>@cap.Detail</span>
+                        </div>
                     </div>
-                </div>
-                <div class="bos-login__cap-item bos-login__cap-item--2">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--ecom"><i class="fa fa-shopping-cart"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>Sales &amp; purchase</strong>
-                        <span>Orders, invoices, quotations</span>
-                    </div>
-                </div>
-                <div class="bos-login__cap-item bos-login__cap-item--3">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--compliance"><i class="fa fa-globe"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>Worldwide Compliance</strong>
-                        <span>Auto-localized per country</span>
-                    </div>
-                </div>
-                <div class="bos-login__cap-item bos-login__cap-item--4">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--ai"><i class="fa fa-building"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>Multi-company</strong>
-                        <span>Industry packs per legal entity</span>
-                    </div>
-                </div>
+                }
             </div>
 
             <div class="bos-login__stats-bar">
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="225">0</span>
-                    <span class="bos-login__stat-label">Tenants</span>
-                </div>
-                <div class="bos-login__stat-divider"></div>
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="11">0</span>
-                    <span class="bos-login__stat-label">Industries</span>
-                </div>
-                <div class="bos-login__stat-divider"></div>
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="@PhpModuleCatalog.ErpAreaCount">0</span>
-                    <span class="bos-login__stat-label">ERP Areas</span>
-                </div>
-                <div class="bos-login__stat-divider"></div>
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="@PhpModuleCatalog.ErpTabCount">0</span>
-                    <span class="bos-login__stat-label">Tabs</span>
-                </div>
+                @for (var s = 0; s < _content.Stats.Count; s++)
+                {
+                    var stat = _content.Stats[s];
+                    if (s > 0)
+                    {
+                        <div class="bos-login__stat-divider"></div>
+                    }
+                    <div class="bos-login__stat">
+                        <span class="bos-login__stat-num" data-count="@stat.Value">0</span>
+                        <span class="bos-login__stat-label">@stat.Label</span>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -126,8 +106,8 @@
         <div class="bos-login__panel-inner">
             <div class="bos-login__form-wrap bos-login__form-wrap--active">
                 <div class="bos-login__form-header">
-                    <h2>ERP Access</h2>
-                    <p>Access @_brand.Label enterprise resource planning</p>
+                    <h2>@_content.FormTitle</h2>
+                    <p>@_content.FormLead</p>
                 </div>
                 <form class="bos-login__form" id="erpLoginForm" method="post" action="@EcomAeRoutes.ErpLogin">
                     <input type="hidden" name="surface" value="erp" />
@@ -154,27 +134,26 @@
                         <div class="bos-login__error" id="erpLoginError"></div>
                     }
                     <button type="submit" class="bos-login__btn bos-login__btn--erp">
-                        <span class="bos-login__btn-text"><i class="fa fa-university"></i> Access ERP System</span>
+                        <span class="bos-login__btn-text"><i class="fa fa-university"></i> @_content.SubmitLabel</span>
                         <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Connecting...</span>
                     </button>
                 </form>
                 <div class="bos-login__erp-features">
-                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> General Ledger &amp; Financial Reporting</div>
-                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Accounts Payable &amp; Receivable</div>
-                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> HR, Payroll &amp; Workforce Management</div>
-                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Inventory, Production &amp; Warehouse</div>
-                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Tax Compliance &amp; E-Invoicing</div>
+                    @foreach (var feat in _content.PanelFeatures)
+                    {
+                        <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> @feat</div>
+                    }
                 </div>
                 <div class="bos-login__secure-badge">
-                    <i class="fa fa-shield"></i> Database isolated &middot; Country-compliant &middot; Enterprise grade
+                    <i class="fa fa-shield"></i> @_content.SecureBadge
                 </div>
             </div>
 
             <div class="bos-login__footer">
                 <div class="bos-login__footer-brand">
-                    <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
+                    <span class="bos-login__footer-logo">@_brand.Label</span>
                     <span class="bos-login__footer-sep">&middot;</span>
-                    <span>@_brand.Label ERP</span>
+                    <span>@_content.IndustryCode.Replace('_', ' ') ERP</span>
                     <span class="bos-login__footer-sep">&middot;</span>
                     <a href="/cp/login">CP</a>
                 </div>
@@ -186,13 +165,13 @@
 @code {
     private string? _error;
     private LoginHostBrand.Brand _brand = LoginHostBrand.Resolve(null, "erp");
-    private bool _isTenant;
+    private LoginIndustryContent.Content _content = LoginIndustryContent.For(LoginHostBrand.Resolve(null, "erp"), "erp");
 
     protected override void OnInitialized()
     {
         _error = LoginErrorHelper.FromUri(Nav.Uri);
         var host = Http.HttpContext?.Request.Host.Host;
         _brand = LoginHostBrand.Resolve(host, "erp");
-        _isTenant = _brand.LogoKind != LoginHostBrand.Kind.Platform;
+        _content = LoginIndustryContent.For(_brand, "erp");
     }
 }
