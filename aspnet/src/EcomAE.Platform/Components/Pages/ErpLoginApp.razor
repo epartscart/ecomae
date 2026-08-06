@@ -75,8 +75,9 @@
                 @foreach (var cap in _content.Capabilities)
                 {
                     i++;
+                    var iconTone = CapIconTone(i);
                     <div class="bos-login__cap-item bos-login__cap-item--@i">
-                        <div class="bos-login__cap-icon bos-login__cap-icon--erp"><i class="fa @cap.Icon"></i></div>
+                        <div class="bos-login__cap-icon bos-login__cap-icon--@iconTone bos-login__cap-icon--tone-@i"><i class="fa @cap.Icon"></i></div>
                         <div class="bos-login__cap-text">
                             <strong>@cap.Title</strong>
                             <span>@cap.Detail</span>
@@ -166,6 +167,14 @@
     private string? _error;
     private LoginHostBrand.Brand _brand = LoginHostBrand.Resolve(null, "erp");
     private LoginIndustryContent.Content _content = LoginIndustryContent.For(LoginHostBrand.Resolve(null, "erp"), "erp");
+
+    private static string CapIconTone(int index) => (index % 4) switch
+    {
+        1 => "erp",
+        2 => "ecom",
+        3 => "compliance",
+        _ => "ai",
+    };
 
     protected override void OnInitialized()
     {

@@ -70,6 +70,8 @@ public sealed class CpErpLoginBosParityTests
         Assert.Contains("bos-login__celestial--moon", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__celestial--star", text, StringComparison.Ordinal);
         Assert.Contains("createCelestials", text, StringComparison.Ordinal);
+        Assert.Contains("bosCelFallSpin", text, StringComparison.Ordinal);
+        Assert.Contains("animationIterationCount", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -78,7 +80,23 @@ public sealed class CpErpLoginBosParityTests
         var css = Read("content/general_pages/epc_bos_login_surface_accents.css");
         Assert.Contains("bos-login__celestial--moon", css, StringComparison.Ordinal);
         Assert.Contains("bos-login__celestial--star", css, StringComparison.Ordinal);
+        Assert.Contains("@keyframes bosCelFall", css, StringComparison.Ordinal);
+        Assert.Contains("@keyframes bosCelFallSpin", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login__cap-icon--tone-1", css, StringComparison.Ordinal);
         Assert.Contains("bos-login--tenant-epartscart", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login--tenant-jewellery .bos-login__cap-icon--tone-1", css, StringComparison.Ordinal);
         Assert.Contains("bos-login__tenant-logo--eparts", css, StringComparison.Ordinal);
+        Assert.DoesNotContain("var(--bos-fall-x", css, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LoginApps_CycleCapabilityIconTones()
+    {
+        var erp = Read("aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor");
+        var cp = Read("aspnet/src/EcomAE.Platform/Components/Pages/CpLoginApp.razor");
+        Assert.Contains("CapIconTone", erp, StringComparison.Ordinal);
+        Assert.Contains("bos-login__cap-icon--tone-", erp, StringComparison.Ordinal);
+        Assert.Contains("CapIconTone", cp, StringComparison.Ordinal);
+        Assert.DoesNotContain("bos-login__cap-icon--erp\"><i class=\"fa @cap.Icon\"", erp, StringComparison.Ordinal);
     }
 }
