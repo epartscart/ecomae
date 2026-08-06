@@ -4,87 +4,122 @@
 @using EcomAE.Platform.Presentation
 @inject NavigationManager Nav
 
-<PageTitle>BOS Control — ECOM AE</PageTitle>
+<PageTitle>Control Panel — ECOM AE</PageTitle>
 <PhpSurfaceHead Surface="cp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="cp" LoginChrome="true" />
 <link rel="stylesheet" href="/platform-assets/eparts-animated-logo.css" />
-<link rel="stylesheet" href="/content/general_pages/epc_enterprise_login_3d.css?v=20260806a" />
+<link rel="stylesheet" href="/content/general_pages/epc_enterprise_login_3d.css?v=20260806b" />
 
 @*
-  Premium enterprise 3D login for Super CP / BOS Control.
-  Keeps presentation markers: epc-cp-login-hero, #epcCpParticles, .ech-hub
+  BOS-parity login structure (split hero + glass panel + 3D atmosphere).
+  CP identity = crimson CONTROL — distinct from black/cyan BOS and teal ERP.
+  Markers: epc-cp-login-hero, #epcCpParticles, .ech-hub
 *@
 
-<div class="splash"> <div class="color-line"></div><div class="splash-title"><h1>BOS — Business Operation System</h1><p>Loading…</p><div class="spinner"> <div class="rect1"></div> <div class="rect2"></div> <div class="rect3"></div> <div class="rect4"></div> <div class="rect5"></div> </div> </div> </div>
+<div class="splash"> <div class="color-line"></div><div class="splash-title"><h1>Control Panel</h1><p>Loading…</p><div class="spinner"> <div class="rect1"></div> <div class="rect2"></div> <div class="rect3"></div> <div class="rect4"></div> <div class="rect5"></div> </div> </div> </div>
 <script>(function(){function epcHideCpSplash(){var s=document.querySelector('.splash');if(s){s.style.display='none';}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',epcHideCpSplash);}else{epcHideCpSplash();}window.addEventListener('load',epcHideCpSplash);setTimeout(epcHideCpSplash,3500);})();</script>
 
-<div class="eel-root eel-root--cp blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super">
+<div class="eel-login eel-login--cp eel-root blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super">
     <EnterpriseLogin3dScene ParticlesId="epcCpParticles"
                             ParticlesExtraClass="epc-cp-particles"
-                            ParticleCount="40"
-                            ParticleColors="@(new[] { "rgba(244,63,94,.55)", "rgba(255,255,255,.3)", "rgba(14,165,233,.42)" })" />
+                            ParticleCount="56"
+                            ParticleColors="@(new[] { "rgba(251,113,133,.6)", "rgba(225,29,72,.45)", "rgba(255,255,255,.28)", "rgba(248,113,113,.35)" })" />
 
-    <div class="eel-stage">
-        <aside class="eel-brand">
-            <div class="eel-brand__mark">
-                <img class="eel-brand__logo" src="@LegacyPresentationAssets.BrandMarkUrl" alt="" width="48" height="48" />
-                <div class="eel-brand__wordmark">ECOM <span>AE</span></div>
+    <div class="eel-login__hero">
+        <div class="eel-login__hero-content">
+            <div class="eel-login__brand-mark">
+                <div class="eel-login__brand-icon">
+                    <div class="eel-login__brand-icon-inner"><i class="fa fa-cogs" aria-hidden="true"></i></div>
+                    <div class="eel-login__brand-ring"></div>
+                    <div class="eel-login__brand-ring eel-login__brand-ring--2"></div>
+                </div>
+                <span class="eel-login__env">Environment · Control Panel</span>
+                <h1 class="eel-login__brand-title">CONTROL</h1>
+                <p class="eel-login__brand-tagline">Super CP — operator control plane</p>
             </div>
-            <span class="eel-brand__badge">BOS · Control</span>
-            <h1 class="eel-brand__title">Business Operation System</h1>
-            <p class="eel-brand__sub">One secure login for fleet operators — command every tenant workspace from a single control plane.</p>
-            <div class="eel-brand__visual">
-                <PhpEcomaeHubLogo Variant="login-panel" AriaLabel="ECOM AE hub" OrbitDuration="28s" />
-            </div>
-            <div class="eel-brand__caps" aria-hidden="true">
-                <div class="eel-brand__cap">
-                    <i class="fa fa-globe" aria-hidden="true"></i>
-                    <div>
+
+            <div class="eel-login__capabilities">
+                <div class="eel-login__cap-item eel-login__cap-item--1">
+                    <div class="eel-login__cap-icon"><i class="fa fa-globe"></i></div>
+                    <div class="eel-login__cap-text">
                         <strong>Fleet command</strong>
                         <span>Commerce, ERP-only &amp; demo tenants</span>
                     </div>
                 </div>
-                <div class="eel-brand__cap">
-                    <i class="fa fa-shield" aria-hidden="true"></i>
-                    <div>
+                <div class="eel-login__cap-item eel-login__cap-item--2">
+                    <div class="eel-login__cap-icon"><i class="fa fa-rocket"></i></div>
+                    <div class="eel-login__cap-text">
+                        <strong>Tenant onboarding</strong>
+                        <span>Templates, packs &amp; provisioning</span>
+                    </div>
+                </div>
+                <div class="eel-login__cap-item eel-login__cap-item--3">
+                    <div class="eel-login__cap-icon"><i class="fa fa-shield"></i></div>
+                    <div class="eel-login__cap-text">
                         <strong>Platform governance</strong>
-                        <span>Health, failover &amp; operator isolation</span>
+                        <span>Health, failover &amp; isolation</span>
+                    </div>
+                </div>
+                <div class="eel-login__cap-item eel-login__cap-item--4">
+                    <div class="eel-login__cap-icon"><i class="fa fa-th-large"></i></div>
+                    <div class="eel-login__cap-text">
+                        <strong>@PhpModuleCatalog.CpBrochureFeatureCount CP features</strong>
+                        <span>Catalogue of operator modules</span>
                     </div>
                 </div>
             </div>
-        </aside>
 
-        <section class="eel-panel" aria-label="Control panel sign-in">
-            <div class="eel-panel__card">
-                <div class="eel-panel__head">
-                    <p class="eel-panel__eyebrow">Secure access</p>
-                    <h2 class="eel-panel__title">Sign in to Control</h2>
-                    <p class="eel-panel__lead">Operators control the whole fleet. Tenants see only their own area.</p>
-                </div>
+            <div class="eel-login__stats-bar" aria-label="Control plane stats">
+                <div class="eel-login__stat"><span class="eel-login__stat-num">CP</span><span class="eel-login__stat-label">Surface</span></div>
+                <div class="eel-login__stat-divider"></div>
+                <div class="eel-login__stat"><span class="eel-login__stat-num">Red</span><span class="eel-login__stat-label">BOC chrome</span></div>
+                <div class="eel-login__stat-divider"></div>
+                <div class="eel-login__stat"><span class="eel-login__stat-num">/cp</span><span class="eel-login__stat-label">Entry</span></div>
+            </div>
 
-                <div class="login-container">
-                    <div class="hpanel">
-                        <div class="panel-body">
-                            <LegacyAdminLoginForm Surface="LegacyLoginSurface.ControlPanel"
-                                                  SurfaceLabel="CP"
-                                                  PhpLoginHref="/php-reference/cp"
-                                                  ErrorMessage="@_error"
-                                                  SubmitLabel="Enter Control Panel"
-                                                  Accent="blue" />
-                            <ul class="eel-features epc-cp-login-features epc-cp-login-features--card">
-                                <li><i class="fa fa-rocket" aria-hidden="true"></i><span>Tenant onboarding, templates &amp; module packs</span></li>
-                                <li><i class="fa fa-th-large" aria-hidden="true"></i><span>@PhpModuleCatalog.CpBrochureFeatureCount CP features catalogued</span></li>
-                                <li><i class="fa fa-lock" aria-hidden="true"></i><span>Role-scoped sessions · audit-ready</span></li>
-                            </ul>
-                        </div>
+            <div class="eel-login__hub">
+                <PhpEcomaeHubLogo Variant="login-panel" AriaLabel="ECOM AE hub" OrbitDuration="28s" />
+            </div>
+        </div>
+    </div>
+
+    <div class="eel-login__panel" aria-label="Control panel sign-in">
+        <div class="eel-login__panel-inner">
+            <div class="eel-login__surface-tabs" aria-label="Choose environment">
+                <a class="eel-login__surface-tab is-active" href="/cp/login">CP</a>
+                <a class="eel-login__surface-tab" href="/erp/login">ERP</a>
+                <a class="eel-login__surface-tab" href="/bos/login">BOS</a>
+            </div>
+
+            <div class="eel-login__form-header">
+                <h2>Sign in to Control</h2>
+                <p>Crimson CONTROL environment — operator console for the whole fleet. Not BOS, not ERP.</p>
+            </div>
+
+            <div class="login-container">
+                <div class="hpanel">
+                    <div class="panel-body">
+                        <LegacyAdminLoginForm Surface="LegacyLoginSurface.ControlPanel"
+                                              SurfaceLabel="CP"
+                                              PhpLoginHref="/php-reference/cp"
+                                              ErrorMessage="@_error"
+                                              SubmitLabel="Enter Control Panel"
+                                              Accent="blue" />
+                        <ul class="eel-login__features epc-cp-login-features epc-cp-login-features--card">
+                            <li><i class="fa fa-lock" aria-hidden="true"></i><span>Role-scoped sessions · audit-ready</span></li>
+                            <li><i class="fa fa-sitemap" aria-hidden="true"></i><span>Tenant CP switch without mixing DBs</span></li>
+                            <li><i class="fa fa-server" aria-hidden="true"></i><span>Jump to Super BOS from the console</span></li>
+                        </ul>
                     </div>
                 </div>
             </div>
-            <div class="eel-footer login-footer">
-                ECOM AE · BOS authentication ·
-                <a href="/erp/login">ERP Finance</a>
+
+            <div class="eel-login__secure login-footer">
+                <i class="fa fa-lock"></i> Encrypted session ·
+                <a href="/erp/login">ERP Finance</a> ·
+                <a href="/bos/login">Super BOS</a>
             </div>
-        </section>
+        </div>
     </div>
 </div>
 

@@ -7,84 +7,116 @@
 <PageTitle>ERP Finance — ECOM AE</PageTitle>
 <PhpSurfaceHead Surface="erp" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="erp" LoginChrome="true" />
-<link rel="stylesheet" href="/content/general_pages/epc_enterprise_login_3d.css?v=20260806a" />
+<link rel="stylesheet" href="/content/general_pages/epc_enterprise_login_3d.css?v=20260806b" />
 
 @*
-  Premium enterprise 3D login for ERP Finance.
-  Keeps presentation markers: .ech-hub, epc-erp-portal-bg, epc-erp-bos-hero, #erpPortalParticles
+  BOS-parity login structure (split hero + glass panel + 3D atmosphere).
+  ERP identity = teal FINANCE — distinct from black/cyan BOS and crimson CP.
+  Markers: .ech-hub, epc-erp-portal-bg, epc-erp-bos-hero, #erpPortalParticles
 *@
 
-<div class="eel-root eel-root--erp epc-login-erp epc-erp-portal-wrap">
-    @* Probe markers (visually collapsed by enterprise CSS) *@
+<div class="eel-login eel-login--erp eel-root epc-login-erp epc-erp-portal-wrap">
     <div class="epc-erp-portal-bg" aria-hidden="true"><div class="epc-erp-portal-bg__grid"></div></div>
     <div class="epc-erp-bos-hero" aria-hidden="true"><h1 class="epc-erp-bos-hero__title">ERP Finance</h1></div>
 
     <EnterpriseLogin3dScene ParticlesId="erpPortalParticles"
                             ParticlesExtraClass="epc-erp-portal-bg__particles"
-                            ParticleCount="48"
-                            ParticleColors="@(new[] { "rgba(13,148,136,.55)", "rgba(56,189,248,.45)", "rgba(255,255,255,.28)" })" />
+                            ParticleCount="64"
+                            ParticleColors="@(new[] { "rgba(45,212,191,.55)", "rgba(13,148,136,.45)", "rgba(56,189,248,.4)", "rgba(255,255,255,.25)" })" />
 
-    <div class="eel-stage">
-        <aside class="eel-brand">
-            <div class="eel-brand__mark">
-                <img class="eel-brand__logo" src="@LegacyPresentationAssets.BrandMarkUrl" alt="" width="48" height="48" />
-                <div class="eel-brand__wordmark">ECOM <span>AE</span></div>
+    <div class="eel-login__hero">
+        <div class="eel-login__hero-content">
+            <div class="eel-login__brand-mark">
+                <div class="eel-login__brand-icon">
+                    <div class="eel-login__brand-icon-inner"><i class="fa fa-line-chart" aria-hidden="true"></i></div>
+                    <div class="eel-login__brand-ring"></div>
+                    <div class="eel-login__brand-ring eel-login__brand-ring--2"></div>
+                </div>
+                <span class="eel-login__env">Environment · ERP Finance</span>
+                <h1 class="eel-login__brand-title">ERP</h1>
+                <p class="eel-login__brand-tagline">Company finance &amp; operations workspace</p>
             </div>
-            <span class="eel-brand__badge">ERP · Finance</span>
-            <h1 class="eel-brand__title">ERP Finance</h1>
-            <p class="eel-brand__sub">Department sign-in for finance, sales, logistics, and operations — separate from the public storefront.</p>
-            <div class="eel-brand__visual">
-                <PhpEcomaeHubLogo Variant="login" AriaLabel="ECOM AE ERP hub" OrbitDuration="32s" />
-            </div>
-            <div class="eel-brand__caps" aria-hidden="true">
-                <div class="eel-brand__cap">
-                    <i class="fa fa-calculator" aria-hidden="true"></i>
-                    <div>
+
+            <div class="eel-login__capabilities">
+                <div class="eel-login__cap-item eel-login__cap-item--1">
+                    <div class="eel-login__cap-icon"><i class="fa fa-calculator"></i></div>
+                    <div class="eel-login__cap-text">
                         <strong>Financial accounting</strong>
                         <span>GL, AP, AR, bank &amp; fixed assets</span>
                     </div>
                 </div>
-                <div class="eel-brand__cap">
-                    <i class="fa fa-cubes" aria-hidden="true"></i>
-                    <div>
+                <div class="eel-login__cap-item eel-login__cap-item--2">
+                    <div class="eel-login__cap-icon"><i class="fa fa-shopping-cart"></i></div>
+                    <div class="eel-login__cap-text">
+                        <strong>Sales &amp; purchase</strong>
+                        <span>Orders, invoices, quotations</span>
+                    </div>
+                </div>
+                <div class="eel-login__cap-item eel-login__cap-item--3">
+                    <div class="eel-login__cap-icon"><i class="fa fa-cubes"></i></div>
+                    <div class="eel-login__cap-text">
                         <strong>Inventory &amp; logistics</strong>
                         <span>WMS, stock, shipping &amp; purchase</span>
                     </div>
                 </div>
-            </div>
-        </aside>
-
-        <section class="eel-panel" id="sign-in" aria-label="ERP Finance sign-in">
-            <div class="eel-panel__card">
-                <div class="eel-panel__head">
-                    <p class="eel-panel__eyebrow">Secure access</p>
-                    <h2 class="eel-panel__title">Sign in to ERP</h2>
-                    <p class="eel-panel__lead">Role-based tabs for finance teams — same live data as the control panel ERP shell.</p>
-                </div>
-
-                <div class="hpanel">
-                    <div class="panel-body">
-                        <LegacyAdminLoginForm Surface="LegacyLoginSurface.Erp"
-                                              SurfaceLabel="ERP"
-                                              PhpLoginHref="/php-reference/erp"
-                                              ErrorMessage="@_error"
-                                              SubmitLabel="Enter ERP Finance"
-                                              Accent="blue" />
-                        <ul class="eel-features epc-erp-login-features">
-                            <li><i class="fa fa-check" aria-hidden="true"></i><span>Role-based tabs per department</span></li>
-                            <li><i class="fa fa-check" aria-hidden="true"></i><span>GL, VAT, inventory &amp; payables</span></li>
-                            <li><i class="fa fa-check" aria-hidden="true"></i><span>@PhpModuleCatalog.ErpAreaCount areas · @PhpModuleCatalog.ErpTabCount tabs</span></li>
-                        </ul>
+                <div class="eel-login__cap-item eel-login__cap-item--4">
+                    <div class="eel-login__cap-icon"><i class="fa fa-building"></i></div>
+                    <div class="eel-login__cap-text">
+                        <strong>Multi-company</strong>
+                        <span>MAIN vs jewellery industry packs</span>
                     </div>
                 </div>
             </div>
-            <div class="eel-footer">
-                Administrators:
-                <a href="/cp/login">Control panel</a>
-                · <a href="/">E-commerce</a>
-                · <a href="/bos/login">BOS</a>
+
+            <div class="eel-login__stats-bar" aria-label="ERP workspace stats">
+                <div class="eel-login__stat"><span class="eel-login__stat-num">@PhpModuleCatalog.ErpAreaCount</span><span class="eel-login__stat-label">Areas</span></div>
+                <div class="eel-login__stat-divider"></div>
+                <div class="eel-login__stat"><span class="eel-login__stat-num">@PhpModuleCatalog.ErpTabCount</span><span class="eel-login__stat-label">Tabs</span></div>
+                <div class="eel-login__stat-divider"></div>
+                <div class="eel-login__stat"><span class="eel-login__stat-num">/erp</span><span class="eel-login__stat-label">Entry</span></div>
             </div>
-        </section>
+
+            <div class="eel-login__hub">
+                <PhpEcomaeHubLogo Variant="login" AriaLabel="ECOM AE ERP hub" OrbitDuration="32s" />
+            </div>
+        </div>
+    </div>
+
+    <div class="eel-login__panel" id="sign-in" aria-label="ERP Finance sign-in">
+        <div class="eel-login__panel-inner">
+            <div class="eel-login__surface-tabs" aria-label="Choose environment">
+                <a class="eel-login__surface-tab" href="/cp/login">CP</a>
+                <a class="eel-login__surface-tab is-active" href="/erp/login">ERP</a>
+                <a class="eel-login__surface-tab" href="/bos/login">BOS</a>
+            </div>
+
+            <div class="eel-login__form-header">
+                <h2>Sign in to ERP</h2>
+                <p>Teal FINANCE environment — company books &amp; department tabs. Not Control, not Super BOS.</p>
+            </div>
+
+            <div class="hpanel">
+                <div class="panel-body">
+                    <LegacyAdminLoginForm Surface="LegacyLoginSurface.Erp"
+                                          SurfaceLabel="ERP"
+                                          PhpLoginHref="/php-reference/erp"
+                                          ErrorMessage="@_error"
+                                          SubmitLabel="Enter ERP Finance"
+                                          Accent="blue" />
+                    <ul class="eel-login__features epc-erp-login-features">
+                        <li><i class="fa fa-check" aria-hidden="true"></i><span>Role-based tabs per department</span></li>
+                        <li><i class="fa fa-check" aria-hidden="true"></i><span>Company switcher · industry packs</span></li>
+                        <li><i class="fa fa-check" aria-hidden="true"></i><span>Same live data as control panel ERP</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="eel-login__secure">
+                <i class="fa fa-lock"></i> Encrypted session ·
+                <a href="/cp/login">Control panel</a> ·
+                <a href="/bos/login">Super BOS</a>
+            </div>
+        </div>
     </div>
 </div>
 
