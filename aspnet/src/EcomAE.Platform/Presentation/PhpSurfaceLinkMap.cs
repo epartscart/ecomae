@@ -149,36 +149,35 @@ public static class PhpSurfaceLinkMap
             return value;
         }
 
-        // Interim: tenant /storefront/* apps 404 when nginx tree is missing; keep working PHP /en/… pages
-        // (warehouse search, UMAPI, product-family) until dual-sample + classic-entry storefront tree.
+        // Interim: PHP /en/… pages unless TemporarilyDeactivatePhpServing (PreferAspNetApps).
         if (value.StartsWith("/shop/cart", StringComparison.OrdinalIgnoreCase))
         {
-            return StorefrontPhpCanonical.Cart;
+            return StorefrontSurfaceLinks.Cart;
         }
 
         if (value.StartsWith("/shop/checkout", StringComparison.OrdinalIgnoreCase))
         {
-            return StorefrontPhpCanonical.Checkout;
+            return StorefrontSurfaceLinks.Checkout;
         }
 
         if (value.StartsWith("/shop/orders", StringComparison.OrdinalIgnoreCase))
         {
-            return StorefrontPhpCanonical.Orders;
+            return StorefrontSurfaceLinks.Orders;
         }
 
         if (value.Contains("warehouse-search", StringComparison.OrdinalIgnoreCase))
         {
-            return StorefrontPhpCanonical.ForWarehouseSearch(value);
+            return StorefrontSurfaceLinks.ForWarehouseSearch(value);
         }
 
         if (value.StartsWith("/shop/part_search", StringComparison.OrdinalIgnoreCase))
         {
-            return StorefrontPhpCanonical.ForPartSearch(value);
+            return StorefrontSurfaceLinks.ForPartSearch(value);
         }
 
         if (value.StartsWith("/shop/search", StringComparison.OrdinalIgnoreCase))
         {
-            return StorefrontPhpCanonical.NameSearch + (value.Contains('?', StringComparison.Ordinal)
+            return StorefrontSurfaceLinks.NameSearch + (value.Contains('?', StringComparison.Ordinal)
                 ? value[value.IndexOf('?', StringComparison.Ordinal)..]
                 : "");
         }
@@ -186,28 +185,28 @@ public static class PhpSurfaceLinkMap
         if (value.Contains("katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || value.Contains("identString=", StringComparison.OrdinalIgnoreCase))
         {
-            return StorefrontPhpCanonical.ForVinSearch(value);
+            return StorefrontSurfaceLinks.ForVinSearch(value);
         }
 
         if (value.Contains("vehicle-catalog", StringComparison.OrdinalIgnoreCase))
         {
-            return StorefrontPhpCanonical.ForVehicleCatalog(value);
+            return StorefrontSurfaceLinks.ForVehicleCatalog(value);
         }
 
         if (IsStorefrontCatalogBrowsePath(value))
         {
-            return StorefrontPhpCanonical.ForCatalogBrowse(value);
+            return StorefrontSurfaceLinks.ForCatalogBrowse(value);
         }
 
         if (value.Contains("garage", StringComparison.OrdinalIgnoreCase))
         {
-            return StorefrontPhpCanonical.GarageLogin;
+            return StorefrontSurfaceLinks.GarageLogin;
         }
 
         if (value.StartsWith("/users", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/vendor", StringComparison.OrdinalIgnoreCase))
         {
-            return StorefrontPhpCanonical.Login;
+            return StorefrontSurfaceLinks.Login;
         }
 
         if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)

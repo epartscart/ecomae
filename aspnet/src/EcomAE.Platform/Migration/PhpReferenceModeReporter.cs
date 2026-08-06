@@ -41,18 +41,27 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
             new("tenant-erp", $"{tenantPhp}/php-reference/erp", $"{tenantPhp}/erp", "php-reference-vs-aspnet-shared-tenant-erp"),
         };
 
-        var status = !_reference.Enabled
-            ? "php-reference-disabled"
-            : _reference.KeepPhpProjectAvailable
-                ? "aspnet-primary-intent-php-reference-retained"
-                : "php-reference-misconfigured-keep-project-false";
+        var status = _reference.TemporarilyDeactivatePhpServing
+            ? (_reference.KeepPhpProjectAvailable
+                ? "aspnet-only-deep-test-php-serving-deactivated"
+                : "php-serving-deactivated-misconfigured-keep-project-false")
+            : !_reference.Enabled
+                ? "php-reference-disabled"
+                : _reference.KeepPhpProjectAvailable
+                    ? "aspnet-primary-intent-php-reference-retained"
+                    : "php-reference-misconfigured-keep-project-false";
+
+        var mode = _reference.TemporarilyDeactivatePhpServing
+            ? "aspnet-only-deep-test-php-serving-off"
+            : (string.IsNullOrWhiteSpace(_reference.Mode) ? "aspnet-primary-php-reference" : _reference.Mode);
 
         return new PhpReferenceModeReport(
             Status: status,
-            Mode: string.IsNullOrWhiteSpace(_reference.Mode) ? "aspnet-primary-php-reference" : _reference.Mode,
+            Mode: mode,
             Enabled: _reference.Enabled,
             ArchitectureConfirmed: _reference.ArchitectureConfirmed,
             KeepPhpProjectAvailable: _reference.KeepPhpProjectAvailable,
+            TemporarilyDeactivatePhpServing: _reference.TemporarilyDeactivatePhpServing,
             // Hard locks — never invent green cutover from this board.
             CutoverAllowed: false,
             ReadyForPhpRemoval: false,
@@ -69,19 +78,21 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
             [
                 "ALL product tenants → ASP.NET (URL preserved): ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts",
                 "ASP.NET product: / /cp /erp /bos on www.ecomae.com + epartscart + electronicae + stylenlook + thejewellerytrend + taxofinca",
+                "TEMP deep-test (pause PHP serving, keep files): ECOMAE_CONFIRM_TEMP_DEACTIVATE_PHP_SERVING=YES bash scripts/cloudpanel_temporarily_deactivate_php_serving.sh",
+                "Restore PHP reference serving: ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES bash scripts/cloudpanel_restore_php_reference_serving.sh",
                 "PHP reference SEPARATE only: /php-reference/home|/cp|/erp|/bos|/storefront — compare at /migration/compare (never mix into product)",
-                "Run dual-sample compare_* against /php-reference/* while product URLs stay on ASP.NET.",
-                "Do not delete PHP source until a separate decommission gate (ReadyToRemovePhp) — reference mode is not deletion.",
+                "Do not delete PHP source until a separate decommission gate (ReadyToRemovePhp) — reference mode / temp deactivate ≠ deletion.",
                 "Rollback live traffic with: bash scripts/rollback_aspnet_foundation.sh --keep-php-fallback"
             ],
             HardLocks:
             [
                 "cutoverAllowed=false (this reporter always — traffic still exact-route only)",
                 "readyForPhpRemoval=false (this reporter always — source keep)",
+                "TemporarilyDeactivatePhpServing pauses serving only; KeepPhpProjectAvailable must stay true",
                 "RequirePhpFallback stays true until dual-sample-green per exact route (templates default true)",
                 "RELEASE_OWNER_APPROVAL.md present with APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable",
                 "Tenant-shared /cp /erp /bos / URLs must not redirect to /cp/app (URL preserved)",
-                "PHP reference only via /php-reference/* → index.php; never invent cutoverAllowed=true; no half-tenant PHP product mix"
+                "No new PHP feature development — ASP.NET Core + related tools only; never invent cutoverAllowed=true"
             ],
             Note: _reference.Note);
     }

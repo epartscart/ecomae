@@ -24,6 +24,14 @@ public sealed class PhpReferenceOptions
     /// <summary>Keep the PHP project/docroot available for side-by-side compares.</summary>
     public bool KeepPhpProjectAvailable { get; set; } = true;
 
+    /// <summary>
+    /// Temporary deep-test switch: stop serving PHP reference + stop stub→PHP redirects so
+    /// product traffic stays on ASP.NET apps. Does <b>not</b> delete PHP source, does <b>not</b>
+    /// set cutoverAllowed/readyForPhpRemoval, and KeepPhpProjectAvailable must stay true.
+    /// Operator: <c>cloudpanel_temporarily_deactivate_php_serving.sh</c>.
+    /// </summary>
+    public bool TemporarilyDeactivatePhpServing { get; set; }
+
     /// <summary>Reference PHP base for www / Super CP (no trailing slash required).</summary>
     public string WwwPhpBaseUrl { get; set; } = "https://www.ecomae.com";
 
@@ -43,5 +51,5 @@ public sealed class PhpReferenceOptions
 
     /// <summary>Operator note shown on boards.</summary>
     public string Note { get; set; } =
-        "ASP.NET Core is the destination primary. PHP stays installed as reference for previous results / gap-finding. cutoverAllowed=false until dual-sample + RELEASE_OWNER_APPROVAL.md. Reference mode ≠ PHP source deletion.";
+        "ASP.NET Core is the destination primary. PHP stays installed as reference for previous results / gap-finding. cutoverAllowed=false until dual-sample + RELEASE_OWNER_APPROVAL.md. Reference mode ≠ PHP source deletion. TemporarilyDeactivatePhpServing only pauses PHP serving for ASP.NET deep tests — never invents ReadyToRemovePhp.";
 }

@@ -32,11 +32,26 @@ Section: `EcomAE:PhpReference` (see `aspnet/.../appsettings.json` and `deploy/as
 | Key | Purpose |
 | --- | --- |
 | `Enabled` | Expose reference board/reporter |
-| `Mode` | `aspnet-primary-php-reference` |
+| `Mode` | `aspnet-primary-php-reference` (or `aspnet-only-deep-test-php-serving-off` when temp-paused) |
 | `ArchitectureConfirmed` | Human-confirmed architecture declaration |
 | `KeepPhpProjectAvailable` | Must stay true while using reference compares |
+| `TemporarilyDeactivatePhpServing` | Temp pause of PHP HTTP + `/php-reference` for ASP.NET deep testing (default `false`). **Not** source deletion; cutover locks stay false |
 | `WwwPhpBaseUrl` / `TenantPhpBaseUrl` | PHP reference bases |
 | `AspNetPrimaryBaseUrl` | ASP.NET compare base |
+
+## Temporary PHP serving pause (ASP.NET deep test)
+
+Protocol: **no new PHP feature development** — fix gaps only in ASP.NET Core + related tools. To pause PHP HTTP (including `/php-reference/*` and interim `/en/…`) while keeping files on disk:
+
+```bash
+ECOMAE_CONFIRM_TEMP_DEACTIVATE_PHP_SERVING=YES \
+  bash scripts/cloudpanel_temporarily_deactivate_php_serving.sh
+# Restore when compare/reference needed again:
+ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES \
+  bash scripts/cloudpanel_restore_php_reference_serving.sh
+```
+
+This sets `TemporarilyDeactivatePhpServing=true`, writes `.epc_php_serving_deactivated` flags, nginx 503 for `/php-reference` + `/en|/me|/ru`, and points storefront chrome at `/storefront/*` apps. It does **not** set `cutoverAllowed` / `readyForPhpRemoval`, and `KeepPhpProjectAvailable` stays `true`.
 
 ## Endpoints / boards
 

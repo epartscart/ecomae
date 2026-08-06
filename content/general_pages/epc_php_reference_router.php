@@ -45,6 +45,13 @@ function epc_php_reference_try_route(): bool
 		return false;
 	}
 
+	// Ops pause for ASP.NET deep test — not PHP feature work / not source deletion.
+	require_once __DIR__ . '/epc_php_serving_deactivate.php';
+	if (function_exists('epc_php_serving_deactivated_maybe_exit')
+		&& epc_php_serving_deactivated_maybe_exit('php-reference/' . $surface)) {
+		return true;
+	}
+
 	header('X-EcomAE-Php-Reference: ' . $surface);
 	header('X-EcomAE-Target-Runtime: php-reference');
 	header('X-Robots-Tag: noindex, nofollow');

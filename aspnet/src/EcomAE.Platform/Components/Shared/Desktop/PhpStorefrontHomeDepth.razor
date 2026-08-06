@@ -7,15 +7,15 @@
 <section class="epc-sf-home-depth" aria-label="Storefront homepage">
     <div class="container">
         <div class="epc-sf-hero-slider" aria-label="Featured promotions">
-            <a class="epc-sf-slide epc-sf-slide--1" href="@StorefrontPhpCanonical.PartSearch">
+            <a class="epc-sf-slide epc-sf-slide--1" href="@StorefrontSurfaceLinks.PartSearch">
                 <strong>OEM &amp; aftermarket parts</strong>
                 <span>Search by part number, VIN, engine, or vehicle</span>
             </a>
-            <a class="epc-sf-slide epc-sf-slide--2" href="@StorefrontPhpCanonical.GarageLogin">
+            <a class="epc-sf-slide epc-sf-slide--2" href="@StorefrontSurfaceLinks.GarageLogin">
                 <strong>Garage Manager</strong>
                 <span>Save vehicles and reopen workshop orders</span>
             </a>
-            <a class="epc-sf-slide epc-sf-slide--3" href="@StorefrontPhpCanonical.PartSearch">
+            <a class="epc-sf-slide epc-sf-slide--3" href="@StorefrontSurfaceLinks.PartSearch">
                 <strong>UAE dispatch lanes</strong>
                 <span>Same-day and GCC export windows</span>
             </a>
@@ -306,13 +306,13 @@
 </style>
 
 @code {
-    [Parameter] public string SearchHref { get; set; } = StorefrontPhpCanonical.PartSearch;
-    [Parameter] public string BrandsHref { get; set; } = StorefrontPhpCanonical.UmapiCatalog;
-    [Parameter] public string CatalogHref { get; set; } = StorefrontPhpCanonical.ProductFamily;
-    [Parameter] public string AccountHref { get; set; } = StorefrontPhpCanonical.Orders;
-    [Parameter] public string OrdersHref { get; set; } = StorefrontPhpCanonical.Orders;
-    [Parameter] public string GarageHref { get; set; } = StorefrontPhpCanonical.GarageLogin;
-    [Parameter] public string VinHref { get; set; } = StorefrontPhpCanonical.LaximoVin;
+    [Parameter] public string SearchHref { get; set; } = StorefrontSurfaceLinks.PartSearch;
+    [Parameter] public string BrandsHref { get; set; } = StorefrontSurfaceLinks.UmapiCatalog;
+    [Parameter] public string CatalogHref { get; set; } = StorefrontSurfaceLinks.ProductFamily;
+    [Parameter] public string AccountHref { get; set; } = StorefrontSurfaceLinks.Orders;
+    [Parameter] public string OrdersHref { get; set; } = StorefrontSurfaceLinks.Orders;
+    [Parameter] public string GarageHref { get; set; } = StorefrontSurfaceLinks.GarageLogin;
+    [Parameter] public string VinHref { get; set; } = StorefrontSurfaceLinks.LaximoVin;
 
     private const string StoreHours = "Mon–Sat 9:00–18:00 · UAE dispatch lanes";
 
@@ -340,78 +340,78 @@
 
     private static readonly Cat[] Categories =
     [
-        new("fa-cogs", "Engine & filters", "Oil, air, fuel, cabin", StorefrontPhpCanonical.ProductFamily),
-        new("fa-car", "Brakes & chassis", "Pads, discs, arms", StorefrontPhpCanonical.ProductFamily),
-        new("fa-bolt", "Electrical", "Sensors, batteries, lighting", StorefrontPhpCanonical.ProductFamily),
-        new("fa-tint", "Fluids & care", "Oils, chemicals, detailing", StorefrontPhpCanonical.ProductFamily),
-        new("fa-snowflake-o", "Cooling & AC", "Radiators, condensers", StorefrontPhpCanonical.ProductFamily),
-        new("fa-compass", "Steering", "Racks, pumps, joints", StorefrontPhpCanonical.ProductFamily),
-        new("fa-road", "Suspension", "Shocks, springs, mounts", StorefrontPhpCanonical.ProductFamily),
-        new("fa-wrench", "Service kits", "Timing, clutch, gasket sets", StorefrontPhpCanonical.ProductFamily),
-        new("fa-filter", "Filters", "Air, oil, fuel, pollen", StorefrontPhpCanonical.ProductFamily),
-        new("fa-fire", "Ignition", "Spark plugs, coils, leads", StorefrontPhpCanonical.ProductFamily),
-        new("fa-circle-o", "Bearings & seals", "Wheel, hub, axle", StorefrontPhpCanonical.ProductFamily),
-        new("fa-lightbulb-o", "Lighting", "Headlamps, bulbs, DRL", StorefrontPhpCanonical.ProductFamily),
-        new("fa-tachometer", "Engine management", "Sensors, ECU, injectors", StorefrontPhpCanonical.ProductFamily),
-        new("fa-exchange", "Transmission", "Clutch, gearbox, CV", StorefrontPhpCanonical.ProductFamily),
-        new("fa-tint", "Body & trim", "Mirrors, handles, mouldings", StorefrontPhpCanonical.ProductFamily),
-        new("fa-plus-square", "Accessories", "Wipers, mats, tools", StorefrontPhpCanonical.Accessories),
+        new("fa-cogs", "Engine & filters", "Oil, air, fuel, cabin", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-car", "Brakes & chassis", "Pads, discs, arms", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-bolt", "Electrical", "Sensors, batteries, lighting", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-tint", "Fluids & care", "Oils, chemicals, detailing", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-snowflake-o", "Cooling & AC", "Radiators, condensers", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-compass", "Steering", "Racks, pumps, joints", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-road", "Suspension", "Shocks, springs, mounts", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-wrench", "Service kits", "Timing, clutch, gasket sets", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-filter", "Filters", "Air, oil, fuel, pollen", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-fire", "Ignition", "Spark plugs, coils, leads", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-circle-o", "Bearings & seals", "Wheel, hub, axle", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-lightbulb-o", "Lighting", "Headlamps, bulbs, DRL", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-tachometer", "Engine management", "Sensors, ECU, injectors", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-exchange", "Transmission", "Clutch, gearbox, CV", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-tint", "Body & trim", "Mirrors, handles, mouldings", StorefrontSurfaceLinks.ProductFamily),
+        new("fa-plus-square", "Accessories", "Wipers, mats, tools", StorefrontSurfaceLinks.Accessories),
     ];
 
     private static readonly Make[] VehicleMakes =
     [
-        new("Toyota", StorefrontPhpCanonical.ForManufacturer("Toyota")),
-        new("Nissan", StorefrontPhpCanonical.ForManufacturer("Nissan")),
-        new("Hyundai", StorefrontPhpCanonical.ForManufacturer("Hyundai")),
-        new("Kia", StorefrontPhpCanonical.ForManufacturer("Kia")),
-        new("Honda", StorefrontPhpCanonical.ForManufacturer("Honda")),
-        new("Mazda", StorefrontPhpCanonical.ForManufacturer("Mazda")),
-        new("Ford", StorefrontPhpCanonical.ForManufacturer("Ford")),
-        new("Chevrolet", StorefrontPhpCanonical.ForManufacturer("Chevrolet")),
-        new("Mercedes-Benz", StorefrontPhpCanonical.ForManufacturer("Mercedes-Benz")),
-        new("BMW", StorefrontPhpCanonical.ForManufacturer("BMW")),
-        new("Audi", StorefrontPhpCanonical.ForManufacturer("Audi")),
-        new("Volkswagen", StorefrontPhpCanonical.ForManufacturer("Volkswagen")),
-        new("Land Rover", StorefrontPhpCanonical.ForManufacturer("Land Rover")),
-        new("Jeep", StorefrontPhpCanonical.ForManufacturer("Jeep")),
-        new("GMC", StorefrontPhpCanonical.ForManufacturer("GMC")),
-        new("Lexus", StorefrontPhpCanonical.ForManufacturer("Lexus")),
-        new("Infiniti", StorefrontPhpCanonical.ForManufacturer("Infiniti")),
-        new("Renault", StorefrontPhpCanonical.ForManufacturer("Renault")),
-        new("Peugeot", StorefrontPhpCanonical.ForManufacturer("Peugeot")),
-        new("Suzuki", StorefrontPhpCanonical.ForManufacturer("Suzuki")),
-        new("Isuzu", StorefrontPhpCanonical.ForManufacturer("Isuzu")),
-        new("Volvo", StorefrontPhpCanonical.ForManufacturer("Volvo")),
-        new("Porsche", StorefrontPhpCanonical.ForManufacturer("Porsche")),
-        new("Mini", StorefrontPhpCanonical.ForManufacturer("Mini")),
+        new("Toyota", StorefrontSurfaceLinks.ForManufacturer("Toyota")),
+        new("Nissan", StorefrontSurfaceLinks.ForManufacturer("Nissan")),
+        new("Hyundai", StorefrontSurfaceLinks.ForManufacturer("Hyundai")),
+        new("Kia", StorefrontSurfaceLinks.ForManufacturer("Kia")),
+        new("Honda", StorefrontSurfaceLinks.ForManufacturer("Honda")),
+        new("Mazda", StorefrontSurfaceLinks.ForManufacturer("Mazda")),
+        new("Ford", StorefrontSurfaceLinks.ForManufacturer("Ford")),
+        new("Chevrolet", StorefrontSurfaceLinks.ForManufacturer("Chevrolet")),
+        new("Mercedes-Benz", StorefrontSurfaceLinks.ForManufacturer("Mercedes-Benz")),
+        new("BMW", StorefrontSurfaceLinks.ForManufacturer("BMW")),
+        new("Audi", StorefrontSurfaceLinks.ForManufacturer("Audi")),
+        new("Volkswagen", StorefrontSurfaceLinks.ForManufacturer("Volkswagen")),
+        new("Land Rover", StorefrontSurfaceLinks.ForManufacturer("Land Rover")),
+        new("Jeep", StorefrontSurfaceLinks.ForManufacturer("Jeep")),
+        new("GMC", StorefrontSurfaceLinks.ForManufacturer("GMC")),
+        new("Lexus", StorefrontSurfaceLinks.ForManufacturer("Lexus")),
+        new("Infiniti", StorefrontSurfaceLinks.ForManufacturer("Infiniti")),
+        new("Renault", StorefrontSurfaceLinks.ForManufacturer("Renault")),
+        new("Peugeot", StorefrontSurfaceLinks.ForManufacturer("Peugeot")),
+        new("Suzuki", StorefrontSurfaceLinks.ForManufacturer("Suzuki")),
+        new("Isuzu", StorefrontSurfaceLinks.ForManufacturer("Isuzu")),
+        new("Volvo", StorefrontSurfaceLinks.ForManufacturer("Volvo")),
+        new("Porsche", StorefrontSurfaceLinks.ForManufacturer("Porsche")),
+        new("Mini", StorefrontSurfaceLinks.ForManufacturer("Mini")),
     ];
 
     private static readonly Brand[] Brands =
     [
-        new("Bosch", StorefrontPhpCanonical.ForUmapiBrand("Bosch")),
-        new("Mann-Filter", StorefrontPhpCanonical.ForUmapiBrand("Mann-Filter")),
-        new("NGK", StorefrontPhpCanonical.ForUmapiBrand("NGK")),
-        new("Brembo", StorefrontPhpCanonical.ForUmapiBrand("Brembo")),
-        new("Sachs", StorefrontPhpCanonical.ForUmapiBrand("Sachs")),
-        new("Valeo", StorefrontPhpCanonical.ForUmapiBrand("Valeo")),
-        new("Dayco", StorefrontPhpCanonical.ForUmapiBrand("Dayco")),
-        new("Gates", StorefrontPhpCanonical.ForUmapiBrand("Gates")),
-        new("Mahle", StorefrontPhpCanonical.ForUmapiBrand("Mahle")),
-        new("Febi", StorefrontPhpCanonical.ForUmapiBrand("Febi")),
-        new("TRW", StorefrontPhpCanonical.ForUmapiBrand("TRW")),
-        new("Hella", StorefrontPhpCanonical.ForUmapiBrand("Hella")),
-        new("Denso", StorefrontPhpCanonical.ForUmapiBrand("Denso")),
-        new("SKF", StorefrontPhpCanonical.ForUmapiBrand("SKF")),
-        new("FAG", StorefrontPhpCanonical.ForUmapiBrand("FAG")),
-        new("Monroe", StorefrontPhpCanonical.ForUmapiBrand("Monroe")),
-        new("KYB", StorefrontPhpCanonical.ForUmapiBrand("KYB")),
-        new("Textar", StorefrontPhpCanonical.ForUmapiBrand("Textar")),
-        new("ATE", StorefrontPhpCanonical.ForUmapiBrand("ATE")),
-        new("Continental", StorefrontPhpCanonical.ForUmapiBrand("Continental")),
-        new("Philips", StorefrontPhpCanonical.ForUmapiBrand("Philips")),
-        new("Osram", StorefrontPhpCanonical.ForUmapiBrand("Osram")),
-        new("Mobil", StorefrontPhpCanonical.ForUmapiBrand("Mobil")),
-        new("Castrol", StorefrontPhpCanonical.ForUmapiBrand("Castrol")),
+        new("Bosch", StorefrontSurfaceLinks.ForUmapiBrand("Bosch")),
+        new("Mann-Filter", StorefrontSurfaceLinks.ForUmapiBrand("Mann-Filter")),
+        new("NGK", StorefrontSurfaceLinks.ForUmapiBrand("NGK")),
+        new("Brembo", StorefrontSurfaceLinks.ForUmapiBrand("Brembo")),
+        new("Sachs", StorefrontSurfaceLinks.ForUmapiBrand("Sachs")),
+        new("Valeo", StorefrontSurfaceLinks.ForUmapiBrand("Valeo")),
+        new("Dayco", StorefrontSurfaceLinks.ForUmapiBrand("Dayco")),
+        new("Gates", StorefrontSurfaceLinks.ForUmapiBrand("Gates")),
+        new("Mahle", StorefrontSurfaceLinks.ForUmapiBrand("Mahle")),
+        new("Febi", StorefrontSurfaceLinks.ForUmapiBrand("Febi")),
+        new("TRW", StorefrontSurfaceLinks.ForUmapiBrand("TRW")),
+        new("Hella", StorefrontSurfaceLinks.ForUmapiBrand("Hella")),
+        new("Denso", StorefrontSurfaceLinks.ForUmapiBrand("Denso")),
+        new("SKF", StorefrontSurfaceLinks.ForUmapiBrand("SKF")),
+        new("FAG", StorefrontSurfaceLinks.ForUmapiBrand("FAG")),
+        new("Monroe", StorefrontSurfaceLinks.ForUmapiBrand("Monroe")),
+        new("KYB", StorefrontSurfaceLinks.ForUmapiBrand("KYB")),
+        new("Textar", StorefrontSurfaceLinks.ForUmapiBrand("Textar")),
+        new("ATE", StorefrontSurfaceLinks.ForUmapiBrand("ATE")),
+        new("Continental", StorefrontSurfaceLinks.ForUmapiBrand("Continental")),
+        new("Philips", StorefrontSurfaceLinks.ForUmapiBrand("Philips")),
+        new("Osram", StorefrontSurfaceLinks.ForUmapiBrand("Osram")),
+        new("Mobil", StorefrontSurfaceLinks.ForUmapiBrand("Mobil")),
+        new("Castrol", StorefrontSurfaceLinks.ForUmapiBrand("Castrol")),
     ];
 
     private static readonly FeaturedStrip[] FeaturedStrips = BuildFeaturedStrips();
@@ -428,10 +428,10 @@
 
     private static readonly Promo[] PromoBanners =
     [
-        new("red", "fa-barcode", "Search by part number", "Browse offers, account, and checkout surfaces.", StorefrontPhpCanonical.PartSearch),
-        new("blue", "fa-tags", "Trusted brands", "Browse available manufacturers and product lines.", StorefrontPhpCanonical.UmapiCatalog),
-        new("green", "fa-sitemap", "Electronic catalog", "Find parts through vehicle catalog navigation.", StorefrontPhpCanonical.VehicleCatalog),
-        new("dark", "fa-car", "VIN request", "Ask sellers to identify the exact spare part.", StorefrontPhpCanonical.LaximoVin),
+        new("red", "fa-barcode", "Search by part number", "Browse offers, account, and checkout surfaces.", StorefrontSurfaceLinks.PartSearch),
+        new("blue", "fa-tags", "Trusted brands", "Browse available manufacturers and product lines.", StorefrontSurfaceLinks.UmapiCatalog),
+        new("green", "fa-sitemap", "Electronic catalog", "Find parts through vehicle catalog navigation.", StorefrontSurfaceLinks.VehicleCatalog),
+        new("dark", "fa-car", "VIN request", "Ask sellers to identify the exact spare part.", StorefrontSurfaceLinks.LaximoVin),
     ];
 
     private static readonly WorkshopTip[] WorkshopTips =
@@ -513,9 +513,9 @@
                     $"AED {(idx * 17 + 42):N0}",
                     badges[idx % badges.Length],
                     "Dispatch lane shown on offer · cross-ref available",
-                    StorefrontPhpCanonical.PartSearch));
+                    StorefrontSurfaceLinks.PartSearch));
             }
-            strips.Add(new FeaturedStrip(titles[s], StorefrontPhpCanonical.PartSearch, items));
+            strips.Add(new FeaturedStrip(titles[s], StorefrontSurfaceLinks.PartSearch, items));
         }
         return strips.ToArray();
     }

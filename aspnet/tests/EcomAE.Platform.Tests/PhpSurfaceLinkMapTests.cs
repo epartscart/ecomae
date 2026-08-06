@@ -3,8 +3,14 @@ using Xunit;
 
 namespace EcomAE.Platform.Tests;
 
+[Collection(PreferAspNetAppsCollection.Name)]
 public sealed class PhpSurfaceLinkMapTests
 {
+    public PhpSurfaceLinkMapTests()
+    {
+        StorefrontSurfaceLinks.PreferAspNetApps = false;
+    }
+
     [Theory]
     [InlineData("/CP/shop/orders/orders", "/cp/orders")]
     [InlineData("/CP/shop/orders/carts", "/cp/abandoned-carts-app")]

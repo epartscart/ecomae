@@ -5,9 +5,14 @@
 
 require_once __DIR__ . '/epc-ecomae-legacy-path-guard.php';
 
+// Ops: temporary PHP HTTP serving pause (ASP.NET deep test). Keeps files; no cutover flip.
+require_once __DIR__ . '/content/general_pages/epc_php_serving_deactivate.php';
+
 // Thin /storefront/* ASP.NET stubs → PHP /en/… (search-app article lookups, cart, login, …)
+// Skipped when PHP serving is temporarily deactivated.
 require_once __DIR__ . '/epc_storefront_stub_redirect.php';
-if (function_exists('epc_storefront_stub_redirect_maybe_exit')) {
+if ((!function_exists('epc_php_serving_is_temporarily_deactivated') || !epc_php_serving_is_temporarily_deactivated())
+	&& function_exists('epc_storefront_stub_redirect_maybe_exit')) {
 	epc_storefront_stub_redirect_maybe_exit();
 }
 
@@ -19,6 +24,11 @@ if (!defined('_ASTEXE_')) {
 // Handle CP/ERP/BOS reference boots before cache/marketing steal the request.
 require_once __DIR__ . '/content/general_pages/epc_php_reference_router.php';
 if (function_exists('epc_php_reference_try_route') && epc_php_reference_try_route()) {
+	exit;
+}
+
+// After reference handling: if serving is paused, stop residual PHP HTTP (commerce /en/…).
+if (function_exists('epc_php_serving_deactivated_maybe_exit') && epc_php_serving_deactivated_maybe_exit('index.php')) {
 	exit;
 }
 

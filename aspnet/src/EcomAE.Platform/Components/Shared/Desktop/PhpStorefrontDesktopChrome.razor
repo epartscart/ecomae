@@ -22,33 +22,33 @@
                                     <li class="dropdown">
                                         <a href="javascript:void(0)" class="dropdown-toggle" aria-haspopup="true">Product <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
                                         <ul class="dropdown-menu">
-                                            <li><a href="@StorefrontPhpCanonical.ProductFamily">Product Family</a></li>
-                                            <li><a href="@StorefrontPhpCanonical.AvailableBrands">Available brands</a></li>
-                                            <li><a href="@StorefrontPhpCanonical.PartsInStock">Brand in stock</a></li>
-                                            <li><a href="@StorefrontPhpCanonical.Accessories">Accessories</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.ProductFamily">Product Family</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.AvailableBrands">Available brands</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.PartsInStock">Brand in stock</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.Accessories">Accessories</a></li>
                                         </ul>
                                     </li>
                                     <li class="dropdown">
                                         <a href="javascript:void(0)" class="dropdown-toggle" aria-haspopup="true">Selection catalogs <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
                                         <ul class="dropdown-menu">
-                                            <li><a href="@StorefrontPhpCanonical.EpartsCata">EParts CATA</a></li>
-                                            <li><a href="@StorefrontPhpCanonical.EpartsMod">EParts Mod</a></li>
-                                            <li><a href="@StorefrontPhpCanonical.PartsApiCatalog">EParts CatAPI</a></li>
-                                            <li><a href="@StorefrontPhpCanonical.LevamOem">OEM</a></li>
-                                            <li><a href="@StorefrontPhpCanonical.LaximoVin">Vehicle catalog</a></li>
-                                            <li><a href="@StorefrontPhpCanonical.VehicleCatalog">Vehicle parts catalog</a></li>
-                                            <li><a href="@StorefrontPhpCanonical.UmapiCatalog">Epart Catalog</a></li>
-                                            <li><a href="@StorefrontPhpCanonical.UcatsService">Epart Service Catalog</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.EpartsCata">EParts CATA</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.EpartsMod">EParts Mod</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.PartsApiCatalog">EParts CatAPI</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.LevamOem">OEM</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.LaximoVin">Vehicle catalog</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle parts catalog</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.UmapiCatalog">Epart Catalog</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.UcatsService">Epart Service Catalog</a></li>
                                         </ul>
                                     </li>
-                                    <li><a href="@StorefrontPhpCanonical.OriginalCatalog">Original catalog</a></li>
-                                    <li><a href="@StorefrontPhpCanonical.DemandIntelligence">Vehicle Parts intelligence AI</a></li>
+                                    <li><a href="@StorefrontSurfaceLinks.OriginalCatalog">Original catalog</a></li>
+                                    <li><a href="@StorefrontSurfaceLinks.DemandIntelligence">Vehicle Parts intelligence AI</a></li>
                                 </ul>
                             </nav>
                         </td>
                         <td class="epc-nero-top-actions">
                             <div class="new-header-user-box epc-garage-header-link">
-                                <a href="@StorefrontPhpCanonical.GarageLogin" title="Garage Manager"><i class="fa fa-wrench" aria-hidden="true"></i> Garage Manager</a>
+                                <a href="@StorefrontSurfaceLinks.GarageLogin" title="Garage Manager"><i class="fa fa-wrench" aria-hidden="true"></i> Garage Manager</a>
                             </div>
                             <div class="new-header-user-box epc-erp-header-link">
                                 <a href="/erp" title="ERP Login"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP Login</a>
@@ -56,7 +56,7 @@
                             @if (_signedIn)
                             {
                                 <div class="new-header-user-box">
-                                    <a href="@StorefrontPhpCanonical.Orders"><i class="fa fa-user" aria-hidden="true"></i> @_userLabel</a>
+                                    <a href="@StorefrontSurfaceLinks.Orders"><i class="fa fa-user" aria-hidden="true"></i> @_userLabel</a>
                                 </div>
                                 <div class="new-header-user-box">
                                     <a href="/storefront/logout" title="Log out"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
@@ -68,14 +68,14 @@
                                     <span class="epc-auth-header-links">
                                         <span class="epc-auth-header-links__group epc-auth-header-links__group--vendor">
                                             <i class="fa fa-briefcase epc-auth-header-links__icon" aria-hidden="true"></i>
-                                            <a class="epc-auth-header-links__vendor-login" href="@StorefrontPhpCanonical.Login" title="Vendor portal login">Vendor login</a>
+                                            <a class="epc-auth-header-links__vendor-login" href="@StorefrontSurfaceLinks.Login" title="Vendor portal login">Vendor login</a>
                                             <span class="epc-auth-header-links__slash" aria-hidden="true">/</span>
                                             <a class="epc-auth-header-links__vendor-register" href="/en/vendor/register" title="Vendor registration">Register</a>
                                         </span>
                                         <span class="epc-auth-header-links__sep" aria-hidden="true">|</span>
                                         <span class="epc-auth-header-links__group epc-auth-header-links__group--customer">
                                             <i class="fa fa-user epc-auth-header-links__icon" aria-hidden="true"></i>
-                                            <a class="epc-auth-header-links__login" href="@StorefrontPhpCanonical.Login" title="Customer login">Customer login</a>
+                                            <a class="epc-auth-header-links__login" href="@StorefrontSurfaceLinks.Login" title="Customer login">Customer login</a>
                                             <span class="epc-auth-header-links__slash" aria-hidden="true">/</span>
                                             <a class="epc-auth-header-links__signup" href="/en/users/registration" title="Customer registration">register</a>
                                         </span>
@@ -124,7 +124,7 @@
                     </div>
                     <div class="table-control epc-header-right-col">
                         <div class="epc-header-actions-row">
-                            <div class="header-call-box"><a href="@StorefrontPhpCanonical.SellerRequest">Request a call back</a></div>
+                            <div class="header-call-box"><a href="@StorefrontSurfaceLinks.SellerRequest">Request a call back</a></div>
                             <div class="header-whatsapp-box">
                                 <a href="https://wa.me/971567607011" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp">
                                     <i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp contact
@@ -160,7 +160,7 @@
                             <tr>
                                 <td>
                                     <a class="header-home-btn" href="/" aria-label="Home"><i class="fa fa-home" aria-hidden="true"></i></a>
-                                    <a class="header-cat-btn" href="@StorefrontPhpCanonical.ProductFamily"><i class="fa fa-bars" aria-hidden="true"></i> Catalog <span class="hidden-sm">of products</span></a>
+                                    <a class="header-cat-btn" href="@StorefrontSurfaceLinks.ProductFamily"><i class="fa fa-bars" aria-hidden="true"></i> Catalog <span class="hidden-sm">of products</span></a>
                                 </td>
                                 <td class="search-table-td">
                                     <div class="header-search-box epc-header-search" data-active-mode="1" id="epc-header-search">
@@ -172,7 +172,7 @@
                                             <button type="button" class="epc-header-search__tab" data-search-mode="attr" role="tab" aria-selected="false"><i class="fa fa-sliders" aria-hidden="true"></i><span>More info</span></button>
                                         </div>
                                         <div class="epc-header-search__body">
-                                            <form action="@StorefrontPhpCanonical.PartSearch" method="get" class="header_search_form_1">
+                                            <form action="@StorefrontSurfaceLinks.PartSearch" method="get" class="header_search_form_1">
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" name="article" placeholder="Part number or OE code" autocomplete="off" aria-label="Part number" />
                                                     <span class="input-group-btn">
@@ -180,7 +180,7 @@
                                                     </span>
                                                 </div>
                                             </form>
-                                            <form action="@StorefrontPhpCanonical.NameSearch" method="get" class="header_search_form_2 hidden">
+                                            <form action="@StorefrontSurfaceLinks.NameSearch" method="get" class="header_search_form_2 hidden">
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" name="search_string" placeholder="In own catalog" autocomplete="off" aria-label="Search by name" />
                                                     <span class="input-group-btn">
@@ -188,7 +188,7 @@
                                                     </span>
                                                 </div>
                                             </form>
-                                            <form action="@StorefrontPhpCanonical.LaximoVin" method="get" class="header_search_form_3 hidden" onsubmit="return window.epcHeaderVinSubmit(this);">
+                                            <form action="@StorefrontSurfaceLinks.LaximoVin" method="get" class="header_search_form_3 hidden" onsubmit="return window.epcHeaderVinSubmit(this);">
                                                 <input type="hidden" name="task" value="vehicles" />
                                                 <input type="hidden" name="ft" value="FindVehicle" />
                                                 <input type="hidden" name="c" value="" />
@@ -200,7 +200,7 @@
                                                     </span>
                                                 </div>
                                             </form>
-                                            <form action="@StorefrontPhpCanonical.VehicleCatalog" method="get" class="header_search_form_engine hidden" onsubmit="return window.epcHeaderEngineSubmit(this);">
+                                            <form action="@StorefrontSurfaceLinks.VehicleCatalog" method="get" class="header_search_form_engine hidden" onsubmit="return window.epcHeaderEngineSubmit(this);">
                                                 <div class="input-group">
                                                     <input type="text" class="form-control epc-header-search__engine-input" name="engine" maxlength="12" placeholder="Engine code (e.g. 3L, 12R, 5L)" autocomplete="off" aria-label="Engine code" />
                                                     <span class="input-group-btn">
@@ -209,12 +209,12 @@
                                                 </div>
                                             </form>
                                             <div class="header_search_form_car hidden">
-                                                <a class="epc-header-search__car-link" href="@StorefrontPhpCanonical.VehicleCatalog">
+                                                <a class="epc-header-search__car-link" href="@StorefrontSurfaceLinks.VehicleCatalog">
                                                     <span class="epc-header-search__car-copy"><i class="fa fa-list-ol" aria-hidden="true"></i> Choose year, make, model and engine</span>
                                                     <strong>Open vehicle catalog</strong>
                                                 </a>
                                             </div>
-                                            <form action="@StorefrontPhpCanonical.WarehouseSearch" method="get" class="header_search_form_attr hidden" onsubmit="return window.epcHeaderAttrSubmit(this);">
+                                            <form action="@StorefrontSurfaceLinks.WarehouseSearch" method="get" class="header_search_form_attr hidden" onsubmit="return window.epcHeaderAttrSubmit(this);">
                                                 <div class="epc-header-search__attr-row">
                                                     <select class="form-control epc-header-search__attr-field" name="field" aria-label="Search field">
                                                         <option value="all" selected>All fields</option>
@@ -248,13 +248,13 @@
                     </div>
                     <div class="col-sm-5 col-md-4">
                         <div class="menu-box" aria-label="Account shortcuts">
-                            <div class="menu-box-item"><a title="Orders" href="@StorefrontPhpCanonical.Orders" class="orders-i"><i class="fa fa-list-alt" aria-hidden="true"></i></a></div>
-                            <div class="menu-box-item"><a title="Compare" href="@StorefrontPhpCanonical.PartSearch"><i class="fa fa-exchange" aria-hidden="true"></i></a></div>
-                            <div class="menu-box-item"><a title="Bookmarks" href="@StorefrontPhpCanonical.PartSearch"><i class="fa fa-bookmark" aria-hidden="true"></i></a></div>
-                            <div class="menu-box-item"><a title="Garage" href="@StorefrontPhpCanonical.GarageLogin"><i class="fa fa-car" aria-hidden="true"></i></a></div>
-                            <div class="menu-box-item"><a title="Balance" href="@StorefrontPhpCanonical.Orders"><i class="fa fa-money" aria-hidden="true"></i></a></div>
-                            <div class="menu-box-item"><a title="Cart" href="@StorefrontPhpCanonical.Cart"><i class="fa fa-shopping-cart" aria-hidden="true"></i></a></div>
-                            <div class="menu-box-item"><a title="Quotes" href="@StorefrontPhpCanonical.Orders"><i class="fa fa-file-text-o" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Orders" href="@StorefrontSurfaceLinks.Orders" class="orders-i"><i class="fa fa-list-alt" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Compare" href="@StorefrontSurfaceLinks.PartSearch"><i class="fa fa-exchange" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Bookmarks" href="@StorefrontSurfaceLinks.PartSearch"><i class="fa fa-bookmark" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Garage" href="@StorefrontSurfaceLinks.GarageLogin"><i class="fa fa-car" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Balance" href="@StorefrontSurfaceLinks.Orders"><i class="fa fa-money" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Cart" href="@StorefrontSurfaceLinks.Cart"><i class="fa fa-shopping-cart" aria-hidden="true"></i></a></div>
+                            <div class="menu-box-item"><a title="Quotes" href="@StorefrontSurfaceLinks.Orders"><i class="fa fa-file-text-o" aria-hidden="true"></i></a></div>
                         </div>
                     </div>
                 </div>
@@ -267,17 +267,17 @@
             <a class="logo_min" href="/"><PhpEpartsCartAnimatedLogo Variant="header" /></a>
             <a class="mobile-box-phone" href="tel:+971567607011">+971-567607011</a>
             <a class="mobile-box-whatsapp" href="https://wa.me/971567607011" target="_blank" rel="noopener noreferrer"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
-            <a href="@StorefrontPhpCanonical.PartSearch"><i class="fa fa-search" aria-hidden="true"></i> Search</a>
-            <a href="@StorefrontPhpCanonical.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i> Garage</a>
+            <a href="@StorefrontSurfaceLinks.PartSearch"><i class="fa fa-search" aria-hidden="true"></i> Search</a>
+            <a href="@StorefrontSurfaceLinks.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i> Garage</a>
             <a class="mobile-box-erp-login" href="/erp"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP Login</a>
             @if (_signedIn)
             {
-                <a href="@StorefrontPhpCanonical.Orders"><i class="fa fa-user" aria-hidden="true"></i> Account</a>
+                <a href="@StorefrontSurfaceLinks.Orders"><i class="fa fa-user" aria-hidden="true"></i> Account</a>
                 <a href="/storefront/logout"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
             }
             else
             {
-                <a href="@StorefrontPhpCanonical.Login"><i class="fa fa-user" aria-hidden="true"></i> Login</a>
+                <a href="@StorefrontSurfaceLinks.Login"><i class="fa fa-user" aria-hidden="true"></i> Login</a>
             }
         </div>
     </div>
@@ -302,34 +302,34 @@
                                 <div class="col-sm-4">
                                     <h3 class="footer-widget-title">For customers</h3>
                                     <ul class="epc-footer-menu">
-                                        <li><a href="@StorefrontPhpCanonical.Orders">My orders</a></li>
-                                        <li><a href="@StorefrontPhpCanonical.GarageLogin">Garage</a></li>
-                                        <li><a href="@StorefrontPhpCanonical.Login">Profile</a></li>
-                                        <li><a href="@StorefrontPhpCanonical.Orders">Account summary</a></li>
+                                        <li><a href="@StorefrontSurfaceLinks.Orders">My orders</a></li>
+                                        <li><a href="@StorefrontSurfaceLinks.GarageLogin">Garage</a></li>
+                                        <li><a href="@StorefrontSurfaceLinks.Login">Profile</a></li>
+                                        <li><a href="@StorefrontSurfaceLinks.Orders">Account summary</a></li>
                                     </ul>
                                 </div>
                                 <div class="col-sm-4">
                                     <h3 class="footer-widget-title">Information</h3>
                                     <ul class="epc-footer-menu">
-                                        <li><a href="@StorefrontPhpCanonical.PartSearch">Part search</a></li>
-                                        <li><a href="@StorefrontPhpCanonical.VehicleCatalog">Vehicle catalog</a></li>
-                                        <li><a href="@StorefrontPhpCanonical.WarehouseSearch">Warehouse / more info</a></li>
+                                        <li><a href="@StorefrontSurfaceLinks.PartSearch">Part search</a></li>
+                                        <li><a href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a></li>
+                                        <li><a href="@StorefrontSurfaceLinks.WarehouseSearch">Warehouse / more info</a></li>
                                         <li><a href="/php-reference/home">PHP reference home</a></li>
                                     </ul>
                                 </div>
                                 <div class="col-sm-4">
                                     <h3 class="footer-widget-title">Online store</h3>
                                     <ul class="epc-footer-menu">
-                                        <li><a href="@StorefrontPhpCanonical.Cart">Cart</a></li>
-                                        <li><a href="@StorefrontPhpCanonical.Checkout">Checkout</a></li>
+                                        <li><a href="@StorefrontSurfaceLinks.Cart">Cart</a></li>
+                                        <li><a href="@StorefrontSurfaceLinks.Checkout">Checkout</a></li>
                                         @if (_signedIn)
                                         {
-                                            <li><a href="@StorefrontPhpCanonical.Orders">My account</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.Orders">My account</a></li>
                                             <li><a href="/storefront/logout">Log out</a></li>
                                         }
                                         else
                                         {
-                                            <li><a href="@StorefrontPhpCanonical.Login">Customer login</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.Login">Customer login</a></li>
                                         }
                                         <li><a href="/erp">ERP Login</a></li>
                                     </ul>
@@ -338,7 +338,7 @@
                             <h3 class="footer-widget-title">Send request</h3>
                             <p>Need help finding a part? Send a request to our sales team.</p>
                             <div class="input-group">
-                                <a class="btn btn-block btn-ar btn-primary" href="@StorefrontPhpCanonical.SellerRequest">Send a request to seller</a>
+                                <a class="btn btn-block btn-ar btn-primary" href="@StorefrontSurfaceLinks.SellerRequest">Send a request to seller</a>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -373,7 +373,7 @@
     </div>
 
     <div id="epc-ai-expert-widget" class="epc-ai-expert-widget" aria-live="polite">
-        <a class="epc-ai-expert-widget__launcher" href="@StorefrontPhpCanonical.PartSearch" title="AI Parts Expert — part number lookup">
+        <a class="epc-ai-expert-widget__launcher" href="@StorefrontSurfaceLinks.PartSearch" title="AI Parts Expert — part number lookup">
             <span class="epc-ai-expert-widget__launcher-icon"><i class="fa fa-search" aria-hidden="true"></i></span>
             <span class="epc-ai-expert-widget__launcher-label">AI Parts Expert</span>
             <span class="epc-ai-expert-widget__live">Live</span>
@@ -382,10 +382,10 @@
 
     <nav class="epc-bottom-dock" aria-label="Quick dock">
         <a href="/"><i class="fa fa-home" aria-hidden="true"></i><span>Home</span></a>
-        <a href="@StorefrontPhpCanonical.PartSearch"><i class="fa fa-search" aria-hidden="true"></i><span>Search</span></a>
-        <a href="@StorefrontPhpCanonical.Cart"><i class="fa fa-shopping-cart" aria-hidden="true"></i><span>Cart</span></a>
-        <a href="@StorefrontPhpCanonical.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i><span>Garage</span></a>
-        <a href="@StorefrontPhpCanonical.Login"><i class="fa fa-user" aria-hidden="true"></i><span>Account</span></a>
+        <a href="@StorefrontSurfaceLinks.PartSearch"><i class="fa fa-search" aria-hidden="true"></i><span>Search</span></a>
+        <a href="@StorefrontSurfaceLinks.Cart"><i class="fa fa-shopping-cart" aria-hidden="true"></i><span>Cart</span></a>
+        <a href="@StorefrontSurfaceLinks.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i><span>Garage</span></a>
+        <a href="@StorefrontSurfaceLinks.Login"><i class="fa fa-user" aria-hidden="true"></i><span>Account</span></a>
     </nav>
 </div>
 
