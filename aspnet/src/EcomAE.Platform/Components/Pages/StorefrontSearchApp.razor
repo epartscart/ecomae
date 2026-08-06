@@ -96,15 +96,22 @@
             <h2>Select manufacturer for <strong>@_normalized</strong></h2>
             @if (_brands.Count == 0)
             {
-                <p>No warehouse brands found for this article. Try another part number or open warehouse / more info search.</p>
+                <p>No manufacturers found for this article (warehouse + local crosses). Try another part number or open warehouse / more info search.</p>
+                @if (!string.IsNullOrWhiteSpace(_message))
+                {
+                    <div style="margin-top:.5rem;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:.4rem;padding:.5rem .7rem;font-size:12px;">
+                        Brand lookup: <strong>@_source</strong> — @_message
+                    </div>
+                }
             }
             else
             {
                 <div class="epc-sf-brand-grid">
                     @foreach (var brand in _brands)
                     {
-                        var href = PhpPartSearchHref(_articleInput, brand.Brand);
-                        <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(href)">@brand.Brand</a>
+                        var href = "/storefront/search-app?article=" + Uri.EscapeDataString(_articleInput)
+                                   + "&brend=" + Uri.EscapeDataString(brand.Brand);
+                        <a href="@href">@brand.Brand</a>
                     }
                 </div>
             }
