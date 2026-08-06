@@ -10,6 +10,6 @@
     <PackageReference Include="MySqlConnector" Version="2.6.1" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Migration/Data/erp-guide-modules.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Update="Migration/Data/erp-guide-modules.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
