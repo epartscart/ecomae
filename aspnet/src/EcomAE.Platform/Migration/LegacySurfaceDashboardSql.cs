@@ -1474,8 +1474,91 @@ public static class LegacySurfaceDashboardSql
         """;
 
     /// <summary>
-    /// Batch 4 storefront part search (mirrors PHP <c>docpart_sql_article_normalized_expr</c> on article).
-    /// Read-only — cart/checkout and full PHP part_search tabs remain PHP.
+    /// PHP <c>docpart_sql_article_normalized_expr()</c> — exactly 15 REPLACE layers + UPPER.
+    /// <paramref name="columnSql"/> must be a trusted column identifier (never user input).
+    /// </summary>
+    public static string DocpartNormalizeArticleExpr(string columnSql)
+    {
+        // Order matches content/shop/docpart/docpart_article_match.php
+        return "UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE("
+             + "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE("
+             + columnSql
+             + ", ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '\"', ''), '.', ''), ',', ''), '#', ''), "
+             + "CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), ''))";
+    }
+
+    /// <summary>
+    /// PHP two-step article match: indexed <c>article_search</c> primary, REPLACE normalize fallback.
+    /// When <paramref name="hasArticleSearchColumn"/> is true and <paramref name="useReplaceFallback"/> is false,
+    /// returns equality on <c>article_search</c> only (no OR REPLACE — avoids full scans).
+    /// </summary>
+    public static string StorefrontPriceArticleMatchSql(bool hasArticleSearchColumn, bool useReplaceFallback = false)
+    {
+        var art = DocpartNormalizeArticleExpr("IFNULL(d.`article`, '')");
+        var show = DocpartNormalizeArticleExpr("IFNULL(d.`article_show`, '')");
+        if (hasArticleSearchColumn && !useReplaceFallback)
+        {
+            return "(d.`article_search` = @article)";
+        }
+
+        return $"({art} = @article OR {show} = @article)";
+    }
+
+    /// <summary>PHP <c>article_search IN (...)</c> for expanded cross-candidate lists.</summary>
+    public static string StorefrontPriceArticleSearchInSql(int count)
+    {
+        if (count <= 0)
+        {
+            return "0";
+        }
+
+        var placeholders = BuildIndexedParams("a", count);
+        return $"(d.`article_search` IN ({placeholders}))";
+    }
+
+    /// <summary>REPLACE-normalize IN match on article/article_show (fallback when article_search misses).</summary>
+    public static string StorefrontPriceArticleReplaceInSql(int count)
+    {
+        if (count <= 0)
+        {
+            return "0";
+        }
+
+        var art = DocpartNormalizeArticleExpr("IFNULL(d.`article`, '')");
+        var show = DocpartNormalizeArticleExpr("IFNULL(d.`article_show`, '')");
+        var placeholders = BuildIndexedParams("a", count);
+        return $"({art} IN ({placeholders}) OR {show} IN ({placeholders}))";
+    }
+
+    private static string BuildIndexedParams(string prefix, int count)
+    {
+        var parts = new string[count];
+        for (var i = 0; i < count; i++)
+        {
+            parts[i] = "@" + prefix + i.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        return string.Join(",", parts);
+    }
+
+    /// <summary>
+    /// Cross-table match: prefer indexed <c>article_search</c>/<c>analog_search</c> when probed.
+    /// </summary>
+    public static string StorefrontCrossArticleMatchSql(bool hasAnalogsSearchColumns = false)
+    {
+        if (hasAnalogsSearchColumns)
+        {
+            return "(`article_search` = @article OR `analog_search` = @article)";
+        }
+
+        var art = DocpartNormalizeArticleExpr("IFNULL(`article`, '')");
+        var analog = DocpartNormalizeArticleExpr("IFNULL(`analog`, '')");
+        return $"({art} = @article OR {analog} = @article)";
+    }
+
+    /// <summary>
+    /// Batch 4 storefront part search (PHP warehouse offers after brand pick).
+    /// Placeholder <c>{ARTICLE_MATCH}</c> is replaced at runtime via match helpers.
     /// </summary>
     public const string SelectStorefrontPartSearch = """
         SELECT d.`price_id`, IFNULL(p.`name`, '') AS price_list,
@@ -1487,8 +1570,8 @@ public static class LegacySurfaceDashboardSql
                IFNULL(d.`exist`, 0) AS exist,
                IFNULL(d.`storage`, '') AS storage
         FROM `shop_docpart_prices_data` d
-        INNER JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
-        WHERE UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(d.`article`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) = @article
+        LEFT JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
+        WHERE {ARTICLE_MATCH}
           AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
           AND IFNULL(d.`price`, 0) > 0
           AND (@brand = '' OR UPPER(TRIM(d.`manufacturer`)) = @brand
@@ -1497,29 +1580,30 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>Article-only part search — warehouse manufacturers for normalized article (PHP brand picker).</summary>
+    /// <summary>
+    /// Article-only warehouse manufacturers (PHP <c>epc_chpu_distinct_warehouse_brands_for_article</c>).
+    /// No price&gt;0 filter — CHPU brand query does not require priced rows.
+    /// </summary>
     public const string SelectStorefrontArticleWarehouseBrands = """
         SELECT MIN(TRIM(d.`manufacturer`)) AS brand_name
         FROM `shop_docpart_prices_data` d
-        INNER JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
-        WHERE UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(d.`article`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) = @article
+        LEFT JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
+        WHERE {ARTICLE_MATCH}
           AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
-          AND IFNULL(d.`price`, 0) > 0
           AND TRIM(IFNULL(d.`manufacturer`, '')) != ''
         GROUP BY UPPER(TRIM(d.`manufacturer`))
         ORDER BY UPPER(TRIM(d.`manufacturer`)) ASC
         LIMIT @limit
         """;
 
-    /// <summary>Cross-reference partners for normalized article (PHP <c>docpart_load_interchange_partners</c> first round).</summary>
+    /// <summary>Cross-reference partners for normalized article (PHP <c>docpart_load_interchange_partners</c>).</summary>
     public const string SelectStorefrontArticleCrossPairs = """
         SELECT IFNULL(`manufacturer_article`, '') AS source_brand,
                IFNULL(`article`, '') AS source_article,
                IFNULL(`manufacturer_analog`, '') AS cross_brand,
                IFNULL(`analog`, '') AS cross_article
         FROM `shop_docpart_articles_analogs_list`
-        WHERE UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`article`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) = @article
-           OR UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`analog`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) = @article
+        WHERE {CROSS_MATCH}
         LIMIT @limit
         """;
 

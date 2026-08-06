@@ -392,10 +392,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_articles_analogs_list", LegacySurfaceDashboardSql.SelectCpCrossPairs, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
-        Assert.DoesNotContain("article_search", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("@brand", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
+        Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_articles_analogs_list", LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs, StringComparison.Ordinal);
+        Assert.Contains("{CROSS_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs, StringComparison.Ordinal);
+        Assert.Equal(15, CountOccurrences(LegacySurfaceDashboardSql.DocpartNormalizeArticleExpr("`article`"), "REPLACE("));
         Assert.Contains("shop_carts", LegacySurfaceDashboardSql.SelectStorefrontCartSummary, StringComparison.Ordinal);
         Assert.Contains("shop_carts", LegacySurfaceDashboardSql.SelectStorefrontCartLines, StringComparison.Ordinal);
         Assert.Contains("t2_exist", LegacySurfaceDashboardSql.SelectStorefrontCartLines, StringComparison.Ordinal);
@@ -517,6 +520,19 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains(queue, q => q.Id == "pending_einvoice" && q.Count == 1);
         Assert.DoesNotContain(queue, q => q.Id == "unposted_gl");
         Assert.DoesNotContain(queue, q => q.Id == "low_stock");
+    }
+
+    private static int CountOccurrences(string haystack, string needle)
+    {
+        var count = 0;
+        var idx = 0;
+        while ((idx = haystack.IndexOf(needle, idx, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            idx += needle.Length;
+        }
+
+        return count;
     }
 
     private sealed class UnconfiguredFactory : ITenantDbConnectionFactory
