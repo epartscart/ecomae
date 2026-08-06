@@ -90,6 +90,12 @@
        CP top menu (and Super ERP tabs) dead. *@
     <PhpBocTopnavBinder />
 }
+@if (Surface.Equals("bos", StringComparison.OrdinalIgnoreCase))
+{
+    @* Delegated BOS black topnav click binder — PHP uses click+is-open, not hover.
+       Install on first full /bos load (often login) so enhanced nav keeps menus live. *@
+    <PhpBosTopnavBinder />
+}
 </HeadContent>
 
 @code {
