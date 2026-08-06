@@ -95,10 +95,12 @@ p{color:#94a3b8;line-height:1.6;margin:0}
 <body>
 <div class="card">
 <h1>Loading your store...</h1>
-<p>The page is warming up. It will reload automatically.</p>
+<p>The page is warming up. Opening the storefront shortly.</p>
 <div class="bar"><span></span></div>
 <p class="hint">This only happens briefly after a server update.</p>
+<a href="/" style="display:inline-block;margin-top:1.25rem;color:#38bdf8">Open storefront now</a>
 </div>
+<script>setTimeout(function(){location.replace("/");},8000);</script>
 </body>
 </html>';
 }

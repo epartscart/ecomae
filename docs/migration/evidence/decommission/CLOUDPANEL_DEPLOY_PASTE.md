@@ -2,6 +2,26 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
+## 0🚨) STUCK ON “Loading your store…” — fix warm-up loop (do immediately)
+
+**Symptom:** `/` may load, but any click (search / garage / login) stays on warm-up for minutes.
+
+**Cause:** tenant nginx stub locations `302 /storefront/*-app → /en/…` + PHP pause (`/en/` → 503) + `error_page` → `epc-platform-splash.html` (self-reload trap).
+
+```bash
+# Prefer fix branch until merged; then use main
+ECOMAE_BRANCH=cursor/fix-warmup-splash-storefront-loop-7b3b \
+ECOMAE_CONFIRM_FIX_WARMUP_SPLASH_LOOP=YES \
+ECOMAE_ALSO_FORCE_LIVE=YES \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/fix-warmup-splash-storefront-loop-7b3b/scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh)"
+# Expect RESULT=PASS — /storefront/app and /storefront/search-app are NOT splash
+# Shopper: hard-refresh or open https://www.epartscart.com/
+#
+# If still FAIL, temporarily restore PHP /en/ fallbacks:
+# cd /opt/ecomae-aspnet-source
+# ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES bash scripts/cloudpanel_restore_php_reference_serving.sh
+```
+
 ## 0◆) TEMP ASP.NET-ONLY DEEP TEST — pause PHP HTTP (incl. `/php-reference`)
 
 `#885` is on `main`. Protocol: **no new PHP feature work**. Pause PHP HTTP so ASP.NET Core can be deep-tested. Files stay on disk (`KeepPhpProjectAvailable=true`). `cutoverAllowed` / `readyForPhpRemoval` stay **false**.
