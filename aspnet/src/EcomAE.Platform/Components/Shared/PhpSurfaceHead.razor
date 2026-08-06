@@ -81,11 +81,13 @@
     <meta name="ecomae-chrome-surface" content="@Surface" />
     <meta name="ecomae-chrome-hero" content="@(IncludeLoginCss || ApplyStorefrontIndustryAttrs || IncludeBosLoginScripts || IncludeMarketingScripts || IsBosSurface ? "1" : "0")" />
 
-@if (Surface.Equals("cp", StringComparison.OrdinalIgnoreCase))
+@if (Surface.Equals("cp", StringComparison.OrdinalIgnoreCase)
+     || Surface.Equals("erp", StringComparison.OrdinalIgnoreCase))
 {
-    @* Delegated BOC mega-menu binder installs on the FIRST full CP page load
-       (often /cp/login) — Blazor enhanced navigation never executes scripts
-       that arrive with swapped content, which left the Super CP top menu dead. *@
+    @* Delegated BOC mega-menu + Super ERP tab binder installs on the FIRST full
+       page load (often the login page) — Blazor enhanced navigation never
+       executes scripts that arrive with swapped content, which left the Super
+       CP top menu (and Super ERP tabs) dead. *@
     <PhpBocTopnavBinder />
 }
 </HeadContent>

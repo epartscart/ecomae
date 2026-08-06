@@ -136,6 +136,36 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Equal(15, nav.Count);
     }
 
+    [Fact]
+    public void ErpHomeBranchesSuperVsTenant()
+    {
+        // Mirrors PHP: ecomae.com /erp is the SUPER ERP (fleet command center,
+        // epc_super_erp_fleet_dashboard.php), never one tenant's books.
+        var app = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
+        Assert.Contains("PlatformHostPolicy.IsSuperCpHost", app, StringComparison.Ordinal);
+        Assert.Contains("<PhpSuperErpFleetDashboard", app, StringComparison.Ordinal);
+
+        var fleet = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperErpFleetDashboard.razor"));
+        Assert.Contains("Super ERP — Fleet Command Center", fleet, StringComparison.Ordinal);
+        Assert.Contains("sep-hero", fleet, StringComparison.Ordinal);
+        Assert.Contains("sep-erp-grid", fleet, StringComparison.Ordinal);
+        Assert.Contains("data-sep-tab", fleet, StringComparison.Ordinal);
+        // All five live tenant instances (same as the PHP fleet dashboard).
+        foreach (var tenant in new[] { "eParts Cart", "Electronicae", "Style N Look", "The Jewellery Trend", "Taxofinca" })
+        {
+            Assert.Contains(tenant, fleet, StringComparison.Ordinal);
+        }
+
+        // The 22 ERP feature modules registry.
+        foreach (var module in new[] { "SLA Agreements", "Gold Rate API", "AML Compliance", "RFID System", "Landed Cost V2" })
+        {
+            Assert.Contains(module, fleet, StringComparison.Ordinal);
+        }
+
+        // Fleet console never queries a single tenant's ERP digests.
+        Assert.DoesNotContain("BuildErpAsync", fleet, StringComparison.Ordinal);
+    }
+
     private static string Find(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

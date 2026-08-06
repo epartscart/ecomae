@@ -47,6 +47,19 @@
     }
 
     document.addEventListener('click', function (e) {
+        // Super ERP fleet dashboard tabs (sep-tab / sepPanel*) — same delegation
+        // so they survive Blazor enhanced navigation too.
+        var sepTab = e.target && e.target.closest ? e.target.closest('[data-sep-tab]') : null;
+        if (sepTab) {
+            e.preventDefault();
+            document.querySelectorAll('.sep-tab').forEach(function (t) { t.classList.remove('sep-tab--active'); });
+            document.querySelectorAll('.sep-panel').forEach(function (p) { p.classList.remove('sep-panel--active'); });
+            sepTab.classList.add('sep-tab--active');
+            var panel = document.getElementById('sepPanel' + sepTab.getAttribute('data-sep-tab'));
+            if (panel) { panel.classList.add('sep-panel--active'); }
+            return;
+        }
+
         var r = root();
         if (!r) { return; }
         try { document.body.classList.add('epc-boc-mode'); } catch (err) { }

@@ -1,0 +1,264 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@*
+  Super ERP — Fleet Command Center. Port of PHP
+  cp/content/control/portal/epc_super_erp_fleet_dashboard.php: fleet-wide ERP
+  visibility (live tenant ERP instances, 22 feature modules, BOS full-control
+  panel). Renders as the /erp home on the platform hosts only.
+*@
+
+<div class="sep-fleet">
+    <div class="sep-hero">
+        <h1><i class="fa fa-calculator"></i> Super ERP — Fleet Command Center</h1>
+        <p>Fleet-wide ERP visibility — every tenant instance, industry pack, and feature module in one command view.</p>
+        <a href="/bos" class="bos-link"><i class="fa fa-server"></i> Open BOS — Full Fleet Control</a>
+    </div>
+
+    <div class="sep-stats">
+        <div class="sep-stat"><div class="sep-stat__val">@_erpInstances.ToString("N0")</div><div class="sep-stat__label">ERP Instances</div></div>
+        <div class="sep-stat"><div class="sep-stat__val">@ErpModules.Count</div><div class="sep-stat__label">ERP Modules</div></div>
+        <div class="sep-stat"><div class="sep-stat__val">@DemoIndustries.Count</div><div class="sep-stat__label">Industry Groups</div></div>
+        <div class="sep-stat"><div class="sep-stat__val">@LiveTenants.Length</div><div class="sep-stat__label">Live Tenants</div></div>
+        <div class="sep-stat"><div class="sep-stat__val">@ErpModules.Count</div><div class="sep-stat__label">Feature Modules</div></div>
+    </div>
+
+    <div class="sep-tabs">
+        <div class="sep-tab sep-tab--active" data-sep-tab="Instances">ERP Instances</div>
+        <div class="sep-tab" data-sep-tab="Modules">Modules (@ErpModules.Count)</div>
+        <div class="sep-tab" data-sep-tab="Bos">BOS Control</div>
+    </div>
+
+    <!-- Panel: ERP Instances -->
+    <div class="sep-panel sep-panel--active" id="sepPanelInstances">
+        <div class="sep-erp-grid">
+            @foreach (var live in LiveTenants)
+            {
+                <div class="sep-erp-card">
+                    <div class="sep-erp-card__head">
+                        <div class="sep-erp-card__icon" style="background:@live.Color"><i class="fa @live.Icon"></i></div>
+                        <div>
+                            <div class="sep-erp-card__title">@live.Name</div>
+                            <div class="sep-erp-card__subtitle">@live.Domain • @live.Industry</div>
+                        </div>
+                    </div>
+                    <div class="sep-erp-card__modules">
+                        <span class="sep-erp-card__module">SLA</span>
+                        <span class="sep-erp-card__module">Tickets</span>
+                        <span class="sep-erp-card__module">Reports</span>
+                        <span class="sep-erp-card__module">+19 more</span>
+                    </div>
+                    <div class="sep-erp-card__actions">
+                        <a href="https://www.@(live.Domain)/erp" target="_blank" rel="noopener" class="sep-erp-card__btn sep-erp-card__btn--erp"><i class="fa fa-calculator"></i> Open ERP</a>
+                        <a href="https://www.@(live.Domain)/cp" target="_blank" rel="noopener" class="sep-erp-card__btn sep-erp-card__btn--cp"><i class="fa fa-th-large"></i> CP</a>
+                    </div>
+                </div>
+            }
+
+            @foreach (var demo in DemoIndustries)
+            {
+                <div class="sep-erp-card" style="border-style:dashed;opacity:.85">
+                    <div class="sep-erp-card__head">
+                        <div class="sep-erp-card__icon" style="background:@demo.Color"><i class="fa @demo.Icon"></i></div>
+                        <div>
+                            <div class="sep-erp-card__title">Demo: @demo.Label</div>
+                            <div class="sep-erp-card__subtitle">@(demo.Slug).ecomae.com • Demo environment</div>
+                        </div>
+                    </div>
+                    <div class="sep-erp-card__modules">
+                        @foreach (var m in ErpModules.Take(4))
+                        {
+                            <span class="sep-erp-card__module">@m.Value</span>
+                        }
+                    </div>
+                    <div class="sep-erp-card__actions">
+                        <a href="@demo.ErpUrl" target="_blank" rel="noopener" class="sep-erp-card__btn sep-erp-card__btn--erp"><i class="fa fa-calculator"></i> Demo ERP</a>
+                        <a href="@demo.CpUrl" target="_blank" rel="noopener" class="sep-erp-card__btn sep-erp-card__btn--cp"><i class="fa fa-th-large"></i> Demo CP</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Panel: Modules -->
+    <div class="sep-panel" id="sepPanelModules">
+        <p style="margin:0 0 16px;color:#64748b;font-size:13px">All @ErpModules.Count ERP feature modules available across every industry tenant. Each module auto-creates its schema on first access.</p>
+        <div class="sep-module-grid">
+            @foreach (var m in ErpModules)
+            {
+                <div class="sep-module-card">
+                    <div class="sep-module-card__icon"><i class="fa fa-check-circle"></i></div>
+                    <div class="sep-module-card__info">
+                        <div class="sep-module-card__name">@m.Value</div>
+                        <div class="sep-module-card__status">Active — All tenants</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Panel: BOS Control -->
+    <div class="sep-panel" id="sepPanelBos">
+        <div class="sep-bos-section">
+            <h3 style="margin:0 0 4px;font-size:18px;color:#991b1b"><i class="fa fa-server"></i> Business Operating System — Full Fleet Control</h3>
+            <p style="margin:0;font-size:13px;color:#7f1d1d">Platform-wide administration for all tenants, ERP instances, and infrastructure.</p>
+            <div class="sep-bos-grid">
+                <a href="/bos" class="sep-bos-action"><i class="fa fa-dashboard"></i><div class="sep-bos-action__title">BOS Dashboard</div><div class="sep-bos-action__desc">Fleet overview and health metrics</div></a>
+                <a href="/bos/tenants-app" class="sep-bos-action"><i class="fa fa-users"></i><div class="sep-bos-action__title">Tenant Management</div><div class="sep-bos-action__desc">Add, suspend, configure tenants</div></a>
+                <a href="/bos/fleet-summary-app" class="sep-bos-action"><i class="fa fa-th-large"></i><div class="sep-bos-action__title">Module Registry</div><div class="sep-bos-action__desc">Enable/disable modules per tenant</div></a>
+                <a href="/bos/fleet-readiness-app" class="sep-bos-action"><i class="fa fa-credit-card"></i><div class="sep-bos-action__title">Subscription Billing</div><div class="sep-bos-action__desc">Plans, invoices, MRR tracking</div></a>
+                <a href="/bos/fleet-health-app" class="sep-bos-action"><i class="fa fa-heartbeat"></i><div class="sep-bos-action__title">Health Monitor</div><div class="sep-bos-action__desc">Uptime, errors, performance</div></a>
+                <a href="/bos/audit-log-app" class="sep-bos-action"><i class="fa fa-database"></i><div class="sep-bos-action__title">Backup &amp; Recovery</div><div class="sep-bos-action__desc">Daily backups, point-in-time restore</div></a>
+                <a href="/bos/audit-log-app" class="sep-bos-action"><i class="fa fa-shield"></i><div class="sep-bos-action__title">Security Center</div><div class="sep-bos-action__desc">MFA, audit logs, isolation checks</div></a>
+                <a href="/bos/fleet-readiness-app" class="sep-bos-action"><i class="fa fa-rocket"></i><div class="sep-bos-action__title">Deployment</div><div class="sep-bos-action__desc">Release management, rollbacks</div></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.sep-fleet{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.sep-hero{background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);padding:32px;border-radius:16px;margin-bottom:24px;position:relative;overflow:hidden}
+.sep-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba(16,185,129,.15),transparent 40%),radial-gradient(circle at 70% 30%,rgba(139,92,246,.12),transparent 40%);pointer-events:none}
+.sep-hero::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0z' fill='none'/%3E%3Ccircle cx='20' cy='20' r='0.5' fill='white' opacity='0.1'/%3E%3C/svg%3E");animation:drift 20s linear infinite}
+@@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-40px)}}
+.sep-hero h1{color:#fff;font-size:28px;font-weight:800;margin:0 0 8px;position:relative;z-index:1}
+.sep-hero p{color:#94a3b8;font-size:14px;margin:0;position:relative;z-index:1}
+.sep-hero .bos-link{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 16px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.4);border-radius:8px;color:#f87171;font-size:12px;font-weight:600;text-decoration:none;transition:all .2s;position:relative;z-index:1}
+.sep-hero .bos-link:hover{background:rgba(220,38,38,.25);transform:translateY(-1px)}
+.sep-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.sep-stat{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;text-align:center;transition:all .2s}
+.sep-stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.05)}
+.sep-stat__val{font-size:28px;font-weight:800;color:#1d4ed8}
+@@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+.sep-stat__val{background:linear-gradient(135deg,#10b981,#3b82f6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+}
+.sep-stat__label{font-size:11px;color:#64748b;margin-top:2px}
+.sep-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid #e2e8f0;padding-bottom:0}
+.sep-tab{padding:10px 20px;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.sep-tab:hover{color:#1e293b}
+.sep-tab--active{color:#3b82f6;border-bottom-color:#3b82f6}
+.sep-panel{display:none}
+.sep-panel--active{display:block}
+.sep-erp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.sep-erp-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;transition:all .2s;animation:fadeUp .4s ease-out both}
+.sep-erp-card:hover{border-color:#10b981;box-shadow:0 4px 16px rgba(16,185,129,.1)}
+.sep-erp-card__head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sep-erp-card__icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+.sep-erp-card__title{font-size:15px;font-weight:700;color:#1e293b}
+.sep-erp-card__subtitle{font-size:11px;color:#64748b}
+.sep-erp-card__modules{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px}
+.sep-erp-card__module{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:600;background:#ecfdf5;color:#059669}
+.sep-erp-card__actions{display:flex;gap:6px;flex-wrap:wrap}
+.sep-erp-card__btn{padding:7px 14px;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;color:#fff;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.sep-erp-card__btn:hover{transform:scale(1.03);text-decoration:none}
+.sep-erp-card__btn--erp{background:#059669}
+.sep-erp-card__btn--cp{background:#7c3aed}
+.sep-erp-card__btn--bos{background:#dc2626}
+.sep-module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sep-module-card{padding:16px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;display:flex;align-items:center;gap:12px;transition:all .2s}
+.sep-module-card:hover{border-color:#3b82f6;box-shadow:0 2px 8px rgba(59,130,246,.08)}
+.sep-module-card__icon{width:36px;height:36px;border-radius:8px;background:#eff6ff;display:flex;align-items:center;justify-content:center}
+.sep-module-card__icon i{color:#3b82f6;font-size:14px}
+.sep-module-card__info{flex:1}
+.sep-module-card__name{font-size:13px;font-weight:600;color:#1e293b}
+.sep-module-card__status{font-size:11px;color:#059669}
+.sep-bos-section{padding:24px;background:linear-gradient(135deg,#fef2f2,#fee2e2);border:1px solid #fecaca;border-radius:12px;margin:24px 0}
+.sep-bos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px}
+.sep-bos-action{padding:14px;background:#fff;border:1px solid #fecaca;border-radius:8px;text-align:center;text-decoration:none;color:#1e293b;transition:all .2s;display:block}
+.sep-bos-action:hover{border-color:#dc2626;box-shadow:0 2px 8px rgba(220,38,38,.1);transform:translateY(-2px);text-decoration:none}
+.sep-bos-action i{font-size:20px;color:#dc2626;display:block;margin-bottom:6px}
+.sep-bos-action__title{font-size:12px;font-weight:600}
+.sep-bos-action__desc{font-size:10px;color:#64748b;margin-top:2px}
+@@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+@code {
+    private int _erpInstances;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var health = await Dashboards.BuildBosFleetHealthAsync(200);
+        _erpInstances = Math.Max(health.Summary.PortalTenants, LiveTenants.Length);
+    }
+
+    private sealed record LiveTenant(string Name, string Domain, string Key, string Icon, string Color, string Industry);
+    private sealed record DemoIndustry(string Slug, string Label, string Icon, string Color, string ErpUrl, string CpUrl);
+
+    // Same five live instances the PHP fleet dashboard shows.
+    private static readonly LiveTenant[] LiveTenants =
+    [
+        new("eParts Cart", "epartscart.com", "epartscart", "fa-car", "#dc2626", "Automotive"),
+        new("Electronicae", "electronicae.com", "electronicae", "fa-microchip", "#1e40af", "Electronics"),
+        new("Style N Look", "stylenlook.com", "stylenlook", "fa-shopping-bag", "#9333ea", "Fashion"),
+        new("The Jewellery Trend", "thejewellerytrend.com", "thejewellerytrend", "fa-diamond", "#b45309", "Jewellery"),
+        new("Taxofinca", "taxofinca.com", "taxofinca", "fa-briefcase", "#0369a1", "Professional Services"),
+    ];
+
+    private static readonly IReadOnlyDictionary<string, (string Icon, string Color)> IndustryIconMap =
+        new Dictionary<string, (string, string)>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["automotive"] = ("fa-car", "#dc2626"),
+            ["healthcare"] = ("fa-heartbeat", "#0d9488"),
+            ["food"] = ("fa-cutlery", "#ea580c"),
+            ["fashion"] = ("fa-shopping-bag", "#9333ea"),
+            ["jewellery"] = ("fa-diamond", "#b45309"),
+            ["electronics"] = ("fa-microchip", "#1e40af"),
+            ["construction"] = ("fa-building", "#57534e"),
+            ["manufacturing"] = ("fa-industry", "#334155"),
+            ["professional"] = ("fa-briefcase", "#0369a1"),
+            ["education"] = ("fa-graduation-cap", "#7c3aed"),
+            ["hospitality"] = ("fa-plane", "#0891b2"),
+            ["beauty"] = ("fa-magic", "#db2777"),
+            ["retail"] = ("fa-shopping-cart", "#16a34a"),
+            ["agriculture"] = ("fa-leaf", "#65a30d"),
+            ["logistics"] = ("fa-truck", "#b91c1c"),
+            ["energy"] = ("fa-bolt", "#ca8a04"),
+            ["finance"] = ("fa-university", "#1d4ed8"),
+            ["technology"] = ("fa-code", "#4f46e5"),
+            ["media"] = ("fa-film", "#e11d48"),
+            ["sports"] = ("fa-futbol-o", "#059669"),
+        };
+
+    private static readonly IReadOnlyList<DemoIndustry> DemoIndustries = BuildDemoIndustries();
+
+    private static IReadOnlyList<DemoIndustry> BuildDemoIndustries()
+    {
+        var list = new List<DemoIndustry>();
+        foreach (var host in EcomaeIndustryShowcaseHosts.All)
+        {
+            var (icon, color) = IndustryIconMap.TryGetValue(host.Slug, out var hit) ? hit : ("fa-cube", "#3b82f6");
+            list.Add(new DemoIndustry(host.Slug, host.Title, icon, color, host.ErpUrl, host.CpUrl));
+        }
+
+        return list;
+    }
+
+    // The 22 ERP feature modules (PHP $erpModules — PR #121 registry).
+    private static readonly IReadOnlyList<KeyValuePair<string, string>> ErpModules =
+    [
+        new("sla", "SLA Agreements"),
+        new("tickets", "Ticket System"),
+        new("doc_attachment", "Document Attachments"),
+        new("customer_groups", "Customer Groups"),
+        new("gold_scheme", "Gold Scheme"),
+        new("gold_rate", "Gold Rate API"),
+        new("ecommerce_integration", "E-Commerce Integration"),
+        new("data_migration", "Data Migration"),
+        new("crm_integration", "CRM Integration"),
+        new("report_scheduler", "Report Scheduler"),
+        new("aml_compliance", "AML Compliance"),
+        new("jewellery_tag", "Jewellery TAG"),
+        new("tourist_refund", "Tourist Refund"),
+        new("card_reader", "Card Reader"),
+        new("shortcut_icons", "Shortcut Icons"),
+        new("drilldown", "Report Drill-Down"),
+        new("barcode_purchase", "Barcode Purchase"),
+        new("fix_unfix", "Fix/Unfix Trading"),
+        new("virtual_warehouse", "Virtual Warehouse"),
+        new("rfid", "RFID System"),
+        new("inventory_report", "Inventory Report"),
+        new("landed_cost_v2", "Landed Cost V2"),
+    ];
+}
