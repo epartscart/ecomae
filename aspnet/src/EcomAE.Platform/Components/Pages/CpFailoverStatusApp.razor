@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -11,6 +12,8 @@
 
 <PageTitle>Failover status · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+@if (_allowed)
+{
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
     <style>
         .epc-w23-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%); }
@@ -53,8 +56,18 @@
     </table></div>
 
 </PhpCpDesktopChrome>
+}
+else
+{
+    <div style="padding:2rem;font-family:sans-serif;">
+        <h1>Not found</h1>
+        <p>Failover status is available on the platform Super CP host only.</p>
+        <p><a href="/cp">Open Control Panel</a></p>
+    </div>
+}
 @code {
     private const string _phpTab = "/CP/control/portal/epc_platform_failover_guide";
+    private bool _allowed;
     private bool _isAdmin;
     private CpFailoverStatusSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpFailoverStatusRowDigest> _rows = [];
@@ -63,7 +76,12 @@
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
+        _allowed = SuperCpHostGate.IsAllowed(ctx);
+        if (!_allowed || ctx is null)
+        {
+            return;
+        }
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)

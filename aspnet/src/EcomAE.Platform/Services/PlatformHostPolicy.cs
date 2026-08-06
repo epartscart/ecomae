@@ -67,6 +67,12 @@ public static class PlatformHostPolicy
     }
 
     /// <summary>
+    /// Super-only CP apps (tenants, demo tenants, tax toolkits, free-tools hub,
+    /// governance, failover, …) — same gate as <see cref="IsSuperCpHost"/>.
+    /// </summary>
+    public static bool AllowSuperOnlyApp(string? host) => IsSuperCpHost(host);
+
+    /// <summary>
     /// True when the request path is product BOS (not marketing <c>/bos/{article}</c> knowledge pages).
     /// </summary>
     public static bool IsProductBosPath(string? path)

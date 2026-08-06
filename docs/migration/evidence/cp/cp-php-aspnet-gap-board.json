@@ -1,0 +1,72 @@
+{
+  "role": "cp-php-aspnet-gap-board",
+  "branch": "cursor/cp-php-parity-modules-7b3b",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "hostRules": {
+    "superCpHosts": ["www.ecomae.com", "ecomae.com", "cp.ecomae.com"],
+    "superOnlyApps": [
+      "/cp/tenants-app",
+      "/cp/demo-tenants-app",
+      "/cp/tax-toolkits-app",
+      "/cp/free-tools-app",
+      "/cp/platform-governance-app",
+      "/cp/failover-status-app",
+      "/erp/fleet-app",
+      "/bos/*"
+    ],
+    "tenantChromeHides": [
+      "Platform topnav group",
+      "Operator topnav group",
+      "epc_super_cp_* brochure links",
+      "epc_tenant_features",
+      "epc_pos_tenant_manage",
+      "BOS / fleet Super links"
+    ],
+    "phpMirror": "epc_portal_cp_item_visible_enhanced"
+  },
+  "prFixes": {
+    "cpControlAmbiguousMatch": "Removed duplicate @page \"/cp/control/\" that AmbiguousMatchException'd against @page \"/cp/control\" (live HTTP 500 empty body).",
+    "mapCpPhpPathExpansion": "Added products/catalogue, customer_mgmt, crm, parts_agent, web_tracker, quote_requests, pos, fleet_dashboard/super_cp_fleet→/bos/fleet-health-app, super_erp_fleet→/erp/fleet-app, industry_packs, epc_tenant_control/tenant_hub, notifications, workflows, portal settings, info blocks, communication.",
+    "bocNavRemapMisses": "PhpSuperCpBocNav areas that still fell to /cp despite existing apps: epc_tenant_config→tenant-config-app, epc_design_tokens→design-tokens-app, epc_config_sandbox→config-sandbox-app, epc_mfa_management→auth-mfa-app, epc_db_migrations/import_orchestrator→data-migrations-app, epc_marketplace→marketplace-apps-app, epc_ai_*→ai-service-app, epc_boc_warehouse_control→warehouse-wms-app, epc_boc_vendor_control→/erp/suppliers-app, epc_boc_command_center→/cp/control, epc_document_vault→document-control-app, epc_bi_metrics→metabase-app, epc_readiness_score→/bos/fleet-readiness-app, industry_consolidation→industry-packs-app, shop/procurement→purchase-requests-app, shop/logistics/stock→/erp/inventory-stock-app, shop/logistics/logistics→delivery-methods-app, shop/logistics/custom_shipping→carriers-app, shop/price-management + epc_super_cp_price_configs→price-lists-app, sku_media→product-catalogue-app.",
+    "uaeTaxOrder": "uae-tax-compliance checked BEFORE epc_erp_shell /finance/erp → MapErpPhpPath swallow.",
+    "ecomaeAbsoluteDeepLinks": "AspNetPrimaryHref on *.ecomae.com /CP/... remaps via MapCpPhpPath (no host+/cp collapse for deep modules).",
+    "superHostGates": "SuperCpHostGate / PlatformHostPolicy.AllowSuperOnlyApp on tenants, demo-tenants, tax-toolkits, free-tools, governance, failover.",
+    "tenantChromeFilter": "ControlPanelTopnav(includeSuperOnly) filters Super brochure + Platform/Operator groups on non-Super hosts."
+  },
+  "moduleStatuses": [
+    { "phpMarker": "shop/catalogue/products|products/catalogue", "aspNet": "/cp/product-catalogue-app", "status": "mapped" },
+    { "phpMarker": "customer_mgmt", "aspNet": "/cp/users-app", "status": "mapped" },
+    { "phpMarker": "shop/crm", "aspNet": "/cp/crm-board-app", "status": "mapped" },
+    { "phpMarker": "parts_agent", "aspNet": "/cp/parts-agent-chats-app", "status": "mapped" },
+    { "phpMarker": "web_tracker", "aspNet": "/cp/web-tracker-app", "status": "mapped" },
+    { "phpMarker": "quote_requests", "aspNet": "/cp/quote-requests-app", "status": "mapped" },
+    { "phpMarker": "shop/pos", "aspNet": "/cp/pos-overview-app", "status": "mapped" },
+    { "phpMarker": "shop/statistics", "aspNet": null, "status": "gap", "note": "No dedicated ASP.NET statistics app; falls through to /cp or ops-guides if path contains guide." },
+    { "phpMarker": "super_cp_fleet|fleet_dashboard", "aspNet": "/bos/fleet-health-app", "status": "mapped", "superOnly": true },
+    { "phpMarker": "super_erp_fleet", "aspNet": "/erp/fleet-app", "status": "mapped", "superOnly": true },
+    { "phpMarker": "industry_packs|industry_settings", "aspNet": "/cp/industry-packs-app", "status": "mapped" },
+    { "phpMarker": "epc_tenant_control|tenant_hub", "aspNet": "/cp/tenants-app", "status": "mapped", "superOnly": true },
+    { "phpMarker": "uae-tax-compliance", "aspNet": "/cp/uae-tax-compliance-app", "status": "mapped" },
+    { "phpMarker": "epc_notifications", "aspNet": "/cp/notifications-app", "status": "mapped" },
+    { "phpMarker": "epc_workflow_builder", "aspNet": "/cp/workflows-app", "status": "mapped" },
+    { "phpMarker": "control/portal/portal", "aspNet": "/cp/portal-settings-app", "status": "mapped" },
+    { "phpMarker": "epc_super_cp_info_blocks", "aspNet": "/cp/info-blocks-app", "status": "mapped", "superOnly": true },
+    { "phpMarker": "epc_super_cp_communication", "aspNet": "/cp/platform-communication-app", "status": "mapped", "superOnly": true },
+    { "phpMarker": "*guide*|ops", "aspNet": "/cp/ops-guides-app", "status": "mapped" },
+    { "phpMarker": "/cp/control", "aspNet": "/cp/control", "status": "fixed", "note": "Command Centre; AmbiguousMatch removed." },
+    { "phpMarker": "epc_tenant_config", "aspNet": "/cp/tenant-config-app", "status": "mapped" },
+    { "phpMarker": "epc_design_tokens", "aspNet": "/cp/design-tokens-app", "status": "mapped" },
+    { "phpMarker": "epc_config_sandbox", "aspNet": "/cp/config-sandbox-app", "status": "mapped" },
+    { "phpMarker": "epc_mfa_management", "aspNet": "/cp/auth-mfa-app", "status": "mapped" },
+    { "phpMarker": "epc_db_migrations|epc_import_orchestrator", "aspNet": "/cp/data-migrations-app", "status": "mapped" },
+    { "phpMarker": "epc_marketplace", "aspNet": "/cp/marketplace-apps-app", "status": "mapped" },
+    { "phpMarker": "epc_ai_copilot|epc_ai_classification", "aspNet": "/cp/ai-service-app", "status": "mapped" },
+    { "phpMarker": "epc_boc_warehouse_control", "aspNet": "/cp/warehouse-wms-app", "status": "mapped" },
+    { "phpMarker": "epc_boc_vendor_control", "aspNet": "/erp/suppliers-app", "status": "mapped" },
+    { "phpMarker": "epc_boc_command_center", "aspNet": "/cp/control", "status": "mapped" },
+    { "phpMarker": "shop/procurement", "aspNet": "/cp/purchase-requests-app", "status": "mapped" },
+    { "phpMarker": "shop/logistics/stock", "aspNet": "/erp/inventory-stock-app", "status": "mapped" },
+    { "phpMarker": "shop/price-management|epc_super_cp_price_configs", "aspNet": "/cp/price-lists-app", "status": "mapped" }
+  ]
+}

@@ -17,11 +17,35 @@ public static class PhpSurfaceLinkMap
         ("control/shop/multivendor", "/cp"),
         ("control/shop/prices", "/cp/price-lists-app"),
         ("control/shop/pos", "/cp/pos-overview-app"),
+        ("control/portal/epc_super_cp_fleet_dashboard", "/bos/fleet-health-app"),
+        ("control/portal/epc_super_erp_fleet_dashboard", "/erp/fleet-app"),
+        ("control/portal/epc_super_cp_info_blocks", "/cp/info-blocks-app"),
+        ("control/portal/epc_super_cp_communication", "/cp/platform-communication-app"),
         ("control/portal/epc_tenant_control_center", "/cp/tenants-app"),
+        ("control/portal/epc_industry_packs", "/cp/industry-packs-app"),
+        ("control/portal/epc_notifications", "/cp/notifications-app"),
+        ("control/portal/epc_workflow_builder", "/cp/workflows-app"),
         ("shop/tenant_hub/tenant_hub", "/cp/tenants-app"),
         ("control/portal/epc_platform_health_checkup", "/cp/failover-status-app"),
         ("control/portal/epc_boc_audit_log", "/bos/audit-log-app"),
         ("control/portal/epc_boc_channel_control", "/cp/marketplace-channels-app"),
+        ("control/portal/epc_boc_warehouse_control", "/cp/warehouse-wms-app"),
+        ("control/portal/epc_boc_vendor_control", "/erp/suppliers-app"),
+        ("control/portal/epc_boc_command_center", "/cp/control"),
+        ("control/portal/epc_super_cp_price_configs", "/cp/price-lists-app"),
+        ("control/portal/epc_tenant_config", "/cp/tenant-config-app"),
+        ("control/portal/epc_design_tokens", "/cp/design-tokens-app"),
+        ("control/portal/epc_config_sandbox", "/cp/config-sandbox-app"),
+        ("control/portal/epc_db_migrations", "/cp/data-migrations-app"),
+        ("control/portal/epc_import_orchestrator", "/cp/data-migrations-app"),
+        ("control/portal/epc_mfa_management", "/cp/auth-mfa-app"),
+        ("control/portal/epc_marketplace", "/cp/marketplace-apps-app"),
+        ("control/portal/epc_ai_copilot", "/cp/ai-service-app"),
+        ("control/portal/epc_ai_classification", "/cp/ai-service-app"),
+        ("control/portal/epc_document_vault", "/cp/document-control-app"),
+        ("control/portal/epc_bi_metrics", "/cp/metabase-app"),
+        ("control/portal/epc_readiness_score", "/bos/fleet-readiness-app"),
+        ("control/portal/industry_consolidation", "/cp/industry-packs-app"),
         ("control/cp_brochure", "/brochure/cp"),
         ("control/portal/epc_api_clients_manage", "/cp/api-clients-app"),
         ("control/portal/epc_power_bi", "/cp/power-bi-app"),
@@ -43,19 +67,41 @@ public static class PhpSurfaceLinkMap
         ("control/portal/epc_free_tools", "/cp/free-tools-app"),
         ("control/portal/epc_pos_tenant", "/cp/pos-overview-app"),
         ("control/portal/tenant_control", "/cp/tenants-app"),
+        ("control/portal/portal", "/cp/portal-settings-app"),
         ("shop/parts_agent/parts_agent_chats", "/cp/parts-agent-chats-app"),
+        ("shop/parts_agent_chats", "/cp/parts-agent-chats-app"),
+        ("shop/parts_agent", "/cp/parts-agent-chats-app"),
         ("shop/document_control/document_control", "/cp/document-control-app"),
         ("shop/logistics/sposoby-polucheniya", "/cp/delivery-methods-app"),
+        ("shop/logistics/custom_shipping", "/cp/carriers-app"),
         ("shop/logistics/storages", "/cp/storages-app"),
+        ("shop/logistics/stock", "/erp/inventory-stock-app"),
+        ("shop/logistics/logistics", "/cp/delivery-methods-app"),
         ("shop/logistics/carriers", "/cp/carriers-app"),
+        ("shop/procurement/procurement", "/cp/purchase-requests-app"),
+        ("shop/procurement", "/cp/purchase-requests-app"),
+        ("shop/price-management", "/cp/price-lists-app"),
         ("shop/finance/nastrojka-kursov-valyut", "/cp/currencies-app"),
         ("shop/finance/epc_collections_dunning", "/cp/collections-dunning-app"),
         ("shop/finance/erp/uae-tax-compliance", "/cp/uae-tax-compliance-app"),
+        ("uae-tax-compliance", "/cp/uae-tax-compliance-app"),
         ("shop/catalogue/catalogue_editor", "/cp/product-catalogue-app"),
+        ("shop/catalogue/sku_media", "/cp/product-catalogue-app"),
+        ("shop/catalogue/products", "/cp/product-catalogue-app"),
+        ("products/catalogue", "/cp/product-catalogue-app"),
+        ("shop/customer_mgmt", "/cp/users-app"),
+        ("customer_mgmt", "/cp/users-app"),
+        ("shop/quote_requests", "/cp/quote-requests-app"),
+        ("shop/quote-requests", "/cp/quote-requests-app"),
+        ("quote_requests", "/cp/quote-requests-app"),
+        ("shop/statistics/web_tracker", "/cp/web-tracker-app"),
+        ("web_tracker", "/cp/web-tracker-app"),
         ("shop/marketing/marketing", "/cp/marketing-growth-app"),
         ("shop/payments/payments", "/cp/payment-gateways-app"),
         ("shop/returns-manager", "/cp/returns-rma-app"),
         ("shop/crm/crm_main", "/cp/crm-board-app"),
+        ("shop/crm", "/cp/crm-board-app"),
+        ("shop/pos", "/cp/pos-overview-app"),
         ("shop/crosses", "/cp/crosses-app"),
         ("shop/prices", "/cp/price-lists-app"),
         ("modules/modules_manager", "/cp/modules-app"),
@@ -73,13 +119,35 @@ public static class PhpSurfaceLinkMap
         ("epc_demo_tenants", "/cp/demo-tenants-app"),
         ("epc_platform_governance", "/cp/platform-governance-app"),
         ("epc_free_tools", "/cp/free-tools-app"),
+        ("epc_tenant_control", "/cp/tenants-app"),
+        ("epc_tenant_config", "/cp/tenant-config-app"),
+        ("epc_design_tokens", "/cp/design-tokens-app"),
+        ("epc_config_sandbox", "/cp/config-sandbox-app"),
+        ("epc_db_migrations", "/cp/data-migrations-app"),
+        ("epc_mfa_management", "/cp/auth-mfa-app"),
+        ("epc_marketplace", "/cp/marketplace-apps-app"),
+        ("epc_ai_copilot", "/cp/ai-service-app"),
+        ("epc_ai_classification", "/cp/ai-service-app"),
+        ("epc_document_vault", "/cp/document-control-app"),
+        ("epc_bi_metrics", "/cp/metabase-app"),
+        ("epc_readiness_score", "/bos/fleet-readiness-app"),
+        ("epc_boc_command_center", "/cp/control"),
+        ("industry_consolidation", "/cp/industry-packs-app"),
+        ("super_cp_fleet", "/bos/fleet-health-app"),
+        ("super_erp_fleet", "/erp/fleet-app"),
+        ("fleet_dashboard", "/bos/fleet-health-app"),
+        ("industry_packs", "/cp/industry-packs-app"),
         ("industry_settings", "/cp/industry-packs-app"),
+        ("tenant_hub", "/cp/tenants-app"),
         ("sposoby-polucheniya", "/cp/delivery-methods-app"),
         ("tenant_control", "/cp/tenants-app"),
+        ("workflows", "/cp/workflows-app"),
+        ("notifications", "/cp/notifications-app"),
         ("carriers", "/cp/carriers-app"),
         ("payments", "/cp/payment-gateways-app"),
         ("channels", "/cp/marketplace-channels-app"),
         ("failover", "/cp/failover-status-app"),
+        // shop/statistics → no dedicated ASP.NET statistics app yet (gap board); leave for /cp.
     ];
 
     public static string AspNetPrimaryHref(string? href)
@@ -112,7 +180,15 @@ public static class PhpSurfaceLinkMap
                 var absQuery = string.IsNullOrEmpty(absolute.Query) ? "" : absolute.Query;
                 if (IsUpperPhpShell(path, "CP") || path.Equals("/cp", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase))
                 {
-                    return absolute.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/cp";
+                    // Deep /CP/... modules must survive — never collapse every ecomae CP URL to host+/cp.
+                    var mappedCp = MapCpPhpPath(path + absQuery);
+                    if (mappedCp.Equals("/cp", StringComparison.OrdinalIgnoreCase)
+                        || mappedCp.Equals("/cp/", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return absolute.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/cp";
+                    }
+
+                    return mappedCp + absHash;
                 }
 
                 if (IsUpperPhpShell(path, "ERP") || path.Equals("/erp", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase))
@@ -627,8 +703,15 @@ public static class PhpSurfaceLinkMap
             || value.StartsWith(prefix + "?", StringComparison.Ordinal);
     }
 
-    private static string MapCpPhpPath(string value)
+    /// <summary>Maps a PHP /CP/… (or /cp/…) path to an ASP.NET Control app.</summary>
+    public static string MapCpPhpPath(string value)
     {
+        // UAE tax lives under /finance/erp/… but must NOT be swallowed by the ERP shell remap.
+        if (value.Contains("uae-tax-compliance", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/uae-tax-compliance-app";
+        }
+
         // CP embeds ERP tabs under /CP/shop/finance/erp — route those via ERP map.
         if (value.Contains("epc_erp_shell=", StringComparison.OrdinalIgnoreCase)
             || value.Contains("/finance/erp", StringComparison.OrdinalIgnoreCase))
@@ -639,7 +722,9 @@ public static class PhpSurfaceLinkMap
         var path = value.Split('?', 2)[0];
         var rest = path.StartsWith("/CP/", StringComparison.Ordinal)
             ? path["/CP/".Length..]
-            : path.TrimStart('/');
+            : path.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
+                ? path["/cp/".Length..]
+                : path.TrimStart('/');
 
         // Bare PHP /cp/control (and /CP/control) → same ASP.NET Command Centre as /cp.
         if (rest.Equals("control", StringComparison.OrdinalIgnoreCase)
@@ -657,6 +742,7 @@ public static class PhpSurfaceLinkMap
             }
         }
 
+        // Specific *guide* / ops paths → ops-guides (keep after concrete module markers).
         if (ContainsAny(path, "ops", "guide"))
         {
             return "/cp/ops-guides-app";

@@ -129,23 +129,49 @@ public static class LegacyDesktopChromeCatalog
             ["platform"] = "fa-cogs",
         };
 
-    /// <summary>CP topnav groups ≈ epc_cp_build_nav_tabs — multi-column mega panels (no artificial cap).</summary>
-    public static IReadOnlyList<MegaGroup> ControlPanelTopnav()
+    /// <summary>
+    /// CP topnav groups ≈ epc_cp_build_nav_tabs — multi-column mega panels (no artificial cap).
+    /// When <paramref name="includeSuperOnly"/> is false (tenant hosts), mirrors PHP
+    /// <c>epc_portal_cp_item_visible_enhanced</c>: hide Platform/Operator groups and
+    /// Super brochure links (<c>epc_super_cp_*</c>, tenant_features, BOS).
+    /// </summary>
+    public static IReadOnlyList<MegaGroup> ControlPanelTopnav(bool includeSuperOnly = true)
     {
         var groups = new List<MegaGroup>();
         foreach (var nav in LegacyChromeNavCatalog.ControlPanel)
         {
+            if (!includeSuperOnly && IsSuperOnlyNavGroup(nav.Label))
+            {
+                continue;
+            }
+
             var id = Slug(nav.Label);
             var links = PhpModuleCatalog.CpBrochureFeatures
                 .Where(f => MatchesGroup(f, nav.Label, nav.Href))
+                .Where(f => includeSuperOnly || !IsSuperOnlyCpLink(f.Href, f.Group))
                 .ToList();
             if (links.Count == 0)
             {
+                if (!includeSuperOnly && IsSuperOnlyCpLink(nav.Href, nav.Label))
+                {
+                    continue;
+                }
+
                 links.Add(new PhpModuleCatalog.ModuleLink(id, nav.Label, nav.Href, null, nav.Label));
                 foreach (var qa in LegacyChromeNavCatalog.ControlPanelQuickActions.Take(6))
                 {
+                    if (!includeSuperOnly && IsSuperOnlyCpLink(qa.Href, nav.Label))
+                    {
+                        continue;
+                    }
+
                     links.Add(new PhpModuleCatalog.ModuleLink(Slug(qa.Label), qa.Label, qa.Href, null, nav.Label));
                 }
+            }
+
+            if (links.Count == 0)
+            {
+                continue;
             }
 
             var columns = new List<MegaAreaColumn>();
@@ -173,6 +199,37 @@ public static class LegacyDesktopChromeCatalog
 
         return groups;
     }
+
+    /// <summary>PHP epc_portal_cp_item_visible_enhanced Super-only needles + brochure groups.</summary>
+    public static bool IsSuperOnlyCpLink(string? href, string? group = null)
+    {
+        var h = href ?? string.Empty;
+        var g = group ?? string.Empty;
+        if (g.Contains("Super CP", StringComparison.OrdinalIgnoreCase)
+            || g.Equals("Platform", StringComparison.OrdinalIgnoreCase)
+            || g.Equals("Operator", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (h.StartsWith("/bos", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_super_cp_", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_tenant_features", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_pos_tenant_manage", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("super_cp_fleet", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("super_erp_fleet", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("fleet-health-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/bos/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsSuperOnlyNavGroup(string label)
+        => label.Equals("Platform", StringComparison.OrdinalIgnoreCase)
+           || label.Equals("Operator", StringComparison.OrdinalIgnoreCase);
 
     private static string CpGroupIcon(string id) => id switch
     {
