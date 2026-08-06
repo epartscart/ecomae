@@ -11,9 +11,8 @@
 
 <PageTitle>Payment Gateways · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
+<HeadContent>
+<style>
         .epc-pay-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
@@ -35,7 +34,12 @@
         .epc-pay-table th, .epc-pay-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
         .epc-pay-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         @@media (max-width:900px){ .epc-pay-kpis{grid-template-columns:1fr 1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <section class="epc-pay-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />

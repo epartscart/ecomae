@@ -11,9 +11,8 @@
 
 <PageTitle>Sales Orders · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Sales Orders" BreadcrumbArea="Order to Cash" BreadcrumbTab="Sales Orders">
-    <style>
+<HeadContent>
+<style>
         .epc-so-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -38,7 +37,12 @@
         .epc-so-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#ffedd5; color:#9a3412; }
         .epc-so-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#7c2d12; font-size:.86rem; }
         @@media (max-width:900px){ .epc-so-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Sales Orders" BreadcrumbArea="Order to Cash" BreadcrumbTab="Sales Orders">
 
     <section class="epc-so-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

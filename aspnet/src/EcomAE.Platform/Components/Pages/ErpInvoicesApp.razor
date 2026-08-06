@@ -11,9 +11,8 @@
 
 <PageTitle>Invoices · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Invoices" BreadcrumbArea="Order to Cash" BreadcrumbTab="Invoices">
-    <style>
+<HeadContent>
+<style>
         .epc-inv-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -38,7 +37,12 @@
         .epc-inv-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#1e3a8a; }
         .epc-inv-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
         @@media (max-width:900px){ .epc-inv-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Invoices" BreadcrumbArea="Order to Cash" BreadcrumbTab="Invoices">
 
     <section class="epc-inv-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

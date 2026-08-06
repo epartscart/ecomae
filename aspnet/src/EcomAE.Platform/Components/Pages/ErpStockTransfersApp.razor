@@ -11,9 +11,8 @@
 
 <PageTitle>Stock transfers · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Stock transfers" BreadcrumbArea="Inventory" BreadcrumbTab="Stock groups">
-    <style>
+<HeadContent>
+<style>
         .epc-st-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -36,7 +35,12 @@
         .epc-st-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-st-note { margin-top:1rem; padding:.75rem .9rem; background:#f7fee7; border:1px solid #bef264; border-radius:.45rem; color:#365314; font-size:.86rem; }
         @@media (max-width:900px){ .epc-st-kpis{grid-template-columns:1fr 1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Stock transfers" BreadcrumbArea="Inventory" BreadcrumbTab="Stock groups">
 
     <section class="epc-st-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

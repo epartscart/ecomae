@@ -9,6 +9,8 @@
   Own Brand is DB-driven on PHP and omitted when empty — same behaviour here.
 *@
 
+
+<HeadContent>
 <style>
 	.epart-front-original-data {
 		background: transparent;
@@ -90,93 +92,7 @@
 		}
 	}
 </style>
-
-<div class="container epart-front-original-data">
-	<!-- 1. Family Product -->
-	<section class="epart-front-section epart-front-section-family" aria-label="Family Product">
-		<div class="epart-front-section-head">
-			<h2 class="epart-front-section-title">Family Product</h2>
-			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.ProductFamily">View all families &rarr;</a>
-		</div>
-		@if (!string.IsNullOrEmpty(_family))
-		{
-			@((MarkupString)_family)
-		}
-		else
-		{
-			<div class="alert alert-warning">Family Product catalog is loading. <a href="@StorefrontSurfaceLinks.ProductFamily">Open catalog</a></div>
-		}
-	</section>
-
-	<!-- 2. UMAPI Catalog -->
-	<section class="epart-front-section epart-front-section-catalog" aria-label="Epart Catalog">
-		<div class="epart-front-section-head">
-			<h2 class="epart-front-section-title">Epart Catalog</h2>
-			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.UmapiCatalog">Open full catalog &rarr;</a>
-		</div>
-		@if (!string.IsNullOrEmpty(_catalog))
-		{
-			@((MarkupString)_catalog)
-		}
-		else
-		{
-			<div class="alert alert-warning">Epart Catalog is temporarily unavailable. <a href="@StorefrontSurfaceLinks.UmapiCatalog">Open catalog page</a></div>
-		}
-	</section>
-
-	<!-- 3. Available Brands -->
-	<section class="epart-front-section epart-front-section-brands" aria-label="Available brands">
-		<div class="epart-front-section-head">
-			<h2 class="epart-front-section-title">Available Brands</h2>
-			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.AvailableBrands">View all brands &rarr;</a>
-		</div>
-		@if (!string.IsNullOrEmpty(_brands))
-		{
-			@((MarkupString)_brands)
-		}
-		else
-		{
-			<div class="alert alert-warning">Available brands are temporarily unavailable. <a href="@StorefrontSurfaceLinks.AvailableBrands">Open brands page</a></div>
-		}
-	</section>
-
-	<!-- 4. Own Brand -->
-	@if (_ownBrand.Count > 0)
-	{
-		<section class="epart-front-section epart-front-section-own-brand" aria-label="Own Brand">
-			<div class="epart-front-section-head">
-				<h2 class="epart-front-section-title">Own Brand</h2>
-				<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.AvailableBrands">View all &rarr;</a>
-			</div>
-			<div class="epc-own-brand-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
-				@foreach (var row in _ownBrand)
-				{
-					<a href="@(StorefrontSurfaceLinks.AvailableBrands + (StorefrontSurfaceLinks.AvailableBrands.Contains('?') ? "&" : "?") + "brand=" + Uri.EscapeDataString(row.Brand))" style="display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;text-decoration:none;transition:border-color .15s,box-shadow .15s;">
-						<strong style="display:block;color:#172536;font-size:14px;">@row.Brand</strong>
-						<small style="color:#64748b;font-size:12px;">@row.Count.ToString("N0") items</small>
-					</a>
-				}
-			</div>
-		</section>
-	}
-
-	<!-- 5. Original Catalog -->
-	<section class="epart-front-section epart-front-section-original" aria-label="Original Catalog">
-		<div class="epart-front-section-head">
-			<h2 class="epart-front-section-title">Original Catalog</h2>
-			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.VehicleCatalog">Open vehicle catalog &rarr;</a>
-		</div>
-		@if (!string.IsNullOrEmpty(_vehicle))
-		{
-			@((MarkupString)_vehicle)
-		}
-		else
-		{
-			<div class="alert alert-warning">Original Catalog is loading. <a href="@StorefrontSurfaceLinks.VehicleCatalog">Open catalog</a></div>
-		}
-	</section>
-
-	<style>
+<style>
 		.epart-front-original-data .epc-umapi-panel {
 			background: #f8fafc;
 			border: 1px solid #e2e8f0;
@@ -287,7 +203,95 @@
 			padding-right: 4px;
 		}
 	</style>
-</div>
+</HeadContent>
+
+
+<div class="container epart-front-original-data">
+	<!-- 1. Family Product -->
+	<section class="epart-front-section epart-front-section-family" aria-label="Family Product">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Family Product</h2>
+			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.ProductFamily">View all families &rarr;</a>
+		</div>
+		@if (!string.IsNullOrEmpty(_family))
+		{
+			@((MarkupString)_family)
+		}
+		else
+		{
+			<div class="alert alert-warning">Family Product catalog is loading. <a href="@StorefrontSurfaceLinks.ProductFamily">Open catalog</a></div>
+		}
+	</section>
+
+	<!-- 2. UMAPI Catalog -->
+	<section class="epart-front-section epart-front-section-catalog" aria-label="Epart Catalog">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Epart Catalog</h2>
+			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.UmapiCatalog">Open full catalog &rarr;</a>
+		</div>
+		@if (!string.IsNullOrEmpty(_catalog))
+		{
+			@((MarkupString)_catalog)
+		}
+		else
+		{
+			<div class="alert alert-warning">Epart Catalog is temporarily unavailable. <a href="@StorefrontSurfaceLinks.UmapiCatalog">Open catalog page</a></div>
+		}
+	</section>
+
+	<!-- 3. Available Brands -->
+	<section class="epart-front-section epart-front-section-brands" aria-label="Available brands">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Available Brands</h2>
+			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.AvailableBrands">View all brands &rarr;</a>
+		</div>
+		@if (!string.IsNullOrEmpty(_brands))
+		{
+			@((MarkupString)_brands)
+		}
+		else
+		{
+			<div class="alert alert-warning">Available brands are temporarily unavailable. <a href="@StorefrontSurfaceLinks.AvailableBrands">Open brands page</a></div>
+		}
+	</section>
+
+	<!-- 4. Own Brand -->
+	@if (_ownBrand.Count > 0)
+	{
+		<section class="epart-front-section epart-front-section-own-brand" aria-label="Own Brand">
+			<div class="epart-front-section-head">
+				<h2 class="epart-front-section-title">Own Brand</h2>
+				<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.AvailableBrands">View all &rarr;</a>
+			</div>
+			<div class="epc-own-brand-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
+				@foreach (var row in _ownBrand)
+				{
+					<a href="@(StorefrontSurfaceLinks.AvailableBrands + (StorefrontSurfaceLinks.AvailableBrands.Contains('?') ? "&" : "?") + "brand=" + Uri.EscapeDataString(row.Brand))" style="display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;text-decoration:none;transition:border-color .15s,box-shadow .15s;">
+						<strong style="display:block;color:#172536;font-size:14px;">@row.Brand</strong>
+						<small style="color:#64748b;font-size:12px;">@row.Count.ToString("N0") items</small>
+					</a>
+				}
+			</div>
+		</section>
+	}
+
+	<!-- 5. Original Catalog -->
+	<section class="epart-front-section epart-front-section-original" aria-label="Original Catalog">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Original Catalog</h2>
+			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.VehicleCatalog">Open vehicle catalog &rarr;</a>
+		</div>
+		@if (!string.IsNullOrEmpty(_vehicle))
+		{
+			@((MarkupString)_vehicle)
+		}
+		else
+		{
+			<div class="alert alert-warning">Original Catalog is loading. <a href="@StorefrontSurfaceLinks.VehicleCatalog">Open catalog</a></div>
+		}
+	</section>
+
+	</div>
 
 @code {
     private string _family = string.Empty;

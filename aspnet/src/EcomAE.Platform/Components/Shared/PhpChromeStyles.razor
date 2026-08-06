@@ -12,6 +12,7 @@
     IncludeStorefrontAnalytics="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))"
     ApplyStorefrontIndustryAttrs="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))"
     IncludeMarketingScripts="@(Surface.Equals("marketing", StringComparison.OrdinalIgnoreCase))" />
+<HeadContent>
 <style>
     :root {
         --epc-php-font: @(LegacyPhpFontAssets.StackFor(Surface));
@@ -23,6 +24,7 @@
         font-size: var(--epc-php-font-size);
     }
 </style>
+</HeadContent>
 
 
 @code {

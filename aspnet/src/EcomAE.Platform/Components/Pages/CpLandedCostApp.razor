@@ -11,9 +11,8 @@
 
 <PageTitle>Landed cost · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
+<HeadContent>
+<style>
         .epc-lc-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
@@ -36,7 +35,12 @@
         .epc-lc-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-lc-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
         @@media (max-width:900px){ .epc-lc-kpis{grid-template-columns:1fr 1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <section class="epc-lc-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />

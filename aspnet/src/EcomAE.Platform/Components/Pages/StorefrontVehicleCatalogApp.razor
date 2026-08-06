@@ -5,10 +5,8 @@
 
 <PageTitle>Vehicle parts catalog · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
-<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
-
-<PhpStorefrontDesktopChrome>
-    <style>
+<HeadContent>
+<style>
         .epc-sf-vc-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#111827 0%,#334155 50%,#64748b 100%);
@@ -23,7 +21,13 @@
         .epc-sf-vc-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
         .epc-sf-vc-body { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.75rem .85rem 1rem; }
         .epc-sf-vc-note { margin-top:.85rem; color:#64748b; font-size:.84rem; }
-    </style>
+    
+</style>
+</HeadContent>
+
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
 
     <section class="epc-sf-vc-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />

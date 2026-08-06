@@ -12,6 +12,38 @@
   Auth chrome resolves legacy session itself so Sign in / Log out is correct on every page.
 *@
 
+<HeadContent>
+<style>
+    .epc-cp-shell {
+        --epc-cp-primary:#2563eb; --epc-cp-primary-dark:#1d4ed8; --epc-blue-900:#0c4a6e; --epc-blue-700:#0369a1; --epc-blue-500:#0ea5e9;
+        --cp-ink:#0f172a; --cp-line:#e2e8f0; --cp-bg:#f0f9ff;
+        background:var(--cp-bg); color:var(--cp-ink); min-height:100vh;
+        font-family: @(LegacyPhpFontAssets.StackFor("cp")); font-size: @(LegacyPhpFontAssets.BaseFontSize);
+    }
+    .epc-cp-shell a { color:inherit; text-decoration:none; }
+    .epc-cp-header-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; padding:.55rem 1rem; background:rgba(255,255,255,.98); border-bottom:1px solid var(--cp-line); }
+    .epc-cp-header-logo img { height:34px; }
+    .epc-cp-topbar-ctas { display:flex; gap:.45rem; flex-wrap:wrap; }
+    .epc-cp-topbar-cta {
+        display:inline-flex; align-items:center; padding:.4rem .85rem; border-radius:10px;
+        background:linear-gradient(135deg,#b91c1c 0%,#dc2626 55%,#ef4444 100%);
+        border:1px solid #991b1b; box-shadow:0 4px 12px rgba(185,28,28,.28);
+        color:#fff !important; font-weight:700; font-size:13px;
+    }
+    .epc-cp-header-actions { display:flex; gap:.75rem; align-items:center; font-size:13px; font-weight:600; }
+    .epc-cp-header-login { color:var(--epc-cp-primary) !important; }
+    .epc-cp-main-pane { padding:1rem 1.25rem 2rem; font-size:14px; }
+    .epc-cp-main-pane h1 { font-size:22px; }
+    .epc-cp-main-pane h2 { font-size:18px; }
+    .epc-cp-main-pane h3 { font-size:16px; }
+    .epc-cp-main-pane h4 { font-size:14px; }
+    .epc-cp-content-inner { width:min(1480px, calc(100% - 0.5rem)); margin:0 auto; }
+    .epc-cp-shell #header, .epc-cp-shell .epc-cp-topnav { width:100%; }
+    .epc-cp-shell .epc-cp-header-bar, .epc-cp-shell .epc-cp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
+    .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
+</style>
+</HeadContent>
+
 <div class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root">
     <div id="header">
         <div class="color-line"></div>
@@ -145,36 +177,6 @@
 </div>
 
 @* Shell layout only — topnav fonts/panels come from epc_cp_professional.css (13/12/12.5px). *@
-<style>
-    .epc-cp-shell {
-        --epc-cp-primary:#2563eb; --epc-cp-primary-dark:#1d4ed8; --epc-blue-900:#0c4a6e; --epc-blue-700:#0369a1; --epc-blue-500:#0ea5e9;
-        --cp-ink:#0f172a; --cp-line:#e2e8f0; --cp-bg:#f0f9ff;
-        background:var(--cp-bg); color:var(--cp-ink); min-height:100vh;
-        font-family: @(LegacyPhpFontAssets.StackFor("cp")); font-size: @(LegacyPhpFontAssets.BaseFontSize);
-    }
-    .epc-cp-shell a { color:inherit; text-decoration:none; }
-    .epc-cp-header-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; padding:.55rem 1rem; background:rgba(255,255,255,.98); border-bottom:1px solid var(--cp-line); }
-    .epc-cp-header-logo img { height:34px; }
-    .epc-cp-topbar-ctas { display:flex; gap:.45rem; flex-wrap:wrap; }
-    .epc-cp-topbar-cta {
-        display:inline-flex; align-items:center; padding:.4rem .85rem; border-radius:10px;
-        background:linear-gradient(135deg,#b91c1c 0%,#dc2626 55%,#ef4444 100%);
-        border:1px solid #991b1b; box-shadow:0 4px 12px rgba(185,28,28,.28);
-        color:#fff !important; font-weight:700; font-size:13px;
-    }
-    .epc-cp-header-actions { display:flex; gap:.75rem; align-items:center; font-size:13px; font-weight:600; }
-    .epc-cp-header-login { color:var(--epc-cp-primary) !important; }
-    .epc-cp-main-pane { padding:1rem 1.25rem 2rem; font-size:14px; }
-    .epc-cp-main-pane h1 { font-size:22px; }
-    .epc-cp-main-pane h2 { font-size:18px; }
-    .epc-cp-main-pane h3 { font-size:16px; }
-    .epc-cp-main-pane h4 { font-size:14px; }
-    .epc-cp-content-inner { width:min(1480px, calc(100% - 0.5rem)); margin:0 auto; }
-    .epc-cp-shell #header, .epc-cp-shell .epc-cp-topnav { width:100%; }
-    .epc-cp-shell .epc-cp-header-bar, .epc-cp-shell .epc-cp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
-    .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
-</style>
-
 <script id="epc-cp-topnav-inline">
 (function () {
     'use strict';

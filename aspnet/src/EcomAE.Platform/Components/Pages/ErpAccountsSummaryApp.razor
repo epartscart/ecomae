@@ -11,9 +11,8 @@
 
 <PageTitle>Accounts Summary · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Accounts Summary" BreadcrumbArea="Banking" BreadcrumbTab="Cash KPIs">
-    <style>
+<HeadContent>
+<style>
         .epc-as-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -33,7 +32,12 @@
         .epc-as-note { margin-top:1rem; padding:.75rem .9rem; background:#f7fee7; border:1px solid #d9f99d; border-radius:.45rem; color:#3f6212; font-size:.86rem; }
         @@media (max-width:1100px){ .epc-as-kpis{grid-template-columns:1fr 1fr;} }
         @@media (max-width:700px){ .epc-as-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Accounts Summary" BreadcrumbArea="Banking" BreadcrumbTab="Cash KPIs">
 
     <section class="epc-as-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

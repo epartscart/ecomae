@@ -10,10 +10,8 @@
 
 <PageTitle>Profile · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
-<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
-
-<PhpStorefrontDesktopChrome>
-    <style>
+<HeadContent>
+<style>
         .epc-sf-pf-hero {
             margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
@@ -41,7 +39,13 @@
         .epc-sf-pf-note { margin-top:1rem; padding:.75rem .9rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:.45rem; color:#0c4a6e; font-size:.86rem; }
         .epc-sf-pf-gate { padding:1.25rem; background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; }
         @@media (max-width:900px){ .epc-sf-pf-kpis{grid-template-columns:1fr;} .epc-sf-pf-table th{width:auto;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
 
     <section class="epc-sf-pf-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />

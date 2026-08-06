@@ -11,9 +11,8 @@
 
 <PageTitle>Marketing Broadcast · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
+<HeadContent>
+<style>
         .epc-mkt-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
@@ -36,7 +35,12 @@
         .epc-mkt-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-mkt-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fed7aa; border-radius:.45rem; color:#9a3412; font-size:.86rem; }
         @@media (max-width:900px){ .epc-mkt-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <section class="epc-mkt-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />

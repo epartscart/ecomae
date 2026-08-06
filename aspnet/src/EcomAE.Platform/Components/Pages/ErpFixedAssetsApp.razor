@@ -11,9 +11,8 @@
 
 <PageTitle>Fixed assets · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Fixed assets" BreadcrumbArea="Fixed assets" BreadcrumbTab="Register">
-    <style>
+<HeadContent>
+<style>
         .epc-fa-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -36,7 +35,12 @@
         .epc-fa-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-fa-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a5f; font-size:.86rem; }
         @@media (max-width:900px){ .epc-fa-kpis{grid-template-columns:1fr 1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Fixed assets" BreadcrumbArea="Fixed assets" BreadcrumbTab="Register">
 
     <section class="epc-fa-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

@@ -11,9 +11,8 @@
 
 <PageTitle>Cash &amp; Bank · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash & Bank" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash & bank">
-    <style>
+<HeadContent>
+<style>
         .epc-cash-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
@@ -40,7 +39,12 @@
         .epc-cash-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#713f12; }
         .epc-cash-note { margin-top:1rem; padding:.75rem .9rem; background:#f7fee7; border:1px solid #bef264; border-radius:.45rem; color:#365314; font-size:.86rem; }
         @@media (max-width:900px){ .epc-cash-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash & Bank" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash & bank">
 
     <section class="epc-cash-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

@@ -11,9 +11,8 @@
 
 <PageTitle>Aging · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Aging" BreadcrumbArea="Finance" BreadcrumbTab="Aging">
-    <style>
+<HeadContent>
+<style>
         .epc-ag-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%); }
         .epc-ag-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
         .epc-ag-hero p { margin:0; color:rgba(255,255,255,.9); max-width:46rem; font-size:.92rem; }
@@ -32,7 +31,12 @@
         .epc-ag-table th:first-child, .epc-ag-table td:first-child { text-align:left; }
         .epc-ag-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
         .epc-ag-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#9a3412; font-size:.86rem; }
-    </style>
+    
+</style>
+</HeadContent>
+
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Aging" BreadcrumbArea="Finance" BreadcrumbTab="Aging">
 
     <section class="epc-ag-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />

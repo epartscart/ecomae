@@ -11,10 +11,8 @@
 
 <PageTitle>Account · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
-<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
-
-<PhpStorefrontDesktopChrome>
-    <style>
+<HeadContent>
+<style>
         .epc-sf-acc-hero {
             margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
@@ -44,7 +42,13 @@
         .epc-sf-acc-gate { padding:1.25rem; background:#fff; border:1px solid #e7e5e4; border-radius:.55rem; }
         @@media (max-width:900px){ .epc-sf-acc-kpis{grid-template-columns:1fr 1fr;} }
         @@media (max-width:560px){ .epc-sf-acc-kpis{grid-template-columns:1fr;} }
-    </style>
+    
+</style>
+</HeadContent>
+
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
 
     <section class="epc-sf-acc-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />

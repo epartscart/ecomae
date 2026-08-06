@@ -87,6 +87,40 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("aria-expanded", src);
     }
 
+    [Fact]
+    public void CpIndustryPacksApp_KeepsStylesInHeadContentNotInsideChrome()
+    {
+        // Live HTML pipelines have stripped body <style> tags and left CSS as visible text
+        // (e.g. /cp/industry-packs-app showing .epc-pack-hero { ... }). Styles must use HeadOutlet.
+        var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpIndustryPacksApp.razor"));
+        Assert.Contains("<HeadContent>", src, StringComparison.Ordinal);
+        Assert.Contains(".epc-pack-hero", src, StringComparison.Ordinal);
+        var styleAt = src.IndexOf("<style>", StringComparison.Ordinal);
+        var chromeAt = src.IndexOf("<PhpCpDesktopChrome", StringComparison.Ordinal);
+        Assert.True(styleAt >= 0 && chromeAt > styleAt, "page styles must appear before PhpCpDesktopChrome");
+        Assert.DoesNotContain("<style>", src[chromeAt..], StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpBosDesktopChrome.razor")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Layout/PhpChromeLayout.razor")]
+    public void DesktopChrome_WrapsInlineStylesInHeadContent(string relative)
+    {
+        var src = File.ReadAllText(FindRepoFile(relative));
+        Assert.Contains("<HeadContent>", src, StringComparison.Ordinal);
+        Assert.Contains("<style>", src, StringComparison.Ordinal);
+        var open = src.IndexOf("<HeadContent>", StringComparison.Ordinal);
+        var close = src.IndexOf("</HeadContent>", StringComparison.Ordinal);
+        Assert.True(open >= 0 && close > open);
+        var head = src.Substring(open, close - open);
+        Assert.Contains("<style>", head, StringComparison.Ordinal);
+        var after = src[(close + "</HeadContent>".Length)..];
+        Assert.DoesNotContain("<style>", after, StringComparison.Ordinal);
+    }
+
     private static string FindRepoFile(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

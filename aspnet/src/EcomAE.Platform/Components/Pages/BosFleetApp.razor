@@ -10,9 +10,8 @@
 
 <PageTitle>Super BOS · Fleet Command</PageTitle>
 <PhpChromeStyles Surface="bos" />
-
-<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Command Center">
-        <style>
+<HeadContent>
+<style>
             .epc-bosapp-hero {
                 margin:0 0 1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
                 background:linear-gradient(135deg,#000000 0%,#0c4a6e 55%,#0ea5e9 100%);
@@ -41,7 +40,12 @@
             @@media (max-width:900px){
                 .epc-bosapp-strip,.epc-bosapp-band { grid-template-columns:1fr 1fr; }
             }
-        </style>
+        
+</style>
+</HeadContent>
+
+
+<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Command Center">
 
         <section class="epc-bosapp-hero">
             <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.15)" />
