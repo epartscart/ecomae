@@ -84,18 +84,51 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
 PY
 rm -f "$NGINX_SNIPPET"
 nginx -t && systemctl reload nginx
+
+# PHP-FPM must be up — incomplete restore left /en/* and index.php on warm-up splash.
+for svc in php8.3-fpm php8.2-fpm php8.1-fpm php8.0-fpm php7.4-fpm php-fpm; do
+  systemctl try-restart "$svc" 2>/dev/null && printf 'restarted %s\n' "$svc" || true
+done
+while read -r u; do
+  [[ -n "$u" ]] || continue
+  systemctl try-restart "$u" 2>/dev/null && printf 'restarted %s\n' "$u" || true
+done < <(systemctl list-units --type=service --all 'php*-fpm*' --no-legend 2>/dev/null | awk '{print $1}' || true)
+
 systemctl restart ecomae-platform.service || true
+sleep 3
 
 Q="epc_php_on=$(date +%s)"
-code_ref="$(curl -sS -o /dev/null -w '%{http_code}' -A 'Mozilla/5.0' --max-time 20 \
-  "https://www.epartscart.com/php-reference/storefront?${Q}" || true)"
-printf 'php-reference/storefront http=%s (expect not 503)\n' "$code_ref"
+fail=0
+for path in /en/shop/part_search /index.php /php-reference/storefront; do
+  body=$(mktemp)
+  code="$(curl -sS -o "$body" -w '%{http_code}' -A 'Mozilla/5.0' --max-time 30 \
+    "https://www.epartscart.com${path}?${Q}" || echo 000)"
+  size=$(wc -c <"$body")
+  if rg -q 'Loading your store' "$body" && [[ "$size" -lt 5000 ]]; then
+    printf 'FAIL %s still warm-up splash http=%s — run unbreak script\n' "$path" "$code"
+    fail=1
+  else
+    printf 'OK %s http=%s size=%s\n' "$path" "$code" "$size"
+  fi
+  rm -f "$body"
+done
+
+if [[ "$fail" -ne 0 ]]; then
+  cat <<EOF >&2
+RESULT=FAIL — PHP restore incomplete (/en or index.php still splash)
+Run:
+  ECOMAE_CONFIRM_UNBREAK_EPARTSCART_STOREFRONT=YES \\
+    bash scripts/cloudpanel_unbreak_epartscart_storefront_now.sh
+EOF
+  exit 1
+fi
 
 cat <<EOF
 
 #####################################################################
 #  RESULT=RESTORED — PHP reference serving re-enabled
 #  Mode back to aspnet-primary-php-reference
+#  /en/* and index.php are not warm-up splash
 #  cutoverAllowed=false · readyForPhpRemoval=false · KeepPhpProjectAvailable=true
 #####################################################################
 EOF

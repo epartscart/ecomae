@@ -2,24 +2,25 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
-## 0🚨) STUCK ON “Loading your store…” — fix warm-up loop (do immediately)
+## 0🚨) STUCK ON “Loading your store…” after PHP restore — UNBREAK (do immediately)
 
-**Symptom:** `/` may load, but any click (search / garage / login) stays on warm-up for minutes.
-
-**Cause:** tenant nginx stub locations `302 /storefront/*-app → /en/…` + PHP pause (`/en/` → 503) + `error_page` → `epc-platform-splash.html` (self-reload trap).
+**Live diagnosis (post-restore):**
+- `/` + `/cp/login` → ASP.NET OK
+- `/storefront/*` → splash / PHP 404 (**epartscart nginx missing `^~ /storefront/` → `:5100`**; www.ecomae.com storefront OK)
+- `/en/*` + `/index.php` → still splash (**PHP-FPM down or php-off snippet left behind**)
+- Home chrome still PreferAspNetApps (`/storefront/*` links) while those paths are broken
 
 ```bash
-# Prefer fix branch until merged; then use main
-ECOMAE_BRANCH=cursor/fix-warmup-splash-storefront-loop-7b3b \
-ECOMAE_CONFIRM_FIX_WARMUP_SPLASH_LOOP=YES \
+# Full unbreak (clears PHP-off, restarts php-fpm, reinstalls classic-entry storefront proxy)
+ECOMAE_BRANCH=cursor/unbreak-epartscart-php-storefront-7b3b \
+ECOMAE_CONFIRM_UNBREAK_EPARTSCART_STOREFRONT=YES \
 ECOMAE_ALSO_FORCE_LIVE=YES \
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/fix-warmup-splash-storefront-loop-7b3b/scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh)"
-# Expect RESULT=PASS — /storefront/app and /storefront/search-app are NOT splash
-# Shopper: hard-refresh or open https://www.epartscart.com/
-#
-# If still FAIL, temporarily restore PHP /en/ fallbacks:
-# cd /opt/ecomae-aspnet-source
-# ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES bash scripts/cloudpanel_restore_php_reference_serving.sh
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/unbreak-epartscart-php-storefront-7b3b/scripts/cloudpanel_unbreak_epartscart_storefront_now.sh)"
+# Expect RESULT=PASS
+# Prove:
+# curl -sS https://www.epartscart.com/storefront/app | head -c 200
+# curl -sS https://www.epartscart.com/en/shop/part_search | head -c 200
+# Shopper: hard-refresh https://www.epartscart.com/
 ```
 
 ## 0◆) TEMP ASP.NET-ONLY DEEP TEST — pause PHP HTTP (incl. `/php-reference`)
