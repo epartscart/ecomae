@@ -21,13 +21,9 @@
       "id": "part_search",
       "php": "/en/shop/part_search?article=&brend= or /en/parts/{BRAND}/{ARTICLE}",
       "aspnet": "/storefront/search-app?article=&brand=",
-      "status": "partial",
-      "notes": "Brand picker + warehouse offers + Actions column deep-linking classic part_search/quotes for cart and supplier poll. Live ajax_getProductsOfBunch still PHP-authoritative.",
-      "gapsRemaining": [
-        "ajax_getProductsOfBunch progressive live poll in ASP.NET table",
-        "Genuine/Aftermarket section split",
-        "full price markup / office bunches"
-      ]
+      "status": "complete",
+      "notes": "Brand picker + warehouse offers + Genuine/Aftermarket split + progressive /storefront/products-of-bunch poll (PHP ajax_getProductsOfBunch authoritative) merged into #all_table_products. Cart/quote writes remain PHP.",
+      "gapsRemaining": []
     },
     {
       "id": "name_search",
@@ -103,23 +99,24 @@
       "id": "product_detail",
       "php": "CMS product/category pages",
       "aspnet": "/storefront/product-app?id=",
-      "status": "partial",
-      "notes": "Read-only catalogue product digest + CTAs to PHP cart/bookmark/compare. Full media/specs still PHP CMS."
+      "status": "complete",
+      "notes": "Catalogue digest + shop_products_images / epc_sku_photos gallery + epc_sku_spec_rows. Cart/bookmark/compare writes remain PHP."
     },
     {
       "id": "quotes_wishlist_compare_bulk_balance",
       "php": "/en/shop/quotes|/zakladki|/sravneniya|/bulk-upload|/balans",
-      "aspnet": "/storefront/quotes-app|/wishlist-app|/compare-app|/account-summary-app",
-      "status": "partial",
-      "notes": "Quotes digest + wishlist/compare cookie shells + chrome href fix. Submit/accept/add-to-basket writes and bulk-upload remain PHP."
+      "aspnet": "/storefront/quotes-app|/wishlist-app|/compare-app|/bulk-upload-app|/account-summary-app",
+      "status": "complete",
+      "notes": "Quotes digest + wishlist/compare shells + bulk-upload-app (history digest + classic ajax_process embed). Process/cross/cart writes remain PHP; dry-run at POST /storefront/bulk-upload/process."
     }
   ],
   "priorityBuildOrder": [
-    "cart/checkout interactive dry-run + PHP write CTAs (this wave)",
-    "VIN + vehicle catalog shells (this wave)",
-    "quotes/wishlist/compare/product digests (this wave)",
-    "search Actions → PHP supplier poll (this wave)",
-    "live ajax_getProductsOfBunch progressive poll in ASP.NET",
-    "full CMS product media/specs parity"
-  ]
+    "progressive ajax_getProductsOfBunch poll in ASP.NET table (this wave)",
+    "Genuine/Aftermarket section split (this wave)",
+    "full CMS product media/specs parity (this wave)",
+    "bulk-upload-app shell + history (this wave)",
+    "FORCE_LIVE republish for live epartscart.com prove"
+  ],
+  "forceLiveRequired": true,
+  "forceLiveBranch": "cursor/epartscart-storefront-100-parity-7b3b"
 }

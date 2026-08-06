@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -8,6 +9,7 @@ namespace EcomAE.Platform.Migration;
 /// <summary>
 /// Loopback/public bridge to PHP CHPU warehouse endpoints that already use the shop DB via config.php.
 /// Used when ASP.NET tenant SQL returns empty (wrong host binding / over-filters on older binaries).
+/// Also proxies progressive <c>ajax_getProductsOfBunch</c> supplier polls (session cookies forwarded).
 /// </summary>
 public sealed class PhpWarehouseSearchBridge
 {
@@ -93,6 +95,109 @@ public sealed class PhpWarehouseSearchBridge
         }
     }
 
+    /// <summary>
+    /// POST proxy to PHP <c>ajax_getProductsOfBunch.php</c> (progressive supplier poll).
+    /// Forwards the browser Cookie header so pricing identity matches PHP session.
+    /// </summary>
+    public async Task<StorefrontProductsOfBunchResult> TryLoadProductsOfBunchAsync(
+        string article,
+        string? brand,
+        int officeId,
+        int storageId,
+        string? queryJson,
+        int geoId = 0,
+        CancellationToken cancellationToken = default)
+    {
+        var uri = BuildUri("/content/shop/docpart/ajax_getProductsOfBunch.php", new Dictionary<string, string?>());
+        if (uri is null)
+        {
+            return new(0, officeId, storageId, [], false, "no-http-context", "No request host for PHP bunch poll.");
+        }
+
+        var normalized = (article ?? string.Empty).Trim();
+        if (normalized.Length == 0)
+        {
+            return new(0, officeId, storageId, [], false, "empty", "Article required.");
+        }
+
+        var searchObject = string.IsNullOrWhiteSpace(queryJson)
+            ? JsonSerializer.Serialize(new
+            {
+                article = normalized,
+                searsch_str = normalized,
+                manufacturer = brand ?? string.Empty,
+                manufacturers = Array.Empty<object>(),
+                analogs = Array.Empty<object>()
+            })
+            : queryJson!;
+
+        try
+        {
+            var (client, dispose) = CreateClient();
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, uri);
+                ForwardBrowserCookies(request);
+                request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["geo_id"] = geoId.ToString(CultureInfo.InvariantCulture),
+                    ["office_id"] = officeId.ToString(CultureInfo.InvariantCulture),
+                    ["storage_id"] = storageId.ToString(CultureInfo.InvariantCulture),
+                    ["query"] = searchObject
+                });
+
+                using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new(0, officeId, storageId, [], false, "php-http",
+                        "HTTP " + ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture));
+                }
+
+                var payload = await response.Content
+                    .ReadFromJsonAsync<PhpProductsOfBunchPayload>(JsonOptions, cancellationToken)
+                    .ConfigureAwait(false);
+                if (payload is null)
+                {
+                    return new(0, officeId, storageId, [], false, "php-empty", "Empty PHP bunch response.");
+                }
+
+                var products = (payload.Products ?? [])
+                    .Select(p => new StorefrontPartOfferDigest(
+                        0,
+                        p.StorageCaption ?? p.Storage ?? string.Empty,
+                        p.Manufacturer ?? string.Empty,
+                        p.Article ?? string.Empty,
+                        p.ArticleShow ?? string.Empty,
+                        p.Name ?? string.Empty,
+                        p.Price,
+                        p.Exist,
+                        p.StorageCaption ?? p.Storage ?? string.Empty,
+                        FormatJsonScalar(p.TimeToExe)))
+                    .ToList();
+
+                return new(
+                    payload.Result,
+                    officeId,
+                    storageId,
+                    products,
+                    payload.PricesVisible,
+                    "php-bunch",
+                    payload.Message ?? string.Empty);
+            }
+            finally
+            {
+                if (dispose)
+                {
+                    client.Dispose();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            return new(0, officeId, storageId, [], false, "php-error", ex.Message);
+        }
+    }
+
     public async Task<IReadOnlyList<StorefrontArticleBrandDigest>> TryLoadBrandsAsync(
         string article,
         int limit,
@@ -157,7 +262,37 @@ public sealed class PhpWarehouseSearchBridge
             return (_httpClientFactory.CreateClient(nameof(PhpWarehouseSearchBridge)), false);
         }
 
-        return (new HttpClient { Timeout = TimeSpan.FromSeconds(8) }, true);
+        return (new HttpClient { Timeout = TimeSpan.FromSeconds(45) }, true);
+    }
+
+    private void ForwardBrowserCookies(HttpRequestMessage request)
+    {
+        var http = _httpContextAccessor?.HttpContext;
+        if (http is null)
+        {
+            return;
+        }
+
+        if (http.Request.Headers.TryGetValue("Cookie", out var cookie) && !string.IsNullOrWhiteSpace(cookie))
+        {
+            request.Headers.TryAddWithoutValidation("Cookie", cookie.ToString());
+        }
+
+        // Keep vhost routing when calling public host from the platform process.
+        request.Headers.Host = http.Request.Host.Value;
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    }
+
+    private static string FormatJsonScalar(JsonElement value)
+    {
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString() ?? string.Empty,
+            JsonValueKind.Number => value.ToString(),
+            JsonValueKind.True => "1",
+            JsonValueKind.False => "0",
+            _ => string.Empty
+        };
     }
 
     private Uri? BuildUri(string path, IReadOnlyDictionary<string, string?> query)
@@ -169,16 +304,17 @@ public sealed class PhpWarehouseSearchBridge
         }
 
         var request = http.Request;
+        var queryString = string.Join(
+            "&",
+            query
+                .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
+                .Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value!)}"));
         var builder = new UriBuilder
         {
             Scheme = request.Scheme,
             Host = request.Host.Host,
             Path = path,
-            Query = string.Join(
-                "&",
-                query
-                    .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
-                    .Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value!)}"))
+            Query = queryString
         };
         if (request.Host.Port is int port)
         {
@@ -237,5 +373,35 @@ public sealed class PhpWarehouseSearchBridge
 
         [JsonPropertyName("manufacturer_show")]
         public string? ManufacturerShow { get; set; }
+    }
+
+    private sealed class PhpProductsOfBunchPayload
+    {
+        public int Result { get; set; }
+        public string? Message { get; set; }
+        public List<PhpBunchProductRow>? Products { get; set; }
+
+        [JsonPropertyName("prices_visible")]
+        public bool PricesVisible { get; set; } = true;
+    }
+
+    private sealed class PhpBunchProductRow
+    {
+        public string? Manufacturer { get; set; }
+        public string? Article { get; set; }
+
+        [JsonPropertyName("article_show")]
+        public string? ArticleShow { get; set; }
+
+        public string? Name { get; set; }
+        public decimal Price { get; set; }
+        public int Exist { get; set; }
+        public string? Storage { get; set; }
+
+        [JsonPropertyName("storage_caption")]
+        public string? StorageCaption { get; set; }
+
+        [JsonPropertyName("time_to_exe")]
+        public JsonElement TimeToExe { get; set; }
     }
 }

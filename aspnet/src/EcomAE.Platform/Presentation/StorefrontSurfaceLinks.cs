@@ -41,7 +41,7 @@ public static class StorefrontSurfaceLinks
     public static string Compare => PreferAspNetApps ? StorefrontAspNetCanonical.Compare : StorefrontPhpCanonical.Compare;
     public static string Product => PreferAspNetApps ? StorefrontAspNetCanonical.Product : StorefrontPhpCanonical.PartSearch;
     public static string Balance => PreferAspNetApps ? StorefrontAspNetCanonical.Balance : StorefrontPhpCanonical.Balance;
-    public static string BulkUpload => StorefrontPhpCanonical.BulkUpload;
+    public static string BulkUpload => PreferAspNetApps ? StorefrontAspNetCanonical.BulkUpload : StorefrontPhpCanonical.BulkUpload;
 
     public static string ForProduct(int productId)
         => PreferAspNetApps

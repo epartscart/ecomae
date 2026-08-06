@@ -1,3 +1,4 @@
+using System.Globalization;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
@@ -324,7 +325,144 @@ public sealed class StorefrontModule : ISurfaceModule
                 product = result.Product,
                 source = result.Source,
                 message = result.Message,
-                note = "Read-only catalogue product digest. Cart/bookmark/compare writes remain PHP."
+                note = "Read-only catalogue product digest with media/specs. Cart/bookmark/compare writes remain PHP."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontGenuineBrands, async (
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await dashboards.ListStorefrontGenuineBrandsAsync(cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "storefront",
+                brands = result.Brands,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                note = "Genuine OE manufacturer keys (UMAPI passenger/commercial/motorbike + synonyms)."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontSearchBunches, async (
+            string? article,
+            string? brand,
+            string? brend,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var manufacturer = string.IsNullOrWhiteSpace(brand) ? brend : brand;
+            var result = await dashboards.ListStorefrontOfficeStorageBunchesAsync(
+                article ?? string.Empty,
+                manufacturer,
+                cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "storefront",
+                article = result.Article,
+                brand = result.Brand,
+                bunches = result.Bunches,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                note = "Office/storage bunches for progressive ajax_getProductsOfBunch poll."
+            });
+        });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontProductsOfBunch, async (
+            HttpContext context,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var article = form["article"].ToString();
+            var brand = form["brand"].ToString();
+            if (string.IsNullOrWhiteSpace(brand))
+            {
+                brand = form["brend"].ToString();
+            }
+
+            _ = int.TryParse(form["office_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var officeId);
+            _ = int.TryParse(form["storage_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var storageId);
+            _ = int.TryParse(form["geo_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var geoId);
+            var queryJson = form["query"].ToString();
+            if (string.IsNullOrWhiteSpace(article) && !string.IsNullOrWhiteSpace(queryJson))
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(queryJson);
+                    if (doc.RootElement.TryGetProperty("article", out var art))
+                    {
+                        article = art.GetString() ?? article;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(brand)
+                        && doc.RootElement.TryGetProperty("manufacturer", out var mfr))
+                    {
+                        brand = mfr.GetString() ?? brand;
+                    }
+                }
+                catch (System.Text.Json.JsonException)
+                {
+                    // keep form article/brand
+                }
+            }
+
+            var result = await dashboards.PollStorefrontProductsOfBunchAsync(
+                article,
+                brand,
+                officeId,
+                storageId,
+                string.IsNullOrWhiteSpace(queryJson) ? null : queryJson,
+                geoId,
+                cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.Result == 1,
+                surface = "storefront",
+                result = result.Result,
+                office_id = result.OfficeId,
+                storage_id = result.StorageId,
+                products = result.Products,
+                count = result.Products.Count,
+                prices_visible = result.PricesVisible,
+                source = result.Source,
+                message = result.Message,
+                note = "Progressive supplier poll proxy → PHP ajax_getProductsOfBunch (authoritative)."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontBulkUploadHistory, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required for bulk-upload history.");
+            }
+
+            var result = await dashboards.ListStorefrontBulkUploadHistoryAsync(
+                session.UserId,
+                limit ?? 10,
+                cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "storefront",
+                user_id = result.UserId,
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_bulk_upload_history. Process/cross/cart writes remain PHP ajax_process."
             });
         });
 

@@ -2048,6 +2048,27 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             var product = ReadStorefrontProduct(reader);
+            var profileId = 0;
+            try
+            {
+                profileId = Convert.ToInt32(
+                    reader["sku_profile_id"] is DBNull ? 0 : reader["sku_profile_id"],
+                    CultureInfo.InvariantCulture);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                profileId = 0;
+            }
+
+            // Close product reader before issuing follow-up image/spec queries on the same connection.
+            await reader.DisposeAsync().ConfigureAwait(false);
+
+            var images = await LoadStorefrontProductImagesAsync(connection, productId, profileId, cancellationToken)
+                .ConfigureAwait(false);
+            var specs = profileId > 0
+                ? await LoadStorefrontSkuSpecsAsync(connection, profileId, cancellationToken).ConfigureAwait(false)
+                : [];
+            product = product with { Images = images, Specs = specs };
             return new(product, "database", string.Empty);
         }
         catch (Exception ex)
@@ -2102,15 +2123,338 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontGenuineBrandsResult> ListStorefrontGenuineBrandsAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontGenuineManufacturerNames;
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    AddGenuineBrandKeys(keys, name);
+                }
+            }
+
+            try
+            {
+                await using var synonymCmd = connection.CreateCommand();
+                synonymCmd.CommandText = LegacySurfaceDashboardSql.SelectStorefrontManufacturerSynonyms;
+                await using var synonymReader = await synonymCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await synonymReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var name = Convert.ToString(synonymReader["name"] is DBNull ? string.Empty : synonymReader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var synonym = Convert.ToString(synonymReader["synonym"] is DBNull ? string.Empty : synonymReader["synonym"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (keys.Contains(NormalizeGenuineBrandKey(name)))
+                    {
+                        AddGenuineBrandKeys(keys, synonym);
+                    }
+                }
+            }
+            catch
+            {
+                // Synonym tables optional on some tenants.
+            }
+
+            var list = keys.Where(k => k.Length > 0).OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToList();
+            return new(list, list.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontOfficeStorageBunchesResult> ListStorefrontOfficeStorageBunchesAsync(
+        string article,
+        string? brand,
+        CancellationToken cancellationToken = default)
+    {
+        var normalized = PriceLookupRequest.NormalizeArticle(article ?? string.Empty);
+        var brandTrim = (brand ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return new(string.Empty, brandTrim, [], 0, "empty", "Article required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(normalized, brandTrim, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontOfficeStorageBunches;
+            var apiBunches = new List<StorefrontOfficeStorageBunchDigest>();
+            var priceNested = new List<StorefrontOfficeStorageBunchDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var officeId = Convert.ToInt32(reader["office_id"] is DBNull ? 0 : reader["office_id"], CultureInfo.InvariantCulture);
+                var storageId = Convert.ToInt32(reader["storage_id"] is DBNull ? 0 : reader["storage_id"], CultureInfo.InvariantCulture);
+                var handler = Convert.ToString(reader["handler_folder"] is DBNull ? string.Empty : reader["handler_folder"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var isPrices = string.Equals(handler, "prices", StringComparison.OrdinalIgnoreCase);
+                var isTreelax = string.Equals(handler, "treelax_catalogue", StringComparison.OrdinalIgnoreCase);
+                // Protocol: prices nest under protocol-3 aggregate; API handlers use protocol 2
+                // (manufacturer list + products) matching PHP when get_manufacturers.php exists.
+                if (isPrices)
+                {
+                    priceNested.Add(new(officeId, storageId, 1, handler, false));
+                }
+                else
+                {
+                    apiBunches.Add(new(officeId, storageId, isTreelax ? 1 : 2, handler, isTreelax));
+                }
+            }
+
+            var bunches = new List<StorefrontOfficeStorageBunchDigest>();
+            if (priceNested.Count > 0)
+            {
+                // PHP prepends protocol-3 aggregate (office_id=0, storage_id=0) with nested price bunches.
+                bunches.Add(new(0, 0, 3, "prices", false, priceNested));
+            }
+
+            bunches.AddRange(apiBunches);
+            return new(normalized, brandTrim, bunches, bunches.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(normalized, brandTrim, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontProductsOfBunchResult> PollStorefrontProductsOfBunchAsync(
+        string article,
+        string? brand,
+        int officeId,
+        int storageId,
+        string? queryJson,
+        int geoId = 0,
+        CancellationToken cancellationToken = default)
+    {
+        if (_phpWarehouseBridge is null)
+        {
+            return new(0, officeId, storageId, [], false, "migration", "PHP warehouse bridge is not registered.");
+        }
+
+        return await _phpWarehouseBridge
+            .TryLoadProductsOfBunchAsync(article, brand, officeId, storageId, queryJson, geoId, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<StorefrontBulkUploadHistoryResult> ListStorefrontBulkUploadHistoryAsync(
+        int userId,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return new(0, [], 0, "empty", "Customer session required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontBulkUploadHistory;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@limit", Math.Clamp(limit, 1, 50));
+            var rows = new List<StorefrontBulkUploadHistoryDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new(
+                    Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["file_name"] is DBNull ? string.Empty : reader["file_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["priority"] is DBNull ? string.Empty : reader["priority"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToInt32(reader["uploaded_count"] is DBNull ? 0 : reader["uploaded_count"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["available_count"] is DBNull ? 0 : reader["available_count"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["cross_count"] is DBNull ? 0 : reader["cross_count"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["short_count"] is DBNull ? 0 : reader["short_count"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["notfound_count"] is DBNull ? 0 : reader["notfound_count"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["updated_at"] is DBNull ? string.Empty : reader["updated_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+            }
+
+            return new(userId, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, [], 0, "database-error", ex.Message);
+        }
+    }
+
     private static StorefrontProductDigest ReadStorefrontProduct(DbDataReader reader)
-        => new(
+    {
+        string Col(string name)
+        {
+            try
+            {
+                var ordinal = reader.GetOrdinal(name);
+                return reader.IsDBNull(ordinal)
+                    ? string.Empty
+                    : Convert.ToString(reader.GetValue(ordinal), CultureInfo.InvariantCulture) ?? string.Empty;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return string.Empty;
+            }
+        }
+
+        return new(
             Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture),
-            Convert.ToString(reader["caption"] is DBNull ? string.Empty : reader["caption"], CultureInfo.InvariantCulture) ?? string.Empty,
-            Convert.ToString(reader["alias"] is DBNull ? string.Empty : reader["alias"], CultureInfo.InvariantCulture) ?? string.Empty,
+            Col("caption"),
+            Col("alias"),
             Convert.ToInt32(reader["category_id"] is DBNull ? 0 : reader["category_id"], CultureInfo.InvariantCulture),
-            string.Empty,
-            string.Empty,
-            Convert.ToInt32(reader["published"] is DBNull ? 0 : reader["published"], CultureInfo.InvariantCulture) != 0);
+            Col("manufacturer"),
+            Col("article"),
+            Convert.ToInt32(reader["published"] is DBNull ? 0 : reader["published"], CultureInfo.InvariantCulture) != 0,
+            Col("description"));
+    }
+
+    private static async Task<IReadOnlyList<StorefrontProductImageDigest>> LoadStorefrontProductImagesAsync(
+        DbConnection connection,
+        int productId,
+        int profileId,
+        CancellationToken cancellationToken)
+    {
+        var images = new List<StorefrontProductImageDigest>();
+        if (profileId > 0)
+        {
+            try
+            {
+                await using var skuCmd = connection.CreateCommand();
+                skuCmd.CommandText = LegacySurfaceDashboardSql.SelectStorefrontSkuPhotos;
+                AddParameter(skuCmd, "@profileId", profileId);
+                await using var skuReader = await skuCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await skuReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var file = Convert.ToString(skuReader["file_name"] is DBNull ? string.Empty : skuReader["file_name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (file.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    images.Add(new(
+                        Convert.ToInt32(skuReader["id"], CultureInfo.InvariantCulture),
+                        "/content/files/images/sku_media/" + file.TrimStart('/'),
+                        Convert.ToString(skuReader["alt"] is DBNull ? string.Empty : skuReader["alt"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(skuReader["is_primary"] is DBNull ? 0 : skuReader["is_primary"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+            catch
+            {
+                // SKU media tables optional.
+            }
+        }
+
+        if (images.Count == 0)
+        {
+            try
+            {
+                await using var imgCmd = connection.CreateCommand();
+                imgCmd.CommandText = LegacySurfaceDashboardSql.SelectStorefrontProductImages;
+                AddParameter(imgCmd, "@productId", productId);
+                await using var imgReader = await imgCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await imgReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var file = Convert.ToString(imgReader["file_name"] is DBNull ? string.Empty : imgReader["file_name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (file.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var url = file.StartsWith("/content/", StringComparison.OrdinalIgnoreCase)
+                        ? file
+                        : "/content/files/images/products_images/" + file.TrimStart('/');
+                    images.Add(new(
+                        Convert.ToInt32(imgReader["id"], CultureInfo.InvariantCulture),
+                        url,
+                        string.Empty,
+                        images.Count == 0));
+                }
+            }
+            catch
+            {
+                // Legacy gallery optional.
+            }
+        }
+
+        return images;
+    }
+
+    private static async Task<IReadOnlyList<StorefrontProductSpecDigest>> LoadStorefrontSkuSpecsAsync(
+        DbConnection connection,
+        int profileId,
+        CancellationToken cancellationToken)
+    {
+        var specs = new List<StorefrontProductSpecDigest>();
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontSkuSpecs;
+            AddParameter(command, "@profileId", profileId);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var label = Convert.ToString(reader["label"] is DBNull ? string.Empty : reader["label"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var value = Convert.ToString(reader["value"] is DBNull ? string.Empty : reader["value"], CultureInfo.InvariantCulture) ?? string.Empty;
+                if (label.Length == 0 && value.Length == 0)
+                {
+                    continue;
+                }
+
+                specs.Add(new(
+                    Convert.ToString(reader["group_name"] is DBNull ? "Specifications" : reader["group_name"], CultureInfo.InvariantCulture) ?? "Specifications",
+                    label,
+                    value,
+                    Convert.ToString(reader["unit"] is DBNull ? string.Empty : reader["unit"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["value_type"] is DBNull ? "text" : reader["value_type"], CultureInfo.InvariantCulture) ?? "text"));
+            }
+        }
+        catch
+        {
+            // Spec tables optional.
+        }
+
+        return specs;
+    }
+
+    private static void AddGenuineBrandKeys(HashSet<string> keys, string? brand)
+    {
+        var key = NormalizeGenuineBrandKey(brand);
+        if (key.Length > 0)
+        {
+            keys.Add(key);
+        }
+    }
+
+    private static string NormalizeGenuineBrandKey(string? brand)
+    {
+        if (string.IsNullOrWhiteSpace(brand))
+        {
+            return string.Empty;
+        }
+
+        return brand.Trim().ToUpperInvariant();
+    }
 
     private static (string Manufacturer, string Article, string Name, decimal Price) ParseQuoteProductObject(string json)
     {
