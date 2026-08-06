@@ -250,6 +250,68 @@ en_block = '''location ^~ /en/ {
 p.write_text(snip.replace('# END ecomae-storefront-search-app-redirect', en_block, 1))
 print('snip: /en → :5100 (php serving paused)')
 PY
+
+  # The snip only lands in epartscart-named blocks — TENANT server blocks
+  # (electronicae/stylenlook/thejewellerytrend/taxofinca) need /en → :5100 too,
+  # or every home/header link (/en/…) dies on the PHP warm-up splash.
+  python3 - <<'PY'
+import re
+from pathlib import Path
+
+EN_BLOCK = '''    # BEGIN ecomae-paused-en-to-platform
+    location ^~ /en/ {
+        proxy_pass http://127.0.0.1:5100;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Cookie $http_cookie;
+    }
+    # END ecomae-paused-en-to-platform
+'''
+
+HOSTS = ('epartscart', 'electronicae', 'stylenlook', 'thejewellerytrend', 'taxofinca', 'ecomae')
+SERVER = re.compile(r'(?m)^[ \t]*server\s*\{')
+NAME = re.compile(r'(?im)^\s*server_name\s+([^;]+);')
+EN_EXISTS = re.compile(r'(?m)^[ \t]*location\s+(?:\^~\s+)?/en/\s*\{')
+
+def blocks(text):
+    out = []
+    for m in SERVER.finditer(text):
+        i = text.find('{', m.start())
+        depth, j = 0, i
+        while j < len(text):
+            if text[j] == '{':
+                depth += 1
+            elif text[j] == '}':
+                depth -= 1
+                if depth == 0:
+                    out.append((m.start(), j + 1))
+                    break
+            j += 1
+    return out
+
+for conf in sorted(Path('/etc/nginx/sites-enabled').glob('*.conf')):
+    text = conf.read_text(errors='ignore')
+    orig = text
+    for start, end in reversed(blocks(text)):
+        body = text[start:end]
+        names = ' '.join(m.group(1) for m in NAME.finditer(body)).lower()
+        if not any(h in names for h in HOSTS):
+            continue
+        if EN_EXISTS.search(body):
+            continue
+        m = re.match(r'(?s)([ \t]*server\s*\{)(.*)', body)
+        if not m:
+            continue
+        body = m.group(1) + '\n' + EN_BLOCK + m.group(2)
+        text = text[:start] + body + text[end:]
+        print(f'added /en → :5100 in {conf} (server_name: {names[:70]})')
+    if text != orig:
+        conf.write_text(text)
+
+print('paused /en routing ensured for all product server blocks')
+PY
 fi
 
 NGINX_TOUCHED=0
@@ -617,6 +679,12 @@ prove_host_marker https://www.electronicae.com/ 'epc-er-home' 'electronicae home
 prove_host_marker https://www.stylenlook.com/ 'epc-frn-home' 'stylenlook home'
 prove_host_marker https://www.thejewellerytrend.com/ 'epc-jrk-home' 'thejewellerytrend home'
 prove_host_marker https://www.taxofinca.com/ 'epc-cpi-home' 'taxofinca home'
+# 'rendered from PHP package' is the snapshot comment — present ONLY when the
+# platform serves the home (PHP's own render never includes it) → proves ASP.NET.
+prove_host_marker https://www.electronicae.com/ 'rendered from PHP package' 'electronicae served by platform'
+prove_host_marker https://www.stylenlook.com/ 'rendered from PHP package' 'stylenlook served by platform'
+prove_host_marker https://www.thejewellerytrend.com/ 'rendered from PHP package' 'thejewellerytrend served by platform'
+prove_host_marker https://www.taxofinca.com/ 'rendered from PHP package' 'taxofinca served by platform'
 prove_host_marker https://www.ecomae.com/ 'ehm-' 'ecomae marketing home'
 prove_host_marker https://www.ecomae.com/platform/pricing 'epm-topbar' 'marketing pricing page'
 prove_host_marker https://www.ecomae.com/platform/faq 'epm-topbar' 'marketing faq page'
