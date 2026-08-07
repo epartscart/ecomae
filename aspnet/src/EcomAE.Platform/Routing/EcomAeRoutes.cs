@@ -1544,6 +1544,13 @@ public static class EcomAeRoutes
     public const string LifeOsPersonalization = "/lifeos/personalization";
     public const string LifeOsUxMetrics = "/lifeos/ux-metrics";
     public const string LifeOsPlugins = "/lifeos/plugins";
+    public const string LifeOsPluginsApp = "/lifeos/plugins-app";
+    public const string LifeOsMarketplace = "/lifeos/marketplace";
+    public const string LifeOsAgentStore = "/lifeos/agent-store";
+    public const string LifeOsDeveloperPortal = "/lifeos/developer-portal";
+    public const string LifeOsBillingLicensing = "/lifeos/billing-licensing";
+    public const string LifeOsPartners = "/lifeos/partners";
+    public const string LifeOsEcosystemRoadmap = "/lifeos/ecosystem-roadmap";
     public const string LifeOsRoadmap = "/lifeos/roadmap";
     public const string LifeOsSpecApp = "/lifeos/spec-app";
 
