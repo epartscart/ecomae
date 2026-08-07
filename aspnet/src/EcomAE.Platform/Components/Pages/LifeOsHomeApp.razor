@@ -2,11 +2,13 @@
 @* No trailing-slash twin — /lifeos vs /lifeos/ AmbiguousMatchException under ASP.NET routing. *@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.LifeOs.Cinematic
+@using EcomAE.Platform.LifeOs.Purpose
 @using EcomAE.Platform.LifeOs.Spec
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject ILifeOsMasterSpec Spec
 @inject ILifeOsCinematicFilm Film
+@inject ILifeOsDailyRoutineMatrix Routine
 
 <PageTitle>LifeOS™ — Universal Ambient Artificial Intelligence</PageTitle>
 <PhpSurfaceHead Surface="lifeos" />
@@ -81,6 +83,7 @@
       </p>
       <div class="lifeos-cta">
         <a class="lifeos-cta__primary" href="@EcomAeRoutes.LifeOsCinematicApp">Watch the film</a>
+        <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsRoutine">24/7 routine</a>
         <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsDemoApp">See how it works</a>
         <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsApp">Enter LifeOS</a>
         <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsSpec">Master Spec v@_version</a>
@@ -187,6 +190,27 @@
         <span>Travel, vehicle, on-the-move assist</span>
       </li>
     </ul>
+  </section>
+
+  <section class="lifeos-section lifeos-routine" aria-labelledby="lo-routine-title">
+    <h2 id="lo-routine-title">24/7 Daily Human Routine Matrix</h2>
+    <p class="lifeos-section__lede">
+      Purpose coverage across the full day — proactive assistance and cloned-voice responses from wake to sleep.
+      Verdict: <strong>@Routine.Digest().CoverageVerdict</strong>.
+    </p>
+    <ol class="lifeos-routine__list">
+      @foreach (var s in Routine.Segments.Where(x => x.IsCorePurposeRow))
+      {
+        <li>
+          <em>@s.Window</em>
+          <strong>@s.Mode</strong>
+          <span>@s.HumanActivity</span>
+        </li>
+      }
+    </ol>
+    <p class="lifeos-routine__more">
+      <a href="@EcomAeRoutes.LifeOsRoutine">Open full matrix + cloned voice samples →</a>
+    </p>
   </section>
 
   <section class="lifeos-section lifeos-brain" aria-labelledby="lo-brain-title">
@@ -498,6 +522,30 @@ html, body.lifeos-body {
   display: block; font-size: 1.05rem; margin-bottom: .25rem; color: var(--lo-black);
 }
 .lifeos-lifestyle__grid span { color: var(--lo-muted); font-size: .9rem; line-height: 1.45; }
+.lifeos-routine {
+  max-width: none;
+  background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+  border-block: 1px solid #bae6fd;
+}
+.lifeos-routine > h2,
+.lifeos-routine > .lifeos-section__lede,
+.lifeos-routine > .lifeos-routine__list,
+.lifeos-routine > .lifeos-routine__more {
+  max-width: 72rem; margin-left: auto; margin-right: auto;
+}
+.lifeos-routine__list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .75rem;
+}
+.lifeos-routine__list li {
+  padding: .95rem; border: 1px solid #bae6fd; border-radius: .55rem; background: #fff;
+}
+.lifeos-routine__list em { display: block; font-style: normal; color: #0284c7; font-size: .78rem; font-weight: 800; }
+.lifeos-routine__list strong { display: block; margin: .2rem 0 .35rem; font-size: 1rem; }
+.lifeos-routine__list span { color: var(--lo-muted); font-size: .86rem; line-height: 1.4; }
+.lifeos-routine__more { margin: 1rem auto 0; }
+.lifeos-routine__more a { color: #0369a1; font-weight: 700; text-decoration: none; }
+.lifeos-routine__more a:hover { text-decoration: underline; }
 .lifeos-brain__row {
   display: flex; flex-wrap: wrap; gap: .5rem .65rem;
 }

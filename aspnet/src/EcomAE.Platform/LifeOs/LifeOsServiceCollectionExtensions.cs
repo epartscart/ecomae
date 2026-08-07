@@ -1,6 +1,7 @@
 using EcomAE.Platform.LifeOs.Cinematic;
 using EcomAE.Platform.LifeOs.Demo;
 using EcomAE.Platform.LifeOs.Engines;
+using EcomAE.Platform.LifeOs.Purpose;
 using EcomAE.Platform.LifeOs.EventBus;
 using EcomAE.Platform.LifeOs.Orchestrator;
 using EcomAE.Platform.LifeOs.Part3;
@@ -41,6 +42,7 @@ public static class LifeOsServiceCollectionExtensions
         services.AddSingleton<ILifeOsExecutionStrategy, LifeOsExecutionStrategy>();
         services.AddSingleton<ILifeOsDemoRunner, LifeOsDemoRunner>();
         services.AddSingleton<ILifeOsCinematicFilm, LifeOsCinematicFilm>();
+        services.AddSingleton<ILifeOsDailyRoutineMatrix, LifeOsDailyRoutineMatrix>();
         services.AddSingleton<ILifeOsMasterSpec, LifeOsMasterSpec>();
         return services;
     }

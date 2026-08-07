@@ -155,6 +155,7 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/demo", "GET", "How-it-works sample demo catalog (+ ?run=1)"),
         new("/lifeos/demo/run", "POST", "Run sample scenario Perceive→Decide→Act→Learn"),
         new("/lifeos/cinematic", "GET", "3:00 cinematic launch film bible + timed storyboard"),
+        new("/lifeos/routine/json", "GET", "24/7 Daily Human Routine Matrix purpose coverage"),
     ];
 
     public IReadOnlyList<LifeOsSecurityControl> SecurityControls { get; } =
