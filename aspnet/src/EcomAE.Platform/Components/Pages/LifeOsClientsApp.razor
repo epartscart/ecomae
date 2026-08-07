@@ -1,11 +1,11 @@
-@page "/lifeos/platform-app"
+@page "/lifeos/clients-app"
 @layout Layout.PhpChromeLayout
-@using EcomAE.Platform.LifeOs.Part5
+@using EcomAE.Platform.LifeOs.Part8
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
-@inject ILifeOsPlatformEngineering Platform
+@inject ILifeOsClientExperience Ux
 
-<PageTitle>LifeOS™ · Part 5 Platform Engineering</PageTitle>
+<PageTitle>LifeOS™ · Part 8 Client Experience</PageTitle>
 <PhpSurfaceHead Surface="lifeos" />
 <PhpChromeBodyClass Surface="lifeos" />
 
@@ -28,7 +28,7 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
 .lo-top a { color:#ccfbf1; text-decoration:none; }
 .lo-main { padding:1.35rem clamp(1rem,3vw,2.2rem) 2.5rem; max-width:80rem; margin:0 auto; }
 .lo-main h1 { font-family:var(--lo-display); font-weight:400; font-size:clamp(1.65rem,3.5vw,2.3rem); margin:.1rem 0 .4rem; }
-.lo-main > p { max-width:50rem; color:#334155; line-height:1.5; }
+.lo-main > p { max-width:52rem; color:#334155; line-height:1.5; }
 .lo-chips { display:flex; flex-wrap:wrap; gap:.4rem; margin:.5rem 0 1rem; }
 .lo-chips span {
   font-size:.72rem; font-weight:700; padding:.3rem .55rem; border-radius:.28rem;
@@ -41,10 +41,6 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
 .lo-h2 { font-family:var(--lo-display); font-weight:400; font-size:1.4rem; margin:1.2rem 0 .4rem; }
 .lo-table { width:100%; border-collapse:collapse; font-size:.8rem; margin:.4rem 0 1rem; }
 .lo-table th, .lo-table td { text-align:left; padding:.4rem .35rem; border-bottom:1px solid #e2efe9; vertical-align:top; }
-.lo-code {
-  margin:.75rem 0; padding:.85rem 1rem; border-radius:.4rem; background:#062a26; color:#ccfbf1;
-  font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.78rem; overflow:auto; white-space:pre-wrap;
-}
 .lo-note { margin-top:1.3rem; padding:1rem; border-left:3px solid var(--lo-sun); background:#fffbeb; color:#78350f; font-size:.86rem; }
 </style>
 </HeadContent>
@@ -54,96 +50,88 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
     <div class="brand">Life<em>OS</em>™</div>
     <nav>
       <a href="@EcomAeRoutes.LifeOs">Home</a>
-      <a href="@EcomAeRoutes.LifeOsMultimodalApp">Part 4</a>
-      <a href="@EcomAeRoutes.LifeOsPlatformApp">Part 5</a>
-      <a href="@EcomAeRoutes.LifeOsInfraApp">Part 6</a>
       <a href="@EcomAeRoutes.LifeOsSecurityApp">Part 7</a>
+      <a href="@EcomAeRoutes.LifeOsClientsApp">Part 8</a>
       <a href="@EcomAeRoutes.LifeOsSpecApp">Spec</a>
-      <a href="@EcomAeRoutes.LifeOsPlatform">JSON</a>
+      <a href="@EcomAeRoutes.LifeOsClients">JSON</a>
     </nav>
   </header>
   <main class="lo-main">
-    <h1>Part 5 — Platform Engineering</h1>
+    <h1>Part 8 — Client Experience</h1>
     <p>
-      Cloud-native, event-driven, API-first platform: microservices, API gateway, REST/WebSocket,
-      Kafka/NATS topics, polyglot persistence, workflow/automation, plugin &amp; agent SDKs,
-      AI Gateway, auth, multi-tenant, observability (Ch.42–60).
+      Cross-platform UX scaffold: Life Design System, intent navigation, AI workspace, semantic search,
+      modality clients (web→vehicle), continuity, accessibility, offline, personalization, and focus (Ch.102–125).
     </p>
 
     <div class="lo-chips">
-      @foreach (var p in Platform.EngineeringPrinciples)
+      @foreach (var p in Ux.ExperiencePrinciples)
       {
-        <span>@p</span>
+        <span>@p.Title</span>
       }
     </div>
 
-    <h2 class="lo-h2">Core microservices (@Platform.Microservices.Count)</h2>
+    <h2 class="lo-h2">Client ecosystem (@Ux.ClientPlatforms.Count)</h2>
     <div class="lo-grid">
-      @foreach (var s in Platform.Microservices)
+      @foreach (var family in Ux.ClientPlatforms.Select(c => c.Family).Distinct())
       {
+        var items = Ux.ClientPlatforms.Where(c => c.Family == family).ToList();
         <article>
-          <strong>@s.Title</strong>
-          <span>@s.Domain · owns <code>@s.OwnsDatabase</code></span>
+          <strong>@family</strong>
+          <span>@string.Join(" · ", items.Select(i => i.Title))</span>
         </article>
       }
     </div>
 
-    <h2 class="lo-h2">REST envelope</h2>
-    <div class="lo-code">@EnvelopeJson</div>
-
-    <h2 class="lo-h2">Event topics</h2>
+    <h2 class="lo-h2">Life Design System components</h2>
     <div class="lo-chips">
-      @foreach (var t in Platform.EventTopics)
+      @foreach (var c in Ux.DesignComponents)
       {
-        <span title="@t.Description">@t.Topic</span>
+        <span>@c.Title</span>
       }
     </div>
 
-    <h2 class="lo-h2">Data stores</h2>
+    <h2 class="lo-h2">AI Workspace</h2>
+    <div class="lo-chips">
+      @foreach (var m in Ux.AiWorkspaceModules)
+      {
+        <span>@m.Title</span>
+      }
+    </div>
+
+    <h2 class="lo-h2">Dashboards</h2>
     <table class="lo-table">
-      <thead><tr><th>Store</th><th>Workloads</th></tr></thead>
+      <thead><tr><th>Dashboard</th><th>Panels</th></tr></thead>
       <tbody>
-      @foreach (var d in Platform.DataStores)
+      @foreach (var d in Ux.DashboardKinds)
       {
         <tr>
-          <td><strong>@d.Technology</strong></td>
-          <td>@string.Join(", ", d.Workloads)</td>
+          <td><strong>@d.Title</strong></td>
+          <td>@string.Join(", ", d.Panels)</td>
         </tr>
       }
       </tbody>
     </table>
 
-    <h2 class="lo-h2">AI Gateway routing</h2>
-    <table class="lo-table">
-      <thead><tr><th>Task</th><th>Preferred model</th><th>Notes</th></tr></thead>
-      <tbody>
-      @foreach (var r in Platform.AiGatewayRoutes)
-      {
-        <tr><td>@r.Task</td><td>@r.PreferredModel</td><td>@r.Notes</td></tr>
-      }
-      </tbody>
-    </table>
-
-    <h2 class="lo-h2">Agent SDK contract</h2>
+    <h2 class="lo-h2">Focus modes</h2>
     <div class="lo-chips">
-      @foreach (var c in Platform.AgentSdkContract)
+      @foreach (var f in Ux.FocusModes)
       {
-        <span title="@c.Requirement">@c.Field</span>
+        <span>@f.Title</span>
+      }
+    </div>
+
+    <h2 class="lo-h2">Accessibility</h2>
+    <div class="lo-chips">
+      @foreach (var a in Ux.AccessibilitySupports)
+      {
+        <span>@a.Title</span>
       }
     </div>
 
     <div class="lo-note">
-      Digests: <code>/lifeos/platform</code>, <code>/services</code>, <code>/api-catalog</code>,
-      <code>/event-topics</code>, <code>/data-stores</code>, <code>/knowledge-graph</code>,
-      <code>/agent-sdk</code>, <code>/ai-gateway</code>.
-      Kafka/Istio/pgvector production wiring not claimed — scaffold registry only.
+      Digests: <code>/lifeos/clients</code>, <code>/design-system</code>, <code>/workspace-ux</code>,
+      <code>/modality-clients</code>, <code>/continuity</code>, <code>/personalization</code>, <code>/ux-metrics</code>.
+      Web console is live-scaffold; native mobile/desktop/glasses/vehicle clients not claimed.
     </div>
   </main>
 </div>
-
-@code {
-    private string EnvelopeJson =>
-        System.Text.Json.JsonSerializer.Serialize(
-            Platform.Ok(new { id = "usr_1", name = "Operator" }, new { requestId = "req_demo" }),
-            new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-}

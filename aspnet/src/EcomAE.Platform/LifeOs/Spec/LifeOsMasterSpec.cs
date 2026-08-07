@@ -34,23 +34,37 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
                 "Auth", "Multi-Tenant", "Observability", "Engineering Standards"
             ],
             ["ILifeOsPlatformEngineering", "22 microservices", "API envelopes", "/lifeos/platform"]),
-        P(6, "Cloud Infrastructure & Production Operations", "registry",
+        P(6, "Cloud Infrastructure, DevOps & Production Operations", "scaffold",
             [
-                "Kubernetes", "Multi-Region", "Service Mesh", "CI/CD", "Infrastructure as Code",
-                "Auto-Scaling", "High Availability", "Disaster Recovery", "Edge Computing",
-                "GPU Clusters", "Model Serving", "Secrets Management", "Production Monitoring",
-                "Performance Optimization", "Cost Management", "SRE Playbooks"
+                "Infrastructure Vision", "Global Architecture", "Kubernetes", "Service Mesh",
+                "IaC", "CI", "CD", "Containers", "Auto Scaling", "GPU", "Model Serving",
+                "Object Storage", "Backup", "Disaster Recovery", "Monitoring", "Logging",
+                "Secrets", "Edge", "Performance", "SRE", "Production Readiness"
             ],
-            ["Deploy paste", "Health probes", "FORCE_LIVE republish note", "Part 6 chapters pending paste"]),
-        P(7, "Security, Privacy, Compliance, Enterprise", "scaffold",
-            ["Privacy by design", "Permission gates", "Audit", "Compliance map"],
-            ["Local-first controls", "Irreversible-action policy"]),
-        P(8, "Native Clients", "scaffold",
-            ["Mobile", "Desktop", "Smart Glasses", "IoT"],
-            ["Client surface registry", "Channel capabilities"]),
-        P(9, "Plugin Marketplace & Agent SDK", "scaffold",
-            ["Agent SDK", "Plugin manifests", "Developer platform"],
-            ["Plugin catalog stubs", "Capability declarations"]),
+            ["ILifeOsCloudOperations", "K8s/GPU/SRE digests", "/lifeos/infra", "FORCE_LIVE note"]),
+        P(7, "Enterprise Security, Privacy, Compliance & AI Governance", "scaffold",
+            [
+                "Security Philosophy", "Zero Trust", "IAM", "Authorization", "Agent Security",
+                "Data Classification", "Encryption", "Privacy-by-Design", "Consent", "Retention",
+                "Audit", "Compliance", "AI Governance", "AI Safety", "Threat Response",
+                "Enterprise Admin", "Data Residency", "SOC", "Governance Dashboard", "Deployment Models"
+            ],
+            ["ILifeOsSecurityGovernance", "Zero Trust/IAM/AI Safety digests", "/lifeos/security"]),
+        P(8, "Client Applications, User Experience & Cross-Platform Architecture", "scaffold",
+            [
+                "UX Vision", "Client Ecosystem", "Life Design System", "Universal Navigation",
+                "AI Workspace", "Universal Search", "Dashboards", "VUI", "Chat", "Widgets",
+                "Productivity", "Mobile", "Desktop", "Glasses", "Wearables", "Vehicle",
+                "Continuity", "Accessibility", "Offline", "Personalization", "Focus",
+                "Multi-User", "Digital Twin", "UX Metrics"
+            ],
+            ["ILifeOsClientExperience", "LDS + modality clients", "/lifeos/clients", "/lifeos/clients-app"]),
+        P(9, "Ecosystem Platform — Marketplace, Agent Store & Developer Portal", "registry",
+            [
+                "Marketplace", "Agent Store", "Plugin SDK", "Developer Portal", "API Marketplace",
+                "Billing", "Licensing", "Monetization", "Community", "Ecosystem Strategy"
+            ],
+            ["Plugin catalog stubs", "Capability declarations", "Part 9 chapters pending paste"]),
         P(10, "Production, Testing, Roadmap, Research", "scaffold",
             ["Deployment", "Test floors", "Roadmap", "Future research"],
             ["Evidence JSON", "Unit tests", "Research backlog"]),
@@ -97,8 +111,30 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/knowledge-graph", "GET", "Part 5 knowledge graph sample"),
         new("/lifeos/agent-sdk", "GET", "Part 5 agent/plugin SDK contracts"),
         new("/lifeos/ai-gateway", "GET", "Part 5 AI Gateway routing table"),
-        new("/lifeos/security", "GET", "Part 7 security controls"),
-        new("/lifeos/clients", "GET", "Part 8 client surfaces"),
+        new("/lifeos/infra", "GET", "Part 6 Ch.61–81 cloud/DevOps/SRE digest"),
+        new("/lifeos/kubernetes", "GET", "Part 6 Kubernetes + mesh digest"),
+        new("/lifeos/cicd", "GET", "Part 6 CI/CD + containers + autoscaling"),
+        new("/lifeos/gpu", "GET", "Part 6 GPU + model serving + object storage"),
+        new("/lifeos/backup-dr", "GET", "Part 6 backup + disaster recovery"),
+        new("/lifeos/observability", "GET", "Part 6 monitoring/logging/secrets"),
+        new("/lifeos/sre", "GET", "Part 6 SRE objectives + incident lifecycle"),
+        new("/lifeos/readiness", "GET", "Part 6 production readiness checklist"),
+        new("/lifeos/security", "GET", "Part 7 Ch.82–101 security/governance digest"),
+        new("/lifeos/zero-trust", "GET", "Part 7 Zero Trust flow"),
+        new("/lifeos/iam", "GET", "Part 7 IAM / MFA digest"),
+        new("/lifeos/authorization", "GET", "Part 7 RBAC/ABAC/PBAC + agent sandbox"),
+        new("/lifeos/encryption", "GET", "Part 7 encryption + classification"),
+        new("/lifeos/privacy", "GET", "Part 7 privacy/consent/retention/compliance"),
+        new("/lifeos/ai-governance", "GET", "Part 7 AI governance + safety engine"),
+        new("/lifeos/threat-soc", "GET", "Part 7 threat detection + SOC + dashboards"),
+        new("/lifeos/enterprise-deploy", "GET", "Part 7 enterprise admin + residency + deploy models"),
+        new("/lifeos/clients", "GET", "Part 8 Ch.102–125 client UX digest"),
+        new("/lifeos/design-system", "GET", "Part 8 Life Design System + navigation"),
+        new("/lifeos/workspace-ux", "GET", "Part 8 AI workspace/search/dashboards/VUI/chat"),
+        new("/lifeos/modality-clients", "GET", "Part 8 mobile/desktop/glasses/wearable/vehicle"),
+        new("/lifeos/continuity", "GET", "Part 8 continuity + a11y + offline"),
+        new("/lifeos/personalization", "GET", "Part 8 personalization + focus + multi-user"),
+        new("/lifeos/ux-metrics", "GET", "Part 8 digital twin + UX metrics"),
         new("/lifeos/plugins", "GET", "Part 9 plugin marketplace"),
         new("/lifeos/roadmap", "GET", "Part 10 roadmap & research"),
     ];
@@ -147,22 +183,34 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         part6 = new
         {
             cloud = "ASP.NET primary on Kestrel :5100 behind nginx/CloudPanel",
-            k8s = "roadmap",
+            k8s = "scaffold registry — full digest at /lifeos/infra",
             deploy = "scripts/cloudpanel_FORCE_LIVE_NOW.sh after merge to main",
-            monitoring = "health checks + migration digests + Part 4/5 observability"
+            monitoring = "health checks + migration digests + Part 6 observability registry",
+            note = "Multi-region K8s/Istio/GPU not claimed"
         },
-        part7 = new { controls = SecurityControls },
-        part8 = new { clients = Clients },
-        part9 = new { plugins = Plugins },
+        part7 = new
+        {
+            controls = SecurityControls,
+            note = "Full Part 7 digest at /lifeos/security",
+            principles = new[] { "Zero Trust", "Privacy by Design", "Least Privilege", "Defense in Depth", "Explainable AI" }
+        },
+        part8 = new
+        {
+            clients = Clients,
+            note = "Full Part 8 digest at /lifeos/clients",
+            principles = new[] { "Natural", "Predictive", "Non-intrusive", "Consistent", "Adaptive", "Explainable", "Accessible", "Fast" }
+        },
+        part9 = new { plugins = Plugins, note = "Part 9 ecosystem marketplace chapters pending paste" },
         part10 = new
         {
-            testing = "LifeOsPart2 + Part3 + Part4 + Part5Platform + MasterSpec tests",
+            testing = "LifeOsPart2–Part8ClientUx + MasterSpec tests",
             roadmap = new[]
             {
                 "Wire durable memory + pgvector",
                 "Live LLM reasoning behind AI Gateway",
                 "Kafka/NATS event bus option",
                 "Istio service mesh",
+                "Multi-region Kubernetes",
                 "Mobile/desktop/glasses clients",
                 "Plugin marketplace GA"
             },

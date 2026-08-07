@@ -1,11 +1,11 @@
-@page "/lifeos/platform-app"
+@page "/lifeos/security-app"
 @layout Layout.PhpChromeLayout
-@using EcomAE.Platform.LifeOs.Part5
+@using EcomAE.Platform.LifeOs.Part7
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
-@inject ILifeOsPlatformEngineering Platform
+@inject ILifeOsSecurityGovernance Gov
 
-<PageTitle>LifeOS™ · Part 5 Platform Engineering</PageTitle>
+<PageTitle>LifeOS™ · Part 7 Security & Governance</PageTitle>
 <PhpSurfaceHead Surface="lifeos" />
 <PhpChromeBodyClass Surface="lifeos" />
 
@@ -28,7 +28,7 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
 .lo-top a { color:#ccfbf1; text-decoration:none; }
 .lo-main { padding:1.35rem clamp(1rem,3vw,2.2rem) 2.5rem; max-width:80rem; margin:0 auto; }
 .lo-main h1 { font-family:var(--lo-display); font-weight:400; font-size:clamp(1.65rem,3.5vw,2.3rem); margin:.1rem 0 .4rem; }
-.lo-main > p { max-width:50rem; color:#334155; line-height:1.5; }
+.lo-main > p { max-width:52rem; color:#334155; line-height:1.5; }
 .lo-chips { display:flex; flex-wrap:wrap; gap:.4rem; margin:.5rem 0 1rem; }
 .lo-chips span {
   font-size:.72rem; font-weight:700; padding:.3rem .55rem; border-radius:.28rem;
@@ -54,96 +54,102 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
     <div class="brand">Life<em>OS</em>™</div>
     <nav>
       <a href="@EcomAeRoutes.LifeOs">Home</a>
-      <a href="@EcomAeRoutes.LifeOsMultimodalApp">Part 4</a>
-      <a href="@EcomAeRoutes.LifeOsPlatformApp">Part 5</a>
       <a href="@EcomAeRoutes.LifeOsInfraApp">Part 6</a>
       <a href="@EcomAeRoutes.LifeOsSecurityApp">Part 7</a>
+      <a href="@EcomAeRoutes.LifeOsClientsApp">Part 8</a>
       <a href="@EcomAeRoutes.LifeOsSpecApp">Spec</a>
-      <a href="@EcomAeRoutes.LifeOsPlatform">JSON</a>
+      <a href="@EcomAeRoutes.LifeOsSecurityDigest">JSON</a>
     </nav>
   </header>
   <main class="lo-main">
-    <h1>Part 5 — Platform Engineering</h1>
+    <h1>Part 7 — Security &amp; Governance</h1>
     <p>
-      Cloud-native, event-driven, API-first platform: microservices, API gateway, REST/WebSocket,
-      Kafka/NATS topics, polyglot persistence, workflow/automation, plugin &amp; agent SDKs,
-      AI Gateway, auth, multi-tenant, observability (Ch.42–60).
+      Zero Trust, IAM, RBAC/ABAC/PBAC, agent sandboxes, encryption, privacy-by-design, consent,
+      AI governance &amp; safety, threat/SOC, enterprise admin, residency, and deployment models (Ch.82–101).
     </p>
 
     <div class="lo-chips">
-      @foreach (var p in Platform.EngineeringPrinciples)
+      @foreach (var p in Gov.SecurityPrinciples)
       {
-        <span>@p</span>
+        <span>@p.Title</span>
       }
     </div>
 
-    <h2 class="lo-h2">Core microservices (@Platform.Microservices.Count)</h2>
+    <h2 class="lo-h2">Zero Trust — never trust</h2>
+    <div class="lo-chips">
+      @foreach (var n in Gov.ZeroTrustNeverTrust)
+      {
+        <span>@n</span>
+      }
+    </div>
+
+    <h2 class="lo-h2">Identity types</h2>
     <div class="lo-grid">
-      @foreach (var s in Platform.Microservices)
+      @foreach (var id in Gov.IdentityTypes)
       {
         <article>
-          <strong>@s.Title</strong>
-          <span>@s.Domain · owns <code>@s.OwnsDatabase</code></span>
+          <strong>@id.Title</strong>
+          <span>key: @id.Key</span>
         </article>
       }
     </div>
 
-    <h2 class="lo-h2">REST envelope</h2>
-    <div class="lo-code">@EnvelopeJson</div>
-
-    <h2 class="lo-h2">Event topics</h2>
-    <div class="lo-chips">
-      @foreach (var t in Platform.EventTopics)
-      {
-        <span title="@t.Description">@t.Topic</span>
-      }
-    </div>
-
-    <h2 class="lo-h2">Data stores</h2>
+    <h2 class="lo-h2">Data classification</h2>
     <table class="lo-table">
-      <thead><tr><th>Store</th><th>Workloads</th></tr></thead>
+      <thead><tr><th>Level</th><th>Examples</th></tr></thead>
       <tbody>
-      @foreach (var d in Platform.DataStores)
+      @foreach (var level in Gov.DataClassificationLevels)
       {
         <tr>
-          <td><strong>@d.Technology</strong></td>
-          <td>@string.Join(", ", d.Workloads)</td>
+          <td><strong>@level.Title</strong></td>
+          <td>@string.Join(", ", level.Examples)</td>
         </tr>
       }
       </tbody>
     </table>
 
-    <h2 class="lo-h2">AI Gateway routing</h2>
-    <table class="lo-table">
-      <thead><tr><th>Task</th><th>Preferred model</th><th>Notes</th></tr></thead>
-      <tbody>
-      @foreach (var r in Platform.AiGatewayRoutes)
-      {
-        <tr><td>@r.Task</td><td>@r.PreferredModel</td><td>@r.Notes</td></tr>
-      }
-      </tbody>
-    </table>
+    <h2 class="lo-h2">AI agent sandbox sample</h2>
+    <div class="lo-code">@AgentJson</div>
 
-    <h2 class="lo-h2">Agent SDK contract</h2>
+    <h2 class="lo-h2">AI Safety decisions</h2>
     <div class="lo-chips">
-      @foreach (var c in Platform.AgentSdkContract)
+      @foreach (var d in Gov.SafetyDecisions)
       {
-        <span title="@c.Requirement">@c.Field</span>
+        <span>@d.Title</span>
+      }
+    </div>
+
+    <h2 class="lo-h2">Compliance frameworks</h2>
+    <div class="lo-grid">
+      @foreach (var f in Gov.ComplianceFrameworks)
+      {
+        <article>
+          <strong>@f.Title</strong>
+          <span>@f.Notes</span>
+        </article>
+      }
+    </div>
+
+    <h2 class="lo-h2">Deployment models</h2>
+    <div class="lo-chips">
+      @foreach (var m in Gov.DeploymentModels)
+      {
+        <span title="@m.Notes">@m.Title</span>
       }
     </div>
 
     <div class="lo-note">
-      Digests: <code>/lifeos/platform</code>, <code>/services</code>, <code>/api-catalog</code>,
-      <code>/event-topics</code>, <code>/data-stores</code>, <code>/knowledge-graph</code>,
-      <code>/agent-sdk</code>, <code>/ai-gateway</code>.
-      Kafka/Istio/pgvector production wiring not claimed — scaffold registry only.
+      Digests: <code>/lifeos/security</code>, <code>/zero-trust</code>, <code>/iam</code>,
+      <code>/authorization</code>, <code>/encryption</code>, <code>/privacy</code>,
+      <code>/ai-governance</code>, <code>/threat-soc</code>, <code>/enterprise-deploy</code>.
+      Full IdP / SOC / TEE not claimed — scaffold registry; Super-CP host gate + ethics confirmations are live.
     </div>
   </main>
 </div>
 
 @code {
-    private string EnvelopeJson =>
+    private string AgentJson =>
         System.Text.Json.JsonSerializer.Serialize(
-            Platform.Ok(new { id = "usr_1", name = "Operator" }, new { requestId = "req_demo" }),
+            new { agent = Gov.SampleAgentPermissions.Agent, permissions = Gov.SampleAgentPermissions.Permissions },
             new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
 }

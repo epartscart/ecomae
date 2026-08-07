@@ -1,0 +1,57 @@
+{
+  "surface": "lifeos",
+  "part": 6,
+  "title": "Cloud Infrastructure, DevOps & Production Operations",
+  "status": "scaffold",
+  "chapters": {
+    "61": "Infrastructure Vision",
+    "62": "Global Infrastructure Architecture",
+    "63": "Kubernetes Platform",
+    "64": "Service Mesh",
+    "65": "Infrastructure as Code",
+    "66": "Continuous Integration",
+    "67": "Continuous Deployment",
+    "68": "Container Strategy",
+    "69": "Auto Scaling",
+    "70": "GPU Infrastructure",
+    "71": "AI Model Serving Platform",
+    "72": "Object Storage Architecture",
+    "73": "Backup Strategy",
+    "74": "Disaster Recovery",
+    "75": "Monitoring Platform",
+    "76": "Logging Platform",
+    "77": "Secrets Management",
+    "78": "Edge Computing",
+    "79": "Performance Engineering",
+    "80": "Site Reliability Engineering (SRE)",
+    "81": "Production Readiness Checklist"
+  },
+  "routes": {
+    "digest": "/lifeos/infra",
+    "ui": "/lifeos/infra-app",
+    "kubernetes": "/lifeos/kubernetes",
+    "cicd": "/lifeos/cicd",
+    "gpu": "/lifeos/gpu",
+    "backupDr": "/lifeos/backup-dr",
+    "observability": "/lifeos/observability",
+    "sre": "/lifeos/sre",
+    "readiness": "/lifeos/readiness"
+  },
+  "regions": ["us", "eu", "asia"],
+  "nodePools": 5,
+  "readinessItems": 20,
+  "tests": "LifeOsPart6CloudOpsTests",
+  "notClaimed": [
+    "Live multi-region Kubernetes clusters",
+    "Istio/Linkerd mesh in production",
+    "GPU node pools / model serving fleet",
+    "Prometheus/Grafana/Jaeger stack for LifeOS",
+    "Vault-backed secrets for LifeOS services"
+  ],
+  "liveToday": {
+    "runtime": "ASP.NET Core on Kestrel :5100",
+    "edge": "nginx / CloudPanel",
+    "deploy": "scripts/cloudpanel_FORCE_LIVE_NOW.sh"
+  },
+  "next": "Part 7 — Enterprise Security, Privacy, Compliance & Governance"
+}

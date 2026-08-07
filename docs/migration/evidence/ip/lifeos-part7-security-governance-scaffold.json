@@ -1,0 +1,58 @@
+{
+  "surface": "lifeos",
+  "part": 7,
+  "title": "Enterprise Security, Privacy, Compliance & AI Governance",
+  "status": "scaffold",
+  "chapters": {
+    "82": "Security Philosophy",
+    "83": "Zero Trust Security Architecture",
+    "84": "Identity & Access Management (IAM)",
+    "85": "Authorization Model",
+    "86": "AI Agent Security",
+    "87": "Data Classification",
+    "88": "Encryption Architecture",
+    "89": "Privacy-by-Design Framework",
+    "90": "Consent Management",
+    "91": "Data Retention & Deletion",
+    "92": "Audit & Compliance",
+    "93": "Compliance Framework",
+    "94": "AI Governance Framework",
+    "95": "AI Safety Engine",
+    "96": "Threat Detection & Response",
+    "97": "Enterprise Administration",
+    "98": "Data Residency",
+    "99": "Security Operations Center (SOC)",
+    "100": "Governance Dashboard",
+    "101": "Enterprise Deployment Models"
+  },
+  "routes": {
+    "digest": "/lifeos/security",
+    "ui": "/lifeos/security-app",
+    "zeroTrust": "/lifeos/zero-trust",
+    "iam": "/lifeos/iam",
+    "authorization": "/lifeos/authorization",
+    "encryption": "/lifeos/encryption",
+    "privacy": "/lifeos/privacy",
+    "aiGovernance": "/lifeos/ai-governance",
+    "threatSoc": "/lifeos/threat-soc",
+    "enterpriseDeploy": "/lifeos/enterprise-deploy"
+  },
+  "principles": 5,
+  "identityTypes": 10,
+  "deploymentModels": 6,
+  "tests": "LifeOsPart7SecurityTests",
+  "liveToday": [
+    "IpHostGateMiddleware Super-CP gate for /ip and /bos",
+    "DbLegacyAdminLoginService cookie bridge",
+    "Part 3 ethics gate + irreversible-action confirmation",
+    "Tenant isolation / stack non-disclosure"
+  ],
+  "notClaimed": [
+    "Full enterprise IdP (SAML/OIDC/LDAP) production wiring",
+    "Live SOC / threat intel feeds",
+    "TEE / confidential computing for LifeOS workloads",
+    "Certified GDPR/HIPAA/SOC2 attestations",
+    "Air-gapped installer"
+  ],
+  "next": "Part 8 — Client Applications & User Experience Architecture"
+}

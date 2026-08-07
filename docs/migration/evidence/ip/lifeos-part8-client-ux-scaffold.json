@@ -1,0 +1,57 @@
+{
+  "surface": "lifeos",
+  "part": 8,
+  "title": "Client Applications, User Experience & Cross-Platform Architecture",
+  "status": "scaffold",
+  "chapters": {
+    "102": "User Experience Vision",
+    "103": "Client Ecosystem",
+    "104": "Universal Design System (Life Design System - LDS)",
+    "105": "Universal Navigation",
+    "106": "AI Workspace",
+    "107": "Universal Search",
+    "108": "Dashboard Architecture",
+    "109": "Voice User Interface (VUI)",
+    "110": "Chat Experience",
+    "111": "Smart Widgets",
+    "112": "Productivity Workspace",
+    "113": "Mobile Experience",
+    "114": "Desktop Experience",
+    "115": "Smart Glasses Experience",
+    "116": "Wearable Experience",
+    "117": "Vehicle Experience",
+    "118": "Cross-Device Continuity",
+    "119": "Accessibility Framework",
+    "120": "Offline Experience",
+    "121": "Personalization Engine",
+    "122": "Notification & Focus Experience",
+    "123": "Multi-User Experience",
+    "124": "Digital Twin (Optional Feature)",
+    "125": "User Experience Metrics"
+  },
+  "routes": {
+    "digest": "/lifeos/clients",
+    "ui": "/lifeos/clients-app",
+    "designSystem": "/lifeos/design-system",
+    "workspaceUx": "/lifeos/workspace-ux",
+    "modalityClients": "/lifeos/modality-clients",
+    "continuity": "/lifeos/continuity",
+    "personalization": "/lifeos/personalization",
+    "uxMetrics": "/lifeos/ux-metrics"
+  },
+  "clientPlatforms": 22,
+  "designComponents": 14,
+  "tests": "LifeOsPart8ClientUxTests",
+  "liveToday": [
+    "LifeOS Web Console + Part 2–7 scaffold UIs",
+    "PhpLifeOsAmbientAudio on login/home"
+  ],
+  "notClaimed": [
+    "Native iOS/Android apps",
+    "Desktop installers (Win/macOS/Linux)",
+    "Smart glasses / XR clients",
+    "Vehicle HMI integrations",
+    "Production offline sync conflict resolver"
+  ],
+  "next": "Part 9 — Ecosystem Platform (Marketplace, Agent Store, Developer Portal)"
+}
