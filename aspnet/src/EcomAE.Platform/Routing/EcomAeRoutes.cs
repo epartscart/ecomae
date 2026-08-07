@@ -428,6 +428,8 @@ public static class EcomAeRoutes
     public const string ControlPanelOpsGuides = "/cp/ops-guides";
     /// <summary>CP Ops guides / CP menu map Blazor list (JSON digest remains <see cref="ControlPanelOpsGuides"/>).</summary>
     public const string ControlPanelOpsGuidesApp = "/cp/ops-guides-app";
+    /// <summary>CP LifeOS™ visual system guide — hosts, frontend/backend links, Master Spec chapters.</summary>
+    public const string ControlPanelLifeOsGuideApp = "/cp/lifeos-guide-app";
     public const string ControlPanelFileManager = "/cp/file-manager";
     /// <summary>CP File manager Blazor list (JSON digest remains <see cref="ControlPanelFileManager"/>).</summary>
     public const string ControlPanelFileManagerApp = "/cp/file-manager-app";

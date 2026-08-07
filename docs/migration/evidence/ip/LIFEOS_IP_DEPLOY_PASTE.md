@@ -34,10 +34,18 @@ grep -E 'RESULT=|ERROR|FAIL' /root/force-live-ip-lifeos.log | tail -20
 ECOMAE_BRANCH=main bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_NOW.sh)" 2>&1 | tee /root/force-live-ip-lifeos.log
 ```
 
+## CP system guide (after FORCE_LIVE)
+
+- Visual + all frontend/backend links + chapters: `https://www.ecomae.com/cp/lifeos-guide-app`
+- IP hub: `https://www.ecomae.com/ip` · login: `https://www.ecomae.com/ip/login`
+- LifeOS home: `https://lifeos.ecomae.com/` · preview: `https://www.ecomae.com/lifeos`
+
 ## Prove after RESULT=PASS
 
 ```bash
 curl -sI https://www.ecomae.com/ip/login | head -5
+curl -sI https://www.ecomae.com/ip | head -5
+curl -sI https://www.ecomae.com/cp/lifeos-guide-app | head -5
 curl -sI https://www.ecomae.com/bos/login | head -5
 curl -s https://www.ecomae.com/lifeos/spec | head -c 400; echo
 curl -s https://www.ecomae.com/lifeos/architecture | head -c 400; echo

@@ -136,6 +136,7 @@ public static class LegacyChromeNavCatalog
         new("Sitemap", "/cp/sitemap-app"),
         new("Failover status", "/cp/failover-status-app"),
         new("Ops guides", "/cp/ops-guides-app"),
+        new("LifeOS system guide", "/cp/lifeos-guide-app"),
         new("File manager", "/cp/file-manager-app"),
         new("Server IP", "/cp/server-ip-app"),
         new("Config items list", "/cp/config-items-app"),
