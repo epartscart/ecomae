@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
@@ -6,10 +8,32 @@ namespace EcomAE.Platform.Presentation;
 /// itself renders each page) — byte-parity for the WHOLE marketing site.
 /// Served at the PHP-canonical URLs on marketing hosts; the home stays on the
 /// ported Blazor app (/marketing/app).
+/// Asset URLs inside snapshots are rewritten to /platform-assets so pages stay
+/// styled when product PHP HTTP is paused.
 /// </summary>
 public static class EcomaeMarketingSnapshots
 {
     private const string SnapshotDir = "content/general_pages/epc_rendered_marketing";
+
+    /// <summary>Bare SEO aliases → PHP-canonical snapshot paths.</summary>
+    private static readonly Dictionary<string, string> PathAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["/about"] = "/platform/about",
+        ["/contact"] = "/platform/contact",
+        ["/industries"] = "/platform/industries",
+        ["/pricing"] = "/platform/pricing",
+        ["/demo"] = "/platform/demo",
+        ["/faq"] = "/platform/faq",
+        ["/capabilities"] = "/platform/capabilities",
+        ["/free-tools"] = "/platform/free-tools",
+        ["/tools"] = "/platform/free-tools",
+        ["/platform/brochure"] = "/brochure",
+        ["/platform/brochure/cp"] = "/brochure/cp",
+        ["/brochure-cp"] = "/brochure/cp",
+        ["/platform/catalog-api"] = "/platform/api-services",
+        ["/platform/price-pro-api"] = "/platform/api-services",
+        ["/platform/customer-testimonials"] = "/platform/customer-results",
+    };
 
     public static bool IsMarketingHost(string? host)
     {
@@ -31,7 +55,13 @@ public static class EcomaeMarketingSnapshots
             return string.Empty;
         }
 
-        return PhpHomeWidgetHtml.RenderStatic(SnapshotDir + "/" + slug + ".html");
+        var html = PhpHomeWidgetHtml.RenderStatic(SnapshotDir + "/" + slug + ".html");
+        if (string.IsNullOrEmpty(html))
+        {
+            return string.Empty;
+        }
+
+        return RewritePhpAssetUrls(html);
     }
 
     /// <summary>Path → snapshot slug; null when the path is never a marketing snapshot.</summary>
@@ -56,14 +86,9 @@ public static class EcomaeMarketingSnapshots
             return null;
         }
 
-        // /platform/brochure aliases render the same brochure pages.
-        if (value.Equals("/platform/brochure", StringComparison.OrdinalIgnoreCase))
+        if (PathAliases.TryGetValue(value, out var aliased))
         {
-            value = "/brochure";
-        }
-        else if (value.Equals("/platform/brochure/cp", StringComparison.OrdinalIgnoreCase))
-        {
-            value = "/brochure/cp";
+            value = aliased;
         }
 
         // Bare /bos is the product BOS app (Super-CP only) — never a marketing snapshot.
@@ -87,5 +112,63 @@ public static class EcomaeMarketingSnapshots
         }
 
         return slug;
+    }
+
+    /// <summary>
+    /// Snapshots were rendered against PHP HTTP. When PHP serving is paused those
+    /// chrome CSS helpers 404 — rewrite to the Kestrel /platform-assets bridge.
+    /// </summary>
+    public static string RewritePhpAssetUrls(string html)
+    {
+        if (string.IsNullOrEmpty(html))
+        {
+            return html;
+        }
+
+        // Marketing chrome CSS (primary unstyled-page failure).
+        html = Regex.Replace(
+            html,
+            @"/content/general_pages/epc_ecomae_platform_marketing_css\.php(\?[^""'\s]*)?",
+            "/platform-assets/epc_ecomae_platform_marketing.css?v=20260807b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        html = Regex.Replace(
+            html,
+            @"/epc-static\.php\?f=content/general_pages/epc_ecomae_platform_marketing\.css([^""'\s]*)?",
+            "/platform-assets/epc_ecomae_platform_marketing.css?v=20260807b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        html = Regex.Replace(
+            html,
+            @"/epc-static\.php\?f=content/general_pages/epc_ecomae_home_sections\.css([^""'\s]*)?",
+            "/platform-assets/epc_ecomae_home_sections.css?v=20260807b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        html = Regex.Replace(
+            html,
+            @"/epc-static\.php\?f=content/general_pages/epc_ecomae_home_3d\.css([^""'\s]*)?",
+            "/platform-assets/epc_ecomae_home_3d.css?v=20260807b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        html = Regex.Replace(
+            html,
+            @"/epc-static\.php\?f=content/general_pages/epc_ecomae_home_3d\.js([^""'\s]*)?",
+            "/platform-assets/epc_ecomae_home_3d.js?v=20260807b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        html = Regex.Replace(
+            html,
+            @"/content/general_pages/epc_ecomae_logo_svg\.php",
+            "/platform-assets/ecomae-mark.svg",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        // Prefer epc-static for marketing_screens images (bridge already serves them).
+        html = Regex.Replace(
+            html,
+            @"/(?:content/general_pages/)(marketing_screens/[^""'\s?]+)",
+            "/epc-static.php?f=content/general_pages/$1",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        return html;
     }
 }

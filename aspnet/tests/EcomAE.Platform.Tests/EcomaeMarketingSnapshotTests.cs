@@ -26,9 +26,26 @@ public sealed class EcomaeMarketingSnapshotTests
     [InlineData("/legal", "legal")]
     [InlineData("/privacy", "privacy")]
     [InlineData("/terms", "terms")]
+    [InlineData("/about", "platform__about")]
+    [InlineData("/contact", "platform__contact")]
+    [InlineData("/industries", "platform__industries")]
+    [InlineData("/pricing", "platform__pricing")]
+    [InlineData("/demo", "platform__demo")]
+    [InlineData("/faq", "platform__faq")]
+    [InlineData("/capabilities", "platform__capabilities")]
     public void CanonicalPathsMapToSnapshotSlugs(string path, string slug)
     {
         Assert.Equal(slug, EcomaeMarketingSnapshots.SlugFor(path));
+    }
+
+    [Fact]
+    public void SnapshotHtmlRewritesMarketingCssToPlatformAssets()
+    {
+        var html = EcomaeMarketingSnapshots.HtmlFor("/platform/about");
+        Assert.False(string.IsNullOrWhiteSpace(html));
+        Assert.Contains("/platform-assets/epc_ecomae_platform_marketing.css", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_ecomae_platform_marketing_css.php", html, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/ecomae-mark.svg", html, StringComparison.Ordinal);
     }
 
     [Theory]

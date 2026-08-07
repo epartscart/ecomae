@@ -1,0 +1,27 @@
+{
+  "id": "www-marketing-full-site-lifeos-film",
+  "capturedAtUtc": "2026-08-07T14:30:00Z",
+  "verdict": "ready",
+  "problem": {
+    "home": "Hero OK but no LifeOS cinema after hub",
+    "innerPages": "PHP snapshots returned 200 but CSS href still pointed at epc_ecomae_platform_marketing_css.php → 404 while PHP paused (unstyled full site)",
+    "aliases": "/about /contact /industries fell through to PHP-pause 503"
+  },
+  "fix": {
+    "hubUntouched": true,
+    "homeOrder": ["PhpEcomaeMarketingHub", "PhpEcomaeLifeOsFilmBand", "PhpEcomaeHomeSections"],
+    "filmCss": "/platform-assets/epc_ecomae_marketing_lifeos_film.css",
+    "filmVideo": "/lifeos/media/lifeos-daily-clone-routine.mp4",
+    "snapshotRewrite": "EcomaeMarketingSnapshots.RewritePhpAssetUrls → platform-assets CSS + mark SVG",
+    "aliases": ["/about", "/contact", "/industries", "/pricing", "/demo", "/faq", "/capabilities"],
+    "stubRedirect": "MarketingStubToPhpRedirectMiddleware always 302 → snapshot canonical (even PreferAspNetApps)",
+    "nginx": "classic-entry adds bare aliases + /content/general_pages/ + /epc-static.php → :5100"
+  },
+  "proveAfterForceLive": [
+    "bash -c \"$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/www-marketing-full-site-7b3b/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)\"",
+    "Expect RESULT=PASS — www.ecomae.com full marketing site + LifeOS film after hero",
+    "curl -sL https://www.ecomae.com/ | grep -E 'epm-hub|epm-lofilm|lifeos-daily-clone'",
+    "curl -sL https://www.ecomae.com/platform/about | grep platform-assets/epc_ecomae_platform_marketing.css",
+    "curl -sI https://www.ecomae.com/about | head -5"
+  ]
+}

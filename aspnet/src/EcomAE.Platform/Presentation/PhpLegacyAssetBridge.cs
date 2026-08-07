@@ -143,6 +143,8 @@ public static class PhpLegacyAssetBridge
                          "content/general_pages/epc_ecomae_home_3d.css"),
                      ("/platform-assets/epc_ecomae_home_3d.js",
                          "content/general_pages/epc_ecomae_home_3d.js"),
+                     ("/platform-assets/epc_ecomae_marketing_lifeos_film.css",
+                         "content/general_pages/epc_ecomae_marketing_lifeos_film.css"),
                  })
         {
             var localRelative = relative;

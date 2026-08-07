@@ -59,10 +59,35 @@ public sealed class EcomaeMarketingPagesTests
     {
         Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_platform_marketing.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_home_sections.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_marketing_lifeos_film.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.MarketingScripts, href => href.Contains("/platform-assets/epc_ecomae_home_3d.js", StringComparison.Ordinal));
         Assert.Equal("/platform-assets/ecomae-mark.svg", LegacyPresentationAssets.BrandMarkUrl);
+        var home = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Components/Pages/MarketingPreviewApp.razor"));
+        Assert.Contains("PhpEcomaeMarketingHub", home, StringComparison.Ordinal);
+        Assert.Contains("PhpEcomaeLifeOsFilmBand", home, StringComparison.Ordinal);
+        // Film band must follow hub (after hero), not precede it.
+        Assert.True(home.IndexOf("PhpEcomaeMarketingHub", StringComparison.Ordinal)
+            < home.IndexOf("PhpEcomaeLifeOsFilmBand", StringComparison.Ordinal));
+        Assert.True(home.IndexOf("PhpEcomaeLifeOsFilmBand", StringComparison.Ordinal)
+            < home.IndexOf("PhpEcomaeHomeSections", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("marketing"), m => m.Contains("epm-hub__orbit-spin", StringComparison.Ordinal));
         Assert.Equal("epm-body", LegacyPresentationAssets.BodyClassFor("marketing"));
         Assert.Contains("epm-hub", LegacyPresentationAssets.LegacyChromeSourceFor("marketing"), StringComparison.Ordinal);
+    }
+
+    private static string FindRepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            if (File.Exists(Path.Combine(dir.FullName, "aspnet", "EcomAE.AspNetCore.sln")))
+            {
+                return dir.FullName;
+            }
+
+            dir = dir.Parent;
+        }
+
+        throw new DirectoryNotFoundException("repo root with aspnet/EcomAE.AspNetCore.sln");
     }
 }
