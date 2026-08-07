@@ -19,14 +19,6 @@ public static class LifeOsPwaAssets
         "lifeos-pwa-512.svg",
     };
 
-    private static readonly HashSet<string> ScriptAllow = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "join.js",
-        "companion.js",
-        "results.js",
-        "sw.js",
-    };
-
     public static void Map(IEndpointRouteBuilder endpoints, IWebHostEnvironment env)
     {
         endpoints.MapGet(ManifestPath, (IWebHostEnvironment e) =>
