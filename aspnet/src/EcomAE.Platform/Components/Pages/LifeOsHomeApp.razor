@@ -1,10 +1,12 @@
 @page "/lifeos"
 @* No trailing-slash twin — /lifeos vs /lifeos/ AmbiguousMatchException under ASP.NET routing. *@
 @layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Cinematic
 @using EcomAE.Platform.LifeOs.Spec
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject ILifeOsMasterSpec Spec
+@inject ILifeOsCinematicFilm Film
 
 <PageTitle>LifeOS™ — Universal Ambient Artificial Intelligence</PageTitle>
 <PhpSurfaceHead Surface="lifeos" />
@@ -78,11 +80,25 @@
         Perceive, decide, and act across work, wealth, health, and home — with human control always first.
       </p>
       <div class="lifeos-cta">
-        <a class="lifeos-cta__primary" href="@EcomAeRoutes.LifeOsDemoApp">See how it works</a>
+        <a class="lifeos-cta__primary" href="@EcomAeRoutes.LifeOsCinematicApp">Watch the film</a>
+        <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsDemoApp">See how it works</a>
         <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsApp">Enter LifeOS</a>
         <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsSpec">Master Spec v@_version</a>
       </div>
     </div>
+  </section>
+
+  <section class="lifeos-section lifeos-film" aria-labelledby="lo-film-title">
+    <h2 id="lo-film-title">Launch film</h2>
+    <p class="lifeos-section__lede">Three minutes. One intelligence across every device, business, and person.</p>
+    <div class="lifeos-film__player">
+      <video controls playsinline preload="metadata" poster="@Film.PosterUrl" aria-label="LifeOS cinematic launch film">
+        <source src="@Film.VideoUrl" type="video/mp4" />
+      </video>
+    </div>
+    <p class="lifeos-film__more">
+      <a href="@EcomAeRoutes.LifeOsCinematicApp">Open film theatre with scene jumps →</a>
+    </p>
   </section>
 
   <section class="lifeos-section lifeos-flow" aria-labelledby="lo-flow-title">
@@ -396,6 +412,31 @@ html, body.lifeos-body {
   line-height: 1.55;
   font-size: 1rem;
 }
+.lifeos-film {
+  max-width: none;
+  background: linear-gradient(180deg, #020617 0%, #0b1b3a 55%, #020617 100%);
+  color: var(--lo-white);
+  border-block: 1px solid rgba(56,189,248,.18);
+}
+.lifeos-film h2 { color: var(--lo-white); }
+.lifeos-film .lifeos-section__lede { color: #94a3b8; }
+.lifeos-film > h2,
+.lifeos-film > .lifeos-section__lede,
+.lifeos-film > .lifeos-film__player,
+.lifeos-film > .lifeos-film__more {
+  max-width: 72rem; margin-left: auto; margin-right: auto;
+}
+.lifeos-film__player {
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 28px 70px rgba(0,0,0,.45);
+}
+.lifeos-film__player video {
+  display: block; width: 100%; aspect-ratio: 16 / 9; background: #000;
+}
+.lifeos-film__more { margin: 1rem 0 0; }
+.lifeos-film__more a { color: var(--lo-blue-bright); text-decoration: none; font-weight: 600; }
+.lifeos-film__more a:hover { text-decoration: underline; }
 .lifeos-flow { background: var(--lo-white); border-block: 1px solid var(--lo-line); max-width: none; }
 .lifeos-flow > h2, .lifeos-flow > .lifeos-section__lede,
 .lifeos-flow > .lifeos-flow__track {

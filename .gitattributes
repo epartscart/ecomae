@@ -1,0 +1,1 @@
+aspnet/src/EcomAE.Platform/wwwroot/lifeos/cinematic/*.mp4 filter=lfs diff=lfs merge=lfs -text

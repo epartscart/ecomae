@@ -1,3 +1,4 @@
+using EcomAE.Platform.LifeOs.Cinematic;
 using EcomAE.Platform.LifeOs.Demo;
 using EcomAE.Platform.LifeOs.Engines;
 using EcomAE.Platform.LifeOs.EventBus;
@@ -359,6 +360,10 @@ public sealed class LifeOsModule : ISurfaceModule
                 .ConfigureAwait(false);
             return Results.Ok(new { ok = true, scaffold = true, result });
         });
+
+        // ── Cinematic launch film (3:00 storyboard + master prompt) ────────
+        endpoints.MapGet(EcomAeRoutes.LifeOsCinematic, (ILifeOsCinematicFilm film) =>
+            Results.Ok(new { ok = true, scaffold = true, film = film.Digest() }));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (
             LifeOsOrchestrateBody? body,

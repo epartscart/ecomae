@@ -1,0 +1,27 @@
+{
+  "id": "lifeos-cinematic-launch-film",
+  "capturedAtUtc": "2026-08-07T11:00:00Z",
+  "verdict": "live-on-frontend",
+  "title": "LifeOS ultra-premium cinematic product launch film",
+  "durationSeconds": 180,
+  "aspectRatio": "16:9",
+  "resolution": "720p web (H.264) · master keyframes 16:9",
+  "frameRate": "30fps web delivery",
+  "routes": {
+    "homeEmbed": "/lifeos",
+    "ui": "/lifeos/cinematic-app",
+    "json": "/lifeos/cinematic",
+    "mp4": "/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4"
+  },
+  "keyframes": [
+    "/lifeos/cinematic/lifeos-cinematic-scene01-earth.png",
+    "/lifeos/cinematic/lifeos-cinematic-scene02-continuity.png",
+    "/lifeos/cinematic/lifeos-cinematic-scene03-brain.png",
+    "/lifeos/cinematic/lifeos-cinematic-scene04-voice.png",
+    "/lifeos/cinematic/lifeos-cinematic-scene06-agents.png",
+    "/lifeos/cinematic/lifeos-cinematic-scene10-finale.png"
+  ],
+  "style": "Apple keynote × JARVIS × holographic OS · Ken Burns cinematic assembly",
+  "renderStatus": "3:00 MP4 published on LifeOS frontend",
+  "note": "Higgsfield MCP auth is desktop-bound and unavailable to cloud agents; shipped keyframe-assembled launch film with ambient score."
+}

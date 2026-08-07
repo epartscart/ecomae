@@ -1,0 +1,155 @@
+@page "/lifeos/cinematic-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Cinematic
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsCinematicFilm Film
+
+<PageTitle>LifeOS™ · Cinematic launch film</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<meta name="ecomae-chrome-surface" content="lifeos-cinematic" />
+<style>@((MarkupString)_css)</style>
+</HeadContent>
+
+<div class="locine">
+  <header class="locine-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav>
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a href="@EcomAeRoutes.LifeOsDemoApp">Demo</a>
+      <a class="is-active" href="@EcomAeRoutes.LifeOsCinematicApp">Film</a>
+      <a href="@EcomAeRoutes.LifeOsCinematic">JSON</a>
+    </nav>
+  </header>
+
+  <main class="locine-stage" aria-label="LifeOS cinematic launch film">
+    <p class="locine-kicker">3:00 product launch film · 16:9</p>
+    <h1>LifeOS — The Operating System for Human Intelligence</h1>
+    <p class="locine-lede">
+      Apple keynote × JARVIS × holographic OS. Watch the full launch film, then jump to any timed beat.
+    </p>
+
+    <div class="locine-player">
+      <video id="lifeos-launch-film"
+             controls
+             playsinline
+             preload="metadata"
+             poster="@Film.PosterUrl"
+             aria-label="LifeOS cinematic launch film">
+        <source src="@Film.VideoUrl" type="video/mp4" />
+        Your browser does not support HTML5 video.
+      </video>
+    </div>
+
+    <ol class="locine-timeline" aria-label="Shot list" id="lifeos-film-timeline">
+      @foreach (var s in Film.Scenes)
+      {
+        <li>
+          <button type="button" class="locine-seek" data-seek="@s.StartSeconds">
+            <em>@FormatTime(s.StartSeconds)</em>
+            <strong>@s.Title</strong>
+            <span>@s.OnScreenText</span>
+          </button>
+        </li>
+      }
+    </ol>
+
+    <section class="locine-meta">
+      <p>Published at <code>@Film.VideoUrl</code> · poster + keyframes under <code>/lifeos/cinematic/</code>.</p>
+      <a class="locine-link" href="@EcomAeRoutes.LifeOsDemoApp">Run the board-meeting sample →</a>
+    </section>
+  </main>
+</div>
+
+<script>
+(() => {
+  const bind = () => {
+    const v = document.getElementById('lifeos-launch-film');
+    if (!v) return;
+    document.querySelectorAll('.locine-seek').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const sec = Number(btn.getAttribute('data-seek') || 0);
+        v.currentTime = Math.max(0, sec);
+        v.play().catch(() => {});
+      });
+    });
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
+  }
+})();
+</script>
+
+@code {
+    private static string FormatTime(int seconds)
+    {
+        var m = seconds / 60;
+        var s = seconds % 60;
+        return $"{m}:{s:00}";
+    }
+
+    private const string _css = """
+        .locine {
+          --lo-bg: #05070c;
+          --lo-ink: #f4f7fb;
+          --lo-mute: #9fb0c6;
+          --lo-cyan: #5ec8ff;
+          --lo-blue: #2f6bff;
+          --lo-gold: #c9a96a;
+          min-height: 100vh;
+          background:
+            radial-gradient(1200px 600px at 50% -10%, rgba(47,107,255,.28), transparent 55%),
+            radial-gradient(900px 500px at 80% 80%, rgba(94,200,255,.12), transparent 50%),
+            linear-gradient(180deg, #05070c 0%, #0a1220 55%, #05070c 100%);
+          color: var(--lo-ink);
+          font-family: "Segoe UI Variable", "Avenir Next", "Helvetica Neue", sans-serif;
+        }
+        .locine-top {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+        .locine-top .brand { font-size: 1.35rem; letter-spacing: .04em; font-weight: 650; }
+        .locine-top .brand em { font-style: normal; color: var(--lo-cyan); }
+        .locine-top nav { display: flex; gap: 1rem; }
+        .locine-top a { color: var(--lo-mute); text-decoration: none; font-size: .92rem; }
+        .locine-top a.is-active, .locine-top a:hover { color: var(--lo-ink); }
+        .locine-stage { max-width: 1120px; margin: 0 auto; padding: 1.25rem 1.25rem 3rem; }
+        .locine-kicker {
+          margin: 0 0 .4rem; text-transform: uppercase; letter-spacing: .16em;
+          font-size: .68rem; color: var(--lo-cyan);
+        }
+        .locine-stage > h1 {
+          margin: 0 0 .55rem; font-size: clamp(1.55rem, 3.4vw, 2.4rem); font-weight: 650;
+          letter-spacing: -.02em; max-width: 18ch;
+        }
+        .locine-lede { margin: 0 0 1.25rem; color: var(--lo-mute); max-width: 40rem; line-height: 1.5; }
+        .locine-player {
+          border-radius: 4px; overflow: hidden; background: #000;
+          box-shadow: 0 30px 80px rgba(0,0,0,.55); margin-bottom: 1.25rem;
+        }
+        .locine-player video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; }
+        .locine-timeline {
+          list-style: none; margin: 0; padding: 0;
+          display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .5rem;
+        }
+        .locine-timeline button {
+          width: 100%; text-align: left; border: 1px solid rgba(255,255,255,.08);
+          background: rgba(255,255,255,.03); color: inherit; padding: .7rem .75rem; border-radius: 6px;
+          cursor: pointer; min-height: 5.2rem;
+        }
+        .locine-timeline button:hover { border-color: rgba(94,200,255,.45); }
+        .locine-timeline button em { display: block; font-style: normal; color: var(--lo-cyan); font-size: .72rem; }
+        .locine-timeline button strong { display: block; font-size: .84rem; font-weight: 600; margin: .2rem 0; }
+        .locine-timeline button span { display: block; font-size: .74rem; color: var(--lo-mute); line-height: 1.35; }
+        .locine-meta { margin-top: 1.5rem; color: var(--lo-mute); font-size: .92rem; max-width: 46rem; }
+        .locine-meta code { color: #d7e7ff; font-size: .85em; }
+        .locine-link { color: var(--lo-cyan); }
+        """;
+}

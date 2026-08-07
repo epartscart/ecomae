@@ -1565,6 +1565,10 @@ public static class EcomAeRoutes
     public const string LifeOsDemoRun = "/lifeos/demo/run";
     /// <summary>Interactive sample-data demo UI.</summary>
     public const string LifeOsDemoApp = "/lifeos/demo-app";
+    /// <summary>3-minute cinematic launch film storyboard (JSON bible).</summary>
+    public const string LifeOsCinematic = "/lifeos/cinematic";
+    /// <summary>Interactive cinematic keyframe theatre UI.</summary>
+    public const string LifeOsCinematicApp = "/lifeos/cinematic-app";
 
     public const string ApiPrefix = "/api";
     public const string ApiMigrationStatus = "/api/migration/status";

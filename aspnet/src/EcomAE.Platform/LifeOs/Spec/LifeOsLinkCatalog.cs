@@ -35,6 +35,7 @@ public static class LifeOsLinkCatalog
     [
         new("frontend", 1, "LifeOS home infographic", "/lifeos", "GET", "lifeos.ecomae.com + www", "Purpose · Mission · Principles · Product · Cognitive Model · Brain"),
         new("frontend", 1, "How it works sample demo", "/lifeos/demo-app", "GET", "www + lifeos", "Perceive→Decide→Act→Learn with sample data"),
+        new("frontend", 1, "Cinematic launch film", "/lifeos/cinematic-app", "GET", "www + lifeos", "3:00 keyframe storyboard · 4K60 bible"),
         new("frontend", 1, "LifeOS console / brain / login", "/lifeos/app", "GET", "www + lifeos", "Brain engines UI · operator console"),
         new("frontend", 1, "LifeOS brain alias", "/lifeos/brain", "GET", "www + lifeos", "Nine brain engines"),
         new("frontend", 1, "LifeOS login", "/lifeos/login", "GET", "www + lifeos", "Operator session"),
