@@ -1,0 +1,87 @@
+{
+  "asOf": "2026-08-07",
+  "mode": "aspnet-primary-php-reference",
+  "productBasedOn": "aspnet-core",
+  "phpRole": "reference-only (/php-reference/*) until ReadyToRemovePhp",
+  "hardLocks": {
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false,
+    "requirePhpFallback": true,
+    "keepPhpProjectAvailable": true,
+    "preferAspNetStorefrontApps": true,
+    "phpSourceDeletionAllowed": false
+  },
+  "policy": [
+    "Product URLs (/ /cp /erp /storefront/*-app) must not depend on interim PHP /en pages for chrome or navigation.",
+    "PHP remains available under /php-reference/* for side-by-side gap compares only.",
+    "Do not delete PHP files until readyForPhpRemoval + ReadyToRemovePhp after all runtime deps are ported and dual-sample green.",
+    "No new PHP business features — close gaps in ASP.NET Core."
+  ],
+  "remainingPhpRuntimeDependencies": [
+    {
+      "id": "api-supplier-bunch-poll",
+      "aspnet": "POST /storefront/products-of-bunch (office_id/storage_id > 0)",
+      "php": "content/shop/docpart/ajax_getProductsOfBunch.php",
+      "status": "interim-bridge",
+      "note": "Protocol-3 price lists use ASP.NET warehouse SQL (aspnet-warehouse). API supplier handlers still PHP until native ports."
+    },
+    {
+      "id": "warehouse-bridge-fallback",
+      "aspnet": "PhpWarehouseSearchBridge when tenant SQL empty",
+      "php": "ajax_epc_warehouse_offers.php / ajax_epc_article_brands.php",
+      "status": "fallback-only",
+      "note": "Primary path is ASP.NET SQL; bridge only when DB unbound/empty."
+    },
+    {
+      "id": "vin-laximo-decode",
+      "aspnet": "/storefront/vin-app iframe",
+      "php": "/php-reference/en/katalog-laximo",
+      "status": "reference-embed",
+      "note": "Shell is ASP.NET; decode tree still PHP reference until native Laximo port."
+    },
+    {
+      "id": "bulk-upload-process",
+      "aspnet": "/storefront/bulk-upload-app iframe + dry-run",
+      "php": "/php-reference/en/shop/bulk-upload → ajax_process.php",
+      "status": "reference-embed",
+      "note": "History digest is ASP.NET; process/cross/cart writes still PHP reference."
+    },
+    {
+      "id": "cart-checkout-quote-writes",
+      "aspnet": "dry-run endpoints + Blazor shells",
+      "php": "content/shop/order_process/* ajax_*",
+      "status": "php-authoritative-writes",
+      "note": "Reads/digests ASP.NET; live writes remain PHP until dual-sample green."
+    },
+    {
+      "id": "home-widget-ajax",
+      "aspnet": "PhpHomeWidgetHtml static markup",
+      "php": "/api/umapi_proxy.php, ajax_epc_product_family.php",
+      "status": "browser-fetch-php",
+      "note": "Port to ASP.NET APIs next wave."
+    },
+    {
+      "id": "cp-erp-interactive-writes",
+      "aspnet": "read digests + module-ajax dry-runs",
+      "php": "cp/content/** ajax_*",
+      "status": "php-authoritative-writes",
+      "note": "Boards show aspNetInteractiveComplete=0 until write ports land."
+    }
+  ],
+  "completedThisWave": [
+    "PreferAspNetStorefrontApps=true by default — product chrome uses /storefront/*-app not /en PHP",
+    "Storefront stub→PHP redirect skipped in product mode",
+    "Protocol-3 progressive poll uses aspnet-warehouse SQL (no PHP for price lists)",
+    "VIN/bulk iframes pointed at /php-reference (not product /en)"
+  ],
+  "phpDeletionGate": {
+    "required": [
+      "All remainingPhpRuntimeDependencies status = ported or retired",
+      "ZeroPhp cutover batches dual-sample green per route",
+      "readyForPhpRemoval=true",
+      "ReadyToRemovePhp / RELEASE_OWNER_APPROVAL explicit deletion approval",
+      "KeepPhpProjectAvailable may then flip false under operator control"
+    ],
+    "forbiddenNow": "Deleting PHP source, inventing cutoverAllowed=true, or claiming ReadyToRemovePhp from PreferAspNetStorefrontApps alone"
+  }
+}

@@ -292,7 +292,7 @@
     tr.className = 'epc-part-type-row--' + kind;
     tr.setAttribute('data-offer-key', key);
     var show = p.articleShow || p.article || '';
-    var php = '/en/shop/part_search?article=' + encodeURIComponent(show) + '&brend=' + encodeURIComponent(p.manufacturer || '');
+    var search = '/storefront/search-app?article=' + encodeURIComponent(show) + '&brand=' + encodeURIComponent(p.manufacturer || '');
     var exist = Number(p.exist || 0);
     tr.innerHTML =
       '<td><strong>' + esc(p.manufacturer || '') + '</strong></td>' +
@@ -303,7 +303,7 @@
       '<td>' + Number(p.price || 0).toFixed(2) + '</td>' +
       '<td>' + esc(p.storage || '—') + '</td>' +
       '<td>' + esc(p.priceList || p.price_list || '—') + '</td>' +
-      '<td><a href="' + php + '">Cart / poll</a> · <a href="/en/shop/quotes">Quote</a></td>';
+      '<td><a href="' + search + '">Open</a> · <a href="/storefront/quotes-app">Quote</a> · <a href="/storefront/cart-app">Cart</a></td>';
     var insertBefore = null;
     var rows = body.querySelectorAll('tr.epc-part-type-row--' + kind);
     if (rows.length) {
@@ -661,7 +661,7 @@
     {
         var show = string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow;
         var term = string.IsNullOrWhiteSpace(row.TimeToExe) ? "—" : row.TimeToExe;
-        var phpPart = PhpPartSearchHref(row.Manufacturer, show);
+        var openHref = BrandArticleHref(show, row.Manufacturer);
         var key = string.Join('|',
             (row.Manufacturer ?? "").Trim().ToUpperInvariant(),
             row.Article ?? "",
@@ -677,9 +677,11 @@
             <td>@(string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage)</td>
             <td>@(string.IsNullOrWhiteSpace(row.PriceList) ? "—" : row.PriceList)</td>
             <td>
-                <a href="@phpPart" title="Classic part search (cart)">Cart</a>
+                <a href="@openHref" title="ASP.NET search">Open</a>
                 ·
-                <a href="@StorefrontPhpCanonical.Quotes" title="Add to quote on classic module">Quote</a>
+                <a href="@StorefrontSurfaceLinks.Quotes" title="Quotes app">Quote</a>
+                ·
+                <a href="@StorefrontSurfaceLinks.Cart" title="Cart app">Cart</a>
             </td>
         </tr>
     };
@@ -690,18 +692,6 @@
         if (!string.IsNullOrWhiteSpace(brand))
         {
             href += "&brand=" + Uri.EscapeDataString(brand.Trim());
-        }
-
-        return href;
-    }
-
-    private static string PhpPartSearchHref(string? brand, string? article)
-    {
-        var href = StorefrontPhpCanonical.PartSearch
-                   + "?article=" + Uri.EscapeDataString(article ?? string.Empty);
-        if (!string.IsNullOrWhiteSpace(brand))
-        {
-            href += "&brend=" + Uri.EscapeDataString(brand.Trim());
         }
 
         return href;

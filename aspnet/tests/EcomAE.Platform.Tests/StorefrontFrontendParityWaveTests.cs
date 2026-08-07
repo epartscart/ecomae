@@ -141,11 +141,12 @@ public sealed class StorefrontFrontendParityWaveTests
     }
 
     [Fact]
-    public void VinApp_PassesIdentStringToPhpLaximo()
+    public void VinApp_EmbedsPhpReferenceLaximoNotProductEn()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor");
         Assert.Contains("identString=", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontPhpCanonical.LaximoVin", text, StringComparison.Ordinal);
+        Assert.Contains("/php-reference", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/katalog-laximo\"", text, StringComparison.Ordinal);
     }
 
@@ -159,16 +160,27 @@ public sealed class StorefrontFrontendParityWaveTests
     }
 
     [Fact]
-    public void GapBoard_ReflectsHundredPercentWave()
+    public void GapBoard_ReflectsAspNetProductPrimary()
     {
         var json = Read("docs/migration/evidence/storefront/epartscart-php-aspnet-gap-board.json");
         Assert.Contains("\"status\": \"complete\"", json, StringComparison.Ordinal);
-        Assert.Contains("progressive", json, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Genuine/Aftermarket", json, StringComparison.Ordinal);
+        Assert.Contains("\"productBasedOn\": \"aspnet-core\"", json, StringComparison.Ordinal);
+        Assert.Contains("preferAspNetStorefrontApps", json, StringComparison.Ordinal);
+        Assert.Contains("phpSourceDeletionAllowed", json, StringComparison.Ordinal);
         Assert.Contains("bulk-upload-app", json, StringComparison.Ordinal);
-        Assert.Contains("epc_sku_photos", json, StringComparison.Ordinal);
-        Assert.Contains("forceLiveRequired", json, StringComparison.Ordinal);
-        Assert.Contains("cursor/epartscart-storefront-100-parity-7b3b", json, StringComparison.Ordinal);
+        Assert.Contains("php-runtime-dependency-board.json", json, StringComparison.Ordinal);
+        Assert.Contains("cursor/aspnet-primary-no-php-product-7b3b", json, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PhpRuntimeDependencyBoard_BlocksDeletionUntilPortsDone()
+    {
+        var json = Read("docs/migration/evidence/storefront/php-runtime-dependency-board.json");
+        Assert.Contains("\"productBasedOn\": \"aspnet-core\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"phpSourceDeletionAllowed\": false", json, StringComparison.Ordinal);
+        Assert.Contains("\"readyForPhpRemoval\": false", json, StringComparison.Ordinal);
+        Assert.Contains("aspnet-warehouse", json, StringComparison.Ordinal);
+        Assert.Contains("ReadyToRemovePhp", json, StringComparison.Ordinal);
     }
 
     private static string Read(string relative)
