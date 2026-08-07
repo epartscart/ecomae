@@ -65,7 +65,8 @@ fi
 # Re-run the fixed pack so www home is marketing/app and epartscart stays storefront.
 if [[ -x scripts/cloudpanel_STOP_PRODUCT_PHP_NOW.sh ]]; then
   set +e
-  ECOMAE_CONFIRM_STOP_PRODUCT_PHP=YES \
+  ECOMAE_CONFIRM_STOP_PRODUCT_PHP_NOW=YES \
+  ECOMAE_BRANCH="$ECOMAE_BRANCH" \
     bash scripts/cloudpanel_STOP_PRODUCT_PHP_NOW.sh \
     2>&1 | tee /root/force-live-www-stop-php.log
   set -e
