@@ -82,7 +82,10 @@ public sealed class LifeOsClientCompanionTests
         Assert.Contains("Sara", cp, StringComparison.Ordinal);
         Assert.Contains("Saudi Arabia", cp, StringComparison.Ordinal);
         Assert.Contains("/lifeos/results", cp, StringComparison.Ordinal);
-        Assert.Contains("/cp/lifeos-clients-app", System.Text.Json.JsonSerializer.Serialize(dir.DirectoryDigest()), StringComparison.Ordinal);
+        var directory = System.Text.Json.JsonSerializer.Serialize(dir.DirectoryDigest());
+        Assert.Contains("/cp/lifeos-clients-app", directory, StringComparison.Ordinal);
+        Assert.Contains("/lifeos/clients-board", directory, StringComparison.Ordinal);
+        Assert.Contains("/lifeos/clients/cp", directory, StringComparison.Ordinal);
     }
 
     [Fact]
