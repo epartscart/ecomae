@@ -1,0 +1,24 @@
+{
+  "id": "lifeos-working-demo-samples",
+  "capturedAtUtc": "2026-08-07T10:50:00Z",
+  "verdict": "ready",
+  "routes": {
+    "ui": "/lifeos/demo-app",
+    "catalog": "/lifeos/demo",
+    "runGet": "/lifeos/demo?run=1&scenario=board-meeting",
+    "runPost": "/lifeos/demo/run"
+  },
+  "scenarios": [
+    "board-meeting",
+    "invoice-followup",
+    "health-focus",
+    "home-arrival"
+  ],
+  "loop": ["Perceive", "Decide", "Act", "Learn"],
+  "sampleData": [
+    "Calendar / CRM / ERP flash / email / wearable context cards",
+    "In-memory orchestrator + AI core cycle + multimodal runtime tick",
+    "Agent selection, plan tasks, ethics gate, memory layers"
+  ],
+  "note": "Scaffold dry-run — no irreversible side effects; live LLMs not claimed"
+}

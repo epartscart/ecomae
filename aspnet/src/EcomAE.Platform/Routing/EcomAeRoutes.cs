@@ -1559,6 +1559,12 @@ public static class EcomAeRoutes
     /// <summary>Part 10 execution strategy / roadmap Blazor console (JSON digest remains <see cref="LifeOsRoadmap"/>).</summary>
     public const string LifeOsRoadmapApp = "/lifeos/roadmap-app";
     public const string LifeOsSpecApp = "/lifeos/spec-app";
+    /// <summary>LifeOS how-it-works sample demo catalog (JSON).</summary>
+    public const string LifeOsDemo = "/lifeos/demo";
+    /// <summary>POST run a sample scenario through Perceive→Decide→Act→Learn (dry-run).</summary>
+    public const string LifeOsDemoRun = "/lifeos/demo/run";
+    /// <summary>Interactive sample-data demo UI.</summary>
+    public const string LifeOsDemoApp = "/lifeos/demo-app";
 
     public const string ApiPrefix = "/api";
     public const string ApiMigrationStatus = "/api/migration/status";

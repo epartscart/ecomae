@@ -1,3 +1,4 @@
+using EcomAE.Platform.LifeOs.Demo;
 using EcomAE.Platform.LifeOs.Engines;
 using EcomAE.Platform.LifeOs.EventBus;
 using EcomAE.Platform.LifeOs.Models;
@@ -329,6 +330,36 @@ public sealed class LifeOsModule : ISurfaceModule
                 part10 = exec.FullPart10Digest()
             })));
 
+        // ── How-it-works sample demo (Perceive→Decide→Act→Learn) ───────────
+        endpoints.MapGet(EcomAeRoutes.LifeOsDemo, async (
+            ILifeOsDemoRunner demo,
+            string? run,
+            string? scenario,
+            CancellationToken cancellationToken) =>
+        {
+            var shouldRun = string.Equals(run, "1", StringComparison.Ordinal)
+                || string.Equals(run, "true", StringComparison.OrdinalIgnoreCase);
+            if (shouldRun)
+            {
+                var result = await demo.RunAsync(scenario, null, confirm: false, cancellationToken)
+                    .ConfigureAwait(false);
+                return Results.Ok(new { ok = true, scaffold = true, catalog = demo.CatalogDigest(), result });
+            }
+
+            return Results.Ok(demo.CatalogDigest());
+        });
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsDemoRun, async (
+            LifeOsDemoRunBody? body,
+            ILifeOsDemoRunner demo,
+            CancellationToken cancellationToken) =>
+        {
+            body ??= new LifeOsDemoRunBody(null, null, null);
+            var result = await demo.RunAsync(body.ScenarioKey, body.Transcript, body.Confirm == true, cancellationToken)
+                .ConfigureAwait(false);
+            return Results.Ok(new { ok = true, scaffold = true, result });
+        });
+
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (
             LifeOsOrchestrateBody? body,
             ILifeOsOrchestrator orch,
@@ -386,4 +417,6 @@ public sealed class LifeOsModule : ISurfaceModule
     public sealed record LifeOsOrchestrateBody(string? Transcript, string? EventType, string? Source, bool? Confirm = null);
 
     public sealed record LifeOsNotificationBody(string? Title, string? Sender, string? Activity);
+
+    public sealed record LifeOsDemoRunBody(string? ScenarioKey, string? Transcript, bool? Confirm);
 }

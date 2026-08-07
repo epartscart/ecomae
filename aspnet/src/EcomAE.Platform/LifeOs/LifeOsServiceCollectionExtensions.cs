@@ -1,3 +1,4 @@
+using EcomAE.Platform.LifeOs.Demo;
 using EcomAE.Platform.LifeOs.Engines;
 using EcomAE.Platform.LifeOs.EventBus;
 using EcomAE.Platform.LifeOs.Orchestrator;
@@ -37,6 +38,7 @@ public static class LifeOsServiceCollectionExtensions
         services.AddSingleton<ILifeOsClientExperience, LifeOsClientExperience>();
         services.AddSingleton<ILifeOsEcosystemPlatform, LifeOsEcosystemPlatform>();
         services.AddSingleton<ILifeOsExecutionStrategy, LifeOsExecutionStrategy>();
+        services.AddSingleton<ILifeOsDemoRunner, LifeOsDemoRunner>();
         services.AddSingleton<ILifeOsMasterSpec, LifeOsMasterSpec>();
         return services;
     }

@@ -152,6 +152,8 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/partners", "GET", "Part 9 partners, community, governance"),
         new("/lifeos/ecosystem-roadmap", "GET", "Part 9 ecosystem analytics + roadmap phases"),
         new("/lifeos/roadmap", "GET", "Part 10 Ch.151–168 execution strategy digest"),
+        new("/lifeos/demo", "GET", "How-it-works sample demo catalog (+ ?run=1)"),
+        new("/lifeos/demo/run", "POST", "Run sample scenario Perceive→Decide→Act→Learn"),
     ];
 
     public IReadOnlyList<LifeOsSecurityControl> SecurityControls { get; } =

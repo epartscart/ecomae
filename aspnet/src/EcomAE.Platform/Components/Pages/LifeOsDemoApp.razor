@@ -1,0 +1,334 @@
+@page "/lifeos/demo-app"
+@layout Layout.PhpChromeLayout
+@using System.Text.Json
+@using EcomAE.Platform.LifeOs.Demo
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsDemoRunner Demo
+
+<PageTitle>LifeOS™ · How it works (live sample demo)</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<meta name="ecomae-chrome-surface" content="lifeos-demo" />
+<style>@((MarkupString)_css)</style>
+</HeadContent>
+
+<div class="lodemo">
+  <header class="lodemo-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav>
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a class="is-active" href="@EcomAeRoutes.LifeOsDemoApp">Demo</a>
+      <a href="@EcomAeRoutes.LifeOsArchitectureApp">Part 2</a>
+      <a href="@EcomAeRoutes.LifeOsCognitiveApp">Part 3</a>
+      <a href="@EcomAeRoutes.LifeOsDemo">JSON</a>
+      <a href="@EcomAeRoutes.LifeOsSpecApp">Spec</a>
+    </nav>
+  </header>
+
+  <main class="lodemo-main">
+    <p class="lodemo-kicker">Interactive sample · dry-run scaffold</p>
+    <h1>How LifeOS works — with sample data</h1>
+    <p class="lodemo-lede">
+      Pick a real-world scenario. LifeOS runs Perceive → Decide → Act → Learn on sample calendar, CRM, ERP, and device context.
+      Nothing irreversible is sent without confirm.
+    </p>
+
+    <div class="lodemo-loop" aria-label="Cognitive loop">
+      <span class="@StepClass(0)">Perceive</span>
+      <span class="lodemo-arrow">→</span>
+      <span class="@StepClass(1)">Decide</span>
+      <span class="lodemo-arrow">→</span>
+      <span class="@StepClass(2)">Act</span>
+      <span class="lodemo-arrow">→</span>
+      <span class="@StepClass(3)">Learn</span>
+    </div>
+
+    <section class="lodemo-scenarios" aria-label="Sample scenarios">
+      @foreach (var s in Demo.Scenarios)
+      {
+        <button type="button"
+                class="lodemo-card @(_scenarioKey == s.Key ? "is-active" : null)"
+                @onclick="() => SelectScenario(s.Key)">
+          <em>@s.Domain</em>
+          <strong>@s.Title</strong>
+          <span>@s.Persona</span>
+        </button>
+      }
+    </section>
+
+    <section class="lodemo-controls">
+      <label>
+        <span>Voice transcript</span>
+        <input type="text" @bind="_transcript" @bind:event="oninput" />
+      </label>
+      <label class="lodemo-check">
+        <input type="checkbox" @bind="_confirm" />
+        <span>Confirm irreversible actions (ethics gate)</span>
+      </label>
+      <button type="button" class="lodemo-run" disabled="@_busy" @onclick="RunDemo">
+        @(_busy ? "Running…" : "Run full demo")
+      </button>
+    </section>
+
+    @if (_error is not null)
+    {
+      <div class="lodemo-error" role="alert">@_error</div>
+    }
+
+    @if (_result is not null)
+    {
+      <section class="lodemo-story">
+        <h2>Scenario story</h2>
+        <p>@_result.Story</p>
+        <ol>
+          @foreach (var step in _result.HowItWorks)
+          {
+            <li>@step</li>
+          }
+        </ol>
+      </section>
+
+      <div class="lodemo-panels">
+        <article class="lodemo-panel">
+          <header><span>01</span><h2>Perceive</h2></header>
+          <h3>Sample context cards</h3>
+          <ul>
+            @foreach (var c in _contextCards)
+            {
+              <li>@c</li>
+            }
+          </ul>
+          <h3>Live result</h3>
+          <pre>@_perceiveJson</pre>
+        </article>
+        <article class="lodemo-panel">
+          <header><span>02</span><h2>Decide</h2></header>
+          <p class="lodemo-highlight">@_recommendation</p>
+          <pre>@_decideJson</pre>
+        </article>
+        <article class="lodemo-panel">
+          <header><span>03</span><h2>Act</h2></header>
+          <p class="lodemo-highlight">@_actionSummary</p>
+          <h3>Plan tasks</h3>
+          <ul>
+            @foreach (var t in _planTasks)
+            {
+              <li>@t</li>
+            }
+          </ul>
+          <pre>@_actJson</pre>
+        </article>
+        <article class="lodemo-panel">
+          <header><span>04</span><h2>Learn</h2></header>
+          <pre>@_learnJson</pre>
+        </article>
+      </div>
+
+      <details class="lodemo-raw">
+        <summary>Full JSON result (same as GET /lifeos/demo?run=1)</summary>
+        <pre>@_fullJson</pre>
+      </details>
+    }
+
+    <div class="lodemo-note">
+      Scaffold dry-run — in-memory event bus &amp; memory. Digests:
+      <code>GET /lifeos/demo</code>, <code>GET /lifeos/demo?run=1&amp;scenario=board-meeting</code>,
+      <code>POST /lifeos/demo/run</code>. Live LLMs / marketplace GA not claimed.
+    </div>
+  </main>
+</div>
+
+@code {
+    private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
+
+    private string _scenarioKey = "board-meeting";
+    private string _transcript = "Prepare tomorrow's board meeting.";
+    private bool _confirm;
+    private bool _busy;
+    private string? _error;
+    private LifeOsDemoRunResult? _result;
+    private int _activeStep = -1;
+    private string _perceiveJson = "";
+    private string _decideJson = "";
+    private string _actJson = "";
+    private string _learnJson = "";
+    private string _fullJson = "";
+    private string _recommendation = "";
+    private string _actionSummary = "";
+    private IReadOnlyList<string> _contextCards = [];
+    private IReadOnlyList<string> _planTasks = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var s = Demo.DefaultScenario;
+        _scenarioKey = s.Key;
+        _transcript = s.Transcript;
+        await RunDemo();
+    }
+
+    private void SelectScenario(string key)
+    {
+        var s = Demo.Scenarios.First(x => x.Key == key);
+        _scenarioKey = s.Key;
+        _transcript = s.Transcript;
+    }
+
+    private string StepClass(int i) => _activeStep >= i ? "is-on" : null!;
+
+    private async Task RunDemo()
+    {
+        _busy = true;
+        _error = null;
+        _activeStep = -1;
+        try
+        {
+            _activeStep = 0;
+            var result = await Demo.RunAsync(_scenarioKey, _transcript, _confirm);
+            _activeStep = 3;
+            _result = result;
+            _perceiveJson = JsonSerializer.Serialize(result.Perceive, JsonOpts);
+            _decideJson = JsonSerializer.Serialize(result.Decide, JsonOpts);
+            _actJson = JsonSerializer.Serialize(result.Act, JsonOpts);
+            _learnJson = JsonSerializer.Serialize(result.Learn, JsonOpts);
+            _fullJson = JsonSerializer.Serialize(result, JsonOpts);
+
+            using var decideDoc = JsonDocument.Parse(_decideJson);
+            _recommendation = decideDoc.RootElement.TryGetProperty("recommendation", out var rec)
+                ? rec.GetString() ?? ""
+                : "";
+
+            using var actDoc = JsonDocument.Parse(_actJson);
+            _actionSummary = actDoc.RootElement.TryGetProperty("aggregatedResponse", out var agg)
+                ? agg.GetString() ?? ""
+                : "";
+            _planTasks = [];
+            if (actDoc.RootElement.TryGetProperty("plan", out var plan)
+                && plan.TryGetProperty("tasks", out var tasks)
+                && tasks.ValueKind == JsonValueKind.Array)
+            {
+                _planTasks = tasks.EnumerateArray()
+                    .Select(t =>
+                    {
+                        var title = t.TryGetProperty("Title", out var ti) ? ti.GetString()
+                            : t.TryGetProperty("title", out var ti2) ? ti2.GetString() : "?";
+                        var status = t.TryGetProperty("status", out var st) ? st.GetString()
+                            : t.TryGetProperty("Status", out var st2) ? st2.GetString() : "";
+                        return $"{title} · {status}";
+                    })
+                    .ToArray();
+            }
+
+            using var sampleDoc = JsonDocument.Parse(JsonSerializer.Serialize(result.SampleData, JsonOpts));
+            if (sampleDoc.RootElement.TryGetProperty("contextCards", out var cards)
+                && cards.ValueKind == JsonValueKind.Array)
+            {
+                _contextCards = cards.EnumerateArray().Select(c => c.GetString() ?? "").Where(x => x.Length > 0).ToArray();
+            }
+            else
+            {
+                _contextCards = Demo.Scenarios.First(s => s.Key == _scenarioKey).SampleContext;
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            _result = null;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private const string _css = """
+        .lodemo {
+          --lo-display:"Fraunces",Georgia,serif; --lo-sans:"Sora","Segoe UI",sans-serif;
+          min-height:100vh; background:#f8fafc; color:#0f172a; font-family:var(--lo-sans);
+        }
+        .lodemo-top {
+          display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+          padding:1rem clamp(1rem,3vw,2rem);
+          background:linear-gradient(90deg,#020617,#0b1b3a 50%,#0c4a6e); color:#e2e8f0;
+        }
+        .lodemo-top .brand { font-family:var(--lo-display); font-size:1.5rem; }
+        .lodemo-top .brand em { font-style:italic; color:#7dd3fc; }
+        .lodemo-top nav { display:flex; flex-wrap:wrap; gap:.7rem; font-size:.8rem; font-weight:700; }
+        .lodemo-top a { color:#bae6fd; text-decoration:none; }
+        .lodemo-top a.is-active { color:#fff; text-decoration:underline; }
+        .lodemo-main { padding:1.35rem clamp(1rem,3vw,2.2rem) 2.8rem; max-width:78rem; margin:0 auto; }
+        .lodemo-kicker { margin:0; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:#0284c7; font-weight:700; }
+        .lodemo-main h1 {
+          margin:.3rem 0 .45rem; font-family:var(--lo-display); font-weight:500;
+          font-size:clamp(1.65rem,3.5vw,2.4rem);
+        }
+        .lodemo-lede { max-width:46rem; color:#475569; line-height:1.5; }
+        .lodemo-loop {
+          display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; margin:1.1rem 0 1.2rem;
+        }
+        .lodemo-loop > span:not(.lodemo-arrow) {
+          padding:.45rem .75rem; border-radius:.4rem; font-size:.78rem; font-weight:800;
+          background:#e2e8f0; color:#475569; transition:background .25s ease, color .25s ease;
+        }
+        .lodemo-loop > span.is-on { background:linear-gradient(135deg,#38bdf8,#2563eb); color:#fff; }
+        .lodemo-arrow { color:#94a3b8; font-weight:800; }
+        .lodemo-scenarios {
+          display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.55rem; margin-bottom:1rem;
+        }
+        .lodemo-card {
+          text-align:left; cursor:pointer; appearance:none;
+          padding:.85rem; border-radius:.55rem; border:1px solid #bfdbfe; background:#fff;
+          display:flex; flex-direction:column; gap:.2rem; font:inherit;
+        }
+        .lodemo-card em { font-style:normal; font-size:.68rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#0284c7; }
+        .lodemo-card strong { font-size:.9rem; color:#0f172a; }
+        .lodemo-card span { font-size:.75rem; color:#64748b; }
+        .lodemo-card.is-active, .lodemo-card:hover { border-color:#2563eb; box-shadow:0 8px 24px rgba(37,99,235,.12); }
+        .lodemo-controls {
+          display:grid; gap:.65rem; padding:1rem; border-radius:.65rem; border:1px solid #bfdbfe; background:#fff; margin-bottom:1rem;
+        }
+        .lodemo-controls label { display:grid; gap:.3rem; font-size:.78rem; font-weight:700; color:#334155; }
+        .lodemo-controls input[type=text], .lodemo-controls input:not([type]) {
+          padding:.7rem .8rem; border:1px solid #cbd5e1; border-radius:.4rem; font:inherit;
+        }
+        .lodemo-check { display:flex !important; align-items:center; gap:.5rem; flex-direction:row !important; }
+        .lodemo-run {
+          justify-self:start; appearance:none; border:0; cursor:pointer;
+          padding:.75rem 1.2rem; border-radius:.45rem; font-weight:800; font-size:.88rem;
+          color:#020617; background:linear-gradient(135deg,#7dd3fc,#38bdf8);
+        }
+        .lodemo-run:disabled { opacity:.6; cursor:wait; }
+        .lodemo-error { padding:.75rem; border-radius:.45rem; background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+        .lodemo-story { margin:1rem 0; padding:1rem; border-radius:.55rem; background:#0b1b3a; color:#e2e8f0; }
+        .lodemo-story h2 { margin:0 0 .4rem; font-family:var(--lo-display); font-weight:500; font-size:1.2rem; color:#7dd3fc; }
+        .lodemo-story p { margin:0 0 .6rem; color:#cbd5e1; line-height:1.45; }
+        .lodemo-story ol { margin:0; padding-left:1.15rem; color:#94a3b8; font-size:.84rem; }
+        .lodemo-panels { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+        .lodemo-panel {
+          border:1px solid #e2e8f0; border-radius:.65rem; background:#fff; padding:.9rem 1rem; overflow:hidden;
+          animation:lodemo-rise .45s ease both;
+        }
+        .lodemo-panel header { display:flex; align-items:baseline; gap:.55rem; margin-bottom:.55rem; }
+        .lodemo-panel header span { font-size:.72rem; font-weight:800; color:#38bdf8; }
+        .lodemo-panel h2 { margin:0; font-size:1.05rem; font-family:var(--lo-display); font-weight:500; }
+        .lodemo-panel h3 { margin:.7rem 0 .35rem; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:#64748b; }
+        .lodemo-panel ul { margin:0; padding-left:1.05rem; font-size:.82rem; color:#334155; line-height:1.4; }
+        .lodemo-highlight {
+          margin:0 0 .55rem; padding:.65rem .75rem; border-radius:.4rem;
+          background:#e0f2fe; color:#0c4a6e; font-size:.88rem; font-weight:600; line-height:1.4;
+        }
+        .lodemo-panel pre, .lodemo-raw pre {
+          margin:0; padding:.7rem; border-radius:.4rem; background:#020617; color:#bae6fd;
+          font-size:.68rem; line-height:1.35; max-height:16rem; overflow:auto; white-space:pre-wrap;
+        }
+        .lodemo-raw { margin-top:1rem; }
+        .lodemo-raw summary { cursor:pointer; font-weight:700; color:#0369a1; margin-bottom:.5rem; }
+        .lodemo-note { margin-top:1.3rem; padding:1rem; border-left:3px solid #f59e0b; background:#fffbeb; color:#78350f; font-size:.86rem; }
+        @@keyframes lodemo-rise { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+        @@media (max-width:900px) { .lodemo-panels { grid-template-columns:1fr; } }
+        """;
+}
