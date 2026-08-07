@@ -147,11 +147,16 @@ public sealed class LifeOsClientCompanionTests
         Assert.True(root is not null, "wwwroot/lifeos not found from test host");
         Assert.True(File.Exists(Path.Combine(root!, "manifest.webmanifest")), root);
         Assert.True(File.Exists(Path.Combine(root!, "sw.js")), root);
+        Assert.True(File.Exists(Path.Combine(root!, "join.js")), root);
+        Assert.True(File.Exists(Path.Combine(root!, "companion.js")), root);
+        Assert.True(File.Exists(Path.Combine(root!, "results.js")), root);
         Assert.True(File.Exists(Path.Combine(root!, "icons", "lifeos-pwa-192.svg")), root);
         Assert.True(File.Exists(Path.Combine(root!, "icons", "lifeos-pwa-512.svg")), root);
         var manifest = File.ReadAllText(Path.Combine(root!, "manifest.webmanifest"));
         Assert.Contains("/lifeos/mobile", manifest, StringComparison.Ordinal);
         Assert.Contains("standalone", manifest, StringComparison.Ordinal);
+        var joinJs = File.ReadAllText(Path.Combine(root!, "join.js"));
+        Assert.Contains("fetch('/lifeos/join'", joinJs, StringComparison.Ordinal);
     }
 
     private static string? FindLifeOsWwwRoot()
