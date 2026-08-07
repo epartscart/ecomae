@@ -1,0 +1,400 @@
+@page "/cp/lifeos-guide-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.LifeOs.Spec
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsMasterSpec Spec
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>LifeOS™ system guide · Control Panel · ecomae</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+
+@* Body CSS — live SSR may drop HeadContent *@
+<style>@((MarkupString)_css)</style>
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <section class="lo-guide-hero" aria-label="LifeOS system guide">
+        <p class="lo-guide-kicker">Control Panel · Intelligence Platform</p>
+        <h1>Life<em>OS</em>™ full system guide</h1>
+        <p>
+            Visual map of the ambient AI operating system on ecomae — hosts, frontend consoles,
+            backend digests, and Master Spec Parts 1–10 chapters. Super-CP / CP operators only.
+        </p>
+        <div class="lo-guide-cta">
+            <a href="@EcomAeRoutes.Ip">Open /ip hub</a>
+            <a class="ghost" href="https://lifeos.ecomae.com/">lifeos.ecomae.com</a>
+            <a class="ghost" href="@EcomAeRoutes.LifeOsSpecApp">Spec UI</a>
+            <a class="ghost" href="@EcomAeRoutes.LifeOsSpec">Spec JSON</a>
+        </div>
+    </section>
+
+    @if (!_isAdmin)
+    {
+        <div class="lo-guide-guest">
+            Guest preview of the LifeOS link map.
+            <a href="@EcomAeRoutes.ControlPanelLogin">Sign in</a> for CP operator session.
+        </div>
+    }
+
+    <section class="lo-guide-section" aria-label="System architecture diagram">
+        <h2>System architecture</h2>
+        <p class="lo-guide-lede">One stack: product hosts → ASP.NET primary (:5100) → digests + Blazor consoles. PHP stays under <code>/php-reference/*</code>.</p>
+        <div class="lo-guide-svg-wrap" role="img" aria-label="LifeOS stack diagram from hosts through cognitive cycle to digests">
+            <svg viewBox="0 0 1100 520" class="lo-guide-svg" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="lgSky" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#020617"/><stop offset="100%" stop-color="#0c4a6e"/>
+                    </linearGradient>
+                    <linearGradient id="lgBlue" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#2563eb"/>
+                    </linearGradient>
+                    <marker id="lgArr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#38bdf8"/>
+                    </marker>
+                </defs>
+                <rect width="1100" height="520" rx="12" fill="url(#lgSky)"/>
+                <text x="36" y="42" fill="#e2e8f0" font-family="Sora,sans-serif" font-size="18" font-weight="700">LifeOS™ · ecomae Intelligence Platform</text>
+                <text x="36" y="64" fill="#94a3b8" font-family="Sora,sans-serif" font-size="12">Perceive → Decide → Act → Learn · human control first</text>
+
+                @* Hosts *@
+                <g class="lo-guide-node">
+                    <rect x="40" y="100" width="200" height="70" rx="8" fill="#0b1b3a" stroke="#38bdf8" stroke-width="2"/>
+                    <text x="140" y="128" text-anchor="middle" fill="#7dd3fc" font-size="11" font-family="Sora,sans-serif">HOSTS</text>
+                    <text x="140" y="150" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">lifeos.ecomae.com</text>
+                    <text x="140" y="166" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Sora,sans-serif">www /ip · /cp · /bos</text>
+                </g>
+
+                @* Gateway *@
+                <g>
+                    <rect x="300" y="100" width="200" height="70" rx="8" fill="#0b1b3a" stroke="#38bdf8" stroke-width="2"/>
+                    <text x="400" y="128" text-anchor="middle" fill="#7dd3fc" font-size="11" font-family="Sora,sans-serif">EDGE</text>
+                    <text x="400" y="150" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">nginx · classic-entry</text>
+                    <text x="400" y="166" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Sora,sans-serif">Kestrel :5100 primary</text>
+                </g>
+
+                @* Surfaces *@
+                <g>
+                    <rect x="560" y="88" width="220" height="94" rx="8" fill="#0b1b3a" stroke="#38bdf8" stroke-width="2"/>
+                    <text x="670" y="116" text-anchor="middle" fill="#7dd3fc" font-size="11" font-family="Sora,sans-serif">SURFACES</text>
+                    <text x="670" y="138" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">Frontend · *-app consoles</text>
+                    <text x="670" y="156" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Sora,sans-serif">Backend · JSON digests</text>
+                    <text x="670" y="172" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Sora,sans-serif">CP guide · /cp/lifeos-guide-app</text>
+                </g>
+
+                @* IP / BOS *@
+                <g>
+                    <rect x="840" y="100" width="220" height="70" rx="8" fill="#0b1b3a" stroke="#fbbf24" stroke-width="2"/>
+                    <text x="950" y="128" text-anchor="middle" fill="#fde68a" font-size="11" font-family="Sora,sans-serif">SUPER-CP ONLY</text>
+                    <text x="950" y="150" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">/ip · /bos · tenants 404</text>
+                    <text x="950" y="166" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Sora,sans-serif">no stack names in tenant UI</text>
+                </g>
+
+                <path d="M240 135 H300" stroke="#38bdf8" stroke-width="2.5" fill="none" marker-end="url(#lgArr)"/>
+                <path d="M500 135 H560" stroke="#38bdf8" stroke-width="2.5" fill="none" marker-end="url(#lgArr)"/>
+                <path d="M780 135 H840" stroke="#fbbf24" stroke-width="2.5" fill="none" marker-end="url(#lgArr)"/>
+
+                @* Cognitive loop — static SVG (Razor reserves <text> tag inside @{ } blocks) *@
+                <text x="36" y="230" fill="#94a3b8" font-size="12" font-family="Sora,sans-serif">Cognitive loop (Part 3)</text>
+                <rect x="40" y="250" width="130" height="48" rx="8" fill="#12263f" stroke="url(#lgBlue)" stroke-width="2"/>
+                <text x="105" y="280" text-anchor="middle" fill="#fff" font-size="14" font-family="Sora,sans-serif" font-weight="700">Perceive</text>
+                <path d="M170 274 H200" stroke="#38bdf8" stroke-width="2" fill="none" marker-end="url(#lgArr)"/>
+                <rect x="200" y="250" width="130" height="48" rx="8" fill="#12263f" stroke="url(#lgBlue)" stroke-width="2"/>
+                <text x="265" y="280" text-anchor="middle" fill="#fff" font-size="14" font-family="Sora,sans-serif" font-weight="700">Decide</text>
+                <path d="M330 274 H360" stroke="#38bdf8" stroke-width="2" fill="none" marker-end="url(#lgArr)"/>
+                <rect x="360" y="250" width="130" height="48" rx="8" fill="#12263f" stroke="url(#lgBlue)" stroke-width="2"/>
+                <text x="425" y="280" text-anchor="middle" fill="#fff" font-size="14" font-family="Sora,sans-serif" font-weight="700">Act</text>
+                <path d="M490 274 H520" stroke="#38bdf8" stroke-width="2" fill="none" marker-end="url(#lgArr)"/>
+                <rect x="520" y="250" width="130" height="48" rx="8" fill="#12263f" stroke="url(#lgBlue)" stroke-width="2"/>
+                <text x="585" y="280" text-anchor="middle" fill="#fff" font-size="14" font-family="Sora,sans-serif" font-weight="700">Learn</text>
+                <path d="M670 298 C720 330, 100 330, 105 298" stroke="#38bdf8" stroke-width="1.5" fill="none" stroke-dasharray="4 4" marker-end="url(#lgArr)" opacity=".7"/>
+
+                <text x="36" y="350" fill="#94a3b8" font-size="12" font-family="Sora,sans-serif">Life domains</text>
+                <rect x="40" y="365" width="120" height="56" rx="8" fill="#0b1b3a" stroke="#64748b" stroke-width="1.5"/>
+                <text x="68" y="400" fill="#38bdf8" font-size="16" font-family="Sora,sans-serif">$</text>
+                <text x="92" y="400" fill="#e2e8f0" font-size="13" font-family="Sora,sans-serif">Work</text>
+                <rect x="180" y="365" width="120" height="56" rx="8" fill="#0b1b3a" stroke="#64748b" stroke-width="1.5"/>
+                <text x="208" y="400" fill="#38bdf8" font-size="16" font-family="Sora,sans-serif">↑</text>
+                <text x="232" y="400" fill="#e2e8f0" font-size="13" font-family="Sora,sans-serif">Wealth</text>
+                <rect x="320" y="365" width="120" height="56" rx="8" fill="#0b1b3a" stroke="#64748b" stroke-width="1.5"/>
+                <text x="348" y="400" fill="#38bdf8" font-size="16" font-family="Sora,sans-serif">+</text>
+                <text x="372" y="400" fill="#e2e8f0" font-size="13" font-family="Sora,sans-serif">Health</text>
+                <rect x="460" y="365" width="120" height="56" rx="8" fill="#0b1b3a" stroke="#64748b" stroke-width="1.5"/>
+                <text x="488" y="400" fill="#38bdf8" font-size="16" font-family="Sora,sans-serif">⌂</text>
+                <text x="512" y="400" fill="#e2e8f0" font-size="13" font-family="Sora,sans-serif">Home</text>
+                <rect x="600" y="365" width="120" height="56" rx="8" fill="#0b1b3a" stroke="#64748b" stroke-width="1.5"/>
+                <text x="628" y="400" fill="#38bdf8" font-size="16" font-family="Sora,sans-serif">→</text>
+                <text x="652" y="400" fill="#e2e8f0" font-size="13" font-family="Sora,sans-serif">Mobility</text>
+
+                <text x="36" y="460" fill="#94a3b8" font-size="12" font-family="Sora,sans-serif">Master Spec v@Spec.Version — Parts 1–10</text>
+                <rect x="40" y="472" width="92" height="32" rx="6" fill="#12263f" stroke="#38bdf8" stroke-width="1.5"/>
+                <text x="86" y="493" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">P1</text>
+                <rect x="142" y="472" width="92" height="32" rx="6" fill="#12263f" stroke="#38bdf8" stroke-width="1.5"/>
+                <text x="188" y="493" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">P2</text>
+                <rect x="244" y="472" width="92" height="32" rx="6" fill="#12263f" stroke="#38bdf8" stroke-width="1.5"/>
+                <text x="290" y="493" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">P3</text>
+                <rect x="346" y="472" width="92" height="32" rx="6" fill="#12263f" stroke="#38bdf8" stroke-width="1.5"/>
+                <text x="392" y="493" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">P4</text>
+                <rect x="448" y="472" width="92" height="32" rx="6" fill="#12263f" stroke="#38bdf8" stroke-width="1.5"/>
+                <text x="494" y="493" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">P5</text>
+                <rect x="550" y="472" width="92" height="32" rx="6" fill="#12263f" stroke="#38bdf8" stroke-width="1.5"/>
+                <text x="596" y="493" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">P6</text>
+                <rect x="652" y="472" width="92" height="32" rx="6" fill="#12263f" stroke="#38bdf8" stroke-width="1.5"/>
+                <text x="698" y="493" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">P7</text>
+                <rect x="754" y="472" width="92" height="32" rx="6" fill="#12263f" stroke="#38bdf8" stroke-width="1.5"/>
+                <text x="800" y="493" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">P8</text>
+                <rect x="856" y="472" width="92" height="32" rx="6" fill="#12263f" stroke="#38bdf8" stroke-width="1.5"/>
+                <text x="902" y="493" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">P9</text>
+                <rect x="958" y="472" width="92" height="32" rx="6" fill="#1e293b" stroke="#fbbf24" stroke-width="1.5"/>
+                <text x="1004" y="493" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">P10</text>
+            </svg>
+        </div>
+    </section>
+
+    <section class="lo-guide-section" aria-label="Hosts">
+        <h2>Hosts &amp; entry links</h2>
+        <p class="lo-guide-lede">Where operators and customers land. Product <code>/bos</code> and <code>/ip</code> are Super-CP only.</p>
+        <div class="lo-guide-table-wrap">
+            <table class="lo-guide-table">
+                <thead><tr><th>Host / URL</th><th>Path</th><th>Role</th><th>Access</th></tr></thead>
+                <tbody>
+                @foreach (var h in LifeOsLinkCatalog.Hosts)
+                {
+                    <tr>
+                        <td><a href="@h.Host">@h.Host</a></td>
+                        <td><code>@h.EntryPath</code></td>
+                        <td>@h.Role</td>
+                        <td>@h.Access</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="lo-guide-section" aria-label="Master Spec chapters">
+        <h2>Chapters by part (Master Spec v@Spec.Version)</h2>
+        <p class="lo-guide-lede">Complete chapter list from <code>ILifeOsMasterSpec</code>. Part 10 is registry until chapters are pasted.</p>
+        <div class="lo-guide-parts">
+            @foreach (var part in Spec.Parts)
+            {
+                <article class="lo-guide-part @(part.Number == 10 ? "is-pending" : null)">
+                    <header>
+                        <em>Part @part.Number · @part.Status</em>
+                        <strong>@part.Title</strong>
+                    </header>
+                    <ol>
+                        @foreach (var ch in part.Chapters)
+                        {
+                            <li>@ch</li>
+                        }
+                    </ol>
+                    <p class="lo-guide-deliv">@string.Join(" · ", part.Deliverables)</p>
+                    @{
+                        var fe = LifeOsLinkCatalog.FrontendApps.Where(f => f.Part == part.Number).ToList();
+                        var be = _backend.Where(b => b.Part == part.Number).ToList();
+                    }
+                    @if (fe.Count > 0 || be.Count > 0)
+                    {
+                        <div class="lo-guide-part-links">
+                            @foreach (var f in fe.Take(4))
+                            {
+                                <a href="@f.Path">UI @f.Path</a>
+                            }
+                            @foreach (var b in be.Take(3))
+                            {
+                                <a class="json" href="@b.Path">@b.Method @b.Path</a>
+                            }
+                        </div>
+                    }
+                </article>
+            }
+        </div>
+    </section>
+
+    <section class="lo-guide-section" aria-label="Frontend links">
+        <h2>Frontend links (Blazor / HTML)</h2>
+        <p class="lo-guide-lede">All LifeOS / IP operator consoles. Open on Super-CP www or lifeos host as noted.</p>
+        <div class="lo-guide-kpis">
+            <div><strong>@LifeOsLinkCatalog.FrontendApps.Count</strong><span>Frontend routes</span></div>
+            <div><strong>@_backend.Count</strong><span>Backend digests</span></div>
+            <div><strong>@Spec.Parts.Count</strong><span>Spec parts</span></div>
+            <div><strong>@Spec.Parts.Sum(p => p.Chapters.Count)</strong><span>Chapters</span></div>
+        </div>
+        <div class="lo-guide-table-wrap">
+            <table class="lo-guide-table">
+                <thead><tr><th>Part</th><th>Title</th><th>Path</th><th>Host</th><th>Chapters / scope</th></tr></thead>
+                <tbody>
+                @foreach (var row in LifeOsLinkCatalog.FrontendApps)
+                {
+                    <tr>
+                        <td>@row.Part</td>
+                        <td>@row.Title</td>
+                        <td><a href="@row.Path"><code>@row.Path</code></a></td>
+                        <td>@row.HostHint</td>
+                        <td>@row.Chapters</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="lo-guide-section" aria-label="Backend links">
+        <h2>Backend links (JSON digests &amp; dry-runs)</h2>
+        <p class="lo-guide-lede">Scaffold digests — GET unless noted. POST endpoints are dry-run (no irreversible side effects).</p>
+        <div class="lo-guide-table-wrap">
+            <table class="lo-guide-table">
+                <thead><tr><th>Part</th><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+                <tbody>
+                @foreach (var row in _backend)
+                {
+                    <tr>
+                        <td>@row.Part</td>
+                        <td><span class="lo-guide-method">@row.Method</span></td>
+                        <td><a href="@row.Path"><code>@row.Path</code></a></td>
+                        <td>@row.Title</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="lo-guide-section lo-guide-note" aria-label="Locks">
+        <h2>Operator locks</h2>
+        <ul>
+            <li>ASP.NET Core is product-primary; PHP reference under <code>/php-reference/*</code>.</li>
+            <li><code>cutoverAllowed=false</code>, <code>readyForPhpRemoval=false</code>, <code>RequirePhpFallback=true</code>.</li>
+            <li>Product <code>/bos</code> and <code>/ip</code> are Super-CP only — tenants must 404 those paths.</li>
+            <li>Live republish needs <code>FORCE_LIVE</code> after merge; merge alone does not republish :5100.</li>
+            <li>Part 10 chapters remain registry-only until the paste lands.</li>
+        </ul>
+    </section>
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private IReadOnlyList<LifeOsLinkCatalog.LinkRow> _backend = [];
+
+    private const string _css = """
+        .lo-guide-hero {
+          --lo-display: "Fraunces", Georgia, serif;
+          --lo-sans: "Sora", "Segoe UI", sans-serif;
+          margin: 0 0 1.1rem; padding: 1.25rem 1.35rem; border-radius: .65rem; color: #fff;
+          background:
+            radial-gradient(90% 70% at 90% 10%, rgba(56,189,248,.28), transparent 55%),
+            linear-gradient(135deg, #020617 0%, #0b1b3a 48%, #0ea5e9 100%);
+          font-family: var(--lo-sans);
+        }
+        .lo-guide-kicker {
+          margin: 0; font-size: .72rem; letter-spacing: .16em; text-transform: uppercase;
+          color: #7dd3fc; font-weight: 700;
+        }
+        .lo-guide-hero h1 {
+          margin: .35rem 0 .45rem; font-family: var(--lo-display); font-weight: 500;
+          font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+        }
+        .lo-guide-hero h1 em { font-style: italic; color: #7dd3fc; }
+        .lo-guide-hero p { margin: 0; max-width: 46rem; color: rgba(255,255,255,.9); font-size: .92rem; line-height: 1.45; }
+        .lo-guide-cta { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .9rem; }
+        .lo-guide-cta a {
+          display: inline-flex; padding: .5rem .8rem; border-radius: .4rem; font-weight: 700;
+          font-size: .82rem; text-decoration: none; color: #0f172a; background: #fff;
+        }
+        .lo-guide-cta a.ghost {
+          background: transparent; border: 1px solid rgba(255,255,255,.35); color: #fff;
+        }
+        .lo-guide-guest {
+          margin: 0 0 1rem; padding: .75rem 1rem; border-radius: .45rem;
+          background: #ecfeff; border: 1px solid #a5f3fc; color: #155e75; font-size: .88rem;
+        }
+        .lo-guide-section { margin: 1.35rem 0 0; }
+        .lo-guide-section h2 {
+          margin: 0 0 .35rem; font-size: 1.12rem; color: #0f172a;
+          font-family: "Fraunces", Georgia, serif; font-weight: 500;
+        }
+        .lo-guide-lede { margin: 0 0 .85rem; color: #475569; font-size: .9rem; max-width: 48rem; }
+        .lo-guide-svg-wrap {
+          border-radius: .65rem; overflow: hidden; border: 1px solid #1e3a5f;
+          background: #020617; box-shadow: 0 12px 40px rgba(2,6,23,.18);
+        }
+        .lo-guide-svg { display: block; width: 100%; height: auto; }
+        .lo-guide-kpis {
+          display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .65rem; margin-bottom: .9rem;
+        }
+        .lo-guide-kpis > div {
+          background: #fff; border: 1px solid #e2e8f0; border-radius: .55rem; padding: .85rem .9rem;
+        }
+        .lo-guide-kpis strong { display: block; font-size: 1.25rem; color: #0f172a; }
+        .lo-guide-kpis span { color: #64748b; font-size: .78rem; }
+        .lo-guide-table-wrap {
+          background: #fff; border: 1px solid #e2e8f0; border-radius: .55rem; overflow: auto;
+        }
+        .lo-guide-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+        .lo-guide-table th, .lo-guide-table td {
+          padding: .55rem .7rem; border-bottom: 1px solid #f1f5f9; text-align: left; vertical-align: top;
+        }
+        .lo-guide-table th {
+          background: #f8fafc; color: #475569; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em;
+        }
+        .lo-guide-table a { color: #0369a1; font-weight: 600; text-decoration: none; }
+        .lo-guide-table code { font-size: .8rem; }
+        .lo-guide-method {
+          display: inline-block; min-width: 3.2rem; text-align: center;
+          font-size: .68rem; font-weight: 800; letter-spacing: .04em;
+          padding: .15rem .35rem; border-radius: .25rem; background: #e0f2fe; color: #075985;
+        }
+        .lo-guide-parts {
+          display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .75rem;
+        }
+        .lo-guide-part {
+          background: #fff; border: 1px solid #e2e8f0; border-radius: .55rem; padding: .95rem 1rem;
+        }
+        .lo-guide-part.is-pending { border-color: #fbbf24; background: linear-gradient(180deg, #fffbeb 0%, #fff 40%); }
+        .lo-guide-part header em {
+          display: block; font-style: normal; font-size: .7rem; font-weight: 800;
+          letter-spacing: .06em; text-transform: uppercase; color: #0284c7; margin-bottom: .25rem;
+        }
+        .lo-guide-part header strong { display: block; font-size: .98rem; color: #0f172a; margin-bottom: .55rem; }
+        .lo-guide-part ol {
+          margin: 0; padding-left: 1.1rem; color: #334155; font-size: .8rem; line-height: 1.4;
+        }
+        .lo-guide-deliv {
+          margin: .65rem 0 0; font-size: .75rem; color: #64748b; line-height: 1.35;
+        }
+        .lo-guide-part-links {
+          display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .7rem;
+        }
+        .lo-guide-part-links a {
+          font-size: .72rem; font-weight: 700; text-decoration: none; color: #0c4a6e;
+          background: #e0f2fe; padding: .3rem .45rem; border-radius: .3rem;
+        }
+        .lo-guide-part-links a.json { background: #f1f5f9; color: #334155; }
+        .lo-guide-note {
+          padding: 1rem 1.1rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: .55rem;
+        }
+        .lo-guide-note ul { margin: .4rem 0 0; padding-left: 1.15rem; color: #334155; font-size: .86rem; line-height: 1.45; }
+        @@media (max-width: 900px) {
+          .lo-guide-kpis { grid-template-columns: 1fr 1fr; }
+        }
+        @@media (max-width: 560px) {
+          .lo-guide-kpis { grid-template-columns: 1fr; }
+        }
+        """;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _backend = LifeOsLinkCatalog.BackendFromSpec(Spec);
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+    }
+}

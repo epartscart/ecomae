@@ -1,0 +1,32 @@
+{
+  "id": "lifeos-cp-system-guide",
+  "capturedAtUtc": "2026-08-07T08:30:00Z",
+  "verdict": "ready",
+  "route": "/cp/lifeos-guide-app",
+  "alsoFixes": [
+    "Removed @page /IP and /IP/login twins (AmbiguousMatchException → HTTP 500 on /ip)",
+    "Removed @page /lifeos/ trailing-slash twin"
+  ],
+  "guide": {
+    "hosts": [
+      "https://lifeos.ecomae.com/",
+      "https://www.ecomae.com/lifeos",
+      "https://www.ecomae.com/ip",
+      "https://www.ecomae.com/ip/login",
+      "https://www.ecomae.com/cp/lifeos-guide-app"
+    ],
+    "visual": "SVG stack: hosts → nginx/classic-entry → surfaces → Super-CP gate; Perceive→Decide→Act→Learn; Work/Wealth/Health/Home/Mobility; Parts 1–10 ribbon",
+    "chapters": "ILifeOsMasterSpec Parts 1–10 with full chapter lists",
+    "frontend": "LifeOsLinkCatalog.FrontendApps",
+    "backend": "LifeOsLinkCatalog.BackendFromSpec(ILifeOsMasterSpec)"
+  },
+  "locksPreserved": {
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false,
+    "ipBosSuperCpOnly": true
+  },
+  "deploy": {
+    "requiresForceLive": true,
+    "paste": "bash scripts/cloudpanel_FORCE_LIVE_NOW.sh"
+  }
+}

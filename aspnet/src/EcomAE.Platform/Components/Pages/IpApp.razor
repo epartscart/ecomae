@@ -1,9 +1,8 @@
-@page "/ip/app"
 @page "/ip"
-@page "/IP"
-@page "/IP/app"
+@page "/ip/app"
 @page "/ip/ecosystem"
 @page "/ip/ecosystem-app"
+@* Lowercase only — uppercase /IP duplicates AmbiguousMatchException under case-insensitive routing. *@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
@@ -81,6 +80,7 @@
             <a href="/bos">BOS Fleet</a>
             <a href="/cp">Super CP</a>
             <a href="/erp">Super ERP</a>
+            <a href="/cp/lifeos-guide-app">LifeOS system guide</a>
             <a href="https://lifeos.ecomae.com/">LifeOS™</a>
         </nav>
     </section>
@@ -130,7 +130,8 @@
 
     <div class="epc-ip-note">
         LifeOS brain engines, agents, and memory runtime land in subsequent engineering waves.
-        This hub is the Super-CP entry at <code>/ip</code> / <code>/IP/login</code> — not exposed on tenant hosts.
+        This hub is the Super-CP entry at <code>/ip</code> / <code>/ip/login</code> — not exposed on tenant hosts.
+        Full chapter + link catalog: <a href="/cp/lifeos-guide-app">/cp/lifeos-guide-app</a>.
     </div>
 </PhpBosDesktopChrome>
 
