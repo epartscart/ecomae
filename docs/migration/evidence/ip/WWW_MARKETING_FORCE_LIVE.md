@@ -7,8 +7,8 @@ and left marketing CSS on dead PHP/`epc-static` URLs.
 ## CloudPanel root — use THIS paste
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/force-live-www-marketing-7b3b/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
-tail -50 /root/force-live-www-marketing.log
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/www-marketing-full-site-7b3b/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
+tail -80 /root/force-live-www-marketing.log
 ```
 
 After this PR merges to main you may use:
@@ -17,7 +17,7 @@ After this PR merges to main you may use:
 ECOMAE_BRANCH=main bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
 ```
 
-Must print `RESULT=PASS — www.ecomae.com marketing home styled via platform-assets`.
+Must print `RESULT=PASS — www.ecomae.com full marketing site + LifeOS film after hero`.
 
 ## Working checks after PASS
 

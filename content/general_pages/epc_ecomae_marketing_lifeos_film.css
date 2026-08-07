@@ -1,0 +1,205 @@
+/* LifeOS film band on www marketing home — AFTER epm-hub only.
+   Does not touch .epm-hub* animation rules. Palette follows marketing chrome. */
+.epm-lofilm {
+  position: relative;
+  padding: clamp(48px, 7vw, 88px) 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 85% 20%, rgba(34, 211, 238, 0.12), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 90%, rgba(59, 130, 246, 0.10), transparent 50%),
+    linear-gradient(180deg, #070a12 0%, #0c1220 55%, #080b14 100%);
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  color: #e2e8f0;
+  overflow: hidden;
+}
+
+.epm-lofilm::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
+  pointer-events: none;
+}
+
+.epm-lofilm__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(18px, 4vw, 32px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
+}
+
+.epm-lofilm__kicker {
+  margin: 0 0 10px;
+  font-family: Syne, "DM Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #22d3ee;
+}
+
+.epm-lofilm h2 {
+  margin: 0 0 14px;
+  font-family: Syne, "DM Sans", sans-serif;
+  font-size: clamp(1.55rem, 2.6vw, 2.35rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #f8fafc;
+}
+
+.epm-lofilm__lede {
+  margin: 0 0 22px;
+  max-width: 36rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #94a3b8;
+}
+
+.epm-lofilm__beats {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.epm-lofilm__seek {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.55);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.epm-lofilm__seek:hover,
+.epm-lofilm__seek:focus-visible {
+  border-color: rgba(34, 211, 238, 0.55);
+  background: rgba(8, 47, 73, 0.55);
+  outline: none;
+  transform: translateX(2px);
+}
+
+.epm-lofilm__time {
+  flex: 0 0 2.5rem;
+  font-family: "DM Sans", monospace, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #22d3ee;
+}
+
+.epm-lofilm__beat-title {
+  font-family: "DM Sans", sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.epm-lofilm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.epm-lofilm__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.epm-lofilm__btn--solid {
+  background: linear-gradient(135deg, #2563eb, #22d3ee);
+  color: #0a0a0a;
+}
+
+.epm-lofilm__btn--solid:hover {
+  filter: brightness(1.06);
+}
+
+.epm-lofilm__btn--ghost {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #e2e8f0;
+  background: transparent;
+}
+
+.epm-lofilm__btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+}
+
+.epm-lofilm__stage {
+  min-width: 0;
+}
+
+.epm-lofilm__frame {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.08),
+    0 24px 60px rgba(0, 0, 0, 0.45);
+  background: #000;
+}
+
+.epm-lofilm__frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 40px rgba(34, 211, 238, 0.08);
+}
+
+.epm-lofilm__video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+.epm-lofilm__caption {
+  margin: 10px 2px 0;
+  font-family: "DM Sans", sans-serif;
+  font-size: 12px;
+  color: #64748b;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 900px) {
+  .epm-lofilm__inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .epm-lofilm__stage {
+    order: -1;
+  }
+}

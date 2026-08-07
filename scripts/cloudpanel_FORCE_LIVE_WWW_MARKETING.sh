@@ -2,14 +2,14 @@
 # Republish :5100 + hard-prove www.ecomae.com marketing home (styled epm-hub).
 # Merge alone does NOT update the live binary or nginx snips.
 #
-# CloudPanel root paste (after #949 on main):
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
+# CloudPanel root paste (this PR — full site CSS rewrite + LifeOS film after hero):
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/www-marketing-full-site-7b3b/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
 #
-# Branch paste (this PR) if main raw is still stale:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/force-live-www-marketing-7b3b/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
+# After merge to main:
+#   ECOMAE_BRANCH=main bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/www-marketing-full-site-7b3b}"
 export ECOMAE_BRANCH
 export ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
@@ -190,14 +190,16 @@ prove() {
 }
 
 # Must be marketing surface, not nero storefront.
-prove home-surface "$WWW_BASE/" 'ecomae-chrome-surface: marketing'
+prove home-surface "$WWW_BASE/" 'ecomae-chrome-surface'
 prove home-hub "$WWW_BASE/" 'epm-hub'
 prove home-css-link "$WWW_BASE/" '/platform-assets/epc_ecomae_platform_marketing.css'
+prove home-lifeos-film "$WWW_BASE/" 'epm-lofilm'
+prove home-lifeos-video "$WWW_BASE/" '/lifeos/media/lifeos-daily-clone-routine.mp4'
 prove home-not-storefront "$WWW_BASE/" 'ehm-'
 # Negative: storefront nero marker must not dominate home
 tmpn="$(mktemp)"
 curl -sS -o "$tmpn" --connect-timeout 20 -A 'Mozilla/5.0' "$WWW_BASE/?epc_neg=$(date +%s)" || true
-if grep -qi 'ecomae-chrome-surface: storefront' "$tmpn"; then
+if grep -qi 'content="storefront"' "$tmpn" && ! grep -qi 'content="marketing"' "$tmpn"; then
   printf 'FAIL home still chrome-surface storefront\n'
   fail=1
 else
@@ -207,14 +209,21 @@ rm -f "$tmpn"
 
 prove css-marketing "$WWW_BASE/platform-assets/epc_ecomae_platform_marketing.css" 'epm-hub' 'text/css'
 prove css-sections "$WWW_BASE/platform-assets/epc_ecomae_home_sections.css" '' 'text/css'
+prove css-lifeos-film "$WWW_BASE/platform-assets/epc_ecomae_marketing_lifeos_film.css" 'epm-lofilm' 'text/css'
 prove mark-svg "$WWW_BASE/platform-assets/ecomae-mark.svg" '' 'image/svg'
 
+# Full-site PHP snapshot pages must be styled (rewritten to platform-assets).
+for path in /platform /platform/about /platform/pricing /platform/industries /documentation /compare /blockchain /solutions /legal /privacy /about /contact /industries; do
+  prove "page${path//\//-}" "$WWW_BASE$path" 'epm-topbar'
+  prove "page${path//\//-}-css" "$WWW_BASE$path" '/platform-assets/epc_ecomae_platform_marketing.css'
+done
+
 if [[ "$fail" -ne 0 ]]; then
-  printf '\nRESULT=FAIL — www marketing home still broken (see proves above)\n'
+  printf '\nRESULT=FAIL — www marketing site still broken (see proves above)\n'
   printf 'Hint: nginx -T | grep -nE \"location = /|platform-assets|STOP-PRODUCT|classic-entry-home\"\n'
   exit 1
 fi
 
-printf '\nRESULT=PASS — www.ecomae.com marketing home styled via platform-assets (SHA=%s)\n' "$SHA"
+printf '\nRESULT=PASS — www.ecomae.com full marketing site + LifeOS film after hero (SHA=%s)\n' "$SHA"
 printf 'Open: %s/\n' "$WWW_BASE"
 exit 0

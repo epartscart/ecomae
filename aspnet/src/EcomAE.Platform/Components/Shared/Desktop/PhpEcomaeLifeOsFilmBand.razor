@@ -1,0 +1,82 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.LifeOs.Cinematic
+@using EcomAE.Platform.Routing
+@inject ILifeOsCinematicFilm Film
+@*
+  Marketing home — LifeOS film presentation AFTER the epm-hub hero only.
+  Does not alter hub markup or hub CSS. Visual language matches epm chrome
+  (Syne / dark atmosphere) — product cinema, not a generic AI landing block.
+*@
+
+<section id="lifeos-film" class="epm-lofilm" aria-labelledby="epm-lofilm-title">
+    <div class="epm-lofilm__inner">
+        <div class="epm-lofilm__copy">
+            <p class="epm-lofilm__kicker">LifeOS™ · product cinema</p>
+            <h2 id="epm-lofilm-title">After the hub — see the day with your clone.</h2>
+            <p class="epm-lofilm__lede">
+                @Film.ProtagonistName works beside an identical LifeOS clone — morning briefing through evening wind-down.
+                Same face, same name, continuous advice. This is the operating layer that sits above ERP and commerce.
+            </p>
+            <ol class="epm-lofilm__beats" aria-label="Film beats">
+                @foreach (var scene in Film.Scenes.Take(5))
+                {
+                    <li>
+                        <button type="button" class="epm-lofilm__seek" data-seek="@scene.StartSeconds">
+                            <span class="epm-lofilm__time">@FormatTime(scene.StartSeconds)</span>
+                            <span class="epm-lofilm__beat-title">@scene.Title</span>
+                        </button>
+                    </li>
+                }
+            </ol>
+            <div class="epm-lofilm__actions">
+                <a class="epm-lofilm__btn epm-lofilm__btn--solid" href="@EcomAeRoutes.LifeOsCinematicApp">Open film theatre</a>
+                <a class="epm-lofilm__btn epm-lofilm__btn--ghost" href="@Film.VideoDownloadUrl" download="LifeOS-Daily-Clone-Routine.mp4">Download MP4</a>
+                <a class="epm-lofilm__btn epm-lofilm__btn--ghost" href="@EcomAeRoutes.LifeOs">LifeOS home</a>
+            </div>
+        </div>
+        <div class="epm-lofilm__stage">
+            <div class="epm-lofilm__frame">
+                <video id="epm-lofilm-video"
+                       class="epm-lofilm__video"
+                       controls
+                       playsinline
+                       preload="metadata"
+                       poster="@Film.PosterUrl"
+                       aria-label="LifeOS daily human and AI clone routine film">
+                    <source src="@Film.VideoUrl" type="video/mp4" />
+                </video>
+            </div>
+            <p class="epm-lofilm__caption">1:22 · morning → evening · dialogue on the file</p>
+        </div>
+    </div>
+</section>
+
+<script defer>
+(function () {
+  function bind() {
+    var v = document.getElementById('epm-lofilm-video');
+    if (!v) return;
+    document.querySelectorAll('.epm-lofilm__seek').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var sec = Number(btn.getAttribute('data-seek') || 0);
+        v.currentTime = Math.max(0, sec);
+        v.play().catch(function () {});
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
+  }
+})();
+</script>
+
+@code {
+    private static string FormatTime(int seconds)
+    {
+        var m = seconds / 60;
+        var s = seconds % 60;
+        return $"{m}:{s:00}";
+    }
+}

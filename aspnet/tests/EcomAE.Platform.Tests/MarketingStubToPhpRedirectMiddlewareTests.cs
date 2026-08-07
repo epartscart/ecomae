@@ -47,7 +47,7 @@ public sealed class MarketingStubToPhpRedirectMiddlewareTests
         Assert.False(nextCalled);
         Assert.Equal(StatusCodes.Status302Found, ctx.Response.StatusCode);
         Assert.Equal(expected, ctx.Response.Headers.Location.ToString());
-        Assert.Equal("php-canonical", ctx.Response.Headers["X-EcomAE-Marketing-Stub-Redirect"].ToString());
+        Assert.Equal("snapshot-canonical", ctx.Response.Headers["X-EcomAE-Marketing-Stub-Redirect"].ToString());
     }
 
     [Fact]
