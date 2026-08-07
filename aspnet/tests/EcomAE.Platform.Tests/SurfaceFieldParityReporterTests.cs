@@ -95,7 +95,7 @@ public sealed class SurfaceFieldParityReporterTests
         Assert.Contains(LegacyPresentationAssets.StorefrontStylesheets, href => href.Contains("epc_storefront_professional_shell.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.StorefrontStylesheets, href => href.Contains("epc_automotive_spareparts.css", StringComparison.Ordinal));
         Assert.Contains("nero", LegacyPresentationAssets.LegacyChromeSourceFor("storefront"), StringComparison.OrdinalIgnoreCase);
-        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("epc_ecomae_platform_marketing_css.php", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_platform_marketing.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("epc_bos_shell.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("epc_bos_login_surface_accents.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("eparts-animated-logo.css", StringComparison.Ordinal));

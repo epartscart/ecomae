@@ -81,7 +81,8 @@ import re, time, shutil
 MARKER_BEGIN = "# BEGIN ecomae-STOP-PRODUCT-PHP"
 MARKER_END = "# END ecomae-STOP-PRODUCT-PHP"
 
-PACK = r'''
+# Home path differs: tenant storefront vs www marketing (never send www → storefront).
+PACK_TEMPLATE = r'''
     # BEGIN ecomae-STOP-PRODUCT-PHP
     # Nuclear: product surfaces → :5100 only. Legacy docroot must not answer /cp/control.
     location = /cp/control {
@@ -238,13 +239,22 @@ PACK = r'''
         proxy_set_header X-EcomAE-Route-Cutover stop-product-php-erp-tree;
     }
     location = / {
-        proxy_pass http://127.0.0.1:5100/storefront/app;
+        proxy_pass http://127.0.0.1:5100/__HOME_APP__;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Cookie $http_cookie;
-        proxy_set_header X-EcomAE-Route-Cutover stop-product-php-home;
+        proxy_set_header X-EcomAE-Route-Cutover __HOME_CUTOVER__;
+    }
+    location ^~ /marketing/ {
+        proxy_pass http://127.0.0.1:5100;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header X-EcomAE-Route-Cutover stop-product-php-marketing;
     }
     location ^~ /storefront/ {
         proxy_pass http://127.0.0.1:5100;
@@ -337,12 +347,28 @@ OLD_PACK = re.compile(
     re.S,
 )
 
-TARGETS = [
+TARGETS_STOREFRONT = [
     "www.epartscart.com",
     "epartscart.com",
+]
+TARGETS_MARKETING = [
     "www.ecomae.com",
     "ecomae.com",
 ]
+TARGETS = TARGETS_STOREFRONT + TARGETS_MARKETING
+
+def pack_for(names):
+    if any(host_match(names, h) for h in TARGETS_MARKETING):
+        return (
+            PACK_TEMPLATE
+            .replace("__HOME_APP__", "marketing/app")
+            .replace("__HOME_CUTOVER__", "stop-product-php-home-marketing")
+        )
+    return (
+        PACK_TEMPLATE
+        .replace("__HOME_APP__", "storefront/app")
+        .replace("__HOME_CUTOVER__", "stop-product-php-home-storefront")
+    )
 
 patched_files = 0
 for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
@@ -382,7 +408,8 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
             m = re.match(r"(?s)([ \t]*server\s*\{)(\s*)(.*)", new_body)
             if not m:
                 continue
-            new_body = m.group(1) + "\n" + PACK + m.group(2) + m.group(3)
+            pack = pack_for(names)
+            new_body = m.group(1) + "\n" + pack + m.group(2) + m.group(3)
             out = out[:start] + new_body + out[end:]
             changed = True
             print(f"patched server_name={names[:8]} in {conf}")

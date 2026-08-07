@@ -66,7 +66,7 @@
   "guarantees": [
     "CP/ERP/BOS/storefront shell routes negotiate HTML vs JSON without changing digest JSON schemas.",
     "HTML shells link the same epc-static.php / content/general_pages / templates/modex stylesheets as PHP.",
-    "Brand mark uses /content/general_pages/epc_ecomae_logo_svg.php so operator chrome stays ECOM AE-branded.",
+    "Brand mark uses /platform-assets/ecomae-mark.svg so operator chrome stays ECOM AE-branded when PHP is paused.",
     "Unauthorized responses remain JSON 401 so API clients are not surprised by HTML login pages.",
     "PHP remains authoritative for full interactive UX until staging smoke + release-owner approval."
   ],

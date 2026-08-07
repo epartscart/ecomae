@@ -1,0 +1,28 @@
+{
+  "id": "www-marketing-platform-assets-css",
+  "capturedAtUtc": "2026-08-07T14:00:00Z",
+  "verdict": "ready",
+  "liveSymptom": {
+    "url": "https://www.ecomae.com/",
+    "body": "Unstyled marketing hub — concatenated nav, katakana matrix dump, Platform ERP chips without layout",
+    "rootCause": "MarketingStylesheets pointed at /content/...php and /epc-static.php which 404 when PHP serving is paused; STOP_PRODUCT_PHP also forced www / → /storefront/app"
+  },
+  "fix": {
+    "stylesheets": [
+      "/platform-assets/epc_ecomae_platform_marketing.css?v=20260807a",
+      "/platform-assets/epc_ecomae_home_sections.css?v=20260807a",
+      "/platform-assets/epc_ecomae_home_3d.css?v=20260807a"
+    ],
+    "scripts": ["/platform-assets/epc_ecomae_home_3d.js?v=20260807a"],
+    "brandMark": "/platform-assets/ecomae-mark.svg",
+    "bridge": "PhpLegacyAssetBridge MapGet for marketing assets",
+    "nginxWww": "classic-entry example adds location ^~ /platform-assets/ → :5100",
+    "stopProductPhp": "www.ecomae.com / → marketing/app; epartscart / → storefront/app"
+  },
+  "proveAfterForceLive": [
+    "curl -sI https://www.ecomae.com/ | grep -iE 'HTTP/|x-ecomae-route-cutover'",
+    "curl -sI https://www.ecomae.com/platform-assets/epc_ecomae_platform_marketing.css | grep -iE 'HTTP/|content-type'",
+    "curl -sL https://www.ecomae.com/ | grep -iE 'epm-hub|platform-assets/epc_ecomae|ecomae-chrome-surface'",
+    "Expect: home cutover classic-entry-home-marketing or stop-product-php-home-marketing; CSS 200 text/css; body has epm-hub + platform-assets links; surface=marketing not storefront"
+  ]
+}

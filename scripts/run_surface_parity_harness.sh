@@ -80,8 +80,11 @@ else
   record "presentation-assets" fail "$ok_n/$total_n PHP chrome CSS URLs resolve on $BASE_URL"
 fi
 
-# Brand mark
-brand_code="$(curl -sS -m 20 -o /dev/null -w '%{http_code}' -L "$BASE_URL/content/general_pages/epc_ecomae_logo_svg.php" || echo 000)"
+# Brand mark (/platform-assets survives PHP pause; PHP helper kept as fallback probe)
+brand_code="$(curl -sS -m 20 -o /dev/null -w '%{http_code}' -L "$BASE_URL/platform-assets/ecomae-mark.svg" || echo 000)"
+if [[ "$brand_code" != "200" ]]; then
+  brand_code="$(curl -sS -m 20 -o /dev/null -w '%{http_code}' -L "$BASE_URL/content/general_pages/epc_ecomae_logo_svg.php" || echo 000)"
+fi
 if [[ "$brand_code" == "200" ]]; then
   record "presentation-brand" pass "ECOM AE brand mark URL returns HTTP 200"
 else

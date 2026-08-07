@@ -131,6 +131,51 @@ public static class PhpLegacyAssetBridge
             return Results.NotFound();
         });
 
+        // www.ecomae.com marketing hub — same /platform-assets pattern as login accents.
+        // Live classic-entry proxies / → /marketing/app; CSS must not depend on PHP HTTP.
+        foreach (var (url, relative) in new (string Url, string Relative)[]
+                 {
+                     ("/platform-assets/epc_ecomae_platform_marketing.css",
+                         "content/general_pages/epc_ecomae_platform_marketing.css"),
+                     ("/platform-assets/epc_ecomae_home_sections.css",
+                         "content/general_pages/epc_ecomae_home_sections.css"),
+                     ("/platform-assets/epc_ecomae_home_3d.css",
+                         "content/general_pages/epc_ecomae_home_3d.css"),
+                     ("/platform-assets/epc_ecomae_home_3d.js",
+                         "content/general_pages/epc_ecomae_home_3d.js"),
+                 })
+        {
+            var localRelative = relative;
+            endpoints.MapGet(url, () =>
+            {
+                var path = Path.GetFullPath(Path.Combine(repoRoot, localRelative));
+                if (!path.StartsWith(repoRoot, StringComparison.Ordinal) || !File.Exists(path))
+                {
+                    return Results.NotFound();
+                }
+
+                return Results.File(path, ContentTypeFor(path));
+            });
+        }
+
+        endpoints.MapGet("/platform-assets/ecomae-mark.svg", () =>
+        {
+            foreach (var candidate in new[]
+                     {
+                         "content/general_pages/epc_ecomae_logo.svg",
+                         "aspnet/src/EcomAE.Platform/wwwroot/assets/media/logos/ecomae_mark.svg"
+                     })
+            {
+                var path = Path.GetFullPath(Path.Combine(repoRoot, candidate));
+                if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+                {
+                    return Results.File(path, "image/svg+xml");
+                }
+            }
+
+            return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
+        });
+
         // PHP animated-logo helpers die with "No access" outside _ASTEXE_ (and when PHP
         // serving is temporarily deactivated). Bridge them so legacy <img src> / fragment
         // embeds keep working when nginx exact-routes these paths to ASP.NET.
