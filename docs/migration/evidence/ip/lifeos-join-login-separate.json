@@ -3,7 +3,7 @@
   "title": "LifeOS join public for new users; login separate for existing accounts",
   "date": "2026-08-07",
   "branch": "cursor/lifeos-join-login-separate-7b3b",
-  "problem": "https://lifeos.ecomae.com/lifeos/join redirected to /lifeos/login?returnUrl=%2Flifeos%2Fjoin — new users could not join without signing in.",
+  "problem": "https://lifeos.ecomae.com/lifeos/join redirected to /lifeos/login?returnUrl=%2Flifeos%2Fjoin \u2014 new users could not join without signing in.",
   "fix": [
     "LifeOsPersonalAuthGateMiddleware: /lifeos/join + mobile/results/companion are public",
     "POST /lifeos/join allows anonymous join; optional session binds OwnerUserId",
@@ -11,8 +11,8 @@
     "Chrome shows Sign in and Join as separate links"
   ],
   "flow": {
-    "newUser": "Home → Join → companion/results via join token",
-    "existingUser": "Home → Sign in → console / account-bound surfaces"
+    "newUser": "Home \u2192 Join \u2192 companion/results via join token",
+    "existingUser": "Home \u2192 Sign in \u2192 console / account-bound surfaces"
   },
   "prove": [
     "curl -sI https://lifeos.ecomae.com/lifeos/join | head -15  # expect 200, not Location login",
@@ -20,5 +20,12 @@
     "curl -sL https://lifeos.ecomae.com/lifeos/login | grep -E 'existing ecomae|Go to Join'",
     "curl -sL -X POST https://lifeos.ecomae.com/lifeos/join -H 'content-type: application/json' -H 'accept: application/json' -d '{\"displayName\":\"ProveUser\",\"country\":\"United Arab Emirates\",\"countryCode\":\"AE\"}' | head"
   ],
-  "forceLive": "ECOMAE_BRANCH=cursor/lifeos-join-login-separate-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES bash -c \"$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/lifeos-join-login-separate-7b3b/scripts/cloudpanel_FORCE_LIVE_NOW.sh)\" 2>&1 | tee /root/force-live-lifeos-join-separate.log"
+  "forceLive": "ECOMAE_BRANCH=cursor/lifeos-join-login-separate-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES bash -c \"$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/lifeos-join-login-separate-7b3b/scripts/cloudpanel_FORCE_LIVE_LIFEOS_JOIN_SEPARATE.sh)\" 2>&1 | tee /root/force-live-lifeos-join-separate.log",
+  "agentProbeAfterAction": {
+    "join": "HTTP 302 \u2192 /lifeos/login?returnUrl=/lifeos/join",
+    "joinPost": "HTTP 401 lifeos_login_required (old binary message)",
+    "loginCopy": "still Sign in & continue to join",
+    "verdict": "FORCE_LIVE did not publish cursor/lifeos-join-login-separate-7b3b"
+  },
+  "expect": "RESULT=PASS \u2014 LifeOS join public / login separate"
 }
