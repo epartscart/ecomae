@@ -65,7 +65,11 @@ if grep -Fq -- "epmHubOrbitSpin" "$HOME_FILE"; then
   pass=$((pass + 1))
 else
   CSS_FILE="$TMPDIR_PROBE/marketing.css"
-  fetch_to "$BASE/content/general_pages/epc_ecomae_platform_marketing_css.php" "$CSS_FILE"
+  # Prefer ASP.NET /platform-assets bridge (survives PHP pause); fall back to PHP helper.
+  fetch_to "$BASE/platform-assets/epc_ecomae_platform_marketing.css" "$CSS_FILE" || true
+  if [[ ! -s "$CSS_FILE" ]]; then
+    fetch_to "$BASE/content/general_pages/epc_ecomae_platform_marketing_css.php" "$CSS_FILE"
+  fi
   if grep -Fq -- "epmHubOrbitSpin" "$CSS_FILE"; then
     say "PASS  marketing-css contains epmHubOrbitSpin"
     pass=$((pass + 1))

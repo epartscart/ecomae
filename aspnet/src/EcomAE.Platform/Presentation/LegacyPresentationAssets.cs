@@ -7,7 +7,8 @@ namespace EcomAE.Platform.Presentation;
 public static class LegacyPresentationAssets
 {
     public const string BrandName = "ECOM AE";
-    public const string BrandMarkUrl = "/content/general_pages/epc_ecomae_logo_svg.php";
+    /// <summary>ECOM AE mark — /platform-assets survives PHP pause on www.</summary>
+    public const string BrandMarkUrl = "/platform-assets/ecomae-mark.svg";
 
     public static IReadOnlyList<string> StylesheetsFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {
@@ -121,19 +122,20 @@ public static class LegacyPresentationAssets
 
     /// <summary>
     /// www.ecomae.com marketing chrome — animated epm-hub hero + home sections (PHP sources).
+    /// Hub CSS uses /platform-assets so live www stays styled when PHP/epc-static paths 404.
     /// </summary>
     public static readonly IReadOnlyList<string> MarketingStylesheets =
     [
         "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
-        "/content/general_pages/epc_ecomae_platform_marketing_css.php",
-        "/epc-static.php?f=content/general_pages/epc_ecomae_home_sections.css&v=20260716d",
-        "/epc-static.php?f=content/general_pages/epc_ecomae_home_3d.css&v=20260716d"
+        "/platform-assets/epc_ecomae_platform_marketing.css?v=20260807a",
+        "/platform-assets/epc_ecomae_home_sections.css?v=20260807a",
+        "/platform-assets/epc_ecomae_home_3d.css?v=20260807a"
     ];
 
     /// <summary>Home 3D / scroll helpers used after the marketing hub hero.</summary>
     public static readonly IReadOnlyList<string> MarketingScripts =
     [
-        "/epc-static.php?f=content/general_pages/epc_ecomae_home_3d.js&v=20260716d"
+        "/platform-assets/epc_ecomae_home_3d.js?v=20260807a"
     ];
 
     /// <summary>Structural selectors / class markers for graphical presentation probes.</summary>

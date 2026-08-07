@@ -28,7 +28,7 @@ Full plan: `docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md`. Batch 0 lists every P
 Capture HTML samples under `docs/migration/evidence/presentation/` after CloudPanel redeploy:
 
 - stylesheet `href` list matches PHP desktop chrome
-- brand mark resolves to `/content/general_pages/epc_ecomae_logo_svg.php`
+- brand mark resolves to `/platform-assets/ecomae-mark.svg`
 - JSON `?format=json` shape still includes `shell` + `session`
 
 ## Guardrail

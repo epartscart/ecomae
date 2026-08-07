@@ -57,7 +57,10 @@ public sealed class EcomaeMarketingPagesTests
     [Fact]
     public void MarketingAssetsExposeAnimatedHubMarkers()
     {
-        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("epc_ecomae_platform_marketing_css.php", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_platform_marketing.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_home_sections.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.MarketingScripts, href => href.Contains("/platform-assets/epc_ecomae_home_3d.js", StringComparison.Ordinal));
+        Assert.Equal("/platform-assets/ecomae-mark.svg", LegacyPresentationAssets.BrandMarkUrl);
         Assert.Contains(LegacyPresentationAssets.RequiredGraphicalMarkers("marketing"), m => m.Contains("epm-hub__orbit-spin", StringComparison.Ordinal));
         Assert.Equal("epm-body", LegacyPresentationAssets.BodyClassFor("marketing"));
         Assert.Contains("epm-hub", LegacyPresentationAssets.LegacyChromeSourceFor("marketing"), StringComparison.Ordinal);

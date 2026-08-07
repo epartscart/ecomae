@@ -17,7 +17,7 @@ public sealed class LegacyHtmlShellRendererTests
             "test note");
 
         Assert.Contains("ECOM AE", html, StringComparison.Ordinal);
-        Assert.Contains("/content/general_pages/epc_ecomae_logo_svg.php", html, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/ecomae-mark.svg", html, StringComparison.Ordinal);
         Assert.Contains("/content/general_pages/epc_cp_professional_css.php", html, StringComparison.Ordinal);
         Assert.Contains("/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css", html, StringComparison.Ordinal);
         Assert.Contains("presentation-shell-scaffolded", html, StringComparison.Ordinal);
