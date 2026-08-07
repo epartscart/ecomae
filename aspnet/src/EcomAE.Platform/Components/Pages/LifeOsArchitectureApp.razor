@@ -1,0 +1,251 @@
+@page "/lifeos/architecture-app"
+@page "/lifeos/orchestrator-app"
+@page "/lifeos/memory-app"
+@page "/lifeos/agents-app"
+@page "/lifeos/planning-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Engines
+@using EcomAE.Platform.LifeOs.Models
+@using EcomAE.Platform.LifeOs.Orchestrator
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsOrchestrator Orchestrator
+@inject ILifeOsMemorySystem Memory
+@inject ILifeOsAgentFramework Agents
+@inject ILifeOsPlanningEngine Planning
+@inject IHttpContextAccessor Http
+
+<PageTitle>LifeOS™ · Part 2 Architecture</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>
+:root {
+  --lo-ink:#0a1f1c; --lo-sea:#0f766e; --lo-sun:#f59e0b; --lo-paper:#f4faf8;
+  --lo-display:"Instrument Serif", Georgia, serif;
+  --lo-sans:"Manrope", "Segoe UI", sans-serif;
+}
+body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); font-family:var(--lo-sans); }
+.lo-shell { min-height:100vh; }
+.lo-top {
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  padding:1rem clamp(1rem,3vw,2rem);
+  background:linear-gradient(90deg,#062a26,#0f766e 55%,#134e4a); color:#ecfdf5;
+}
+.lo-top .brand { font-family:var(--lo-display); font-size:1.55rem; }
+.lo-top .brand em { font-style:italic; color:#99f6e4; }
+.lo-top nav { display:flex; flex-wrap:wrap; gap:.85rem; font-size:.82rem; font-weight:700; }
+.lo-top a { color:#ccfbf1; text-decoration:none; }
+.lo-top a.is-active { color:#fde68a; text-decoration:underline; }
+.lo-main { padding:1.4rem clamp(1rem,3vw,2.25rem) 2.5rem; max-width:74rem; margin:0 auto; }
+.lo-intro h1 { font-family:var(--lo-display); font-weight:400; font-size:clamp(1.7rem,3.6vw,2.35rem); margin:.15rem 0 .45rem; }
+.lo-intro p { margin:0 0 1.1rem; max-width:42rem; color:#334155; line-height:1.5; }
+.lo-pipe {
+  display:flex; flex-wrap:wrap; gap:.4rem; margin:0 0 1.25rem;
+}
+.lo-pipe span {
+  font-size:.72rem; font-weight:800; letter-spacing:.03em; text-transform:uppercase;
+  padding:.4rem .55rem; border-radius:.3rem; background:#062a26; color:#99f6e4;
+}
+.lo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:.7rem; }
+.lo-grid article {
+  padding:.95rem; border:1px solid #cce5de; border-radius:.4rem; background:#fff;
+}
+.lo-grid strong { display:block; margin-bottom:.3rem; color:#062a26; }
+.lo-grid span { font-size:.82rem; color:#475569; line-height:1.4; }
+.lo-list { list-style:none; margin:0; padding:0; }
+.lo-list li {
+  display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  padding:.55rem 0; border-bottom:1px solid #e2efe9; font-size:.88rem;
+}
+.lo-list li:last-child { border-bottom:0; }
+.lo-meta { color:#64748b; font-size:.78rem; }
+.lo-demo {
+  margin:1.25rem 0; padding:1rem 1.1rem; border:1px solid #99d6c9; border-radius:.45rem; background:#fff;
+}
+.lo-demo label { display:block; font-size:.78rem; font-weight:700; margin:.5rem 0 .25rem; }
+.lo-demo input, .lo-demo textarea {
+  width:100%; max-width:36rem; box-sizing:border-box; padding:.65rem .75rem;
+  border:1px solid #99d6c9; border-radius:.3rem; font:inherit;
+}
+.lo-demo button {
+  margin-top:.85rem; padding:.7rem 1.1rem; border:0; border-radius:.3rem;
+  background:var(--lo-sun); color:#1c1917; font-weight:800; cursor:pointer;
+}
+.lo-result {
+  margin-top:1rem; padding:1rem; border-left:3px solid var(--lo-sea);
+  background:#ecfdf5; color:#134e4a; font-size:.88rem; line-height:1.45; white-space:pre-wrap;
+}
+.lo-note {
+  margin-top:1.5rem; padding:1rem; border-left:3px solid var(--lo-sun);
+  background:#fffbeb; color:#78350f; font-size:.86rem; line-height:1.45;
+}
+.lo-chips { display:flex; flex-wrap:wrap; gap:.45rem; margin:.5rem 0 0; }
+.lo-chips span {
+  font-size:.75rem; font-weight:700; padding:.35rem .55rem; border-radius:.3rem;
+  background:#ecfdf5; color:var(--lo-sea); border:1px solid #a7f3d0;
+}
+</style>
+</HeadContent>
+
+@{
+    var path = (Http.HttpContext?.Request.Path.Value ?? "").TrimEnd('/').ToLowerInvariant();
+    var view = path switch
+    {
+        "/lifeos/memory-app" => "memory",
+        "/lifeos/agents-app" => "agents",
+        "/lifeos/planning-app" => "planning",
+        "/lifeos/orchestrator-app" => "orchestrator",
+        _ => "architecture"
+    };
+}
+
+<div class="lo-shell lifeos-ambient">
+  <header class="lo-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav aria-label="Part 2">
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a class="@(view=="architecture"?"is-active":null)" href="@EcomAeRoutes.LifeOsArchitectureApp">Architecture</a>
+      <a class="@(view=="orchestrator"?"is-active":null)" href="@EcomAeRoutes.LifeOsOrchestratorApp">Orchestrator</a>
+      <a class="@(view=="memory"?"is-active":null)" href="@EcomAeRoutes.LifeOsMemoryApp">Memory</a>
+      <a class="@(view=="agents"?"is-active":null)" href="@EcomAeRoutes.LifeOsAgentsApp">Agents</a>
+      <a class="@(view=="planning"?"is-active":null)" href="@EcomAeRoutes.LifeOsPlanningApp">Planning</a>
+      <a href="@EcomAeRoutes.LifeOsArchitecture">JSON</a>
+    </nav>
+  </header>
+
+  <main class="lo-main">
+    @if (view == "architecture" || view == "orchestrator")
+    {
+      <section class="lo-intro">
+        <h1>@(view == "orchestrator" ? "LifeOS Orchestrator" : "Part 2 — Core System Architecture")</h1>
+        <p>
+          Every event flows through the Orchestrator: permissions, context, intent, priority,
+          specialist agents, then a single coherent outcome — with learning feedback.
+        </p>
+      </section>
+
+      <div class="lo-pipe" aria-label="Orchestrator pipeline">
+        <span>Input Events</span><span>Normalize</span><span>Context</span><span>Privacy</span>
+        <span>Intent</span><span>Priority</span><span>Multi-Agent Router</span>
+        <span>Decision</span><span>Response</span>
+      </div>
+
+      <div class="lo-grid">
+        <article><strong>Ch.6 Orchestrator</strong><span>Intent, context, agent selection, risk, aggregation, learning feedback.</span></article>
+        <article><strong>Ch.7 Event Bus</strong><span>Voice, Vision, Screen, Calendar, Health, Memory, Workflow, Agent events.</span></article>
+        <article><strong>Ch.8 Context Engine</strong><span>Scored multimodal Context Object — never a single prompt.</span></article>
+        <article><strong>Ch.9 Memory</strong><span>Sensory → Working → Conversation → Project → Strategic → Archive.</span></article>
+        <article><strong>Ch.10 Agents</strong><span>@_agentCount specialist agents with Request→Learning lifecycle.</span></article>
+        <article><strong>Ch.11 Planning</strong><span>Goals decompose into prioritized, dependency-aware workflows.</span></article>
+      </div>
+
+      <section class="lo-demo">
+        <strong>Dry-run orchestrate</strong>
+        <p class="lo-meta" style="margin:.35rem 0 0">Scaffold only — publishes to in-memory bus, no irreversible actions.</p>
+        <label for="loTranscript">Voice transcript</label>
+        <input id="loTranscript" @bind="_transcript" placeholder="Schedule tomorrow's meeting." />
+        <button type="button" @onclick="RunOrchestrate">Run Orchestrator</button>
+        @if (_result is not null)
+        {
+          <div class="lo-result">@_result</div>
+        }
+      </section>
+    }
+    else if (view == "memory")
+    {
+      <section class="lo-intro">
+        <h1>Memory System</h1>
+        <p>Layered cognition memory — from ~30s sensory buffers to multi-year strategic goals.</p>
+      </section>
+      <ul class="lo-list">
+        @foreach (var row in _memoryCounts)
+        {
+          <li><span>@row.Key</span><span class="lo-meta">@row.Value entries</span></li>
+        }
+      </ul>
+      <h2 style="font-family:var(--lo-display);font-weight:400;margin:1.4rem 0 .5rem;">Recent entries</h2>
+      <ul class="lo-list">
+        @foreach (var e in _recentMemory)
+        {
+          <li>
+            <span><strong>@e.Layer</strong> · @e.Key — @e.Content</span>
+            <span class="lo-meta">@e.EntryId</span>
+          </li>
+        }
+      </ul>
+    }
+    else if (view == "agents")
+    {
+      <section class="lo-intro">
+        <h1>Multi-Agent Framework</h1>
+        <p>@_agentCount specialist agents coordinated by the Orchestrator — not a single model.</p>
+      </section>
+      <div class="lo-chips">
+        @foreach (var a in Agents.Catalog)
+        {
+          <span title="@a.Domain">@a.Title</span>
+        }
+      </div>
+      <p class="lo-meta" style="margin-top:1rem">Lifecycle: Request → Context → Capability Check → Memory → Execution → Validation → Result → Learning</p>
+    }
+    else if (view == "planning")
+    {
+      <section class="lo-intro">
+        <h1>Planning Engine</h1>
+        <p>Goal: <em>@_plan.Goal</em> — @_plan.Tasks.Count tasks with dependencies.</p>
+      </section>
+      <ul class="lo-list">
+        @foreach (var t in _plan.Tasks)
+        {
+          <li>
+            <span><strong>@t.Title</strong> · @t.Status</span>
+            <span class="lo-meta">P@t.Priority @(t.DependsOn.Count > 0 ? "depends: " + string.Join(",", t.DependsOn) : "ready")</span>
+          </li>
+        }
+      </ul>
+    }
+
+    <div class="lo-note">
+      Part 2 scaffold against LifeOS™ v4.0. Digests: <code>/lifeos/architecture</code>,
+      <code>/lifeos/events</code>, <code>/lifeos/memory</code>, <code>/lifeos/agents</code>,
+      <code>/lifeos/plans</code>, <code>POST /lifeos/orchestrate</code>.
+      Durable stores, live LLMs, and Kafka wiring are not claimed.
+    </div>
+  </main>
+</div>
+
+@code {
+    private string _transcript = "Schedule tomorrow's meeting.";
+    private string? _result;
+    private int _agentCount;
+    private LifeOsPlan _plan = null!;
+    private IReadOnlyList<KeyValuePair<string, int>> _memoryCounts = [];
+    private IReadOnlyList<LifeOsMemoryEntry> _recentMemory = [];
+
+    protected override void OnInitialized()
+    {
+        _agentCount = Agents.Catalog.Count;
+        _plan = Planning.SampleLifeOsMvp();
+        Memory.SeedDemoProject();
+        var snap = Memory.Snapshot();
+        _memoryCounts = snap.CountsByLayer.OrderBy(kv => kv.Key).ToList();
+        _recentMemory = snap.Recent;
+    }
+
+    private async Task RunOrchestrate()
+    {
+        var evt = LifeOsEventFactory.SampleVoice(string.IsNullOrWhiteSpace(_transcript)
+            ? "Schedule tomorrow's meeting."
+            : _transcript.Trim());
+        var outcome = await Orchestrator.ProcessAsync(evt);
+        _result =
+            $"{outcome.AggregatedResponse}\n\n" +
+            $"Intent: {outcome.Intent}\n" +
+            $"Agents: {string.Join(", ", outcome.SelectedAgents)}\n" +
+            $"Plan: {outcome.Plan?.PlanId} ({outcome.Plan?.Tasks.Count} tasks)\n" +
+            $"Pipeline: {string.Join(" → ", outcome.Pipeline)}";
+    }
+}

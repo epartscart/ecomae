@@ -7,6 +7,7 @@ public static class SurfaceModuleEndpointExtensions
         services.AddSingleton<ISurfaceModule, ControlPanelModule>();
         services.AddSingleton<ISurfaceModule, ErpModule>();
         services.AddSingleton<ISurfaceModule, BosModule>();
+        services.AddSingleton<ISurfaceModule, LifeOsModule>();
         services.AddSingleton<ISurfaceModule, StorefrontModule>();
         services.AddSingleton<ISurfaceModule, ApiModule>();
         return services;

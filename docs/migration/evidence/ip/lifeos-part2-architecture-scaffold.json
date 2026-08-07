@@ -1,0 +1,38 @@
+{
+  "surface": "lifeos",
+  "part": 2,
+  "wave": "ip-lifeos-ecosystem-scaffold",
+  "status": "scaffold",
+  "chapters": {
+    "6": "Orchestrator — ILifeOsOrchestrator + pipeline",
+    "7": "Event Bus — InMemoryLifeOsEventBus + LifeOsEventType",
+    "8": "Context Engine — scored LifeOsContextObject",
+    "9": "Memory System — 10 layers Sensory→Archive",
+    "10": "Multi-Agent Framework — 30 specialist agents",
+    "11": "Planning Engine — MVP goal decomposition"
+  },
+  "routes": {
+    "architectureDigest": "/lifeos/architecture",
+    "events": "/lifeos/events",
+    "memory": "/lifeos/memory",
+    "agents": "/lifeos/agents",
+    "plans": "/lifeos/plans",
+    "context": "/lifeos/context",
+    "orchestratePost": "/lifeos/orchestrate",
+    "ui": [
+      "/lifeos/architecture-app",
+      "/lifeos/orchestrator-app",
+      "/lifeos/memory-app",
+      "/lifeos/agents-app",
+      "/lifeos/planning-app"
+    ]
+  },
+  "notClaimed": [
+    "Production multimodal perception",
+    "Durable memory / vector stores",
+    "Live LLM reasoning",
+    "Kafka or RabbitMQ bus wiring",
+    "Native mobile / desktop / glasses clients",
+    "Parts 3–10 of the master spec"
+  ]
+}

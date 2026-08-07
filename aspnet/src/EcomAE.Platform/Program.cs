@@ -3,6 +3,7 @@ using EcomAE.Platform.Auth;
 using EcomAE.Platform.Components;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.LifeOs;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Modules;
@@ -73,6 +74,7 @@ builder.Services.AddSingleton<ILegacyApiClientParityReporter, LegacyApiClientPar
 builder.Services.AddSingleton<ITenantResolver, RouteTenantResolver>();
 builder.Services.AddEcomAeAuthorization();
 builder.Services.AddEcomAeSurfaceModules();
+builder.Services.AddLifeOsPart2Scaffold();
 builder.Services.AddSingleton<ISurfaceShellCatalog, MigrationSurfaceShellCatalog>();
 builder.Services.AddSingleton<ILegacyHtmlShellRenderer, LegacyHtmlShellRenderer>();
 builder.Services.AddSingleton<IPresentationParityReporter, PresentationParityReporter>();

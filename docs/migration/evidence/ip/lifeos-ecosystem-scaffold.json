@@ -2,12 +2,14 @@
   "surface": "intelligence-platform",
   "wave": "ip-lifeos-ecosystem-scaffold",
   "status": "scaffold",
+  "part2": "docs/migration/evidence/ip/lifeos-part2-architecture-scaffold.json",
   "notClaimed": [
     "Full LifeOS brain runtime",
     "Multimodal perception pipelines",
     "Persistent memory stores",
     "Production domain agents",
-    "DNS/TLS for lifeos.ecomae.com (ops/CloudPanel after merge)"
+    "DNS/TLS for lifeos.ecomae.com (ops/CloudPanel after merge)",
+    "Parts 3–10 (cognitive engines deep dive, multimodal, APIs, K8s, security, clients, marketplace, production)"
   ],
   "routes": {
     "ipLogin": "/ip/login",
