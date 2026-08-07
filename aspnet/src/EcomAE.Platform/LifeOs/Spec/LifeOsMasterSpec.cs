@@ -68,13 +68,15 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
                 "AI Model Marketplace", "Commerce", "Governance", "Analytics", "Ecosystem Roadmap"
             ],
             ["ILifeOsEcosystemPlatform", "Agent Store sample", "/lifeos/plugins", "/lifeos/plugins-app"]),
-        P(10, "Execution Strategy & Product Roadmap", "registry",
+        P(10, "Execution Strategy, Product Roadmap & Global Vision", "scaffold",
             [
-                "Implementation Phases", "Team Structure", "Methodology", "Testing & QA",
-                "Release Management", "Business Model", "Commercialization", "Competitive Analysis",
-                "5–10 Year Strategic Roadmap"
+                "Mission", "Vision 2035", "Product Portfolio", "Development Phases",
+                "Team Organization", "Technology Stack", "Quality Engineering", "Release Strategy",
+                "Business Model", "Global Go-to-Market Strategy", "Success Metrics", "Risk Management",
+                "Innovation Roadmap", "Competitive Positioning", "Long-Term Vision",
+                "Guiding Principles", "Final Platform Blueprint", "Closing Statement"
             ],
-            ["Evidence JSON", "Unit tests", "Part 10 chapters pending paste"]),
+            ["ILifeOsExecutionStrategy", "Ch.151–168", "/lifeos/roadmap", "/lifeos/roadmap-app"]),
     ];
 
     public IReadOnlyList<LifeOsModalityAdapter> MultimodalAdapters { get; } =
@@ -149,7 +151,7 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/billing-licensing", "GET", "Part 9 billing, licensing, certification"),
         new("/lifeos/partners", "GET", "Part 9 partners, community, governance"),
         new("/lifeos/ecosystem-roadmap", "GET", "Part 9 ecosystem analytics + roadmap phases"),
-        new("/lifeos/roadmap", "GET", "Part 10 roadmap & research"),
+        new("/lifeos/roadmap", "GET", "Part 10 Ch.151–168 execution strategy digest"),
     ];
 
     public IReadOnlyList<LifeOsSecurityControl> SecurityControls { get; } =
@@ -221,9 +223,9 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         },
         part10 = new
         {
-            testing = "LifeOsPart2–Part9Ecosystem + MasterSpec tests",
-            note = "Part 10 execution strategy chapters pending paste",
-            roadmap = new[]
+            note = "Full Part 10 digest at /lifeos/roadmap (Ch.151–168)",
+            testing = "LifeOsPart2–Part10 + MasterSpec tests",
+            nearTermEngineering = new[]
             {
                 "Wire durable memory + pgvector",
                 "Live LLM reasoning behind AI Gateway",
@@ -232,12 +234,6 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
                 "Multi-region Kubernetes",
                 "Mobile/desktop/glasses clients",
                 "Plugin marketplace GA"
-            },
-            research = new[]
-            {
-                "Lifelong personalization under privacy constraints",
-                "On-device multimodal models",
-                "Explainability UX for ambient decisions"
             }
         },
         notClaimed = new[]

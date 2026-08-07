@@ -4,7 +4,7 @@ namespace EcomAE.Platform.Tests;
 
 /// <summary>
 /// lifeos.ecomae.com home must present a premium blue/black/white infographic
-/// covering the full Master Spec (Parts 1–9 live, Part 10 forthcoming).
+/// covering the full Master Spec (Parts 1–10 scaffolds).
 /// </summary>
 public sealed class LifeOsPremiumInfographicHomeTests
 {
@@ -48,7 +48,8 @@ public sealed class LifeOsPremiumInfographicHomeTests
         Assert.Contains("lifeos-hero__flow-a", text, StringComparison.Ordinal);
         Assert.Contains("lifeos-parts__timeline", text, StringComparison.Ordinal);
         Assert.Contains("ILifeOsMasterSpec", text, StringComparison.Ordinal);
-        Assert.Contains("Coming next", text, StringComparison.Ordinal);
+        Assert.Contains("LifeOsRoadmapApp", text, StringComparison.Ordinal);
+        Assert.Contains("Ch.151–168", text, StringComparison.Ordinal);
         Assert.Contains("Wealth", text, StringComparison.Ordinal);
         Assert.Contains("Perceive", text, StringComparison.Ordinal);
         Assert.Contains("marker-end", text, StringComparison.Ordinal);

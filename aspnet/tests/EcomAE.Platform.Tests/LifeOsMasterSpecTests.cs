@@ -51,6 +51,7 @@ public sealed class LifeOsMasterSpecTests
         Assert.Contains("Plugin", json, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("FORCE_LIVE", json);
         Assert.Contains("SEC-01", json);
+        Assert.Contains("/lifeos/roadmap", json, StringComparison.Ordinal);
     }
 
     [Fact]

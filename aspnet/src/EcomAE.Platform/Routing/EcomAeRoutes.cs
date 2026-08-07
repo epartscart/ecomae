@@ -1554,6 +1554,8 @@ public static class EcomAeRoutes
     public const string LifeOsPartners = "/lifeos/partners";
     public const string LifeOsEcosystemRoadmap = "/lifeos/ecosystem-roadmap";
     public const string LifeOsRoadmap = "/lifeos/roadmap";
+    /// <summary>Part 10 execution strategy / roadmap Blazor console (JSON digest remains <see cref="LifeOsRoadmap"/>).</summary>
+    public const string LifeOsRoadmapApp = "/lifeos/roadmap-app";
     public const string LifeOsSpecApp = "/lifeos/spec-app";
 
     public const string ApiPrefix = "/api";

@@ -1,0 +1,32 @@
+{
+  "id": "lifeos-part10-execution-roadmap",
+  "capturedAtUtc": "2026-08-07T10:40:00Z",
+  "verdict": "ready",
+  "part": 10,
+  "title": "Execution Strategy, Product Roadmap & Global Vision",
+  "chapters": "151–168",
+  "routes": {
+    "digest": "/lifeos/roadmap",
+    "ui": "/lifeos/roadmap-app",
+    "spec": "/lifeos/spec"
+  },
+  "includes": [
+    "Mission statement",
+    "Vision 2035",
+    "Product portfolio (20)",
+    "Development phases 1–6",
+    "Team organization",
+    "Technology stack",
+    "Quality / release / business / GTM / KPIs / risks",
+    "Innovation + competitive + long-term + principles",
+    "Platform blueprint",
+    "Closing statement",
+    "Cinematic 3D product video prompt"
+  ],
+  "status": "scaffold",
+  "notClaimed": [
+    "Shipped MAU/DAU",
+    "Marketplace GA commerce",
+    "Production multimodal / robotics scale"
+  ]
+}

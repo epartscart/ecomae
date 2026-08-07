@@ -9,6 +9,7 @@ using EcomAE.Platform.LifeOs.Part6;
 using EcomAE.Platform.LifeOs.Part7;
 using EcomAE.Platform.LifeOs.Part8;
 using EcomAE.Platform.LifeOs.Part9;
+using EcomAE.Platform.LifeOs.Part10;
 using EcomAE.Platform.LifeOs.Spec;
 using EcomAE.Platform.Routing;
 
@@ -290,13 +291,16 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsEcosystemRoadmap, (ILifeOsEcosystemPlatform eco) =>
             Results.Ok(eco.RoadmapAndAnalyticsDigest()));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsRoadmap, (ILifeOsMasterSpec spec) =>
+        endpoints.MapGet(EcomAeRoutes.LifeOsRoadmap, (
+            ILifeOsExecutionStrategy exec,
+            ILifeOsMasterSpec spec) =>
             Results.Ok(new
             {
                 ok = true,
                 part = 10,
                 version = spec.Version,
-                parts = spec.Parts.Select(p => new { p.Number, p.Title, p.Status }).ToList()
+                partMeta = spec.Parts.FirstOrDefault(p => p.Number == 10),
+                digest = exec.FullPart10Digest()
             }));
 
         endpoints.MapGet(EcomAeRoutes.LifeOsSpec, (
@@ -309,7 +313,8 @@ public sealed class LifeOsModule : ISurfaceModule
             ILifeOsCloudOperations ops,
             ILifeOsSecurityGovernance gov,
             ILifeOsClientExperience ux,
-            ILifeOsEcosystemPlatform eco) =>
+            ILifeOsEcosystemPlatform eco,
+            ILifeOsExecutionStrategy exec) =>
             Results.Ok(spec.FullDigest(cognitive, new
             {
                 part2 = orch.ArchitectureDigest(),
@@ -319,7 +324,8 @@ public sealed class LifeOsModule : ISurfaceModule
                 part6 = ops.FullPart6Digest(),
                 part7 = gov.FullPart7Digest(),
                 part8 = ux.FullPart8Digest(),
-                part9 = eco.FullPart9Digest()
+                part9 = eco.FullPart9Digest(),
+                part10 = exec.FullPart10Digest()
             })));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (

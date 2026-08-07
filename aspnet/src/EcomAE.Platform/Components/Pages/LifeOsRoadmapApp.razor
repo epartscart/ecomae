@@ -1,0 +1,198 @@
+@page "/lifeos/roadmap-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Part10
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsExecutionStrategy Exec
+
+<PageTitle>LifeOS™ · Part 10 Execution Strategy & Roadmap</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
+</HeadContent>
+
+<div class="lo10">
+  <header class="lo10-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav>
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a href="@EcomAeRoutes.LifeOsPluginsApp">Part 9</a>
+      <a class="is-active" href="@EcomAeRoutes.LifeOsRoadmapApp">Part 10</a>
+      <a href="@EcomAeRoutes.LifeOsSpecApp">Spec 1–10</a>
+      <a href="@EcomAeRoutes.LifeOsRoadmap">JSON</a>
+      <a href="@EcomAeRoutes.ControlPanelLifeOsGuideApp">CP guide</a>
+    </nav>
+  </header>
+
+  <main class="lo10-main">
+    <p class="lo10-kicker">Master Spec v4.0 · Chapters 151–168</p>
+    <h1>Execution Strategy, Product Roadmap &amp; Global Vision</h1>
+    <p class="lo10-lede">@Exec.MissionStatement</p>
+
+    <section aria-labelledby="lo10-v2035">
+      <h2 id="lo10-v2035">Vision 2035</h2>
+      <ul class="lo10-goals">
+        @foreach (var g in Exec.Vision2035Goals)
+        {
+          <li>@g</li>
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="lo10-phases">
+      <h2 id="lo10-phases">Development phases</h2>
+      <div class="lo10-phases">
+        @foreach (var phase in Exec.DevelopmentPhases)
+        {
+          <article>
+            <em>Phase @phase.Number · @phase.Horizon</em>
+            <strong>@phase.Title</strong>
+            <p>@phase.Outcome</p>
+            <span>@string.Join(" · ", phase.Deliverables.Take(6))@(phase.Deliverables.Count > 6 ? " ·…" : "")</span>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section aria-labelledby="lo10-portfolio">
+      <h2 id="lo10-portfolio">Product portfolio</h2>
+      <div class="lo10-chips">
+        @foreach (var p in Exec.ProductPortfolio)
+        {
+          <span>@p</span>
+        }
+      </div>
+    </section>
+
+    <section class="lo10-split" aria-label="Stack and principles">
+      <div>
+        <h2>Technology stack</h2>
+        <table class="lo10-table">
+          <thead><tr><th>Layer</th><th>Recommended</th></tr></thead>
+          <tbody>
+          @foreach (var row in Exec.TechnologyStack)
+          {
+            <tr><td>@row.Layer</td><td>@row.RecommendedStack</td></tr>
+          }
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h2>Guiding principles</h2>
+        <ul class="lo10-goals">
+          @foreach (var p in Exec.GuidingPrinciples)
+          {
+            <li>@p</li>
+          }
+        </ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="lo10-blueprint">
+      <h2 id="lo10-blueprint">Final platform blueprint</h2>
+      <ol class="lo10-blueprint">
+        @foreach (var layer in Exec.PlatformBlueprintLayers)
+        {
+          <li>@layer</li>
+        }
+      </ol>
+    </section>
+
+    <section class="lo10-grid3" aria-label="Business and GTM">
+      <article>
+        <h2>Business model</h2>
+        <ul>@foreach (var r in Exec.RevenueStreams) { <li>@r.Title</li> }</ul>
+      </article>
+      <article>
+        <h2>Success metrics</h2>
+        <ul>@foreach (var m in Exec.SuccessMetrics.Take(8)) { <li>@m</li> }</ul>
+      </article>
+      <article>
+        <h2>Risk themes</h2>
+        <ul>@foreach (var r in Exec.Risks) { <li><strong>@r.Risk</strong> — @r.MitigationTheme</li> }</ul>
+      </article>
+    </section>
+
+    <section aria-labelledby="lo10-close">
+      <h2 id="lo10-close">Closing</h2>
+      <blockquote>@Exec.ClosingStatement</blockquote>
+    </section>
+
+    <section aria-labelledby="lo10-film">
+      <h2 id="lo10-film">Cinematic product film prompt</h2>
+      <p class="lo10-lede">Starter prompt for Veo / Runway / Luma / Pika — generate short shots, then edit.</p>
+      <pre class="lo10-prompt">@Exec.CinematicVideoPrompt.Trim()</pre>
+    </section>
+
+    <div class="lo10-note">
+      Scaffold registry only — digests at <code>/lifeos/roadmap</code>. Does not claim shipped MAU, marketplace GA, or production multimodal scale.
+    </div>
+  </main>
+</div>
+
+@code {
+    private const string _css = """
+        .lo10 {
+          --lo-ink:#0f172a; --lo-blue:#2563eb; --lo-sky:#38bdf8; --lo-paper:#f8fafc;
+          --lo-display:"Fraunces", Georgia, serif; --lo-sans:"Sora","Segoe UI",sans-serif;
+          min-height:100vh; background:var(--lo-paper); color:var(--lo-ink); font-family:var(--lo-sans);
+        }
+        .lo10-top {
+          display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+          padding:1rem clamp(1rem,3vw,2rem);
+          background:linear-gradient(90deg,#020617,#0b1b3a 55%,#0c4a6e); color:#e2e8f0;
+        }
+        .lo10-top .brand { font-family:var(--lo-display); font-size:1.55rem; }
+        .lo10-top .brand em { font-style:italic; color:#7dd3fc; }
+        .lo10-top nav { display:flex; flex-wrap:wrap; gap:.75rem; font-size:.8rem; font-weight:700; }
+        .lo10-top a { color:#bae6fd; text-decoration:none; }
+        .lo10-top a.is-active { color:#fff; text-decoration:underline; }
+        .lo10-main { padding:1.4rem clamp(1rem,3vw,2.25rem) 2.8rem; max-width:78rem; margin:0 auto; }
+        .lo10-kicker { margin:0; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:#0284c7; font-weight:700; }
+        .lo10-main h1 {
+          margin:.35rem 0 .55rem; font-family:var(--lo-display); font-weight:500;
+          font-size:clamp(1.7rem,3.6vw,2.45rem);
+        }
+        .lo10-lede { max-width:48rem; color:#334155; line-height:1.55; }
+        .lo10-main h2 { font-family:var(--lo-display); font-weight:500; font-size:1.35rem; margin:1.4rem 0 .55rem; }
+        .lo10-goals { margin:0; padding-left:1.15rem; color:#334155; line-height:1.45; }
+        .lo10-phases { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.65rem; }
+        .lo10-phases article {
+          padding:.95rem; border:1px solid #bfdbfe; border-radius:.55rem; background:#fff;
+        }
+        .lo10-phases em { display:block; font-style:normal; font-size:.7rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#0284c7; }
+        .lo10-phases strong { display:block; margin:.25rem 0 .35rem; }
+        .lo10-phases p { margin:0 0 .4rem; font-size:.84rem; color:#475569; }
+        .lo10-phases span { font-size:.74rem; color:#64748b; line-height:1.35; }
+        .lo10-chips { display:flex; flex-wrap:wrap; gap:.4rem; }
+        .lo10-chips span {
+          font-size:.74rem; font-weight:700; padding:.35rem .55rem; border-radius:.35rem;
+          background:#e0f2fe; color:#0c4a6e; border:1px solid #bae6fd;
+        }
+        .lo10-split { display:grid; grid-template-columns:1.1fr .9fr; gap:1.2rem; }
+        .lo10-table { width:100%; border-collapse:collapse; font-size:.82rem; background:#fff; border:1px solid #e2e8f0; border-radius:.45rem; overflow:hidden; }
+        .lo10-table th, .lo10-table td { text-align:left; padding:.45rem .6rem; border-bottom:1px solid #f1f5f9; }
+        .lo10-table th { background:#f8fafc; color:#475569; font-size:.72rem; text-transform:uppercase; }
+        .lo10-blueprint { margin:0; padding-left:1.2rem; color:#334155; line-height:1.55; }
+        .lo10-grid3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; margin-top:.5rem; }
+        .lo10-grid3 article { padding:.9rem; border:1px solid #e2e8f0; border-radius:.55rem; background:#fff; }
+        .lo10-grid3 h2 { margin-top:0; font-size:1.05rem; }
+        .lo10-grid3 ul { margin:0; padding-left:1.05rem; font-size:.8rem; color:#475569; line-height:1.4; }
+        blockquote {
+          margin:0; padding:1rem 1.1rem; border-left:3px solid #38bdf8; background:#fff; color:#0f172a;
+          font-family:var(--lo-display); font-size:1.05rem; line-height:1.45;
+        }
+        .lo10-prompt {
+          margin:.5rem 0 0; padding:1rem; border-radius:.55rem; background:#020617; color:#bae6fd;
+          font-size:.78rem; line-height:1.45; white-space:pre-wrap; overflow:auto;
+        }
+        .lo10-note { margin-top:1.4rem; padding:1rem; border-left:3px solid #f59e0b; background:#fffbeb; color:#78350f; font-size:.86rem; }
+        @@media (max-width:900px) {
+          .lo10-split, .lo10-grid3 { grid-template-columns:1fr; }
+        }
+        """;
+}

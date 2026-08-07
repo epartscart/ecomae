@@ -8,6 +8,7 @@ using EcomAE.Platform.LifeOs.Part6;
 using EcomAE.Platform.LifeOs.Part7;
 using EcomAE.Platform.LifeOs.Part8;
 using EcomAE.Platform.LifeOs.Part9;
+using EcomAE.Platform.LifeOs.Part10;
 using EcomAE.Platform.LifeOs.Spec;
 
 namespace EcomAE.Platform.LifeOs;
@@ -35,6 +36,7 @@ public static class LifeOsServiceCollectionExtensions
         services.AddSingleton<ILifeOsSecurityGovernance, LifeOsSecurityGovernance>();
         services.AddSingleton<ILifeOsClientExperience, LifeOsClientExperience>();
         services.AddSingleton<ILifeOsEcosystemPlatform, LifeOsEcosystemPlatform>();
+        services.AddSingleton<ILifeOsExecutionStrategy, LifeOsExecutionStrategy>();
         services.AddSingleton<ILifeOsMasterSpec, LifeOsMasterSpec>();
         return services;
     }
