@@ -1,0 +1,31 @@
+{
+  "id": "www-marketing-platform-assets-live-prove",
+  "capturedAtUtc": "2026-08-07T14:14:00Z",
+  "verdict": "pass",
+  "prs": ["#949", "#950"],
+  "forceLive": "scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh",
+  "live": {
+    "home": "https://www.ecomae.com/",
+    "http": 200,
+    "chromeSurface": "marketing",
+    "markers": [
+      "epm-hub",
+      "epm-topbar",
+      "/platform-assets/epc_ecomae_platform_marketing.css?v=20260807a",
+      "ehm-"
+    ],
+    "css": {
+      "url": "https://www.ecomae.com/platform-assets/epc_ecomae_platform_marketing.css",
+      "http": 200,
+      "contentType": "text/css; charset=utf-8",
+      "bytes": 48237,
+      "contains": ["epmHubOrbitSpin", ".epm-topbar", ".epm-brand"]
+    },
+    "markSvg": {
+      "url": "https://www.ecomae.com/platform-assets/ecomae-mark.svg",
+      "http": 200,
+      "contentType": "image/svg+xml"
+    },
+    "browser": "PASS — dark atmospheric epm-hub, spaced nav, CSS 200"
+  }
+}
