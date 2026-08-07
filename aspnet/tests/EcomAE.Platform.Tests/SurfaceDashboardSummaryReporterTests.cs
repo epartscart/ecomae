@@ -41,6 +41,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var contacts = await reporter.ListErpContactsAsync(10);
         var paymentBatches = await reporter.ListErpPaymentBatchesAsync(10);
         var fiscalPeriods = await reporter.ListErpFiscalPeriodsAsync(10);
+        var agenda = await reporter.ListErpAgendaEventsAsync(10);
+        var documents = await reporter.ListErpDocumentsAsync(10);
+        var expenseReports = await reporter.ListErpExpenseReportsAsync(10);
         var menus = await reporter.ListCpMenusAsync(10);
         var pages = await reporter.ListCpPagesAsync(10);
         var adminSessions = await reporter.ListCpAdminSessionsAsync(10);
@@ -192,6 +195,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal(0, contacts.Count);
         Assert.Equal(0, paymentBatches.Count);
         Assert.Equal(0, fiscalPeriods.Count);
+        Assert.Equal("migration", agenda.Source);
+        Assert.Equal("migration", documents.Source);
+        Assert.Equal("migration", expenseReports.Source);
+        Assert.Equal(0, agenda.Count);
+        Assert.Equal(0, documents.Count);
+        Assert.Equal(0, expenseReports.Count);
         Assert.Equal("migration", menus.Source);
         Assert.Equal("migration", pages.Source);
         Assert.Equal("migration", adminSessions.Source);

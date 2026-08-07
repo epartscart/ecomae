@@ -391,5 +391,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpContactListResult> ListErpContactsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpPaymentBatchListResult> ListErpPaymentBatchesAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpFiscalPeriodListResult> ListErpFiscalPeriodsAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpAgendaEventListResult> ListErpAgendaEventsAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpDocumentListResult> ListErpDocumentsAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpExpenseReportListResult> ListErpExpenseReportsAsync(int limit, CancellationToken cancellationToken = default);
 }
+
 

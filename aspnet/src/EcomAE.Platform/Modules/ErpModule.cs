@@ -2226,6 +2226,87 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpAgendaEvents, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for agenda digest.");
+            }
+
+            var result = await dashboards.ListErpAgendaEventsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                events = result.Events,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP agenda digest. PHP epc_erp_agenda_events remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpDocuments, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for documents digest.");
+            }
+
+            var result = await dashboards.ListErpDocumentsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                documents = result.Documents,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP documents digest. PHP epc_erp_documents remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpExpenseReports, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for expense-reports digest.");
+            }
+
+            var result = await dashboards.ListErpExpenseReportsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                reports = result.Reports,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP expense reports digest. PHP epc_erp_expense_reports remains authoritative."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpTabCoverage, (IErpAjaxWriteCatalog catalog) =>
         {
             var tabs = ErpPhpTabRouteMap.All

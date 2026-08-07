@@ -3548,3 +3548,53 @@ public sealed record ErpFiscalPeriodListResult(
     int Count,
     string Source,
     string Message);
+
+public sealed record ErpAgendaEventDigest(
+    long Id,
+    string Title,
+    string EventType,
+    long StartAt,
+    long EndAt,
+    string EntityType,
+    long EntityId,
+    string Location,
+    long TimeCreated);
+
+public sealed record ErpAgendaEventListResult(
+    IReadOnlyList<ErpAgendaEventDigest> Events,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpDocumentDigest(
+    long Id,
+    string EntityType,
+    long EntityId,
+    string DocCategory,
+    string FileName,
+    long FileSize,
+    string MimeType,
+    long TimeCreated);
+
+public sealed record ErpDocumentListResult(
+    IReadOnlyList<ErpDocumentDigest> Documents,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpExpenseReportDigest(
+    long Id,
+    string ReportNo,
+    long StaffUserId,
+    string Title,
+    decimal TotalAmount,
+    string Status,
+    long PeriodFrom,
+    long PeriodTo,
+    long TimeUpdated);
+
+public sealed record ErpExpenseReportListResult(
+    IReadOnlyList<ErpExpenseReportDigest> Reports,
+    int Count,
+    string Source,
+    string Message);

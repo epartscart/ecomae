@@ -3421,5 +3421,39 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
-}
 
+    /// <summary>ERP agenda events (notes omitted) — PHP epc_erp_agenda_events.</summary>
+    public const string SelectErpAgendaEvents = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`event_type`,'') AS event_type,
+               IFNULL(`start_at`,0) AS start_at, IFNULL(`end_at`,0) AS end_at,
+               IFNULL(`entity_type`,'') AS entity_type, IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`location`,'') AS location, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_agenda_events`
+        ORDER BY `start_at` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>ERP documents library (notes/path omitted) — PHP epc_erp_documents.</summary>
+    public const string SelectErpDocuments = """
+        SELECT `id`, IFNULL(`entity_type`,'') AS entity_type, IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`doc_category`,'') AS doc_category, IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`file_size`,0) AS file_size, IFNULL(`mime_type`,'') AS mime_type,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_documents`
+        WHERE IFNULL(`active`,1) = 1
+        ORDER BY `time_created` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>ERP expense reports (notes omitted) — PHP epc_erp_expense_reports.</summary>
+    public const string SelectErpExpenseReports = """
+        SELECT `id`, IFNULL(`report_no`,'') AS report_no, IFNULL(`staff_user_id`,0) AS staff_user_id,
+               IFNULL(`title`,'') AS title, IFNULL(`total_amount`,0) AS total_amount,
+               IFNULL(`status`,'') AS status, IFNULL(`period_from`,0) AS period_from,
+               IFNULL(`period_to`,0) AS period_to, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_erp_expense_reports`
+        ORDER BY `time_updated` DESC
+        LIMIT @limit
+        """;
+
+}

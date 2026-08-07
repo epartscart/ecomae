@@ -705,6 +705,13 @@ public static class EcomAeRoutes
     public const string ErpPeriodCloseApp = "/erp/period-close-app";
     /// <summary>Generic ERP module shell for tabs without a dedicated list UI.</summary>
     public const string ErpModuleApp = "/erp/module-app";
+    public const string ErpAgendaEvents = "/erp/agenda-events";
+    public const string ErpAgendaApp = "/erp/agenda-app";
+    public const string ErpDocuments = "/erp/documents";
+    public const string ErpDocumentsApp = "/erp/documents-app";
+    public const string ErpExpenseReports = "/erp/expense-reports";
+    public const string ErpExpenseReportsApp = "/erp/expense-reports-app";
+
     /// <summary>ERP tab→app coverage board.</summary>
     public const string ErpTabCoverage = "/erp/tab-coverage";
 

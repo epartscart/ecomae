@@ -125,7 +125,10 @@
       "contacts": "/erp/contacts-app",
       "payment_batches": "/erp/payment-batches-app",
       "year_end": "/erp/period-close-app",
-      "tabCoverage": "/erp/tab-coverage"
+      "tabCoverage": "/erp/tab-coverage",
+      "agenda": "/erp/agenda-app",
+      "documents": "/erp/documents-app",
+      "expense_reports": "/erp/expense-reports-app"
     }
   },
   "tenantErpModules": [
@@ -300,6 +303,21 @@
       "module": "module_shell",
       "aspnetApp": "/erp/module-app",
       "status": "aspnet-shell"
+    },
+    {
+      "module": "agenda",
+      "aspnetApp": "/erp/agenda-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "documents",
+      "aspnetApp": "/erp/documents-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "expense_reports",
+      "aspnetApp": "/erp/expense-reports-app",
+      "status": "aspnet-read"
     }
   ],
   "superErpModules": [
@@ -316,6 +334,7 @@
   ],
   "aspnetErpApps": [
     "ErpAccountsSummaryApp.razor",
+    "ErpAgendaApp.razor",
     "ErpAgingApp.razor",
     "ErpApprovalsApp.razor",
     "ErpBankReconciliationApp.razor",
@@ -326,6 +345,8 @@
     "ErpContactsApp.razor",
     "ErpDashboardSummaryApp.razor",
     "ErpDeliveryNotesApp.razor",
+    "ErpDocumentsApp.razor",
+    "ErpExpenseReportsApp.razor",
     "ErpFixedAssetsApp.razor",
     "ErpFleetApp.razor",
     "ErpGlJournalsApp.razor",
