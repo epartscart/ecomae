@@ -151,8 +151,11 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         resultsApi = "GET /lifeos/results/json",
         companion = "/lifeos/mobile",
         controlPanel = "/cp/lifeos-clients-app",
+        clientsBoard = "/lifeos/clients-board",
+        clientsCpJson = "/lifeos/clients/cp",
         manifest = LifeOsPwaAssets.ManifestPath,
         capabilities = DefaultCapabilities,
+        loginRequired = false,
     };
 
     public object ControlPanelDigest() => new

@@ -1591,6 +1591,9 @@ public static class EcomAeRoutes
     public const string LifeOsServiceWorker = "/lifeos/sw.js";
     /// <summary>CP console: joined LifeOS clients with country + results.</summary>
     public const string ControlPanelLifeOsClientsApp = "/cp/lifeos-clients-app";
+
+    /// <summary>Public (no-login) mirror of <see cref="ControlPanelLifeOsClientsApp"/> — temporary until IAM.</summary>
+    public const string LifeOsClientsBoard = "/lifeos/clients-board";
     /// <summary>3-minute cinematic launch film storyboard (JSON bible).</summary>
     public const string LifeOsCinematic = "/lifeos/cinematic";
     /// <summary>Interactive cinematic keyframe theatre UI.</summary>

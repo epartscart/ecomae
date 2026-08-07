@@ -1,5 +1,6 @@
 @page "/cp/lifeos-clients-app"
-@layout Layout.PhpChromeLayout
+@page "/lifeos/clients-board"
+@layout Layout.LifeOsProductLayout
 @using EcomAE.Platform.LifeOs.Clients
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
@@ -34,15 +35,17 @@
       <h1>Joined clients — complete detail</h1>
       <p class="locp-lede">
         How they joined, country/city/timezone, device, activity counts, AI discussions, and result links.
-        Client login is not required yet — access uses client id + join token.
+        No login required for this board yet (temporary). Same console also at
+        <a href="@EcomAeRoutes.LifeOsClientsBoard">/lifeos/clients-board</a>
+        and <a href="@EcomAeRoutes.ControlPanelLifeOsClientsApp">/cp/lifeos-clients-app</a>.
       </p>
     </div>
     <nav class="locp-nav">
-      <a href="@EcomAeRoutes.ControlPanel">CP home</a>
+      <a href="@EcomAeRoutes.LifeOsClientsBoard">Public board</a>
       <a href="@EcomAeRoutes.LifeOsClientsCp">JSON digest</a>
       <a href="@EcomAeRoutes.LifeOsDirectory">Directory</a>
       <a href="@EcomAeRoutes.LifeOsJoin">Join page</a>
-      <a href="@EcomAeRoutes.ControlPanelLifeOsGuideApp">System guide</a>
+      <a href="@EcomAeRoutes.LifeOsResults">Results</a>
     </nav>
   </header>
 
