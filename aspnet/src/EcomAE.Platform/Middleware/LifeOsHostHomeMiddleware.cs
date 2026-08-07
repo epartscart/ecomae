@@ -4,8 +4,9 @@ using EcomAE.Platform.Services;
 namespace EcomAE.Platform.Middleware;
 
 /// <summary>
-/// On <c>lifeos.ecomae.com</c>, bare <c>/</c> serves the LifeOS product home
-/// by rewriting to <see cref="EcomAeRoutes.LifeOs"/>.
+/// On <c>lifeos.ecomae.com</c>, serve the LifeOS product home at <see cref="EcomAeRoutes.LifeOs"/>.
+/// Rewrites bare <c>/</c> and mis-routed www marketing paths (<c>/marketing/app</c>) that
+/// classic-entry nginx may inject when the lifeos host shares the www server block.
 /// </summary>
 public sealed class LifeOsHostHomeMiddleware
 {
@@ -25,12 +26,34 @@ public sealed class LifeOsHostHomeMiddleware
         }
 
         var path = context.Request.Path.Value ?? "/";
-        if (path is "/" or "")
+        if (ShouldRewriteToLifeOsHome(path))
         {
             context.Request.Path = EcomAeRoutes.LifeOs;
-            context.Response.Headers["X-EcomAE-LifeOs-Host"] = "home-rewrite";
+            context.Response.Headers["X-EcomAE-LifeOs-Host"] = path is "/" or ""
+                ? "home-rewrite"
+                : "marketing-divert";
         }
 
         return _next(context);
+    }
+
+    public static bool ShouldRewriteToLifeOsHome(string path)
+    {
+        if (string.IsNullOrEmpty(path) || path == "/")
+        {
+            return true;
+        }
+
+        // Classic-entry www home proxies `/` → `/marketing/app`. If that snippet is
+        // applied on the lifeos host, divert back to the LifeOS product.
+        if (path.Equals("/marketing/app", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/marketing/app/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/marketing", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/marketing/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

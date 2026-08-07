@@ -90,10 +90,40 @@ public sealed class IpHostGateMiddlewareTests
     }
 
     [Fact]
+    public async Task LifeOsHostDivertsMisroutedMarketingApp()
+    {
+        var mw = new LifeOsHostHomeMiddleware(ctx =>
+        {
+            Assert.Equal("/lifeos", ctx.Request.Path.Value);
+            return Task.CompletedTask;
+        });
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("lifeos.ecomae.com");
+        ctx.Request.Path = "/marketing/app";
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.Equal("marketing-divert", ctx.Response.Headers["X-EcomAE-LifeOs-Host"].ToString());
+    }
+
+    [Theory]
+    [InlineData("/", true)]
+    [InlineData("/marketing/app", true)]
+    [InlineData("/marketing/app/", true)]
+    [InlineData("/lifeos", false)]
+    [InlineData("/lifeos/app", false)]
+    public void LifeOsHomeRewritePaths(string path, bool rewrite)
+    {
+        Assert.Equal(rewrite, LifeOsHostHomeMiddleware.ShouldRewriteToLifeOsHome(path));
+    }
+
+    [Fact]
     public void EcosystemCatalogIncludesLifeOsAndBos()
     {
         Assert.Contains(EcomaeEcosystemCatalog.AmbientOsProducts, p => p.Key == "lifeos");
         Assert.Contains(EcomaeEcosystemCatalog.BosModules, m => m.Key == "erp");
+        Assert.Contains(EcomaeEcosystemCatalog.ClientManagement, c => c.Key == "tenants");
+        Assert.Contains(EcomaeEcosystemCatalog.LifeOsConsoles, c => c.Key == "home");
         Assert.Equal("live-scaffold", EcomaeEcosystemCatalog.FindOs("lifeos")!.Status);
     }
 }

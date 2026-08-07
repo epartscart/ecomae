@@ -1,303 +1,169 @@
 @page "/ip/login"
-@* Lowercase only — /IP/login is the same route under ASP.NET case-insensitive matching and caused AmbiguousMatchException 500. *@
+@* Lowercase only — /IP/login AmbiguousMatchException under case-insensitive routing. *@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject NavigationManager Nav
 
-<PageTitle>Intelligence Platform — ecomae</PageTitle>
-@* Same BOS login shell + same Super-CP admin credentials (shared login bridge). *@
-<PhpSurfaceHead Surface="ip" IncludeLoginCss="true" />
-<PhpChromeBodyClass Surface="ip" LoginChrome="true" />
-
-@* Body <style> duplicates HeadContent — live SSR drops HeadOutlet on /ip/login. *@
+<PageTitle>Intelligence Platform OS — Sign in</PageTitle>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
 <HeadContent>
-<style>
-    html:has(.ip-login),
-    body:has(.ip-login),
-    body.epc-ip-login,
-    body.bos-body--login {
-        background: linear-gradient(135deg, #020617 0%, #0c1222 30%, #091428 60%, #050d1a 100%) !important;
-        color: #e2e8f0 !important;
-        min-height: 100vh;
-        overflow-x: hidden;
-    }
-    .epc-login-bos.ip-login {
-        width: 100%;
-        min-height: 100vh;
-        display: flex;
-        position: relative;
-        background: transparent;
-        color: #e2e8f0;
-    }
-    .bos-login__error.is-visible {
-        display: flex;
-        align-items: center;
-        gap: .4rem;
-    }
-</style>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<meta name="ecomae-chrome-surface" content="ip-os-login" />
+<style>@((MarkupString)_css)</style>
 </HeadContent>
-<style>
-    html:has(.ip-login),
-    body:has(.ip-login),
-    body.epc-ip-login,
-    body.bos-body--login {
-        background: linear-gradient(135deg, #020617 0%, #0c1222 30%, #091428 60%, #050d1a 100%) !important;
-        color: #e2e8f0 !important;
-        min-height: 100vh;
-        overflow-x: hidden;
-    }
-    .epc-login-bos.ip-login {
-        width: 100%;
-        min-height: 100vh;
-        display: flex;
-        position: relative;
-        background: transparent;
-        color: #e2e8f0;
-    }
-    .bos-login__error.is-visible {
-        display: flex;
-        align-items: center;
-        gap: .4rem;
-    }
-</style>
 
-<div class="epc-login-bos bos-login ip-login bos-login--bos">
-    <PhpBosLoginAtmosphere ParticlesId="ipParticles"
-                           Theme="cyan-stars"
-                           Industry="platform"
-                           ParticleColors="@(new[] {
-                               "rgba(14,165,233,.8)", "rgba(56,189,248,.7)", "rgba(45,212,191,.55)",
-                               "rgba(255,255,255,.35)", "rgba(250,204,21,.35)"
-                           })" />
+<div class="ipos-login">
+  <div class="ipos-login__stage" aria-hidden="true">
+    <div class="ipos-login__orb a"></div>
+    <div class="ipos-login__orb b"></div>
+    <div class="ipos-login__grid"></div>
+    <svg class="ipos-login__ring" viewBox="0 0 400 400">
+      <circle cx="200" cy="200" r="150" fill="none" stroke="rgba(56,189,248,.25)" stroke-width="1.5" stroke-dasharray="8 10"/>
+      <circle cx="200" cy="200" r="110" fill="none" stroke="rgba(125,211,252,.35)" stroke-width="1" stroke-dasharray="4 8"/>
+    </svg>
+  </div>
 
-    <div class="bos-login__hero">
-        <div class="bos-login__hero-content">
-            <div class="bos-login__brand-mark">
-                <div class="bos-login__brand-icon">
-                    <div class="bos-login__brand-icon-inner">
-                        <i class="fa fa-sitemap"></i>
-                    </div>
-                    <div class="bos-login__brand-ring"></div>
-                    <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
-                </div>
-                <h1 class="bos-login__brand-title">IP</h1>
-                <p class="bos-login__brand-tagline">Intelligence Platform</p>
-            </div>
+  <section class="ipos-login__hero">
+    <p class="ipos-login__kicker">ecomae · Super-CP</p>
+    <h1>Intelligence Platform <em>OS</em></h1>
+    <p class="ipos-login__lede">
+      Boot into the operator desktop — app management, multi-client fleet control,
+      and the LifeOS™ ambient operating system.
+    </p>
+    <ul class="ipos-login__features">
+      <li><strong>App management</strong><span>BOS modules + ambient OS suite</span></li>
+      <li><strong>Client management</strong><span>Tenants, features, users, API clients</span></li>
+      <li><strong>LifeOS™</strong><span>Universal ambient AI operating system</span></li>
+      <li><strong>Unified session</strong><span>Same Super-CP operator credentials</span></li>
+    </ul>
+  </section>
 
-            <div class="bos-login__capabilities">
-                <div class="bos-login__cap-item bos-login__cap-item--1">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--erp"><i class="fa fa-th-large"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>BOS Fabric</strong>
-                        <span>ERP · CRM · Workflow · Automation · AI · CP</span>
-                    </div>
-                </div>
-                <div class="bos-login__cap-item bos-login__cap-item--2">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--ecom"><i class="fa fa-heartbeat"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>LifeOS™</strong>
-                        <span>Universal Ambient Artificial Intelligence</span>
-                    </div>
-                </div>
-                <div class="bos-login__cap-item bos-login__cap-item--3">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--compliance"><i class="fa fa-globe"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>Ambient OS Suite</strong>
-                        <span>Health · Edu · Home · Retail · Industry · City</span>
-                    </div>
-                </div>
-                <div class="bos-login__cap-item bos-login__cap-item--4">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--ai"><i class="fa fa-magic"></i></div>
-                    <div class="bos-login__cap-text">
-                        <strong>Same BOS credentials</strong>
-                        <span>Super-CP operator session · shared login bridge</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bos-login__stats-bar">
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="8">0</span>
-                    <span class="bos-login__stat-label">OS Products</span>
-                </div>
-                <div class="bos-login__stat-divider"></div>
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="9">0</span>
-                    <span class="bos-login__stat-label">Brain Engines</span>
-                </div>
-                <div class="bos-login__stat-divider"></div>
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="30">0</span>
-                    <span class="bos-login__stat-label">Agents</span>
-                </div>
-                <div class="bos-login__stat-divider"></div>
-                <div class="bos-login__stat">
-                    <span class="bos-login__stat-num" data-count="10">0</span>
-                    <span class="bos-login__stat-label">Spec Parts</span>
-                </div>
-            </div>
+  <section class="ipos-login__panel">
+    <div class="ipos-login__card">
+      <header>
+        <span class="ipos-login__mark">IP</span>
+        <div>
+          <h2>Operator sign in</h2>
+          <p>Enter the Intelligence Platform OS desktop</p>
         </div>
+      </header>
+      <form method="post" action="@EcomAeRoutes.IpLogin" id="ipLoginForm">
+        <input type="hidden" name="surface" value="ip" />
+        <input type="hidden" name="redirect" value="/ip/app" />
+        <input type="hidden" name="contact_type" value="email" />
+        <label>
+          <span>Email</span>
+          <input type="email" name="contact" required autocomplete="username" placeholder="operator@ecomae.com" />
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" name="password" required autocomplete="current-password" placeholder="Secure password" />
+        </label>
+        @if (!string.IsNullOrEmpty(_error))
+        {
+          <div class="ipos-login__error" role="alert">@_error</div>
+        }
+        <button type="submit">Enter Intelligence Platform OS</button>
+      </form>
+      <footer>
+        <a href="/lifeos">LifeOS preview</a>
+        <a href="https://lifeos.ecomae.com/">lifeos.ecomae.com</a>
+        <a href="/cp/lifeos-guide-app">System guide</a>
+      </footer>
     </div>
-
-    <div class="bos-login__panel">
-        <div class="bos-login__panel-inner">
-            <div class="bos-login__role-tabs">
-                <button type="button" class="bos-login__role-tab bos-login__role-tab--active" data-role="provider" id="ipTabProvider">
-                    <i class="fa fa-shield"></i>
-                    <span>Platform Operator</span>
-                </button>
-                <button type="button" class="bos-login__role-tab" data-role="erp" id="ipTabErp">
-                    <i class="fa fa-university"></i>
-                    <span>ERP Customer</span>
-                </button>
-            </div>
-
-            <div class="bos-login__form-wrap bos-login__form-wrap--active" id="ipFormProvider">
-                <div class="bos-login__form-header">
-                    <h2>Operator Access</h2>
-                    <p>Same credentials as <code>/bos/login</code> — Super-CP Intelligence Platform</p>
-                </div>
-                @* surface=ip uses the same DbLegacyAdminLoginService / admin cookies as BOS. *@
-                <form class="bos-login__form" id="ipLoginForm" method="post" action="@EcomAeRoutes.IpLogin">
-                    <input type="hidden" name="surface" value="ip" />
-                    <input type="hidden" name="redirect" value="/ip/app" />
-                    <input type="hidden" name="contact_type" value="email" />
-                    <div class="bos-login__field">
-                        <label for="ipEmail"><i class="fa fa-envelope-o"></i> Email</label>
-                        <input type="email" id="ipEmail" name="contact" required autocomplete="username" placeholder="operator@ecomae.com" />
-                        <div class="bos-login__field-line"></div>
-                    </div>
-                    <div class="bos-login__field">
-                        <label for="ipPassword"><i class="fa fa-lock"></i> Password</label>
-                        <input type="password" id="ipPassword" name="password" required autocomplete="current-password" placeholder="Enter secure password" />
-                        <div class="bos-login__field-line"></div>
-                    </div>
-                    @if (!string.IsNullOrEmpty(_error) && _errorSurface != "erp")
-                    {
-                        <div class="bos-login__error is-visible" id="ipLoginError">
-                            <i class="fa fa-exclamation-circle"></i> @_error
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="bos-login__error" id="ipLoginError"></div>
-                    }
-                    <button type="submit" class="bos-login__btn">
-                        <span class="bos-login__btn-text"><i class="fa fa-sign-in"></i> Sign In to IP</span>
-                        <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Authenticating...</span>
-                    </button>
-                </form>
-                <div class="bos-login__secure-badge">
-                    <i class="fa fa-lock"></i> Same BOS admin bridge &middot; Session isolated &middot; Audit logged
-                </div>
-            </div>
-
-            <div class="bos-login__form-wrap" id="ipFormErp">
-                <div class="bos-login__form-header">
-                    <h2>ERP Access</h2>
-                    <p>Access your enterprise resource planning system</p>
-                </div>
-                <form class="bos-login__form" id="ipLoginFormErp" method="post" action="@EcomAeRoutes.ErpLogin">
-                    <input type="hidden" name="surface" value="erp" />
-                    <input type="hidden" name="redirect" value="/erp" />
-                    <input type="hidden" name="contact_type" value="email" />
-                    <div class="bos-login__field">
-                        <label for="ipErpEmail"><i class="fa fa-envelope-o"></i> Business Email</label>
-                        <input type="email" id="ipErpEmail" name="contact" required autocomplete="username" placeholder="finance@yourcompany.com" />
-                        <div class="bos-login__field-line"></div>
-                    </div>
-                    <div class="bos-login__field">
-                        <label for="ipErpPassword"><i class="fa fa-lock"></i> Password</label>
-                        <input type="password" id="ipErpPassword" name="password" required autocomplete="current-password" placeholder="Enter your password" />
-                        <div class="bos-login__field-line"></div>
-                    </div>
-                    @if (!string.IsNullOrEmpty(_error) && _errorSurface == "erp")
-                    {
-                        <div class="bos-login__error is-visible" id="ipLoginErrorErp">
-                            <i class="fa fa-exclamation-circle"></i> @_error
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="bos-login__error" id="ipLoginErrorErp"></div>
-                    }
-                    <button type="submit" class="bos-login__btn bos-login__btn--erp">
-                        <span class="bos-login__btn-text"><i class="fa fa-university"></i> Access ERP System</span>
-                        <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Connecting...</span>
-                    </button>
-                </form>
-                <div class="bos-login__erp-features">
-                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> General Ledger &amp; Financial Reporting</div>
-                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Accounts Payable &amp; Receivable</div>
-                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> HR, Payroll &amp; Workforce Management</div>
-                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Inventory, Production &amp; Warehouse</div>
-                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Tax Compliance &amp; E-Invoicing</div>
-                </div>
-                <div class="bos-login__secure-badge">
-                    <i class="fa fa-shield"></i> Database isolated &middot; Country-compliant &middot; Enterprise grade
-                </div>
-            </div>
-
-            <div class="bos-login__footer">
-                <div class="bos-login__footer-brand">
-                    <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
-                    <span class="bos-login__footer-sep">&middot;</span>
-                    <span>Intelligence Platform · LifeOS ambient</span>
-                </div>
-            </div>
-        </div>
-    </div>
+  </section>
 </div>
-
-<PhpLifeOsAmbientAudio ButtonId="ipLifeOsAmbient" />
-
-<script>
-(function () {
-  function wireRoleTabs() {
-    var tabProvider = document.getElementById('ipTabProvider');
-    var tabErp = document.getElementById('ipTabErp');
-    var formProvider = document.getElementById('ipFormProvider');
-    var formErp = document.getElementById('ipFormErp');
-    if (!tabProvider || !tabErp || !formProvider || !formErp) return;
-    tabProvider.addEventListener('click', function () {
-      tabProvider.classList.add('bos-login__role-tab--active');
-      tabErp.classList.remove('bos-login__role-tab--active');
-      formProvider.classList.add('bos-login__form-wrap--active');
-      formErp.classList.remove('bos-login__form-wrap--active');
-    });
-    tabErp.addEventListener('click', function () {
-      tabErp.classList.add('bos-login__role-tab--active');
-      tabProvider.classList.remove('bos-login__role-tab--active');
-      formErp.classList.add('bos-login__form-wrap--active');
-      formProvider.classList.remove('bos-login__form-wrap--active');
-    });
-    if (document.body && document.body.getAttribute('data-bos-login-role') === 'erp') {
-      tabErp.click();
-    }
-  }
-  function boot() { wireRoleTabs(); }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-})();
-</script>
 
 @code {
     private string? _error;
-    private string? _errorSurface;
 
     protected override void OnInitialized()
     {
         _error = LoginErrorHelper.FromUri(Nav.Uri);
-        if (Uri.TryCreate(Nav.Uri, UriKind.Absolute, out var parsed))
-        {
-            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(parsed.Query);
-            if (query.TryGetValue("role", out var role) &&
-                string.Equals(role.ToString(), "erp", StringComparison.OrdinalIgnoreCase))
-            {
-                _errorSurface = "erp";
-            }
-        }
     }
+
+    private const string _css = """
+        html, body { margin: 0; padding: 0; background: #020617; }
+        .ipos-login {
+          --ipos-display: "Fraunces", Georgia, serif; --ipos-sans: "Sora", "Segoe UI", sans-serif;
+          position: relative; min-height: 100vh; display: grid; grid-template-columns: 1.15fr .95fr;
+          color: #e2e8f0; font-family: var(--ipos-sans); overflow: hidden;
+        }
+        .ipos-login__stage { position: absolute; inset: 0; pointer-events: none; z-index: 0;
+          background: radial-gradient(90% 70% at 15% 20%, rgba(14,165,233,.28), transparent 55%),
+                      radial-gradient(70% 60% at 85% 80%, rgba(37,99,235,.22), transparent 50%),
+                      #020617; }
+        .ipos-login__orb { position: absolute; border-radius: 50%; filter: blur(42px); opacity: .55;
+          animation: ipos-boot-float 12s ease-in-out infinite; }
+        .ipos-login__orb.a { width: 20rem; height: 20rem; left: 8%; top: 18%; background: rgba(56,189,248,.35); }
+        .ipos-login__orb.b { width: 16rem; height: 16rem; right: 12%; bottom: 12%; background: rgba(37,99,235,.4); animation-delay: -4s; }
+        .ipos-login__grid { position: absolute; inset: 0; opacity: .1;
+          background-image: linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px);
+          background-size: 42px 42px; }
+        .ipos-login__ring { position: absolute; width: 22rem; height: 22rem; left: 12%; top: 28%;
+          animation: ipos-boot-spin 48s linear infinite; opacity: .7; }
+        @@keyframes ipos-boot-float { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-16px);} }
+        @@keyframes ipos-boot-spin { to { transform: rotate(360deg);} }
+        @@keyframes ipos-boot-rise { from{ opacity:0; transform: translateY(16px);} to{ opacity:1; transform: none;} }
+
+        .ipos-login__hero, .ipos-login__panel { position: relative; z-index: 1; padding: clamp(1.5rem,4vw,3rem); }
+        .ipos-login__hero { display: flex; flex-direction: column; justify-content: center; animation: ipos-boot-rise .7s ease both; }
+        .ipos-login__kicker { margin: 0; font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: #7dd3fc; font-weight: 700; }
+        .ipos-login__hero h1 {
+          margin: .45rem 0 .6rem; font-family: var(--ipos-display); font-weight: 500;
+          font-size: clamp(2rem, 4.5vw, 3.1rem); line-height: 1.1;
+        }
+        .ipos-login__hero h1 em { font-style: italic; color: #7dd3fc; }
+        .ipos-login__lede { margin: 0 0 1.4rem; max-width: 34rem; color: #cbd5e1; line-height: 1.5; font-size: 1rem; }
+        .ipos-login__features { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; max-width: 28rem; }
+        .ipos-login__features li {
+          display: grid; gap: .1rem; padding: .75rem .9rem; border-radius: .65rem;
+          border: 1px solid rgba(56,189,248,.22); background: rgba(8,15,30,.55);
+        }
+        .ipos-login__features strong { font-size: .9rem; color: #fff; }
+        .ipos-login__features span { font-size: .78rem; color: #94a3b8; }
+
+        .ipos-login__panel { display: flex; align-items: center; justify-content: center; animation: ipos-boot-rise .8s ease .08s both; }
+        .ipos-login__card {
+          width: min(100%, 26rem); padding: 1.4rem 1.45rem 1.2rem; border-radius: 1rem;
+          border: 1px solid rgba(56,189,248,.3);
+          background: rgba(8,15,30,.88); box-shadow: 0 28px 70px rgba(0,0,0,.4); backdrop-filter: blur(16px);
+        }
+        .ipos-login__card header { display: flex; gap: .85rem; align-items: center; margin-bottom: 1.15rem; }
+        .ipos-login__mark {
+          width: 2.8rem; height: 2.8rem; display: grid; place-items: center; border-radius: .65rem;
+          font-weight: 800; color: #020617; background: linear-gradient(135deg, #7dd3fc, #2563eb);
+        }
+        .ipos-login__card h2 { margin: 0; font-size: 1.15rem; }
+        .ipos-login__card header p { margin: .15rem 0 0; color: #94a3b8; font-size: .8rem; }
+        .ipos-login__card form { display: grid; gap: .85rem; }
+        .ipos-login__card label { display: grid; gap: .35rem; font-size: .78rem; font-weight: 700; color: #cbd5e1; }
+        .ipos-login__card input {
+          width: 100%; box-sizing: border-box; padding: .75rem .85rem; border-radius: .5rem;
+          border: 1px solid rgba(148,163,184,.35); background: rgba(2,6,23,.75); color: #fff; font: inherit;
+        }
+        .ipos-login__card input:focus { outline: 2px solid rgba(56,189,248,.55); border-color: #38bdf8; }
+        .ipos-login__error {
+          padding: .65rem .75rem; border-radius: .45rem; background: rgba(239,68,68,.12);
+          border: 1px solid rgba(248,113,113,.35); color: #fecaca; font-size: .84rem;
+        }
+        .ipos-login__card button {
+          appearance: none; border: 0; cursor: pointer; margin-top: .2rem;
+          padding: .85rem 1rem; border-radius: .55rem; font-weight: 800; font-size: .9rem;
+          color: #020617; background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+        }
+        .ipos-login__card footer {
+          display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; padding-top: .9rem;
+          border-top: 1px solid rgba(148,163,184,.18);
+        }
+        .ipos-login__card footer a { color: #7dd3fc; font-size: .78rem; font-weight: 700; text-decoration: none; }
+        @@media (max-width: 900px) {
+          .ipos-login { grid-template-columns: 1fr; }
+          .ipos-login__ring { display: none; }
+        }
+        """;
 }
