@@ -11,6 +11,7 @@ public static class LifeOsPwaAssets
     public const string JoinScriptPath = "/lifeos/join.js";
     public const string CompanionScriptPath = "/lifeos/companion.js";
     public const string ResultsScriptPath = "/lifeos/results.js";
+    public const string ProductCssPath = "/lifeos/lifeos-product.css";
     public const string IconPrefix = "/lifeos/icons";
 
     private static readonly HashSet<string> IconAllow = new(StringComparer.OrdinalIgnoreCase)
@@ -35,6 +36,10 @@ public static class LifeOsPwaAssets
 
         endpoints.MapGet(ResultsScriptPath, (IWebHostEnvironment e) =>
             FileResult(e, "results.js", "application/javascript; charset=utf-8"));
+
+        // Shared editorial chrome CSS (query string cache-bust ok — MapGet is prefix-exact enough).
+        endpoints.MapGet(ProductCssPath, (IWebHostEnvironment e) =>
+            FileResult(e, "lifeos-product.css", "text/css; charset=utf-8"));
 
         endpoints.MapGet(IconPrefix + "/{fileName}", (IWebHostEnvironment e, string fileName) =>
         {

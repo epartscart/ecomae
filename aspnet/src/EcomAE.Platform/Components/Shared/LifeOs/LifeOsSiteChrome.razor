@@ -1,0 +1,23 @@
+@using EcomAE.Platform.Routing
+
+<header class="lo-chrome" aria-label="LifeOS site navigation">
+  <div class="lo-chrome__inner">
+    <a class="lo-chrome__brand" href="@EcomAeRoutes.LifeOs">Life<em>OS</em>™</a>
+    <nav class="lo-chrome__nav" aria-label="Primary">
+      <a href="@EcomAeRoutes.LifeOs" class="@(Is("home") ? "is-active" : null)">Home</a>
+      <a href="@EcomAeRoutes.LifeOsCinematicApp" class="@(Is("film") ? "is-active" : null)">Film</a>
+      <a href="@EcomAeRoutes.LifeOsDemoApp" class="@(Is("demo") ? "is-active" : null)">How it works</a>
+      <a href="@EcomAeRoutes.LifeOsRoutine" class="@(Is("routine") ? "is-active" : null)">24/7 routine</a>
+      <a href="@EcomAeRoutes.LifeOsSpec" class="@(Is("spec") ? "is-active" : null)">Spec</a>
+      <a href="@EcomAeRoutes.LifeOsApp" class="@(Is("app") ? "is-active" : null)">Console</a>
+      <a class="lo-chrome__cta" href="@EcomAeRoutes.LifeOsJoin">Join</a>
+    </nav>
+  </div>
+</header>
+
+@code {
+    [Parameter] public string ActiveKey { get; set; } = "home";
+
+    private bool Is(string key)
+        => string.Equals(ActiveKey, key, StringComparison.OrdinalIgnoreCase);
+}
