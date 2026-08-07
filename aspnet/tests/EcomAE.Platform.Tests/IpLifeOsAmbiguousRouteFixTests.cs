@@ -36,6 +36,12 @@ public sealed class IpLifeOsAmbiguousRouteFixTests
         Assert.Contains("System architecture", guide, StringComparison.Ordinal);
         Assert.Contains("Frontend links", guide, StringComparison.Ordinal);
         Assert.Contains("Backend links", guide, StringComparison.Ordinal);
+        // Must not wrap in tenant EPARTS CP chrome (ERP Operations / STOREFRONT / Commerce menu).
+        Assert.DoesNotContain("PhpCpDesktopChrome", guide, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpEpartsCartAnimatedLogo", guide, StringComparison.Ordinal);
+        Assert.DoesNotContain("ERP Operations", guide, StringComparison.Ordinal);
+        Assert.Contains("ecomae_mark.svg", guide, StringComparison.Ordinal);
+        Assert.Contains("LifeOsProductLayout", guide, StringComparison.Ordinal);
 
         var routes = Read("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs");
         Assert.Contains("ControlPanelLifeOsGuideApp", routes, StringComparison.Ordinal);

@@ -1,0 +1,12 @@
+{
+  "id": "lifeos-guide-ecomae-chrome",
+  "title": "LifeOS CP guide uses ecomae chrome (not EPARTS tenant shell)",
+  "problem": "https://www.ecomae.com/cp/lifeos-guide-app rendered PhpCpDesktopChrome with EPARTS logo, ERP Operations, STOREFRONT, and tenant CONTROL/Commerce menus.",
+  "fix": "Remove PhpCpDesktopChrome; use LifeOsProductLayout + ecomae mark header (LifeOS / Spec / IP / Clients board).",
+  "route": "/cp/lifeos-guide-app",
+  "prove": [
+    "curl -sL https://www.ecomae.com/cp/lifeos-guide-app | grep -F ecomae_mark.svg",
+    "curl -sL https://www.ecomae.com/cp/lifeos-guide-app | grep -F 'lifeos-guide'",
+    "! curl -sL https://www.ecomae.com/cp/lifeos-guide-app | grep -F 'ERP Operations'"
+  ]
+}
