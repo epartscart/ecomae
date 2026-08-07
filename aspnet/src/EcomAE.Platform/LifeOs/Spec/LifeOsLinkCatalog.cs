@@ -34,6 +34,7 @@ public static class LifeOsLinkCatalog
     public static IReadOnlyList<LinkRow> FrontendApps { get; } =
     [
         new("frontend", 1, "LifeOS home infographic", "/lifeos", "GET", "lifeos.ecomae.com + www", "Purpose · Mission · Principles · Product · Cognitive Model · Brain"),
+        new("frontend", 1, "LifeOS legal footer (PHP parity)", "https://www.ecomae.com/legal", "GET", "www canonical · linked from lifeos footer", "All policies · Privacy · Terms · Cookies · Copyright · …"),
         new("frontend", 1, "Join & install companion", "/lifeos/join", "GET", "www + lifeos", "New client onboarding · PWA install · country + device · no login"),
         new("frontend", 1, "Mobile companion PWA", "/lifeos/mobile", "GET", "www + lifeos", "Track · Talk · Listen · Guide in mobile browser"),
         new("frontend", 1, "My results (client self-serve)", "/lifeos/results", "GET", "www + lifeos", "Discussions + tracking by timeframe · clientId + token · no login"),
