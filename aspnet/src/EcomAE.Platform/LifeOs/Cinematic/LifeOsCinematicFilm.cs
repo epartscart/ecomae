@@ -127,7 +127,7 @@ Palette: white, silver, deep black, blue, cyan. Aspect 16:9.
         TotalDurationSeconds,
         "Human Amina + identical clone Amina · daily routine advice loop",
         "Inspiring, premium, trustworthy, personal",
-        "Soft ambient electronic score",
+        "Ambient score + Amina ↔ Amina spoken dialogue (stereo AAC)",
         "White, silver, deep black, blue, cyan",
         "live-on-frontend · hero background + theatre",
         ProtagonistName,
@@ -137,9 +137,10 @@ Palette: white, silver, deep black, blue, cyan. Aspect 16:9.
         MasterPrompt.Trim(),
         Scenes,
         [
-            "Hero background: muted autoplay loop of HeroVideoUrl on /lifeos",
-            "Theatre: /lifeos/cinematic-app with scene jumps",
-            "Human and clone share the name Amina — dialogue is Amina → Amina",
+            "Hero background: autoplay loop of HeroVideoUrl on /lifeos (starts muted; AMBIENT toggle unmutes dialogue)",
+            "Theatre: /lifeos/cinematic-app with scene jumps and native volume controls",
+            "Human and clone share the name Amina — spoken dialogue is Amina → Amina over ambient score",
+            "Both MP4s include stereo AAC audio (dialogue + score)",
             "Legacy alias: /lifeos/cinematic/{file} · forced download ?download=1",
             "Aligned with /lifeos/routine 24/7 Daily Human Routine Matrix",
         ]);

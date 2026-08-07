@@ -28,7 +28,8 @@
 <div class="lifeos-ambient lifeos-infographic">
   <section class="lifeos-hero" aria-label="LifeOS hero">
     <div class="lifeos-hero__plane" aria-hidden="true">
-      <video class="lifeos-hero__video"
+      <video id="lifeos-hero-video"
+             class="lifeos-hero__video"
              autoplay
              muted
              loop
@@ -53,7 +54,70 @@
         <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsSpec">Master Spec v@_version</a>
       </div>
     </div>
+    <button type="button"
+            id="lifeos-ambient-toggle"
+            class="lifeos-ambient-toggle"
+            aria-pressed="false"
+            aria-controls="lifeos-hero-video"
+            title="Turn ambient dialogue sound on">
+      ◀ AMBIENT
+    </button>
   </section>
+  <script>
+  (() => {
+    const KEY = 'lifeos-hero-ambient-on';
+    const bind = () => {
+      const v = document.getElementById('lifeos-hero-video');
+      const btn = document.getElementById('lifeos-ambient-toggle');
+      if (!v || !btn) return;
+
+      const setUi = (on) => {
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.classList.toggle('is-on', on);
+        btn.title = on ? 'Mute ambient dialogue' : 'Turn ambient dialogue sound on';
+        btn.textContent = on ? '◼ SOUND ON' : '◀ AMBIENT';
+      };
+
+      const apply = (on) => {
+        v.muted = !on;
+        v.volume = on ? 0.85 : 0;
+        if (on) {
+          v.play().catch(() => {});
+        }
+        setUi(on);
+        try { sessionStorage.setItem(KEY, on ? '1' : '0'); } catch (_) {}
+      };
+
+      btn.addEventListener('click', () => {
+        const next = v.muted || btn.getAttribute('aria-pressed') !== 'true';
+        apply(next);
+      });
+
+      // Browsers block unmuted autoplay — start muted, restore preference after a gesture if saved.
+      let preferOn = false;
+      try { preferOn = sessionStorage.getItem(KEY) === '1'; } catch (_) {}
+      setUi(false);
+      v.muted = true;
+      v.volume = 0.85;
+      v.play().catch(() => {});
+
+      if (preferOn) {
+        const unlock = () => {
+          apply(true);
+          window.removeEventListener('pointerdown', unlock, true);
+          window.removeEventListener('keydown', unlock, true);
+        };
+        window.addEventListener('pointerdown', unlock, true);
+        window.addEventListener('keydown', unlock, true);
+      }
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bind);
+    } else {
+      bind();
+    }
+  })();
+  </script>
 
   <section class="lifeos-section lifeos-film" aria-labelledby="lo-film-title">
     <h2 id="lo-film-title">Daily clone film</h2>
@@ -61,7 +125,12 @@
       Morning → evening with human @Film.ProtagonistName and identical AI clone @Film.ProtagonistName — advice at every stage.
     </p>
     <div class="lifeos-film__player">
-      <video controls playsinline preload="metadata" poster="@Film.PosterUrl" aria-label="LifeOS daily human + AI clone routine film">
+      <video id="lifeos-film-inline"
+             controls
+             playsinline
+             preload="metadata"
+             poster="@Film.PosterUrl"
+             aria-label="LifeOS daily human + AI clone routine film with dialogue">
         <source src="@Film.VideoUrl" type="video/mp4" />
       </video>
     </div>
@@ -325,6 +394,32 @@ html, body.lifeos-body {
   position: relative; z-index: 2;
   max-width: 36rem;
   animation: lifeos-rise .85s ease-out both;
+}
+.lifeos-ambient-toggle {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  z-index: 3;
+  appearance: none;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(2,6,23,.72);
+  color: #e2e8f0;
+  font-family: var(--lo-sans);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  padding: .65rem .9rem;
+  border-radius: .2rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+.lifeos-ambient-toggle:hover,
+.lifeos-ambient-toggle.is-on {
+  background: rgba(37,99,235,.85);
+  border-color: rgba(147,197,253,.7);
+  color: #fff;
 }
 @@keyframes lifeos-rise {
   from { opacity: 0; transform: translateY(16px); }

@@ -30,5 +30,7 @@ public sealed class LifeOsCinematicFilmTests
         Assert.Equal("/lifeos/cinematic/lifeos-daily-clone-routine.mp4", film.VideoLegacyUrl);
         Assert.Contains("live-on-frontend", digest.RenderStatus);
         Assert.Contains("hero background", string.Join(' ', digest.DeliveryNotes), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("AAC", digest.Music, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("dialogue", string.Join(' ', digest.DeliveryNotes), StringComparison.OrdinalIgnoreCase);
     }
 }
