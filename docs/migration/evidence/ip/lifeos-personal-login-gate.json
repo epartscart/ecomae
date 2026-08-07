@@ -1,0 +1,18 @@
+{
+  "id": "lifeos-personal-login-gate",
+  "title": "LifeOS join/companion/results require login (confidential personal life)",
+  "problem": "Open join + token URLs exposed confidential daily-life tracking without account binding.",
+  "fix": [
+    "LifeOsPersonalAuthGateMiddleware redirects anonymous users to /lifeos/login?returnUrl=…",
+    "LifeOS login issues customer session cookies (any account; not admin-only).",
+    "POST /lifeos/join stamps OwnerUserId; one personal client per account.",
+    "Companion APIs reject invalid tokens (no silent test-client fallback).",
+    "Clients board / directory require login; /cp/lifeos-clients-app requires admin again."
+  ],
+  "flow": "Sign in → /lifeos/join → companion/results bound to account",
+  "prove": [
+    "curl -sI https://lifeos.ecomae.com/lifeos/join | grep -i location",
+    "curl -sL -o /dev/null -w '%{http_code} %{url_effective}\\n' https://lifeos.ecomae.com/lifeos/join",
+    "curl -sL -X POST https://lifeos.ecomae.com/lifeos/join -H 'content-type: application/json' -H 'accept: application/json' -d '{}' | head"
+  ]
+}

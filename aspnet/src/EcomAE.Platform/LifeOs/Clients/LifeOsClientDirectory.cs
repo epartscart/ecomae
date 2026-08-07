@@ -38,7 +38,8 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
             platform: "seed",
             referrer: "",
             joinSource: "test",
-            ipCountryHint: "AE");
+            ipCountryHint: "AE",
+            ownerUserId: null);
         _clients[test.ClientId] = test;
         _activities[test.ClientId] = new ConcurrentQueue<LifeOsActivityEvent>();
         Append(test.ClientId, "join", "Joined (seeded test client)", "Seeded Amina ↔ Amina for mobile trials", "join", null, null, null);
@@ -56,6 +57,17 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
     public LifeOsClientProfile? Find(string? clientId) =>
         string.IsNullOrWhiteSpace(clientId) ? null : RefreshCounts(_clients.GetValueOrDefault(clientId.Trim()));
 
+    public LifeOsClientProfile? FindByOwnerUserId(int ownerUserId)
+    {
+        if (ownerUserId <= 0)
+        {
+            return null;
+        }
+
+        var hit = _clients.Values.FirstOrDefault(c => c.OwnerUserId == ownerUserId && !c.IsTest);
+        return hit is null ? null : RefreshCounts(hit);
+    }
+
     public LifeOsClientProfile? Authenticate(string? clientId, string? joinToken)
     {
         var client = Find(clientId);
@@ -66,7 +78,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
 
         if (string.IsNullOrWhiteSpace(joinToken))
         {
-            return client.IsTest ? client : null;
+            return null;
         }
 
         return string.Equals(client.JoinToken, joinToken.Trim(), StringComparison.Ordinal)
@@ -74,13 +86,25 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
             : null;
     }
 
-    public LifeOsJoinResult OpenTestClient() => ToJoinResult(TestClient, "Test client ready — open companion or view your results (no login).");
+    public LifeOsJoinResult OpenTestClient() =>
+        ToJoinResult(TestClient, "Test client ready — open companion or view your results (signed-in session required).");
 
     public LifeOsJoinResult Join(LifeOsJoinRequest request)
     {
         if (request.UseTestClient == true)
         {
             return OpenTestClient();
+        }
+
+        if (request.OwnerUserId is int owner && owner > 0)
+        {
+            var existing = FindByOwnerUserId(owner);
+            if (existing is not null)
+            {
+                return ToJoinResult(
+                    existing,
+                    $"Welcome back, {existing.DisplayName}. Your personal LifeOS session is ready.");
+            }
         }
 
         var name = Clip((request.DisplayName ?? "").Trim(), 64);
@@ -120,7 +144,8 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
             Clip(request.Platform, 80),
             Clip(request.Referrer, 400),
             Clip(request.JoinSource, 40) ?? "web",
-            Clip(request.IpCountryHint, 8)?.ToUpperInvariant());
+            Clip(request.IpCountryHint, 8)?.ToUpperInvariant(),
+            request.OwnerUserId is > 0 ? request.OwnerUserId : null);
 
         _clients[id] = profile;
         _activities[id] = new ConcurrentQueue<LifeOsActivityEvent>();
@@ -128,13 +153,15 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
             id,
             "join",
             "Joined LifeOS",
-            $"Source={profile.JoinSource}; country={profile.Country ?? profile.CountryCode ?? "n/a"}; tz={profile.TimeZone ?? "n/a"}",
+            $"OwnerUserId={profile.OwnerUserId?.ToString() ?? "n/a"}; Source={profile.JoinSource}; country={profile.Country ?? profile.CountryCode ?? "n/a"}; tz={profile.TimeZone ?? "n/a"}",
             "join",
             null,
             null,
             null);
 
-        return ToJoinResult(RefreshCounts(profile), $"Welcome, {name}. Your clone {name} is ready beside you — no login required.");
+        return ToJoinResult(
+            RefreshCounts(profile),
+            $"Welcome, {name}. Your clone {name} is bound to your signed-in account — keep this device session private.");
     }
 
     public object DirectoryDigest() => new
@@ -142,7 +169,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         ok = true,
         scaffold = true,
         title = "LifeOS client join directory",
-        note = "No login required. Clients use clientId + joinToken. In-memory scaffold until durable IAM.",
+        note = "Login required. Sign in at /lifeos/login, then join — personal client binds to your account.",
         testClient = Public(TestClient),
         clients = List().Select(Public).ToArray(),
         join = "/lifeos/join",
@@ -153,9 +180,10 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         controlPanel = "/cp/lifeos-clients-app",
         clientsBoard = "/lifeos/clients-board",
         clientsCpJson = "/lifeos/clients/cp",
+        login = "/lifeos/login",
         manifest = LifeOsPwaAssets.ManifestPath,
         capabilities = DefaultCapabilities,
-        loginRequired = false,
+        loginRequired = true,
     };
 
     public object ControlPanelDigest() => new
@@ -163,7 +191,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         ok = true,
         scaffold = true,
         title = "LifeOS joined clients — Control Panel",
-        authNote = "Login not required for client join/results yet; CP console shows operator view of in-memory joins.",
+        authNote = "Login required for join/results/companion. CP board shows operator view of in-memory joins.",
         totalClients = List().Count,
         countries = List()
             .GroupBy(c => c.CountryCode ?? c.Country ?? "unknown")
@@ -181,7 +209,8 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
 
     public LifeOsCompanionSession CompanionSession(string clientId, string? joinToken)
     {
-        var client = Authenticate(clientId, joinToken) ?? TestClient;
+        var client = Authenticate(clientId, joinToken)
+            ?? throw new InvalidOperationException("invalid-client-or-token");
         var all = Activities(client.ClientId);
         return new LifeOsCompanionSession(
             client.ClientId,
@@ -204,7 +233,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
                 listen = true,
                 guide = true,
                 results = true,
-                loginRequired = false,
+                loginRequired = true,
                 speechRecognition = "Web Speech API (browser)",
                 speechSynthesis = "speechSynthesis TTS (browser)",
                 install = "Add to Home Screen via PWA manifest",
@@ -214,7 +243,8 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
 
     public LifeOsTrackResult RecordTrack(LifeOsTrackEvent evt)
     {
-        var client = Authenticate(evt.ClientId, evt.JoinToken) ?? TestClient;
+        var client = Authenticate(evt.ClientId, evt.JoinToken)
+            ?? throw new InvalidOperationException("invalid-client-or-token");
         var kind = string.IsNullOrWhiteSpace(evt.Kind) ? "activity" : evt.Kind.Trim().ToLowerInvariant();
         var label = string.IsNullOrWhiteSpace(evt.Label) ? kind : evt.Label.Trim();
         var clone = $"{client.CloneName}: Logged {label}" + (evt.Value is null ? "." : $" ({evt.Value}). Keep going, {client.DisplayName}.");
@@ -224,7 +254,8 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
 
     public LifeOsTalkReply Talk(LifeOsTalkRequest request)
     {
-        var client = Authenticate(request.ClientId, request.JoinToken) ?? TestClient;
+        var client = Authenticate(request.ClientId, request.JoinToken)
+            ?? throw new InvalidOperationException("invalid-client-or-token");
         var heard = (request.Utterance ?? "").Trim();
         if (string.IsNullOrWhiteSpace(heard))
         {
@@ -255,7 +286,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
                 toUtc,
                 0,
                 [],
-                new { error = "invalid-client-or-token", loginRequired = false });
+                new { error = "invalid-client-or-token", loginRequired = true });
         }
 
         var q = Activities(client.ClientId).AsEnumerable();
@@ -293,7 +324,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
                 joins = all.Count(a => a.Kind == "join"),
                 firstAt = all.Count == 0 ? (DateTimeOffset?)null : all.Min(a => a.AtUtc),
                 lastAt = all.Count == 0 ? (DateTimeOffset?)null : all.Max(a => a.AtUtc),
-                loginRequired = false,
+                loginRequired = true,
             });
     }
 
@@ -305,6 +336,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         ui = "/lifeos/mobile",
         join = "/lifeos/join",
         results = "/lifeos/results",
+        login = "/lifeos/login",
         apis = new
         {
             session = "GET /lifeos/companion?clientId=&token=",
@@ -323,7 +355,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         },
         testClient = Public(TestClient),
         modes = new[] { "track", "talk", "listen", "guide" },
-        loginRequired = false,
+        loginRequired = true,
     };
 
     private LifeOsActivityEvent Append(
@@ -389,7 +421,8 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         string? platform,
         string? referrer,
         string? joinSource,
-        string? ipCountryHint) =>
+        string? ipCountryHint,
+        int? ownerUserId) =>
         new(
             id,
             name,
@@ -410,6 +443,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
             referrer,
             joinSource,
             ipCountryHint,
+            ownerUserId,
             TrackCount: 0,
             TalkCount: 0,
             ActivityCount: 0);
@@ -424,7 +458,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
             CompanionUrl(client),
             LifeOsPwaAssets.ManifestPath,
             [
-                "No login required — keep your join link or token",
+                "Stay signed in — personal LifeOS data is private to your account",
                 "Open the mobile companion to track / talk / listen / guide",
                 "Open My results anytime to review discussions and tracking",
                 "Add to Home Screen for an app-like experience",
@@ -454,6 +488,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         c.Platform,
         c.JoinSource,
         c.IpCountryHint,
+        c.OwnerUserId,
         c.UserAgent,
         c.Referrer,
         c.TrackCount,
@@ -461,7 +496,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         c.ActivityCount,
         companionUrl = CompanionUrl(c),
         resultsUrl = ResultsUrl(c),
-        joinToken = c.IsTest ? c.JoinToken : c.JoinToken, // issued at join; required for no-login access
+        joinToken = c.JoinToken,
     };
 
     private static string? Clip(string? value, int max)

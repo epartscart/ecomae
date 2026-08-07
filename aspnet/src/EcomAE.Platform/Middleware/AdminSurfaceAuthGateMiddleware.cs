@@ -102,21 +102,7 @@ public sealed class AdminSurfaceAuthGateMiddleware
             return false;
         }
 
-        // Temporary: LifeOS joined-clients console is public until client IAM lands.
-        // Prefer /lifeos/clients-board; /cp/lifeos-clients-app stays allowlisted for the same UI.
-        if (IsLifeOsClientsBoardAllowlisted(value))
-        {
-            return false;
-        }
-
         return IsAdminSurface(value);
-    }
-
-    internal static bool IsLifeOsClientsBoardAllowlisted(string path)
-    {
-        var bare = path.TrimEnd('/');
-        return bare.Equals(EcomAeRoutes.ControlPanelLifeOsClientsApp, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsClientsBoard, StringComparison.OrdinalIgnoreCase);
     }
 
     internal static bool IsAdminSurface(string path)

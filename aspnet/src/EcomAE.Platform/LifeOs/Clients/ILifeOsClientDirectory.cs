@@ -12,6 +12,8 @@ public interface ILifeOsClientDirectory
 
     LifeOsClientProfile? Find(string? clientId);
 
+    LifeOsClientProfile? FindByOwnerUserId(int ownerUserId);
+
     LifeOsClientProfile? Authenticate(string? clientId, string? joinToken);
 
     LifeOsJoinResult Join(LifeOsJoinRequest request);

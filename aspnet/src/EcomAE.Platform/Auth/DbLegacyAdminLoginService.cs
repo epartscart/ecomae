@@ -67,7 +67,9 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 return LegacyLoginOutcome.Failed("Incorrect login or password.", "invalid_credentials");
             }
 
-            var adminSession = request.Surface != LegacyLoginSurface.Storefront;
+            // LifeOS personal join uses customer cookies (any signed-in account).
+            // Storefront stays customer; CP/ERP/BOS/IP stay admin-gated.
+            var adminSession = request.Surface is not (LegacyLoginSurface.Storefront or LegacyLoginSurface.LifeOs);
             if (adminSession)
             {
                 var identity = await _sessions.GetAdminIdentityAsync(user.UserId, cancellationToken).ConfigureAwait(false);
@@ -124,7 +126,7 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
         LegacyLoginSurface.Erp => "/erp/app",
         LegacyLoginSurface.Bos => "/bos/app",
         LegacyLoginSurface.Ip => "/ip/app",
-        LegacyLoginSurface.LifeOs => "/lifeos/app",
+        LegacyLoginSurface.LifeOs => "/lifeos/join",
         LegacyLoginSurface.Storefront => "/storefront/app",
         _ => "/cp/app"
     };

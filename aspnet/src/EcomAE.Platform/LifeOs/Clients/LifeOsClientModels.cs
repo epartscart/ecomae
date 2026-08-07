@@ -20,6 +20,7 @@ public sealed record LifeOsClientProfile(
     string? Referrer,
     string? JoinSource,
     string? IpCountryHint,
+    int? OwnerUserId,
     int TrackCount,
     int TalkCount,
     int ActivityCount);
@@ -37,7 +38,8 @@ public sealed record LifeOsJoinRequest(
     string? Referrer,
     string? JoinSource,
     string? IpCountryHint,
-    bool? UseTestClient);
+    bool? UseTestClient,
+    int? OwnerUserId);
 
 public sealed record LifeOsJoinResult(
     bool Ok,
