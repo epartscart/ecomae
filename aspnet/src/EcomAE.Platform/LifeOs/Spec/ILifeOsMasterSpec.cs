@@ -17,5 +17,10 @@ public interface ILifeOsMasterSpec
 
     IReadOnlyList<LifeOsPluginDescriptor> Plugins { get; }
 
-    object FullDigest(ILifeOsCognitiveEngines cognitive, object? part2Architecture);
+    /// <summary>
+    /// Master Spec JSON envelope for <c>/lifeos/spec/json</c>.
+    /// Pass rich Part 2–10 digests via <paramref name="runtime"/>; each lands at the top level
+    /// (<c>part2</c>…<c>part10</c>), never nested under another part.
+    /// </summary>
+    object FullDigest(ILifeOsCognitiveEngines cognitive, LifeOsSpecRuntimeDigests? runtime = null);
 }
