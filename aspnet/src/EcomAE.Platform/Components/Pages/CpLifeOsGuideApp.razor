@@ -1,5 +1,5 @@
 @page "/cp/lifeos-guide-app"
-@layout Layout.PhpChromeLayout
+@layout Layout.LifeOsProductLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.LifeOs.Spec
 @using EcomAE.Platform.Presentation
@@ -8,24 +8,48 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>LifeOS™ system guide · Control Panel · ecomae</PageTitle>
-<PhpChromeStyles Surface="cp" />
+<PageTitle>LifeOS™ system guide · ecomae</PageTitle>
 <link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
 
-@* Body CSS — live SSR may drop HeadContent *@
+@* Body CSS — live SSR may drop HeadContent. ecomae LifeOS chrome only (not tenant CP shell). *@
 <style>@((MarkupString)_css)</style>
 <HeadContent>
 <link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<meta name="ecomae-chrome-surface" content="lifeos-guide" />
 <style>@((MarkupString)_css)</style>
 </HeadContent>
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<div class="lo-guide" data-surface="lifeos-guide">
+  <header class="lo-guide-top" role="banner">
+    <a class="lo-guide-brand" href="@EcomAeRoutes.LifeOs">
+      <img src="/assets/media/logos/ecomae_mark.svg" alt="" width="28" height="28" />
+      <span>ecomae · Life<em>OS</em>™</span>
+    </a>
+    <nav class="lo-guide-nav" aria-label="LifeOS guide">
+      <a href="@EcomAeRoutes.LifeOs">LifeOS home</a>
+      <a class="is-on" href="@EcomAeRoutes.ControlPanelLifeOsGuideApp">System guide</a>
+      <a href="@EcomAeRoutes.LifeOsClientsBoard">Clients board</a>
+      <a href="@EcomAeRoutes.LifeOsSpec">Spec</a>
+      <a href="@EcomAeRoutes.Ip">IP hub</a>
+      <a href="@EcomAeRoutes.ControlPanel">CP home</a>
+      @if (_isAdmin)
+      {
+        <span class="lo-guide-pill">Operator</span>
+      }
+      else
+      {
+        <a class="lo-guide-pill" href="@EcomAeRoutes.ControlPanelLogin">Sign in</a>
+      }
+    </nav>
+  </header>
+
+  <main class="lo-guide-main">
     <section class="lo-guide-hero" aria-label="LifeOS system guide">
-        <p class="lo-guide-kicker">Control Panel · Intelligence Platform</p>
+        <p class="lo-guide-kicker">ecomae · Intelligence Platform</p>
         <h1>Life<em>OS</em>™ full system guide</h1>
         <p>
             Visual map of the ambient AI operating system on ecomae — hosts, frontend consoles,
-            backend digests, and Master Spec Parts 1–10 chapters. Super-CP / CP operators only.
+            backend digests, and Master Spec Parts 1–10 chapters. Super-CP / CP operators.
         </p>
         <div class="lo-guide-cta">
             <a href="@EcomAeRoutes.Ip">Open /ip hub</a>
@@ -277,16 +301,42 @@
             <li>Part 10 Ch.151–168 is scaffold registry (digest + roadmap UI) — not a claim of shipped MAU/marketplace GA.</li>
         </ul>
     </section>
-</PhpCpDesktopChrome>
+  </main>
+</div>
 
 @code {
     private bool _isAdmin;
     private IReadOnlyList<LifeOsLinkCatalog.LinkRow> _backend = [];
 
     private const string _css = """
-        .lo-guide-hero {
+        .lo-guide {
           --lo-display: "Fraunces", Georgia, serif;
           --lo-sans: "Sora", "Segoe UI", sans-serif;
+          min-height: 100vh; background: #f0f9ff; color: #0f172a; font-family: var(--lo-sans);
+        }
+        .lo-guide-top {
+          display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .85rem;
+          padding: .85rem clamp(1rem, 3vw, 1.75rem);
+          background: linear-gradient(90deg, #020617, #0b1b3a 55%, #0c4a6e);
+          border-bottom: 1px solid rgba(56,189,248,.25); color: #e2e8f0;
+        }
+        .lo-guide-brand {
+          display: inline-flex; align-items: center; gap: .55rem; text-decoration: none; color: #fff;
+          font-weight: 700; font-size: 1.05rem; letter-spacing: -.01em;
+        }
+        .lo-guide-brand img { display: block; width: 28px; height: 28px; }
+        .lo-guide-brand em { font-style: italic; color: #7dd3fc; }
+        .lo-guide-nav { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+        .lo-guide-nav a {
+          color: #cbd5e1; text-decoration: none; font-size: .82rem; font-weight: 650;
+        }
+        .lo-guide-nav a.is-on, .lo-guide-nav a:hover { color: #fff; }
+        .lo-guide-pill {
+          display: inline-flex; padding: .3rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 800;
+          background: rgba(56,189,248,.18); color: #7dd3fc; text-decoration: none; border: 1px solid rgba(56,189,248,.35);
+        }
+        .lo-guide-main { padding: 1.15rem clamp(1rem, 3vw, 1.75rem) 2.5rem; max-width: 1180px; margin: 0 auto; }
+        .lo-guide-hero {
           margin: 0 0 1.1rem; padding: 1.25rem 1.35rem; border-radius: .65rem; color: #fff;
           background:
             radial-gradient(90% 70% at 90% 10%, rgba(56,189,248,.28), transparent 55%),
