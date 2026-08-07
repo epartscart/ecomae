@@ -1,0 +1,147 @@
+@page "/lifeos/platform-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Part5
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsPlatformEngineering Platform
+
+<PageTitle>LifeOS™ · Part 5 Platform Engineering</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>
+:root {
+  --lo-ink:#0a1f1c; --lo-sea:#0f766e; --lo-sun:#f59e0b; --lo-paper:#f4faf8;
+  --lo-display:"Instrument Serif", Georgia, serif; --lo-sans:"Manrope","Segoe UI",sans-serif;
+}
+body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); font-family:var(--lo-sans); }
+.lo-top {
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  padding:1rem clamp(1rem,3vw,2rem);
+  background:linear-gradient(90deg,#062a26,#0f766e 55%,#134e4a); color:#ecfdf5;
+}
+.lo-top .brand { font-family:var(--lo-display); font-size:1.55rem; }
+.lo-top .brand em { font-style:italic; color:#99f6e4; }
+.lo-top nav { display:flex; flex-wrap:wrap; gap:.75rem; font-size:.8rem; font-weight:700; }
+.lo-top a { color:#ccfbf1; text-decoration:none; }
+.lo-main { padding:1.35rem clamp(1rem,3vw,2.2rem) 2.5rem; max-width:80rem; margin:0 auto; }
+.lo-main h1 { font-family:var(--lo-display); font-weight:400; font-size:clamp(1.65rem,3.5vw,2.3rem); margin:.1rem 0 .4rem; }
+.lo-main > p { max-width:50rem; color:#334155; line-height:1.5; }
+.lo-chips { display:flex; flex-wrap:wrap; gap:.4rem; margin:.5rem 0 1rem; }
+.lo-chips span {
+  font-size:.72rem; font-weight:700; padding:.3rem .55rem; border-radius:.28rem;
+  background:#ecfdf5; color:var(--lo-sea); border:1px solid #a7f3d0;
+}
+.lo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.6rem; }
+.lo-grid article { padding:.85rem; border:1px solid #cce5de; border-radius:.4rem; background:#fff; }
+.lo-grid strong { display:block; margin-bottom:.2rem; font-size:.9rem; color:#062a26; }
+.lo-grid span { font-size:.78rem; color:#475569; line-height:1.35; }
+.lo-h2 { font-family:var(--lo-display); font-weight:400; font-size:1.4rem; margin:1.2rem 0 .4rem; }
+.lo-table { width:100%; border-collapse:collapse; font-size:.8rem; margin:.4rem 0 1rem; }
+.lo-table th, .lo-table td { text-align:left; padding:.4rem .35rem; border-bottom:1px solid #e2efe9; vertical-align:top; }
+.lo-code {
+  margin:.75rem 0; padding:.85rem 1rem; border-radius:.4rem; background:#062a26; color:#ccfbf1;
+  font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.78rem; overflow:auto; white-space:pre-wrap;
+}
+.lo-note { margin-top:1.3rem; padding:1rem; border-left:3px solid var(--lo-sun); background:#fffbeb; color:#78350f; font-size:.86rem; }
+</style>
+</HeadContent>
+
+<div class="lifeos-ambient">
+  <header class="lo-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav>
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a href="@EcomAeRoutes.LifeOsMultimodalApp">Part 4</a>
+      <a href="@EcomAeRoutes.LifeOsPlatformApp">Part 5</a>
+      <a href="@EcomAeRoutes.LifeOsSpecApp">Spec</a>
+      <a href="@EcomAeRoutes.LifeOsPlatform">JSON</a>
+    </nav>
+  </header>
+  <main class="lo-main">
+    <h1>Part 5 — Platform Engineering</h1>
+    <p>
+      Cloud-native, event-driven, API-first platform: microservices, API gateway, REST/WebSocket,
+      Kafka/NATS topics, polyglot persistence, workflow/automation, plugin &amp; agent SDKs,
+      AI Gateway, auth, multi-tenant, observability (Ch.42–60).
+    </p>
+
+    <div class="lo-chips">
+      @foreach (var p in Platform.EngineeringPrinciples)
+      {
+        <span>@p</span>
+      }
+    </div>
+
+    <h2 class="lo-h2">Core microservices (@Platform.Microservices.Count)</h2>
+    <div class="lo-grid">
+      @foreach (var s in Platform.Microservices)
+      {
+        <article>
+          <strong>@s.Title</strong>
+          <span>@s.Domain · owns <code>@s.OwnsDatabase</code></span>
+        </article>
+      }
+    </div>
+
+    <h2 class="lo-h2">REST envelope</h2>
+    <div class="lo-code">@EnvelopeJson</div>
+
+    <h2 class="lo-h2">Event topics</h2>
+    <div class="lo-chips">
+      @foreach (var t in Platform.EventTopics)
+      {
+        <span title="@t.Description">@t.Topic</span>
+      }
+    </div>
+
+    <h2 class="lo-h2">Data stores</h2>
+    <table class="lo-table">
+      <thead><tr><th>Store</th><th>Workloads</th></tr></thead>
+      <tbody>
+      @foreach (var d in Platform.DataStores)
+      {
+        <tr>
+          <td><strong>@d.Technology</strong></td>
+          <td>@string.Join(", ", d.Workloads)</td>
+        </tr>
+      }
+      </tbody>
+    </table>
+
+    <h2 class="lo-h2">AI Gateway routing</h2>
+    <table class="lo-table">
+      <thead><tr><th>Task</th><th>Preferred model</th><th>Notes</th></tr></thead>
+      <tbody>
+      @foreach (var r in Platform.AiGatewayRoutes)
+      {
+        <tr><td>@r.Task</td><td>@r.PreferredModel</td><td>@r.Notes</td></tr>
+      }
+      </tbody>
+    </table>
+
+    <h2 class="lo-h2">Agent SDK contract</h2>
+    <div class="lo-chips">
+      @foreach (var c in Platform.AgentSdkContract)
+      {
+        <span title="@c.Requirement">@c.Field</span>
+      }
+    </div>
+
+    <div class="lo-note">
+      Digests: <code>/lifeos/platform</code>, <code>/services</code>, <code>/api-catalog</code>,
+      <code>/event-topics</code>, <code>/data-stores</code>, <code>/knowledge-graph</code>,
+      <code>/agent-sdk</code>, <code>/ai-gateway</code>.
+      Kafka/Istio/pgvector production wiring not claimed — scaffold registry only.
+    </div>
+  </main>
+</div>
+
+@code {
+    private string EnvelopeJson =>
+        System.Text.Json.JsonSerializer.Serialize(
+            Platform.Ok(new { id = "usr_1", name = "Operator" }, new { requestId = "req_demo" }),
+            new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+}

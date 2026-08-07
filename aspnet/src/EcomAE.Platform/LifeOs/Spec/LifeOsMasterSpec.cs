@@ -26,12 +26,22 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
                 "Notifications", "Interaction Manager", "Sync Engine", "State Machine", "Performance"
             ],
             ["ILifeOsMultimodalRuntime", "16 device types", "8 modality pipelines", "/lifeos/multimodal"]),
-        P(5, "APIs, SDKs, Schemas, Event Models", "scaffold",
-            ["REST digests", "Event JSON models", "SDK surface map", "Schema stubs"],
-            ["OpenAPI-oriented route catalog", "Shared DTOs"]),
-        P(6, "Cloud, Kubernetes, DevOps, Monitoring", "scaffold",
-            ["Topology", "Scalability", "Observability", "GitOps"],
-            ["Deploy paste", "Health probes", "FORCE_LIVE republish note"]),
+        P(5, "Platform Engineering & Developer Architecture", "scaffold",
+            [
+                "Platform Overview", "Architecture", "Microservices", "API Gateway", "REST",
+                "WebSockets", "Event Bus", "Databases", "Memory DB", "Knowledge Graph",
+                "Workflow", "Automation", "Plugin SDK", "Agent SDK", "AI Gateway",
+                "Auth", "Multi-Tenant", "Observability", "Engineering Standards"
+            ],
+            ["ILifeOsPlatformEngineering", "22 microservices", "API envelopes", "/lifeos/platform"]),
+        P(6, "Cloud Infrastructure & Production Operations", "registry",
+            [
+                "Kubernetes", "Multi-Region", "Service Mesh", "CI/CD", "Infrastructure as Code",
+                "Auto-Scaling", "High Availability", "Disaster Recovery", "Edge Computing",
+                "GPU Clusters", "Model Serving", "Secrets Management", "Production Monitoring",
+                "Performance Optimization", "Cost Management", "SRE Playbooks"
+            ],
+            ["Deploy paste", "Health probes", "FORCE_LIVE republish note", "Part 6 chapters pending paste"]),
         P(7, "Security, Privacy, Compliance, Enterprise", "scaffold",
             ["Privacy by design", "Permission gates", "Audit", "Compliance map"],
             ["Local-first controls", "Irreversible-action policy"]),
@@ -79,6 +89,14 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/sync", "GET", "Part 4 unified session sync"),
         new("/lifeos/performance", "GET", "Part 4 performance targets"),
         new("/lifeos/notifications", "POST", "Part 4 notification intelligence"),
+        new("/lifeos/platform", "GET", "Part 5 Ch.42–60 platform engineering digest"),
+        new("/lifeos/services", "GET", "Part 5 microservice catalog"),
+        new("/lifeos/api-catalog", "GET", "Part 5 REST/WebSocket catalog"),
+        new("/lifeos/event-topics", "GET", "Part 5 event bus topics"),
+        new("/lifeos/data-stores", "GET", "Part 5 polyglot persistence"),
+        new("/lifeos/knowledge-graph", "GET", "Part 5 knowledge graph sample"),
+        new("/lifeos/agent-sdk", "GET", "Part 5 agent/plugin SDK contracts"),
+        new("/lifeos/ai-gateway", "GET", "Part 5 AI Gateway routing table"),
         new("/lifeos/security", "GET", "Part 7 security controls"),
         new("/lifeos/clients", "GET", "Part 8 client surfaces"),
         new("/lifeos/plugins", "GET", "Part 9 plugin marketplace"),
@@ -125,25 +143,26 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         part2 = part2Architecture,
         part3 = cognitive.Digest(),
         part4 = new { multimodalAdapters = MultimodalAdapters, note = "Full Part 4 digest at /lifeos/multimodal" },
-        part5 = new { apis = ApiSurfaces, note = "DTO models under LifeOs.Models + Spec + Part4" },
+        part5 = new { apis = ApiSurfaces, note = "Full Part 5 digest at /lifeos/platform" },
         part6 = new
         {
             cloud = "ASP.NET primary on Kestrel :5100 behind nginx/CloudPanel",
             k8s = "roadmap",
             deploy = "scripts/cloudpanel_FORCE_LIVE_NOW.sh after merge to main",
-            monitoring = "health checks + migration digests + Part 4 performance targets"
+            monitoring = "health checks + migration digests + Part 4/5 observability"
         },
         part7 = new { controls = SecurityControls },
         part8 = new { clients = Clients },
         part9 = new { plugins = Plugins },
         part10 = new
         {
-            testing = "LifeOsPart2 + Part3Cognitive + Part4Runtime + MasterSpec tests",
+            testing = "LifeOsPart2 + Part3 + Part4 + Part5Platform + MasterSpec tests",
             roadmap = new[]
             {
-                "Wire durable memory + vector store",
-                "Live LLM reasoning behind Safety Engine",
-                "Kafka event bus option",
+                "Wire durable memory + pgvector",
+                "Live LLM reasoning behind AI Gateway",
+                "Kafka/NATS event bus option",
+                "Istio service mesh",
                 "Mobile/desktop/glasses clients",
                 "Plugin marketplace GA"
             },
@@ -157,9 +176,9 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         notClaimed = new[]
         {
             "Production multimodal perception",
-            "Durable memory / vector DB",
+            "Durable PostgreSQL/pgvector/Redis wiring for LifeOS memory",
             "Live LLM inference",
-            "Kafka/Rabbit wiring",
+            "Kafka/NATS/Istio production mesh",
             "Native mobile/desktop/glasses shipping binaries",
             "Always-on wake-word DSP on device"
         }

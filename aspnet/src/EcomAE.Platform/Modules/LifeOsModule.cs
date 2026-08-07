@@ -4,6 +4,7 @@ using EcomAE.Platform.LifeOs.Models;
 using EcomAE.Platform.LifeOs.Orchestrator;
 using EcomAE.Platform.LifeOs.Part3;
 using EcomAE.Platform.LifeOs.Part4;
+using EcomAE.Platform.LifeOs.Part5;
 using EcomAE.Platform.LifeOs.Spec;
 using EcomAE.Platform.Routing;
 
@@ -131,14 +132,45 @@ public sealed class LifeOsModule : ISurfaceModule
             return Results.Ok(new { ok = true, scaffold = true, tick });
         });
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsSecurityDigest, (ILifeOsMasterSpec spec) =>
-            Results.Ok(new { ok = true, part = 7, controls = spec.SecurityControls }));
+        endpoints.MapGet(EcomAeRoutes.LifeOsPlatform, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(platform.FullPart5Digest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsServices, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, services = platform.Microservices }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsApiCatalog, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new
+            {
+                ok = true,
+                conventions = platform.RestConventions,
+                success = platform.Ok(new { id = "demo" }, new { requestId = "req_scaffold" }),
+                error = platform.Fail("TASK_NOT_FOUND", "Task not found"),
+                websockets = platform.WebSocketChannels
+            }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsEventTopics, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, topics = platform.EventTopics, brokers = new[] { "Kafka", "NATS", "RabbitMQ" } }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsDataStores, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, stores = platform.DataStores, memoryLayers = platform.MemoryLayers }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsKnowledgeGraph, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(platform.KnowledgeGraphSample()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsAgentSdk, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, contract = platform.AgentSdkContract, plugins = platform.SamplePlugins }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsAiGateway, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, routes = platform.AiGatewayRoutes }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsSecurityDigest, (ILifeOsMasterSpec spec, ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, part = 7, controls = spec.SecurityControls, auth = platform.AuthDigest() }));
 
         endpoints.MapGet(EcomAeRoutes.LifeOsClients, (ILifeOsMasterSpec spec) =>
             Results.Ok(new { ok = true, part = 8, clients = spec.Clients }));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsPlugins, (ILifeOsMasterSpec spec) =>
-            Results.Ok(new { ok = true, part = 9, plugins = spec.Plugins }));
+        endpoints.MapGet(EcomAeRoutes.LifeOsPlugins, (ILifeOsMasterSpec spec, ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, part = 9, plugins = spec.Plugins, samples = platform.SamplePlugins }));
 
         endpoints.MapGet(EcomAeRoutes.LifeOsRoadmap, (ILifeOsMasterSpec spec) =>
             Results.Ok(new
@@ -154,12 +186,14 @@ public sealed class LifeOsModule : ISurfaceModule
             ILifeOsCognitiveEngines cognitive,
             ILifeOsOrchestrator orch,
             ILifeOsAiCore ai,
-            ILifeOsMultimodalRuntime runtime) =>
+            ILifeOsMultimodalRuntime runtime,
+            ILifeOsPlatformEngineering platform) =>
             Results.Ok(spec.FullDigest(cognitive, new
             {
                 part2 = orch.ArchitectureDigest(),
                 part3 = ai.FullPart3Digest(),
-                part4 = runtime.FullPart4Digest()
+                part4 = runtime.FullPart4Digest(),
+                part5 = platform.FullPart5Digest()
             })));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (
