@@ -1495,6 +1495,11 @@ public static class EcomAeRoutes
     /// <summary>LifeOS Master Spec v4.0 Parts 3–10 digests.</summary>
     public const string LifeOsSpec = "/lifeos/spec";
     public const string LifeOsCognitive = "/lifeos/cognitive";
+    public const string LifeOsCognitiveApp = "/lifeos/cognitive-app";
+    public const string LifeOsCognitiveCycle = "/lifeos/cognitive-cycle";
+    public const string LifeOsPerception = "/lifeos/perception";
+    public const string LifeOsPrediction = "/lifeos/prediction";
+    public const string LifeOsEthics = "/lifeos/ethics";
     public const string LifeOsMultimodal = "/lifeos/multimodal";
     public const string LifeOsSecurityDigest = "/lifeos/security";
     public const string LifeOsClients = "/lifeos/clients";

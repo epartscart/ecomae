@@ -13,8 +13,12 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
             ["Orchestrator", "Event Bus", "Context Engine", "Memory System", "Multi-Agent", "Planning Engine"],
             ["In-memory bus", "30 agents", "POST /lifeos/orchestrate", "Part 2 console"]),
         P(3, "AI & Cognitive Systems", "scaffold",
-            ["Reasoning Engine", "Decision Engine", "Learning Engine", "Personality Engine"],
-            ["Explainable traces", "Human-approval decisions", "Learning signals"]),
+            [
+                "AI Core", "Cognitive Architecture", "Perception", "Context CRM", "Reasoning",
+                "Decision", "Planning", "Prediction", "Learning", "Personality", "Emotion",
+                "Ethical AI", "Self-Reflection", "Unified Cognitive Cycle"
+            ],
+            ["ILifeOsAiCore cycle", "CRM object", "Multi-method reasoning", "Ethics gate", "/lifeos/cognitive"]),
         P(4, "Multimodal Input", "scaffold",
             ["Voice", "Vision", "Desktop", "Wearables"],
             ["Adapter registry", "Event normalization hooks"]),
@@ -55,7 +59,11 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/plans", "GET", "Sample planning workflow"),
         new("/lifeos/context", "GET", "Context source registry"),
         new("/lifeos/orchestrate", "POST", "Dry-run orchestration"),
-        new("/lifeos/cognitive", "GET", "Part 3 cognitive engines digest"),
+        new("/lifeos/cognitive", "GET", "Part 3 AI Core Ch.12–25 digest"),
+        new("/lifeos/cognitive-cycle", "POST", "Unified cognitive cycle dry-run"),
+        new("/lifeos/perception", "GET", "Part 3 Ch.14 perception digest"),
+        new("/lifeos/prediction", "GET", "Part 3 Ch.19 prediction digest"),
+        new("/lifeos/ethics", "GET", "Part 3 Ch.23 ethical AI digest"),
         new("/lifeos/spec", "GET", "Master spec Parts 1–10 digest"),
         new("/lifeos/multimodal", "GET", "Part 4 modality adapters"),
         new("/lifeos/security", "GET", "Part 7 security controls"),
@@ -117,7 +125,7 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         part9 = new { plugins = Plugins },
         part10 = new
         {
-            testing = "LifeOsPart2ScaffoldTests + LifeOsMasterSpecTests",
+            testing = "LifeOsPart2ScaffoldTests + LifeOsPart3CognitiveTests + LifeOsMasterSpecTests",
             roadmap = new[]
             {
                 "Wire durable memory + vector store",

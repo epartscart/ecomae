@@ -2,6 +2,7 @@ using EcomAE.Platform.LifeOs.Engines;
 using EcomAE.Platform.LifeOs.EventBus;
 using EcomAE.Platform.LifeOs.Models;
 using EcomAE.Platform.LifeOs.Orchestrator;
+using EcomAE.Platform.LifeOs.Part3;
 using EcomAE.Platform.LifeOs.Spec;
 using EcomAE.Platform.Routing;
 
@@ -45,8 +46,40 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsContextDigest, (ILifeOsContextEngine context) =>
             Results.Ok(new { ok = true, sources = context.KnownSourceNames }));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsCognitive, (ILifeOsCognitiveEngines cognitive) =>
-            Results.Ok(cognitive.Digest()));
+        endpoints.MapGet(EcomAeRoutes.LifeOsCognitive, (ILifeOsAiCore ai) =>
+            Results.Ok(ai.FullPart3Digest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsPerception, (ILifeOsPerceptionEngine perception) =>
+            Results.Ok(perception.Digest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsPrediction, (ILifeOsPredictionEngine prediction) =>
+            Results.Ok(prediction.Digest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsEthics, (ILifeOsEthicalAiLayer ethics) =>
+            Results.Ok(ethics.Digest()));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsCognitiveCycle, (
+            LifeOsOrchestrateBody? body,
+            ILifeOsAiCore ai) =>
+        {
+            body ??= new LifeOsOrchestrateBody(null, null, null);
+            var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(body.Transcript))
+            {
+                payload["transcript"] = body.Transcript.Trim();
+            }
+
+            var evt = payload.Count == 0
+                ? LifeOsEventFactory.SampleVoice()
+                : LifeOsEventFactory.Create(
+                    ParseType(body.EventType),
+                    body.Source ?? "Console",
+                    payload,
+                    LifeOsEventPriority.High);
+
+            var cycle = ai.RunCycle(evt, userPermission: body.Confirm == true);
+            return Results.Ok(new { ok = true, scaffold = true, cycle });
+        });
 
         endpoints.MapGet(EcomAeRoutes.LifeOsMultimodal, (ILifeOsMasterSpec spec) =>
             Results.Ok(new { ok = true, part = 4, adapters = spec.MultimodalAdapters }));
@@ -72,13 +105,18 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsSpec, (
             ILifeOsMasterSpec spec,
             ILifeOsCognitiveEngines cognitive,
-            ILifeOsOrchestrator orch) =>
-            Results.Ok(spec.FullDigest(cognitive, orch.ArchitectureDigest())));
+            ILifeOsOrchestrator orch,
+            ILifeOsAiCore ai) =>
+            Results.Ok(spec.FullDigest(cognitive, new
+            {
+                part2 = orch.ArchitectureDigest(),
+                part3 = ai.FullPart3Digest()
+            })));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (
             LifeOsOrchestrateBody? body,
             ILifeOsOrchestrator orch,
-            ILifeOsCognitiveEngines cognitive,
+            ILifeOsAiCore ai,
             CancellationToken cancellationToken) =>
         {
             body ??= new LifeOsOrchestrateBody(null, null, null);
@@ -105,16 +143,14 @@ public sealed class LifeOsModule : ISurfaceModule
                     LifeOsEventPriority.High);
 
             var result = await orch.ProcessAsync(evt, cancellationToken).ConfigureAwait(false);
-            var reasoning = cognitive.Reason(result.Intent, result.Context.Sources.Select(s => $"{s.Name}:{s.Confidence:0.00}").ToList());
-            var decision = cognitive.Decide(reasoning, allowIrreversible: body.Confirm == true);
-            cognitive.Learn(result.TraceId, "orchestrate-scaffold");
+            var cycle = ai.RunCycle(evt, userPermission: body.Confirm == true);
 
             return Results.Ok(new
             {
                 ok = true,
                 scaffold = true,
                 result,
-                cognitive = new { reasoning, decision }
+                cognitiveCycle = cycle
             });
         });
     }
