@@ -6,11 +6,23 @@ public interface ILifeOsCinematicFilm
 
     string MasterPrompt { get; }
 
-    /// <summary>Static path to the published 3:00 launch film (wwwroot).</summary>
+    /// <summary>Primary theatre film (human + same-name AI clone daily routine).</summary>
     string VideoUrl { get; }
+
+    /// <summary>Muted loop-optimized hero background video.</summary>
+    string HeroVideoUrl { get; }
+
+    /// <summary>Download URL with Content-Disposition attachment (?download=1).</summary>
+    string VideoDownloadUrl { get; }
+
+    /// <summary>Legacy path alias: /lifeos/cinematic/*.mp4</summary>
+    string VideoLegacyUrl { get; }
 
     /// <summary>Poster image for the HTML5 video element.</summary>
     string PosterUrl { get; }
+
+    /// <summary>Shared human / clone identity name used in the film.</summary>
+    string ProtagonistName { get; }
 
     IReadOnlyList<LifeOsCinematicScene> Scenes { get; }
 }
@@ -39,7 +51,9 @@ public sealed record LifeOsCinematicFilmDigest(
     string Music,
     string ColorPalette,
     string RenderStatus,
+    string ProtagonistName,
     string VideoUrl,
+    string HeroVideoUrl,
     string PosterUrl,
     string MasterPrompt,
     IReadOnlyList<LifeOsCinematicScene> Scenes,
