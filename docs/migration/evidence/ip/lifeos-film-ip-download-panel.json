@@ -1,0 +1,19 @@
+{
+  "id": "lifeos-film-ip-download-panel",
+  "capturedAtUtc": "2026-08-07T11:45:00Z",
+  "verdict": "ready",
+  "frontendVideo": {
+    "home": "/lifeos",
+    "theatre": "/lifeos/cinematic-app",
+    "mp4": "/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4"
+  },
+  "ipPanel": {
+    "path": "/ip · LifeOS panel",
+    "features": [
+      "HTML5 video preview",
+      "Download MP4 (download attribute)",
+      "Download poster",
+      "Menubar Film ↓ shortcut"
+    ]
+  }
+}
