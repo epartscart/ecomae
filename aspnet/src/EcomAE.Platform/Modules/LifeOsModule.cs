@@ -8,6 +8,7 @@ using EcomAE.Platform.LifeOs.Part5;
 using EcomAE.Platform.LifeOs.Part6;
 using EcomAE.Platform.LifeOs.Part7;
 using EcomAE.Platform.LifeOs.Part8;
+using EcomAE.Platform.LifeOs.Part9;
 using EcomAE.Platform.LifeOs.Spec;
 using EcomAE.Platform.Routing;
 
@@ -257,8 +258,37 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsUxMetrics, (ILifeOsClientExperience ux) =>
             Results.Ok(ux.MetricsAndTwinDigest()));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsPlugins, (ILifeOsMasterSpec spec, ILifeOsPlatformEngineering platform) =>
-            Results.Ok(new { ok = true, part = 9, plugins = spec.Plugins, samples = platform.SamplePlugins }));
+        // ── Part 9 digests (Ch.126–150 Ecosystem / Marketplace / Dev Platform) ─
+        endpoints.MapGet(EcomAeRoutes.LifeOsPlugins, (
+            ILifeOsEcosystemPlatform eco,
+            ILifeOsMasterSpec spec,
+            ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new
+            {
+                ok = true,
+                part = 9,
+                digest = eco.FullPart9Digest(),
+                legacyPlugins = spec.Plugins,
+                samples = platform.SamplePlugins
+            }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsMarketplace, (ILifeOsEcosystemPlatform eco) =>
+            Results.Ok(eco.MarketplaceDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsAgentStore, (ILifeOsEcosystemPlatform eco) =>
+            Results.Ok(eco.AgentAndPluginDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsDeveloperPortal, (ILifeOsEcosystemPlatform eco) =>
+            Results.Ok(eco.DeveloperPlatformDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsBillingLicensing, (ILifeOsEcosystemPlatform eco) =>
+            Results.Ok(eco.BillingLicensingDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsPartners, (ILifeOsEcosystemPlatform eco) =>
+            Results.Ok(eco.PartnersCommunityGovernanceDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsEcosystemRoadmap, (ILifeOsEcosystemPlatform eco) =>
+            Results.Ok(eco.RoadmapAndAnalyticsDigest()));
 
         endpoints.MapGet(EcomAeRoutes.LifeOsRoadmap, (ILifeOsMasterSpec spec) =>
             Results.Ok(new
@@ -278,7 +308,8 @@ public sealed class LifeOsModule : ISurfaceModule
             ILifeOsPlatformEngineering platform,
             ILifeOsCloudOperations ops,
             ILifeOsSecurityGovernance gov,
-            ILifeOsClientExperience ux) =>
+            ILifeOsClientExperience ux,
+            ILifeOsEcosystemPlatform eco) =>
             Results.Ok(spec.FullDigest(cognitive, new
             {
                 part2 = orch.ArchitectureDigest(),
@@ -287,7 +318,8 @@ public sealed class LifeOsModule : ISurfaceModule
                 part5 = platform.FullPart5Digest(),
                 part6 = ops.FullPart6Digest(),
                 part7 = gov.FullPart7Digest(),
-                part8 = ux.FullPart8Digest()
+                part8 = ux.FullPart8Digest(),
+                part9 = eco.FullPart9Digest()
             })));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (

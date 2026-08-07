@@ -1,11 +1,11 @@
-@page "/lifeos/clients-app"
+@page "/lifeos/plugins-app"
 @layout Layout.PhpChromeLayout
-@using EcomAE.Platform.LifeOs.Part8
+@using EcomAE.Platform.LifeOs.Part9
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
-@inject ILifeOsClientExperience Ux
+@inject ILifeOsEcosystemPlatform Eco
 
-<PageTitle>LifeOS™ · Part 8 Client Experience</PageTitle>
+<PageTitle>LifeOS™ · Part 9 Ecosystem Platform</PageTitle>
 <PhpSurfaceHead Surface="lifeos" />
 <PhpChromeBodyClass Surface="lifeos" />
 
@@ -41,6 +41,10 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
 .lo-h2 { font-family:var(--lo-display); font-weight:400; font-size:1.4rem; margin:1.2rem 0 .4rem; }
 .lo-table { width:100%; border-collapse:collapse; font-size:.8rem; margin:.4rem 0 1rem; }
 .lo-table th, .lo-table td { text-align:left; padding:.4rem .35rem; border-bottom:1px solid #e2efe9; vertical-align:top; }
+.lo-code {
+  margin:.75rem 0; padding:.85rem 1rem; border-radius:.4rem; background:#062a26; color:#ccfbf1;
+  font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.78rem; overflow:auto; white-space:pre-wrap;
+}
 .lo-note { margin-top:1.3rem; padding:1rem; border-left:3px solid var(--lo-sun); background:#fffbeb; color:#78350f; font-size:.86rem; }
 </style>
 </HeadContent>
@@ -50,89 +54,81 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
     <div class="brand">Life<em>OS</em>™</div>
     <nav>
       <a href="@EcomAeRoutes.LifeOs">Home</a>
-      <a href="@EcomAeRoutes.LifeOsSecurityApp">Part 7</a>
       <a href="@EcomAeRoutes.LifeOsClientsApp">Part 8</a>
       <a href="@EcomAeRoutes.LifeOsPluginsApp">Part 9</a>
       <a href="@EcomAeRoutes.LifeOsSpecApp">Spec</a>
-      <a href="@EcomAeRoutes.LifeOsClients">JSON</a>
+      <a href="@EcomAeRoutes.LifeOsPlugins">JSON</a>
     </nav>
   </header>
   <main class="lo-main">
-    <h1>Part 8 — Client Experience</h1>
+    <h1>Part 9 — Ecosystem Platform</h1>
     <p>
-      Cross-platform UX scaffold: Life Design System, intent navigation, AI workspace, semantic search,
-      modality clients (web→vehicle), continuity, accessibility, offline, personalization, and focus (Ch.102–125).
+      Marketplace, Agent Store, plugins, apps, workflows, knowledge packs, developer portal, SDKs,
+      CLI, billing, certification, partners, and governance (Ch.126–150).
     </p>
 
     <div class="lo-chips">
-      @foreach (var p in Ux.ExperiencePrinciples)
+      @foreach (var a in Eco.EcosystemAnalogs)
       {
-        <span>@p.Title</span>
+        <span title="@a.Domain">@a.Title</span>
       }
     </div>
 
-    <h2 class="lo-h2">Client ecosystem (@Ux.ClientPlatforms.Count)</h2>
+    <h2 class="lo-h2">Platform layers</h2>
     <div class="lo-grid">
-      @foreach (var family in Ux.ClientPlatforms.Select(c => c.Family).Distinct())
+      @foreach (var layer in Eco.PlatformLayers)
       {
-        var items = Ux.ClientPlatforms.Where(c => c.Family == family).ToList();
         <article>
-          <strong>@family</strong>
-          <span>@string.Join(" · ", items.Select(i => i.Title))</span>
+          <strong>Layer @layer.Number — @layer.Title</strong>
+          <span>@layer.Notes</span>
         </article>
       }
     </div>
 
-    <h2 class="lo-h2">Life Design System components</h2>
+    <h2 class="lo-h2">Marketplace stores</h2>
     <div class="lo-chips">
-      @foreach (var c in Ux.DesignComponents)
+      @foreach (var s in Eco.MarketplaceStores)
       {
-        <span>@c.Title</span>
+        <span>@s.Title</span>
       }
     </div>
 
-    <h2 class="lo-h2">AI Workspace</h2>
+    <h2 class="lo-h2">Sample Agent Store listing</h2>
+    <div class="lo-code">@AgentJson</div>
+
+    <h2 class="lo-h2">Developer portal</h2>
     <div class="lo-chips">
-      @foreach (var m in Ux.AiWorkspaceModules)
+      @foreach (var m in Eco.DeveloperPortalModules)
       {
-        <span>@m.Title</span>
+        <span>@m</span>
       }
     </div>
 
-    <h2 class="lo-h2">Dashboards</h2>
+    <h2 class="lo-h2">Ecosystem roadmap</h2>
     <table class="lo-table">
-      <thead><tr><th>Dashboard</th><th>Panels</th></tr></thead>
+      <thead><tr><th>Phase</th><th>Deliverables</th></tr></thead>
       <tbody>
-      @foreach (var d in Ux.DashboardKinds)
+      @foreach (var phase in Eco.EcosystemRoadmap)
       {
         <tr>
-          <td><strong>@d.Title</strong></td>
-          <td>@string.Join(", ", d.Panels)</td>
+          <td><strong>@phase.Title</strong></td>
+          <td>@string.Join(", ", phase.Deliverables)</td>
         </tr>
       }
       </tbody>
     </table>
 
-    <h2 class="lo-h2">Focus modes</h2>
-    <div class="lo-chips">
-      @foreach (var f in Ux.FocusModes)
-      {
-        <span>@f.Title</span>
-      }
-    </div>
-
-    <h2 class="lo-h2">Accessibility</h2>
-    <div class="lo-chips">
-      @foreach (var a in Ux.AccessibilitySupports)
-      {
-        <span>@a.Title</span>
-      }
-    </div>
-
     <div class="lo-note">
-      Digests: <code>/lifeos/clients</code>, <code>/design-system</code>, <code>/workspace-ux</code>,
-      <code>/modality-clients</code>, <code>/continuity</code>, <code>/personalization</code>, <code>/ux-metrics</code>.
-      Web console is live-scaffold; native mobile/desktop/glasses/vehicle clients not claimed.
+      Digests: <code>/lifeos/plugins</code>, <code>/marketplace</code>, <code>/agent-store</code>,
+      <code>/developer-portal</code>, <code>/billing-licensing</code>, <code>/partners</code>,
+      <code>/ecosystem-roadmap</code>. Live marketplace commerce / public SDK distribution not claimed.
     </div>
   </main>
 </div>
+
+@code {
+    private string AgentJson =>
+        System.Text.Json.JsonSerializer.Serialize(
+            Eco.SampleAgentListing,
+            new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+}

@@ -59,15 +59,22 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
                 "Multi-User", "Digital Twin", "UX Metrics"
             ],
             ["ILifeOsClientExperience", "LDS + modality clients", "/lifeos/clients", "/lifeos/clients-app"]),
-        P(9, "Ecosystem Platform — Marketplace, Agent Store & Developer Portal", "registry",
+        P(9, "Ecosystem Platform, Marketplace & Developer Platform", "scaffold",
             [
-                "Marketplace", "Agent Store", "Plugin SDK", "Developer Portal", "API Marketplace",
-                "Billing", "Licensing", "Monetization", "Community", "Ecosystem Strategy"
+                "Ecosystem Vision", "Architecture", "Platform Layers", "Marketplace", "Agent Store",
+                "Plugin Marketplace", "Application Platform", "Workflow Marketplace", "Knowledge Marketplace",
+                "Integration Hub", "Developer Portal", "SDK", "Public APIs", "CLI", "Billing",
+                "Licensing", "Revenue Sharing", "Certification", "Partners", "Community",
+                "AI Model Marketplace", "Commerce", "Governance", "Analytics", "Ecosystem Roadmap"
             ],
-            ["Plugin catalog stubs", "Capability declarations", "Part 9 chapters pending paste"]),
-        P(10, "Production, Testing, Roadmap, Research", "scaffold",
-            ["Deployment", "Test floors", "Roadmap", "Future research"],
-            ["Evidence JSON", "Unit tests", "Research backlog"]),
+            ["ILifeOsEcosystemPlatform", "Agent Store sample", "/lifeos/plugins", "/lifeos/plugins-app"]),
+        P(10, "Execution Strategy & Product Roadmap", "registry",
+            [
+                "Implementation Phases", "Team Structure", "Methodology", "Testing & QA",
+                "Release Management", "Business Model", "Commercialization", "Competitive Analysis",
+                "5–10 Year Strategic Roadmap"
+            ],
+            ["Evidence JSON", "Unit tests", "Part 10 chapters pending paste"]),
     ];
 
     public IReadOnlyList<LifeOsModalityAdapter> MultimodalAdapters { get; } =
@@ -135,7 +142,13 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/continuity", "GET", "Part 8 continuity + a11y + offline"),
         new("/lifeos/personalization", "GET", "Part 8 personalization + focus + multi-user"),
         new("/lifeos/ux-metrics", "GET", "Part 8 digital twin + UX metrics"),
-        new("/lifeos/plugins", "GET", "Part 9 plugin marketplace"),
+        new("/lifeos/plugins", "GET", "Part 9 Ch.126–150 ecosystem marketplace digest"),
+        new("/lifeos/marketplace", "GET", "Part 9 marketplace stores + layers"),
+        new("/lifeos/agent-store", "GET", "Part 9 agent + plugin store digest"),
+        new("/lifeos/developer-portal", "GET", "Part 9 developer portal/SDK/API/CLI"),
+        new("/lifeos/billing-licensing", "GET", "Part 9 billing, licensing, certification"),
+        new("/lifeos/partners", "GET", "Part 9 partners, community, governance"),
+        new("/lifeos/ecosystem-roadmap", "GET", "Part 9 ecosystem analytics + roadmap phases"),
         new("/lifeos/roadmap", "GET", "Part 10 roadmap & research"),
     ];
 
@@ -200,10 +213,16 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
             note = "Full Part 8 digest at /lifeos/clients",
             principles = new[] { "Natural", "Predictive", "Non-intrusive", "Consistent", "Adaptive", "Explainable", "Accessible", "Fast" }
         },
-        part9 = new { plugins = Plugins, note = "Part 9 ecosystem marketplace chapters pending paste" },
+        part9 = new
+        {
+            plugins = Plugins,
+            note = "Full Part 9 digest at /lifeos/plugins",
+            goal = "Ecosystem for Ambient Artificial Intelligence"
+        },
         part10 = new
         {
-            testing = "LifeOsPart2–Part8ClientUx + MasterSpec tests",
+            testing = "LifeOsPart2–Part9Ecosystem + MasterSpec tests",
+            note = "Part 10 execution strategy chapters pending paste",
             roadmap = new[]
             {
                 "Wire durable memory + pgvector",
