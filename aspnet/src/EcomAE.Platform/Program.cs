@@ -689,7 +689,8 @@ app.UseMiddleware<EcomaeMarketingSnapshotMiddleware>();
 // Legacy stub→PHP /en redirect. Skipped when PreferAspNetStorefrontApps (product ASP.NET primary).
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
-// lifeos.ecomae.com bare / → /lifeos product home (before host gates).
+// lifeos.ecomae.com bare / or mis-routed /marketing/app → redirect /lifeos (short-circuit).
+// Must short-circuit with Redirect: implicit UseRouting already matched /marketing/app.
 app.UseMiddleware<LifeOsHostHomeMiddleware>();
 // BOS is Super-CP / platform only — never answer /bos on tenant hosts (epartscart, …).
 app.UseMiddleware<BosHostGateMiddleware>();
@@ -701,6 +702,8 @@ app.UseMiddleware<RouteCutoverDecisionMiddleware>();
 app.UseMiddleware<AdminSurfaceAuthGateMiddleware>();
 // Credential POSTs on /cp|/erp|/bos|/ip|/lifeos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.
 app.UseMiddleware<LegacyLoginBridgeMiddleware>();
+// Explicit routing after host gates so any future Path rewrites before this line re-match.
+app.UseRouting();
 // Required for Blazor SSR endpoints (MapRazorComponents adds antiforgery metadata).
 app.UseAntiforgery();
 

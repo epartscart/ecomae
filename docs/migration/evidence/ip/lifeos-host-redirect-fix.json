@@ -1,0 +1,21 @@
+{
+  "id": "lifeos-host-redirect-fix",
+  "capturedAtUtc": "2026-08-07T10:30:00Z",
+  "verdict": "ready",
+  "liveSymptom": {
+    "url": "https://lifeos.ecomae.com/",
+    "header": "X-EcomAE-LifeOs-Host: marketing-divert",
+    "body": "ECOM AE marketing (unstyled — PHP CSS paths fail on lifeos host)",
+    "rootCause": "Path rewrite after implicit UseRouting left /marketing/app endpoint selected; middleware header set but MarketingPreviewApp still rendered. /lifeos direct already worked."
+  },
+  "fix": {
+    "middleware": "LifeOsHostHomeMiddleware now 302 → /lifeos (short-circuit, does not call next)",
+    "reasons": ["home-redirect for /", "marketing-divert for /marketing/app"],
+    "program": "Explicit app.UseRouting() after host gates"
+  },
+  "proveAfterForceLive": [
+    "curl -sI https://lifeos.ecomae.com/ | grep -iE 'HTTP/|location|x-ecomae-lifeos'",
+    "curl -sL https://lifeos.ecomae.com/ | grep -i 'LifeOS'",
+    "Expect: 302 Location: /lifeos then LifeOS™ title — not ECOM AE marketing"
+  ]
+}
