@@ -1516,6 +1516,15 @@ public static class EcomAeRoutes
     public const string LifeOsKnowledgeGraph = "/lifeos/knowledge-graph";
     public const string LifeOsAgentSdk = "/lifeos/agent-sdk";
     public const string LifeOsAiGateway = "/lifeos/ai-gateway";
+    public const string LifeOsInfra = "/lifeos/infra";
+    public const string LifeOsInfraApp = "/lifeos/infra-app";
+    public const string LifeOsKubernetes = "/lifeos/kubernetes";
+    public const string LifeOsCiCd = "/lifeos/cicd";
+    public const string LifeOsGpu = "/lifeos/gpu";
+    public const string LifeOsBackupDr = "/lifeos/backup-dr";
+    public const string LifeOsObservability = "/lifeos/observability";
+    public const string LifeOsSre = "/lifeos/sre";
+    public const string LifeOsReadiness = "/lifeos/readiness";
     public const string LifeOsSecurityDigest = "/lifeos/security";
     public const string LifeOsClients = "/lifeos/clients";
     public const string LifeOsPlugins = "/lifeos/plugins";

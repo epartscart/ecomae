@@ -5,6 +5,7 @@ using EcomAE.Platform.LifeOs.Orchestrator;
 using EcomAE.Platform.LifeOs.Part3;
 using EcomAE.Platform.LifeOs.Part4;
 using EcomAE.Platform.LifeOs.Part5;
+using EcomAE.Platform.LifeOs.Part6;
 using EcomAE.Platform.LifeOs.Spec;
 using EcomAE.Platform.Routing;
 
@@ -163,6 +164,31 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsAiGateway, (ILifeOsPlatformEngineering platform) =>
             Results.Ok(new { ok = true, routes = platform.AiGatewayRoutes }));
 
+        // ── Part 6 digests (Ch.61–81 Cloud / DevOps / SRE) ────────────────────
+        endpoints.MapGet(EcomAeRoutes.LifeOsInfra, (ILifeOsCloudOperations ops) =>
+            Results.Ok(ops.FullPart6Digest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsKubernetes, (ILifeOsCloudOperations ops) =>
+            Results.Ok(ops.KubernetesDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsCiCd, (ILifeOsCloudOperations ops) =>
+            Results.Ok(ops.CiCdDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsGpu, (ILifeOsCloudOperations ops) =>
+            Results.Ok(ops.GpuAndModelServingDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsBackupDr, (ILifeOsCloudOperations ops) =>
+            Results.Ok(ops.BackupAndDrDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsObservability, (ILifeOsCloudOperations ops) =>
+            Results.Ok(ops.ObservabilityDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsSre, (ILifeOsCloudOperations ops) =>
+            Results.Ok(ops.SreDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsReadiness, (ILifeOsCloudOperations ops) =>
+            Results.Ok(new { ok = true, checklist = ops.ProductionReadinessChecklist, targets = ops.PerformanceTargets }));
+
         endpoints.MapGet(EcomAeRoutes.LifeOsSecurityDigest, (ILifeOsMasterSpec spec, ILifeOsPlatformEngineering platform) =>
             Results.Ok(new { ok = true, part = 7, controls = spec.SecurityControls, auth = platform.AuthDigest() }));
 
@@ -187,13 +213,15 @@ public sealed class LifeOsModule : ISurfaceModule
             ILifeOsOrchestrator orch,
             ILifeOsAiCore ai,
             ILifeOsMultimodalRuntime runtime,
-            ILifeOsPlatformEngineering platform) =>
+            ILifeOsPlatformEngineering platform,
+            ILifeOsCloudOperations ops) =>
             Results.Ok(spec.FullDigest(cognitive, new
             {
                 part2 = orch.ArchitectureDigest(),
                 part3 = ai.FullPart3Digest(),
                 part4 = runtime.FullPart4Digest(),
-                part5 = platform.FullPart5Digest()
+                part5 = platform.FullPart5Digest(),
+                part6 = ops.FullPart6Digest()
             })));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (

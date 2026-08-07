@@ -34,17 +34,22 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
                 "Auth", "Multi-Tenant", "Observability", "Engineering Standards"
             ],
             ["ILifeOsPlatformEngineering", "22 microservices", "API envelopes", "/lifeos/platform"]),
-        P(6, "Cloud Infrastructure & Production Operations", "registry",
+        P(6, "Cloud Infrastructure, DevOps & Production Operations", "scaffold",
             [
-                "Kubernetes", "Multi-Region", "Service Mesh", "CI/CD", "Infrastructure as Code",
-                "Auto-Scaling", "High Availability", "Disaster Recovery", "Edge Computing",
-                "GPU Clusters", "Model Serving", "Secrets Management", "Production Monitoring",
-                "Performance Optimization", "Cost Management", "SRE Playbooks"
+                "Infrastructure Vision", "Global Architecture", "Kubernetes", "Service Mesh",
+                "IaC", "CI", "CD", "Containers", "Auto Scaling", "GPU", "Model Serving",
+                "Object Storage", "Backup", "Disaster Recovery", "Monitoring", "Logging",
+                "Secrets", "Edge", "Performance", "SRE", "Production Readiness"
             ],
-            ["Deploy paste", "Health probes", "FORCE_LIVE republish note", "Part 6 chapters pending paste"]),
-        P(7, "Security, Privacy, Compliance, Enterprise", "scaffold",
-            ["Privacy by design", "Permission gates", "Audit", "Compliance map"],
-            ["Local-first controls", "Irreversible-action policy"]),
+            ["ILifeOsCloudOperations", "K8s/GPU/SRE digests", "/lifeos/infra", "FORCE_LIVE note"]),
+        P(7, "Enterprise Security, Privacy, Compliance & Governance", "registry",
+            [
+                "Zero Trust", "IAM", "RBAC/ABAC", "Data Classification", "Encryption",
+                "Privacy-by-Design", "Consent", "Audit & Compliance", "AI Governance",
+                "Policy Engine", "Enterprise Admin", "Data Residency", "Threat Detection",
+                "SOC", "Governance Dashboards", "AI Safety & Human Oversight"
+            ],
+            ["Local-first controls", "Irreversible-action policy", "Part 7 chapters pending paste"]),
         P(8, "Native Clients", "scaffold",
             ["Mobile", "Desktop", "Smart Glasses", "IoT"],
             ["Client surface registry", "Channel capabilities"]),
@@ -97,6 +102,14 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/knowledge-graph", "GET", "Part 5 knowledge graph sample"),
         new("/lifeos/agent-sdk", "GET", "Part 5 agent/plugin SDK contracts"),
         new("/lifeos/ai-gateway", "GET", "Part 5 AI Gateway routing table"),
+        new("/lifeos/infra", "GET", "Part 6 Ch.61–81 cloud/DevOps/SRE digest"),
+        new("/lifeos/kubernetes", "GET", "Part 6 Kubernetes + mesh digest"),
+        new("/lifeos/cicd", "GET", "Part 6 CI/CD + containers + autoscaling"),
+        new("/lifeos/gpu", "GET", "Part 6 GPU + model serving + object storage"),
+        new("/lifeos/backup-dr", "GET", "Part 6 backup + disaster recovery"),
+        new("/lifeos/observability", "GET", "Part 6 monitoring/logging/secrets"),
+        new("/lifeos/sre", "GET", "Part 6 SRE objectives + incident lifecycle"),
+        new("/lifeos/readiness", "GET", "Part 6 production readiness checklist"),
         new("/lifeos/security", "GET", "Part 7 security controls"),
         new("/lifeos/clients", "GET", "Part 8 client surfaces"),
         new("/lifeos/plugins", "GET", "Part 9 plugin marketplace"),
@@ -147,22 +160,24 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         part6 = new
         {
             cloud = "ASP.NET primary on Kestrel :5100 behind nginx/CloudPanel",
-            k8s = "roadmap",
+            k8s = "scaffold registry — full digest at /lifeos/infra",
             deploy = "scripts/cloudpanel_FORCE_LIVE_NOW.sh after merge to main",
-            monitoring = "health checks + migration digests + Part 4/5 observability"
+            monitoring = "health checks + migration digests + Part 6 observability registry",
+            note = "Multi-region K8s/Istio/GPU not claimed"
         },
-        part7 = new { controls = SecurityControls },
+        part7 = new { controls = SecurityControls, note = "Part 7 security/governance chapters pending paste" },
         part8 = new { clients = Clients },
         part9 = new { plugins = Plugins },
         part10 = new
         {
-            testing = "LifeOsPart2 + Part3 + Part4 + Part5Platform + MasterSpec tests",
+            testing = "LifeOsPart2 + Part3 + Part4 + Part5Platform + Part6CloudOps + MasterSpec tests",
             roadmap = new[]
             {
                 "Wire durable memory + pgvector",
                 "Live LLM reasoning behind AI Gateway",
                 "Kafka/NATS event bus option",
                 "Istio service mesh",
+                "Multi-region Kubernetes",
                 "Mobile/desktop/glasses clients",
                 "Plugin marketplace GA"
             },
