@@ -303,7 +303,8 @@ public sealed class LifeOsModule : ISurfaceModule
                 digest = exec.FullPart10Digest()
             }));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsSpec, (
+        // JSON digest moved off /lifeos/spec so browsers get the Spec UI (Blazor @page "/lifeos/spec").
+        endpoints.MapGet(EcomAeRoutes.LifeOsSpecJson, (
             ILifeOsMasterSpec spec,
             ILifeOsCognitiveEngines cognitive,
             ILifeOsOrchestrator orch,

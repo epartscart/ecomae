@@ -1,0 +1,11 @@
+{
+  "id": "lifeos-spec-ui-not-json",
+  "capturedAtUtc": "2026-08-07T11:05:00Z",
+  "verdict": "fixed",
+  "issue": "https://www.ecomae.com/lifeos/spec showed raw JSON (MapGet digest) instead of Spec UI",
+  "fix": {
+    "ui": "/lifeos/spec (+ /lifeos/spec-app alias)",
+    "json": "/lifeos/spec/json"
+  },
+  "note": "Blazor LifeOsSpecApp owns /lifeos/spec; JSON digest moved to avoid AmbiguousMatch and browser raw-code view"
+}

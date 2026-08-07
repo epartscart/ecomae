@@ -1494,8 +1494,10 @@ public static class EcomAeRoutes
     /// <summary>POST dry-run orchestration of a sample or supplied event (scaffold, no irreversible side effects).</summary>
     public const string LifeOsOrchestrate = "/lifeos/orchestrate";
 
-    /// <summary>LifeOS Master Spec v4.0 Parts 3–10 digests.</summary>
+    /// <summary>LifeOS Master Spec UI (Parts 1–10). Prefer this over <see cref="LifeOsSpecApp"/>.</summary>
     public const string LifeOsSpec = "/lifeos/spec";
+    /// <summary>JSON digest for Master Spec Parts 1–10 (was historically at /lifeos/spec).</summary>
+    public const string LifeOsSpecJson = "/lifeos/spec/json";
     public const string LifeOsCognitive = "/lifeos/cognitive";
     public const string LifeOsCognitiveApp = "/lifeos/cognitive-app";
     public const string LifeOsCognitiveCycle = "/lifeos/cognitive-cycle";

@@ -56,7 +56,7 @@ public static class LifeOsLinkCatalog
         new("frontend", 8, "Part 8 clients console", "/lifeos/clients-app", "GET", "www + lifeos", "Design System · Workspace · Modality · Continuity"),
         new("frontend", 9, "Part 9 plugins console", "/lifeos/plugins-app", "GET", "www + lifeos", "Marketplace · Agent Store · Developer Portal · Partners"),
         new("frontend", 10, "Part 10 roadmap console", "/lifeos/roadmap-app", "GET", "www + lifeos", "Mission · Vision 2035 · Phases · Portfolio · Ch.151–168"),
-        new("frontend", 10, "Master Spec Parts 1–10 UI", "/lifeos/spec-app", "GET", "www + lifeos", "All parts registry + roadmap"),
+        new("frontend", 10, "Master Spec Parts 1–10 UI", "/lifeos/spec", "GET", "www + lifeos", "All parts registry + roadmap (/lifeos/spec-app alias)"),
     ];
 
     /// <summary>JSON / POST backend digests (API surfaces from master spec + auth).</summary>
