@@ -87,7 +87,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
     }
 
     public LifeOsJoinResult OpenTestClient() =>
-        ToJoinResult(TestClient, "Test client ready — open companion or view your results (signed-in session required).");
+        ToJoinResult(TestClient, "Test client ready — open companion or view your results with the private join token.");
 
     public LifeOsJoinResult Join(LifeOsJoinRequest request)
     {
@@ -159,9 +159,10 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
             null,
             null);
 
-        return ToJoinResult(
-            RefreshCounts(profile),
-            $"Welcome, {name}. Your clone {name} is bound to your signed-in account — keep this device session private.");
+        var welcome = profile.OwnerUserId is > 0
+            ? $"Welcome, {name}. Your clone {name} is bound to your signed-in account — keep this device session private."
+            : $"Welcome, {name}. Your clone {name} is ready — keep your join token private on this device.";
+        return ToJoinResult(RefreshCounts(profile), welcome);
     }
 
     public object DirectoryDigest() => new
@@ -169,7 +170,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         ok = true,
         scaffold = true,
         title = "LifeOS client join directory",
-        note = "Login required. Sign in at /lifeos/login, then join — personal client binds to your account.",
+        note = "New users join at /lifeos/join (public). Existing accounts sign in at /lifeos/login. Companion/results use clientId + joinToken.",
         testClient = Public(TestClient),
         clients = List().Select(Public).ToArray(),
         join = "/lifeos/join",
@@ -183,7 +184,8 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         login = "/lifeos/login",
         manifest = LifeOsPwaAssets.ManifestPath,
         capabilities = DefaultCapabilities,
-        loginRequired = true,
+        joinPublic = true,
+        loginRequired = false,
     };
 
     public object ControlPanelDigest() => new
@@ -191,7 +193,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         ok = true,
         scaffold = true,
         title = "LifeOS joined clients — Control Panel",
-        authNote = "Login required for join/results/companion. CP board shows operator view of in-memory joins.",
+        authNote = "Join is public for new users. Companion/results use join tokens. CP board shows operator view of in-memory joins.",
         totalClients = List().Count,
         countries = List()
             .GroupBy(c => c.CountryCode ?? c.Country ?? "unknown")

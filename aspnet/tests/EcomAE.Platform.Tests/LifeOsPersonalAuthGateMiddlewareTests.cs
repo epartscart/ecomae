@@ -13,19 +13,30 @@ public sealed class LifeOsPersonalAuthGateMiddlewareTests
     [InlineData("/lifeos/join.js", false)]
     [InlineData("/lifeos/companion.js", false)]
     [InlineData("/lifeos/manifest.webmanifest", false)]
-    [InlineData("/lifeos/join", true)]
-    [InlineData("/lifeos/mobile", true)]
-    [InlineData("/lifeos/results", true)]
-    [InlineData("/lifeos/results/json", true)]
-    [InlineData("/lifeos/companion", true)]
-    [InlineData("/lifeos/companion/track", true)]
-    [InlineData("/lifeos/companion/talk", true)]
+    // Join + token companion/results are public for new users.
+    [InlineData("/lifeos/join", false)]
+    [InlineData("/lifeos/mobile", false)]
+    [InlineData("/lifeos/results", false)]
+    [InlineData("/lifeos/results/json", false)]
+    [InlineData("/lifeos/companion", false)]
+    [InlineData("/lifeos/companion/track", false)]
+    [InlineData("/lifeos/companion/talk", false)]
+    // Operator / console surfaces still require login.
     [InlineData("/lifeos/clients-board", true)]
     [InlineData("/lifeos/clients/cp", true)]
     [InlineData("/lifeos/directory", true)]
     [InlineData("/lifeos/app", true)]
+    [InlineData("/lifeos/brain", true)]
     public void Personal_surfaces_require_login(string path, bool required)
     {
         Assert.Equal(required, LifeOsPersonalAuthGateMiddleware.RequiresPersonalLogin(path));
+    }
+
+    [Fact]
+    public void Join_and_login_are_separate_public_entry_paths()
+    {
+        Assert.False(LifeOsPersonalAuthGateMiddleware.RequiresPersonalLogin("/lifeos/join"));
+        Assert.False(LifeOsPersonalAuthGateMiddleware.RequiresPersonalLogin("/lifeos/login"));
+        Assert.True(LifeOsPersonalAuthGateMiddleware.RequiresPersonalLogin("/lifeos/app"));
     }
 }

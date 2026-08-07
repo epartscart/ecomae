@@ -36,7 +36,7 @@ public static class LifeOsLinkCatalog
         new("frontend", 1, "LifeOS home infographic", "/lifeos", "GET", "lifeos.ecomae.com + www", "Purpose · Mission · Principles · Product · Cognitive Model · Brain"),
         new("frontend", 1, "LifeOS legal footer (PHP parity)", "https://www.ecomae.com/legal", "GET", "www canonical · linked from lifeos footer", "All policies · Privacy · Terms · Cookies · Copyright · …"),
         new("frontend", 1, "LifeOS login (personal gate)", "/lifeos/login", "GET", "www + lifeos", "Sign in before join / companion / results"),
-        new("frontend", 1, "Join & install companion", "/lifeos/join", "GET", "www + lifeos", "Signed-in join · binds personal client to account"),
+        new("frontend", 1, "Join & install companion", "/lifeos/join", "GET", "www + lifeos", "Public join for new users · separate from /lifeos/login"),
         new("frontend", 1, "Mobile companion PWA", "/lifeos/mobile", "GET", "www + lifeos", "Track · Talk · Listen · Guide · login required"),
         new("frontend", 1, "My results (client self-serve)", "/lifeos/results", "GET", "www + lifeos", "Discussions + tracking · signed-in · clientId + token"),
         new("frontend", 1, "Joined clients board", "/lifeos/clients-board", "GET", "www + lifeos", "Operator/personal login · country · device · activity"),

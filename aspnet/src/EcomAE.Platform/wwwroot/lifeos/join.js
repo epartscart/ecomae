@@ -44,7 +44,7 @@
       '<li>Id: <code>' + (c.clientId || '') + '</code></li>' +
       '<li>Country: <strong>' + (c.country || c.countryCode || '—') + '</strong>' + (c.city ? ' · ' + c.city : '') + '</li>' +
       '<li>Timezone: ' + (c.timeZone || '—') + ' · Source: ' + (c.joinSource || '—') + '</li>' +
-      '<li>Token saved on this signed-in device (keep private)</li>';
+      '<li>Join token saved on this device (keep private)</li>';
     $('lojoin-open-companion').href = data.companionUrl || '#';
     $('lojoin-open-results').href = data.resultsUrl || '#';
     const ol = $('lojoin-next');
@@ -71,6 +71,9 @@
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
+        if (data && data.code === 'lifeos_login_required' && data.login) {
+          throw new Error('Join should be public — refresh and try again, or open ' + (data.join || '/lifeos/join'));
+        }
         throw new Error(data.message || data.error || ('Join failed (' + res.status + ')'));
       }
       if (status) status.textContent = 'Joined successfully.';

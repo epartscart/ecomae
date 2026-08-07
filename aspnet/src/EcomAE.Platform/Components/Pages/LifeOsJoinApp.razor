@@ -30,19 +30,20 @@
     <nav>
       <a href="@EcomAeRoutes.LifeOs">Home</a>
       <a class="is-active" href="@EcomAeRoutes.LifeOsJoin">Join</a>
+      <a href="@EcomAeRoutes.LifeOsLogin">Sign in</a>
       <a href="@EcomAeRoutes.LifeOsMobile">Mobile</a>
       <a href="@EcomAeRoutes.LifeOsResults">My results</a>
-      <a href="@EcomAeRoutes.LifeOsClientsBoard">Clients board</a>
     </nav>
   </header>
 
   <main class="lojoin-main">
-    <p class="lojoin-kicker">Signed-in only · private personal LifeOS</p>
+    <p class="lojoin-kicker">New users · join without signing in</p>
     <h1>Join LifeOS and install the tracking companion</h1>
     <p class="lojoin-lede">
-      Personal daily tracking and clone conversations are confidential.
-      Sign in first, then create your client. Your AI clone uses the <strong>same name</strong> as you.
-      Results stay bound to your account — open <strong>My results</strong> while signed in.
+      Create your personal LifeOS client here — no login required for new users.
+      Your AI clone uses the <strong>same name</strong> as you. A private join token stays on this device
+      for companion and results. Already have an ecomae account?
+      <a href="@EcomAeRoutes.LifeOsLogin">Sign in separately</a>.
     </p>
 
     <form id="lojoin-form" class="lojoin-form" action="@EcomAeRoutes.LifeOsJoin" method="post">

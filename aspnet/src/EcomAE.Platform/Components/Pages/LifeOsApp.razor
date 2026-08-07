@@ -94,8 +94,8 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
       <section class="lo-intro">
         <h1>Sign in to LifeOS</h1>
         <p>
-          Personal join, companion, and results are private. Sign in with your ecomae account,
-          then complete joining — your daily life data stays bound to this session.
+          For existing ecomae accounts. Sign in to open the console or bind an account to a client.
+          New here? <a href="@EcomAeRoutes.LifeOsJoin">Join LifeOS</a> — joining does not require login.
         </p>
       </section>
       <form class="lo-login-box" method="post" action="@EcomAeRoutes.LifeOsLogin">
@@ -106,8 +106,11 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
         <input id="loEmail" type="email" name="contact" required autocomplete="username" placeholder="you@example.com" />
         <label for="loPassword">Password</label>
         <input id="loPassword" type="password" name="password" required autocomplete="current-password" />
-        <button type="submit">Sign in &amp; continue to join</button>
+        <button type="submit">Sign in</button>
       </form>
+      <p style="margin-top:1rem;font-size:.9rem;color:#475569;">
+        New user? <a href="@EcomAeRoutes.LifeOsJoin">Go to Join</a> instead.
+      </p>
     }
     else
     {
@@ -166,7 +169,8 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
                 return returnUrl;
             }
 
-            return EcomAeRoutes.LifeOsJoin;
+            // Existing users land on home/console — join is a separate public path.
+            return EcomAeRoutes.LifeOs;
         }
     }
 }
