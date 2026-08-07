@@ -69,6 +69,7 @@ public static class EcomaeEcosystemCatalog
     public static readonly IReadOnlyList<EcosystemNode> LifeOsConsoles =
     [
         new("home", "LifeOS Home", "Premium product home", "/lifeos", "live"),
+        new("demo", "How it works", "Sample data Perceive→Decide→Act→Learn", "/lifeos/demo-app", "live"),
         new("brain", "Brain console", "Nine cognitive engines", "/lifeos/brain", "scaffold"),
         new("architecture", "Architecture", "Part 2 orchestrator console", "/lifeos/architecture-app", "scaffold"),
         new("cognitive", "Cognitive", "Part 3 AI core", "/lifeos/cognitive-app", "scaffold"),
