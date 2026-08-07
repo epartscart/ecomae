@@ -1,0 +1,81 @@
+@page "/cp/prices-send-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Prices send · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+    .epc-cpmod-hero {
+        margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+        background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
+    }
+    .epc-cpmod-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+    .epc-cpmod-hero p { margin:0; color:rgba(255,255,255,.9); max-width:46rem; font-size:.92rem; line-height:1.45; }
+    .epc-cpmod-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+    .epc-cpmod-cta a {
+        display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+        text-decoration:none; color:#0f172a; background:#fff;
+    }
+    .epc-cpmod-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+    .epc-cpmod-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+    .epc-cpmod-card { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:1rem; }
+    .epc-cpmod-card h3 { margin:0 0 .4rem; font-size:1rem; }
+    .epc-cpmod-card p, .epc-cpmod-card li { margin:0; color:#475569; font-size:.86rem; line-height:1.45; }
+    .epc-cpmod-card ul { margin:.35rem 0 0; padding-left:1.1rem; }
+    .epc-cpmod-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
+    @@media (max-width:900px){ .epc-cpmod-grid{grid-template-columns:1fr;} }
+</style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+    <section class="epc-cpmod-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Prices send</h1>
+        <p>Publish/send price lists to connected channels and partners. Send ajax remains PHP.</p>
+        <div class="epc-cpmod-cta">
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open PHP reference module</a>
+            <a class="ghost" href="/cp/prices-edit-app">Prices edit</a>
+            <a class="ghost" href="/cp/marketplace-channels-app">Channels</a>
+            <a class="ghost" href="/cp">Command centre</a>
+        </div>
+    </section>
+
+    <div class="epc-cpmod-grid">
+        <div class="epc-cpmod-card">
+            <h3>ASP.NET-primary surface</h3>
+            <p>Route: <code>/cp/prices-send-app</code></p>
+            <p style="margin-top:.4rem;">PHP path: <code>/CP/shop/prices_send</code></p>
+            <p style="margin-top:.4rem;">Product locks: cutoverAllowed=false · readyForPhpRemoval=false · PHP authoritative for writes.</p>
+        </div>
+
+    <div class="epc-cpmod-card">
+        <h3>PHP ajax reference</h3>
+        <ul>
+            <li><code>ajax_operations</code></li>
+        </ul>
+        <p>ASP.NET dry-runs validate payloads with writes=0; live execution stays on PHP.</p>
+    </div>
+    </div>
+
+    <div class="epc-cpmod-note">
+        ePartsCart tenant CP maps this PHP module here so mega-menu / deep links no longer collapse to Command Centre.
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/prices_send";
+    private bool _isAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin;
+    }
+}
