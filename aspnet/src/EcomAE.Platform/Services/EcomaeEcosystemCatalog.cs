@@ -69,6 +69,8 @@ public static class EcomaeEcosystemCatalog
     public static readonly IReadOnlyList<EcosystemNode> LifeOsConsoles =
     [
         new("home", "LifeOS Home", "Premium product home", "/lifeos", "live"),
+        new("join", "Join & install", "New client onboarding + PWA install", "/lifeos/join", "live"),
+        new("mobile", "Mobile companion", "Track · Talk · Listen · Guide (browser PWA)", "/lifeos/mobile", "live"),
         new("routine", "24/7 Routine", "Daily Human Routine Matrix · purpose", "/lifeos/routine", "live"),
         new("demo", "How it works", "Sample data Perceive→Decide→Act→Learn", "/lifeos/demo-app", "live"),
         new("cinematic", "Launch film", "3:00 MP4 — watch / download", "/lifeos/cinematic-app", "live"),

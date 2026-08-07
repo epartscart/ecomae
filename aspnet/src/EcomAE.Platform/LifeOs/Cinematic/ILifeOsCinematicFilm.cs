@@ -15,7 +15,7 @@ public interface ILifeOsCinematicFilm
     /// <summary>Download URL with Content-Disposition attachment (?download=1).</summary>
     string VideoDownloadUrl { get; }
 
-    /// <summary>Legacy path alias: /lifeos/cinematic/*.mp4</summary>
+    /// <summary>Legacy download path kept for bookmarks: /lifeos/cinematic/*.mp4</summary>
     string VideoLegacyUrl { get; }
 
     /// <summary>Poster image for the HTML5 video element.</summary>

@@ -1001,6 +1001,7 @@ app.MapEcomAeSurfaceModules();
 PhpLegacyAssetBridge.Map(app, app.Environment);
 // LifeOS cinematic MP4/PNG — platform does not UseStaticFiles; serve wwwroot explicitly.
 EcomAE.Platform.LifeOs.Cinematic.LifeOsCinematicAssets.Map(app, app.Environment);
+EcomAE.Platform.LifeOs.Clients.LifeOsPwaAssets.Map(app, app.Environment);
 
 // Blazor SSR ops console (exact /migration/console). Interim improvement UI — not product chrome cutover.
 app.MapRazorComponents<App>();

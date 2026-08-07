@@ -4,12 +4,14 @@ namespace EcomAE.Platform.LifeOs.Cinematic;
 /// Serves LifeOS cinematic media from wwwroot. The platform does not call
 /// <c>UseStaticFiles</c>, so bare wwwroot paths 404 on live.
 /// Primary: <c>/lifeos/media/{file}</c>
-/// Legacy alias: <c>/lifeos/cinematic/{file}</c> for old download links.
-/// Exact <c>/lifeos/cinematic</c> remains the JSON digest.
+/// Legacy alias: <c>/lifeos/cinematic/{file}</c> (download links still use this).
+/// Exact <c>/lifeos/cinematic</c> remains the JSON digest from <see cref="Modules.LifeOsModule"/>.
 /// </summary>
 public static class LifeOsCinematicAssets
 {
     public const string MediaPrefix = "/lifeos/media";
+
+    /// <summary>Legacy public download path used by older links and bookmarks.</summary>
     public const string LegacyCinematicPrefix = "/lifeos/cinematic";
 
     private static readonly HashSet<string> AllowList = new(StringComparer.OrdinalIgnoreCase)
@@ -34,6 +36,8 @@ public static class LifeOsCinematicAssets
     {
         endpoints.MapGet(MediaPrefix + "/{fileName}", (HttpContext http, string fileName) =>
             Serve(env, http, fileName));
+
+        // Keep old download URLs working: /lifeos/cinematic/*.mp4
         endpoints.MapGet(LegacyCinematicPrefix + "/{fileName}", (HttpContext http, string fileName) =>
             Serve(env, http, fileName));
     }
@@ -74,6 +78,7 @@ public static class LifeOsCinematicAssets
                 title: "lifeos-media-lfs-pointer");
         }
 
+        // ?download=1 (or any non-zero download query) → Content-Disposition: attachment
         var forceDownload = http.Request.Query.TryGetValue("download", out var downloadVals)
             && !string.Equals(downloadVals.ToString(), "0", StringComparison.OrdinalIgnoreCase);
 

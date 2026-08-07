@@ -141,7 +141,11 @@ Palette: white, silver, deep black, blue, cyan. Aspect 16:9.
             "Theatre: /lifeos/cinematic-app with scene jumps and native volume controls",
             "Human and clone share the name Amina — spoken dialogue is Amina → Amina over ambient score",
             "Both MP4s include stereo AAC audio (dialogue + score)",
-            "Legacy alias: /lifeos/cinematic/{file} · forced download ?download=1",
+            "Media: GET /lifeos/media/lifeos-daily-clone-routine.mp4 (range-enabled)",
+            "Legacy download alias: GET /lifeos/cinematic/{file}",
+            "Forced download: GET /lifeos/media/...?download=1",
+            "JSON bible: GET /lifeos/cinematic",
             "Aligned with /lifeos/routine 24/7 Daily Human Routine Matrix",
+            "Legacy launch cut still allowlisted: lifeos-cinematic-launch-3min.mp4",
         ]);
 }

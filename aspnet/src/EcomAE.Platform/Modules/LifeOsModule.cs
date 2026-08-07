@@ -1,4 +1,6 @@
+using System.Text.Json;
 using EcomAE.Platform.LifeOs.Cinematic;
+using EcomAE.Platform.LifeOs.Clients;
 using EcomAE.Platform.LifeOs.Demo;
 using EcomAE.Platform.LifeOs.Engines;
 using EcomAE.Platform.LifeOs.Purpose;
@@ -307,7 +309,8 @@ public sealed class LifeOsModule : ISurfaceModule
             }));
 
         // JSON digest moved off /lifeos/spec so browsers get the Spec UI (Blazor @page "/lifeos/spec").
-        endpoints.MapGet(EcomAeRoutes.LifeOsSpecJson, (
+        // Rich Part 2–10 digests are top-level fields (never nested under part2).
+        endpoints.MapMethods(EcomAeRoutes.LifeOsSpecJson, ["GET", "HEAD"], (
             ILifeOsMasterSpec spec,
             ILifeOsCognitiveEngines cognitive,
             ILifeOsOrchestrator orch,
@@ -319,18 +322,22 @@ public sealed class LifeOsModule : ISurfaceModule
             ILifeOsClientExperience ux,
             ILifeOsEcosystemPlatform eco,
             ILifeOsExecutionStrategy exec) =>
-            Results.Ok(spec.FullDigest(cognitive, new
-            {
-                part2 = orch.ArchitectureDigest(),
-                part3 = ai.FullPart3Digest(),
-                part4 = runtime.FullPart4Digest(),
-                part5 = platform.FullPart5Digest(),
-                part6 = ops.FullPart6Digest(),
-                part7 = gov.FullPart7Digest(),
-                part8 = ux.FullPart8Digest(),
-                part9 = eco.FullPart9Digest(),
-                part10 = exec.FullPart10Digest()
-            })));
+        {
+            var digest = spec.FullDigest(cognitive, new LifeOsSpecRuntimeDigests(
+                Part2: orch.ArchitectureDigest(),
+                Part3: ai.FullPart3Digest(),
+                Part4: runtime.FullPart4Digest(),
+                Part5: platform.FullPart5Digest(),
+                Part6: ops.FullPart6Digest(),
+                Part7: gov.FullPart7Digest(),
+                Part8: ux.FullPart8Digest(),
+                Part9: eco.FullPart9Digest(),
+                Part10: exec.FullPart10Digest()));
+
+            return Results.Json(
+                digest,
+                new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
+        });
 
         // ── How-it-works sample demo (Perceive→Decide→Act→Learn) ───────────
         endpoints.MapGet(EcomAeRoutes.LifeOsDemo, async (
@@ -361,6 +368,41 @@ public sealed class LifeOsModule : ISurfaceModule
                 .ConfigureAwait(false);
             return Results.Ok(new { ok = true, scaffold = true, result });
         });
+
+        // ── Client join + mobile companion (PWA track/talk/listen/guide) ───
+        endpoints.MapGet(EcomAeRoutes.LifeOsDirectory, (ILifeOsClientDirectory dir) =>
+            Results.Ok(dir.DirectoryDigest()));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsJoinApi, (LifeOsJoinRequest? body, ILifeOsClientDirectory dir) =>
+        {
+            body ??= new LifeOsJoinRequest(null, null, null, null);
+            var result = dir.Join(body);
+            return Results.Ok(result);
+        });
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsCompanion, (
+            string? clientId,
+            string? token,
+            ILifeOsClientDirectory dir) =>
+            Results.Ok(new
+            {
+                ok = true,
+                scaffold = true,
+                session = dir.CompanionSession(clientId ?? LifeOsClientDirectory.TestClientId, token)
+            }));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsCompanionTrack, (
+            LifeOsTrackEvent? body,
+            ILifeOsClientDirectory dir) =>
+            Results.Ok(dir.RecordTrack(body ?? new LifeOsTrackEvent(null, null, null, null, null, null))));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsCompanionTalk, (
+            LifeOsTalkRequest? body,
+            ILifeOsClientDirectory dir) =>
+            Results.Ok(dir.Talk(body ?? new LifeOsTalkRequest(null, null, null, null))));
+
+        endpoints.MapGet("/lifeos/companion/digest", (ILifeOsClientDirectory dir) =>
+            Results.Ok(dir.CompanionDigest()));
 
         // ── Cinematic launch film (3:00 storyboard + master prompt) ────────
         endpoints.MapGet(EcomAeRoutes.LifeOsCinematic, (ILifeOsCinematicFilm film) =>

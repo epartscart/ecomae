@@ -1,5 +1,7 @@
+using System.Text.Json;
 using EcomAE.Platform.LifeOs;
 using EcomAE.Platform.LifeOs.Orchestrator;
+using EcomAE.Platform.LifeOs.Part3;
 using EcomAE.Platform.LifeOs.Spec;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -44,14 +46,40 @@ public sealed class LifeOsMasterSpecTests
         using var sp = Build();
         var digest = sp.GetRequiredService<ILifeOsMasterSpec>().FullDigest(
             sp.GetRequiredService<ILifeOsCognitiveEngines>(),
-            sp.GetRequiredService<ILifeOsOrchestrator>().ArchitectureDigest());
-        var json = System.Text.Json.JsonSerializer.Serialize(digest);
+            new LifeOsSpecRuntimeDigests(
+                Part2: sp.GetRequiredService<ILifeOsOrchestrator>().ArchitectureDigest()));
+        var json = JsonSerializer.Serialize(digest);
         Assert.Contains("Cognitive Systems", json, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Multimodal", json, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Plugin", json, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("FORCE_LIVE", json);
         Assert.Contains("SEC-01", json);
         Assert.Contains("/lifeos/roadmap", json, StringComparison.Ordinal);
+        Assert.Contains("/lifeos/spec/json", json, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FullDigest_places_rich_parts_at_top_level_not_nested_under_part2()
+    {
+        using var sp = Build();
+        var orch = sp.GetRequiredService<ILifeOsOrchestrator>().ArchitectureDigest();
+        var ai = sp.GetRequiredService<ILifeOsAiCore>().FullPart3Digest();
+        var digest = sp.GetRequiredService<ILifeOsMasterSpec>().FullDigest(
+            sp.GetRequiredService<ILifeOsCognitiveEngines>(),
+            new LifeOsSpecRuntimeDigests(Part2: orch, Part3: ai));
+
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(digest));
+        var root = doc.RootElement;
+        Assert.Equal("/lifeos/spec/json", root.GetProperty("self").GetString());
+        Assert.Equal("/lifeos/spec", root.GetProperty("ui").GetString());
+        Assert.True(root.TryGetProperty("part1", out _));
+        Assert.True(root.TryGetProperty("part2", out var part2));
+        Assert.True(root.TryGetProperty("part3", out var part3));
+        // Regression: module previously stuffed all rich digests into part2.
+        Assert.False(part2.TryGetProperty("part3", out _), "part3 must not be nested under part2");
+        Assert.False(part2.TryGetProperty("part10", out _), "part10 must not be nested under part2");
+        Assert.True(part3.ValueKind is JsonValueKind.Object);
+        Assert.Contains(root.GetProperty("links").EnumerateObject(), p => p.Name == "json");
     }
 
     [Fact]

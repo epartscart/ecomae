@@ -106,6 +106,13 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/prediction", "GET", "Part 3 Ch.19 prediction digest"),
         new("/lifeos/ethics", "GET", "Part 3 Ch.23 ethical AI digest"),
         new("/lifeos/spec/json", "GET", "Master spec Parts 1–10 JSON digest"),
+        new("/lifeos/join", "POST", "Join LifeOS — create client or open test client"),
+        new("/lifeos/directory", "GET", "Client join directory + test client digest"),
+        new("/lifeos/companion", "GET", "Mobile companion session digest"),
+        new("/lifeos/companion/track", "POST", "Companion tracking event"),
+        new("/lifeos/companion/talk", "POST", "Companion talk → same-name clone reply"),
+        new("/lifeos/manifest.webmanifest", "GET", "LifeOS companion PWA manifest"),
+        new("/lifeos/sw.js", "GET", "LifeOS companion service worker"),
         new("/lifeos/multimodal", "GET", "Part 4 Ch.26–41 multimodal runtime digest"),
         new("/lifeos/runtime-tick", "POST", "Part 4 runtime input tick dry-run"),
         new("/lifeos/devices", "GET", "Part 4 device ecosystem"),
@@ -187,69 +194,115 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("marketplace", "Plugin Marketplace Hub", "platform", "roadmap"),
     ];
 
-    public object FullDigest(ILifeOsCognitiveEngines cognitive, object? part2Architecture) => new
+    public object FullDigest(ILifeOsCognitiveEngines cognitive, LifeOsSpecRuntimeDigests? runtime = null)
     {
-        ok = true,
-        product = "LifeOS™",
-        title = "Universal Ambient Artificial Intelligence Operating System",
-        version = Version,
-        status = "Confidential – Internal Architecture Blueprint (scaffold)",
-        parts = Parts,
-        part2 = part2Architecture,
-        part3 = cognitive.Digest(),
-        part4 = new { multimodalAdapters = MultimodalAdapters, note = "Full Part 4 digest at /lifeos/multimodal" },
-        part5 = new { apis = ApiSurfaces, note = "Full Part 5 digest at /lifeos/platform" },
-        part6 = new
+        runtime ??= new LifeOsSpecRuntimeDigests();
+
+        return new
         {
-            cloud = "ASP.NET primary on Kestrel :5100 behind nginx/CloudPanel",
-            k8s = "scaffold registry — full digest at /lifeos/infra",
-            deploy = "scripts/cloudpanel_FORCE_LIVE_NOW.sh after merge to main",
-            monitoring = "health checks + migration digests + Part 6 observability registry",
-            note = "Multi-region K8s/Istio/GPU not claimed"
-        },
-        part7 = new
-        {
-            controls = SecurityControls,
-            note = "Full Part 7 digest at /lifeos/security",
-            principles = new[] { "Zero Trust", "Privacy by Design", "Least Privilege", "Defense in Depth", "Explainable AI" }
-        },
-        part8 = new
-        {
-            clients = Clients,
-            note = "Full Part 8 digest at /lifeos/clients",
-            principles = new[] { "Natural", "Predictive", "Non-intrusive", "Consistent", "Adaptive", "Explainable", "Accessible", "Fast" }
-        },
-        part9 = new
-        {
-            plugins = Plugins,
-            note = "Full Part 9 digest at /lifeos/plugins",
-            goal = "Ecosystem for Ambient Artificial Intelligence"
-        },
-        part10 = new
-        {
-            note = "Full Part 10 digest at /lifeos/roadmap (Ch.151–168)",
-            testing = "LifeOsPart2–Part10 + MasterSpec tests",
-            nearTermEngineering = new[]
+            ok = true,
+            product = "LifeOS™",
+            title = "Universal Ambient Artificial Intelligence Operating System",
+            version = Version,
+            status = "Confidential – Internal Architecture Blueprint (scaffold)",
+            self = "/lifeos/spec/json",
+            ui = "/lifeos/spec",
+            parts = Parts,
+            part1 = new
             {
-                "Wire durable memory + pgvector",
-                "Live LLM reasoning behind AI Gateway",
-                "Kafka/NATS event bus option",
-                "Istio service mesh",
-                "Multi-region Kubernetes",
-                "Mobile/desktop/glasses clients",
-                "Plugin marketplace GA"
+                number = 1,
+                title = "Vision & Brain Foundations",
+                status = "scaffold",
+                chapters = Parts[0].Chapters,
+                deliverables = Parts[0].Deliverables,
+                home = "/lifeos",
+                note = "Purpose · Mission · Principles · Product · Cognitive Model · Brain"
+            },
+            part2 = runtime.Part2 ?? new
+            {
+                note = "Full Part 2 digest at /lifeos/architecture",
+                chapters = Parts[1].Chapters,
+                deliverables = Parts[1].Deliverables
+            },
+            part3 = runtime.Part3 ?? cognitive.Digest(),
+            part4 = runtime.Part4 ?? new
+            {
+                multimodalAdapters = MultimodalAdapters,
+                note = "Full Part 4 digest at /lifeos/multimodal"
+            },
+            part5 = runtime.Part5 ?? new
+            {
+                apis = ApiSurfaces,
+                note = "Full Part 5 digest at /lifeos/platform"
+            },
+            part6 = runtime.Part6 ?? new
+            {
+                cloud = "ASP.NET primary on Kestrel :5100 behind nginx/CloudPanel",
+                k8s = "scaffold registry — full digest at /lifeos/infra",
+                deploy = "scripts/cloudpanel_FORCE_LIVE_NOW.sh after merge to main",
+                monitoring = "health checks + migration digests + Part 6 observability registry",
+                note = "Multi-region K8s/Istio/GPU not claimed"
+            },
+            part7 = runtime.Part7 ?? new
+            {
+                controls = SecurityControls,
+                note = "Full Part 7 digest at /lifeos/security",
+                principles = new[] { "Zero Trust", "Privacy by Design", "Least Privilege", "Defense in Depth", "Explainable AI" }
+            },
+            part8 = runtime.Part8 ?? new
+            {
+                clients = Clients,
+                note = "Full Part 8 digest at /lifeos/clients",
+                principles = new[] { "Natural", "Predictive", "Non-intrusive", "Consistent", "Adaptive", "Explainable", "Accessible", "Fast" }
+            },
+            part9 = runtime.Part9 ?? new
+            {
+                plugins = Plugins,
+                note = "Full Part 9 digest at /lifeos/plugins",
+                goal = "Ecosystem for Ambient Artificial Intelligence"
+            },
+            part10 = runtime.Part10 ?? new
+            {
+                note = "Full Part 10 digest at /lifeos/roadmap (Ch.151–168)",
+                testing = "LifeOsPart2–Part10 + MasterSpec tests",
+                nearTermEngineering = new[]
+                {
+                    "Wire durable memory + pgvector",
+                    "Live LLM reasoning behind AI Gateway",
+                    "Kafka/NATS event bus option",
+                    "Istio service mesh",
+                    "Multi-region Kubernetes",
+                    "Mobile/desktop/glasses clients",
+                    "Plugin marketplace GA"
+                }
+            },
+            endpoints = ApiSurfaces,
+            links = new
+            {
+                ui = "/lifeos/spec",
+                json = "/lifeos/spec/json",
+                cognitive = "/lifeos/cognitive",
+                multimodal = "/lifeos/multimodal",
+                platform = "/lifeos/platform",
+                infra = "/lifeos/infra",
+                security = "/lifeos/security",
+                clients = "/lifeos/clients",
+                plugins = "/lifeos/plugins",
+                roadmap = "/lifeos/roadmap",
+                wwwPreview = "https://www.ecomae.com/lifeos/spec/json",
+                productHost = "https://lifeos.ecomae.com/lifeos/spec/json"
+            },
+            notClaimed = new[]
+            {
+                "Production multimodal perception",
+                "Durable PostgreSQL/pgvector/Redis wiring for LifeOS memory",
+                "Live LLM inference",
+                "Kafka/NATS/Istio production mesh",
+                "Native mobile/desktop/glasses shipping binaries",
+                "Always-on wake-word DSP on device"
             }
-        },
-        notClaimed = new[]
-        {
-            "Production multimodal perception",
-            "Durable PostgreSQL/pgvector/Redis wiring for LifeOS memory",
-            "Live LLM inference",
-            "Kafka/NATS/Istio production mesh",
-            "Native mobile/desktop/glasses shipping binaries",
-            "Always-on wake-word DSP on device"
-        }
-    };
+        };
+    }
 
     private static LifeOsSpecPart P(int n, string title, string status, string[] chapters, string[] deliverables)
         => new(n, title, status, chapters, deliverables);

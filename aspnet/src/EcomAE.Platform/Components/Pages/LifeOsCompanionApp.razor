@@ -1,0 +1,413 @@
+@page "/lifeos/mobile"
+@layout Layout.PhpChromeLayout
+@using System.Text.Json
+@using EcomAE.Platform.LifeOs.Clients
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsClientDirectory Directory
+@inject NavigationManager Nav
+
+<PageTitle>LifeOS™ Companion</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+<link rel="manifest" href="@EcomAeRoutes.LifeOsManifest" />
+<meta name="theme-color" content="#2563eb" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
+<HeadContent>
+<link rel="manifest" href="@EcomAeRoutes.LifeOsManifest" />
+<meta name="theme-color" content="#2563eb" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="ecomae-chrome-surface" content="lifeos-mobile" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
+</HeadContent>
+
+<div class="locomp" id="lifeos-companion"
+     data-client="@_clientId"
+     data-token="@_token"
+     data-human="@_session.DisplayName"
+     data-clone="@_session.CloneName">
+  <header class="locomp-top">
+    <div>
+      <div class="brand">Life<em>OS</em></div>
+      <p class="who">@_session.DisplayName ↔ @_session.CloneName @(_session.IsTest ? "· test" : "")</p>
+    </div>
+    <div class="locomp-top-actions">
+      <button type="button" id="locomp-install" class="ghost">Install</button>
+      <a class="ghost" href="@EcomAeRoutes.LifeOsJoin">Join</a>
+    </div>
+  </header>
+
+  <nav class="locomp-tabs" role="tablist" aria-label="Companion modes">
+    @foreach (var tab in _tabs)
+    {
+      <button type="button"
+              role="tab"
+              class="@(_mode == tab ? "is-on" : null)"
+              aria-selected="@(_mode == tab)"
+              @onclick="() => _mode = tab">@tab</button>
+    }
+  </nav>
+
+  <main class="locomp-main">
+    @if (_mode == "track")
+    {
+      <section>
+        <h1>Track</h1>
+        <p class="lede">Log movement and focus. @_session.CloneName advises beside you.</p>
+        <div class="row">
+          <button type="button" class="primary" @onclick='() => TrackAsync("walk", "Walk", 1)'>Start walk</button>
+          <button type="button" class="ghost" @onclick='() => TrackAsync("workout", "Workout set", 1)'>Log set</button>
+          <button type="button" class="ghost" @onclick='() => TrackAsync("focus", "Focus block", 25)'>Focus 25m</button>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_cloneAdvice))
+        {
+          <p class="bubble" aria-live="polite">@_cloneAdvice</p>
+        }
+        <h2>Recent</h2>
+        <ul class="feed">
+          @foreach (var row in _session.RecentTracks)
+          {
+            <li>@FormatTrack(row)</li>
+          }
+          @if (_session.RecentTracks.Count == 0)
+          {
+            <li class="muted">No events yet — tap Start walk.</li>
+          }
+        </ul>
+      </section>
+    }
+    else if (_mode == "talk")
+    {
+      <section>
+        <h1>Talk</h1>
+        <p class="lede">Speak to @_session.CloneName using your own name. Mic uses the browser Speech API when available.</p>
+        <label>
+          <span>You → @_session.CloneName</span>
+          <textarea @bind="_utterance" @bind:event="oninput" rows="3" placeholder="@($"{_session.DisplayName}… walk me through today.")"></textarea>
+        </label>
+        <div class="row">
+          <button type="button" class="primary" id="locomp-mic">Hold to talk</button>
+          <button type="button" class="ghost" disabled="@_busy" @onclick="TalkAsync">Send</button>
+        </div>
+        @if (_reply is not null)
+        {
+          <p class="bubble">@_reply.Reply</p>
+          <p class="muted">Step: @_reply.GuideStep</p>
+        }
+      </section>
+    }
+    else if (_mode == "listen")
+    {
+      <section>
+        <h1>Listen</h1>
+        <p class="lede">@_session.CloneName speaks the next guide beat aloud (speechSynthesis).</p>
+        <div class="row">
+          <button type="button" class="primary" id="locomp-listen-next">Speak next beat</button>
+          <button type="button" class="ghost" id="locomp-listen-stop">Stop</button>
+        </div>
+        <ol class="beats">
+          @foreach (var beat in _session.GuideBeats)
+          {
+            <li>@FormatBeat(beat)</li>
+          }
+        </ol>
+      </section>
+    }
+    else
+    {
+      <section>
+        <h1>Guide</h1>
+        <p class="lede">Morning → evening with @_session.DisplayName talking to @_session.CloneName.</p>
+        <div class="row">
+          <button type="button" class="primary" @onclick='() => QuickTalk("Walk me through today.")'>Morning brief</button>
+          <button type="button" class="ghost" @onclick='() => QuickTalk("How should I handle this meeting?")'>Deep work</button>
+          <button type="button" class="ghost" @onclick='() => QuickTalk("Check my form.")'>Gym</button>
+          <button type="button" class="ghost" @onclick='() => QuickTalk("Summarize my day and plan tomorrow.")'>Evening</button>
+        </div>
+        @if (_reply is not null)
+        {
+          <p class="bubble">@_reply.Reply</p>
+          <ul class="actions">
+            @foreach (var a in _reply.SuggestedActions)
+            {
+              <li>@a</li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  </main>
+
+  <footer class="locomp-foot">
+    <a href="@EcomAeRoutes.LifeOs">Home</a>
+    <a href="@EcomAeRoutes.LifeOsRoutine">24/7 routine</a>
+    <span>PWA scaffold · human control first</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const root = () => document.getElementById('lifeos-companion');
+  const speak = (text) => {
+    try {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.02;
+      window.speechSynthesis.speak(u);
+    } catch (_) {}
+  };
+
+  let deferred;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferred = e;
+  });
+
+  const bind = () => {
+    const el = root();
+    if (!el) return;
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/lifeos/sw.js', { scope: '/lifeos/' }).catch(() => {});
+    }
+
+    const install = document.getElementById('locomp-install');
+    if (install) {
+      install.addEventListener('click', async () => {
+        if (deferred) {
+          deferred.prompt();
+          await deferred.userChoice.catch(() => {});
+          deferred = null;
+          return;
+        }
+        alert('Add to Home Screen from your browser menu for an app-like LifeOS companion.');
+      });
+    }
+
+    const mic = document.getElementById('locomp-mic');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (mic && SR) {
+      const rec = new SR();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = 'en-US';
+      mic.addEventListener('click', () => {
+        try {
+          rec.start();
+          mic.textContent = 'Listening…';
+        } catch (_) {}
+      });
+      rec.onresult = (ev) => {
+        const text = ev.results[0][0].transcript;
+        const ta = el.querySelector('textarea');
+        if (ta) {
+          ta.value = text;
+          ta.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        mic.textContent = 'Hold to talk';
+      };
+      rec.onerror = () => { mic.textContent = 'Hold to talk'; };
+      rec.onend = () => { mic.textContent = 'Hold to talk'; };
+    } else if (mic) {
+      mic.textContent = 'Type below';
+      mic.disabled = true;
+    }
+
+    let beatIdx = 0;
+    const listenNext = document.getElementById('locomp-listen-next');
+    const listenStop = document.getElementById('locomp-listen-stop');
+    const human = el.getAttribute('data-human') || 'Amina';
+    const clone = el.getAttribute('data-clone') || human;
+    const lines = [
+      clone + ': Good morning, ' + human + '. Priorities are ready.',
+      clone + ': Protect a ninety minute focus block.',
+      clone + ': Tracking on. I will coach your pace.',
+      clone + ': Soft bend in the knees. Logging clean reps.',
+      clone + ': Strong day. I will plan tomorrow and quiet sensors.'
+    ];
+    if (listenNext) {
+      listenNext.addEventListener('click', () => {
+        const line = lines[beatIdx % lines.length];
+        beatIdx++;
+        speak(line);
+      });
+    }
+    if (listenStop) {
+      listenStop.addEventListener('click', () => {
+        try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {}
+      });
+    }
+
+    // Auto-speak clone replies when bubble updates.
+    const mo = new MutationObserver(() => {
+      const bubble = el.querySelector('.bubble');
+      if (bubble && bubble.textContent && bubble.dataset.spoken !== bubble.textContent) {
+        bubble.dataset.spoken = bubble.textContent;
+        if (el.querySelector('.locomp-tabs .is-on')?.textContent === 'listen'
+            || el.querySelector('.locomp-tabs .is-on')?.textContent === 'talk'
+            || el.querySelector('.locomp-tabs .is-on')?.textContent === 'guide') {
+          speak(bubble.textContent);
+        }
+      }
+    });
+    mo.observe(el, { childList: true, subtree: true, characterData: true });
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+})();
+</script>
+
+@code {
+    private static readonly string[] _tabs = ["track", "talk", "listen", "guide"];
+    private string _mode = "track";
+    private string _clientId = LifeOsClientDirectory.TestClientId;
+    private string _token = LifeOsClientDirectory.TestJoinToken;
+    private string _utterance = "";
+    private string? _cloneAdvice;
+    private bool _busy;
+    private LifeOsTalkReply? _reply;
+    private LifeOsCompanionSession _session = default!;
+
+    protected override void OnInitialized()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var q = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (q.TryGetValue("clientId", out var cid) && !string.IsNullOrWhiteSpace(cid))
+        {
+            _clientId = cid.ToString();
+        }
+
+        if (q.TryGetValue("token", out var tok) && !string.IsNullOrWhiteSpace(tok))
+        {
+            _token = tok.ToString();
+        }
+
+        _session = Directory.CompanionSession(_clientId, _token);
+        _clientId = _session.ClientId;
+    }
+
+    private Task TrackAsync(string kind, string label, double value)
+    {
+        var result = Directory.RecordTrack(new LifeOsTrackEvent(_clientId, _token, kind, label, value, null));
+        _cloneAdvice = result.CloneAdvice;
+        _session = result.Session;
+        return Task.CompletedTask;
+    }
+
+    private Task TalkAsync() => SendTalk(_utterance, _mode);
+
+    private Task QuickTalk(string line)
+    {
+        _utterance = $"{_session.DisplayName}… {line}";
+        _mode = "guide";
+        return SendTalk(_utterance, "guide");
+    }
+
+    private Task SendTalk(string utterance, string mode)
+    {
+        _busy = true;
+        _reply = Directory.Talk(new LifeOsTalkRequest(_clientId, _token, utterance, mode));
+        _busy = false;
+        return Task.CompletedTask;
+    }
+
+    private static string FormatTrack(object row)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(row));
+            var e = doc.RootElement;
+            var label = e.TryGetProperty("label", out var l) ? l.GetString() : "event";
+            var kind = e.TryGetProperty("kind", out var k) ? k.GetString() : "";
+            var value = e.TryGetProperty("value", out var v) && v.ValueKind != JsonValueKind.Null ? v.ToString() : "";
+            var at = e.TryGetProperty("at", out var a) ? a.GetString() : "";
+            return $"{label} · {kind} {(string.IsNullOrWhiteSpace(value) ? "" : $"· {value} ")}· {at}";
+        }
+        catch
+        {
+            return row.ToString() ?? "event";
+        }
+    }
+
+    private static string FormatBeat(object beat)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(beat));
+            var e = doc.RootElement;
+            var title = e.TryGetProperty("title", out var t) ? t.GetString() : "Beat";
+            var line = e.TryGetProperty("line", out var l) ? l.GetString() : "";
+            return $"{title} — {line}";
+        }
+        catch
+        {
+            return beat.ToString() ?? "beat";
+        }
+    }
+
+    private const string _css = """
+.locomp {
+  --bg:#05070c; --ink:#f4f7fb; --mute:#9fb0c6; --blue:#2563eb; --cyan:#5ec8ff;
+  min-height:100vh; min-height:100dvh; background:var(--bg); color:var(--ink);
+  font-family:"Sora","Segoe UI",sans-serif; display:flex; flex-direction:column;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.locomp-top {
+  display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;
+  padding:calc(.85rem + env(safe-area-inset-top)) 1rem .75rem;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(37,99,235,.25),transparent);
+}
+.brand { font-weight:750; font-size:1.25rem; letter-spacing:.02em; }
+.brand em { font-style:normal; color:var(--cyan); }
+.who { margin:.2rem 0 0; color:var(--mute); font-size:.82rem; }
+.locomp-top-actions { display:flex; gap:.4rem; }
+.locomp-tabs {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:.35rem; padding:.65rem .75rem;
+  position:sticky; top:0; z-index:5; background:rgba(5,7,12,.92); backdrop-filter:blur(8px);
+}
+.locomp-tabs button {
+  appearance:none; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.03);
+  color:var(--mute); padding:.65rem .2rem; border-radius:8px; font-weight:700; text-transform:capitalize; cursor:pointer;
+}
+.locomp-tabs button.is-on { background:var(--blue); border-color:transparent; color:#fff; }
+.locomp-main { flex:1; padding:1rem 1rem 1.5rem; }
+.locomp-main h1 { margin:0 0 .35rem; font-size:1.55rem; }
+.locomp-main h2 { margin:1.1rem 0 .45rem; font-size:1rem; color:var(--mute); font-weight:650; }
+.lede { color:var(--mute); margin:0 0 1rem; line-height:1.45; }
+.row { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:.9rem; }
+button.primary, a.primary {
+  appearance:none; border:0; background:var(--blue); color:#fff; padding:.8rem 1rem; border-radius:8px;
+  font-weight:700; cursor:pointer; text-decoration:none;
+}
+button.ghost, a.ghost {
+  appearance:none; border:1px solid rgba(255,255,255,.3); background:transparent; color:#fff;
+  padding:.7rem .9rem; border-radius:8px; font-weight:700; cursor:pointer; text-decoration:none; font-size:.85rem;
+}
+textarea {
+  width:100%; box-sizing:border-box; min-height:5.5rem; border-radius:8px; border:1px solid rgba(255,255,255,.15);
+  background:#0b1220; color:#fff; padding:.8rem; font:inherit; margin:.35rem 0 .75rem;
+}
+label span { display:block; font-size:.78rem; color:var(--mute); }
+.bubble {
+  background:rgba(56,189,248,.12); border:1px solid rgba(56,189,248,.35);
+  padding:.85rem 1rem; border-radius:10px; line-height:1.45; margin:.5rem 0 1rem;
+}
+.feed, .beats, .actions { margin:0; padding-left:1.1rem; color:var(--mute); line-height:1.5; }
+.feed li, .beats li { margin-bottom:.45rem; word-break:break-word; }
+.muted { color:var(--mute); }
+.locomp-foot {
+  display:flex; flex-wrap:wrap; gap:.75rem; justify-content:space-between;
+  padding:.85rem 1rem calc(.85rem + env(safe-area-inset-bottom));
+  border-top:1px solid rgba(255,255,255,.08); color:var(--mute); font-size:.78rem;
+}
+.locomp-foot a { color:var(--cyan); text-decoration:none; }
+code { font-size:.78em; color:#c4d4ea; }
+""";
+}

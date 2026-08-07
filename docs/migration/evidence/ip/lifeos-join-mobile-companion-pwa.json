@@ -1,0 +1,37 @@
+{
+  "id": "lifeos-join-mobile-companion-pwa",
+  "capturedAtUtc": "2026-08-07T12:20:00Z",
+  "verdict": "scaffold-live",
+  "summary": "New clients join at /lifeos/join; seeded test client Amina; mobile browser companion PWA at /lifeos/mobile with Track/Talk/Listen/Guide",
+  "ui": {
+    "join": "/lifeos/join",
+    "mobile": "/lifeos/mobile?clientId=test-amina&token=lifeos-test-amina-join",
+    "manifest": "/lifeos/manifest.webmanifest",
+    "serviceWorker": "/lifeos/sw.js"
+  },
+  "apis": {
+    "directory": "GET /lifeos/directory",
+    "join": "POST /lifeos/join",
+    "companion": "GET /lifeos/companion",
+    "track": "POST /lifeos/companion/track",
+    "talk": "POST /lifeos/companion/talk"
+  },
+  "testClient": {
+    "clientId": "test-amina",
+    "displayName": "Amina",
+    "cloneName": "Amina",
+    "joinToken": "lifeos-test-amina-join"
+  },
+  "capabilities": ["track", "talk", "listen", "guide", "mobile-browser-pwa"],
+  "notClaimed": [
+    "Native App Store / Play Store binaries",
+    "Always-on wake-word DSP",
+    "Durable multi-region client IAM"
+  ],
+  "prove": [
+    "curl -sL https://lifeos.ecomae.com/lifeos/directory | jq '.testClient.clientId'",
+    "curl -sL https://lifeos.ecomae.com/lifeos/mobile | grep -F 'Track'",
+    "curl -sL https://lifeos.ecomae.com/lifeos/manifest.webmanifest | jq .start_url",
+    "curl -sL -X POST https://lifeos.ecomae.com/lifeos/companion/talk -H 'content-type: application/json' -d '{\"clientId\":\"test-amina\",\"joinToken\":\"lifeos-test-amina-join\",\"utterance\":\"Amina, walk me through today.\",\"mode\":\"guide\"}'"
+  ]
+}

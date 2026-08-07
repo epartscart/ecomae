@@ -1,0 +1,16 @@
+{
+  "id": "lifeos-cinematic-mp4-download-alias",
+  "capturedAtUtc": "2026-08-07T11:55:00Z",
+  "issue": "https://www.ecomae.com/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4 could not download",
+  "rootCause": "Legacy path /lifeos/cinematic/*.mp4 was never mapped (only /lifeos/media/* after #939)",
+  "fix": {
+    "legacyAlias": "GET /lifeos/cinematic/{file} → same wwwroot media (allowlisted)",
+    "primary": "GET /lifeos/media/{file}",
+    "forcedDownload": "?download=1 sets Content-Disposition: attachment",
+    "jsonUnchanged": "GET /lifeos/cinematic remains film digest JSON"
+  },
+  "prove": [
+    "curl -sI https://lifeos.ecomae.com/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4 | grep -iE '200|video/mp4'",
+    "curl -sI 'https://lifeos.ecomae.com/lifeos/media/lifeos-cinematic-launch-3min.mp4?download=1' | grep -i content-disposition"
+  ]
+}
