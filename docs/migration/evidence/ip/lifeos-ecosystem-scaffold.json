@@ -1,0 +1,41 @@
+{
+  "surface": "intelligence-platform",
+  "wave": "ip-lifeos-ecosystem-scaffold",
+  "status": "scaffold",
+  "part2": "docs/migration/evidence/ip/lifeos-part2-architecture-scaffold.json",
+  "notClaimed": [
+    "Full LifeOS brain runtime",
+    "Multimodal perception pipelines",
+    "Persistent memory stores",
+    "Production domain agents",
+    "DNS/TLS for lifeos.ecomae.com (ops/CloudPanel after merge)",
+    "Parts 3–10 (cognitive engines deep dive, multimodal, APIs, K8s, security, clients, marketplace, production)"
+  ],
+  "routes": {
+    "ipLogin": "/ip/login",
+    "ipApp": "/ip/app",
+    "lifeOsHome": "/lifeos",
+    "lifeOsApp": "/lifeos/app",
+    "lifeOsBrain": "/lifeos/brain",
+    "lifeOsHost": "lifeos.ecomae.com → /lifeos"
+  },
+  "hostGates": {
+    "ip": "super-cp-only (www.ecomae.com, ecomae.com, cp.ecomae.com)",
+    "lifeOs": "public customer product; bare / rewrite on lifeos.ecomae.com"
+  },
+  "ecosystem": {
+    "bos": ["ERP", "CRM", "Workflow", "Automation", "AI", "Control Panel"],
+    "ambientOs": ["LifeOS", "HealthOS", "EduOS", "HomeOS", "RetailOS", "IndustryOS", "CityOS", "Future Products"]
+  },
+  "lifeOsBrainEngines": [
+    "Context",
+    "Memory",
+    "Planning",
+    "Decision",
+    "Reasoning",
+    "Learning",
+    "Safety",
+    "Emotion & Personality",
+    "Agent Orchestrator"
+  ]
+}

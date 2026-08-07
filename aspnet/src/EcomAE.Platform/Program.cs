@@ -3,6 +3,7 @@ using EcomAE.Platform.Auth;
 using EcomAE.Platform.Components;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.LifeOs;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Modules;
@@ -73,6 +74,7 @@ builder.Services.AddSingleton<ILegacyApiClientParityReporter, LegacyApiClientPar
 builder.Services.AddSingleton<ITenantResolver, RouteTenantResolver>();
 builder.Services.AddEcomAeAuthorization();
 builder.Services.AddEcomAeSurfaceModules();
+builder.Services.AddLifeOsPart2Scaffold();
 builder.Services.AddSingleton<ISurfaceShellCatalog, MigrationSurfaceShellCatalog>();
 builder.Services.AddSingleton<ILegacyHtmlShellRenderer, LegacyHtmlShellRenderer>();
 builder.Services.AddSingleton<IPresentationParityReporter, PresentationParityReporter>();
@@ -687,12 +689,17 @@ app.UseMiddleware<EcomaeMarketingSnapshotMiddleware>();
 // Legacy stub→PHP /en redirect. Skipped when PreferAspNetStorefrontApps (product ASP.NET primary).
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
+// lifeos.ecomae.com bare / → /lifeos product home (before host gates).
+app.UseMiddleware<LifeOsHostHomeMiddleware>();
 // BOS is Super-CP / platform only — never answer /bos on tenant hosts (epartscart, …).
 app.UseMiddleware<BosHostGateMiddleware>();
+// Intelligence Platform is Super-CP / platform only — never answer /ip on tenant hosts.
+app.UseMiddleware<IpHostGateMiddleware>();
 app.UseMiddleware<RouteCutoverDecisionMiddleware>();
-// Hard wall: /cp /erp /bos require admin session (no guest-browse chrome on live tenants).
+// Hard wall: /cp /erp /bos /ip require admin session (no guest-browse chrome on live tenants).
+// LifeOS customer marketing stays public.
 app.UseMiddleware<AdminSurfaceAuthGateMiddleware>();
-// Credential POSTs on /cp|/erp|/bos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.
+// Credential POSTs on /cp|/erp|/bos|/ip|/lifeos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.
 app.UseMiddleware<LegacyLoginBridgeMiddleware>();
 // Required for Blazor SSR endpoints (MapRazorComponents adds antiforgery metadata).
 app.UseAntiforgery();
@@ -852,6 +859,10 @@ app.MapMethods(EcomAeRoutes.ErpLogout, ["GET", "POST"], (HttpContext context, Le
     => PerformLegacyLogout(context, logout, "erp", null));
 app.MapMethods(EcomAeRoutes.BosLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
     => PerformLegacyLogout(context, logout, "bos", null));
+app.MapMethods(EcomAeRoutes.IpLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
+    => PerformLegacyLogout(context, logout, "ip", null));
+app.MapMethods(EcomAeRoutes.LifeOsLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
+    => PerformLegacyLogout(context, logout, "lifeos", null));
 app.MapMethods(EcomAeRoutes.StorefrontLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
     => PerformLegacyLogout(context, logout, "storefront", null));
 

@@ -47,6 +47,10 @@ public static class EcomAeRoutes
     public const string ErpLogout = "/erp/logout";
     public const string BosLogin = "/bos/login";
     public const string BosLogout = "/bos/logout";
+    public const string IpLogin = "/ip/login";
+    public const string IpLogout = "/ip/logout";
+    public const string LifeOsLogin = "/lifeos/login";
+    public const string LifeOsLogout = "/lifeos/logout";
     public const string StorefrontLogin = "/storefront/login";
     public const string StorefrontLogout = "/storefront/logout";
 
@@ -1461,6 +1465,33 @@ public static class EcomAeRoutes
     public const string BosAuditLog = "/bos/audit-log";
     /// <summary>BOS audit log Blazor list (JSON digest remains <see cref="BosAuditLog"/>).</summary>
     public const string BosAuditLogApp = "/bos/audit-log-app";
+
+    /// <summary>Intelligence Platform hub (Super-CP only) — ecosystem over BOS + ambient OS products.</summary>
+    public const string Ip = "/ip";
+    public const string IpApp = "/ip/app";
+    public const string IpEcosystem = "/ip/ecosystem";
+    public const string IpEcosystemApp = "/ip/ecosystem-app";
+
+    /// <summary>LifeOS™ customer product (lifeos.ecomae.com + /lifeos on Super-CP preview).</summary>
+    public const string LifeOs = "/lifeos";
+    public const string LifeOsApp = "/lifeos/app";
+    public const string LifeOsBrain = "/lifeos/brain";
+    public const string LifeOsArchitectureApp = "/lifeos/architecture-app";
+    public const string LifeOsOrchestratorApp = "/lifeos/orchestrator-app";
+    public const string LifeOsMemoryApp = "/lifeos/memory-app";
+    public const string LifeOsAgentsApp = "/lifeos/agents-app";
+    public const string LifeOsPlanningApp = "/lifeos/planning-app";
+
+    /// <summary>LifeOS Part 2 digests (JSON) — Orchestrator / Event Bus / Context / Memory / Agents / Plans.</summary>
+    public const string LifeOsArchitecture = "/lifeos/architecture";
+    public const string LifeOsEvents = "/lifeos/events";
+    public const string LifeOsMemoryDigest = "/lifeos/memory";
+    public const string LifeOsAgentsDigest = "/lifeos/agents";
+    public const string LifeOsPlansDigest = "/lifeos/plans";
+    public const string LifeOsContextDigest = "/lifeos/context";
+    /// <summary>POST dry-run orchestration of a sample or supplied event (scaffold, no irreversible side effects).</summary>
+    public const string LifeOsOrchestrate = "/lifeos/orchestrate";
+
     public const string ApiPrefix = "/api";
     public const string ApiMigrationStatus = "/api/migration/status";
     public const string CatalogStatus = "/api/v1/catalog/status";

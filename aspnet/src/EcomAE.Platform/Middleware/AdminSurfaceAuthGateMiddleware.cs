@@ -4,9 +4,10 @@ using EcomAE.Platform.Routing;
 namespace EcomAE.Platform.Middleware;
 
 /// <summary>
-/// Hard login wall for confidential admin surfaces (/cp /erp /bos).
+/// Hard login wall for confidential admin surfaces (/cp /erp /bos /ip).
 /// Guest-browse of Control chrome on live tenants is a data-leak risk — PHP CP
 /// redirects bare /cp → /cp/control and requires credentials; ASP.NET must match.
+/// LifeOS customer marketing (<c>/lifeos</c>) stays public — only IP is gated here.
 /// </summary>
 public sealed class AdminSurfaceAuthGateMiddleware
 {
@@ -37,11 +38,12 @@ public sealed class AdminSurfaceAuthGateMiddleware
             return;
         }
 
-        // Validated admin with CP/ERP/BOS capabilities (some fixtures omit HasBackendAccess).
+        // Validated admin with CP/ERP/BOS/IP capabilities (some fixtures omit HasBackendAccess).
         if (session.Kind == LegacySessionKind.Admin
             && (session.Capabilities.Contains("cp", StringComparer.OrdinalIgnoreCase)
                 || session.Capabilities.Contains("erp", StringComparer.OrdinalIgnoreCase)
-                || session.Capabilities.Contains("bos", StringComparer.OrdinalIgnoreCase)))
+                || session.Capabilities.Contains("bos", StringComparer.OrdinalIgnoreCase)
+                || session.Capabilities.Contains("ip", StringComparer.OrdinalIgnoreCase)))
         {
             context.Response.Headers[ChallengeHeader] = "ok";
             await _next(context);
@@ -62,7 +64,7 @@ public sealed class AdminSurfaceAuthGateMiddleware
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json; charset=utf-8";
             await context.Response.WriteAsync(
-                "{\"ok\":false,\"code\":\"admin_auth_required\",\"message\":\"Admin login required for Control / ERP / BOS.\",\"login\":\""
+                "{\"ok\":false,\"code\":\"admin_auth_required\",\"message\":\"Admin login required for Control / ERP / BOS / IP.\",\"login\":\""
                 + login + "\"}");
             return;
         }
@@ -108,9 +110,11 @@ public sealed class AdminSurfaceAuthGateMiddleware
         if (path.Equals("/cp", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/erp", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/bos", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/ip", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/CP", StringComparison.Ordinal)
             || path.Equals("/ERP", StringComparison.Ordinal)
-            || path.Equals("/BOS", StringComparison.Ordinal))
+            || path.Equals("/BOS", StringComparison.Ordinal)
+            || path.Equals("/IP", StringComparison.Ordinal))
         {
             return true;
         }
@@ -118,9 +122,11 @@ public sealed class AdminSurfaceAuthGateMiddleware
         return path.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/ip/", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/CP/", StringComparison.Ordinal)
             || path.StartsWith("/ERP/", StringComparison.Ordinal)
-            || path.StartsWith("/BOS/", StringComparison.Ordinal);
+            || path.StartsWith("/BOS/", StringComparison.Ordinal)
+            || path.StartsWith("/IP/", StringComparison.Ordinal);
     }
 
     internal static bool IsAllowlistedLoginOrLogout(string path)
@@ -132,6 +138,8 @@ public sealed class AdminSurfaceAuthGateMiddleware
             || bare.Equals("/erp/logout", StringComparison.OrdinalIgnoreCase)
             || bare.Equals("/bos/login", StringComparison.OrdinalIgnoreCase)
             || bare.Equals("/bos/logout", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/ip/login", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/ip/logout", StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LegacyAdminLogin, StringComparison.OrdinalIgnoreCase)
             || bare.Equals("/auth/logout", StringComparison.OrdinalIgnoreCase);
     }
@@ -150,6 +158,12 @@ public sealed class AdminSurfaceAuthGateMiddleware
             return EcomAeRoutes.BosLogin;
         }
 
+        if (path.StartsWith("/ip", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/IP", StringComparison.Ordinal))
+        {
+            return EcomAeRoutes.IpLogin;
+        }
+
         return EcomAeRoutes.ControlPanelLogin;
     }
 
@@ -162,7 +176,7 @@ public sealed class AdminSurfaceAuthGateMiddleware
             return true;
         }
 
-        // Digests / API-ish GETs under /cp|/erp|/bos without Blazor navigation.
+        // Digests / API-ish GETs under /cp|/erp|/bos|/ip without Blazor navigation.
         var path = context.Request.Path.Value ?? "";
         return path.Contains("dashboard-summary", StringComparison.OrdinalIgnoreCase)
             || path.EndsWith("/parity", StringComparison.OrdinalIgnoreCase)

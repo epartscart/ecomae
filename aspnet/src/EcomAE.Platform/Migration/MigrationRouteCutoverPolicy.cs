@@ -36,11 +36,12 @@ public sealed class MigrationRouteCutoverPolicy : IMigrationRouteCutoverPolicy
                 "Storefront product URLs are ASP.NET-primary for all tenants; PHP only via /php-reference/*.",
                 RequiresPhpFallback: _options.RequirePhpFallback,
                 ReadyForAspNetTraffic: _options.StorefrontAspNetEnabled),
-            TenantSurface.ControlPanel or TenantSurface.Erp or TenantSurface.Bos => new MigrationRouteCutoverDecision(
+            TenantSurface.ControlPanel or TenantSurface.Erp or TenantSurface.Bos or TenantSurface.Ip
+                or TenantSurface.LifeOs => new MigrationRouteCutoverDecision(
                 tenant.Surface,
                 tenant.Mode,
                 AdminTargetRuntime(),
-                "CP/ERP/BOS product shells are ASP.NET-primary for all tenants; PHP only via /php-reference/*.",
+                "CP/ERP/BOS/IP/LifeOS product shells are ASP.NET-primary; PHP only via /php-reference/*.",
                 RequiresPhpFallback: _options.RequirePhpFallback,
                 ReadyForAspNetTraffic: _options.AdminAspNetEnabled),
             _ => new MigrationRouteCutoverDecision(

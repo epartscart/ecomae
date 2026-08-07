@@ -11,6 +11,8 @@ public sealed class LegacyLogoutServiceTests
     [InlineData("cp", null, "/cp/login")]
     [InlineData("erp", null, "/erp/login")]
     [InlineData("bos", null, "/bos/login")]
+    [InlineData("ip", null, "/ip/login")]
+    [InlineData("lifeos", null, "/lifeos/login")]
     [InlineData("storefront", null, "/storefront/login")]
     [InlineData("cp", "/erp", "/erp")]
     [InlineData("cp", "https://evil.example/", "/cp/login")] // reject absolute open redirect

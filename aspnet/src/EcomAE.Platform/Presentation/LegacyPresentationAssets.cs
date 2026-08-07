@@ -14,6 +14,9 @@ public static class LegacyPresentationAssets
         "cp" => ControlPanelStylesheets,
         "erp" => ErpStylesheets,
         "bos" => BosStylesheets,
+        // IP reuses BOS shell chrome; LifeOS uses self-contained page CSS in HeadContent.
+        "ip" => BosStylesheets,
+        "lifeos" => LifeOsStylesheets,
         "storefront" => StorefrontStylesheets,
         "marketing" => MarketingStylesheets,
         _ => ControlPanelStylesheets
@@ -92,6 +95,12 @@ public static class LegacyPresentationAssets
         "/epc-static.php?f=bos/epc_bos_shell.css"
     ];
 
+    /// <summary>LifeOS marketing/app — Font Awesome only; page CSS is inline in HeadContent.</summary>
+    public static readonly IReadOnlyList<string> LifeOsStylesheets =
+    [
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    ];
+
     public static readonly IReadOnlyList<string> StorefrontStylesheets =
     [
         // epartscart.com live theme is nero (templates/nero/desktop.php), not modex.
@@ -133,6 +142,8 @@ public static class LegacyPresentationAssets
             "cp" => [".bos-login__bg", "#epcCpParticles", "epc-cp-login-hero", ".bos-login__glow"],
             "erp" => [".bos-login__bg", "epc-erp-portal-bg", "epc-erp-bos-hero", "#erpPortalParticles", ".bos-login__glow"],
             "bos" => [".bos-login__bg", "#bosParticles", ".bos-login__glow"],
+            "ip" => [".bos-login__bg", "#ipParticles", ".bos-login__glow", "epc-ip-hub"],
+            "lifeos" => [".lifeos-hero", ".lifeos-brand", "lifeos-ambient"],
             "storefront" => [".epc-engine-animation", ".epc-asp-piston-banner", "epc-home-pro"],
             "marketing" =>
             [
@@ -150,6 +161,8 @@ public static class LegacyPresentationAssets
         "erp" => "epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern",
         // Match bos/index.php
         "bos" => "bos-body bos-body--topnav",
+        "ip" => "bos-body bos-body--topnav epc-ip-body",
+        "lifeos" => "lifeos-body",
         "storefront" => "epc-storefront-shell",
         "marketing" => "epm-body",
         _ => "epc-migration-shell"
@@ -162,6 +175,8 @@ public static class LegacyPresentationAssets
         "cp" => "bos-body bos-body--login blank epc-cp epc-cp-login epc-cp-login-hero epc-cp-shell epc-cp-login--super",
         "erp" => "bos-body bos-body--login epc-erp-standalone epc-erp-cp-shell epc-cp-shell",
         "bos" => "bos-body bos-body--topnav bos-body--login",
+        "ip" => "bos-body bos-body--topnav bos-body--login epc-ip-login",
+        "lifeos" => "lifeos-body lifeos-body--login",
         "storefront" => "epc-storefront-shell",
         "marketing" => "epm-body",
         _ => BodyClassFor(surfaceKey)
@@ -172,6 +187,8 @@ public static class LegacyPresentationAssets
         "cp" => "cp/templates/bootstrap_admin/desktop.php",
         "erp" => "cp/templates/bootstrap_admin/erp_desktop.php",
         "bos" => "bos/index.php + bos/epc_bos_shell.css",
+        "ip" => "Intelligence Platform /ip (BOS shell + ecosystem hub)",
+        "lifeos" => "LifeOS™ UA-AIOS customer product (lifeos.ecomae.com)",
         "storefront" => "templates/nero/desktop.php",
         "marketing" => "content/general_pages/epc_ecomae_platform_layout.php (epm-hub) + epc_ecomae_home_sections.php",
         _ => "unknown"

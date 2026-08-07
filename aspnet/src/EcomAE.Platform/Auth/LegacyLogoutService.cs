@@ -61,6 +61,8 @@ public sealed class LegacyLogoutService
         {
             "erp" => "/erp/login",
             "bos" => "/bos/login",
+            "ip" => "/ip/login",
+            "lifeos" => "/lifeos/login",
             "storefront" or "shop" or "customer" => "/storefront/login",
             _ => "/cp/login",
         };

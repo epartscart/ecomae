@@ -1,0 +1,243 @@
+@page "/lifeos"
+@page "/lifeos/"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+
+<PageTitle>LifeOS™ — Universal Ambient Artificial Intelligence</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>
+:root {
+  --lo-ink: #0a1f1c;
+  --lo-fog: #e7f3ef;
+  --lo-deep: #062a26;
+  --lo-sea: #0f766e;
+  --lo-foam: #99f6e4;
+  --lo-sun: #f59e0b;
+  --lo-paper: #f7fbf9;
+  --lo-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --lo-sans: "Manrope", "Segoe UI", sans-serif;
+}
+html, body.lifeos-body {
+  margin:0; min-height:100vh;
+  background: var(--lo-paper);
+  color: var(--lo-ink);
+  font-family: var(--lo-sans);
+}
+.lifeos-ambient {
+  --lo-ink: #0a1f1c;
+  color: var(--lo-ink);
+  font-family: var(--lo-sans);
+}
+.lifeos-hero {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  overflow: hidden;
+  color: #f0fdfa;
+  background:
+    radial-gradient(90% 70% at 80% 10%, rgba(245,158,11,.28), transparent 55%),
+    radial-gradient(70% 60% at 15% 80%, rgba(15,118,110,.55), transparent 50%),
+    linear-gradient(165deg, #031412 0%, #0a2f2a 42%, #134e4a 72%, #1c1917 100%);
+}
+.lifeos-hero__mesh {
+  position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(153,246,228,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(153,246,228,.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 20%, transparent 75%);
+  animation: lifeos-drift 28s linear infinite;
+}
+.lifeos-hero__orb {
+  position:absolute; width:min(52vw,28rem); height:min(52vw,28rem);
+  border-radius:50%;
+  background: radial-gradient(circle at 35% 35%, rgba(245,158,11,.35), rgba(15,118,110,.15) 45%, transparent 70%);
+  top:8%; right:4%;
+  filter: blur(2px);
+  animation: lifeos-breathe 9s ease-in-out infinite;
+}
+@@keyframes lifeos-drift { to { background-position: 48px 48px; } }
+@@keyframes lifeos-breathe {
+  0%,100% { transform: translateY(0) scale(1); opacity:.75; }
+  50% { transform: translateY(12px) scale(1.06); opacity:1; }
+}
+.lifeos-hero__content {
+  position:relative; z-index:2;
+  max-width: 42rem;
+  animation: lifeos-rise .9s ease-out both;
+}
+@@keyframes lifeos-rise {
+  from { opacity:0; transform: translateY(18px); }
+  to { opacity:1; transform: none; }
+}
+.lifeos-brand {
+  font-family: var(--lo-display);
+  font-size: clamp(3.4rem, 12vw, 6.5rem);
+  line-height: .92;
+  letter-spacing: -.02em;
+  margin: 0 0 .65rem;
+  font-weight: 400;
+}
+.lifeos-brand em {
+  font-style: italic;
+  color: var(--lo-foam);
+}
+.lifeos-hero h2 {
+  margin: 0 0 .75rem;
+  font-family: var(--lo-sans);
+  font-weight: 700;
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  letter-spacing: .02em;
+  color: #ccfbf1;
+}
+.lifeos-hero p {
+  margin: 0 0 1.4rem;
+  max-width: 34rem;
+  font-size: clamp(.95rem, 1.8vw, 1.1rem);
+  line-height: 1.55;
+  color: rgba(240,253,250,.88);
+}
+.lifeos-cta {
+  display:flex; flex-wrap:wrap; gap:.75rem;
+}
+.lifeos-cta a {
+  display:inline-flex; align-items:center; gap:.45rem;
+  padding:.85rem 1.25rem;
+  border-radius:.35rem;
+  font-weight:700; font-size:.92rem;
+  text-decoration:none;
+  transition: transform .2s ease, background .2s ease;
+}
+.lifeos-cta a:hover { transform: translateY(-2px); }
+.lifeos-cta__primary {
+  background: var(--lo-sun);
+  color: #1c1917;
+}
+.lifeos-cta__ghost {
+  background: transparent;
+  color: #f0fdfa;
+  border: 1px solid rgba(153,246,228,.45);
+}
+.lifeos-mark {
+  position:absolute; top:clamp(1.2rem,3vw,2rem); left:clamp(1.2rem,3vw,2.5rem);
+  z-index:3; font-size:.78rem; font-weight:800; letter-spacing:.22em;
+  text-transform:uppercase; color: rgba(204,251,241,.75);
+}
+.lifeos-section {
+  padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 4vw, 3.5rem);
+  max-width: 72rem; margin: 0 auto;
+}
+.lifeos-section h3 {
+  font-family: var(--lo-display);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 400;
+  margin: 0 0 .5rem;
+}
+.lifeos-section > p {
+  margin: 0 0 1.5rem;
+  max-width: 38rem;
+  color: #334155;
+  line-height: 1.55;
+}
+.lifeos-principles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem 1.75rem;
+  list-style: none; margin:0; padding:0;
+}
+.lifeos-principles li strong {
+  display:block; font-size:1rem; margin-bottom:.25rem; color: var(--lo-deep);
+}
+.lifeos-principles li span { color:#475569; font-size:.9rem; line-height:1.45; }
+.lifeos-engines {
+  display:flex; flex-wrap:wrap; gap:.55rem;
+}
+.lifeos-engines span {
+  font-size:.8rem; font-weight:700; letter-spacing:.04em;
+  padding:.45rem .7rem; border-radius:.3rem;
+  background: #ecfdf5; color: var(--lo-sea);
+  border: 1px solid #a7f3d0;
+}
+.lifeos-footer {
+  padding: 2rem clamp(1.5rem,4vw,3.5rem) 2.5rem;
+  border-top: 1px solid #d1e7e1;
+  display:flex; flex-wrap:wrap; gap:1rem; justify-content:space-between;
+  color:#64748b; font-size:.85rem;
+}
+.lifeos-footer a { color: var(--lo-sea); font-weight:700; text-decoration:none; }
+@@media (max-width: 640px) {
+  .lifeos-hero { justify-content: center; padding-bottom: 3rem; }
+}
+</style>
+</HeadContent>
+
+<div class="lifeos-ambient">
+  <section class="lifeos-hero" aria-label="LifeOS hero">
+    <div class="lifeos-hero__mesh" aria-hidden="true"></div>
+    <div class="lifeos-hero__orb" aria-hidden="true"></div>
+    <div class="lifeos-mark">ecomae · ambient OS</div>
+    <div class="lifeos-hero__content">
+      <h1 class="lifeos-brand">Life<em>OS</em>™</h1>
+      <h2>Universal Ambient Artificial Intelligence Operating System</h2>
+      <p>
+        An always-available cognitive layer that perceives, remembers, plans, and assists —
+        across work, health, learning, and everyday life — while keeping you in control.
+      </p>
+      <div class="lifeos-cta">
+        <a class="lifeos-cta__primary" href="@EcomAeRoutes.LifeOsApp">Open LifeOS console</a>
+        <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsArchitectureApp">Part 2 architecture</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="lifeos-section">
+    <h3>Designed for ambient intelligence</h3>
+    <p>Five principles from the LifeOS master specification — the product never overrides your authority.</p>
+    <ul class="lifeos-principles">
+      <li><strong>Ambient intelligence</strong><span>Context without repeated prompts — voice, vision, calendar, routines, memory.</span></li>
+      <li><strong>Human control</strong><span>No irreversible actions or private sharing without explicit permission.</span></li>
+      <li><strong>Explainability</strong><span>Every recommendation carries reasoning, confidence, sources, and uncertainty.</span></li>
+      <li><strong>Privacy by design</strong><span>Sensitive perception stays local; cloud only after policy evaluation.</span></li>
+      <li><strong>Continuous learning</strong><span>Preferences and goals deepen over years — never overriding your instructions.</span></li>
+    </ul>
+  </section>
+
+  <section class="lifeos-section">
+    <h3>Nine brain engines</h3>
+    <p>The LifeOS Brain — foundational cognition before domain agents assemble a response.</p>
+    <div class="lifeos-engines" aria-label="LifeOS brain engines">
+      <span>Context</span><span>Memory</span><span>Planning</span><span>Decision</span>
+      <span>Reasoning</span><span>Learning</span><span>Safety</span><span>Emotion &amp; Personality</span>
+      <span>Agent Orchestrator</span>
+    </div>
+  </section>
+
+  <section class="lifeos-section">
+    <h3>Part 2 — Core architecture</h3>
+    <p>Orchestrator, event bus, context object, layered memory, multi-agent network, and planning workflows.</p>
+    <div class="lifeos-engines" aria-label="Part 2 chapters">
+      <span>Orchestrator</span><span>Event Bus</span><span>Context Engine</span>
+      <span>Memory System</span><span>Multi-Agent</span><span>Planning Engine</span>
+    </div>
+    <p style="margin:1.25rem 0 0">
+      <a href="@EcomAeRoutes.LifeOsOrchestratorApp" style="color:var(--lo-sea);font-weight:700;text-decoration:none">Run a dry-run orchestration →</a>
+    </p>
+  </section>
+
+  <footer class="lifeos-footer">
+    <div>LifeOS™ · part of the ecomae Intelligence Platform</div>
+    <div>
+      <a href="https://www.ecomae.com/ip/login">IP login</a>
+      · <a href="https://www.ecomae.com/">ecomae.com</a>
+    </div>
+  </footer>
+</div>

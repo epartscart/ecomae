@@ -49,23 +49,29 @@ public static class LegacyPhpFontAssets
     public static string StackFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {
         "marketing" => MarketingStack,
-        // cp | erp | bos | storefront | default → same PHP product UI font
+        "lifeos" => "\"Manrope\", \"Segoe UI\", sans-serif",
+        // cp | erp | bos | ip | storefront | default → same PHP product UI font
         _ => ProductStack
     };
 
     public static string FontSizeFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {
-        "marketing" => "16px",
+        "marketing" or "lifeos" => "16px",
         _ => BaseFontSize
     };
+
+    /// <summary>LifeOS display + UI — expressive, not Inter/Roboto/system default stacks.</summary>
+    public const string LifeOsFonts =
+        "https://fonts.googleapis.com/css2?family=Instrument%20Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap";
 
     public static IReadOnlyList<string> FontHrefsFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {
         "marketing" => new[] { SyneDmSans },
+        "lifeos" => new[] { LifeOsFonts },
         // Product surfaces share Open Sans; ERP keeps Fraunces/Sora for premium headings;
-        // BOS keeps JetBrains Mono for code; storefront keeps PT Sans for legacy glyph pages.
+        // BOS/IP keep JetBrains Mono for code; storefront keeps PT Sans for legacy glyph pages.
         "erp" => new[] { OpenSans, FrauncesSora },
-        "bos" => new[] { OpenSans, JetBrainsMono },
+        "bos" or "ip" => new[] { OpenSans, JetBrainsMono },
         "storefront" => new[] { OpenSans, PtSans },
         _ => new[] { OpenSans }
     };
