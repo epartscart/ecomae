@@ -1,329 +1,548 @@
 @page "/lifeos"
 @page "/lifeos/"
 @layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Spec
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@inject ILifeOsMasterSpec Spec
 
 <PageTitle>LifeOS™ — Universal Ambient Artificial Intelligence</PageTitle>
 <PhpSurfaceHead Surface="lifeos" />
 <PhpChromeBodyClass Surface="lifeos" />
 
+@*
+  Premium blue / black / white infographic presentation for lifeos.ecomae.com.
+  Critical CSS is duplicated in the BODY stream — live SSR may drop HeadContent.
+*@
 <HeadContent>
 <link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
-<style>
-:root {
-  --lo-ink: #0a1f1c;
-  --lo-fog: #e7f3ef;
-  --lo-deep: #062a26;
-  --lo-sea: #0f766e;
-  --lo-foam: #99f6e4;
-  --lo-sun: #f59e0b;
-  --lo-paper: #f7fbf9;
-  --lo-display: "Instrument Serif", Georgia, "Times New Roman", serif;
-  --lo-sans: "Manrope", "Segoe UI", sans-serif;
-}
-html, body.lifeos-body {
-  margin:0; min-height:100vh;
-  background: var(--lo-paper);
-  color: var(--lo-ink);
-  font-family: var(--lo-sans);
-}
-.lifeos-ambient {
-  --lo-ink: #0a1f1c;
-  color: var(--lo-ink);
-  font-family: var(--lo-sans);
-}
-.lifeos-hero {
-  position: relative;
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: clamp(1.5rem, 4vw, 3.5rem);
-  overflow: hidden;
-  color: #f0fdfa;
-  background:
-    radial-gradient(90% 70% at 80% 10%, rgba(245,158,11,.28), transparent 55%),
-    radial-gradient(70% 60% at 15% 80%, rgba(15,118,110,.55), transparent 50%),
-    linear-gradient(165deg, #031412 0%, #0a2f2a 42%, #134e4a 72%, #1c1917 100%);
-}
-.lifeos-hero__mesh {
-  position:absolute; inset:0; pointer-events:none;
-  background-image:
-    linear-gradient(rgba(153,246,228,.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(153,246,228,.05) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 20%, transparent 75%);
-  animation: lifeos-drift 28s linear infinite;
-}
-.lifeos-hero__orb {
-  position:absolute; width:min(52vw,28rem); height:min(52vw,28rem);
-  border-radius:50%;
-  background: radial-gradient(circle at 35% 35%, rgba(245,158,11,.35), rgba(15,118,110,.15) 45%, transparent 70%);
-  top:8%; right:4%;
-  filter: blur(2px);
-  animation: lifeos-breathe 9s ease-in-out infinite;
-}
-@@keyframes lifeos-drift { to { background-position: 48px 48px; } }
-@@keyframes lifeos-breathe {
-  0%,100% { transform: translateY(0) scale(1); opacity:.75; }
-  50% { transform: translateY(12px) scale(1.06); opacity:1; }
-}
-.lifeos-hero__content {
-  position:relative; z-index:2;
-  max-width: 42rem;
-  animation: lifeos-rise .9s ease-out both;
-}
-@@keyframes lifeos-rise {
-  from { opacity:0; transform: translateY(18px); }
-  to { opacity:1; transform: none; }
-}
-.lifeos-brand {
-  font-family: var(--lo-display);
-  font-size: clamp(3.4rem, 12vw, 6.5rem);
-  line-height: .92;
-  letter-spacing: -.02em;
-  margin: 0 0 .65rem;
-  font-weight: 400;
-}
-.lifeos-brand em {
-  font-style: italic;
-  color: var(--lo-foam);
-}
-.lifeos-hero h2 {
-  margin: 0 0 .75rem;
-  font-family: var(--lo-sans);
-  font-weight: 700;
-  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
-  letter-spacing: .02em;
-  color: #ccfbf1;
-}
-.lifeos-hero p {
-  margin: 0 0 1.4rem;
-  max-width: 34rem;
-  font-size: clamp(.95rem, 1.8vw, 1.1rem);
-  line-height: 1.55;
-  color: rgba(240,253,250,.88);
-}
-.lifeos-cta {
-  display:flex; flex-wrap:wrap; gap:.75rem;
-}
-.lifeos-cta a {
-  display:inline-flex; align-items:center; gap:.45rem;
-  padding:.85rem 1.25rem;
-  border-radius:.35rem;
-  font-weight:700; font-size:.92rem;
-  text-decoration:none;
-  transition: transform .2s ease, background .2s ease;
-}
-.lifeos-cta a:hover { transform: translateY(-2px); }
-.lifeos-cta__primary {
-  background: var(--lo-sun);
-  color: #1c1917;
-}
-.lifeos-cta__ghost {
-  background: transparent;
-  color: #f0fdfa;
-  border: 1px solid rgba(153,246,228,.45);
-}
-.lifeos-mark {
-  position:absolute; top:clamp(1.2rem,3vw,2rem); left:clamp(1.2rem,3vw,2.5rem);
-  z-index:3; font-size:.78rem; font-weight:800; letter-spacing:.22em;
-  text-transform:uppercase; color: rgba(204,251,241,.75);
-}
-.lifeos-section {
-  padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 4vw, 3.5rem);
-  max-width: 72rem; margin: 0 auto;
-}
-.lifeos-section h3 {
-  font-family: var(--lo-display);
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  font-weight: 400;
-  margin: 0 0 .5rem;
-}
-.lifeos-section > p {
-  margin: 0 0 1.5rem;
-  max-width: 38rem;
-  color: #334155;
-  line-height: 1.55;
-}
-.lifeos-principles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.25rem 1.75rem;
-  list-style: none; margin:0; padding:0;
-}
-.lifeos-principles li strong {
-  display:block; font-size:1rem; margin-bottom:.25rem; color: var(--lo-deep);
-}
-.lifeos-principles li span { color:#475569; font-size:.9rem; line-height:1.45; }
-.lifeos-engines {
-  display:flex; flex-wrap:wrap; gap:.55rem;
-}
-.lifeos-engines span {
-  font-size:.8rem; font-weight:700; letter-spacing:.04em;
-  padding:.45rem .7rem; border-radius:.3rem;
-  background: #ecfdf5; color: var(--lo-sea);
-  border: 1px solid #a7f3d0;
-}
-.lifeos-footer {
-  padding: 2rem clamp(1.5rem,4vw,3.5rem) 2.5rem;
-  border-top: 1px solid #d1e7e1;
-  display:flex; flex-wrap:wrap; gap:1rem; justify-content:space-between;
-  color:#64748b; font-size:.85rem;
-}
-.lifeos-footer a { color: var(--lo-sea); font-weight:700; text-decoration:none; }
-@@media (max-width: 640px) {
-  .lifeos-hero { justify-content: center; padding-bottom: 3rem; }
-}
-</style>
+<meta name="ecomae-lifeos-chrome-css" content="body-inline" />
+<style>@((MarkupString)_css)</style>
 </HeadContent>
+<style>@((MarkupString)_css)</style>
 
-<div class="lifeos-ambient">
+<div class="lifeos-ambient lifeos-infographic">
   <section class="lifeos-hero" aria-label="LifeOS hero">
-    <div class="lifeos-hero__mesh" aria-hidden="true"></div>
-    <div class="lifeos-hero__orb" aria-hidden="true"></div>
-    <div class="lifeos-mark">ecomae · ambient OS</div>
+    <div class="lifeos-hero__plane" aria-hidden="true">
+      <svg class="lifeos-hero__viz" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" role="presentation">
+        <defs>
+          <linearGradient id="loSky" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#020617"/>
+            <stop offset="45%" stop-color="#0b1b3a"/>
+            <stop offset="100%" stop-color="#0ea5e9"/>
+          </linearGradient>
+          <linearGradient id="loBlue" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#2563eb"/>
+          </linearGradient>
+          <marker id="loArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#38bdf8"/>
+          </marker>
+        </defs>
+        <rect width="1440" height="900" fill="url(#loSky)"/>
+        <g opacity=".18" stroke="#ffffff" stroke-width="1">
+          <path d="M0 180 H1440 M0 360 H1440 M0 540 H1440 M0 720 H1440"/>
+          <path d="M180 0 V900 M360 0 V900 M540 0 V900 M720 0 V900 M900 0 V900 M1080 0 V900 M1260 0 V900"/>
+        </g>
+        @* Lifestyle silhouette — professional figure *@
+        <g class="lifeos-hero__figure" fill="none" stroke="#e2e8f0" stroke-width="3" stroke-linecap="round">
+          <circle cx="1080" cy="280" r="28"/>
+          <path d="M1080 318 V430"/>
+          <path d="M1080 350 L1020 400"/>
+          <path d="M1080 350 L1145 390"/>
+          <path d="M1080 430 L1035 540"/>
+          <path d="M1080 430 L1125 540"/>
+          <path d="M1020 400 L990 360" stroke="#38bdf8"/>
+        </g>
+        @* Financial chart *@
+        <g class="lifeos-hero__chart" fill="none" stroke="url(#loBlue)" stroke-width="4" stroke-linecap="round">
+          <path class="lifeos-hero__spark" d="M820 520 L880 480 L940 500 L1000 420 L1060 450 L1120 360 L1180 390 L1240 300"/>
+          <circle cx="1240" cy="300" r="6" fill="#38bdf8" stroke="none"/>
+        </g>
+        @* Flow arrows *@
+        <g stroke="#38bdf8" stroke-width="2.5" fill="none" marker-end="url(#loArrow)" opacity=".85">
+          <path class="lifeos-hero__flow-a" d="M760 620 C880 600, 960 560, 1040 500"/>
+          <path class="lifeos-hero__flow-b" d="M760 680 C900 700, 1020 640, 1140 560"/>
+        </g>
+        @* Icon nodes *@
+        <g class="lifeos-hero__nodes" fill="#0b1b3a" stroke="#38bdf8" stroke-width="2">
+          <rect x="700" y="590" width="56" height="56" rx="6"/><text x="728" y="625" text-anchor="middle" fill="#fff" font-size="18" font-family="Sora,sans-serif">$</text>
+          <rect x="700" y="660" width="56" height="56" rx="6"/><text x="728" y="695" text-anchor="middle" fill="#fff" font-size="16" font-family="Sora,sans-serif">↑</text>
+        </g>
+      </svg>
+    </div>
+    <div class="lifeos-hero__veil" aria-hidden="true"></div>
     <div class="lifeos-hero__content">
       <h1 class="lifeos-brand">Life<em>OS</em>™</h1>
-      <h2>Universal Ambient Artificial Intelligence Operating System</h2>
-      <p>
-        An always-available cognitive layer that perceives, remembers, plans, and assists —
-        across work, health, learning, and everyday life — while keeping you in control.
+      <p class="lifeos-hero__headline">Intelligence that runs beside a professional life</p>
+      <p class="lifeos-hero__lede">
+        Perceive, decide, and act across work, wealth, health, and home — with human control always first.
       </p>
       <div class="lifeos-cta">
-        <a class="lifeos-cta__primary" href="@EcomAeRoutes.LifeOsApp">Open LifeOS console</a>
-        <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsSpecApp">Master Spec v4.0</a>
+        <a class="lifeos-cta__primary" href="@EcomAeRoutes.LifeOsApp">Enter LifeOS</a>
+        <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsSpecApp">Master Spec v@_version</a>
       </div>
     </div>
   </section>
 
-  <section class="lifeos-section">
-    <h3>Designed for ambient intelligence</h3>
-    <p>Five principles from the LifeOS master specification — the product never overrides your authority.</p>
-    <ul class="lifeos-principles">
-      <li><strong>Ambient intelligence</strong><span>Context without repeated prompts — voice, vision, calendar, routines, memory.</span></li>
-      <li><strong>Human control</strong><span>No irreversible actions or private sharing without explicit permission.</span></li>
-      <li><strong>Explainability</strong><span>Every recommendation carries reasoning, confidence, sources, and uncertainty.</span></li>
-      <li><strong>Privacy by design</strong><span>Sensitive perception stays local; cloud only after policy evaluation.</span></li>
-      <li><strong>Continuous learning</strong><span>Preferences and goals deepen over years — never overriding your instructions.</span></li>
+  <section class="lifeos-section lifeos-flow" aria-labelledby="lo-flow-title">
+    <h2 id="lo-flow-title">How LifeOS moves with you</h2>
+    <p class="lifeos-section__lede">A continuous loop — never a black box.</p>
+    <ol class="lifeos-flow__track">
+      <li>
+        <span class="lifeos-flow__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 24h16M24 16v16" stroke="currentColor" stroke-width="2.5"/></svg>
+        </span>
+        <strong>Perceive</strong>
+        <span>Context, markets, routines, devices</span>
+      </li>
+      <li class="lifeos-flow__arrow" aria-hidden="true">
+        <svg viewBox="0 0 40 24"><path d="M2 12 H30" stroke="currentColor" stroke-width="2" fill="none"/><path d="M26 6 L34 12 L26 18" fill="currentColor"/></svg>
+      </li>
+      <li>
+        <span class="lifeos-flow__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><rect x="8" y="10" width="32" height="28" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 28 L20 22 L26 26 L34 16" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
+        </span>
+        <strong>Decide</strong>
+        <span>Reasoning, risk, ethics, confidence</span>
+      </li>
+      <li class="lifeos-flow__arrow" aria-hidden="true">
+        <svg viewBox="0 0 40 24"><path d="M2 12 H30" stroke="currentColor" stroke-width="2" fill="none"/><path d="M26 6 L34 12 L26 18" fill="currentColor"/></svg>
+      </li>
+      <li>
+        <span class="lifeos-flow__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><path d="M10 34 L24 12 L38 34 Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="28" r="3" fill="currentColor"/></svg>
+        </span>
+        <strong>Act</strong>
+        <span>Plans, alerts, workflows you approve</span>
+      </li>
+      <li class="lifeos-flow__arrow" aria-hidden="true">
+        <svg viewBox="0 0 40 24"><path d="M2 12 H30" stroke="currentColor" stroke-width="2" fill="none"/><path d="M26 6 L34 12 L26 18" fill="currentColor"/></svg>
+      </li>
+      <li>
+        <span class="lifeos-flow__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><path d="M12 30c0-8 5-14 12-14s12 6 12 14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 30h12" stroke="currentColor" stroke-width="2"/><path d="M24 16v-4" stroke="currentColor" stroke-width="2"/></svg>
+        </span>
+        <strong>Learn</strong>
+        <span>Preferences deepen — authority stays yours</span>
+      </li>
+    </ol>
+  </section>
+
+  <section class="lifeos-section lifeos-lifestyle" aria-labelledby="lo-life-title">
+    <h2 id="lo-life-title">Professional life, one operating system</h2>
+    <p class="lifeos-section__lede">Five domains LifeOS keeps in balance — with financial clarity at the center.</p>
+    <ul class="lifeos-lifestyle__grid">
+      <li>
+        <span class="lifeos-lifestyle__glyph" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><rect x="6" y="10" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10 V8 a4 4 0 0 1 8 0 v2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </span>
+        <strong>Work</strong>
+        <span>Priorities, meetings, focus blocks</span>
+      </li>
+      <li>
+        <span class="lifeos-lifestyle__glyph" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M4 22 L10 14 L16 18 L22 8 L28 12" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M22 8 H28 V14" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+        </span>
+        <strong>Wealth</strong>
+        <span>Cashflow signals, commitments, goals</span>
+      </li>
+      <li>
+        <span class="lifeos-lifestyle__glyph" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg>
+        </span>
+        <strong>Health</strong>
+        <span>Energy, recovery, sustainable pace</span>
+      </li>
+      <li>
+        <span class="lifeos-lifestyle__glyph" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M4 16 L16 6 L28 16 V26 H4 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </span>
+        <strong>Home</strong>
+        <span>Household routines and continuity</span>
+      </li>
+      <li>
+        <span class="lifeos-lifestyle__glyph" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M4 16 H22" stroke="currentColor" stroke-width="2.2"/><path d="M18 10 L26 16 L18 22" fill="currentColor"/></svg>
+        </span>
+        <strong>Mobility</strong>
+        <span>Travel, vehicle, on-the-move assist</span>
+      </li>
     </ul>
   </section>
 
-  <section class="lifeos-section">
-    <h3>Nine brain engines</h3>
-    <p>The LifeOS Brain — foundational cognition before domain agents assemble a response.</p>
-    <div class="lifeos-engines" aria-label="LifeOS brain engines">
-      <span>Context</span><span>Memory</span><span>Planning</span><span>Decision</span>
-      <span>Reasoning</span><span>Learning</span><span>Safety</span><span>Emotion &amp; Personality</span>
-      <span>Agent Orchestrator</span>
+  <section class="lifeos-section lifeos-brain" aria-labelledby="lo-brain-title">
+    <h2 id="lo-brain-title">Nine brain engines</h2>
+    <p class="lifeos-section__lede">Foundational cognition before domain agents assemble a response.</p>
+    <div class="lifeos-brain__row" aria-label="LifeOS brain engines">
+      @foreach (var engine in _engines)
+      {
+        <span>@engine</span>
+      }
     </div>
   </section>
 
-  <section class="lifeos-section">
-    <h3>Part 2 — Core architecture</h3>
-    <p>Orchestrator, event bus, context object, layered memory, multi-agent network, and planning workflows.</p>
-    <div class="lifeos-engines" aria-label="Part 2 chapters">
-      <span>Orchestrator</span><span>Event Bus</span><span>Context Engine</span>
-      <span>Memory System</span><span>Multi-Agent</span><span>Planning Engine</span>
-    </div>
-    <p style="margin:1.25rem 0 0">
-      <a href="@EcomAeRoutes.LifeOsOrchestratorApp" style="color:var(--lo-sea);font-weight:700;text-decoration:none">Run a dry-run orchestration →</a>
-    </p>
+  <section class="lifeos-section lifeos-parts" aria-labelledby="lo-parts-title">
+    <h2 id="lo-parts-title">Master Spec v@_version — full stack</h2>
+    <p class="lifeos-section__lede">Parts 1–9 are live scaffolds. Part 10 execution roadmap arrives when you share the chapters.</p>
+    <ol class="lifeos-parts__timeline">
+      @foreach (var part in Spec.Parts)
+      {
+        var href = PartHref(part.Number);
+        var forthcoming = part.Number == 10 || string.Equals(part.Status, "registry", StringComparison.OrdinalIgnoreCase);
+        <li class="@(forthcoming ? "is-forthcoming" : null)">
+          <div class="lifeos-parts__index">
+            <span class="lifeos-parts__num">@part.Number.ToString("00")</span>
+            <span class="lifeos-parts__rail" aria-hidden="true"></span>
+          </div>
+          <div class="lifeos-parts__body">
+            <h3>@part.Title</h3>
+            <p>@string.Join(" · ", part.Chapters.Take(4))@(part.Chapters.Count > 4 ? " ·…" : "")</p>
+            @if (href is not null && !forthcoming)
+            {
+              <a href="@href">Open part →</a>
+            }
+            else if (forthcoming)
+            {
+              <em>Coming next — chapters pending</em>
+            }
+          </div>
+        </li>
+      }
+    </ol>
   </section>
 
-  <section class="lifeos-section">
-    <h3>Part 3 — Cognitive architecture</h3>
-    <p>AI Core, perception, CRM, reasoning, decision, prediction, ethics, reflection, and the unified cognitive cycle.</p>
-    <div class="lifeos-engines" aria-label="Part 3 highlights">
-      <span>AI Core</span><span>Perception</span><span>CRM</span><span>Reasoning</span>
-      <span>Decision</span><span>Prediction</span><span>Ethics</span><span>Reflection</span>
-    </div>
-    <p style="margin:1.25rem 0 0">
-      <a href="@EcomAeRoutes.LifeOsCognitiveApp" style="color:var(--lo-sea);font-weight:700;text-decoration:none">Run the cognitive cycle →</a>
-    </p>
-  </section>
-
-  <section class="lifeos-section">
-    <h3>Part 4 — Multimodal runtime</h3>
-    <p>Runtime kernel, device ecosystem, voice/vision/desktop/mobile/home/vehicle, notifications, and sync.</p>
-    <div class="lifeos-engines" aria-label="Part 4 highlights">
-      <span>Kernel</span><span>Voice</span><span>Vision</span><span>Desktop</span>
-      <span>Wearables</span><span>Smart Home</span><span>Vehicle</span><span>Sync</span>
-    </div>
-    <p style="margin:1.25rem 0 0">
-      <a href="@EcomAeRoutes.LifeOsMultimodalApp" style="color:var(--lo-sea);font-weight:700;text-decoration:none">Open multimodal runtime →</a>
-    </p>
-  </section>
-
-  <section class="lifeos-section">
-    <h3>Part 5 — Platform engineering</h3>
-    <p>Microservices, API gateway, event bus, polyglot data, workflow/automation, plugin &amp; agent SDKs.</p>
-    <div class="lifeos-engines" aria-label="Part 5 highlights">
-      <span>Microservices</span><span>API Gateway</span><span>Kafka/NATS</span><span>pgvector</span>
-      <span>Workflow</span><span>Agent SDK</span><span>AI Gateway</span><span>Multi-Tenant</span>
-    </div>
-    <p style="margin:1.25rem 0 0">
-      <a href="@EcomAeRoutes.LifeOsPlatformApp" style="color:var(--lo-sea);font-weight:700;text-decoration:none">Open platform engineering →</a>
-    </p>
-  </section>
-
-  <section class="lifeos-section">
-    <h3>Part 6 — Cloud infrastructure &amp; ops</h3>
-    <p>Multi-region Kubernetes, mesh, IaC, CI/CD, GPU serving, backup/DR, observability, and SRE.</p>
-    <div class="lifeos-engines" aria-label="Part 6 highlights">
-      <span>Kubernetes</span><span>Istio/Linkerd</span><span>CI/CD</span><span>GPU</span>
-      <span>Backup/DR</span><span>Prometheus</span><span>Edge</span><span>SRE</span>
-    </div>
-    <p style="margin:1.25rem 0 0">
-      <a href="@EcomAeRoutes.LifeOsInfraApp" style="color:var(--lo-sea);font-weight:700;text-decoration:none">Open cloud operations →</a>
-    </p>
-  </section>
-
-  <section class="lifeos-section">
-    <h3>Part 7 — Security &amp; governance</h3>
-    <p>Zero Trust, IAM, encryption, privacy-by-design, AI safety, compliance, SOC, and enterprise deploy models.</p>
-    <div class="lifeos-engines" aria-label="Part 7 highlights">
-      <span>Zero Trust</span><span>IAM</span><span>RBAC/ABAC</span><span>Encryption</span>
-      <span>Consent</span><span>AI Safety</span><span>SOC</span><span>Air-Gapped</span>
-    </div>
-    <p style="margin:1.25rem 0 0">
-      <a href="@EcomAeRoutes.LifeOsSecurityApp" style="color:var(--lo-sea);font-weight:700;text-decoration:none">Open security governance →</a>
-    </p>
-  </section>
-
-  <section class="lifeos-section">
-    <h3>Part 8 — Client experience</h3>
-    <p>Life Design System, AI workspace, semantic search, and clients from web to vehicle with continuity &amp; a11y.</p>
-    <div class="lifeos-engines" aria-label="Part 8 highlights">
-      <span>LDS</span><span>AI Workspace</span><span>Search</span><span>Mobile</span>
-      <span>Desktop</span><span>Glasses</span><span>Offline</span><span>Focus</span>
-    </div>
-    <p style="margin:1.25rem 0 0">
-      <a href="@EcomAeRoutes.LifeOsClientsApp" style="color:var(--lo-sea);font-weight:700;text-decoration:none">Open client experience →</a>
-    </p>
-  </section>
-
-  <section class="lifeos-section">
-    <h3>Part 9 — Ecosystem platform</h3>
-    <p>Marketplace, Agent Store, developer portal, SDKs, billing, partners, and ecosystem governance.</p>
-    <div class="lifeos-engines" aria-label="Part 9 highlights">
-      <span>Marketplace</span><span>Agent Store</span><span>Plugins</span><span>SDK</span>
-      <span>CLI</span><span>Billing</span><span>Partners</span><span>Governance</span>
-    </div>
-    <p style="margin:1.25rem 0 0">
-      <a href="@EcomAeRoutes.LifeOsPluginsApp" style="color:var(--lo-sea);font-weight:700;text-decoration:none">Open ecosystem platform →</a>
-    </p>
+  <section class="lifeos-section lifeos-principles" aria-labelledby="lo-prin-title">
+    <h2 id="lo-prin-title">Non‑negotiable principles</h2>
+    <p class="lifeos-section__lede">The product never overrides your authority.</p>
+    <ul class="lifeos-principles__list">
+      <li><strong>Ambient intelligence</strong><span>Context without repeated prompts.</span></li>
+      <li><strong>Human control</strong><span>No irreversible action without permission.</span></li>
+      <li><strong>Explainability</strong><span>Reasoning, confidence, sources, uncertainty.</span></li>
+      <li><strong>Privacy by design</strong><span>Sensitive perception stays local first.</span></li>
+      <li><strong>Continuous learning</strong><span>Goals deepen — instructions stay sovereign.</span></li>
+    </ul>
   </section>
 
   <footer class="lifeos-footer">
-    <div>LifeOS™ · part of the ecomae Intelligence Platform</div>
+    <div>LifeOS™ · ecomae Intelligence Platform · lifeos.ecomae.com</div>
     <div>
-      <a href="https://www.ecomae.com/ip/login">IP login</a>
+      <a href="@EcomAeRoutes.LifeOsLogin">Sign in</a>
+      · <a href="@EcomAeRoutes.LifeOsSpecApp">Spec</a>
       · <a href="https://www.ecomae.com/">ecomae.com</a>
     </div>
   </footer>
 </div>
 
 <PhpLifeOsAmbientAudio ButtonId="lifeOsHomeAmbient" />
+
+@code {
+    private string _version = "4.0";
+    private static readonly string[] _engines =
+    [
+        "Context", "Memory", "Planning", "Decision", "Reasoning",
+        "Learning", "Safety", "Emotion & Personality", "Agent Orchestrator"
+    ];
+
+    protected override void OnInitialized()
+    {
+        _version = Spec.Version;
+    }
+
+    private static string? PartHref(int number) => number switch
+    {
+        1 => EcomAeRoutes.LifeOsApp,
+        2 => EcomAeRoutes.LifeOsArchitectureApp,
+        3 => EcomAeRoutes.LifeOsCognitiveApp,
+        4 => EcomAeRoutes.LifeOsMultimodalApp,
+        5 => EcomAeRoutes.LifeOsPlatformApp,
+        6 => EcomAeRoutes.LifeOsInfraApp,
+        7 => EcomAeRoutes.LifeOsSecurityApp,
+        8 => EcomAeRoutes.LifeOsClientsApp,
+        9 => EcomAeRoutes.LifeOsPluginsApp,
+        10 => EcomAeRoutes.LifeOsSpecApp,
+        _ => null
+    };
+
+    // Shared CSS for HeadContent + body-stream fallback (HeadOutlet drops on some SSR paths).
+    private const string _css = """
+:root {
+  --lo-black: #020617;
+  --lo-ink: #0f172a;
+  --lo-blue: #2563eb;
+  --lo-blue-bright: #38bdf8;
+  --lo-blue-deep: #0b1b3a;
+  --lo-white: #ffffff;
+  --lo-paper: #f8fafc;
+  --lo-line: #cbd5e1;
+  --lo-muted: #475569;
+  --lo-display: "Fraunces", Georgia, serif;
+  --lo-sans: "Sora", "Segoe UI", sans-serif;
+}
+html, body.lifeos-body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--lo-paper);
+  color: var(--lo-ink);
+  font-family: var(--lo-sans);
+}
+.lifeos-infographic { color: var(--lo-ink); font-family: var(--lo-sans); }
+.lifeos-hero {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  overflow: hidden;
+  color: var(--lo-white);
+  background: var(--lo-black);
+}
+.lifeos-hero__plane {
+  position: absolute; inset: 0;
+  z-index: 0;
+}
+.lifeos-hero__viz { width: 100%; height: 100%; display: block; }
+.lifeos-hero__veil {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(105deg, rgba(2,6,23,.92) 0%, rgba(2,6,23,.72) 38%, rgba(2,6,23,.25) 68%, transparent 100%),
+    linear-gradient(0deg, rgba(2,6,23,.55) 0%, transparent 45%);
+}
+.lifeos-hero__content {
+  position: relative; z-index: 2;
+  max-width: 36rem;
+  animation: lifeos-rise .85s ease-out both;
+}
+@@keyframes lifeos-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+.lifeos-hero__spark {
+  stroke-dasharray: 420;
+  stroke-dashoffset: 420;
+  animation: lifeos-draw 2.4s ease-out .3s forwards;
+}
+@@keyframes lifeos-draw { to { stroke-dashoffset: 0; } }
+.lifeos-hero__flow-a, .lifeos-hero__flow-b {
+  stroke-dasharray: 8 10;
+  animation: lifeos-dash 1.8s linear infinite;
+}
+.lifeos-hero__flow-b { animation-delay: .4s; }
+@@keyframes lifeos-dash { to { stroke-dashoffset: -36; } }
+.lifeos-hero__figure { animation: lifeos-figure 6s ease-in-out infinite; transform-origin: 1080px 430px; }
+@@keyframes lifeos-figure {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.lifeos-brand {
+  font-family: var(--lo-display);
+  font-size: clamp(3.6rem, 12vw, 6.8rem);
+  line-height: .9;
+  letter-spacing: -.03em;
+  margin: 0 0 .75rem;
+  font-weight: 700;
+  color: var(--lo-white);
+}
+.lifeos-brand em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--lo-blue-bright);
+}
+.lifeos-hero__headline {
+  margin: 0 0 .65rem;
+  font-family: var(--lo-sans);
+  font-weight: 700;
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  letter-spacing: .01em;
+  color: #e2e8f0;
+}
+.lifeos-hero__lede {
+  margin: 0 0 1.35rem;
+  max-width: 32rem;
+  font-size: clamp(.95rem, 1.7vw, 1.08rem);
+  line-height: 1.55;
+  color: rgba(226,232,240,.88);
+}
+.lifeos-cta { display: flex; flex-wrap: wrap; gap: .7rem; }
+.lifeos-cta a {
+  display: inline-flex; align-items: center;
+  padding: .85rem 1.2rem;
+  border-radius: .25rem;
+  font-weight: 700; font-size: .92rem;
+  text-decoration: none;
+  transition: transform .2s ease, background .2s ease, color .2s ease;
+}
+.lifeos-cta a:hover { transform: translateY(-2px); }
+.lifeos-cta__primary { background: var(--lo-blue); color: var(--lo-white); }
+.lifeos-cta__primary:hover { background: #1d4ed8; }
+.lifeos-cta__ghost {
+  background: transparent;
+  color: var(--lo-white);
+  border: 1px solid rgba(255,255,255,.45);
+}
+.lifeos-section {
+  padding: clamp(2.75rem, 6vw, 4.75rem) clamp(1.5rem, 4vw, 3.5rem);
+  max-width: 72rem;
+  margin: 0 auto;
+}
+.lifeos-section h2 {
+  font-family: var(--lo-display);
+  font-size: clamp(1.85rem, 4vw, 2.75rem);
+  font-weight: 700;
+  margin: 0 0 .4rem;
+  color: var(--lo-black);
+  letter-spacing: -.02em;
+}
+.lifeos-section__lede {
+  margin: 0 0 1.75rem;
+  max-width: 38rem;
+  color: var(--lo-muted);
+  line-height: 1.55;
+  font-size: 1rem;
+}
+.lifeos-flow { background: var(--lo-white); border-block: 1px solid var(--lo-line); max-width: none; }
+.lifeos-flow > h2, .lifeos-flow > .lifeos-section__lede,
+.lifeos-flow > .lifeos-flow__track {
+  max-width: 72rem; margin-left: auto; margin-right: auto;
+}
+.lifeos-flow__track {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: .75rem 0;
+}
+.lifeos-flow__track > li:not(.lifeos-flow__arrow) {
+  flex: 1 1 8.5rem;
+  min-width: 8rem;
+  padding: 0 .35rem 0 0;
+}
+.lifeos-flow__track strong {
+  display: block; margin: .45rem 0 .2rem;
+  font-size: 1rem; color: var(--lo-black);
+}
+.lifeos-flow__track span:last-child {
+  display: block; font-size: .88rem; color: var(--lo-muted); line-height: 1.4;
+}
+.lifeos-flow__icon {
+  display: inline-flex; width: 2.75rem; height: 2.75rem;
+  color: var(--lo-blue);
+}
+.lifeos-flow__icon svg { width: 100%; height: 100%; }
+.lifeos-flow__arrow {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 2rem; color: var(--lo-blue-bright);
+  margin: 0 .15rem;
+}
+.lifeos-flow__arrow svg { width: 100%; height: auto; display: block; }
+.lifeos-lifestyle__grid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 1.5rem 1.25rem;
+}
+.lifeos-lifestyle__grid li {
+  border-top: 2px solid var(--lo-blue);
+  padding-top: .85rem;
+}
+.lifeos-lifestyle__glyph {
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-bottom: .5rem;
+  color: var(--lo-blue);
+}
+.lifeos-lifestyle__glyph svg { width: 100%; height: 100%; display: block; }
+.lifeos-lifestyle__grid strong {
+  display: block; font-size: 1.05rem; margin-bottom: .25rem; color: var(--lo-black);
+}
+.lifeos-lifestyle__grid span { color: var(--lo-muted); font-size: .9rem; line-height: 1.45; }
+.lifeos-brain__row {
+  display: flex; flex-wrap: wrap; gap: .5rem .65rem;
+}
+.lifeos-brain__row span {
+  font-size: .82rem; font-weight: 700; letter-spacing: .03em;
+  padding: .5rem .75rem;
+  border: 1px solid var(--lo-line);
+  background: var(--lo-white);
+  color: var(--lo-blue-deep);
+  border-radius: .2rem;
+}
+.lifeos-parts__timeline {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 0;
+}
+.lifeos-parts__timeline > li {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 1rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--lo-line);
+}
+.lifeos-parts__num {
+  font-family: var(--lo-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--lo-blue);
+  line-height: 1;
+}
+.lifeos-parts__rail {
+  display: block; width: 2px; height: 100%; min-height: 2rem;
+  margin: .4rem 0 0 1rem;
+  background: linear-gradient(180deg, var(--lo-blue-bright), transparent);
+}
+.lifeos-parts__body h3 {
+  margin: 0 0 .35rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--lo-black);
+}
+.lifeos-parts__body p {
+  margin: 0 0 .55rem;
+  color: var(--lo-muted);
+  font-size: .9rem;
+  line-height: 1.45;
+}
+.lifeos-parts__body a {
+  color: var(--lo-blue);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: .9rem;
+}
+.lifeos-parts__body a:hover { text-decoration: underline; }
+.lifeos-parts__timeline > li.is-forthcoming .lifeos-parts__num { color: var(--lo-muted); }
+.lifeos-parts__body em {
+  font-style: normal;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--lo-muted);
+}
+.lifeos-principles__list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem 1.75rem;
+}
+.lifeos-principles__list strong {
+  display: block; font-size: 1rem; margin-bottom: .25rem; color: var(--lo-black);
+}
+.lifeos-principles__list span { color: var(--lo-muted); font-size: .9rem; line-height: 1.45; }
+.lifeos-footer {
+  padding: 2rem clamp(1.5rem,4vw,3.5rem) 2.5rem;
+  border-top: 1px solid var(--lo-line);
+  background: var(--lo-black);
+  color: #94a3b8;
+  font-size: .85rem;
+  display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between;
+}
+.lifeos-footer a { color: var(--lo-blue-bright); font-weight: 700; text-decoration: none; }
+@@media (max-width: 720px) {
+  .lifeos-flow__arrow { display: none; }
+  .lifeos-hero { align-items: center; }
+  .lifeos-parts__timeline > li { grid-template-columns: 3.25rem 1fr; }
+}
+@@media (prefers-reduced-motion: reduce) {
+  .lifeos-hero__spark, .lifeos-hero__flow-a, .lifeos-hero__flow-b,
+  .lifeos-hero__figure, .lifeos-hero__content { animation: none !important; }
+  .lifeos-hero__spark { stroke-dashoffset: 0; }
+}
+""";
+}
