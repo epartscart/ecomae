@@ -1,20 +1,24 @@
 @inherits LayoutComponentBase
+@using EcomAE.Platform.LifeOs.Clients
+@using EcomAE.Platform.Presentation
 @*
-  LifeOS product layout: blank PHP chrome shell + shared legal/copyright footer
-  matching ecomae.com PHP Legal & security strip.
+  LifeOS product layout: shared editorial chrome + footer.
+  Page-local CSS may still exist; product CSS sets the law.
 *@
 @layout Layout.PhpChromeLayout
 
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<link rel="stylesheet" href="@ProductCssHref" />
+
 <div class="lo-product-shell">
+  <LifeOsSiteChrome ActiveKey="@ActiveChromeKey" />
   @Body
   <LifeOsSiteFooter />
 </div>
 
-<style>
-.lo-product-shell {
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
+@code {
+    /// <summary>Optional: pages can set via cascading — default home-aware from path is not available here, so home is default.</summary>
+    [Parameter] public string ActiveChromeKey { get; set; } = "home";
+
+    private const string ProductCssHref = "/lifeos/lifeos-product.css?v=20260807a";
 }
-</style>

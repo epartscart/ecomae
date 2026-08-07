@@ -1,0 +1,19 @@
+{
+  "id": "lifeos-visual-redesign",
+  "capturedAtUtc": "2026-08-07T14:40:00Z",
+  "verdict": "ready",
+  "scope": "lifeos.ecomae.com /lifeos and related product pages",
+  "untouched": ["hero video sources", "film inline video", "LifeOsCinematicFilm URLs", "join/companion/results JS backends"],
+  "problem": "LifeOS looked like an AI SaaS template — 8 hero CTAs, cyan glow, teal/amber scaffold pages, pill downloads, conflicting palettes",
+  "fix": {
+    "sharedCss": "/lifeos/lifeos-product.css (LifeOsPwaAssets allowlisted)",
+    "chrome": "LifeOsSiteChrome sticky nav on LifeOsProductLayout",
+    "home": "brand-led hero (3 CTAs) + navstrip + editorial sections; spark/flow motions restored",
+    "relatedPages": "teal/amber → blue/ink; join/results radial glow removed; cinematic flat ink; page-local tops hidden under shared chrome"
+  },
+  "proveAfterForceLive": [
+    "curl -sL https://lifeos.ecomae.com/lifeos | grep -E 'lo-chrome|lifeos-product.css|lifeos-navstrip|lifeos-brand'",
+    "curl -sI https://lifeos.ecomae.com/lifeos/lifeos-product.css | head -5",
+    "Hard-refresh /lifeos — expect editorial paper/ink, shared top nav, not teal wellness or glowing dark blobs"
+  ]
+}

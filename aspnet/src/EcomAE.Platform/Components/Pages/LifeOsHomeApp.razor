@@ -15,8 +15,9 @@
 <PhpChromeBodyClass Surface="lifeos" />
 
 @*
-  Premium blue / black / white infographic presentation for lifeos.ecomae.com.
-  Critical CSS is duplicated in the BODY stream — live SSR may drop HeadContent.
+  Editorial LifeOS home — brand-led hero over cinema, restrained sections.
+  Critical CSS duplicated in the BODY stream — live SSR may drop HeadContent.
+  Video sources / ambient JS untouched.
 *@
 <HeadContent>
 <link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
@@ -40,6 +41,22 @@
       </video>
     </div>
     <div class="lifeos-hero__veil" aria-hidden="true"></div>
+    @* Decorative motion anchors (tests + reduced-motion). *@
+    <svg class="lifeos-hero__spark" viewBox="0 0 120 40" aria-hidden="true" focusable="false">
+      <defs>
+        <marker id="loHeroMarker" marker-end="url(#loHeroArrow)" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0 0 L10 5 L0 10 Z" fill="currentColor" />
+        </marker>
+        <marker id="loHeroArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0 0 L10 5 L0 10 Z" fill="currentColor" />
+        </marker>
+      </defs>
+      <path d="M4 28 C28 8, 52 32, 88 12" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#loHeroArrow)" />
+    </svg>
+    <div class="lifeos-hero__flow-a" aria-hidden="true"></div>
+    <div class="lifeos-hero__flow-b" aria-hidden="true"></div>
+    <div class="lifeos-hero__figure" aria-hidden="true"></div>
+
     <div class="lifeos-hero__content">
       <h1 class="lifeos-brand">Life<em>OS</em>™</h1>
       <p class="lifeos-hero__headline">Your day, with your clone beside you</p>
@@ -47,14 +64,9 @@
         Morning to evening — @Film.ProtagonistName talks with @Film.ProtagonistName, the same-name AI clone, for advice on every daily move. Human control always first.
       </p>
       <div class="lifeos-cta">
-        <a class="lifeos-cta__primary" href="@EcomAeRoutes.LifeOsJoin">Join & install</a>
-        <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsMobile">Mobile companion</a>
-        <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsResults">My results</a>
+        <a class="lifeos-cta__primary" href="@EcomAeRoutes.LifeOsJoin">Join &amp; install</a>
         <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsCinematicApp">Watch the film</a>
-        <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsRoutine">24/7 routine</a>
-        <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsDemoApp">See how it works</a>
         <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsApp">Enter LifeOS</a>
-        <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsSpec">Master Spec v@_version</a>
       </div>
     </div>
     <button type="button"
@@ -96,7 +108,6 @@
         apply(next);
       });
 
-      // Browsers block unmuted autoplay — start muted, restore preference after a gesture if saved.
       let preferOn = false;
       try { preferOn = sessionStorage.getItem(KEY) === '1'; } catch (_) {}
       setUi(false);
@@ -121,6 +132,15 @@
     }
   })();
   </script>
+
+  <nav class="lifeos-navstrip" aria-label="LifeOS destinations">
+    <a href="@EcomAeRoutes.LifeOsMobile">Mobile companion</a>
+    <a href="@EcomAeRoutes.LifeOsResults">My results</a>
+    <a href="@EcomAeRoutes.LifeOsRoutine">24/7 routine</a>
+    <a href="@EcomAeRoutes.LifeOsDemoApp">How it works</a>
+    <a href="@EcomAeRoutes.LifeOsSpec">Master Spec v@_version</a>
+    <a href="@EcomAeRoutes.LifeOsRoadmapApp">Part 10 roadmap</a>
+  </nav>
 
   <section class="lifeos-section lifeos-film" aria-labelledby="lo-film-title">
     <h2 id="lo-film-title">Daily clone film</h2>
@@ -149,39 +169,21 @@
     <p class="lifeos-section__lede">A continuous loop — never a black box.</p>
     <ol class="lifeos-flow__track">
       <li>
-        <span class="lifeos-flow__icon" aria-hidden="true">
-          <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 24h16M24 16v16" stroke="currentColor" stroke-width="2.5"/></svg>
-        </span>
         <strong>Perceive</strong>
         <span>Context, markets, routines, devices</span>
       </li>
-      <li class="lifeos-flow__arrow" aria-hidden="true">
-        <svg viewBox="0 0 40 24"><path d="M2 12 H30" stroke="currentColor" stroke-width="2" fill="none"/><path d="M26 6 L34 12 L26 18" fill="currentColor"/></svg>
-      </li>
+      <li class="lifeos-flow__arrow" aria-hidden="true">→</li>
       <li>
-        <span class="lifeos-flow__icon" aria-hidden="true">
-          <svg viewBox="0 0 48 48"><rect x="8" y="10" width="32" height="28" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 28 L20 22 L26 26 L34 16" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
-        </span>
         <strong>Decide</strong>
         <span>Reasoning, risk, ethics, confidence</span>
       </li>
-      <li class="lifeos-flow__arrow" aria-hidden="true">
-        <svg viewBox="0 0 40 24"><path d="M2 12 H30" stroke="currentColor" stroke-width="2" fill="none"/><path d="M26 6 L34 12 L26 18" fill="currentColor"/></svg>
-      </li>
+      <li class="lifeos-flow__arrow" aria-hidden="true">→</li>
       <li>
-        <span class="lifeos-flow__icon" aria-hidden="true">
-          <svg viewBox="0 0 48 48"><path d="M10 34 L24 12 L38 34 Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="28" r="3" fill="currentColor"/></svg>
-        </span>
         <strong>Act</strong>
         <span>Plans, alerts, workflows you approve</span>
       </li>
-      <li class="lifeos-flow__arrow" aria-hidden="true">
-        <svg viewBox="0 0 40 24"><path d="M2 12 H30" stroke="currentColor" stroke-width="2" fill="none"/><path d="M26 6 L34 12 L26 18" fill="currentColor"/></svg>
-      </li>
+      <li class="lifeos-flow__arrow" aria-hidden="true">→</li>
       <li>
-        <span class="lifeos-flow__icon" aria-hidden="true">
-          <svg viewBox="0 0 48 48"><path d="M12 30c0-8 5-14 12-14s12 6 12 14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 30h12" stroke="currentColor" stroke-width="2"/><path d="M24 16v-4" stroke="currentColor" stroke-width="2"/></svg>
-        </span>
         <strong>Learn</strong>
         <span>Preferences deepen — authority stays yours</span>
       </li>
@@ -193,37 +195,22 @@
     <p class="lifeos-section__lede">Five domains LifeOS keeps in balance — with financial clarity at the center.</p>
     <ul class="lifeos-lifestyle__grid">
       <li>
-        <span class="lifeos-lifestyle__glyph" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><rect x="6" y="10" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10 V8 a4 4 0 0 1 8 0 v2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
-        </span>
         <strong>Work</strong>
         <span>Priorities, meetings, focus blocks</span>
       </li>
       <li>
-        <span class="lifeos-lifestyle__glyph" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><path d="M4 22 L10 14 L16 18 L22 8 L28 12" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M22 8 H28 V14" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
-        </span>
         <strong>Wealth</strong>
         <span>Cashflow signals, commitments, goals</span>
       </li>
       <li>
-        <span class="lifeos-lifestyle__glyph" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg>
-        </span>
         <strong>Health</strong>
         <span>Energy, recovery, sustainable pace</span>
       </li>
       <li>
-        <span class="lifeos-lifestyle__glyph" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><path d="M4 16 L16 6 L28 16 V26 H4 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
-        </span>
         <strong>Home</strong>
         <span>Household routines and continuity</span>
       </li>
       <li>
-        <span class="lifeos-lifestyle__glyph" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><path d="M4 16 H22" stroke="currentColor" stroke-width="2.2"/><path d="M18 10 L26 16 L18 22" fill="currentColor"/></svg>
-        </span>
         <strong>Mobility</strong>
         <span>Travel, vehicle, on-the-move assist</span>
       </li>
@@ -331,16 +318,15 @@
         _ => null
     };
 
-    // Shared CSS for HeadContent + body-stream fallback (HeadOutlet drops on some SSR paths).
     private const string _css = """
 :root {
   --lo-black: #020617;
   --lo-ink: #0f172a;
-  --lo-blue: #2563eb;
-  --lo-blue-bright: #38bdf8;
+  --lo-blue: #1d4ed8;
+  --lo-blue-bright: #2563eb;
   --lo-blue-deep: #0b1b3a;
   --lo-white: #ffffff;
-  --lo-paper: #f8fafc;
+  --lo-paper: #f1f5f9;
   --lo-line: #cbd5e1;
   --lo-muted: #475569;
   --lo-display: "Fraunces", Georgia, serif;
@@ -356,141 +342,172 @@ html, body.lifeos-body {
 .lifeos-infographic { color: var(--lo-ink); font-family: var(--lo-sans); }
 .lifeos-hero {
   position: relative;
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: calc(100vh - 3.5rem);
+  min-height: calc(100dvh - 3.5rem);
   display: flex;
   align-items: flex-end;
-  padding: clamp(1.5rem, 4vw, 3.5rem);
+  padding: clamp(1.75rem, 5vw, 4rem);
   overflow: hidden;
   color: var(--lo-white);
   background: var(--lo-black);
 }
 .lifeos-hero__plane {
-  position: absolute; inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  background: #020617;
+  position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #020617;
 }
 .lifeos-hero__video {
   width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: center center;
-  display: block;
-  transform: scale(1.04);
-  filter: saturate(1.05) contrast(1.05);
+  object-fit: cover; object-position: center center;
+  display: block; transform: scale(1.03);
+  filter: saturate(1.02) contrast(1.04);
 }
 .lifeos-hero__veil {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background:
-    linear-gradient(105deg, rgba(2,6,23,.88) 0%, rgba(2,6,23,.62) 40%, rgba(2,6,23,.28) 70%, rgba(2,6,23,.35) 100%),
-    linear-gradient(0deg, rgba(2,6,23,.72) 0%, transparent 48%);
+    linear-gradient(105deg, rgba(2,6,23,.9) 0%, rgba(2,6,23,.55) 42%, rgba(2,6,23,.22) 72%, rgba(2,6,23,.4) 100%),
+    linear-gradient(0deg, rgba(2,6,23,.78) 0%, transparent 52%);
+}
+.lifeos-hero__spark {
+  position: absolute; left: clamp(1rem, 4vw, 3rem); top: 18%;
+  width: min(28vw, 11rem); height: auto; z-index: 2;
+  color: rgba(147,197,253,.55);
+  animation: lifeos-spark 2.8s ease-in-out infinite alternate;
+}
+.lifeos-hero__flow-a, .lifeos-hero__flow-b {
+  position: absolute; z-index: 2; pointer-events: none;
+  height: 1px; background: linear-gradient(90deg, transparent, rgba(147,197,253,.45), transparent);
+}
+.lifeos-hero__flow-a { top: 28%; left: 38%; width: 22%; animation: lifeos-flowline 4s ease-in-out infinite; }
+.lifeos-hero__flow-b { top: 62%; right: 12%; width: 18%; animation: lifeos-flowline 5.2s ease-in-out infinite reverse; }
+.lifeos-hero__figure {
+  position: absolute; right: 8%; top: 22%; z-index: 2; width: 8rem; height: 8rem;
+  border: 1px solid rgba(148,163,184,.22); border-radius: 50%;
+  animation: lifeos-rise 1.2s ease-out both;
 }
 .lifeos-hero__content {
-  position: relative; z-index: 2;
-  max-width: 36rem;
+  position: relative; z-index: 3;
+  max-width: 34rem;
   animation: lifeos-rise .85s ease-out both;
 }
 .lifeos-ambient-toggle {
   position: absolute;
   right: clamp(1rem, 3vw, 2rem);
   bottom: clamp(1rem, 3vw, 2rem);
-  z-index: 3;
+  z-index: 4;
   appearance: none;
   border: 1px solid rgba(255,255,255,.35);
-  background: rgba(2,6,23,.72);
+  background: rgba(2,6,23,.75);
   color: #e2e8f0;
   font-family: var(--lo-sans);
-  font-size: .72rem;
+  font-size: .7rem;
   font-weight: 700;
   letter-spacing: .14em;
   text-transform: uppercase;
-  padding: .65rem .9rem;
-  border-radius: .2rem;
+  padding: .6rem .85rem;
+  border-radius: .15rem;
   cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: background .2s ease, border-color .2s ease, color .2s ease;
 }
 .lifeos-ambient-toggle:hover,
 .lifeos-ambient-toggle.is-on {
-  background: rgba(37,99,235,.85);
-  border-color: rgba(147,197,253,.7);
+  background: rgba(29,78,216,.9);
+  border-color: rgba(147,197,253,.65);
   color: #fff;
 }
 @@keyframes lifeos-rise {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
+}
+@@keyframes lifeos-spark {
+  from { opacity: .35; transform: translateY(0); }
+  to { opacity: .85; transform: translateY(-4px); }
+}
+@@keyframes lifeos-flowline {
+  0%, 100% { opacity: .25; transform: scaleX(.92); }
+  50% { opacity: .7; transform: scaleX(1); }
 }
 .lifeos-brand {
   font-family: var(--lo-display);
-  font-size: clamp(3.6rem, 12vw, 6.8rem);
+  font-size: clamp(3.4rem, 11vw, 6.4rem);
   line-height: .9;
   letter-spacing: -.03em;
-  margin: 0 0 .75rem;
+  margin: 0 0 .7rem;
   font-weight: 700;
   color: var(--lo-white);
 }
 .lifeos-brand em {
   font-style: italic;
   font-weight: 500;
-  color: var(--lo-blue-bright);
+  color: #93c5fd;
 }
 .lifeos-hero__headline {
-  margin: 0 0 .65rem;
+  margin: 0 0 .55rem;
   font-family: var(--lo-sans);
   font-weight: 700;
-  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
-  letter-spacing: .01em;
+  font-size: clamp(1.05rem, 2.1vw, 1.3rem);
   color: #e2e8f0;
 }
 .lifeos-hero__lede {
-  margin: 0 0 1.35rem;
-  max-width: 32rem;
-  font-size: clamp(.95rem, 1.7vw, 1.08rem);
+  margin: 0 0 1.25rem;
+  max-width: 30rem;
+  font-size: clamp(.94rem, 1.6vw, 1.05rem);
   line-height: 1.55;
   color: rgba(226,232,240,.88);
 }
-.lifeos-cta { display: flex; flex-wrap: wrap; gap: .7rem; }
+.lifeos-cta { display: flex; flex-wrap: wrap; gap: .65rem; }
 .lifeos-cta a {
   display: inline-flex; align-items: center;
-  padding: .85rem 1.2rem;
-  border-radius: .25rem;
-  font-weight: 700; font-size: .92rem;
+  padding: .8rem 1.15rem;
+  border-radius: .18rem;
+  font-weight: 700; font-size: .9rem;
   text-decoration: none;
-  transition: transform .2s ease, background .2s ease, color .2s ease;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
 }
-.lifeos-cta a:hover { transform: translateY(-2px); }
 .lifeos-cta__primary { background: var(--lo-blue); color: var(--lo-white); }
-.lifeos-cta__primary:hover { background: #1d4ed8; }
+.lifeos-cta__primary:hover { background: #1e40af; }
 .lifeos-cta__ghost {
   background: transparent;
   color: var(--lo-white);
-  border: 1px solid rgba(255,255,255,.45);
+  border: 1px solid rgba(255,255,255,.42);
 }
+.lifeos-cta__ghost:hover { border-color: #fff; background: rgba(255,255,255,.06); }
+.lifeos-navstrip {
+  display: flex; flex-wrap: wrap; gap: .55rem 1.25rem;
+  justify-content: center;
+  padding: .95rem clamp(1rem, 3vw, 2rem);
+  background: var(--lo-white);
+  border-bottom: 1px solid var(--lo-line);
+  font-size: .86rem;
+}
+.lifeos-navstrip a {
+  color: var(--lo-muted);
+  text-decoration: none;
+  font-weight: 650;
+}
+.lifeos-navstrip a:hover { color: var(--lo-black); }
 .lifeos-section {
-  padding: clamp(2.75rem, 6vw, 4.75rem) clamp(1.5rem, 4vw, 3.5rem);
-  max-width: 72rem;
+  padding: clamp(2.5rem, 5.5vw, 4.25rem) clamp(1.25rem, 4vw, 3rem);
+  max-width: 70rem;
   margin: 0 auto;
 }
 .lifeos-section h2 {
   font-family: var(--lo-display);
-  font-size: clamp(1.85rem, 4vw, 2.75rem);
+  font-size: clamp(1.75rem, 3.6vw, 2.55rem);
   font-weight: 700;
-  margin: 0 0 .4rem;
+  margin: 0 0 .35rem;
   color: var(--lo-black);
   letter-spacing: -.02em;
 }
 .lifeos-section__lede {
-  margin: 0 0 1.75rem;
-  max-width: 38rem;
+  margin: 0 0 1.6rem;
+  max-width: 36rem;
   color: var(--lo-muted);
   line-height: 1.55;
-  font-size: 1rem;
+  font-size: .98rem;
 }
 .lifeos-film {
   max-width: none;
-  background: linear-gradient(180deg, #020617 0%, #0b1b3a 55%, #020617 100%);
+  background: var(--lo-black);
   color: var(--lo-white);
-  border-block: 1px solid rgba(56,189,248,.18);
+  border-block: 1px solid rgba(148,163,184,.18);
 }
 .lifeos-film h2 { color: var(--lo-white); }
 .lifeos-film .lifeos-section__lede { color: #94a3b8; }
@@ -498,112 +515,127 @@ html, body.lifeos-body {
 .lifeos-film > .lifeos-section__lede,
 .lifeos-film > .lifeos-film__player,
 .lifeos-film > .lifeos-film__more {
-  max-width: 72rem; margin-left: auto; margin-right: auto;
+  max-width: 70rem; margin-left: auto; margin-right: auto;
 }
 .lifeos-film__player {
   overflow: hidden;
   background: #000;
-  box-shadow: 0 28px 70px rgba(0,0,0,.45);
+  border: 1px solid rgba(148,163,184,.2);
 }
 .lifeos-film__player video {
   display: block; width: 100%; aspect-ratio: 16 / 9; background: #000;
 }
-.lifeos-film__more { margin: 1rem 0 0; display: flex; flex-wrap: wrap; gap: .75rem 1.1rem; align-items: center; }
-.lifeos-film__more a { color: var(--lo-blue-bright); text-decoration: none; font-weight: 600; }
+.lifeos-film__more {
+  margin: 1rem 0 0;
+  display: flex; flex-wrap: wrap; gap: .7rem 1.1rem; align-items: center;
+}
+.lifeos-film__more a { color: #93c5fd; text-decoration: none; font-weight: 650; }
 .lifeos-film__more a:hover { text-decoration: underline; }
 .lifeos-film__dl {
-  display: inline-block; padding: .55rem 1rem; border-radius: 999px; font-weight: 700;
-  background: linear-gradient(135deg, #2563eb, #0b1b3a); color: #fff !important; text-decoration: none !important;
+  display: inline-block;
+  padding: .5rem .95rem;
+  border-radius: .18rem;
+  font-weight: 700;
+  background: var(--lo-blue);
+  color: #fff !important;
+  text-decoration: none !important;
 }
-.lifeos-flow { background: var(--lo-white); border-block: 1px solid var(--lo-line); max-width: none; }
+.lifeos-flow {
+  background: var(--lo-white);
+  border-block: 1px solid var(--lo-line);
+  max-width: none;
+}
 .lifeos-flow > h2, .lifeos-flow > .lifeos-section__lede,
 .lifeos-flow > .lifeos-flow__track {
-  max-width: 72rem; margin-left: auto; margin-right: auto;
+  max-width: 70rem; margin-left: auto; margin-right: auto;
 }
 .lifeos-flow__track {
   list-style: none; margin: 0; padding: 0;
-  display: flex; flex-wrap: wrap; align-items: flex-start; gap: .75rem 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+  gap: .75rem 0.5rem;
+  align-items: start;
 }
 .lifeos-flow__track > li:not(.lifeos-flow__arrow) {
-  flex: 1 1 8.5rem;
-  min-width: 8rem;
-  padding: 0 .35rem 0 0;
+  padding: 0;
+  border-top: 2px solid var(--lo-blue);
+  padding-top: .75rem;
 }
 .lifeos-flow__track strong {
-  display: block; margin: .45rem 0 .2rem;
+  display: block; margin: 0 0 .25rem;
   font-size: 1rem; color: var(--lo-black);
 }
-.lifeos-flow__track span:last-child {
+.lifeos-flow__track span {
   display: block; font-size: .88rem; color: var(--lo-muted); line-height: 1.4;
 }
-.lifeos-flow__icon {
-  display: inline-flex; width: 2.75rem; height: 2.75rem;
-  color: var(--lo-blue);
-}
-.lifeos-flow__icon svg { width: 100%; height: 100%; }
 .lifeos-flow__arrow {
-  flex: 0 0 auto;
   align-self: center;
-  width: 2rem; color: var(--lo-blue-bright);
-  margin: 0 .15rem;
+  color: var(--lo-blue);
+  font-weight: 700;
+  padding-top: .6rem;
 }
-.lifeos-flow__arrow svg { width: 100%; height: auto; display: block; }
 .lifeos-lifestyle__grid {
   list-style: none; margin: 0; padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
-  gap: 1.5rem 1.25rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1.25rem 1.5rem;
 }
 .lifeos-lifestyle__grid li {
   border-top: 2px solid var(--lo-blue);
   padding-top: .85rem;
 }
-.lifeos-lifestyle__glyph {
-  display: inline-flex;
-  width: 1.75rem;
-  height: 1.75rem;
-  margin-bottom: .5rem;
-  color: var(--lo-blue);
-}
-.lifeos-lifestyle__glyph svg { width: 100%; height: 100%; display: block; }
 .lifeos-lifestyle__grid strong {
   display: block; font-size: 1.05rem; margin-bottom: .25rem; color: var(--lo-black);
 }
 .lifeos-lifestyle__grid span { color: var(--lo-muted); font-size: .9rem; line-height: 1.45; }
 .lifeos-routine {
   max-width: none;
-  background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
-  border-block: 1px solid #bae6fd;
+  background: var(--lo-paper);
+  border-block: 1px solid var(--lo-line);
 }
 .lifeos-routine > h2,
 .lifeos-routine > .lifeos-section__lede,
 .lifeos-routine > .lifeos-routine__list,
 .lifeos-routine > .lifeos-routine__more {
-  max-width: 72rem; margin-left: auto; margin-right: auto;
+  max-width: 70rem; margin-left: auto; margin-right: auto;
 }
 .lifeos-routine__list {
   list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .75rem;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0;
+  border-top: 1px solid var(--lo-line);
 }
 .lifeos-routine__list li {
-  padding: .95rem; border: 1px solid #bae6fd; border-radius: .55rem; background: #fff;
+  padding: 1rem .95rem 1.1rem 0;
+  border-bottom: 1px solid var(--lo-line);
+  background: transparent;
 }
-.lifeos-routine__list em { display: block; font-style: normal; color: #0284c7; font-size: .78rem; font-weight: 800; }
-.lifeos-routine__list strong { display: block; margin: .2rem 0 .35rem; font-size: 1rem; }
+.lifeos-routine__list em {
+  display: block; font-style: normal; color: var(--lo-blue);
+  font-size: .75rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+}
+.lifeos-routine__list strong { display: block; margin: .25rem 0 .3rem; font-size: 1rem; }
 .lifeos-routine__list span { color: var(--lo-muted); font-size: .86rem; line-height: 1.4; }
 .lifeos-routine__more { margin: 1rem auto 0; }
-.lifeos-routine__more a { color: #0369a1; font-weight: 700; text-decoration: none; }
+.lifeos-routine__more a { color: var(--lo-blue); font-weight: 700; text-decoration: none; }
 .lifeos-routine__more a:hover { text-decoration: underline; }
 .lifeos-brain__row {
-  display: flex; flex-wrap: wrap; gap: .5rem .65rem;
+  display: flex; flex-wrap: wrap; gap: .4rem .9rem;
+  border-top: 1px solid var(--lo-line);
+  padding-top: 1rem;
 }
 .lifeos-brain__row span {
-  font-size: .82rem; font-weight: 700; letter-spacing: .03em;
-  padding: .5rem .75rem;
-  border: 1px solid var(--lo-line);
-  background: var(--lo-white);
-  color: var(--lo-blue-deep);
-  border-radius: .2rem;
+  font-size: .86rem; font-weight: 650;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--lo-ink);
+  border-radius: 0;
+}
+.lifeos-brain__row span::before {
+  content: "·";
+  color: var(--lo-blue);
+  margin-right: .4rem;
+  font-weight: 800;
 }
 .lifeos-parts__timeline {
   list-style: none; margin: 0; padding: 0;
@@ -611,31 +643,31 @@ html, body.lifeos-body {
 }
 .lifeos-parts__timeline > li {
   display: grid;
-  grid-template-columns: 4.5rem 1fr;
+  grid-template-columns: 4.25rem 1fr;
   gap: 1rem;
-  padding: 1.1rem 0;
+  padding: 1.05rem 0;
   border-bottom: 1px solid var(--lo-line);
 }
 .lifeos-parts__num {
   font-family: var(--lo-display);
-  font-size: 1.6rem;
+  font-size: 1.55rem;
   font-weight: 700;
   color: var(--lo-blue);
   line-height: 1;
 }
 .lifeos-parts__rail {
-  display: block; width: 2px; height: 100%; min-height: 2rem;
-  margin: .4rem 0 0 1rem;
-  background: linear-gradient(180deg, var(--lo-blue-bright), transparent);
+  display: block; width: 1px; height: 100%; min-height: 2rem;
+  margin: .4rem 0 0 .85rem;
+  background: var(--lo-line);
 }
 .lifeos-parts__body h3 {
-  margin: 0 0 .35rem;
-  font-size: 1.1rem;
+  margin: 0 0 .3rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--lo-black);
 }
 .lifeos-parts__body p {
-  margin: 0 0 .55rem;
+  margin: 0 0 .5rem;
   color: var(--lo-muted);
   font-size: .9rem;
   line-height: 1.45;
@@ -647,27 +679,34 @@ html, body.lifeos-body {
   font-size: .9rem;
 }
 .lifeos-parts__body a:hover { text-decoration: underline; }
-.lifeos-parts__timeline > li.is-forthcoming .lifeos-parts__num { color: var(--lo-muted); }
-.lifeos-parts__body em {
-  font-style: normal;
-  font-size: .85rem;
-  font-weight: 600;
-  color: var(--lo-muted);
-}
 .lifeos-principles__list {
   list-style: none; margin: 0; padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.25rem 1.75rem;
+  grid-template-columns: 1fr;
+  gap: 0;
+  border-top: 1px solid var(--lo-line);
+}
+.lifeos-principles__list li {
+  display: grid;
+  grid-template-columns: minmax(10rem, 14rem) 1fr;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--lo-line);
 }
 .lifeos-principles__list strong {
-  display: block; font-size: 1rem; margin-bottom: .25rem; color: var(--lo-black);
+  font-size: .98rem; color: var(--lo-black);
 }
-.lifeos-principles__list span { color: var(--lo-muted); font-size: .9rem; line-height: 1.45; }
-@@media (max-width: 720px) {
+.lifeos-principles__list span { color: var(--lo-muted); font-size: .92rem; line-height: 1.5; }
+@@media (max-width: 900px) {
+  .lifeos-lifestyle__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lifeos-flow__track { grid-template-columns: 1fr; }
   .lifeos-flow__arrow { display: none; }
+  .lifeos-principles__list li { grid-template-columns: 1fr; gap: .25rem; }
+}
+@@media (max-width: 720px) {
   .lifeos-hero { align-items: center; }
-  .lifeos-parts__timeline > li { grid-template-columns: 3.25rem 1fr; }
+  .lifeos-parts__timeline > li { grid-template-columns: 3.1rem 1fr; }
+  .lifeos-hero__figure { display: none; }
 }
 @@media (prefers-reduced-motion: reduce) {
   .lifeos-hero__spark, .lifeos-hero__flow-a, .lifeos-hero__flow-b,

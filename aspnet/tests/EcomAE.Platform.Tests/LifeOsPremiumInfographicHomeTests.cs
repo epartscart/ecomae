@@ -53,6 +53,26 @@ public sealed class LifeOsPremiumInfographicHomeTests
         Assert.Contains("Wealth", text, StringComparison.Ordinal);
         Assert.Contains("Perceive", text, StringComparison.Ordinal);
         Assert.Contains("marker-end", text, StringComparison.Ordinal);
+        // Hero stays brand-led — not an 8-CTA AI template cluster.
+        Assert.Contains("lifeos-navstrip", text, StringComparison.Ordinal);
+        var ctaBlockStart = text.IndexOf("class=\"lifeos-cta\"", StringComparison.Ordinal);
+        var ctaBlockEnd = text.IndexOf("</div>", ctaBlockStart, StringComparison.Ordinal);
+        Assert.True(ctaBlockStart > 0 && ctaBlockEnd > ctaBlockStart);
+        var ctaBlock = text[ctaBlockStart..ctaBlockEnd];
+        Assert.True(ctaBlock.Split("href=", StringSplitOptions.None).Length - 1 <= 3);
+    }
+
+    [Fact]
+    public void ProductCss_IsAllowlistedAndEditorial()
+    {
+        var css = Read("aspnet/src/EcomAE.Platform/wwwroot/lifeos/lifeos-product.css");
+        Assert.Contains("--lo-black", css, StringComparison.Ordinal);
+        Assert.Contains("--lo-blue", css, StringComparison.Ordinal);
+        Assert.Contains("lo-chrome", css, StringComparison.Ordinal);
+        Assert.DoesNotContain("#0f766e", css, StringComparison.Ordinal);
+        Assert.DoesNotContain("#f59e0b", css, StringComparison.Ordinal);
+        var pwa = Read("aspnet/src/EcomAE.Platform/LifeOs/Clients/LifeOsPwaAssets.cs");
+        Assert.Contains("lifeos-product.css", pwa, StringComparison.Ordinal);
     }
 
     [Fact]

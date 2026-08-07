@@ -47,6 +47,8 @@ public sealed class LifeOsLegalFooterTests
     {
         var layout = ReadRepoFile("Components/Layout/LifeOsProductLayout.razor");
         Assert.Contains("LifeOsSiteFooter", layout, StringComparison.Ordinal);
+        Assert.Contains("LifeOsSiteChrome", layout, StringComparison.Ordinal);
+        Assert.Contains("lifeos-product.css", layout, StringComparison.Ordinal);
         Assert.Contains("PhpChromeLayout", layout, StringComparison.Ordinal);
 
         var home = ReadRepoFile("Components/Pages/LifeOsHomeApp.razor");

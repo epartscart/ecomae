@@ -14,14 +14,14 @@
 <link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
 <style>
 :root {
-  --lo-ink:#0a1f1c; --lo-sea:#0f766e; --lo-sun:#f59e0b; --lo-paper:#f4faf8;
-  --lo-display:"Instrument Serif", Georgia, serif; --lo-sans:"Manrope","Segoe UI",sans-serif;
+  --lo-ink:#0f172a; --lo-sea:#1d4ed8; --lo-sun:#2563eb; --lo-paper:#f1f5f9;
+  --lo-display:var(--lo-display, "Fraunces", Georgia, serif); --lo-sans:"Manrope","Segoe UI",sans-serif;
 }
 body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); font-family:var(--lo-sans); }
 .lo-top {
   display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
   padding:1rem clamp(1rem,3vw,2rem);
-  background:linear-gradient(90deg,#062a26,#0f766e 55%,#134e4a); color:#ecfdf5;
+  background:#020617; color:#e2e8f0;
 }
 .lo-top .brand { font-family:var(--lo-display); font-size:1.55rem; }
 .lo-top .brand em { font-style:italic; color:#99f6e4; }
@@ -122,7 +122,7 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
       <input @bind="_transcript" placeholder="Schedule tomorrow's meeting." />
       <div>
         <button type="button" @onclick="RunTick">Process input</button>
-        <button type="button" @onclick="RunNotification" style="background:#0f766e;color:#fff">Classify notification</button>
+        <button type="button" @onclick="RunNotification" style="background:#1d4ed8;color:#fff">Classify notification</button>
       </div>
       @if (_out is not null)
       {
