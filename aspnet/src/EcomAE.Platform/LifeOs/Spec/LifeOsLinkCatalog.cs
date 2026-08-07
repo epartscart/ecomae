@@ -34,6 +34,8 @@ public static class LifeOsLinkCatalog
     public static IReadOnlyList<LinkRow> FrontendApps { get; } =
     [
         new("frontend", 1, "LifeOS home infographic", "/lifeos", "GET", "lifeos.ecomae.com + www", "Purpose · Mission · Principles · Product · Cognitive Model · Brain"),
+        new("frontend", 1, "Join & install companion", "/lifeos/join", "GET", "www + lifeos", "New client onboarding · PWA install · test client Amina"),
+        new("frontend", 1, "Mobile companion PWA", "/lifeos/mobile", "GET", "www + lifeos", "Track · Talk · Listen · Guide in mobile browser"),
         new("frontend", 1, "24/7 Daily Human Routine Matrix", "/lifeos/routine", "GET", "www + lifeos", "Purpose coverage · morning→sleep · cloned voice samples"),
         new("frontend", 1, "How it works sample demo", "/lifeos/demo-app", "GET", "www + lifeos", "Perceive→Decide→Act→Learn with sample data"),
         new("frontend", 1, "Cinematic launch film", "/lifeos/cinematic-app", "GET", "www + lifeos", "3:00 keyframe storyboard · 4K60 bible"),
@@ -77,6 +79,10 @@ public static class LifeOsLinkCatalog
             [
                 new LinkRow("backend", 1, "LifeOS logout", "/lifeos/logout", "POST/GET", "www + lifeos", "Session end"),
                 new LinkRow("backend", 1, "IP logout", "/ip/logout", "POST/GET", "www Super-CP", "Session end"),
+                new LinkRow("backend", 1, "Client directory digest", "/lifeos/directory", "GET", "www + lifeos", "Join directory · test client"),
+                new LinkRow("backend", 1, "Companion session", "/lifeos/companion", "GET", "www + lifeos", "Mobile session"),
+                new LinkRow("backend", 1, "Companion track", "/lifeos/companion/track", "POST", "www + lifeos", "Tracking events"),
+                new LinkRow("backend", 1, "Companion talk", "/lifeos/companion/talk", "POST", "www + lifeos", "Talk / guide reply"),
             ])
             .OrderBy(r => r.Part)
             .ThenBy(r => r.Path, StringComparer.Ordinal)

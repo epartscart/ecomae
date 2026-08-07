@@ -1565,6 +1565,24 @@ public static class EcomAeRoutes
     public const string LifeOsDemoRun = "/lifeos/demo/run";
     /// <summary>Interactive sample-data demo UI.</summary>
     public const string LifeOsDemoApp = "/lifeos/demo-app";
+    /// <summary>New client join / onboarding UI.</summary>
+    public const string LifeOsJoin = "/lifeos/join";
+    /// <summary>POST create client (or open seeded test client).</summary>
+    public const string LifeOsJoinApi = "/lifeos/join";
+    /// <summary>In-memory client directory digest (JSON).</summary>
+    public const string LifeOsDirectory = "/lifeos/directory";
+    /// <summary>Mobile browser companion app (PWA start URL) — track/talk/listen/guide.</summary>
+    public const string LifeOsMobile = "/lifeos/mobile";
+    /// <summary>Companion session digest (JSON).</summary>
+    public const string LifeOsCompanion = "/lifeos/companion";
+    /// <summary>POST tracking event from companion.</summary>
+    public const string LifeOsCompanionTrack = "/lifeos/companion/track";
+    /// <summary>POST talk utterance → same-name clone guide reply.</summary>
+    public const string LifeOsCompanionTalk = "/lifeos/companion/talk";
+    /// <summary>PWA web manifest.</summary>
+    public const string LifeOsManifest = "/lifeos/manifest.webmanifest";
+    /// <summary>PWA service worker.</summary>
+    public const string LifeOsServiceWorker = "/lifeos/sw.js";
     /// <summary>3-minute cinematic launch film storyboard (JSON bible).</summary>
     public const string LifeOsCinematic = "/lifeos/cinematic";
     /// <summary>Interactive cinematic keyframe theatre UI.</summary>

@@ -1,0 +1,218 @@
+@page "/lifeos/join"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Clients
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsClientDirectory Directory
+
+<PageTitle>LifeOS™ · Join & install companion</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<link rel="manifest" href="@EcomAeRoutes.LifeOsManifest" />
+<meta name="theme-color" content="#2563eb" />
+<style>@((MarkupString)_css)</style>
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<link rel="manifest" href="@EcomAeRoutes.LifeOsManifest" />
+<meta name="theme-color" content="#2563eb" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="ecomae-chrome-surface" content="lifeos-join" />
+<style>@((MarkupString)_css)</style>
+</HeadContent>
+
+<div class="lojoin">
+  <header class="lojoin-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav>
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a class="is-active" href="@EcomAeRoutes.LifeOsJoin">Join</a>
+      <a href="@EcomAeRoutes.LifeOsMobile">Mobile</a>
+      <a href="@EcomAeRoutes.LifeOsDirectory">Directory JSON</a>
+    </nav>
+  </header>
+
+  <main class="lojoin-main">
+    <p class="lojoin-kicker">New client · mobile companion</p>
+    <h1>Join LifeOS and install the tracking companion</h1>
+    <p class="lojoin-lede">
+      Create a client profile. Your AI clone uses the <strong>same name</strong> as you.
+      Open the mobile browser companion to track, talk, listen, and guide — then Add to Home Screen for an app-like experience.
+    </p>
+
+    <ol class="lojoin-steps" aria-label="How to join">
+      <li><strong>Join</strong> — name yourself (or open the test client)</li>
+      <li><strong>Open mobile</strong> — companion loads on phone or desktop browser</li>
+      <li><strong>Install</strong> — browser → Add to Home Screen / Install app</li>
+      <li><strong>Live with clone</strong> — Track · Talk · Listen · Guide</li>
+    </ol>
+
+    <section class="lojoin-grid">
+      <form class="lojoin-form" @onsubmit="JoinAsync" @onsubmit:preventDefault>
+        <h2>Create your client</h2>
+        <label>
+          <span>Your name (clone uses the same name)</span>
+          <input @bind="_name" @bind:event="oninput" maxlength="64" placeholder="e.g. Amina" autocomplete="name" />
+        </label>
+        <label>
+          <span>Email (optional)</span>
+          <input @bind="_email" @bind:event="oninput" type="email" placeholder="you@company.com" autocomplete="email" />
+        </label>
+        <div class="lojoin-actions">
+          <button type="submit" class="primary" disabled="@_busy">@(_busy ? "Joining…" : "Join LifeOS")</button>
+          <button type="button" class="ghost" disabled="@_busy" @onclick="OpenTestAsync">Use test client (Amina)</button>
+        </div>
+        @if (_error is not null)
+        {
+          <p class="lojoin-error" role="alert">@_error</p>
+        }
+      </form>
+
+      <aside class="lojoin-test">
+        <h2>Seeded test client</h2>
+        <p>
+          <strong>@Directory.TestClient.DisplayName</strong> ↔ clone <strong>@Directory.TestClient.CloneName</strong>
+        </p>
+        <p class="muted">Id <code>@Directory.TestClient.ClientId</code></p>
+        <a class="primary" href="@TestCompanionHref">Open test companion →</a>
+        <p class="muted">Scaffold directory is in-memory (not durable IAM). Native App Store apps remain roadmap; this PWA works in mobile Chrome/Safari.</p>
+      </aside>
+    </section>
+
+    @if (_result is not null)
+    {
+      <section class="lojoin-result" aria-live="polite">
+        <h2>You're in</h2>
+        <p>@_result.Message</p>
+        <ul>
+          <li>Client: <strong>@_result.Client.DisplayName</strong> · clone <strong>@_result.Client.CloneName</strong></li>
+          <li>Id: <code>@_result.Client.ClientId</code></li>
+        </ul>
+        <div class="lojoin-actions">
+          <a class="primary" href="@_result.CompanionUrl">Open mobile companion</a>
+          <button type="button" class="ghost" id="lojoin-install-btn">Install app</button>
+        </div>
+        <ol>
+          @foreach (var step in _result.NextSteps)
+          {
+            <li>@step</li>
+          }
+        </ol>
+      </section>
+    }
+  </main>
+</div>
+
+<script>
+(() => {
+  let deferred;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferred = e;
+  });
+  const bind = () => {
+    const btn = document.getElementById('lojoin-install-btn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      if (deferred) {
+        deferred.prompt();
+        await deferred.userChoice.catch(() => {});
+        deferred = null;
+        return;
+      }
+      alert('On iPhone: Share → Add to Home Screen. On Android Chrome: menu → Install app / Add to Home Screen.');
+    });
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('@EcomAeRoutes.LifeOsServiceWorker', { scope: '/lifeos/' }).catch(() => {});
+    }
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+})();
+</script>
+
+@code {
+    private string _name = "";
+    private string _email = "";
+    private bool _busy;
+    private string? _error;
+    private LifeOsJoinResult? _result;
+
+    private string TestCompanionHref =>
+        $"/lifeos/mobile?clientId={Uri.EscapeDataString(Directory.TestClient.ClientId)}&token={Uri.EscapeDataString(Directory.TestClient.JoinToken)}";
+
+    private Task JoinAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            _result = Directory.Join(new LifeOsJoinRequest(_name, _email, null, false));
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OpenTestAsync()
+    {
+        _busy = true;
+        _error = null;
+        _result = Directory.OpenTestClient();
+        _busy = false;
+        return Task.CompletedTask;
+    }
+
+    private const string _css = """
+.lojoin {
+  --ink:#e8eef8; --mute:#9fb0c6; --bg:#05070c; --blue:#2563eb; --cyan:#38bdf8;
+  min-height:100vh; background:radial-gradient(900px 480px at 10% -10%,rgba(37,99,235,.35),transparent 55%),#05070c;
+  color:var(--ink); font-family:"Sora","Segoe UI",sans-serif;
+}
+.lojoin-top { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; border-bottom:1px solid rgba(255,255,255,.08); }
+.lojoin-top .brand { font-size:1.35rem; font-weight:700; }
+.lojoin-top .brand em { font-style:normal; color:var(--cyan); }
+.lojoin-top nav { display:flex; gap:1rem; flex-wrap:wrap; }
+.lojoin-top a { color:var(--mute); text-decoration:none; font-size:.9rem; }
+.lojoin-top a.is-active, .lojoin-top a:hover { color:#fff; }
+.lojoin-main { max-width:920px; margin:0 auto; padding:1.5rem 1.25rem 3rem; }
+.lojoin-kicker { text-transform:uppercase; letter-spacing:.16em; font-size:.68rem; color:var(--cyan); margin:0 0 .4rem; }
+.lojoin-main h1 { margin:0 0 .6rem; font-size:clamp(1.6rem,4vw,2.3rem); letter-spacing:-.02em; }
+.lojoin-lede { color:var(--mute); line-height:1.55; max-width:40rem; }
+.lojoin-steps { margin:1.25rem 0; padding-left:1.2rem; color:var(--mute); line-height:1.6; }
+.lojoin-steps strong { color:#fff; }
+.lojoin-grid { display:grid; grid-template-columns:1.2fr .8fr; gap:1rem; margin-top:1.25rem; }
+@media (max-width:800px){ .lojoin-grid { grid-template-columns:1fr; } }
+.lojoin-form, .lojoin-test, .lojoin-result {
+  border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); padding:1.1rem 1.15rem; border-radius:8px;
+}
+.lojoin-form h2, .lojoin-test h2, .lojoin-result h2 { margin:0 0 .85rem; font-size:1.05rem; }
+.lojoin-form label { display:block; margin-bottom:.85rem; }
+.lojoin-form label span { display:block; font-size:.78rem; color:var(--mute); margin-bottom:.35rem; }
+.lojoin-form input {
+  width:100%; box-sizing:border-box; padding:.75rem .8rem; border-radius:6px; border:1px solid rgba(255,255,255,.15);
+  background:#0b1220; color:#fff; font:inherit;
+}
+.lojoin-actions { display:flex; flex-wrap:wrap; gap:.55rem; margin:.5rem 0 0; }
+.lojoin-actions .primary, a.primary, button.primary {
+  appearance:none; border:0; background:var(--blue); color:#fff; padding:.75rem 1rem; border-radius:6px;
+  font-weight:700; text-decoration:none; cursor:pointer; display:inline-flex; align-items:center;
+}
+.lojoin-actions .ghost, button.ghost {
+  appearance:none; border:1px solid rgba(255,255,255,.35); background:transparent; color:#fff;
+  padding:.75rem 1rem; border-radius:6px; font-weight:700; cursor:pointer;
+}
+.lojoin-test .muted, .lojoin-result .muted { color:var(--mute); font-size:.88rem; line-height:1.45; }
+.lojoin-error { color:#fda4af; margin:.75rem 0 0; }
+.lojoin-result { margin-top:1rem; }
+.lojoin-result ul, .lojoin-result ol { color:var(--mute); line-height:1.55; }
+code { color:var(--cyan); font-size:.85em; }
+""";
+}

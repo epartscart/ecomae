@@ -1,4 +1,5 @@
 using EcomAE.Platform.LifeOs.Cinematic;
+using EcomAE.Platform.LifeOs.Clients;
 using EcomAE.Platform.LifeOs.Demo;
 using EcomAE.Platform.LifeOs.Engines;
 using EcomAE.Platform.LifeOs.Purpose;
@@ -361,6 +362,41 @@ public sealed class LifeOsModule : ISurfaceModule
                 .ConfigureAwait(false);
             return Results.Ok(new { ok = true, scaffold = true, result });
         });
+
+        // ── Client join + mobile companion (PWA track/talk/listen/guide) ───
+        endpoints.MapGet(EcomAeRoutes.LifeOsDirectory, (ILifeOsClientDirectory dir) =>
+            Results.Ok(dir.DirectoryDigest()));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsJoinApi, (LifeOsJoinRequest? body, ILifeOsClientDirectory dir) =>
+        {
+            body ??= new LifeOsJoinRequest(null, null, null, null);
+            var result = dir.Join(body);
+            return Results.Ok(result);
+        });
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsCompanion, (
+            string? clientId,
+            string? token,
+            ILifeOsClientDirectory dir) =>
+            Results.Ok(new
+            {
+                ok = true,
+                scaffold = true,
+                session = dir.CompanionSession(clientId ?? LifeOsClientDirectory.TestClientId, token)
+            }));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsCompanionTrack, (
+            LifeOsTrackEvent? body,
+            ILifeOsClientDirectory dir) =>
+            Results.Ok(dir.RecordTrack(body ?? new LifeOsTrackEvent(null, null, null, null, null, null))));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsCompanionTalk, (
+            LifeOsTalkRequest? body,
+            ILifeOsClientDirectory dir) =>
+            Results.Ok(dir.Talk(body ?? new LifeOsTalkRequest(null, null, null, null))));
+
+        endpoints.MapGet("/lifeos/companion/digest", (ILifeOsClientDirectory dir) =>
+            Results.Ok(dir.CompanionDigest()));
 
         // ── Cinematic launch film (3:00 storyboard + master prompt) ────────
         endpoints.MapGet(EcomAeRoutes.LifeOsCinematic, (ILifeOsCinematicFilm film) =>
