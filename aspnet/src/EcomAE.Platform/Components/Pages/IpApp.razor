@@ -6,143 +6,451 @@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @using EcomAE.Platform.Services
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Intelligence Platform · ecomae Ecosystem</PageTitle>
-<PhpChromeStyles Surface="ip" />
+<PageTitle>Intelligence Platform OS · ecomae</PageTitle>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
 <HeadContent>
-<style>
-    .epc-ip-hub { --ip-ink:#0b1220; --ip-mist:#e8f4f2; --ip-teal:#0d9488; --ip-amber:#d97706; --ip-line:#d4e3df; }
-    .epc-ip-hero {
-        margin:0 0 1.25rem; padding:1.4rem 1.5rem; border-radius:.65rem; color:#fff;
-        background:
-            radial-gradient(120% 80% at 10% 0%, rgba(45,212,191,.35), transparent 55%),
-            linear-gradient(135deg,#020617 0%,#0c4a4a 52%,#0f766e 100%);
-        position:relative; overflow:hidden;
-    }
-    .epc-ip-hero::after {
-        content:""; position:absolute; inset:auto -20% -60% auto; width:18rem; height:18rem;
-        border-radius:50%; background:rgba(250,204,21,.12); animation:ip-pulse 8s ease-in-out infinite;
-    }
-    @@keyframes ip-pulse { 0%,100%{transform:scale(1);opacity:.5} 50%{transform:scale(1.15);opacity:.85} }
-    .epc-ip-hero .brand { font-size:.78rem; letter-spacing:.18em; text-transform:uppercase; color:#99f6e4; font-weight:700; }
-    .epc-ip-hero h1 { margin:.35rem 0 .4rem; font-size:clamp(1.45rem,3vw,2rem); font-weight:800; }
-    .epc-ip-hero p { margin:0; max-width:48rem; color:rgba(255,255,255,.9); font-size:.95rem; line-height:1.45; }
-    .epc-ip-hero nav { margin-top:.85rem; display:flex; flex-wrap:wrap; gap:.85rem; }
-    .epc-ip-hero a { color:#a5f3fc; font-weight:700; text-decoration:none; }
-    .epc-ip-section { margin:1.4rem 0 0; }
-    .epc-ip-section h2 { margin:0 0 .35rem; font-size:1.1rem; color:var(--ip-ink); }
-    .epc-ip-section > p { margin:0 0 .85rem; color:#475569; font-size:.9rem; max-width:42rem; }
-    .epc-ip-bos {
-        display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.65rem;
-    }
-    .epc-ip-bos a, .epc-ip-os a {
-        display:flex; flex-direction:column; gap:.3rem; min-height:5.8rem;
-        padding:.9rem; text-decoration:none; color:inherit;
-        border:1px solid var(--ip-line); border-radius:.5rem; background:#fff;
-        transition:border-color .2s ease, transform .2s ease;
-    }
-    .epc-ip-bos a:hover, .epc-ip-os a:hover { border-color:var(--ip-teal); transform:translateY(-2px); }
-    .epc-ip-bos strong, .epc-ip-os strong { font-size:1.02rem; color:var(--ip-ink); }
-    .epc-ip-bos span, .epc-ip-os span { color:#64748b; font-size:.78rem; line-height:1.35; }
-    .epc-ip-status {
-        align-self:flex-start; margin-top:auto; font-size:.68rem; font-weight:800;
-        letter-spacing:.06em; text-transform:uppercase; color:var(--ip-teal);
-    }
-    .epc-ip-status.is-soon { color:var(--ip-amber); }
-    .epc-ip-os { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.65rem; }
-    .epc-ip-os a.is-lifeos {
-        background:linear-gradient(160deg,#f0fdfa 0%,#fff 60%);
-        border-color:#99f6e4;
-    }
-    .epc-ip-note {
-        margin-top:1.2rem; padding:.85rem 1rem; border:1px solid var(--ip-line);
-        border-radius:.45rem; background:#f8fafc; color:#475569; font-size:.86rem;
-    }
-    .epc-ip-guest {
-        margin:0 0 1rem; padding:.75rem 1rem; border-radius:.45rem;
-        background:#ecfeff; border:1px solid #a5f3fc; color:#155e75; font-size:.88rem;
-    }
-</style>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<meta name="ecomae-chrome-surface" content="ip-os" />
+<style>@((MarkupString)_css)</style>
 </HeadContent>
 
-<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Intelligence Platform">
-    <section class="epc-ip-hub epc-ip-hero" aria-label="Intelligence Platform">
-        <div class="brand">ecomae · Intelligence Platform</div>
-        <h1>Ecosystem command over BOS and ambient OS products</h1>
-        <p>
-            One operator fabric for Business Operating System modules and the ambient OS suite —
-            LifeOS™ first, then HealthOS, EduOS, HomeOS, RetailOS, IndustryOS, CityOS, and future products.
-        </p>
-        <nav aria-label="Related surfaces">
-            <a href="/bos">BOS Fleet</a>
-            <a href="/cp">Super CP</a>
-            <a href="/erp">Super ERP</a>
-            <a href="/cp/lifeos-guide-app">LifeOS system guide</a>
-            <a href="https://lifeos.ecomae.com/">LifeOS™</a>
-        </nav>
-    </section>
+<div class="ipos" data-panel="@_panel">
+  <div class="ipos-wallpaper" aria-hidden="true">
+    <div class="ipos-orb ipos-orb--a"></div>
+    <div class="ipos-orb ipos-orb--b"></div>
+    <div class="ipos-grid"></div>
+    <svg class="ipos-spark" viewBox="0 0 800 200" preserveAspectRatio="none">
+      <path d="M0 140 C80 120 120 80 200 100 S320 160 400 90 S560 40 640 70 S760 120 800 60" fill="none" stroke="rgba(56,189,248,.45)" stroke-width="2"/>
+    </svg>
+  </div>
 
+  <header class="ipos-menubar" role="banner">
+    <div class="ipos-brand">
+      <span class="ipos-brand__mark">IP</span>
+      <div>
+        <strong>Intelligence Platform <em>OS</em></strong>
+        <small>ecomae · Super-CP operator desktop</small>
+      </div>
+    </div>
+    <nav class="ipos-menubar__nav" aria-label="Quick launch">
+      <button type="button" class="@PanelClass("dashboard")" @onclick='() => _panel = "dashboard"'>Dashboard</button>
+      <button type="button" class="@PanelClass("apps")" @onclick='() => _panel = "apps"'>Apps</button>
+      <button type="button" class="@PanelClass("clients")" @onclick='() => _panel = "clients"'>Clients</button>
+      <button type="button" class="@PanelClass("lifeos")" @onclick='() => _panel = "lifeos"'>LifeOS</button>
+      <a href="@EcomAeRoutes.ControlPanelLifeOsGuideApp">Guide</a>
+    </nav>
+    <div class="ipos-menubar__meta">
+      @if (_isAdmin)
+      {
+        <span class="ipos-pill is-live">Operator session</span>
+      }
+      else
+      {
+        <a class="ipos-pill" href="@EcomAeRoutes.IpLogin">Sign in</a>
+      }
+      <a class="ipos-pill ghost" href="@EcomAeRoutes.IpLogout">Logout</a>
+      <time class="ipos-clock">@_clock</time>
+    </div>
+  </header>
+
+  <aside class="ipos-dock" aria-label="App dock">
+    <button type="button" title="Dashboard" class="@DockClass("dashboard")" @onclick='() => _panel = "dashboard"'><span>◉</span><em>Home</em></button>
+    <button type="button" title="App management" class="@DockClass("apps")" @onclick='() => _panel = "apps"'><span>▦</span><em>Apps</em></button>
+    <button type="button" title="Client management" class="@DockClass("clients")" @onclick='() => _panel = "clients"'><span>◫</span><em>Clients</em></button>
+    <button type="button" title="LifeOS" class="@DockClass("lifeos")" @onclick='() => _panel = "lifeos"'><span>◎</span><em>LifeOS</em></button>
+    <a href="/bos" title="BOS Fleet"><span>⬡</span><em>BOS</em></a>
+    <a href="/cp" title="Control Panel"><span>▣</span><em>CP</em></a>
+    <a href="/erp" title="ERP"><span>▤</span><em>ERP</em></a>
+    <a href="https://lifeos.ecomae.com/" target="_blank" rel="noopener" title="LifeOS product"><span>✦</span><em>Launch</em></a>
+  </aside>
+
+  <main class="ipos-desktop" role="main">
     @if (!_isAdmin)
     {
-        <div class="epc-ip-guest">
-            Guest preview of the IP ecosystem map.
-            <a href="/ip/login">Sign in</a> for operator session.
-        </div>
+      <div class="ipos-guest">
+        Preview mode — <a href="@EcomAeRoutes.IpLogin">sign in</a> to operate the Intelligence Platform OS.
+      </div>
     }
 
-    <section class="epc-ip-hub epc-ip-section">
-        <h2>BOS — Business Operating System</h2>
-        <p>Operational backbone under IP: ERP, CRM, Workflow, Automation, AI, and Control Panel.</p>
-        <div class="epc-ip-bos">
+    @if (_panel == "dashboard")
+    {
+      <section class="ipos-window ipos-window--hero" aria-label="System dashboard">
+        <header class="ipos-window__bar">
+          <span class="ipos-dots" aria-hidden="true"></span>
+          <h1>System dashboard</h1>
+          <span class="ipos-window__status">Live fabric</span>
+        </header>
+        <div class="ipos-window__body">
+          <div class="ipos-hero-copy">
+            <p class="ipos-kicker">Operating system for ambient intelligence</p>
+            <h2>One desktop for apps, clients, and LifeOS™</h2>
+            <p>
+              Command BOS modules, multi-client fleets, and the LifeOS ambient operating system
+              from a single Super-CP shell — not a BOS submenu.
+            </p>
+            <div class="ipos-cta">
+              <button type="button" @onclick='() => _panel = "apps"'>Open app manager</button>
+              <button type="button" class="ghost" @onclick='() => _panel = "lifeos"'>Enter LifeOS</button>
+              <button type="button" class="ghost" @onclick='() => _panel = "clients"'>Manage clients</button>
+            </div>
+          </div>
+          <div class="ipos-kpis" aria-label="Fabric metrics">
+            <article><strong>@EcomaeEcosystemCatalog.BosModules.Count</strong><span>BOS apps</span></article>
+            <article><strong>@EcomaeEcosystemCatalog.AmbientOsProducts.Count</strong><span>Ambient OS</span></article>
+            <article><strong>@EcomaeEcosystemCatalog.ClientManagement.Count</strong><span>Client tools</span></article>
+            <article><strong>@EcomaeEcosystemCatalog.LifeOsConsoles.Count</strong><span>LifeOS consoles</span></article>
+          </div>
+          <svg class="ipos-flow" viewBox="0 0 640 160" role="img" aria-label="Perceive decide act learn">
+            <defs>
+              <linearGradient id="iposFlow" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#2563eb"/>
+              </linearGradient>
+              <marker id="iposArr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#38bdf8"/>
+              </marker>
+            </defs>
+            <rect x="20" y="50" width="120" height="56" rx="10" fill="#0b1b3a" stroke="url(#iposFlow)" stroke-width="2"/>
+            <text x="80" y="84" text-anchor="middle" fill="#fff" font-size="14" font-family="Sora,sans-serif">Perceive</text>
+            <path d="M140 78 H170" stroke="#38bdf8" stroke-width="2" marker-end="url(#iposArr)"/>
+            <rect x="170" y="50" width="120" height="56" rx="10" fill="#0b1b3a" stroke="url(#iposFlow)" stroke-width="2"/>
+            <text x="230" y="84" text-anchor="middle" fill="#fff" font-size="14" font-family="Sora,sans-serif">Decide</text>
+            <path d="M290 78 H320" stroke="#38bdf8" stroke-width="2" marker-end="url(#iposArr)"/>
+            <rect x="320" y="50" width="120" height="56" rx="10" fill="#0b1b3a" stroke="url(#iposFlow)" stroke-width="2"/>
+            <text x="380" y="84" text-anchor="middle" fill="#fff" font-size="14" font-family="Sora,sans-serif">Act</text>
+            <path d="M440 78 H470" stroke="#38bdf8" stroke-width="2" marker-end="url(#iposArr)"/>
+            <rect x="470" y="50" width="120" height="56" rx="10" fill="#0b1b3a" stroke="url(#iposFlow)" stroke-width="2"/>
+            <text x="530" y="84" text-anchor="middle" fill="#fff" font-size="14" font-family="Sora,sans-serif">Learn</text>
+          </svg>
+        </div>
+      </section>
+    }
+    else if (_panel == "apps")
+    {
+      <section class="ipos-window" aria-label="App management">
+        <header class="ipos-window__bar">
+          <span class="ipos-dots" aria-hidden="true"></span>
+          <h1>App management system</h1>
+          <span class="ipos-window__status">BOS + Ambient OS</span>
+        </header>
+        <div class="ipos-window__body">
+          <h2 class="ipos-sub">Business Operating System apps</h2>
+          <div class="ipos-icons">
             @foreach (var mod in EcomaeEcosystemCatalog.BosModules)
             {
-                <a href="@mod.Href">
-                    <strong>@mod.Title</strong>
-                    <span>@mod.Tagline</span>
-                    <em class="epc-ip-status @(mod.Status == "live" ? "" : "is-soon")">@mod.Status</em>
-                </a>
+              <a class="ipos-icon" href="@mod.Href">
+                <span class="ipos-icon__glyph">@IconFor(mod.Key)</span>
+                <strong>@mod.Title</strong>
+                <small>@mod.Tagline</small>
+                <em class="@(mod.Status == "live" ? "live" : "soon")">@mod.Status</em>
+              </a>
             }
-        </div>
-    </section>
-
-    <section class="epc-ip-hub epc-ip-section">
-        <h2>Ambient OS products</h2>
-        <p>Customer-facing intelligence products delivered on the IP fabric. LifeOS™ is the first live scaffold.</p>
-        <div class="epc-ip-os">
+          </div>
+          <h2 class="ipos-sub">Ambient OS products</h2>
+          <div class="ipos-icons">
             @foreach (var os in EcomaeEcosystemCatalog.AmbientOsProducts)
             {
-                var href = os.Href == "#" ? "/ip/app" : os.Href;
-                var life = os.Key == "lifeos";
-                <a href="@href"
-                   class="@(life ? "is-lifeos" : null)"
+              var life = os.Key == "lifeos";
+              if (os.Href == "#")
+              {
+                <div class="ipos-icon is-disabled">
+                  <span class="ipos-icon__glyph">◎</span>
+                  <strong>@os.Title</strong>
+                  <small>@os.Tagline</small>
+                  <em class="soon">@os.Status</em>
+                </div>
+              }
+              else
+              {
+                <a class="ipos-icon @(life ? "is-lifeos" : null)"
+                   href="@os.Href"
                    target="@(life ? "_blank" : null)"
                    rel="@(life ? "noopener" : null)">
-                    <strong>@os.Title</strong>
-                    <span>@os.Tagline</span>
-                    <em class="epc-ip-status @(os.Status.Contains("live", StringComparison.Ordinal) ? "" : "is-soon")">@os.Status</em>
+                  <span class="ipos-icon__glyph">◎</span>
+                  <strong>@os.Title</strong>
+                  <small>@os.Tagline</small>
+                  <em class="@(os.Status.Contains("live", StringComparison.Ordinal) ? "live" : "soon")">@os.Status</em>
                 </a>
+              }
             }
+          </div>
         </div>
-    </section>
-
-    <div class="epc-ip-note">
-        LifeOS brain engines, agents, and memory runtime land in subsequent engineering waves.
-        This hub is the Super-CP entry at <code>/ip</code> / <code>/ip/login</code> — not exposed on tenant hosts.
-        Full chapter + link catalog: <a href="/cp/lifeos-guide-app">/cp/lifeos-guide-app</a>.
-    </div>
-</PhpBosDesktopChrome>
+      </section>
+    }
+    else if (_panel == "clients")
+    {
+      <section class="ipos-window" aria-label="Client management">
+        <header class="ipos-window__bar">
+          <span class="ipos-dots" aria-hidden="true"></span>
+          <h1>Multiple client management</h1>
+          <span class="ipos-window__status">Tenant fleet</span>
+        </header>
+        <div class="ipos-window__body">
+          <p class="ipos-lede">Operate every client site from the IP desktop — tenants, features, users, API clients, and fleet health.</p>
+          <div class="ipos-icons">
+            @foreach (var c in EcomaeEcosystemCatalog.ClientManagement)
+            {
+              <a class="ipos-icon" href="@c.Href">
+                <span class="ipos-icon__glyph">◫</span>
+                <strong>@c.Title</strong>
+                <small>@c.Tagline</small>
+                <em class="live">@c.Status</em>
+              </a>
+            }
+          </div>
+        </div>
+      </section>
+    }
+    else
+    {
+      <section class="ipos-window ipos-window--lifeos" aria-label="LifeOS operating system">
+        <header class="ipos-window__bar">
+          <span class="ipos-dots" aria-hidden="true"></span>
+          <h1>LifeOS™ operating system</h1>
+          <span class="ipos-window__status">Ambient AI OS</span>
+        </header>
+        <div class="ipos-window__body">
+          <div class="ipos-lifeos-banner">
+            <div>
+              <p class="ipos-kicker">Universal Ambient Artificial Intelligence</p>
+              <h2>Life<em>OS</em>™ inside the Intelligence Platform</h2>
+              <p>Launch the product host, consoles, and Master Spec — Perceive → Decide → Act → Learn across work, wealth, health, home, and mobility.</p>
+              <div class="ipos-cta">
+                <a class="btn" href="https://lifeos.ecomae.com/" target="_blank" rel="noopener">Open lifeos.ecomae.com</a>
+                <a class="btn ghost" href="/lifeos">Preview /lifeos</a>
+                <a class="btn ghost" href="@EcomAeRoutes.ControlPanelLifeOsGuideApp">CP visual guide</a>
+              </div>
+            </div>
+            <ul class="ipos-engines">
+              @foreach (var eng in EcomaeEcosystemCatalog.FindOs("lifeos")!.Children!)
+              {
+                <li>@eng</li>
+              }
+            </ul>
+          </div>
+          <h2 class="ipos-sub">LifeOS consoles</h2>
+          <div class="ipos-icons">
+            @foreach (var c in EcomaeEcosystemCatalog.LifeOsConsoles)
+            {
+              <a class="ipos-icon is-lifeos" href="@c.Href">
+                <span class="ipos-icon__glyph">✦</span>
+                <strong>@c.Title</strong>
+                <small>@c.Tagline</small>
+                <em class="@(c.Status == "live" ? "live" : "soon")">@c.Status</em>
+              </a>
+            }
+          </div>
+        </div>
+      </section>
+    }
+  </main>
+</div>
 
 @code {
     private bool _isAdmin;
+    private string _panel = "dashboard";
+    private string _clock = DateTimeOffset.Now.ToString("HH:mm");
+
+    private string PanelClass(string id) => _panel == id ? "is-active" : null!;
+    private string DockClass(string id) => _panel == id ? "is-active" : null!;
+
+    private static string IconFor(string key) => key switch
+    {
+        "erp" => "▤",
+        "crm" => "◎",
+        "workflow" => "⇄",
+        "automation" => "⚡",
+        "ai" => "✦",
+        "cp" => "▣",
+        _ => "▦"
+    };
 
     protected override async Task OnInitializedAsync()
     {
+        _clock = DateTimeOffset.UtcNow.ToLocalTime().ToString("HH:mm");
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin;
     }
+
+    private const string _css = """
+        .ipos {
+          --ipos-ink: #e2e8f0; --ipos-mute: #94a3b8; --ipos-line: rgba(56,189,248,.28);
+          --ipos-display: "Fraunces", Georgia, serif; --ipos-sans: "Sora", "Segoe UI", sans-serif;
+          position: relative; min-height: 100vh; color: var(--ipos-ink); font-family: var(--ipos-sans);
+          background: #020617; overflow-x: hidden;
+        }
+        .ipos-wallpaper { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+          background: radial-gradient(120% 80% at 10% -10%, rgba(14,165,233,.28), transparent 55%),
+                      radial-gradient(90% 70% at 90% 110%, rgba(37,99,235,.22), transparent 50%),
+                      linear-gradient(160deg, #020617 0%, #0b1b3a 55%, #020617 100%); }
+        .ipos-orb { position: absolute; border-radius: 50%; filter: blur(40px); opacity: .55;
+          animation: ipos-float 14s ease-in-out infinite; }
+        .ipos-orb--a { width: 22rem; height: 22rem; left: -4rem; top: 20%; background: rgba(56,189,248,.35); }
+        .ipos-orb--b { width: 18rem; height: 18rem; right: -3rem; bottom: 10%; background: rgba(37,99,235,.4);
+          animation-delay: -5s; }
+        .ipos-grid { position: absolute; inset: 0; opacity: .12;
+          background-image: linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px);
+          background-size: 48px 48px; mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%); }
+        .ipos-spark { position: absolute; left: 10%; right: 10%; bottom: 18%; height: 160px; opacity: .7;
+          animation: ipos-draw 8s ease-in-out infinite; }
+        @@keyframes ipos-float { 0%,100%{ transform: translateY(0) scale(1);} 50%{ transform: translateY(-18px) scale(1.06);} }
+        @@keyframes ipos-draw { 0%,100%{ opacity:.35; transform: translateY(0);} 50%{ opacity:.85; transform: translateY(-8px);} }
+        @@keyframes ipos-rise { from{ opacity:0; transform: translateY(14px);} to{ opacity:1; transform: none;} }
+        @@keyframes ipos-glow { 0%,100%{ box-shadow: 0 0 0 rgba(56,189,248,0);} 50%{ box-shadow: 0 0 24px rgba(56,189,248,.25);} }
+
+        .ipos-menubar, .ipos-dock, .ipos-desktop { position: relative; z-index: 1; }
+        .ipos-menubar {
+          display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+          padding: .7rem 1rem; border-bottom: 1px solid var(--ipos-line);
+          background: rgba(2,6,23,.72); backdrop-filter: blur(14px);
+        }
+        .ipos-brand { display: flex; align-items: center; gap: .75rem; }
+        .ipos-brand__mark {
+          width: 2.4rem; height: 2.4rem; display: grid; place-items: center; border-radius: .55rem;
+          font-weight: 800; letter-spacing: .04em; color: #020617;
+          background: linear-gradient(135deg, #7dd3fc, #2563eb); animation: ipos-glow 4s ease-in-out infinite;
+        }
+        .ipos-brand strong { display: block; font-family: var(--ipos-display); font-weight: 500; font-size: 1.05rem; }
+        .ipos-brand em { font-style: italic; color: #7dd3fc; }
+        .ipos-brand small { color: var(--ipos-mute); font-size: .72rem; }
+        .ipos-menubar__nav { display: flex; flex-wrap: wrap; gap: .35rem; }
+        .ipos-menubar__nav button, .ipos-menubar__nav a {
+          appearance: none; border: 1px solid transparent; background: transparent; color: #cbd5e1;
+          font: inherit; font-size: .78rem; font-weight: 700; padding: .4rem .7rem; border-radius: .4rem;
+          cursor: pointer; text-decoration: none;
+        }
+        .ipos-menubar__nav button.is-active, .ipos-menubar__nav a:hover, .ipos-menubar__nav button:hover {
+          background: rgba(56,189,248,.12); border-color: var(--ipos-line); color: #fff;
+        }
+        .ipos-menubar__meta { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+        .ipos-pill {
+          font-size: .72rem; font-weight: 700; text-decoration: none; color: #e0f2fe;
+          padding: .35rem .6rem; border-radius: .35rem; border: 1px solid var(--ipos-line);
+          background: rgba(14,165,233,.12);
+        }
+        .ipos-pill.is-live { color: #bbf7d0; border-color: rgba(74,222,128,.35); background: rgba(22,163,74,.15); }
+        .ipos-pill.ghost { background: transparent; color: #94a3b8; }
+        .ipos-clock { font-variant-numeric: tabular-nums; color: #7dd3fc; font-size: .85rem; font-weight: 700; }
+
+        .ipos-dock {
+          position: fixed; left: .75rem; top: 50%; transform: translateY(-50%);
+          display: flex; flex-direction: column; gap: .4rem; z-index: 3;
+          padding: .55rem; border-radius: 1rem; border: 1px solid var(--ipos-line);
+          background: rgba(2,6,23,.78); backdrop-filter: blur(12px);
+        }
+        .ipos-dock a, .ipos-dock button {
+          width: 3.2rem; appearance: none; border: 0; background: rgba(15,23,42,.85); color: #e2e8f0;
+          border-radius: .7rem; padding: .45rem .2rem .35rem; cursor: pointer; text-decoration: none;
+          display: flex; flex-direction: column; align-items: center; gap: .15rem;
+          transition: transform .2s ease, background .2s ease;
+        }
+        .ipos-dock a:hover, .ipos-dock button:hover, .ipos-dock .is-active {
+          transform: translateY(-2px) scale(1.04); background: rgba(37,99,235,.45);
+        }
+        .ipos-dock span { font-size: 1.05rem; line-height: 1; }
+        .ipos-dock em { font-style: normal; font-size: .58rem; font-weight: 700; color: #94a3b8; }
+
+        .ipos-desktop { padding: 1.1rem 1.1rem 2rem 5.2rem; animation: ipos-rise .55s ease both; }
+        .ipos-guest {
+          margin: 0 0 1rem; padding: .75rem 1rem; border-radius: .5rem;
+          background: rgba(14,165,233,.12); border: 1px solid var(--ipos-line); color: #bae6fd; font-size: .88rem;
+        }
+        .ipos-guest a { color: #fff; font-weight: 700; }
+
+        .ipos-window {
+          border: 1px solid var(--ipos-line); border-radius: 1rem; overflow: hidden;
+          background: rgba(8,15,30,.88); box-shadow: 0 24px 60px rgba(0,0,0,.35);
+          animation: ipos-rise .5s ease both;
+        }
+        .ipos-window__bar {
+          display: flex; align-items: center; gap: .75rem; padding: .7rem 1rem;
+          border-bottom: 1px solid rgba(148,163,184,.15);
+          background: linear-gradient(90deg, rgba(14,165,233,.15), transparent 60%);
+        }
+        .ipos-dots { width: 2.6rem; height: .7rem; border-radius: 999px;
+          background: radial-gradient(circle at 6px, #f87171 4px, transparent 5px),
+                      radial-gradient(circle at 18px, #fbbf24 4px, transparent 5px),
+                      radial-gradient(circle at 30px, #4ade80 4px, transparent 5px); }
+        .ipos-window__bar h1 { margin: 0; flex: 1; font-size: .95rem; font-weight: 700; }
+        .ipos-window__status { font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #7dd3fc; }
+        .ipos-window__body { padding: 1.15rem 1.2rem 1.4rem; }
+        .ipos-kicker { margin: 0; font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: #7dd3fc; font-weight: 700; }
+        .ipos-hero-copy h2, .ipos-lifeos-banner h2 {
+          margin: .35rem 0 .5rem; font-family: var(--ipos-display); font-weight: 500;
+          font-size: clamp(1.5rem, 3vw, 2.15rem);
+        }
+        .ipos-lifeos-banner h2 em { font-style: italic; color: #7dd3fc; }
+        .ipos-hero-copy p, .ipos-lede, .ipos-lifeos-banner p { margin: 0; color: #cbd5e1; max-width: 40rem; line-height: 1.5; font-size: .92rem; }
+        .ipos-cta { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 1rem; }
+        .ipos-cta button, .ipos-cta a.btn, .ipos-cta a:not(.ghost) {
+          appearance: none; border: 0; cursor: pointer; text-decoration: none;
+          padding: .55rem .9rem; border-radius: .45rem; font-weight: 750; font-size: .82rem;
+          color: #020617; background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+        }
+        .ipos-cta button.ghost, .ipos-cta a.ghost {
+          background: transparent; border: 1px solid var(--ipos-line); color: #e2e8f0;
+        }
+        .ipos-kpis {
+          display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: .65rem; margin: 1.25rem 0 1rem;
+        }
+        .ipos-kpis article {
+          padding: .9rem; border-radius: .65rem; border: 1px solid var(--ipos-line);
+          background: rgba(15,23,42,.75);
+        }
+        .ipos-kpis strong { display: block; font-size: 1.45rem; color: #fff; }
+        .ipos-kpis span { color: var(--ipos-mute); font-size: .75rem; }
+        .ipos-flow { width: 100%; max-width: 40rem; height: auto; display: block; margin-top: .5rem; }
+        .ipos-sub { margin: 1.1rem 0 .65rem; font-size: .95rem; color: #e2e8f0; }
+        .ipos-icons {
+          display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .65rem;
+        }
+        .ipos-icon {
+          display: flex; flex-direction: column; gap: .25rem; min-height: 8.2rem;
+          padding: .9rem; text-decoration: none; color: inherit;
+          border: 1px solid var(--ipos-line); border-radius: .75rem;
+          background: rgba(15,23,42,.7); transition: transform .2s ease, border-color .2s ease, background .2s ease;
+        }
+        .ipos-icon:hover { transform: translateY(-3px); border-color: #38bdf8; background: rgba(30,58,138,.35); }
+        .ipos-icon.is-lifeos { background: linear-gradient(160deg, rgba(14,165,233,.18), rgba(15,23,42,.8)); }
+        .ipos-icon.is-disabled { opacity: .55; }
+        .ipos-icon__glyph {
+          width: 2.2rem; height: 2.2rem; display: grid; place-items: center; border-radius: .55rem;
+          background: rgba(56,189,248,.15); color: #7dd3fc; font-size: 1.05rem; margin-bottom: .2rem;
+        }
+        .ipos-icon strong { font-size: .92rem; color: #fff; }
+        .ipos-icon small { color: #94a3b8; font-size: .72rem; line-height: 1.35; flex: 1; }
+        .ipos-icon em {
+          font-style: normal; font-size: .65rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+        }
+        .ipos-icon em.live { color: #4ade80; }
+        .ipos-icon em.soon { color: #fbbf24; }
+        .ipos-lifeos-banner {
+          display: grid; grid-template-columns: 1.4fr .9fr; gap: 1rem; align-items: start;
+          margin-bottom: .5rem;
+        }
+        .ipos-engines {
+          list-style: none; margin: 0; padding: .85rem; border-radius: .75rem;
+          border: 1px solid var(--ipos-line); background: rgba(2,6,23,.55);
+          display: grid; gap: .35rem; max-height: 16rem; overflow: auto;
+        }
+        .ipos-engines li {
+          font-size: .78rem; color: #cbd5e1; padding: .35rem .45rem; border-radius: .35rem;
+          background: rgba(56,189,248,.08);
+        }
+        @@media (max-width: 960px) {
+          .ipos-dock { position: static; transform: none; flex-direction: row; flex-wrap: wrap;
+            margin: .75rem; width: calc(100% - 1.5rem); }
+          .ipos-desktop { padding: 1rem; }
+          .ipos-kpis { grid-template-columns: 1fr 1fr; }
+          .ipos-lifeos-banner { grid-template-columns: 1fr; }
+        }
+        """;
 }
