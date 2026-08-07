@@ -1,0 +1,29 @@
+{
+  "id": "lifeos-daily-routine-matrix-coverage",
+  "capturedAtUtc": "2026-08-07T12:00:00Z",
+  "verdict": "covered",
+  "purpose": "Complete 24/7 Daily Human Routine Matrix",
+  "audit": {
+    "before": "Home had Work/Wealth/Health/Home/Mobility domains only — no timed daily segment matrix",
+    "after": "Explicit purpose matrix with 5 operator core rows + 3 continuity rows = full 24/7"
+  },
+  "coreRows": [
+    "06:00-08:00 Morning Routine",
+    "08:00-12:00 Deep Work / Desktop",
+    "12:00-13:00 Lunch & Outdoor",
+    "17:00-19:00 Gym & Health",
+    "20:00-22:00 Evening & Rest"
+  ],
+  "continuityRows": [
+    "13:00-17:00 Afternoon Continuity",
+    "19:00-20:00 Commute / Arrival",
+    "22:00-06:00 Night & Sleep Protection"
+  ],
+  "routes": {
+    "ui": "/lifeos/routine",
+    "alias": "/lifeos/routine-app",
+    "json": "/lifeos/routine/json",
+    "homeSection": "/lifeos"
+  },
+  "note": "Cloned-voice samples are scaffold text — live voice-clone/TTS not claimed"
+}

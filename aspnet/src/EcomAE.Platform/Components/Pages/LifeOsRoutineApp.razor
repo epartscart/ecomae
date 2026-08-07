@@ -1,0 +1,145 @@
+@page "/lifeos/routine"
+@page "/lifeos/routine-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Purpose
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsDailyRoutineMatrix Matrix
+
+<PageTitle>LifeOS™ · 24/7 Daily Human Routine Matrix</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<meta name="ecomae-chrome-surface" content="lifeos-routine" />
+<style>@((MarkupString)_css)</style>
+</HeadContent>
+
+@{
+    var digest = Matrix.Digest();
+}
+
+<div class="loroutine">
+  <header class="loroutine-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav>
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a class="is-active" href="@EcomAeRoutes.LifeOsRoutine">Routine</a>
+      <a href="@EcomAeRoutes.LifeOsDemoApp">Demo</a>
+      <a href="@EcomAeRoutes.LifeOsSpec">Spec</a>
+      <a href="@EcomAeRoutes.LifeOsRoutineJson">JSON</a>
+    </nav>
+  </header>
+
+  <main class="loroutine-main">
+    <p class="loroutine-kicker">LifeOS purpose · Complete 24/7 coverage</p>
+    <h1>Daily Human Routine Matrix</h1>
+    <p class="loroutine-lede">@digest.PurposeStatement</p>
+
+    <div class="loroutine-verdict" aria-label="Coverage verdict">
+      <strong>@digest.CoverageVerdict</strong>
+      <span>@digest.CoreRows core purpose rows · @digest.ContinuityRows continuity rows · @digest.CoveredRows/@digest.Segments.Count covered · 24/7 = @(digest.Complete24x7 ? "yes" : "no")</span>
+    </div>
+
+    <div class="loroutine-table" role="table" aria-label="Daily routine matrix">
+      <div class="loroutine-head" role="row">
+        <span>Daily segment &amp; mode</span>
+        <span>Human activity</span>
+        <span>LifeOS proactive assistance &amp; cloned voice</span>
+      </div>
+      @foreach (var s in Matrix.Segments)
+      {
+        <article class="loroutine-row @(s.IsCorePurposeRow ? "is-core" : "is-continuity")" role="row">
+          <header>
+            <em>@s.Window</em>
+            <strong>@s.Mode</strong>
+            <small>@s.Domain · @(s.IsCorePurposeRow ? "purpose core" : "24/7 continuity")</small>
+          </header>
+          <p class="loroutine-activity">@s.HumanActivity</p>
+          <div class="loroutine-assist">
+            <p>@s.ProactiveAssistance</p>
+            <blockquote>“@s.ClonedVoiceSample”</blockquote>
+            <ul>
+              @foreach (var eng in s.Engines)
+              {
+                <li>@eng</li>
+              }
+            </ul>
+          </div>
+        </article>
+      }
+    </div>
+
+    <section class="loroutine-notes">
+      <h2>Coverage notes</h2>
+      <ul>
+        @foreach (var n in digest.Notes)
+        {
+          <li>@n</li>
+        }
+      </ul>
+    </section>
+  </main>
+</div>
+
+@code {
+    private const string _css = """
+        .loroutine {
+          --ink:#0f172a; --mute:#475569; --line:#cbd5e1; --paper:#f8fafc; --cyan:#0284c7; --deep:#0b1b3a;
+          --display:"Fraunces", Georgia, serif; --sans:"Sora","Segoe UI",sans-serif;
+          min-height:100vh; background:linear-gradient(180deg,#f8fafc 0%,#e2e8f0 100%); color:var(--ink); font-family:var(--sans);
+        }
+        .loroutine-top {
+          display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+          padding:1rem 1.25rem; background:linear-gradient(90deg,#020617,#0b1b3a 55%,#075985); color:#e0f2fe;
+        }
+        .loroutine-top .brand { font-family:var(--display); font-size:1.45rem; }
+        .loroutine-top .brand em { font-style:normal; color:#7dd3fc; }
+        .loroutine-top nav { display:flex; flex-wrap:wrap; gap:.85rem; font-size:.85rem; font-weight:700; }
+        .loroutine-top a { color:#bae6fd; text-decoration:none; }
+        .loroutine-top a.is-active, .loroutine-top a:hover { color:#fff; }
+        .loroutine-main { max-width:72rem; margin:0 auto; padding:1.5rem 1.25rem 3rem; }
+        .loroutine-kicker { margin:0 0 .35rem; text-transform:uppercase; letter-spacing:.14em; font-size:.7rem; font-weight:800; color:var(--cyan); }
+        .loroutine-main > h1 { font-family:var(--display); font-size:clamp(1.8rem,3.8vw,2.6rem); margin:.1rem 0 .5rem; letter-spacing:-.02em; }
+        .loroutine-lede { max-width:46rem; color:var(--mute); line-height:1.55; margin:0 0 1.1rem; }
+        .loroutine-verdict {
+          display:flex; flex-wrap:wrap; gap:.65rem 1rem; align-items:baseline;
+          padding:.85rem 1rem; border:1px solid #bae6fd; border-radius:.55rem; background:#e0f2fe; margin-bottom:1.25rem;
+        }
+        .loroutine-verdict strong { text-transform:uppercase; letter-spacing:.08em; color:#0369a1; }
+        .loroutine-verdict span { color:#0c4a6e; font-size:.9rem; }
+        .loroutine-head {
+          display:none; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--mute);
+        }
+        .loroutine-row {
+          display:grid; gap:.85rem; padding:1.1rem 1rem; margin-bottom:.75rem;
+          border:1px solid var(--line); border-radius:.65rem; background:#fff;
+          box-shadow:0 10px 28px rgba(15,23,42,.04);
+        }
+        .loroutine-row.is-core { border-color:#7dd3fc; }
+        .loroutine-row.is-continuity { background:linear-gradient(180deg,#fff,#f8fafc); }
+        .loroutine-row header em { display:block; font-style:normal; color:var(--cyan); font-weight:800; font-size:.8rem; }
+        .loroutine-row header strong { display:block; font-size:1.15rem; margin:.15rem 0; }
+        .loroutine-row header small { color:var(--mute); font-size:.78rem; }
+        .loroutine-activity { margin:0; color:var(--ink); font-weight:600; line-height:1.45; }
+        .loroutine-assist p { margin:0 0 .55rem; color:var(--mute); line-height:1.5; }
+        .loroutine-assist blockquote {
+          margin:0 0 .65rem; padding:.75rem .9rem; border-left:3px solid #38bdf8;
+          background:#f0f9ff; color:#0c4a6e; font-family:var(--display); font-size:1.02rem; line-height:1.45;
+        }
+        .loroutine-assist ul { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:.35rem; }
+        .loroutine-assist li {
+          font-size:.72rem; font-weight:700; color:#075985; background:#e0f2fe;
+          padding:.25rem .5rem; border-radius:999px;
+        }
+        .loroutine-notes { margin-top:1.5rem; }
+        .loroutine-notes h2 { font-family:var(--display); font-size:1.4rem; margin:0 0 .5rem; }
+        .loroutine-notes ul { margin:0; padding-left:1.1rem; color:var(--mute); line-height:1.55; }
+        @@media (min-width: 960px) {
+          .loroutine-head { display:grid; grid-template-columns: 1fr 1fr 1.4fr; gap:1rem; margin-bottom:.55rem; padding:0 .25rem; }
+          .loroutine-row { grid-template-columns: 1fr 1fr 1.4fr; align-items:start; }
+        }
+        """;
+}

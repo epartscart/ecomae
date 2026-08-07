@@ -1569,6 +1569,12 @@ public static class EcomAeRoutes
     public const string LifeOsCinematic = "/lifeos/cinematic";
     /// <summary>Interactive cinematic keyframe theatre UI.</summary>
     public const string LifeOsCinematicApp = "/lifeos/cinematic-app";
+    /// <summary>24/7 Daily Human Routine Matrix UI (purpose coverage).</summary>
+    public const string LifeOsRoutine = "/lifeos/routine";
+    /// <summary>Alias for <see cref="LifeOsRoutine"/>.</summary>
+    public const string LifeOsRoutineApp = "/lifeos/routine-app";
+    /// <summary>JSON digest for the 24/7 daily routine matrix.</summary>
+    public const string LifeOsRoutineJson = "/lifeos/routine/json";
 
     public const string ApiPrefix = "/api";
     public const string ApiMigrationStatus = "/api/migration/status";

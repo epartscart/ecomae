@@ -1,6 +1,7 @@
 using EcomAE.Platform.LifeOs.Cinematic;
 using EcomAE.Platform.LifeOs.Demo;
 using EcomAE.Platform.LifeOs.Engines;
+using EcomAE.Platform.LifeOs.Purpose;
 using EcomAE.Platform.LifeOs.EventBus;
 using EcomAE.Platform.LifeOs.Models;
 using EcomAE.Platform.LifeOs.Orchestrator;
@@ -364,6 +365,10 @@ public sealed class LifeOsModule : ISurfaceModule
         // ── Cinematic launch film (3:00 storyboard + master prompt) ────────
         endpoints.MapGet(EcomAeRoutes.LifeOsCinematic, (ILifeOsCinematicFilm film) =>
             Results.Ok(new { ok = true, scaffold = true, film = film.Digest() }));
+
+        // ── 24/7 Daily Human Routine Matrix (purpose coverage) ─────────────
+        endpoints.MapGet(EcomAeRoutes.LifeOsRoutineJson, (ILifeOsDailyRoutineMatrix matrix) =>
+            Results.Ok(new { ok = true, scaffold = true, purpose = matrix.Digest() }));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (
             LifeOsOrchestrateBody? body,

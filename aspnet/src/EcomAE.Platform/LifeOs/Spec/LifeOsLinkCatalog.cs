@@ -34,6 +34,7 @@ public static class LifeOsLinkCatalog
     public static IReadOnlyList<LinkRow> FrontendApps { get; } =
     [
         new("frontend", 1, "LifeOS home infographic", "/lifeos", "GET", "lifeos.ecomae.com + www", "Purpose · Mission · Principles · Product · Cognitive Model · Brain"),
+        new("frontend", 1, "24/7 Daily Human Routine Matrix", "/lifeos/routine", "GET", "www + lifeos", "Purpose coverage · morning→sleep · cloned voice samples"),
         new("frontend", 1, "How it works sample demo", "/lifeos/demo-app", "GET", "www + lifeos", "Perceive→Decide→Act→Learn with sample data"),
         new("frontend", 1, "Cinematic launch film", "/lifeos/cinematic-app", "GET", "www + lifeos", "3:00 keyframe storyboard · 4K60 bible"),
         new("frontend", 1, "LifeOS console / brain / login", "/lifeos/app", "GET", "www + lifeos", "Brain engines UI · operator console"),
