@@ -1501,6 +1501,12 @@ public static class EcomAeRoutes
     public const string LifeOsPrediction = "/lifeos/prediction";
     public const string LifeOsEthics = "/lifeos/ethics";
     public const string LifeOsMultimodal = "/lifeos/multimodal";
+    public const string LifeOsMultimodalApp = "/lifeos/multimodal-app";
+    public const string LifeOsRuntimeTick = "/lifeos/runtime-tick";
+    public const string LifeOsDevices = "/lifeos/devices";
+    public const string LifeOsNotifications = "/lifeos/notifications";
+    public const string LifeOsSync = "/lifeos/sync";
+    public const string LifeOsPerformance = "/lifeos/performance";
     public const string LifeOsSecurityDigest = "/lifeos/security";
     public const string LifeOsClients = "/lifeos/clients";
     public const string LifeOsPlugins = "/lifeos/plugins";

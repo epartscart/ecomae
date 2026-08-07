@@ -3,6 +3,7 @@ using EcomAE.Platform.LifeOs.EventBus;
 using EcomAE.Platform.LifeOs.Models;
 using EcomAE.Platform.LifeOs.Orchestrator;
 using EcomAE.Platform.LifeOs.Part3;
+using EcomAE.Platform.LifeOs.Part4;
 using EcomAE.Platform.LifeOs.Spec;
 using EcomAE.Platform.Routing;
 
@@ -81,8 +82,54 @@ public sealed class LifeOsModule : ISurfaceModule
             return Results.Ok(new { ok = true, scaffold = true, cycle });
         });
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsMultimodal, (ILifeOsMasterSpec spec) =>
-            Results.Ok(new { ok = true, part = 4, adapters = spec.MultimodalAdapters }));
+        endpoints.MapGet(EcomAeRoutes.LifeOsMultimodal, (ILifeOsMultimodalRuntime runtime) =>
+            Results.Ok(runtime.FullPart4Digest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsDevices, (ILifeOsMultimodalRuntime runtime) =>
+            Results.Ok(new { ok = true, devices = runtime.Devices, kernel = runtime.KernelComponents }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsSync, (ILifeOsMultimodalRuntime runtime) =>
+            Results.Ok(new { ok = true, sync = runtime.UnifiedSession, state = runtime.CurrentState.ToString() }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsPerformance, (ILifeOsMultimodalRuntime runtime) =>
+            Results.Ok(new { ok = true, targets = runtime.PerformanceTargets }));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsNotifications, (
+            LifeOsNotificationBody? body,
+            ILifeOsMultimodalRuntime runtime) =>
+        {
+            body ??= new("Alert", "system", "working");
+            var decision = runtime.ClassifyNotification(
+                body.Title ?? "Alert",
+                body.Sender ?? "system",
+                body.Activity ?? "working");
+            return Results.Ok(new { ok = true, decision });
+        });
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsRuntimeTick, async (
+            LifeOsOrchestrateBody? body,
+            ILifeOsMultimodalRuntime runtime,
+            CancellationToken cancellationToken) =>
+        {
+            body ??= new LifeOsOrchestrateBody(null, null, null);
+            var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(body.Transcript))
+            {
+                payload["transcript"] = body.Transcript.Trim();
+            }
+
+            var evt = payload.Count == 0
+                ? LifeOsEventFactory.SampleVoice()
+                : LifeOsEventFactory.Create(
+                    ParseType(body.EventType),
+                    body.Source ?? "Wearable",
+                    payload,
+                    LifeOsEventPriority.High);
+
+            var tick = await runtime.ProcessInputAsync(evt, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+            return Results.Ok(new { ok = true, scaffold = true, tick });
+        });
 
         endpoints.MapGet(EcomAeRoutes.LifeOsSecurityDigest, (ILifeOsMasterSpec spec) =>
             Results.Ok(new { ok = true, part = 7, controls = spec.SecurityControls }));
@@ -106,11 +153,13 @@ public sealed class LifeOsModule : ISurfaceModule
             ILifeOsMasterSpec spec,
             ILifeOsCognitiveEngines cognitive,
             ILifeOsOrchestrator orch,
-            ILifeOsAiCore ai) =>
+            ILifeOsAiCore ai,
+            ILifeOsMultimodalRuntime runtime) =>
             Results.Ok(spec.FullDigest(cognitive, new
             {
                 part2 = orch.ArchitectureDigest(),
-                part3 = ai.FullPart3Digest()
+                part3 = ai.FullPart3Digest(),
+                part4 = runtime.FullPart4Digest()
             })));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (
@@ -168,4 +217,6 @@ public sealed class LifeOsModule : ISurfaceModule
     }
 
     public sealed record LifeOsOrchestrateBody(string? Transcript, string? EventType, string? Source, bool? Confirm = null);
+
+    public sealed record LifeOsNotificationBody(string? Title, string? Sender, string? Activity);
 }

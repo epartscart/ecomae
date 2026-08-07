@@ -1,0 +1,39 @@
+{
+  "surface": "lifeos",
+  "part": 4,
+  "title": "Multimodal Runtime & Human Interaction System",
+  "status": "scaffold",
+  "chapters": {
+    "26": "Multimodal Runtime Architecture",
+    "27": "Runtime Kernel (10 managers)",
+    "28": "Device Ecosystem (16+ form factors)",
+    "29": "Voice Intelligence Platform",
+    "30": "Vision Intelligence Platform",
+    "31": "Desktop Intelligence",
+    "32": "Mobile Intelligence",
+    "33": "Smart Glasses Runtime",
+    "34": "Wearable Intelligence",
+    "35": "Smart Home Runtime",
+    "36": "Vehicle Intelligence",
+    "37": "Notification Intelligence",
+    "38": "Human Interaction Manager",
+    "39": "Real-Time Synchronization Engine",
+    "40": "Runtime State Machine",
+    "41": "Runtime Performance Targets"
+  },
+  "routes": {
+    "digest": "/lifeos/multimodal",
+    "ui": "/lifeos/multimodal-app",
+    "runtimeTick": "POST /lifeos/runtime-tick",
+    "devices": "/lifeos/devices",
+    "sync": "/lifeos/sync",
+    "performance": "/lifeos/performance",
+    "notifications": "POST /lifeos/notifications"
+  },
+  "notClaimed": [
+    "Always-on local wake-word DSP",
+    "Live camera/microphone capture",
+    "Native mobile/desktop/glasses binaries",
+    "Vehicle safety-critical control"
+  ]
+}
