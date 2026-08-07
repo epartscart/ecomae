@@ -14,21 +14,51 @@
     "www.ecomae.com": {
       "homeBackend": "/marketing/app",
       "homePresentation": "aspnet",
-      "sharedEntries": ["/cp", "/erp", "/bos", "/"],
-      "loginBridges": ["/cp/login", "/erp/login", "/bos/login"]
+      "sharedEntries": [
+        "/",
+        "/bos",
+        "/cp",
+        "/erp",
+        "/ip",
+        "/lifeos"
+      ],
+      "loginBridges": [
+        "/bos/login",
+        "/cp/login",
+        "/erp/login",
+        "/ip/login",
+        "/lifeos/login"
+      ]
     },
     "www.epartscart.com": {
       "homeBackend": "/storefront/app",
       "homePresentation": "aspnet-php-style",
       "homeNote": "ASP.NET storefront with PHP-style chrome (Garage Manager / WhatsApp / AI / search tabs / dock). PHP product only via /php-reference/*.",
-      "sharedEntriesAspNet": ["/", "/cp", "/erp", "/bos"],
+      "sharedEntriesAspNet": [
+        "/",
+        "/cp",
+        "/erp",
+        "/bos"
+      ],
       "sharedEntriesPhp": [],
-      "loginBridges": ["/cp/login", "/erp/login", "/bos/login"],
+      "loginBridges": [
+        "/cp/login",
+        "/erp/login",
+        "/bos/login"
+      ],
       "guestBrowseShells": false,
       "adminAuthRequired": true,
-      "adminAuthNote": "AdminSurfaceAuthGateMiddleware — /cp /erp /bos require admin session; /cp/control same Command Centre as /cp. No guest-browse chrome (confidential tenant leak).",
+      "adminAuthNote": "AdminSurfaceAuthGateMiddleware \u2014 /cp /erp /bos require admin session; /cp/control same Command Centre as /cp. No guest-browse chrome (confidential tenant leak).",
       "nginxTarget": "server_name www.epartscart.com block inside www.ecomae.com.conf mega-conf",
-      "requiresConfirm": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES"
+      "requiresConfirm": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES",
+      "superCpOnlyDeny": [
+        "/bos",
+        "/bos/login",
+        "/ip",
+        "/ip/login",
+        "/lifeos",
+        "/lifeos/login"
+      ]
     }
   },
   "phpReferenceUrls": [
@@ -44,17 +74,21 @@
     "https://www.epartscart.com/php-reference/storefront"
   ],
   "aspNetSharedUrls": [
+    "https://www.ecomae.com/",
+    "https://www.ecomae.com/bos",
     "https://www.ecomae.com/cp",
     "https://www.ecomae.com/erp",
-    "https://www.ecomae.com/bos",
-    "https://www.ecomae.com/",
+    "https://www.ecomae.com/ip",
+    "https://www.ecomae.com/ip/login",
+    "https://www.ecomae.com/lifeos",
+    "https://www.ecomae.com/lifeos/login",
     "https://www.epartscart.com/",
+    "https://www.epartscart.com/bos",
     "https://www.epartscart.com/cp",
-    "https://www.epartscart.com/erp",
-    "https://www.epartscart.com/bos"
+    "https://www.epartscart.com/erp"
   ],
   "phpSameToSameUrls": [],
-  "note": "epartscart `/` is ASP.NET PHP-style presentation (not PHP index.php). Primary clicks stay on ASP.NET; PHP only under /php-reference/*. CP/ERP/BOS require admin login (AdminSurfaceAuthGateMiddleware); /cp and /cp/control share Command Centre. cutoverAllowed=false.",
+  "note": "epartscart `/` is ASP.NET PHP-style presentation (not PHP index.php). Primary clicks stay on ASP.NET; PHP only under /php-reference/*. CP/ERP/BOS/IP/LifeOS require admin login on Super-CP; tenants 404 /bos|/ip|/lifeos. cutoverAllowed=false.",
   "installer": "scripts/cloudpanel_install_classic_entry_aspnet_primary.sh",
   "confirmEnv": "ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES",
   "tenantConfirmEnv": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES",

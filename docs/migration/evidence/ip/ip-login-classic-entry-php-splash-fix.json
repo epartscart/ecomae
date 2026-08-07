@@ -1,0 +1,32 @@
+{
+  "id": "ip-login-classic-entry-php-splash-fix",
+  "capturedAtUtc": "2026-08-07T06:25:00Z",
+  "verdict": "fix-ready",
+  "problem": {
+    "url": "https://www.ecomae.com/ip/login",
+    "liveStatus": 503,
+    "body": "PHP HTTP serving is temporarily deactivated for ASP.NET Core deep testing (index.php).",
+    "rootCause": "Classic-entry nginx pack proxied /cp|/erp|/bos/login to ASP.NET but omitted /ip and /lifeos, so those URLs fell through to PHP index.php while TemporarilyDeactivatePhpServing is on."
+  },
+  "fix": {
+    "branch": "cursor/fix-all-surface-chrome-assets-7b3b",
+    "wwwClassicEntry": [
+      "location = /ip|/ip/login|/IP|/IP/login -> 127.0.0.1:5100",
+      "location = /lifeos|/lifeos/login -> 127.0.0.1:5100",
+      "location ^~ /ip/|^~ /IP/|^~ /lifeos/ -> 127.0.0.1:5100"
+    ],
+    "tenantClassicEntry": "same paths return 404 (Super-CP only, same as BOS)",
+    "aspNetAppsAlreadyPresent": ["IpLoginApp @page /ip/login", "IpApp @page /ip", "LifeOsHomeApp @page /lifeos", "LifeOsApp @page /lifeos/login"]
+  },
+  "locksPreserved": {
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false,
+    "RequirePhpFallback": true,
+    "KeepPhpProjectAvailable": true
+  },
+  "deploy": {
+    "requiresForceLive": true,
+    "note": "FORCE_LIVE runs cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts which installs the updated example conf.",
+    "paste": "cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae; git fetch origin main && git checkout -f main && git reset --hard origin/main; export ECOMAE_BRANCH=main; bash scripts/cloudpanel_FORCE_LIVE_NOW.sh 2>&1 | tee /root/force-live-ip-login.log"
+  }
+}
