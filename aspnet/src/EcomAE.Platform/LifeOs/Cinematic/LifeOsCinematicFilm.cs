@@ -8,6 +8,10 @@ public sealed class LifeOsCinematicFilm : ILifeOsCinematicFilm
 {
     public const int TotalDurationSeconds = 180;
 
+    public string VideoUrl { get; } = "/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4";
+
+    public string PosterUrl { get; } = "/lifeos/cinematic/lifeos-cinematic-scene01-earth.png";
+
     public string MasterPrompt { get; } = """
 Create a 3-minute ultra-premium cinematic 3D product launch film for "LifeOS", the world's first AI Operating System.
 
@@ -243,14 +247,17 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
         "Inspiring, premium, trustworthy, visionary",
         "Epic orchestral + futuristic electronic ambience",
         "White, silver, deep black, blue, cyan, subtle gold",
-        "keyframes-ready · full-video-pending-higgsfield",
+        "live-on-frontend · 3:00 MP4 published at /lifeos/cinematic/lifeos-cinematic-launch-3min.mp4",
+        VideoUrl,
+        PosterUrl,
         MasterPrompt.Trim(),
         Scenes,
         [
-            "Interactive storyboard: GET /lifeos/cinematic-app",
+            "Watch: GET /lifeos/cinematic-app (HTML5 video + timed storyboard)",
+            "Home embed: /lifeos film section",
+            "Static MP4: /lifeos/cinematic/lifeos-cinematic-launch-3min.mp4",
             "JSON bible: GET /lifeos/cinematic",
             "Keyframes under /lifeos/cinematic/*.png",
-            "Authenticate Higgsfield MCP in Cursor desktop to render the full 3:00 4K60 film",
             "Same board-meeting voice beat as /lifeos/demo-app sample scenario",
         ]);
 }

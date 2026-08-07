@@ -6,6 +6,12 @@ public interface ILifeOsCinematicFilm
 
     string MasterPrompt { get; }
 
+    /// <summary>Static path to the published 3:00 launch film (wwwroot).</summary>
+    string VideoUrl { get; }
+
+    /// <summary>Poster image for the HTML5 video element.</summary>
+    string PosterUrl { get; }
+
     IReadOnlyList<LifeOsCinematicScene> Scenes { get; }
 }
 
@@ -33,6 +39,8 @@ public sealed record LifeOsCinematicFilmDigest(
     string Music,
     string ColorPalette,
     string RenderStatus,
+    string VideoUrl,
+    string PosterUrl,
     string MasterPrompt,
     IReadOnlyList<LifeOsCinematicScene> Scenes,
     IReadOnlyList<string> DeliveryNotes);
