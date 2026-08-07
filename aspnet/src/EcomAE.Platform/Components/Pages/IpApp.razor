@@ -1,0 +1,147 @@
+@page "/ip/app"
+@page "/ip"
+@page "/IP"
+@page "/IP/app"
+@page "/ip/ecosystem"
+@page "/ip/ecosystem-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Intelligence Platform · ecomae Ecosystem</PageTitle>
+<PhpChromeStyles Surface="ip" />
+<HeadContent>
+<style>
+    .epc-ip-hub { --ip-ink:#0b1220; --ip-mist:#e8f4f2; --ip-teal:#0d9488; --ip-amber:#d97706; --ip-line:#d4e3df; }
+    .epc-ip-hero {
+        margin:0 0 1.25rem; padding:1.4rem 1.5rem; border-radius:.65rem; color:#fff;
+        background:
+            radial-gradient(120% 80% at 10% 0%, rgba(45,212,191,.35), transparent 55%),
+            linear-gradient(135deg,#020617 0%,#0c4a4a 52%,#0f766e 100%);
+        position:relative; overflow:hidden;
+    }
+    .epc-ip-hero::after {
+        content:""; position:absolute; inset:auto -20% -60% auto; width:18rem; height:18rem;
+        border-radius:50%; background:rgba(250,204,21,.12); animation:ip-pulse 8s ease-in-out infinite;
+    }
+    @@keyframes ip-pulse { 0%,100%{transform:scale(1);opacity:.5} 50%{transform:scale(1.15);opacity:.85} }
+    .epc-ip-hero .brand { font-size:.78rem; letter-spacing:.18em; text-transform:uppercase; color:#99f6e4; font-weight:700; }
+    .epc-ip-hero h1 { margin:.35rem 0 .4rem; font-size:clamp(1.45rem,3vw,2rem); font-weight:800; }
+    .epc-ip-hero p { margin:0; max-width:48rem; color:rgba(255,255,255,.9); font-size:.95rem; line-height:1.45; }
+    .epc-ip-hero nav { margin-top:.85rem; display:flex; flex-wrap:wrap; gap:.85rem; }
+    .epc-ip-hero a { color:#a5f3fc; font-weight:700; text-decoration:none; }
+    .epc-ip-section { margin:1.4rem 0 0; }
+    .epc-ip-section h2 { margin:0 0 .35rem; font-size:1.1rem; color:var(--ip-ink); }
+    .epc-ip-section > p { margin:0 0 .85rem; color:#475569; font-size:.9rem; max-width:42rem; }
+    .epc-ip-bos {
+        display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.65rem;
+    }
+    .epc-ip-bos a, .epc-ip-os a {
+        display:flex; flex-direction:column; gap:.3rem; min-height:5.8rem;
+        padding:.9rem; text-decoration:none; color:inherit;
+        border:1px solid var(--ip-line); border-radius:.5rem; background:#fff;
+        transition:border-color .2s ease, transform .2s ease;
+    }
+    .epc-ip-bos a:hover, .epc-ip-os a:hover { border-color:var(--ip-teal); transform:translateY(-2px); }
+    .epc-ip-bos strong, .epc-ip-os strong { font-size:1.02rem; color:var(--ip-ink); }
+    .epc-ip-bos span, .epc-ip-os span { color:#64748b; font-size:.78rem; line-height:1.35; }
+    .epc-ip-status {
+        align-self:flex-start; margin-top:auto; font-size:.68rem; font-weight:800;
+        letter-spacing:.06em; text-transform:uppercase; color:var(--ip-teal);
+    }
+    .epc-ip-status.is-soon { color:var(--ip-amber); }
+    .epc-ip-os { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.65rem; }
+    .epc-ip-os a.is-lifeos {
+        background:linear-gradient(160deg,#f0fdfa 0%,#fff 60%);
+        border-color:#99f6e4;
+    }
+    .epc-ip-note {
+        margin-top:1.2rem; padding:.85rem 1rem; border:1px solid var(--ip-line);
+        border-radius:.45rem; background:#f8fafc; color:#475569; font-size:.86rem;
+    }
+    .epc-ip-guest {
+        margin:0 0 1rem; padding:.75rem 1rem; border-radius:.45rem;
+        background:#ecfeff; border:1px solid #a5f3fc; color:#155e75; font-size:.88rem;
+    }
+</style>
+</HeadContent>
+
+<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Intelligence Platform">
+    <section class="epc-ip-hub epc-ip-hero" aria-label="Intelligence Platform">
+        <div class="brand">ecomae · Intelligence Platform</div>
+        <h1>Ecosystem command over BOS and ambient OS products</h1>
+        <p>
+            One operator fabric for Business Operating System modules and the ambient OS suite —
+            LifeOS™ first, then HealthOS, EduOS, HomeOS, RetailOS, IndustryOS, CityOS, and future products.
+        </p>
+        <nav aria-label="Related surfaces">
+            <a href="/bos">BOS Fleet</a>
+            <a href="/cp">Super CP</a>
+            <a href="/erp">Super ERP</a>
+            <a href="https://lifeos.ecomae.com/">LifeOS™</a>
+        </nav>
+    </section>
+
+    @if (!_isAdmin)
+    {
+        <div class="epc-ip-guest">
+            Guest preview of the IP ecosystem map.
+            <a href="/ip/login">Sign in</a> for operator session.
+        </div>
+    }
+
+    <section class="epc-ip-hub epc-ip-section">
+        <h2>BOS — Business Operating System</h2>
+        <p>Operational backbone under IP: ERP, CRM, Workflow, Automation, AI, and Control Panel.</p>
+        <div class="epc-ip-bos">
+            @foreach (var mod in EcomaeEcosystemCatalog.BosModules)
+            {
+                <a href="@mod.Href">
+                    <strong>@mod.Title</strong>
+                    <span>@mod.Tagline</span>
+                    <em class="epc-ip-status @(mod.Status == "live" ? "" : "is-soon")">@mod.Status</em>
+                </a>
+            }
+        </div>
+    </section>
+
+    <section class="epc-ip-hub epc-ip-section">
+        <h2>Ambient OS products</h2>
+        <p>Customer-facing intelligence products delivered on the IP fabric. LifeOS™ is the first live scaffold.</p>
+        <div class="epc-ip-os">
+            @foreach (var os in EcomaeEcosystemCatalog.AmbientOsProducts)
+            {
+                var href = os.Href == "#" ? "/ip/app" : os.Href;
+                var life = os.Key == "lifeos";
+                <a href="@href"
+                   class="@(life ? "is-lifeos" : null)"
+                   target="@(life ? "_blank" : null)"
+                   rel="@(life ? "noopener" : null)">
+                    <strong>@os.Title</strong>
+                    <span>@os.Tagline</span>
+                    <em class="epc-ip-status @(os.Status.Contains("live", StringComparison.Ordinal) ? "" : "is-soon")">@os.Status</em>
+                </a>
+            }
+        </div>
+    </section>
+
+    <div class="epc-ip-note">
+        LifeOS brain engines, agents, and memory runtime land in subsequent engineering waves.
+        This hub is the Super-CP entry at <code>/ip</code> / <code>/IP/login</code> — not exposed on tenant hosts.
+    </div>
+</PhpBosDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin;
+    }
+}

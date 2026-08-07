@@ -123,6 +123,8 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
     {
         LegacyLoginSurface.Erp => "/erp/app",
         LegacyLoginSurface.Bos => "/bos/app",
+        LegacyLoginSurface.Ip => "/ip/app",
+        LegacyLoginSurface.LifeOs => "/lifeos/app",
         LegacyLoginSurface.Storefront => "/storefront/app",
         _ => "/cp/app"
     };

@@ -12,6 +12,8 @@ public sealed class TenantResolutionTests
     [InlineData("www.ecomae.com", "/CP", TenantSurface.ControlPanel, TenantMode.Platform, "platform")]
     [InlineData("www.ecomae.com", "/ERP", TenantSurface.Erp, TenantMode.Platform, "platform")]
     [InlineData("www.ecomae.com", "/BOS", TenantSurface.Bos, TenantMode.Platform, "platform")]
+    [InlineData("www.ecomae.com", "/ip/app", TenantSurface.Ip, TenantMode.Platform, "platform")]
+    [InlineData("www.ecomae.com", "/lifeos", TenantSurface.LifeOs, TenantMode.Platform, "platform")]
     [InlineData("tenant.example", "/CP", TenantSurface.ControlPanel, TenantMode.LiveTenant, "tenant_example")]
     [InlineData("erp-only.example", "/ERP", TenantSurface.Erp, TenantMode.ErpOnlyTenant, "erp_only_example")]
     [InlineData("tenant.example", "/", TenantSurface.Storefront, TenantMode.LiveTenant, "tenant_example")]
@@ -41,5 +43,27 @@ public sealed class TenantResolutionTests
         Assert.Equal(host, tenant.Host);
         Assert.Equal(siteKey, tenant.SiteKey);
         Assert.False(string.IsNullOrWhiteSpace(tenant.DatabaseName));
+    }
+
+    [Fact]
+    public async Task LifeOsHostBareHomeIsLifeOsSurface()
+    {
+        var options = Options.Create(new EcomAeOptions
+        {
+            PlatformHost = "www.ecomae.com",
+            SeedTenants =
+            [
+                new TenantSeedOptions { Host = "www.ecomae.com", SiteKey = "platform", DatabaseName = "ecomae", Mode = TenantMode.Platform }
+            ]
+        });
+        var resolver = new RouteTenantResolver(options, new ConfigurationTenantRegistry(options));
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString("lifeos.ecomae.com");
+        context.Request.Path = "/";
+
+        var tenant = await resolver.ResolveAsync(context);
+
+        Assert.Equal(TenantSurface.LifeOs, tenant.Surface);
+        Assert.Equal("lifeos.ecomae.com", tenant.Host);
     }
 }

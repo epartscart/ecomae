@@ -6,6 +6,10 @@ public enum TenantSurface
     ControlPanel,
     Erp,
     Bos,
+    /// <summary>Intelligence Platform — Super-CP ecosystem hub (LifeOS, HealthOS, …).</summary>
+    Ip,
+    /// <summary>LifeOS customer product surface (lifeos.ecomae.com).</summary>
+    LifeOs,
     Api
 }
 

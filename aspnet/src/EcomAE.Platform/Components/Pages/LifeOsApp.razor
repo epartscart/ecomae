@@ -1,0 +1,151 @@
+@page "/lifeos/app"
+@page "/lifeos/brain"
+@page "/lifeos/login"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@using EcomAE.Platform.Services
+
+<PageTitle>LifeOS™ Console — Ambient Intelligence</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>
+:root {
+  --lo-ink:#0a1f1c; --lo-sea:#0f766e; --lo-sun:#f59e0b; --lo-paper:#f4faf8;
+  --lo-display:"Instrument Serif", Georgia, serif;
+  --lo-sans:"Manrope", "Segoe UI", sans-serif;
+}
+body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); font-family:var(--lo-sans); }
+.lo-shell { min-height:100vh; display:flex; flex-direction:column; }
+.lo-top {
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  padding:1rem clamp(1rem,3vw,2rem);
+  background:linear-gradient(90deg,#062a26,#0f766e 55%,#134e4a);
+  color:#ecfdf5;
+}
+.lo-top .brand { font-family:var(--lo-display); font-size:1.65rem; letter-spacing:-.01em; }
+.lo-top .brand em { font-style:italic; color:#99f6e4; }
+.lo-top nav { display:flex; flex-wrap:wrap; gap:.9rem; font-size:.85rem; font-weight:700; }
+.lo-top a { color:#ccfbf1; text-decoration:none; }
+.lo-main { padding:1.5rem clamp(1rem,3vw,2.25rem) 2.5rem; max-width:72rem; width:100%; margin:0 auto; box-sizing:border-box; }
+.lo-intro h1 { font-family:var(--lo-display); font-weight:400; font-size:clamp(1.8rem,4vw,2.4rem); margin:.2rem 0 .5rem; }
+.lo-intro p { margin:0 0 1.25rem; max-width:40rem; color:#334155; line-height:1.5; }
+.lo-cog {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.75rem; margin:1rem 0 1.75rem;
+}
+.lo-cog article {
+  padding:1rem; border:1px solid #cce5de; border-radius:.4rem; background:#fff;
+}
+.lo-cog strong { display:block; font-size:.95rem; margin-bottom:.3rem; color:#062a26; }
+.lo-cog span { font-size:.82rem; color:#475569; line-height:1.4; }
+.lo-agents h2 { font-family:var(--lo-display); font-weight:400; font-size:1.6rem; margin:0 0 .4rem; }
+.lo-agents p { margin:0 0 1rem; color:#475569; font-size:.92rem; max-width:38rem; }
+.lo-agent-row { display:flex; flex-wrap:wrap; gap:.5rem; }
+.lo-agent-row span {
+  font-size:.78rem; font-weight:700; padding:.4rem .65rem; border-radius:.3rem;
+  background:#ecfdf5; color:var(--lo-sea); border:1px solid #a7f3d0;
+}
+.lo-note {
+  margin-top:1.75rem; padding:1rem 1.1rem; border-left:3px solid var(--lo-sun);
+  background:#fffbeb; color:#78350f; font-size:.88rem; line-height:1.45;
+}
+.lo-login-box {
+  margin:1.25rem 0; padding:1.25rem; max-width:24rem;
+  border:1px solid #cce5de; border-radius:.45rem; background:#fff;
+}
+.lo-login-box label { display:block; font-size:.8rem; font-weight:700; margin:.65rem 0 .25rem; }
+.lo-login-box input {
+  width:100%; box-sizing:border-box; padding:.65rem .75rem;
+  border:1px solid #99d6c9; border-radius:.3rem; font:inherit;
+}
+.lo-login-box button {
+  margin-top:1rem; width:100%; padding:.75rem; border:0; border-radius:.3rem;
+  background:var(--lo-sea); color:#fff; font-weight:700; cursor:pointer;
+}
+</style>
+</HeadContent>
+
+@{
+    var path = (Http.HttpContext?.Request.Path.Value ?? "").TrimEnd('/');
+    var isLogin = path.Equals("/lifeos/login", StringComparison.OrdinalIgnoreCase);
+    var isBrain = path.Equals("/lifeos/brain", StringComparison.OrdinalIgnoreCase);
+}
+
+<div class="lo-shell lifeos-ambient">
+  <header class="lo-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav aria-label="LifeOS">
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a href="@EcomAeRoutes.LifeOsApp">Console</a>
+      <a href="@EcomAeRoutes.LifeOsBrain">Brain</a>
+      <a href="@EcomAeRoutes.LifeOsLogin">Sign in</a>
+      <a href="https://www.ecomae.com/ip/login">Intelligence Platform</a>
+    </nav>
+  </header>
+
+  <main class="lo-main">
+    @if (isLogin)
+    {
+      <section class="lo-intro">
+        <h1>Sign in to LifeOS</h1>
+        <p>Customer session bridge for the ambient console. Uses the same secure admin/customer login fabric as ecomae IP.</p>
+      </section>
+      <form class="lo-login-box" method="post" action="@EcomAeRoutes.LifeOsLogin">
+        <input type="hidden" name="surface" value="lifeos" />
+        <input type="hidden" name="redirect" value="@EcomAeRoutes.LifeOsApp" />
+        <input type="hidden" name="contact_type" value="email" />
+        <label for="loEmail">Email</label>
+        <input id="loEmail" type="email" name="contact" required autocomplete="username" placeholder="you@example.com" />
+        <label for="loPassword">Password</label>
+        <input id="loPassword" type="password" name="password" required autocomplete="current-password" />
+        <button type="submit">Continue to LifeOS</button>
+      </form>
+    }
+    else
+    {
+      <section class="lo-intro">
+        <h1>@(isBrain ? "LifeOS Brain" : "LifeOS console")</h1>
+        <p>
+          @(isBrain
+              ? "Nine foundational engines communicate over an internal event bus. Domain agents assemble under the Agent Orchestrator."
+              : "Scaffold console for the Universal Ambient AI Operating System — cognition stays active beyond a single chat turn.")
+        </p>
+      </section>
+
+      <div class="lo-cog" aria-label="Cognitive engines">
+        <article><strong>Context Engine</strong><span>Fuses voice, vision, calendar, devices, and routines into a live world model.</span></article>
+        <article><strong>Memory Engine</strong><span>Lifelong episodic, semantic, and preference memory with privacy boundaries.</span></article>
+        <article><strong>Planning Engine</strong><span>Multi-step goals across work, health, travel, and daily life.</span></article>
+        <article><strong>Decision Engine</strong><span>Aggregates agent proposals with confidence and human approval gates.</span></article>
+        <article><strong>Reasoning Engine</strong><span>Explainable chains — sources, assumptions, uncertainty.</span></article>
+        <article><strong>Learning Engine</strong><span>Adapts style and habits without overriding explicit instructions.</span></article>
+        <article><strong>Safety Engine</strong><span>Policy evaluation before cloud use or irreversible actions.</span></article>
+        <article><strong>Emotion &amp; Personality</strong><span>Tone and companionship calibrated to user preference.</span></article>
+        <article><strong>Agent Orchestrator</strong><span>Routes work to Business, Health, Tutor, Home, Travel, and more.</span></article>
+      </div>
+
+      <section class="lo-agents">
+        <h2>Domain agents</h2>
+        <p>Specialized cognitive agents under the LifeOS Brain — scaffold registry for the next engineering waves.</p>
+        <div class="lo-agent-row">
+          <span>Business</span><span>Finance</span><span>Health</span><span>Tutor</span>
+          <span>Code</span><span>Travel</span><span>Home</span><span>Legal</span>
+          <span>Research</span><span>Security</span><span>Automation</span><span>Communication</span>
+        </div>
+      </section>
+
+      <div class="lo-note">
+        This is a product frontend scaffold against the LifeOS™ v4.0 architecture blueprint.
+        Full perception pipelines, memory stores, and agent runtime are not claimed live yet —
+        they ship on the ecomae Intelligence Platform fabric after this shell.
+      </div>
+    }
+  </main>
+</div>
+
+@code {
+    [Inject] private IHttpContextAccessor Http { get; set; } = default!;
+}

@@ -6,6 +6,8 @@ public static class LegacyLoginSurfaceParser
     {
         "erp" => LegacyLoginSurface.Erp,
         "bos" => LegacyLoginSurface.Bos,
+        "ip" => LegacyLoginSurface.Ip,
+        "lifeos" => LegacyLoginSurface.LifeOs,
         "storefront" => LegacyLoginSurface.Storefront,
         _ => LegacyLoginSurface.ControlPanel
     };
@@ -14,6 +16,8 @@ public static class LegacyLoginSurfaceParser
     {
         "erp" => "erp",
         "bos" => "bos",
+        "ip" => "ip",
+        "lifeos" => "lifeos",
         "storefront" => "storefront",
         _ => "cp"
     };

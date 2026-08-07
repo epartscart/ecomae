@@ -17,6 +17,8 @@ public sealed class LegacyLoginBridgeMiddleware
         new(EcomAeRoutes.ControlPanelLogin),
         new(EcomAeRoutes.ErpLogin),
         new(EcomAeRoutes.BosLogin),
+        new(EcomAeRoutes.IpLogin),
+        new(EcomAeRoutes.LifeOsLogin),
         new(EcomAeRoutes.StorefrontLogin),
     ];
 
@@ -186,6 +188,17 @@ public sealed class LegacyLoginBridgeMiddleware
         if (p.StartsWith("/bos", StringComparison.OrdinalIgnoreCase))
         {
             return "bos";
+        }
+
+        if (p.StartsWith("/ip", StringComparison.OrdinalIgnoreCase)
+            || p.StartsWith("/IP", StringComparison.Ordinal))
+        {
+            return "ip";
+        }
+
+        if (p.StartsWith("/lifeos", StringComparison.OrdinalIgnoreCase))
+        {
+            return "lifeos";
         }
 
         if (p.StartsWith("/storefront", StringComparison.OrdinalIgnoreCase))

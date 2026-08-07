@@ -7,12 +7,19 @@ namespace EcomAE.Platform.Services;
 /// </summary>
 public static class PlatformHostPolicy
 {
-    /// <summary>Exact hosts allowed to serve product <c>/bos</c> (Super CP / platform only).</summary>
+    /// <summary>Exact hosts allowed to serve product <c>/bos</c> and <c>/ip</c> (Super CP / platform only).</summary>
     public static readonly IReadOnlyList<string> SuperCpHosts =
     [
         "www.ecomae.com",
         "ecomae.com",
         "cp.ecomae.com",
+    ];
+
+    /// <summary>Customer LifeOS product hosts (public marketing + app shell).</summary>
+    public static readonly IReadOnlyList<string> LifeOsHosts =
+    [
+        "lifeos.ecomae.com",
+        "www.lifeos.ecomae.com",
     ];
 
     /// <summary>
@@ -35,6 +42,16 @@ public static class PlatformHostPolicy
         "fleet-readiness-app",
         "audit-log",
         "audit-log-app",
+    };
+
+    /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>
+    private static readonly HashSet<string> ProductIpFirstSegments = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "app",
+        "login",
+        "logout",
+        "ecosystem",
+        "ecosystem-app",
     };
 
     public static string NormalizeHost(string? host)
@@ -84,7 +101,7 @@ public static class PlatformHostPolicy
         return [primary, alias];
     }
 
-    /// <summary>True when host may run Super BOS / Super CP platform ops.</summary>
+    /// <summary>True when host may run Super BOS / Super CP / Intelligence Platform ops.</summary>
     public static bool IsSuperCpHost(string? host)
     {
         var h = NormalizeHost(host);
@@ -94,6 +111,18 @@ public static class PlatformHostPolicy
         }
 
         return SuperCpHosts.Any(p => string.Equals(p, h, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>True when host is the LifeOS customer product domain.</summary>
+    public static bool IsLifeOsHost(string? host)
+    {
+        var h = NormalizeHost(host);
+        if (h.Length == 0)
+        {
+            return false;
+        }
+
+        return LifeOsHosts.Any(p => string.Equals(p, h, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -168,5 +197,79 @@ public static class PlatformHostPolicy
 
         // Remaining /bos/{slug} = public marketing knowledge (PHP).
         return false;
+    }
+
+    /// <summary>
+    /// True when the request path is product Intelligence Platform (<c>/ip</c>, <c>/IP</c>).
+    /// Super-CP only — never answer on named live tenants.
+    /// </summary>
+    public static bool IsProductIpPath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var p = path.Replace('\\', '/');
+        var q = p.IndexOf('?', StringComparison.Ordinal);
+        if (q >= 0)
+        {
+            p = p[..q];
+        }
+
+        if (p.Equals("/php-reference/ip", StringComparison.OrdinalIgnoreCase)
+            || p.StartsWith("/php-reference/ip/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (p.Equals("/IP", StringComparison.Ordinal)
+            || p.StartsWith("/IP/", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (p.Equals("/ip", StringComparison.OrdinalIgnoreCase)
+            || p.Equals("/ip/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!p.StartsWith("/ip/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var rest = p["/ip/".Length..].Trim('/');
+        if (rest.Length == 0)
+        {
+            return true;
+        }
+
+        var slash = rest.IndexOf('/');
+        var first = slash < 0 ? rest : rest[..slash];
+
+        return ProductIpFirstSegments.Contains(first)
+            || first.EndsWith("-app", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>True when path is LifeOS product (<c>/lifeos</c>…).</summary>
+    public static bool IsLifeOsPath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var p = path.Replace('\\', '/');
+        var q = p.IndexOf('?', StringComparison.Ordinal);
+        if (q >= 0)
+        {
+            p = p[..q];
+        }
+
+        return p.Equals("/lifeos", StringComparison.OrdinalIgnoreCase)
+            || p.Equals("/lifeos/", StringComparison.OrdinalIgnoreCase)
+            || p.StartsWith("/lifeos/", StringComparison.OrdinalIgnoreCase);
     }
 }

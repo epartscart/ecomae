@@ -5,6 +5,8 @@ public enum LegacyLoginSurface
     ControlPanel,
     Erp,
     Bos,
+    Ip,
+    LifeOs,
     Storefront
 }
 

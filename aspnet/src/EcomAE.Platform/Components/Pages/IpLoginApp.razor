@@ -1,0 +1,142 @@
+@page "/ip/login"
+@page "/IP/login"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject NavigationManager Nav
+
+<PageTitle>Intelligence Platform — ecomae</PageTitle>
+<PhpSurfaceHead Surface="ip" IncludeLoginCss="true" />
+<PhpChromeBodyClass Surface="ip" LoginChrome="true" />
+
+<HeadContent>
+<style>
+    html:has(.ip-login),
+    body:has(.ip-login),
+    body.epc-ip-login {
+        background: linear-gradient(145deg, #020617 0%, #0a1628 40%, #0c1f2e 70%, #071018 100%) !important;
+        color: #e2e8f0 !important;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    .epc-login-bos.ip-login { width:100%; min-height:100vh; display:flex; position:relative; }
+    .bos-login__error.is-visible { display:flex; align-items:center; gap:.4rem; }
+</style>
+</HeadContent>
+
+<div class="epc-login-bos bos-login ip-login bos-login--bos">
+    <PhpBosLoginAtmosphere ParticlesId="ipParticles"
+                           Theme="cyan-stars"
+                           Industry="platform"
+                           ParticleColors="@(new[] {
+                               "rgba(45,212,191,.75)", "rgba(56,189,248,.65)", "rgba(250,204,21,.35)",
+                               "rgba(255,255,255,.3)", "rgba(34,211,238,.45)"
+                           })" />
+
+    <div class="bos-login__hero">
+        <div class="bos-login__hero-content">
+            <div class="bos-login__brand-mark">
+                <div class="bos-login__brand-icon">
+                    <div class="bos-login__brand-icon-inner">
+                        <i class="fa fa-sitemap"></i>
+                    </div>
+                    <div class="bos-login__brand-ring"></div>
+                    <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
+                </div>
+                <h1 class="bos-login__brand-title">IP</h1>
+                <p class="bos-login__brand-tagline">Intelligence Platform</p>
+            </div>
+
+            <div class="bos-login__capabilities">
+                <div class="bos-login__cap-item bos-login__cap-item--1">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--erp"><i class="fa fa-th-large"></i></div>
+                    <div class="bos-login__cap-text">
+                        <strong>BOS Fabric</strong>
+                        <span>ERP · CRM · Workflow · Automation · AI · CP</span>
+                    </div>
+                </div>
+                <div class="bos-login__cap-item bos-login__cap-item--2">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--ai"><i class="fa fa-heartbeat"></i></div>
+                    <div class="bos-login__cap-text">
+                        <strong>LifeOS™</strong>
+                        <span>Universal Ambient AI Operating System</span>
+                    </div>
+                </div>
+                <div class="bos-login__cap-item bos-login__cap-item--3">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--ecom"><i class="fa fa-globe"></i></div>
+                    <div class="bos-login__cap-text">
+                        <strong>Ambient OS Suite</strong>
+                        <span>Health · Edu · Home · Retail · Industry · City</span>
+                    </div>
+                </div>
+                <div class="bos-login__cap-item bos-login__cap-item--4">
+                    <div class="bos-login__cap-icon bos-login__cap-icon--compliance"><i class="fa fa-shield"></i></div>
+                    <div class="bos-login__cap-text">
+                        <strong>Operator Control</strong>
+                        <span>Super-CP host · privacy by design</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bos-login__panel">
+        <div class="bos-login__panel-inner">
+            <div class="bos-login__form-wrap bos-login__form-wrap--active">
+                <div class="bos-login__form-header">
+                    <h2>Platform Operator</h2>
+                    <p>Sign in to the ecomae Intelligence Platform</p>
+                </div>
+                <form class="bos-login__form" id="ipLoginForm" method="post" action="@EcomAeRoutes.IpLogin">
+                    <input type="hidden" name="surface" value="ip" />
+                    <input type="hidden" name="redirect" value="/ip/app" />
+                    <input type="hidden" name="contact_type" value="email" />
+                    <div class="bos-login__field">
+                        <label for="ipEmail"><i class="fa fa-envelope-o"></i> Email</label>
+                        <input type="email" id="ipEmail" name="contact" required autocomplete="username" placeholder="operator@ecomae.com" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    <div class="bos-login__field">
+                        <label for="ipPassword"><i class="fa fa-lock"></i> Password</label>
+                        <input type="password" id="ipPassword" name="password" required autocomplete="current-password" placeholder="Enter secure password" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div class="bos-login__error is-visible">
+                            <i class="fa fa-exclamation-circle"></i> @_error
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="bos-login__error"></div>
+                    }
+                    <button type="submit" class="bos-login__btn">
+                        <span class="bos-login__btn-text"><i class="fa fa-sign-in"></i> Sign In to IP</span>
+                        <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Authenticating...</span>
+                    </button>
+                </form>
+                <div class="bos-login__secure-badge">
+                    <i class="fa fa-lock"></i> Super-CP host only &middot; Session isolated &middot; Audit logged
+                </div>
+            </div>
+            <div class="bos-login__footer">
+                <div class="bos-login__footer-brand">
+                    <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <span>Intelligence Platform</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        _error = LoginErrorHelper.FromUri(Nav.Uri);
+    }
+}

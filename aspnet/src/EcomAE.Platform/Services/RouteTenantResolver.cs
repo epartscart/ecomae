@@ -24,9 +24,17 @@ public sealed class RouteTenantResolver : ITenantResolver
             "cp" => TenantSurface.ControlPanel,
             "erp" => TenantSurface.Erp,
             "bos" => TenantSurface.Bos,
+            "ip" => TenantSurface.Ip,
+            "lifeos" => TenantSurface.LifeOs,
             "api" => TenantSurface.Api,
             _ => TenantSurface.Storefront
         };
+
+        // lifeos.ecomae.com bare home is the LifeOS product surface.
+        if (surface == TenantSurface.Storefront && PlatformHostPolicy.IsLifeOsHost(host))
+        {
+            surface = TenantSurface.LifeOs;
+        }
 
         var registryRecord = await _tenantRegistry.FindByHostAsync(host, cancellationToken);
 
