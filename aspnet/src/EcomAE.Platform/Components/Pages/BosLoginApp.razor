@@ -17,6 +17,7 @@
   Do NOT load epc_bos_shell.js here — it hijacks #bosLoginForm to PHP /bos/?action=login.
 *@
 
+@* Body <style> duplicates HeadContent — live SSR drops HeadOutlet on /bos/login. *@
 <HeadContent>
 <style>
     /* Harden dark theme even if body-class script is delayed/overridden */
@@ -43,7 +44,30 @@
     }
 </style>
 </HeadContent>
-
+<style>
+    /* Harden dark theme even if body-class script is delayed/overridden */
+    html:has(.bos-login),
+    body:has(.bos-login),
+    body.bos-body--login {
+        background: linear-gradient(135deg, #020617 0%, #0c1222 30%, #091428 60%, #050d1a 100%) !important;
+        color: #e2e8f0 !important;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    .epc-login-bos.bos-login {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        position: relative;
+        background: transparent;
+        color: #e2e8f0;
+    }
+    .bos-login__error.is-visible {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+</style>
 
 <div class="epc-login-bos bos-login bos-login--bos">
     <PhpBosLoginAtmosphere ParticlesId="bosParticles"

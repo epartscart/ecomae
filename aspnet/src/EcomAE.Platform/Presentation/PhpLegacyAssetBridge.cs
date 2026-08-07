@@ -103,6 +103,41 @@ public static class PhpLegacyAssetBridge
             Results.Text(PhpEpartsCartLogoAssets.Css, "text/css; charset=utf-8"));
         endpoints.MapGet("/aspnet-php-assets/eparts-animated-logo.css", () =>
             Results.Text(PhpEpartsCartLogoAssets.Css, "text/css; charset=utf-8"));
+        endpoints.MapGet("/platform-assets/eparts-animated-cart-mark.svg", () =>
+            Results.Text(PhpEpartsCartLogoAssets.AnimatedCartMarkSvg, "image/svg+xml; charset=utf-8"));
+        endpoints.MapGet("/platform-assets/eparts-animated-cart-fragment.html", () =>
+            Results.Text(PhpEpartsCartLogoAssets.AnimatedCartFragmentHtml, "text/html; charset=utf-8"));
+
+        // Login accent / tenant brand CSS — live www often 404s the /content/... path while
+        // PHP serving is paused; /platform-assets is proxied to Kestrel on every vhost.
+        endpoints.MapGet("/platform-assets/epc_bos_login_surface_accents.css", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/epc_bos_login_surface_accents.css"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "text/css; charset=utf-8");
+            }
+
+            return Results.NotFound();
+        });
+        endpoints.MapGet("/platform-assets/epc_portal_tenant_brand.css", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/epc_portal_tenant_brand.css"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "text/css; charset=utf-8");
+            }
+
+            return Results.NotFound();
+        });
+
+        // PHP animated-logo helpers die with "No access" outside _ASTEXE_ (and when PHP
+        // serving is temporarily deactivated). Bridge them so legacy <img src> / fragment
+        // embeds keep working when nginx exact-routes these paths to ASP.NET.
+        endpoints.MapGet("/content/general_pages/epc_animated_epartscart_logo.php", () =>
+            Results.Text(PhpEpartsCartLogoAssets.AnimatedCartMarkSvg, "image/svg+xml; charset=utf-8"));
+        endpoints.MapGet("/content/general_pages/animated_epartscart_logo.php", () =>
+            Results.Text(PhpEpartsCartLogoAssets.AnimatedCartFragmentHtml, "text/html; charset=utf-8"));
 
         // Login universe NASA stills — local repo copies with public-domain credits in README.txt.
         endpoints.MapGet("/platform-assets/universe/{fileName}", (string fileName) =>

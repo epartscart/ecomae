@@ -38,34 +38,35 @@ public static class LegacyPresentationAssets
     ];
 
     /// <summary>
-    /// Library entry (requires _ASTEXE_) — do not use as &lt;img src&gt;.
-    /// Prefer <see cref="AnimatedEpartsCartFragmentUrl"/> for HTML/SVG embed.
+    /// Animated cart mark for &lt;img src&gt;. Served by ASP.NET <c>/platform-assets</c>
+    /// (PHP library dies with "No access" outside _ASTEXE_ / when PHP serving is paused).
     /// </summary>
-    public const string EpartsCartMarkUrl = "/content/general_pages/epc_animated_epartscart_logo.php";
+    public const string EpartsCartMarkUrl = "/platform-assets/eparts-animated-cart-mark.svg";
 
-    /// <summary>Renderable animated cart logo fragment (HTML/SVG), matches PHP storefront/CP embeds.</summary>
-    public const string AnimatedEpartsCartFragmentUrl = "/content/general_pages/animated_epartscart_logo.php";
+    /// <summary>Renderable animated cart logo fragment (HTML/SVG), ASP.NET-bridged.</summary>
+    public const string AnimatedEpartsCartFragmentUrl = "/platform-assets/eparts-animated-cart-fragment.html";
 
     /// <summary>
     /// Lean BOS-parity login CSS for /cp/login and /erp/login (same shell as /bos/login).
     /// Atmosphere tint only differs via epc_bos_login_surface_accents.css.
+    /// Accents + tenant brand use /platform-assets so they survive PHP pause and stale www trees.
     /// </summary>
     public static readonly IReadOnlyList<string> LoginStylesheets =
     [
         "/epc-static.php?f=bos/epc_bos_shell.css",
-        "/content/general_pages/epc_bos_login_surface_accents.css?v=20260806f",
+        "/platform-assets/epc_bos_login_surface_accents.css?v=20260807a",
         // Tenant animated cart + catalog brand logos on /cp/login & /erp/login
         "/platform-assets/eparts-animated-logo.css",
-        "/content/general_pages/epc_portal_tenant_brand.css"
+        "/platform-assets/epc_portal_tenant_brand.css"
     ];
 
     /// <summary>ERP login uses the same BOS-parity shell (accents + tenant brand assets).</summary>
     public static readonly IReadOnlyList<string> ErpLoginStylesheets =
     [
         "/epc-static.php?f=bos/epc_bos_shell.css",
-        "/content/general_pages/epc_bos_login_surface_accents.css?v=20260806f",
+        "/platform-assets/epc_bos_login_surface_accents.css?v=20260807a",
         "/platform-assets/eparts-animated-logo.css",
-        "/content/general_pages/epc_portal_tenant_brand.css"
+        "/platform-assets/epc_portal_tenant_brand.css"
     ];
 
     /// <summary>BOS login matrix/particle JS (PHP bos/epc_bos_shell.js).</summary>

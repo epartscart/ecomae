@@ -1,8 +1,9 @@
 @using EcomAE.Platform.Presentation
 @*
   Puts PHP-matching webfonts + stylesheets (+ optional hero/login scripts) into <head> via HeadOutlet.
-  Storefront also emits surface meta + stylesheet links in the body stream (below) because
-  live SSR has dropped HeadContent for /storefront/app while keeping body chrome.
+  ALL surfaces also emit the same assets in the body stream (below) because live SSR has
+  dropped HeadContent for /cp/login, /erp/login, /bos/login, and /storefront/app while
+  keeping body chrome — without the body fallback, pages render unstyled (no align/animation).
 *@
 <HeadContent>
     <meta name="ecomae-chrome-surface" content="@Surface" />
@@ -99,24 +100,45 @@
 }
 </HeadContent>
 @*
-  Body-stream fallbacks: live epartscart SSR has dropped late HeadContent (fonts,
-  stylesheets, chrome meta) while still rendering body chrome + widget <style>.
-  Meta/links here land in the document body stream (HTML5-ok) so FORCE_LIVE prove
-  and header look survive HeadOutlet drops. Duplicate head tags are harmless.
+  Body-stream fallbacks: live SSR has dropped late HeadContent (fonts, stylesheets,
+  chrome meta, login/marketing scripts) while still rendering body chrome.
+  Meta/links/scripts here land in the document body stream (HTML5-ok) so Super-CP,
+  ERP, BOS, marketing, and storefront survive HeadOutlet drops. Duplicates are harmless.
 *@
 <meta name="ecomae-chrome-surface" content="@Surface" />
 <meta name="ecomae-chrome-hero" content="@(IncludeLoginCss || ApplyStorefrontIndustryAttrs || IncludeBosLoginScripts || IncludeMarketingScripts || IsBosSurface ? "1" : "0")" />
-@if (Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))
+@foreach (var href in FontHrefs)
 {
-    @foreach (var href in FontHrefs)
+    <link rel="stylesheet" href="@href" />
+}
+<link rel="stylesheet" href="@LegacyPhpFontAssets.FontAwesomeCdn" />
+@foreach (var href in StylesheetHrefs)
+{
+    <link rel="stylesheet" href="@href" />
+}
+@if (IncludeBosLoginScripts)
+{
+    @foreach (var src in LegacyPresentationAssets.BosLoginScripts)
     {
-        <link rel="stylesheet" href="@href" />
+        <script src="@src" defer></script>
     }
-    <link rel="stylesheet" href="@LegacyPhpFontAssets.FontAwesomeCdn" />
-    @foreach (var href in StylesheetHrefs)
+}
+@if (IncludeMarketingScripts)
+{
+    @foreach (var src in LegacyPresentationAssets.MarketingScripts)
     {
-        <link rel="stylesheet" href="@href" />
+        <script src="@src" defer></script>
     }
+}
+@if (ApplyStorefrontIndustryAttrs)
+{
+    <script>
+        (function () {
+            var root = document.documentElement;
+            root.setAttribute('data-epc-industry', '@_industryCode');
+            root.setAttribute('data-epc-storefront', '@_storefrontPackage');
+        })();
+    </script>
 }
 
 @code {

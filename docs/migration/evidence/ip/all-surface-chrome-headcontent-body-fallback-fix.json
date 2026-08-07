@@ -1,0 +1,42 @@
+{
+  "id": "all-surface-chrome-headcontent-body-fallback-fix",
+  "capturedAtUtc": "2026-08-07T06:15:00Z",
+  "verdict": "fix-ready",
+  "problem": {
+    "symptom": "Super-CP / ERP / BOS / tenant storefront rendered unaligned with no CSS animations",
+    "liveHeader": "x-ecomae-php-serving: temporarily-deactivated",
+    "rootCause": [
+      "Live Blazor SSR drops late HeadContent (fonts, stylesheet links, chrome meta, login scripts) while body chrome markup survives",
+      "PhpSurfaceHead body-stream stylesheet fallback was storefront-only, so /cp/login /erp/login /bos/login had zero stylesheet links",
+      "CP/ERP/BOS desktop chrome kept critical style blocks only in HeadContent",
+      "PHP animated logo helpers return No access outside _ASTEXE_ and when PHP HTTP serving is paused"
+    ],
+    "liveProbe": {
+      "cpLoginStylesheetCount": 0,
+      "erpLoginStylesheetCount": 0,
+      "bosLoginStylesheetCount": 0,
+      "animatedLogoPhp": "No access",
+      "platformAnimatedLogoCss": "200 text/css via ASP.NET bridge"
+    }
+  },
+  "fix": {
+    "branch": "cursor/fix-all-surface-chrome-assets-7b3b",
+    "changes": [
+      "PhpSurfaceHead: emit fonts + StylesheetHrefs + BosLoginScripts + MarketingScripts for ALL surfaces in body stream",
+      "PhpCpDesktopChrome / PhpErpDesktopChrome / PhpBosDesktopChrome / PhpChromeLayout: duplicate critical style into body",
+      "PhpLegacyAssetBridge: map epc_animated_epartscart_logo.php to SVG and animated_epartscart_logo.php to HTML fragment",
+      "PhpEpartsCartLogoAssets: AnimatedCartMarkSvg + AnimatedCartFragmentHtml"
+    ],
+    "locksPreserved": {
+      "cutoverAllowed": false,
+      "readyForPhpRemoval": false,
+      "RequirePhpFallback": true,
+      "KeepPhpProjectAvailable": true,
+      "TemporarilyDeactivatePhpServing": "operator pause only; product chrome must not depend on PHP HTTP"
+    }
+  },
+  "deploy": {
+    "requiresForceLive": true,
+    "paste": "cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae; git fetch origin main && git checkout -f main && git reset --hard origin/main; export ECOMAE_BRANCH=main; bash scripts/cloudpanel_FORCE_LIVE_NOW.sh 2>&1 | tee /root/force-live-chrome-assets.log"
+  }
+}

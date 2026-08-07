@@ -41,7 +41,14 @@ public sealed class PhpStorefrontNeroChromeParityTests
         Assert.True(close > 0);
         var after = text[(close + "</HeadContent>".Length)..];
         Assert.Contains("ecomae-chrome-surface", after, StringComparison.Ordinal);
-        Assert.Contains("storefront", after, StringComparison.OrdinalIgnoreCase);
+        // All surfaces (cp/erp/bos/storefront/marketing) emit stylesheets in body — not storefront-only.
+        Assert.DoesNotContain(
+            "Surface.Equals(\"storefront\"",
+            after,
+            StringComparison.Ordinal);
+        Assert.Contains("StylesheetHrefs", after, StringComparison.Ordinal);
+        Assert.Contains("FontHrefs", after, StringComparison.Ordinal);
+        Assert.Contains("BosLoginScripts", after, StringComparison.Ordinal);
     }
 
     [Fact]
