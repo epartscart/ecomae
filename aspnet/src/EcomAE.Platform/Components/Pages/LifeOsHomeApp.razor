@@ -183,13 +183,12 @@
 
   <section class="lifeos-section lifeos-parts" aria-labelledby="lo-parts-title">
     <h2 id="lo-parts-title">Master Spec v@_version — full stack</h2>
-    <p class="lifeos-section__lede">Parts 1–9 are live scaffolds. Part 10 execution roadmap arrives when you share the chapters.</p>
+    <p class="lifeos-section__lede">Parts 1–10 are live scaffolds — including Part 10 execution strategy (Ch.151–168).</p>
     <ol class="lifeos-parts__timeline">
       @foreach (var part in Spec.Parts)
       {
         var href = PartHref(part.Number);
-        var forthcoming = part.Number == 10 || string.Equals(part.Status, "registry", StringComparison.OrdinalIgnoreCase);
-        <li class="@(forthcoming ? "is-forthcoming" : null)">
+        <li>
           <div class="lifeos-parts__index">
             <span class="lifeos-parts__num">@part.Number.ToString("00")</span>
             <span class="lifeos-parts__rail" aria-hidden="true"></span>
@@ -197,13 +196,9 @@
           <div class="lifeos-parts__body">
             <h3>@part.Title</h3>
             <p>@string.Join(" · ", part.Chapters.Take(4))@(part.Chapters.Count > 4 ? " ·…" : "")</p>
-            @if (href is not null && !forthcoming)
+            @if (href is not null)
             {
               <a href="@href">Open part →</a>
-            }
-            else if (forthcoming)
-            {
-              <em>Coming next — chapters pending</em>
             }
           </div>
         </li>
@@ -259,7 +254,7 @@
         7 => EcomAeRoutes.LifeOsSecurityApp,
         8 => EcomAeRoutes.LifeOsClientsApp,
         9 => EcomAeRoutes.LifeOsPluginsApp,
-        10 => EcomAeRoutes.LifeOsSpecApp,
+        10 => EcomAeRoutes.LifeOsRoadmapApp,
         _ => null
     };
 
