@@ -10,6 +10,10 @@ public sealed class LifeOsCinematicFilm : ILifeOsCinematicFilm
 
     public string VideoUrl { get; } = LifeOsCinematicAssets.UrlFor("lifeos-cinematic-launch-3min.mp4");
 
+    public string VideoDownloadUrl { get; } = LifeOsCinematicAssets.DownloadUrlFor("lifeos-cinematic-launch-3min.mp4");
+
+    public string VideoLegacyUrl { get; } = LifeOsCinematicAssets.LegacyUrlFor("lifeos-cinematic-launch-3min.mp4");
+
     public string PosterUrl { get; } = LifeOsCinematicAssets.UrlFor("lifeos-cinematic-scene01-earth.png");
 
     public string MasterPrompt { get; } = """
@@ -256,6 +260,8 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
             "Watch: GET /lifeos/cinematic-app (HTML5 video + timed storyboard)",
             "Home embed: /lifeos film section",
             "Media: GET /lifeos/media/lifeos-cinematic-launch-3min.mp4 (range-enabled)",
+            "Legacy download alias: GET /lifeos/cinematic/lifeos-cinematic-launch-3min.mp4",
+            "Forced download: GET /lifeos/media/...?download=1",
             "JSON bible: GET /lifeos/cinematic",
             "Keyframes under /lifeos/media/*.png",
             "Same board-meeting voice beat as /lifeos/demo-app sample scenario",
