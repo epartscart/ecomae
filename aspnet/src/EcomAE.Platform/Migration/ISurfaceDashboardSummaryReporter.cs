@@ -384,4 +384,12 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only on-premises license registry (notes/fingerprint/ip omitted; license keys masked).</summary>
     Task<OnPremisesLicenseListResult> ListOnPremisesLicensesAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<ErpDeliveryNoteListResult> ListErpDeliveryNotesAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpRfqListResult> ListErpRfqsAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpThreeWayMatchListResult> ListErpThreeWayMatchAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpContactListResult> ListErpContactsAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpPaymentBatchListResult> ListErpPaymentBatchesAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpFiscalPeriodListResult> ListErpFiscalPeriodsAsync(int limit, CancellationToken cancellationToken = default);
 }
+

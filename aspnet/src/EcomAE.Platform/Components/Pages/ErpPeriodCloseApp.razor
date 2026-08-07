@@ -1,0 +1,136 @@
+@page "/erp/period-close-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Period Close · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<HeadContent>
+<style>
+        .epc-peri-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
+        }
+        .epc-peri-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-peri-hero p { margin:0; color:#bfdbfe; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-peri-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-peri-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#2563eb;
+        }
+        .epc-peri-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-peri-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-peri-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-peri-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-peri-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-peri-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-peri-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-peri-table th, .epc-peri-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-peri-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-peri-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
+        .epc-peri-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#1e3a8a; }
+        .epc-peri-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-peri-kpis{grid-template-columns:1fr;} }
+</style>
+</HeadContent>
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Period Close" BreadcrumbArea="Finance" BreadcrumbTab="Year end">
+
+    <section class="epc-peri-hero">
+        <h1>Period Close</h1>
+        <p>Fiscal period soft-close / lock board (PHP period_list · year_end).</p>
+        <div class="epc-peri-cta">
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+            <a class="ghost" href="/cp/finance-close-app">Opening / close</a>
+            <a class="ghost" href="/erp/gl-journals-app">GL journals</a>
+            <a class="ghost" href="/erp/app">ERP dashboard</a>
+        </div>
+    </section>
+
+    <div class="epc-peri-kpis" aria-label="Period Close KPIs">
+        <div class="epc-peri-kpi"><strong>@_periods.Count</strong><span>Shown (limit @_limit)</span></div>
+        <div class="epc-peri-kpi"><strong>@_source</strong><span>Digest source</span></div>
+        <div class="epc-peri-kpi"><strong>@(_isAdmin ? "live" : "guest")</strong><span>Session</span></div>
+    </div>
+
+    <div class="epc-peri-table-wrap">
+        <table class="epc-peri-table">
+            <thead>
+                <tr>
+                    <th>Period</th>
+                    <th>Status</th>
+                    <th>Soft closed</th>
+                    <th>Locked</th>
+                    <th>Updated</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_periods.Count == 0)
+                {
+                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _periods)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(row.YearMonth) ? "—" : row.YearMonth)</td>
+                            <td><span class="epc-peri-badge">@row.Status</span></td>
+                            <td>@(row.SoftClosed ? "yes" : "no")</td>
+                            <td>@(row.Locked ? "yes" : "no")</td>
+                            <td>@FormatTime(row.TimeUpdated)</td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <div class="epc-peri-note">@_message</div>
+    }
+
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=year_end";
+    private bool _isAdmin;
+    private IReadOnlyList<ErpFiscalPeriodDigest> _periods = [];
+    private int _limit = 100;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
+        {
+            _message = "Sign in for live data.";
+            return;
+        }
+
+        var result = await Dashboards.ListErpFiscalPeriodsAsync(_limit, ctx.RequestAborted);
+        _periods = result.Periods;
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
+}

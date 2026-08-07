@@ -2063,6 +2063,192 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+
+        endpoints.MapGet(EcomAeRoutes.ErpDeliveryNotes, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for delivery-notes digest.");
+            }
+
+            var result = await dashboards.ListErpDeliveryNotesAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                notes = result.Notes,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP delivery notes digest. PHP epc_erp_delivery_notes remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpRfqs, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for RFQ digest.");
+            }
+
+            var result = await dashboards.ListErpRfqsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                rfqs = result.Rfqs,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP RFQ digest. PHP epc_erp_rfq remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpThreeWayMatch, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for three-way-match digest.");
+            }
+
+            var result = await dashboards.ListErpThreeWayMatchAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                rows = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP three-way match digest. PHP epc_erp_three_way_match_rows remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpContacts, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for contacts digest.");
+            }
+
+            var result = await dashboards.ListErpContactsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                contacts = result.Contacts,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP contacts digest. PHP epc_erp_contacts remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpPaymentBatches, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for payment-batches digest.");
+            }
+
+            var result = await dashboards.ListErpPaymentBatchesAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                batches = result.Batches,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP payment batches digest. PHP epc_erp_payment_batches remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpFiscalPeriods, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for fiscal-periods digest.");
+            }
+
+            var result = await dashboards.ListErpFiscalPeriodsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                periods = result.Periods,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only ERP fiscal periods digest. PHP period_list / year_end remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpTabCoverage, (IErpAjaxWriteCatalog catalog) =>
+        {
+            var tabs = ErpPhpTabRouteMap.All
+                .OrderBy(kv => kv.Key, StringComparer.Ordinal)
+                .Select(kv => new { tab = kv.Key, aspnetApp = kv.Value })
+                .ToList();
+            var ajax = catalog.BuildReport();
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                role = "erp-tab-coverage",
+                tabCount = tabs.Count,
+                tabs,
+                ajaxActions = ajax.TotalActions,
+                ajaxCoveragePct = ajax.CoveragePct,
+                cutoverAllowed = false,
+                readyForPhpRemoval = false,
+                phpAuthoritative = true,
+                note = "Full PHP erp_tabs_* → ASP.NET app map. Interactive writes remain PHP."
+            });
+        });
+
         // /erp (+ aliases) owned by Blazor ErpBosDashboardApp — do not MapGet shell aliases
         // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
     }

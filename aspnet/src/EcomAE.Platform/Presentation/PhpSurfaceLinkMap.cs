@@ -782,58 +782,14 @@ public static class PhpSurfaceLinkMap
         var key = (tab ?? string.Empty).Trim().ToLowerInvariant();
         var areaKey = (area ?? string.Empty).Trim().ToLowerInvariant();
 
-        var fromTab = key switch
-        {
-            "dashboard" or "overview" => "/erp",
-            "guide" or "knowledge_base" or "knowledge" => "/erp/guide-app",
-            "approvals" or "approval" => "/erp/approvals-app",
-            "processflow" or "process_flow" or "workflow" => "/erp/process-flow-tasks-app",
-            "aging" or "ar_aging" or "ap_aging" => "/erp/aging-app",
-            "report_center" or "reports" or "reportcenter" or "rc_finance" or "pl" or "balance_sheet" => "/erp/report-center-app",
-            "sales_orders" or "salesorders" => "/erp/sales-orders-app",
-            "sales_quotations" or "quotations" or "proposals" => "/erp/sales-quotations-app",
-            "purchase_orders" or "purchaseorders" => "/erp/purchase-orders-app",
-            "purchase_requisitions" => "/cp/purchase-requests-app",
-            "purchases" or "payables" => "/erp/purchases-app",
-            "invoices" or "receivables" => "/erp/invoices-app",
-            "cash_bank" or "cash" or "banking" => "/erp/cash-accounts-app",
-            "cash_entries" or "bank_entries" => "/erp/cash-entries-app",
-            "coa" or "chart_of_accounts" => "/erp/coa-accounts-app",
-            "gl" or "journals" or "general_journal" => "/erp/gl-journals-app",
-            "inventory" or "stock" or "inventory_stock" => "/erp/inventory-stock-app",
-            "stock_movements" or "movements" or "ledger" => "/erp/stock-movements-app",
-            "stock_transfers" or "transfers" or "inv_groups" => "/erp/stock-transfers-app",
-            "warehouses" or "warehouse" or "wms" => "/erp/warehouses-app",
-            "suppliers" or "vendors" => "/erp/suppliers-app",
-            "fixed_assets" or "assets" => "/erp/fixed-assets-app",
-            "bank_reconciliation" or "reconciliation" or "bank_recon" => "/erp/bank-reconciliation-app",
-            "on_premises" or "onpremises" => "/erp/on-premises-app",
-            "favorites" or "workspace" => "/erp/workspace-favorites-app",
-            "accounts" => "/erp/accounts-summary-app",
-            "hr" => "/cp/hr-overview-app",
-            "manufacturing" => "/cp/production-overview-app",
-            "projects" => "/cp/projects-overview-app",
-            "retail_commerce" => "/cp/jewellery-retail-app",
-            "budgeting" => "/cp/budgets-app",
-            "workflow_automation" => "/cp/workflows-app",
-            "opportunities" => "/cp/crm-opportunities-app",
-            "einvoice" => "/cp/einvoice-documents-app",
-            "jw_repairs" => "/cp/jewellery-repairs-app",
-            "crm" => "/cp/crm-tickets-app",
-            "cost_models" => "/cp/cost-models-app",
-            "fin_advanced" => "/cp/fin-advanced-app",
-            "blockchain_proofs" => "/cp/blockchain-proofs-app",
-            "landed_cost" => "/cp/landed-cost-app",
-            "aml_compliance" => "/cp/aml-compliance-app",
-            "jw_karat" => "/cp/jewellery-masters-app",
-            "consolidation_bu" => "/cp/consolidations-app",
-            "elec_reporting" => "/cp/electronic-reporting-app",
-            _ => null,
-        };
-
-        if (fromTab is not null)
+        if (ErpPhpTabRouteMap.TryMapTab(key, out var fromTab))
         {
             return fromTab;
+        }
+
+        if (!string.IsNullOrWhiteSpace(key))
+        {
+            return ErpPhpTabRouteMap.MapTabOrModuleApp(key);
         }
 
         return areaKey switch

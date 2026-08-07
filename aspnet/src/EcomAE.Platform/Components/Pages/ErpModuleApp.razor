@@ -1,0 +1,117 @@
+@page "/erp/module-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpAjaxWriteCatalog AjaxCatalog
+@inject NavigationManager Nav
+
+<PageTitle>@_title · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<HeadContent>
+<style>
+    .epc-mod-hero {
+        margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+        background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 50%,#0ea5e9 100%);
+    }
+    .epc-mod-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+    .epc-mod-hero p { margin:0; color:#dbeafe; max-width:46rem; font-size:.92rem; line-height:1.45; }
+    .epc-mod-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+    .epc-mod-cta a {
+        display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+        text-decoration:none; color:#0f172a; background:#fff;
+    }
+    .epc-mod-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+    .epc-mod-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+    .epc-mod-card { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:1rem; }
+    .epc-mod-card h3 { margin:0 0 .45rem; font-size:1rem; }
+    .epc-mod-card p, .epc-mod-card li { margin:0; color:#475569; font-size:.86rem; line-height:1.45; }
+    .epc-mod-card ul { margin:.4rem 0 0; padding-left:1.1rem; }
+    .epc-mod-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#9a3412; font-size:.86rem; }
+    @@media (max-width:900px){ .epc-mod-grid{grid-template-columns:1fr;} }
+</style>
+</HeadContent>
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_title" BreadcrumbArea="Modules" BreadcrumbTab="@_tab">
+
+    <section class="epc-mod-hero">
+        <h1>@_title</h1>
+        <p>ASP.NET-primary module shell for PHP tab <code>@_tab</code>. Live interactive writes stay on the PHP reference surface; dry-runs validate payloads without mutating data.</p>
+        <div class="epc-mod-cta">
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open PHP reference tab</a>
+            <a class="ghost" href="/erp/tab-coverage">Tab coverage</a>
+            <a class="ghost" href="/erp/ajax-writes/catalog">Ajax dry-run catalog</a>
+            <a class="ghost" href="/erp">ERP workspace</a>
+        </div>
+    </section>
+
+    <div class="epc-mod-grid">
+        <div class="epc-mod-card">
+            <h3>Module status</h3>
+            <p>Mapped app: <code>@_mappedApp</code></p>
+            <p style="margin-top:.45rem;">PHP path: <code>@_phpTab</code></p>
+            <p style="margin-top:.45rem;">Product locks: cutoverAllowed=false · readyForPhpRemoval=false · PHP authoritative.</p>
+        </div>
+        <div class="epc-mod-card">
+            <h3>Related dry-run actions</h3>
+            @if (_actions.Count == 0)
+            {
+                <p>No action name match for this tab. Use the full ajax catalog for Wave B coverage (321/321).</p>
+            }
+            else
+            {
+                <ul>
+                    @foreach (var a in _actions.Take(12))
+                    {
+                        <li><code>@a.Action</code> → <code>@a.AspNetRouteHint</code></li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="epc-mod-note">
+        This shell exists so every PHP ERP tab resolves to an ASP.NET surface instead of collapsing onto the wrong list app.
+        Prefer dedicated <code>*-app</code> routes when a digest list is available.
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _tab = "module";
+    private string _title = "ERP Module";
+    private string _phpTab = "/ERP/?epc_erp_shell=1";
+    private string _mappedApp = "/erp/module-app";
+    private IReadOnlyList<ErpAjaxWriteCatalogEntry> _actions = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var q = ctx.Request.Query["tab"].ToString();
+        _tab = string.IsNullOrWhiteSpace(q) ? "module" : q.Trim().ToLowerInvariant();
+        _title = ToTitle(_tab);
+        _phpTab = $"/ERP/?epc_erp_shell=1&tab={Uri.EscapeDataString(_tab)}";
+        _mappedApp = ErpPhpTabRouteMap.MapTabOrModuleApp(_tab);
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+
+        var key = _tab.Replace("_", "", StringComparison.Ordinal);
+        _actions = AjaxCatalog.All
+            .Where(e => e.Action.Contains(_tab, StringComparison.OrdinalIgnoreCase)
+                || e.Action.Replace("_", "", StringComparison.Ordinal).Contains(key, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(e => e.Action, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    private static string ToTitle(string tab)
+    {
+        if (string.IsNullOrWhiteSpace(tab)) return "ERP Module";
+        return string.Join(' ', tab.Split('_', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => char.ToUpperInvariant(p[0]) + p[1..]));
+    }
+}

@@ -118,7 +118,14 @@
     ],
     "phpTabMap": {
       "guide|knowledge_base|knowledge": "/erp/guide-app",
-      "approvals|approval": "/erp/approvals-app"
+      "approvals|approval": "/erp/approvals-app",
+      "delivery_notes": "/erp/delivery-notes-app",
+      "rfq": "/erp/rfq-app",
+      "three_way_match": "/erp/three-way-match-app",
+      "contacts": "/erp/contacts-app",
+      "payment_batches": "/erp/payment-batches-app",
+      "year_end": "/erp/period-close-app",
+      "tabCoverage": "/erp/tab-coverage"
     }
   },
   "tenantErpModules": [
@@ -253,6 +260,46 @@
       "module": "on_premises",
       "aspnetApp": "/erp/on-premises-app",
       "status": "aspnet-read"
+    },
+    {
+      "module": "delivery_notes",
+      "aspnetApp": "/erp/delivery-notes-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "rfq",
+      "aspnetApp": "/erp/rfq-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "three_way_match",
+      "aspnetApp": "/erp/three-way-match-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "contacts",
+      "aspnetApp": "/erp/contacts-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "payment_batches",
+      "aspnetApp": "/erp/payment-batches-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "year_end",
+      "aspnetApp": "/erp/period-close-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "collections",
+      "aspnetApp": "/cp/collections-dunning-app",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "module_shell",
+      "aspnetApp": "/erp/module-app",
+      "status": "aspnet-shell"
     }
   ],
   "superErpModules": [
@@ -276,7 +323,9 @@
     "ErpCashAccountsApp.razor",
     "ErpCashEntriesApp.razor",
     "ErpCoaAccountsApp.razor",
+    "ErpContactsApp.razor",
     "ErpDashboardSummaryApp.razor",
+    "ErpDeliveryNotesApp.razor",
     "ErpFixedAssetsApp.razor",
     "ErpFleetApp.razor",
     "ErpGlJournalsApp.razor",
@@ -284,23 +333,34 @@
     "ErpInventoryStockApp.razor",
     "ErpInvoicesApp.razor",
     "ErpLoginApp.razor",
+    "ErpModuleApp.razor",
     "ErpOnPremisesApp.razor",
+    "ErpPaymentBatchesApp.razor",
+    "ErpPeriodCloseApp.razor",
     "ErpProcessFlowTasksApp.razor",
     "ErpPurchaseOrdersApp.razor",
     "ErpPurchasesApp.razor",
     "ErpReportCenterApp.razor",
+    "ErpRfqApp.razor",
     "ErpSalesOrdersApp.razor",
     "ErpSalesQuotationsApp.razor",
     "ErpStockMovementsApp.razor",
     "ErpStockTransfersApp.razor",
     "ErpSuppliersApp.razor",
+    "ErpThreeWayMatchApp.razor",
     "ErpWarehousesApp.razor",
     "ErpWorkspaceFavoritesApp.razor"
   ],
   "gaps": [
-    "Interactive ERP writes remain PHP (erp_tabs_*).",
+    "Interactive ERP writes remain PHP (erp_tabs_* / ajax_erp.php); ASP.NET dry-runs cover 321/321 actions with writes=0.",
+    "Full PHP tab\u2192ASP.NET map via ErpPhpTabRouteMap (160 tab files); generic /erp/module-app for residual shells.",
     "Tenant chrome same-to-same; Super fleet/BOS stay Super-CP gated.",
     "Guide content is static JSON parity; entitlement filtering not yet applied in ASP.NET."
   ],
-  "note": "Documents Super/Tenant ERP module ASP.NET read surfaces plus guide book / approvals PHP parity."
+  "note": "Documents Super/Tenant ERP module ASP.NET read surfaces, full tab route map, and guide/approvals PHP parity. cutoverAllowed=false.",
+  "tabRouteMap": {
+    "source": "aspnet/src/EcomAE.Platform/Presentation/ErpPhpTabRouteMap.cs",
+    "coverageEndpoint": "/erp/tab-coverage",
+    "status": "aspnet-read"
+  }
 }
