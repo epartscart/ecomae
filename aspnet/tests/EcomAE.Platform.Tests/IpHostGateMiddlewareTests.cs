@@ -73,11 +73,12 @@ public sealed class IpHostGateMiddlewareTests
     }
 
     [Fact]
-    public async Task LifeOsHostRewritesBareHome()
+    public async Task LifeOsHostRedirectsBareHomeToLifeOs()
     {
-        var mw = new LifeOsHostHomeMiddleware(ctx =>
+        var nextCalled = false;
+        var mw = new LifeOsHostHomeMiddleware(_ =>
         {
-            Assert.Equal("/lifeos", ctx.Request.Path.Value);
+            nextCalled = true;
             return Task.CompletedTask;
         });
         var ctx = new DefaultHttpContext();
@@ -86,15 +87,19 @@ public sealed class IpHostGateMiddlewareTests
 
         await mw.InvokeAsync(ctx);
 
-        Assert.Equal("home-rewrite", ctx.Response.Headers["X-EcomAE-LifeOs-Host"].ToString());
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status302Found, ctx.Response.StatusCode);
+        Assert.Equal("/lifeos", ctx.Response.Headers.Location.ToString());
+        Assert.Equal("home-redirect", ctx.Response.Headers["X-EcomAE-LifeOs-Host"].ToString());
     }
 
     [Fact]
-    public async Task LifeOsHostDivertsMisroutedMarketingApp()
+    public async Task LifeOsHostRedirectsMisroutedMarketingApp()
     {
-        var mw = new LifeOsHostHomeMiddleware(ctx =>
+        var nextCalled = false;
+        var mw = new LifeOsHostHomeMiddleware(_ =>
         {
-            Assert.Equal("/lifeos", ctx.Request.Path.Value);
+            nextCalled = true;
             return Task.CompletedTask;
         });
         var ctx = new DefaultHttpContext();
@@ -103,8 +108,32 @@ public sealed class IpHostGateMiddlewareTests
 
         await mw.InvokeAsync(ctx);
 
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status302Found, ctx.Response.StatusCode);
+        Assert.Equal("/lifeos", ctx.Response.Headers.Location.ToString());
         Assert.Equal("marketing-divert", ctx.Response.Headers["X-EcomAE-LifeOs-Host"].ToString());
+        Assert.Equal("/marketing/app", ctx.Response.Headers["X-EcomAE-LifeOs-From"].ToString());
     }
+
+    [Fact]
+    public async Task LifeOsHostDoesNotRedirectProductLifeOsPath()
+    {
+        var nextCalled = false;
+        var mw = new LifeOsHostHomeMiddleware(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("lifeos.ecomae.com");
+        ctx.Request.Path = "/lifeos";
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.True(nextCalled);
+        Assert.NotEqual(StatusCodes.Status302Found, ctx.Response.StatusCode);
+    }
+
 
     [Theory]
     [InlineData("/", true)]

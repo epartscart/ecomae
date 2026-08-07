@@ -4,9 +4,12 @@ using EcomAE.Platform.Services;
 namespace EcomAE.Platform.Middleware;
 
 /// <summary>
-/// On <c>lifeos.ecomae.com</c>, serve the LifeOS product home at <see cref="EcomAeRoutes.LifeOs"/>.
-/// Rewrites bare <c>/</c> and mis-routed www marketing paths (<c>/marketing/app</c>) that
-/// classic-entry nginx may inject when the lifeos host shares the www server block.
+/// On <c>lifeos.ecomae.com</c>, send visitors to the LifeOS product home.
+/// Uses an HTTP redirect (not an in-pipeline Path rewrite): with the implicit
+/// <c>UseRouting</c> at the start of the ASP.NET pipeline, changing
+/// <see cref="HttpRequest.Path"/> after endpoint matching still executes the
+/// already-selected <c>/marketing/app</c> page (live symptom: header
+/// <c>X-EcomAE-LifeOs-Host: marketing-divert</c> with ECOM AE marketing body).
 /// </summary>
 public sealed class LifeOsHostHomeMiddleware
 {
@@ -26,15 +29,24 @@ public sealed class LifeOsHostHomeMiddleware
         }
 
         var path = context.Request.Path.Value ?? "/";
-        if (ShouldRewriteToLifeOsHome(path))
+        if (!ShouldRewriteToLifeOsHome(path))
         {
-            context.Request.Path = EcomAeRoutes.LifeOs;
-            context.Response.Headers["X-EcomAE-LifeOs-Host"] = path is "/" or ""
-                ? "home-rewrite"
-                : "marketing-divert";
+            return _next(context);
         }
 
-        return _next(context);
+        // Already on the product home — do not redirect-loop.
+        if (path.Equals(EcomAeRoutes.LifeOs, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(EcomAeRoutes.LifeOs + "/", StringComparison.OrdinalIgnoreCase))
+        {
+            return _next(context);
+        }
+
+        var reason = path is "/" or "" ? "home-redirect" : "marketing-divert";
+        context.Response.Headers["X-EcomAE-LifeOs-Host"] = reason;
+        context.Response.Headers["X-EcomAE-LifeOs-From"] = path;
+        var target = EcomAeRoutes.LifeOs + context.Request.QueryString.Value;
+        context.Response.Redirect(target, permanent: false);
+        return Task.CompletedTask;
     }
 
     public static bool ShouldRewriteToLifeOsHome(string path)
