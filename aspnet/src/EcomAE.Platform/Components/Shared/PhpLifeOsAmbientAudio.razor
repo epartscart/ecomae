@@ -1,0 +1,124 @@
+@*
+  Soft LifeOS ambient pad (Web Audio API) — no external media file.
+  Starts after first user gesture (browser autoplay policy); mute toggle included.
+*@
+<button type="button"
+        id="@ButtonId"
+        class="lifeos-ambient-toggle"
+        aria-pressed="false"
+        title="LifeOS ambient sound">
+    <i class="fa fa-volume-off" aria-hidden="true"></i>
+    <span>Ambient</span>
+</button>
+
+<style>
+.lifeos-ambient-toggle {
+  position: fixed; z-index: 40; right: 1rem; bottom: 1rem;
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .55rem .85rem; border-radius: 999px;
+  border: 1px solid rgba(153,246,228,.35);
+  background: rgba(6,42,38,.72); color: #ccfbf1;
+  font: 700 .75rem/1 "Open Sans", sans-serif;
+  letter-spacing: .04em; text-transform: uppercase;
+  cursor: pointer; backdrop-filter: blur(6px);
+}
+.lifeos-ambient-toggle[aria-pressed="true"] {
+  border-color: rgba(245,158,11,.55); color: #fde68a;
+}
+.lifeos-ambient-toggle:hover { transform: translateY(-1px); }
+</style>
+
+<script>
+(function () {
+  var btnId = '@ButtonId';
+  var started = false, muted = true, ctx = null, nodes = [];
+
+  function stopAll() {
+    for (var i = 0; i < nodes.length; i++) {
+      try { nodes[i].stop(); } catch (e) {}
+      try { nodes[i].disconnect(); } catch (e) {}
+    }
+    nodes = [];
+  }
+
+  function startPad() {
+    if (!ctx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ctx = new AC();
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    stopAll();
+    var master = ctx.createGain();
+    master.gain.value = 0.045;
+    master.connect(ctx.destination);
+
+    // Soft LifeOS pad: low teal drone + slow amber fifth
+    var freqs = [110, 164.81, 220, 329.63];
+    for (var i = 0; i < freqs.length; i++) {
+      var o = ctx.createOscillator();
+      var g = ctx.createGain();
+      o.type = i % 2 === 0 ? 'sine' : 'triangle';
+      o.frequency.value = freqs[i];
+      g.gain.value = i === 0 ? 0.55 : 0.22;
+      // gentle LFO shimmer
+      var lfo = ctx.createOscillator();
+      var lfoG = ctx.createGain();
+      lfo.frequency.value = 0.08 + i * 0.03;
+      lfoG.gain.value = 0.012;
+      lfo.connect(lfoG);
+      lfoG.connect(g.gain);
+      o.connect(g);
+      g.connect(master);
+      o.start();
+      lfo.start();
+      nodes.push(o, lfo);
+    }
+    started = true;
+    muted = false;
+    return true;
+  }
+
+  function setUi(on) {
+    var btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var icon = btn.querySelector('i');
+    if (icon) icon.className = on ? 'fa fa-volume-up' : 'fa fa-volume-off';
+  }
+
+  function toggle() {
+    if (!started || muted) {
+      if (startPad()) setUi(true);
+      return;
+    }
+    stopAll();
+    muted = true;
+    setUi(false);
+  }
+
+  function boot() {
+    var btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      toggle();
+    });
+    // Auto-offer: first pointerdown on page starts soft pad (user gesture).
+    var once = function () {
+      document.removeEventListener('pointerdown', once, true);
+      if (!started) {
+        if (startPad()) setUi(true);
+      }
+    };
+    document.addEventListener('pointerdown', once, true);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+
+@code {
+    [Parameter] public string ButtonId { get; set; } = "lifeOsAmbientToggle";
+}

@@ -1,0 +1,31 @@
+{
+  "product": "LifeOS™",
+  "version": "4.0",
+  "status": "scaffold",
+  "parts": {
+    "1": "Vision & Brain Foundations — live UI scaffold",
+    "2": "Core System Architecture — orchestrator/bus/memory/agents/planning",
+    "3": "AI & Cognitive Systems — reasoning/decision/learning/personality",
+    "4": "Multimodal Input — voice/vision/desktop/wearable adapters",
+    "5": "APIs, SDKs, Schemas, Event Models — route catalog + DTOs",
+    "6": "Cloud / K8s / DevOps / Monitoring — FORCE_LIVE deploy path",
+    "7": "Security, Privacy, Compliance — control registry",
+    "8": "Native Clients — web live-scaffold; others roadmap",
+    "9": "Plugin Marketplace & Agent SDK — catalog stubs",
+    "10": "Production, Testing, Roadmap, Research — evidence + tests"
+  },
+  "ipLogin": {
+    "path": "/ip/login",
+    "credentials": "same Super-CP admin bridge as /bos/login",
+    "chrome": "BOS login shell parity + LifeOS ambient Web Audio pad"
+  },
+  "digests": [
+    "/lifeos/spec",
+    "/lifeos/cognitive",
+    "/lifeos/multimodal",
+    "/lifeos/security",
+    "/lifeos/clients",
+    "/lifeos/plugins",
+    "/lifeos/roadmap"
+  ]
+}

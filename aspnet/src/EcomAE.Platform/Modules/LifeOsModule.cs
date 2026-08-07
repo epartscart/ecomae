@@ -2,6 +2,7 @@ using EcomAE.Platform.LifeOs.Engines;
 using EcomAE.Platform.LifeOs.EventBus;
 using EcomAE.Platform.LifeOs.Models;
 using EcomAE.Platform.LifeOs.Orchestrator;
+using EcomAE.Platform.LifeOs.Spec;
 using EcomAE.Platform.Routing;
 
 namespace EcomAE.Platform.Modules;
@@ -12,7 +13,7 @@ public sealed class LifeOsModule : ISurfaceModule
         "lifeos",
         "LifeOS™",
         EcomAeRoutes.LifeOs,
-        "LifeOS Part 2 — Orchestrator, Event Bus, Context, Memory, Agents, Planning",
+        "LifeOS Master Spec v4.0 — Parts 1–10 scaffold",
         "cognitive-scaffold",
         []);
 
@@ -44,9 +45,40 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsContextDigest, (ILifeOsContextEngine context) =>
             Results.Ok(new { ok = true, sources = context.KnownSourceNames }));
 
+        endpoints.MapGet(EcomAeRoutes.LifeOsCognitive, (ILifeOsCognitiveEngines cognitive) =>
+            Results.Ok(cognitive.Digest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsMultimodal, (ILifeOsMasterSpec spec) =>
+            Results.Ok(new { ok = true, part = 4, adapters = spec.MultimodalAdapters }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsSecurityDigest, (ILifeOsMasterSpec spec) =>
+            Results.Ok(new { ok = true, part = 7, controls = spec.SecurityControls }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsClients, (ILifeOsMasterSpec spec) =>
+            Results.Ok(new { ok = true, part = 8, clients = spec.Clients }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsPlugins, (ILifeOsMasterSpec spec) =>
+            Results.Ok(new { ok = true, part = 9, plugins = spec.Plugins }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsRoadmap, (ILifeOsMasterSpec spec) =>
+            Results.Ok(new
+            {
+                ok = true,
+                part = 10,
+                version = spec.Version,
+                parts = spec.Parts.Select(p => new { p.Number, p.Title, p.Status }).ToList()
+            }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsSpec, (
+            ILifeOsMasterSpec spec,
+            ILifeOsCognitiveEngines cognitive,
+            ILifeOsOrchestrator orch) =>
+            Results.Ok(spec.FullDigest(cognitive, orch.ArchitectureDigest())));
+
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (
             LifeOsOrchestrateBody? body,
             ILifeOsOrchestrator orch,
+            ILifeOsCognitiveEngines cognitive,
             CancellationToken cancellationToken) =>
         {
             body ??= new LifeOsOrchestrateBody(null, null, null);
@@ -73,11 +105,16 @@ public sealed class LifeOsModule : ISurfaceModule
                     LifeOsEventPriority.High);
 
             var result = await orch.ProcessAsync(evt, cancellationToken).ConfigureAwait(false);
+            var reasoning = cognitive.Reason(result.Intent, result.Context.Sources.Select(s => $"{s.Name}:{s.Confidence:0.00}").ToList());
+            var decision = cognitive.Decide(reasoning, allowIrreversible: body.Confirm == true);
+            cognitive.Learn(result.TraceId, "orchestrate-scaffold");
+
             return Results.Ok(new
             {
                 ok = true,
                 scaffold = true,
-                result
+                result,
+                cognitive = new { reasoning, decision }
             });
         });
     }
