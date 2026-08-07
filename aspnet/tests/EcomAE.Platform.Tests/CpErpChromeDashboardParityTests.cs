@@ -105,7 +105,6 @@ public sealed class CpErpChromeDashboardParityTests
     [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor")]
     [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor")]
     [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpBosDesktopChrome.razor")]
-    [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor")]
     [InlineData("aspnet/src/EcomAE.Platform/Components/Layout/PhpChromeLayout.razor")]
     public void DesktopChrome_WrapsInlineStylesInHeadContent(string relative)
     {
@@ -119,6 +118,24 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("<style>", head, StringComparison.Ordinal);
         var after = src[(close + "</HeadContent>".Length)..];
         Assert.DoesNotContain("<style>", after, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void StorefrontChrome_EmitsCriticalCssInBodyStreamForLiveProve()
+    {
+        // Live FORCE_LIVE prove saw HeadContent dropped for /storefront/app while
+        // body <style> widgets survived — critical header CSS must live in body.
+        var src = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor"));
+        Assert.Contains("<HeadContent>", src, StringComparison.Ordinal);
+        Assert.Contains("body-inline", src, StringComparison.Ordinal);
+        var close = src.IndexOf("</HeadContent>", StringComparison.Ordinal);
+        Assert.True(close > 0);
+        var after = src[(close + "</HeadContent>".Length)..];
+        Assert.Contains("<style>", after, StringComparison.Ordinal);
+        Assert.Contains("header-call-box a { background:#ef4444", after, StringComparison.Ordinal);
+        Assert.Contains("background:linear-gradient(135deg,#090f1d", after, StringComparison.Ordinal);
+        Assert.Contains("color:rgba(255,255,255,.88) !important", after, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)

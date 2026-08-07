@@ -9,7 +9,15 @@
   tree often 404 until classic-entry storefront nginx is installed + dual-sample).
 *@
 
+@*
+  Critical header CSS is emitted in the BODY (start of .epc-nero-shell), not only
+  HeadContent. Live epartscart SSR (FORCE_LIVE prove) has dropped late HeadContent
+  for this component tree while keeping body <style> from catalog widgets — so
+  body emission is the durable path for header-call-box / top-menu prove markers.
+*@
 <HeadContent>
+<meta name="ecomae-storefront-chrome-css" content="body-inline" />
+</HeadContent>
 <style>
     /*
       Header polish is inlined so live look cannot depend on a missing /content/*.css
@@ -276,7 +284,6 @@
         header.epc-nero-header{display:none !important;}
     }
 </style>
-</HeadContent>
 
 <div class="epc-nero-shell epc-php-font-root">
     <header class="hidden-xs epc-nero-header">
