@@ -1,0 +1,25 @@
+{
+  "id": "lifeos-cinematic-launch-film",
+  "capturedAtUtc": "2026-08-07T10:50:00Z",
+  "verdict": "keyframes-ready",
+  "title": "LifeOS ultra-premium cinematic product launch film",
+  "durationSeconds": 180,
+  "aspectRatio": "16:9",
+  "resolution": "4K HDR",
+  "frameRate": "60fps",
+  "routes": {
+    "ui": "/lifeos/cinematic-app",
+    "json": "/lifeos/cinematic"
+  },
+  "keyframes": [
+    "/lifeos/cinematic/lifeos-cinematic-scene01-earth.png",
+    "/lifeos/cinematic/lifeos-cinematic-scene02-continuity.png",
+    "/lifeos/cinematic/lifeos-cinematic-scene03-brain.png",
+    "/lifeos/cinematic/lifeos-cinematic-scene04-voice.png",
+    "/lifeos/cinematic/lifeos-cinematic-scene06-agents.png",
+    "/lifeos/cinematic/lifeos-cinematic-scene10-finale.png"
+  ],
+  "style": "Apple keynote × JARVIS × holographic OS · UE5 / Hollywood VFX",
+  "renderStatus": "keyframes-ready · full-video-pending-higgsfield",
+  "note": "Authenticate Higgsfield MCP in Cursor desktop to generate the full 3:00 4K60 motion film from the master prompt."
+}
