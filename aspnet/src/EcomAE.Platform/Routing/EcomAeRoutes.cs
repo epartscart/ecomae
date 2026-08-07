@@ -711,6 +711,8 @@ public static class EcomAeRoutes
     public const string ErpDocumentsApp = "/erp/documents-app";
     public const string ErpExpenseReports = "/erp/expense-reports";
     public const string ErpExpenseReportsApp = "/erp/expense-reports-app";
+    public const string ErpVatApp = "/erp/vat-app";
+    public const string ErpWithholdingApp = "/erp/withholding-app";
 
     /// <summary>ERP tab→app coverage board.</summary>
     public const string ErpTabCoverage = "/erp/tab-coverage";
