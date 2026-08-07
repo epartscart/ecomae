@@ -44,14 +44,21 @@ public sealed class LifeOsClientCompanionTests
             Referrer: "/lifeos/join",
             JoinSource: "mobile-web",
             IpCountryHint: "AE",
-            UseTestClient: false));
+            UseTestClient: false,
+            OwnerUserId: 42));
         Assert.True(result.Ok);
         Assert.Equal("Omar", result.Client.DisplayName);
         Assert.Equal("Omar", result.Client.CloneName);
         Assert.Equal("United Arab Emirates", result.Client.Country);
         Assert.Equal("AE", result.Client.CountryCode);
         Assert.Equal("mobile-web", result.Client.JoinSource);
+        Assert.Equal(42, result.Client.OwnerUserId);
         Assert.False(result.Client.IsTest);
+        var again = dir.Join(new LifeOsJoinRequest(
+            DisplayName: "Omar II", Email: "other@example.com", Country: "AE", CountryCode: "AE",
+            City: null, TimeZone: null, Locale: null, Platform: null, UserAgent: null, Referrer: null,
+            JoinSource: "web", IpCountryHint: null, UseTestClient: false, OwnerUserId: 42));
+        Assert.Equal(result.Client.ClientId, again.Client.ClientId);
         Assert.StartsWith("/lifeos/mobile?clientId=", result.CompanionUrl);
         Assert.Contains("token=", result.CompanionUrl);
         Assert.StartsWith("/lifeos/results?clientId=", result.ResultsUrl);
@@ -65,7 +72,7 @@ public sealed class LifeOsClientCompanionTests
         var dir = sp.GetRequiredService<ILifeOsClientDirectory>();
         var join = dir.Join(new LifeOsJoinRequest(
             "Sara", "sara@example.com", "Saudi Arabia", "SA", "Riyadh",
-            "Asia/Riyadh", "en-SA", "iPhone", "MobileSafari", "/lifeos", "mobile-web", "SA", false));
+            "Asia/Riyadh", "en-SA", "iPhone", "MobileSafari", "/lifeos", "mobile-web", "SA", false, 99));
         dir.RecordTrack(new LifeOsTrackEvent(join.Client.ClientId, join.Client.JoinToken, "walk", "Walk", 2, "note"));
         dir.Talk(new LifeOsTalkRequest(join.Client.ClientId, join.Client.JoinToken, "Guide me today", "guide"));
 
@@ -134,6 +141,8 @@ public sealed class LifeOsClientCompanionTests
         Assert.Contains("/lifeos/join", directoryJson, StringComparison.Ordinal);
         Assert.Contains("/lifeos/mobile", directoryJson, StringComparison.Ordinal);
         Assert.Contains("/lifeos/results", directoryJson, StringComparison.Ordinal);
+        Assert.Contains("\"loginRequired\":true", directoryJson, StringComparison.Ordinal);
+        Assert.Contains("/lifeos/login", directoryJson, StringComparison.Ordinal);
         Assert.Contains("manifest.webmanifest", directoryJson, StringComparison.Ordinal);
         Assert.Contains("test-amina", directoryJson, StringComparison.Ordinal);
         Assert.Contains("/lifeos/sw.js", companionJson, StringComparison.Ordinal);

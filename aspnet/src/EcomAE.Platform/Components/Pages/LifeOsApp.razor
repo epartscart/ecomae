@@ -93,17 +93,20 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
     {
       <section class="lo-intro">
         <h1>Sign in to LifeOS</h1>
-        <p>Customer session bridge for the ambient console. Uses the same secure admin/customer login fabric as ecomae IP.</p>
+        <p>
+          Personal join, companion, and results are private. Sign in with your ecomae account,
+          then complete joining — your daily life data stays bound to this session.
+        </p>
       </section>
       <form class="lo-login-box" method="post" action="@EcomAeRoutes.LifeOsLogin">
         <input type="hidden" name="surface" value="lifeos" />
-        <input type="hidden" name="redirect" value="@EcomAeRoutes.LifeOsApp" />
+        <input type="hidden" name="redirect" value="@LifeOsLoginRedirect" />
         <input type="hidden" name="contact_type" value="email" />
         <label for="loEmail">Email</label>
         <input id="loEmail" type="email" name="contact" required autocomplete="username" placeholder="you@example.com" />
         <label for="loPassword">Password</label>
         <input id="loPassword" type="password" name="password" required autocomplete="current-password" />
-        <button type="submit">Continue to LifeOS</button>
+        <button type="submit">Sign in &amp; continue to join</button>
       </form>
     }
     else
@@ -150,4 +153,20 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
 
 @code {
     [Inject] private IHttpContextAccessor Http { get; set; } = default!;
+
+    private string LifeOsLoginRedirect
+    {
+        get
+        {
+            var returnUrl = Http.HttpContext?.Request.Query["returnUrl"].ToString();
+            if (!string.IsNullOrWhiteSpace(returnUrl)
+                && returnUrl.StartsWith("/lifeos", StringComparison.OrdinalIgnoreCase)
+                && !returnUrl.StartsWith("//", StringComparison.Ordinal))
+            {
+                return returnUrl;
+            }
+
+            return EcomAeRoutes.LifeOsJoin;
+        }
+    }
 }

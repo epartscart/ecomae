@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.LifeOs.Cinematic;
 using EcomAE.Platform.LifeOs.Clients;
 using EcomAE.Platform.LifeOs.Demo;
@@ -370,7 +371,7 @@ public sealed class LifeOsModule : ISurfaceModule
         });
 
         // ── Client join + mobile companion (PWA track/talk/listen/guide) ───
-        // No login required — clients use clientId + joinToken. Blazor is SSR-only,
+        // Login required (LifeOsPersonalAuthGateMiddleware). Blazor is SSR-only,
         // so join/companion UIs call these APIs via fetch (not @onclick).
         endpoints.MapGet(EcomAeRoutes.LifeOsDirectory, (ILifeOsClientDirectory dir) =>
             Results.Ok(dir.DirectoryDigest()));
@@ -378,10 +379,22 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsClientsCp, (ILifeOsClientDirectory dir) =>
             Results.Ok(dir.ControlPanelDigest()));
 
-        endpoints.MapPost(EcomAeRoutes.LifeOsJoinApi, (HttpContext http, LifeOsJoinRequest? body, ILifeOsClientDirectory dir) =>
+        endpoints.MapPost(EcomAeRoutes.LifeOsJoinApi, async (
+            HttpContext http,
+            LifeOsJoinRequest? body,
+            ILifeOsClientDirectory dir,
+            ILegacySessionValidator sessions) =>
         {
+            var session = await sessions.ValidateAsync(http, http.RequestAborted).ConfigureAwait(false);
+            if (!session.IsAuthenticated)
+            {
+                return Results.Json(
+                    new { ok = false, code = "lifeos_login_required", login = EcomAeRoutes.LifeOsLogin },
+                    statusCode: StatusCodes.Status401Unauthorized);
+            }
+
             body ??= new LifeOsJoinRequest(
-                null, null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null);
             var cfCountry = http.Request.Headers.TryGetValue("CF-IPCountry", out var cfc)
                 ? cfc.ToString()
                 : null;
@@ -393,6 +406,8 @@ public sealed class LifeOsModule : ISurfaceModule
 
             var enriched = body with
             {
+                OwnerUserId = session.UserId > 0 ? session.UserId : body.OwnerUserId,
+                Email = string.IsNullOrWhiteSpace(body.Email) ? session.Email : body.Email,
                 IpCountryHint = string.IsNullOrWhiteSpace(body.IpCountryHint) ? cfCountry : body.IpCountryHint,
                 UserAgent = string.IsNullOrWhiteSpace(body.UserAgent)
                     ? http.Request.Headers.UserAgent.ToString()
@@ -421,23 +436,56 @@ public sealed class LifeOsModule : ISurfaceModule
             string? clientId,
             string? token,
             ILifeOsClientDirectory dir) =>
-            Results.Ok(new
+        {
+            try
             {
-                ok = true,
-                scaffold = true,
-                loginRequired = false,
-                session = dir.CompanionSession(clientId ?? LifeOsClientDirectory.TestClientId, token)
-            }));
+                return Results.Ok(new
+                {
+                    ok = true,
+                    scaffold = true,
+                    loginRequired = true,
+                    session = dir.CompanionSession(clientId ?? "", token)
+                });
+            }
+            catch (InvalidOperationException)
+            {
+                return Results.Json(
+                    new { ok = false, code = "invalid-client-or-token", loginRequired = true },
+                    statusCode: StatusCodes.Status401Unauthorized);
+            }
+        });
 
         endpoints.MapPost(EcomAeRoutes.LifeOsCompanionTrack, (
             LifeOsTrackEvent? body,
             ILifeOsClientDirectory dir) =>
-            Results.Ok(dir.RecordTrack(body ?? new LifeOsTrackEvent(null, null, null, null, null, null))));
+        {
+            try
+            {
+                return Results.Ok(dir.RecordTrack(body ?? new LifeOsTrackEvent(null, null, null, null, null, null)));
+            }
+            catch (InvalidOperationException)
+            {
+                return Results.Json(
+                    new { ok = false, code = "invalid-client-or-token", loginRequired = true },
+                    statusCode: StatusCodes.Status401Unauthorized);
+            }
+        });
 
         endpoints.MapPost(EcomAeRoutes.LifeOsCompanionTalk, (
             LifeOsTalkRequest? body,
             ILifeOsClientDirectory dir) =>
-            Results.Ok(dir.Talk(body ?? new LifeOsTalkRequest(null, null, null, null))));
+        {
+            try
+            {
+                return Results.Ok(dir.Talk(body ?? new LifeOsTalkRequest(null, null, null, null)));
+            }
+            catch (InvalidOperationException)
+            {
+                return Results.Json(
+                    new { ok = false, code = "invalid-client-or-token", loginRequired = true },
+                    statusCode: StatusCodes.Status401Unauthorized);
+            }
+        });
 
         endpoints.MapGet("/lifeos/companion/digest", (ILifeOsClientDirectory dir) =>
             Results.Ok(dir.CompanionDigest()));

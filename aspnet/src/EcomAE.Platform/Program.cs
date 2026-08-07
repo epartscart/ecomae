@@ -700,6 +700,8 @@ app.UseMiddleware<RouteCutoverDecisionMiddleware>();
 // Hard wall: /cp /erp /bos /ip require admin session (no guest-browse chrome on live tenants).
 // LifeOS customer marketing stays public.
 app.UseMiddleware<AdminSurfaceAuthGateMiddleware>();
+// LifeOS personal surfaces (join / companion / results) require a signed-in session.
+app.UseMiddleware<LifeOsPersonalAuthGateMiddleware>();
 // Credential POSTs on /cp|/erp|/bos|/ip|/lifeos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.
 app.UseMiddleware<LegacyLoginBridgeMiddleware>();
 // Explicit routing after host gates so any future Path rewrites before this line re-match.

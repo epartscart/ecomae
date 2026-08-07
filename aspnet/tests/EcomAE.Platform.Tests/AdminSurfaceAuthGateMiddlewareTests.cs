@@ -32,7 +32,7 @@ public sealed class AdminSurfaceAuthGateMiddlewareTests
     [InlineData("/lifeos", false)]
     [InlineData("/lifeos/app", false)]
     [InlineData("/lifeos/clients-board", false)]
-    [InlineData("/cp/lifeos-clients-app", false)]
+    [InlineData("/cp/lifeos-clients-app", true)]
     [InlineData("/storefront/app", false)]
     [InlineData("/php-reference/cp", false)]
     [InlineData("/migration/php-reference-mode", false)]

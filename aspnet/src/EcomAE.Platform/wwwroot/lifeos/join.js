@@ -44,7 +44,7 @@
       '<li>Id: <code>' + (c.clientId || '') + '</code></li>' +
       '<li>Country: <strong>' + (c.country || c.countryCode || '—') + '</strong>' + (c.city ? ' · ' + c.city : '') + '</li>' +
       '<li>Timezone: ' + (c.timeZone || '—') + ' · Source: ' + (c.joinSource || '—') + '</li>' +
-      '<li>Token saved on this device (no login required)</li>';
+      '<li>Token saved on this signed-in device (keep private)</li>';
     $('lojoin-open-companion').href = data.companionUrl || '#';
     $('lojoin-open-results').href = data.resultsUrl || '#';
     const ol = $('lojoin-next');
