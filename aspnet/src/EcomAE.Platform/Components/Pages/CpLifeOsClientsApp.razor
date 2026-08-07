@@ -1,0 +1,218 @@
+@page "/cp/lifeos-clients-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Clients
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsClientDirectory Directory
+
+<PageTitle>LifeOS™ joined clients · Control Panel</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>@((MarkupString)_css)</style>
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<meta name="ecomae-chrome-surface" content="cp-lifeos-clients" />
+<style>@((MarkupString)_css)</style>
+</HeadContent>
+
+@{
+    var clients = Directory.List();
+    var countryGroups = clients
+        .GroupBy(c => c.CountryCode ?? c.Country ?? "unknown")
+        .Select(g => new { Key = g.Key, Count = g.Count(), Name = g.First().Country ?? g.Key })
+        .OrderByDescending(x => x.Count)
+        .ToArray();
+    var totalTrack = clients.Sum(c => c.TrackCount);
+    var totalTalk = clients.Sum(c => c.TalkCount);
+    var totalAct = clients.Sum(c => c.ActivityCount);
+}
+
+<section class="locp" data-surface="cp-lifeos-clients">
+  <header class="locp-top">
+    <div>
+      <p class="locp-kicker">Control Panel · LifeOS clients</p>
+      <h1>Joined clients — complete detail</h1>
+      <p class="locp-lede">
+        How they joined, country/city/timezone, device, activity counts, AI discussions, and result links.
+        Client login is not required yet — access uses client id + join token.
+      </p>
+    </div>
+    <nav class="locp-nav">
+      <a href="@EcomAeRoutes.ControlPanel">CP home</a>
+      <a href="@EcomAeRoutes.LifeOsClientsCp">JSON digest</a>
+      <a href="@EcomAeRoutes.LifeOsDirectory">Directory</a>
+      <a href="@EcomAeRoutes.LifeOsJoin">Join page</a>
+      <a href="@EcomAeRoutes.ControlPanelLifeOsGuideApp">System guide</a>
+    </nav>
+  </header>
+
+  <div class="locp-stats">
+    <article><strong>@clients.Count</strong><span>Joined clients</span></article>
+    <article><strong>@totalTrack</strong><span>Track events</span></article>
+    <article><strong>@totalTalk</strong><span>Talk / guide / listen</span></article>
+    <article><strong>@totalAct</strong><span>All activity</span></article>
+    <article><strong>@countryGroups.Length</strong><span>Countries seen</span></article>
+  </div>
+
+  @if (countryGroups.Length > 0)
+  {
+    <section class="locp-countries">
+      <h2>Countries</h2>
+      <ul>
+        @foreach (var c in countryGroups)
+        {
+          <li><strong>@c.Name</strong> <span>@c.Key · @c.Count</span></li>
+        }
+      </ul>
+    </section>
+  }
+
+  <section class="locp-table-wrap">
+    <h2>Client detail</h2>
+    @if (clients.Count == 0)
+    {
+      <p class="muted">No clients yet. Open <a href="@EcomAeRoutes.LifeOsJoin">/lifeos/join</a>.</p>
+    }
+    else
+    {
+      @foreach (var c in clients)
+      {
+        var results = Directory.Results(c.ClientId, c.JoinToken, null, null, "all");
+        var discussions = results.Activities.Where(a => a.Kind is "talk" or "guide" or "listen").Take(6).ToArray();
+        var tracks = results.Activities.Where(a => a.Kind == "track").Take(6).ToArray();
+        var lastAt = results.Activities.Count == 0 ? c.JoinedAtUtc : results.Activities.Max(a => a.AtUtc);
+        <article class="locp-card">
+          <div class="locp-card-grid">
+            <div>
+              <h3>@c.DisplayName <span class="muted">↔ @c.CloneName</span></h3>
+              <p><code>@c.ClientId</code> @(c.IsTest ? "· test" : "")</p>
+              <p class="muted">Status: @c.Status · Joined @c.JoinedAtUtc.ToString("u") · Last @lastAt.ToString("u")</p>
+            </div>
+            <div>
+              <h4>Country &amp; location</h4>
+              <p><strong>@(c.Country ?? "—")</strong> (@(c.CountryCode ?? "—"))</p>
+              <p class="muted">City: @(c.City ?? "n/a") · TZ: @(c.TimeZone ?? "n/a") · Locale: @(c.Locale ?? "n/a")</p>
+              <p class="muted">IP country hint: @(c.IpCountryHint ?? "n/a")</p>
+            </div>
+            <div>
+              <h4>How joined</h4>
+              <p><strong>@(c.JoinSource ?? "—")</strong></p>
+              <p class="muted">Platform: @(c.Platform ?? "n/a")</p>
+              <p class="muted ua">UA: @(c.UserAgent ?? "n/a")</p>
+              <p class="muted">Referrer: @(string.IsNullOrWhiteSpace(c.Referrer) ? "—" : c.Referrer)</p>
+            </div>
+            <div>
+              <h4>Results</h4>
+              <p><strong>@c.TrackCount</strong> track · <strong>@c.TalkCount</strong> talk/guide · <strong>@c.ActivityCount</strong> total</p>
+              <p class="locp-links">
+                <a href="/lifeos/results?clientId=@Uri.EscapeDataString(c.ClientId)&amp;token=@Uri.EscapeDataString(c.JoinToken)">Open results</a>
+                <a href="/lifeos/mobile?clientId=@Uri.EscapeDataString(c.ClientId)&amp;token=@Uri.EscapeDataString(c.JoinToken)">Companion</a>
+                <a href="/lifeos/results/json?clientId=@Uri.EscapeDataString(c.ClientId)&amp;token=@Uri.EscapeDataString(c.JoinToken)">Results JSON</a>
+              </p>
+              <p class="muted"><code>token @c.JoinToken</code></p>
+            </div>
+          </div>
+
+          <div class="locp-activity">
+            <div>
+              <h4>Recent AI discussions</h4>
+              @if (discussions.Length == 0)
+              {
+                <p class="muted">None yet.</p>
+              }
+              else
+              {
+                <ul>
+                  @foreach (var d in discussions)
+                  {
+                    <li>
+                      <strong>@d.Kind</strong> @d.AtUtc.ToString("u")
+                      @if (!string.IsNullOrWhiteSpace(d.HumanUtterance))
+                      {
+                        <span> — You: @Clip(d.HumanUtterance, 120)</span>
+                      }
+                      @if (!string.IsNullOrWhiteSpace(d.CloneReply))
+                      {
+                        <span class="muted"> — Clone: @Clip(d.CloneReply, 120)</span>
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+            <div>
+              <h4>Recent tracking</h4>
+              @if (tracks.Length == 0)
+              {
+                <p class="muted">None yet.</p>
+              }
+              else
+              {
+                <ul>
+                  @foreach (var t in tracks)
+                  {
+                    <li><strong>@t.Label</strong> @t.AtUtc.ToString("u") @(t.Value is null ? "" : $"({t.Value})")</li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    }
+  </section>
+
+  <p class="muted locp-note">
+    Operator JSON: <a href="@EcomAeRoutes.LifeOsClientsCp">@EcomAeRoutes.LifeOsClientsCp</a>.
+    Clients self-serve at <a href="@EcomAeRoutes.LifeOsResults">@EcomAeRoutes.LifeOsResults</a>.
+    In-memory scaffold until durable IAM — login will be added later.
+  </p>
+</section>
+
+@code {
+    private static string Clip(string? value, int max)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        var t = value.Trim();
+        return t.Length <= max ? t : t[..max] + "…";
+    }
+
+    private const string _css = """
+.locp {
+  --ink:#0f172a; --mute:#64748b; --line:#dbe4ee; --panel:#fff; --accent:#0f766e;
+  padding:1.25rem clamp(1rem,3vw,2rem) 2.5rem; color:var(--ink);
+  font-family:"Manrope","Segoe UI",sans-serif; background:linear-gradient(180deg,#eef7f5,#f8fafc);
+  min-height:70vh;
+}
+.locp-top { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+.locp-kicker { text-transform:uppercase; letter-spacing:.14em; font-size:.72rem; color:var(--accent); margin:0; font-weight:700; }
+.locp-top h1 { margin:.35rem 0; font-size:clamp(1.6rem,3.5vw,2.3rem); line-height:1.1; font-family:"Instrument Serif",Georgia,serif; font-weight:400; }
+.locp-lede { color:var(--mute); max-width:54ch; margin:.35rem 0 0; line-height:1.5; }
+.locp-nav { display:flex; gap:.75rem; flex-wrap:wrap; }
+.locp-nav a { color:var(--accent); font-weight:700; text-decoration:none; font-size:.86rem; }
+.locp-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1.1rem; }
+.locp-stats article { background:var(--panel); border:1px solid var(--line); border-radius:.5rem; padding:.9rem; display:grid; gap:.2rem; }
+.locp-stats strong { font-size:1.35rem; }
+.locp-stats span, .muted { color:var(--mute); font-size:.84rem; }
+.locp-countries { background:var(--panel); border:1px solid var(--line); border-radius:.5rem; padding:1rem; margin-bottom:1.1rem; }
+.locp-countries h2, .locp-table-wrap h2 { margin:0 0 .7rem; font-size:1.1rem; }
+.locp-countries ul { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:.5rem; }
+.locp-countries li { background:#f0fdfa; border:1px solid #99f6e4; border-radius:999px; padding:.4rem .75rem; font-size:.86rem; }
+.locp-card { background:var(--panel); border:1px solid var(--line); border-radius:.65rem; padding:1rem 1.1rem; margin-bottom:.85rem; }
+.locp-card-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.85rem; }
+.locp-card h3 { margin:0 0 .35rem; font-size:1.15rem; }
+.locp-card h4 { margin:0 0 .35rem; font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:var(--mute); }
+.locp-card p { margin:.2rem 0; font-size:.9rem; line-height:1.4; }
+.locp-card code { font-size:.78rem; word-break:break-all; }
+.ua { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.locp-links { display:flex; flex-wrap:wrap; gap:.65rem; margin:.45rem 0 !important; }
+.locp-links a { color:var(--accent); font-weight:700; text-decoration:none; }
+.locp-activity { display:grid; grid-template-columns:1fr 1fr; gap:.85rem; margin-top:.9rem; padding-top:.85rem; border-top:1px solid var(--line); }
+.locp-activity ul { margin:.2rem 0 0; padding-left:1.1rem; color:#334155; font-size:.84rem; line-height:1.45; }
+.locp-note { margin-top:1.2rem; }
+.locp-note a { color:var(--accent); }
+@media (max-width:1100px) {
+  .locp-stats, .locp-card-grid, .locp-activity { grid-template-columns:1fr; }
+}
+""";
+}

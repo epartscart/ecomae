@@ -370,14 +370,51 @@ public sealed class LifeOsModule : ISurfaceModule
         });
 
         // ── Client join + mobile companion (PWA track/talk/listen/guide) ───
+        // No login required — clients use clientId + joinToken. Blazor is SSR-only,
+        // so join/companion UIs call these APIs via fetch (not @onclick).
         endpoints.MapGet(EcomAeRoutes.LifeOsDirectory, (ILifeOsClientDirectory dir) =>
             Results.Ok(dir.DirectoryDigest()));
 
-        endpoints.MapPost(EcomAeRoutes.LifeOsJoinApi, (LifeOsJoinRequest? body, ILifeOsClientDirectory dir) =>
+        endpoints.MapGet(EcomAeRoutes.LifeOsClientsCp, (ILifeOsClientDirectory dir) =>
+            Results.Ok(dir.ControlPanelDigest()));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsJoinApi, (HttpContext http, LifeOsJoinRequest? body, ILifeOsClientDirectory dir) =>
         {
-            body ??= new LifeOsJoinRequest(null, null, null, null);
-            var result = dir.Join(body);
-            return Results.Ok(result);
+            body ??= new LifeOsJoinRequest(
+                null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var cfCountry = http.Request.Headers.TryGetValue("CF-IPCountry", out var cfc)
+                ? cfc.ToString()
+                : null;
+            if (string.Equals(cfCountry, "XX", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(cfCountry, "T1", StringComparison.OrdinalIgnoreCase))
+            {
+                cfCountry = null;
+            }
+
+            var enriched = body with
+            {
+                IpCountryHint = string.IsNullOrWhiteSpace(body.IpCountryHint) ? cfCountry : body.IpCountryHint,
+                UserAgent = string.IsNullOrWhiteSpace(body.UserAgent)
+                    ? http.Request.Headers.UserAgent.ToString()
+                    : body.UserAgent,
+                Referrer = string.IsNullOrWhiteSpace(body.Referrer)
+                    ? http.Request.Headers.Referer.ToString()
+                    : body.Referrer,
+            };
+            return Results.Ok(dir.Join(enriched));
+        });
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsResultsJson, (
+            string? clientId,
+            string? token,
+            string? from,
+            string? to,
+            string? kind,
+            ILifeOsClientDirectory dir) =>
+        {
+            DateTimeOffset? fromUtc = DateTimeOffset.TryParse(from, out var f) ? f : null;
+            DateTimeOffset? toUtc = DateTimeOffset.TryParse(to, out var t) ? t : null;
+            return Results.Ok(dir.Results(clientId, token, fromUtc, toUtc, kind));
         });
 
         endpoints.MapGet(EcomAeRoutes.LifeOsCompanion, (
@@ -388,6 +425,7 @@ public sealed class LifeOsModule : ISurfaceModule
             {
                 ok = true,
                 scaffold = true,
+                loginRequired = false,
                 session = dir.CompanionSession(clientId ?? LifeOsClientDirectory.TestClientId, token)
             }));
 

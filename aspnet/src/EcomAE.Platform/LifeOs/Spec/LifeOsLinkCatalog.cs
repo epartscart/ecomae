@@ -35,8 +35,10 @@ public static class LifeOsLinkCatalog
     [
         new("frontend", 1, "LifeOS home infographic", "/lifeos", "GET", "lifeos.ecomae.com + www", "Purpose · Mission · Principles · Product · Cognitive Model · Brain"),
         new("frontend", 1, "LifeOS legal footer (PHP parity)", "https://www.ecomae.com/legal", "GET", "www canonical · linked from lifeos footer", "All policies · Privacy · Terms · Cookies · Copyright · …"),
-        new("frontend", 1, "Join & install companion", "/lifeos/join", "GET", "www + lifeos", "New client onboarding · PWA install · test client Amina"),
+        new("frontend", 1, "Join & install companion", "/lifeos/join", "GET", "www + lifeos", "New client onboarding · PWA install · country + device · no login"),
         new("frontend", 1, "Mobile companion PWA", "/lifeos/mobile", "GET", "www + lifeos", "Track · Talk · Listen · Guide in mobile browser"),
+        new("frontend", 1, "My results (client self-serve)", "/lifeos/results", "GET", "www + lifeos", "Discussions + tracking by timeframe · clientId + token · no login"),
+        new("frontend", 1, "CP joined clients console", "/cp/lifeos-clients-app", "GET", "www CP", "How joined · country · device · activity · results links"),
         new("frontend", 1, "24/7 Daily Human Routine Matrix", "/lifeos/routine", "GET", "www + lifeos", "Purpose coverage · morning→sleep · cloned voice samples"),
         new("frontend", 1, "How it works sample demo", "/lifeos/demo-app", "GET", "www + lifeos", "Perceive→Decide→Act→Learn with sample data"),
         new("frontend", 1, "Cinematic launch film", "/lifeos/cinematic-app", "GET", "www + lifeos", "3:00 keyframe storyboard · 4K60 bible"),

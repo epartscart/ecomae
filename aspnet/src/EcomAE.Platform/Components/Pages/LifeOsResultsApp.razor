@@ -1,0 +1,244 @@
+@page "/lifeos/results"
+@layout Layout.LifeOsProductLayout
+@using EcomAE.Platform.LifeOs.Clients
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsClientDirectory Directory
+
+<PageTitle>LifeOS™ · My results</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<style>@((MarkupString)_css)</style>
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<meta name="ecomae-chrome-surface" content="lifeos-results" />
+<style>@((MarkupString)_css)</style>
+</HeadContent>
+
+<div class="lores" id="lifeos-results-root">
+  <header class="lores-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav>
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a href="@EcomAeRoutes.LifeOsJoin">Join</a>
+      <a href="@EcomAeRoutes.LifeOsMobile">Mobile</a>
+      <a class="is-active" href="@EcomAeRoutes.LifeOsResults">My results</a>
+    </nav>
+  </header>
+
+  <main class="lores-main">
+    <p class="lores-kicker">No login required · your session token</p>
+    <h1>Your discussions, tracking, and AI guide history</h1>
+    <p class="lores-lede">
+      Any client can open their own results anytime with client id + join token.
+      Filter by timeframe. Login comes later.
+    </p>
+
+    <form class="lores-form" method="get" action="@EcomAeRoutes.LifeOsResults" id="lores-form">
+      <label>
+        <span>Client id</span>
+        <input id="lores-client" name="clientId" value="@ClientId" autocomplete="username" required />
+      </label>
+      <label>
+        <span>Join token</span>
+        <input id="lores-token" name="token" value="@Token" autocomplete="current-password" required />
+      </label>
+      <label>
+        <span>From (UTC date)</span>
+        <input id="lores-from" name="from" type="date" value="@FromText" />
+      </label>
+      <label>
+        <span>To (UTC date)</span>
+        <input id="lores-to" name="to" type="date" value="@ToText" />
+      </label>
+      <label>
+        <span>Kind</span>
+        <select id="lores-kind" name="kind">
+          @{
+            var kind = string.IsNullOrWhiteSpace(Kind) ? "all" : Kind.Trim().ToLowerInvariant();
+          }
+          <option value="all" selected="@(kind == "all")">All</option>
+          <option value="talk" selected="@(kind == "talk")">Discussions (talk)</option>
+          <option value="guide" selected="@(kind == "guide")">Guide</option>
+          <option value="listen" selected="@(kind == "listen")">Listen</option>
+          <option value="track" selected="@(kind == "track")">Tracking</option>
+          <option value="join" selected="@(kind == "join")">Join</option>
+        </select>
+      </label>
+      <div class="lores-actions">
+        <button type="submit" class="primary">Load results</button>
+        <button type="button" class="ghost" id="lores-restore">Use saved session</button>
+      </div>
+    </form>
+
+    <p class="muted" id="lores-status">@_status</p>
+
+    @if (_payload is { Ok: true })
+    {
+      var c = _payload.Client;
+      var discussions = _payload.Activities.Where(a => a.Kind is "talk" or "guide" or "listen").ToArray();
+      var tracking = _payload.Activities.Where(a => a.Kind is "track" or "join").ToArray();
+      <div class="lores-summary">
+        <article><strong>@c.DisplayName</strong><span>@c.ClientId</span></article>
+        <article><strong>@(c.Country ?? "—")</strong><span>@c.CountryCode · @(c.City ?? "city n/a")</span></article>
+        <article><strong>@(c.JoinSource ?? "—")</strong><span>Joined @c.JoinedAtUtc.ToString("u")</span></article>
+        <article><strong>@c.TrackCount / @c.TalkCount / @c.ActivityCount</strong><span>track / talk+guide / all</span></article>
+      </div>
+
+      <div class="lores-grid">
+        <section>
+          <h2>Discussions with AI clone</h2>
+          @if (discussions.Length == 0)
+          {
+            <p class="muted">No talk / guide / listen events in this timeframe.</p>
+          }
+          else
+          {
+            @foreach (var d in discussions)
+            {
+              <article class="lores-item">
+                <header><strong>@d.Kind</strong> · @d.Label <time>@d.AtUtc.ToString("u")</time></header>
+                @if (!string.IsNullOrWhiteSpace(d.HumanUtterance))
+                {
+                  <p><em>You:</em> @d.HumanUtterance</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(d.CloneReply))
+                {
+                  <p><em>@c.CloneName:</em> @d.CloneReply</p>
+                }
+                else if (!string.IsNullOrWhiteSpace(d.Detail))
+                {
+                  <p>@d.Detail</p>
+                }
+              </article>
+            }
+          }
+        </section>
+        <section>
+          <h2>Tracking &amp; activity</h2>
+          @if (tracking.Length == 0)
+          {
+            <p class="muted">No tracking events in this timeframe.</p>
+          }
+          else
+          {
+            @foreach (var t in tracking)
+            {
+              <article class="lores-item">
+                <header><strong>@t.Kind</strong> · @t.Label <time>@t.AtUtc.ToString("u")</time></header>
+                @if (t.Value is not null)
+                {
+                  <p>Value: @t.Value</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(t.Detail))
+                {
+                  <p>@t.Detail</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(t.CloneReply))
+                {
+                  <p class="muted">@t.CloneReply</p>
+                }
+              </article>
+            }
+          }
+        </section>
+      </div>
+
+      <p class="muted lores-apis">
+        JSON:
+        <a href="@EcomAeRoutes.LifeOsResultsJson?clientId=@Uri.EscapeDataString(c.ClientId)&amp;token=@Uri.EscapeDataString(Token ?? "")&amp;from=@Uri.EscapeDataString(FromText ?? "")&amp;to=@Uri.EscapeDataString(ToText ?? "")&amp;kind=@Uri.EscapeDataString(Kind ?? "all")">/lifeos/results/json</a>
+        ·
+        <a href="/lifeos/mobile?clientId=@Uri.EscapeDataString(c.ClientId)&amp;token=@Uri.EscapeDataString(Token ?? "")">Open companion</a>
+      </p>
+    }
+  </main>
+</div>
+
+<script src="/lifeos/results.js" defer></script>
+
+@code {
+    [SupplyParameterFromQuery(Name = "clientId")] public string? ClientId { get; set; }
+    [SupplyParameterFromQuery(Name = "token")] public string? Token { get; set; }
+    [SupplyParameterFromQuery(Name = "from")] public string? FromText { get; set; }
+    [SupplyParameterFromQuery(Name = "to")] public string? ToText { get; set; }
+    [SupplyParameterFromQuery(Name = "kind")] public string? Kind { get; set; }
+
+    private LifeOsClientResults? _payload;
+    private string _status = "Enter your client id and token, or restore the session saved on this device.";
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrWhiteSpace(ClientId) || string.IsNullOrWhiteSpace(Token))
+        {
+            return;
+        }
+
+        DateTimeOffset? from = DateTimeOffset.TryParse(FromText, out var f) ? f : null;
+        DateTimeOffset? to = null;
+        if (DateTimeOffset.TryParse(ToText, out var t))
+        {
+            to = t.Date == t ? t.Date.AddDays(1).AddTicks(-1) : t;
+        }
+
+        _payload = Directory.Results(ClientId, Token, from, to, Kind);
+        _status = _payload.Ok
+            ? $"Loaded {_payload.Total} event(s) for {_payload.Client.DisplayName}."
+            : "Session not found or token mismatch.";
+    }
+
+    private const string _css = """
+.lores {
+  --ink:#e8eef8; --mute:#9fb0c6; --bg:#05070c; --blue:#2563eb; --cyan:#38bdf8;
+  min-height:100vh; background:radial-gradient(900px 480px at 10% -10%,rgba(37,99,235,.35),transparent 55%),#05070c;
+  color:var(--ink); font-family:"Sora","Segoe UI",sans-serif;
+}
+.lores-top { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; border-bottom:1px solid rgba(255,255,255,.08); flex-wrap:wrap; gap:.75rem; }
+.lores-top .brand { font-size:1.35rem; font-weight:700; }
+.lores-top .brand em { font-style:normal; color:var(--cyan); }
+.lores-top nav { display:flex; gap:.85rem; flex-wrap:wrap; }
+.lores-top a { color:var(--mute); text-decoration:none; font-size:.88rem; }
+.lores-top a.is-active, .lores-top a:hover { color:#fff; }
+.lores-main { max-width:960px; margin:0 auto; padding:1.25rem 1.1rem 3rem; }
+.lores-kicker { text-transform:uppercase; letter-spacing:.16em; font-size:.68rem; color:var(--cyan); margin:0 0 .4rem; }
+.lores-main h1 { margin:0 0 .6rem; font-size:clamp(1.45rem,4vw,2.1rem); letter-spacing:-.02em; }
+.lores-lede { color:var(--mute); line-height:1.55; margin:0 0 1.25rem; }
+.lores-form {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem;
+  border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); padding:1.1rem; border-radius:8px;
+}
+.lores-form label { display:grid; gap:.35rem; }
+.lores-form label span { font-size:.78rem; color:var(--mute); }
+.lores-form input, .lores-form select {
+  width:100%; box-sizing:border-box; padding:.8rem .85rem; border-radius:6px; border:1px solid rgba(255,255,255,.15);
+  background:#0b1220; color:#fff; font:inherit; font-size:16px;
+}
+.lores-actions { grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:.55rem; }
+.lores-actions .primary, button.primary {
+  appearance:none; border:0; background:var(--blue); color:#fff; padding:.8rem 1rem; border-radius:6px; font-weight:700; cursor:pointer;
+}
+.lores-actions .ghost, button.ghost {
+  appearance:none; border:1px solid rgba(255,255,255,.35); background:transparent; color:#fff;
+  padding:.75rem 1rem; border-radius:6px; font-weight:700; cursor:pointer;
+}
+.muted { color:var(--mute); font-size:.88rem; line-height:1.45; }
+.lores-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin:1rem 0; }
+.lores-summary article {
+  border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); padding:.85rem; border-radius:8px; display:grid; gap:.25rem;
+}
+.lores-summary span { color:var(--mute); font-size:.78rem; }
+.lores-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:1rem; margin-top:1rem; }
+.lores-grid h2 { font-size:1.05rem; margin:0 0 .7rem; }
+.lores-item {
+  border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); padding:.85rem 1rem; border-radius:8px; margin-bottom:.65rem;
+}
+.lores-item header { display:flex; flex-wrap:wrap; gap:.5rem; justify-content:space-between; margin-bottom:.35rem; color:var(--mute); font-size:.82rem; }
+.lores-item header strong { color:#fff; }
+.lores-item p { margin:.35rem 0; line-height:1.45; }
+.lores-apis a { color:var(--cyan); }
+@media (max-width:860px) {
+  .lores-form, .lores-summary, .lores-grid { grid-template-columns:1fr; }
+}
+""";
+}

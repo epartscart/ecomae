@@ -1571,8 +1571,14 @@ public static class EcomAeRoutes
     public const string LifeOsJoinApi = "/lifeos/join";
     /// <summary>In-memory client directory digest (JSON).</summary>
     public const string LifeOsDirectory = "/lifeos/directory";
+    /// <summary>Operator digest of joined clients (country, activity) for CP.</summary>
+    public const string LifeOsClientsCp = "/lifeos/clients/cp";
     /// <summary>Mobile browser companion app (PWA start URL) — track/talk/listen/guide.</summary>
     public const string LifeOsMobile = "/lifeos/mobile";
+    /// <summary>Client results UI (discussions + tracking) — no login; clientId + token.</summary>
+    public const string LifeOsResults = "/lifeos/results";
+    /// <summary>Client results JSON digest.</summary>
+    public const string LifeOsResultsJson = "/lifeos/results/json";
     /// <summary>Companion session digest (JSON).</summary>
     public const string LifeOsCompanion = "/lifeos/companion";
     /// <summary>POST tracking event from companion.</summary>
@@ -1583,6 +1589,8 @@ public static class EcomAeRoutes
     public const string LifeOsManifest = "/lifeos/manifest.webmanifest";
     /// <summary>PWA service worker.</summary>
     public const string LifeOsServiceWorker = "/lifeos/sw.js";
+    /// <summary>CP console: joined LifeOS clients with country + results.</summary>
+    public const string ControlPanelLifeOsClientsApp = "/cp/lifeos-clients-app";
     /// <summary>3-minute cinematic launch film storyboard (JSON bible).</summary>
     public const string LifeOsCinematic = "/lifeos/cinematic";
     /// <summary>Interactive cinematic keyframe theatre UI.</summary>
