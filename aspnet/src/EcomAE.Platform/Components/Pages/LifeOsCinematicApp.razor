@@ -61,7 +61,12 @@
 
     <section class="locine-meta">
       <p>Published at <code>@Film.VideoUrl</code> · poster + keyframes under <code>/lifeos/cinematic/</code>.</p>
-      <a class="locine-link" href="@EcomAeRoutes.LifeOsDemoApp">Run the board-meeting sample →</a>
+      <p class="locine-downloads">
+        <a class="locine-dl" href="@Film.VideoUrl" download="LifeOS-Cinematic-Launch-3min.mp4">Download MP4</a>
+        <a class="locine-dl ghost" href="@Film.PosterUrl" download="LifeOS-Cinematic-Poster.png">Download poster</a>
+        <a class="locine-link" href="@EcomAeRoutes.IpApp">IP panel →</a>
+        <a class="locine-link" href="@EcomAeRoutes.LifeOsDemoApp">Board-meeting sample →</a>
+      </p>
     </section>
   </main>
 </div>
@@ -151,5 +156,13 @@
         .locine-meta { margin-top: 1.5rem; color: var(--lo-mute); font-size: .92rem; max-width: 46rem; }
         .locine-meta code { color: #d7e7ff; font-size: .85em; }
         .locine-link { color: var(--lo-cyan); }
+        .locine-downloads { display: flex; flex-wrap: wrap; gap: .65rem 1rem; align-items: center; margin: .85rem 0 0; }
+        .locine-dl {
+          display: inline-block; padding: .55rem 1rem; border-radius: 999px; text-decoration: none;
+          background: linear-gradient(135deg, var(--lo-blue), #1a3f99); color: #fff; font-weight: 600; font-size: .88rem;
+        }
+        .locine-dl.ghost {
+          background: transparent; border: 1px solid rgba(255,255,255,.22); color: var(--lo-ink);
+        }
         """;
 }
