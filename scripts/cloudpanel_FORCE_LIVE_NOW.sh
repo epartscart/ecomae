@@ -549,11 +549,34 @@ PLATFORM_DIR="$RELEASE_DIR/platform"
 WORKERS_DIR="$RELEASE_DIR/workers"
 mkdir -p "$PLATFORM_DIR" "$WORKERS_DIR"
 
+# LifeOS cinematic MP4 may be Git LFS — materialize before publish or wwwroot gets a pointer.
+if command -v git-lfs >/dev/null 2>&1 || git lfs version >/dev/null 2>&1; then
+  printf '== git lfs pull (LifeOS cinematic media) ==\n'
+  git lfs pull -I 'aspnet/src/EcomAE.Platform/wwwroot/lifeos/cinematic/**' || \
+    printf 'WARN: git lfs pull failed — cinematic MP4 may 503 if still a pointer\n' >&2
+fi
+MP4_SRC="aspnet/src/EcomAE.Platform/wwwroot/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4"
+if [[ -f "$MP4_SRC" ]] && head -c 40 "$MP4_SRC" | grep -q 'git-lfs.github.com'; then
+  printf 'ERROR: %s is still a Git LFS pointer — install git-lfs and re-pull before publish\n' "$MP4_SRC" >&2
+  exit 1
+fi
+
 printf '== Direct publish → %s ==\n' "$RELEASE_DIR"
 dotnet restore aspnet/EcomAE.AspNetCore.sln
 dotnet publish aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj -c Release -o "$PLATFORM_DIR"
 dotnet publish aspnet/src/EcomAE.Workers/EcomAE.Workers.csproj -c Release -o "$WORKERS_DIR"
 printf '%s\n' "$FULL" > "$RELEASE_DIR/PUBLISHED_GIT_SHA.txt"
+# LifeOS film must be real MP4 bytes in the publish tree (not an LFS pointer / missing file).
+PUB_MP4="$PLATFORM_DIR/wwwroot/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4"
+if [[ ! -f "$PUB_MP4" ]]; then
+  printf 'ERROR: published LifeOS MP4 missing at %s\n' "$PUB_MP4" >&2
+  exit 1
+fi
+if head -c 40 "$PUB_MP4" | grep -q 'git-lfs.github.com'; then
+  printf 'ERROR: published LifeOS MP4 is still a Git LFS pointer (%s)\n' "$PUB_MP4" >&2
+  exit 1
+fi
+printf 'PASS published LifeOS MP4 bytes=%s\n' "$(wc -c < "$PUB_MP4" | tr -d ' ')"
 # Service runs as www-data — root-owned publish trees cause silent stale/orphan :5100.
 chown -R www-data:www-data "$RELEASE_DIR"
 ln -sfn "$RELEASE_DIR" "$RELEASE_ROOT/current"
