@@ -136,8 +136,11 @@ public static class PhpSurfaceLinkMap
         ("shop/price-management", "/cp/price-lists-app"),
         ("shop/finance/nastrojka-kursov-valyut", "/cp/currencies-app"),
         ("shop/finance/epc_collections_dunning", "/cp/collections-dunning-app"),
+        ("shop/finance/epc_fulfillment_queue", "/cp/fulfillment-queue-app"),
         ("shop/finance/erp/uae-tax-compliance", "/cp/uae-tax-compliance-app"),
         ("uae-tax-compliance", "/cp/uae-tax-compliance-app"),
+        // Catch-all after specific shop/finance/* CP modules (prefix Contains match).
+        ("shop/finance", "/erp"),
         ("shop/catalogue/catalogue_editor", "/cp/product-catalogue-app"),
         ("shop/catalogue/sku_media", "/cp/product-catalogue-app"),
         ("shop/catalogue/products", "/cp/product-catalogue-app"),

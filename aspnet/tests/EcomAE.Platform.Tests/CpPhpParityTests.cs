@@ -47,6 +47,7 @@ public sealed class CpPhpParityTests
     [InlineData("/CP/control/portal/epc_sso_saml", "/cp/sso-saml-app")]
     [InlineData("/CP/control/portal/epc_event_bus", "/cp/event-bus-app")]
     [InlineData("/CP/shop/order_process/orders", "/cp/orders")]
+    [InlineData("/CP/shop/finance", "/erp")]
     [InlineData("/CP/shop/prices_upload", "/cp/prices-upload-app")]
     [InlineData("/CP/shop/prices_edit/prices", "/cp/prices-edit-app")]
     [InlineData("/CP/shop/prices_send/prices_send", "/cp/prices-send-app")]
@@ -90,10 +91,9 @@ public sealed class CpPhpParityTests
         // Live MapCpPhpPath must not collapse these to bare /cp.
         foreach (var d in dirs!)
         {
-            if (string.Equals(d, "finance", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(d, "tenant_hub", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(d, "tenant_hub", StringComparison.OrdinalIgnoreCase))
             {
-                continue; // finance → ERP shell; tenant_hub Super-only
+                continue; // Super-only (matches PHP)
             }
 
             var href = PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/" + d);
