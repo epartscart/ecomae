@@ -1,0 +1,14 @@
+{
+  "id": "lifeos-502-recover",
+  "title": "lifeos.ecomae.com Cloudflare 502 — origin :5100 down",
+  "date": "2026-08-07",
+  "probe": {
+    "lifeos": "HTTP/2 502 from Cloudflare (cf-ray present, body error code: 502)",
+    "www": "also failing / connect issues — shared ecomae-platform :5100",
+    "epartscart": "HTTP 200 (different prove surface / cached path)"
+  },
+  "diagnosis": "Not a LifeOS Razor bug. Cloudflare cannot reach origin Kestrel on :5100 (service stopped, crash-loop, or publish left port empty).",
+  "fix": "CloudPanel root FORCE_LIVE recover (republish + restart + lifeos nginx + hard prove)",
+  "paste": "ECOMAE_BRANCH=cursor/www-lifeos-film-frontpage-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES bash -c \"$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/www-lifeos-film-frontpage-7b3b/scripts/cloudpanel_FORCE_LIVE_LIFEOS_502_RECOVER.sh)\" 2>&1 | tee /root/force-live-lifeos-502-recover.log",
+  "expect": "RESULT=PASS — lifeos.ecomae.com recovered from 502"
+}
