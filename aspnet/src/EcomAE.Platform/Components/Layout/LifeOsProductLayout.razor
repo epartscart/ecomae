@@ -1,0 +1,20 @@
+@inherits LayoutComponentBase
+@*
+  LifeOS product layout: blank PHP chrome shell + shared legal/copyright footer
+  matching ecomae.com PHP Legal & security strip.
+*@
+@layout Layout.PhpChromeLayout
+
+<div class="lo-product-shell">
+  @Body
+  <LifeOsSiteFooter />
+</div>
+
+<style>
+.lo-product-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+</style>
