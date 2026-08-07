@@ -1,0 +1,41 @@
+{
+  "name": "LifeOS™ Companion",
+  "short_name": "LifeOS",
+  "description": "Track, talk, listen, and guide with your same-name AI clone — mobile browser app.",
+  "start_url": "/lifeos/mobile?clientId=test-amina&source=pwa",
+  "scope": "/lifeos/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#020617",
+  "theme_color": "#2563eb",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/lifeos/icons/lifeos-pwa-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/lifeos/icons/lifeos-pwa-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "health", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Open companion",
+      "short_name": "Companion",
+      "url": "/lifeos/mobile?clientId=test-amina",
+      "description": "Track · Talk · Listen · Guide"
+    },
+    {
+      "name": "Join LifeOS",
+      "short_name": "Join",
+      "url": "/lifeos/join",
+      "description": "Create a client and install the companion"
+    }
+  ]
+}
