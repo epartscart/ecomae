@@ -1,0 +1,17 @@
+{
+  "issue": "FORCE_LIVE RESULT=FAIL on www.epartscart.com",
+  "publishedShaObserved": "ea5eef99",
+  "symptoms": [
+    "FAIL local/public missing header-call-box a { background:#ef4444",
+    "FAIL public missing ecomae-chrome-surface",
+    "FAIL public missing background:linear-gradient(135deg,#090f1d",
+    "FAIL public missing color:rgba(255,255,255,.88) !important",
+    "PASS epc-nero-shell / epc-asp-home-banners / section-vin / epart-front-original-data"
+  ],
+  "rootCause": "Live SSR dropped late HeadContent for PhpSurfaceHead + PhpStorefrontDesktopChrome while still rendering body chrome markup and body <style> from catalog widgets (~24KB smaller HTML vs healthy local).",
+  "fix": [
+    "Move storefront critical header CSS from HeadContent into body-stream <style> before .epc-nero-shell",
+    "Emit ecomae-chrome-surface meta (+ storefront stylesheet links) outside HeadContent in PhpSurfaceHead body stream"
+  ],
+  "deploy": "Merge then CloudPanel FORCE_LIVE on main; hard refresh www.epartscart.com"
+}

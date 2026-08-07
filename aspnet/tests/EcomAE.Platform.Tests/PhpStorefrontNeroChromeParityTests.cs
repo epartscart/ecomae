@@ -32,6 +32,19 @@ public sealed class PhpStorefrontNeroChromeParityTests
     }
 
     [Fact]
+    public void SurfaceHeadEmitsChromeSurfaceMetaInBodyStreamFallback()
+    {
+        // Live prove requires ecomae-chrome-surface even when HeadOutlet drops HeadContent.
+        var path = Find("aspnet/src/EcomAE.Platform/Components/Shared/PhpSurfaceHead.razor");
+        var text = File.ReadAllText(path);
+        var close = text.IndexOf("</HeadContent>", StringComparison.Ordinal);
+        Assert.True(close > 0);
+        var after = text[(close + "</HeadContent>".Length)..];
+        Assert.Contains("ecomae-chrome-surface", after, StringComparison.Ordinal);
+        Assert.Contains("storefront", after, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void ChromeMarkupMatchesPhpProfessionalHeaderLook()
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor");
