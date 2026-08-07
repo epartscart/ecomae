@@ -49,7 +49,7 @@ public static class LegacyPhpFontAssets
     public static string StackFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {
         "marketing" => MarketingStack,
-        "lifeos" => "\"Manrope\", \"Segoe UI\", sans-serif",
+        "lifeos" => "\"Sora\", \"Segoe UI\", sans-serif",
         // cp | erp | bos | ip | storefront | default → same PHP product UI font
         _ => ProductStack
     };
@@ -60,9 +60,9 @@ public static class LegacyPhpFontAssets
         _ => BaseFontSize
     };
 
-    /// <summary>LifeOS display + UI — expressive, not Inter/Roboto/system default stacks.</summary>
+    /// <summary>LifeOS display + UI — financial premium (Fraunces + Sora), not Inter/Roboto/system.</summary>
     public const string LifeOsFonts =
-        "https://fonts.googleapis.com/css2?family=Instrument%20Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap";
+        "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Sora:wght@400;500;600;700;800&display=swap";
 
     public static IReadOnlyList<string> FontHrefsFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {

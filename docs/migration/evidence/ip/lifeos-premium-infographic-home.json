@@ -1,0 +1,23 @@
+{
+  "id": "lifeos-premium-infographic-home",
+  "capturedAtUtc": "2026-08-07T06:40:00Z",
+  "verdict": "ready",
+  "host": "lifeos.ecomae.com",
+  "route": "/lifeos",
+  "design": {
+    "palette": ["blue", "black", "white"],
+    "fonts": ["Fraunces", "Sora"],
+    "motifs": ["financial chart sparkline", "flow arrows", "professional lifestyle silhouette", "domain icons"],
+    "motions": ["lifeos-rise", "lifeos-draw", "lifeos-dash", "lifeos-figure"],
+    "masterSpec": "Parts 1-9 timeline from ILifeOsMasterSpec; Part 10 marked forthcoming pending chapter paste"
+  },
+  "locksPreserved": {
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false,
+    "part10": "registry only — chapters later"
+  },
+  "deploy": {
+    "requiresForceLive": true,
+    "note": "lifeos.ecomae.com already hosts ASP.NET; republish picks up new home CSS/markup"
+  }
+}

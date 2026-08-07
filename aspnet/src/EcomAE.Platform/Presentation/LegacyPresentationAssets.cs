@@ -144,7 +144,7 @@ public static class LegacyPresentationAssets
             "erp" => [".bos-login__bg", "epc-erp-portal-bg", "epc-erp-bos-hero", "#erpPortalParticles", ".bos-login__glow"],
             "bos" => [".bos-login__bg", "#bosParticles", ".bos-login__glow"],
             "ip" => [".bos-login__bg", "#ipParticles", ".bos-login__glow", "epc-ip-hub"],
-            "lifeos" => [".lifeos-hero", ".lifeos-brand", "lifeos-ambient"],
+            "lifeos" => [".lifeos-hero", ".lifeos-brand", "lifeos-infographic", "lifeos-flow", "lifeos-ambient"],
             "storefront" => [".epc-engine-animation", ".epc-asp-piston-banner", "epc-home-pro"],
             "marketing" =>
             [
