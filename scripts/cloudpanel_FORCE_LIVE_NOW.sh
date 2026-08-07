@@ -557,8 +557,13 @@ if command -v git-lfs >/dev/null 2>&1 || git lfs version >/dev/null 2>&1; then
 fi
 MP4_SRC="aspnet/src/EcomAE.Platform/wwwroot/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4"
 if [[ -f "$MP4_SRC" ]] && head -c 40 "$MP4_SRC" | grep -q 'git-lfs.github.com'; then
-  printf 'ERROR: %s is still a Git LFS pointer — install git-lfs and re-pull before publish\n' "$MP4_SRC" >&2
-  exit 1
+  if [[ "${ECOMAE_SKIP_LIFEOS_MP4:-}" == "YES" ]]; then
+    printf 'WARN: %s is still a Git LFS pointer — ECOMAE_SKIP_LIFEOS_MP4=YES, continuing publish without film\n' "$MP4_SRC" >&2
+    rm -f "$MP4_SRC"
+  else
+    printf 'ERROR: %s is still a Git LFS pointer — install git-lfs and re-pull, or ECOMAE_SKIP_LIFEOS_MP4=YES\n' "$MP4_SRC" >&2
+    exit 1
+  fi
 fi
 
 printf '== Direct publish → %s ==\n' "$RELEASE_DIR"
@@ -569,14 +574,23 @@ printf '%s\n' "$FULL" > "$RELEASE_DIR/PUBLISHED_GIT_SHA.txt"
 # LifeOS film must be real MP4 bytes in the publish tree (not an LFS pointer / missing file).
 PUB_MP4="$PLATFORM_DIR/wwwroot/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4"
 if [[ ! -f "$PUB_MP4" ]]; then
-  printf 'ERROR: published LifeOS MP4 missing at %s\n' "$PUB_MP4" >&2
-  exit 1
+  if [[ "${ECOMAE_SKIP_LIFEOS_MP4:-}" == "YES" ]]; then
+    printf 'WARN: published LifeOS MP4 missing at %s — skipped by ECOMAE_SKIP_LIFEOS_MP4=YES\n' "$PUB_MP4" >&2
+  else
+    printf 'ERROR: published LifeOS MP4 missing at %s\n' "$PUB_MP4" >&2
+    exit 1
+  fi
+elif head -c 40 "$PUB_MP4" | grep -q 'git-lfs.github.com'; then
+  if [[ "${ECOMAE_SKIP_LIFEOS_MP4:-}" == "YES" ]]; then
+    printf 'WARN: published LifeOS MP4 is still a Git LFS pointer — removing so service can start\n' >&2
+    rm -f "$PUB_MP4"
+  else
+    printf 'ERROR: published LifeOS MP4 is still a Git LFS pointer (%s)\n' "$PUB_MP4" >&2
+    exit 1
+  fi
+else
+  printf 'PASS published LifeOS MP4 bytes=%s\n' "$(wc -c < "$PUB_MP4" | tr -d ' ')"
 fi
-if head -c 40 "$PUB_MP4" | grep -q 'git-lfs.github.com'; then
-  printf 'ERROR: published LifeOS MP4 is still a Git LFS pointer (%s)\n' "$PUB_MP4" >&2
-  exit 1
-fi
-printf 'PASS published LifeOS MP4 bytes=%s\n' "$(wc -c < "$PUB_MP4" | tr -d ' ')"
 # Service runs as www-data — root-owned publish trees cause silent stale/orphan :5100.
 chown -R www-data:www-data "$RELEASE_DIR"
 ln -sfn "$RELEASE_DIR" "$RELEASE_ROOT/current"
