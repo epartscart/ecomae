@@ -1,8 +1,8 @@
 namespace EcomAE.Platform.LifeOs.Clients;
 
 /// <summary>
-/// In-memory LifeOS client join directory + companion session (scaffold).
-/// Seeds a test client so mobile-browser tracking can be tried immediately.
+/// LifeOS client join directory + companion activity (scaffold, no login required).
+/// Clients access their results via clientId + joinToken.
 /// </summary>
 public interface ILifeOsClientDirectory
 {
@@ -20,11 +20,20 @@ public interface ILifeOsClientDirectory
 
     object DirectoryDigest();
 
+    object ControlPanelDigest();
+
     LifeOsCompanionSession CompanionSession(string clientId, string? joinToken);
 
     LifeOsTrackResult RecordTrack(LifeOsTrackEvent evt);
 
     LifeOsTalkReply Talk(LifeOsTalkRequest request);
+
+    LifeOsClientResults Results(
+        string? clientId,
+        string? joinToken,
+        DateTimeOffset? fromUtc,
+        DateTimeOffset? toUtc,
+        string? kind);
 
     object CompanionDigest();
 }

@@ -9,12 +9,34 @@ public sealed record LifeOsClientProfile(
     bool IsTest,
     DateTimeOffset JoinedAtUtc,
     string Status,
-    IReadOnlyList<string> Capabilities);
+    IReadOnlyList<string> Capabilities,
+    string? Country,
+    string? CountryCode,
+    string? City,
+    string? TimeZone,
+    string? Locale,
+    string? UserAgent,
+    string? Platform,
+    string? Referrer,
+    string? JoinSource,
+    string? IpCountryHint,
+    int TrackCount,
+    int TalkCount,
+    int ActivityCount);
 
 public sealed record LifeOsJoinRequest(
     string? DisplayName,
     string? Email,
+    string? Country,
+    string? CountryCode,
+    string? City,
     string? TimeZone,
+    string? Locale,
+    string? Platform,
+    string? UserAgent,
+    string? Referrer,
+    string? JoinSource,
+    string? IpCountryHint,
     bool? UseTestClient);
 
 public sealed record LifeOsJoinResult(
@@ -22,6 +44,7 @@ public sealed record LifeOsJoinResult(
     string Message,
     LifeOsClientProfile Client,
     string CompanionUrl,
+    string ResultsUrl,
     string InstallUrl,
     string ManifestUrl,
     IReadOnlyList<string> NextSteps);
@@ -48,21 +71,49 @@ public sealed record LifeOsTalkReply(
     string Reply,
     string GuideStep,
     string Mode,
+    string ActivityId,
+    DateTimeOffset AtUtc,
     IReadOnlyList<string> SuggestedActions);
+
+public sealed record LifeOsActivityEvent(
+    string Id,
+    DateTimeOffset AtUtc,
+    string Kind,
+    string Label,
+    string? Detail,
+    string? Mode,
+    double? Value,
+    string? HumanUtterance,
+    string? CloneReply);
 
 public sealed record LifeOsCompanionSession(
     string ClientId,
     string DisplayName,
     string CloneName,
     bool IsTest,
+    string? Country,
+    string? CountryCode,
+    string? TimeZone,
     int TrackEventCount,
-    IReadOnlyList<object> RecentTracks,
+    int TalkCount,
+    int ActivityCount,
+    IReadOnlyList<LifeOsActivityEvent> RecentTracks,
+    IReadOnlyList<LifeOsActivityEvent> RecentTalks,
     IReadOnlyList<object> GuideBeats,
     object Capabilities);
 
 public sealed record LifeOsTrackResult(
     bool Ok,
     bool Scaffold,
-    object Track,
+    LifeOsActivityEvent Track,
     string CloneAdvice,
     LifeOsCompanionSession Session);
+
+public sealed record LifeOsClientResults(
+    bool Ok,
+    LifeOsClientProfile Client,
+    DateTimeOffset? FromUtc,
+    DateTimeOffset? ToUtc,
+    int Total,
+    IReadOnlyList<LifeOsActivityEvent> Activities,
+    object Summary);

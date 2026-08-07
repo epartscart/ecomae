@@ -1,0 +1,45 @@
+{
+  "id": "lifeos-join-results-cp-clients",
+  "title": "LifeOS join (fetch/SSR), client results, CP client detail",
+  "status": "implemented-scaffold",
+  "loginRequired": false,
+  "problem": "Mobile join buttons did nothing because Blazor is SSR-only (no InteractiveServer); @onclick/@onsubmit never wired.",
+  "fix": "Join + companion use vanilla fetch against POST /lifeos/join and companion APIs. Results page is GET SSR + localStorage restore. CP console lists country, join source, device, discussions, tracking.",
+  "routes": {
+    "joinUi": "/lifeos/join",
+    "joinApi": "POST /lifeos/join",
+    "mobile": "/lifeos/mobile",
+    "resultsUi": "/lifeos/results",
+    "resultsApi": "GET /lifeos/results/json?clientId=&token=&from=&to=&kind=",
+    "directory": "GET /lifeos/directory",
+    "cpDigest": "GET /lifeos/clients/cp",
+    "cpUi": "/cp/lifeos-clients-app",
+    "companionSession": "GET /lifeos/companion?clientId=&token=",
+    "track": "POST /lifeos/companion/track",
+    "talk": "POST /lifeos/companion/talk"
+  },
+  "testClient": {
+    "clientId": "test-amina",
+    "token": "lifeos-test-amina-join",
+    "country": "United Arab Emirates",
+    "countryCode": "AE"
+  },
+  "profileFields": [
+    "country", "countryCode", "city", "timeZone", "locale",
+    "userAgent", "platform", "referrer", "joinSource", "ipCountryHint",
+    "trackCount", "talkCount", "activityCount"
+  ],
+  "prove": [
+    "curl -sL -X POST https://lifeos.ecomae.com/lifeos/join -H 'content-type: application/json' -d '{\"displayName\":\"MobileTest\",\"country\":\"United Arab Emirates\",\"countryCode\":\"AE\",\"joinSource\":\"mobile-web\"}'",
+    "curl -sL https://lifeos.ecomae.com/lifeos/join | grep -F \"fetch('/lifeos/join'\"",
+    "curl -sL 'https://lifeos.ecomae.com/lifeos/results/json?clientId=test-amina&token=lifeos-test-amina-join'",
+    "curl -sL https://lifeos.ecomae.com/lifeos/clients/cp | head",
+    "curl -sL -o /dev/null -w '%{http_code}' https://lifeos.ecomae.com/lifeos/results",
+    "curl -sL -o /dev/null -w '%{http_code}' https://www.ecomae.com/cp/lifeos-clients-app"
+  ],
+  "notes": [
+    "No client login yet — clientId + joinToken. Login later.",
+    "In-memory directory until durable IAM.",
+    "FORCE_LIVE / CloudPanel root SSH still required to republish :5100 after merge."
+  ]
+}

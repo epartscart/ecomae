@@ -27,18 +27,62 @@ public sealed class LifeOsClientCompanionTests
     }
 
     [Fact]
-    public void Join_creates_client_with_same_name_clone()
+    public void Join_creates_client_with_same_name_clone_and_country()
     {
         using var sp = Build();
         var dir = sp.GetRequiredService<ILifeOsClientDirectory>();
-        var result = dir.Join(new LifeOsJoinRequest("Omar", "omar@example.com", null, false));
+        var result = dir.Join(new LifeOsJoinRequest(
+            DisplayName: "Omar",
+            Email: "omar@example.com",
+            Country: "United Arab Emirates",
+            CountryCode: "AE",
+            City: "Dubai",
+            TimeZone: "Asia/Dubai",
+            Locale: "en-AE",
+            Platform: "unit-test",
+            UserAgent: "LifeOsClientCompanionTests",
+            Referrer: "/lifeos/join",
+            JoinSource: "mobile-web",
+            IpCountryHint: "AE",
+            UseTestClient: false));
         Assert.True(result.Ok);
         Assert.Equal("Omar", result.Client.DisplayName);
         Assert.Equal("Omar", result.Client.CloneName);
+        Assert.Equal("United Arab Emirates", result.Client.Country);
+        Assert.Equal("AE", result.Client.CountryCode);
+        Assert.Equal("mobile-web", result.Client.JoinSource);
         Assert.False(result.Client.IsTest);
         Assert.StartsWith("/lifeos/mobile?clientId=", result.CompanionUrl);
         Assert.Contains("token=", result.CompanionUrl);
+        Assert.StartsWith("/lifeos/results?clientId=", result.ResultsUrl);
         Assert.Equal("/lifeos/manifest.webmanifest", result.ManifestUrl);
+    }
+
+    [Fact]
+    public void Results_and_control_panel_expose_discussions_and_country()
+    {
+        using var sp = Build();
+        var dir = sp.GetRequiredService<ILifeOsClientDirectory>();
+        var join = dir.Join(new LifeOsJoinRequest(
+            "Sara", "sara@example.com", "Saudi Arabia", "SA", "Riyadh",
+            "Asia/Riyadh", "en-SA", "iPhone", "MobileSafari", "/lifeos", "mobile-web", "SA", false));
+        dir.RecordTrack(new LifeOsTrackEvent(join.Client.ClientId, join.Client.JoinToken, "walk", "Walk", 2, "note"));
+        dir.Talk(new LifeOsTalkRequest(join.Client.ClientId, join.Client.JoinToken, "Guide me today", "guide"));
+
+        var results = dir.Results(join.Client.ClientId, join.Client.JoinToken, null, null, "all");
+        Assert.True(results.Ok);
+        Assert.Contains(results.Activities, a => a.Kind == "track");
+        Assert.Contains(results.Activities, a => a.Kind is "talk" or "guide");
+        Assert.Equal("Saudi Arabia", results.Client.Country);
+
+        var bad = dir.Results(join.Client.ClientId, "wrong-token", null, null, null);
+        Assert.False(bad.Ok);
+
+        var cp = System.Text.Json.JsonSerializer.Serialize(dir.ControlPanelDigest());
+        Assert.Contains("Sara", cp, StringComparison.Ordinal);
+        Assert.Contains("Saudi Arabia", cp, StringComparison.Ordinal);
+        Assert.Contains("/lifeos/results", cp, StringComparison.Ordinal);
+        Assert.Contains("/cp/lifeos-clients-app", System.Text.Json.JsonSerializer.Serialize(dir.DirectoryDigest()), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -86,6 +130,7 @@ public sealed class LifeOsClientCompanionTests
         var companionJson = System.Text.Json.JsonSerializer.Serialize(dir.CompanionDigest());
         Assert.Contains("/lifeos/join", directoryJson, StringComparison.Ordinal);
         Assert.Contains("/lifeos/mobile", directoryJson, StringComparison.Ordinal);
+        Assert.Contains("/lifeos/results", directoryJson, StringComparison.Ordinal);
         Assert.Contains("manifest.webmanifest", directoryJson, StringComparison.Ordinal);
         Assert.Contains("test-amina", directoryJson, StringComparison.Ordinal);
         Assert.Contains("/lifeos/sw.js", companionJson, StringComparison.Ordinal);
