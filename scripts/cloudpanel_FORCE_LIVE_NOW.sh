@@ -533,6 +533,14 @@ else
   printf 'WARN: classic-entry installer script missing — continuing to publish\n' >&2
 fi
 
+# lifeos.ecomae.com must NOT reuse www `location = /` → /marketing/app.
+if [[ -f scripts/cloudpanel_install_lifeos_host_nginx.sh ]]; then
+  if ! ECOMAE_CONFIRM_INSTALL_LIFEOS_HOST_NGINX=YES \
+       bash scripts/cloudpanel_install_lifeos_host_nginx.sh; then
+    printf 'WARN: lifeos host nginx install failed — app middleware still diverts /marketing/app on lifeos host\n' >&2
+  fi
+fi
+
 # ---- Direct ASP.NET publish ----
 command -v dotnet >/dev/null || { printf 'ERROR: dotnet missing\n' >&2; exit 1; }
 STAMP="$(date -u +%Y%m%d%H%M%S)"

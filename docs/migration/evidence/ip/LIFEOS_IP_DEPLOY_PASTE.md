@@ -34,11 +34,18 @@ grep -E 'RESULT=|ERROR|FAIL' /root/force-live-ip-lifeos.log | tail -20
 ECOMAE_BRANCH=main bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_NOW.sh)" 2>&1 | tee /root/force-live-ip-lifeos.log
 ```
 
-## CP system guide (after FORCE_LIVE)
+## CP system guide + IP OS desktop (after FORCE_LIVE)
 
-- Visual + all frontend/backend links + chapters: `https://www.ecomae.com/cp/lifeos-guide-app`
-- IP hub: `https://www.ecomae.com/ip` · login: `https://www.ecomae.com/ip/login`
-- LifeOS home: `https://lifeos.ecomae.com/` · preview: `https://www.ecomae.com/lifeos`
+- IP OS desktop: `https://www.ecomae.com/ip/app` (apps · clients · LifeOS panels)
+- IP OS login: `https://www.ecomae.com/ip/login` (not BOS chrome)
+- CP visual guide: `https://www.ecomae.com/cp/lifeos-guide-app`
+- LifeOS product: `https://lifeos.ecomae.com/` (must show LifeOS, not ECOM AE marketing)
+- LifeOS preview on www: `https://www.ecomae.com/lifeos`
+
+If lifeos host still shows marketing, ensure nginx uses
+`deploy/aspnet/nginx-lifeos-host-aspnet-primary-example.conf`
+(`ECOMAE_CONFIRM_INSTALL_LIFEOS_HOST_NGINX=YES bash scripts/cloudpanel_install_lifeos_host_nginx.sh`).
+App middleware also diverts `/marketing/app` → `/lifeos` when Host is lifeos.
 
 ## Prove after RESULT=PASS
 
