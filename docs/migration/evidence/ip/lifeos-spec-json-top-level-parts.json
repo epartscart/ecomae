@@ -1,0 +1,16 @@
+{
+  "id": "lifeos-spec-json-top-level-parts",
+  "capturedAtUtc": "2026-08-07T12:15:00Z",
+  "verdict": "fixed",
+  "issue": "https://www.ecomae.com/lifeos/spec/json nested rich Part2–10 digests under part2 (module passed an anonymous bag into FullDigest's part2Architecture slot)",
+  "fix": {
+    "api": "ILifeOsMasterSpec.FullDigest(cognitive, LifeOsSpecRuntimeDigests)",
+    "route": "GET|HEAD /lifeos/spec/json",
+    "shape": "top-level part1…part10 + self/ui/links/endpoints",
+    "format": "application/json indented (JsonSerializerDefaults.Web)"
+  },
+  "prove": [
+    "curl -sL https://www.ecomae.com/lifeos/spec/json | jq 'has(\"part1\") and has(\"part2\") and (.part2 | has(\"part3\") | not)'",
+    "curl -sI -X HEAD https://www.ecomae.com/lifeos/spec/json | head"
+  ]
+}

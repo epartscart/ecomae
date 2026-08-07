@@ -63,3 +63,18 @@ public sealed record LifeOsPluginDescriptor(
     string Title,
     string Kind,
     string Status);
+
+/// <summary>
+/// Optional rich digests for Parts 2–10. When null for a part, <see cref="ILifeOsMasterSpec.FullDigest"/>
+/// falls back to the registry stub for that part.
+/// </summary>
+public sealed record LifeOsSpecRuntimeDigests(
+    object? Part2 = null,
+    object? Part3 = null,
+    object? Part4 = null,
+    object? Part5 = null,
+    object? Part6 = null,
+    object? Part7 = null,
+    object? Part8 = null,
+    object? Part9 = null,
+    object? Part10 = null);

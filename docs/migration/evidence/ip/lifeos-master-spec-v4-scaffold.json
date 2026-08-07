@@ -21,11 +21,13 @@
   },
   "digests": [
     "/lifeos/spec",
+    "/lifeos/spec/json",
     "/lifeos/cognitive",
     "/lifeos/multimodal",
     "/lifeos/security",
     "/lifeos/clients",
     "/lifeos/plugins",
     "/lifeos/roadmap"
-  ]
+  ],
+  "jsonNote": "UI is /lifeos/spec; machine digest is /lifeos/spec/json with top-level part1…part10"
 }
