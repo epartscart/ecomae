@@ -1,0 +1,36 @@
+{
+  "surface": "lifeos",
+  "part": 3,
+  "title": "Artificial Intelligence & Cognitive Architecture",
+  "status": "scaffold",
+  "chapters": {
+    "12": "AI Core (COS) — ILifeOsAiCore",
+    "13": "Cognitive Architecture layers",
+    "14": "Perception Engine — voice/vision/generic pipelines",
+    "15": "Context Engine CRM — LifeOsCurrentRealityModel",
+    "16": "Reasoning — Logical/Causal/Analogical/Probabilistic",
+    "17": "Decision Engine — scored formula + pipeline",
+    "18": "Planning — planner types + Launch LifeOS workflow",
+    "19": "Prediction Engine",
+    "20": "Learning — Supervised/RL/Preference",
+    "21": "Personality modes",
+    "22": "Emotion estimates with override",
+    "23": "Ethical AI Layer",
+    "24": "Self-Reflection Engine",
+    "25": "Unified Cognitive Cycle"
+  },
+  "routes": {
+    "digest": "/lifeos/cognitive",
+    "cyclePost": "/lifeos/cognitive-cycle",
+    "perception": "/lifeos/perception",
+    "prediction": "/lifeos/prediction",
+    "ethics": "/lifeos/ethics",
+    "ui": "/lifeos/cognitive-app"
+  },
+  "notClaimed": [
+    "Live microphone/camera perception",
+    "On-device ML models",
+    "Production LLM reasoning",
+    "Persistent emotion/biometric stores"
+  ]
+}

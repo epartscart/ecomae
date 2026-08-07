@@ -1,0 +1,127 @@
+@page "/lifeos/cognitive-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Models
+@using EcomAE.Platform.LifeOs.Part3
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsAiCore AiCore
+
+<PageTitle>LifeOS™ · Part 3 Cognitive Architecture</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>
+:root {
+  --lo-ink:#0a1f1c; --lo-sea:#0f766e; --lo-sun:#f59e0b; --lo-paper:#f4faf8;
+  --lo-display:"Instrument Serif", Georgia, serif; --lo-sans:"Manrope","Segoe UI",sans-serif;
+}
+body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); font-family:var(--lo-sans); }
+.lo-top {
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  padding:1rem clamp(1rem,3vw,2rem);
+  background:linear-gradient(90deg,#062a26,#0f766e 55%,#134e4a); color:#ecfdf5;
+}
+.lo-top .brand { font-family:var(--lo-display); font-size:1.55rem; }
+.lo-top .brand em { font-style:italic; color:#99f6e4; }
+.lo-top nav { display:flex; flex-wrap:wrap; gap:.8rem; font-size:.8rem; font-weight:700; }
+.lo-top a { color:#ccfbf1; text-decoration:none; }
+.lo-main { padding:1.35rem clamp(1rem,3vw,2.2rem) 2.5rem; max-width:76rem; margin:0 auto; }
+.lo-main h1 { font-family:var(--lo-display); font-weight:400; font-size:clamp(1.65rem,3.5vw,2.3rem); margin:.1rem 0 .4rem; }
+.lo-main > p { max-width:46rem; color:#334155; line-height:1.5; }
+.lo-cycle { display:flex; flex-wrap:wrap; gap:.35rem; margin:1rem 0 1.25rem; }
+.lo-cycle span {
+  font-size:.68rem; font-weight:800; letter-spacing:.03em; text-transform:uppercase;
+  padding:.35rem .5rem; border-radius:.28rem; background:#062a26; color:#99f6e4;
+}
+.lo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.65rem; }
+.lo-grid article { padding:.9rem; border:1px solid #cce5de; border-radius:.4rem; background:#fff; }
+.lo-grid strong { display:block; margin-bottom:.25rem; color:#062a26; font-size:.92rem; }
+.lo-grid span { font-size:.8rem; color:#475569; line-height:1.4; }
+.lo-demo { margin:1.25rem 0; padding:1rem; border:1px solid #99d6c9; border-radius:.45rem; background:#fff; }
+.lo-demo input { width:100%; max-width:36rem; box-sizing:border-box; padding:.65rem .75rem; border:1px solid #99d6c9; border-radius:.3rem; font:inherit; }
+.lo-demo button { margin-top:.75rem; padding:.7rem 1.1rem; border:0; border-radius:.3rem; background:var(--lo-sun); color:#1c1917; font-weight:800; cursor:pointer; }
+.lo-result { margin-top:1rem; padding:1rem; border-left:3px solid var(--lo-sea); background:#ecfdf5; color:#134e4a; font-size:.86rem; line-height:1.45; white-space:pre-wrap; }
+.lo-note { margin-top:1.4rem; padding:1rem; border-left:3px solid var(--lo-sun); background:#fffbeb; color:#78350f; font-size:.86rem; }
+</style>
+</HeadContent>
+
+<div class="lifeos-ambient">
+  <header class="lo-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav>
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a href="@EcomAeRoutes.LifeOsArchitectureApp">Part 2</a>
+      <a href="@EcomAeRoutes.LifeOsCognitiveApp">Part 3</a>
+      <a href="@EcomAeRoutes.LifeOsMultimodalApp">Part 4</a>
+      <a href="@EcomAeRoutes.LifeOsSpecApp">Spec</a>
+      <a href="@EcomAeRoutes.LifeOsCognitive">JSON</a>
+    </nav>
+  </header>
+  <main class="lo-main">
+    <h1>Part 3 — AI &amp; Cognitive Architecture</h1>
+    <p>
+      The Artificial Intelligence Core is a Cognitive Operating System: perception, CRM context,
+      multi-method reasoning, decision scoring, planning, prediction, personality/emotion adaptation,
+      ethical gating, reflection, and continuous learning — Chapters 12–25.
+    </p>
+
+    <div class="lo-cycle" aria-label="Unified cognitive cycle">
+      <span>Perception</span><span>Understanding</span><span>Memory</span><span>Reasoning</span>
+      <span>Planning</span><span>Decision</span><span>Agents</span><span>Execution</span>
+      <span>Reflection</span><span>Learning</span><span>Memory Update</span><span>Improve</span>
+    </div>
+
+    <div class="lo-grid">
+      <article><strong>Ch.12 AI Core</strong><span>COS coordinating specialist agents with unified goals and history.</span></article>
+      <article><strong>Ch.14 Perception</strong><span>Voice / vision / desktop pipelines → semantic knowledge graph.</span></article>
+      <article><strong>Ch.15 CRM</strong><span>Current Reality Model — every decision is based on this.</span></article>
+      <article><strong>Ch.16 Reasoning</strong><span>Logical, causal, analogical, probabilistic methods.</span></article>
+      <article><strong>Ch.17 Decision</strong><span>Score = goals + context + confidence + resources + time − risk.</span></article>
+      <article><strong>Ch.19 Prediction</strong><span>Focus, schedule, health, and project forecasts.</span></article>
+      <article><strong>Ch.23 Ethics</strong><span>Permission, privacy, safety, confidence — before execution.</span></article>
+      <article><strong>Ch.24 Reflection</strong><span>Post-task evaluation feeding the Learning Engine.</span></article>
+    </div>
+
+    <section class="lo-demo">
+      <strong>Run unified cognitive cycle</strong>
+      <p style="margin:.35rem 0 0;font-size:.8rem;color:#64748b;">Scaffold dry-run — POST /lifeos/cognitive-cycle</p>
+      <input @bind="_transcript" placeholder="Schedule tomorrow's meeting." style="margin-top:.65rem" />
+      <button type="button" @onclick="RunCycle">Run AI Core cycle</button>
+      @if (_out is not null)
+      {
+        <div class="lo-result">@_out</div>
+      }
+    </section>
+
+    <div class="lo-note">
+      Digests: <code>/lifeos/cognitive</code>, <code>/lifeos/perception</code>,
+      <code>/lifeos/prediction</code>, <code>/lifeos/ethics</code>,
+      <code>POST /lifeos/cognitive-cycle</code>. Live multimodal sensors and LLMs not claimed.
+    </div>
+  </main>
+</div>
+
+@code {
+    private string _transcript = "Schedule tomorrow's meeting.";
+    private string? _out;
+
+    private void RunCycle()
+    {
+        var evt = LifeOsEventFactory.SampleVoice(string.IsNullOrWhiteSpace(_transcript)
+            ? "Schedule tomorrow's meeting."
+            : _transcript.Trim());
+        var cycle = AiCore.RunCycle(evt, userPermission: false);
+        _out =
+            $"Cycle {cycle.CycleId}\n" +
+            $"CRM: {cycle.Reality.UserState} / {cycle.Reality.Activity} @ {cycle.Reality.Location} " +
+            $"(focus={cycle.Reality.FocusScore}, interrupt={cycle.Reality.Interruptibility})\n" +
+            $"Emotion: {cycle.Emotion.State} ({cycle.Emotion.Confidence:0.00}) · Personality: {cycle.PersonalityMode}\n" +
+            $"Decision total: {cycle.DecisionScore.Total} · Ethics: {(cycle.Ethics.Allowed ? "ALLOWED" : "BLOCKED")}\n" +
+            $"Executed: {cycle.Executed}\n" +
+            $"Recommendation: {cycle.Recommendation}\n" +
+            $"Predictions: {string.Join("; ", cycle.Predictions.Select(p => $"{p.EventKind}@{p.Probability:0.00}"))}\n" +
+            $"Reasoning: {string.Join(" | ", cycle.Reasoning.Select(r => $"{r.Method}:{r.Conclusion}"))}";
+    }
+}

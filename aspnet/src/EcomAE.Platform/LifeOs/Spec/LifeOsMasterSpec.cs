@@ -13,17 +13,35 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
             ["Orchestrator", "Event Bus", "Context Engine", "Memory System", "Multi-Agent", "Planning Engine"],
             ["In-memory bus", "30 agents", "POST /lifeos/orchestrate", "Part 2 console"]),
         P(3, "AI & Cognitive Systems", "scaffold",
-            ["Reasoning Engine", "Decision Engine", "Learning Engine", "Personality Engine"],
-            ["Explainable traces", "Human-approval decisions", "Learning signals"]),
-        P(4, "Multimodal Input", "scaffold",
-            ["Voice", "Vision", "Desktop", "Wearables"],
-            ["Adapter registry", "Event normalization hooks"]),
-        P(5, "APIs, SDKs, Schemas, Event Models", "scaffold",
-            ["REST digests", "Event JSON models", "SDK surface map", "Schema stubs"],
-            ["OpenAPI-oriented route catalog", "Shared DTOs"]),
-        P(6, "Cloud, Kubernetes, DevOps, Monitoring", "scaffold",
-            ["Topology", "Scalability", "Observability", "GitOps"],
-            ["Deploy paste", "Health probes", "FORCE_LIVE republish note"]),
+            [
+                "AI Core", "Cognitive Architecture", "Perception", "Context CRM", "Reasoning",
+                "Decision", "Planning", "Prediction", "Learning", "Personality", "Emotion",
+                "Ethical AI", "Self-Reflection", "Unified Cognitive Cycle"
+            ],
+            ["ILifeOsAiCore cycle", "CRM object", "Multi-method reasoning", "Ethics gate", "/lifeos/cognitive"]),
+        P(4, "Multimodal Runtime & Human Interaction", "scaffold",
+            [
+                "Runtime Architecture", "Runtime Kernel", "Device Ecosystem", "Voice", "Vision",
+                "Desktop", "Mobile", "Smart Glasses", "Wearables", "Smart Home", "Vehicle",
+                "Notifications", "Interaction Manager", "Sync Engine", "State Machine", "Performance"
+            ],
+            ["ILifeOsMultimodalRuntime", "16 device types", "8 modality pipelines", "/lifeos/multimodal"]),
+        P(5, "Platform Engineering & Developer Architecture", "scaffold",
+            [
+                "Platform Overview", "Architecture", "Microservices", "API Gateway", "REST",
+                "WebSockets", "Event Bus", "Databases", "Memory DB", "Knowledge Graph",
+                "Workflow", "Automation", "Plugin SDK", "Agent SDK", "AI Gateway",
+                "Auth", "Multi-Tenant", "Observability", "Engineering Standards"
+            ],
+            ["ILifeOsPlatformEngineering", "22 microservices", "API envelopes", "/lifeos/platform"]),
+        P(6, "Cloud Infrastructure & Production Operations", "registry",
+            [
+                "Kubernetes", "Multi-Region", "Service Mesh", "CI/CD", "Infrastructure as Code",
+                "Auto-Scaling", "High Availability", "Disaster Recovery", "Edge Computing",
+                "GPU Clusters", "Model Serving", "Secrets Management", "Production Monitoring",
+                "Performance Optimization", "Cost Management", "SRE Playbooks"
+            ],
+            ["Deploy paste", "Health probes", "FORCE_LIVE republish note", "Part 6 chapters pending paste"]),
         P(7, "Security, Privacy, Compliance, Enterprise", "scaffold",
             ["Privacy by design", "Permission gates", "Audit", "Compliance map"],
             ["Local-first controls", "Irreversible-action policy"]),
@@ -40,10 +58,14 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
 
     public IReadOnlyList<LifeOsModalityAdapter> MultimodalAdapters { get; } =
     [
-        new("voice", "Voice Input", "microphone/wearable", "scaffold", ["ASR", "wake-word", "TTS"]),
-        new("vision", "Vision Input", "camera", "scaffold", ["keyframes", "OCR", "pose"]),
-        new("desktop", "Desktop Signals", "screen/OS", "scaffold", ["screen-change", "active-app", "clipboard-policy"]),
-        new("wearable", "Wearables", "sensors", "scaffold", ["heart-rate", "motion", "location"]),
+        new("voice", "Voice Intelligence", "microphone/wearable", "scaffold", ["ASR", "wake-word", "TTS", "biometrics"]),
+        new("vision", "Vision Intelligence", "camera/glasses", "scaffold", ["keyframes", "OCR", "pose", "scene"]),
+        new("desktop", "Desktop Intelligence", "screen/OS", "scaffold", ["window", "code", "ui-understanding"]),
+        new("mobile", "Mobile Intelligence", "phone/tablet", "scaffold", ["gps", "imu", "modes"]),
+        new("glasses", "Smart Glasses", "AR wearable", "research", ["overlay", "first-person"]),
+        new("wearable", "Wearable Intelligence", "watch/buds", "scaffold", ["heart-rate", "stress", "sleep"]),
+        new("smarthome", "Smart Home Runtime", "iot hub", "scaffold", ["lights", "locks", "climate"]),
+        new("vehicle", "Vehicle Intelligence", "car", "scaffold", ["nav", "hands-free", "eta"]),
     ];
 
     public IReadOnlyList<LifeOsApiSurface> ApiSurfaces { get; } =
@@ -55,9 +77,26 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/plans", "GET", "Sample planning workflow"),
         new("/lifeos/context", "GET", "Context source registry"),
         new("/lifeos/orchestrate", "POST", "Dry-run orchestration"),
-        new("/lifeos/cognitive", "GET", "Part 3 cognitive engines digest"),
+        new("/lifeos/cognitive", "GET", "Part 3 AI Core Ch.12–25 digest"),
+        new("/lifeos/cognitive-cycle", "POST", "Unified cognitive cycle dry-run"),
+        new("/lifeos/perception", "GET", "Part 3 Ch.14 perception digest"),
+        new("/lifeos/prediction", "GET", "Part 3 Ch.19 prediction digest"),
+        new("/lifeos/ethics", "GET", "Part 3 Ch.23 ethical AI digest"),
         new("/lifeos/spec", "GET", "Master spec Parts 1–10 digest"),
-        new("/lifeos/multimodal", "GET", "Part 4 modality adapters"),
+        new("/lifeos/multimodal", "GET", "Part 4 Ch.26–41 multimodal runtime digest"),
+        new("/lifeos/runtime-tick", "POST", "Part 4 runtime input tick dry-run"),
+        new("/lifeos/devices", "GET", "Part 4 device ecosystem"),
+        new("/lifeos/sync", "GET", "Part 4 unified session sync"),
+        new("/lifeos/performance", "GET", "Part 4 performance targets"),
+        new("/lifeos/notifications", "POST", "Part 4 notification intelligence"),
+        new("/lifeos/platform", "GET", "Part 5 Ch.42–60 platform engineering digest"),
+        new("/lifeos/services", "GET", "Part 5 microservice catalog"),
+        new("/lifeos/api-catalog", "GET", "Part 5 REST/WebSocket catalog"),
+        new("/lifeos/event-topics", "GET", "Part 5 event bus topics"),
+        new("/lifeos/data-stores", "GET", "Part 5 polyglot persistence"),
+        new("/lifeos/knowledge-graph", "GET", "Part 5 knowledge graph sample"),
+        new("/lifeos/agent-sdk", "GET", "Part 5 agent/plugin SDK contracts"),
+        new("/lifeos/ai-gateway", "GET", "Part 5 AI Gateway routing table"),
         new("/lifeos/security", "GET", "Part 7 security controls"),
         new("/lifeos/clients", "GET", "Part 8 client surfaces"),
         new("/lifeos/plugins", "GET", "Part 9 plugin marketplace"),
@@ -103,27 +142,28 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         parts = Parts,
         part2 = part2Architecture,
         part3 = cognitive.Digest(),
-        part4 = new { multimodal = MultimodalAdapters },
-        part5 = new { apis = ApiSurfaces, note = "DTO models under LifeOs.Models + Spec" },
+        part4 = new { multimodalAdapters = MultimodalAdapters, note = "Full Part 4 digest at /lifeos/multimodal" },
+        part5 = new { apis = ApiSurfaces, note = "Full Part 5 digest at /lifeos/platform" },
         part6 = new
         {
             cloud = "ASP.NET primary on Kestrel :5100 behind nginx/CloudPanel",
             k8s = "roadmap",
             deploy = "scripts/cloudpanel_FORCE_LIVE_NOW.sh after merge to main",
-            monitoring = "health checks + migration digests"
+            monitoring = "health checks + migration digests + Part 4/5 observability"
         },
         part7 = new { controls = SecurityControls },
         part8 = new { clients = Clients },
         part9 = new { plugins = Plugins },
         part10 = new
         {
-            testing = "LifeOsPart2ScaffoldTests + LifeOsMasterSpecTests",
+            testing = "LifeOsPart2 + Part3 + Part4 + Part5Platform + MasterSpec tests",
             roadmap = new[]
             {
-                "Wire durable memory + vector store",
-                "Live LLM reasoning behind Safety Engine",
-                "Kafka event bus option",
-                "Mobile/desktop clients",
+                "Wire durable memory + pgvector",
+                "Live LLM reasoning behind AI Gateway",
+                "Kafka/NATS event bus option",
+                "Istio service mesh",
+                "Mobile/desktop/glasses clients",
                 "Plugin marketplace GA"
             },
             research = new[]
@@ -136,10 +176,11 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         notClaimed = new[]
         {
             "Production multimodal perception",
-            "Durable memory / vector DB",
+            "Durable PostgreSQL/pgvector/Redis wiring for LifeOS memory",
             "Live LLM inference",
-            "Kafka/Rabbit wiring",
-            "Native mobile/desktop/glasses shipping binaries"
+            "Kafka/NATS/Istio production mesh",
+            "Native mobile/desktop/glasses shipping binaries",
+            "Always-on wake-word DSP on device"
         }
     };
 

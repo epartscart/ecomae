@@ -1,0 +1,168 @@
+@page "/lifeos/multimodal-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Models
+@using EcomAE.Platform.LifeOs.Part4
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsMultimodalRuntime Runtime
+
+<PageTitle>LifeOS™ · Part 4 Multimodal Runtime</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>
+:root {
+  --lo-ink:#0a1f1c; --lo-sea:#0f766e; --lo-sun:#f59e0b; --lo-paper:#f4faf8;
+  --lo-display:"Instrument Serif", Georgia, serif; --lo-sans:"Manrope","Segoe UI",sans-serif;
+}
+body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); font-family:var(--lo-sans); }
+.lo-top {
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  padding:1rem clamp(1rem,3vw,2rem);
+  background:linear-gradient(90deg,#062a26,#0f766e 55%,#134e4a); color:#ecfdf5;
+}
+.lo-top .brand { font-family:var(--lo-display); font-size:1.55rem; }
+.lo-top .brand em { font-style:italic; color:#99f6e4; }
+.lo-top nav { display:flex; flex-wrap:wrap; gap:.75rem; font-size:.8rem; font-weight:700; }
+.lo-top a { color:#ccfbf1; text-decoration:none; }
+.lo-main { padding:1.35rem clamp(1rem,3vw,2.2rem) 2.5rem; max-width:78rem; margin:0 auto; }
+.lo-main h1 { font-family:var(--lo-display); font-weight:400; font-size:clamp(1.65rem,3.5vw,2.3rem); margin:.1rem 0 .4rem; }
+.lo-main > p { max-width:48rem; color:#334155; line-height:1.5; }
+.lo-pipe { display:flex; flex-wrap:wrap; gap:.35rem; margin:1rem 0; }
+.lo-pipe span {
+  font-size:.68rem; font-weight:800; letter-spacing:.03em; text-transform:uppercase;
+  padding:.35rem .5rem; border-radius:.28rem; background:#062a26; color:#99f6e4;
+}
+.lo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.6rem; }
+.lo-grid article { padding:.85rem; border:1px solid #cce5de; border-radius:.4rem; background:#fff; }
+.lo-grid strong { display:block; margin-bottom:.2rem; font-size:.9rem; color:#062a26; }
+.lo-grid span { font-size:.78rem; color:#475569; line-height:1.35; }
+.lo-chips { display:flex; flex-wrap:wrap; gap:.4rem; margin:.4rem 0 1rem; }
+.lo-chips span {
+  font-size:.72rem; font-weight:700; padding:.3rem .55rem; border-radius:.28rem;
+  background:#ecfdf5; color:var(--lo-sea); border:1px solid #a7f3d0;
+}
+.lo-demo { margin:1.2rem 0; padding:1rem; border:1px solid #99d6c9; border-radius:.45rem; background:#fff; }
+.lo-demo input { width:100%; max-width:36rem; box-sizing:border-box; padding:.65rem .75rem; border:1px solid #99d6c9; border-radius:.3rem; font:inherit; margin-top:.55rem; }
+.lo-demo button { margin-top:.7rem; margin-right:.5rem; padding:.65rem 1rem; border:0; border-radius:.3rem; background:var(--lo-sun); color:#1c1917; font-weight:800; cursor:pointer; }
+.lo-result { margin-top:.9rem; padding:.9rem; border-left:3px solid var(--lo-sea); background:#ecfdf5; color:#134e4a; font-size:.84rem; line-height:1.45; white-space:pre-wrap; }
+.lo-note { margin-top:1.3rem; padding:1rem; border-left:3px solid var(--lo-sun); background:#fffbeb; color:#78350f; font-size:.86rem; }
+.lo-table { width:100%; border-collapse:collapse; font-size:.82rem; margin:.5rem 0 1rem; }
+.lo-table th, .lo-table td { text-align:left; padding:.45rem .35rem; border-bottom:1px solid #e2efe9; }
+</style>
+</HeadContent>
+
+<div class="lifeos-ambient">
+  <header class="lo-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav>
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a href="@EcomAeRoutes.LifeOsCognitiveApp">Part 3</a>
+      <a href="@EcomAeRoutes.LifeOsMultimodalApp">Part 4</a>
+      <a href="@EcomAeRoutes.LifeOsPlatformApp">Part 5</a>
+      <a href="@EcomAeRoutes.LifeOsSpecApp">Spec</a>
+      <a href="@EcomAeRoutes.LifeOsMultimodal">JSON</a>
+    </nav>
+  </header>
+  <main class="lo-main">
+    <h1>Part 4 — Multimodal Runtime</h1>
+    <p>
+      Ambient intelligence across voice, vision, desktop, mobile, wearables, smart home, and vehicle —
+      with a Runtime Kernel, unified device sync, notification intelligence, and performance budgets (Ch.26–41).
+    </p>
+
+    <div class="lo-pipe" aria-label="Runtime architecture">
+      <span>Human World</span><span>Input Manager</span><span>Event Stream</span>
+      <span>Context Sync</span><span>Cognitive Engine</span><span>Agents</span><span>Response</span>
+    </div>
+
+    <h2 style="font-family:var(--lo-display);font-weight:400;font-size:1.45rem;margin:1.1rem 0 .4rem;">Runtime Kernel</h2>
+    <div class="lo-chips">
+      @foreach (var c in Runtime.KernelComponents)
+      {
+        <span title="@c.Responsibility">@c.Title</span>
+      }
+    </div>
+
+    <h2 style="font-family:var(--lo-display);font-weight:400;font-size:1.45rem;margin:1.1rem 0 .4rem;">Modalities</h2>
+    <div class="lo-grid">
+      @foreach (var m in Runtime.ModalityPipelines)
+      {
+        <article>
+          <strong>@m.Modality</strong>
+          <span>@m.Stages.Count stages · @m.Features.Count features</span>
+        </article>
+      }
+    </div>
+
+    <h2 style="font-family:var(--lo-display);font-weight:400;font-size:1.45rem;margin:1.25rem 0 .4rem;">Devices</h2>
+    <div class="lo-chips">
+      @foreach (var d in Runtime.Devices)
+      {
+        <span title="@d.Category · @d.Status">@d.Title</span>
+      }
+    </div>
+
+    <h2 style="font-family:var(--lo-display);font-weight:400;font-size:1.45rem;margin:1.1rem 0 .4rem;">Performance targets</h2>
+    <table class="lo-table">
+      <thead><tr><th>Component</th><th>Target</th></tr></thead>
+      <tbody>
+      @foreach (var t in Runtime.PerformanceTargets)
+      {
+        <tr><td>@t.Component</td><td>@t.Target</td></tr>
+      }
+      </tbody>
+    </table>
+
+    <section class="lo-demo">
+      <strong>Runtime tick (voice input)</strong>
+      <input @bind="_transcript" placeholder="Schedule tomorrow's meeting." />
+      <div>
+        <button type="button" @onclick="RunTick">Process input</button>
+        <button type="button" @onclick="RunNotification" style="background:#0f766e;color:#fff">Classify notification</button>
+      </div>
+      @if (_out is not null)
+      {
+        <div class="lo-result">@_out</div>
+      }
+    </section>
+
+    <div class="lo-note">
+      Digests: <code>/lifeos/multimodal</code>, <code>/devices</code>, <code>/sync</code>,
+      <code>/performance</code>, <code>POST /runtime-tick</code>, <code>POST /notifications</code>.
+      Always-on mic/camera DSP and native clients not claimed.
+    </div>
+  </main>
+</div>
+
+@code {
+    private string _transcript = "Schedule tomorrow's meeting.";
+    private string? _out;
+
+    private async Task RunTick()
+    {
+        var evt = LifeOsEventFactory.SampleVoice(string.IsNullOrWhiteSpace(_transcript)
+            ? "Schedule tomorrow's meeting."
+            : _transcript.Trim());
+        var tick = await Runtime.ProcessInputAsync(evt);
+        _out =
+            $"Tick {tick.TickId}\n" +
+            $"Channel: {tick.Channel} · State: {tick.State}\n" +
+            $"Pipeline: {string.Join(" → ", tick.Pipeline)}\n" +
+            $"{tick.Summary}\n" +
+            $"Sync devices: {string.Join(", ", tick.Sync.ConnectedDevices)}\n" +
+            $"Task: {tick.Sync.CurrentTask}";
+    }
+
+    private void RunNotification()
+    {
+        var d = Runtime.ClassifyNotification("Team standup in 5m", "calendar", "coding");
+        _out =
+            $"Notification {d.NotificationId}\n" +
+            $"Priority: {d.Priority} · Interrupt: {d.Interrupt}\n" +
+            $"Channel: {d.DeliveryChannel}\n" +
+            $"Reason: {d.Reason}";
+    }
+}

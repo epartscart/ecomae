@@ -2,6 +2,9 @@ using EcomAE.Platform.LifeOs.Engines;
 using EcomAE.Platform.LifeOs.EventBus;
 using EcomAE.Platform.LifeOs.Models;
 using EcomAE.Platform.LifeOs.Orchestrator;
+using EcomAE.Platform.LifeOs.Part3;
+using EcomAE.Platform.LifeOs.Part4;
+using EcomAE.Platform.LifeOs.Part5;
 using EcomAE.Platform.LifeOs.Spec;
 using EcomAE.Platform.Routing;
 
@@ -45,20 +48,129 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsContextDigest, (ILifeOsContextEngine context) =>
             Results.Ok(new { ok = true, sources = context.KnownSourceNames }));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsCognitive, (ILifeOsCognitiveEngines cognitive) =>
-            Results.Ok(cognitive.Digest()));
+        endpoints.MapGet(EcomAeRoutes.LifeOsCognitive, (ILifeOsAiCore ai) =>
+            Results.Ok(ai.FullPart3Digest()));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsMultimodal, (ILifeOsMasterSpec spec) =>
-            Results.Ok(new { ok = true, part = 4, adapters = spec.MultimodalAdapters }));
+        endpoints.MapGet(EcomAeRoutes.LifeOsPerception, (ILifeOsPerceptionEngine perception) =>
+            Results.Ok(perception.Digest()));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsSecurityDigest, (ILifeOsMasterSpec spec) =>
-            Results.Ok(new { ok = true, part = 7, controls = spec.SecurityControls }));
+        endpoints.MapGet(EcomAeRoutes.LifeOsPrediction, (ILifeOsPredictionEngine prediction) =>
+            Results.Ok(prediction.Digest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsEthics, (ILifeOsEthicalAiLayer ethics) =>
+            Results.Ok(ethics.Digest()));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsCognitiveCycle, (
+            LifeOsOrchestrateBody? body,
+            ILifeOsAiCore ai) =>
+        {
+            body ??= new LifeOsOrchestrateBody(null, null, null);
+            var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(body.Transcript))
+            {
+                payload["transcript"] = body.Transcript.Trim();
+            }
+
+            var evt = payload.Count == 0
+                ? LifeOsEventFactory.SampleVoice()
+                : LifeOsEventFactory.Create(
+                    ParseType(body.EventType),
+                    body.Source ?? "Console",
+                    payload,
+                    LifeOsEventPriority.High);
+
+            var cycle = ai.RunCycle(evt, userPermission: body.Confirm == true);
+            return Results.Ok(new { ok = true, scaffold = true, cycle });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsMultimodal, (ILifeOsMultimodalRuntime runtime) =>
+            Results.Ok(runtime.FullPart4Digest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsDevices, (ILifeOsMultimodalRuntime runtime) =>
+            Results.Ok(new { ok = true, devices = runtime.Devices, kernel = runtime.KernelComponents }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsSync, (ILifeOsMultimodalRuntime runtime) =>
+            Results.Ok(new { ok = true, sync = runtime.UnifiedSession, state = runtime.CurrentState.ToString() }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsPerformance, (ILifeOsMultimodalRuntime runtime) =>
+            Results.Ok(new { ok = true, targets = runtime.PerformanceTargets }));
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsNotifications, (
+            LifeOsNotificationBody? body,
+            ILifeOsMultimodalRuntime runtime) =>
+        {
+            body ??= new("Alert", "system", "working");
+            var decision = runtime.ClassifyNotification(
+                body.Title ?? "Alert",
+                body.Sender ?? "system",
+                body.Activity ?? "working");
+            return Results.Ok(new { ok = true, decision });
+        });
+
+        endpoints.MapPost(EcomAeRoutes.LifeOsRuntimeTick, async (
+            LifeOsOrchestrateBody? body,
+            ILifeOsMultimodalRuntime runtime,
+            CancellationToken cancellationToken) =>
+        {
+            body ??= new LifeOsOrchestrateBody(null, null, null);
+            var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(body.Transcript))
+            {
+                payload["transcript"] = body.Transcript.Trim();
+            }
+
+            var evt = payload.Count == 0
+                ? LifeOsEventFactory.SampleVoice()
+                : LifeOsEventFactory.Create(
+                    ParseType(body.EventType),
+                    body.Source ?? "Wearable",
+                    payload,
+                    LifeOsEventPriority.High);
+
+            var tick = await runtime.ProcessInputAsync(evt, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+            return Results.Ok(new { ok = true, scaffold = true, tick });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsPlatform, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(platform.FullPart5Digest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsServices, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, services = platform.Microservices }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsApiCatalog, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new
+            {
+                ok = true,
+                conventions = platform.RestConventions,
+                success = platform.Ok(new { id = "demo" }, new { requestId = "req_scaffold" }),
+                error = platform.Fail("TASK_NOT_FOUND", "Task not found"),
+                websockets = platform.WebSocketChannels
+            }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsEventTopics, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, topics = platform.EventTopics, brokers = new[] { "Kafka", "NATS", "RabbitMQ" } }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsDataStores, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, stores = platform.DataStores, memoryLayers = platform.MemoryLayers }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsKnowledgeGraph, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(platform.KnowledgeGraphSample()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsAgentSdk, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, contract = platform.AgentSdkContract, plugins = platform.SamplePlugins }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsAiGateway, (ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, routes = platform.AiGatewayRoutes }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsSecurityDigest, (ILifeOsMasterSpec spec, ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, part = 7, controls = spec.SecurityControls, auth = platform.AuthDigest() }));
 
         endpoints.MapGet(EcomAeRoutes.LifeOsClients, (ILifeOsMasterSpec spec) =>
             Results.Ok(new { ok = true, part = 8, clients = spec.Clients }));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsPlugins, (ILifeOsMasterSpec spec) =>
-            Results.Ok(new { ok = true, part = 9, plugins = spec.Plugins }));
+        endpoints.MapGet(EcomAeRoutes.LifeOsPlugins, (ILifeOsMasterSpec spec, ILifeOsPlatformEngineering platform) =>
+            Results.Ok(new { ok = true, part = 9, plugins = spec.Plugins, samples = platform.SamplePlugins }));
 
         endpoints.MapGet(EcomAeRoutes.LifeOsRoadmap, (ILifeOsMasterSpec spec) =>
             Results.Ok(new
@@ -72,13 +184,22 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsSpec, (
             ILifeOsMasterSpec spec,
             ILifeOsCognitiveEngines cognitive,
-            ILifeOsOrchestrator orch) =>
-            Results.Ok(spec.FullDigest(cognitive, orch.ArchitectureDigest())));
+            ILifeOsOrchestrator orch,
+            ILifeOsAiCore ai,
+            ILifeOsMultimodalRuntime runtime,
+            ILifeOsPlatformEngineering platform) =>
+            Results.Ok(spec.FullDigest(cognitive, new
+            {
+                part2 = orch.ArchitectureDigest(),
+                part3 = ai.FullPart3Digest(),
+                part4 = runtime.FullPart4Digest(),
+                part5 = platform.FullPart5Digest()
+            })));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (
             LifeOsOrchestrateBody? body,
             ILifeOsOrchestrator orch,
-            ILifeOsCognitiveEngines cognitive,
+            ILifeOsAiCore ai,
             CancellationToken cancellationToken) =>
         {
             body ??= new LifeOsOrchestrateBody(null, null, null);
@@ -105,16 +226,14 @@ public sealed class LifeOsModule : ISurfaceModule
                     LifeOsEventPriority.High);
 
             var result = await orch.ProcessAsync(evt, cancellationToken).ConfigureAwait(false);
-            var reasoning = cognitive.Reason(result.Intent, result.Context.Sources.Select(s => $"{s.Name}:{s.Confidence:0.00}").ToList());
-            var decision = cognitive.Decide(reasoning, allowIrreversible: body.Confirm == true);
-            cognitive.Learn(result.TraceId, "orchestrate-scaffold");
+            var cycle = ai.RunCycle(evt, userPermission: body.Confirm == true);
 
             return Results.Ok(new
             {
                 ok = true,
                 scaffold = true,
                 result,
-                cognitive = new { reasoning, decision }
+                cognitiveCycle = cycle
             });
         });
     }
@@ -132,4 +251,6 @@ public sealed class LifeOsModule : ISurfaceModule
     }
 
     public sealed record LifeOsOrchestrateBody(string? Transcript, string? EventType, string? Source, bool? Confirm = null);
+
+    public sealed record LifeOsNotificationBody(string? Title, string? Sender, string? Activity);
 }

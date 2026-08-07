@@ -1,0 +1,50 @@
+{
+  "surface": "lifeos",
+  "part": 5,
+  "title": "Platform Engineering & Developer Architecture",
+  "status": "scaffold",
+  "chapters": {
+    "42": "Platform Engineering Overview",
+    "43": "Complete Platform Architecture",
+    "44": "Microservices Architecture (22 services)",
+    "45": "API Gateway",
+    "46": "REST API Standards",
+    "47": "WebSocket Architecture",
+    "48": "Event Bus topics",
+    "49": "Database Architecture (polyglot)",
+    "50": "Memory Database layers",
+    "51": "Knowledge Graph",
+    "52": "Workflow Engine",
+    "53": "Automation Engine",
+    "54": "Plugin SDK",
+    "55": "Agent SDK",
+    "56": "AI Gateway",
+    "57": "Authentication & Authorization",
+    "58": "Multi-Tenant Architecture",
+    "59": "Observability",
+    "60": "Engineering Standards"
+  },
+  "routes": {
+    "digest": "/lifeos/platform",
+    "ui": "/lifeos/platform-app",
+    "services": "/lifeos/services",
+    "apiCatalog": "/lifeos/api-catalog",
+    "eventTopics": "/lifeos/event-topics",
+    "dataStores": "/lifeos/data-stores",
+    "knowledgeGraph": "/lifeos/knowledge-graph",
+    "agentSdk": "/lifeos/agent-sdk",
+    "aiGateway": "/lifeos/ai-gateway"
+  },
+  "microservices": 22,
+  "eventTopics": 10,
+  "memoryLayers": 10,
+  "tests": "LifeOsPart5PlatformTests + LifeOs filter (39 passed)",
+  "notClaimed": [
+    "Production Kafka/NATS/Istio mesh",
+    "Live PostgreSQL/pgvector/Redis for LifeOS memory",
+    "Deployed independent microservices fleet",
+    "GraphQL federation",
+    "Native WebSocket upgrade on LifeOS channels"
+  ],
+  "next": "Part 6 — Cloud Infrastructure & Production Operations"
+}
