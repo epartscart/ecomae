@@ -12,6 +12,7 @@
     IncludeStorefrontAnalytics="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))"
     ApplyStorefrontIndustryAttrs="@(Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase))"
     IncludeMarketingScripts="@(Surface.Equals("marketing", StringComparison.OrdinalIgnoreCase))" />
+@* Body <style> duplicates HeadContent — live SSR drops HeadOutlet on product shells. *@
 <HeadContent>
 <style>
     :root {
@@ -25,6 +26,17 @@
     }
 </style>
 </HeadContent>
+<style>
+    :root {
+        --epc-php-font: @(LegacyPhpFontAssets.StackFor(Surface));
+        --epc-php-font-size: @(LegacyPhpFontAssets.FontSizeFor(Surface));
+    }
+    .epc-php-font-root,
+    html, body {
+        font-family: var(--epc-php-font);
+        font-size: var(--epc-php-font-size);
+    }
+</style>
 
 
 @code {

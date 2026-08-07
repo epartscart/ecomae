@@ -13,6 +13,7 @@
 
 @* Markers: epc-cp-login-hero, #epcCpParticles *@
 
+@* Body <style> duplicates HeadContent — live SSR drops HeadOutlet on /cp/login. *@
 <HeadContent>
 <style>
     html:has(.bos-login),
@@ -38,7 +39,29 @@
     }
 </style>
 </HeadContent>
-
+<style>
+    html:has(.bos-login),
+    body:has(.bos-login),
+    body.bos-body--login {
+        background: linear-gradient(135deg, #020617 0%, #0c1222 30%, #091428 60%, #050d1a 100%) !important;
+        color: #e2e8f0 !important;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    .epc-login-bos.bos-login {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        position: relative;
+        background: transparent;
+        color: #e2e8f0;
+    }
+    .bos-login__error.is-visible {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+</style>
 
 <div class="epc-login-bos bos-login @_brand.RootModifierClass epc-cp-login-hero"
      data-login-industry="@_content.IndustryCode"

@@ -1,3 +1,4 @@
+using EcomAE.Platform.Presentation;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -110,6 +111,14 @@ public sealed class CpErpLoginBosParityTests
         Assert.Contains("/content/general_pages/universe/{fileName}", text, StringComparison.Ordinal);
         Assert.Contains("cassiopeia-a.jpg", text, StringComparison.Ordinal);
         Assert.Contains("andromeda.jpg", text, StringComparison.Ordinal);
+        // PHP animated logo helpers return "No access" outside _ASTEXE_ / when PHP serving is paused.
+        Assert.Contains("/content/general_pages/epc_animated_epartscart_logo.php", text, StringComparison.Ordinal);
+        Assert.Contains("/content/general_pages/animated_epartscart_logo.php", text, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/eparts-animated-cart-mark.svg", text, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/epc_bos_login_surface_accents.css", text, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/epc_portal_tenant_brand.css", text, StringComparison.Ordinal);
+        Assert.Contains("AnimatedCartMarkSvg", text, StringComparison.Ordinal);
+        Assert.Contains("AnimatedCartFragmentHtml", text, StringComparison.Ordinal);
         Assert.Contains("pillars.jpg", text, StringComparison.Ordinal);
         Assert.Contains("tarantula.jpg", text, StringComparison.Ordinal);
     }
@@ -118,7 +127,11 @@ public sealed class CpErpLoginBosParityTests
     public void LoginAccentCss_CacheBust_IsCurrent()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs");
-        Assert.Contains("epc_bos_login_surface_accents.css?v=20260806f", text, StringComparison.Ordinal);
+        Assert.Contains("epc_bos_login_surface_accents.css?v=20260807a", text, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/epc_bos_login_surface_accents.css", text, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/eparts-animated-cart-mark.svg", text, StringComparison.Ordinal);
+        Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("epc_bos_login_surface_accents.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("/platform-assets/", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -106,8 +106,9 @@ public sealed class CpErpChromeDashboardParityTests
     [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor")]
     [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpBosDesktopChrome.razor")]
     [InlineData("aspnet/src/EcomAE.Platform/Components/Layout/PhpChromeLayout.razor")]
-    public void DesktopChrome_WrapsInlineStylesInHeadContent(string relative)
+    public void DesktopChrome_EmitsInlineStylesInHeadAndBodyStream(string relative)
     {
+        // Live SSR drops HeadContent on /cp|/erp|/bos login + shells; body <style> is the durable path.
         var src = File.ReadAllText(FindRepoFile(relative));
         Assert.Contains("<HeadContent>", src, StringComparison.Ordinal);
         Assert.Contains("<style>", src, StringComparison.Ordinal);
@@ -117,7 +118,18 @@ public sealed class CpErpChromeDashboardParityTests
         var head = src.Substring(open, close - open);
         Assert.Contains("<style>", head, StringComparison.Ordinal);
         var after = src[(close + "</HeadContent>".Length)..];
-        Assert.DoesNotContain("<style>", after, StringComparison.Ordinal);
+        Assert.Contains("<style>", after, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor", "ecomae-cp-chrome-css")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor", "ecomae-erp-chrome-css")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpBosDesktopChrome.razor", "ecomae-bos-chrome-css")]
+    public void DesktopChrome_MarksBodyInlineCssFallback(string relative, string marker)
+    {
+        var src = File.ReadAllText(FindRepoFile(relative));
+        Assert.Contains(marker, src, StringComparison.Ordinal);
+        Assert.Contains("body-inline", src, StringComparison.Ordinal);
     }
 
     [Fact]

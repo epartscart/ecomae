@@ -1,8 +1,12 @@
 @inherits LayoutComponentBase
-@* Blank layout for PHP-parity presentation/login shells — no migration-console chrome. *@
+@* Blank layout for PHP-parity presentation/login shells — no migration-console chrome.
+   Body <style> duplicates HeadContent because live SSR drops HeadOutlet for login shells. *@
 <HeadContent>
 <style>
     html, body { margin: 0; padding: 0; }
 </style>
 </HeadContent>
+<style>
+    html, body { margin: 0; padding: 0; }
+</style>
 @Body
