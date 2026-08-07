@@ -105,7 +105,7 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/perception", "GET", "Part 3 Ch.14 perception digest"),
         new("/lifeos/prediction", "GET", "Part 3 Ch.19 prediction digest"),
         new("/lifeos/ethics", "GET", "Part 3 Ch.23 ethical AI digest"),
-        new("/lifeos/spec", "GET", "Master spec Parts 1–10 digest"),
+        new("/lifeos/spec/json", "GET", "Master spec Parts 1–10 JSON digest"),
         new("/lifeos/multimodal", "GET", "Part 4 Ch.26–41 multimodal runtime digest"),
         new("/lifeos/runtime-tick", "POST", "Part 4 runtime input tick dry-run"),
         new("/lifeos/devices", "GET", "Part 4 device ecosystem"),

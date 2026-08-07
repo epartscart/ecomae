@@ -79,7 +79,7 @@ public static class EcomaeEcosystemCatalog
         new("clients", "Client UX", "Part 8 experience", "/lifeos/clients-app", "scaffold"),
         new("plugins", "Ecosystem", "Part 9 marketplace", "/lifeos/plugins-app", "scaffold"),
         new("roadmap", "Part 10 Roadmap", "Execution strategy Ch.151–168", "/lifeos/roadmap-app", "scaffold"),
-        new("spec", "Master Spec", "Parts 1–10 registry", "/lifeos/spec-app", "scaffold"),
+        new("spec", "Master Spec", "Parts 1–10 registry", "/lifeos/spec", "scaffold"),
         new("guide", "CP system guide", "Full visual + link catalog", "/cp/lifeos-guide-app", "live"),
     ];
 

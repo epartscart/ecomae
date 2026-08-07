@@ -26,7 +26,9 @@ public sealed class LifeOsLinkCatalogTests
         Assert.Contains(LifeOsLinkCatalog.FrontendApps, r => r.Path == "/cp/lifeos-guide-app");
         Assert.Contains(LifeOsLinkCatalog.FrontendApps, r => r.Path == "/ip");
         Assert.Contains(LifeOsLinkCatalog.FrontendApps, r => r.Path == "/lifeos");
-        Assert.Contains(backend, r => r.Path == "/lifeos/spec");
+        Assert.Contains(LifeOsLinkCatalog.FrontendApps, r => r.Path == "/lifeos/spec");
+        Assert.Contains(backend, r => r.Path == "/lifeos/spec/json");
+        Assert.DoesNotContain(backend, r => r.Path == "/lifeos/spec");
         Assert.Contains(backend, r => r.Path == "/lifeos/orchestrate" && r.Method == "POST");
     }
 
