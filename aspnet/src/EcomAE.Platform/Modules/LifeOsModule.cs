@@ -7,6 +7,7 @@ using EcomAE.Platform.LifeOs.Part4;
 using EcomAE.Platform.LifeOs.Part5;
 using EcomAE.Platform.LifeOs.Part6;
 using EcomAE.Platform.LifeOs.Part7;
+using EcomAE.Platform.LifeOs.Part8;
 using EcomAE.Platform.LifeOs.Spec;
 using EcomAE.Platform.Routing;
 
@@ -226,8 +227,35 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsEnterpriseDeploy, (ILifeOsSecurityGovernance gov) =>
             Results.Ok(gov.EnterpriseAndDeploymentDigest()));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsClients, (ILifeOsMasterSpec spec) =>
-            Results.Ok(new { ok = true, part = 8, clients = spec.Clients }));
+        // ── Part 8 digests (Ch.102–125 Client UX / Cross-Platform) ────────────
+        endpoints.MapGet(EcomAeRoutes.LifeOsClients, (
+            ILifeOsClientExperience ux,
+            ILifeOsMasterSpec spec) =>
+            Results.Ok(new
+            {
+                ok = true,
+                part = 8,
+                digest = ux.FullPart8Digest(),
+                legacyClients = spec.Clients
+            }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsDesignSystem, (ILifeOsClientExperience ux) =>
+            Results.Ok(ux.DesignAndNavigationDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsWorkspaceUx, (ILifeOsClientExperience ux) =>
+            Results.Ok(ux.WorkspaceAndSearchDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsModalityClients, (ILifeOsClientExperience ux) =>
+            Results.Ok(ux.ModalityClientsDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsContinuity, (ILifeOsClientExperience ux) =>
+            Results.Ok(ux.ContinuityAccessibilityOfflineDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsPersonalization, (ILifeOsClientExperience ux) =>
+            Results.Ok(ux.PersonalizationAndFocusDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsUxMetrics, (ILifeOsClientExperience ux) =>
+            Results.Ok(ux.MetricsAndTwinDigest()));
 
         endpoints.MapGet(EcomAeRoutes.LifeOsPlugins, (ILifeOsMasterSpec spec, ILifeOsPlatformEngineering platform) =>
             Results.Ok(new { ok = true, part = 9, plugins = spec.Plugins, samples = platform.SamplePlugins }));
@@ -249,7 +277,8 @@ public sealed class LifeOsModule : ISurfaceModule
             ILifeOsMultimodalRuntime runtime,
             ILifeOsPlatformEngineering platform,
             ILifeOsCloudOperations ops,
-            ILifeOsSecurityGovernance gov) =>
+            ILifeOsSecurityGovernance gov,
+            ILifeOsClientExperience ux) =>
             Results.Ok(spec.FullDigest(cognitive, new
             {
                 part2 = orch.ArchitectureDigest(),
@@ -257,7 +286,8 @@ public sealed class LifeOsModule : ISurfaceModule
                 part4 = runtime.FullPart4Digest(),
                 part5 = platform.FullPart5Digest(),
                 part6 = ops.FullPart6Digest(),
-                part7 = gov.FullPart7Digest()
+                part7 = gov.FullPart7Digest(),
+                part8 = ux.FullPart8Digest()
             })));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (

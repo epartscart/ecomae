@@ -6,13 +6,14 @@ using EcomAE.Platform.LifeOs.Part4;
 using EcomAE.Platform.LifeOs.Part5;
 using EcomAE.Platform.LifeOs.Part6;
 using EcomAE.Platform.LifeOs.Part7;
+using EcomAE.Platform.LifeOs.Part8;
 using EcomAE.Platform.LifeOs.Spec;
 
 namespace EcomAE.Platform.LifeOs;
 
 public static class LifeOsServiceCollectionExtensions
 {
-    /// <summary>Registers LifeOS Parts 2–10 scaffold (bus, engines, AI, multimodal, platform, cloud ops, security, master spec).</summary>
+    /// <summary>Registers LifeOS Parts 2–10 scaffold (bus, engines, AI, multimodal, platform, ops, security, clients, master spec).</summary>
     public static IServiceCollection AddLifeOsPart2Scaffold(this IServiceCollection services)
     {
         services.AddSingleton<ILifeOsEventBus, InMemoryLifeOsEventBus>();
@@ -31,6 +32,7 @@ public static class LifeOsServiceCollectionExtensions
         services.AddSingleton<ILifeOsPlatformEngineering, LifeOsPlatformEngineering>();
         services.AddSingleton<ILifeOsCloudOperations, LifeOsCloudOperations>();
         services.AddSingleton<ILifeOsSecurityGovernance, LifeOsSecurityGovernance>();
+        services.AddSingleton<ILifeOsClientExperience, LifeOsClientExperience>();
         services.AddSingleton<ILifeOsMasterSpec, LifeOsMasterSpec>();
         return services;
     }

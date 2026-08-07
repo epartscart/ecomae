@@ -1,11 +1,11 @@
-@page "/lifeos/infra-app"
+@page "/lifeos/clients-app"
 @layout Layout.PhpChromeLayout
-@using EcomAE.Platform.LifeOs.Part6
+@using EcomAE.Platform.LifeOs.Part8
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
-@inject ILifeOsCloudOperations Ops
+@inject ILifeOsClientExperience Ux
 
-<PageTitle>LifeOS™ · Part 6 Cloud Infrastructure</PageTitle>
+<PageTitle>LifeOS™ · Part 8 Client Experience</PageTitle>
 <PhpSurfaceHead Surface="lifeos" />
 <PhpChromeBodyClass Surface="lifeos" />
 
@@ -50,87 +50,88 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
     <div class="brand">Life<em>OS</em>™</div>
     <nav>
       <a href="@EcomAeRoutes.LifeOs">Home</a>
-      <a href="@EcomAeRoutes.LifeOsPlatformApp">Part 5</a>
-      <a href="@EcomAeRoutes.LifeOsInfraApp">Part 6</a>
       <a href="@EcomAeRoutes.LifeOsSecurityApp">Part 7</a>
       <a href="@EcomAeRoutes.LifeOsClientsApp">Part 8</a>
       <a href="@EcomAeRoutes.LifeOsSpecApp">Spec</a>
-      <a href="@EcomAeRoutes.LifeOsInfra">JSON</a>
+      <a href="@EcomAeRoutes.LifeOsClients">JSON</a>
     </nav>
   </header>
   <main class="lo-main">
-    <h1>Part 6 — Cloud Infrastructure &amp; Ops</h1>
+    <h1>Part 8 — Client Experience</h1>
     <p>
-      Planet-scale ops scaffold: multi-region Kubernetes, service mesh, IaC, CI/CD, GPU &amp; model serving,
-      backup/DR, observability, edge, performance budgets, and SRE (Ch.61–81).
+      Cross-platform UX scaffold: Life Design System, intent navigation, AI workspace, semantic search,
+      modality clients (web→vehicle), continuity, accessibility, offline, personalization, and focus (Ch.102–125).
     </p>
 
     <div class="lo-chips">
-      @foreach (var c in Ops.InfrastructureCapabilities)
+      @foreach (var p in Ux.ExperiencePrinciples)
+      {
+        <span>@p.Title</span>
+      }
+    </div>
+
+    <h2 class="lo-h2">Client ecosystem (@Ux.ClientPlatforms.Count)</h2>
+    <div class="lo-grid">
+      @foreach (var family in Ux.ClientPlatforms.Select(c => c.Family).Distinct())
+      {
+        var items = Ux.ClientPlatforms.Where(c => c.Family == family).ToList();
+        <article>
+          <strong>@family</strong>
+          <span>@string.Join(" · ", items.Select(i => i.Title))</span>
+        </article>
+      }
+    </div>
+
+    <h2 class="lo-h2">Life Design System components</h2>
+    <div class="lo-chips">
+      @foreach (var c in Ux.DesignComponents)
       {
         <span>@c.Title</span>
       }
     </div>
 
-    <h2 class="lo-h2">Regions</h2>
-    <div class="lo-grid">
-      @foreach (var r in Ops.Regions)
+    <h2 class="lo-h2">AI Workspace</h2>
+    <div class="lo-chips">
+      @foreach (var m in Ux.AiWorkspaceModules)
       {
-        <article>
-          <strong>@r.Title</strong>
-          <span>Role: @r.Role · K8s + Postgres + Redis + pgvector + object storage</span>
-        </article>
+        <span>@m.Title</span>
       }
     </div>
 
-    <h2 class="lo-h2">Kubernetes node pools</h2>
-    <div class="lo-grid">
-      @foreach (var p in Ops.NodePools)
+    <h2 class="lo-h2">Dashboards</h2>
+    <table class="lo-table">
+      <thead><tr><th>Dashboard</th><th>Panels</th></tr></thead>
+      <tbody>
+      @foreach (var d in Ux.DashboardKinds)
       {
-        <article>
-          <strong>@p.Title</strong>
-          <span>@p.Hardware — @string.Join(", ", p.Workloads)</span>
-        </article>
+        <tr>
+          <td><strong>@d.Title</strong></td>
+          <td>@string.Join(", ", d.Panels)</td>
+        </tr>
+      }
+      </tbody>
+    </table>
+
+    <h2 class="lo-h2">Focus modes</h2>
+    <div class="lo-chips">
+      @foreach (var f in Ux.FocusModes)
+      {
+        <span>@f.Title</span>
       }
     </div>
 
-    <h2 class="lo-h2">Performance targets</h2>
-    <table class="lo-table">
-      <thead><tr><th>Component</th><th>Target</th></tr></thead>
-      <tbody>
-      @foreach (var t in Ops.PerformanceTargets)
+    <h2 class="lo-h2">Accessibility</h2>
+    <div class="lo-chips">
+      @foreach (var a in Ux.AccessibilitySupports)
       {
-        <tr><td>@t.Component</td><td>@t.Target</td></tr>
+        <span>@a.Title</span>
       }
-      </tbody>
-    </table>
-
-    <h2 class="lo-h2">SRE objectives</h2>
-    <table class="lo-table">
-      <thead><tr><th>Objective</th><th>Target</th></tr></thead>
-      <tbody>
-      @foreach (var o in Ops.SreObjectives)
-      {
-        <tr><td>@o.Title</td><td>@o.Target</td></tr>
-      }
-      </tbody>
-    </table>
-
-    <h2 class="lo-h2">Production readiness (sample)</h2>
-    <table class="lo-table">
-      <thead><tr><th>Category</th><th>Item</th><th>Status</th></tr></thead>
-      <tbody>
-      @foreach (var item in Ops.ProductionReadinessChecklist.Take(12))
-      {
-        <tr><td>@item.Category</td><td>@item.Item</td><td>@item.Status</td></tr>
-      }
-      </tbody>
-    </table>
+    </div>
 
     <div class="lo-note">
-      Digests: <code>/lifeos/infra</code>, <code>/kubernetes</code>, <code>/cicd</code>, <code>/gpu</code>,
-      <code>/backup-dr</code>, <code>/observability</code>, <code>/sre</code>, <code>/readiness</code>.
-      Live today remains ASP.NET on Kestrel behind nginx — multi-region K8s/Istio/GPU fleet not claimed.
+      Digests: <code>/lifeos/clients</code>, <code>/design-system</code>, <code>/workspace-ux</code>,
+      <code>/modality-clients</code>, <code>/continuity</code>, <code>/personalization</code>, <code>/ux-metrics</code>.
+      Web console is live-scaffold; native mobile/desktop/glasses/vehicle clients not claimed.
     </div>
   </main>
 </div>

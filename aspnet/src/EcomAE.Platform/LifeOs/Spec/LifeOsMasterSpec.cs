@@ -50,15 +50,21 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
                 "Enterprise Admin", "Data Residency", "SOC", "Governance Dashboard", "Deployment Models"
             ],
             ["ILifeOsSecurityGovernance", "Zero Trust/IAM/AI Safety digests", "/lifeos/security"]),
-        P(8, "Client Applications & User Experience Architecture", "registry",
+        P(8, "Client Applications, User Experience & Cross-Platform Architecture", "scaffold",
             [
-                "Web", "Mobile", "Desktop", "Smart Glasses", "Wearables", "Vehicle",
-                "Design System", "Interaction Patterns", "Accessibility", "Offline", "Cross-Device Continuity"
+                "UX Vision", "Client Ecosystem", "Life Design System", "Universal Navigation",
+                "AI Workspace", "Universal Search", "Dashboards", "VUI", "Chat", "Widgets",
+                "Productivity", "Mobile", "Desktop", "Glasses", "Wearables", "Vehicle",
+                "Continuity", "Accessibility", "Offline", "Personalization", "Focus",
+                "Multi-User", "Digital Twin", "UX Metrics"
             ],
-            ["Client surface registry", "Channel capabilities", "Part 8 chapters pending paste"]),
-        P(9, "Plugin Marketplace & Agent SDK", "scaffold",
-            ["Agent SDK", "Plugin manifests", "Developer platform"],
-            ["Plugin catalog stubs", "Capability declarations"]),
+            ["ILifeOsClientExperience", "LDS + modality clients", "/lifeos/clients", "/lifeos/clients-app"]),
+        P(9, "Ecosystem Platform — Marketplace, Agent Store & Developer Portal", "registry",
+            [
+                "Marketplace", "Agent Store", "Plugin SDK", "Developer Portal", "API Marketplace",
+                "Billing", "Licensing", "Monetization", "Community", "Ecosystem Strategy"
+            ],
+            ["Plugin catalog stubs", "Capability declarations", "Part 9 chapters pending paste"]),
         P(10, "Production, Testing, Roadmap, Research", "scaffold",
             ["Deployment", "Test floors", "Roadmap", "Future research"],
             ["Evidence JSON", "Unit tests", "Research backlog"]),
@@ -122,7 +128,13 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/ai-governance", "GET", "Part 7 AI governance + safety engine"),
         new("/lifeos/threat-soc", "GET", "Part 7 threat detection + SOC + dashboards"),
         new("/lifeos/enterprise-deploy", "GET", "Part 7 enterprise admin + residency + deploy models"),
-        new("/lifeos/clients", "GET", "Part 8 client surfaces"),
+        new("/lifeos/clients", "GET", "Part 8 Ch.102–125 client UX digest"),
+        new("/lifeos/design-system", "GET", "Part 8 Life Design System + navigation"),
+        new("/lifeos/workspace-ux", "GET", "Part 8 AI workspace/search/dashboards/VUI/chat"),
+        new("/lifeos/modality-clients", "GET", "Part 8 mobile/desktop/glasses/wearable/vehicle"),
+        new("/lifeos/continuity", "GET", "Part 8 continuity + a11y + offline"),
+        new("/lifeos/personalization", "GET", "Part 8 personalization + focus + multi-user"),
+        new("/lifeos/ux-metrics", "GET", "Part 8 digital twin + UX metrics"),
         new("/lifeos/plugins", "GET", "Part 9 plugin marketplace"),
         new("/lifeos/roadmap", "GET", "Part 10 roadmap & research"),
     ];
@@ -182,11 +194,16 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
             note = "Full Part 7 digest at /lifeos/security",
             principles = new[] { "Zero Trust", "Privacy by Design", "Least Privilege", "Defense in Depth", "Explainable AI" }
         },
-        part8 = new { clients = Clients },
-        part9 = new { plugins = Plugins },
+        part8 = new
+        {
+            clients = Clients,
+            note = "Full Part 8 digest at /lifeos/clients",
+            principles = new[] { "Natural", "Predictive", "Non-intrusive", "Consistent", "Adaptive", "Explainable", "Accessible", "Fast" }
+        },
+        part9 = new { plugins = Plugins, note = "Part 9 ecosystem marketplace chapters pending paste" },
         part10 = new
         {
-            testing = "LifeOsPart2 + Part3 + Part4 + Part5 + Part6 + Part7Security + MasterSpec tests",
+            testing = "LifeOsPart2–Part8ClientUx + MasterSpec tests",
             roadmap = new[]
             {
                 "Wire durable memory + pgvector",
