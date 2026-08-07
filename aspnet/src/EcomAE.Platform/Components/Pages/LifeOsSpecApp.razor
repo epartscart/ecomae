@@ -1,0 +1,78 @@
+@page "/lifeos/spec-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.LifeOs.Orchestrator
+@using EcomAE.Platform.LifeOs.Spec
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILifeOsMasterSpec Spec
+@inject ILifeOsCognitiveEngines Cognitive
+
+<PageTitle>LifeOS™ Master Spec v4.0</PageTitle>
+<PhpSurfaceHead Surface="lifeos" />
+<PhpChromeBodyClass Surface="lifeos" />
+
+<HeadContent>
+<link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
+<style>
+:root {
+  --lo-ink:#0a1f1c; --lo-sea:#0f766e; --lo-sun:#f59e0b; --lo-paper:#f4faf8;
+  --lo-display:"Instrument Serif", Georgia, serif; --lo-sans:"Manrope","Segoe UI",sans-serif;
+}
+body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); font-family:var(--lo-sans); }
+.lo-top {
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  padding:1rem clamp(1rem,3vw,2rem);
+  background:linear-gradient(90deg,#062a26,#0f766e 55%,#134e4a); color:#ecfdf5;
+}
+.lo-top .brand { font-family:var(--lo-display); font-size:1.55rem; }
+.lo-top .brand em { font-style:italic; color:#99f6e4; }
+.lo-top nav { display:flex; flex-wrap:wrap; gap:.85rem; font-size:.82rem; font-weight:700; }
+.lo-top a { color:#ccfbf1; text-decoration:none; }
+.lo-main { padding:1.4rem clamp(1rem,3vw,2.25rem) 2.5rem; max-width:76rem; margin:0 auto; }
+.lo-main h1 { font-family:var(--lo-display); font-weight:400; font-size:clamp(1.7rem,3.6vw,2.4rem); margin:.1rem 0 .4rem; }
+.lo-main > p { max-width:44rem; color:#334155; line-height:1.5; }
+.lo-parts { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.7rem; margin:1.2rem 0; }
+.lo-parts article { padding:.95rem; border:1px solid #cce5de; border-radius:.4rem; background:#fff; }
+.lo-parts strong { display:block; margin-bottom:.25rem; }
+.lo-parts em { font-style:normal; font-size:.72rem; font-weight:800; color:var(--lo-sea); text-transform:uppercase; }
+.lo-parts span { display:block; margin-top:.35rem; font-size:.8rem; color:#475569; line-height:1.35; }
+.lo-note { margin-top:1.4rem; padding:1rem; border-left:3px solid var(--lo-sun); background:#fffbeb; color:#78350f; font-size:.86rem; }
+</style>
+</HeadContent>
+
+<div class="lifeos-ambient">
+  <header class="lo-top">
+    <div class="brand">Life<em>OS</em>™</div>
+    <nav>
+      <a href="@EcomAeRoutes.LifeOs">Home</a>
+      <a href="@EcomAeRoutes.LifeOsArchitectureApp">Part 2</a>
+      <a href="@EcomAeRoutes.LifeOsSpecApp">Spec 1–10</a>
+      <a href="@EcomAeRoutes.LifeOsSpec">JSON</a>
+      <a href="@EcomAeRoutes.IpLogin">IP login</a>
+    </nav>
+  </header>
+  <main class="lo-main">
+    <h1>Master Technical Specification v@Spec.Version</h1>
+    <p>Complete Parts 1–10 registry for the Universal Ambient AI Operating System — scaffold status on the ecomae Intelligence Platform.</p>
+    <div class="lo-parts">
+      @foreach (var part in Spec.Parts)
+      {
+        <article>
+          <em>Part @part.Number · @part.Status</em>
+          <strong>@part.Title</strong>
+          <span>@string.Join(" · ", part.Chapters)</span>
+        </article>
+      }
+    </div>
+    <p style="font-size:.9rem;color:#475569;">
+      Personality: <strong>@Cognitive.Personality.Tone</strong> ·
+      Empathy <strong>@Cognitive.Personality.Empathy</strong> ·
+      Formality <strong>@Cognitive.Personality.Formality</strong>
+    </p>
+    <div class="lo-note">
+      Scaffold only — digests at <code>/lifeos/spec</code>, <code>/lifeos/cognitive</code>,
+      <code>/lifeos/multimodal</code>, <code>/lifeos/security</code>, <code>/lifeos/clients</code>,
+      <code>/lifeos/plugins</code>, <code>/lifeos/roadmap</code>. Live LLMs and native clients not claimed.
+    </div>
+  </main>
+</div>

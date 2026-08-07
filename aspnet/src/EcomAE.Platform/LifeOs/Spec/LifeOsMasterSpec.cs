@@ -1,0 +1,148 @@
+namespace EcomAE.Platform.LifeOs.Spec;
+
+public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
+{
+    public string Version => "4.0";
+
+    public IReadOnlyList<LifeOsSpecPart> Parts { get; } =
+    [
+        P(1, "Vision & Brain Foundations", "scaffold",
+            ["Purpose", "Mission", "Principles", "Product Definition", "Cognitive Model", "LifeOS Brain"],
+            ["Marketing home", "Nine brain engines UI", "IP ecosystem hub"]),
+        P(2, "Core System Architecture", "scaffold",
+            ["Orchestrator", "Event Bus", "Context Engine", "Memory System", "Multi-Agent", "Planning Engine"],
+            ["In-memory bus", "30 agents", "POST /lifeos/orchestrate", "Part 2 console"]),
+        P(3, "AI & Cognitive Systems", "scaffold",
+            ["Reasoning Engine", "Decision Engine", "Learning Engine", "Personality Engine"],
+            ["Explainable traces", "Human-approval decisions", "Learning signals"]),
+        P(4, "Multimodal Input", "scaffold",
+            ["Voice", "Vision", "Desktop", "Wearables"],
+            ["Adapter registry", "Event normalization hooks"]),
+        P(5, "APIs, SDKs, Schemas, Event Models", "scaffold",
+            ["REST digests", "Event JSON models", "SDK surface map", "Schema stubs"],
+            ["OpenAPI-oriented route catalog", "Shared DTOs"]),
+        P(6, "Cloud, Kubernetes, DevOps, Monitoring", "scaffold",
+            ["Topology", "Scalability", "Observability", "GitOps"],
+            ["Deploy paste", "Health probes", "FORCE_LIVE republish note"]),
+        P(7, "Security, Privacy, Compliance, Enterprise", "scaffold",
+            ["Privacy by design", "Permission gates", "Audit", "Compliance map"],
+            ["Local-first controls", "Irreversible-action policy"]),
+        P(8, "Native Clients", "scaffold",
+            ["Mobile", "Desktop", "Smart Glasses", "IoT"],
+            ["Client surface registry", "Channel capabilities"]),
+        P(9, "Plugin Marketplace & Agent SDK", "scaffold",
+            ["Agent SDK", "Plugin manifests", "Developer platform"],
+            ["Plugin catalog stubs", "Capability declarations"]),
+        P(10, "Production, Testing, Roadmap, Research", "scaffold",
+            ["Deployment", "Test floors", "Roadmap", "Future research"],
+            ["Evidence JSON", "Unit tests", "Research backlog"]),
+    ];
+
+    public IReadOnlyList<LifeOsModalityAdapter> MultimodalAdapters { get; } =
+    [
+        new("voice", "Voice Input", "microphone/wearable", "scaffold", ["ASR", "wake-word", "TTS"]),
+        new("vision", "Vision Input", "camera", "scaffold", ["keyframes", "OCR", "pose"]),
+        new("desktop", "Desktop Signals", "screen/OS", "scaffold", ["screen-change", "active-app", "clipboard-policy"]),
+        new("wearable", "Wearables", "sensors", "scaffold", ["heart-rate", "motion", "location"]),
+    ];
+
+    public IReadOnlyList<LifeOsApiSurface> ApiSurfaces { get; } =
+    [
+        new("/lifeos/architecture", "GET", "Part 2 architecture digest"),
+        new("/lifeos/events", "GET", "Event bus recent + types"),
+        new("/lifeos/memory", "GET", "Layered memory snapshot"),
+        new("/lifeos/agents", "GET", "Agent catalog"),
+        new("/lifeos/plans", "GET", "Sample planning workflow"),
+        new("/lifeos/context", "GET", "Context source registry"),
+        new("/lifeos/orchestrate", "POST", "Dry-run orchestration"),
+        new("/lifeos/cognitive", "GET", "Part 3 cognitive engines digest"),
+        new("/lifeos/spec", "GET", "Master spec Parts 1–10 digest"),
+        new("/lifeos/multimodal", "GET", "Part 4 modality adapters"),
+        new("/lifeos/security", "GET", "Part 7 security controls"),
+        new("/lifeos/clients", "GET", "Part 8 client surfaces"),
+        new("/lifeos/plugins", "GET", "Part 9 plugin marketplace"),
+        new("/lifeos/roadmap", "GET", "Part 10 roadmap & research"),
+    ];
+
+    public IReadOnlyList<LifeOsSecurityControl> SecurityControls { get; } =
+    [
+        new("SEC-01", "privacy", "Local-first perception (face/voice/OCR preprocess)", "policy-scaffold"),
+        new("SEC-02", "consent", "No private share without explicit consent", "enforced-in-orchestrator-scaffold"),
+        new("SEC-03", "control", "Irreversible actions require human approval", "enforced-in-decision-scaffold"),
+        new("SEC-04", "explain", "Recommendations carry reasoning + confidence", "scaffold"),
+        new("SEC-05", "tenant", "IP/BOS Super-CP host gate — no tenant leak", "live"),
+        new("SEC-06", "audit", "Operator login + orchestration traces", "partial"),
+        new("SEC-07", "compliance", "Enterprise retention & residency map", "roadmap"),
+    ];
+
+    public IReadOnlyList<LifeOsClientSurface> Clients { get; } =
+    [
+        new("web", "LifeOS Web Console", "browser", "live-scaffold"),
+        new("mobile", "LifeOS Mobile", "iOS/Android", "roadmap"),
+        new("desktop", "LifeOS Desktop", "Win/macOS/Linux", "roadmap"),
+        new("glasses", "Smart Glasses", "AR wearable", "research"),
+        new("iot", "IoT / Home", "edge devices", "research"),
+    ];
+
+    public IReadOnlyList<LifeOsPluginDescriptor> Plugins { get; } =
+    [
+        new("sdk-agent", "Agent SDK", "sdk", "scaffold"),
+        new("plugin-calendar", "Calendar Connector", "plugin", "scaffold"),
+        new("plugin-health", "Health Wearable Bridge", "plugin", "scaffold"),
+        new("plugin-code", "Developer Tools Bridge", "plugin", "scaffold"),
+        new("marketplace", "Plugin Marketplace Hub", "platform", "roadmap"),
+    ];
+
+    public object FullDigest(ILifeOsCognitiveEngines cognitive, object? part2Architecture) => new
+    {
+        ok = true,
+        product = "LifeOS™",
+        title = "Universal Ambient Artificial Intelligence Operating System",
+        version = Version,
+        status = "Confidential – Internal Architecture Blueprint (scaffold)",
+        parts = Parts,
+        part2 = part2Architecture,
+        part3 = cognitive.Digest(),
+        part4 = new { multimodal = MultimodalAdapters },
+        part5 = new { apis = ApiSurfaces, note = "DTO models under LifeOs.Models + Spec" },
+        part6 = new
+        {
+            cloud = "ASP.NET primary on Kestrel :5100 behind nginx/CloudPanel",
+            k8s = "roadmap",
+            deploy = "scripts/cloudpanel_FORCE_LIVE_NOW.sh after merge to main",
+            monitoring = "health checks + migration digests"
+        },
+        part7 = new { controls = SecurityControls },
+        part8 = new { clients = Clients },
+        part9 = new { plugins = Plugins },
+        part10 = new
+        {
+            testing = "LifeOsPart2ScaffoldTests + LifeOsMasterSpecTests",
+            roadmap = new[]
+            {
+                "Wire durable memory + vector store",
+                "Live LLM reasoning behind Safety Engine",
+                "Kafka event bus option",
+                "Mobile/desktop clients",
+                "Plugin marketplace GA"
+            },
+            research = new[]
+            {
+                "Lifelong personalization under privacy constraints",
+                "On-device multimodal models",
+                "Explainability UX for ambient decisions"
+            }
+        },
+        notClaimed = new[]
+        {
+            "Production multimodal perception",
+            "Durable memory / vector DB",
+            "Live LLM inference",
+            "Kafka/Rabbit wiring",
+            "Native mobile/desktop/glasses shipping binaries"
+        }
+    };
+
+    private static LifeOsSpecPart P(int n, string title, string status, string[] chapters, string[] deliverables)
+        => new(n, title, status, chapters, deliverables);
+}

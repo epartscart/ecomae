@@ -7,6 +7,7 @@
 @inject NavigationManager Nav
 
 <PageTitle>Intelligence Platform — ecomae</PageTitle>
+@* Same BOS login shell + same Super-CP admin credentials (shared login bridge). *@
 <PhpSurfaceHead Surface="ip" IncludeLoginCss="true" />
 <PhpChromeBodyClass Surface="ip" LoginChrome="true" />
 
@@ -14,14 +15,26 @@
 <style>
     html:has(.ip-login),
     body:has(.ip-login),
-    body.epc-ip-login {
-        background: linear-gradient(145deg, #020617 0%, #0a1628 40%, #0c1f2e 70%, #071018 100%) !important;
+    body.epc-ip-login,
+    body.bos-body--login {
+        background: linear-gradient(135deg, #020617 0%, #0c1222 30%, #091428 60%, #050d1a 100%) !important;
         color: #e2e8f0 !important;
         min-height: 100vh;
         overflow-x: hidden;
     }
-    .epc-login-bos.ip-login { width:100%; min-height:100vh; display:flex; position:relative; }
-    .bos-login__error.is-visible { display:flex; align-items:center; gap:.4rem; }
+    .epc-login-bos.ip-login {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        position: relative;
+        background: transparent;
+        color: #e2e8f0;
+    }
+    .bos-login__error.is-visible {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
 </style>
 </HeadContent>
 
@@ -30,8 +43,8 @@
                            Theme="cyan-stars"
                            Industry="platform"
                            ParticleColors="@(new[] {
-                               "rgba(45,212,191,.75)", "rgba(56,189,248,.65)", "rgba(250,204,21,.35)",
-                               "rgba(255,255,255,.3)", "rgba(34,211,238,.45)"
+                               "rgba(14,165,233,.8)", "rgba(56,189,248,.7)", "rgba(45,212,191,.55)",
+                               "rgba(255,255,255,.35)", "rgba(250,204,21,.35)"
                            })" />
 
     <div class="bos-login__hero">
@@ -57,25 +70,47 @@
                     </div>
                 </div>
                 <div class="bos-login__cap-item bos-login__cap-item--2">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--ai"><i class="fa fa-heartbeat"></i></div>
+                    <div class="bos-login__cap-icon bos-login__cap-icon--ecom"><i class="fa fa-heartbeat"></i></div>
                     <div class="bos-login__cap-text">
                         <strong>LifeOS™</strong>
-                        <span>Universal Ambient AI Operating System</span>
+                        <span>Universal Ambient Artificial Intelligence</span>
                     </div>
                 </div>
                 <div class="bos-login__cap-item bos-login__cap-item--3">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--ecom"><i class="fa fa-globe"></i></div>
+                    <div class="bos-login__cap-icon bos-login__cap-icon--compliance"><i class="fa fa-globe"></i></div>
                     <div class="bos-login__cap-text">
                         <strong>Ambient OS Suite</strong>
                         <span>Health · Edu · Home · Retail · Industry · City</span>
                     </div>
                 </div>
                 <div class="bos-login__cap-item bos-login__cap-item--4">
-                    <div class="bos-login__cap-icon bos-login__cap-icon--compliance"><i class="fa fa-shield"></i></div>
+                    <div class="bos-login__cap-icon bos-login__cap-icon--ai"><i class="fa fa-magic"></i></div>
                     <div class="bos-login__cap-text">
-                        <strong>Operator Control</strong>
-                        <span>Super-CP host · privacy by design</span>
+                        <strong>Same BOS credentials</strong>
+                        <span>Super-CP operator session · shared login bridge</span>
                     </div>
+                </div>
+            </div>
+
+            <div class="bos-login__stats-bar">
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="8">0</span>
+                    <span class="bos-login__stat-label">OS Products</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="9">0</span>
+                    <span class="bos-login__stat-label">Brain Engines</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="30">0</span>
+                    <span class="bos-login__stat-label">Agents</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="10">0</span>
+                    <span class="bos-login__stat-label">Spec Parts</span>
                 </div>
             </div>
         </div>
@@ -83,11 +118,23 @@
 
     <div class="bos-login__panel">
         <div class="bos-login__panel-inner">
-            <div class="bos-login__form-wrap bos-login__form-wrap--active">
+            <div class="bos-login__role-tabs">
+                <button type="button" class="bos-login__role-tab bos-login__role-tab--active" data-role="provider" id="ipTabProvider">
+                    <i class="fa fa-shield"></i>
+                    <span>Platform Operator</span>
+                </button>
+                <button type="button" class="bos-login__role-tab" data-role="erp" id="ipTabErp">
+                    <i class="fa fa-university"></i>
+                    <span>ERP Customer</span>
+                </button>
+            </div>
+
+            <div class="bos-login__form-wrap bos-login__form-wrap--active" id="ipFormProvider">
                 <div class="bos-login__form-header">
-                    <h2>Platform Operator</h2>
-                    <p>Sign in to the ecomae Intelligence Platform</p>
+                    <h2>Operator Access</h2>
+                    <p>Same credentials as <code>/bos/login</code> — Super-CP Intelligence Platform</p>
                 </div>
+                @* surface=ip uses the same DbLegacyAdminLoginService / admin cookies as BOS. *@
                 <form class="bos-login__form" id="ipLoginForm" method="post" action="@EcomAeRoutes.IpLogin">
                     <input type="hidden" name="surface" value="ip" />
                     <input type="hidden" name="redirect" value="/ip/app" />
@@ -102,15 +149,15 @@
                         <input type="password" id="ipPassword" name="password" required autocomplete="current-password" placeholder="Enter secure password" />
                         <div class="bos-login__field-line"></div>
                     </div>
-                    @if (!string.IsNullOrEmpty(_error))
+                    @if (!string.IsNullOrEmpty(_error) && _errorSurface != "erp")
                     {
-                        <div class="bos-login__error is-visible">
+                        <div class="bos-login__error is-visible" id="ipLoginError">
                             <i class="fa fa-exclamation-circle"></i> @_error
                         </div>
                     }
                     else
                     {
-                        <div class="bos-login__error"></div>
+                        <div class="bos-login__error" id="ipLoginError"></div>
                     }
                     <button type="submit" class="bos-login__btn">
                         <span class="bos-login__btn-text"><i class="fa fa-sign-in"></i> Sign In to IP</span>
@@ -118,25 +165,114 @@
                     </button>
                 </form>
                 <div class="bos-login__secure-badge">
-                    <i class="fa fa-lock"></i> Super-CP host only &middot; Session isolated &middot; Audit logged
+                    <i class="fa fa-lock"></i> Same BOS admin bridge &middot; Session isolated &middot; Audit logged
                 </div>
             </div>
+
+            <div class="bos-login__form-wrap" id="ipFormErp">
+                <div class="bos-login__form-header">
+                    <h2>ERP Access</h2>
+                    <p>Access your enterprise resource planning system</p>
+                </div>
+                <form class="bos-login__form" id="ipLoginFormErp" method="post" action="@EcomAeRoutes.ErpLogin">
+                    <input type="hidden" name="surface" value="erp" />
+                    <input type="hidden" name="redirect" value="/erp" />
+                    <input type="hidden" name="contact_type" value="email" />
+                    <div class="bos-login__field">
+                        <label for="ipErpEmail"><i class="fa fa-envelope-o"></i> Business Email</label>
+                        <input type="email" id="ipErpEmail" name="contact" required autocomplete="username" placeholder="finance@yourcompany.com" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    <div class="bos-login__field">
+                        <label for="ipErpPassword"><i class="fa fa-lock"></i> Password</label>
+                        <input type="password" id="ipErpPassword" name="password" required autocomplete="current-password" placeholder="Enter your password" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_error) && _errorSurface == "erp")
+                    {
+                        <div class="bos-login__error is-visible" id="ipLoginErrorErp">
+                            <i class="fa fa-exclamation-circle"></i> @_error
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="bos-login__error" id="ipLoginErrorErp"></div>
+                    }
+                    <button type="submit" class="bos-login__btn bos-login__btn--erp">
+                        <span class="bos-login__btn-text"><i class="fa fa-university"></i> Access ERP System</span>
+                        <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Connecting...</span>
+                    </button>
+                </form>
+                <div class="bos-login__erp-features">
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> General Ledger &amp; Financial Reporting</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Accounts Payable &amp; Receivable</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> HR, Payroll &amp; Workforce Management</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Inventory, Production &amp; Warehouse</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Tax Compliance &amp; E-Invoicing</div>
+                </div>
+                <div class="bos-login__secure-badge">
+                    <i class="fa fa-shield"></i> Database isolated &middot; Country-compliant &middot; Enterprise grade
+                </div>
+            </div>
+
             <div class="bos-login__footer">
                 <div class="bos-login__footer-brand">
                     <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
                     <span class="bos-login__footer-sep">&middot;</span>
-                    <span>Intelligence Platform</span>
+                    <span>Intelligence Platform · LifeOS ambient</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<PhpLifeOsAmbientAudio ButtonId="ipLifeOsAmbient" />
+
+<script>
+(function () {
+  function wireRoleTabs() {
+    var tabProvider = document.getElementById('ipTabProvider');
+    var tabErp = document.getElementById('ipTabErp');
+    var formProvider = document.getElementById('ipFormProvider');
+    var formErp = document.getElementById('ipFormErp');
+    if (!tabProvider || !tabErp || !formProvider || !formErp) return;
+    tabProvider.addEventListener('click', function () {
+      tabProvider.classList.add('bos-login__role-tab--active');
+      tabErp.classList.remove('bos-login__role-tab--active');
+      formProvider.classList.add('bos-login__form-wrap--active');
+      formErp.classList.remove('bos-login__form-wrap--active');
+    });
+    tabErp.addEventListener('click', function () {
+      tabErp.classList.add('bos-login__role-tab--active');
+      tabProvider.classList.remove('bos-login__role-tab--active');
+      formErp.classList.add('bos-login__form-wrap--active');
+      formProvider.classList.remove('bos-login__form-wrap--active');
+    });
+    if (document.body && document.body.getAttribute('data-bos-login-role') === 'erp') {
+      tabErp.click();
+    }
+  }
+  function boot() { wireRoleTabs(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+
 @code {
     private string? _error;
+    private string? _errorSurface;
 
     protected override void OnInitialized()
     {
         _error = LoginErrorHelper.FromUri(Nav.Uri);
+        if (Uri.TryCreate(Nav.Uri, UriKind.Absolute, out var parsed))
+        {
+            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(parsed.Query);
+            if (query.TryGetValue("role", out var role) &&
+                string.Equals(role.ToString(), "erp", StringComparison.OrdinalIgnoreCase))
+            {
+                _errorSurface = "erp";
+            }
+        }
     }
 }
