@@ -1,0 +1,19 @@
+{
+  "id": "lifeos-502-recover",
+  "title": "lifeos.ecomae.com Cloudflare 502 — origin :5100 down",
+  "date": "2026-08-07",
+  "probe": {
+    "lifeos": "HTTP/2 502 from Cloudflare (cf-ray present, body error code: 502)",
+    "www": "also failing / connect issues — shared ecomae-platform :5100",
+    "epartscart": "HTTP 200 (different prove surface / cached path)"
+  },
+  "diagnosis": "Cloudflare 502 on lifeos.ecomae.com / www.ecomae.com. Agent re-probe after user action still 502. Meanwhile https://www.epartscart.com/lifeos returns 200 (warmup splash) — so shared :5100 may already be up and the ecomae hostnames' Cloudflare origin/nginx vhost is the failure plane.",
+  "fix": "Re-run recover script (republish + lifeos nginx confirm + origin diagnostics). If local :5100 PASS but public FAIL, point Cloudflare A records for lifeos.ecomae.com and www.ecomae.com at the same origin IP as epartscart.",
+  "paste": "ECOMAE_BRANCH=cursor/www-lifeos-film-frontpage-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES bash -c \"$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/www-lifeos-film-frontpage-7b3b/scripts/cloudpanel_FORCE_LIVE_LIFEOS_502_RECOVER.sh)\" 2>&1 | tee /root/force-live-lifeos-502-recover.log",
+  "expect": "RESULT=PASS — lifeos.ecomae.com recovered from 502",
+  "agentProbeAfterAction": {
+    "lifeos": 502,
+    "www": 502,
+    "epartscart_lifeos": 200
+  }
+}

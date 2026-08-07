@@ -2,14 +2,14 @@
 # Republish :5100 + hard-prove www.ecomae.com marketing home (styled epm-hub).
 # Merge alone does NOT update the live binary or nginx snips.
 #
-# CloudPanel root paste (this PR — full site CSS rewrite + LifeOS film after hero):
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/www-marketing-full-site-7b3b/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
+# CloudPanel root paste (LifeOS film after hero + full marketing site):
+#   ECOMAE_BRANCH=cursor/www-lifeos-film-frontpage-7b3b bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/www-lifeos-film-frontpage-7b3b/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
 #
 # After merge to main:
 #   ECOMAE_BRANCH=main bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/www-marketing-full-site-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/www-lifeos-film-frontpage-7b3b}"
 export ECOMAE_BRANCH
 export ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
@@ -194,7 +194,9 @@ prove home-surface "$WWW_BASE/" 'ecomae-chrome-surface'
 prove home-hub "$WWW_BASE/" 'epm-hub'
 prove home-css-link "$WWW_BASE/" '/platform-assets/epc_ecomae_platform_marketing.css'
 prove home-lifeos-film "$WWW_BASE/" 'epm-lofilm'
+prove home-lifeos-title "$WWW_BASE/" 'Understand the LifeOS platform'
 prove home-lifeos-video "$WWW_BASE/" '/lifeos/media/lifeos-daily-clone-routine.mp4'
+prove home-sections "$WWW_BASE/" 'ehm-home-sections'
 prove home-not-storefront "$WWW_BASE/" 'ehm-'
 # Negative: storefront nero marker must not dominate home
 tmpn="$(mktemp)"

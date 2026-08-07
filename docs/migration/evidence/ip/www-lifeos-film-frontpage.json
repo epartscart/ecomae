@@ -1,0 +1,27 @@
+{
+  "id": "www-lifeos-film-frontpage",
+  "title": "www.ecomae.com frontpage — PHP-parity marketing + LifeOS film after hero",
+  "date": "2026-08-07",
+  "branch": "cursor/www-lifeos-film-frontpage-7b3b",
+  "problem": "Live www.ecomae.com returned Cloudflare 502 / incomplete home; LifeOS platform cinema needed after hero animation.",
+  "locks": {
+    "heroUntouched": true,
+    "cutoverAllowed": false,
+    "requirePhpFallback": true,
+    "keepPhpProjectAvailable": true
+  },
+  "homeOrder": [
+    "PhpEcomaeMarketingHub",
+    "PhpEcomaeLifeOsFilmBand",
+    "PhpEcomaeHomeSections",
+    "PhpEcomaeLaylaWidget"
+  ],
+  "film": {
+    "marker": "epm-lofilm",
+    "title": "Understand the LifeOS platform in one day.",
+    "video": "/lifeos/media/lifeos-daily-clone-routine.mp4",
+    "css": "/platform-assets/epc_ecomae_marketing_lifeos_film.css"
+  },
+  "forceLive": "ECOMAE_BRANCH=cursor/www-lifeos-film-frontpage-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES bash -c \"$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/www-lifeos-film-frontpage-7b3b/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)\" 2>&1 | tee /root/force-live-www-marketing.log",
+  "expect": "RESULT=PASS — www.ecomae.com full marketing site + LifeOS film after hero"
+}

@@ -19,9 +19,27 @@ public sealed class EcomaeMarketingHomeParityTests
         Assert.DoesNotContain("epc-moddir", text, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("php-reference/home", text, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("PhpEcomaeMarketingHub", text, StringComparison.Ordinal);
+        Assert.Contains("PhpEcomaeLifeOsFilmBand", text, StringComparison.Ordinal);
         Assert.Contains("PhpEcomaeHomeSections", text, StringComparison.Ordinal);
         Assert.Contains("PhpEcomaeLaylaWidget", text, StringComparison.Ordinal);
         Assert.Contains("Unified ERP", text, StringComparison.Ordinal);
+        Assert.True(text.IndexOf("PhpEcomaeMarketingHub", StringComparison.Ordinal)
+            < text.IndexOf("PhpEcomaeLifeOsFilmBand", StringComparison.Ordinal));
+        Assert.True(text.IndexOf("PhpEcomaeLifeOsFilmBand", StringComparison.Ordinal)
+            < text.IndexOf("PhpEcomaeHomeSections", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void LifeOsFilmBand_IsVideoForwardPlatformExplainer()
+    {
+        var path = FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeLifeOsFilmBand.razor");
+        var text = File.ReadAllText(path);
+        Assert.Contains("epm-lofilm", text, StringComparison.Ordinal);
+        Assert.Contains("epm-lofilm-video", text, StringComparison.Ordinal);
+        Assert.Contains("Understand the LifeOS platform", text, StringComparison.Ordinal);
+        Assert.Contains("Film.VideoUrl", text, StringComparison.Ordinal);
+        Assert.Contains("Explore LifeOS", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("class=\"epm-hub", text, StringComparison.Ordinal); // must not emit hero markup
     }
 
     [Fact]
