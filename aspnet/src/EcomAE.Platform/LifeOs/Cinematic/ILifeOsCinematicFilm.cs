@@ -9,6 +9,12 @@ public interface ILifeOsCinematicFilm
     /// <summary>Static path to the published 3:00 launch film (wwwroot).</summary>
     string VideoUrl { get; }
 
+    /// <summary>Download URL with Content-Disposition attachment (?download=1).</summary>
+    string VideoDownloadUrl { get; }
+
+    /// <summary>Legacy download path kept for bookmarks: /lifeos/cinematic/*.mp4</summary>
+    string VideoLegacyUrl { get; }
+
     /// <summary>Poster image for the HTML5 video element.</summary>
     string PosterUrl { get; }
 

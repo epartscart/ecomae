@@ -22,8 +22,13 @@ public sealed class LifeOsCinematicFilmTests
         Assert.Equal(180, digest.Scenes.Sum(s => s.DurationSeconds));
         Assert.Contains(digest.Scenes, s => s.KeyframeUrl is not null && s.KeyframeUrl.Contains("scene01"));
         Assert.Equal("/lifeos/media/lifeos-cinematic-launch-3min.mp4", digest.VideoUrl);
+        Assert.Equal("/lifeos/media/lifeos-cinematic-launch-3min.mp4?download=1", film.VideoDownloadUrl);
+        Assert.Equal("/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4", film.VideoLegacyUrl);
         Assert.StartsWith("/lifeos/media/", digest.PosterUrl);
         Assert.False(string.IsNullOrWhiteSpace(digest.PosterUrl));
         Assert.Contains("live-on-frontend", digest.RenderStatus);
+        Assert.Equal(
+            "/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4",
+            LifeOsCinematicAssets.LegacyUrlFor("lifeos-cinematic-launch-3min.mp4"));
     }
 }
