@@ -71,9 +71,21 @@ RELEASE_ROOT="${ECOMAE_ASPNET_RELEASE_ROOT:-/var/www/ecomae-aspnet}"
 CURRENT="$(readlink -f "$RELEASE_ROOT/current" 2>/dev/null || true)"
 DLL="$CURRENT/platform/EcomAE.Platform.dll"
 printf 'current_release=%s\n' "${CURRENT:-missing}"
-# Marker lives in compiled middleware (not only Razor markup).
+# Marker lives in compiled middleware (.NET stores literals as UTF-16LE).
 DLL_MARKER='X-EcomAE-LifeOs-Join'
-if [[ ! -f "$DLL" ]] || ! strings "$DLL" 2>/dev/null | grep -Fq "$DLL_MARKER"; then
+dll_has_marker() {
+  local f="$1"
+  [[ -f "$f" ]] || return 1
+  python3 - "$f" "$DLL_MARKER" <<'PY'
+import sys
+from pathlib import Path
+data = Path(sys.argv[1]).read_bytes()
+needle = sys.argv[2].encode("utf-16le")
+sys.exit(0 if needle in data else 1)
+PY
+}
+
+if ! dll_has_marker "$DLL"; then
   printf 'WARN: published DLL missing %s — nuclear republish from %s\n' "$DLL_MARKER" "$SHA" >&2
   STAMP="$(date -u +%Y%m%d%H%M%S)"
   RELEASE_DIR="$RELEASE_ROOT/releases/join-separate-$STAMP"
@@ -86,7 +98,7 @@ if [[ ! -f "$DLL" ]] || ! strings "$DLL" 2>/dev/null | grep -Fq "$DLL_MARKER"; t
   fi
   dotnet publish aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj \
     -c Release -o "$RELEASE_DIR/platform" --nologo
-  if ! strings "$RELEASE_DIR/platform/EcomAE.Platform.dll" | grep -Fq "$DLL_MARKER"; then
+  if ! dll_has_marker "$RELEASE_DIR/platform/EcomAE.Platform.dll"; then
     printf 'ERROR: nuclear publish still missing %s — wrong source tree\n' "$DLL_MARKER" >&2
     exit 1
   fi
@@ -98,7 +110,7 @@ if [[ ! -f "$DLL" ]] || ! strings "$DLL" 2>/dev/null | grep -Fq "$DLL_MARKER"; t
   printf 'nuclear_current=%s\n' "$CURRENT"
 fi
 
-if ! strings "$DLL" 2>/dev/null | grep -Fq "$DLL_MARKER"; then
+if ! dll_has_marker "$DLL"; then
   printf 'ERROR: %s still lacks %s\n' "$DLL" "$DLL_MARKER" >&2
   exit 1
 fi
