@@ -8,8 +8,10 @@ namespace EcomAE.Platform.Presentation;
 public static class StorefrontSurfaceLinks
 {
     /// <summary>
-    /// Set from <c>EcomAE:PhpReference:TemporarilyDeactivatePhpServing</c> at startup.
-    /// When true, chrome and link maps stay on ASP.NET apps (no PHP hop).
+    /// Set at startup from <c>EcomAE:PhpReference:PreferAspNetStorefrontApps</c> (default true)
+    /// or <c>TemporarilyDeactivatePhpServing</c>. When true, product chrome uses ASP.NET
+    /// <c>/storefront/*-app</c> paths — not interim PHP <c>/en/*</c>. PHP compare stays on
+    /// <c>/php-reference/*</c> only. Does not delete PHP source.
     /// </summary>
     public static bool PreferAspNetApps { get; set; }
 

@@ -3,11 +3,15 @@
   "asOf": "2026-08-06",
   "phpReference": "/php-reference/* (archive; may 503 when TemporarilyDeactivatePhpServing)",
   "aspNetPrimary": true,
+  "productBasedOn": "aspnet-core",
+  "phpRole": "reference-only",
   "hardLocks": {
     "cutoverAllowed": false,
     "readyForPhpRemoval": false,
     "requirePhpFallback": true,
-    "keepPhpProjectAvailable": true
+    "keepPhpProjectAvailable": true,
+    "preferAspNetStorefrontApps": true,
+    "phpSourceDeletionAllowed": false
   },
   "surfaces": [
     {
@@ -22,8 +26,11 @@
       "php": "/en/shop/part_search?article=&brend= or /en/parts/{BRAND}/{ARTICLE}",
       "aspnet": "/storefront/search-app?article=&brand=",
       "status": "complete",
-      "notes": "Brand picker + warehouse offers + Genuine/Aftermarket split + progressive /storefront/products-of-bunch poll (PHP ajax_getProductsOfBunch authoritative) merged into #all_table_products. Cart/quote writes remain PHP.",
-      "gapsRemaining": []
+      "notes": "Brand picker + warehouse offers + Genuine/Aftermarket + progressive poll. Protocol-3 price lists = aspnet-warehouse SQL; API supplier bunches still interim PHP bridge. Cart/quote writes remain PHP until dual-sample.",
+      "gapsRemaining": [
+        "API supplier handler ports (office/storage > 0 bunches)",
+        "cart/quote live writes (dry-run only today)"
+      ]
     },
     {
       "id": "name_search",
@@ -111,12 +118,14 @@
     }
   ],
   "priorityBuildOrder": [
-    "progressive ajax_getProductsOfBunch poll in ASP.NET table (this wave)",
-    "Genuine/Aftermarket section split (this wave)",
-    "full CMS product media/specs parity (this wave)",
-    "bulk-upload-app shell + history (this wave)",
-    "FORCE_LIVE republish for live epartscart.com prove"
+    "PreferAspNetStorefrontApps product chrome (this wave)",
+    "aspnet-warehouse protocol-3 poll without PHP (this wave)",
+    "native API supplier handlers (retire bunch bridge)",
+    "native Laximo VIN + bulk-upload process (retire /php-reference embeds)",
+    "cart/checkout/quote live writes after dual-sample",
+    "ReadyToRemovePhp only after all runtime deps ported — then delete PHP files"
   ],
   "forceLiveRequired": true,
-  "forceLiveBranch": "cursor/epartscart-storefront-100-parity-7b3b"
+  "forceLiveBranch": "cursor/aspnet-primary-no-php-product-7b3b",
+  "seeAlso": "docs/migration/evidence/storefront/php-runtime-dependency-board.json"
 }

@@ -2263,9 +2263,32 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         int geoId = 0,
         CancellationToken cancellationToken = default)
     {
+        // Protocol-3 price aggregate (office_id=0, storage_id=0): ASP.NET warehouse SQL —
+        // product path must not depend on PHP ajax_getProductsOfBunch for price lists.
+        if (officeId == 0 && storageId == 0)
+        {
+            var search = await SearchStorefrontPartsAsync(article, brand, 200, cancellationToken)
+                .ConfigureAwait(false);
+            if (search.Rows.Count > 0 && string.Equals(search.Source, "database", StringComparison.Ordinal))
+            {
+                return new(1, 0, 0, search.Rows, true, "aspnet-warehouse", string.Empty);
+            }
+
+            // Empty DB still returns aspnet-warehouse (0 rows) so UI does not fall through to PHP
+            // for the common price-list path; API supplier bunches (office/storage > 0) may use bridge.
+            if (string.Equals(search.Source, "database", StringComparison.Ordinal)
+                || string.Equals(search.Source, "empty", StringComparison.Ordinal))
+            {
+                return new(1, 0, 0, search.Rows, true, "aspnet-warehouse", search.Message);
+            }
+        }
+
+        // Remaining API-supplier bunches: PHP handlers until native supplier ports land.
+        // PHP project stays as reference; this bridge is an interim runtime dependency only.
         if (_phpWarehouseBridge is null)
         {
-            return new(0, officeId, storageId, [], false, "migration", "PHP warehouse bridge is not registered.");
+            return new(0, officeId, storageId, [], false, "migration",
+                "ASP.NET warehouse empty and PHP bunch bridge is not registered.");
         }
 
         return await _phpWarehouseBridge

@@ -25,6 +25,14 @@ public sealed class PhpReferenceOptions
     public bool KeepPhpProjectAvailable { get; set; } = true;
 
     /// <summary>
+    /// Product chrome and storefront links use ASP.NET <c>/storefront/*-app</c> paths
+    /// (not interim PHP <c>/en/*</c>). Default <c>true</c>: product is ASP.NET-based;
+    /// PHP remains only under <c>/php-reference/*</c> for gap compares.
+    /// Does <b>not</b> flip cutoverAllowed / readyForPhpRemoval / delete PHP source.
+    /// </summary>
+    public bool PreferAspNetStorefrontApps { get; set; } = true;
+
+    /// <summary>
     /// Temporary deep-test switch: stop serving PHP reference + stop stub→PHP redirects so
     /// product traffic stays on ASP.NET apps. Does <b>not</b> delete PHP source, does <b>not</b>
     /// set cutoverAllowed/readyForPhpRemoval, and KeepPhpProjectAvailable must stay true.
@@ -51,5 +59,5 @@ public sealed class PhpReferenceOptions
 
     /// <summary>Operator note shown on boards.</summary>
     public string Note { get; set; } =
-        "ASP.NET Core is the destination primary. PHP stays installed as reference for previous results / gap-finding. cutoverAllowed=false until dual-sample + RELEASE_OWNER_APPROVAL.md. Reference mode ≠ PHP source deletion. TemporarilyDeactivatePhpServing only pauses PHP serving for ASP.NET deep tests — never invents ReadyToRemovePhp.";
+        "ASP.NET Core is product-primary (PreferAspNetStorefrontApps=true). PHP stays installed only as /php-reference/* for gap-finding until dual-sample + separate ReadyToRemovePhp / readyForPhpRemoval gate. cutoverAllowed=false. PreferAspNetStorefrontApps ≠ PHP source deletion. TemporarilyDeactivatePhpServing only pauses PHP HTTP for deep tests.";
 }

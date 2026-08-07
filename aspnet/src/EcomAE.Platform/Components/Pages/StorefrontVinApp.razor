@@ -84,17 +84,19 @@
     [SupplyParameterFromQuery(Name = "vin")]
     public string? VinAlias { get; set; }
 
+    /// <summary>PHP reference decode tree only — product VIN shell is ASP.NET; Laximo stays reference until native port.</summary>
     private string PhpResultsHref
     {
         get
         {
             var vin = string.IsNullOrWhiteSpace(_vin) ? "" : _vin.Trim();
+            var baseHref = "/php-reference" + StorefrontPhpCanonical.LaximoVin;
             if (vin.Length == 0)
             {
-                return StorefrontPhpCanonical.LaximoVin;
+                return baseHref;
             }
 
-            return StorefrontPhpCanonical.LaximoVin
+            return baseHref
                    + "?task=vehicles&ft=FindVehicle&identString="
                    + Uri.EscapeDataString(vin);
         }

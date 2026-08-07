@@ -657,14 +657,22 @@ builder.Services.AddHealthChecks();
 var app = builder.Build();
 
 app.UseResponseCompression();
-// Temporary PHP serving deactivation (deep ASP.NET test) — PreferAspNetApps before stub redirects.
+// Product chrome → ASP.NET apps by default; PHP only via /php-reference/* until ReadyToRemovePhp.
 {
     var phpRef = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>().Value;
-    StorefrontSurfaceLinks.PreferAspNetApps = phpRef.TemporarilyDeactivatePhpServing;
+    // PreferAspNetStorefrontApps (default true) OR temp deep-test pause both keep product off interim /en PHP pages.
+    StorefrontSurfaceLinks.PreferAspNetApps =
+        phpRef.PreferAspNetStorefrontApps || phpRef.TemporarilyDeactivatePhpServing;
     if (phpRef.TemporarilyDeactivatePhpServing && !phpRef.KeepPhpProjectAvailable)
     {
         throw new InvalidOperationException(
             "TemporarilyDeactivatePhpServing requires KeepPhpProjectAvailable=true (protocol: pause serving, never delete PHP project).");
+    }
+
+    if (!phpRef.KeepPhpProjectAvailable)
+    {
+        throw new InvalidOperationException(
+            "KeepPhpProjectAvailable must stay true until a separate ReadyToRemovePhp / readyForPhpRemoval gate.");
     }
 }
 app.UseMiddleware<SecurityHeadersMiddleware>();
@@ -676,7 +684,7 @@ app.UseMiddleware<MarketingStubToPhpRedirectMiddleware>();
 // PHP-rendered marketing pages at canonical URLs on www.ecomae.com (whole marketing
 // site parity). Before BOS/admin gates: /bos/{article} snapshots are public marketing.
 app.UseMiddleware<EcomaeMarketingSnapshotMiddleware>();
-// Thin /storefront/* stubs → PHP /en/… until apps live. Skipped when TemporarilyDeactivatePhpServing=true.
+// Legacy stub→PHP /en redirect. Skipped when PreferAspNetStorefrontApps (product ASP.NET primary).
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 // BOS is Super-CP / platform only — never answer /bos on tenant hosts (epartscart, …).

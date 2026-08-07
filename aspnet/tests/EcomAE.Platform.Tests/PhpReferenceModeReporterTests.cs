@@ -31,11 +31,12 @@ public sealed class PhpReferenceModeReporterTests
 
         var report = reporter.BuildReport();
 
-        Assert.Equal("aspnet-primary-intent-php-reference-retained", report.Status);
+        Assert.Equal("aspnet-product-primary-php-reference-only", report.Status);
         Assert.Equal("aspnet-primary-php-reference", report.Mode);
         Assert.True(report.Enabled);
         Assert.True(report.ArchitectureConfirmed);
         Assert.True(report.KeepPhpProjectAvailable);
+        Assert.True(report.PreferAspNetStorefrontApps);
         Assert.False(report.TemporarilyDeactivatePhpServing);
         Assert.False(report.CutoverAllowed);
         Assert.False(report.ReadyForPhpRemoval);
