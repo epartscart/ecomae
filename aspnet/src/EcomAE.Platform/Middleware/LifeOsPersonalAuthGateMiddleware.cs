@@ -24,6 +24,12 @@ public sealed class LifeOsPersonalAuthGateMiddleware
     public async Task InvokeAsync(HttpContext context, ILegacySessionValidator sessions)
     {
         var path = context.Request.Path.Value ?? "/";
+        // Deploy prove marker — present only on builds with public join.
+        if (IsJoinPath(path))
+        {
+            context.Response.Headers["X-EcomAE-LifeOs-Join"] = "public";
+        }
+
         if (!RequiresPersonalLogin(path))
         {
             await _next(context);
@@ -137,6 +143,17 @@ public sealed class LifeOsPersonalAuthGateMiddleware
         }
 
         return false;
+    }
+
+    internal static bool IsJoinPath(string path)
+    {
+        var bare = (path ?? "/").TrimEnd('/');
+        if (bare.Length == 0)
+        {
+            bare = "/";
+        }
+
+        return bare.Equals(EcomAeRoutes.LifeOsJoin, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool WantsJson(HttpContext context)

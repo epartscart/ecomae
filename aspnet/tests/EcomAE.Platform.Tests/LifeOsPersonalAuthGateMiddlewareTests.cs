@@ -38,5 +38,8 @@ public sealed class LifeOsPersonalAuthGateMiddlewareTests
         Assert.False(LifeOsPersonalAuthGateMiddleware.RequiresPersonalLogin("/lifeos/join"));
         Assert.False(LifeOsPersonalAuthGateMiddleware.RequiresPersonalLogin("/lifeos/login"));
         Assert.True(LifeOsPersonalAuthGateMiddleware.RequiresPersonalLogin("/lifeos/app"));
+        Assert.True(LifeOsPersonalAuthGateMiddleware.IsJoinPath("/lifeos/join"));
+        Assert.True(LifeOsPersonalAuthGateMiddleware.IsJoinPath("/lifeos/join/"));
+        Assert.False(LifeOsPersonalAuthGateMiddleware.IsJoinPath("/lifeos/login"));
     }
 }

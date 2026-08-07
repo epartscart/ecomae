@@ -66,8 +66,82 @@ FORCE_RC=${PIPESTATUS[0]}
 set -e
 printf 'FORCE_LIVE_NOW exit=%s (storefront RESULT may WARN; join prove below is authoritative)\n' "$FORCE_RC"
 
-systemctl restart ecomae-platform.service || true
-sleep 5
+# Nuclear: if published DLL lacks the public-join marker, publish again from THIS checkout.
+RELEASE_ROOT="${ECOMAE_ASPNET_RELEASE_ROOT:-/var/www/ecomae-aspnet}"
+CURRENT="$(readlink -f "$RELEASE_ROOT/current" 2>/dev/null || true)"
+DLL="$CURRENT/platform/EcomAE.Platform.dll"
+printf 'current_release=%s\n' "${CURRENT:-missing}"
+# Marker lives in compiled middleware (not only Razor markup).
+DLL_MARKER='X-EcomAE-LifeOs-Join'
+if [[ ! -f "$DLL" ]] || ! strings "$DLL" 2>/dev/null | grep -Fq "$DLL_MARKER"; then
+  printf 'WARN: published DLL missing %s — nuclear republish from %s\n' "$DLL_MARKER" "$SHA" >&2
+  STAMP="$(date -u +%Y%m%d%H%M%S)"
+  RELEASE_DIR="$RELEASE_ROOT/releases/join-separate-$STAMP"
+  mkdir -p "$RELEASE_DIR/platform"
+  export DOTNET_ROOT="${DOTNET_ROOT:-/usr/share/dotnet}"
+  export PATH="$DOTNET_ROOT:$PATH"
+  if ! command -v dotnet >/dev/null 2>&1; then
+    export DOTNET_ROOT="${HOME:-/root}/.dotnet"
+    export PATH="$DOTNET_ROOT:$PATH"
+  fi
+  dotnet publish aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj \
+    -c Release -o "$RELEASE_DIR/platform" --nologo
+  if ! strings "$RELEASE_DIR/platform/EcomAE.Platform.dll" | grep -Fq "$DLL_MARKER"; then
+    printf 'ERROR: nuclear publish still missing %s — wrong source tree\n' "$DLL_MARKER" >&2
+    exit 1
+  fi
+  chown -R www-data:www-data "$RELEASE_DIR" || true
+  ln -sfn "$RELEASE_DIR" "$RELEASE_ROOT/current"
+  chown -h www-data:www-data "$RELEASE_ROOT/current" 2>/dev/null || true
+  CURRENT="$(readlink -f "$RELEASE_ROOT/current")"
+  DLL="$CURRENT/platform/EcomAE.Platform.dll"
+  printf 'nuclear_current=%s\n' "$CURRENT"
+fi
+
+if ! strings "$DLL" 2>/dev/null | grep -Fq "$DLL_MARKER"; then
+  printf 'ERROR: %s still lacks %s\n' "$DLL" "$DLL_MARKER" >&2
+  exit 1
+fi
+printf 'PASS dll-marker %s in %s\n' "$DLL_MARKER" "$DLL"
+
+systemctl stop ecomae-platform.service || true
+sleep 1
+fuser -k 5100/tcp 2>/dev/null || true
+pkill -f 'EcomAE.Platform.dll' 2>/dev/null || true
+sleep 1
+systemctl start ecomae-platform.service
+sleep 6
+systemctl is-active --quiet ecomae-platform.service || {
+  printf 'ERROR: ecomae-platform.service not active\n' >&2
+  journalctl -u ecomae-platform.service -n 60 --no-pager >&2 || true
+  exit 1
+}
+
+printf '\n== LOCAL origin prove (must pass before public) ==\n'
+LOCAL_HDR="$(mktemp)"
+LOCAL_CODE="$(curl -4 -sS -D "$LOCAL_HDR" -o /tmp/epc-local-join.html -w '%{http_code}' --max-time 20 \
+  "http://127.0.0.1:5100/lifeos/join?epc_prove=$(date +%s)" || echo 000)"
+LOCAL_LOC="$(grep -i '^location:' "$LOCAL_HDR" | tr -d '\r' | awk '{print $2}' | head -1 || true)"
+LOCAL_JOIN_HDR="$(grep -i '^x-ecomae-lifeos-join:' "$LOCAL_HDR" | tr -d '\r' | awk '{print $2}' | head -1 || true)"
+printf 'local_join http=%s location=%s x-ecomae-lifeos-join=%s\n' "$LOCAL_CODE" "${LOCAL_LOC:-none}" "${LOCAL_JOIN_HDR:-none}"
+if [[ "$LOCAL_CODE" != "200" ]] || grep -qi 'login' <<<"${LOCAL_LOC:-}"; then
+  printf 'ERROR: local :5100/lifeos/join still gated — not publishing to Cloudflare yet\n' >&2
+  head -30 "$LOCAL_HDR" >&2 || true
+  rm -f "$LOCAL_HDR"
+  exit 1
+fi
+if [[ "${LOCAL_JOIN_HDR:-}" != "public" ]]; then
+  printf 'ERROR: missing X-EcomAE-LifeOs-Join: public on local join (stale binary)\n' >&2
+  rm -f "$LOCAL_HDR"
+  exit 1
+fi
+if ! grep -Fq 'join without signing' /tmp/epc-local-join.html; then
+  printf 'ERROR: local join HTML missing public copy\n' >&2
+  rm -f "$LOCAL_HDR"
+  exit 1
+fi
+rm -f "$LOCAL_HDR"
+printf 'PASS local-join public\n'
 
 printf '\n== LifeOS join/login separate hard prove ==\n'
 fail=0
@@ -111,14 +185,19 @@ code="$(curl -4 -sS -D "$hdr" -o /dev/null -w '%{http_code}' --connect-timeout 2
   "${LIFEOS_BASE}/lifeos/join?epc_prove=$(date +%s)" || echo 000)"
 loc="$(grep -i '^location:' "$hdr" | tr -d '\r' | awk '{print $2}' | head -1 || true)"
 rm -f "$hdr"
+join_hdr_val="$(curl -4 -sS -D- -o /dev/null --connect-timeout 20 -A 'Mozilla/5.0' \
+  "${LIFEOS_BASE}/lifeos/join?epc_prove=$(date +%s)" | grep -i '^x-ecomae-lifeos-join:' | tr -d '\r' | awk '{print $2}' | head -1 || true)"
 if [[ "$code" != "200" ]]; then
   printf 'FAIL join-page http=%s location=%s (still gated?)\n' "$code" "${loc:-none}"
   fail=1
 elif [[ -n "$loc" ]] && grep -qi 'login' <<<"$loc"; then
   printf 'FAIL join-page still redirects to login: %s\n' "$loc"
   fail=1
+elif [[ "${join_hdr_val:-}" != "public" ]]; then
+  printf 'FAIL join-page missing X-EcomAE-LifeOs-Join: public (got %s)\n' "${join_hdr_val:-none}"
+  fail=1
 else
-  printf 'PASS join-page http=200 no-login-redirect\n'
+  printf 'PASS join-page http=200 no-login-redirect join=public\n'
 fi
 
 prove_needle join-copy "${LIFEOS_BASE}/lifeos/join" 'join without signing'
