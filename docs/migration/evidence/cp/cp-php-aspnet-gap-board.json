@@ -42,7 +42,34 @@
     "superHostGates": "SuperCpHostGate / PlatformHostPolicy.AllowSuperOnlyApp on tenants, demo-tenants, tax-toolkits, free-tools, governance, failover.",
     "tenantChromeFilter": "ControlPanelTopnav(includeSuperOnly) filters Super brochure + Platform/Operator groups on non-Super hosts.",
     "nextWaveApps": "Shipped ASP.NET digests + Blazor apps for statistics, accessories, synonyms, SEO, social hub, tenant features matrix, customer board, fulfillment queue, SSO/SAML, event bus. OMS/price/customer writes stay PHP/dry-run; SSO omits certs/metadata; event bus is MySQL epc_events only.",
-    "epartscartCpParityWave": "Expanded CpPathMap (prices_* before shop/prices; order_process\u2192/cp/orders); shipped prices-upload/edit/send, workshop, sao, print-docs, data-transfer, bulk-upload, kkt apps; CpShopModuleRouteMap 36/36; guest banner on PhpCpDesktopChrome; /cp/shop-module-coverage board."
+    "epartscartCpParityWave": "Expanded CpPathMap (prices_* before shop/prices; order_process\u2192/cp/orders); shipped prices-upload/edit/send, workshop, sao, print-docs, data-transfer, bulk-upload, kkt apps; CpShopModuleRouteMap 36/36; guest banner on PhpCpDesktopChrome; /cp/shop-module-coverage board.",
+    "brochureAliasWave": "Closed brochure/deep-link aliases that collapsed to bare /cp (lang, requests, packs/, plugins/, templates/, content/*, orders subpaths, onlajn-kassy, perenos-dannyx, multivendor to prices-upload, tenant email to portal-settings, sms-operatory, system/debug, customer_approvals). shop/finance catch-all ordered after specific finance modules. CpTopLevelAreaRouteMap 12/12 + /cp/toplevel-area-coverage. OMS/returns/packs/lang ajax catalog holdouts registered (writes=0).",
+    "financeShadowFix": "shop/finance \u2192 /erp placed after shop/finance/epc_fulfillment_queue|currencies|collections so Contains match no longer steals dedicated CP apps."
+  },
+  "brochureCoverage": {
+    "source": "aspnet/src/EcomAE.Platform/Presentation/Generated/php_module_catalog.json#cpBrochureFeatures",
+    "totalFeatures": 405,
+    "bareCpAllowed": "only intentional /CP/ industry-template hub landings",
+    "bareCpFunctionalModules": 0,
+    "coveragePct": 100,
+    "status": "mapped"
+  },
+  "topLevelAreaCoverage": {
+    "source": "aspnet/src/EcomAE.Platform/Presentation/CpTopLevelAreaRouteMap.cs",
+    "endpoint": "/cp/toplevel-area-coverage",
+    "areaCount": 12,
+    "coveragePct": 100,
+    "status": "mapped"
+  },
+  "ajaxHoldoutCoverage": {
+    "order_process": ["lookup_warehouse_price", "list_messages", "erp_document_map", "supplier_fulfillment_status", "dedicated OMS /cp/orders/* dry-runs"],
+    "returns": ["get_returns_info", "return_action"],
+    "packs": ["clear_tmp_folder", "insert_extensions", "prepare_setup", "processing_files", "delete_pack"],
+    "lang": ["page_lang_main", "page_lang_editor"],
+    "shellModules": ["workshop", "sao", "kkt", "data_transfer", "prices_upload", "prices_edit", "prices_send", "print_docs", "bulk_upload"],
+    "catalogTotalActions": 430,
+    "cutoverAllowed": false,
+    "phpAuthoritative": true
   },
   "moduleStatuses": [
     {

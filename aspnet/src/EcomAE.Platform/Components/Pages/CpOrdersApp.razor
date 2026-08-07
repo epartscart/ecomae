@@ -51,15 +51,31 @@
             <h1>Orders · OMS</h1>
             <p>Open orders, track payment status, and move paid lines to ship.</p>
             <div class="epc-oms-cta">
-                <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/orders/orders"))">Open orders</a>
-</div>
+                <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/order_process/orders"))">Open PHP reference OMS</a>
+                <a class="ghost" href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/orders/statuses"))">Statuses</a>
+                <a class="ghost" href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/orders/items"))">Items</a>
+                <a class="ghost" href="/cp/sao-app">SAO links</a>
+                <a class="ghost" href="/cp/returns-rma-app">Returns</a>
+                <a class="ghost" href="/cp/fulfillment-queue-app">Fulfillment queue</a>
+            </div>
         </div>
     </section>
+
+    @if (!_isAdmin)
+    {
+        <div class="epc-oms-note" role="status">Sign in with a Control Panel admin session to load live OMS digests. Guest browse shows the ASP.NET shell only.</div>
+    }
 
     <div class="epc-scp-orders-kpi epc-oms-kpis" aria-label="OMS KPIs">
         <div class="epc-oms-kpi"><strong>@_summary.Open</strong><span>Open orders</span></div>
         <div class="epc-oms-kpi"><strong>@_summary.Today</strong><span>Orders today</span></div>
         <div class="epc-oms-kpi"><strong>@_summary.PendingShip</strong><span>Pending ship (paid)</span></div>
+    </div>
+
+    <div class="epc-oms-note" style="background:#eff6ff;border-color:#93c5fd;color:#1e3a8a;">
+        ASP.NET OMS dry-runs (writes=0): set-item-status, send-message, fulfillment-*, pay-refund, delete, plus registry reads
+        <code>list_messages</code>, <code>lookup_warehouse_price</code>, <code>erp_document_map</code>, <code>supplier_fulfillment_status</code>.
+        Live writes stay on PHP reference.
     </div>
 
     <div class="epc-oms-table-wrap">

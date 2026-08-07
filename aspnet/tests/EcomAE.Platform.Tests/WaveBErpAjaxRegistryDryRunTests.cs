@@ -131,13 +131,17 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     {
         var catalog = new CpModuleAjaxWriteCatalog();
         var report = catalog.BuildReport();
-        Assert.Equal(394, report.TotalActions);
+        Assert.Equal(430, report.TotalActions);
         Assert.Equal(100, report.CoveragePct);
         Assert.False(report.CutoverAllowed);
         Assert.False(report.ReadyForPhpRemoval);
         Assert.True(report.PhpAuthoritative);
-        Assert.Equal(249, report.DedicatedDryRuns);
-        Assert.Equal(145, report.RegistryDryRuns);
+        Assert.Equal(269, report.DedicatedDryRuns);
+        Assert.Equal(161, report.RegistryDryRuns);
+        Assert.True(catalog.TryGet("order_process", "list_messages", out var omsRead));
+        Assert.Equal("registry", omsRead.Coverage);
+        Assert.True(catalog.TryGet("packs", "prepare_setup", out var packs));
+        Assert.Equal("registry", packs.Coverage);
         Assert.True(catalog.TryGet("procurement", "create_supplier", out var entry));
         Assert.Equal("dedicated", entry.Coverage);
         Assert.True(catalog.TryGet("crm", "crm_save_lead", out var crm));

@@ -402,6 +402,9 @@ public static class EcomAeRoutes
     /// <summary>CP shop-module coverage board (PHP shop/* → ASP.NET apps).</summary>
     public const string ControlPanelShopModuleCoverage = "/cp/shop-module-coverage";
 
+    /// <summary>CP top-level content-area coverage board (PHP cp/content/* → ASP.NET apps).</summary>
+    public const string ControlPanelTopLevelAreaCoverage = "/cp/toplevel-area-coverage";
+
     public const string ControlPanelSystemRequests = "/cp/system-requests";
     /// <summary>CP System requests Blazor list (JSON digest remains <see cref="ControlPanelSystemRequests"/>).</summary>
     public const string ControlPanelSystemRequestsApp = "/cp/system-requests-app";

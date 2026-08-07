@@ -3791,6 +3791,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ControlPanelShopModuleCoverage, () =>
             Results.Ok(CpShopModuleRouteMap.BuildCoverageReport()));
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelTopLevelAreaCoverage, () =>
+            Results.Ok(CpTopLevelAreaRouteMap.BuildCoverageReport()));
+
         // /cp (+ /cp/control /CP) owned by Blazor CpCommandCentreApp (AdminSurfaceAuthGateMiddleware).
         // Do not MapGet those aliases here — they AmbiguousMatch with @page routes.
     }

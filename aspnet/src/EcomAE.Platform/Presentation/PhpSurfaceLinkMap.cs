@@ -22,6 +22,7 @@ public static class PhpSurfaceLinkMap
         ("shop/parts_agent/parts_agent_chats", "/cp/parts-agent-chats-app"),
         ("shop/parts_agent_chats", "/cp/parts-agent-chats-app"),
         ("shop/parts_agent", "/cp/parts-agent-chats-app"),
+        ("shop/prices/multivendor", "/cp/prices-upload-app"),
         ("shop/prices_upload", "/cp/prices-upload-app"),
         ("shop/prices_edit", "/cp/prices-edit-app"),
         ("shop/prices_send", "/cp/prices-send-app"),
@@ -29,6 +30,14 @@ public static class PhpSurfaceLinkMap
         ("prices_edit", "/cp/prices-edit-app"),
         ("prices_send", "/cp/prices-send-app"),
         ("shop/order_process", "/cp/orders"),
+        ("shop/orders/sao_states_statuses_link", "/cp/sao-app"),
+        ("shop/orders/items", "/cp/orders"),
+        ("shop/orders/statuses", "/cp/orders"),
+        ("shop/orders/orders", "/cp/orders"),
+        ("shop/orders/carts", "/cp/abandoned-carts-app"),
+        ("shop/onlajn-kassy", "/cp/kkt-app"),
+        ("shop/perenos-dannyx", "/cp/data-transfer-app"),
+        ("shop/cash", "/erp/cash-accounts-app"),
         ("shop/catalogue", "/cp/product-catalogue-app"),
         ("shop/payments", "/cp/payment-gateways-app"),
         ("shop/document_control", "/cp/document-control-app"),
@@ -47,10 +56,13 @@ public static class PhpSurfaceLinkMap
         ("order_process", "/cp/orders"),
         ("shop/workshop", "/cp/workshop-app"),
         ("shop/sao", "/cp/sao-app"),
+        ("sao_states_statuses_link", "/cp/sao-app"),
         ("shop/print_docs", "/cp/print-docs-app"),
         ("shop/data_transfer", "/cp/data-transfer-app"),
         ("shop/bulk_upload", "/cp/bulk-upload-app"),
         ("shop/kkt", "/cp/kkt-app"),
+        ("onlajn-kassy", "/cp/kkt-app"),
+        ("perenos-dannyx", "/cp/data-transfer-app"),
         ("shop/search_tabs", "/cp/search-tabs-app"),
         ("shop/geo", "/cp/geo-regions-app"),
         ("shop/filter", "/cp/product-filters-app"),
@@ -61,22 +73,51 @@ public static class PhpSurfaceLinkMap
         ("filemanager", "/cp/file-manager-app"),
         ("file_manager", "/cp/file-manager-app"),
         ("plugins_control", "/cp/plugins-manager-app"),
+        ("plugins/plugins_manager", "/cp/plugins-manager-app"),
+        ("plugins/", "/cp/plugins-manager-app"),
         ("templates_control", "/cp/templates-manager-app"),
+        ("templates/templates_manager", "/cp/templates-manager-app"),
+        ("templates/", "/cp/templates-manager-app"),
         ("packs_control", "/cp/industry-packs-app"),
+        ("packs/packs_manager", "/cp/industry-packs-app"),
+        ("packs/setup", "/cp/industry-packs-app"),
+        ("packs/", "/cp/industry-packs-app"),
         ("lang/page_lang", "/cp/languages-app"),
         ("control/lang", "/cp/languages-app"),
+        ("content/dopolnitelnye-teksty", "/cp/additional-texts-app"),
+        ("dopolnitelnye-teksty", "/cp/additional-texts-app"),
+        ("content/structure_dumps", "/cp/structure-dumps-app"),
+        ("structure_dumps", "/cp/structure-dumps-app"),
+        ("content/slider", "/cp/slider-banners-app"),
+        ("content/sitemap", "/cp/sitemap-app"),
+        ("content/content_tree", "/cp/pages-app"),
+        ("content_tree", "/cp/pages-app"),
+        ("content/content_manager", "/cp/pages-app"),
+        ("modules_control", "/cp/modules-app"),
+        ("modules/modules_manager", "/cp/modules-app"),
+        ("control/communications", "/cp/communications-test-app"),
+        ("control/sms-operatory", "/cp/sms-whatsapp-app"),
+        ("sms-operatory", "/cp/sms-whatsapp-app"),
+        ("sms_turning", "/cp/sms-whatsapp-app"),
+        ("system/debug", "/cp/debug-console-app"),
+        ("epc_tenant_email_settings", "/cp/portal-settings-app"),
+        ("users/customer_approvals", "/cp/users-app"),
+        ("customer_approvals", "/cp/users-app"),
+        ("users/polya-registracii", "/cp/users-app"),
+        ("polya-registracii", "/cp/users-app"),
+        ("users/registracionnye-varianty", "/cp/users-app"),
+        ("registracionnye-varianty", "/cp/users-app"),
         ("users/user_manager", "/cp/users-app"),
         ("users/user", "/cp/users-app"),
         ("users/approvals", "/cp/users-app"),
         ("control/version_control", "/cp/ops-guides-app"),
         ("shop/taby-poiska", "/cp/search-tabs-app"),
         ("taby-poiska", "/cp/search-tabs-app"),
-        ("shop/orders/orders", "/cp/orders"),
-        ("shop/orders/carts", "/cp/abandoned-carts-app"),
         ("control/shop/docpart/crosses", "/cp/crosses-app"),
         ("control/shop/catalogue/stock", "/erp/inventory-stock-app"),
         ("control/shop/procurement", "/cp/purchase-requests-app"),
-        ("control/shop/multivendor", "/cp"),
+        ("control/shop/multivendor", "/cp/prices-upload-app"),
+        ("multivendor", "/cp/prices-upload-app"),
         ("control/shop/prices", "/cp/price-lists-app"),
         ("control/shop/pos", "/cp/pos-overview-app"),
         ("control/portal/epc_super_cp_fleet_dashboard", "/bos/fleet-health-app"),
@@ -179,6 +220,9 @@ public static class PhpSurfaceLinkMap
         ("general_pages/epc_ai_service", "/cp/ai-service-app"),
         ("control/sms_turning", "/cp/sms-whatsapp-app"),
         ("control/config_edit", "/cp/config-items-app"),
+        // After config_edit so /CP/control/config_edit is not swallowed.
+        ("control/config", "/cp/config-items-app"),
+        ("requests", "/cp/system-requests-app"),
         ("control/users", "/cp/users-app"),
         ("users/usergroups", "/cp/groups-app"),
         ("channels_main", "/cp/marketplace-channels-app"),
@@ -798,6 +842,68 @@ public static class PhpSurfaceLinkMap
             || rest.Equals("control/", StringComparison.OrdinalIgnoreCase))
         {
             return "/cp/control";
+        }
+
+        // Top-level PHP CP areas (exact rest) — too short for safe Contains markers.
+        var topLevel = rest.TrimEnd('/');
+        if (topLevel.Equals("lang", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/languages-app";
+        }
+
+        if (topLevel.Equals("requests", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/system-requests-app";
+        }
+
+        if (topLevel.Equals("content", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/pages-app";
+        }
+
+        if (topLevel.Equals("users", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/users-app";
+        }
+
+        if (topLevel.Equals("menu", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/menus-app";
+        }
+
+        if (topLevel.Equals("filemanager", StringComparison.OrdinalIgnoreCase)
+            || topLevel.Equals("file_manager", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/file-manager-app";
+        }
+
+        if (topLevel.Equals("modules_control", StringComparison.OrdinalIgnoreCase)
+            || topLevel.Equals("modules", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/modules-app";
+        }
+
+        if (topLevel.Equals("packs_control", StringComparison.OrdinalIgnoreCase)
+            || topLevel.Equals("packs", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/industry-packs-app";
+        }
+
+        if (topLevel.Equals("plugins_control", StringComparison.OrdinalIgnoreCase)
+            || topLevel.Equals("plugins", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/plugins-manager-app";
+        }
+
+        if (topLevel.Equals("templates_control", StringComparison.OrdinalIgnoreCase)
+            || topLevel.Equals("templates", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/templates-manager-app";
+        }
+
+        if (topLevel.Equals("shop", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp";
         }
 
         foreach (var (marker, aspNet) in CpPathMap)
