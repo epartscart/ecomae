@@ -1,0 +1,21 @@
+{
+  "id": "lifeos-video-404-media-endpoint-fix",
+  "capturedAtUtc": "2026-08-07T11:50:00Z",
+  "issue": "https://lifeos.ecomae.com/lifeos video does not play",
+  "rootCause": [
+    "HTML embeds /lifeos/cinematic/*.mp4 correctly",
+    "Platform never calls UseStaticFiles — wwwroot assets 404",
+    "MP4 was Git LFS; CloudPanel publish could ship pointer text"
+  ],
+  "fix": {
+    "endpoint": "GET /lifeos/media/{file} (allowlisted, range-enabled)",
+    "videoUrl": "/lifeos/media/lifeos-cinematic-launch-3min.mp4",
+    "posterUrl": "/lifeos/media/lifeos-cinematic-scene01-earth.png",
+    "mp4Storage": "regular git blob (removed from LFS)",
+    "forceLive": "git lfs pull + pointer fail-fast before publish"
+  },
+  "prove": [
+    "curl -sI https://lifeos.ecomae.com/lifeos/media/lifeos-cinematic-launch-3min.mp4 | grep -iE '200|video/mp4'",
+    "curl -sL https://lifeos.ecomae.com/lifeos | grep -F '/lifeos/media/lifeos-cinematic-launch-3min.mp4'"
+  ]
+}

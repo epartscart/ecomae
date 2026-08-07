@@ -8,9 +8,9 @@ public sealed class LifeOsCinematicFilm : ILifeOsCinematicFilm
 {
     public const int TotalDurationSeconds = 180;
 
-    public string VideoUrl { get; } = "/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4";
+    public string VideoUrl { get; } = LifeOsCinematicAssets.UrlFor("lifeos-cinematic-launch-3min.mp4");
 
-    public string PosterUrl { get; } = "/lifeos/cinematic/lifeos-cinematic-scene01-earth.png";
+    public string PosterUrl { get; } = LifeOsCinematicAssets.UrlFor("lifeos-cinematic-scene01-earth.png");
 
     public string MasterPrompt { get; } = """
 Create a 3-minute ultra-premium cinematic 3D product launch film for "LifeOS", the world's first AI Operating System.
@@ -77,7 +77,7 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
             16,
             "Night Earth · continental data lattice · AI core rising above the planet",
             "LifeOS — One Intelligence. Every Device. Every Business. Every Person.",
-            "/lifeos/cinematic/lifeos-cinematic-scene01-earth.png",
+            LifeOsCinematicAssets.UrlFor("lifeos-cinematic-scene01-earth.png"),
             [
                 "Orbital wide shot of Earth at night",
                 "Billions of cyan data filaments ignite across continents",
@@ -93,7 +93,7 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
             16,
             "Follow one professional home → vehicle → office; LifeOS on every surface",
             "Context follows you.",
-            "/lifeos/cinematic/lifeos-cinematic-scene02-continuity.png",
+            LifeOsCinematicAssets.UrlFor("lifeos-cinematic-scene02-continuity.png"),
             [
                 "Dolly into illuminated smart city",
                 "Phone → watch → glasses → vehicle HUD → laptop → wall display",
@@ -108,7 +108,7 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
             18,
             "Glass neural core with ten animated engines exchanging live data",
             "The Intelligence Core",
-            "/lifeos/cinematic/lifeos-cinematic-scene03-brain.png",
+            LifeOsCinematicAssets.UrlFor("lifeos-cinematic-scene03-brain.png"),
             [
                 "Memory · Context · Planner · Multi-Agent · Knowledge Graph",
                 "Workflow · Automation · Voice · Vision · Security Shield",
@@ -123,7 +123,7 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
             20,
             "Voice command assembles CRM/ERP/calendar into agenda, deck, actions, invites",
             "“Prepare tomorrow's board meeting.”",
-            "/lifeos/cinematic/lifeos-cinematic-scene04-voice.png",
+            LifeOsCinematicAssets.UrlFor("lifeos-cinematic-scene04-voice.png"),
             [
                 "Voice waveform → intent recognition",
                 "Emails, CRM, ERP, calendar, finance panels orbit the core",
@@ -154,7 +154,7 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
             16,
             "Sales, Finance, Legal, Developer, Healthcare, Research, Support agents synchronize",
             "Many specialists. One intelligence.",
-            "/lifeos/cinematic/lifeos-cinematic-scene06-agents.png",
+            LifeOsCinematicAssets.UrlFor("lifeos-cinematic-scene06-agents.png"),
             [
                 "Seven luminous agent silhouettes",
                 "Knowledge packets exchange in sync",
@@ -184,7 +184,7 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
             16,
             "Phone → laptop → tablet → watch → AR glasses without losing context",
             "Start anywhere. Finish everywhere.",
-            "/lifeos/cinematic/lifeos-cinematic-scene02-continuity.png",
+            LifeOsCinematicAssets.UrlFor("lifeos-cinematic-scene02-continuity.png"),
             [
                 "Match-cut handoff between devices",
                 "Task state persists as a single luminous thread",
@@ -228,7 +228,7 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
             20,
             "Pull back to glowing Earth; holographic LifeOS mark and slogan",
             "LifeOS — The Operating System for Human Intelligence.",
-            "/lifeos/cinematic/lifeos-cinematic-scene10-finale.png",
+            LifeOsCinematicAssets.UrlFor("lifeos-cinematic-scene10-finale.png"),
             [
                 "Camera retreats to orbital scale",
                 "Holographic logo resolves with gold rim light",
@@ -247,7 +247,7 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
         "Inspiring, premium, trustworthy, visionary",
         "Epic orchestral + futuristic electronic ambience",
         "White, silver, deep black, blue, cyan, subtle gold",
-        "live-on-frontend · 3:00 MP4 published at /lifeos/cinematic/lifeos-cinematic-launch-3min.mp4",
+        "live-on-frontend · 3:00 MP4 via /lifeos/media/* file endpoint (UseStaticFiles not enabled)",
         VideoUrl,
         PosterUrl,
         MasterPrompt.Trim(),
@@ -255,9 +255,9 @@ Aspect ratio: 16:9. Resolution: 4K HDR at 60fps.
         [
             "Watch: GET /lifeos/cinematic-app (HTML5 video + timed storyboard)",
             "Home embed: /lifeos film section",
-            "Static MP4: /lifeos/cinematic/lifeos-cinematic-launch-3min.mp4",
+            "Media: GET /lifeos/media/lifeos-cinematic-launch-3min.mp4 (range-enabled)",
             "JSON bible: GET /lifeos/cinematic",
-            "Keyframes under /lifeos/cinematic/*.png",
+            "Keyframes under /lifeos/media/*.png",
             "Same board-meeting voice beat as /lifeos/demo-app sample scenario",
         ]);
 }
