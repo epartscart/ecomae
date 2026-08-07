@@ -42,17 +42,20 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
                 "Secrets", "Edge", "Performance", "SRE", "Production Readiness"
             ],
             ["ILifeOsCloudOperations", "K8s/GPU/SRE digests", "/lifeos/infra", "FORCE_LIVE note"]),
-        P(7, "Enterprise Security, Privacy, Compliance & Governance", "registry",
+        P(7, "Enterprise Security, Privacy, Compliance & AI Governance", "scaffold",
             [
-                "Zero Trust", "IAM", "RBAC/ABAC", "Data Classification", "Encryption",
-                "Privacy-by-Design", "Consent", "Audit & Compliance", "AI Governance",
-                "Policy Engine", "Enterprise Admin", "Data Residency", "Threat Detection",
-                "SOC", "Governance Dashboards", "AI Safety & Human Oversight"
+                "Security Philosophy", "Zero Trust", "IAM", "Authorization", "Agent Security",
+                "Data Classification", "Encryption", "Privacy-by-Design", "Consent", "Retention",
+                "Audit", "Compliance", "AI Governance", "AI Safety", "Threat Response",
+                "Enterprise Admin", "Data Residency", "SOC", "Governance Dashboard", "Deployment Models"
             ],
-            ["Local-first controls", "Irreversible-action policy", "Part 7 chapters pending paste"]),
-        P(8, "Native Clients", "scaffold",
-            ["Mobile", "Desktop", "Smart Glasses", "IoT"],
-            ["Client surface registry", "Channel capabilities"]),
+            ["ILifeOsSecurityGovernance", "Zero Trust/IAM/AI Safety digests", "/lifeos/security"]),
+        P(8, "Client Applications & User Experience Architecture", "registry",
+            [
+                "Web", "Mobile", "Desktop", "Smart Glasses", "Wearables", "Vehicle",
+                "Design System", "Interaction Patterns", "Accessibility", "Offline", "Cross-Device Continuity"
+            ],
+            ["Client surface registry", "Channel capabilities", "Part 8 chapters pending paste"]),
         P(9, "Plugin Marketplace & Agent SDK", "scaffold",
             ["Agent SDK", "Plugin manifests", "Developer platform"],
             ["Plugin catalog stubs", "Capability declarations"]),
@@ -110,7 +113,15 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
         new("/lifeos/observability", "GET", "Part 6 monitoring/logging/secrets"),
         new("/lifeos/sre", "GET", "Part 6 SRE objectives + incident lifecycle"),
         new("/lifeos/readiness", "GET", "Part 6 production readiness checklist"),
-        new("/lifeos/security", "GET", "Part 7 security controls"),
+        new("/lifeos/security", "GET", "Part 7 Ch.82–101 security/governance digest"),
+        new("/lifeos/zero-trust", "GET", "Part 7 Zero Trust flow"),
+        new("/lifeos/iam", "GET", "Part 7 IAM / MFA digest"),
+        new("/lifeos/authorization", "GET", "Part 7 RBAC/ABAC/PBAC + agent sandbox"),
+        new("/lifeos/encryption", "GET", "Part 7 encryption + classification"),
+        new("/lifeos/privacy", "GET", "Part 7 privacy/consent/retention/compliance"),
+        new("/lifeos/ai-governance", "GET", "Part 7 AI governance + safety engine"),
+        new("/lifeos/threat-soc", "GET", "Part 7 threat detection + SOC + dashboards"),
+        new("/lifeos/enterprise-deploy", "GET", "Part 7 enterprise admin + residency + deploy models"),
         new("/lifeos/clients", "GET", "Part 8 client surfaces"),
         new("/lifeos/plugins", "GET", "Part 9 plugin marketplace"),
         new("/lifeos/roadmap", "GET", "Part 10 roadmap & research"),
@@ -165,12 +176,17 @@ public sealed class LifeOsMasterSpec : ILifeOsMasterSpec
             monitoring = "health checks + migration digests + Part 6 observability registry",
             note = "Multi-region K8s/Istio/GPU not claimed"
         },
-        part7 = new { controls = SecurityControls, note = "Part 7 security/governance chapters pending paste" },
+        part7 = new
+        {
+            controls = SecurityControls,
+            note = "Full Part 7 digest at /lifeos/security",
+            principles = new[] { "Zero Trust", "Privacy by Design", "Least Privilege", "Defense in Depth", "Explainable AI" }
+        },
         part8 = new { clients = Clients },
         part9 = new { plugins = Plugins },
         part10 = new
         {
-            testing = "LifeOsPart2 + Part3 + Part4 + Part5Platform + Part6CloudOps + MasterSpec tests",
+            testing = "LifeOsPart2 + Part3 + Part4 + Part5 + Part6 + Part7Security + MasterSpec tests",
             roadmap = new[]
             {
                 "Wire durable memory + pgvector",

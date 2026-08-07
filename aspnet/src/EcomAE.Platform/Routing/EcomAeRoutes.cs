@@ -1526,6 +1526,15 @@ public static class EcomAeRoutes
     public const string LifeOsSre = "/lifeos/sre";
     public const string LifeOsReadiness = "/lifeos/readiness";
     public const string LifeOsSecurityDigest = "/lifeos/security";
+    public const string LifeOsSecurityApp = "/lifeos/security-app";
+    public const string LifeOsZeroTrust = "/lifeos/zero-trust";
+    public const string LifeOsIam = "/lifeos/iam";
+    public const string LifeOsAuthorization = "/lifeos/authorization";
+    public const string LifeOsEncryption = "/lifeos/encryption";
+    public const string LifeOsPrivacy = "/lifeos/privacy";
+    public const string LifeOsAiGovernance = "/lifeos/ai-governance";
+    public const string LifeOsThreatSoc = "/lifeos/threat-soc";
+    public const string LifeOsEnterpriseDeploy = "/lifeos/enterprise-deploy";
     public const string LifeOsClients = "/lifeos/clients";
     public const string LifeOsPlugins = "/lifeos/plugins";
     public const string LifeOsRoadmap = "/lifeos/roadmap";

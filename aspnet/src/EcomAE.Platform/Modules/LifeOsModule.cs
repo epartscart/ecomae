@@ -6,6 +6,7 @@ using EcomAE.Platform.LifeOs.Part3;
 using EcomAE.Platform.LifeOs.Part4;
 using EcomAE.Platform.LifeOs.Part5;
 using EcomAE.Platform.LifeOs.Part6;
+using EcomAE.Platform.LifeOs.Part7;
 using EcomAE.Platform.LifeOs.Spec;
 using EcomAE.Platform.Routing;
 
@@ -189,8 +190,41 @@ public sealed class LifeOsModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.LifeOsReadiness, (ILifeOsCloudOperations ops) =>
             Results.Ok(new { ok = true, checklist = ops.ProductionReadinessChecklist, targets = ops.PerformanceTargets }));
 
-        endpoints.MapGet(EcomAeRoutes.LifeOsSecurityDigest, (ILifeOsMasterSpec spec, ILifeOsPlatformEngineering platform) =>
-            Results.Ok(new { ok = true, part = 7, controls = spec.SecurityControls, auth = platform.AuthDigest() }));
+        // ── Part 7 digests (Ch.82–101 Security / Privacy / Governance) ────────
+        endpoints.MapGet(EcomAeRoutes.LifeOsSecurityDigest, (
+            ILifeOsSecurityGovernance gov,
+            ILifeOsMasterSpec spec) =>
+            Results.Ok(new
+            {
+                ok = true,
+                part = 7,
+                digest = gov.FullPart7Digest(),
+                legacyControls = spec.SecurityControls
+            }));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsZeroTrust, (ILifeOsSecurityGovernance gov) =>
+            Results.Ok(gov.ZeroTrustDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsIam, (ILifeOsSecurityGovernance gov) =>
+            Results.Ok(gov.IamDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsAuthorization, (ILifeOsSecurityGovernance gov) =>
+            Results.Ok(gov.AuthorizationDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsEncryption, (ILifeOsSecurityGovernance gov) =>
+            Results.Ok(gov.EncryptionDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsPrivacy, (ILifeOsSecurityGovernance gov) =>
+            Results.Ok(gov.PrivacyAndConsentDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsAiGovernance, (ILifeOsSecurityGovernance gov) =>
+            Results.Ok(gov.AiGovernanceDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsThreatSoc, (ILifeOsSecurityGovernance gov) =>
+            Results.Ok(gov.ThreatAndSocDigest()));
+
+        endpoints.MapGet(EcomAeRoutes.LifeOsEnterpriseDeploy, (ILifeOsSecurityGovernance gov) =>
+            Results.Ok(gov.EnterpriseAndDeploymentDigest()));
 
         endpoints.MapGet(EcomAeRoutes.LifeOsClients, (ILifeOsMasterSpec spec) =>
             Results.Ok(new { ok = true, part = 8, clients = spec.Clients }));
@@ -214,14 +248,16 @@ public sealed class LifeOsModule : ISurfaceModule
             ILifeOsAiCore ai,
             ILifeOsMultimodalRuntime runtime,
             ILifeOsPlatformEngineering platform,
-            ILifeOsCloudOperations ops) =>
+            ILifeOsCloudOperations ops,
+            ILifeOsSecurityGovernance gov) =>
             Results.Ok(spec.FullDigest(cognitive, new
             {
                 part2 = orch.ArchitectureDigest(),
                 part3 = ai.FullPart3Digest(),
                 part4 = runtime.FullPart4Digest(),
                 part5 = platform.FullPart5Digest(),
-                part6 = ops.FullPart6Digest()
+                part6 = ops.FullPart6Digest(),
+                part7 = gov.FullPart7Digest()
             })));
 
         endpoints.MapPost(EcomAeRoutes.LifeOsOrchestrate, async (
