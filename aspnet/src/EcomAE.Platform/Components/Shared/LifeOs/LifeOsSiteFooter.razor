@@ -1,0 +1,124 @@
+@using EcomAE.Platform.LifeOs.Legal
+@using EcomAE.Platform.Routing
+
+<footer class="lo-site-footer" aria-label="LifeOS site footer">
+  <div class="lo-site-footer__inner">
+    <div class="lo-site-footer__brand">
+      <strong>Life<em>OS</em>™</strong>
+      <p>
+        Universal Ambient Artificial Intelligence — product of Electronic World Group / ECOM AE.
+        Human control always first.
+      </p>
+      <div class="lo-site-footer__product">
+        <a href="@EcomAeRoutes.LifeOs">Home</a>
+        <a href="@EcomAeRoutes.LifeOsJoin">Join</a>
+        <a href="@EcomAeRoutes.LifeOsMobile">Mobile</a>
+        <a href="@EcomAeRoutes.LifeOsRoutine">24/7 routine</a>
+        <a href="@EcomAeRoutes.LifeOsSpec">Spec</a>
+        <a href="@EcomAeRoutes.LifeOsLogin">Sign in</a>
+        <a href="https://www.ecomae.com/">ecomae.com</a>
+      </div>
+    </div>
+
+    <div class="lo-site-footer__legal">
+      <p class="lo-site-footer__legal-label">Legal &amp; security</p>
+      <nav class="lo-site-footer__legal-links" aria-label="Legal and copyright policies">
+        @foreach (var link in LifeOsLegalCatalog.FooterLegalLinks)
+        {
+          <a href="@link.Href" rel="noopener noreferrer">@link.Label</a>
+        }
+      </nav>
+    </div>
+
+    <p class="lo-site-footer__copy">
+      @LifeOsLegalCatalog.CopyrightLine(DateTime.UtcNow.Year)
+      · <a href="@LifeOsLegalCatalog.LegalHubHref" rel="noopener noreferrer">Legal policies</a>
+      · LifeOS™ trademark &amp; copyright subject to
+      <a href="@(LifeOsLegalCatalog.CanonicalHost)/trademark" rel="noopener noreferrer">Trademark</a>
+      and
+      <a href="@(LifeOsLegalCatalog.CanonicalHost)/copyright" rel="noopener noreferrer">Copyright</a>
+      notices.
+    </p>
+  </div>
+</footer>
+
+<style>
+.lo-site-footer {
+  --lo-ft-bg: #020617;
+  --lo-ft-ink: #e2e8f0;
+  --lo-ft-mute: #94a3b8;
+  --lo-ft-line: rgba(148,163,184,.22);
+  --lo-ft-link: #7dd3fc;
+  margin-top: auto;
+  background: var(--lo-ft-bg);
+  color: var(--lo-ft-mute);
+  border-top: 1px solid var(--lo-ft-line);
+  font-family: "Sora", "Segoe UI", sans-serif;
+}
+.lo-site-footer__inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1.75rem clamp(1rem, 3vw, 2rem) 2.25rem;
+}
+.lo-site-footer__brand strong {
+  display: block;
+  color: var(--lo-ft-ink);
+  font-size: 1.15rem;
+  letter-spacing: .02em;
+  margin-bottom: .45rem;
+}
+.lo-site-footer__brand em {
+  font-style: normal;
+  color: #38bdf8;
+}
+.lo-site-footer__brand p {
+  margin: 0 0 .85rem;
+  max-width: 36rem;
+  line-height: 1.5;
+  font-size: .9rem;
+}
+.lo-site-footer__product {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem 1rem;
+  margin-bottom: 1.35rem;
+}
+.lo-site-footer__product a,
+.lo-site-footer__legal-links a,
+.lo-site-footer__copy a {
+  color: var(--lo-ft-link);
+  text-decoration: none;
+  font-weight: 650;
+  font-size: .88rem;
+}
+.lo-site-footer__product a:hover,
+.lo-site-footer__legal-links a:hover,
+.lo-site-footer__copy a:hover {
+  text-decoration: underline;
+}
+.lo-site-footer__legal {
+  padding-top: 1rem;
+  border-top: 1px solid var(--lo-ft-line);
+}
+.lo-site-footer__legal-label {
+  margin: 0 0 .65rem;
+  color: var(--lo-ft-ink);
+  font-size: .72rem;
+  font-weight: 750;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.lo-site-footer__legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem 1.05rem;
+}
+.lo-site-footer__copy {
+  margin: 1.25rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--lo-ft-line);
+  font-size: .8rem;
+  line-height: 1.55;
+  color: var(--lo-ft-mute);
+}
+</style>

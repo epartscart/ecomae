@@ -1,0 +1,36 @@
+{
+  "id": "lifeos-legal-footer-php-parity",
+  "capturedAtUtc": "2026-08-07T12:45:00Z",
+  "verdict": "live-scaffold",
+  "summary": "lifeos.ecomae.com site footer mirrors PHP ecomae.com Legal & security strip + Electronic World Group copyright",
+  "phpSource": "content/general_pages/epc_ecomae_platform_layout.php :: epc_ecomae_platform_layout_close()",
+  "aspnet": {
+    "catalog": "LifeOs/Legal/LifeOsLegalCatalog.cs",
+    "footer": "Components/Shared/LifeOs/LifeOsSiteFooter.razor",
+    "layout": "Components/Layout/LifeOsProductLayout.razor"
+  },
+  "links": [
+    "All policies → https://www.ecomae.com/legal",
+    "Privacy → https://www.ecomae.com/privacy",
+    "Terms → https://www.ecomae.com/terms",
+    "Cookies → https://www.ecomae.com/cookie-policy",
+    "Security → https://www.ecomae.com/security-policy",
+    "Right to use → https://www.ecomae.com/right-to-use",
+    "Trademark → https://www.ecomae.com/trademark",
+    "Copyright → https://www.ecomae.com/copyright",
+    "Data protection → https://www.ecomae.com/data-protection",
+    "Acceptable use → https://www.ecomae.com/acceptable-use",
+    "Confidentiality → https://www.ecomae.com/confidentiality",
+    "Intellectual property → https://www.ecomae.com/intellectual-property",
+    "Blockchain disclaimer → https://www.ecomae.com/blockchain-disclaimer",
+    "IP notice → https://www.ecomae.com/dmca"
+  ],
+  "copyright": "© {year} Electronic World Group · Dubai, UAE · Legal policies",
+  "note": "Canonical policy bodies remain PHP-primary on www.ecomae.com (lifeos host returns 404 for bare /privacy).",
+  "prove": [
+    "curl -sL https://lifeos.ecomae.com/lifeos | grep -F 'Legal &amp; security'",
+    "curl -sL https://lifeos.ecomae.com/lifeos | grep -F 'https://www.ecomae.com/privacy'",
+    "curl -sL https://lifeos.ecomae.com/lifeos | grep -F 'Electronic World Group'",
+    "curl -sL https://lifeos.ecomae.com/lifeos/mobile | grep -F 'https://www.ecomae.com/copyright'"
+  ]
+}

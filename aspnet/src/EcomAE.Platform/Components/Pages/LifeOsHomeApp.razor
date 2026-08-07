@@ -1,6 +1,6 @@
 @page "/lifeos"
 @* No trailing-slash twin — /lifeos vs /lifeos/ AmbiguousMatchException under ASP.NET routing. *@
-@layout Layout.PhpChromeLayout
+@layout Layout.LifeOsProductLayout
 @using EcomAE.Platform.LifeOs.Cinematic
 @using EcomAE.Platform.LifeOs.Purpose
 @using EcomAE.Platform.LifeOs.Spec
@@ -298,14 +298,6 @@
     </ul>
   </section>
 
-  <footer class="lifeos-footer">
-    <div>LifeOS™ · ecomae Intelligence Platform · lifeos.ecomae.com</div>
-    <div>
-      <a href="@EcomAeRoutes.LifeOsLogin">Sign in</a>
-      · <a href="@EcomAeRoutes.LifeOsSpec">Spec</a>
-      · <a href="https://www.ecomae.com/">ecomae.com</a>
-    </div>
-  </footer>
 </div>
 
 <PhpLifeOsAmbientAudio ButtonId="lifeOsHomeAmbient" />
@@ -671,15 +663,6 @@ html, body.lifeos-body {
   display: block; font-size: 1rem; margin-bottom: .25rem; color: var(--lo-black);
 }
 .lifeos-principles__list span { color: var(--lo-muted); font-size: .9rem; line-height: 1.45; }
-.lifeos-footer {
-  padding: 2rem clamp(1.5rem,4vw,3.5rem) 2.5rem;
-  border-top: 1px solid var(--lo-line);
-  background: var(--lo-black);
-  color: #94a3b8;
-  font-size: .85rem;
-  display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between;
-}
-.lifeos-footer a { color: var(--lo-blue-bright); font-weight: 700; text-decoration: none; }
 @@media (max-width: 720px) {
   .lifeos-flow__arrow { display: none; }
   .lifeos-hero { align-items: center; }
