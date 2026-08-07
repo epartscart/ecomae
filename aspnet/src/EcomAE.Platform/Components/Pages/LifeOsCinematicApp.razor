@@ -5,7 +5,7 @@
 @using EcomAE.Platform.Routing
 @inject ILifeOsCinematicFilm Film
 
-<PageTitle>LifeOS™ · Cinematic launch film</PageTitle>
+<PageTitle>LifeOS™ · Daily clone routine film</PageTitle>
 <PhpSurfaceHead Surface="lifeos" />
 <PhpChromeBodyClass Surface="lifeos" />
 <link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
@@ -27,20 +27,20 @@
     </nav>
   </header>
 
-  <main class="locine-stage" aria-label="LifeOS cinematic launch film">
-    <p class="locine-kicker">3:00 product launch film · 16:9</p>
-    <h1>LifeOS — The Operating System for Human Intelligence</h1>
+  <main class="locine-stage" aria-label="LifeOS daily human + AI clone routine film">
+    <p class="locine-kicker">1:22 · morning → evening · @Film.ProtagonistName ↔ @Film.ProtagonistName</p>
+    <h1>LifeOS — Human + same-name AI clone, all day</h1>
     <p class="locine-lede">
-      Apple keynote × JARVIS × holographic OS. Watch the full launch film, then jump to any timed beat.
+      @Film.ProtagonistName speaks with @Film.ProtagonistName — the identical LifeOS clone — for advice at every daily stage. Sound is on the file: use the player volume control. Jump to any beat below.
     </p>
 
     <div class="locine-player">
       <video id="lifeos-launch-film"
              controls
              playsinline
-             preload="metadata"
+             preload="auto"
              poster="@Film.PosterUrl"
-             aria-label="LifeOS cinematic launch film">
+             aria-label="LifeOS daily human + AI clone routine film with dialogue">
         <source src="@Film.VideoUrl" type="video/mp4" />
         Your browser does not support HTML5 video.
       </video>
@@ -62,8 +62,8 @@
     <section class="locine-meta">
       <p>Published at <code>@Film.VideoUrl</code> · poster + keyframes under <code>/lifeos/media/</code>.</p>
       <p class="locine-downloads">
-        <a class="locine-dl" href="@Film.VideoDownloadUrl" download="LifeOS-Cinematic-Launch-3min.mp4">Download MP4</a>
-        <a class="locine-dl ghost" href="@Film.PosterUrl" download="LifeOS-Cinematic-Poster.png">Download poster</a>
+        <a class="locine-dl" href="@Film.VideoDownloadUrl" download="LifeOS-Daily-Clone-Routine.mp4">Download MP4</a>
+        <a class="locine-dl ghost" href="@Film.PosterUrl" download="LifeOS-Daily-Clone-Poster.png">Download poster</a>
         <a class="locine-link" href="@EcomAeRoutes.IpApp">IP panel →</a>
         <a class="locine-link" href="@EcomAeRoutes.LifeOsDemoApp">Board-meeting sample →</a>
       </p>

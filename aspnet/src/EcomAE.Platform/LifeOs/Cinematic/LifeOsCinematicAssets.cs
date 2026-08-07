@@ -16,7 +16,14 @@ public static class LifeOsCinematicAssets
 
     private static readonly HashSet<string> AllowList = new(StringComparer.OrdinalIgnoreCase)
     {
+        "lifeos-daily-clone-routine.mp4",
+        "lifeos-daily-clone-routine-hero.mp4",
         "lifeos-cinematic-launch-3min.mp4",
+        "lifeos-clone-scene01-morning.png",
+        "lifeos-clone-scene02-deepwork.png",
+        "lifeos-clone-scene03-lunch.png",
+        "lifeos-clone-scene04-gym.png",
+        "lifeos-clone-scene05-evening.png",
         "lifeos-cinematic-scene01-earth.png",
         "lifeos-cinematic-scene02-continuity.png",
         "lifeos-cinematic-scene03-brain.png",
@@ -30,7 +37,7 @@ public static class LifeOsCinematicAssets
         endpoints.MapGet(MediaPrefix + "/{fileName}", (HttpContext http, string fileName) =>
             Serve(env, http, fileName));
 
-        // Keep old download URLs working: /lifeos/cinematic/lifeos-cinematic-launch-3min.mp4
+        // Keep old download URLs working: /lifeos/cinematic/*.mp4
         endpoints.MapGet(LegacyCinematicPrefix + "/{fileName}", (HttpContext http, string fileName) =>
             Serve(env, http, fileName));
     }
@@ -52,11 +59,9 @@ public static class LifeOsCinematicAssets
             return Results.NotFound(new { ok = false, error = "unknown-lifeos-media" });
         }
 
-        var webRoot = env.WebRootPath;
-        if (string.IsNullOrWhiteSpace(webRoot))
-        {
-            webRoot = Path.Combine(env.ContentRootPath, "wwwroot");
-        }
+        var webRoot = string.IsNullOrWhiteSpace(env.WebRootPath)
+            ? Path.Combine(env.ContentRootPath, "wwwroot")
+            : env.WebRootPath;
 
         var path = Path.GetFullPath(Path.Combine(webRoot, "lifeos", "cinematic", fileName));
         var root = Path.GetFullPath(Path.Combine(webRoot, "lifeos", "cinematic"));
@@ -76,11 +81,11 @@ public static class LifeOsCinematicAssets
         // ?download=1 (or any non-zero download query) → Content-Disposition: attachment
         var forceDownload = http.Request.Query.TryGetValue("download", out var downloadVals)
             && !string.Equals(downloadVals.ToString(), "0", StringComparison.OrdinalIgnoreCase);
-        var downloadName = forceDownload ? fileName : null;
+
         return Results.File(
             path,
             ContentTypeFor(fileName),
-            fileDownloadName: downloadName,
+            fileDownloadName: forceDownload ? fileName : null,
             enableRangeProcessing: true);
     }
 
@@ -114,12 +119,6 @@ public static class LifeOsCinematicAssets
         if (fileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
         {
             return "image/png";
-        }
-
-        if (fileName.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
-            || fileName.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase))
-        {
-            return "image/jpeg";
         }
 
         return "application/octet-stream";

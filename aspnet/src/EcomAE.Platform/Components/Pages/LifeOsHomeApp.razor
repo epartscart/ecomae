@@ -28,58 +28,23 @@
 <div class="lifeos-ambient lifeos-infographic">
   <section class="lifeos-hero" aria-label="LifeOS hero">
     <div class="lifeos-hero__plane" aria-hidden="true">
-      <svg class="lifeos-hero__viz" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" role="presentation">
-        <defs>
-          <linearGradient id="loSky" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#020617"/>
-            <stop offset="45%" stop-color="#0b1b3a"/>
-            <stop offset="100%" stop-color="#0ea5e9"/>
-          </linearGradient>
-          <linearGradient id="loBlue" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#2563eb"/>
-          </linearGradient>
-          <marker id="loArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L6,3 L0,6 Z" fill="#38bdf8"/>
-          </marker>
-        </defs>
-        <rect width="1440" height="900" fill="url(#loSky)"/>
-        <g opacity=".18" stroke="#ffffff" stroke-width="1">
-          <path d="M0 180 H1440 M0 360 H1440 M0 540 H1440 M0 720 H1440"/>
-          <path d="M180 0 V900 M360 0 V900 M540 0 V900 M720 0 V900 M900 0 V900 M1080 0 V900 M1260 0 V900"/>
-        </g>
-        @* Lifestyle silhouette — professional figure *@
-        <g class="lifeos-hero__figure" fill="none" stroke="#e2e8f0" stroke-width="3" stroke-linecap="round">
-          <circle cx="1080" cy="280" r="28"/>
-          <path d="M1080 318 V430"/>
-          <path d="M1080 350 L1020 400"/>
-          <path d="M1080 350 L1145 390"/>
-          <path d="M1080 430 L1035 540"/>
-          <path d="M1080 430 L1125 540"/>
-          <path d="M1020 400 L990 360" stroke="#38bdf8"/>
-        </g>
-        @* Financial chart *@
-        <g class="lifeos-hero__chart" fill="none" stroke="url(#loBlue)" stroke-width="4" stroke-linecap="round">
-          <path class="lifeos-hero__spark" d="M820 520 L880 480 L940 500 L1000 420 L1060 450 L1120 360 L1180 390 L1240 300"/>
-          <circle cx="1240" cy="300" r="6" fill="#38bdf8" stroke="none"/>
-        </g>
-        @* Flow arrows *@
-        <g stroke="#38bdf8" stroke-width="2.5" fill="none" marker-end="url(#loArrow)" opacity=".85">
-          <path class="lifeos-hero__flow-a" d="M760 620 C880 600, 960 560, 1040 500"/>
-          <path class="lifeos-hero__flow-b" d="M760 680 C900 700, 1020 640, 1140 560"/>
-        </g>
-        @* Icon nodes *@
-        <g class="lifeos-hero__nodes" fill="#0b1b3a" stroke="#38bdf8" stroke-width="2">
-          <rect x="700" y="590" width="56" height="56" rx="6"/><text x="728" y="625" text-anchor="middle" fill="#fff" font-size="18" font-family="Sora,sans-serif">$</text>
-          <rect x="700" y="660" width="56" height="56" rx="6"/><text x="728" y="695" text-anchor="middle" fill="#fff" font-size="16" font-family="Sora,sans-serif">↑</text>
-        </g>
-      </svg>
+      <video id="lifeos-hero-video"
+             class="lifeos-hero__video"
+             autoplay
+             muted
+             loop
+             playsinline
+             preload="auto"
+             poster="@Film.PosterUrl">
+        <source src="@Film.HeroVideoUrl" type="video/mp4" />
+      </video>
     </div>
     <div class="lifeos-hero__veil" aria-hidden="true"></div>
     <div class="lifeos-hero__content">
       <h1 class="lifeos-brand">Life<em>OS</em>™</h1>
-      <p class="lifeos-hero__headline">Intelligence that runs beside a professional life</p>
+      <p class="lifeos-hero__headline">Your day, with your clone beside you</p>
       <p class="lifeos-hero__lede">
-        Perceive, decide, and act across work, wealth, health, and home — with human control always first.
+        Morning to evening — @Film.ProtagonistName talks with @Film.ProtagonistName, the same-name AI clone, for advice on every daily move. Human control always first.
       </p>
       <div class="lifeos-cta">
         <a class="lifeos-cta__primary" href="@EcomAeRoutes.LifeOsJoin">Join & install</a>
@@ -91,18 +56,88 @@
         <a class="lifeos-cta__ghost" href="@EcomAeRoutes.LifeOsSpec">Master Spec v@_version</a>
       </div>
     </div>
+    <button type="button"
+            id="lifeos-ambient-toggle"
+            class="lifeos-ambient-toggle"
+            aria-pressed="false"
+            aria-controls="lifeos-hero-video"
+            title="Turn ambient dialogue sound on">
+      ◀ AMBIENT
+    </button>
   </section>
+  <script>
+  (() => {
+    const KEY = 'lifeos-hero-ambient-on';
+    const bind = () => {
+      const v = document.getElementById('lifeos-hero-video');
+      const btn = document.getElementById('lifeos-ambient-toggle');
+      if (!v || !btn) return;
+
+      const setUi = (on) => {
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.classList.toggle('is-on', on);
+        btn.title = on ? 'Mute ambient dialogue' : 'Turn ambient dialogue sound on';
+        btn.textContent = on ? '◼ SOUND ON' : '◀ AMBIENT';
+      };
+
+      const apply = (on) => {
+        v.muted = !on;
+        v.volume = on ? 0.85 : 0;
+        if (on) {
+          v.play().catch(() => {});
+        }
+        setUi(on);
+        try { sessionStorage.setItem(KEY, on ? '1' : '0'); } catch (_) {}
+      };
+
+      btn.addEventListener('click', () => {
+        const next = v.muted || btn.getAttribute('aria-pressed') !== 'true';
+        apply(next);
+      });
+
+      // Browsers block unmuted autoplay — start muted, restore preference after a gesture if saved.
+      let preferOn = false;
+      try { preferOn = sessionStorage.getItem(KEY) === '1'; } catch (_) {}
+      setUi(false);
+      v.muted = true;
+      v.volume = 0.85;
+      v.play().catch(() => {});
+
+      if (preferOn) {
+        const unlock = () => {
+          apply(true);
+          window.removeEventListener('pointerdown', unlock, true);
+          window.removeEventListener('keydown', unlock, true);
+        };
+        window.addEventListener('pointerdown', unlock, true);
+        window.addEventListener('keydown', unlock, true);
+      }
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bind);
+    } else {
+      bind();
+    }
+  })();
+  </script>
 
   <section class="lifeos-section lifeos-film" aria-labelledby="lo-film-title">
-    <h2 id="lo-film-title">Launch film</h2>
-    <p class="lifeos-section__lede">Three minutes. One intelligence across every device, business, and person.</p>
+    <h2 id="lo-film-title">Daily clone film</h2>
+    <p class="lifeos-section__lede">
+      Morning → evening with human @Film.ProtagonistName and identical AI clone @Film.ProtagonistName — advice at every stage.
+    </p>
     <div class="lifeos-film__player">
-      <video controls playsinline preload="metadata" poster="@Film.PosterUrl" aria-label="LifeOS cinematic launch film">
+      <video id="lifeos-film-inline"
+             controls
+             playsinline
+             preload="metadata"
+             poster="@Film.PosterUrl"
+             aria-label="LifeOS daily human + AI clone routine film with dialogue">
         <source src="@Film.VideoUrl" type="video/mp4" />
       </video>
     </div>
     <p class="lifeos-film__more">
-      <a class="lifeos-film__dl" href="@Film.VideoDownloadUrl" download="LifeOS-Cinematic-Launch-3min.mp4">Download MP4</a>
+      <a class="lifeos-film__dl" href="@Film.VideoDownloadUrl" download="LifeOS-Daily-Clone-Routine.mp4">Download MP4</a>
       <a href="@EcomAeRoutes.LifeOsCinematicApp">Open film theatre →</a>
       <a href="@EcomAeRoutes.IpApp">IP download panel →</a>
     </p>
@@ -340,39 +375,57 @@ html, body.lifeos-body {
 .lifeos-hero__plane {
   position: absolute; inset: 0;
   z-index: 0;
+  overflow: hidden;
+  background: #020617;
 }
-.lifeos-hero__viz { width: 100%; height: 100%; display: block; }
+.lifeos-hero__video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  transform: scale(1.04);
+  filter: saturate(1.05) contrast(1.05);
+}
 .lifeos-hero__veil {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background:
-    linear-gradient(105deg, rgba(2,6,23,.92) 0%, rgba(2,6,23,.72) 38%, rgba(2,6,23,.25) 68%, transparent 100%),
-    linear-gradient(0deg, rgba(2,6,23,.55) 0%, transparent 45%);
+    linear-gradient(105deg, rgba(2,6,23,.88) 0%, rgba(2,6,23,.62) 40%, rgba(2,6,23,.28) 70%, rgba(2,6,23,.35) 100%),
+    linear-gradient(0deg, rgba(2,6,23,.72) 0%, transparent 48%);
 }
 .lifeos-hero__content {
   position: relative; z-index: 2;
   max-width: 36rem;
   animation: lifeos-rise .85s ease-out both;
 }
+.lifeos-ambient-toggle {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  z-index: 3;
+  appearance: none;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(2,6,23,.72);
+  color: #e2e8f0;
+  font-family: var(--lo-sans);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  padding: .65rem .9rem;
+  border-radius: .2rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+.lifeos-ambient-toggle:hover,
+.lifeos-ambient-toggle.is-on {
+  background: rgba(37,99,235,.85);
+  border-color: rgba(147,197,253,.7);
+  color: #fff;
+}
 @@keyframes lifeos-rise {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: none; }
-}
-.lifeos-hero__spark {
-  stroke-dasharray: 420;
-  stroke-dashoffset: 420;
-  animation: lifeos-draw 2.4s ease-out .3s forwards;
-}
-@@keyframes lifeos-draw { to { stroke-dashoffset: 0; } }
-.lifeos-hero__flow-a, .lifeos-hero__flow-b {
-  stroke-dasharray: 8 10;
-  animation: lifeos-dash 1.8s linear infinite;
-}
-.lifeos-hero__flow-b { animation-delay: .4s; }
-@@keyframes lifeos-dash { to { stroke-dashoffset: -36; } }
-.lifeos-hero__figure { animation: lifeos-figure 6s ease-in-out infinite; transform-origin: 1080px 430px; }
-@@keyframes lifeos-figure {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
 }
 .lifeos-brand {
   font-family: var(--lo-display);
