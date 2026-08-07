@@ -145,7 +145,7 @@ public sealed class LifeOsPersonalAuthGateMiddleware
         return false;
     }
 
-    internal static bool IsJoinPath(string path)
+    public static bool IsJoinPath(string path)
     {
         var bare = (path ?? "/").TrimEnd('/');
         if (bare.Length == 0)
