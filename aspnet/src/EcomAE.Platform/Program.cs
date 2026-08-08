@@ -56,6 +56,7 @@ builder.Services.AddSingleton<ILegacySessionStore>(sp =>
         : inner;
 });
 builder.Services.AddSingleton<ILegacySessionValidator, DbBackedLegacySessionValidator>();
+builder.Services.AddSingleton<EcomAE.Platform.Storefront.IStorefrontPriceAccess, EcomAE.Platform.Storefront.StorefrontPriceAccess>();
 builder.Services.AddSingleton<ILegacySessionParityReporter, LegacySessionParityReporter>();
 builder.Services.AddSingleton<LegacyLogoutService>();
 builder.Services.AddSingleton<ILegacyAdminLoginService>(sp =>

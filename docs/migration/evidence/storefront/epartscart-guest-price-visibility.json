@@ -1,0 +1,27 @@
+{
+  "title": "ePartsCart guest / wholesale price visibility (PHP parity)",
+  "date": "2026-08-08",
+  "complaint": "epartscart.com — price not displayed for guest user; wholesale user needs approval.",
+  "php_reference": {
+    "helpers": "content/shop/docpart/epc_storefront_prices_helpers.php",
+    "trade": "content/shop/pricing/epc_customer_trade.php",
+    "rules": {
+      "guest_on_epartscart": "hide price/qty/term/warehouse as ** + login/register CTA",
+      "retail_logged_in": "auto-approved — prices visible",
+      "wholesale_pending": "hide until CP approves (epc_trade_approval_status=pending)",
+      "wholesale_rejected": "hide + contact support",
+      "wholesale_approved": "prices visible"
+    }
+  },
+  "aspnet_fix": {
+    "service": "Storefront/StorefrontPriceAccess.cs",
+    "search_ui": "StorefrontSearchApp.razor masks OfferRow + poll JS",
+    "api": "StorefrontModule search + products-of-bunch set prices_visible + redact",
+    "home": "AvailableBrands(pricesVisible) + featured strip mask"
+  },
+  "tests": "StorefrontGuestPriceVisibilityTests.cs",
+  "locks": {
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false
+  }
+}
