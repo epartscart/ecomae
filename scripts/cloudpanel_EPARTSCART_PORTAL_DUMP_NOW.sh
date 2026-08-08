@@ -124,7 +124,8 @@ printf '\n======== PASTE_ME_BEGIN ========\n'
 printf 'RESOLVER_ROW=%s\n' "${RESOLVED:-NONE}"
 printf 'PUBLIC_BUNCHES_CODE=%s\n' "$BC"
 printf 'POST_LOGIN_REDIRECT=%s\n' "$REDIR"
-printf 'ECOMAE_EPARTSCART_SHOP_DB_HINT=set this to EMAIL_HIT db= or PHP_DB db= value then re-run BIND\n'
+printf 'ECOMAE_EPARTSCART_SHOP_DB_HINT=epartscart PHP portal default is docpart (shared Model C shop)\n'
+printf 'SUGGESTED_BIND=ECOMAE_EPARTSCART_SHOP_DB=docpart\n'
 printf '======== PASTE_ME_END ========\n'
 printf 'RESULT=DUMP_OK\n'
 exit 0

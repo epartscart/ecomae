@@ -30,27 +30,18 @@ If `RESULT=FAIL`, send `/root/epartscart-live-publish-now.log`.
 
 **Symptom:** `/cp/login` → `?error=tenant_db_unbound`; `/storefront/search-bunches` says shop DB not bound; php-reference may still be Archive paused.
 
-**Merging a PR is not a republish.** Do not mark CloudPanel actions complete without pasting the `PASTE_ME_*` / `RESULT=` grep lines back into chat.
+**Merging a PR is not a republish.** Do not mark CloudPanel actions complete without pasting the `RESULT=` grep lines back into chat.
+
+ePartsCart shop DB (PHP portal parity) is the shared **`docpart`** schema — no secret required:
 
 ```bash
 set -euxo pipefail
-# 1) DUMP (always RESULT=DUMP_OK) — paste PASTE_ME block + ROW=/EMAIL_HIT=/PHP_DB=
-curl -fsSL 'https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-portal-dump-bind-7b3b/scripts/cloudpanel_EPARTSCART_PORTAL_DUMP_NOW.sh' \
-  | bash 2>&1 | tee /root/epartscart-portal-dump.log
-grep -E 'RESULT=|ROW=|RESOLVER_|SHOW_DB=|EMAIL_HIT=|PHP_DB=|PASTE_ME_|PUBLIC_|POST_LOGIN' /root/epartscart-portal-dump.log | tail -80
-
-# 2) BIND — if dump shows EMAIL_HIT/PHP_DB, export it first:
-# export ECOMAE_EPARTSCART_SHOP_DB='that_db_name'
-URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_EPARTSCART_BIND_SHOP_DB_NOW.sh'
-TMP=/tmp/epartscart-bind-shop-db-now.sh
-curl -fsSL "$URL" -o "$TMP"
-grep -q BIND_SHOP_DB_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
-export ECOMAE_BRANCH=main
-bash "$TMP" 2>&1 | tee /root/epartscart-bind-shop-db-now.log
-grep -E 'RESULT=|BOUND_|CP_LOGIN_DIAG|GATE_|RESOLVER_|POST_LOGIN|resolved_shop' /root/epartscart-bind-shop-db-now.log | tail -80
+curl -fsSL 'https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-portal-dump-bind-7b3b/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_NOW.sh' \
+  | bash 2>&1 | tee /root/epartscart-bind-docpart-now.log
+grep -E 'RESULT=|BOUND_|CP_LOGIN_DIAG|GATE_|RESOLVER_|POST_LOGIN|resolved_shop|docpart' /root/epartscart-bind-docpart-now.log | tail -80
 ```
 
-**PASS:** paste includes `RESULT=DUMP_OK` and bind `RESULT=PASS` + `BOUND_BUNCHES=YES`; login POST is not `tenant_db_unbound`.
+**PASS:** paste includes `RESULT=PASS` + `BOUND_BUNCHES=YES`; login POST is not `tenant_db_unbound`.
 
 ## 0☠) ALL SITES 502 / epartscart stuck on “Loading — Please wait”
 

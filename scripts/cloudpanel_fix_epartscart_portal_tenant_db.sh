@@ -96,6 +96,17 @@ LIMIT 1;
   [[ -n "$SHOP_DB" ]] && SOURCE="sibling_portal_row"
 fi
 
+# PHP portal parity: ePartsCart storefront shop DB is the shared Model C `docpart`
+# schema (epc_portal_resolve_tenant_db_credentials — never platform `ecomae`).
+if [[ -z "$SHOP_DB" ]]; then
+  has_docpart="$(mysql -h "$DB_HOST" -u "$DB_USER" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='docpart' AND table_name='users';" 2>/dev/null || echo 0)"
+  if [[ "${has_docpart:-0}" != "0" ]]; then
+    SHOP_DB="docpart"
+    SOURCE="php_parity_docpart"
+    printf 'discovered_php_parity_default db=docpart (epartscart shared shop)\n'
+  fi
+fi
+
 if [[ -z "$SHOP_DB" ]]; then
   SOURCE="php_config"
   while IFS= read -r cfg; do
